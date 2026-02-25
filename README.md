@@ -4,6 +4,12 @@ Local Claude Code marketplace with skills at the repo root.
 
 ## Install
 
+Recommended for multiple AI coding agents (via `npx skills`):
+
+```
+npx skills add mr-kelly/skills
+```
+
 In Claude Code:
 
 ```
