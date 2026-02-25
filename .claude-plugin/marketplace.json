@@ -1,0 +1,1 @@
+{ "name": "mr-kelly-skills", "owner": { "name": "Kelly" }, "metadata": { "description": "Mr Kelly skills marketplace", "version": "0.1.0" }, "plugins": [ { "name": "mr-kelly-skills", "description": "Local skills pack", "source": "./", "strict": false, "skills": [ "./skills/agent-rules" ] } ] }
