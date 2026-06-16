@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+
+# App-in-Skill local state
+skills/*/.cache/
+skills/*/app/.cache/
+skills/*/config.local.yml
+skills/*/*.local.yml
+skills/*/.env
+skills/*/.env.local
+
+# Runtime logs
+*.log

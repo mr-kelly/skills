@@ -1,0 +1,4 @@
+interface:
+  display_name: "App-in-Skill Creator"
+  short_description: "Scaffold skills with local review UIs"
+  default_prompt: "Use $app-in-skill-creator to design a file-backed local UI inside my skill."

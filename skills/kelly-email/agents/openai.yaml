@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Email"
+  short_description: "Configurable AI email zero with local approval"
+  default_prompt: "Use $kelly-email to generate a local App UI approval batch for unread email, draft replies, and execute approved decisions. Use chat-only mode only if I ask for it."

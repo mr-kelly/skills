@@ -1,0 +1,582 @@
+---
+name: kelly-email
+description: Configurable email inbox-zero operator for clearing unread email through AI triage, draft replies, local UI review, human approval, and approved execution across configured email accounts. Use when the user invokes $kelly-email, asks to process unread email, generate or execute an email approval batch, review mail in the local App-in-Skill UI, draft replies, archive/mark-read approved messages, or reach email/support inbox zero.
+---
+
+# Kelly Email
+
+## Overview
+
+Use this skill as a configurable email approval desk across configured email accounts. The primary goal is email inbox zero: process all unread in-scope threads until no unreviewed unread items remain. Work in explicit user-approved batches, preserve account/source provenance, classify each request, draft helpful replies, and ask before sending or making external changes.
+
+Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, generate/update the local App-in-Skill batch, ensure the UI is running, and tell the user to review the batch at `http://127.0.0.1:8787/`. If the user says "纯聊天", "chat only", "不要打开 UI", "直接在这里处理", or similar, use chat message mode instead: present numbered items and drafts in the conversation, then execute only explicitly approved actions.
+
+First-run behavior: if no private config exists or required secret env vars are missing, enter onboarding mode before any mailbox scan. Greet the user, explain that this skill needs local config, show the recommended config/env paths, and tell them to store secrets only in local env files. Onboarding should also invite the user to configure their role, brands/products, official URLs, reply style, and knowledge sources so drafts match their business context. Do not ask the user to paste passwords, tokens, app passwords, or OAuth secrets into chat.
+
+## Operating Rules
+
+- Prefer IMAP mailbox access when the local Kelly Email config provides IMAP settings. Use Spark only when the user explicitly asks for Spark or when IMAP is unavailable and Spark is already authorized.
+- Require explicit user approval before starting any email-processing batch. Do not treat invocation of the skill as approval to process mail.
+- Process email in review-quota batches with a declared scope, such as accounts, labels/folders, time window, search query, review quota, and intended actions.
+- If the user approves "process until account done", continue proposing and processing bounded batches for that account until no in-scope threads remain, but still require separate approval before any send or mailbox-changing action.
+- Treat "done" as: every unread in-scope support thread is either replied/drafted, escalated, waiting on user, waiting on customer, or approved for no-reply cleanup. Do not count a thread as done just because it was seen.
+- Treat every message as sensitive. Quote only what is necessary, avoid exposing unrelated thread contents, and never store secrets, tokens, cookies, or private attachments in this repository.
+- Read IMAP/SMTP passwords from environment variables only. Never ask the user to paste secrets into chat or commit them into files.
+- Support multiple inboxes by always tracking `account`, `from`, `thread_id` or message URL/identifier when available, `received_at`, `customer`, `topic`, `status`, `priority`, and `next_action`.
+- Separate physical mailbox accounts from outbound identities. One mailbox can have many aliases, brands, names, signatures, and reply rules.
+- Do not send replies, mark messages, archive, delete, unsubscribe, change labels, or create calendar/contact changes unless the user explicitly approves that exact action. The user may grant a standing approval for low-risk notification cleanup within an approved batch.
+- When multiple configured addresses point to the same underlying mailbox, deduplicate by message-id/thread headers and account group so the same unread thread is not processed twice.
+- If a request depends on product, billing, legal, or policy facts that are not in context, search existing docs or ask the user before giving a definitive answer.
+- Keep customer-facing drafts concise, warm, specific, and honest. Use compressed copy: lead with the answer, cut filler, prefer short paragraphs, and keep most replies under 180 words unless complexity truly requires more.
+- For Chinese user-facing work, communicate with the user in Chinese unless the customer thread uses another language. Draft customer replies in the customer's language when clear.
+
+## Private Configuration
+
+Keep the skill generic. Do not hardcode personal accounts, aliases, product names, passwords, risk keywords, or reply style in the skill code. Read them from private config files that are ignored by git.
+
+Config file priority:
+
+1. `KELLY_EMAIL_CONFIG=/absolute/path/to/config.yml`
+2. `.agents/skills/kelly-email/config.local.yml`
+3. `~/.config/kelly-email/config.yml`
+4. `.agents/skills/kelly-email/config.example.yml`
+
+Env file priority:
+
+1. Existing system environment variables
+2. `KELLY_EMAIL_ENV_FILE=/absolute/path/to/.env`
+3. Repository root `.env`
+4. `.agents/skills/kelly-email/.env.local`
+5. `~/.config/kelly-email/.env`
+
+Data reader selection:
+
+```text
+KELLY_EMAIL_DATA_READER=local
+```
+
+Configuration is read through `lib/data-reader/`. The current reader is `local`, which reads local YAML/env files with the priority above. Keep app server code, scripts, onboarding, and UI summaries dependent on the data-reader interface rather than local files directly, so future readers can provide the same config contract from Supabase, Postgres, or pusa-cloud (`pusa-cloud.bika.ltd`). Recognized future reader names include `supabase`, `postgres`/`pg`, and `pusa-cloud`/`pusabase`; do not use them until implemented.
+
+The config file defines mailbox accounts, aliases, outbound identities, user profile, brands/products, official URLs, knowledge sources, reply style, CTA URLs, approval policy, and user-editable risk keywords. The env file stores secret values referenced by `password_env`; never store secret values in YAML.
+
+Treat `.agents/skills/kelly-email/config.example.yml` as a template only. It must not count as a configured mailbox. If only the example config is present, stop and show onboarding instructions.
+
+For each real email account, add one `mailboxes` entry with IMAP/SMTP settings. For alternate receiving addresses on the same physical mailbox, add `aliases` under that mailbox and reuse the same `mailbox_group_id`. For each outbound persona, add one `identities` entry and map it to the mailbox with `mailbox_id`; choose the identity by `recipient_addresses`, customer domains, or keywords.
+
+When the user asks to add or change an email account, update the private YAML config or explain the exact YAML/env changes needed. Ask for non-secret details only: mailbox email, IMAP/SMTP host/port/security, username, folders, aliases, outbound identities, display names, and routing rules. Never ask for the actual password or app token in chat; create or name the `password_env` variables and tell the user to put the secret values in the private env file. After config changes, offer to test readiness and report missing env vars.
+
+Good user prompts to support:
+
+```text
+/kelly-email 帮我增加一个 email account：邮箱是 name@example.com，IMAP/SMTP 是 example.com，alias 有 support@example.com，用 Support 身份回复。请更新本地 config，但不要让我在聊天里贴密码。
+
+/kelly-email 给 main 账号增加 alias：hello@example.com，并新增一个 outbound identity：display name 是 Founder，send_as 是 founder@example.com。
+
+/kelly-email 测试当前 email account 配置，告诉我缺哪些 env secret。
+```
+
+Example setup:
+
+```yaml
+mailboxes:
+  - mailbox_id: "main"
+    display_name: "Main Inbox"
+    primary_email: "me@example.com"
+    aliases:
+      - "founder@example.com"
+      - "support@example.com"
+    imap:
+      host: "imap.example.com"
+      port: 993
+      security: "ssl"
+      username: "me@example.com"
+      password_env: "KELLY_EMAIL_IMAP_PASSWORD_MAIN"
+    smtp:
+      host: "smtp.example.com"
+      port: 465
+      security: "ssl"
+      username: "me@example.com"
+      password_env: "KELLY_EMAIL_SMTP_PASSWORD_MAIN"
+    support_folders_or_labels: ["Inbox"]
+    mailbox_group_id: "main-account"
+    send_identities: ["founder", "support"]
+
+identities:
+  - identity_id: "support"
+    mailbox_id: "main"
+    send_as_email: "support@example.com"
+    display_name: "Support"
+    use_when:
+      recipient_addresses: ["support@example.com"]
+
+risk_policy:
+  review_keywords:
+    money: ["invoice", "payment", "账单", "付款"]
+    security: ["password", "token", "privacy"]
+  allow_override_for: ["archive", "mark_read"]
+```
+
+Example env:
+
+```text
+KELLY_EMAIL_IMAP_PASSWORD_MAIN=app-password-or-token
+KELLY_EMAIL_SMTP_PASSWORD_MAIN=app-password-or-token
+```
+
+## Profile, Style, And Knowledge Configuration
+
+Treat private config as the user's local operating context, not only an account list. When drafting replies or explaining recommendations, use:
+
+- `user_profile`: who the operator is, their role/company, public contact methods, languages, and default reply persona.
+- `brands`: products or brands the operator represents, including product positioning and brand-specific URLs.
+- `official_urls`: homepage, docs, support, pricing, calendar, social/tutorial, and primary CTA links.
+- `knowledge_base`: safe local files, public URLs, short facts, and "do not say" rules for product/support knowledge.
+- `style`: language, tone, length target, paragraph style, quote behavior, signature behavior, reply rules, and CTA URLs.
+
+Use configured knowledge before inventing product, pricing, compliance, roadmap, or support facts. If the relevant fact is not present in config, current email context, or approved docs, ask the user or leave the item in `Needs Review`.
+
+The App UI may display these settings in `Help & Settings`, but only as a sanitized summary. Never expose env secret values, tokens, cookies, private file contents, or raw knowledge-base documents through `/api/state`, screenshots, reports, or batch files.
+
+## Default Workflow
+
+1. Detect interaction mode. Default to App UI mode. Use chat message mode only when the user explicitly asks for pure chat/no UI handling.
+2. Check onboarding state before proposing or running mailbox scans. If no private config exists, or if required env vars are missing, stop and guide setup instead of reading mail.
+3. Propose a batch plan before reading or processing mail: accounts, labels/folders, unread-only scope, time window, query, review quota, cleanup policy, and whether the batch will only triage, draft replies, or prepare send-ready actions.
+4. Wait for explicit user approval, such as "同意", "approve", "go", or a direct instruction that clearly confirms the proposed batch.
+5. Search inboxes only within the approved scope. If account inventory, aliases, or reply identity rules are needed, read `references/inbox-accounts.md` and the local/private config if present.
+6. Build a compact support queue with one row per thread, not one row per message.
+7. Classify each thread using `references/support-taxonomy.md`.
+8. Look up prior context in the thread, related emails from the same sender/domain, calendar events, contacts, docs, or existing support notes, only as needed for the approved batch.
+9. Select the reply identity from the original recipient address, product/domain, thread history, and customer language. If the identity is ambiguous, ask the user.
+10. Draft replies or next actions. Separate customer-visible text from internal notes.
+11. In App UI mode, write the local batch, start/reuse the UI, tell the user to review it there, then wait for them to ask you to execute approved decisions. In chat message mode, present numbered actions/drafts directly in chat and ask for approval there.
+12. Continue scanning and auto-cleaning low-risk notifications until the review quota is reached or the account/group has no unprocessed unread in-scope support threads.
+
+## Onboarding Mode
+
+Use onboarding mode when Kelly Email is invoked before setup is complete.
+
+Onboarding checks:
+
+- No private config found at `KELLY_EMAIL_CONFIG`, `.agents/skills/kelly-email/config.local.yml`, or `~/.config/kelly-email/config.yml`.
+- Only `config.example.yml` exists.
+- A private config exists, but required IMAP/SMTP env vars are missing.
+
+Onboarding response:
+
+1. Greet the user briefly and say Kelly Email needs local mailbox configuration before it can scan mail.
+2. Point them to `~/.config/kelly-email/config.yml` for non-secret account settings.
+3. Point them to `~/.config/kelly-email/.env` for app passwords or tokens.
+4. Explain that YAML should contain `password_env` names only, never secret values.
+5. Suggest copying `.agents/skills/kelly-email/config.example.yml` as the starting template.
+6. Tell them to fill in mailboxes/identities plus `user_profile`, `brands`, `official_urls`, `style`, and `knowledge_base` so the Agent can draft in the right role and voice.
+7. After they configure files, offer to test configuration and then generate the first App UI batch.
+
+Never proceed to mailbox reads in onboarding mode.
+
+## Email Inbox Zero Goal
+
+Default target: all unread support-related threads in approved accounts.
+
+Classify every unread thread into exactly one outcome:
+
+- `reply_needed`: draft a customer reply.
+- `escalate`: ask the user or another owner for input before replying.
+- `waiting_on_customer`: no reply needed until customer answers.
+- `waiting_on_user`: user decision required.
+- `no_reply_cleanup`: newsletter, notification, spam, duplicate, or irrelevant message that can be marked read/archived only after approval.
+- `not_support`: unrelated unread item; summarize briefly and ask whether to ignore, archive, or leave unread.
+
+Progress metric:
+
+```text
+unread_start | scanned | auto_cleaned | needs_review | drafted | escalated | waiting | unread_remaining
+```
+
+Never use "mark as read" as a shortcut for hard messages. Marking read is a mailbox-mutating action and requires explicit approval.
+
+## Review-Quota Scan Mode
+
+Use this mode when the user wants to clear large unread backlogs.
+
+Default stop condition: keep scanning unread mail until either:
+
+- `needs_review` reaches 5 threads, or
+- no more in-scope unread mail remains.
+
+Low-risk cleanup messages do not count toward the review quota and may be processed without an upper count limit inside the approved batch when the user has approved cleanup. Examples:
+
+- Product onboarding form notifications that are duplicated to multiple aliases.
+- Newsletters, event invites, listings, social digests, marketing email, and generic cold outreach.
+- Closed alerts, routine billing receipts, completed payment notices, and system notifications with no action required.
+- LinkedIn invitations, connection suggestions, and social-message digests unless the user has explicitly asked to handle LinkedIn.
+- Routine internal company announcements such as holiday schedules, office notices, and non-action HR/admin broadcasts.
+
+Stop and surface for review when a thread is:
+
+- A customer reply or contact form with real intent.
+- Course feedback, course homework, lesson feedback, survey answers with free-text learning notes, or product education submissions.
+- Anything involving money: invoices, receipts, payments, payouts, charges, renewals, subscriptions, bank transactions, domain purchases/renewals, payroll, taxes, refunds, balances, or explicit amounts.
+- A bug report, complaint, refund, account access, billing dispute, sales opportunity, partnership, or security/privacy issue.
+- A technical/finance/security alert that appears urgent, unresolved, unusual, or not safely classifiable.
+- A message from a real person where intent is unclear.
+
+Do not classify a message as security just because a social or newsletter URL contains tracking parameters such as `otpToken`. Look at sender, subject, and visible message intent first.
+
+Do not classify an internal announcement as security just because it mentions office safety reminders such as locking doors, closing windows, or turning off power before holidays.
+
+For duplicated form notifications sent to multiple aliases, dedupe by survey ID or identical form body. Show one summary and mention duplicate recipients instead of counting both as separate review items.
+
+Cache scan state locally in `.agents/skills/kelly-email/.cache/` so repeated runs avoid reprocessing the same UID/message-id. Store only non-secret metadata such as UID, message-id, subject hash or short subject, category, action, timestamp, and whether the user approved cleanup. Do not store full email bodies, attachments, secrets, or contact exports in the cache.
+
+After every auto-cleanup run, summarize what was cleaned. Do not report only a count.
+
+Include:
+
+- Total auto-cleaned count.
+- Counts by cleanup category.
+- A compact list of cleaned messages with UID, sender/domain, short subject, and reason.
+- Any broad pattern noticed, such as repeated product onboarding submissions, GitHub notifications, MongoDB alerts, newsletters, LinkedIn digests, or cold outreach.
+
+It is acceptable to store short subject/from metadata in the local cache for audit and reporting. Do not store email bodies or attachments.
+
+## Batch Approval Gate
+
+Never start processing an email batch until the user approves the batch plan.
+
+Use this approval request shape:
+
+```text
+Batch plan:
+- Accounts:
+- Scope: unread support threads
+- Time window:
+- Review quota:
+- Auto-cleanup policy:
+- Actions: triage only / draft only / prepare send-ready replies / execute approved actions
+- Stop condition: one batch / until account done / until user stops
+- Identity rules:
+
+Please approve before I process this batch.
+```
+
+Allowed before approval:
+
+- Explain how the skill works.
+- Prepare or edit configuration files.
+- Propose a batch plan.
+- Ask clarifying questions.
+
+Not allowed before approval:
+
+- Search, read, summarize, classify, or draft from live emails.
+- Open attachments.
+- Send messages.
+- Mark, archive, delete, label, unsubscribe, or move emails.
+
+After triage/drafting, ask for action approval using this shape:
+
+```text
+Proposed actions:
+- thread_id / subject:
+- reply_as:
+- action:
+- customer-visible draft or mailbox change:
+- risk:
+
+Reply with the action numbers you approve.
+```
+
+Only execute the numbered actions the user approves. If the user says "approve all", apply only the actions shown in the latest proposed-actions list.
+
+## Local Review UI Workflow
+
+When the user wants to review mail through the local UI, use a file handoff instead of asking for approval item by item in chat.
+
+The kelly-email skill owns all mailbox reads and writes. The local UI is only an approval surface over files. The UI must not scan mailboxes, send replies, archive, mark read, delete, or label mail directly.
+
+Use this Local Review UI Workflow by default. If the user did not request chat-only handling, assume they want App UI mode. After the batch is generated and agent-reviewed, say clearly that the batch is ready in the UI and ask them to review/approve there. Do not continue with long chat item-by-item review unless the user asks to stay in chat.
+
+When `/kelly-email` is generating, drafting, or executing a batch, create `.agents/skills/kelly-email/app/.cache/agent.lock` before writing batch/decision files and remove it in a `finally` step. The lock file should contain JSON with `owner`, `message`, and `started_at`. The UI polls this lock, disables editing while it exists, and the server rejects decision/detail writes during the lock to prevent concurrent file edits.
+
+Before or after generating a local review batch, ensure the UI is running by invoking `.agents/skills/kelly-email/app/start.sh` from the repository root. If the service is already running on `http://127.0.0.1:8787`, reuse it. Tell the user to open or refresh that URL.
+
+For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.mjs` from the repository root. It reads unread IMAP mail in read-only mode, writes `.agents/skills/kelly-email/app/.cache/current_batch.json`, resets `.agents/skills/kelly-email/app/.cache/decisions.json`, and performs no mailbox mutations.
+
+Treat the script output as a rule-based prefilter, not as the final support classification. The support agent must perform an Agent Semantic Classification Pass before telling the user the batch is ready:
+
+1. Read the generated batch file.
+2. Use the kelly-email skill instructions, inbox/account rules, taxonomy, prior user preferences, and the visible message body/subject/sender to classify each item.
+3. Correct false positives from keyword matching, such as newsletters containing money words, product updates containing "roadmap", or notifications containing security-looking URL parameters.
+4. Prefer conservative review for real customer intent, money, security/privacy, sales/partnership, complaints, attachments, unclear human messages, and course/homework/feedback.
+5. Keep obvious newsletters, duplicated onboarding forms, social digests, routine GitHub/MongoDB/Vercel notifications, and low-risk system emails as `prepared` unless the content indicates unresolved urgency.
+6. Write the agent-reviewed result back to the same batch file with `classification_method: "agent_review"` and an `agent_review` object containing concise evidence, confidence, and whether the decision changed the rule prefilter.
+
+The UI should present agent-reviewed classifications when available. If a batch only has `classification_method: "rule_prefilter"`, tell the user it is a raw prefilter batch and run the Agent Semantic Classification Pass before asking them to approve actions.
+
+Do not turn the Agent Semantic Classification Pass into another keyword classifier. The Node.js generator may extract evidence and conservative safety flags, but the actual semantic judgment is made by the support agent while following this skill, using the user's preferences and the current batch context.
+
+For every `Needs Review` item, include a short review briefing for the user. The briefing should explain the background, why the item needs review, and a recommended next step such as "approve archive", "write reply direction and choose Draft reply", "check attachment first", "confirm with finance", or "leave unread". Do not make the user infer what to do from only the subject and status.
+
+Number the current `Needs Review` queue for conversational edits. The UI should show a stable per-batch reference such as `Review #1`, `Review #2`, etc., derived from the current batch's Needs Review items in newest-first order. Show the reference in both the list row and the detail view. When the user says "改 2", "第二封", or similar, resolve that against this current Needs Review numbering before editing drafts or notes.
+
+The review UI should keep human input lightweight. Prefer a single `Review note` field for the user's instruction to `/kelly-email`; show an editable reply draft only when an actual draft exists or the user is approving a send action. Treat the note as the user's natural-language decision context, for example "ask Casper", "ok to archive", "draft a short reply", or "paid invoice; leave unread". Provide a `Draft reply` decision for messages where the user wants `/kelly-email` to compose a reply from the review note without sending it. Treat `draft_reply` as an approved next support action and show it under `Approved`; it is not a mailbox mutation and must not send email.
+
+The review UI should auto-refresh local batch files on a timer and should not need a manual refresh button. Do not redraw the batch while the user is actively editing a textarea or non-search input; in that case poll only the lock state so the user's draft/note is not interrupted.
+
+Keep the UI sidebar focused on workflow state, not message category. Use the workflow filters `All`, `Needs Review`, `To approve`, `Approved`, `Done`, and `Blocked`, and give each sidebar filter a hover explanation. Do not put category filters such as `Money` or `Course` in the primary sidebar; show categories as badges on each message instead.
+
+Keep setup/tutorial details out of the always-visible sidebar. Provide a small `Help & Settings` button that opens a modal with tabs such as `Guide`, `Files`, `Accounts`, `Profile`, `Style`, `Knowledge`, and `Config`. Put usage notes, batch file path, decisions file path, config source, recommended config/env locations, configured email-account summaries, and sanitized profile/style/knowledge summaries inside that modal. The sidebar should stay focused on workflow filters and should not show long paths, account setup details, or how-to text.
+
+If onboarding is required, the UI should show a setup card in the list/detail area and in `Help & Settings`, with recommended config/env paths and missing env vars. Disable any implication that mail can be scanned until setup is complete.
+
+Generate a batch file at `.agents/skills/kelly-email/app/.cache/current_batch.json` with this shape:
+
+```json
+{
+  "batch_id": "kelly-email-YYYYMMDD-HHMMSS",
+  "generated_at": "ISO timestamp",
+  "source": "kelly-email-skill",
+  "mode": "app-in-skill",
+  "classification_pipeline": {
+    "version": "pipeline version",
+    "stage": "rule_prefilter|agent_review",
+    "requires_agent_review": false
+  },
+  "metrics": {
+    "scanned": 20,
+    "prepared": 13,
+    "needs_review": 7,
+    "drafted": 0
+  },
+  "items": [
+    {
+      "id": "stable local id",
+      "uid": "imap uid",
+      "thread_id": "message id or thread id",
+      "message_id": "raw RFC message id",
+      "account": "mailbox account",
+      "mailbox_group_id": "dedupe group",
+      "folder": "INBOX",
+      "from": "sender",
+      "to": "recipient",
+      "cc": "cc recipients",
+      "date": "received date",
+      "subject": "subject",
+      "category": "customer|money|course_feedback|system|marketing|other",
+      "risk": ["money", "privacy"],
+      "status": "prepared|needs_review|draft_requested|drafted|executed",
+      "proposed_action": "archive|mark_read|send_reply|keep_unread|review",
+      "classification_method": "rule_prefilter|agent_review",
+      "classification_pipeline_version": "pipeline version",
+      "rule_prefilter": {
+        "category": "category before agent review",
+        "risk": ["risk before agent review"],
+        "status": "status before agent review",
+        "proposed_action": "action before agent review",
+        "reason": "rule reason"
+      },
+      "agent_review": {
+        "status": "pending|reviewed",
+        "confidence": "low|medium|high",
+        "evidence": "short sender/subject/body evidence",
+        "changed": true,
+        "reviewed_at": "ISO timestamp"
+      },
+      "review_number": 1,
+      "review_ref": "Review #1",
+      "review_brief": {
+        "background": "what this email appears to be about",
+        "why_review": "why the agent stopped",
+        "recommendation": "what the user should do next",
+        "suggested_reply": "optional short reply draft or reply outline when replying is recommended"
+      },
+      "reason": "why this action is proposed",
+      "summary": "short list-preview summary, not the main detail view",
+      "suggested_reply": "optional editable reply draft shown in the UI for review items",
+      "body": "trimmed original text for review",
+      "html": "sanitized HTML email body for sandboxed iframe preview",
+      "has_html": true,
+      "quote_preview": "short quote to include if replying",
+      "attachments": [{ "filename": "name", "content_type": "mime", "size": 123, "url": "/attachments/batch/item/file.pdf", "preview": true }],
+      "draft": "optional editable reply draft",
+      "decision": {
+        "action": "archive|mark_read|send_reply|draft_reply|keep_unread|no_action|needs_review|revise",
+        "decided_at": "ISO timestamp",
+        "comment": "optional user note"
+      },
+      "execution": {
+        "status": "executed|blocked|error",
+        "action": "archive|mark_read|send_reply",
+        "reason": "blocked/error reason",
+        "executed_at": "ISO timestamp",
+        "send_as": "identity email"
+      },
+      "execution_override": {},
+      "user_comment": "latest UI review note",
+      "updated_at": "ISO timestamp"
+    }
+  ]
+}
+```
+
+Current UI workflow state is derived from the item rather than stored as a separate field:
+
+- `All`: every item in the current batch.
+- `Needs Review`: `status=needs_review` or `decision.action` is `needs_review`/`revise`.
+- `To approve`: `status=prepared` with no decision, or `status=drafted` with no `send_reply` decision.
+- `Approved`: explicit executable decision waiting for `/kelly-email`, such as `archive`, `mark_read`, `send_reply`, or `draft_reply` while `status=draft_requested`.
+- `Done`: `execution.status=executed` or `decision.action=no_action`.
+- `Blocked`: `execution.status=blocked`.
+
+Avoid using `status=decided`; the user's decision belongs in `decision.action`, while `status` describes the item's current support lifecycle.
+
+After the user reviews in the UI, read `.agents/skills/kelly-email/app/.cache/decisions.json`. Treat it as the user's approval/comment layer, but still execute only decisions that are explicit:
+
+- `archive`
+- `mark_read`
+- `send_reply`
+- `draft_reply`
+- `keep_unread`
+- `no_action`
+- `needs_review`
+- `revise`
+
+For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. After execution, write an execution report next to the batch file and update local cache state.
+
+For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.mjs`. It reads `current_batch.json` and `decisions.json`, applies a final kelly-email-agent safety gate, executes only explicit UI-approved actions (`archive`, `mark_read`, or `send_reply`), and writes a JSON report under `.agents/skills/kelly-email/app/.cache/execution_reports/`. Use `--dry-run` for validation when unsure.
+
+The final safety gate must block mailbox mutation even when the UI decision says archive/mark-read if the item appears to involve money, billing, quota/usage cost, course homework/feedback, account/security, GitHub PAT/security, failed CI/deploy alerts, attachments, or unclear real-person intent. Blocked items return to `needs_review`.
+
+If the user explicitly pushes back after seeing the block, such as "处理啊，decided 的你怎么没处理", treat that as a second approval to execute already-decided `archive` and `mark_read` actions. Run `execute_ui_decisions.mjs --allow-risk-approved`. This override still must not send replies; `send_reply` requires a separate explicit UI-approved `send_reply` decision.
+
+Typical user flow:
+
+1. User asks `/kelly-email` to generate the next approval batch.
+2. Kelly Email skill reads the approved mailbox scope, writes `.agents/skills/kelly-email/app/.cache/current_batch.json`, and starts the UI.
+3. User reviews locally in the UI. The UI writes `.agents/skills/kelly-email/app/.cache/decisions.json`.
+4. User asks `/kelly-email` to execute UI-approved decisions.
+5. Kelly Email skill executes only explicit decisions and writes an execution report.
+
+## Chat Message Mode
+
+Use chat message mode only when the user explicitly asks to handle email without the App UI.
+
+In chat message mode:
+
+1. Keep the same batch approval gate and mailbox safety rules.
+2. Present the review queue directly in chat with stable numbered items, concise context, proposed action, and any suggested reply.
+3. For messages that likely need replies, include the short draft or reply outline immediately instead of waiting for the user to ask.
+4. Ask the user to approve item numbers or give edits by number.
+5. Execute only explicitly approved actions, preserving send safety, threading, and quote rules.
+6. Summarize cleaned/executed items and remaining unread/review items after each batch.
+
+## Queue Format
+
+Use this shape for triage summaries:
+
+```text
+account | customer | subject | category | priority | status | next_action | draft_ready | notes
+```
+
+Priority:
+
+- `urgent`: payment outage, locked account, angry customer, deadline today, security/privacy issue, refund threat, executive/VIP, legal risk.
+- `high`: customer blocked, paid user cannot use core feature, repeated follow-up, time-sensitive sales/support issue.
+- `normal`: ordinary question, feature request, onboarding help, mild bug.
+- `low`: FYI, newsletter, automated notification, low-intent inquiry.
+
+Status:
+
+- `needs_reply`
+- `drafted`
+- `waiting_on_user`
+- `waiting_on_customer`
+- `escalate`
+- `resolved`
+- `ignore_or_archive`
+
+## Reply Draft Pattern
+
+For each review item where a reply is likely useful, include:
+
+- A short `suggested_reply` draft or reply outline in the batch item.
+- A `review_brief.recommendation` that says why that reply direction is recommended.
+- Enough context in `review_brief.background` so the user can approve, edit, or reject the reply without rereading the entire thread.
+- A visible `Review #n` reference in the UI so the user can ask for edits by number in chat.
+
+For each send-ready draft, include:
+
+- Suggested subject if useful.
+- `reply_as` identity.
+- Customer-facing reply.
+- Original-message quote preview to include when sending a customer reply.
+- Internal note with why this response is safe and what evidence was used.
+- Any assumptions or questions for the user.
+- Whether the message is safe to send as-is.
+
+Default tone: clear, calm, human, and compact. Prefer direct answers and one concrete next step.
+
+## Reply Threading And Quotes
+
+When sending a customer reply:
+
+- Set email threading headers when available: `In-Reply-To` and `References`.
+- Include a short standard quoted excerpt from the customer's latest message below the new reply body.
+- Keep the quote short: usually sender/date line plus the first relevant 3-8 lines or the specific part being answered.
+- Trim signatures, tracking blocks, newsletters, long prior threads, legal footers, and repeated quoted history.
+- Use a conventional quote format such as:
+
+```text
+On <date>, <sender> wrote:
+> <short relevant excerpt>
+```
+
+- If the user asks for a clean reply, omit the quoted body but still preserve threading headers.
+
+## Compressed Copy Rules
+
+Write customer replies as if the user will send them with minimal editing:
+
+- Start with the conclusion or useful answer.
+- Use 1-2 sentence paragraphs.
+- Use bullets only when they reduce reading effort.
+- Prefer 3-6 bullets; avoid long numbered essays.
+- Remove meta commentary such as "I looked carefully" unless it reassures the customer.
+- Avoid repeating the customer's request back unless needed for clarity.
+- Include only links, contacts, caveats, and next steps that matter.
+- End with a simple next action.
+- If the user asks for a shorter version, cut by at least 30%.
+
+Default length targets:
+
+- Routine support: 60-120 words.
+- Sales/customer reply: 100-180 words.
+- Complex technical explanation: 180-300 words, with a short summary first.
+- Escalation or angry customer: short acknowledgement plus next step; do not over-explain.
+
+## Coupon/CTA Reply Rule
+
+When replying to missing coupon-code or broken merge-tag messages:
+
+- Include the working coupon code from the user, local config, or thread context.
+- Include the relevant CTA URL from the user, local config, or product context.
+- If the coupon code or CTA URL is unavailable, ask before sending.
+- Keep it short and apologetic.
+- Preserve threading headers and include a short quoted excerpt.
+
+## Escalation Rules
+
+Escalate or ask before drafting a definitive answer when a thread involves:
+
+- Refunds, cancellations, chargebacks, invoices, or pricing exceptions.
+- Security incidents, privacy requests, account access, or data deletion.
+- Legal threats, compliance questions, contracts, NDAs, or employment issues.
+- Commitments about roadmap, release dates, uptime credits, custom work, or enterprise terms.
+- Angry customers where a careless reply could make the situation worse.
+
+## References
+
+- Read `references/inbox-accounts.md` when account routing, aliases, labels, or per-account handling rules matter.
+- Read `references/support-taxonomy.md` when classifying messages, deciding priority, or writing reusable support notes.
+- Use `config.example.yml` as the template for a private `config.local.yml` or `~/.config/kelly-email/config.yml` file. Never commit private config or env files.

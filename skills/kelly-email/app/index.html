@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kelly Email</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-title">Kelly Email</div>
+          <div class="brand-subtitle">File-only approval desk</div>
+        </div>
+        <nav class="filters" id="filters">
+          <button
+            data-mode="all"
+            class="active has-tooltip"
+            data-tooltip="Everything in the current local batch."
+            title="Everything in the current local batch."
+          >All <span id="count-all">0</span></button>
+          <button
+            data-mode="needs_review"
+            class="has-tooltip"
+            data-tooltip="Messages that need your note or another /kelly-email pass. No mailbox action will run yet."
+            title="Messages that need your note or another /kelly-email pass. No mailbox action will run yet."
+          >Needs Review <span id="count-needs_review">0</span></button>
+          <button
+            data-mode="to_approve"
+            class="has-tooltip"
+            data-tooltip="/kelly-email has a clear suggested plan, usually archive or mark read, and is waiting for your approval."
+            title="/kelly-email has a clear suggested plan, usually archive or mark read, and is waiting for your approval."
+          >To approve <span id="count-to_approve">0</span></button>
+          <button
+            data-mode="approved"
+            class="has-tooltip"
+            data-tooltip="You approved an action. /kelly-email can execute it after the final safety check."
+            title="You approved an action. /kelly-email can execute it after the final safety check."
+          >Approved <span id="count-approved">0</span></button>
+          <button
+            data-mode="done"
+            class="has-tooltip"
+            data-tooltip="Already executed or explicitly marked as no action."
+            title="Already executed or explicitly marked as no action."
+          >Done <span id="count-done">0</span></button>
+          <button
+            data-mode="blocked"
+            class="has-tooltip"
+            data-tooltip="Execution was blocked by a safety rule or error and needs another look."
+            title="Execution was blocked by a safety rule or error and needs another look."
+          >Blocked <span id="count-blocked">0</span></button>
+        </nav>
+        <div class="help-box">
+          <button
+            id="helpButton"
+            class="help-button has-tooltip"
+            data-tooltip="Open guide, account settings, file paths, and configuration locations."
+            title="Open guide, account settings, file paths, and configuration locations."
+          >Help & Settings</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="toolbar">
+          <div class="search">
+            <input id="searchInput" placeholder="Search sender, subject, summary" />
+          </div>
+          <div class="bulk-actions">
+            <button
+              id="approveSelected"
+              class="has-tooltip"
+              data-tooltip="Approve each selected item's current plan in the local file. /kelly-email still applies the final safety gate before touching email."
+            >Approve plan</button>
+            <button
+              id="reviewSelected"
+              class="has-tooltip"
+              data-tooltip="Send the selected messages back to /kelly-email for human review. No mailbox action will be taken."
+            >Needs review</button>
+            <button
+              id="noActionSelected"
+              class="has-tooltip"
+              data-tooltip="Record that no action should be taken for the selected messages in this batch."
+            >No action</button>
+          </div>
+        </header>
+        <div id="lockBanner" class="lock-banner is-hidden">
+          <strong>Locked</strong>
+          <span id="lockMessage">The local files are locked for a moment.</span>
+        </div>
+
+        <section class="content">
+          <div class="list-panel">
+            <div class="list-head">
+              <label><input type="checkbox" id="selectAll" /> Select</label>
+              <span id="listCount">0 items</span>
+            </div>
+            <div id="messageList" class="message-list"></div>
+          </div>
+
+          <aside class="detail-panel" id="detailPanel">
+            <div class="empty-detail">Select a message</div>
+          </aside>
+        </section>
+      </main>
+    </div>
+    <div id="helpModal" class="modal-backdrop is-hidden" aria-hidden="true">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="modal-head">
+          <div>
+            <div id="helpTitle" class="modal-title">Help & Settings</div>
+            <div class="modal-subtitle" id="helpBatchInfo">No batch loaded</div>
+          </div>
+          <button id="closeHelp" class="icon-button" aria-label="Close help">Close</button>
+        </div>
+        <nav class="modal-tabs" aria-label="Help and settings tabs">
+          <button class="active" data-help-tab="guide">Guide</button>
+          <button data-help-tab="files">Files</button>
+          <button data-help-tab="accounts">Accounts</button>
+          <button data-help-tab="profile">Profile</button>
+          <button data-help-tab="style">Style</button>
+          <button data-help-tab="knowledge">Knowledge</button>
+          <button data-help-tab="config">Config</button>
+        </nav>
+        <div class="modal-body">
+          <section class="help-tab-panel active" data-help-panel="guide">
+            <h2>How It Works</h2>
+            <p><code>/kelly-email</code> reads mail and writes a local batch. This app only edits local review files. After you approve items here, ask <code>/kelly-email</code> to execute approved decisions.</p>
+            <h2>Workflow</h2>
+            <ol>
+              <li>Ask <code>/kelly-email</code> to generate a review batch.</li>
+              <li>Review messages here and approve, request a draft, or leave a note.</li>
+              <li>Ask <code>/kelly-email</code> to execute approved decisions.</li>
+            </ol>
+          </section>
+          <section class="help-tab-panel" data-help-panel="files">
+            <h2>Local Files</h2>
+            <dl class="help-paths">
+              <dt>Data reader</dt>
+              <dd><code id="helpDataReader">Not loaded</code></dd>
+              <dt>Batch file</dt>
+              <dd><code id="helpBatchPath">Not loaded</code></dd>
+              <dt>Decision file</dt>
+              <dd><code id="helpDecisionsPath">Not loaded</code></dd>
+              <dt>Config source</dt>
+              <dd><code id="helpConfigPath">Not loaded</code></dd>
+            </dl>
+          </section>
+          <section class="help-tab-panel" data-help-panel="accounts">
+            <h2>Email Accounts</h2>
+            <div id="helpAccounts" class="help-accounts">No accounts loaded</div>
+          </section>
+          <section class="help-tab-panel" data-help-panel="profile">
+            <h2>User Profile & Brands</h2>
+            <div id="helpProfile" class="settings-grid">No profile loaded</div>
+          </section>
+          <section class="help-tab-panel" data-help-panel="style">
+            <h2>Reply Style</h2>
+            <div id="helpStyle" class="settings-grid">No style loaded</div>
+          </section>
+          <section class="help-tab-panel" data-help-panel="knowledge">
+            <h2>Knowledge Base</h2>
+            <div id="helpKnowledge" class="settings-grid">No knowledge base loaded</div>
+          </section>
+          <section class="help-tab-panel" data-help-panel="config">
+            <h2>Configuration</h2>
+            <p>Recommended user-wide files:</p>
+            <pre><code>~/.config/kelly-email/config.yml
+~/.config/kelly-email/.env</code></pre>
+            <p>Alternative local files:</p>
+            <pre><code>.agents/skills/kelly-email/config.local.yml
+.agents/skills/kelly-email/.env.local</code></pre>
+            <p>The data reader is currently local config. Later it can be swapped for Supabase, Postgres, or pusa-cloud without changing the approval UI contract.</p>
+            <p>YAML stores accounts, aliases, identities, user profile, brands, official URLs, knowledge sources, style, CTA URLs, and risk keywords. Secrets stay in env files and are referenced by variable name.</p>
+          </section>
+        </div>
+      </section>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>
