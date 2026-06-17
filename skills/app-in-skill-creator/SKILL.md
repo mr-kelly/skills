@@ -204,8 +204,9 @@ Build the app as a quiet local tool, not a landing page. Keep controls obvious a
 - Auto-refresh files on a timer, but do not redraw while the user is actively editing a textarea or non-search input.
 - Keep the top bar and sidebar fixed if the item list scrolls.
 - Use local HTTP on `127.0.0.1`; do not expose the app externally.
-- Prefer local app ports in the `3000-4000` range, starting at `3000`; if the port is occupied, reuse an already-ready app on that port or choose the next available port in the range. Always report the actual URL printed by the launcher.
+- Prefer local app ports in the `3000-4000` range, starting at `3000`; if the port is occupied, reuse it only when the health/state response proves it is the same app, otherwise choose the next available port in the range. Always report the actual URL printed by the launcher.
 - If the skill uses private config, show a compact read-only `Help & Settings` summary in the UI so the user can confirm which accounts, identities, profile, style choices, official links, knowledge sources, or data sources are active.
+- Support multilingual UI chrome for App-in-Skill apps that have non-English users or mixed-language workflows. Default language mode should be `Auto`, following `navigator.languages`/browser language; also provide an explicit language selector in `Help & Settings` for supported languages, persist the override locally, and keep user data/domain content untranslated unless the workflow explicitly asks to translate it.
 
 ## Batch Schema
 

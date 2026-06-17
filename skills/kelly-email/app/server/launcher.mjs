@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import http from "node:http";
+import net from "node:net";
 import { spawn } from "node:child_process";
 import { DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, CACHE_DIR, SERVER_DIR, PREFERRED_PORT_MIN, PREFERRED_PORT_MAX } from "./paths.mjs";
 
@@ -15,14 +16,36 @@ function stateUrlFor(port) {
 function isReady(port) {
   return new Promise((resolve) => {
     const req = http.get(stateUrlFor(port), { timeout: 500 }, (res) => {
-      res.resume();
-      resolve(res.statusCode >= 200 && res.statusCode < 300);
+      let body = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => {
+        body += chunk;
+      });
+      res.on("end", () => {
+        try {
+          const state = JSON.parse(body);
+          resolve(res.statusCode >= 200 && res.statusCode < 300 && Boolean(state.email_accounts));
+        } catch {
+          resolve(false);
+        }
+      });
     });
     req.on("timeout", () => {
       req.destroy();
       resolve(false);
     });
     req.on("error", () => resolve(false));
+  });
+}
+
+function canListen(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once("error", () => resolve(false));
+    server.once("listening", () => {
+      server.close(() => resolve(true));
+    });
+    server.listen(Number.parseInt(port, 10), host);
   });
 }
 
@@ -47,7 +70,9 @@ async function stalePid() {
 async function findPort() {
   if (explicitPort) return explicitPort;
   for (let candidate = DEFAULT_PORT; candidate <= PREFERRED_PORT_MAX; candidate += 1) {
-    if (await isReady(String(candidate))) return String(candidate);
+    const port = String(candidate);
+    if (await isReady(port)) return port;
+    if (await canListen(port)) return port;
   }
   return String(PREFERRED_PORT_MIN);
 }

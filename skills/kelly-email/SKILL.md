@@ -11,6 +11,8 @@ Use this skill as a configurable email approval desk across configured email acc
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, generate/update the local App-in-Skill batch, ensure the UI is running, and tell the user to review the batch at the actual started URL, preferring `http://127.0.0.1:3000/` and the `3000-4000` port range unless a port env override is set. If the user says "纯聊天", "chat only", "不要打开 UI", "直接在这里处理", or similar, use chat message mode instead: present numbered items and drafts in the conversation, then execute only explicitly approved actions.
 
+UI language: the local app supports multilingual interface chrome. Default language mode is `Auto`, following the browser language; the user can also set English or Chinese explicitly in `Help & Settings`. Keep email bodies, drafts, customer names, configured account data, and domain content in their original language unless the user asks to translate them.
+
 First-run behavior: if no private config exists or required secret env vars are missing, enter onboarding mode before any mailbox scan. Greet the user, explain that this skill needs local config, show the recommended config/env paths, and tell them to store secrets only in local env files. Onboarding should also invite the user to configure their role, brands/products, official URLs, reply style, and knowledge sources so drafts match their business context. Do not ask the user to paste passwords, tokens, app passwords, or OAuth secrets into chat.
 
 ## Operating Rules

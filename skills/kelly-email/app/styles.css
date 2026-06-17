@@ -549,6 +549,29 @@ button.danger {
   line-height: 1.5;
 }
 
+.language-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.language-options label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 8px 10px;
+  color: #374151;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+}
+
+.language-options input {
+  margin: 0;
+}
+
 .settings-row {
   display: grid;
   grid-template-columns: 88px minmax(0, 1fr);
