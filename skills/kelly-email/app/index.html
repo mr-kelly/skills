@@ -66,23 +66,6 @@
           <div class="search">
             <input id="searchInput" placeholder="Search sender, subject, summary" />
           </div>
-          <div class="bulk-actions">
-            <button
-              id="approveSelected"
-              class="has-tooltip"
-              data-tooltip="Approve each selected item's current plan in the local file. /kelly-email still applies the final safety gate before touching email."
-            >Approve plan</button>
-            <button
-              id="reviewSelected"
-              class="has-tooltip"
-              data-tooltip="Send the selected messages back to /kelly-email for human review. No mailbox action will be taken."
-            >Needs review</button>
-            <button
-              id="noActionSelected"
-              class="has-tooltip"
-              data-tooltip="Record that no action should be taken for the selected messages in this batch."
-            >No action</button>
-          </div>
         </header>
         <div id="lockBanner" class="lock-banner is-hidden">
           <strong>Locked</strong>
@@ -94,6 +77,24 @@
             <div class="list-head">
               <label><input type="checkbox" id="selectAll" /> Select</label>
               <span id="listCount">0 items</span>
+            </div>
+            <div class="bulk-actions is-hidden" id="bulkActions" aria-live="polite">
+              <span id="selectedCount">0 selected</span>
+              <button
+                id="approveSelected"
+                class="has-tooltip"
+                data-tooltip="Approve each selected item's current plan in the local file. /kelly-email still applies the final safety gate before touching email."
+              >Approve plan</button>
+              <button
+                id="reviewSelected"
+                class="has-tooltip"
+                data-tooltip="Send the selected messages back to /kelly-email for human review. No mailbox action will be taken."
+              >Needs review</button>
+              <button
+                id="noActionSelected"
+                class="has-tooltip"
+                data-tooltip="Record that no action should be taken for the selected messages in this batch."
+              >No action</button>
             </div>
             <div id="messageList" class="message-list"></div>
           </div>

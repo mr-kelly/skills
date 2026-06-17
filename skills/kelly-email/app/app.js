@@ -113,6 +113,15 @@ function renderCounts() {
   });
 }
 
+function renderBulkActions() {
+  const bar = $("bulkActions");
+  const selected = $("selectedCount");
+  if (!bar || !selected) return;
+  const count = checked.size;
+  bar.classList.toggle("is-hidden", count === 0);
+  selected.textContent = `${count} selected`;
+}
+
 function accountsCardsHtml() {
   const payload = state.email_accounts || {};
   const onboarding = payload.onboarding || {};
@@ -486,8 +495,10 @@ function renderList() {
       }
       if (box.checked) checked.add(box.dataset.id);
       else checked.delete(box.dataset.id);
+      renderBulkActions();
     });
   });
+  renderBulkActions();
 }
 
 function onboardingHtml() {
@@ -539,7 +550,19 @@ function renderDetail() {
   const reviewMeta = item.review_ref
     ? `<strong>Review</strong><div><span class="review-ref detail-review-ref">${escapeHtml(item.review_ref)}</span></div>`
     : "";
+  const actionBar = `
+    <div class="detail-actions detail-actions-top">
+      <button id="approveProposed" class="primary has-tooltip" data-tooltip="Approve the suggested plan for this message. This only writes a local decision; /kelly-email still checks safety before execution." title="Approve the suggested plan for this message. This only writes a local decision; /kelly-email still checks safety before execution.">Approve plan</button>
+      <button id="draftReply" ${tooltipAttr("Ask /kelly-email to draft a reply using your Review note. This does not send email.")}>Draft reply</button>
+      <button id="approveArchive" ${tooltipAttr("Approve moving this message out of Inbox into Archive when /kelly-email executes approved decisions.")}>Approve archive</button>
+      <button id="approveRead" ${tooltipAttr("Approve marking this message as read while keeping it in the mailbox folder.")}>Approve mark read</button>
+      <button id="approveSend" ${tooltipAttr("Approve sending the edited draft as a reply. /kelly-email will still require safe threading and final send handling.")}>Approve send</button>
+      <button id="markReview" ${tooltipAttr("Keep this message for human review. No mailbox action will be taken.")}>Needs review</button>
+      <button id="noAction" ${tooltipAttr("Record no action for this message in the local decision file.")}>No action</button>
+    </div>
+  `;
   $("detailPanel").innerHTML = `
+    ${actionBar}
     <div class="detail-title">${escapeHtml(item.subject)}</div>
     <div class="detail-meta">
       ${reviewMeta}
@@ -550,15 +573,6 @@ function renderDetail() {
       <strong>Next</strong><div>${escapeHtml(actionLabel(item.proposed_action))} · ${escapeHtml(item.reason)}</div>
     </div>
     ${reviewBriefHtml(item)}
-    <div class="detail-actions">
-      <button id="approveProposed" class="primary has-tooltip" data-tooltip="Approve the suggested plan for this message. This only writes a local decision; /kelly-email still checks safety before execution." title="Approve the suggested plan for this message. This only writes a local decision; /kelly-email still checks safety before execution.">Approve plan</button>
-      <button id="draftReply" ${tooltipAttr("Ask /kelly-email to draft a reply using your Review note. This does not send email.")}>Draft reply</button>
-      <button id="approveArchive" ${tooltipAttr("Approve moving this message out of Inbox into Archive when /kelly-email executes approved decisions.")}>Approve archive</button>
-      <button id="approveRead" ${tooltipAttr("Approve marking this message as read while keeping it in the mailbox folder.")}>Approve mark read</button>
-      <button id="approveSend" ${tooltipAttr("Approve sending the edited draft as a reply. /kelly-email will still require safe threading and final send handling.")}>Approve send</button>
-      <button id="markReview" ${tooltipAttr("Keep this message for human review. No mailbox action will be taken.")}>Needs review</button>
-      <button id="noAction" ${tooltipAttr("Record no action for this message in the local decision file.")}>No action</button>
-    </div>
     ${draftSection}
     <div class="section-title">HTML email</div>
     ${htmlPreview}
@@ -654,6 +668,7 @@ function wire() {
     if (event.target.checked) state.items.forEach((item) => checked.add(item.id));
     else checked.clear();
     renderList();
+    renderBulkActions();
   };
   $("searchInput").addEventListener("input", () => refresh());
   document.querySelectorAll("#filters button").forEach((button) => {

@@ -811,9 +811,7 @@ body.is-locked .message-row:hover {
   height: 56px;
   border-bottom: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.92);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 16px;
+  display: flex;
   align-items: center;
   padding: 10px 12px;
   backdrop-filter: blur(12px);
@@ -821,7 +819,23 @@ body.is-locked .message-row:hover {
 
 .bulk-actions {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
+  border-bottom: 1px solid var(--line);
+  background: #fbfcfd;
+  padding: 8px 12px;
+}
+
+.bulk-actions.is-hidden {
+  display: none;
+}
+
+.bulk-actions span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 620;
+  margin-right: 4px;
 }
 
 .content {
@@ -1012,7 +1026,7 @@ body.is-locked .message-row:hover {
 
 .detail-panel {
   background: #fff;
-  padding: 18px 22px 24px;
+  padding: 0 22px 24px;
 }
 
 .empty-detail {
@@ -1025,7 +1039,7 @@ body.is-locked .message-row:hover {
   font-size: 21px;
   line-height: 1.25;
   font-weight: 680;
-  margin-bottom: 12px;
+  margin: 18px 0 12px;
   letter-spacing: 0;
 }
 
@@ -1087,6 +1101,17 @@ body.is-locked .message-row:hover {
   padding: 14px 0 16px;
   border-bottom: 1px solid var(--line);
   overflow: visible;
+}
+
+.detail-actions-top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0 -22px;
+  padding: 12px 22px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 var(--line);
 }
 
 .section-title {
@@ -1232,19 +1257,15 @@ body.is-locked .message-row:hover {
 
   .toolbar {
     height: auto;
-    grid-template-columns: 1fr;
-    gap: 8px;
     padding: 9px 10px;
   }
 
   .bulk-actions {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 8px 10px;
   }
 
   .bulk-actions button {
     min-width: 0;
-    white-space: normal;
     padding-left: 7px;
     padding-right: 7px;
   }
@@ -1260,11 +1281,12 @@ body.is-locked .message-row:hover {
   }
 
   .detail-panel {
-    padding: 14px 16px 18px;
+    padding: 0 16px 18px;
   }
 
   .detail-title {
     font-size: 18px;
+    margin-top: 14px;
   }
 
   .detail-actions {
@@ -1375,8 +1397,6 @@ body.is-locked .message-row:hover {
   }
 
   .toolbar {
-    grid-template-columns: 1fr;
-    gap: 8px;
     padding: 9px 10px;
   }
 
@@ -1391,10 +1411,13 @@ body.is-locked .message-row:hover {
   .bulk-actions {
     display: flex;
     gap: 6px;
-    margin: 0 -10px;
-    padding: 0 10px 2px;
+    padding: 8px 10px;
     overflow-x: auto;
     scrollbar-width: none;
+  }
+
+  .bulk-actions.is-hidden {
+    display: none;
   }
 
   .bulk-actions::-webkit-scrollbar {
@@ -1455,7 +1478,7 @@ body.is-locked .message-row:hover {
   }
 
   .detail-panel {
-    padding: 14px 12px 18px;
+    padding: 0 12px 18px;
   }
 
   .empty-detail {
@@ -1464,7 +1487,7 @@ body.is-locked .message-row:hover {
 
   .detail-title {
     font-size: 17px;
-    margin-bottom: 10px;
+    margin: 14px 0 10px;
     overflow-wrap: anywhere;
   }
 
@@ -1498,6 +1521,11 @@ body.is-locked .message-row:hover {
     padding: 12px 12px 14px;
     overflow-x: auto;
     scrollbar-width: none;
+  }
+
+  .detail-actions-top {
+    margin: 0 -12px;
+    padding: 10px 12px 12px;
   }
 
   .detail-actions::-webkit-scrollbar {
