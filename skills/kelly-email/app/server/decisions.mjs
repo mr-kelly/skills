@@ -13,10 +13,18 @@ const LOCAL_ACTIONS = new Set([
   "revise",
 ]);
 
+let writeQueue = Promise.resolve();
+
+function withWriteQueue(operation) {
+  const next = writeQueue.then(operation, operation);
+  writeQueue = next.catch(() => {});
+  return next;
+}
+
 function approvedActionFor(action, item) {
   if (action === "approve_proposed") {
     const proposed = item.proposed_action || "review";
-    return proposed === "review" ? "needs_review" : proposed;
+    return ["review", "needs_review", "revise"].includes(proposed) ? "archive" : proposed;
   }
   if (action === "approve_archive") return "archive";
   if (action === "approve_mark_read") return "mark_read";
@@ -36,43 +44,47 @@ function updateItemStatus(item, approvedAction) {
 }
 
 export async function updateItems(body) {
-  await rejectIfLocked();
-  const batch = await loadBatch();
-  const ids = (body.ids || []).map(String);
-  const action = body.action;
-  const comment = body.comment || "";
-  if (!ids.length) throw new Error("No items selected");
-  if (!LOCAL_ACTIONS.has(action)) throw new Error(`Unsupported local decision: ${action}`);
-  const changed = [];
-  for (const itemId of ids) {
-    const item = findItem(batch, itemId);
-    const approvedAction = approvedActionFor(action, item);
-    item.decision = {
-      action: approvedAction,
-      decided_at: utcNow(),
-    };
-    updateItemStatus(item, approvedAction);
-    if (comment) {
-      item.user_comment = comment;
-      item.decision.comment = comment;
+  return withWriteQueue(async () => {
+    await rejectIfLocked();
+    const batch = await loadBatch();
+    const ids = (body.ids || []).map(String);
+    const action = body.action;
+    const comment = body.comment || "";
+    if (!ids.length) throw new Error("No items selected");
+    if (!LOCAL_ACTIONS.has(action)) throw new Error(`Unsupported local decision: ${action}`);
+    const changed = [];
+    for (const itemId of ids) {
+      const item = findItem(batch, itemId);
+      const approvedAction = approvedActionFor(action, item);
+      item.decision = {
+        action: approvedAction,
+        decided_at: utcNow(),
+      };
+      updateItemStatus(item, approvedAction);
+      if (comment) {
+        item.user_comment = comment;
+        item.decision.comment = comment;
+      }
+      item.updated_at = utcNow();
+      changed.push(item.id);
     }
-    item.updated_at = utcNow();
-    changed.push(item.id);
-  }
-  await saveBatch(batch);
-  const decisions = await writeDecisions(batch);
-  return { changed, decisions: decisions.decisions.length };
+    await saveBatch(batch);
+    const decisions = await writeDecisions(batch);
+    return { changed, decisions: decisions.decisions.length };
+  });
 }
 
 export async function updateDetail(body) {
-  await rejectIfLocked();
-  const batch = await loadBatch();
-  const item = findItem(batch, String(body.id));
-  if (Object.hasOwn(body, "draft")) item.draft = body.draft || "";
-  if (Object.hasOwn(body, "suggested_reply")) item.suggested_reply = body.suggested_reply || "";
-  if (Object.hasOwn(body, "comment")) item.user_comment = body.comment || "";
-  item.updated_at = utcNow();
-  await saveBatch(batch);
-  const decisions = await writeDecisions(batch);
-  return { id: item.id, decisions: decisions.decisions.length };
+  return withWriteQueue(async () => {
+    await rejectIfLocked();
+    const batch = await loadBatch();
+    const item = findItem(batch, String(body.id));
+    if (Object.hasOwn(body, "draft")) item.draft = body.draft || "";
+    if (Object.hasOwn(body, "suggested_reply")) item.suggested_reply = body.suggested_reply || "";
+    if (Object.hasOwn(body, "comment")) item.user_comment = body.comment || "";
+    item.updated_at = utcNow();
+    await saveBatch(batch);
+    const decisions = await writeDecisions(batch);
+    return { id: item.id, decisions: decisions.decisions.length };
+  });
 }

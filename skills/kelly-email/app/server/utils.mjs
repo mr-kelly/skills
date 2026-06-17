@@ -23,7 +23,9 @@ export async function readJson(pathname, fallback = null) {
 }
 
 export async function writeJson(pathname, value) {
-  await fs.writeFile(pathname, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  const tempPath = `${pathname}.${process.pid}.${Date.now()}.tmp`;
+  await fs.writeFile(tempPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  await fs.rename(tempPath, pathname);
 }
 
 export function normalizeQueryValue(value, fallback = "") {

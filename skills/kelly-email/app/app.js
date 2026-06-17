@@ -1118,11 +1118,12 @@ async function pollLock() {
 
 async function decide(action, ids = null) {
   if (isLocked()) return toast(t("lock.processing"));
-  const list = ids && ids.length ? ids : Array.from(checked);
+  const isSingleDetailAction = Array.isArray(ids) && ids.length === 1;
+  const list = isSingleDetailAction ? ids : Array.from(checked);
   if (!list.length) return toast(t("toast.select_one"));
-  const item = selectedItem();
-  const comment = item && ids ? $("commentText")?.value || "" : "";
-  if (item && ids) {
+  const item = isSingleDetailAction ? selectedItem() : null;
+  const comment = item ? $("commentText")?.value || "" : "";
+  if (item) {
     await api("/api/detail", {
       id: item.id,
       draft: $("draftText")?.value || item.draft || "",
