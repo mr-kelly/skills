@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Content"
+  short_description: "Turn one source post into channel-ready drafts"
+  default_prompt: "Use $kelly-content to turn this blog post into Xiaohongshu, newsletter, LinkedIn, and short social drafts."

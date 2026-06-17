@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly Content</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="mark">CF</div>
+        <div>
+          <h1>Kelly Content</h1>
+          <p id="batchMeta">No batch loaded</p>
+        </div>
+      </div>
+      <nav id="stageNav" class="stageNav" aria-label="Content stages"></nav>
+      <section class="settings">
+        <h2>Workspace</h2>
+        <p id="settingsText">Local review only. Publishing is disabled.</p>
+      </section>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <h2 id="pageTitle">Content Repository</h2>
+          <p id="lockText"></p>
+        </div>
+        <button id="refreshBtn" title="Refresh batch">Refresh</button>
+      </header>
+
+      <section id="stagePanel" class="stagePanel empty">
+        <p>Generate a content batch, then the repository will appear here.</p>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
