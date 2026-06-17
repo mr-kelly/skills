@@ -1,5 +1,5 @@
 const stages = [
-  { id: "topics", label: "选题", caption: "候选题目与方向" },
+  { id: "topics", label: "选题", caption: "题材与标题描述方向" },
   { id: "main", label: "主稿", caption: "主 Blog 与配图" },
   { id: "distribution", label: "分发", caption: "公众号、小红书、NewsNet" },
   { id: "outputs", label: "产物", caption: "已发布与归档" }
@@ -8,6 +8,7 @@ const stages = [
 let state = { batch: null, decisions: {}, lock: null };
 let activeStage = "topics";
 let selectedTopicId = null;
+let selectedDirectionId = null;
 let selectedDistributionId = null;
 let outputFilter = "all";
 let outputSort = "newest";
@@ -50,7 +51,7 @@ function buildRepository() {
 }
 
 function normalizeTopics(batch, items) {
-  if (Array.isArray(batch.topics) && batch.topics.length) return batch.topics;
+  if (Array.isArray(batch.topics) && batch.topics.length) return batch.topics.map(normalizeTopic);
   const idea = batch.canonical_idea || batch.source_summary || "Turn one source idea into a durable content system.";
   const source = batch.source === "kelly-content" ? "system" : "preset";
   return [
@@ -61,35 +62,92 @@ function normalizeTopics(batch, items) {
       status: "confirmed",
       score: 92,
       audience: "solo founders and creators",
-      angle: "Use the long-form source as the anchor, then adapt packaging per channel.",
-      evidence: batch.source_summary || items[0]?.summary || ""
+      subject: "Long-form content repurposing system",
+      evidence: batch.source_summary || items[0]?.summary || "",
+      directions: [
+        {
+          id: "dir-main-system",
+          title: "A calmer way to repurpose one blog into many posts",
+          description: "Position the piece as an operating system for turning one canonical article into platform-specific drafts without diluting the original claim.",
+          angle: "Systematic, practical, calm",
+          status: "selected"
+        },
+        {
+          id: "dir-proof-first",
+          title: "Stop copying posts across platforms. Preserve proof instead.",
+          description: "Lead with the common mistake, then show why proof and promise stay stable while hook, pacing, and media change by channel.",
+          angle: "Contrarian lesson",
+          status: "ready"
+        },
+        {
+          id: "dir-creator-workflow",
+          title: "The solo creator's content repurposing checklist",
+          description: "Frame the same topic as a checklist for founders and creators who want a repeatable publishing flow from one main blog.",
+          angle: "Checklist and workflow",
+          status: "ready"
+        }
+      ]
     },
     {
       id: "topic-xhs",
-      title: "把一篇主稿拆成小红书收藏型内容",
+      title: "主稿拆成小红书收藏型内容",
       source: "preset",
       status: "ready",
       score: 84,
       audience: "中文创作者",
-      angle: "Emphasize practical structure, title options, and carousel-first thinking.",
-      evidence: "Derived from the Xiaohongshu distribution draft."
+      subject: "小红书内容再包装",
+      evidence: "Derived from the Xiaohongshu distribution draft.",
+      directions: [
+        {
+          id: "dir-xhs-save",
+          title: "别急着发长文，先拆成这 7 页小红书",
+          description: "强调收藏价值和 carousel 结构，适合把主稿拆成方法型图文。",
+          angle: "收藏型教程",
+          status: "ready"
+        },
+        {
+          id: "dir-xhs-mistake",
+          title: "很多人做内容分发，第一步就错了",
+          description: "用反常识开头，指出复制粘贴不是分发，真正要改的是包装。",
+          angle: "反常识提醒",
+          status: "ready"
+        }
+      ]
     },
     {
       id: "topic-system",
-      title: "内容系统不是复制粘贴，而是保留主张、改变包装",
+      title: "内容系统不是复制粘贴",
       source: "system",
       status: "ready",
       score: 81,
       audience: "content operators",
-      angle: "Explain why each platform needs a different wrapper while proof stays intact.",
-      evidence: batch.canonical_idea || ""
+      subject: "跨平台内容系统",
+      evidence: batch.canonical_idea || "",
+      directions: [
+        {
+          id: "dir-system-principle",
+          title: "内容系统的核心：保留主张，改变包装",
+          description: "解释为什么每个平台需要不同 wrapper，但主张、证据和例子不能变形。",
+          angle: "Principle essay",
+          status: "ready"
+        },
+        {
+          id: "dir-system-operator",
+          title: "给内容运营的一张分发判断表",
+          description: "把题材做成一张判断表，帮助运营决定哪些内容适合公众号、小红书或 NewsNet。",
+          angle: "Operator tool",
+          status: "ready"
+        }
+      ]
     }
-  ];
+  ].map(normalizeTopic);
 }
 
 function normalizeMainContent(batch, topics, items) {
   if (batch.main_content) return batch.main_content;
-  const title = topics.find((topic) => topic.status === "confirmed")?.title || "Building a calmer content system";
+  const confirmed = topics.find((topic) => topic.status === "confirmed") || topics[0];
+  const selectedDirection = getSelectedDirection(confirmed);
+  const title = selectedDirection?.title || confirmed?.title || "Building a calmer content system";
   const body = stripMarkdown(batch.source_summary || items[0]?.summary || "A strong blog post should be the source of many smaller pieces.");
   return {
     id: "main-blog",
@@ -97,7 +155,7 @@ function normalizeMainContent(batch, topics, items) {
     status: "draft",
     hero_alt: "Editorial cover preview",
     cover_brief: "A clean workspace image: one canonical article connected to several publishing channels.",
-    dek: "A canonical post that keeps the core claim, proof, and examples intact before channel adaptation.",
+    dek: selectedDirection?.description || "A canonical post that keeps the core claim, proof, and examples intact before channel adaptation.",
     html: `
       <p>${escapeHtml(body)}</p>
       <h3>Core structure</h3>
@@ -196,13 +254,16 @@ function renderStage(repo) {
 function renderTopics(repo) {
   const selected = repo.topics.find((topic) => topic.id === selectedTopicId) || repo.topics[0];
   selectedTopicId = selected?.id || null;
+  selectedDirectionId = selected?.directions?.some((direction) => direction.id === selectedDirectionId)
+    ? selectedDirectionId
+    : getSelectedDirection(selected)?.id || selected?.directions?.[0]?.id || null;
   els.stagePanel.innerHTML = `
     <div class="stageHeader">
       <div>
-        <p class="eyebrow">Topic Discovery</p>
-        <h2>选题池</h2>
+        <p class="eyebrow">Subject Discovery</p>
+        <h2>题材池</h2>
       </div>
-      <button class="quietButton" title="Refresh topics">Refresh</button>
+      <button class="quietButton" title="Refresh subjects">Refresh</button>
     </div>
     <div class="split">
       <div class="recordList">
@@ -215,6 +276,11 @@ function renderTopics(repo) {
   `;
   bindRecordSelection("topic", (id) => {
     selectedTopicId = id;
+    selectedDirectionId = null;
+    renderTopics(repo);
+  });
+  bindRecordSelection("direction", (id) => {
+    selectedDirectionId = id;
     renderTopics(repo);
   });
 }
@@ -224,19 +290,21 @@ function topicRow(topic, selectedId) {
     <button class="recordRow ${topic.id === selectedId ? "selected" : ""}" data-topic="${escapeAttr(topic.id)}">
       <span class="statusDot ${topic.status}"></span>
       <strong>${escapeHtml(topic.title)}</strong>
-      <small>${escapeHtml(topic.source)} · score ${topic.score || "-"}</small>
+      <small>${escapeHtml(topic.source)} · ${topic.directions?.length || 0} directions · score ${topic.score || "-"}</small>
     </button>
   `;
 }
 
 function topicDetail(topic) {
+  const directions = topic.directions || [];
+  const selectedDirection = directions.find((direction) => direction.id === selectedDirectionId) || directions[0];
   return `
     <div class="canvasHead">
       <div>
         <span class="pill">${escapeHtml(topic.source)}</span>
         <span class="pill">${escapeHtml(topic.status)}</span>
       </div>
-      <button class="primaryButton" title="Confirm this topic">Confirm topic</button>
+      <button class="primaryButton" title="Confirm selected title and description direction">Confirm title + description</button>
     </div>
     <h2>${escapeHtml(topic.title)}</h2>
     <dl class="metaGrid">
@@ -244,13 +312,37 @@ function topicDetail(topic) {
       <div><dt>Score</dt><dd>${escapeHtml(topic.score || "-")}</dd></div>
     </dl>
     <section class="sectionBlock">
-      <h3>Angle</h3>
-      <p>${escapeHtml(topic.angle || "")}</p>
+      <h3>题材</h3>
+      <p>${escapeHtml(topic.subject || topic.title || "")}</p>
     </section>
+    <div class="directionLayout">
+      <div class="directionList">
+        ${directions.map((direction) => directionCard(direction, selectedDirection?.id)).join("")}
+      </div>
+      <section class="directionPreview">
+        <p class="eyebrow">Selected Direction</p>
+        <h3>${escapeHtml(selectedDirection?.title || "No direction selected")}</h3>
+        <p>${escapeHtml(selectedDirection?.description || "Choose a title and description direction for this subject.")}</p>
+        <dl class="miniMeta">
+          <div><dt>Angle</dt><dd>${escapeHtml(selectedDirection?.angle || "-")}</dd></div>
+          <div><dt>Status</dt><dd>${escapeHtml(selectedDirection?.status || "-")}</dd></div>
+        </dl>
+      </section>
+    </div>
     <section class="sectionBlock">
       <h3>Evidence</h3>
       <p>${escapeHtml(topic.evidence || "No source evidence attached yet.")}</p>
     </section>
+  `;
+}
+
+function directionCard(direction, selectedId) {
+  return `
+    <button class="directionCard ${direction.id === selectedId ? "selected" : ""}" data-direction="${escapeAttr(direction.id)}">
+      <span>${escapeHtml(direction.status || "ready")}</span>
+      <strong>${escapeHtml(direction.title)}</strong>
+      <small>${escapeHtml(direction.description)}</small>
+    </button>
   `;
 }
 
@@ -433,6 +525,28 @@ function bindRecordSelection(kind, onSelect) {
   for (const row of els.stagePanel.querySelectorAll(`[data-${kind}]`)) {
     row.addEventListener("click", () => onSelect(row.dataset[kind]));
   }
+}
+
+function normalizeTopic(topic) {
+  const directions = Array.isArray(topic.directions) && topic.directions.length
+    ? topic.directions
+    : [{
+      id: `${topic.id || "topic"}-direction-1`,
+      title: topic.title || "Untitled direction",
+      description: topic.description || topic.angle || "No description yet.",
+      angle: topic.angle || "General",
+      status: topic.status === "confirmed" ? "selected" : "ready"
+    }];
+  return {
+    ...topic,
+    subject: topic.subject || topic.topic || topic.title,
+    directions
+  };
+}
+
+function getSelectedDirection(topic) {
+  if (!topic?.directions?.length) return null;
+  return topic.directions.find((direction) => direction.status === "selected" || direction.status === "confirmed") || topic.directions[0];
 }
 
 function bindEditorActions(id) {

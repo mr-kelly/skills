@@ -396,6 +396,88 @@ dd {
   margin-bottom: 8px;
 }
 
+.directionLayout {
+  display: grid;
+  grid-template-columns: minmax(260px, 42%) minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.directionList {
+  display: grid;
+  gap: 8px;
+}
+
+.directionCard {
+  width: 100%;
+  min-height: 106px;
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fbfcfe;
+}
+
+.directionCard:hover,
+.directionCard.selected {
+  border-color: var(--accent);
+  background: #ffffff;
+  box-shadow: var(--shadow);
+}
+
+.directionCard span {
+  width: fit-content;
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: #eef1f5;
+  font-size: 12px;
+}
+
+.directionCard strong,
+.directionCard small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.directionPreview {
+  min-height: 100%;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.directionPreview h3 {
+  margin-bottom: 8px;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.directionPreview p {
+  color: var(--muted);
+}
+
+.miniMeta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.miniMeta div {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--soft);
+}
+
 .mainPreview {
   display: grid;
   grid-template-columns: minmax(260px, 34%) minmax(0, 1fr);
@@ -580,6 +662,7 @@ tr:last-child td {
 
   .split,
   .mainPreview,
+  .directionLayout,
   .supportGrid {
     grid-template-columns: 1fr;
   }

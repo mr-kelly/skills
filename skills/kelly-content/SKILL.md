@@ -45,8 +45,8 @@ When writing a batch, keep stable item IDs so comments like "change #2" can be r
 
 Model the local app as a four-stage content repository, not only a draft queue:
 
-1. `topics`: topic discovery. Show candidate topics from automated search, system generation, or preset editorial plans. Track source, score, audience, angle, evidence, and whether the topic is confirmed.
-2. `main_content`: canonical source draft. Show the approved topic's main blog/article with rich preview, cover/image brief, embedded media slots, and rendered HTML when available. Markdown is acceptable as storage, but the UI should render a polished editorial preview.
+1. `topics`: subject discovery. Treat each topic as a broad subject/material area, not a final headline. Show candidate subjects from automated search, system generation, or preset editorial plans. For each subject, provide multiple `directions` with `title`, `description`, `angle`, and `status`; the user confirms a title + description direction before moving to the main draft.
+2. `main_content`: canonical source draft. Show the approved title + description direction's main blog/article with rich preview, cover/image brief, embedded media slots, and rendered HTML when available. Markdown is acceptable as storage, but the UI should render a polished editorial preview.
 3. `distribution`: channel adaptations. Show WeChat, Xiaohongshu, NewsNet/newsletter, LinkedIn, X/Twitter, and other platform versions with review/edit/approve controls.
 4. `outputs`: final published or exported assets. Show filterable/sortable rows with channel, status, publish/update date, URL when available, owner, and performance metrics.
 
