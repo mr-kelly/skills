@@ -235,9 +235,10 @@ style:
     default: "https://example.com"
 
 risk_policy:
+  # Defaults to send_reply only. Add "archive" or "mark_read" here if you want
+  # approved cleanup actions to be blocked again when matching review_keywords.
   block_by_default:
     - "send_reply"
-    - "delete"
   review_keywords:
     money:
       - "invoice"

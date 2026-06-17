@@ -446,11 +446,13 @@ After the user reviews in the UI, read `.agents/skills/kelly-email/app/.cache/de
 
 For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. After execution, write an execution report next to the batch file and update local cache state.
 
-For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.mjs`. It reads `current_batch.json` and `decisions.json`, applies a final kelly-email-agent safety gate, executes only explicit UI-approved actions (`archive`, `mark_read`, or `send_reply`), and writes a JSON report under `.agents/skills/kelly-email/app/.cache/execution_reports/`. Use `--dry-run` for validation when unsure.
+For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.mjs`. It reads `current_batch.json` and `decisions.json`, executes explicit UI-approved mailbox cleanup actions (`archive` and `mark_read`) by default, and writes a JSON report under `.agents/skills/kelly-email/app/.cache/execution_reports/`. Use `--dry-run` for validation when unsure.
 
-The final safety gate must block mailbox mutation even when the UI decision says archive/mark-read if the item appears to involve money, billing, quota/usage cost, course homework/feedback, account/security, GitHub PAT/security, failed CI/deploy alerts, attachments, or unclear real-person intent. Blocked items return to `needs_review`.
+Treat the UI approval as the user's final approval for `archive` and `mark_read` by default, including messages that were originally classified as money, billing, account/security, technical alerts, attachments, or unclear real-person intent. Do not add another default safety block for those cleanup actions after the user approves them in the UI.
 
-If the user explicitly pushes back after seeing the block, such as "处理啊，decided 的你怎么没处理", treat that as a second approval to execute already-decided `archive` and `mark_read` actions. Run `execute_ui_decisions.mjs --allow-risk-approved`. This override still must not send replies; `send_reply` requires a separate explicit UI-approved `send_reply` decision.
+Allow users to opt back into cleanup blocking through private config: `risk_policy.block_by_default` may include `archive` or `mark_read`, and the configured `risk_policy.review_keywords` categories such as `money`, `security`, `attachments`, or `course_feedback` should then block matching approved cleanup actions until the user overrides them.
+
+For `send_reply`, keep a stricter final safety check: require an explicit UI-approved `send_reply` decision and a non-empty approved draft. Never send replies because of a broad cleanup approval.
 
 Typical user flow:
 

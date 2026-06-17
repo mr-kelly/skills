@@ -50,7 +50,7 @@ The useful non-secret config blocks are:
 4. Approve archive, mark read, draft reply, or send actions.
 5. Return to chat and ask `/kelly-email` to execute approved decisions.
 
-The skill then reads the local decisions file, applies a final safety check, and performs only explicitly approved mailbox actions.
+The skill then reads the local decisions file and performs only explicitly approved mailbox actions. By default, approved `archive` and `mark_read` actions execute directly; you can opt back into cleanup blocking with `risk_policy.block_by_default` in private config.
 
 ## Chat-Only Mode
 

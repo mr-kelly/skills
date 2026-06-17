@@ -32,37 +32,36 @@ Execute explicit App-in-Skill UI decisions from current_batch.json and decisions
 --dry-run performs validation and writes an execution report without touching mailboxes.`);
 }
 
+function configuredKeywords(config, riskName) {
+  return config.risk_policy?.review_keywords?.[riskName] || [];
+}
+
 function hasConfiguredRisk(config, riskName, text) {
-  return (config.risk_policy?.review_keywords?.[riskName] || []).some((keyword) =>
+  return configuredKeywords(config, riskName).some((keyword) =>
     keyword && text.toLowerCase().includes(String(keyword).toLowerCase())
   );
 }
 
-function safetyBlockReason(item, action, config) {
-  const text = [item.from, item.subject, item.summary, String(item.body || "").slice(0, 1200)].join("\n").toLowerCase();
-  const category = item.category || "";
-  const risks = new Set(item.risk || []);
+function configuredBlockActions(config) {
+  return new Set(config.risk_policy?.block_by_default || ["send_reply"]);
+}
 
+function safetyBlockReason(item, action, config) {
   if (action === "send_reply") {
     if (!String(item.draft || "").trim()) return "send_reply requires a non-empty approved draft";
     return null;
   }
   if (!["archive", "mark_read"].includes(action)) return null;
-  if (category === "money" || risks.has("money") || /invoice|receipt|payment|billing|refund|charge|subscription|paid subscription|sponsorship amount|next billing|账单|发票|付款|支付|提交凭证|续费|按量计费|资源包|限额|余额|扣费/i.test(text)) {
-    return "money/billing/quota signal requires manual review";
-  }
-  if (hasConfiguredRisk(config, "money", text)) return "configured money review keyword matched";
-  if (category === "course_feedback" || /course_homework|course_feedback|course lesson feedback|course homework|homework submission|lesson feedback|课后作业|课程反馈|作业提交/i.test(text)) {
-    return "course feedback/homework should be reviewed before cleanup";
-  }
-  if (/github actions|run failed|pr run failed|personal access token|pat requests|domain.*configuration|quota alert|账号限额告警/i.test(text)) {
-    return "technical/security/build alert should be reviewed before cleanup";
-  }
-  if (hasConfiguredRisk(config, "security", text)) return "configured security review keyword matched";
-  if (item.attachments?.length) return "message has attachments";
-  if (action === "archive" && !/newsletter|digest|linkedin|mongodb atlas|noreply|no-reply|notification|workspace notification|product onboarding|acquire notifications|beehiiv|luma|dmarc|github <noreply|notifications@github|discoursemail|onboarding submission|new user onboarding/i.test(text)) {
-    return "not clearly low-risk notification/newsletter";
-  }
+  if (!configuredBlockActions(config).has(action)) return null;
+
+  const text = [item.from, item.subject, item.summary, String(item.body || "").slice(0, 1200)].join("\n").toLowerCase();
+  const category = item.category || "";
+  const risks = new Set(item.risk || []);
+
+  if (category === "money" || risks.has("money") || hasConfiguredRisk(config, "money", text)) return "configured money cleanup block matched";
+  if (category === "course_feedback" || hasConfiguredRisk(config, "course_feedback", text)) return "configured course cleanup block matched";
+  if (risks.has("security") || category === "data_privacy_security" || hasConfiguredRisk(config, "security", text)) return "configured security cleanup block matched";
+  if (item.attachments?.length || hasConfiguredRisk(config, "attachments", text)) return "configured attachment cleanup block matched";
   return null;
 }
 
