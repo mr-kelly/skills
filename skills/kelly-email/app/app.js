@@ -864,6 +864,24 @@ function isEditing() {
   return active.matches("input") && active.id !== "searchInput";
 }
 
+function captureScrollState() {
+  const page = document.scrollingElement || document.documentElement;
+  return {
+    pageTop: page?.scrollTop || 0,
+    listTop: $("messageList")?.scrollTop || 0,
+    detailTop: $("detailPanel")?.scrollTop || 0,
+  };
+}
+
+function restoreScrollState(scrollState) {
+  const page = document.scrollingElement || document.documentElement;
+  if (page) page.scrollTop = scrollState.pageTop;
+  const list = $("messageList");
+  if (list) list.scrollTop = scrollState.listTop;
+  const detail = $("detailPanel");
+  if (detail) detail.scrollTop = scrollState.detailTop;
+}
+
 function decisionLabel(item) {
   const action = item.decision?.action;
   if (!action) return "";
@@ -1094,20 +1112,22 @@ function renderDetail() {
       comment: $("commentText").value,
     });
     toast(t("toast.saved_detail"));
-    await refresh();
+    await refresh({ preserveScroll: false });
     selectedId = item.id;
     renderDetail();
   };
 }
 
-async function refresh() {
+async function refresh({ preserveScroll = true } = {}) {
   if (isEditing()) return pollLock();
+  const scrollState = preserveScroll ? captureScrollState() : null;
   const q = encodeURIComponent($("searchInput").value || "");
   state = await api(`/api/state?mode=${mode}&q=${q}`);
   renderCounts();
   renderList();
   renderDetail();
   applyLockState();
+  if (scrollState) requestAnimationFrame(() => restoreScrollState(scrollState));
 }
 
 async function pollLock() {
@@ -1134,7 +1154,7 @@ async function decide(action, ids = null) {
   const data = await api("/api/decision", { ids: list, action, comment });
   list.forEach((id) => checked.delete(id));
   toast(t("toast.saved_count", { count: data.changed.length }));
-  await refresh();
+  await refresh({ preserveScroll: false });
 }
 
 function wire() {
@@ -1162,14 +1182,14 @@ function wire() {
     renderList();
     renderBulkActions();
   };
-  $("searchInput").addEventListener("input", () => refresh());
+  $("searchInput").addEventListener("input", () => refresh({ preserveScroll: false }));
   document.querySelectorAll("#filters button").forEach((button) => {
     button.onclick = async () => {
       document.querySelectorAll("#filters button").forEach((node) => node.classList.remove("active"));
       button.classList.add("active");
       mode = button.dataset.mode;
       selectedId = null;
-      await refresh();
+      await refresh({ preserveScroll: false });
     };
   });
   document.querySelectorAll('input[name="uiLanguage"]').forEach((input) => {
@@ -1179,6 +1199,6 @@ function wire() {
 
 applyTranslations();
 wire();
-refresh().catch((error) => toast(error.message));
+refresh({ preserveScroll: false }).catch((error) => toast(error.message));
 lockTimer = setInterval(() => pollLock().catch((error) => toast(error.message)), 3000);
-refreshTimer = setInterval(() => refresh().catch((error) => toast(error.message)), 5000);
+refreshTimer = setInterval(() => refresh().catch((error) => toast(error.message)), 15000);
