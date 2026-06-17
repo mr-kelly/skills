@@ -26,7 +26,7 @@ Run:
 Open:
 
 ```text
-http://127.0.0.1:8787
+http://127.0.0.1:3000
 ```
 
 Local batch and decision files are ignored by git.
@@ -34,7 +34,7 @@ Local batch and decision files are ignored by git.
 Typical workflow:
 
 1. Ask `/kelly-email` to generate the next local review batch.
-2. Open or refresh `http://127.0.0.1:8787`.
+2. Open or refresh the URL printed by `app/start.sh`, usually `http://127.0.0.1:3000`.
 3. Review each item, edit drafts/comments, and approve local decisions.
 4. Ask `/kelly-email` to execute approved UI decisions.
 

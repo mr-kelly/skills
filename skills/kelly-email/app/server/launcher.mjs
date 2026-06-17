@@ -3,15 +3,18 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import http from "node:http";
 import { spawn } from "node:child_process";
-import { DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, CACHE_DIR, SERVER_DIR } from "./paths.mjs";
+import { DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, CACHE_DIR, SERVER_DIR, PREFERRED_PORT_MIN, PREFERRED_PORT_MAX } from "./paths.mjs";
 
 const host = process.env.KELLY_EMAIL_UI_HOST || DEFAULT_HOST;
-const port = process.env.KELLY_EMAIL_UI_PORT || String(DEFAULT_PORT);
-const stateUrl = `http://${host}:${port}/api/state`;
+const explicitPort = process.env.KELLY_EMAIL_UI_PORT || "";
 
-function isReady() {
+function stateUrlFor(port) {
+  return `http://${host}:${port}/api/state`;
+}
+
+function isReady(port) {
   return new Promise((resolve) => {
-    const req = http.get(stateUrl, { timeout: 500 }, (res) => {
+    const req = http.get(stateUrlFor(port), { timeout: 500 }, (res) => {
       res.resume();
       resolve(res.statusCode >= 200 && res.statusCode < 300);
     });
@@ -41,9 +44,18 @@ async function stalePid() {
   }
 }
 
+async function findPort() {
+  if (explicitPort) return explicitPort;
+  for (let candidate = DEFAULT_PORT; candidate <= PREFERRED_PORT_MAX; candidate += 1) {
+    if (await isReady(String(candidate))) return String(candidate);
+  }
+  return String(PREFERRED_PORT_MIN);
+}
+
 async function main() {
   await fsp.mkdir(CACHE_DIR, { recursive: true });
-  if (await isReady()) {
+  const port = await findPort();
+  if (await isReady(port)) {
     console.log(`Kelly Email UI already running: http://${host}:${port}`);
     return;
   }
@@ -61,7 +73,7 @@ async function main() {
   await fsp.writeFile(PID_PATH, `${child.pid}\n`);
 
   for (let i = 0; i < 40; i += 1) {
-    if (await isReady()) {
+    if (await isReady(port)) {
       console.log(`Kelly Email UI started: http://${host}:${port}`);
       console.log(`PID: ${child.pid}`);
       return;

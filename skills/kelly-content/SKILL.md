@@ -18,7 +18,7 @@ The skill prepares and exports content. It does not publish to external platform
 3. Extract the source's core idea, proof points, examples, keywords, reusable quotes, and action the reader should take.
 4. Generate a batch with one item per channel/content unit using `scripts/generate_batch.mjs`.
 5. Validate the batch with `scripts/validate_batch.mjs`.
-6. Launch or reuse the local UI with `app/start.sh` and send the user to `http://127.0.0.1:8791/` for review.
+6. Launch or reuse the local UI with `app/start.sh` and send the user to the actual started URL, preferring `http://127.0.0.1:3000/` and the `3000-4000` port range unless an env override is set.
 7. After the user approves or edits items in the UI, run `scripts/export_decisions.mjs` to export approved drafts to Markdown and JSON.
 8. If the user requested chat-only mode, present numbered drafts in chat and ask for approval there.
 

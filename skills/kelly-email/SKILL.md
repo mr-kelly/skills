@@ -9,7 +9,7 @@ description: Configurable email inbox-zero operator for clearing unread email th
 
 Use this skill as a configurable email approval desk across configured email accounts. The primary goal is email inbox zero: process all unread in-scope threads until no unreviewed unread items remain. Work in explicit user-approved batches, preserve account/source provenance, classify each request, draft helpful replies, and ask before sending or making external changes.
 
-Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, generate/update the local App-in-Skill batch, ensure the UI is running, and tell the user to review the batch at `http://127.0.0.1:8787/`. If the user says "纯聊天", "chat only", "不要打开 UI", "直接在这里处理", or similar, use chat message mode instead: present numbered items and drafts in the conversation, then execute only explicitly approved actions.
+Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, generate/update the local App-in-Skill batch, ensure the UI is running, and tell the user to review the batch at the actual started URL, preferring `http://127.0.0.1:3000/` and the `3000-4000` port range unless a port env override is set. If the user says "纯聊天", "chat only", "不要打开 UI", "直接在这里处理", or similar, use chat message mode instead: present numbered items and drafts in the conversation, then execute only explicitly approved actions.
 
 First-run behavior: if no private config exists or required secret env vars are missing, enter onboarding mode before any mailbox scan. Greet the user, explain that this skill needs local config, show the recommended config/env paths, and tell them to store secrets only in local env files. Onboarding should also invite the user to configure their role, brands/products, official URLs, reply style, and knowledge sources so drafts match their business context. Do not ask the user to paste passwords, tokens, app passwords, or OAuth secrets into chat.
 
@@ -299,7 +299,7 @@ Use this Local Review UI Workflow by default. If the user did not request chat-o
 
 When `/kelly-email` is generating, drafting, or executing a batch, create `.agents/skills/kelly-email/app/.cache/agent.lock` before writing batch/decision files and remove it in a `finally` step. The lock file should contain JSON with `owner`, `message`, and `started_at`. The UI polls this lock, disables editing while it exists, and the server rejects decision/detail writes during the lock to prevent concurrent file edits.
 
-Before or after generating a local review batch, ensure the UI is running by invoking `.agents/skills/kelly-email/app/start.sh` from the repository root. If the service is already running on `http://127.0.0.1:8787`, reuse it. Tell the user to open or refresh that URL.
+Before or after generating a local review batch, ensure the UI is running by invoking `.agents/skills/kelly-email/app/start.sh` from the repository root. Prefer the `3000-4000` port range; if the service is already running on the selected port, reuse it. Tell the user to open or refresh the actual URL printed by the launcher.
 
 For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.mjs` from the repository root. It reads unread IMAP mail in read-only mode, writes `.agents/skills/kelly-email/app/.cache/current_batch.json`, resets `.agents/skills/kelly-email/app/.cache/decisions.json`, and performs no mailbox mutations.
 

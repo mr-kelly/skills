@@ -41,7 +41,7 @@ Use this skill when you want to:
 Default local app URL:
 
 ```text
-http://127.0.0.1:8791/
+http://127.0.0.1:3000/
 ```
 
 The app reads and writes local files only. It does not publish posts, schedule content, upload media, or change external platforms.

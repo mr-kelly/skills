@@ -9,7 +9,7 @@ Use `/kelly-email` to scan unread email, classify messages, draft replies, and p
 By default, `/kelly-email` opens the local App-in-Skill UI:
 
 ```text
-http://127.0.0.1:8787/
+http://127.0.0.1:3000/
 ```
 
 The app is only an approval desk. It reads and writes local files; it does not scan mailboxes, send replies, archive mail, or mark mail read by itself.

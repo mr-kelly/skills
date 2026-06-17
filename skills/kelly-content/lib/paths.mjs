@@ -13,4 +13,6 @@ export const lockPath = path.join(cacheDir, "agent.lock");
 export const logPath = path.join(cacheDir, "server.log");
 export const pidPath = path.join(cacheDir, "server.pid");
 export const defaultHost = "127.0.0.1";
-export const defaultPort = 8791;
+export const defaultPort = 3000;
+export const preferredPortMin = 3000;
+export const preferredPortMax = 4000;

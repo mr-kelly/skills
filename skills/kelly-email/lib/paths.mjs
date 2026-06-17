@@ -19,7 +19,9 @@ export const PID_PATH = path.join(CACHE_DIR, "server.pid");
 export const REPORTS_DIR = path.join(CACHE_DIR, "execution_reports");
 export const SCAN_STATE_PATH = path.join(SKILL_CACHE_DIR, "scan_state.json");
 export const DEFAULT_HOST = "127.0.0.1";
-export const DEFAULT_PORT = 8787;
+export const DEFAULT_PORT = 3000;
+export const PREFERRED_PORT_MIN = 3000;
+export const PREFERRED_PORT_MAX = 4000;
 
 export function findRepoRoot(start = SKILL_DIR) {
   let current = path.resolve(start);

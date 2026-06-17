@@ -65,7 +65,7 @@ skill-name/
 └── config.local.yml  # gitignored
 ```
 
-Use Node.js by default for both the local app server and deterministic App-in-Skill scripts. Prefer built-in `node:http`, `node:fs/promises`, and ESM `.mjs` modules for the app server; add a small `package.json` only when external integrations clearly need dependencies such as IMAP, SMTP, document parsing, or API clients.
+Use Node.js by default for both the local app server and deterministic App-in-Skill scripts. Prefer built-in `node:http`, `node:fs/promises`, and ESM `.mjs` modules for the app server; add a small `package.json` only when external integrations clearly need dependencies such as IMAP, SMTP, document parsing, or API clients. Default local app ports should prefer the `3000-4000` range, starting at `3000`, while still allowing an explicit env override such as `<SKILL_ENV_PREFIX>_UI_PORT`.
 
 Keep shared runtime code in `lib/`: path constants in `lib/paths.mjs`, JSON/lock/batch helpers in `lib/common.mjs`, and configurable data access in `lib/data-reader/`. Keep `scripts/` as thin CLI entrypoints that import from `lib/`; do not create a parallel `scripts/lib/` tree.
 
@@ -204,6 +204,7 @@ Build the app as a quiet local tool, not a landing page. Keep controls obvious a
 - Auto-refresh files on a timer, but do not redraw while the user is actively editing a textarea or non-search input.
 - Keep the top bar and sidebar fixed if the item list scrolls.
 - Use local HTTP on `127.0.0.1`; do not expose the app externally.
+- Prefer local app ports in the `3000-4000` range, starting at `3000`; if the port is occupied, reuse an already-ready app on that port or choose the next available port in the range. Always report the actual URL printed by the launcher.
 - If the skill uses private config, show a compact read-only `Help & Settings` summary in the UI so the user can confirm which accounts, identities, profile, style choices, official links, knowledge sources, or data sources are active.
 
 ## Batch Schema
