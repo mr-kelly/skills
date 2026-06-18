@@ -2,15 +2,17 @@ import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import YAML from "yaml";
 import { ROOT_DIR, SKILL_DIR } from "../paths.mjs";
 
-export const CONFIG_LOCAL_PATH = path.join(SKILL_DIR, "config.local.yml");
-export const CONFIG_EXAMPLE_PATH = path.join(SKILL_DIR, "config.example.yml");
+export const CONFIG_LOCAL_PATH = path.join(SKILL_DIR, "config.local.json");
+export const LEGACY_CONFIG_LOCAL_PATH = path.join(SKILL_DIR, "config.local.yml");
+export const CONFIG_EXAMPLE_PATH = path.join(SKILL_DIR, "config.example.json");
+export const LEGACY_CONFIG_EXAMPLE_PATH = path.join(SKILL_DIR, "config.example.yml");
 export const REPO_ENV_PATH = path.join(ROOT_DIR, ".env");
 export const SKILL_ENV_PATH = path.join(SKILL_DIR, ".env.local");
 export const USER_CONFIG_DIR = path.join(os.homedir(), ".config", "kelly-email");
-export const USER_CONFIG_PATH = path.join(USER_CONFIG_DIR, "config.yml");
+export const USER_CONFIG_PATH = path.join(USER_CONFIG_DIR, "config.json");
+export const LEGACY_USER_CONFIG_PATH = path.join(USER_CONFIG_DIR, "config.yml");
 export const USER_ENV_PATH = path.join(USER_CONFIG_DIR, ".env");
 
 export function envFileCandidates() {
@@ -23,6 +25,10 @@ export function configFileCandidates() {
 
 export function privateConfigCandidates() {
   return [process.env.KELLY_EMAIL_CONFIG, CONFIG_LOCAL_PATH, USER_CONFIG_PATH].filter(Boolean);
+}
+
+export function legacyConfigFileCandidates() {
+  return [LEGACY_CONFIG_LOCAL_PATH, LEGACY_USER_CONFIG_PATH, LEGACY_CONFIG_EXAMPLE_PATH].filter(Boolean);
 }
 
 async function loadDotenvFile(pathname) {
@@ -53,15 +59,21 @@ export async function loadDotenv() {
 export async function loadConfigWithMeta() {
   const candidates = configFileCandidates();
   const source = candidates.find((candidate) => existsSync(candidate));
+  const legacyCandidates = legacyConfigFileCandidates();
+  const legacySource = legacyCandidates.find((candidate) => existsSync(candidate));
+  const sourceIsLegacy = Boolean(source && /\.(ya?ml)$/i.test(source));
   const baseMeta = {
     reader: "local",
     provider: "local_file",
     candidates,
+    legacy_candidates: legacyCandidates,
+    legacy_source: sourceIsLegacy ? source : legacySource || "",
     recommended_config: USER_CONFIG_PATH,
     recommended_env: USER_ENV_PATH,
-    example_config: CONFIG_EXAMPLE_PATH
+    example_config: CONFIG_EXAMPLE_PATH,
+    legacy_config_format: Boolean(sourceIsLegacy || legacySource)
   };
-  if (!source) {
+  if (!source || sourceIsLegacy) {
     return {
       config: { mailboxes: [], identities: [] },
       source: "",
@@ -70,7 +82,7 @@ export async function loadConfigWithMeta() {
       ...baseMeta
     };
   }
-  const parsed = YAML.parse(await fs.readFile(source, "utf8")) || {};
+  const parsed = JSON.parse(await fs.readFile(source, "utf8")) || {};
   if (!Array.isArray(parsed.mailboxes)) parsed.mailboxes = [];
   if (!Array.isArray(parsed.identities)) parsed.identities = [];
   const isExample = path.resolve(source) === path.resolve(CONFIG_EXAMPLE_PATH);

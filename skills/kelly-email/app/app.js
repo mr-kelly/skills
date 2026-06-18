@@ -176,10 +176,16 @@ function countFor(name) {
 }
 
 function renderCounts() {
-  ["all", "needs_review", "to_approve", "approved", "done", "blocked"].forEach((name) => {
+  ["all", "needs_review", "approved", "done", "blocked"].forEach((name) => {
     const el = $(`count-${name}`);
     if (el) el.textContent = countFor(name);
   });
+  const humanNeeds = $("count-human-needs_review");
+  const humanApproved = $("count-human-approved");
+  const humanBlocked = $("count-human-blocked");
+  if (humanNeeds) humanNeeds.textContent = countFor("needs_review");
+  if (humanApproved) humanApproved.textContent = countFor("approved");
+  if (humanBlocked) humanBlocked.textContent = countFor("blocked");
 }
 
 function renderBulkActions() {
@@ -628,8 +634,8 @@ function onboardingHtml() {
       <strong>${onboarding.state === "missing_secrets" ? escapeHtml(t("onboarding.add_secrets")) : escapeHtml(t("onboarding.setup"))}</strong>
       <p>${escapeHtml(onboarding.message || t("onboarding.default_message"))}</p>
       <ol>
-        <li>${template(escapeHtml(t("onboarding.copy")), { path: `<code>${escapeHtml(onboarding.example_config || ".agents/skills/kelly-email/config.example.yml")}</code>` })}</li>
-        <li>${template(escapeHtml(t("onboarding.save_as")), { path: `<code>${escapeHtml(onboarding.recommended_config || "~/.config/kelly-email/config.yml")}</code>` })}</li>
+        <li>${template(escapeHtml(t("onboarding.copy")), { path: `<code>${escapeHtml(onboarding.example_config || ".agents/skills/kelly-email/config.example.json")}</code>` })}</li>
+        <li>${template(escapeHtml(t("onboarding.save_as")), { path: `<code>${escapeHtml(onboarding.recommended_config || "~/.config/kelly-email/config.json")}</code>` })}</li>
         <li>${escapeHtml(t("onboarding.fill"))}</li>
         <li>${template(escapeHtml(t("onboarding.env")), { path: `<code>${escapeHtml(onboarding.recommended_env || "~/.config/kelly-email/.env")}</code>` })}</li>
         <li>${escapeHtml(t("onboarding.test"))}</li>
@@ -731,6 +737,7 @@ async function refresh({ preserveScroll = true } = {}) {
   if (isEditing()) return pollLock();
   const scrollState = preserveScroll ? captureScrollState() : null;
   const q = encodeURIComponent($("searchInput").value || "");
+  if (mode === "to_approve") mode = "approved";
   state = await api(`/api/state?mode=${mode}&q=${q}`);
   renderCounts();
   renderList();
@@ -794,8 +801,19 @@ function wire() {
   $("searchInput").addEventListener("input", () => refresh({ preserveScroll: false }));
   document.querySelectorAll("#filters button").forEach((button) => {
     button.onclick = async () => {
-      document.querySelectorAll("#filters button").forEach((node) => node.classList.remove("active"));
+      document.querySelectorAll("[data-mode]").forEach((node) => node.classList.remove("active"));
       button.classList.add("active");
+      mode = button.dataset.mode;
+      selectedId = null;
+      await refresh({ preserveScroll: false });
+    };
+  });
+  document.querySelectorAll(".human-work [data-mode]").forEach((button) => {
+    button.onclick = async () => {
+      document.querySelectorAll("[data-mode]").forEach((node) => node.classList.remove("active"));
+      button.classList.add("active");
+      const matchingFilter = document.querySelector(`#filters [data-mode="${button.dataset.mode}"]`);
+      if (matchingFilter) matchingFilter.classList.add("active");
       mode = button.dataset.mode;
       selectedId = null;
       await refresh({ preserveScroll: false });

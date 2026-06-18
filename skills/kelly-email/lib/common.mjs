@@ -472,5 +472,6 @@ export function isApproved(item) {
   const action = decisionAction(item);
   if (isDone(item) || isBlocked(item)) return false;
   if (action === "draft_reply") return item.status === "draft_requested";
-  return ["archive", "mark_read", "send_reply"].includes(action);
+  if (["archive", "mark_read", "send_reply"].includes(action)) return true;
+  return isToApprove(item);
 }

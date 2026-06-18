@@ -13,6 +13,39 @@
           <div class="brand-title">Kelly Email</div>
           <div class="brand-subtitle" data-i18n="brand.subtitle">File-only approval desk</div>
         </div>
+        <section class="human-work" aria-labelledby="humanWorkTitle">
+          <div class="human-work-eyebrow" data-i18n="human_work.eyebrow">Needs You</div>
+          <div id="humanWorkTitle" class="human-work-title" data-i18n="human_work.title">What needs your attention</div>
+          <button
+            data-mode="needs_review"
+            class="human-work-primary has-tooltip"
+            data-i18n-tooltip="human_work.needs_review.tooltip"
+          >
+            <span>
+              <strong id="count-human-needs_review">0</strong>
+              <span data-i18n="human_work.needs_review">Need a note or decision</span>
+            </span>
+          </button>
+          <div class="human-work-secondary">
+            <button
+              data-mode="approved"
+              class="has-tooltip"
+              data-i18n-tooltip="human_work.approved.tooltip"
+            >
+              <strong id="count-human-approved">0</strong>
+              <span data-i18n="human_work.approved">Ready for AI next</span>
+            </button>
+            <button
+              data-mode="blocked"
+              class="has-tooltip"
+              data-i18n-tooltip="human_work.blocked.tooltip"
+            >
+              <strong id="count-human-blocked">0</strong>
+              <span data-i18n="human_work.blocked">Blocked</span>
+            </button>
+          </div>
+        </section>
+        <div class="sidebar-separator"></div>
         <nav class="filters" id="filters">
           <button
             data-mode="all"
@@ -24,11 +57,6 @@
             class="has-tooltip"
             data-i18n-tooltip="filter.needs_review.tooltip"
           ><span data-i18n="filter.needs_review">Needs Review</span> <span id="count-needs_review">0</span></button>
-          <button
-            data-mode="to_approve"
-            class="has-tooltip"
-            data-i18n-tooltip="filter.to_approve.tooltip"
-          ><span data-i18n="filter.to_approve">To approve</span> <span id="count-to_approve">0</span></button>
           <button
             data-mode="approved"
             class="has-tooltip"
@@ -173,13 +201,13 @@
           <section class="help-tab-panel" data-help-panel="config">
             <h2 data-i18n="config.title">Configuration</h2>
             <p data-i18n="config.recommended">Recommended user-wide files:</p>
-            <pre><code>~/.config/kelly-email/config.yml
+            <pre><code>~/.config/kelly-email/config.json
 ~/.config/kelly-email/.env</code></pre>
             <p data-i18n="config.alternative">Alternative local files:</p>
-            <pre><code>.agents/skills/kelly-email/config.local.yml
+            <pre><code>.agents/skills/kelly-email/config.local.json
 .agents/skills/kelly-email/.env.local</code></pre>
             <p data-i18n="config.reader">The data reader is currently local config. Later it can be swapped for Supabase, Postgres, or pusa-cloud without changing the approval UI contract.</p>
-            <p data-i18n="config.yaml">YAML stores accounts, aliases, identities, user profile, brands, official URLs, knowledge sources, style, CTA URLs, and risk keywords. Secrets stay in env files and are referenced by variable name.</p>
+            <p data-i18n="config.json">JSON stores accounts, aliases, identities, user profile, brands, official URLs, knowledge sources, style, CTA URLs, and risk keywords. Secrets stay in env files and are referenced by variable name.</p>
           </section>
         </div>
       </section>

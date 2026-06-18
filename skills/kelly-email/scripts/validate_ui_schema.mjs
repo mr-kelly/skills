@@ -15,7 +15,7 @@ import {
 const VALID_STATUS = new Set(["prepared", "needs_review", "draft_requested", "drafted", "executed"]);
 const VALID_ACTION = new Set(["archive", "mark_read", "send_reply", "draft_reply", "keep_unread", "review"]);
 const VALID_DECISION = new Set(["archive", "mark_read", "send_reply", "draft_reply", "keep_unread", "no_action", "needs_review", "revise"]);
-const VALID_EXECUTION = new Set(["executed", "blocked", "error"]);
+const VALID_EXECUTION = new Set(["executed", "blocked", "error", "dry_run"]);
 const VALID_LANGUAGE = new Set(["en", "zh-CN", "unknown"]);
 
 async function main() {
@@ -68,7 +68,6 @@ async function main() {
 
   const counts = {
     needs_review: items.filter(isNeedsReview).length,
-    to_approve: items.filter(isToApprove).length,
     approved: items.filter(isApproved).length,
     done: items.filter(isDone).length,
     blocked: items.filter(isBlocked).length

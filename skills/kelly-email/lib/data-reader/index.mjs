@@ -68,16 +68,21 @@ export function onboardingStatus(config, meta = {}) {
   const mailboxes = config.mailboxes || [];
   const reader = meta.reader || dataReaderKind();
   if (meta.is_example || !meta.has_private_config || !mailboxes.length) {
+    const legacyMessage = meta.legacy_config_format && meta.legacy_source
+      ? `Found legacy YAML config at ${meta.legacy_source}, but Kelly Email is now zero-dependency and reads JSON only. Convert it to ${USER_CONFIG_PATH} or set KELLY_EMAIL_CONFIG to a JSON file before scanning mail.`
+      : "";
     return {
       configured: false,
-      state: "needs_config",
+      state: meta.legacy_config_format ? "needs_json_config" : "needs_config",
       reader,
       message:
-        reader === "local"
-          ? "No private Kelly Email configuration found. Copy config.example.yml to ~/.config/kelly-email/config.yml, fill mailboxes, identities, profile, style, official URLs, and knowledge sources, then add secrets to ~/.config/kelly-email/.env before scanning mail."
-          : `No usable Kelly Email configuration found from data reader ${reader}. Configure that reader before scanning mail.`,
+        legacyMessage ||
+        (reader === "local"
+          ? "No private Kelly Email configuration found. Copy config.example.json to ~/.config/kelly-email/config.json, fill mailboxes, identities, profile, style, official URLs, and knowledge sources, then add secrets to ~/.config/kelly-email/.env before scanning mail."
+          : `No usable Kelly Email configuration found from data reader ${reader}. Configure that reader before scanning mail.`),
       missing_env: [],
       config_candidates: meta.candidates || configFileCandidates(),
+      legacy_source: meta.legacy_source || "",
       recommended_config: meta.recommended_config || USER_CONFIG_PATH,
       recommended_env: meta.recommended_env || USER_ENV_PATH,
       example_config: meta.example_config || CONFIG_EXAMPLE_PATH
@@ -103,4 +108,3 @@ export function onboardingStatus(config, meta = {}) {
     example_config: meta.example_config || CONFIG_EXAMPLE_PATH
   };
 }
-

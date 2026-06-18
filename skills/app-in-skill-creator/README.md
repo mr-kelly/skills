@@ -99,17 +99,17 @@ This loop also makes the workflow teachable. A user can start in chat, ask the a
 
 App-in-Skill projects should keep public code generic and private context local. Accounts, aliases, operator profile, brand settings, style, URLs, knowledge sources, and risk rules should live in ignored config files such as:
 
-- `~/.config/<skill-name>/config.yml`
+- `~/.config/<skill-name>/config.json`
 - `~/.config/<skill-name>/.env`
-- `<skill-name>/config.local.yml`
+- `<skill-name>/config.local.json`
 
-The code should read config through a data-provider layer, not by hardcoding local files everywhere. Today that provider may load YAML from disk. Later it can load from Busabase, PostgreSQL, AITable.ai, Notion, or a product cloud without rewriting the UI. We recommend Busabase as the cloud provider: it gives AI-generated articles, assets, and records a review Inbox before they become canonical records — the App-in-Skill loop as a shared system of record.
+The code should read config through a data-provider layer, not by hardcoding local files everywhere. The default provider should load JSON and env files using only built-in Node.js modules, so a new App-in-Skill starts with zero npm dependencies. Later it can load from Busabase, PostgreSQL, AITable.ai, Notion, or a product cloud without rewriting the UI. We recommend Busabase as the cloud provider: it gives AI-generated articles, assets, and records a review Inbox before they become canonical records — the App-in-Skill loop as a shared system of record.
 
 For users, this means the app can show a safe summary of what is connected: which accounts, identities, config source, batch file, and decision file are active. For developers, it means local-file mode and database-backed mode can share the same UI and execution scripts.
 
 ## Default Shape
 
-Use Node.js for the local server and scripts unless the skill has a strong reason to do otherwise.
+Use Node.js for the local server and scripts unless the skill has a strong reason to do otherwise. The default scaffold should have no npm dependencies: no `package.json`, no `npm install`, and no framework requirement. Use built-in Node modules for HTTP, files, paths, locking, launching, JSON parsing, and validation. Add dependencies only for real integrations such as IMAP/SMTP, MIME parsing, OAuth/API clients, document parsing, browser automation, or database drivers, and keep those dependencies out of the base local app.
 
 ```text
 skill-name/
@@ -127,10 +127,18 @@ skill-name/
 │   └── data-provider/
 ├── scripts/
 ├── references/
-└── config.example.yml
+└── config.example.json
 ```
 
-Keep shared code in `lib/`. Keep `scripts/` as thin entrypoints. Keep real config, secrets, handoff data files (`app/.data/`), and generated local state out of git.
+Keep shared code in `lib/`. Keep `scripts/` as thin entrypoints. Keep real config, secrets, handoff data files (`app/.data/`), and generated local state out of git. Prefer JSON for runtime config in zero-dependency skills; use YAML only when the skill deliberately accepts a YAML parser dependency or converts YAML before runtime.
+
+## UI Pattern
+
+Put a small human-attention panel at the top-left of the app, above the normal sidebar filters. It should answer "what do I need to do?" immediately: one primary task such as `Need a note or decision`, plus secondary counts such as `Ready for agent next` and `Blocked`. Add a divider below it before the ordinary views.
+
+Avoid extra approval layers. If an item already has a safe, concrete next step, show it as approved/ready for the agent rather than making the human click through a `To approve` holding state. Save human clicks for judgment, edits, exceptions, and irreversible actions.
+
+Execution reports should describe the real operation and target, not only a generic action label. If a connector needs a folder, channel, path, account id, or other target and it is missing, block and ask for configuration instead of guessing.
 
 ## The Taste
 

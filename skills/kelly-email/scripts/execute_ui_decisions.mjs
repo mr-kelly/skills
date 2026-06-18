@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-import { ImapFlow } from "imapflow";
-import nodemailer from "nodemailer";
 import {
   CURRENT_BATCH_PATH,
   DECISIONS_PATH,
@@ -28,8 +26,10 @@ function parseArgs(argv) {
 function printHelp() {
   console.log(`Usage: node scripts/execute_ui_decisions.mjs [--dry-run] [--allow-risk-approved]
 
-Execute explicit App-in-Skill UI decisions from current_batch.json and decisions.json.
---dry-run performs validation and writes an execution report without touching mailboxes.`);
+Validate explicit App-in-Skill UI decisions from current_batch.json and decisions.json.
+
+This zero-dependency build does not include IMAP/SMTP execution. Real mailbox
+actions are blocked and reported unless an external connector handles them.`);
 }
 
 function configuredKeywords(config, riskName) {
@@ -67,6 +67,47 @@ function safetyBlockReason(item, action, config) {
 
 function mailboxMap(config) {
   return Object.fromEntries((config.mailboxes || []).map((mailbox) => [mailbox.mailbox_id, mailbox]));
+}
+
+function asObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function firstString(...values) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
+function riskTarget(routing, item) {
+  const byRisk = asObject(routing.by_risk);
+  for (const risk of item.risk || []) {
+    const target = firstString(byRisk[risk]);
+    if (target) return target;
+  }
+  return "";
+}
+
+function archiveTargetFolder(config, mailbox, item) {
+  const globalRouting = asObject(config.archive_routing);
+  const mailboxRouting = asObject(mailbox.archive_routing);
+  const byCategory = {
+    ...asObject(globalRouting.by_category),
+    ...asObject(mailboxRouting.by_category)
+  };
+  return firstString(
+    item.target_folder,
+    item.archive_folder,
+    item.execution?.target_folder,
+    item.execution_override?.target_folder,
+    byCategory[item.category],
+    riskTarget(mailboxRouting, item),
+    riskTarget(globalRouting, item),
+    mailboxRouting.default_folder,
+    mailbox.archive_folder,
+    globalRouting.default_folder
+  );
 }
 
 function identityMap(config) {
@@ -108,100 +149,41 @@ function resolveIdentity(item, config) {
   throw new Error(`no send identity configured for ${item.account}`);
 }
 
-function imapClient(mailbox) {
-  const imap = mailbox.imap;
-  const password = process.env[imap.password_env];
-  if (!password) throw new Error(`Missing environment variable: ${imap.password_env}`);
-  return new ImapFlow({
-    host: imap.host,
-    port: Number(imap.port || 993),
-    secure: imap.security === "ssl" || Number(imap.port || 993) === 993,
-    auth: { user: imap.username, pass: password },
-    logger: false
-  });
-}
-
-function smtpTransport(mailbox) {
-  const smtp = mailbox.smtp;
-  const password = process.env[smtp.password_env];
-  if (!password) throw new Error(`Missing environment variable: ${smtp.password_env}`);
-  return nodemailer.createTransport({
-    host: smtp.host,
-    port: Number(smtp.port || 465),
-    secure: smtp.security === "ssl" || Number(smtp.port || 465) === 465,
-    auth: { user: smtp.username, pass: password }
-  });
-}
-
-function ensureMsgId(value) {
-  const id = String(value || "").trim();
-  if (!id) return "";
-  if (id.startsWith("<") && id.endsWith(">")) return id;
-  return id.includes("@") ? `<${id.replace(/^<|>$/g, "")}>` : id;
-}
-
-function replySubject(subject = "") {
-  return subject.toLowerCase().startsWith("re:") ? subject : `Re: ${subject || "(no subject)"}`;
-}
-
-function quoteBlock(item) {
-  const preview = String(item.quote_preview || item.summary || "").trim();
-  if (!preview) return "";
-  const lines = preview.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(0, 8);
-  return `\n\nOn ${item.date || ""}, ${item.from || "the sender"} wrote:\n${lines.map((line) => `> ${line}`).join("\n")}`;
-}
-
-async function executeMailboxGroup(mailbox, entries, dryRun) {
-  if (dryRun) return entries.map((entry) => ({ ...entry, status: "dry_run" }));
-  const client = imapClient(mailbox);
-  await client.connect();
-  const results = [];
-  try {
-    for (const entry of entries) {
-      const folder = entry.item.folder || "INBOX";
-      let lock;
-      try {
-        lock = await client.getMailboxLock(folder);
-        const uid = Number(entry.item.uid);
-        if (entry.action === "archive") {
-          await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
-          await client.messageMove(uid, "Archive", { uid: true });
-          results.push({ ...entry, status: "executed" });
-        } else if (entry.action === "mark_read") {
-          await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
-          results.push({ ...entry, status: "executed" });
-        } else {
-          results.push({ ...entry, status: "skipped", skip_reason: `unsupported action ${entry.action}` });
-        }
-      } catch (error) {
-        results.push({ ...entry, status: "error", error: error.message });
-      } finally {
-        if (lock) lock.release();
-      }
-    }
-    return results;
-  } finally {
-    await client.logout().catch(() => {});
+function executionPlan(entry) {
+  const base = {
+    ...entry,
+    mark_read: ["archive", "mark_read", "send_reply"].includes(entry.action)
+  };
+  if (entry.action === "archive") {
+    return {
+      ...base,
+      mailbox_operation: "move_to_folder",
+      target_folder: entry.target_folder
+    };
   }
+  if (entry.action === "mark_read") {
+    return {
+      ...base,
+      mailbox_operation: "mark_read"
+    };
+  }
+  if (entry.action === "send_reply") {
+    return {
+      ...base,
+      mailbox_operation: "send_reply"
+    };
+  }
+  return base;
 }
 
-async function sendReply(item, config, dryRun) {
-  const { identity, mailbox } = resolveIdentity(item, config);
-  if (dryRun) return { item, action: "send_reply", status: "dry_run", identity: identity.identity_id, send_as: identity.send_as_email };
-  const [recipient] = parseAddresses(item.from || "");
-  if (!recipient?.address) throw new Error("cannot determine reply recipient");
-  const threadId = ensureMsgId(item.thread_id);
-  const transporter = smtpTransport(mailbox);
-  await transporter.sendMail({
-    from: { name: identity.display_name || identity.send_as_email, address: identity.send_as_email },
-    to: recipient.name ? { name: recipient.name, address: recipient.address } : recipient.address,
-    replyTo: identity.reply_to || undefined,
-    subject: replySubject(item.subject),
-    text: `${String(item.draft || "").trim()}${quoteBlock(item)}`,
-    inReplyTo: threadId || undefined,
-    references: threadId || undefined
-  });
-  return { item, action: "send_reply", status: "executed", identity: identity.identity_id, send_as: identity.send_as_email };
+function connectorBlock(entry) {
+  const plan = executionPlan(entry);
+  return {
+    ...plan,
+    status: "blocked",
+    skip_reason:
+      "IMAP/SMTP execution connector is not bundled in the zero-dependency Kelly Email skill. Use an external connector to apply approved mailbox actions exactly as planned."
+  };
 }
 
 function compactResult(result) {
@@ -214,6 +196,9 @@ function compactResult(result) {
     category: item.category,
     action: result.action,
     status: result.status,
+    mailbox_operation: result.mailbox_operation,
+    target_folder: result.target_folder,
+    mark_read: result.mark_read,
     identity: result.identity,
     send_as: result.send_as,
     skip_reason: result.skip_reason,
@@ -230,6 +215,10 @@ async function writeReport(batch, results, blocked, dryRun, allowRiskApproved) {
     executed_at: utcNow(),
     dry_run: dryRun,
     allow_risk_approved: allowRiskApproved,
+    connector: {
+      status: "not_bundled",
+      message: "Zero-dependency Kelly Email did not mutate mailboxes or send email."
+    },
     summary,
     results: results.map(compactResult),
     blocked: blocked.map(compactResult)
@@ -242,18 +231,17 @@ async function writeReport(batch, results, blocked, dryRun, allowRiskApproved) {
 
 async function updateBatchAfterExecution(batch, results, blocked) {
   const byId = new Map((batch.items || []).map((item) => [String(item.id), item]));
-  for (const result of results) {
-    if (result.status !== "executed") continue;
+  for (const result of results.filter((row) => row.status === "dry_run")) {
     const item = byId.get(String(result.item?.id));
     if (!item) continue;
     item.execution = {
-      status: "executed",
+      status: "dry_run",
       action: result.action,
-      executed_at: utcNow(),
-      identity: result.identity,
-      send_as: result.send_as
+      mailbox_operation: result.mailbox_operation,
+      target_folder: result.target_folder,
+      mark_read: result.mark_read,
+      checked_at: utcNow()
     };
-    item.status = "executed";
   }
   for (const result of blocked) {
     const item = byId.get(String(result.item?.id));
@@ -261,6 +249,9 @@ async function updateBatchAfterExecution(batch, results, blocked) {
     item.execution = {
       status: "blocked",
       action: result.action,
+      mailbox_operation: result.mailbox_operation,
+      target_folder: result.target_folder,
+      mark_read: result.mark_read,
       reason: result.skip_reason,
       checked_at: utcNow()
     };
@@ -284,8 +275,7 @@ async function main() {
   if (decisionsPayload.batch_id !== batch.batch_id) throw new Error("decisions.json batch_id does not match current_batch.json");
 
   const items = new Map((batch.items || []).map((item) => [String(item.id), item]));
-  const groups = new Map();
-  const sendEntries = [];
+  const results = [];
   const blocked = [];
 
   for (const decisionRow of decisionsPayload.decisions || []) {
@@ -299,17 +289,10 @@ async function main() {
     if (decisionRow.edited_draft !== undefined) item.draft = decisionRow.edited_draft;
     if (decisionRow.decision?.comment !== undefined) item.user_comment = decisionRow.decision.comment;
     if (item.status === "executed" || item.execution?.status === "executed") continue;
+
     const reason = safetyBlockReason(item, action, config);
-    if (reason) {
-      if (args.allowRiskApproved && ["archive", "mark_read"].includes(action)) {
-        item.execution_override = { reason, approved_by_user: true, approved_at: utcNow() };
-      } else {
-        blocked.push({ item, action, status: "blocked", skip_reason: reason });
-        continue;
-      }
-    }
-    if (action === "send_reply") {
-      sendEntries.push({ item, action });
+    if (reason && !(args.allowRiskApproved && ["archive", "mark_read"].includes(action))) {
+      blocked.push({ item, action, status: "blocked", skip_reason: reason });
       continue;
     }
     const mailbox = mailboxes[item.account];
@@ -317,20 +300,34 @@ async function main() {
       blocked.push({ item, action, status: "blocked", skip_reason: `unknown account ${item.account}` });
       continue;
     }
-    if (!groups.has(item.account)) groups.set(item.account, []);
-    groups.get(item.account).push({ item, action });
-  }
 
-  const results = [];
-  for (const [account, entries] of groups.entries()) {
-    results.push(...(await executeMailboxGroup(mailboxes[account], entries, args.dryRun)));
-  }
-  for (const entry of sendEntries) {
-    try {
-      results.push(await sendReply(entry.item, config, args.dryRun));
-    } catch (error) {
-      results.push({ ...entry, status: "error", error: error.message });
+    let entry = { item, action };
+    if (action === "archive") {
+      const targetFolder = archiveTargetFolder(config, mailbox, item);
+      if (!targetFolder) {
+        blocked.push({
+          item,
+          action,
+          status: "blocked",
+          mailbox_operation: "move_to_folder",
+          mark_read: true,
+          skip_reason: `archive requires a target folder for account ${item.account}; configure archive_routing.default_folder or archive_routing.by_category.${item.category || "other"}`
+        });
+        continue;
+      }
+      entry = { ...entry, target_folder: targetFolder };
     }
+    if (action === "send_reply") {
+      try {
+        const { identity } = resolveIdentity(item, config);
+        entry = { ...entry, identity: identity.identity_id, send_as: identity.send_as_email };
+      } catch (error) {
+        blocked.push({ ...entry, status: "blocked", skip_reason: error.message });
+        continue;
+      }
+    }
+    if (args.dryRun) results.push({ ...executionPlan(entry), status: "dry_run" });
+    else blocked.push(connectorBlock(entry));
   }
 
   if (!args.dryRun) await updateBatchAfterExecution(batch, results, blocked);
@@ -339,16 +336,17 @@ async function main() {
     batch_id: batch.batch_id,
     dry_run: args.dryRun,
     allow_risk_approved: args.allowRiskApproved,
-    executed: results.filter((result) => result.status === "executed").length,
+    executed: 0,
     dry_run_count: results.filter((result) => result.status === "dry_run").length,
     errors: results.filter((result) => result.status === "error").length,
     blocked: blocked.length,
+    connector_status: "not_bundled",
     report_path: reportPath
   }, null, 2));
   return 0;
 }
 
-await writeAgentLock("/kelly-email is executing approved decisions.");
+await writeAgentLock("/kelly-email is checking approved decisions.");
 try {
   process.exitCode = await main();
 } finally {

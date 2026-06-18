@@ -23,7 +23,10 @@ export function isApprovedForExecution(item) {
   if (action === "draft_reply") {
     return item.status === "draft_requested" && !isExecuted(item) && !isBlocked(item);
   }
-  return ["archive", "mark_read", "send_reply"].includes(action) && !isExecuted(item) && !isBlocked(item);
+  if (["archive", "mark_read", "send_reply"].includes(action)) {
+    return !isExecuted(item) && !isBlocked(item);
+  }
+  return isToApprove(item);
 }
 
 export function isNeedsReview(item) {
@@ -35,8 +38,5 @@ export function isNeedsReview(item) {
 }
 
 export function isToApprove(item) {
-  if (item.status === "drafted") {
-    return !isDone(item) && !isBlocked(item) && decisionAction(item) !== "send_reply";
-  }
-  return !isDone(item) && !isBlocked(item) && !decisionAction(item) && item.status === "prepared";
+  return !isDone(item) && !isBlocked(item) && !isNeedsReview(item) && !decisionAction(item) && ["prepared", "drafted"].includes(item.status);
 }

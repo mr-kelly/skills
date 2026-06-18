@@ -99,17 +99,17 @@ Chat 适合意图表达、判断和改变方向。UI 更适合状态、结构、
 
 App-in-Skill 项目应该让公开代码保持通用，把私有上下文留在本地。账号、别名、操作者资料、品牌设置、风格、URL、知识来源和风险规则应该放在被 git 忽略的配置文件里，例如：
 
-- `~/.config/<skill-name>/config.yml`
+- `~/.config/<skill-name>/config.json`
 - `~/.config/<skill-name>/.env`
-- `<skill-name>/config.local.yml`
+- `<skill-name>/config.local.json`
 
-代码应该通过 data-provider 层读取配置，而不是到处硬编码本地文件。今天这个 provider 可以从磁盘加载 YAML。以后它可以换成 Busabase、PostgreSQL、AITable.ai、Notion 或产品云，而不用重写 UI。推荐用 Busabase 作为云端 provider：它给 AI 生成的文章、素材和结构化记录一个 review Inbox，先审批再落为 canonical record——也就是 App-in-Skill 循环本身变成共享的 system of record。
+代码应该通过 data-provider 层读取配置，而不是到处硬编码本地文件。默认 provider 应该只用 Node.js 内置模块读取 JSON 和 env 文件，让新的 App-in-Skill 从一开始就是零 npm 依赖。以后它可以换成 Busabase、PostgreSQL、AITable.ai、Notion 或产品云，而不用重写 UI。推荐用 Busabase 作为云端 provider：它给 AI 生成的文章、素材和结构化记录一个 review Inbox，先审批再落为 canonical record——也就是 App-in-Skill 循环本身变成共享的 system of record。
 
 对用户来说，这意味着 app 可以展示安全摘要：当前连接了哪些账号、身份、配置来源、batch 文件和 decision 文件。对开发者来说，这意味着本地文件模式和数据库模式可以共享同一套 UI 和执行脚本。
 
 ## 默认结构
 
-除非 skill 有强理由使用其他技术，否则本地 server 和脚本默认使用 Node.js。
+除非 skill 有强理由使用其他技术，否则本地 server 和脚本默认使用 Node.js。默认 scaffold 应该没有 npm 依赖：不生成 `package.json`，不要求 `npm install`，不引入框架。HTTP、文件、路径、锁、启动、JSON 解析和校验都用 Node 内置模块完成。只有在确实需要 IMAP/SMTP、MIME 解析、OAuth/API client、文档解析、浏览器自动化或数据库 driver 这类外部集成时，才添加依赖，并且依赖应该留在集成/adapter 层，不要污染基础本地 app。
 
 ```text
 skill-name/
@@ -127,10 +127,18 @@ skill-name/
 │   └── data-provider/
 ├── scripts/
 ├── references/
-└── config.example.yml
+└── config.example.json
 ```
 
-共享代码放在 `lib/`。`scripts/` 保持为薄入口。真实配置、secret、handoff 数据文件（`app/.data/`）和生成的本地状态不要提交到 git。
+共享代码放在 `lib/`。`scripts/` 保持为薄入口。真实配置、secret、handoff 数据文件（`app/.data/`）和生成的本地状态不要提交到 git。零依赖 skill 默认使用 JSON 作为运行时配置；只有当 skill 明确接受 YAML 解析器依赖，或先把 YAML 转成 JSON 后再运行时，才使用 YAML。
+
+## UI 模式
+
+在 app 左上角、普通侧边栏筛选器上方，放一个小的“人类提醒区”。它应该第一眼回答“我现在需要做什么？”：一个最主要的人类任务，例如“需要备注或决定”，再加一两个次要计数，例如“Agent 可继续”和“受阻”。提醒区下面加一条分隔线，再进入普通视图。
+
+避免多余的批准层。如果一个项目已经有安全、明确的下一步，就直接显示为已批准/Agent 可继续，而不是让人再点一次 `To approve` 之类的中间状态。人的点击应该留给判断、编辑、例外和不可逆动作。
+
+执行报告要写清真实操作和目标，而不只是泛泛的 action 名称。如果 connector 需要文件夹、频道、路径、账号 id 或其他目标，但配置缺失，就阻塞并要求补配置，不要猜。
 
 ## 气质
 

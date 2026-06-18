@@ -5,6 +5,8 @@ node_modules/
 skills/*/.cache/
 skills/*/app/.cache/
 skills/*/exports/
+skills/*/config.local.json
+skills/*/*.local.json
 skills/*/config.local.yml
 skills/*/*.local.yml
 skills/*/.env

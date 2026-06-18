@@ -38,10 +38,10 @@ Keep the skill generic. Do not hardcode personal accounts, aliases, product name
 
 Config file priority:
 
-1. `KELLY_EMAIL_CONFIG=/absolute/path/to/config.yml`
-2. `.agents/skills/kelly-email/config.local.yml`
-3. `~/.config/kelly-email/config.yml`
-4. `.agents/skills/kelly-email/config.example.yml`
+1. `KELLY_EMAIL_CONFIG=/absolute/path/to/config.json`
+2. `.agents/skills/kelly-email/config.local.json`
+3. `~/.config/kelly-email/config.json`
+4. `.agents/skills/kelly-email/config.example.json`
 
 Env file priority:
 
@@ -57,15 +57,17 @@ Data reader selection:
 KELLY_EMAIL_DATA_READER=local
 ```
 
-Configuration is read through `lib/data-reader/`. The current reader is `local`, which reads local YAML/env files with the priority above. Keep app server code, scripts, onboarding, and UI summaries dependent on the data-reader interface rather than local files directly, so future readers can provide the same config contract from Supabase, Postgres, or pusa-cloud (`pusa-cloud.bika.ltd`). Recognized future reader names include `supabase`, `postgres`/`pg`, and `pusa-cloud`/`pusabase`; do not use them until implemented.
+Configuration is read through `lib/data-reader/`. The current reader is `local`, which reads local JSON/env files with the priority above. Keep app server code, scripts, onboarding, and UI summaries dependent on the data-reader interface rather than local files directly, so future readers can provide the same config contract from Supabase, Postgres, or pusa-cloud (`pusa-cloud.bika.ltd`). Recognized future reader names include `supabase`, `postgres`/`pg`, and `pusa-cloud`/`pusabase`; do not use them until implemented.
 
-The config file defines mailbox accounts, aliases, outbound identities, user profile, brands/products, official URLs, knowledge sources, reply style, CTA URLs, approval policy, and user-editable risk keywords. The env file stores secret values referenced by `password_env`; never store secret values in YAML.
+The config file defines mailbox accounts, aliases, outbound identities, user profile, brands/products, official URLs, knowledge sources, reply style, CTA URLs, approval policy, and user-editable risk keywords. The env file stores secret values referenced by `password_env`; never store secret values in JSON.
 
-Treat `.agents/skills/kelly-email/config.example.yml` as a template only. It must not count as a configured mailbox. If only the example config is present, stop and show onboarding instructions.
+Treat `.agents/skills/kelly-email/config.example.json` as a template only. It must not count as a configured mailbox. If only the example config is present, stop and show onboarding instructions.
 
 For each real email account, add one `mailboxes` entry with IMAP/SMTP settings. For alternate receiving addresses on the same physical mailbox, add `aliases` under that mailbox and reuse the same `mailbox_group_id`. For each outbound persona, add one `identities` entry and map it to the mailbox with `mailbox_id`; choose the identity by `recipient_addresses`, customer domains, or keywords.
 
-When the user asks to add or change an email account, update the private YAML config or explain the exact YAML/env changes needed. Ask for non-secret details only: mailbox email, IMAP/SMTP host/port/security, username, folders, aliases, outbound identities, display names, and routing rules. Never ask for the actual password or app token in chat; create or name the `password_env` variables and tell the user to put the secret values in the private env file. After config changes, offer to test readiness and report missing env vars.
+For archive/cleanup actions, configure `archive_routing` per mailbox. Do not assume a universal `Archive` folder. Approved archive means: move the message to the configured target folder for its category/risk and mark it read. If no target folder is configured, block execution and ask for the folder mapping instead of guessing.
+
+When the user asks to add or change an email account, update the private JSON config or explain the exact JSON/env changes needed. Ask for non-secret details only: mailbox email, IMAP/SMTP host/port/security, username, folders, aliases, outbound identities, display names, and routing rules. Never ask for the actual password or app token in chat; create or name the `password_env` variables and tell the user to put the secret values in the private env file. After config changes, offer to test readiness and report missing env vars.
 
 Good user prompts to support:
 
@@ -79,43 +81,68 @@ Good user prompts to support:
 
 Example setup:
 
-```yaml
-mailboxes:
-  - mailbox_id: "main"
-    display_name: "Main Inbox"
-    primary_email: "me@example.com"
-    aliases:
-      - "founder@example.com"
-      - "support@example.com"
-    imap:
-      host: "imap.example.com"
-      port: 993
-      security: "ssl"
-      username: "me@example.com"
-      password_env: "KELLY_EMAIL_IMAP_PASSWORD_MAIN"
-    smtp:
-      host: "smtp.example.com"
-      port: 465
-      security: "ssl"
-      username: "me@example.com"
-      password_env: "KELLY_EMAIL_SMTP_PASSWORD_MAIN"
-    support_folders_or_labels: ["Inbox"]
-    mailbox_group_id: "main-account"
-    send_identities: ["founder", "support"]
-
-identities:
-  - identity_id: "support"
-    mailbox_id: "main"
-    send_as_email: "support@example.com"
-    display_name: "Support"
-    use_when:
-      recipient_addresses: ["support@example.com"]
-
-risk_policy:
-  review_keywords:
-    money: ["invoice", "payment", "账单", "付款"]
-    security: ["password", "token", "privacy"]
-  allow_override_for: ["archive", "mark_read"]
+```json
+{
+  "mailboxes": [
+    {
+      "mailbox_id": "main",
+      "display_name": "Main Inbox",
+      "primary_email": "me@example.com",
+      "aliases": ["founder@example.com", "support@example.com"],
+      "imap": {
+        "host": "imap.example.com",
+        "port": 993,
+        "security": "ssl",
+        "username": "me@example.com",
+        "password_env": "KELLY_EMAIL_IMAP_PASSWORD_MAIN"
+      },
+      "smtp": {
+        "host": "smtp.example.com",
+        "port": 465,
+        "security": "ssl",
+        "username": "me@example.com",
+        "password_env": "KELLY_EMAIL_SMTP_PASSWORD_MAIN"
+      },
+      "support_folders_or_labels": ["Inbox"],
+      "archive_routing": {
+        "default_folder": "Processed",
+        "by_category": {
+          "marketing": "Marketing",
+          "system": "Notifications",
+          "customer": "Customers",
+          "partnership": "Partnerships",
+          "money": "Finance",
+          "complaint": "Support"
+        },
+        "by_risk": {
+          "money": "Finance",
+          "technical": "Notifications",
+          "security": "Security"
+        }
+      },
+      "mailbox_group_id": "main-account",
+      "send_identities": ["founder", "support"]
+    }
+  ],
+  "identities": [
+    {
+      "identity_id": "support",
+      "mailbox_id": "main",
+      "send_as_email": "support@example.com",
+      "display_name": "Support",
+      "use_when": {
+        "recipient_addresses": ["support@example.com"]
+      }
+    }
+  ],
+  "risk_policy": {
+    "review_keywords": {
+      "money": ["invoice", "payment", "账单", "付款"],
+      "security": ["password", "token", "privacy"]
+    },
+    "allow_override_for": ["archive", "mark_read"]
+  }
+}
 ```
 
 Example env:
@@ -161,17 +188,17 @@ Use onboarding mode when Kelly Email is invoked before setup is complete.
 
 Onboarding checks:
 
-- No private config found at `KELLY_EMAIL_CONFIG`, `.agents/skills/kelly-email/config.local.yml`, or `~/.config/kelly-email/config.yml`.
-- Only `config.example.yml` exists.
+- No private config found at `KELLY_EMAIL_CONFIG`, `.agents/skills/kelly-email/config.local.json`, or `~/.config/kelly-email/config.json`.
+- Only `config.example.json` exists.
 - A private config exists, but required IMAP/SMTP env vars are missing.
 
 Onboarding response:
 
 1. Greet the user briefly and say Kelly Email needs local mailbox configuration before it can scan mail.
-2. Point them to `~/.config/kelly-email/config.yml` for non-secret account settings.
+2. Point them to `~/.config/kelly-email/config.json` for non-secret account settings.
 3. Point them to `~/.config/kelly-email/.env` for app passwords or tokens.
-4. Explain that YAML should contain `password_env` names only, never secret values.
-5. Suggest copying `.agents/skills/kelly-email/config.example.yml` as the starting template.
+4. Explain that JSON should contain `password_env` names only, never secret values.
+5. Suggest copying `.agents/skills/kelly-email/config.example.json` as the starting template.
 6. Tell them to fill in mailboxes/identities plus `user_profile`, `brands`, `official_urls`, `style`, and `knowledge_base` so the Agent can draft in the right role and voice.
 7. After they configure files, offer to test configuration and then generate the first App UI batch.
 
@@ -296,7 +323,7 @@ Only execute the numbered actions the user approves. If the user says "approve a
 
 When the user wants to review mail through the local UI, use a file handoff instead of asking for approval item by item in chat.
 
-The kelly-email skill owns all mailbox reads and writes. The local UI is only an approval surface over files. The UI must not scan mailboxes, send replies, archive, mark read, delete, or label mail directly.
+The kelly-email skill owns the approval workflow and local file contract. The zero-dependency core does not bundle IMAP/SMTP readers or senders; mailbox reads and writes must come from an external connector, Spark when explicitly requested and available, or an agent-provided batch. The local UI is only an approval surface over files. The UI must not scan mailboxes, send replies, archive, mark read, delete, or label mail directly.
 
 Use this Local Review UI Workflow by default. If the user did not request chat-only handling, assume they want App UI mode. After the batch is generated and agent-reviewed, say clearly that the batch is ready in the UI and ask them to review/approve there. Do not continue with long chat item-by-item review unless the user asks to stay in chat.
 
@@ -304,7 +331,7 @@ When `/kelly-email` is generating, drafting, or executing a batch, create `.agen
 
 Before or after generating a local review batch, ensure the UI is running by invoking `.agents/skills/kelly-email/app/start.sh` from the repository root. Prefer the `3000-4000` port range; if the service is already running on the selected port, reuse it. Tell the user to open or refresh the actual URL printed by the launcher.
 
-For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.mjs` from the repository root. It reads unread IMAP mail in read-only mode, writes `.agents/skills/kelly-email/app/.cache/current_batch.json`, resets `.agents/skills/kelly-email/app/.cache/decisions.json`, and performs no mailbox mutations.
+For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.mjs` from the repository root. In the zero-dependency core, this validates config and prepares local batch/decision files, but does not read IMAP mail. Email items must be supplied by an external connector, Spark when explicitly requested and available, or an agent-authored batch before review.
 
 Treat the script output as a rule-based prefilter, not as the final support classification. The support agent must perform an Agent Semantic Classification Pass before telling the user the batch is ready:
 
@@ -327,7 +354,7 @@ The review UI should keep human input lightweight. Prefer a single `Review note`
 
 The review UI should auto-refresh local batch files on a timer and should not need a manual refresh button. Do not redraw the batch while the user is actively editing a textarea or non-search input; in that case poll only the lock state so the user's draft/note is not interrupted.
 
-Keep the UI sidebar focused on workflow state, not message category. Use the workflow filters `All`, `Needs Review`, `To approve`, `Approved`, `Done`, and `Blocked`, and give each sidebar filter a hover explanation. Do not put category filters such as `Money` or `Course` in the primary sidebar; show categories as badges on each message instead.
+Keep the UI sidebar focused on workflow state, not message category. Put a prominent "what needs the human" summary at the top of the sidebar, before the view filters, and separate it from the filters with a divider. Use the workflow filters `All`, `Needs Review`, `Approved`, `Done`, and `Blocked`, and give each sidebar filter a hover explanation. Do not put category filters such as `Money` or `Course` in the primary sidebar; show categories as badges on each message instead.
 
 Keep setup/tutorial details out of the always-visible sidebar. Provide a small `Help & Settings` button that opens a modal with tabs such as `Guide`, `Files`, `Accounts`, `Profile`, `Style`, `Knowledge`, and `Config`. Put usage notes, batch file path, decisions file path, config source, recommended config/env locations, configured email-account summaries, and sanitized profile/style/knowledge summaries inside that modal. The sidebar should stay focused on workflow filters and should not show long paths, account setup details, or how-to text.
 
@@ -427,8 +454,7 @@ Current UI workflow state is derived from the item rather than stored as a separ
 
 - `All`: every item in the current batch.
 - `Needs Review`: `status=needs_review` or `decision.action` is `needs_review`/`revise`.
-- `To approve`: `status=prepared` with no decision, or `status=drafted` with no `send_reply` decision.
-- `Approved`: explicit executable decision waiting for `/kelly-email`, such as `archive`, `mark_read`, `send_reply`, or `draft_reply` while `status=draft_requested`.
+- `Approved`: explicit executable decision waiting for `/kelly-email`, such as `archive`, `mark_read`, `send_reply`, or `draft_reply` while `status=draft_requested`; also includes prepared/drafted items with a clear AI next step, so the user does not need to approve an extra intermediate state.
 - `Done`: `execution.status=executed` or `decision.action=no_action`.
 - `Blocked`: `execution.status=blocked`.
 
@@ -436,7 +462,7 @@ Avoid using `status=decided`; the user's decision belongs in `decision.action`, 
 
 After the user reviews in the UI, read `.agents/skills/kelly-email/app/.cache/decisions.json`. Treat it as the user's approval/comment layer, but still execute only decisions that are explicit:
 
-- `archive`
+- `archive` (move to the configured category/risk target folder and mark read)
 - `mark_read`
 - `send_reply`
 - `draft_reply`
@@ -445,11 +471,11 @@ After the user reviews in the UI, read `.agents/skills/kelly-email/app/.cache/de
 - `needs_review`
 - `revise`
 
-For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. After execution, write an execution report next to the batch file and update local cache state.
+For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. When archiving after send, use the same configured category/risk target folder and mark the message read; never hardcode `Archive`. In the zero-dependency core, this is prepared and reported but not sent; an external SMTP connector must apply the approved send.
 
-For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.mjs`. It reads `current_batch.json` and `decisions.json`, executes explicit UI-approved mailbox cleanup actions (`archive` and `mark_read`) by default, and writes a JSON report under `.agents/skills/kelly-email/app/.cache/execution_reports/`. Use `--dry-run` for validation when unsure.
+For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.mjs`. It reads `current_batch.json` and `decisions.json`, validates explicit UI-approved actions, blocks real mailbox side effects because IMAP/SMTP execution is not bundled, and writes a JSON report under `.agents/skills/kelly-email/app/.cache/execution_reports/`. Use `--dry-run` for validation when unsure.
 
-Treat the UI approval as the user's final approval for `archive` and `mark_read` by default, including messages that were originally classified as money, billing, account/security, technical alerts, attachments, or unclear real-person intent. Do not add another default safety block for those cleanup actions after the user approves them in the UI.
+Treat the UI approval as the user's final approval for `archive` and `mark_read` by default, including messages that were originally classified as money, billing, account/security, technical alerts, attachments, or unclear real-person intent. Do not add another default safety block for those cleanup actions after the user approves them in the UI; the zero-dependency executor will still report them as connector-blocked until an external mailbox connector applies them.
 
 Allow users to opt back into cleanup blocking through private config: `risk_policy.block_by_default` may include `archive` or `mark_read`, and the configured `risk_policy.review_keywords` categories such as `money`, `security`, `attachments`, or `course_feedback` should then block matching approved cleanup actions until the user overrides them.
 
@@ -458,10 +484,10 @@ For `send_reply`, keep a stricter final safety check: require an explicit UI-app
 Typical user flow:
 
 1. User asks `/kelly-email` to generate the next approval batch.
-2. Kelly Email skill reads the approved mailbox scope, writes `.agents/skills/kelly-email/app/.cache/current_batch.json`, and starts the UI.
+2. Kelly Email skill or an external connector prepares `.agents/skills/kelly-email/app/.cache/current_batch.json`, then starts the UI.
 3. User reviews locally in the UI. The UI writes `.agents/skills/kelly-email/app/.cache/decisions.json`.
 4. User asks `/kelly-email` to execute UI-approved decisions.
-5. Kelly Email skill executes only explicit decisions and writes an execution report.
+5. Kelly Email validates only explicit decisions and writes an execution report; an external connector is required for real mailbox mutations or sends.
 
 ## Chat Message Mode
 
@@ -584,4 +610,4 @@ Escalate or ask before drafting a definitive answer when a thread involves:
 
 - Read `references/inbox-accounts.md` when account routing, aliases, labels, or per-account handling rules matter.
 - Read `references/support-taxonomy.md` when classifying messages, deciding priority, or writing reusable support notes.
-- Use `config.example.yml` as the template for a private `config.local.yml` or `~/.config/kelly-email/config.yml` file. Never commit private config or env files.
+- Use `config.example.json` as the template for a private `config.local.json` or `~/.config/kelly-email/config.json` file. Never commit private config or env files.

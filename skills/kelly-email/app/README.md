@@ -11,7 +11,7 @@ The app is intentionally not an email client:
 
 The UI has no IMAP/SMTP behavior, no scan button, and no direct archive/send action.
 
-If no private Kelly Email config exists, the UI shows onboarding guidance instead of pretending the example config is active. Configure `~/.config/kelly-email/config.yml` and `~/.config/kelly-email/.env`, then ask `/kelly-email` to test config or generate a batch.
+If no private Kelly Email config exists, the UI shows onboarding guidance instead of pretending the example config is active. Configure `~/.config/kelly-email/config.json` and `~/.config/kelly-email/.env`, then ask `/kelly-email` to test config or generate a batch.
 
 `Help & Settings` shows safe read-only summaries of the current email accounts, user profile, brands, official URLs, reply style, and knowledge-base sources. It never shows secret values or the full contents of private local reference files.
 

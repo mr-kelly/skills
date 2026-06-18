@@ -3,7 +3,7 @@ import { loadBatch, normalizeItem } from "./batch-store.mjs";
 import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./config.mjs";
 import { lockPayload } from "./lock.mjs";
 import { normalizeQueryValue } from "./utils.mjs";
-import { isApprovedForExecution, isBlocked, isDone, isNeedsReview, isToApprove } from "./workflow.mjs";
+import { isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.mjs";
 
 function countByStatus(items) {
   const counts = {};
@@ -40,7 +40,6 @@ export async function statePayload(query = {}) {
   const search = normalizeQueryValue(query.q, "").toLowerCase().trim();
   if (mode !== "all") {
     if (mode === "needs_review") items = items.filter(isNeedsReview);
-    else if (mode === "to_approve") items = items.filter(isToApprove);
     else if (mode === "approved") items = items.filter(isApprovedForExecution);
     else if (mode === "done") items = items.filter(isDone);
     else if (mode === "blocked") items = items.filter(isBlocked);
@@ -52,7 +51,7 @@ export async function statePayload(query = {}) {
   items.sort((a, b) => uidNumber(b) - uidNumber(a));
   const counts = countByStatus(allItems);
   counts.needs_review = allItems.filter(isNeedsReview).length;
-  counts.to_approve = allItems.filter(isToApprove).length;
+  counts.to_approve = 0;
   counts.approved = allItems.filter(isApprovedForExecution).length;
   counts.done = allItems.filter(isDone).length;
   counts.blocked = allItems.filter(isBlocked).length;

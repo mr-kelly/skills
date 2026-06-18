@@ -63,21 +63,25 @@ skill-name/
 │       └── local-file-provider.mjs
 ├── references/
 │   └── ui-schema.md
-├── config.example.yml
-└── config.local.yml  # gitignored
+├── config.example.json
+└── config.local.json  # gitignored
 ```
 
-Use Node.js by default for both the local app server and deterministic App-in-Skill scripts. Prefer built-in `node:http`, `node:fs/promises`, and ESM `.mjs` modules for the app server; add a small `package.json` only when external integrations clearly need dependencies such as IMAP, SMTP, document parsing, or API clients. Default local app ports should prefer the `3000-4000` range, starting at `3000`, while still allowing an explicit env override such as `<SKILL_ENV_PREFIX>_UI_PORT`.
+Use Node.js by default for both the local app server and deterministic App-in-Skill scripts. The default scaffold should be zero-npm-dependency: no `package.json`, no `npm install`, and no runtime packages. Prefer built-in `node:http`, `node:fs/promises`, `node:path`, `node:crypto`, `node:child_process`, and ESM `.mjs` modules for the app server, scripts, locking, JSON reads/writes, validation, and launching. Default local app ports should prefer the `3000-4000` range, starting at `3000`, while still allowing an explicit env override such as `<SKILL_ENV_PREFIX>_UI_PORT`.
+
+Only add a small `package.json` when the skill truly needs an external integration or specialized parser that native Node cannot reasonably provide, such as IMAP, SMTP, MIME email parsing, browser automation, document parsing, OAuth/API clients, or database drivers. Keep those dependencies in integration/adapter code, not in the base App UI. If the app can run and review local handoff files without the dependency, it must still do so.
+
+Prefer JSON for runtime config and handoff files in the zero-dependency scaffold: `config.example.json`, `config.local.json`, `.env`, and files under `app/.data/`. YAML is acceptable for human-authored config only when the skill explicitly accepts a YAML parser dependency or the agent converts YAML into JSON before runtime. Do not add `yaml`, `dotenv`, Express, Vite, React, or other packages to a default App-in-Skill template.
 
 Keep shared runtime code in `lib/`: path constants in `lib/paths.mjs`, JSON/lock/batch helpers in `lib/common.mjs`, and configurable data access in `lib/data-provider/`. Keep `scripts/` as thin CLI entrypoints that import from `lib/`; do not create a parallel `scripts/lib/` tree.
 
-Keep `config.local.yml`, `*.local.yml`, `.env.local`, `.env`, and `app/.data/` ignored by git. Note that `.data/` is not a name most default `.gitignore` templates exclude (unlike `.cache/`), so it must be added to `.gitignore` explicitly — the handoff files contain user decisions and execution history and must never be committed.
+Keep `config.local.json`, `config.local.yml`, `*.local.json`, `*.local.yml`, `.env.local`, `.env`, and `app/.data/` ignored by git. Note that `.data/` is not a name most default `.gitignore` templates exclude (unlike `.cache/`), so it must be added to `.gitignore` explicitly — the handoff files contain user decisions and execution history and must never be committed.
 
 ## Private Configuration
 
 Use a layered private configuration pattern for any App-in-Skill that connects to user accounts, APIs, mailboxes, calendars, CRMs, billing systems, or other personal/business data. The skill code and committed templates should be generic; user-specific accounts, aliases, operator profile, brands/products, style, knowledge sources, policy, endpoints, and risk keywords should live in private config.
 
-Keep the data layer polymorphic. App code, scripts, onboarding, and UI summaries should access domain config and handoff data through a `lib/data-provider/` interface instead of directly importing local YAML/JSON readers. "Provider" (not "reader") is the right word: the same interface both reads state and writes input, and may be backed by a database or cloud service, not just a file reader. The first implementation is `local-file-provider` (the default), but the public interface should stay stable for future providers such as PostgreSQL, AITable.ai, Notion, Busabase, SQLite, remote config APIs, or product-specific clouds. Use an env selector such as `<SKILL_ENV_PREFIX>_DATA_PROVIDER=local` and reserve provider names such as `postgres`, `aitable`, `notion`, and `busabase` for later implementations.
+Keep the data layer polymorphic. App code, scripts, onboarding, and UI summaries should access domain config and handoff data through a `lib/data-provider/` interface instead of directly importing local JSON/env readers or optional YAML readers. "Provider" (not "reader") is the right word: the same interface both reads state and writes input, and may be backed by a database or cloud service, not just a file reader. The first implementation is `local-file-provider` (the default), but the public interface should stay stable for future providers such as PostgreSQL, AITable.ai, Notion, Busabase, SQLite, remote config APIs, or product-specific clouds. Use an env selector such as `<SKILL_ENV_PREFIX>_DATA_PROVIDER=local` and reserve provider names such as `postgres`, `aitable`, `notion`, and `busabase` for later implementations.
 
 ### Data Provider Spectrum
 
@@ -95,10 +99,10 @@ The default backing store is local files — this is what keeps an App-in-Skill 
 
 Recommended config priority:
 
-1. `<SKILL_ENV_PREFIX>_CONFIG=/absolute/path/to/config.yml`
-2. `skill-name/config.local.yml`
-3. `~/.config/skill-name/config.yml`
-4. `skill-name/config.example.yml`
+1. `<SKILL_ENV_PREFIX>_CONFIG=/absolute/path/to/config.json`
+2. `skill-name/config.local.json`
+3. `~/.config/skill-name/config.json`
+4. `skill-name/config.example.json`
 
 Recommended env priority:
 
@@ -108,7 +112,7 @@ Recommended env priority:
 4. `skill-name/.env.local`
 5. `~/.config/skill-name/.env`
 
-Store non-secret settings in YAML: accounts, aliases, outbound identities, default folders, UI preferences, user role/profile, brand or product profiles, official URLs, safe knowledge-base sources, tone/style, CTA URLs, approval policies, risk keywords, and routing rules. Store secret values only in environment variables or private env files, then reference them from YAML by variable name such as `password_env`, `api_key_env`, or `token_env`.
+Store non-secret settings in JSON by default: accounts, aliases, outbound identities, default folders, UI preferences, user role/profile, brand or product profiles, official URLs, safe knowledge-base sources, tone/style, CTA URLs, approval policies, risk keywords, and routing rules. Store secret values only in environment variables or private env files, then reference them from JSON by variable name such as `password_env`, `api_key_env`, or `token_env`.
 
 For agent-assisted reply, support, review, or outreach workflows, treat private config as the skill's local operating context, not just credentials. Useful blocks include `user_profile` for the operator's role/contact methods, `brands` for product positioning, `official_urls` for canonical links the agent may use, `knowledge_base` for public URLs/local files/short facts/"do not say" guardrails, and `style` for tone, length, formatting, quote, signature, and CTA rules.
 
@@ -116,43 +120,54 @@ When the app shows configuration in the UI, expose only safe summaries: account 
 
 Example:
 
-```yaml
-accounts:
-  - account_id: "main"
-    display_name: "Main Account"
-    provider: "imap"
-    aliases:
-      - "support@example.com"
-      - "founder@example.com"
-    credentials:
-      password_env: "SKILL_PASSWORD_MAIN"
-
-identities:
-  - identity_id: "support"
-    account_id: "main"
-    send_as: "support@example.com"
-    use_when:
-      recipient_addresses: ["support@example.com"]
-
-style:
-  tone: "concise, warm, direct"
-
-official_urls:
-  homepage: "https://example.com"
-  docs: "https://docs.example.com"
-
-knowledge_base:
-  enabled: true
-  sources:
-    - source_id: "docs"
-      type: "url"
-      title: "Product docs"
-      url: "https://docs.example.com"
-
-risk_policy:
-  review_keywords:
-    money: ["invoice", "payment", "账单"]
-    security: ["password", "token", "privacy"]
+```json
+{
+  "accounts": [
+    {
+      "account_id": "main",
+      "display_name": "Main Account",
+      "provider": "imap",
+      "aliases": ["support@example.com", "founder@example.com"],
+      "credentials": {
+        "password_env": "SKILL_PASSWORD_MAIN"
+      }
+    }
+  ],
+  "identities": [
+    {
+      "identity_id": "support",
+      "account_id": "main",
+      "send_as": "support@example.com",
+      "use_when": {
+        "recipient_addresses": ["support@example.com"]
+      }
+    }
+  ],
+  "style": {
+    "tone": "concise, warm, direct"
+  },
+  "official_urls": {
+    "homepage": "https://example.com",
+    "docs": "https://docs.example.com"
+  },
+  "knowledge_base": {
+    "enabled": true,
+    "sources": [
+      {
+        "source_id": "docs",
+        "type": "url",
+        "title": "Product docs",
+        "url": "https://docs.example.com"
+      }
+    ]
+  },
+  "risk_policy": {
+    "review_keywords": {
+      "money": ["invoice", "payment", "账单"],
+      "security": ["password", "token", "privacy"]
+    }
+  }
+}
 ```
 
 The app server and scripts should share the same data-provider logic so the UI accurately reflects what the execution scripts will use. If the UI has a settings/account panel, read the config through the data provider via the server and return a sanitized `config_summary` or domain-specific summary such as `email_accounts`. Include the active provider name in the summary so the user can see whether the skill is using local files or a remote data source.
@@ -172,10 +187,11 @@ Use predictable JSON files so both the agent and UI can recover after interrupti
 Prefer workflow states over domain categories:
 
 - `needs_review`: user must give a note, approve, block, or request a draft.
-- `to_approve`: agent has a concrete plan or draft ready for approval.
-- `approved`: user approved an action; skill may execute it on the next run.
+- `approved`: a concrete next step is ready for the agent to execute or continue. Use this for items that do not need another human click.
 - `done`: action completed or intentionally no-op.
 - `blocked`: cannot proceed without new information or external state.
+
+Avoid an extra `to_approve` layer unless the human truly must approve each item before anything can continue. If the item already has a safe, concrete, reversible next step, put it under `approved` or an equivalent "ready for agent next" state. Extra intermediate states create fatigue and make the app feel like it is asking the human to click through obvious work.
 
 Show categories and risks as badges, not primary navigation.
 
@@ -193,7 +209,7 @@ The onboarding loop:
 
 Re-entry: if required config or secrets later go missing or fail validation, the skill drops back to onboarding rather than running with a broken context. Onboarding may also be re-run deliberately ("reconfigure") to update the operating context; doing so clears or rewrites the marker.
 
-Templates are examples only: never treat `config.example.yml` as a live configuration, and never write the completion marker on its behalf.
+Templates are examples only: never treat `config.example.json` or `config.example.yml` as a live configuration, and never write the completion marker on its behalf.
 
 ## Locking
 
@@ -228,7 +244,8 @@ The skill should:
 Build the app as a quiet local tool, not a landing page. Keep controls obvious and stable.
 
 - Default to launching/reusing the local app when the skill is invoked for review/approval work; use chat-only review only when the user explicitly asks for it.
-- Use fixed sidebar workflow filters: `All`, `Needs Review`, `To approve`, `Approved`, `Done`, `Blocked`.
+- Put a human-attention summary at the top-left of the app, above the normal sidebar navigation. This area answers "what do I need to do?" before anything else. Show the primary human task first, such as `Need a note or decision`, then secondary counts such as `Ready for agent next` and `Blocked`. Add a visual divider below this area before the ordinary filters.
+- Use fixed sidebar workflow filters such as `All`, `Needs Review`, `Approved`, `Done`, and `Blocked`. Add `To approve` only when it represents a genuinely distinct human decision, not as a default waiting room for obvious next steps.
 - Add hover tooltips for icon buttons, workflow filters, and action buttons.
 - Prefer one `Review note` textarea for user guidance.
 - Show an editable draft only when a draft exists or the user requests a reply draft.
@@ -241,19 +258,47 @@ Build the app as a quiet local tool, not a landing page. Keep controls obvious a
 - If the skill uses private config, show a compact read-only `Help & Settings` summary in the UI so the user can confirm which accounts, identities, profile, style choices, official links, knowledge sources, or data sources are active.
 - Support multilingual UI chrome for App-in-Skill apps that have non-English users or mixed-language workflows. Put UI message catalogs in `app/i18n/` (for example `app/i18n/messages.js`) and keep translation data out of the main app logic. Default language mode should be `Auto`, following `navigator.languages`/browser language; also provide an explicit language selector in `Help & Settings` for supported languages, persist the override locally, and keep user data/domain content untranslated unless the workflow explicitly asks to translate it.
 
+### Human Attention Pattern
+
+The first screen should reduce uncertainty. A user opening the app should not need to inspect filters, counts, and item statuses to understand what is expected of them.
+
+Use this sidebar order by default:
+
+1. Brand/app name.
+2. Human attention panel: one prominent primary human task plus one or two secondary counters.
+3. Divider.
+4. Workflow filters/views.
+5. Help/settings at the bottom.
+
+The human attention panel should use task language, not data-model language. Prefer labels like `Need a note or decision`, `Ready for agent next`, `Blocked`, `Needs configuration`, or `Waiting on connector`. Avoid vague labels like `Pending`, `Queue`, or `Review required` without saying what action the human can take.
+
+Do not make the user approve the same thing twice. If clicking `Approve plan` only moves an item from a waiting state into another waiting state, collapse those states. The app should reserve human clicks for judgment, edits, exceptions, and irreversible actions.
+
+### Execution Semantics
+
+Model execution plans as real domain actions, not generic verbs. A local approval may be named simply (`archive`, `publish`, `send`, `export`), but the execution report should contain the concrete operation the connector will perform, target identifiers, and safety flags. If a target is missing, block and ask for configuration instead of guessing.
+
+Examples of good execution detail:
+
+- `operation`: `move_to_folder`, `target_folder`: configured destination, `mark_read`: true.
+- `operation`: `publish_post`, `channel`: configured channel id, `draft_id`: stable local id.
+- `operation`: `export_file`, `path`: output path, `format`: `markdown`.
+
+This keeps the UI simple while making the agent/connector boundary precise and auditable.
+
 ## App Types
 
 App-in-Skill does not mandate one app shape. The five-state review flow below is the most common pattern, but it is a *recommended usage for the review-queue type*, not a requirement of the pattern. Pick the type that fits the work, or combine several in one app.
 
 | App type | The user is… | Data shape | Stateful? |
 | --- | --- | --- | --- |
-| Review queue | approving / editing items | list of items + decisions | yes (workflow states) |
+| Review queue | judging / editing exceptions and approving meaningful actions | list of items + decisions | yes (workflow states) |
 | Dashboard | monitoring | metrics, status, reports | no (read-mostly) |
 | Workspace | creating / editing | drafts, assets, collections | partly (creative stages) |
 | Control panel | configuring / launching | parameters, modes, triggers | no |
 | Collaboration | handing off / deciding together | shared items + actors | yes (usually cloud-backed) |
 
-- **Review queue** — agent prepares a batch with proposed actions and drafts; human approves/edits/blocks; skill executes. Email triage, support, content moderation, release approval. Recommended navigation: by *workflow stage* (`Needs Review`, `To approve`, `Approved`, `Done`, `Blocked`), not by entity/category. Categories and risks are badges. The Batch Schema below is for this type.
+- **Review queue** — agent prepares a batch with proposed actions and drafts; human judges exceptions, edits, blocks, or approves meaningful actions; skill executes. Email triage, support, content moderation, release approval. Recommended navigation: by *workflow stage* (`Needs Review`, `Approved`/`Ready for agent next`, `Done`, `Blocked`), not by entity/category. Categories and risks are badges. The Batch Schema below is for this type.
 - **Dashboard** — read-mostly view over agent-generated metrics/status; no approval lifecycle; often omits `decisions.json`.
 - **Workspace** — draft/asset bench organized by creative stage (idea → draft → in progress → finished), with inline editing.
 - **Control panel** — steers the agent (launch batch, choose mode, tune params, schedule, dry-run); input file carries parameters/triggers, state file carries run status.
@@ -273,7 +318,6 @@ The schema below is the contract for the **review-queue** app type. Other app ty
   "mode": "app-in-skill",
   "metrics": {
     "needs_review": 0,
-    "to_approve": 0,
     "approved": 0,
     "done": 0,
     "blocked": 0
@@ -286,7 +330,7 @@ The schema below is the contract for the **review-queue** app type. Other app ty
       "body": "trimmed source content for review",
       "category": "customer|system|finance|other",
       "risk": ["money"],
-      "status": "needs_review|to_approve|approved|done|blocked",
+      "status": "needs_review|approved|done|blocked",
       "proposed_action": "archive|send_reply|draft_reply|no_action",
       "reason": "why this action is proposed",
       "draft": "optional editable draft",
@@ -298,6 +342,8 @@ The schema below is the contract for the **review-queue** app type. Other app ty
       },
       "execution": {
         "status": "pending|executed|blocked|error",
+        "operation": "domain-specific operation",
+        "target": "optional target id/path/folder/channel",
         "reason": "optional result detail",
         "executed_at": "ISO timestamp"
       }
@@ -317,12 +363,13 @@ When creating or updating an App-in-Skill:
 3. Create the local app inside `app/`, with static UI files at the app root and Node server modules under `app/server/`.
 4. Add generator, executor, and validator scripts under `scripts/`.
 5. Add lock handling to both the skill workflow and the app server.
-6. Add `config.example.yml` with placeholders only; keep real accounts, tokens, URLs, and personal identities out of the skill.
+6. Add `config.example.json` with placeholders only; keep real accounts, tokens, URLs, and personal identities out of the skill. Use YAML only when the skill intentionally owns a YAML parser dependency.
 7. Make onboarding the initial phase: on every run, gate real work on the `app/.data/onboarding.json` completion marker. While it is absent/incomplete (or config/secrets are missing or invalid), run the ask-and-configure loop in the app's setup wizard and chat; write the marker only when the user confirms setup is complete.
 8. Add data-provider helpers shared by scripts and the app server. The default provider may implement local config/env discovery using the private configuration priority above, but callers should depend on the provider interface.
 9. Add a sanitized config summary, active data-provider name, and onboarding status to `/api/state` when the user needs to verify configured accounts, operator profile, style, official URLs, knowledge sources, or data sources.
-10. Start the app with `app/start.sh` and verify the onboarding and main workflow in a browser when available.
-11. Run the validator and a dry-run execution before enabling real side effects.
+10. Add the human-attention panel at the top-left and verify that it clearly tells the user what they need to do before they inspect the list.
+11. Start the app with `app/start.sh` and verify the onboarding and main workflow in a browser when available.
+12. Run the validator and a dry-run execution before enabling real side effects.
 
 ## Safety Defaults
 
