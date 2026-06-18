@@ -548,6 +548,17 @@ For each send-ready draft, include:
 
 Default tone: clear, calm, human, and compact. Prefer direct answers and one concrete next step.
 
+### Reply-Draft Review (optional Busabase backend)
+
+Triage (archive / mark-read) is *approve-an-action* work and stays on the local handoff. The **reply draft** is the one *edit-to-canonical* slice: a reply is written, reviewed, revised ("make it warmer"), and approved before sending — the canonical review loop. That slice has its own small store, `lib/reply-review/`, selected by `KELLY_EMAIL_REPLY_PROVIDER`:
+
+- `local` (default): `app/.cache/reply_reviews.json`. Single operator, zero-dependency.
+- `busabase`: a shared Busabase base, so a **team** sees one reply-review queue and an audit of who approved which reply. Configure `config.busabase.{base_url,base_id}` (busabase-cloud needs `KELLY_EMAIL_BUSABASE_API_KEY`; the single-tenant open-source `apps/busabase` does not).
+
+Both expose the same interface and review verbs: `openReplyDraft` → `reviewReply(reply_id, {verdict})` with `approve | request_changes | revise | block` → `getApprovedReply` → the skill (the **runner**) sends → `markSent`. `request_changes` moves the reply to `changes_requested` and enqueues an agent task (`listAgentTasks`); after the agent revises, it returns for re-review.
+
+Boundary: Busabase and the UI never send mail. Only the skill/runner — which holds SMTP credentials — performs the send, after the reply is approved. A reply record's fields are `kind:"email_reply"`, `to`, `subject`, `body`.
+
 ## Reply Threading And Quotes
 
 When sending a customer reply:
