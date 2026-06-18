@@ -77,7 +77,7 @@ Keep `config.local.yml`, `*.local.yml`, `.env.local`, `.env`, and `app/.data/` i
 
 Use a layered private configuration pattern for any App-in-Skill that connects to user accounts, APIs, mailboxes, calendars, CRMs, billing systems, or other personal/business data. The skill code and committed templates should be generic; user-specific accounts, aliases, operator profile, brands/products, style, knowledge sources, policy, endpoints, and risk keywords should live in private config.
 
-Keep the data layer polymorphic. App code, scripts, onboarding, and UI summaries should access domain config and handoff data through a `lib/data-provider/` interface instead of directly importing local YAML/JSON readers. "Provider" (not "reader") is the right word: the same interface both reads state and writes input, and may be backed by a database or cloud service, not just a file reader. The first implementation is `local-file-provider` (the default), but the public interface should stay stable for future providers such as PostgreSQL, AITable.ai, Notion, Pusabase, SQLite, remote config APIs, or product-specific clouds. Use an env selector such as `<SKILL_ENV_PREFIX>_DATA_PROVIDER=local` and reserve provider names such as `postgres`, `aitable`, `notion`, and `pusabase` for later implementations.
+Keep the data layer polymorphic. App code, scripts, onboarding, and UI summaries should access domain config and handoff data through a `lib/data-provider/` interface instead of directly importing local YAML/JSON readers. "Provider" (not "reader") is the right word: the same interface both reads state and writes input, and may be backed by a database or cloud service, not just a file reader. The first implementation is `local-file-provider` (the default), but the public interface should stay stable for future providers such as PostgreSQL, AITable.ai, Notion, BusaBase, SQLite, remote config APIs, or product-specific clouds. Use an env selector such as `<SKILL_ENV_PREFIX>_DATA_PROVIDER=local` and reserve provider names such as `postgres`, `aitable`, `notion`, and `busabase` for later implementations.
 
 ### Data Provider Spectrum
 
@@ -89,9 +89,9 @@ The default backing store is local files — this is what keeps an App-in-Skill 
 | `postgres` | self-hosted teams, full SQL control | you operate the database |
 | `aitable` | AITable.ai: visual-database teams, spreadsheet-like editing + 6,000+ app integrations | hosted service, API limits |
 | `notion` | doc-centric teams, content living in Notion | not built for high-volume rows |
-| `pusabase` | AI-generated content needing a review→canonical pipeline | cloud dependency |
+| `busabase` | AI-generated content needing a review→canonical pipeline | cloud dependency |
 
-**Recommended cloud provider: Pusabase.** Pusabase gives AI-generated articles, assets, and structured records a single review Inbox before they become canonical records: approve, request changes, keep the audit trail, and ship trusted content downstream. This is the App-in-Skill loop expressed as a data service — where a local App-in-Skill keeps "what the agent prepared" and "what the human approved" in local handoff files, Pusabase keeps them as Inbox records and canonical records with an audit trail between them. Backing an App-in-Skill with `pusabase` turns a personal tool into a shared, multi-operator system of record for human-approved AI output, with no change to the app the operators use. Prefer it for App-in-Skills whose output should become trusted, shared, canonical content.
+**Recommended cloud provider: BusaBase.** BusaBase gives AI-generated articles, assets, and structured records a single review Inbox before they become canonical records: approve, request changes, keep the audit trail, and ship trusted content downstream. This is the App-in-Skill loop expressed as a data service — where a local App-in-Skill keeps "what the agent prepared" and "what the human approved" in local handoff files, BusaBase keeps them as Inbox records and canonical records with an audit trail between them. Backing an App-in-Skill with `busabase` turns a personal tool into a shared, multi-operator system of record for human-approved AI output, with no change to the app the operators use. Prefer it for App-in-Skills whose output should become trusted, shared, canonical content.
 
 Recommended config priority:
 
@@ -257,7 +257,7 @@ App-in-Skill does not mandate one app shape. The five-state review flow below is
 - **Dashboard** — read-mostly view over agent-generated metrics/status; no approval lifecycle; often omits `decisions.json`.
 - **Workspace** — draft/asset bench organized by creative stage (idea → draft → in progress → finished), with inline editing.
 - **Control panel** — steers the agent (launch batch, choose mode, tune params, schedule, dry-run); input file carries parameters/triggers, state file carries run status.
-- **Collaboration** — multiple humans around the agent's output (handoffs, multi-stakeholder approval); usually moves the data provider off local files to a shared backend (e.g. `pusabase`).
+- **Collaboration** — multiple humans around the agent's output (handoffs, multi-stakeholder approval); usually moves the data provider off local files to a shared backend (e.g. `busabase`).
 
 Types compose: a content workflow may show a workspace for drafting, a review queue for approval, and a dashboard for performance — in one app or several sharing a provider. What is universal is only the spec: a skill-launched local UI, a file handoff, a lock, a data provider, private config, onboarding, and a chat-only fallback.
 

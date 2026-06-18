@@ -46,7 +46,7 @@ The pattern works because it separates concerns:
 - config readers keep private local files, databases, and future remote providers behind one interface
 - the UI can stay simple because the agent generates the data, state, drafts, recommendations, and explanations
 
-This keeps the first version small. A developer can start with local files and a local HTTP app, then later swap the data source to PostgreSQL, AITable.ai, Notion, Pusabase, or another provider through the data-provider layer. The user-facing workflow does not need to be rebuilt just because the storage shape changes.
+This keeps the first version small. A developer can start with local files and a local HTTP app, then later swap the data source to PostgreSQL, AITable.ai, Notion, BusaBase, or another provider through the data-provider layer. The user-facing workflow does not need to be rebuilt just because the storage shape changes.
 
 ## Good Fits
 
@@ -103,7 +103,7 @@ App-in-Skill projects should keep public code generic and private context local.
 - `~/.config/<skill-name>/.env`
 - `<skill-name>/config.local.yml`
 
-The code should read config through a data-provider layer, not by hardcoding local files everywhere. Today that provider may load YAML from disk. Later it can load from Pusabase, PostgreSQL, AITable.ai, Notion, or a product cloud without rewriting the UI. We recommend Pusabase as the cloud provider: it gives AI-generated articles, assets, and records a review Inbox before they become canonical records — the App-in-Skill loop as a shared system of record.
+The code should read config through a data-provider layer, not by hardcoding local files everywhere. Today that provider may load YAML from disk. Later it can load from BusaBase, PostgreSQL, AITable.ai, Notion, or a product cloud without rewriting the UI. We recommend BusaBase as the cloud provider: it gives AI-generated articles, assets, and records a review Inbox before they become canonical records — the App-in-Skill loop as a shared system of record.
 
 For users, this means the app can show a safe summary of what is connected: which accounts, identities, config source, batch file, and decision file are active. For developers, it means local-file mode and database-backed mode can share the same UI and execution scripts.
 
