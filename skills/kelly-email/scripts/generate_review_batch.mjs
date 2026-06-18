@@ -19,6 +19,8 @@ import {
   loadConfigWithMeta,
   loadDotenv,
   onboardingStatus,
+  detectTextLanguage,
+  preferredUserLanguage,
   persistAttachments,
   reviewRecommendationFor,
   sanitizeHtmlEmail,
@@ -142,6 +144,8 @@ async function fetchMailbox(mailbox, reviewQuota, maxScan, config) {
           const cc = addressText(parsed.cc);
           const messageId = (parsed.messageId || "").trim();
           const { body, html } = extractBody(parsed);
+          const userLanguage = preferredUserLanguage(config);
+          const sourceLanguage = detectTextLanguage(`${subject}\n${body}`);
           const attachments = normalizedAttachments(parsed);
           const dedupeKey = stableDedupeKey(mailbox, parsed, sender, subject, body);
           if (seenKeys.has(dedupeKey)) continue;
@@ -190,6 +194,12 @@ async function fetchMailbox(mailbox, reviewQuota, maxScan, config) {
             suggested_reply: reviewBrief.suggested_reply || "",
             summary: summaryFrom(subject, body),
             body,
+            body_original: body,
+            body_original_language: sourceLanguage,
+            body_translation: "",
+            body_translation_language: userLanguage,
+            user_language: userLanguage,
+            source_language: sourceLanguage,
             html,
             has_html: Boolean(html),
             quote_preview: shortQuote(body),

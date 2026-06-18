@@ -55,6 +55,16 @@ async function sendAttachment(res, urlPathname) {
   await sendFile(res, resolved);
 }
 
+async function sendI18nFile(res, urlPathname) {
+  const relative = decodeURIComponent(urlPathname.replace(/^\/i18n\//, ""));
+  const resolved = path.resolve(APP_DIR, "i18n", relative);
+  if (!resolved.startsWith(path.resolve(APP_DIR, "i18n") + path.sep) || path.extname(resolved) !== ".js") {
+    send(res, 403, "Forbidden");
+    return;
+  }
+  await sendFile(res, resolved);
+}
+
 async function readJsonBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -74,6 +84,7 @@ export async function handleRequest(req, res) {
       if (url.pathname === "/") return sendFile(res, path.join(APP_DIR, "index.html"));
       if (url.pathname === "/app.js") return sendFile(res, path.join(APP_DIR, "app.js"));
       if (url.pathname === "/styles.css") return sendFile(res, path.join(APP_DIR, "styles.css"));
+      if (url.pathname.startsWith("/i18n/")) return sendI18nFile(res, url.pathname);
       if (url.pathname.startsWith("/attachments/")) return sendAttachment(res, url.pathname);
       if (url.pathname === "/api/state") return sendJson(res, await statePayload(parse(url.search.slice(1))));
       if (url.pathname === "/api/lock") return sendJson(res, { lock: await lockPayload() });

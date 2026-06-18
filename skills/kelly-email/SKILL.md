@@ -11,7 +11,7 @@ Use this skill as a configurable email approval desk across configured email acc
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, generate/update the local App-in-Skill batch, ensure the UI is running, and tell the user to review the batch at the actual started URL, preferring `http://127.0.0.1:3000/` and the `3000-4000` port range unless a port env override is set. If the user says "纯聊天", "chat only", "不要打开 UI", "直接在这里处理", or similar, use chat message mode instead: present numbered items and drafts in the conversation, then execute only explicitly approved actions.
 
-UI language: the local app supports multilingual interface chrome. Default language mode is `Auto`, following the browser language; the user can also set English or Chinese explicitly in `Help & Settings`. Keep email bodies, drafts, customer names, configured account data, and domain content in their original language unless the user asks to translate them.
+UI language: the local app supports multilingual interface chrome. Default language mode is `Auto`, following the browser language; the user can also set English or Chinese explicitly in `Help & Settings`. Internal suggestions, explanations, and "recommended next step" copy should be shown in the user's preferred language when known, especially Chinese for Chinese-speaking operators. Keep inbound email bodies, customer names, configured account data, and domain content in their original language; for cross-language mail, preserve the original text and add a separate translation/summary for the operator instead of replacing the original. Draft customer replies in the customer's language when clear unless the user asks otherwise.
 
 First-run behavior: if no private config exists or required secret env vars are missing, enter onboarding mode before any mailbox scan. Greet the user, explain that this skill needs local config, show the recommended config/env paths, and tell them to store secrets only in local env files. Onboarding should also invite the user to configure their role, brands/products, official URLs, reply style, and knowledge sources so drafts match their business context. Do not ask the user to paste passwords, tokens, app passwords, or OAuth secrets into chat.
 
@@ -30,7 +30,7 @@ First-run behavior: if no private config exists or required secret env vars are 
 - When multiple configured addresses point to the same underlying mailbox, deduplicate by message-id/thread headers and account group so the same unread thread is not processed twice.
 - If a request depends on product, billing, legal, or policy facts that are not in context, search existing docs or ask the user before giving a definitive answer.
 - Keep customer-facing drafts concise, warm, specific, and honest. Use compressed copy: lead with the answer, cut filler, prefer short paragraphs, and keep most replies under 180 words unless complexity truly requires more.
-- For Chinese user-facing work, communicate with the user in Chinese unless the customer thread uses another language. Draft customer replies in the customer's language when clear.
+- For Chinese user-facing work, communicate with the user in Chinese unless the customer thread uses another language. Keep UI recommendations and operator notes in Chinese when that is the user's preference; keep the email original visible, and add translation as a separate helper field when needed.
 
 ## Private Configuration
 
@@ -151,8 +151,9 @@ The App UI may display these settings in `Help & Settings`, but only as a saniti
 8. Look up prior context in the thread, related emails from the same sender/domain, calendar events, contacts, docs, or existing support notes, only as needed for the approved batch.
 9. Select the reply identity from the original recipient address, product/domain, thread history, and customer language. If the identity is ambiguous, ask the user.
 10. Draft replies or next actions. Separate customer-visible text from internal notes.
-11. In App UI mode, write the local batch, start/reuse the UI, tell the user to review it there, then wait for them to ask you to execute approved decisions. In chat message mode, present numbered actions/drafts directly in chat and ask for approval there.
-12. Continue scanning and auto-cleaning low-risk notifications until the review quota is reached or the account/group has no unprocessed unread in-scope support threads.
+11. Localize operator-facing batch fields before handing off to the app: `review_brief.i18n`, `reason`/recommendations, and internal suggestions should match the user's preferred language when known. Preserve `body_original` exactly; if the email language differs from the user's language, add `body_translation` in the user's language as a helper while keeping the original visible.
+12. In App UI mode, write the local batch, start/reuse the UI, tell the user to review it there, then wait for them to ask you to execute approved decisions. In chat message mode, present numbered actions/drafts directly in chat and ask for approval there.
+13. Continue scanning and auto-cleaning low-risk notifications until the review quota is reached or the account/group has no unprocessed unread in-scope support threads.
 
 ## Onboarding Mode
 

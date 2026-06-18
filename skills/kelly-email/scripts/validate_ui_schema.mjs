@@ -16,6 +16,7 @@ const VALID_STATUS = new Set(["prepared", "needs_review", "draft_requested", "dr
 const VALID_ACTION = new Set(["archive", "mark_read", "send_reply", "draft_reply", "keep_unread", "review"]);
 const VALID_DECISION = new Set(["archive", "mark_read", "send_reply", "draft_reply", "keep_unread", "no_action", "needs_review", "revise"]);
 const VALID_EXECUTION = new Set(["executed", "blocked", "error"]);
+const VALID_LANGUAGE = new Set(["en", "zh-CN", "unknown"]);
 
 async function main() {
   const batch = await readJson(CURRENT_BATCH_PATH, {});
@@ -42,6 +43,12 @@ async function main() {
     if (!VALID_STATUS.has(item.status)) errors.push(`${label}: invalid status ${JSON.stringify(item.status)}`);
     if (!VALID_ACTION.has(item.proposed_action)) errors.push(`${label}: invalid proposed_action ${JSON.stringify(item.proposed_action)}`);
     if (item.status === "decided") errors.push(`${label}: status=decided is not part of UI schema`);
+    for (const key of ["user_language", "source_language", "body_original_language", "body_translation_language"]) {
+      if (item[key] && !VALID_LANGUAGE.has(item[key])) errors.push(`${label}: invalid ${key} ${JSON.stringify(item[key])}`);
+    }
+    for (const key of ["body_original", "body_translation"]) {
+      if (key in item && typeof item[key] !== "string") errors.push(`${label}: ${key} must be a string`);
+    }
 
     const decision = item.decision || {};
     if (Object.keys(decision).length && !VALID_DECISION.has(decision.action)) {

@@ -1161,6 +1161,21 @@ body.is-locked .message-row:hover {
   box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
 }
 
+.translated-body {
+  border-color: #dbeafe;
+  background: #f8fbff;
+}
+
+.translation-empty {
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .draft-box {
   width: 100%;
   min-height: 180px;

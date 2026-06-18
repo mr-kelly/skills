@@ -172,6 +172,75 @@ export function summaryFrom(subject, body) {
   return compact ? compact.slice(0, 420) : subject || "(no subject)";
 }
 
+export function normalizeLanguageCode(value = "") {
+  const text = String(value || "").trim().toLowerCase();
+  if (!text || text === "auto") return "";
+  if (/(^zh\b|zh-|chinese|mandarin|cantonese|中文|汉语|普通话|粤语|廣東話)/i.test(text)) return "zh-CN";
+  if (/(^en\b|en-|english|英文)/i.test(text)) return "en";
+  return "";
+}
+
+export function preferredUserLanguage(config = {}) {
+  const candidates = [
+    process.env.KELLY_EMAIL_USER_LANGUAGE,
+    config.style?.default_language,
+    ...(Array.isArray(config.user_profile?.languages) ? config.user_profile.languages : [])
+  ];
+  for (const candidate of candidates) {
+    const normalized = normalizeLanguageCode(candidate);
+    if (normalized) return normalized;
+  }
+  return "en";
+}
+
+export function detectTextLanguage(value = "") {
+  const text = String(value || "");
+  const cjk = (text.match(/[\u3400-\u9fff]/g) || []).length;
+  const latin = (text.match(/[A-Za-z]/g) || []).length;
+  if (cjk >= 4 && cjk / Math.max(text.length, 1) > 0.04) return "zh-CN";
+  if (latin >= 12) return "en";
+  return "unknown";
+}
+
+function fillTemplate(value, params = {}) {
+  return String(value || "").replace(/\{(\w+)\}/g, (_, key) => params[key] ?? "");
+}
+
+const REVIEW_COPY = {
+  en: {
+    background: '{sender} sent "{subject}". {summary}',
+    why_default: "Needs a human decision before mailbox changes.",
+    recommend_default: "Read the original message, then write your instruction in Review note. If it is safe cleanup, approve archive.",
+    recommend_money: "Confirm whether this needs finance/payment handling. If no action is needed, approve archive; otherwise write what I should do next.",
+    recommend_course: "Review the student's submission or feedback first. Add a note if you want me to summarize or draft a reply.",
+    recommend_security: "Check whether this involves account, privacy, security, or permission changes before approving cleanup.",
+    recommend_partnership: "Decide whether this is worth pursuing. You can ask me to draft a short reply, forward internally, or archive.",
+    recommend_customer: "A reply is likely needed. Edit the draft below, approve send when ready, or leave one direction for me to refine.",
+    recommend_attachments: "Review the attachment context before cleanup. Ask me to summarize or reply if needed."
+  },
+  "zh-CN": {
+    background: "{sender} 发来 “{subject}”。{summary}",
+    why_default: "在更改邮箱前需要人工决定。",
+    recommend_default: "先读邮件原文，再在审核备注里写你的处理意见。如果只是安全清理，可以批准归档。",
+    recommend_money: "建议先确认金额、账单或凭证是否需要财务处理；确认无后续动作再归档，或写明要我如何回复/转发。",
+    recommend_course: "建议先查看学生提交内容和反馈要点；如果需要回复，写一句方向，我再起草。",
+    recommend_security: "建议先确认是否涉及账号、安全、隐私或权限变更；不要直接归档，除非你确认只是通知。",
+    recommend_partnership: "建议判断是否有合作价值；可以让我起草简短回复、转给同事，或确认不感兴趣后归档。",
+    recommend_customer: "建议回复。下面给了一个短草稿；你可以直接改草稿后批准发送，或写一句方向让我继续打磨。",
+    recommend_attachments: "建议先看附件语境；确认附件不需要处理后再归档，或写明要我总结/回复什么。"
+  }
+};
+
+function recommendationKeyFor(category, risks, attachments) {
+  if (category === "money" || risks.has("money")) return "recommend_money";
+  if (category === "course_feedback") return "recommend_course";
+  if (category === "data_privacy_security" || risks.has("security")) return "recommend_security";
+  if (category === "partnership") return "recommend_partnership";
+  if (category === "customer") return "recommend_customer";
+  if (attachments.length) return "recommend_attachments";
+  return "recommend_default";
+}
+
 function firstConfiguredBrand(config = {}) {
   const brands = Array.isArray(config.brands) ? config.brands : [];
   return brands.find((brand) => brand?.name || brand?.homepage) || {};
@@ -207,33 +276,41 @@ export function reviewRecommendationFor(classification, sender, subject, body, a
   const category = classification.category || "other";
   const risks = new Set(classification.risk || []);
   const bodyHint = summaryFrom(subject, body);
-  const background = `${sender || "Unknown sender"} sent "${subject || "(no subject)"}". ${bodyHint}`.slice(0, 620);
-  let recommendation = "先读原文，再在 Review note 里写你的处理意见；如果只是通知，可点 Approve archive。";
   let suggestedReply = "";
+  const userLanguage = preferredUserLanguage(config);
+  const sourceLanguage = detectTextLanguage(`${subject}\n${body}`);
+  const recommendationKey = recommendationKeyFor(category, risks, attachments);
+  const i18n = {};
+  for (const language of ["en", "zh-CN"]) {
+    const copy = REVIEW_COPY[language];
+    i18n[language] = {
+      background: fillTemplate(copy.background, {
+        sender: sender || (language === "zh-CN" ? "未知发件人" : "Unknown sender"),
+        subject: subject || (language === "zh-CN" ? "（无主题）" : "(no subject)"),
+        summary: bodyHint
+      }).slice(0, 620),
+      why_review: classification.reason_i18n?.[language] || copy.why_default,
+      recommendation: copy[recommendationKey] || copy.recommend_default
+    };
+  }
   const productName = configuredProductName(config);
   const primaryUrl = configuredPrimaryUrl(config);
   const ctaLine = primaryUrl ? `\n\nYou can take a look here: ${primaryUrl}` : "";
   const contactLine = configuredContactLine(config);
 
-  if (category === "money" || risks.has("money")) {
-    recommendation = "建议你确认金额、账单/凭证是否需要财务处理；确认无后续动作再归档，或写明要我如何回复/转发。";
-  } else if (category === "course_feedback") {
-    recommendation = "建议先查看学生提交内容和反馈要点；如果需要回复，写一句方向，我再起草。";
-  } else if (category === "data_privacy_security" || risks.has("security")) {
-    recommendation = "建议先确认是否涉及账号、安全、隐私或权限变更；不要直接归档，除非你确认只是通知。";
-  } else if (category === "partnership") {
-    recommendation = "建议判断是否有合作价值；可以让我起草简短回复、转给同事，或确认不感兴趣后归档。";
-  } else if (category === "customer") {
-    recommendation = "建议回复。下面给了一个短草稿；你可以直接改草稿后批准发送，或写一句方向让我继续打磨。";
+  if (category === "customer") {
     suggestedReply = `Hi,\n\nThanks for sharing this. This sounds like a good fit for an agent workflow: turn the repeated steps into a clear prompt or skill, test it in a few sessions, and then refine the parts that need better context or tooling.\n\nFor ${productName}, I would start by writing down the desired outcome, the source materials, the steps you want automated, and one example of a good final result. Then try that prompt in a new agent/session and improve it from the output.\n\nCould you share which part is most painful today and what a successful result should look like?${ctaLine}${contactLine}`;
-  } else if (attachments.length) {
-    recommendation = "建议先看附件语境；确认附件不需要处理后再归档，或写明要我总结/回复什么。";
   }
 
+  const preferred = i18n[userLanguage] || i18n.en;
   return {
-    background,
-    why_review: classification.reason || "需要人工判断后再处理。",
-    recommendation,
+    user_language: userLanguage,
+    source_language: sourceLanguage,
+    translation_language: userLanguage,
+    i18n,
+    background: preferred.background,
+    why_review: preferred.why_review,
+    recommendation: preferred.recommendation,
     suggested_reply: suggestedReply
   };
 }
@@ -397,4 +474,3 @@ export function isApproved(item) {
   if (action === "draft_reply") return item.status === "draft_requested";
   return ["archive", "mark_read", "send_reply"].includes(action);
 }
-
