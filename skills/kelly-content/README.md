@@ -68,12 +68,12 @@ Optional private config can store brand voice, audience, official URLs, CTA defa
 Supported config locations:
 
 ```text
-KELLY_CONTENT_CONFIG=/absolute/path/to/config.yml
-skills/kelly-content/config.local.yml
-~/.config/kelly-content/config.yml
+KELLY_CONTENT_CONFIG=/absolute/path/to/config.json
+skills/kelly-content/config.local.json
+~/.config/kelly-content/config.json
 ```
 
-Use `config.example.yml` as a starting template only. Keep private settings out of committed files.
+Use `config.example.json` as a starting template only. Keep private settings out of committed files.
 
 ## Chat-Only Mode
 

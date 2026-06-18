@@ -42,8 +42,8 @@ async function state() {
       publishing_connectors: "disabled",
       config_paths: [
         "KELLY_CONTENT_CONFIG",
-        "skills/kelly-content/config.local.yml",
-        "~/.config/kelly-content/config.yml"
+        "skills/kelly-content/config.local.json",
+        "~/.config/kelly-content/config.json"
       ]
     }
   };

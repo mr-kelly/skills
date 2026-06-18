@@ -15,17 +15,16 @@ Live execution is intentionally separate from UI clicks. The default `npm run ex
 
 ```bash
 gh auth login
-cp skills/kelly-pr-review/config.example.yml skills/kelly-pr-review/config.local.yml
+cp skills/kelly-pr-review/config.example.json skills/kelly-pr-review/config.local.json
 ```
 
-Edit `config.local.yml` with the repositories you want in the desk.
+Edit `config.local.json` with the repositories you want in the desk.
 
 ## Run
 
 ```bash
-npm --prefix skills/kelly-pr-review install
-npm --prefix skills/kelly-pr-review run generate
-npm --prefix skills/kelly-pr-review run start
+node skills/kelly-pr-review/scripts/generate_review_batch.mjs
+skills/kelly-pr-review/app/start.sh
 ```
 
 Open the printed local URL, usually `http://127.0.0.1:3001`.

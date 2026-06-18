@@ -19,10 +19,10 @@ Private config is optional. By default this skill uses the current `gh` authenti
 
 Config priority:
 
-1. `KELLY_PR_REVIEW_CONFIG=/absolute/path/to/config.yml`
-2. `skills/kelly-pr-review/config.local.yml`
-3. `~/.config/kelly-pr-review/config.yml`
-4. `skills/kelly-pr-review/config.example.yml`
+1. `KELLY_PR_REVIEW_CONFIG=/absolute/path/to/config.json`
+2. `skills/kelly-pr-review/config.local.json`
+3. `~/.config/kelly-pr-review/config.json`
+4. `skills/kelly-pr-review/config.example.json`
 
 Env priority:
 
@@ -34,7 +34,7 @@ Env priority:
 
 Secrets should live in env files only. Usually `gh auth login` is enough, so this skill does not require a token in config.
 
-Treat `config.example.yml` as a template for optional preferences. If no private config exists, do not block real data; use `gh` defaults. Use `--sample` only when the user explicitly wants to preview the UI with fake data.
+Treat `config.example.json` as a template for optional preferences. If no private config exists, do not block real data; use `gh` defaults. Use `--sample` only when the user explicitly wants to preview the UI with fake data. This skill has no npm dependencies; keep runtime config in JSON and do not add YAML parsing packages.
 
 ## Workflow
 
@@ -76,11 +76,11 @@ Never merge, close, push, edit branches, rerun workflows, or dismiss reviews fro
 ## Useful Commands
 
 ```bash
-npm --prefix skills/kelly-pr-review run generate
-npm --prefix skills/kelly-pr-review run start
-npm --prefix skills/kelly-pr-review run validate
-npm --prefix skills/kelly-pr-review run execute
-npm --prefix skills/kelly-pr-review run execute:live
+node skills/kelly-pr-review/scripts/generate_review_batch.mjs
+skills/kelly-pr-review/app/start.sh
+node skills/kelly-pr-review/scripts/validate_ui_schema.mjs
+node skills/kelly-pr-review/scripts/execute_decisions.mjs --dry-run
+node skills/kelly-pr-review/scripts/execute_decisions.mjs --live
 ```
 
 In normal use, invoke `/kelly-pr-review` and let the skill generate the batch and start the UI.

@@ -1,15 +1,28 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import YAML from "yaml";
 import { ROOT_DIR, SKILL_DIR } from "../paths.mjs";
 import { pathExists } from "../common.mjs";
 
+export const CONFIG_LOCAL_PATH = path.join(SKILL_DIR, "config.local.json");
+export const CONFIG_EXAMPLE_PATH = path.join(SKILL_DIR, "config.example.json");
+export const USER_CONFIG_DIR = path.join(os.homedir(), ".config", "kelly-pr-review");
+export const USER_CONFIG_PATH = path.join(USER_CONFIG_DIR, "config.json");
+export const LEGACY_CONFIG_LOCAL_PATH = path.join(SKILL_DIR, "config.local.yml");
+export const LEGACY_CONFIG_EXAMPLE_PATH = path.join(SKILL_DIR, "config.example.yml");
+export const LEGACY_USER_CONFIG_PATH = path.join(USER_CONFIG_DIR, "config.yml");
+
 const CONFIG_CANDIDATES = [
   () => process.env.KELLY_PR_REVIEW_CONFIG,
-  () => path.join(SKILL_DIR, "config.local.yml"),
-  () => path.join(os.homedir(), ".config", "kelly-pr-review", "config.yml"),
-  () => path.join(SKILL_DIR, "config.example.yml"),
+  () => CONFIG_LOCAL_PATH,
+  () => USER_CONFIG_PATH,
+  () => CONFIG_EXAMPLE_PATH,
+];
+
+const LEGACY_CONFIG_CANDIDATES = [
+  () => LEGACY_CONFIG_LOCAL_PATH,
+  () => LEGACY_USER_CONFIG_PATH,
+  () => LEGACY_CONFIG_EXAMPLE_PATH,
 ];
 
 const ENV_CANDIDATES = [
@@ -47,19 +60,35 @@ export async function loadLocalConfig() {
   let source = "";
   let config = {};
   let exampleOnly = false;
+  let legacySource = "";
   for (const candidate of CONFIG_CANDIDATES) {
     const pathname = candidate();
     if (!pathname || !(await pathExists(pathname))) continue;
     source = pathname;
-    config = YAML.parse(await fs.readFile(pathname, "utf8")) || {};
-    exampleOnly = path.resolve(pathname) === path.resolve(path.join(SKILL_DIR, "config.example.yml"));
+    config = JSON.parse(await fs.readFile(pathname, "utf8")) || {};
+    exampleOnly = path.resolve(pathname) === path.resolve(CONFIG_EXAMPLE_PATH);
     if (exampleOnly) config = {};
     break;
   }
+  if (!source) {
+    for (const candidate of LEGACY_CONFIG_CANDIDATES) {
+      const pathname = candidate();
+      if (pathname && (await pathExists(pathname))) {
+        legacySource = pathname;
+        break;
+      }
+    }
+  }
   const repos = (config.repos || []).filter((repo) => repo.include !== false && repo.repo);
-  const configured = true;
+  const configured = !legacySource;
   const defaultMode = exampleOnly || !source || !repos.length;
-  const onboarding = !defaultMode
+  const onboarding = legacySource
+    ? {
+        configured: false,
+        state: "legacy_config_format",
+        message: `Found legacy YAML config at ${legacySource}, but Kelly PR Review now reads JSON only. Convert it to ${USER_CONFIG_PATH} or set KELLY_PR_REVIEW_CONFIG to a JSON file.`,
+      }
+    : !defaultMode
     ? { configured: true, state: "ready", message: "Kelly PR Review is configured." }
     : {
         configured: true,
@@ -71,6 +100,7 @@ export async function loadLocalConfig() {
     configured,
     config,
     source,
+    legacy_source: legacySource,
     example_only: exampleOnly,
     default_mode: defaultMode,
     onboarding,

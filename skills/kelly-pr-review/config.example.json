@@ -1,0 +1,38 @@
+{
+  "reviewer": {
+    "handle": "@me",
+    "display_name": "Kelly"
+  },
+  "repos": [
+    {
+      "repo": "owner/repository",
+      "include": true,
+      "label": "Main repo"
+    }
+  ],
+  "query": {
+    "state": "open",
+    "review_requested": "@me",
+    "limit": 30,
+    "sort": "updated",
+    "order": "desc",
+    "include_drafts": false
+  },
+  "review_policy": {
+    "default_action": "comment",
+    "approval_requires_clean_checks": false,
+    "include_patch_excerpt": false,
+    "max_patch_chars": 12000,
+    "large_diff_changed_files": 25,
+    "large_diff_additions": 1500,
+    "risk_keywords": {
+      "security": ["auth", "token", "password", "permission", "privacy"],
+      "data": ["migration", "schema", "delete", "drop table", "billing"],
+      "generated": ["generated", "lockfile", "vendor"]
+    }
+  },
+  "style": {
+    "tone": "concise, specific, kind",
+    "body_template": "Thanks, reviewed from Kelly PR Review."
+  }
+}

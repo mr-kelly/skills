@@ -14,7 +14,7 @@ The skill prepares and exports content. It does not publish to external platform
 ## Default Workflow
 
 1. Clarify or infer the source, target audience, desired channels, language, and offer/CTA.
-2. If private config exists, use brand voice, channel defaults, official URLs, and taboo/risk terms from it. Otherwise use `config.example.yml` only as a template, not as live context.
+2. If private config exists, use brand voice, channel defaults, official URLs, and taboo/risk terms from it. Otherwise use `config.example.json` only as a template, not as live context.
 3. Extract the source's core idea, proof points, examples, keywords, reusable quotes, and action the reader should take.
 4. Generate a batch with one item per channel/content unit using `scripts/generate_batch.mjs`.
 5. Validate the batch with `scripts/validate_batch.mjs`.
@@ -70,11 +70,11 @@ Read `references/channel-playbook.md` when choosing or adapting channel-specific
 
 Keep user-specific operating context out of committed files. If the user wants persistent brand/channel settings, create one of:
 
-1. `KELLY_CONTENT_CONFIG=/absolute/path/to/config.yml`
-2. `skills/kelly-content/config.local.yml`
-3. `~/.config/kelly-content/config.yml`
+1. `KELLY_CONTENT_CONFIG=/absolute/path/to/config.json`
+2. `skills/kelly-content/config.local.json`
+3. `~/.config/kelly-content/config.json`
 
-Use `config.example.yml` as the starting template only. Store non-secret settings there: brand profile, audience, tone, official URLs, CTA defaults, channel defaults, risk terms, and export preferences. Store secrets only in private env files if future connectors need them; this skill currently has no publishing connector and should not need secrets.
+Use `config.example.json` as the starting template only. Store non-secret settings there: brand profile, audience, tone, official URLs, CTA defaults, channel defaults, risk terms, and export preferences. Store secrets only in private env files if future connectors need them; this skill currently has no publishing connector and should not need secrets. Keep this skill zero-dependency and do not add YAML parsing packages.
 
 ## Scripts
 

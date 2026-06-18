@@ -130,7 +130,7 @@ skill-name/
 └── config.example.json
 ```
 
-共享代码放在 `lib/`。`scripts/` 保持为薄入口。真实配置、secret、handoff 数据文件（`app/.data/`）和生成的本地状态不要提交到 git。零依赖 skill 默认使用 JSON 作为运行时配置；只有当 skill 明确接受 YAML 解析器依赖，或先把 YAML 转成 JSON 后再运行时，才使用 YAML。
+共享代码放在 `lib/`。`scripts/` 保持为薄入口。真实配置、secret、handoff 数据文件（`app/.data/`）和生成的本地状态不要提交到 git。零依赖 skill 默认使用 JSON 作为运行时配置；旧 YAML 笔记要先转换成 JSON，再给运行时代码读取，不要为了默认模板引入 YAML 解析器。
 
 ## UI 模式
 

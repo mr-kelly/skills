@@ -71,11 +71,11 @@ Use Node.js by default for both the local app server and deterministic App-in-Sk
 
 Only add a small `package.json` when the skill truly needs an external integration or specialized parser that native Node cannot reasonably provide, such as IMAP, SMTP, MIME email parsing, browser automation, document parsing, OAuth/API clients, or database drivers. Keep those dependencies in integration/adapter code, not in the base App UI. If the app can run and review local handoff files without the dependency, it must still do so.
 
-Prefer JSON for runtime config and handoff files in the zero-dependency scaffold: `config.example.json`, `config.local.json`, `.env`, and files under `app/.data/`. YAML is acceptable for human-authored config only when the skill explicitly accepts a YAML parser dependency or the agent converts YAML into JSON before runtime. Do not add `yaml`, `dotenv`, Express, Vite, React, or other packages to a default App-in-Skill template.
+Prefer JSON for runtime config and handoff files in the zero-dependency scaffold: `config.example.json`, `config.local.json`, `.env`, and files under `app/.data/`. Do not add YAML runtime config or the `yaml` package to a default App-in-Skill template; if a user has old YAML notes, convert them to JSON before the skill reads them. Do not add `dotenv`, Express, Vite, React, or other packages to a default App-in-Skill template.
 
 Keep shared runtime code in `lib/`: path constants in `lib/paths.mjs`, JSON/lock/batch helpers in `lib/common.mjs`, and configurable data access in `lib/data-provider/`. Keep `scripts/` as thin CLI entrypoints that import from `lib/`; do not create a parallel `scripts/lib/` tree.
 
-Keep `config.local.json`, `config.local.yml`, `*.local.json`, `*.local.yml`, `.env.local`, `.env`, and `app/.data/` ignored by git. Note that `.data/` is not a name most default `.gitignore` templates exclude (unlike `.cache/`), so it must be added to `.gitignore` explicitly — the handoff files contain user decisions and execution history and must never be committed.
+Keep `config.local.json`, legacy `config.local.yml`, `*.local.json`, legacy `*.local.yml`, `.env.local`, `.env`, and `app/.data/` ignored by git. Note that `.data/` is not a name most default `.gitignore` templates exclude (unlike `.cache/`), so it must be added to `.gitignore` explicitly — the handoff files contain user decisions and execution history and must never be committed.
 
 ## Private Configuration
 
@@ -209,7 +209,7 @@ The onboarding loop:
 
 Re-entry: if required config or secrets later go missing or fail validation, the skill drops back to onboarding rather than running with a broken context. Onboarding may also be re-run deliberately ("reconfigure") to update the operating context; doing so clears or rewrites the marker.
 
-Templates are examples only: never treat `config.example.json` or `config.example.yml` as a live configuration, and never write the completion marker on its behalf.
+Templates are examples only: never treat `config.example.json` as a live configuration, and never write the completion marker on its behalf.
 
 ## Locking
 
@@ -363,7 +363,7 @@ When creating or updating an App-in-Skill:
 3. Create the local app inside `app/`, with static UI files at the app root and Node server modules under `app/server/`.
 4. Add generator, executor, and validator scripts under `scripts/`.
 5. Add lock handling to both the skill workflow and the app server.
-6. Add `config.example.json` with placeholders only; keep real accounts, tokens, URLs, and personal identities out of the skill. Use YAML only when the skill intentionally owns a YAML parser dependency.
+6. Add `config.example.json` with placeholders only; keep real accounts, tokens, URLs, and personal identities out of the skill. Avoid YAML runtime config in default App-in-Skill projects.
 7. Make onboarding the initial phase: on every run, gate real work on the `app/.data/onboarding.json` completion marker. While it is absent/incomplete (or config/secrets are missing or invalid), run the ask-and-configure loop in the app's setup wizard and chat; write the marker only when the user confirms setup is complete.
 8. Add data-provider helpers shared by scripts and the app server. The default provider may implement local config/env discovery using the private configuration priority above, but callers should depend on the provider interface.
 9. Add a sanitized config summary, active data-provider name, and onboarding status to `/api/state` when the user needs to verify configured accounts, operator profile, style, official URLs, knowledge sources, or data sources.
