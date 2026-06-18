@@ -555,9 +555,11 @@ Triage (archive / mark-read) is *approve-an-action* work and stays on the local 
 - `local` (default): `app/.cache/reply_reviews.json`. Single operator, zero-dependency.
 - `busabase`: a shared Busabase base, so a **team** sees one reply-review queue and an audit of who approved which reply. Configure `config.busabase.{base_url,base_id}` (busabase-cloud needs `KELLY_EMAIL_BUSABASE_API_KEY`; the single-tenant open-source `apps/busabase` does not).
 
-Both expose the same interface and review verbs: `openReplyDraft` → `reviewReply(reply_id, {verdict})` with `approve | request_changes | revise | block` → `getApprovedReply` → the skill (the **runner**) sends → `markSent`. `request_changes` moves the reply to `changes_requested` and enqueues an agent task (`listAgentTasks`); after the agent revises, it returns for re-review.
+Both expose the same interface and review verbs: `openReplyDraft` → `reviewReply(reply_id, {verdict})` with `approve | request_changes | revise | block` → `getApprovedReply` → the skill sends → `markSent`. `request_changes` moves the reply to `changes_requested` and enqueues an agent task (`listAgentTasks`); after the agent revises, it returns for re-review.
 
-Boundary: Busabase and the UI never send mail. Only the skill/runner — which holds SMTP credentials — performs the send, after the reply is approved. A reply record's fields are `kind:"email_reply"`, `to`, `subject`, `body`.
+This stays a **single-machine skill** — no standing service. Going team-wide just means pointing the reply store (and, when the triage handoff itself moves, the whole handoff including `agent.lock`) at a shared Busabase base instead of local files; the shared lock serializes the team's writes, so no per-item claim or optimistic concurrency is needed.
+
+Boundary: Busabase and the UI never send mail. Only the skill — run by an operator, holding the SMTP credentials — performs the send, after the reply is approved. A reply record's fields are `kind:"email_reply"`, `to`, `subject`, `body`.
 
 ## Reply Threading And Quotes
 

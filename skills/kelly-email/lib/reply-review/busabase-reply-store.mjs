@@ -5,7 +5,7 @@
 // request; a human verdict is a review; "make it warmer" is request_changes
 // (→ changes_requested → the agent revises → re-review); an approved reply is
 // the canonical body. SENDING stays an external side effect performed by the
-// kelly-email runner after approval — Busabase never sends mail.
+// kelly-email skill (run by an operator) after approval — Busabase never sends mail.
 //
 // Config (config.busabase, env wins):
 //   base_url     KELLY_EMAIL_BUSABASE_URL
@@ -158,7 +158,7 @@ export function createBusabaseReplyStore(meta = {}) {
     },
 
     async markSent(reply_id) {
-      // Approved reply has been sent by the runner; merge it to canonical.
+      // Approved reply has been sent by the skill; merge it to canonical.
       await api("POST", `/api/v1/change-requests/${encodeURIComponent(reply_id)}/merge`, {});
       return { ok: true };
     },
