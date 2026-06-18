@@ -4,6 +4,7 @@ node_modules/
 # App-in-Skill local state
 skills/*/.cache/
 skills/*/app/.cache/
+skills/*/app/.data/
 skills/*/exports/
 skills/*/config.local.json
 skills/*/*.local.json

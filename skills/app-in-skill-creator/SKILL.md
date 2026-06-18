@@ -181,19 +181,44 @@ Use predictable JSON files so both the agent and UI can recover after interrupti
 - `app/.data/onboarding.json`: onboarding completion marker (`{ "completed": true, "completed_at": "...", "config_version": "..." }`). Absent or `completed:false` means the skill is still in onboarding. This marker gates the transition to real work (see the Onboarding section).
 - `app/.data/current_batch.json`: latest agent-generated batch.
 - `app/.data/decisions.json`: user decisions and notes keyed by item id.
-- `app/.data/execution_report.json`: latest execution results.
+- `app/.data/execution_report.json`: latest execution results (merge log).
+- `app/.data/agent_tasks.json`: queued agent work — items in `changes_requested` or carrying an `@ai` comment (see Review Model). The agent polls this to pick up revisions.
 - `app/.data/agent.lock`: temporary lock while the skill is generating or executing.
 
-Prefer workflow states over domain categories:
+Prefer workflow states over domain categories. These states mirror Busabase's change-request lifecycle so the same vocabulary holds whether the backing store is local files or Busabase (see Review Model below):
 
-- `needs_review`: user must give a note, approve, block, or request a draft.
-- `approved`: a concrete next step is ready for the agent to execute or continue. Use this for items that do not need another human click.
-- `done`: action completed or intentionally no-op.
-- `blocked`: cannot proceed without new information or external state.
+- `needs_review` (Busabase `in_review`): user must give a verdict — approve, request changes, block, or edit.
+- `changes_requested` (Busabase `changes_requested`): the user asked the agent to revise; the agent re-drafts and the item returns to `needs_review`. This is the revision loop — a non-terminal state, not a rejection.
+- `approved`: a concrete next step is ready for the agent to merge/execute or continue. Use this for items that do not need another human click.
+- `done` (Busabase `merged`): action completed / merged to the canonical artifact, or intentionally no-op.
+- `blocked` (Busabase `rejected`/closed): cannot proceed without new information or external state.
 
 Avoid an extra `to_approve` layer unless the human truly must approve each item before anything can continue. If the item already has a safe, concrete, reversible next step, put it under `approved` or an equivalent "ready for agent next" state. Extra intermediate states create fatigue and make the app feel like it is asking the human to click through obvious work.
 
 Show categories and risks as badges, not primary navigation.
+
+## Review Model
+
+The file handoff is the local serialization of a single **review model**, shared verbatim with the recommended cloud provider Busabase (see Data Provider Spectrum). Use this vocabulary consistently across the skill, the app, and every provider so that switching backends is a configuration change, not a rewrite:
+
+| Term | Meaning | Local file | Busabase |
+| --- | --- | --- | --- |
+| change request | what the agent prepared: a proposed creation or edit awaiting review | items in `current_batch.json` | `change_request` |
+| operation | one change inside a change request, with before → after fields | an item's fields + draft | `operation` (`baseFields` → head commit) |
+| review | a human verdict on a change request | an entry in `decisions.json` | `review` |
+| verdict | the decision verb (see below) | `decision.action` | review verdict + `operations.revise` |
+| merge | apply an approved change to the canonical/published artifact | `execution_report.json` + export | `merge` → canonical record |
+| comment | a note on an item; an `@ai` comment asks the agent to act | comment/note field | `comment` (`mentionsAi`) |
+| agent task | queued work for the agent: items in `changes_requested` or carrying an `@ai` comment | `app/.data/agent_tasks.json` | `GET /api/v1/agent/tasks` |
+
+The verdict verbs are provider-neutral:
+
+- `approve` — verdict approved; the item becomes `approved` and is eligible for merge.
+- `request_changes` — ask the agent to revise; the item moves to `changes_requested` and is enqueued as an agent task. After the agent revises, it returns to `needs_review` for re-review. This is the revision loop, not a rejection.
+- `revise` — the human saved their own edit as a new version; the item stays in review.
+- `block` — reject/close the item.
+
+Busabase is the canonical remote implementation of this model; the local files are its offline form. The local provider should still hold the same shapes so the agent loop and UI behave identically across providers.
 
 ## Onboarding
 
@@ -330,13 +355,13 @@ The schema below is the contract for the **review-queue** app type. Other app ty
       "body": "trimmed source content for review",
       "category": "customer|system|finance|other",
       "risk": ["money"],
-      "status": "needs_review|approved|done|blocked",
+      "status": "needs_review|changes_requested|approved|done|blocked",
       "proposed_action": "archive|send_reply|draft_reply|no_action",
       "reason": "why this action is proposed",
       "draft": "optional editable draft",
       "suggested_reply": "optional agent-recommended reply draft for review-first items",
       "decision": {
-        "action": "approve|draft_reply|revise|block|no_action",
+        "action": "approve|request_changes|draft_reply|revise|block|no_action",
         "comment": "user note",
         "decided_at": "ISO timestamp"
       },

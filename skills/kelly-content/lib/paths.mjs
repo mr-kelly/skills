@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 export const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const appDir = path.join(skillDir, "app");
 export const serverDir = path.join(appDir, "server");
-export const cacheDir = path.join(appDir, ".cache");
+// Handoff state is authoritative, not disposable — use .data, not .cache (spec).
+export const dataDir = path.join(appDir, ".data");
+export const cacheDir = dataDir; // back-compat alias
 export const exportsDir = path.join(skillDir, "exports");
 export const currentBatchPath = path.join(cacheDir, "current_batch.json");
 export const decisionsPath = path.join(cacheDir, "decisions.json");

@@ -73,9 +73,9 @@ In chat-only mode, `/kelly-email` shows numbered items, suggestions, and draft r
 Default local files:
 
 ```text
-.agents/skills/kelly-email/app/.cache/current_batch.json
-.agents/skills/kelly-email/app/.cache/decisions.json
-.agents/skills/kelly-email/app/.cache/agent.lock
+.agents/skills/kelly-email/app/.data/current_batch.json
+.agents/skills/kelly-email/app/.data/decisions.json
+.agents/skills/kelly-email/app/.data/agent.lock
 ```
 
 Private config can live in:
@@ -89,7 +89,7 @@ Secrets stay in env files. The JSON config should only reference secret env vari
 
 In the app, open `Help & Settings` to see the current account, profile, style, URL, and knowledge-base summaries that `/kelly-email` will use.
 
-Kelly Email reads configuration through a data-reader layer. Today the supported reader is local files:
+Kelly Email reads configuration through a data-provider layer (`lib/data-provider/`). Today the supported provider is local files:
 
 ```text
 KELLY_EMAIL_DATA_READER=local

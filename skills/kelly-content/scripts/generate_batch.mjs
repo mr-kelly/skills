@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
 import path from "node:path";
-import { currentBatchPath } from "../lib/paths.mjs";
-import { isoStamp, slugify, withLock, writeJson } from "../lib/common.mjs";
+import { isoStamp, slugify } from "../lib/common.mjs";
+import { createProvider } from "../lib/data-provider/index.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const source = await readSource(args.source || args._[0] || "");
@@ -45,11 +45,13 @@ const batch = {
   items
 };
 
-await withLock("Generating content batch", async () => {
-  await writeJson(currentBatchPath, batch);
-});
+const provider = await createProvider();
+const result = await provider.putBatch(batch);
 
-console.log(`Generated ${items.length} drafts at ${currentBatchPath}`);
+console.log(
+  `Generated ${items.length} drafts via "${provider.kind}" provider`
+    + (provider.kind === "busabase" ? ` (${result.count} change requests created)` : ""),
+);
 
 function parseArgs(argv) {
   const out = { _: [] };
