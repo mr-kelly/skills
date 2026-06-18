@@ -6,7 +6,10 @@ export const LIB_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const SKILL_DIR = path.resolve(LIB_DIR, "..");
 export const APP_DIR = path.join(SKILL_DIR, "app");
 export const SERVER_DIR = path.join(APP_DIR, "server");
-export const CACHE_DIR = path.join(APP_DIR, ".cache");
+// Handoff state is authoritative, not disposable — use .data, not .cache (spec).
+export const DATA_DIR = path.join(APP_DIR, ".data");
+export const CACHE_DIR = DATA_DIR; // back-compat alias
+// Scan progress is genuinely regenerable cache, so it stays in .cache.
 export const SKILL_CACHE_DIR = path.join(SKILL_DIR, ".cache");
 export const BATCH_DIR = path.join(CACHE_DIR, "batches");
 export const ATTACHMENTS_DIR = path.join(CACHE_DIR, "attachments");

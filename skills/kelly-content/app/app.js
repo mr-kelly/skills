@@ -5,6 +5,15 @@ const stages = [
   { id: "distribution", label: "分发", caption: "官方 Blog、公众号、小红书" }
 ];
 
+// Ideation stages (topics/todos/main) are local-only. In busabase mode the skill
+// publishes drafts straight to the shared review queue, so only distribution shows.
+function visibleStages() {
+  if (state.config_summary?.provider === "busabase") {
+    return stages.filter((stage) => stage.id === "distribution");
+  }
+  return stages;
+}
+
 let state = { batch: null, decisions: {}, lock: null };
 let activeStage = "topics";
 let selectedTopicId = null;
@@ -220,7 +229,10 @@ function renderShell(repo) {
   els.batchMeta.textContent = batch?.batch_id ? `${batch.batch_id} · ${repo.distribution.length} drafts` : "No batch loaded";
   els.lockText.textContent = state.lock ? `Locked: ${state.lock.message}` : "Local workspace · publishing disabled";
   els.settingsText.textContent = `${state.config_summary?.provider || "local"} data · ${repo.topics.length} topics · ${repo.distribution.length} distribution drafts`;
-  els.pageTitle.textContent = stages.find((stage) => stage.id === activeStage)?.label || "Content Repository";
+
+  const shown = visibleStages();
+  if (!shown.some((stage) => stage.id === activeStage)) activeStage = shown[0]?.id || "distribution";
+  els.pageTitle.textContent = shown.find((stage) => stage.id === activeStage)?.label || "Content Repository";
 
   const counts = {
     topics: repo.topics.length,
@@ -229,7 +241,7 @@ function renderShell(repo) {
     distribution: repo.distribution.length
   };
 
-  els.stageNav.innerHTML = stages.map((stage) => `
+  els.stageNav.innerHTML = shown.map((stage) => `
     <button class="stageButton ${stage.id === activeStage ? "active" : ""}" data-stage="${stage.id}" title="${escapeAttr(stage.caption)}">
       <span>${stage.label}</span>
       <small>${stage.caption}</small>
@@ -500,7 +512,8 @@ function distributionDetail(item) {
       </div>
       <div class="actions">
         <button data-action="approve" title="Approve this version">Approve</button>
-        <button data-action="revise" title="Save edits">Save</button>
+        <button data-action="revise" title="Save your edits as a new version">Save</button>
+        <button data-action="request_changes" title="Send back for the AI to revise (request changes)">Request changes</button>
         <button data-action="block" title="Block this version">Block</button>
       </div>
     </div>
@@ -632,6 +645,7 @@ function itemStatus(item) {
   const decision = state.decisions[item.id];
   if (decision?.action === "approve") return "approved";
   if (decision?.action === "block") return "blocked";
+  if (decision?.action === "request_changes") return "changes_requested";
   if (decision?.action === "revise") return "needs_review";
   return item.status || "needs_review";
 }
@@ -639,6 +653,7 @@ function itemStatus(item) {
 function readinessFor(status) {
   if (status === "approved" || status === "done") return "ready";
   if (status === "blocked") return "blocked";
+  if (status === "changes_requested") return "AI to revise";
   if (status === "needs_review") return "needs edit";
   return "to approve";
 }

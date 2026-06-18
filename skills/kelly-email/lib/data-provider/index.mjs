@@ -7,57 +7,60 @@ import {
   loadConfigWithMeta as loadLocalConfigWithMeta,
   loadDotenv as loadLocalDotenv,
   privateConfigCandidates as localPrivateConfigCandidates
-} from "./local-file-reader.mjs";
+} from "./local-file-provider.mjs";
 
-const REMOTE_READERS = new Set(["supabase", "postgres", "pg", "pusa-cloud", "pusabase"]);
-
-export function dataReaderKind() {
-  return (process.env.KELLY_EMAIL_DATA_READER || "local").trim().toLowerCase();
+// Config is read through this data-provider interface (scaffold convention).
+// Today the only implementation is `local` (JSON/env files). A remote provider
+// (e.g. busabase) would implement the same functions and be selected here.
+// Selector: KELLY_EMAIL_DATA_PROVIDER (KELLY_EMAIL_DATA_READER kept as a
+// backward-compatible alias).
+export function dataProviderKind() {
+  return (
+    process.env.KELLY_EMAIL_DATA_PROVIDER ||
+    process.env.KELLY_EMAIL_DATA_READER ||
+    "local"
+  )
+    .trim()
+    .toLowerCase();
 }
 
-function unsupportedRemoteReader(kind) {
-  const normalized = kind === "pg" ? "postgres" : kind === "pusabase" ? "pusa-cloud" : kind;
-  return new Error(
-    `KELLY_EMAIL_DATA_READER=${kind} is recognized as ${normalized}, but this reader is not implemented yet. ` +
-      "Use KELLY_EMAIL_DATA_READER=local for now, or add a reader under lib/data-reader/."
-  );
+// Back-compat alias for callers that still import the old name.
+export const dataReaderKind = dataProviderKind;
+
+function assertLocal() {
+  const kind = dataProviderKind();
+  if (kind !== "local") {
+    throw new Error(
+      `Unknown KELLY_EMAIL_DATA_PROVIDER: "${kind}" (only "local" is implemented).`,
+    );
+  }
 }
 
 export function envFileCandidates() {
-  const kind = dataReaderKind();
-  if (kind === "local") return localEnvFileCandidates();
-  if (REMOTE_READERS.has(kind)) return [];
-  throw new Error(`Unknown KELLY_EMAIL_DATA_READER: ${kind}`);
+  assertLocal();
+  return localEnvFileCandidates();
 }
 
 export function configFileCandidates() {
-  const kind = dataReaderKind();
-  if (kind === "local") return localConfigFileCandidates();
-  if (REMOTE_READERS.has(kind)) return [];
-  throw new Error(`Unknown KELLY_EMAIL_DATA_READER: ${kind}`);
+  assertLocal();
+  return localConfigFileCandidates();
 }
 
 export function privateConfigCandidates() {
-  const kind = dataReaderKind();
-  if (kind === "local") return localPrivateConfigCandidates();
-  if (REMOTE_READERS.has(kind)) return [];
-  throw new Error(`Unknown KELLY_EMAIL_DATA_READER: ${kind}`);
+  assertLocal();
+  return localPrivateConfigCandidates();
 }
 
 export async function loadDotenv() {
-  const kind = dataReaderKind();
-  if (kind === "local") return loadLocalDotenv();
-  if (REMOTE_READERS.has(kind)) throw unsupportedRemoteReader(kind);
-  throw new Error(`Unknown KELLY_EMAIL_DATA_READER: ${kind}`);
+  assertLocal();
+  return loadLocalDotenv();
 }
 
 export const loadDotenvFiles = loadDotenv;
 
 export async function loadConfigWithMeta() {
-  const kind = dataReaderKind();
-  if (kind === "local") return loadLocalConfigWithMeta();
-  if (REMOTE_READERS.has(kind)) throw unsupportedRemoteReader(kind);
-  throw new Error(`Unknown KELLY_EMAIL_DATA_READER: ${kind}`);
+  assertLocal();
+  return loadLocalConfigWithMeta();
 }
 
 export async function loadConfig() {

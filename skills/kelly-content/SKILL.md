@@ -26,10 +26,10 @@ The skill prepares and exports content. It does not publish to external platform
 
 Use these local files as the contract between Codex, scripts, and the UI:
 
-- `app/.cache/current_batch.json`: current generated content batch.
-- `app/.cache/decisions.json`: per-item user decisions, edits, notes, and approval status.
-- `app/.cache/export_report.json`: latest export report.
-- `app/.cache/agent.lock`: temporary lock while Codex or scripts write local state.
+- `app/.data/current_batch.json`: current generated content batch.
+- `app/.data/decisions.json`: per-item user decisions, edits, notes, and approval status.
+- `app/.data/export_report.json`: latest export report.
+- `app/.data/agent.lock`: temporary lock while Codex or scripts write local state.
 
 Workflow statuses:
 
@@ -40,6 +40,26 @@ Workflow statuses:
 - `blocked`: item needs missing information, media, permission, or facts.
 
 When writing a batch, keep stable item IDs so comments like "change #2" can be resolved.
+
+## Data Providers (local + busabase)
+
+The UI and scripts talk to a `ReviewProvider` (`lib/data-provider/`), not directly to files. Select it with `KELLY_CONTENT_DATA_PROVIDER` (or `data_provider` in config); default `local`.
+
+- `local` — zero-dependency JSON handoff files in `app/.data/` (the contract above). This is the offline reference implementation.
+- `busabase` — a thin HTTP client to a Busabase base. A content piece is a Busabase **record**; an agent draft is a **change request**; the human verdict is a **review**; an edit is an **operation revision**; publishing is a **merge**. Configure `config.busabase.{base_url,base_id}` (open-source single-tenant `apps/busabase` needs no token; `busabase-cloud` reads `KELLY_CONTENT_BUSABASE_API_KEY`).
+
+Both implement the same review verbs, so switching providers is a config change, not a rewrite. The `saveDecision` actions are provider-neutral:
+
+- `approve` → review verdict approved (eligible for export/merge).
+- `revise` → save the human's edited title/body as a new version (Busabase: an operation revision; stays in review).
+- `request_changes` → ask the agent to revise; queues an agent task (Busabase: verdict reject → `changes_requested`; the CR auto-returns to review after the agent revises).
+- `block` → close/reject the item.
+
+Field mapping for busabase mode: `title, body, channel, summary, format, cta, hashtags, media_brief, hook` map to a record commit's `fields`.
+
+Provider notes:
+- The ideation stages below (`topics`, `todos`, `main_content`) are **local-only**; in busabase mode plan locally, then publish drafts to Busabase for review/merge.
+- `listAgentTasks()` exposes items the agent should revise (local: derived from `request_changes`/noted `revise` decisions in `app/.data/agent_tasks.json`; busabase: `GET /api/v1/agent/tasks`).
 
 ## Content Repository Stages
 
@@ -79,11 +99,11 @@ Use `config.example.json` as the starting template only. Store non-secret settin
 ## Scripts
 
 - `scripts/generate_batch.mjs --source path-or-text --channels official_blog,xiaohongshu,wechat,newsletter,linkedin,x --audience "..." --cta "..."`
-  Creates `app/.cache/current_batch.json`. The generator uses deterministic heuristics and is meant as a first pass; Codex should improve drafts with judgment before handing them to the user.
+  Persists the batch via the active provider (local: `app/.data/current_batch.json`; busabase: one change request per item). The generator uses deterministic heuristics and is meant as a first pass; Codex should improve drafts with judgment before handing them to the user.
 - `scripts/validate_batch.mjs [batch-path]`
-  Validates the required batch shape and status values.
+  Validates the required batch shape and status values (local batch files).
 - `scripts/export_decisions.mjs`
-  Exports approved or edited content from the UI to `exports/<batch-id>/`.
+  Publishes approved/edited content via the active provider (local: Markdown + JSON under `exports/<batch-id>/`; busabase: merge approved change requests into canonical records).
 
 Run the validator after creating or editing any batch file. Run export only after the user has approved items in the UI or in chat.
 

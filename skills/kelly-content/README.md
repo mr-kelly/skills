@@ -49,10 +49,10 @@ The app reads and writes local files only. It does not publish posts, schedule c
 ## Local Files
 
 ```text
-skills/kelly-content/app/.cache/current_batch.json
-skills/kelly-content/app/.cache/decisions.json
-skills/kelly-content/app/.cache/export_report.json
-skills/kelly-content/app/.cache/agent.lock
+skills/kelly-content/app/.data/current_batch.json
+skills/kelly-content/app/.data/decisions.json
+skills/kelly-content/app/.data/export_report.json
+skills/kelly-content/app/.data/agent.lock
 ```
 
 Exports are written under:

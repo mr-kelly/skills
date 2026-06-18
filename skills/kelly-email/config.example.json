@@ -1,4 +1,11 @@
 {
+  "reply_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_EMAIL_BUSABASE_API_KEY",
+    "_note": "Optional. Only the REPLY-DRAFT review loop uses Busabase (a team-shared review queue + audit). Triage (archive/mark-read) stays on the local handoff; sending stays a side effect the runner performs after approval. busabase-cloud (multi-tenant) needs the api key; the single-tenant open-source apps/busabase does not."
+  },
   "mailboxes": [
     {
       "mailbox_id": "primary-support",

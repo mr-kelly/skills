@@ -2,7 +2,7 @@
 import { currentBatchPath } from "../lib/paths.mjs";
 import { readJson } from "../lib/common.mjs";
 
-const allowedStatuses = new Set(["needs_review", "to_approve", "approved", "done", "blocked"]);
+const allowedStatuses = new Set(["needs_review", "to_approve", "changes_requested", "approved", "done", "blocked"]);
 const batchPath = process.argv[2] || currentBatchPath;
 const batch = await readJson(batchPath);
 
