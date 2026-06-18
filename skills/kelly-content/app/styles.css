@@ -323,6 +323,20 @@ select:hover {
   background: var(--accent);
 }
 
+.statusDot.todo,
+.statusDot.queued {
+  background: var(--warning);
+}
+
+.statusDot.in_progress,
+.statusDot.writing {
+  background: var(--accent);
+}
+
+.statusDot.done {
+  background: var(--success);
+}
+
 .channelMark {
   width: 24px;
   height: 24px;
@@ -461,6 +475,17 @@ dd {
 }
 
 .directionPreview p {
+  color: var(--muted);
+}
+
+.leadText {
+  max-width: 780px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.mutedText {
   color: var(--muted);
 }
 

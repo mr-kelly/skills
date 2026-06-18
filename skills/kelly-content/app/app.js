@@ -1,17 +1,16 @@
 const stages = [
   { id: "topics", label: "选题", caption: "题材与标题描述方向" },
+  { id: "todos", label: "待办", caption: "确认后等待开工" },
   { id: "main", label: "主稿", caption: "主 Blog 与配图" },
-  { id: "distribution", label: "分发", caption: "公众号、小红书、NewsNet" },
-  { id: "outputs", label: "产物", caption: "已发布与归档" }
+  { id: "distribution", label: "分发", caption: "官方 Blog、公众号、小红书" }
 ];
 
 let state = { batch: null, decisions: {}, lock: null };
 let activeStage = "topics";
 let selectedTopicId = null;
 let selectedDirectionId = null;
+let selectedTodoId = null;
 let selectedDistributionId = null;
-let outputFilter = "all";
-let outputSort = "newest";
 let editing = false;
 
 const els = {
@@ -44,10 +43,10 @@ function buildRepository() {
   const batch = state.batch || {};
   const items = Array.isArray(batch.items) ? batch.items : [];
   const topics = normalizeTopics(batch, items);
-  const main = normalizeMainContent(batch, topics, items);
+  const todos = normalizeTodos(batch, topics);
+  const main = normalizeMainContent(batch, topics, todos, items);
   const distribution = normalizeDistribution(batch, items);
-  const outputs = normalizeOutputs(batch, distribution);
-  return { batch, topics, main, distribution, outputs };
+  return { batch, topics, todos, main, distribution };
 }
 
 function normalizeTopics(batch, items) {
@@ -143,20 +142,44 @@ function normalizeTopics(batch, items) {
   ].map(normalizeTopic);
 }
 
-function normalizeMainContent(batch, topics, items) {
+function normalizeTodos(batch, topics) {
+  if (Array.isArray(batch.todos) && batch.todos.length) return batch.todos.map(normalizeTodo);
+  return topics
+    .filter((topic) => topic.status === "confirmed" || topic.directions?.some((direction) => direction.status === "selected" || direction.status === "confirmed"))
+    .map((topic) => {
+      const direction = getSelectedDirection(topic);
+      return normalizeTodo({
+        id: `todo-${topic.id}`,
+        topic_id: topic.id,
+        direction_id: direction?.id || "",
+        title: direction?.title || topic.title,
+        description: direction?.description || topic.subject || "",
+        subject: topic.subject || topic.title,
+        status: "todo",
+        assignee: "AI writer",
+        source: topic.source,
+        created_at: new Date().toISOString()
+      });
+    });
+}
+
+function normalizeMainContent(batch, topics, todos, items) {
   if (batch.main_content) return batch.main_content;
-  const confirmed = topics.find((topic) => topic.status === "confirmed") || topics[0];
+  const activeTodo = todos.find((todo) => todo.status === "in_progress" || todo.status === "writing") || todos[0];
+  const confirmed = topics.find((topic) => topic.id === activeTodo?.topic_id) || topics.find((topic) => topic.status === "confirmed") || topics[0];
   const selectedDirection = getSelectedDirection(confirmed);
-  const title = selectedDirection?.title || confirmed?.title || "Building a calmer content system";
+  const title = activeTodo?.title || selectedDirection?.title || confirmed?.title || "Building a calmer content system";
   const body = stripMarkdown(batch.source_summary || items[0]?.summary || "A strong blog post should be the source of many smaller pieces.");
+  const status = activeTodo?.status === "in_progress" ? "writing" : "waiting";
   return {
     id: "main-blog",
     title,
-    status: "draft",
+    status,
     hero_alt: "Editorial cover preview",
     cover_brief: "A clean workspace image: one canonical article connected to several publishing channels.",
-    dek: selectedDirection?.description || "A canonical post that keeps the core claim, proof, and examples intact before channel adaptation.",
+    dek: activeTodo?.description || selectedDirection?.description || "A canonical post that keeps the core claim, proof, and examples intact before channel adaptation.",
     html: `
+      <p>${escapeHtml(status === "writing" ? "AI writer has started this main draft. The outline below is ready to expand into the canonical article." : "This direction is waiting in Todo. Mark it as 开工 before the AI writer starts the main draft.")}</p>
       <p>${escapeHtml(body)}</p>
       <h3>Core structure</h3>
       <p>Start with the reader problem, preserve the proof from the source, then reshape the content for each channel's reading habit.</p>
@@ -187,21 +210,6 @@ function normalizeDistribution(batch, items) {
   }));
 }
 
-function normalizeOutputs(batch, distribution) {
-  if (Array.isArray(batch.outputs) && batch.outputs.length) return batch.outputs;
-  return distribution.map((item, index) => ({
-    id: `output-${item.id}`,
-    title: item.title,
-    channel: item.channel,
-    status: item.status === "approved" || item.status === "done" ? "published" : "draft",
-    published_at: item.status === "done" ? "2026-06-16" : "",
-    updated_at: item.decision?.decided_at || state.decisions[item.id]?.decided_at || "2026-06-16",
-    owner: item.owner || "Kelly Content",
-    url: "",
-    performance: index === 0 ? { views: 1280, saves: 74, clicks: 18 } : { views: 0, saves: 0, clicks: 0 }
-  }));
-}
-
 function render(repo) {
   renderShell(repo);
   renderStage(repo);
@@ -211,14 +219,14 @@ function renderShell(repo) {
   const batch = repo.batch;
   els.batchMeta.textContent = batch?.batch_id ? `${batch.batch_id} · ${repo.distribution.length} drafts` : "No batch loaded";
   els.lockText.textContent = state.lock ? `Locked: ${state.lock.message}` : "Local workspace · publishing disabled";
-  els.settingsText.textContent = `${state.config_summary?.provider || "local"} data · ${repo.topics.length} topics · ${repo.outputs.length} outputs`;
+  els.settingsText.textContent = `${state.config_summary?.provider || "local"} data · ${repo.topics.length} topics · ${repo.distribution.length} distribution drafts`;
   els.pageTitle.textContent = stages.find((stage) => stage.id === activeStage)?.label || "Content Repository";
 
   const counts = {
     topics: repo.topics.length,
+    todos: repo.todos.length,
     main: repo.main ? 1 : 0,
-    distribution: repo.distribution.length,
-    outputs: repo.outputs.length
+    distribution: repo.distribution.length
   };
 
   els.stageNav.innerHTML = stages.map((stage) => `
@@ -246,9 +254,9 @@ function renderStage(repo) {
 
   els.stagePanel.className = "stagePanel";
   if (activeStage === "topics") renderTopics(repo);
+  if (activeStage === "todos") renderTodos(repo);
   if (activeStage === "main") renderMainContent(repo);
   if (activeStage === "distribution") renderDistribution(repo);
-  if (activeStage === "outputs") renderOutputs(repo);
 }
 
 function renderTopics(repo) {
@@ -283,6 +291,8 @@ function renderTopics(repo) {
     selectedDirectionId = id;
     renderTopics(repo);
   });
+  const confirmButton = els.stagePanel.querySelector("[data-action='confirm-direction']");
+  confirmButton?.addEventListener("click", () => confirmDirection(selected?.id, selectedDirectionId));
 }
 
 function topicRow(topic, selectedId) {
@@ -304,7 +314,7 @@ function topicDetail(topic) {
         <span class="pill">${escapeHtml(topic.source)}</span>
         <span class="pill">${escapeHtml(topic.status)}</span>
       </div>
-      <button class="primaryButton" title="Confirm selected title and description direction">Confirm title + description</button>
+      <button class="primaryButton" data-action="confirm-direction" title="Confirm selected title and description direction, then create todo">Confirm title + description</button>
     </div>
     <h2>${escapeHtml(topic.title)}</h2>
     <dl class="metaGrid">
@@ -332,6 +342,69 @@ function topicDetail(topic) {
     <section class="sectionBlock">
       <h3>Evidence</h3>
       <p>${escapeHtml(topic.evidence || "No source evidence attached yet.")}</p>
+    </section>
+  `;
+}
+
+function renderTodos(repo) {
+  const selected = repo.todos.find((todo) => todo.id === selectedTodoId) || repo.todos[0];
+  selectedTodoId = selected?.id || null;
+  els.stagePanel.innerHTML = `
+    <div class="stageHeader">
+      <div>
+        <p class="eyebrow">Production Queue</p>
+        <h2>待办</h2>
+      </div>
+      <button class="primaryButton" data-action="start-selected-todo" title="Mark selected todo as started">开工</button>
+    </div>
+    <div class="split">
+      <div class="recordList">
+        ${repo.todos.map((todo) => todoRow(todo, selected?.id)).join("")}
+      </div>
+      <article class="canvas">
+        ${selected ? todoDetail(selected) : `<p class="mutedText">确认标题和描述方向后，会在这里出现待办。</p>`}
+      </article>
+    </div>
+  `;
+  bindRecordSelection("todo", (id) => {
+    selectedTodoId = id;
+    renderTodos(repo);
+  });
+  for (const button of els.stagePanel.querySelectorAll("[data-action='start-todo'], [data-action='start-selected-todo']")) {
+    button.addEventListener("click", () => startTodo(selectedTodoId));
+  }
+}
+
+function todoRow(todo, selectedId) {
+  return `
+    <button class="recordRow ${todo.id === selectedId ? "selected" : ""}" data-todo="${escapeAttr(todo.id)}">
+      <span class="statusDot ${todo.status}"></span>
+      <strong>${escapeHtml(todo.title)}</strong>
+      <small>${escapeHtml(todo.statusLabel)} · ${escapeHtml(todo.assignee || "AI writer")}</small>
+    </button>
+  `;
+}
+
+function todoDetail(todo) {
+  return `
+    <div class="canvasHead">
+      <div>
+        <span class="pill">${escapeHtml(todo.statusLabel)}</span>
+        <span class="pill">${escapeHtml(todo.source || "local")}</span>
+      </div>
+      <button class="primaryButton" data-action="start-todo" title="Start AI writing for this todo">开工</button>
+    </div>
+    <h2>${escapeHtml(todo.title)}</h2>
+    <p class="leadText">${escapeHtml(todo.description)}</p>
+    <dl class="metaGrid">
+      <div><dt>题材</dt><dd>${escapeHtml(todo.subject || "-")}</dd></div>
+      <div><dt>Assignee</dt><dd>${escapeHtml(todo.assignee || "AI writer")}</dd></div>
+    </dl>
+    <section class="sectionBlock">
+      <h3>Next action</h3>
+      <p>${todo.status === "in_progress"
+        ? "AI 主稿处理已开工。下一步应生成主稿 outline、正文和配图 brief。"
+        : "点击“开工”后，这个方向才正式进入 AI 主稿处理队列。"}</p>
     </section>
   `;
 }
@@ -448,83 +521,40 @@ function distributionDetail(item) {
   `;
 }
 
-function renderOutputs(repo) {
-  const outputs = repo.outputs
-    .filter((item) => outputFilter === "all" || item.status === outputFilter)
-    .sort((a, b) => outputSort === "channel"
-      ? a.channel.localeCompare(b.channel)
-      : String(b.updated_at || "").localeCompare(String(a.updated_at || "")));
-
-  els.stagePanel.innerHTML = `
-    <div class="stageHeader">
-      <div>
-        <p class="eyebrow">Published Assets</p>
-        <h2>产物库</h2>
-      </div>
-      <div class="toolbar">
-        <select id="outputFilter" title="Filter outputs">
-          <option value="all">All</option>
-          <option value="published">Published</option>
-          <option value="draft">Draft</option>
-        </select>
-        <select id="outputSort" title="Sort outputs">
-          <option value="newest">Newest</option>
-          <option value="channel">Channel</option>
-        </select>
-      </div>
-    </div>
-    <div class="tableShell">
-      <table>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Channel</th>
-            <th>Status</th>
-            <th>Updated</th>
-            <th>Views</th>
-            <th>Saves</th>
-            <th>Clicks</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${outputs.map(outputRow).join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
-
-  const filterSelect = document.querySelector("#outputFilter");
-  const sortSelect = document.querySelector("#outputSort");
-  filterSelect.value = outputFilter;
-  sortSelect.value = outputSort;
-  filterSelect.addEventListener("change", () => {
-    outputFilter = filterSelect.value;
-    renderOutputs(repo);
-  });
-  sortSelect.addEventListener("change", () => {
-    outputSort = sortSelect.value;
-    renderOutputs(repo);
-  });
-}
-
-function outputRow(item) {
-  return `
-    <tr>
-      <td><strong>${escapeHtml(item.title)}</strong></td>
-      <td>${escapeHtml(item.channel)}</td>
-      <td><span class="pill">${escapeHtml(item.status)}</span></td>
-      <td>${escapeHtml(item.updated_at || item.published_at || "-")}</td>
-      <td>${escapeHtml(item.performance?.views ?? 0)}</td>
-      <td>${escapeHtml(item.performance?.saves ?? 0)}</td>
-      <td>${escapeHtml(item.performance?.clicks ?? 0)}</td>
-    </tr>
-  `;
-}
-
 function bindRecordSelection(kind, onSelect) {
   for (const row of els.stagePanel.querySelectorAll(`[data-${kind}]`)) {
     row.addEventListener("click", () => onSelect(row.dataset[kind]));
   }
+}
+
+async function confirmDirection(topicId, directionId) {
+  if (!topicId || !directionId) return;
+  const response = await fetch("/api/confirm-direction", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ topic_id: topicId, direction_id: directionId })
+  });
+  if (!response.ok) {
+    alert(`Could not create todo: ${await response.text()}`);
+    return;
+  }
+  activeStage = "todos";
+  await loadState();
+}
+
+async function startTodo(id) {
+  if (!id) return;
+  const response = await fetch("/api/start-todo", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ id })
+  });
+  if (!response.ok) {
+    alert(`Could not start todo: ${await response.text()}`);
+    return;
+  }
+  activeStage = "main";
+  await loadState();
 }
 
 function normalizeTopic(topic) {
@@ -541,6 +571,22 @@ function normalizeTopic(topic) {
     ...topic,
     subject: topic.subject || topic.topic || topic.title,
     directions
+  };
+}
+
+function normalizeTodo(todo) {
+  const labels = {
+    todo: "待开工",
+    queued: "待开工",
+    in_progress: "已开工",
+    writing: "已开工",
+    done: "完成",
+    blocked: "阻塞"
+  };
+  return {
+    ...todo,
+    status: todo.status || "todo",
+    statusLabel: labels[todo.status || "todo"] || todo.status || "待开工"
   };
 }
 
@@ -601,6 +647,7 @@ function normalizeChannel(channel = "") {
   const value = String(channel).toLowerCase();
   if (value === "x") return "X";
   if (value === "xiaohongshu") return "小红书";
+  if (value === "official_blog" || value === "official-blog" || value === "blog") return "官方 Blog";
   if (value === "wechat") return "公众号";
   if (value === "newsletter") return "NewsNet";
   if (value === "linkedin") return "LinkedIn";

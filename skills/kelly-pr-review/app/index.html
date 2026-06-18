@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kelly PR Review</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <button class="icon-button" aria-label="Toggle sidebar" title="Toggle sidebar">▣</button>
+          <div>
+            <div class="brand-title">Kelly PR Review</div>
+            <div class="brand-subtitle">GitHub review desk</div>
+          </div>
+        </div>
+        <nav class="filters" id="filters" aria-label="Workflow filters">
+          <button data-mode="needs_review" class="active has-tooltip" data-tooltip="PRs that still need a decision">Needs your review <span id="count-needs_review">0</span></button>
+          <button data-mode="to_approve" class="has-tooltip" data-tooltip="Agent-prepared reviews waiting for approval">Ready to approve <span id="count-to_approve">0</span></button>
+          <button data-mode="approved" class="has-tooltip" data-tooltip="Approved locally and ready for execution">Approved <span id="count-approved">0</span></button>
+          <button data-mode="blocked" class="has-tooltip" data-tooltip="Blocked by risk, missing context, or access">Blocked <span id="count-blocked">0</span></button>
+          <button data-mode="done" class="has-tooltip" data-tooltip="Already executed or intentionally skipped">Done <span id="count-done">0</span></button>
+          <button data-mode="all" class="has-tooltip" data-tooltip="Everything in the current local batch">All <span id="count-all">0</span></button>
+        </nav>
+        <div class="setup-card" id="setupCard">
+          <div class="next-step" id="nextStep">
+            <div class="progress-ring"></div>
+            <div>
+              <strong id="nextTitle">Next step: generate a review batch</strong>
+              <p id="nextBody">Run /kelly-pr-review to fetch pull requests with gh CLI.</p>
+            </div>
+            <button id="refreshButton" class="primary">Refresh</button>
+          </div>
+          <div class="setup-title">Local setup</div>
+          <div id="setupBody" class="muted">Loading configuration...</div>
+          <button id="helpButton" class="flat-button">Help & Settings</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <div class="page-title">Inbox</div>
+            <div class="page-subtitle" id="batchMeta">No batch loaded</div>
+          </div>
+          <label class="repo-picker">
+            <span>Repo</span>
+            <select id="repoFilter" aria-label="Filter by repository">
+              <option value="all">All repos</option>
+            </select>
+          </label>
+        </header>
+
+        <div id="lockBanner" class="lock-banner is-hidden">
+          <strong>Locked</strong>
+          <span id="lockMessage">The local files are locked for a moment.</span>
+        </div>
+
+        <section class="content">
+          <div class="list-panel">
+            <div class="list-toolbar">
+              <button class="chevron" title="Collapse section">⌄</button>
+              <h1 id="sectionTitle">Needs your review</h1>
+              <span id="listCount">0</span>
+              <div class="spacer"></div>
+              <input id="searchInput" placeholder="Search title, repo, author" />
+              <button id="reloadButton" title="Reload files">↻</button>
+            </div>
+            <div class="table-head">
+              <span></span>
+              <span>Title</span>
+              <span>Status</span>
+              <span>Changes</span>
+              <span>Updated</span>
+            </div>
+            <div id="prList" class="pr-list"></div>
+          </div>
+
+          <aside class="detail-panel" id="detailPanel">
+            <div class="empty-detail">Select a pull request</div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <div id="helpModal" class="modal-backdrop is-hidden" aria-hidden="true">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+        <div class="modal-head">
+          <div>
+            <div id="helpTitle" class="modal-title">Help & Settings</div>
+            <div id="helpSubtitle" class="modal-subtitle">Local file contract and configuration</div>
+          </div>
+          <button id="closeHelp">Close</button>
+        </div>
+        <div class="modal-body" id="helpBody"></div>
+      </section>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

@@ -7,11 +7,11 @@ import { isoStamp, slugify, withLock, writeJson } from "../lib/common.mjs";
 const args = parseArgs(process.argv.slice(2));
 const source = await readSource(args.source || args._[0] || "");
 if (!source.trim()) {
-  console.error("Usage: generate_batch.mjs --source <path-or-text> [--channels xiaohongshu,wechat,newsletter,linkedin,x] [--audience text] [--cta text]");
+  console.error("Usage: generate_batch.mjs --source <path-or-text> [--channels official_blog,xiaohongshu,wechat,newsletter,linkedin,x] [--audience text] [--cta text]");
   process.exit(1);
 }
 
-const channels = String(args.channels || "xiaohongshu,wechat,newsletter,linkedin,x")
+const channels = String(args.channels || "official_blog,xiaohongshu,wechat,newsletter,linkedin,x")
   .split(",")
   .map((item) => item.trim())
   .filter(Boolean);
@@ -152,6 +152,22 @@ function makeItem({ channel, index, batchId, title, summary, keywords, audience,
     };
   }
 
+  if (channel === "official_blog" || channel === "official-blog" || channel === "blog") {
+    return {
+      ...base,
+      channel: "official_blog",
+      format: "article",
+      title_options: [
+        title,
+        `${title}: a practical guide`,
+        `How to think about ${title}`
+      ],
+      hook: canonicalIdea(summary),
+      body: `# ${title}\n\n${canonicalIdea(summary)}\n\n## Overview\n\n${summary}\n\n## Why it matters\n\nThis is the canonical version for the official blog. It should preserve the full argument, source proof, examples, and internal links before social-channel adaptation.\n\n## Practical workflow\n\n1. State the reader problem clearly.\n2. Keep evidence and examples from the source.\n3. Add visuals, screenshots, or diagrams where they make the idea easier to trust.\n4. End with a clear next step.\n\n${cta}`,
+      media_brief: "Hero image plus 2-3 inline diagrams or screenshots that make the source argument concrete."
+    };
+  }
+
   if (channel === "wechat") {
     return {
       ...base,
@@ -206,6 +222,7 @@ function makeItem({ channel, index, batchId, title, summary, keywords, audience,
 
 function channelLabel(channel) {
   const labels = {
+    official_blog: "Official Blog",
     xiaohongshu: "Xiaohongshu",
     wechat: "WeChat",
     newsletter: "Newsletter",

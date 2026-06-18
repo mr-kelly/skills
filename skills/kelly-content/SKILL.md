@@ -43,14 +43,14 @@ When writing a batch, keep stable item IDs so comments like "change #2" can be r
 
 ## Content Repository Stages
 
-Model the local app as a four-stage content repository, not only a draft queue:
+Model the local app as a staged content repository, not only a draft queue:
 
 1. `topics`: subject discovery. Treat each topic as a broad subject/material area, not a final headline. Show candidate subjects from automated search, system generation, or preset editorial plans. For each subject, provide multiple `directions` with `title`, `description`, `angle`, and `status`; the user confirms a title + description direction before moving to the main draft.
-2. `main_content`: canonical source draft. Show the approved title + description direction's main blog/article with rich preview, cover/image brief, embedded media slots, and rendered HTML when available. Markdown is acceptable as storage, but the UI should render a polished editorial preview.
-3. `distribution`: channel adaptations. Show WeChat, Xiaohongshu, NewsNet/newsletter, LinkedIn, X/Twitter, and other platform versions with review/edit/approve controls.
-4. `outputs`: final published or exported assets. Show filterable/sortable rows with channel, status, publish/update date, URL when available, owner, and performance metrics.
+2. `todos`: production queue. After the user confirms a title + description direction, create a todo item. Do not treat the direction as ready for AI main-draft work until the user marks the todo as `开工` / `in_progress`.
+3. `main_content`: canonical source draft. Show the approved title + description direction's main blog/article with rich preview, cover/image brief, embedded media slots, and rendered HTML when available. Markdown is acceptable as storage, but the UI should render a polished editorial preview. Generate or update the main draft only for todos marked `in_progress`.
+4. `distribution`: channel adaptations and final channel records. Show Official Blog, WeChat, Xiaohongshu, NewsNet/newsletter, LinkedIn, X/Twitter, and other platform versions with review/edit/approve controls. Keep publish/export status, URLs, and performance signals on these distribution items instead of maintaining a separate outputs stage.
 
-If a future automation writes `topics`, `main_content`, `distribution`, or `outputs` into `current_batch.json`, the UI should prefer those explicit fields. If they are missing, it may derive a temporary repository view from `items`.
+If a future automation writes `topics`, `todos`, `main_content`, or `distribution` into `current_batch.json`, the UI should prefer those explicit fields. If they are missing, it may derive a temporary repository view from `items`.
 
 ## Content Generation Rules
 
@@ -78,7 +78,7 @@ Use `config.example.yml` as the starting template only. Store non-secret setting
 
 ## Scripts
 
-- `scripts/generate_batch.mjs --source path-or-text --channels xiaohongshu,wechat,newsletter,linkedin,x --audience "..." --cta "..."`
+- `scripts/generate_batch.mjs --source path-or-text --channels official_blog,xiaohongshu,wechat,newsletter,linkedin,x --audience "..." --cta "..."`
   Creates `app/.cache/current_batch.json`. The generator uses deterministic heuristics and is meant as a first pass; Codex should improve drafts with judgment before handing them to the user.
 - `scripts/validate_batch.mjs [batch-path]`
   Validates the required batch shape and status values.

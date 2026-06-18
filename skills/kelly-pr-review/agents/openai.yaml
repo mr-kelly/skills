@@ -1,0 +1,3 @@
+name: kelly-pr-review
+description: GitHub PR review desk using gh CLI and local App-in-Skill approval UI.
+model: gpt-5-codex

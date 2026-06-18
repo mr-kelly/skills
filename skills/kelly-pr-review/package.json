@@ -1,0 +1,15 @@
+{
+  "name": "kelly-pr-review-skill",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "app/start.sh",
+    "generate": "node scripts/generate_review_batch.mjs",
+    "execute": "node scripts/execute_decisions.mjs --dry-run",
+    "execute:live": "node scripts/execute_decisions.mjs --live",
+    "validate": "node scripts/validate_ui_schema.mjs"
+  },
+  "dependencies": {
+    "yaml": "^2.0.0"
+  }
+}

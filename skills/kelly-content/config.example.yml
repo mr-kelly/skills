@@ -15,6 +15,10 @@ default_cta:
   conversion: "Learn more at https://example.com"
 
 channels:
+  official_blog:
+    language: "en"
+    include_seo: true
+    include_media_brief: true
   xiaohongshu:
     language: "zh-CN"
     title_count: 3

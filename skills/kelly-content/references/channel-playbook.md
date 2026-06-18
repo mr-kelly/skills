@@ -6,6 +6,7 @@ Use this reference when turning one source into multiple channel drafts.
 
 | Channel | Best Use | Draft Shape |
 | --- | --- | --- |
+| `official_blog` | Canonical public website article | SEO title, meta description, hero brief, intro, sections, inline media, conclusion, CTA |
 | `blog` | Canonical long-form source or refreshed post | SEO title, meta description, outline, intro, sections, conclusion, CTA |
 | `xiaohongshu` | Personal insight, tutorial, checklist, product story | 2-4 title options, hook, short paragraphs, bullets, carousel/image brief, hashtags |
 | `wechat` | Thoughtful Chinese long-form or semi-formal announcement | Headline, opening scene, core argument, sections, soft CTA |
