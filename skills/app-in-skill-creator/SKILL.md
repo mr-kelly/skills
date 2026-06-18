@@ -181,7 +181,8 @@ Use predictable JSON files so both the agent and UI can recover after interrupti
 - `app/.data/onboarding.json`: onboarding completion marker (`{ "completed": true, "completed_at": "...", "config_version": "..." }`). Absent or `completed:false` means the skill is still in onboarding. This marker gates the transition to real work (see the Onboarding section).
 - `app/.data/current_batch.json`: latest agent-generated batch.
 - `app/.data/decisions.json`: user decisions and notes keyed by item id.
-- `app/.data/execution_report.json`: latest execution results.
+- `app/.data/execution_report.json`: latest execution results (merge log).
+- `app/.data/agent_tasks.json`: queued agent work — items in `changes_requested` or carrying an `@ai` comment (see Review Model). The agent polls this to pick up revisions.
 - `app/.data/agent.lock`: temporary lock while the skill is generating or executing.
 
 Prefer workflow states over domain categories. These states mirror Busabase's change-request lifecycle so the same vocabulary holds whether the backing store is local files or Busabase (see Review Model below):

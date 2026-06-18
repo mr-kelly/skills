@@ -51,13 +51,13 @@ Env file priority:
 4. `.agents/skills/kelly-email/.env.local`
 5. `~/.config/kelly-email/.env`
 
-Data reader selection:
+Data provider selection:
 
 ```text
-KELLY_EMAIL_DATA_READER=local
+KELLY_EMAIL_DATA_PROVIDER=local
 ```
 
-Configuration is read through `lib/data-reader/`. The current reader is `local`, which reads local JSON/env files with the priority above. Keep app server code, scripts, onboarding, and UI summaries dependent on the data-reader interface rather than local files directly, so future readers can provide the same config contract from Supabase, Postgres, or pusa-cloud (`pusa-cloud.bika.ltd`). Recognized future reader names include `supabase`, `postgres`/`pg`, and `pusa-cloud`/`pusabase`; do not use them until implemented.
+Configuration is read through `lib/data-provider/` (selector `KELLY_EMAIL_DATA_PROVIDER`, default `local`; the old `KELLY_EMAIL_DATA_READER` is still honored). The current provider is `local`, which reads local JSON/env files with the priority above. Keep app server code, scripts, onboarding, and UI summaries dependent on the data-provider interface rather than local files directly, so a future provider can supply the same config contract from a remote store.
 
 The config file defines mailbox accounts, aliases, outbound identities, user profile, brands/products, official URLs, knowledge sources, reply style, CTA URLs, approval policy, and user-editable risk keywords. The env file stores secret values referenced by `password_env`; never store secret values in JSON.
 
@@ -327,7 +327,7 @@ The kelly-email skill owns the approval workflow and local file contract. The ze
 
 Use this Local Review UI Workflow by default. If the user did not request chat-only handling, assume they want App UI mode. After the batch is generated and agent-reviewed, say clearly that the batch is ready in the UI and ask them to review/approve there. Do not continue with long chat item-by-item review unless the user asks to stay in chat.
 
-When `/kelly-email` is generating, drafting, or executing a batch, create `.agents/skills/kelly-email/app/.cache/agent.lock` before writing batch/decision files and remove it in a `finally` step. The lock file should contain JSON with `owner`, `message`, and `started_at`. The UI polls this lock, disables editing while it exists, and the server rejects decision/detail writes during the lock to prevent concurrent file edits.
+When `/kelly-email` is generating, drafting, or executing a batch, create `.agents/skills/kelly-email/app/.data/agent.lock` before writing batch/decision files and remove it in a `finally` step. The lock file should contain JSON with `owner`, `message`, and `started_at`. The UI polls this lock, disables editing while it exists, and the server rejects decision/detail writes during the lock to prevent concurrent file edits.
 
 Before or after generating a local review batch, ensure the UI is running by invoking `.agents/skills/kelly-email/app/start.sh` from the repository root. Prefer the `3000-4000` port range; if the service is already running on the selected port, reuse it. Tell the user to open or refresh the actual URL printed by the launcher.
 
@@ -360,7 +360,7 @@ Keep setup/tutorial details out of the always-visible sidebar. Provide a small `
 
 If onboarding is required, the UI should show a setup card in the list/detail area and in `Help & Settings`, with recommended config/env paths and missing env vars. Disable any implication that mail can be scanned until setup is complete.
 
-Generate a batch file at `.agents/skills/kelly-email/app/.cache/current_batch.json` with this shape:
+Generate a batch file at `.agents/skills/kelly-email/app/.data/current_batch.json` with this shape:
 
 ```json
 {
@@ -460,7 +460,7 @@ Current UI workflow state is derived from the item rather than stored as a separ
 
 Avoid using `status=decided`; the user's decision belongs in `decision.action`, while `status` describes the item's current support lifecycle.
 
-After the user reviews in the UI, read `.agents/skills/kelly-email/app/.cache/decisions.json`. Treat it as the user's approval/comment layer, but still execute only decisions that are explicit:
+After the user reviews in the UI, read `.agents/skills/kelly-email/app/.data/decisions.json`. Treat it as the user's approval/comment layer, but still execute only decisions that are explicit:
 
 - `archive` (move to the configured category/risk target folder and mark read)
 - `mark_read`
@@ -473,7 +473,7 @@ After the user reviews in the UI, read `.agents/skills/kelly-email/app/.cache/de
 
 For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. When archiving after send, use the same configured category/risk target folder and mark the message read; never hardcode `Archive`. In the zero-dependency core, this is prepared and reported but not sent; an external SMTP connector must apply the approved send.
 
-For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.mjs`. It reads `current_batch.json` and `decisions.json`, validates explicit UI-approved actions, blocks real mailbox side effects because IMAP/SMTP execution is not bundled, and writes a JSON report under `.agents/skills/kelly-email/app/.cache/execution_reports/`. Use `--dry-run` for validation when unsure.
+For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.mjs`. It reads `current_batch.json` and `decisions.json`, validates explicit UI-approved actions, blocks real mailbox side effects because IMAP/SMTP execution is not bundled, and writes a JSON report under `.agents/skills/kelly-email/app/.data/execution_reports/`. Use `--dry-run` for validation when unsure.
 
 Treat the UI approval as the user's final approval for `archive` and `mark_read` by default, including messages that were originally classified as money, billing, account/security, technical alerts, attachments, or unclear real-person intent. Do not add another default safety block for those cleanup actions after the user approves them in the UI; the zero-dependency executor will still report them as connector-blocked until an external mailbox connector applies them.
 
@@ -484,8 +484,8 @@ For `send_reply`, keep a stricter final safety check: require an explicit UI-app
 Typical user flow:
 
 1. User asks `/kelly-email` to generate the next approval batch.
-2. Kelly Email skill or an external connector prepares `.agents/skills/kelly-email/app/.cache/current_batch.json`, then starts the UI.
-3. User reviews locally in the UI. The UI writes `.agents/skills/kelly-email/app/.cache/decisions.json`.
+2. Kelly Email skill or an external connector prepares `.agents/skills/kelly-email/app/.data/current_batch.json`, then starts the UI.
+3. User reviews locally in the UI. The UI writes `.agents/skills/kelly-email/app/.data/decisions.json`.
 4. User asks `/kelly-email` to execute UI-approved decisions.
 5. Kelly Email validates only explicit decisions and writes an execution report; an external connector is required for real mailbox mutations or sends.
 
@@ -552,12 +552,25 @@ Default tone: clear, calm, human, and compact. Prefer direct answers and one con
 
 Triage (archive / mark-read) is *approve-an-action* work and stays on the local handoff. The **reply draft** is the one *edit-to-canonical* slice: a reply is written, reviewed, revised ("make it warmer"), and approved before sending — the canonical review loop. That slice has its own small store, `lib/reply-review/`, selected by `KELLY_EMAIL_REPLY_PROVIDER`:
 
-- `local` (default): `app/.cache/reply_reviews.json`. Single operator, zero-dependency.
+- `local` (default): `app/.data/reply_reviews.json`. Single operator, zero-dependency.
 - `busabase`: a shared Busabase base, so a **team** sees one reply-review queue and an audit of who approved which reply. Configure `config.busabase.{base_url,base_id}` (busabase-cloud needs `KELLY_EMAIL_BUSABASE_API_KEY`; the single-tenant open-source `apps/busabase` does not).
 
 Both expose the same interface and review verbs: `openReplyDraft` → `reviewReply(reply_id, {verdict})` with `approve | request_changes | revise | block` → `getApprovedReply` → the skill sends → `markSent`. `request_changes` moves the reply to `changes_requested` and enqueues an agent task (`listAgentTasks`); after the agent revises, it returns for re-review.
 
 This stays a **single-machine skill** — no standing service. Going team-wide just means pointing the reply store (and, when the triage handoff itself moves, the whole handoff including `agent.lock`) at a shared Busabase base instead of local files; the shared lock serializes the team's writes, so no per-item claim or optimistic concurrency is needed.
+
+Drive this loop with `scripts/reply_review.mjs` (it selects the provider from `KELLY_EMAIL_REPLY_PROVIDER`):
+
+```
+node scripts/reply_review.mjs open --email-id <id> --to <addr> --subject <s> --draft -   # creates a reply draft for review
+node scripts/reply_review.mjs list                                                       # see all reply drafts + status
+node scripts/reply_review.mjs tasks                                                       # drafts the reviewer sent back (changes_requested) — revise these
+node scripts/reply_review.mjs review <reply_id> --verdict approve                         # (usually done by the human in the UI)
+node scripts/reply_review.mjs approved <reply_id>                                         # the skill reads the approved reply, then SENDS it
+node scripts/reply_review.mjs sent <reply_id>                                             # after sending, mark merged/done
+```
+
+When you propose a reply, `open` it as a draft instead of only inlining `suggested_reply`; poll `tasks` to pick up requested revisions; and only `send` what `approved` returns.
 
 Boundary: Busabase and the UI never send mail. Only the skill — run by an operator, holding the SMTP credentials — performs the send, after the reply is approved. A reply record's fields are `kind:"email_reply"`, `to`, `subject`, `body`.
 

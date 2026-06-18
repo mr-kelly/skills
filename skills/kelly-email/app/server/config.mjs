@@ -1,4 +1,4 @@
-export { loadConfig, loadConfigWithMeta, loadDotenvFiles, onboardingStatus } from "../../lib/data-reader/index.mjs";
+export { loadConfig, loadConfigWithMeta, loadDotenvFiles, onboardingStatus } from "../../lib/data-provider/index.mjs";
 
 function asArray(value) {
   if (!value) return [];

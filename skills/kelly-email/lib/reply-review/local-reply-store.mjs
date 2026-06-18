@@ -6,7 +6,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 function storePath(skillDir) {
-  return path.join(skillDir, "app", ".cache", "reply_reviews.json");
+  return path.join(skillDir, "app", ".data", "reply_reviews.json");
 }
 
 async function readStore(file) {

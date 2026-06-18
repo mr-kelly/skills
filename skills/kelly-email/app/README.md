@@ -4,9 +4,9 @@ Local file-only approval desk for the `kelly-email` skill. `/kelly-email` uses t
 
 The app is intentionally not an email client:
 
-- `/kelly-email` generates a local batch file at `.agents/skills/kelly-email/app/.cache/current_batch.json`.
+- `/kelly-email` generates a local batch file at `.agents/skills/kelly-email/app/.data/current_batch.json`.
 - The UI reads that batch, shows summaries, original text, attachments, and drafts.
-- The UI only writes local decisions to `.agents/skills/kelly-email/app/.cache/decisions.json`.
+- The UI only writes local decisions to `.agents/skills/kelly-email/app/.data/decisions.json`.
 - `/kelly-email` later reads the decisions file and performs approved email actions.
 
 The UI has no IMAP/SMTP behavior, no scan button, and no direct archive/send action.

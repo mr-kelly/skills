@@ -22,11 +22,12 @@ import {
   loadDotenv,
   onboardingStatus,
   privateConfigCandidates
-} from "./data-reader/index.mjs";
+} from "./data-provider/index.mjs";
 
 export const SCRIPTS_DIR = join(SKILL_DIR, "scripts");
 export const ROOT = ROOT_DIR;
-export const APP_CACHE_DIR = join(APP_DIR, ".cache");
+export const APP_DATA_DIR = join(APP_DIR, ".data");
+export const APP_CACHE_DIR = APP_DATA_DIR; // back-compat alias
 export { ATTACHMENTS_DIR, CURRENT_BATCH_PATH, DECISIONS_PATH, LOCK_PATH, REPORTS_DIR, SCAN_STATE_PATH, SKILL_CACHE_DIR, SKILL_DIR };
 
 export const CLASSIFICATION_PIPELINE_VERSION = "2026-06-16-app-in-skill-v2-node";
