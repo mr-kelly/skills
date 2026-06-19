@@ -1,0 +1,4 @@
+interface:
+  display_name: "Screenshot"
+  short_description: "Capture and publish mock App-in-Skill UI screenshots."
+  default_prompt: "Capture demo-mode screenshots for App-in-Skill UIs and update the README gallery."
