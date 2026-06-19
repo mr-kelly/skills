@@ -1,13 +1,16 @@
 import { I18N } from "./i18n/messages.js";
 
 let state = { items: [], counts: {}, batch: null, lock: { locked: false } };
-let mode = "all";
 let selectedId = null;
 const checked = new Set();
 let refreshTimer = null;
 let lockTimer = null;
 const LANGUAGE_STORAGE_KEY = "kelly-email.uiLanguage";
-let languageMode = localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto";
+const params = new URLSearchParams(window.location.search);
+const demoScenario = params.get("demo") || "";
+let mode = modeForDemo(demoScenario);
+const queryLanguage = params.get("lang");
+let languageMode = queryLanguage || localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto";
 let uiLanguage = "en";
 
 const $ = (id) => document.getElementById(id);
@@ -76,6 +79,12 @@ function setLanguageMode(value) {
   toast(t("language.saved"));
 }
 
+function syncModeButtons() {
+  document.querySelectorAll("[data-mode]").forEach((node) => {
+    node.classList.toggle("active", node.dataset.mode === mode);
+  });
+}
+
 function toast(message) {
   const old = document.querySelector(".toast");
   if (old) old.remove();
@@ -87,7 +96,8 @@ function toast(message) {
 }
 
 async function api(path, body = null) {
-  const res = await fetch(path, {
+  const url = withContextParams(path);
+  const res = await fetch(url, {
     method: body ? "POST" : "GET",
     headers: body ? { "Content-Type": "application/json" } : {},
     body: body ? JSON.stringify(body) : null,
@@ -95,6 +105,21 @@ async function api(path, body = null) {
   const data = await res.json();
   if (!res.ok || data.error) throw new Error(data.error || `Request failed: ${res.status}`);
   return data;
+}
+
+function withContextParams(path) {
+  const url = new URL(path, window.location.origin);
+  for (const key of ["demo", "lang"]) {
+    const value = params.get(key);
+    if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
+  }
+  return `${url.pathname}${url.search}`;
+}
+
+function modeForDemo(value) {
+  if (value === "review") return "needs_review";
+  if (["approved", "blocked", "done"].includes(value)) return value;
+  return "all";
 }
 
 function escapeHtml(value) {
@@ -601,6 +626,7 @@ function renderList() {
     $("listCount").textContent = t("list.setup_required");
     return;
   }
+  if (!selectedId || !state.items.some((item) => item.id === selectedId)) selectedId = state.items[0]?.id || null;
   $("messageList").innerHTML = state.items.map(rowHtml).join("") || `<div class="empty-detail">${escapeHtml(t("list.no_items"))}</div>`;
   $("listCount").textContent = t("list.items", { count: state.items.length });
   document.querySelectorAll(".message-row").forEach((row) => {
@@ -801,20 +827,16 @@ function wire() {
   $("searchInput").addEventListener("input", () => refresh({ preserveScroll: false }));
   document.querySelectorAll("#filters button").forEach((button) => {
     button.onclick = async () => {
-      document.querySelectorAll("[data-mode]").forEach((node) => node.classList.remove("active"));
-      button.classList.add("active");
       mode = button.dataset.mode;
+      syncModeButtons();
       selectedId = null;
       await refresh({ preserveScroll: false });
     };
   });
   document.querySelectorAll(".human-work [data-mode]").forEach((button) => {
     button.onclick = async () => {
-      document.querySelectorAll("[data-mode]").forEach((node) => node.classList.remove("active"));
-      button.classList.add("active");
-      const matchingFilter = document.querySelector(`#filters [data-mode="${button.dataset.mode}"]`);
-      if (matchingFilter) matchingFilter.classList.add("active");
       mode = button.dataset.mode;
+      syncModeButtons();
       selectedId = null;
       await refresh({ preserveScroll: false });
     };
@@ -826,6 +848,7 @@ function wire() {
 
 applyTranslations();
 wire();
+syncModeButtons();
 refresh({ preserveScroll: false }).catch((error) => toast(error.message));
 lockTimer = setInterval(() => pollLock().catch((error) => toast(error.message)), 3000);
 refreshTimer = setInterval(() => refresh().catch((error) => toast(error.message)), 15000);
