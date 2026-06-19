@@ -4,6 +4,7 @@ import path from "node:path";
 import { appDir, defaultHost, defaultPort } from "../../lib/paths.mjs";
 import { ensureDirs } from "../../lib/common.mjs";
 import { createProvider } from "../../lib/data-provider/index.mjs";
+import { demoState, isDemoQuery } from "./demo.mjs";
 
 const host = process.env.KELLY_CONTENT_UI_HOST || defaultHost;
 const port = Number.parseInt(process.env.KELLY_CONTENT_UI_PORT || String(defaultPort), 10);
@@ -15,7 +16,16 @@ console.log(`Kelly Content data provider: ${provider.kind}`);
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
-    if (url.pathname === "/api/state") return json(res, await provider.getState());
+    const demo = isDemoQuery(url.searchParams);
+    if (url.pathname === "/api/state") return json(res, demo ? demoState() : await provider.getState());
+    if (demo && req.method === "POST" && [
+      "/api/decision",
+      "/api/confirm-direction",
+      "/api/start-todo",
+      "/api/export",
+    ].includes(url.pathname)) {
+      return json(res, { ok: true, demo: true, message: "Demo mode: no local content files were changed." });
+    }
     if (url.pathname === "/api/decision" && req.method === "POST") {
       return json(res, await provider.saveDecision(await readBody(req)));
     }

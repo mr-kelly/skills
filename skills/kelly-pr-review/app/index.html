@@ -13,16 +13,16 @@
           <button class="icon-button" aria-label="Toggle sidebar" title="Toggle sidebar">▣</button>
           <div>
             <div class="brand-title">Kelly PR Review</div>
-            <div class="brand-subtitle">GitHub review desk</div>
+            <div class="brand-subtitle" data-i18n="brand.subtitle">GitHub review desk</div>
           </div>
         </div>
         <nav class="filters" id="filters" aria-label="Workflow filters">
-          <button data-mode="needs_review" class="active has-tooltip" data-tooltip="PRs that still need a decision">Needs your review <span id="count-needs_review">0</span></button>
-          <button data-mode="to_approve" class="has-tooltip" data-tooltip="Agent-prepared reviews waiting for approval">Ready to approve <span id="count-to_approve">0</span></button>
-          <button data-mode="approved" class="has-tooltip" data-tooltip="Approved locally and ready for execution">Approved <span id="count-approved">0</span></button>
-          <button data-mode="blocked" class="has-tooltip" data-tooltip="Blocked by risk, missing context, or access">Blocked <span id="count-blocked">0</span></button>
-          <button data-mode="done" class="has-tooltip" data-tooltip="Already executed or intentionally skipped">Done <span id="count-done">0</span></button>
-          <button data-mode="all" class="has-tooltip" data-tooltip="Everything in the current local batch">All <span id="count-all">0</span></button>
+          <button data-mode="needs_review" class="active has-tooltip" data-tooltip="PRs that still need a decision"><span data-i18n="filter.needs_review">Needs your review</span> <span id="count-needs_review">0</span></button>
+          <button data-mode="to_approve" class="has-tooltip" data-tooltip="Agent-prepared reviews waiting for approval"><span data-i18n="filter.to_approve">Ready to approve</span> <span id="count-to_approve">0</span></button>
+          <button data-mode="approved" class="has-tooltip" data-tooltip="Approved locally and ready for execution"><span data-i18n="filter.approved">Approved</span> <span id="count-approved">0</span></button>
+          <button data-mode="blocked" class="has-tooltip" data-tooltip="Blocked by risk, missing context, or access"><span data-i18n="filter.blocked">Blocked</span> <span id="count-blocked">0</span></button>
+          <button data-mode="done" class="has-tooltip" data-tooltip="Already executed or intentionally skipped"><span data-i18n="filter.done">Done</span> <span id="count-done">0</span></button>
+          <button data-mode="all" class="has-tooltip" data-tooltip="Everything in the current local batch"><span data-i18n="filter.all">All</span> <span id="count-all">0</span></button>
         </nav>
         <div class="setup-card" id="setupCard">
           <div class="next-step" id="nextStep">
@@ -31,22 +31,22 @@
               <strong id="nextTitle">Next step: generate a review batch</strong>
               <p id="nextBody">Run /kelly-pr-review to fetch pull requests with gh CLI.</p>
             </div>
-            <button id="refreshButton" class="primary">Refresh</button>
+            <button id="refreshButton" class="primary" data-i18n="refresh">Refresh</button>
           </div>
-          <div class="setup-title">Local setup</div>
-          <div id="setupBody" class="muted">Loading configuration...</div>
-          <button id="helpButton" class="flat-button">Help & Settings</button>
+          <div class="setup-title" data-i18n="setup.title">Local setup</div>
+          <div id="setupBody" class="muted" data-i18n="loading.config">Loading configuration...</div>
+          <button id="helpButton" class="flat-button" data-i18n="help.title">Help & Settings</button>
         </div>
       </aside>
 
       <main class="main">
         <header class="topbar">
           <div>
-            <div class="page-title">Inbox</div>
+            <div class="page-title" data-i18n="page.inbox">Inbox</div>
             <div class="page-subtitle" id="batchMeta">No batch loaded</div>
           </div>
           <label class="repo-picker">
-            <span>Repo</span>
+            <span data-i18n="repo">Repo</span>
             <select id="repoFilter" aria-label="Filter by repository">
               <option value="all">All repos</option>
             </select>
@@ -54,7 +54,7 @@
         </header>
 
         <div id="lockBanner" class="lock-banner is-hidden">
-          <strong>Locked</strong>
+          <strong data-i18n="locked">Locked</strong>
           <span id="lockMessage">The local files are locked for a moment.</span>
         </div>
 
@@ -65,21 +65,21 @@
               <h1 id="sectionTitle">Needs your review</h1>
               <span id="listCount">0</span>
               <div class="spacer"></div>
-              <input id="searchInput" placeholder="Search title, repo, author" />
+              <input id="searchInput" placeholder="Search title, repo, author" data-i18n-placeholder="search.placeholder" />
               <button id="reloadButton" title="Reload files">↻</button>
             </div>
             <div class="table-head">
               <span></span>
-              <span>Title</span>
-              <span>Status</span>
-              <span>Changes</span>
-              <span>Updated</span>
+              <span data-i18n="table.title">Title</span>
+              <span data-i18n="table.status">Status</span>
+              <span data-i18n="table.changes">Changes</span>
+              <span data-i18n="table.updated">Updated</span>
             </div>
             <div id="prList" class="pr-list"></div>
           </div>
 
           <aside class="detail-panel" id="detailPanel">
-            <div class="empty-detail">Select a pull request</div>
+            <div class="empty-detail" data-i18n="empty.detail">Select a pull request</div>
           </aside>
         </section>
       </main>
@@ -89,10 +89,10 @@
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
         <div class="modal-head">
           <div>
-            <div id="helpTitle" class="modal-title">Help & Settings</div>
-            <div id="helpSubtitle" class="modal-subtitle">Local file contract and configuration</div>
+            <div id="helpTitle" class="modal-title" data-i18n="help.title">Help & Settings</div>
+            <div id="helpSubtitle" class="modal-subtitle" data-i18n="help.subtitle">Local file contract and configuration</div>
           </div>
-          <button id="closeHelp">Close</button>
+          <button id="closeHelp" data-i18n="close">Close</button>
         </div>
         <div class="modal-body" id="helpBody"></div>
       </section>

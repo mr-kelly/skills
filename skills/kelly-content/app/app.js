@@ -1,8 +1,82 @@
+const params = new URLSearchParams(window.location.search);
+const language = params.get("lang") === "zh-CN" ? "zh-CN" : "en";
+const demoScenario = params.get("demo") || "";
+const I18N = {
+  en: {
+    "stage.topics": "Topics",
+    "stage.topics.caption": "Subjects and title directions",
+    "stage.todos": "Todos",
+    "stage.todos.caption": "Confirmed work waiting to start",
+    "stage.main": "Main Draft",
+    "stage.main.caption": "Canonical post and cover brief",
+    "stage.distribution": "Distribution",
+    "stage.distribution.caption": "Blog, newsletter, social posts",
+    "batch.none": "No batch loaded",
+    "drafts": "drafts",
+    "locked": "Locked",
+    "workspace.local": "Local workspace · publishing disabled",
+    "data": "data",
+    "topics": "topics",
+    "distribution.drafts": "distribution drafts",
+    "empty.batch": "Generate a content batch, then the repository will appear here.",
+    "topics.pool": "Topic Pool",
+    "subject": "Subject",
+    "todos.title": "Todos",
+    "todos.empty": "Confirm a title and description direction, then todos will appear here.",
+    "todo.start": "Start",
+    "todo.start.title": "Start AI writing for this todo",
+    "todo.next.started": "AI writing has started. Next, generate the outline, article body, and cover brief.",
+    "todo.next.waiting": "Click Start to move this direction into the AI writing queue.",
+    "main.title": "Main Draft & Cover",
+    "distribution.title": "Distribution Versions",
+    "status.todo": "Not started",
+    "status.started": "Started",
+    "status.done": "Done",
+    "status.blocked": "Blocked"
+  },
+  "zh-CN": {
+    "stage.topics": "选题",
+    "stage.topics.caption": "题材与标题描述方向",
+    "stage.todos": "待办",
+    "stage.todos.caption": "确认后等待开工",
+    "stage.main": "主稿",
+    "stage.main.caption": "主 Blog 与配图",
+    "stage.distribution": "分发",
+    "stage.distribution.caption": "官方 Blog、公众号、小红书",
+    "batch.none": "未加载批次",
+    "drafts": "草稿",
+    "locked": "已锁定",
+    "workspace.local": "本地工作区 · 发布已禁用",
+    "data": "数据",
+    "topics": "题材",
+    "distribution.drafts": "分发草稿",
+    "empty.batch": "生成内容批次后，内容仓库会显示在这里。",
+    "topics.pool": "题材池",
+    "subject": "题材",
+    "todos.title": "待办",
+    "todos.empty": "确认标题和描述方向后，会在这里出现待办。",
+    "todo.start": "开工",
+    "todo.start.title": "开始这个待办的 AI 写作",
+    "todo.next.started": "AI 主稿处理已开工。下一步应生成主稿 outline、正文和配图 brief。",
+    "todo.next.waiting": "点击“开工”后，这个方向才正式进入 AI 主稿处理队列。",
+    "main.title": "主稿与配图",
+    "distribution.title": "分发版本",
+    "status.todo": "待开工",
+    "status.started": "已开工",
+    "status.done": "完成",
+    "status.blocked": "阻塞"
+  }
+};
+
+function t(key) {
+  return I18N[language]?.[key] || I18N.en[key] || key;
+}
+
 const stages = [
-  { id: "topics", label: "选题", caption: "题材与标题描述方向" },
-  { id: "todos", label: "待办", caption: "确认后等待开工" },
-  { id: "main", label: "主稿", caption: "主 Blog 与配图" },
-  { id: "distribution", label: "分发", caption: "官方 Blog、公众号、小红书" }
+  { id: "topics", label: t("stage.topics"), caption: t("stage.topics.caption") },
+  { id: "todos", label: t("stage.todos"), caption: t("stage.todos.caption") },
+  { id: "main", label: t("stage.main"), caption: t("stage.main.caption") },
+  { id: "distribution", label: t("stage.distribution"), caption: t("stage.distribution.caption") }
 ];
 
 // Ideation stages (topics/todos/main) are local-only. In busabase mode the skill
@@ -15,7 +89,7 @@ function visibleStages() {
 }
 
 let state = { batch: null, decisions: {}, lock: null };
-let activeStage = "topics";
+let activeStage = stageForDemo(demoScenario);
 let selectedTopicId = null;
 let selectedDirectionId = null;
 let selectedTodoId = null;
@@ -40,12 +114,26 @@ setInterval(() => {
 }, 3000);
 
 async function loadState() {
-  const response = await fetch("/api/state");
+  const response = await fetch(withContextParams("/api/state"));
   state = await response.json();
   const repo = buildRepository();
   selectedTopicId ||= repo.topics[0]?.id || null;
   selectedDistributionId ||= repo.distribution[0]?.id || null;
   render(repo);
+}
+
+function withContextParams(path) {
+  const url = new URL(path, window.location.origin);
+  for (const key of ["demo", "lang"]) {
+    const value = params.get(key);
+    if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
+  }
+  return `${url.pathname}${url.search}`;
+}
+
+function stageForDemo(value) {
+  if (["todos", "main", "distribution"].includes(value)) return value;
+  return "topics";
 }
 
 function buildRepository() {
@@ -226,9 +314,9 @@ function render(repo) {
 
 function renderShell(repo) {
   const batch = repo.batch;
-  els.batchMeta.textContent = batch?.batch_id ? `${batch.batch_id} · ${repo.distribution.length} drafts` : "No batch loaded";
-  els.lockText.textContent = state.lock ? `Locked: ${state.lock.message}` : "Local workspace · publishing disabled";
-  els.settingsText.textContent = `${state.config_summary?.provider || "local"} data · ${repo.topics.length} topics · ${repo.distribution.length} distribution drafts`;
+  els.batchMeta.textContent = batch?.batch_id ? `${batch.batch_id} · ${repo.distribution.length} ${t("drafts")}` : t("batch.none");
+  els.lockText.textContent = state.lock ? `${t("locked")}: ${state.lock.message}` : t("workspace.local");
+  els.settingsText.textContent = `${state.config_summary?.provider || "local"} ${t("data")} · ${repo.topics.length} ${t("topics")} · ${repo.distribution.length} ${t("distribution.drafts")}`;
 
   const shown = visibleStages();
   if (!shown.some((stage) => stage.id === activeStage)) activeStage = shown[0]?.id || "distribution";
@@ -260,7 +348,7 @@ function renderShell(repo) {
 function renderStage(repo) {
   if (!state.batch) {
     els.stagePanel.className = "stagePanel empty";
-    els.stagePanel.innerHTML = "<p>Generate a content batch, then the repository will appear here.</p>";
+    els.stagePanel.innerHTML = `<p>${escapeHtml(t("empty.batch"))}</p>`;
     return;
   }
 
@@ -281,7 +369,7 @@ function renderTopics(repo) {
     <div class="stageHeader">
       <div>
         <p class="eyebrow">Subject Discovery</p>
-        <h2>题材池</h2>
+        <h2>${escapeHtml(t("topics.pool"))}</h2>
       </div>
       <button class="quietButton" title="Refresh subjects">Refresh</button>
     </div>
@@ -334,7 +422,7 @@ function topicDetail(topic) {
       <div><dt>Score</dt><dd>${escapeHtml(topic.score || "-")}</dd></div>
     </dl>
     <section class="sectionBlock">
-      <h3>题材</h3>
+      <h3>${escapeHtml(t("subject"))}</h3>
       <p>${escapeHtml(topic.subject || topic.title || "")}</p>
     </section>
     <div class="directionLayout">
@@ -365,16 +453,16 @@ function renderTodos(repo) {
     <div class="stageHeader">
       <div>
         <p class="eyebrow">Production Queue</p>
-        <h2>待办</h2>
+        <h2>${escapeHtml(t("todos.title"))}</h2>
       </div>
-      <button class="primaryButton" data-action="start-selected-todo" title="Mark selected todo as started">开工</button>
+      <button class="primaryButton" data-action="start-selected-todo" title="${escapeAttr(t("todo.start.title"))}">${escapeHtml(t("todo.start"))}</button>
     </div>
     <div class="split">
       <div class="recordList">
         ${repo.todos.map((todo) => todoRow(todo, selected?.id)).join("")}
       </div>
       <article class="canvas">
-        ${selected ? todoDetail(selected) : `<p class="mutedText">确认标题和描述方向后，会在这里出现待办。</p>`}
+        ${selected ? todoDetail(selected) : `<p class="mutedText">${escapeHtml(t("todos.empty"))}</p>`}
       </article>
     </div>
   `;
@@ -404,19 +492,19 @@ function todoDetail(todo) {
         <span class="pill">${escapeHtml(todo.statusLabel)}</span>
         <span class="pill">${escapeHtml(todo.source || "local")}</span>
       </div>
-      <button class="primaryButton" data-action="start-todo" title="Start AI writing for this todo">开工</button>
+      <button class="primaryButton" data-action="start-todo" title="${escapeAttr(t("todo.start.title"))}">${escapeHtml(t("todo.start"))}</button>
     </div>
     <h2>${escapeHtml(todo.title)}</h2>
     <p class="leadText">${escapeHtml(todo.description)}</p>
     <dl class="metaGrid">
-      <div><dt>题材</dt><dd>${escapeHtml(todo.subject || "-")}</dd></div>
+      <div><dt>${escapeHtml(t("subject"))}</dt><dd>${escapeHtml(todo.subject || "-")}</dd></div>
       <div><dt>Assignee</dt><dd>${escapeHtml(todo.assignee || "AI writer")}</dd></div>
     </dl>
     <section class="sectionBlock">
       <h3>Next action</h3>
       <p>${todo.status === "in_progress"
-        ? "AI 主稿处理已开工。下一步应生成主稿 outline、正文和配图 brief。"
-        : "点击“开工”后，这个方向才正式进入 AI 主稿处理队列。"}</p>
+        ? t("todo.next.started")
+        : t("todo.next.waiting")}</p>
     </section>
   `;
 }
@@ -437,7 +525,7 @@ function renderMainContent(repo) {
     <div class="stageHeader">
       <div>
         <p class="eyebrow">Canonical Draft</p>
-        <h2>主稿与配图</h2>
+        <h2>${escapeHtml(t("main.title"))}</h2>
       </div>
       <div class="toolbar">
         <button class="quietButton" title="Preview HTML">Preview</button>
@@ -466,7 +554,7 @@ function renderDistribution(repo) {
     <div class="stageHeader">
       <div>
         <p class="eyebrow">Channel Adaptation</p>
-        <h2>分发版本</h2>
+        <h2>${escapeHtml(t("distribution.title"))}</h2>
       </div>
       <div class="toolbar">
         <button class="quietButton" title="Validate all drafts">Validate</button>
@@ -542,7 +630,7 @@ function bindRecordSelection(kind, onSelect) {
 
 async function confirmDirection(topicId, directionId) {
   if (!topicId || !directionId) return;
-  const response = await fetch("/api/confirm-direction", {
+  const response = await fetch(withContextParams("/api/confirm-direction"), {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ topic_id: topicId, direction_id: directionId })
@@ -557,7 +645,7 @@ async function confirmDirection(topicId, directionId) {
 
 async function startTodo(id) {
   if (!id) return;
-  const response = await fetch("/api/start-todo", {
+  const response = await fetch(withContextParams("/api/start-todo"), {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ id })
@@ -589,17 +677,17 @@ function normalizeTopic(topic) {
 
 function normalizeTodo(todo) {
   const labels = {
-    todo: "待开工",
-    queued: "待开工",
-    in_progress: "已开工",
-    writing: "已开工",
-    done: "完成",
-    blocked: "阻塞"
+    todo: t("status.todo"),
+    queued: t("status.todo"),
+    in_progress: t("status.started"),
+    writing: t("status.started"),
+    done: t("status.done"),
+    blocked: t("status.blocked")
   };
   return {
     ...todo,
     status: todo.status || "todo",
-    statusLabel: labels[todo.status || "todo"] || todo.status || "待开工"
+    statusLabel: labels[todo.status || "todo"] || todo.status || t("status.todo")
   };
 }
 
@@ -628,7 +716,7 @@ async function saveDecision(id, action) {
     body: document.querySelector("#bodyInput")?.value || "",
     comment: document.querySelector("#commentInput")?.value || ""
   };
-  const response = await fetch("/api/decision", {
+  const response = await fetch(withContextParams("/api/decision"), {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload)
@@ -661,9 +749,9 @@ function readinessFor(status) {
 function normalizeChannel(channel = "") {
   const value = String(channel).toLowerCase();
   if (value === "x") return "X";
-  if (value === "xiaohongshu") return "小红书";
-  if (value === "official_blog" || value === "official-blog" || value === "blog") return "官方 Blog";
-  if (value === "wechat") return "公众号";
+  if (value === "xiaohongshu") return language === "zh-CN" ? "小红书" : "Xiaohongshu";
+  if (value === "official_blog" || value === "official-blog" || value === "blog") return language === "zh-CN" ? "官方 Blog" : "Official Blog";
+  if (value === "wechat") return language === "zh-CN" ? "公众号" : "WeChat";
   if (value === "newsletter") return "NewsNet";
   if (value === "linkedin") return "LinkedIn";
   return channel || "Channel";
