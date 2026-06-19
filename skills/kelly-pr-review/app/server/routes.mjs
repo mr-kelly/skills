@@ -5,6 +5,7 @@ import { APP_DIR } from "./paths.mjs";
 import { lockPayload } from "./lock.mjs";
 import { statePayload } from "./state.mjs";
 import { updateDetail, updateItems } from "./decisions.mjs";
+import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.mjs";
 
 const CONTENT_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -57,6 +58,8 @@ async function sendI18nFile(res, urlPathname) {
 
 export async function handleRequest(req, res) {
   const url = new URL(req.url || "/", "http://127.0.0.1");
+  const query = parse(url.search.slice(1));
+  const demo = isDemoQuery(query);
   try {
     if (req.method === "HEAD" && ["/", "/app.js", "/styles.css", "/api/state", "/api/lock"].includes(url.pathname)) {
       res.writeHead(200);
@@ -68,13 +71,16 @@ export async function handleRequest(req, res) {
       if (url.pathname === "/app.js") return sendFile(res, path.join(APP_DIR, "app.js"));
       if (url.pathname === "/styles.css") return sendFile(res, path.join(APP_DIR, "styles.css"));
       if (url.pathname.startsWith("/i18n/")) return sendI18nFile(res, url.pathname);
-      if (url.pathname === "/api/state") return sendJson(res, await statePayload(parse(url.search.slice(1))));
-      if (url.pathname === "/api/lock") return sendJson(res, { lock: await lockPayload() });
+      if (url.pathname === "/api/state") return sendJson(res, demo ? demoStatePayload(query) : await statePayload(query));
+      if (url.pathname === "/api/lock") return sendJson(res, { lock: demo ? { locked: false } : await lockPayload() });
       send(res, 404, "Not Found");
       return;
     }
     if (req.method === "POST") {
       const body = await readJsonBody(req);
+      if (demo && ["/api/decision", "/api/detail", "/api/reload"].includes(url.pathname)) {
+        return sendJson(res, url.pathname === "/api/reload" ? demoStatePayload(query) : demoDecisionResponse(body));
+      }
       if (url.pathname === "/api/decision") return sendJson(res, await updateItems(body));
       if (url.pathname === "/api/detail") return sendJson(res, await updateDetail(body));
       if (url.pathname === "/api/reload") return sendJson(res, await statePayload({}));

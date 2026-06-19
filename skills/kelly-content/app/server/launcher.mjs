@@ -15,8 +15,20 @@ function stateUrlFor(port) {
 async function isReady(port) {
   return new Promise((resolve) => {
     const req = http.get(stateUrlFor(port), { timeout: 500 }, (res) => {
-      res.resume();
-      resolve(res.statusCode >= 200 && res.statusCode < 300);
+      let body = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => {
+        body += chunk;
+      });
+      res.on("end", () => {
+        try {
+          const state = JSON.parse(body);
+          const provider = state.config_summary?.provider;
+          resolve(res.statusCode >= 200 && res.statusCode < 300 && Boolean(provider));
+        } catch {
+          resolve(false);
+        }
+      });
     });
     req.on("timeout", () => {
       req.destroy();
