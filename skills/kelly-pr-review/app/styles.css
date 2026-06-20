@@ -180,20 +180,14 @@ input:disabled {
   min-height: 0;
 }
 
-.topbar {
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 0 22px;
-  border-bottom: 1px solid var(--line);
-  background: var(--bg);
-}
-
 .page-title {
   font-size: 18px;
   font-weight: 650;
+}
+
+.sidebar-controls {
+  display: grid;
+  gap: 8px;
 }
 
 .repo-picker {
@@ -216,8 +210,7 @@ input:disabled {
 }
 
 .repo-picker select {
-  max-width: min(340px, 34vw);
-  min-width: 180px;
+  min-width: 0;
   border: 0;
   outline: 0;
   background: transparent;
@@ -317,6 +310,18 @@ input:disabled {
   line-height: 1.15;
 }
 
+.list-title {
+  min-width: 0;
+}
+
+.list-title .page-subtitle {
+  margin-top: 2px;
+}
+
+.list-title h1 {
+  margin-top: 5px;
+}
+
 .chevron {
   border: 0;
   box-shadow: none;
@@ -329,7 +334,7 @@ input:disabled {
 }
 
 #searchInput {
-  width: min(280px, 28vw);
+  width: 100%;
   border: 1px solid var(--line);
   border-radius: 7px;
   padding: 8px 10px;

@@ -6,6 +6,7 @@ const checked = new Set();
 let refreshTimer = null;
 let lockTimer = null;
 const LANGUAGE_STORAGE_KEY = "kelly-email.uiLanguage";
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-email.sidebarCollapsed";
 const params = new URLSearchParams(window.location.search);
 const demoScenario = params.get("demo") || "";
 let mode = modeForDemo(demoScenario);
@@ -14,6 +15,8 @@ let languageMode = queryLanguage || localStorage.getItem(LANGUAGE_STORAGE_KEY) |
 let uiLanguage = "en";
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
+let openActionMenu = false;
+let mobileDetailOpen = false;
 
 const $ = (id) => document.getElementById(id);
 
@@ -85,6 +88,54 @@ function syncModeButtons() {
   document.querySelectorAll("[data-mode]").forEach((node) => {
     node.classList.toggle("active", node.dataset.mode === mode);
   });
+}
+
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 720px)").matches;
+}
+
+function syncSidebarState() {
+  const collapsed = document.body.classList.contains("sidebar-collapsed");
+  const toggle = $("sidebarToggle");
+  if (toggle) toggle.setAttribute("aria-expanded", String(!collapsed));
+}
+
+function setSidebarCollapsed(collapsed, { persist = true } = {}) {
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+  syncSidebarState();
+  if (persist) localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
+}
+
+function setMobileSidebarOpen(open) {
+  document.body.classList.toggle("sidebar-open", open);
+  const scrim = $("sidebarScrim");
+  if (scrim) scrim.hidden = !open;
+}
+
+function toggleSidebar() {
+  if (isMobileLayout()) {
+    setMobileSidebarOpen(!document.body.classList.contains("sidebar-open"));
+    return;
+  }
+  setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+}
+
+function setMobileDetailOpen(open) {
+  mobileDetailOpen = Boolean(open);
+  document.body.classList.toggle("mobile-detail-open", mobileDetailOpen);
+}
+
+function syncResponsiveShell() {
+  if (isMobileLayout()) {
+    document.body.classList.remove("sidebar-collapsed");
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(Boolean(selectedId) && mobileDetailOpen);
+  } else {
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(false);
+    setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "1", { persist: false });
+  }
+  syncSidebarState();
 }
 
 function toast(message) {
@@ -171,12 +222,17 @@ function parseHashRoute() {
   };
 }
 
+function hashHasSelectedMessage() {
+  return Boolean(parseHashRoute().selectedId);
+}
+
 function applyRouteFromHash({ refreshData = false } = {}) {
   isApplyingRoute = true;
   routeNeedsReplace = false;
   const route = parseHashRoute();
   mode = route.mode;
   selectedId = route.selectedId;
+  if (isMobileLayout()) setMobileDetailOpen(Boolean(selectedId));
   syncModeButtons();
   if (route.settingsTab) {
     openHelp(route.settingsTab);
@@ -233,6 +289,60 @@ function escapeHtml(value) {
 
 function shortSender(value) {
   return (value || "").replace(/".*?"/g, "").replace(/\s+/g, " ").trim() || t("unknown.sender");
+}
+
+function parseEmailAddresses(value) {
+  const results = [];
+  const pattern = /(?:"?([^"<,]*)"?\s*)?<([^<>@\s]+@[^<>\s]+)>|([^<>,\s]+@[^<>,\s]+)/g;
+  let match;
+  while ((match = pattern.exec(value || ""))) {
+    results.push({
+      name: (match[1] || "").trim(),
+      address: (match[2] || match[3] || "").trim().toLowerCase(),
+    });
+  }
+  return results;
+}
+
+function accountForItem(item) {
+  const accounts = state.email_accounts?.accounts || [];
+  const itemAccount = item.account || item.account_id || item.mailbox_id || "";
+  return accounts.find((account) => account.mailbox_id === itemAccount)
+    || accounts.find((account) => account.primary_email && String(item.to || "").toLowerCase().includes(String(account.primary_email).toLowerCase()))
+    || null;
+}
+
+function accountLabel(item) {
+  const account = accountForItem(item);
+  if (!account) return item.account || item.account_id || item.mailbox_id || t("account.unknown");
+  return account.display_name || account.primary_email || account.mailbox_id || t("account.unknown");
+}
+
+function accountEmailLabel(item) {
+  const account = accountForItem(item);
+  return account?.primary_email || item.account || item.account_id || item.mailbox_id || t("account.unknown");
+}
+
+function replyIdentityForItem(item) {
+  const accounts = state.email_accounts?.accounts || [];
+  const recipients = new Set(parseEmailAddresses(item.to || "").map((address) => address.address));
+  const account = accountForItem(item);
+  const identities = accounts.flatMap((mailbox) =>
+    (mailbox.identities || []).map((identity) => ({ ...identity, mailbox }))
+  );
+  const direct = identities.find((entry) => recipients.has(String(entry.send_as_email || "").toLowerCase()));
+  if (direct) return direct;
+  const accountIdentity = (account?.identities || [])[0];
+  if (accountIdentity) return { ...accountIdentity, mailbox: account };
+  return identities[0] || null;
+}
+
+function replyIdentityLabel(item) {
+  const identity = replyIdentityForItem(item);
+  if (!identity) return t("identity.unknown");
+  const name = identity.display_name || identity.identity_id || t("identity.unknown");
+  const email = identity.send_as_email || identity.reply_to || "";
+  return email ? `${name} <${email}>` : name;
 }
 
 function sizeLabel(bytes) {
@@ -294,6 +404,50 @@ function planBadge(item) {
 
 function tooltipAttr(text) {
   return `class="has-tooltip" data-tooltip="${escapeHtml(text)}" title="${escapeHtml(text)}"`;
+}
+
+function closeDetailActionMenu() {
+  openActionMenu = false;
+  const menu = $("detailActionMenu");
+  const toggle = $("detailActionMenuToggle");
+  if (menu) menu.classList.remove("is-open");
+  if (toggle) toggle.setAttribute("aria-expanded", "false");
+}
+
+function resizeHtmlPreviewFrame(frame) {
+  if (!frame) return;
+  const minHeight = 180;
+  const maxHeight = 2000;
+  try {
+    const doc = frame.contentDocument || frame.contentWindow?.document;
+    if (!doc) return;
+    const body = doc.body;
+    const root = doc.documentElement;
+    const height = Math.max(
+      body?.scrollHeight || 0,
+      body?.offsetHeight || 0,
+      root?.scrollHeight || 0,
+      root?.offsetHeight || 0,
+      minHeight
+    );
+    const nextHeight = Math.min(height + 2, maxHeight);
+    frame.style.height = `${nextHeight}px`;
+    frame.classList.toggle("is-clamped", height > maxHeight);
+  } catch {
+    frame.style.height = "720px";
+  }
+}
+
+function attachHtmlPreviewAutoResize() {
+  const frame = document.querySelector(".html-preview");
+  if (!frame) return;
+  const resize = () => resizeHtmlPreviewFrame(frame);
+  frame.addEventListener("load", () => {
+    resize();
+    setTimeout(resize, 80);
+    setTimeout(resize, 400);
+  }, { once: true });
+  requestAnimationFrame(resize);
 }
 
 function countFor(name) {
@@ -558,6 +712,7 @@ function isLocked() {
 function applyLockState() {
   const locked = isLocked();
   document.body.classList.toggle("is-locked", locked);
+  if (locked) closeDetailActionMenu();
   const banner = $("lockBanner");
   if (banner) {
     banner.classList.toggle("is-hidden", !locked);
@@ -709,6 +864,10 @@ function rowHtml(item) {
           <div class="sender-line">${reviewRef}<span class="sender">${escapeHtml(shortSender(item.from))}</span></div>
           <div class="date">${escapeHtml(item.uid)}</div>
         </div>
+        <div class="row-account">
+          <span>${escapeHtml(t("list.account"))}</span>
+          <strong>${escapeHtml(accountLabel(item))}</strong>
+        </div>
         <div class="subject">${escapeHtml(item.subject)}</div>
         <div class="summary">${escapeHtml(item.summary)}</div>
         <div class="badges">
@@ -730,8 +889,13 @@ function renderList() {
     return;
   }
   if (!selectedId || !state.items.some((item) => item.id === selectedId)) {
-    selectedId = state.items[0]?.id || null;
-    syncRoute({ push: false });
+    if (isMobileLayout() && !hashHasSelectedMessage()) {
+      selectedId = null;
+      setMobileDetailOpen(false);
+    } else {
+      selectedId = state.items[0]?.id || null;
+      syncRoute({ push: false });
+    }
   }
   $("messageList").innerHTML = state.items.map(rowHtml).join("") || `<div class="empty-detail">${escapeHtml(t("list.no_items"))}</div>`;
   $("listCount").textContent = t("list.items", { count: state.items.length });
@@ -739,6 +903,7 @@ function renderList() {
     row.addEventListener("click", (event) => {
       if (isLocked()) return;
       if (event.target.classList.contains("row-check")) return;
+      if (isMobileLayout()) setMobileDetailOpen(true);
       navigateTo({ selectedId: row.dataset.id });
     });
   });
@@ -780,13 +945,14 @@ function selectedItem() {
 }
 
 function renderDetail() {
+  const backButton = `<button class="back-to-list" type="button">${escapeHtml(t("detail.back_to_list"))}</button>`;
   if (state.email_accounts?.onboarding && !state.email_accounts.onboarding.configured) {
-    $("detailPanel").innerHTML = onboardingHtml();
+    $("detailPanel").innerHTML = `${backButton}${onboardingHtml()}`;
     return;
   }
   const item = selectedItem();
   if (!item) {
-    $("detailPanel").innerHTML = `<div class="empty-detail">${escapeHtml(t("empty.select_message"))}</div>`;
+    $("detailPanel").innerHTML = `${backButton}<div class="empty-detail">${escapeHtml(t("empty.select_message"))}</div>`;
     return;
   }
   const attachments = (item.attachments || []).map(attachmentHtml).join("");
@@ -807,20 +973,37 @@ function renderDetail() {
     : "";
   const actionBar = `
     <div class="detail-actions detail-actions-top">
-      <button id="approveProposed" class="primary has-tooltip" data-tooltip="${escapeHtml(t("detail.approve.tooltip"))}" title="${escapeHtml(t("detail.approve.tooltip"))}">${escapeHtml(t("action.approve_plan"))}</button>
-      <button id="draftReply" ${tooltipAttr(t("detail.draft.tooltip"))}>${escapeHtml(t("action.draft_reply"))}</button>
-      <button id="approveArchive" ${tooltipAttr(t("detail.archive.tooltip"))}>${escapeHtml(t("action.approve_archive"))}</button>
-      <button id="approveRead" ${tooltipAttr(t("detail.read.tooltip"))}>${escapeHtml(t("action.approve_read"))}</button>
-      <button id="approveSend" ${tooltipAttr(t("detail.send.tooltip"))}>${escapeHtml(t("action.approve_send"))}</button>
-      <button id="markReview" ${tooltipAttr(t("detail.review.tooltip"))}>${escapeHtml(t("action.needs_review"))}</button>
-      <button id="noAction" ${tooltipAttr(t("detail.no_action.tooltip"))}>${escapeHtml(t("action.no_action"))}</button>
+      <div class="split-action">
+        <button id="approveProposed" class="split-action-main primary has-tooltip" data-tooltip="${escapeHtml(t("detail.approve.tooltip"))}" title="${escapeHtml(t("detail.approve.tooltip"))}">${escapeHtml(t("action.approve_plan"))}</button>
+        <button
+          id="detailActionMenuToggle"
+          class="split-action-toggle primary"
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-label="${escapeHtml(t("action.more"))}"
+          title="${escapeHtml(t("action.more"))}"
+        >⌄</button>
+        <div id="detailActionMenu" class="split-action-menu" role="menu">
+          <button id="draftReply" type="button" role="menuitem" ${tooltipAttr(t("detail.draft.tooltip"))}>${escapeHtml(t("action.draft_reply"))}</button>
+          <button id="approveArchive" type="button" role="menuitem" ${tooltipAttr(t("detail.archive.tooltip"))}>${escapeHtml(t("action.approve_archive"))}</button>
+          <button id="approveRead" type="button" role="menuitem" ${tooltipAttr(t("detail.read.tooltip"))}>${escapeHtml(t("action.approve_read"))}</button>
+          <button id="approveSend" type="button" role="menuitem" ${tooltipAttr(t("detail.send.tooltip"))}>${escapeHtml(t("action.approve_send"))}</button>
+          <span class="split-action-separator" aria-hidden="true"></span>
+          <button id="markReview" type="button" role="menuitem" ${tooltipAttr(t("detail.review.tooltip"))}>${escapeHtml(t("action.needs_review"))}</button>
+          <button id="noAction" type="button" role="menuitem" ${tooltipAttr(t("detail.no_action.tooltip"))}>${escapeHtml(t("action.no_action"))}</button>
+        </div>
+      </div>
     </div>
   `;
   $("detailPanel").innerHTML = `
+    ${backButton}
     ${actionBar}
     <div class="detail-title">${escapeHtml(item.subject)}</div>
     <div class="detail-meta">
       ${reviewMeta}
+      <strong>${escapeHtml(t("detail.source_account"))}</strong><div>${escapeHtml(accountLabel(item))} <span class="muted">· ${escapeHtml(accountEmailLabel(item))}</span></div>
+      <strong>${escapeHtml(t("detail.reply_identity"))}</strong><div>${escapeHtml(replyIdentityLabel(item))}</div>
       <strong>${escapeHtml(t("detail.from"))}</strong><div>${escapeHtml(item.from)}</div>
       <strong>${escapeHtml(t("detail.to"))}</strong><div>${escapeHtml(item.to)}</div>
       <strong>${escapeHtml(t("detail.date"))}</strong><div>${escapeHtml(item.date)}</div>
@@ -840,14 +1023,30 @@ function renderDetail() {
     </div>
     ${emailBodySectionsHtml(item)}
   `;
+  attachHtmlPreviewAutoResize();
   applyLockState();
+  closeDetailActionMenu();
   $("approveProposed").onclick = () => decide("approve_proposed", [item.id]);
-  $("draftReply").onclick = () => decide("draft_reply", [item.id]);
-  $("approveArchive").onclick = () => decide("approve_archive", [item.id]);
-  $("approveRead").onclick = () => decide("approve_mark_read", [item.id]);
-  $("approveSend").onclick = () => decide("approve_send", [item.id]);
-  $("markReview").onclick = () => decide("needs_review", [item.id]);
-  $("noAction").onclick = () => decide("no_action", [item.id]);
+  $("detailActionMenuToggle").onclick = (event) => {
+    event.stopPropagation();
+    if (isLocked()) return toast(t("lock.processing"));
+    openActionMenu = !openActionMenu;
+    $("detailActionMenu").classList.toggle("is-open", openActionMenu);
+    $("detailActionMenuToggle").setAttribute("aria-expanded", String(openActionMenu));
+  };
+  [
+    ["draftReply", "draft_reply"],
+    ["approveArchive", "approve_archive"],
+    ["approveRead", "approve_mark_read"],
+    ["approveSend", "approve_send"],
+    ["markReview", "needs_review"],
+    ["noAction", "no_action"],
+  ].forEach(([id, action]) => {
+    $(id).onclick = () => {
+      closeDetailActionMenu();
+      decide(action, [item.id]);
+    };
+  });
   $("saveDetail").onclick = async () => {
     if (isLocked()) return toast(t("lock.processing"));
     await api("/api/detail", {
@@ -916,7 +1115,18 @@ function wire() {
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !$("helpModal").classList.contains("is-hidden")) closeHelp();
+    if (event.key === "Escape") closeDetailActionMenu();
   });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".split-action")) closeDetailActionMenu();
+  });
+  $("sidebarToggle").onclick = toggleSidebar;
+  $("mobileSidebarToggle").onclick = () => setMobileSidebarOpen(true);
+  $("sidebarScrim").onclick = () => setMobileSidebarOpen(false);
+  $("detailPanel").addEventListener("click", (event) => {
+    if (event.target.closest(".back-to-list")) setMobileDetailOpen(false);
+  });
+  window.addEventListener("resize", syncResponsiveShell);
   document.querySelectorAll("[data-help-tab]").forEach((button) => {
     button.onclick = () => {
       setHelpTab(button.dataset.helpTab);
@@ -939,11 +1149,15 @@ function wire() {
   $("searchInput").addEventListener("input", () => refresh({ preserveScroll: false }));
   document.querySelectorAll("#filters button").forEach((button) => {
     button.onclick = async () => {
+      setMobileSidebarOpen(false);
+      setMobileDetailOpen(false);
       navigateTo({ mode: button.dataset.mode, selectedId: null }, { refreshData: true });
     };
   });
   document.querySelectorAll(".human-work [data-mode]").forEach((button) => {
     button.onclick = async () => {
+      setMobileSidebarOpen(false);
+      setMobileDetailOpen(false);
       navigateTo({ mode: button.dataset.mode, selectedId: null }, { refreshData: true });
     };
   });
@@ -953,6 +1167,7 @@ function wire() {
 }
 
 applyTranslations();
+syncResponsiveShell();
 wire();
 syncModeButtons();
 window.addEventListener("hashchange", () => applyRouteFromHash({ refreshData: true }));

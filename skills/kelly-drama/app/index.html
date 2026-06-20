@@ -23,6 +23,11 @@
           <div id="projectSwitchMeta" class="switch-meta"></div>
         </section>
 
+        <div class="sidebar-actions">
+          <input id="searchInput" placeholder="搜索" />
+          <button id="newItemButton" title="在当前视图中新建一项" aria-label="新建">+</button>
+        </div>
+
         <section class="quick-stats" aria-label="Project status">
           <button data-view="tasks" title="查看需要处理的任务">
             <span id="attentionNeeds">0</span>
@@ -57,16 +62,10 @@
       </aside>
 
       <main class="main">
-        <header class="topbar">
-          <div>
-            <div class="project-title" id="projectTitle">加载中</div>
-            <div class="project-meta" id="projectMeta">本地短剧项目</div>
-          </div>
-          <div class="topbar-actions">
-            <input id="searchInput" placeholder="搜索" />
-            <button id="newItemButton" title="在当前视图中新建一项" aria-label="新建">+</button>
-          </div>
-        </header>
+        <div class="content-title">
+          <div class="project-title" id="projectTitle">加载中</div>
+          <div class="project-meta" id="projectMeta">本地短剧项目</div>
+        </div>
 
         <div id="lockBanner" class="lock-banner hidden">本地项目文件正在被 agent 使用，暂时只读。</div>
 
