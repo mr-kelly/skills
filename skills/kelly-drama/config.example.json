@@ -1,0 +1,11 @@
+{
+  "data_provider": "local",
+  "project_defaults": {
+    "language": "zh-CN",
+    "image_style": "vertical short-drama cinematic realism",
+    "episode_duration_seconds": 75
+  },
+  "export": {
+    "default_format": "markdown"
+  }
+}

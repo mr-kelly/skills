@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Drama"
+  short_description: "Short-drama story bible and episode workspace with a local UI."
+  default_prompt: "Use kelly-drama to plan a short-drama series, maintain character consistency, map relationships, break episodes into beats, and prepare storyboard image prompts in the local app."

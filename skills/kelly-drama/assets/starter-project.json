@@ -1,0 +1,225 @@
+{
+  "project_id": "kelly-drama-starter",
+  "updated_at": "2026-06-20T00:00:00.000Z",
+  "series": {
+    "title": "她从离婚夜开始赢",
+    "logline": "被豪门丈夫当众羞辱的隐婚编剧，在离婚夜用一份被调包的遗嘱撬开真相，反手夺回事业、爱情与家族话语权。",
+    "genre": "都市逆袭 / 豪门婚恋 / 悬疑复仇",
+    "platform": "vertical short drama",
+    "format": "60 episodes, 75 seconds each",
+    "tone": "fast, emotional, satisfying, cinematic realism",
+    "audience": "女性向短剧观众，偏爱强反转、身份打脸、隐婚追妻、职场逆袭",
+    "hook_rules": [
+      "每集前 5 秒必须有可见冲突或羞辱",
+      "每集至少一次权力位置变化",
+      "每 3 集给一次身份、证据或关系反转",
+      "结尾留一个画面级悬念，不只留对白"
+    ],
+    "world_rules": [
+      "财富和权力通过集团股权、遗嘱、合同、新闻舆论体现",
+      "女主的专业能力必须可见：她会写、会查、会谈判、会布局",
+      "男主追悔不能抹掉前期伤害，必须以行动偿还"
+    ]
+  },
+  "characters": [
+    {
+      "id": "char-lin-wan",
+      "name": "林晚",
+      "role": "protagonist",
+      "status": "approved",
+      "actor_profile": "27-32 岁，清冷但有韧劲。表演重点是压住情绪后的爆发，眼神要有计算感。",
+      "character_card": {
+        "identity": "隐婚三年的编剧，真实身份是林氏遗产第一继承人",
+        "motivation": "夺回被继母和丈夫家族联手吞掉的母亲遗产",
+        "wound": "从小被告知爱需要忍让，所以前期习惯替别人找理由",
+        "secret": "她手里有母亲留下的剧本手稿，里面藏着股权密码",
+        "arc": "从被动忍耐到主动布局，再到敢于选择自己",
+        "voice": "克制、准确、少废话；被逼到绝境时一句话反杀"
+      },
+      "visual": {
+        "front": "鹅蛋脸，冷白皮，黑色长直发，细长眼，右眼下很淡的泪痣",
+        "side": "鼻梁挺直，下颌线清晰，站姿挺拔但肩颈微紧",
+        "back": "及腰黑发，常穿利落长风衣或白衬衫，背影单薄但不软弱",
+        "wardrobe": "前期素色衬衫、旧风衣；逆袭后黑白套装、珍珠耳钉",
+        "anchors": ["右眼下泪痣", "旧银色戒指", "黑色长直发", "珍珠耳钉"],
+        "forbidden_drift": ["不要变成卷发", "不要加浓妆", "不要过度甜美", "不要丢掉泪痣"]
+      }
+    },
+    {
+      "id": "char-gu-yan",
+      "name": "顾言",
+      "role": "love_interest",
+      "status": "needs_review",
+      "actor_profile": "30-36 岁，冷感霸总外壳，后期有明显悔意。不能油腻，情绪压在眼神和停顿里。",
+      "character_card": {
+        "identity": "顾氏集团继承人，林晚的隐婚丈夫",
+        "motivation": "守住顾氏控制权，同时查清父亲车祸真相",
+        "wound": "被家族训练成不信任任何亲密关系",
+        "secret": "他以为林晚背叛过自己，其实证据被调包",
+        "arc": "从掌控欲到承认亏欠，再到放手让女主选择",
+        "voice": "短句、命令式；动情时会突然变轻"
+      },
+      "visual": {
+        "front": "高眉骨，深眼窝，短黑发，表情冷，左眉尾有浅疤",
+        "side": "鼻梁高，薄唇，西装肩线锋利",
+        "back": "深色定制西装，背影压迫感强",
+        "wardrobe": "黑灰西装、深色大衣、无 logo 腕表",
+        "anchors": ["左眉尾浅疤", "无 logo 黑表", "深灰西装"],
+        "forbidden_drift": ["不要笑得轻浮", "不要换成浅发色", "不要休闲运动风"]
+      }
+    },
+    {
+      "id": "char-su-man",
+      "name": "苏曼",
+      "role": "antagonist",
+      "status": "approved",
+      "actor_profile": "26-32 岁，甜美表面下有攻击性。表演重点是人前无辜、人后冷笑。",
+      "character_card": {
+        "identity": "顾氏公关总监，顾言青梅，也是遗嘱调包的执行人之一",
+        "motivation": "成为顾太太，拿到顾氏公关线控制权",
+        "wound": "贫寒出身让她极度恐惧被看不起",
+        "secret": "她掌握继母转移遗产的录音，但只保留了一半",
+        "arc": "从伪装受害者到主动疯批，再到被证据反噬",
+        "voice": "人前柔软，人后精准刺痛对方弱点"
+      },
+      "visual": {
+        "front": "圆眼，浅棕卷发，甜美妆容，笑时露出梨涡",
+        "side": "小巧鼻尖，卷发遮住一侧耳环",
+        "back": "浅色裙装，发尾卷，走路轻快",
+        "wardrobe": "奶白套裙、细跟鞋、钻石耳钉",
+        "anchors": ["浅棕卷发", "梨涡", "钻石耳钉"],
+        "forbidden_drift": ["不要黑长直", "不要过于成熟冷艳", "不要失去甜美伪装"]
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel-lin-gu",
+      "from": "char-gu-yan",
+      "to": "char-lin-wan",
+      "type": "hidden marriage / emotional debt",
+      "public_status": "公开场合假装只是集团合作方",
+      "hidden_truth": "两人已隐婚三年，顾言误信假证据冷落林晚",
+      "power_dynamic": "顾言拥有集团资源，林晚掌握遗嘱真相线索",
+      "emotional_temperature": "tense, unresolved, guilty",
+      "conflict": "顾言想控制局面，林晚不再相信他的保护",
+      "evidence": ["ep-001", "ep-002"]
+    },
+    {
+      "id": "rel-lin-su",
+      "from": "char-su-man",
+      "to": "char-lin-wan",
+      "type": "rival / frame-up",
+      "public_status": "苏曼装作照顾林晚的体面同事",
+      "hidden_truth": "苏曼是离婚夜羞辱和遗嘱调包的推手",
+      "power_dynamic": "苏曼操控舆论，林晚开始掌握证据",
+      "emotional_temperature": "hostile, performative",
+      "conflict": "苏曼不断制造林晚贪财、出轨的假象",
+      "evidence": ["ep-001"]
+    }
+  ],
+  "episodes": [
+    {
+      "id": "ep-001",
+      "number": 1,
+      "title": "离婚夜，她被推上台",
+      "status": "needs_review",
+      "promise": "女主被当众羞辱，却发现离婚协议里藏着母亲遗嘱线索。",
+      "a_plot": "顾氏晚宴上，苏曼设计让林晚被误认为贪财情人。",
+      "b_plot": "林晚发现协议纸张夹层里有母亲手稿碎片。",
+      "cliffhanger": "林晚抬头看见顾言手腕上的旧表，表背刻着母亲失踪当天的日期。",
+      "beats": [
+        {
+          "id": "beat-001-a",
+          "label": "公开羞辱",
+          "hook": "林晚被保安拦在顾氏晚宴门口，苏曼递来一张离婚协议。",
+          "conflict": "所有人都以为林晚是勒索顾言的女人。",
+          "turn": "林晚没有哭，反而要求当场读协议。",
+          "emotion": "humiliation to control",
+          "canon_update": "隐婚关系开始暴露，但真相仍被压住。",
+          "characters": ["char-lin-wan", "char-gu-yan", "char-su-man"]
+        },
+        {
+          "id": "beat-001-b",
+          "label": "夹层线索",
+          "hook": "林晚签字时发现纸张厚度异常。",
+          "conflict": "顾言命人收走协议，苏曼催她立刻离开。",
+          "turn": "林晚用戒指划开纸角，露出母亲手稿碎片。",
+          "emotion": "shock, resolve",
+          "canon_update": "母亲遗嘱和顾氏离婚协议有关。",
+          "characters": ["char-lin-wan", "char-gu-yan"]
+        }
+      ]
+    },
+    {
+      "id": "ep-002",
+      "number": 2,
+      "title": "她把协议念给全场听",
+      "status": "draft",
+      "promise": "林晚用协议反制苏曼，顾言第一次发现证据有问题。",
+      "a_plot": "林晚挑出协议漏洞，逼顾言承认隐婚事实。",
+      "b_plot": "苏曼转移话题，放出假出轨照片。",
+      "cliffhanger": "屏幕上的照片被放大，角落里出现顾父车祸现场同款车牌。",
+      "beats": [
+        {
+          "id": "beat-002-a",
+          "label": "条款反杀",
+          "hook": "林晚念出离婚协议第 13 条：顾氏承认女方参与集团剧本 IP 资产。",
+          "conflict": "苏曼打断她，说这是伪造条款。",
+          "turn": "林晚拿出顾言三年前亲签的副本。",
+          "emotion": "satisfaction",
+          "canon_update": "林晚拥有顾氏 IP 资产争议的入口。",
+          "characters": ["char-lin-wan", "char-gu-yan", "char-su-man"]
+        }
+      ]
+    }
+  ],
+  "shots": [
+    {
+      "id": "shot-001",
+      "episode_id": "ep-001",
+      "beat_id": "beat-001-a",
+      "title": "晚宴门口递离婚协议",
+      "characters": ["char-lin-wan", "char-su-man"],
+      "composition": "vertical 9:16, medium two-shot, Lin Wan lower left holding old ring, Su Man upper right extending document",
+      "camera": "slight low angle on Su Man, shallow depth of field, luxury banquet entrance behind",
+      "setting": "Gu Group hotel banquet entrance, night, rain reflected on marble floor",
+      "lighting": "cold blue exterior light mixed with warm gold lobby light",
+      "prompt": "vertical short-drama cinematic realism, Lin Wan with black long straight hair, pale oval face, subtle tear mole under right eye, old silver ring, worn beige trench coat, standing at luxury banquet entrance in the rain; Su Man with light brown curled hair, sweet smile and diamond earrings, cream suit, handing divorce agreement; tense power imbalance, marble floor reflections, cold blue rain light and warm gold lobby light",
+      "negative_prompt": "no changed hair color, no missing tear mole, no extra fingers, no text logo, no cartoon style, no different wardrobe, no smiling Lin Wan",
+      "status": "needs_review"
+    },
+    {
+      "id": "shot-002",
+      "episode_id": "ep-001",
+      "beat_id": "beat-001-b",
+      "title": "戒指划开协议夹层",
+      "characters": ["char-lin-wan"],
+      "composition": "vertical close-up, hands and paper dominate, Lin Wan face blurred but visible",
+      "camera": "macro lens feel, focus on silver ring cutting paper corner",
+      "setting": "banquet hall signing table",
+      "lighting": "sharp white spotlight on paper, dark audience background",
+      "prompt": "vertical cinematic close-up, Lin Wan's old silver ring slicing open the corner of a divorce agreement, hidden manuscript fragment visible inside the paper layer, her black long straight hair and subtle tear mole softly blurred in background, tense banquet hall, spotlight on paper, dark watching crowd",
+      "negative_prompt": "no readable real text, no gore, no extra fingers, no missing silver ring, no cartoon style",
+      "status": "draft"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-001",
+      "kind": "character",
+      "target_id": "char-gu-yan",
+      "status": "needs_review",
+      "title": "补强顾言的追悔边界",
+      "note": "明确他后期如何补偿，而不是一句道歉就翻篇。"
+    },
+    {
+      "id": "task-002",
+      "kind": "episode",
+      "target_id": "ep-002",
+      "status": "changes_requested",
+      "title": "@ai 增加第 2 集结尾的视觉悬念",
+      "note": "让车牌线索更像画面，不要只靠台词。"
+    }
+  ]
+}
