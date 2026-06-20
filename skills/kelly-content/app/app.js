@@ -98,6 +98,7 @@ let editing = false;
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
 let lastAppliedHash = "";
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-content.sidebarCollapsed";
 
 const els = {
   stageNav: document.querySelector("#stageNav"),
@@ -109,9 +110,45 @@ const els = {
   refreshBtn: document.querySelector("#refreshBtn")
 };
 
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 720px)").matches;
+}
+
+function setSidebarCollapsed(collapsed, { persist = true } = {}) {
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+  document.querySelector("#sidebarToggle")?.setAttribute("aria-expanded", String(!collapsed));
+  if (persist) localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
+}
+
+function setMobileSidebarOpen(open) {
+  document.body.classList.toggle("sidebar-open", open);
+  const scrim = document.querySelector("#sidebarScrim");
+  if (scrim) scrim.hidden = !open;
+}
+
+function syncResponsiveShell() {
+  if (isMobileLayout()) {
+    document.body.classList.remove("sidebar-collapsed");
+    setMobileSidebarOpen(false);
+  } else {
+    setMobileSidebarOpen(false);
+    setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "1", { persist: false });
+  }
+}
+
+function toggleSidebar() {
+  if (isMobileLayout()) setMobileSidebarOpen(!document.body.classList.contains("sidebar-open"));
+  else setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+}
+
 els.refreshBtn.addEventListener("click", () => loadState());
+document.querySelector("#sidebarToggle").addEventListener("click", toggleSidebar);
+document.querySelector("#mobileSidebarToggle").addEventListener("click", () => setMobileSidebarOpen(true));
+document.querySelector("#sidebarScrim").addEventListener("click", () => setMobileSidebarOpen(false));
+window.addEventListener("resize", syncResponsiveShell);
 
 wireHashRouting();
+syncResponsiveShell();
 loadState();
 setInterval(() => {
   if (!editing) loadState();

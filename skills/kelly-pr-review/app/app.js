@@ -9,6 +9,8 @@ let saveTimer = null;
 const language = params.get("lang") === "zh-CN" ? "zh-CN" : "en";
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
+let mobileDetailOpen = false;
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-pr-review.sidebarCollapsed";
 
 const I18N = {
   en: {
@@ -178,6 +180,44 @@ const I18N = {
 };
 
 const $ = (id) => document.getElementById(id);
+
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 720px)").matches;
+}
+
+function setSidebarCollapsed(collapsed, { persist = true } = {}) {
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+  $("sidebarToggle")?.setAttribute("aria-expanded", String(!collapsed));
+  if (persist) localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
+}
+
+function setMobileSidebarOpen(open) {
+  document.body.classList.toggle("sidebar-open", open);
+  const scrim = $("sidebarScrim");
+  if (scrim) scrim.hidden = !open;
+}
+
+function setMobileDetailOpen(open) {
+  mobileDetailOpen = Boolean(open);
+  document.body.classList.toggle("mobile-detail-open", mobileDetailOpen);
+}
+
+function syncResponsiveShell() {
+  if (isMobileLayout()) {
+    document.body.classList.remove("sidebar-collapsed");
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(Boolean(selectedId) && mobileDetailOpen);
+  } else {
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(false);
+    setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "1", { persist: false });
+  }
+}
+
+function toggleSidebar() {
+  if (isMobileLayout()) setMobileSidebarOpen(!document.body.classList.contains("sidebar-open"));
+  else setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+}
 
 function t(key, params = {}) {
   return String(I18N[language]?.[key] || I18N.en[key] || key).replace(/\{(\w+)\}/g, (_, name) => params[name] ?? "");
@@ -463,6 +503,7 @@ function renderList() {
   `).join("");
   list.querySelectorAll(".pr-row").forEach((row) => {
     row.addEventListener("click", () => {
+      if (isMobileLayout()) setMobileDetailOpen(true);
       navigateTo({ selectedId: row.dataset.id });
     });
   });
@@ -494,10 +535,11 @@ function renderDetail() {
   const panel = $("detailPanel");
   const item = selectedItem();
   if (!item) {
-    panel.innerHTML = `<div class="empty-detail">${escapeHtml(t("empty.detail"))}</div>`;
+    panel.innerHTML = `<button class="back-to-list" type="button">← ${escapeHtml(t("page.inbox"))}</button><div class="empty-detail">${escapeHtml(t("empty.detail"))}</div>`;
     return;
   }
   panel.innerHTML = `
+    <button class="back-to-list" type="button">← ${escapeHtml(t("page.inbox"))}</button>
     <div class="detail-head">
       <h1 class="detail-title">${escapeHtml(item.title)}</h1>
       <div class="detail-meta">
@@ -621,9 +663,18 @@ async function loadState() {
 function wire() {
   document.querySelectorAll("#filters button").forEach((button) => {
     button.addEventListener("click", () => {
+      setMobileSidebarOpen(false);
+      setMobileDetailOpen(false);
       navigateTo({ mode: button.dataset.mode, selectedId: null }, { reload: true });
     });
   });
+  $("sidebarToggle").addEventListener("click", toggleSidebar);
+  $("mobileSidebarToggle").addEventListener("click", () => setMobileSidebarOpen(true));
+  $("sidebarScrim").addEventListener("click", () => setMobileSidebarOpen(false));
+  $("detailPanel").addEventListener("click", (event) => {
+    if (event.target.closest(".back-to-list")) setMobileDetailOpen(false);
+  });
+  window.addEventListener("resize", syncResponsiveShell);
   $("searchInput").addEventListener("input", () => {
     clearTimeout(refreshTimer);
     refreshTimer = setTimeout(() => loadState().catch((error) => toast(error.message)), 250);
@@ -650,6 +701,7 @@ function wire() {
 }
 
 applyTranslations();
+syncResponsiveShell();
 syncModeButtons();
 wire();
 loadState().catch((error) => toast(error.message));
