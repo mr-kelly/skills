@@ -8,10 +8,24 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
+      <aside class="sidebar" id="appSidebar">
         <div class="brand">
-          <div class="brand-title">Kelly Email</div>
-          <div class="brand-subtitle" data-i18n="brand.subtitle">Personal email assistant review desk</div>
+          <div class="brand-copy">
+            <div class="brand-title">Kelly Email</div>
+            <div class="brand-subtitle" data-i18n="brand.subtitle">Email review desk</div>
+          </div>
+          <button
+            id="sidebarToggle"
+            class="sidebar-toggle"
+            type="button"
+            aria-controls="appSidebar"
+            aria-expanded="true"
+            title="Toggle sidebar"
+            aria-label="Toggle sidebar"
+          >☰</button>
+        </div>
+        <div class="search sidebar-search">
+          <input id="searchInput" data-i18n-placeholder="search.placeholder" placeholder="Search sender, subject, summary" />
         </div>
         <section class="human-work" aria-labelledby="humanWorkTitle">
           <div class="human-work-eyebrow" data-i18n="human_work.eyebrow">Needs You</div>
@@ -84,11 +98,14 @@
       </aside>
 
       <main class="main">
-        <header class="toolbar">
-          <div class="search">
-            <input id="searchInput" data-i18n-placeholder="search.placeholder" placeholder="Search sender, subject, summary" />
-          </div>
-        </header>
+        <button
+          id="mobileSidebarToggle"
+          class="mobile-sidebar-toggle"
+          type="button"
+          aria-controls="appSidebar"
+          aria-label="Open sidebar"
+          title="Open sidebar"
+        >☰</button>
         <div id="lockBanner" class="lock-banner is-hidden">
           <strong data-i18n="lock.title">Locked</strong>
           <span id="lockMessage" data-i18n="lock.default">The local files are locked for a moment.</span>
@@ -130,6 +147,7 @@
         </section>
       </main>
     </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
     <div id="helpModal" class="modal-backdrop is-hidden" aria-hidden="true">
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
         <div class="modal-head">

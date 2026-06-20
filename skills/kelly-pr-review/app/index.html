@@ -16,6 +16,15 @@
             <div class="brand-subtitle" data-i18n="brand.subtitle">GitHub review desk</div>
           </div>
         </div>
+        <div class="sidebar-controls">
+          <input id="searchInput" placeholder="Search title, repo, author" data-i18n-placeholder="search.placeholder" />
+          <label class="repo-picker">
+            <span data-i18n="repo">Repo</span>
+            <select id="repoFilter" aria-label="Filter by repository">
+              <option value="all">All repos</option>
+            </select>
+          </label>
+        </div>
         <nav class="filters" id="filters" aria-label="Workflow filters">
           <button data-mode="needs_review" class="active has-tooltip" data-tooltip="PRs that still need a decision"><span data-i18n="filter.needs_review">Needs your review</span> <span id="count-needs_review">0</span></button>
           <button data-mode="to_approve" class="has-tooltip" data-tooltip="Agent-prepared reviews waiting for approval"><span data-i18n="filter.to_approve">Ready to approve</span> <span id="count-to_approve">0</span></button>
@@ -40,19 +49,6 @@
       </aside>
 
       <main class="main">
-        <header class="topbar">
-          <div>
-            <div class="page-title" data-i18n="page.inbox">Inbox</div>
-            <div class="page-subtitle" id="batchMeta">No batch loaded</div>
-          </div>
-          <label class="repo-picker">
-            <span data-i18n="repo">Repo</span>
-            <select id="repoFilter" aria-label="Filter by repository">
-              <option value="all">All repos</option>
-            </select>
-          </label>
-        </header>
-
         <div id="lockBanner" class="lock-banner is-hidden">
           <strong data-i18n="locked">Locked</strong>
           <span id="lockMessage">The local files are locked for a moment.</span>
@@ -62,10 +58,13 @@
           <div class="list-panel">
             <div class="list-toolbar">
               <button class="chevron" title="Collapse section">⌄</button>
-              <h1 id="sectionTitle">Needs your review</h1>
+              <div class="list-title">
+                <div class="page-title" data-i18n="page.inbox">Inbox</div>
+                <div class="page-subtitle" id="batchMeta">No batch loaded</div>
+                <h1 id="sectionTitle">Needs your review</h1>
+              </div>
               <span id="listCount">0</span>
               <div class="spacer"></div>
-              <input id="searchInput" placeholder="Search title, repo, author" data-i18n-placeholder="search.placeholder" />
               <button id="reloadButton" title="Reload files">↻</button>
             </div>
             <div class="table-head">

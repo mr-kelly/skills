@@ -94,7 +94,7 @@ h3 {
 }
 
 .brand p,
-.topbar p,
+.content-title p,
 .settings p,
 small,
 dt {
@@ -176,21 +176,11 @@ main {
   min-width: 0;
 }
 
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  min-height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 22px;
-  background: rgba(247, 248, 250, 0.96);
-  border-bottom: 1px solid var(--line);
+.content-title {
+  padding: 22px 22px 0;
 }
 
-.topbar button,
+#refreshBtn,
 .quietButton,
 .primaryButton,
 .actions button {
@@ -218,7 +208,7 @@ select:hover {
 }
 
 .stagePanel.empty {
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - 94px);
   display: grid;
   place-items: center;
   color: var(--muted);
@@ -699,8 +689,7 @@ tr:last-child td {
   }
 
   .stageHeader,
-  .canvasHead,
-  .topbar {
+  .canvasHead {
     align-items: flex-start;
     flex-direction: column;
   }

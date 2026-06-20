@@ -23,6 +23,11 @@
           <div id="projectSwitchMeta" class="switch-meta"></div>
         </section>
 
+        <div class="sidebar-actions">
+          <input id="searchInput" placeholder="搜索" />
+          <button id="newItemButton" title="在当前视图中新建一项" aria-label="新建">+</button>
+        </div>
+
         <section class="attention-panel" aria-label="Next step">
           <div class="eyebrow" data-i18n="next_step">下一步</div>
           <button id="nextStepButton" class="next-step" title="跳到当前最该做的一步">
@@ -48,16 +53,10 @@
       </aside>
 
       <main class="main">
-        <header class="topbar">
-          <div>
-            <div class="project-title" id="projectTitle" data-i18n="loading">加载中</div>
-            <div class="project-meta" id="projectMeta">本地音乐视频项目</div>
-          </div>
-          <div class="topbar-actions">
-            <input id="searchInput" placeholder="搜索" />
-            <button id="newItemButton" title="在当前视图中新建一项" aria-label="新建">+</button>
-          </div>
-        </header>
+        <div class="content-title">
+          <div class="project-title" id="projectTitle" data-i18n="loading">加载中</div>
+          <div class="project-meta" id="projectMeta">本地音乐视频项目</div>
+        </div>
 
         <div id="lockBanner" class="lock-banner hidden">本地项目文件正在被 agent 使用，暂时只读。</div>
 
