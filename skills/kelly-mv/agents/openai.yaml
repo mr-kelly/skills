@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly MV"
+  short_description: "Music-video producer: turn a song into a pure-visual MV with a local UI."
+  default_prompt: "Use kelly-mv to build a music video from an uploaded MP3: write a one-line concept, keep a cast of characters with reference cards, and break the song into storyboard shots — each with a scene description and an image + video that can be AI-generated (image-to-image from the character cards, draft video via local LTX) or uploaded."

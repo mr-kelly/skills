@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kelly MV</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">MV</div>
+          <div>
+            <div class="brand-title">Kelly MV</div>
+            <div class="brand-subtitle" data-i18n="brand_subtitle">音乐视频工作台</div>
+          </div>
+        </div>
+
+        <section class="project-switcher" aria-label="MV switcher">
+          <label for="projectSelect" data-i18n="project">项目</label>
+          <select id="projectSelect"></select>
+          <div id="projectSwitchMeta" class="switch-meta"></div>
+        </section>
+
+        <section class="attention-panel" aria-label="Next step">
+          <div class="eyebrow" data-i18n="next_step">下一步</div>
+          <button id="nextStepButton" class="next-step" title="跳到当前最该做的一步">
+            <span id="nextStepLabel">—</span>
+          </button>
+        </section>
+
+        <div class="separator"></div>
+
+        <nav class="nav" id="nav">
+          <button class="active" data-view="concept" title="MV 总概括：一句话讲清这支 MV" data-i18n="nav_concept">概括</button>
+          <button data-view="song" title="上传一首 MP3" data-i18n="nav_song">Song</button>
+          <button data-view="cast" title="出镜人物与参考卡" data-i18n="nav_cast">角色</button>
+          <button data-view="storyboard" title="分镜：画面描述 + 上图/上视频" data-i18n="nav_storyboard">分镜</button>
+        </nav>
+
+        <div class="settings-dock">
+          <button id="settingsButton" class="settings-button" title="打开设置和本地文件信息">
+            <span data-i18n="settings">设置</span>
+            <small data-i18n="settings_sub">图像 API / 语言 / 文件</small>
+          </button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <div class="project-title" id="projectTitle" data-i18n="loading">加载中</div>
+            <div class="project-meta" id="projectMeta">本地音乐视频项目</div>
+          </div>
+          <div class="topbar-actions">
+            <input id="searchInput" placeholder="搜索" />
+            <button id="newItemButton" title="在当前视图中新建一项" aria-label="新建">+</button>
+          </div>
+        </header>
+
+        <div id="lockBanner" class="lock-banner hidden">本地项目文件正在被 agent 使用，暂时只读。</div>
+
+        <section class="workspace">
+          <div class="list-panel">
+            <div class="panel-head">
+              <div>
+                <h2 id="viewTitle">总览</h2>
+                <p id="viewSubtitle">MV 整体进度与下一步</p>
+              </div>
+              <span id="itemCount" class="count-pill">0</span>
+            </div>
+            <div id="list" class="item-list"></div>
+          </div>
+
+          <aside class="detail-panel">
+            <div id="detail" class="detail"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
+    <div id="settingsModal" class="modal-backdrop hidden" aria-hidden="true">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-head">
+          <div>
+            <div id="settingsTitle" class="modal-title" data-i18n="settings">设置</div>
+            <div class="modal-subtitle" id="settingsSubtitle">MV 生成与本地项目配置</div>
+          </div>
+          <button id="closeSettings" class="modal-close" aria-label="关闭设置" data-i18n="close">关闭</button>
+        </div>
+        <nav class="modal-tabs" aria-label="设置标签">
+          <button class="active" data-settings-tab="image" data-i18n="tab_image">图像 API</button>
+          <button data-settings-tab="song" data-i18n="tab_song">创歌</button>
+          <button data-settings-tab="general" data-i18n="tab_general">通用</button>
+          <button data-settings-tab="files" data-i18n="tab_files">文件</button>
+        </nav>
+        <div class="modal-body">
+          <section class="settings-panel active" data-settings-panel="image">
+            <h2 data-i18n="tab_image">图像 API</h2>
+            <p class="muted">用于生成分镜图与人物参考卡。API Key 只显示配置状态，不会回显完整密钥。</p>
+            <div id="imageSettingsMount"></div>
+          </section>
+          <section class="settings-panel" data-settings-panel="song">
+            <h2 data-i18n="tab_song">创歌（后续能力）</h2>
+            <div id="songSettingsMount" class="settings-card"></div>
+          </section>
+          <section class="settings-panel" data-settings-panel="general">
+            <h2 data-i18n="tab_general">通用</h2>
+            <div class="settings-card">
+              <div class="settings-row">
+                <span data-i18n="language">界面语言</span>
+                <select id="languageSelect">
+                  <option value="auto">Auto</option>
+                  <option value="zh">中文</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+            </div>
+          </section>
+          <section class="settings-panel" data-settings-panel="files">
+            <h2 data-i18n="tab_files">本地文件</h2>
+            <div class="settings-card">
+              <div class="settings-row">
+                <span data-i18n="project_file">项目文件</span>
+                <code id="projectPath">loading...</code>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

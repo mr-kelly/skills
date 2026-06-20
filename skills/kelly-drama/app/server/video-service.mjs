@@ -17,7 +17,14 @@ const DEFAULT_VIDEO_CONFIG = {
   height: 288,
   fps: 24,
   max_frames: 121, // (8*15+1) ≈ 5s draft cap to keep local gen fast
-  // prod_backend: "seedance-2.0",  // PROD MODE — not implemented yet (see generateShotVideoProd)
+  // PROD MODE — Seedance 2.0 via BytePlus/Volcengine Ark API (async submit→poll→download)
+  prod_backend: "seedance-2.0-ark",
+  ark_base_url: "https://ark.ap-southeast.bytepluses.com/api/v3",
+  ark_model: "dreamina-seedance-2-0-260128",
+  ark_api_key: "", // local-only; set in .data/video_config.json
+  prod_resolution: "720p", // 480p|720p|1080p|2K
+  prod_ratio: "16:9", // or "adaptive" to keep the keyframe's dims
+  prod_watermark: false,
 };
 
 async function loadVideoConfig() {
@@ -38,11 +45,85 @@ function draftPrompt(shot) {
   return [shot.video_prompt, shot.action, shot.composition].filter(Boolean).join("\n") || shot.title || shot.id;
 }
 
-// PROD MODE — Seedance 2.0 (or better). Intentionally not implemented yet.
-// When wired: call the Seedance image-to-video API with shot.image_asset + shot.video_prompt
-// at full duration/resolution, store under .data/generated/videos/, mode: "prod".
-export async function generateShotVideoProd() {
-  throw new Error("prod 模式（Seedance 2.0）暂未接入，仅保留占位。请用 draft 模式（本地 LTX）。");
+function prodPrompt(shot) {
+  return [shot.video_prompt, shot.action].filter(Boolean).join(" ") || shot.composition || shot.title || shot.id;
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// PROD MODE — Seedance 2.0 via Ark image-to-video (submit task → poll → download mp4).
+export async function generateShotVideoProd(shotId) {
+  const cfg = await loadVideoConfig();
+  if (!cfg.ark_api_key) throw new Error("Seedance/Ark API Key 未配置（在 .data/video_config.json 设置 ark_api_key）。");
+  const project = await loadProject();
+  const shot = (project.shots || []).find((s) => s.id === shotId);
+  if (!shot) throw new Error(`Unknown shot: ${shotId}`);
+  const base = String(cfg.ark_base_url).replace(/\/+$/, "");
+  const duration = Math.max(4, Math.min(Number(shot.duration_seconds) || 5, 15));
+  const headers = { Authorization: `Bearer ${cfg.ark_api_key}`, "Content-Type": "application/json" };
+  const textPart = { type: "text", text: prodPrompt(shot) };
+
+  const submitTask = async (content) => {
+    const r = await fetch(`${base}/contents/generations/tasks`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ model: cfg.ark_model, content, ratio: cfg.prod_ratio, duration, resolution: cfg.prod_resolution, watermark: cfg.prod_watermark }),
+    });
+    const d = await r.json().catch(() => ({}));
+    return { ok: r.ok, id: d.id, err: d?.error?.message || d?.message || `HTTP ${r.status}` };
+  };
+
+  // Try image-to-video (keyframe-consistent); if the safety filter rejects the
+  // photoreal human keyframe, fall back to text-to-video automatically.
+  const hasImage = shot.image_asset?.startsWith("/generated/") && await pathExists(absFromPublic(shot.image_asset));
+  let method = "text-to-video";
+  let sub;
+  if (hasImage) {
+    const dataUri = `data:image/png;base64,${(await fs.readFile(absFromPublic(shot.image_asset))).toString("base64")}`;
+    sub = await submitTask([textPart, { type: "image_url", image_url: { url: dataUri } }]);
+    if (sub.ok && sub.id) method = "image-to-video";
+    else if (/real person|真人|人脸|face/i.test(String(sub.err))) sub = await submitTask([textPart]); // fallback
+  } else {
+    sub = await submitTask([textPart]);
+  }
+  if (!sub.ok || !sub.id) throw new Error(`Seedance 提交失败: ${sub.err}`);
+  const taskId = sub.id;
+
+  // 2) poll
+  let videoUrl = "";
+  const deadline = Date.now() + 12 * 60 * 1000;
+  while (Date.now() < deadline) {
+    await sleep(5000);
+    const poll = await fetch(`${base}/contents/generations/tasks/${taskId}`, { headers });
+    const pd = await poll.json().catch(() => ({}));
+    const status = pd?.status;
+    if (status === "succeeded") { videoUrl = pd?.content?.video_url || ""; break; }
+    if (status === "failed" || status === "cancelled" || status === "expired") {
+      throw new Error(`Seedance 任务${status}: ${pd?.error?.message || ""}`);
+    }
+  }
+  if (!videoUrl) throw new Error("Seedance 任务超时未产出视频。");
+
+  // 3) download
+  const resp = await fetch(videoUrl);
+  if (!resp.ok) throw new Error(`下载成片失败: ${resp.status}`);
+  const bytes = Buffer.from(await resp.arrayBuffer());
+  await fs.mkdir(VIDEO_DIR, { recursive: true });
+  const filename = `${slug(shot.id)}-prod-${Date.now()}.mp4`;
+  await fs.writeFile(path.join(VIDEO_DIR, filename), bytes);
+  const publicPath = `/generated/videos/${filename}`;
+  const generatedAt = new Date().toISOString();
+  const generation = { mode: "prod", backend: cfg.prod_backend, model: cfg.ark_model, method, resolution: cfg.prod_resolution, ratio: cfg.prod_ratio, duration, source_image: method === "image-to-video" ? shot.image_asset : "", task_id: taskId };
+
+  project.shots = (project.shots || []).map((s) => {
+    if (s.id !== shot.id) return s;
+    const prior = s.video_candidates && s.video_candidates.length
+      ? s.video_candidates
+      : (s.video_asset?.startsWith("/generated/") ? [{ path: s.video_asset, generated_at: s.video_generated_at || generatedAt, generation: s.video_generation || {} }] : []);
+    return { ...s, video_candidates: [...prior, { path: publicPath, generated_at: generatedAt, generation }], video_asset: publicPath, video_generated_at: generatedAt, video_generation: generation };
+  });
+  await saveProject(project);
+  return { path: publicPath, state: await import("./state.mjs").then((m) => m.statePayload()) };
 }
 
 export async function generateShotVideoDraft(shotId) {

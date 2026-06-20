@@ -1,0 +1,101 @@
+{
+  "project_id": "kelly-mv-jingyesi",
+  "updated_at": "2026-06-20T00:00:00.000Z",
+  "projects": [],
+  "library": {},
+  "song": {
+    "title": "静夜思",
+    "artist": "李白（唐）· 古风配乐",
+    "audio_asset": "",
+    "duration_seconds": 0,
+    "source": ""
+  },
+  "treatment": {
+    "summary": "一位游子客居异乡，月夜难眠：由床前月光起兴，疑霜、望月、最终低头思乡。纯画面、写意古风。",
+    "look": "写实电影感古风，水墨氛围，月白青灰墨色，浅景深克制运镜",
+    "aspect_ratio": "16:9"
+  },
+  "characters": [
+    {
+      "id": "char-poet",
+      "name": "游子",
+      "role": "主角 / 客居诗人",
+      "status": "approved",
+      "actor_profile": "唐代客居他乡的青年文士，沉静内敛，靠眼神与微动作传情。",
+      "character_card": {
+        "identity": "月夜难眠、思念故乡的游子",
+        "wardrobe": "唐代素色交领长衫，束发木簪"
+      },
+      "visual": {
+        "front": "清瘦面庞，剑眉，束发，神情沉静",
+        "side": "鼻梁挺直，发髻木簪",
+        "back": "束发与长衫垂坠线条",
+        "wardrobe": "素色（月白/藏青）交领长衫，木簪束发",
+        "anchors": ["素色交领长衫", "束发木簪", "清瘦沉静面庞"],
+        "forbidden_drift": ["不要现代发型", "不要艳色服装", "不要佩戴明显饰品"]
+      },
+      "reference_card": {
+        "status": "ready_to_generate",
+        "prompt": "Reference portrait card, three views (front / side / back), photoreal cinematic, a slender young Tang-dynasty male scholar, calm melancholic expression, hair in a topknot with a plain wooden hairpin, plain moon-white / indigo cross-collar robe, neutral grey studio background, soft even light. No text, no watermark.",
+        "image_asset": ""
+      }
+    }
+  ],
+  "shots": [
+    {
+      "id": "shot-001",
+      "title": "夜空明月（建立镜）",
+      "characters": [],
+      "duration_seconds": 8,
+      "description": "极远景：深夜夜空一轮明月偏上方三分点，薄云缓缓飘过，大量留白。冷调月光。镜头极缓推近。无人，建立寂静空间。",
+      "negative_prompt": "on-screen text, captions, watermark, modern objects, people",
+      "video_prompt": "very slow push-in toward the moon, thin clouds drift slowly across"
+    },
+    {
+      "id": "shot-002",
+      "title": "床前明月光",
+      "characters": ["char-poet"],
+      "duration_seconds": 8,
+      "description": "中景：唐代客舍，月光透过木格窗洒在竹席床榻上，游子和衣侧卧、睁眼未眠，胸口轻起伏。室内幽暗，一点烛光。",
+      "negative_prompt": "on-screen text, captions, watermark, modern objects, plastic skin, distorted hands",
+      "video_prompt": "static frame, moonlight patches slowly shift, his chest rises and falls, candle flickers"
+    },
+    {
+      "id": "shot-003",
+      "title": "疑是地上霜",
+      "characters": ["char-poet"],
+      "duration_seconds": 10,
+      "description": "近景：地面月光白得像霜，焦点从地面白光 rack 到游子睁开的眼，眉心微动，似真似幻，缓缓眨眼。",
+      "negative_prompt": "on-screen text, captions, watermark, plastic skin, distorted features",
+      "video_prompt": "rack focus from frosty floor light to his eyes, a slow blink"
+    },
+    {
+      "id": "shot-004",
+      "title": "举头望明月",
+      "characters": ["char-poet"],
+      "duration_seconds": 8,
+      "description": "低角度中景：游子推开木窗立于窗前，缓缓抬头望向窗外明月，强月光勾出侧脸与发髻轮廓，夜风轻动衣袖发丝。",
+      "negative_prompt": "on-screen text, captions, watermark, modern objects, extra limbs, plastic skin",
+      "video_prompt": "slow tilt-up following his gaze to the moon, sleeves and hair stirred by breeze"
+    },
+    {
+      "id": "shot-005",
+      "title": "望月（眼中明月）",
+      "characters": ["char-poet"],
+      "duration_seconds": 8,
+      "description": "面部特写：游子仰望，瞳孔中倒映一轮小小明月，月光正面柔光，眼神由望月转入出神思念。",
+      "negative_prompt": "on-screen text, captions, watermark, plastic skin, distorted features",
+      "video_prompt": "static close-up, moon reflection shimmers in his eyes, gaze drifts to remembering"
+    },
+    {
+      "id": "shot-006",
+      "title": "低头思故乡",
+      "characters": ["char-poet"],
+      "duration_seconds": 6,
+      "description": "中远景剪影：游子低头立于窗前，月光逆光成剪影，庭院夜色在外，镜头缓缓拉远留白增大，画面渐隐于夜色。",
+      "negative_prompt": "on-screen text, captions, watermark, modern objects, plastic skin",
+      "video_prompt": "slow dolly-out as he lowers his head, shoulders settle, gentle fade to darkness"
+    }
+  ],
+  "tasks": []
+}

@@ -12,6 +12,8 @@ let mode = modeForDemo(demoScenario);
 const queryLanguage = params.get("lang");
 let languageMode = queryLanguage || localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto";
 let uiLanguage = "en";
+let isApplyingRoute = false;
+let routeNeedsReplace = false;
 
 const $ = (id) => document.getElementById(id);
 
@@ -120,6 +122,105 @@ function modeForDemo(value) {
   if (value === "review") return "needs_review";
   if (["approved", "blocked", "done"].includes(value)) return value;
   return "all";
+}
+
+function routeModes() {
+  return ["all", "needs_review", "approved", "done", "blocked"];
+}
+
+function helpTabs() {
+  return ["guide", "files", "accounts", "profile", "style", "knowledge", "language", "config"];
+}
+
+function encodeRoutePart(value) {
+  return encodeURIComponent(String(value || ""));
+}
+
+function decodeRoutePart(value) {
+  try {
+    return decodeURIComponent(value || "");
+  } catch {
+    return value || "";
+  }
+}
+
+function routeFor() {
+  const modalOpen = !$("helpModal")?.classList.contains("is-hidden");
+  if (modalOpen) {
+    const activeTab = document.querySelector("[data-help-tab].active")?.dataset.helpTab || "guide";
+    return `/settings/${activeTab}`;
+  }
+  const modePart = routeModes().includes(mode) ? mode : "all";
+  return selectedId ? `/${modePart}/${encodeRoutePart(selectedId)}` : `/${modePart}`;
+}
+
+function parseHashRoute() {
+  const raw = (window.location.hash || "").replace(/^#\/?/, "");
+  const parts = raw.split("/").filter(Boolean).map(decodeRoutePart);
+  if (parts[0] === "settings") {
+    return {
+      settingsTab: helpTabs().includes(parts[1]) ? parts[1] : "guide",
+      mode,
+      selectedId,
+    };
+  }
+  return {
+    settingsTab: null,
+    mode: routeModes().includes(parts[0]) ? parts[0] : mode,
+    selectedId: parts[1] || null,
+  };
+}
+
+function applyRouteFromHash({ refreshData = false } = {}) {
+  isApplyingRoute = true;
+  routeNeedsReplace = false;
+  const route = parseHashRoute();
+  mode = route.mode;
+  selectedId = route.selectedId;
+  syncModeButtons();
+  if (route.settingsTab) {
+    openHelp(route.settingsTab);
+  } else if (!$("helpModal").classList.contains("is-hidden")) {
+    closeHelp({ skipRoute: true });
+  }
+  isApplyingRoute = false;
+  if (refreshData) refresh({ preserveScroll: false }).catch((error) => toast(error.message));
+}
+
+function syncRoute({ push = false } = {}) {
+  if (isApplyingRoute) {
+    routeNeedsReplace = true;
+    return;
+  }
+  const target = `#${routeFor()}`;
+  if (window.location.hash === target) return;
+  if (push) window.location.hash = target;
+  else history.replaceState(null, "", target);
+}
+
+function navigateTo(next = {}, { replace = false, refreshData = false } = {}) {
+  if ("mode" in next) mode = next.mode;
+  if ("selectedId" in next) selectedId = next.selectedId;
+  syncModeButtons();
+  const target = `#${routeFor()}`;
+  if (window.location.hash === target) {
+    if (refreshData) refresh({ preserveScroll: false }).catch((error) => toast(error.message));
+    else {
+      renderList();
+      renderDetail();
+    }
+    return;
+  }
+  if (replace) {
+    history.replaceState(null, "", target);
+    if (refreshData) refresh({ preserveScroll: false }).catch((error) => toast(error.message));
+    else {
+      renderList();
+      renderDetail();
+    }
+  } else {
+    window.location.hash = target;
+  }
 }
 
 function escapeHtml(value) {
@@ -421,7 +522,7 @@ function setHelpTab(name) {
   });
 }
 
-function openHelp() {
+function openHelp(tab = "guide") {
   const modal = $("helpModal");
   const batch = state.batch || {};
   const onboarding = state.email_accounts?.onboarding || {};
@@ -437,15 +538,17 @@ function openHelp() {
   $("helpStyle").innerHTML = styleSettingsHtml();
   $("helpKnowledge").innerHTML = knowledgeSettingsHtml();
   renderLanguageSummary();
-  setHelpTab("guide");
+  setHelpTab(tab);
   modal.classList.remove("is-hidden");
   modal.setAttribute("aria-hidden", "false");
+  syncRoute({ push: true });
 }
 
-function closeHelp() {
+function closeHelp({ skipRoute = false } = {}) {
   const modal = $("helpModal");
   modal.classList.add("is-hidden");
   modal.setAttribute("aria-hidden", "true");
+  if (!skipRoute) syncRoute({ push: true });
 }
 
 function isLocked() {
@@ -626,16 +729,17 @@ function renderList() {
     $("listCount").textContent = t("list.setup_required");
     return;
   }
-  if (!selectedId || !state.items.some((item) => item.id === selectedId)) selectedId = state.items[0]?.id || null;
+  if (!selectedId || !state.items.some((item) => item.id === selectedId)) {
+    selectedId = state.items[0]?.id || null;
+    syncRoute({ push: false });
+  }
   $("messageList").innerHTML = state.items.map(rowHtml).join("") || `<div class="empty-detail">${escapeHtml(t("list.no_items"))}</div>`;
   $("listCount").textContent = t("list.items", { count: state.items.length });
   document.querySelectorAll(".message-row").forEach((row) => {
     row.addEventListener("click", (event) => {
       if (isLocked()) return;
       if (event.target.classList.contains("row-check")) return;
-      selectedId = row.dataset.id;
-      renderList();
-      renderDetail();
+      navigateTo({ selectedId: row.dataset.id });
     });
   });
   document.querySelectorAll(".row-check").forEach((box) => {
@@ -761,6 +865,7 @@ function renderDetail() {
 
 async function refresh({ preserveScroll = true } = {}) {
   if (isEditing()) return pollLock();
+  applyRouteFromHash();
   const scrollState = preserveScroll ? captureScrollState() : null;
   const q = encodeURIComponent($("searchInput").value || "");
   if (mode === "to_approve") mode = "approved";
@@ -769,6 +874,10 @@ async function refresh({ preserveScroll = true } = {}) {
   renderList();
   renderDetail();
   applyLockState();
+  if (routeNeedsReplace) {
+    history.replaceState(null, "", `#${routeFor()}`);
+    routeNeedsReplace = false;
+  }
   if (scrollState) requestAnimationFrame(() => restoreScrollState(scrollState));
 }
 
@@ -809,7 +918,10 @@ function wire() {
     if (event.key === "Escape" && !$("helpModal").classList.contains("is-hidden")) closeHelp();
   });
   document.querySelectorAll("[data-help-tab]").forEach((button) => {
-    button.onclick = () => setHelpTab(button.dataset.helpTab);
+    button.onclick = () => {
+      setHelpTab(button.dataset.helpTab);
+      syncRoute({ push: true });
+    };
   });
   $("approveSelected").onclick = () => decide("approve_proposed");
   $("reviewSelected").onclick = () => decide("needs_review");
@@ -827,18 +939,12 @@ function wire() {
   $("searchInput").addEventListener("input", () => refresh({ preserveScroll: false }));
   document.querySelectorAll("#filters button").forEach((button) => {
     button.onclick = async () => {
-      mode = button.dataset.mode;
-      syncModeButtons();
-      selectedId = null;
-      await refresh({ preserveScroll: false });
+      navigateTo({ mode: button.dataset.mode, selectedId: null }, { refreshData: true });
     };
   });
   document.querySelectorAll(".human-work [data-mode]").forEach((button) => {
     button.onclick = async () => {
-      mode = button.dataset.mode;
-      syncModeButtons();
-      selectedId = null;
-      await refresh({ preserveScroll: false });
+      navigateTo({ mode: button.dataset.mode, selectedId: null }, { refreshData: true });
     };
   });
   document.querySelectorAll('input[name="uiLanguage"]').forEach((input) => {
@@ -849,6 +955,7 @@ function wire() {
 applyTranslations();
 wire();
 syncModeButtons();
+window.addEventListener("hashchange", () => applyRouteFromHash({ refreshData: true }));
 refresh({ preserveScroll: false }).catch((error) => toast(error.message));
 lockTimer = setInterval(() => pollLock().catch((error) => toast(error.message)), 3000);
 refreshTimer = setInterval(() => refresh().catch((error) => toast(error.message)), 15000);
