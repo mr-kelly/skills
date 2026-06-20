@@ -1,6 +1,7 @@
-import { PROJECT_PATH, REPORT_PATH, TASKS_PATH } from "./paths.mjs";
+import { ACTIVE_PROJECT_PATH, PROJECT_PATH, REPORT_PATH, TASKS_PATH } from "./paths.mjs";
 import { loadProject } from "./project-store.mjs";
 import { lockPayload } from "./lock.mjs";
+import { pathExists, readJson, writeJson } from "./utils.mjs";
 
 function countBy(items, field = "status") {
   const counts = {};
@@ -41,10 +42,58 @@ function attention(project) {
   return { needs_review: needsReview, approved, blocked };
 }
 
-export async function statePayload() {
+function projectOptions(project) {
+  if (project.projects?.length) return project.projects;
+  return [{
+    id: project.project_id,
+    title: project.series?.title || "未命名短剧",
+    genre: project.series?.genre || "",
+    format: project.series?.format || "",
+  }];
+}
+
+function activeProjectIdFor(project, activeState = {}) {
+  const known = new Set(projectOptions(project).map((item) => item.id).filter(Boolean));
+  if (activeState.active_project_id && known.has(activeState.active_project_id)) return activeState.active_project_id;
+  return project.project_id || projectOptions(project)[0]?.id || "";
+}
+
+function viewForProject(project, activeProjectId) {
+  if (!activeProjectId || activeProjectId === project.project_id) return project;
+  const entry = project.library?.[activeProjectId];
+  if (!entry) return project;
+  return {
+    ...project,
+    project_id: entry.project_id || activeProjectId,
+    series: entry.series || {},
+    characters: entry.characters || [],
+    relationships: entry.relationships || [],
+    episodes: entry.episodes || [],
+    shots: entry.shots || [],
+    tasks: entry.tasks || [],
+  };
+}
+
+export async function setActiveProject(activeProjectId) {
   const project = await loadProject();
+  const known = new Set(projectOptions(project).map((item) => item.id).filter(Boolean));
+  if (!known.has(activeProjectId)) throw new Error(`Unknown project: ${activeProjectId}`);
+  await writeJson(ACTIVE_PROJECT_PATH, {
+    active_project_id: activeProjectId,
+    updated_at: new Date().toISOString(),
+  });
+  return statePayload();
+}
+
+export async function statePayload() {
+  const rootProject = await loadProject();
+  const activeState = (await pathExists(ACTIVE_PROJECT_PATH)) ? await readJson(ACTIVE_PROJECT_PATH, {}) : {};
+  const activeProjectId = activeProjectIdFor(rootProject, activeState);
+  const project = viewForProject(rootProject, activeProjectId);
   return {
     project,
+    projects: projectOptions(rootProject),
+    active_project_id: activeProjectId,
     paths: {
       project_path: PROJECT_PATH,
       tasks_path: TASKS_PATH,

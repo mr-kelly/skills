@@ -12,10 +12,16 @@
         <div class="brand">
           <div class="brand-mark">KD</div>
           <div>
-            <div class="brand-title">Kelly Drama</div>
+            <div class="brand-title">短剧切换器</div>
             <div class="brand-subtitle">短剧创作工作台</div>
           </div>
         </div>
+
+        <section class="project-switcher" aria-label="Drama switcher">
+          <label for="projectSelect">当前短剧</label>
+          <select id="projectSelect"></select>
+          <div id="projectSwitchMeta" class="switch-meta"></div>
+        </section>
 
         <section class="attention" aria-labelledby="attentionTitle">
           <div class="eyebrow">现在最该补</div>
@@ -39,12 +45,11 @@
         <div class="separator"></div>
 
         <nav class="nav" id="nav">
-          <button class="active" data-view="overview" title="查看项目总览">总览</button>
+          <button class="active" data-view="overview" title="查看短剧背景、世界规则和项目总览">背景</button>
           <button data-view="characters" title="维护人物库、演员设定、三视图">人物库</button>
-          <button data-view="relationships" title="维护人物关系和权力变化">关系网</button>
-          <button data-view="episodes" title="编辑分级剧情和单集节拍">剧集</button>
-          <button data-view="shots" title="编辑分镜和生图提示词">分镜生图</button>
-          <button data-view="tasks" title="查看 AI 或人工待办">任务</button>
+          <button data-view="relationships" title="维护人物关系、权力变化和证据">人物关系图</button>
+          <button data-view="episodes" title="浏览剧集表格并进入单集剧本详情">剧集</button>
+          <button data-view="tasks" title="查看 AI 或人工待办">审批</button>
         </nav>
 
         <div class="local-note">

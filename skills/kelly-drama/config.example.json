@@ -2,8 +2,10 @@
   "data_provider": "local",
   "project_defaults": {
     "language": "zh-CN",
-    "image_style": "vertical short-drama cinematic realism",
-    "episode_duration_seconds": 75
+    "image_style": "16:9 live-action historical cinema realism",
+    "episode_duration_seconds_min": 120,
+    "episode_duration_seconds_max": 240,
+    "shot_duration_presets_seconds": [4, 5, 6, 8, 10, 12]
   },
   "export": {
     "default_format": "markdown"

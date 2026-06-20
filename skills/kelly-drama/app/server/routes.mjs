@@ -1,9 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { APP_DIR } from "./paths.mjs";
+import { APP_DIR, GENERATED_DIR } from "./paths.mjs";
 import { assertUnlocked } from "./lock.mjs";
+import { generateCharacterCard, generateStoryboardImage, generateVisualBackground, imageConfigPayload, saveImageConfig } from "./image-service.mjs";
 import { loadProject, saveProject, upsertById } from "./project-store.mjs";
-import { statePayload } from "./state.mjs";
+import { setActiveProject, statePayload } from "./state.mjs";
 import { slug } from "./utils.mjs";
 
 const CONTENT_TYPES = {
@@ -81,7 +82,9 @@ export async function handleRequest(req, res) {
       if (url.pathname === "/app.js") return sendFile(res, path.join(APP_DIR, "app.js"));
       if (url.pathname === "/styles.css") return sendFile(res, path.join(APP_DIR, "styles.css"));
       if (url.pathname.startsWith("/i18n/")) return sendFile(res, path.join(APP_DIR, url.pathname));
+      if (url.pathname.startsWith("/generated/")) return sendFile(res, path.join(GENERATED_DIR, url.pathname.replace(/^\/generated\//, "")));
       if (url.pathname === "/api/state") return sendJson(res, await statePayload());
+      if (url.pathname === "/api/image-config") return sendJson(res, await imageConfigPayload());
       send(res, 404, "Not Found");
       return;
     }
@@ -93,6 +96,24 @@ export async function handleRequest(req, res) {
         project.series = body.series || body;
         await saveProject(project);
         return sendJson(res, await statePayload());
+      }
+      if (url.pathname === "/api/active-project") {
+        return sendJson(res, await setActiveProject(String(body.project_id || "")));
+      }
+      if (url.pathname === "/api/image-config") {
+        return sendJson(res, await saveImageConfig(body));
+      }
+      if (url.pathname === "/api/storyboard-image") {
+        await assertUnlocked();
+        return sendJson(res, await generateStoryboardImage(String(body.shot_id || "")));
+      }
+      if (url.pathname === "/api/visual-background-image") {
+        await assertUnlocked();
+        return sendJson(res, await generateVisualBackground());
+      }
+      if (url.pathname === "/api/character-card-image") {
+        await assertUnlocked();
+        return sendJson(res, await generateCharacterCard(String(body.character_id || "")));
       }
       const match = url.pathname.match(/^\/api\/(characters|relationships|episodes|shots|tasks)(?:\/([^/]+))?$/);
       if (match) {
