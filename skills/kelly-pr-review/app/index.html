@@ -8,9 +8,9 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
+      <aside class="sidebar" id="appSidebar">
         <div class="sidebar-top">
-          <button class="icon-button" aria-label="Toggle sidebar" title="Toggle sidebar">▣</button>
+          <button id="sidebarToggle" class="icon-button" type="button" aria-controls="appSidebar" aria-expanded="true" aria-label="Toggle sidebar" title="Toggle sidebar">☰</button>
           <div>
             <div class="brand-title">Kelly PR Review</div>
             <div class="brand-subtitle" data-i18n="brand.subtitle">GitHub review desk</div>
@@ -49,6 +49,7 @@
       </aside>
 
       <main class="main">
+        <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar">☰</button>
         <div id="lockBanner" class="lock-banner is-hidden">
           <strong data-i18n="locked">Locked</strong>
           <span id="lockMessage">The local files are locked for a moment.</span>
@@ -83,6 +84,7 @@
         </section>
       </main>
     </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
 
     <div id="helpModal" class="modal-backdrop is-hidden" aria-hidden="true">
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">

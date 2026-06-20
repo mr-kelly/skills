@@ -8,13 +8,14 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
+      <aside class="sidebar" id="appSidebar">
         <div class="brand">
           <div class="brand-mark">KD</div>
-          <div>
+          <div class="brand-copy">
             <div class="brand-title">Kelly Drama</div>
             <div class="brand-subtitle">短剧工作台</div>
           </div>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="收起侧栏" aria-label="收起侧栏">☰</button>
         </div>
 
         <section class="project-switcher" aria-label="Drama switcher">
@@ -62,6 +63,7 @@
       </aside>
 
       <main class="main">
+        <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="打开侧栏" title="打开侧栏">☰</button>
         <div class="content-title">
           <div class="project-title" id="projectTitle">加载中</div>
           <div class="project-meta" id="projectMeta">本地短剧项目</div>
@@ -82,11 +84,13 @@
           </div>
 
           <aside class="detail-panel">
+            <button id="backToList" class="back-to-list" type="button">← 列表</button>
             <div id="detail" class="detail"></div>
           </aside>
         </section>
       </main>
     </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
     <div id="settingsModal" class="modal-backdrop hidden" aria-hidden="true">
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
         <div class="modal-head">

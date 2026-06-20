@@ -8,8 +8,46 @@ let imageConfig = null;
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
 let lastAppliedHash = "";
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-drama.sidebarCollapsed";
 
 const $ = (id) => document.getElementById(id);
+
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 720px)").matches;
+}
+
+function setSidebarCollapsed(collapsed, { persist = true } = {}) {
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+  $("sidebarToggle")?.setAttribute("aria-expanded", String(!collapsed));
+  if (persist) localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
+}
+
+function setMobileSidebarOpen(open) {
+  document.body.classList.toggle("sidebar-open", open);
+  const scrim = $("sidebarScrim");
+  if (scrim) scrim.hidden = !open;
+}
+
+function setMobileDetailOpen(open) {
+  document.body.classList.toggle("mobile-detail-open", Boolean(open));
+}
+
+function syncResponsiveShell() {
+  if (isMobileLayout()) {
+    document.body.classList.remove("sidebar-collapsed");
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(Boolean(selectedId) && view !== "overview");
+  } else {
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(false);
+    setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "1", { persist: false });
+  }
+}
+
+function toggleSidebar() {
+  if (isMobileLayout()) setMobileSidebarOpen(!document.body.classList.contains("sidebar-open"));
+  else setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+}
 
 const viewMeta = {
   overview: ["总览", "项目状态和下一步"],
@@ -1160,17 +1198,20 @@ function bindForm() {
   });
   document.querySelectorAll("[data-select]").forEach((node) => {
     node.addEventListener("click", () => {
+      if (isMobileLayout()) setMobileDetailOpen(true);
       navigateTo({ selectedId: node.dataset.select });
     });
   });
   document.querySelectorAll("[data-episode-detail]").forEach((node) => {
     node.addEventListener("click", () => {
+      if (isMobileLayout()) setMobileDetailOpen(true);
       navigateTo({ view: "episodes", selectedId: node.dataset.episodeDetail, episodeMode: "detail", episodeTab: "summary" });
     });
   });
   document.querySelectorAll("[data-row-episode]").forEach((node) => {
     node.addEventListener("click", (event) => {
       if (event.target.closest("button")) return;
+      if (isMobileLayout()) setMobileDetailOpen(true);
       navigateTo({ view: "episodes", selectedId: node.dataset.rowEpisode, episodeMode: "detail", episodeTab: "summary" });
     });
   });
@@ -1477,6 +1518,8 @@ function newItem() {
 document.addEventListener("click", (event) => {
   const viewButton = event.target.closest("[data-view]");
   if (viewButton) {
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(false);
     navigateTo({ view: viewButton.dataset.view, selectedId: null, episodeMode: "list", episodeTab: "summary" });
   }
 });
@@ -1497,6 +1540,14 @@ $("projectSelect").addEventListener("change", async () => {
 });
 
 $("newItemButton").addEventListener("click", newItem);
+$("sidebarToggle").addEventListener("click", toggleSidebar);
+$("mobileSidebarToggle").addEventListener("click", () => setMobileSidebarOpen(true));
+$("sidebarScrim").addEventListener("click", () => setMobileSidebarOpen(false));
+$("backToList").addEventListener("click", () => {
+  if (view === "episodes" && episodeMode === "detail") navigateTo({ view: "episodes", selectedId: null, episodeMode: "list", episodeTab: "summary" });
+  else setMobileDetailOpen(false);
+});
+window.addEventListener("resize", syncResponsiveShell);
 $("settingsButton").addEventListener("click", openSettings);
 $("closeSettings").addEventListener("click", closeSettings);
 $("settingsModal").addEventListener("click", (event) => {
@@ -1592,6 +1643,7 @@ setInterval(() => {
   }
 }, 300);
 
+syncResponsiveShell();
 load().catch((error) => {
   document.body.innerHTML = `<pre>${escapeHtml(error.stack || error.message)}</pre>`;
 });

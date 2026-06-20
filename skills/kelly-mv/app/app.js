@@ -16,6 +16,7 @@ const state = {
 
 const VIEWS = ["concept", "song", "cast", "storyboard"];
 const DURATIONS = [4, 5, 6, 8, 10, 12];
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-mv.sidebarCollapsed";
 
 function esc(value) {
   return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -27,6 +28,36 @@ function secs(n) {
   return `${Math.floor(v / 60)}:${String(v % 60).padStart(2, "0")}`;
 }
 function project() { return state.data?.project || {}; }
+
+function isMobileLayout() { return window.matchMedia("(max-width: 720px)").matches; }
+function setSidebarCollapsed(collapsed, { persist = true } = {}) {
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+  document.getElementById("sidebarToggle")?.setAttribute("aria-expanded", String(!collapsed));
+  if (persist) localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
+}
+function setMobileSidebarOpen(open) {
+  document.body.classList.toggle("sidebar-open", open);
+  const scrim = document.getElementById("sidebarScrim");
+  if (scrim) scrim.hidden = !open;
+}
+function setMobileDetailOpen(open) {
+  document.body.classList.toggle("mobile-detail-open", Boolean(open));
+}
+function syncResponsiveShell() {
+  if (isMobileLayout()) {
+    document.body.classList.remove("sidebar-collapsed");
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(Boolean(state.selectedId) && !["concept", "song"].includes(state.view));
+  } else {
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(false);
+    setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "1", { persist: false });
+  }
+}
+function toggleSidebar() {
+  if (isMobileLayout()) setMobileSidebarOpen(!document.body.classList.contains("sidebar-open"));
+  else setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+}
 
 async function api(path, options = {}) {
   const res = await fetch(path, options);
@@ -97,6 +128,7 @@ function go(view, id, replace = false) {
 // ---------------------------------------------------------------------------
 async function boot() {
   parseHash();
+  syncResponsiveShell();
   wireChrome();
   await Promise.all([refresh(), loadImageConfig(), loadSongConfig()]);
   setInterval(pollLock, 5000);
@@ -120,10 +152,19 @@ window.addEventListener("hashchange", () => { parseHash(); render(); });
 function wireChrome() {
   document.getElementById("nav").addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-view]");
-    if (btn) go(btn.dataset.view);
+    if (btn) {
+      setMobileSidebarOpen(false);
+      setMobileDetailOpen(false);
+      go(btn.dataset.view);
+    }
   });
   document.getElementById("nextStepButton").addEventListener("click", () => routeNextStep());
   document.getElementById("newItemButton").addEventListener("click", () => onNewItem());
+  document.getElementById("sidebarToggle").addEventListener("click", toggleSidebar);
+  document.getElementById("mobileSidebarToggle").addEventListener("click", () => setMobileSidebarOpen(true));
+  document.getElementById("sidebarScrim").addEventListener("click", () => setMobileSidebarOpen(false));
+  document.getElementById("backToList").addEventListener("click", () => setMobileDetailOpen(false));
+  window.addEventListener("resize", syncResponsiveShell);
   document.getElementById("searchInput").addEventListener("input", (e) => { state.search = e.target.value; renderList(); });
   document.getElementById("projectSelect").addEventListener("change", async (e) => {
     try { applyState(await post("/api/active-project", { project_id: e.target.value })); } catch (err) { toast(err.message, "danger"); }
@@ -223,8 +264,14 @@ function renderList() {
   const { html, count } = renderers[state.view]();
   host.innerHTML = html;
   countPill.textContent = count;
-  host.querySelectorAll("[data-select]").forEach((node) => node.addEventListener("click", () => go(state.view, node.dataset.select, true)));
-  host.querySelectorAll("[data-jump]").forEach((node) => node.addEventListener("click", () => go(node.dataset.jump)));
+  host.querySelectorAll("[data-select]").forEach((node) => node.addEventListener("click", () => {
+    if (isMobileLayout()) setMobileDetailOpen(true);
+    go(state.view, node.dataset.select, true);
+  }));
+  host.querySelectorAll("[data-jump]").forEach((node) => node.addEventListener("click", () => {
+    setMobileDetailOpen(false);
+    go(node.dataset.jump);
+  }));
 }
 
 function listConcept() {
