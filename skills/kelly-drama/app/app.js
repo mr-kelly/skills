@@ -758,27 +758,33 @@ function imageCandidateStrip(shot) {
     </button>`).join("")}</div>`;
 }
 
+function videoModelLabel(generation) {
+  if (!generation) return "视频";
+  const b = generation.backend || "";
+  const model = /seedance/i.test(b) ? "Seedance" : /ltx/i.test(b) ? "LTX" : (generation.model || "视频");
+  const m = generation.method === "text-to-video" ? "文生" : generation.method === "image-to-video" ? "图生" : "";
+  return m ? `${model}·${m}` : model;
+}
+
 function videoCandidateStrip(shot) {
   const { list, active } = candidateList(shot, "video");
   if (list.length < 2) return "";
   return `<div class="cand-chips">${list.map((c, i) => `
-    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-active-video="${escapeHtml(c.path)}" data-shot="${escapeHtml(shot.id)}">草稿${i + 1}${c.path === active ? " ✓" : ""}</button>`).join("")}</div>`;
+    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-active-video="${escapeHtml(c.path)}" data-shot="${escapeHtml(shot.id)}">v${i + 1}·${escapeHtml(videoModelLabel(c.generation))}${c.path === active ? " ✓" : ""}</button>`).join("")}</div>`;
 }
 
 function shotVideoBlock(shot) {
   const v = shot.video_asset || "";
   const isVideo = v.startsWith("/generated/");
-  const vmode = shot.video_generation?.mode;
   const hasImage = (shot.image_asset || "").startsWith("/generated/");
   return `
     <div class="shot-video">
       ${isVideo
-        ? `<video src="${escapeHtml(v)}" controls preload="metadata" playsinline></video>${vmode ? `<span class="img-mode-badge">${vmode === "draft" ? "草稿·LTX本地" : "成片"}</span>` : ""}`
-        : `<div class="asset-placeholder">${hasImage ? "草稿视频待生成" : "先生成分镜图，再生成草稿视频"}</div>`}
+        ? `<video src="${escapeHtml(v)}" controls preload="metadata" playsinline></video><span class="img-mode-badge">${escapeHtml(videoModelLabel(shot.video_generation))}</span>`
+        : `<div class="asset-placeholder">${hasImage ? "分镜视频待生成" : "先生成分镜图，再生成分镜视频"}</div>`}
       ${videoCandidateStrip(shot)}
       <div class="storyboard-actions">
-        <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" ${hasImage ? "" : "disabled"}>${isVideo ? "再生一版" : "生成草稿视频"}</button>
-        <button type="button" class="mini-button ghost" disabled title="Seedance 2.0 成片模式尚未接入">成片(待接入)</button>
+        <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" ${hasImage ? "" : "disabled"}>${isVideo ? "再生一版" : "生成分镜视频"}</button>
       </div>
     </div>`;
 }
@@ -1217,16 +1223,16 @@ function bindForm() {
     node.addEventListener("click", async () => {
       const shotId = node.dataset.generateVideo;
       node.disabled = true;
-      node.textContent = "生成中(本地LTX,较慢)...";
+      node.textContent = "生成中(云端,约30-120s)...";
       try {
-        const result = await api("/api/shot-video", { shot_id: shotId, mode: "draft" });
+        const result = await api("/api/shot-video", { shot_id: shotId });
         state = result.state || await api("/api/state");
-        toast("草稿视频已生成");
+        toast("分镜视频已生成");
         render();
       } catch (error) {
-        toast(error.message || "草稿视频生成失败");
+        toast(error.message || "分镜视频生成失败");
         node.disabled = false;
-        node.textContent = "生成草稿视频";
+        node.textContent = "生成分镜视频";
       }
     });
   });

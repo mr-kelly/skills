@@ -278,6 +278,7 @@ Build the app as a quiet local tool, not a landing page. Keep controls obvious a
 - For queues that users discuss back in chat, show stable per-batch row references such as `Review #1` in both the list and detail views so comments like "change #2" can be resolved unambiguously.
 - Auto-refresh files on a timer, but do not redraw while the user is actively editing a textarea or non-search input.
 - Keep the top bar and sidebar fixed if the item list scrolls.
+- For zero-dependency single-page apps, use native hash routing by default for meaningful view state: `#/items`, `#/items/<id>`, `#/settings`, or workflow-specific equivalents. Do not add a router dependency just to make URLs change. Route all sidebar navigation, list selection, detail tabs, settings/help panels, and other share-worthy states through one small hash router so browser back/forward works, refresh restores the same view, and users can copy a URL back into chat. Use `history.replaceState` for keyboard selection or automatic route cleanup so arrow-key browsing does not flood history; use normal hash changes for user-initiated navigation. Prefer hash routes over `history.pushState` unless the local server intentionally implements an index.html fallback for every app path.
 - Use local HTTP on `127.0.0.1`; do not expose the app externally.
 - Prefer local app ports in the `3000-4000` range, starting at `3000`; if the port is occupied, reuse it only when the health/state response proves it is the same app, otherwise choose the next available port in the range. Always report the actual URL printed by the launcher.
 - If the skill uses private config, show a compact read-only `Help & Settings` summary in the UI so the user can confirm which accounts, identities, profile, style choices, official links, knowledge sources, or data sources are active.
@@ -393,8 +394,9 @@ When creating or updating an App-in-Skill:
 8. Add data-provider helpers shared by scripts and the app server. The default provider may implement local config/env discovery using the private configuration priority above, but callers should depend on the provider interface.
 9. Add a sanitized config summary, active data-provider name, and onboarding status to `/api/state` when the user needs to verify configured accounts, operator profile, style, official URLs, knowledge sources, or data sources.
 10. Add the human-attention panel at the top-left and verify that it clearly tells the user what they need to do before they inspect the list.
-11. Start the app with `app/start.sh` and verify the onboarding and main workflow in a browser when available.
-12. Run the validator and a dry-run execution before enabling real side effects.
+11. Add a zero-dependency hash router for the app's meaningful state and verify deep links, refresh restore, and browser back/forward behavior. At minimum, sidebar views and selected item/detail routes should have stable hashes.
+12. Start the app with `app/start.sh` and verify the onboarding and main workflow in a browser when available.
+13. Run the validator and a dry-run execution before enabling real side effects.
 
 ## Safety Defaults
 

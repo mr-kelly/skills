@@ -1,6 +1,6 @@
 # Kelly Email UI
 
-Local file-only approval desk for the `kelly-email` skill. `/kelly-email` uses this UI by default unless the user explicitly asks for chat-only email handling.
+Personal email assistant review desk for the `kelly-email` skill. `/kelly-email` uses this UI by default unless the user explicitly asks for chat-only email handling.
 
 The app is intentionally not an email client:
 

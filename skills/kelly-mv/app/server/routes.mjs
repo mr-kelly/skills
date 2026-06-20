@@ -4,7 +4,8 @@ import { APP_DIR, GENERATED_DIR } from "./paths.mjs";
 import { assertUnlocked } from "./lock.mjs";
 import { generateCharacterCard, generateStoryboardImage, generateVisualBackground, imageConfigPayload, saveImageConfig, storyboardPromptPreview } from "./image-service.mjs";
 import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.mjs";
-import { generateCharacterVoice, setCharacterVoiceActive } from "./voice-service.mjs";
+import { generateSongDraft, importSong, songConfigPayload, updateSong, uploadSong } from "./song-service.mjs";
+import { uploadShotAsset } from "./upload-service.mjs";
 import { loadProject, saveProject, upsertById } from "./project-store.mjs";
 import { setActiveProject, statePayload } from "./state.mjs";
 import { slug } from "./utils.mjs";
@@ -35,7 +36,14 @@ function sendJson(res, data, status = 200) {
 }
 
 async function sendFile(res, pathname) {
-  const body = await fs.readFile(pathname);
+  let body;
+  try {
+    body = await fs.readFile(pathname);
+  } catch {
+    // Missing file must never crash the server — return 404 instead.
+    send(res, 404, "Not Found");
+    return;
+  }
   send(res, 200, body, {
     "Content-Type": CONTENT_TYPES[path.extname(pathname)] || "application/octet-stream",
     "Content-Length": body.length,
@@ -52,7 +60,7 @@ async function readJsonBody(req) {
 
 function idFor(kind, item) {
   if (item.id) return String(item.id);
-  const prefix = { characters: "char", relationships: "rel", episodes: "ep", shots: "shot", tasks: "task" }[kind] || "item";
+  const prefix = { characters: "char", shots: "shot", tasks: "task" }[kind] || "item";
   const base = item.name || item.title || item.type || Date.now();
   return `${prefix}-${slug(base)}`;
 }
@@ -105,25 +113,48 @@ export async function handleRequest(req, res) {
       return;
     }
     if (req.method === "GET") {
-      if (url.pathname === "/") return sendFile(res, path.join(APP_DIR, "index.html"));
-      if (url.pathname === "/app.js") return sendFile(res, path.join(APP_DIR, "app.js"));
-      if (url.pathname === "/styles.css") return sendFile(res, path.join(APP_DIR, "styles.css"));
-      if (url.pathname.startsWith("/i18n/")) return sendFile(res, path.join(APP_DIR, url.pathname));
-      if (url.pathname.startsWith("/generated/")) return sendFile(res, path.join(GENERATED_DIR, url.pathname.replace(/^\/generated\//, "")));
+      // Decode percent-encoding so non-ASCII (e.g. Chinese) filenames resolve on disk.
+      const decodedPath = decodeURIComponent(url.pathname);
+      if (url.pathname === "/") return await sendFile(res, path.join(APP_DIR, "index.html"));
+      if (url.pathname === "/app.js") return await sendFile(res, path.join(APP_DIR, "app.js"));
+      if (url.pathname === "/styles.css") return await sendFile(res, path.join(APP_DIR, "styles.css"));
+      if (decodedPath.startsWith("/i18n/")) return await sendFile(res, path.join(APP_DIR, decodedPath));
+      if (decodedPath.startsWith("/generated/")) return await sendFile(res, path.join(GENERATED_DIR, decodedPath.replace(/^\/generated\//, "")));
       if (url.pathname === "/api/state") return sendJson(res, await statePayload());
       if (url.pathname === "/api/image-config") return sendJson(res, await imageConfigPayload());
+      if (url.pathname === "/api/song-config") return sendJson(res, await songConfigPayload());
       if (url.pathname === "/api/storyboard-prompt") return sendJson(res, await storyboardPromptPreview(String(url.searchParams.get("shot_id") || "")));
       send(res, 404, "Not Found");
       return;
     }
     if (req.method === "POST") {
       const body = await readJsonBody(req);
-      if (url.pathname === "/api/series") {
+      if (url.pathname === "/api/treatment") {
         await assertUnlocked();
         const project = await loadProject();
-        project.series = body.series || body;
+        project.treatment = body.treatment || body;
         await saveProject(project);
         return sendJson(res, await statePayload());
+      }
+      if (url.pathname === "/api/song") {
+        await assertUnlocked();
+        return sendJson(res, await updateSong(body.song || body));
+      }
+      if (url.pathname === "/api/song-import") {
+        await assertUnlocked();
+        return sendJson(res, await importSong(body));
+      }
+      if (url.pathname === "/api/song-upload") {
+        await assertUnlocked();
+        return sendJson(res, await uploadSong(body));
+      }
+      if (url.pathname === "/api/shot-asset-upload") {
+        await assertUnlocked();
+        return sendJson(res, await uploadShotAsset(body));
+      }
+      if (url.pathname === "/api/song-generate") {
+        await assertUnlocked();
+        return sendJson(res, await generateSongDraft(body));
       }
       if (url.pathname === "/api/active-project") {
         return sendJson(res, await setActiveProject(String(body.project_id || "")));
@@ -137,11 +168,10 @@ export async function handleRequest(req, res) {
       }
       if (url.pathname === "/api/shot-video") {
         await assertUnlocked();
-        // Unified: every backend just appends a video candidate. Default = Seedance (cloud).
-        const backend = String(body.backend || body.mode || "seedance");
-        return sendJson(res, backend === "ltx"
-          ? await generateShotVideoDraft(String(body.shot_id || ""))
-          : await generateShotVideoProd(String(body.shot_id || "")));
+        const mode = String(body.mode || "draft");
+        return sendJson(res, mode === "prod"
+          ? await generateShotVideoProd(String(body.shot_id || ""))
+          : await generateShotVideoDraft(String(body.shot_id || "")));
       }
       if (url.pathname === "/api/shot-active") {
         await assertUnlocked();
@@ -155,15 +185,7 @@ export async function handleRequest(req, res) {
         await assertUnlocked();
         return sendJson(res, await generateCharacterCard(String(body.character_id || "")));
       }
-      if (url.pathname === "/api/character-voice") {
-        await assertUnlocked();
-        return sendJson(res, await generateCharacterVoice(String(body.character_id || "")));
-      }
-      if (url.pathname === "/api/character-voice-active") {
-        await assertUnlocked();
-        return sendJson(res, await setCharacterVoiceActive(String(body.character_id || ""), String(body.path || "")));
-      }
-      const match = url.pathname.match(/^\/api\/(characters|relationships|episodes|shots|tasks)(?:\/([^/]+))?$/);
+      const match = url.pathname.match(/^\/api\/(characters|shots|tasks)(?:\/([^/]+))?$/);
       if (match) {
         const [, kind, id] = match;
         if (body.delete || req.headers["x-delete"] === "1") return sendJson(res, await deleteCollectionItem(kind, id || body.id));

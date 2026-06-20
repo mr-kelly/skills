@@ -95,6 +95,9 @@ let selectedDirectionId = null;
 let selectedTodoId = null;
 let selectedDistributionId = null;
 let editing = false;
+let isApplyingRoute = false;
+let routeNeedsReplace = false;
+let lastAppliedHash = "";
 
 const els = {
   stageNav: document.querySelector("#stageNav"),
@@ -108,6 +111,7 @@ const els = {
 
 els.refreshBtn.addEventListener("click", () => loadState());
 
+wireHashRouting();
 loadState();
 setInterval(() => {
   if (!editing) loadState();
@@ -119,7 +123,93 @@ async function loadState() {
   const repo = buildRepository();
   selectedTopicId ||= repo.topics[0]?.id || null;
   selectedDistributionId ||= repo.distribution[0]?.id || null;
+  applyRouteFromHash(repo, { replaceEmpty: true });
   render(repo);
+}
+
+function encodeRoutePart(value) {
+  return encodeURIComponent(String(value || ""));
+}
+
+function decodeRoutePart(value) {
+  try {
+    return decodeURIComponent(value || "");
+  } catch {
+    return value || "";
+  }
+}
+
+function routeFor() {
+  if (activeStage === "topics") {
+    const topicPart = selectedTopicId ? `/${encodeRoutePart(selectedTopicId)}` : "";
+    const directionPart = selectedDirectionId ? `/${encodeRoutePart(selectedDirectionId)}` : "";
+    return `/topics${topicPart}${directionPart}`;
+  }
+  if (activeStage === "todos") return selectedTodoId ? `/todos/${encodeRoutePart(selectedTodoId)}` : "/todos";
+  if (activeStage === "main") return "/main";
+  if (activeStage === "distribution") return selectedDistributionId ? `/distribution/${encodeRoutePart(selectedDistributionId)}` : "/distribution";
+  return "/topics";
+}
+
+function parseHashRoute() {
+  const raw = (window.location.hash || "").replace(/^#\/?/, "");
+  const parts = raw.split("/").filter(Boolean).map(decodeRoutePart);
+  const stage = stages.some((item) => item.id === parts[0]) ? parts[0] : activeStage || "topics";
+  return { stage, first: parts[1] || null, second: parts[2] || null };
+}
+
+function applyRouteFromHash(repo = buildRepository(), { replaceEmpty = false } = {}) {
+  isApplyingRoute = true;
+  routeNeedsReplace = false;
+  const route = parseHashRoute();
+  const shown = visibleStages();
+  activeStage = shown.some((stage) => stage.id === route.stage) ? route.stage : shown[0]?.id || "distribution";
+  if (activeStage === "topics") {
+    selectedTopicId = route.first || selectedTopicId || repo.topics[0]?.id || null;
+    selectedDirectionId = route.second || selectedDirectionId;
+  } else if (activeStage === "todos") {
+    selectedTodoId = route.first || selectedTodoId || repo.todos[0]?.id || null;
+  } else if (activeStage === "distribution") {
+    selectedDistributionId = route.first || selectedDistributionId || repo.distribution[0]?.id || null;
+  }
+  if (replaceEmpty && !window.location.hash) {
+    history.replaceState(null, "", `#${routeFor()}`);
+  }
+  isApplyingRoute = false;
+}
+
+function syncRoute({ push = false } = {}) {
+  if (isApplyingRoute) {
+    routeNeedsReplace = true;
+    return;
+  }
+  const target = `#${routeFor()}`;
+  if (window.location.hash === target) {
+    lastAppliedHash = target;
+    return;
+  }
+  if (push) window.location.hash = target;
+  else history.replaceState(null, "", target);
+  lastAppliedHash = target;
+}
+
+function navigateTo(partial = {}, { replace = false } = {}) {
+  if (partial.stage) activeStage = partial.stage;
+  if ("topicId" in partial) selectedTopicId = partial.topicId;
+  if ("directionId" in partial) selectedDirectionId = partial.directionId;
+  if ("todoId" in partial) selectedTodoId = partial.todoId;
+  if ("distributionId" in partial) selectedDistributionId = partial.distributionId;
+  syncRoute({ push: !replace });
+  render(buildRepository());
+}
+
+function wireHashRouting() {
+  window.addEventListener("hashchange", () => {
+    const repo = buildRepository();
+    applyRouteFromHash(repo);
+    render(repo);
+    lastAppliedHash = window.location.hash || `#${routeFor()}`;
+  });
 }
 
 function withContextParams(path) {
@@ -339,8 +429,7 @@ function renderShell(repo) {
 
   for (const button of els.stageNav.querySelectorAll("[data-stage]")) {
     button.addEventListener("click", () => {
-      activeStage = button.dataset.stage;
-      render(buildRepository());
+      navigateTo({ stage: button.dataset.stage }, { replace: false });
     });
   }
 }
@@ -383,13 +472,10 @@ function renderTopics(repo) {
     </div>
   `;
   bindRecordSelection("topic", (id) => {
-    selectedTopicId = id;
-    selectedDirectionId = null;
-    renderTopics(repo);
+    navigateTo({ stage: "topics", topicId: id, directionId: null });
   });
   bindRecordSelection("direction", (id) => {
-    selectedDirectionId = id;
-    renderTopics(repo);
+    navigateTo({ stage: "topics", directionId: id });
   });
   const confirmButton = els.stagePanel.querySelector("[data-action='confirm-direction']");
   confirmButton?.addEventListener("click", () => confirmDirection(selected?.id, selectedDirectionId));
@@ -467,8 +553,7 @@ function renderTodos(repo) {
     </div>
   `;
   bindRecordSelection("todo", (id) => {
-    selectedTodoId = id;
-    renderTodos(repo);
+    navigateTo({ stage: "todos", todoId: id });
   });
   for (const button of els.stagePanel.querySelectorAll("[data-action='start-todo'], [data-action='start-selected-todo']")) {
     button.addEventListener("click", () => startTodo(selectedTodoId));
@@ -571,8 +656,7 @@ function renderDistribution(repo) {
     </div>
   `;
   bindRecordSelection("distribution", (id) => {
-    selectedDistributionId = id;
-    renderDistribution(repo);
+    navigateTo({ stage: "distribution", distributionId: id });
   });
   bindEditorActions(selected?.id);
 }
@@ -640,6 +724,8 @@ async function confirmDirection(topicId, directionId) {
     return;
   }
   activeStage = "todos";
+  selectedTodoId = null;
+  syncRoute({ push: true });
   await loadState();
 }
 
@@ -655,6 +741,7 @@ async function startTodo(id) {
     return;
   }
   activeStage = "main";
+  syncRoute({ push: true });
   await loadState();
 }
 
