@@ -5,16 +5,18 @@ let query = "";
 let episodeMode = "list";
 let episodeTab = "summary";
 let imageConfig = null;
+let isApplyingRoute = false;
+let routeNeedsReplace = false;
+let lastAppliedHash = "";
 
 const $ = (id) => document.getElementById(id);
 
 const viewMeta = {
-  overview: ["背景", "短剧大背景、世界规则和创作入口"],
-  characters: ["人物库", "角色卡、演员设定、三视图和一致性锚点"],
-  relationships: ["人物关系图", "公开关系、隐藏真相、权力方向和证据集"],
-  episodes: ["剧集", "先扫剧集表，再进入单集剧本和分镜执行层"],
-  shots: ["分镜生图", "画面、镜头、生图提示词和负面提示词"],
-  tasks: ["审批", "人工判断、AI 改稿请求和导出准备"],
+  overview: ["总览", "项目状态和下一步"],
+  characters: ["人物", "角色卡、演员设定和三视图"],
+  relationships: ["关系", "公开关系、隐藏真相和证据"],
+  episodes: ["剧集", "剧集表、单集剧本和分镜执行"],
+  tasks: ["审批", "人工判断、AI 改稿和导出准备"],
 };
 
 function escapeHtml(value) {
@@ -71,11 +73,123 @@ async function api(path, body = null) {
 async function load() {
   state = await api("/api/state");
   imageConfig = await api("/api/image-config").catch(() => null);
-  render();
+  applyRouteFromHash({ replaceEmpty: true });
 }
 
 function project() {
   return state?.project || {};
+}
+
+function encodeRoutePart(value) {
+  return encodeURIComponent(String(value || ""));
+}
+
+function decodeRoutePart(value) {
+  try {
+    return decodeURIComponent(value || "");
+  } catch {
+    return value || "";
+  }
+}
+
+function routeFor(next = {}) {
+  const nextView = next.view || view || "overview";
+  const nextSelectedId = next.selectedId ?? selectedId;
+  const nextEpisodeMode = next.episodeMode || episodeMode;
+  const nextEpisodeTab = next.episodeTab || episodeTab || "summary";
+  if (nextView === "overview") return "/overview";
+  if (nextView === "episodes") {
+    if (nextEpisodeMode === "detail" && nextSelectedId) {
+      return `/episodes/${encodeRoutePart(nextSelectedId)}/${nextEpisodeTab === "shots" ? "shots" : "summary"}`;
+    }
+    return "/episodes";
+  }
+  return nextSelectedId ? `/${nextView}/${encodeRoutePart(nextSelectedId)}` : `/${nextView}`;
+}
+
+function parseHashRoute() {
+  const raw = (window.location.hash || "").replace(/^#\/?/, "");
+  const parts = raw.split("/").filter(Boolean).map(decodeRoutePart);
+  const routeView = viewMeta[parts[0]] ? parts[0] : "overview";
+  if (routeView === "episodes") {
+    const routeSelectedId = parts[1] || null;
+    return {
+      view: "episodes",
+      selectedId: routeSelectedId,
+      episodeMode: routeSelectedId ? "detail" : "list",
+      episodeTab: parts[2] === "shots" ? "shots" : "summary",
+    };
+  }
+  return {
+    view: routeView,
+    selectedId: parts[1] || null,
+    episodeMode: "list",
+    episodeTab: "summary",
+  };
+}
+
+function applyRoute(route) {
+  view = route.view;
+  selectedId = route.selectedId;
+  episodeMode = route.episodeMode;
+  episodeTab = route.episodeTab;
+}
+
+function applyRouteFromHash({ replaceEmpty = false } = {}) {
+  const route = parseHashRoute();
+  isApplyingRoute = true;
+  routeNeedsReplace = false;
+  applyRoute(route);
+  if (replaceEmpty && !window.location.hash) {
+    history.replaceState(null, "", `#${routeFor(route)}`);
+  }
+  render();
+  if (routeNeedsReplace) {
+    history.replaceState(null, "", `#${routeFor()}`);
+    routeNeedsReplace = false;
+  }
+  lastAppliedHash = window.location.hash || `#${routeFor()}`;
+  isApplyingRoute = false;
+}
+
+function navigateTo(partial = {}, { replace = false } = {}) {
+  const next = {
+    view,
+    selectedId,
+    episodeMode,
+    episodeTab,
+    ...partial,
+  };
+  if (partial.view && partial.view !== "episodes") {
+    next.episodeMode = "list";
+    next.episodeTab = "summary";
+  }
+  if (partial.view && partial.view !== view) {
+    next.selectedId = partial.selectedId ?? null;
+  }
+  const target = `#${routeFor(next)}`;
+  if (window.location.hash === target) {
+    applyRoute(next);
+    render();
+    return;
+  }
+  if (replace) {
+    history.replaceState(null, "", target);
+    applyRouteFromHash();
+  } else {
+    window.location.hash = target;
+  }
+}
+
+function syncRoute({ replace = true } = {}) {
+  if (isApplyingRoute) {
+    routeNeedsReplace = true;
+    return;
+  }
+  const target = `#${routeFor()}`;
+  if (window.location.hash === target) return;
+  if (replace) history.replaceState(null, "", target);
+  else window.location.hash = target;
 }
 
 function collectionFor(currentView = view) {
@@ -165,18 +279,27 @@ function renderOverview() {
       <div class="metric"><strong>${p.episodes?.length || 0}</strong><span>剧集</span></div>
       <div class="metric"><strong>${p.shots?.length || 0}</strong><span>分镜</span></div>
     </div>
-    ${overviewCard("人物一致性", `${state.completeness.characters_missing_views} 个角色缺三视图`, "characters")}
-    ${overviewCard("剧情推进", `${state.completeness.episodes_missing_cliffhanger} 集缺少明确悬念`, "episodes")}
-    ${overviewCard("分镜生图", `${state.completeness.shots_missing_prompt} 个分镜缺提示词`, "shots")}
-    ${overviewCard("关系证据", `${state.completeness.relationships_missing_evidence} 条关系缺证据集`, "relationships")}
+    <div class="section-label">下一步</div>
+    ${overviewCard("人物一致性", `${state.completeness.characters_missing_views} 个角色缺三视图`, "characters", "人物")}
+    ${overviewCard("剧情推进", `${state.completeness.episodes_missing_cliffhanger} 集缺少明确悬念`, "episodes", "剧集")}
+    ${overviewCard("分镜生图", `${state.completeness.shots_missing_prompt} 个分镜缺提示词`, "episodes", "分镜")}
+    ${overviewCard("关系证据", `${state.completeness.relationships_missing_evidence} 条关系缺证据集`, "relationships", "关系")}
     ${visualBiblePreview(p.series?.visual_bible || {})}
   `;
   $("detail").innerHTML = seriesForm(p.series || {});
   bindForm();
 }
 
-function overviewCard(title, body, target) {
-  return `<button class="item-card" data-go="${target}"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(body)}</p></button>`;
+function overviewCard(title, body, target, tag) {
+  return `
+    <button class="item-card overview-row" data-go="${target}">
+      <span class="row-key">${escapeHtml(tag)}</span>
+      <span class="row-main">
+        <strong>${escapeHtml(title)}</strong>
+        <small>${escapeHtml(body)}</small>
+      </span>
+      <span class="row-arrow">打开</span>
+    </button>`;
 }
 
 function visualBiblePreview(bible) {
@@ -198,7 +321,10 @@ function renderListAndDetail() {
   $("newItemButton").style.visibility = "visible";
   const items = collectionFor().filter(matches);
   $("itemCount").textContent = String(items.length);
-  if (!selectedId || !collectionFor().some((item) => item.id === selectedId)) selectedId = items[0]?.id || null;
+  if (!selectedId || !collectionFor().some((item) => item.id === selectedId)) {
+    selectedId = items[0]?.id || null;
+    syncRoute({ replace: true });
+  }
   $("list").innerHTML = items.map(itemCard).join("") || `<div class="item-card"><h3>还没有内容</h3><p>点击右上角新建，先搭一个骨架。</p></div>`;
   $("detail").innerHTML = detailForm(selectedItem());
   bindForm();
@@ -211,6 +337,7 @@ function renderEpisodesWorkspace() {
   $("itemCount").textContent = String(items.length);
   if (episodeMode === "detail" && (!selectedId || !allEpisodes.some((item) => item.id === selectedId))) {
     selectedId = items[0]?.id || null;
+    syncRoute({ replace: true });
   }
   const workspace = document.querySelector(".workspace");
   workspace?.classList.toggle("episode-detail-mode", episodeMode === "detail");
@@ -253,7 +380,7 @@ function episodeRow(episode) {
   const shots = shotsForEpisode(episode.id);
   const summary = episode.summary || episode.promise || "";
   return `
-    <tr class="${episode.id === selectedId ? "active" : ""}">
+    <tr class="${episode.id === selectedId ? "active" : ""}" data-row-episode="${escapeHtml(episode.id)}">
       <td class="episode-no">${escapeHtml(String(episode.number || "").padStart(3, "0"))}</td>
       <td>
         <button class="episode-link" data-episode-detail="${escapeHtml(episode.id)}">${escapeHtml(episode.title || episode.id)}</button>
@@ -315,8 +442,38 @@ function episodeSummaryTab(item) {
     ${scriptPreview(item)}`;
 }
 
+const expandedShots = new Set();
+
 function episodeShotsTab(item, shots) {
   return executionTimeline(item, shots);
+}
+
+function shotListRow(shot, index) {
+  const expanded = expandedShots.has(shot.id);
+  const r = shotReadiness(shot);
+  const asset = shot.image_asset || "";
+  const isImg = asset.startsWith("/generated/");
+  const dur = shot.duration_preset || (shot.duration_seconds ? `${shot.duration_seconds}s` : "—");
+  const readyDot = r.ready ? `<span class="row-ready ok" title="视频就绪">●</span>` : `<span class="row-ready warn" title="待补 ${r.missing.length + (r.pacingWarn ? 1 : 0)} 项">●</span>`;
+  const specs = [shot.shot_size, shot.camera_movement].filter(Boolean).join(" · ");
+  return `
+    <div class="shot-row-wrap ${expanded ? "open" : ""}">
+      <button type="button" class="shot-row" data-shot-toggle="${escapeHtml(shot.id)}" aria-expanded="${expanded}">
+        <span class="shot-row-no">${String(index + 1).padStart(2, "0")}</span>
+        <span class="shot-row-thumb">${isImg ? `<img src="${escapeHtml(asset)}" alt="" loading="lazy" />` : `<span class="thumb-empty">无图</span>`}</span>
+        <span class="shot-row-main">
+          <strong>${readyDot}${escapeHtml(shot.title || shot.id)}</strong>
+          <small>${escapeHtml(shot.composition || "")}</small>
+        </span>
+        <span class="shot-row-meta">
+          <span class="badge">${escapeHtml(dur)}</span>
+          ${specs ? `<span class="badge soft">${escapeHtml(specs)}</span>` : ""}
+          ${statusBadge(shot.status)}
+        </span>
+        <span class="shot-row-caret">${expanded ? "▾" : "▸"}</span>
+      </button>
+      ${expanded ? `<div class="shot-row-detail">${shotPreview(shot)}</div>` : ""}
+    </div>`;
 }
 
 function scriptPreview(item) {
@@ -346,10 +503,9 @@ function executionTimeline(item, shots) {
       <div class="section-head">
         <div>
           <h3>Storyboard</h3>
-          <p class="muted">分镜图使用 OpenAI-compatible Images API，本地保存生成结果。</p>
+          <p class="muted">逐镜确认画面、台词、分镜图和视频状态。</p>
         </div>
       </div>
-      ${imageConfigPanel()}
       <div class="execution-grid">
         <div class="execution-card">
           <span>01</span>
@@ -372,8 +528,12 @@ function executionTimeline(item, shots) {
           <p>${escapeHtml(execution.video_status || "视频生成保持未开始，只保留未来入口。")}</p>
         </div>
       </div>
-      <div class="shot-stack">
-        ${shots.map(shotPreview).join("") || `<div class="empty-shot">本集还没有独立分镜。可以先用剧本节拍推进，后面再补镜头。</div>`}
+      <div class="shot-list-head">
+        <span>共 ${shots.length} 个分镜 · 点击展开详情</span>
+        ${shots.length ? `<button type="button" class="mini-button ghost" data-shots-expand-all>${shots.every((s) => expandedShots.has(s.id)) ? "全部收起" : "全部展开"}</button>` : ""}
+      </div>
+      <div class="shot-list">
+        ${shots.map((shot, index) => shotListRow(shot, index)).join("") || `<div class="empty-shot">本集还没有独立分镜。可以先用剧本节拍推进，后面再补镜头。</div>`}
       </div>
     </section>`;
 }
@@ -404,47 +564,239 @@ function imageConfigPanel() {
     </form>`;
 }
 
+function setSettingsTab(name) {
+  document.querySelectorAll("[data-settings-tab]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.settingsTab === name);
+  });
+  document.querySelectorAll("[data-settings-panel]").forEach((panel) => {
+    panel.classList.toggle("active", panel.dataset.settingsPanel === name);
+  });
+}
+
+function openSettings() {
+  const modal = $("settingsModal");
+  $("settingsSubtitle").textContent = project().series?.title
+    ? `《${project().series.title}》 · 短剧生成与本地项目配置`
+    : "短剧生成与本地项目配置";
+  $("imageSettingsMount").innerHTML = imageConfigPanel();
+  bindImageConfigForm();
+  setSettingsTab("image");
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function closeSettings() {
+  const modal = $("settingsModal");
+  modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+function bindImageConfigForm() {
+  const imageConfigForm = document.querySelector("[data-image-config]");
+  if (!imageConfigForm) return;
+  imageConfigForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const keepKey = !value(imageConfigForm, "api_key");
+    imageConfig = await api("/api/image-config", {
+      base_url: value(imageConfigForm, "base_url"),
+      api_key: keepKey ? "__KEEP__" : value(imageConfigForm, "api_key"),
+      model: value(imageConfigForm, "model"),
+      size: value(imageConfigForm, "size"),
+    });
+    toast("图像配置已保存");
+    openSettings();
+  });
+}
+
+const SHOT_READINESS_FIELDS = [
+  ["composition", "构图", (s) => s.composition],
+  ["camera", "镜头规格", (s) => s.shot_size || s.camera_movement || s.camera],
+  ["setting", "场景", (s) => s.setting],
+  ["lighting", "光线", (s) => s.lighting],
+  ["action", "动作脚本", (s) => s.action],
+  ["prompt", "生图提示词", (s) => s.prompt],
+  ["video_prompt", "视频运动提示", (s) => s.video_prompt],
+  ["audio", "声音设计", (s) => s.audio && (s.audio.ambient || (s.audio.dialogue || []).length || s.audio.narration || (s.audio.sfx || []).length || s.audio.music)],
+  ["transition", "转场", (s) => s.transition_in && s.transition_out],
+  ["continuity", "连续性锚点", (s) => s.continuity && (s.continuity.anchors || []).length],
+];
+
+function shotIsSilent(shot) {
+  if (shot.silent === true) return true;
+  const a = shot.audio || {};
+  return !(a.dialogue || []).length && !a.narration;
+}
+
+function hasSoundBed(shot) {
+  const a = shot.audio || {};
+  return Boolean(a.ambient || (a.sfx || []).length || a.music);
+}
+
+function dialogueCps(shot) {
+  const seconds = Number(shot.duration_seconds) || 0;
+  if (!seconds) return 0;
+  const chars = (shot.srt || []).map((l) => (typeof l === "string" ? l : l.text || "")).join("").replace(/\s/g, "").length;
+  return chars / seconds;
+}
+
+function shotReadiness(shot) {
+  const missing = SHOT_READINESS_FIELDS.filter(([, , get]) => !get(shot)).map(([, label]) => label);
+  const durOk = [4, 5, 6, 8, 10, 12].includes(Number(shot.duration_seconds));
+  if (!durOk) missing.push("合规时长");
+  const silent = shotIsSilent(shot);
+  const cps = dialogueCps(shot);
+  let pacingWarn = false;
+  if (silent) {
+    if (!hasSoundBed(shot)) missing.push("声音床");
+  } else {
+    if (!(shot.srt || []).length) missing.push("台词时间轴");
+    pacingWarn = cps > 8;
+  }
+  return { missing, cps, pacingWarn, silent, ready: missing.length === 0 && !pacingWarn };
+}
+
+function audioBlock(audio) {
+  if (!audio) return `<p class="muted">待补声音设计</p>`;
+  const dlg = (audio.dialogue || []).map((d) => `<li><b>${escapeHtml(d.speaker || "")}</b>${d.tone ? `<span class="tag">${escapeHtml(d.tone)}</span>` : ""}：${escapeHtml(d.line || "")}</li>`).join("");
+  return `
+    ${dlg ? `<ul class="audio-lines">${dlg}</ul>` : ""}
+    ${audio.narration ? `<p><span class="mini-label">旁白</span>${escapeHtml(audio.narration)}</p>` : ""}
+    <div class="audio-grid">
+      ${audio.sfx && audio.sfx.length ? `<div><span class="mini-label">音效</span>${escapeHtml((audio.sfx || []).join("、"))}</div>` : ""}
+      ${audio.ambient ? `<div><span class="mini-label">环境声</span>${escapeHtml(audio.ambient)}</div>` : ""}
+      ${audio.music ? `<div><span class="mini-label">配乐</span>${escapeHtml(audio.music)}</div>` : ""}
+    </div>`;
+}
+
+function specRow(shot) {
+  const specs = [
+    ["景别", shot.shot_size],
+    ["机位", shot.camera_angle],
+    ["运镜", shot.camera_movement],
+    ["镜头", shot.lens],
+    ["画幅", shot.aspect_ratio],
+    ["情绪", shot.emotion],
+  ].filter(([, v]) => v);
+  if (!specs.length) return shot.camera ? `<p class="muted">${escapeHtml(shot.camera)}</p>` : "";
+  return `<div class="spec-row">${specs.map(([k, v]) => `<span class="spec"><i>${escapeHtml(k)}</i>${escapeHtml(v)}</span>`).join("")}</div>`;
+}
+
 function shotPreview(shot) {
   const srt = shot.srt || [];
+  const r = shotReadiness(shot);
+  const readinessChip = r.ready
+    ? `<span class="ready-chip ok">视频就绪 ✓</span>`
+    : `<span class="ready-chip warn" title="${escapeHtml([...r.missing.map((m) => "缺" + m), r.pacingWarn ? `台词过密 ${r.cps.toFixed(1)}字/秒` : ""].filter(Boolean).join("，"))}">待补 ${r.missing.length + (r.pacingWarn ? 1 : 0)} 项</span>`;
+  const cont = shot.continuity || {};
   return `
     <article class="shot-script-card">
       <div class="shot-script-head">
         <div>
           <span class="badge">${escapeHtml(shot.beat_id || "beat")}</span>
           <span class="badge">${escapeHtml(shot.duration_preset || `${shot.duration_seconds || ""}s` || "时长待定")}</span>
+          ${r.silent ? `<span class="badge soft">纯画面</span>` : ""}
+          ${readinessChip}
           <h4>${escapeHtml(shot.title || shot.id)}</h4>
         </div>
         ${statusBadge(shot.status)}
       </div>
-      <div class="shot-pipeline">
-        <div>
-          <label>镜头描述</label>
+      <div class="shot-sheet">
+        <section class="sheet-block">
+          <label>镜头描述 / 规格</label>
           <p>${escapeHtml(shot.composition || "")}</p>
-          <p class="muted">${escapeHtml([shot.camera, shot.setting, shot.lighting].filter(Boolean).join(" · "))}</p>
-        </div>
-        <div>
-          <label>台词 SRT</label>
-          <pre>${escapeHtml(srt.length ? srt.map(formatSrtLine).join("\n\n") : shot.dialogue_srt || "00:00:00,000 --> 00:00:03,000\n（待补台词）")}</pre>
-        </div>
-        <div>
-          <label>分镜图片</label>
-          ${storyboardImageBlock(shot)}
-        </div>
-        <div>
-          <label>最终分镜视频</label>
-          <div class="asset-placeholder">${escapeHtml(shot.video_asset || "暂不生成")}</div>
-        </div>
+          ${specRow(shot)}
+          <p class="muted">${escapeHtml([shot.setting, shot.lighting].filter(Boolean).join(" · "))}</p>
+        </section>
+        ${shot.action ? `<section class="sheet-block"><label>动作脚本（运动）</label><p>${escapeHtml(shot.action)}</p></section>` : ""}
+        ${shot.video_prompt ? `<section class="sheet-block"><label>视频运动提示（图生视频）</label><pre class="soft-pre">${escapeHtml(shot.video_prompt)}</pre></section>` : ""}
+        <section class="sheet-block">
+          <label>声音设计</label>
+          ${audioBlock(shot.audio)}
+        </section>
+        <section class="sheet-block">
+          <label>台词 SRT ${r.silent ? "" : (srt.length ? `<span class="cps ${r.pacingWarn ? "warn" : ""}">${r.cps.toFixed(1)} 字/秒 · ${srt.length} 条</span>` : "")}</label>
+          ${r.silent
+            ? `<p class="muted">纯画面镜头 · 无台词，由画面、音效与配乐承载。</p>`
+            : `<pre>${escapeHtml(srt.length ? srt.map(formatSrtLine).join("\n\n") : "00:00:00,000 --> 00:00:03,000\n（待补台词）")}</pre>`}
+        </section>
+        ${(shot.transition_in || shot.transition_out) ? `<section class="sheet-block"><label>转场</label><p class="muted">入：${escapeHtml(shot.transition_in || "cut")} ／ 出：${escapeHtml(shot.transition_out || "cut")}</p></section>` : ""}
+        ${(cont.anchors || cont.props || cont.wardrobe) ? `<section class="sheet-block"><label>连续性</label>
+          ${cont.wardrobe ? `<p><span class="mini-label">服装</span>${escapeHtml(cont.wardrobe)}</p>` : ""}
+          ${(cont.props || []).length ? `<p><span class="mini-label">道具</span>${escapeHtml((cont.props || []).join("、"))}</p>` : ""}
+          ${cont.carries_from_prev ? `<p><span class="mini-label">承接</span>${escapeHtml(cont.carries_from_prev)}</p>` : ""}
+          ${(cont.anchors || []).length ? `<p><span class="mini-label">锚点</span>${escapeHtml((cont.anchors || []).join("；"))}</p>` : ""}
+        </section>` : ""}
+        <section class="sheet-block sheet-assets">
+          <div>
+            <label>分镜图片</label>
+            ${storyboardImageBlock(shot)}
+          </div>
+          <div>
+            <label>最终分镜视频</label>
+            ${shotVideoBlock(shot)}
+          </div>
+        </section>
       </div>
     </article>`;
+}
+
+function candidateList(shot, kind) {
+  const list = kind === "video" ? shot.video_candidates : shot.image_candidates;
+  const active = kind === "video" ? shot.video_asset : shot.image_asset;
+  if (Array.isArray(list) && list.length) return { list, active };
+  if (active && active.startsWith("/generated/")) return { list: [{ path: active }], active };
+  return { list: [], active };
+}
+
+function imageCandidateStrip(shot) {
+  const { list, active } = candidateList(shot, "image");
+  if (list.length < 2) return "";
+  return `<div class="cand-strip">${list.map((c, i) => `
+    <button type="button" class="cand-thumb ${c.path === active ? "active" : ""}" data-set-active-image="${escapeHtml(c.path)}" data-shot="${escapeHtml(shot.id)}" title="第${i + 1}版${c.path === active ? "（当前选用）" : "，点击选用"}">
+      <img src="${escapeHtml(c.path)}" alt="" loading="lazy" />
+      ${c.path === active ? `<span class="cand-pick">✓</span>` : ""}
+    </button>`).join("")}</div>`;
+}
+
+function videoCandidateStrip(shot) {
+  const { list, active } = candidateList(shot, "video");
+  if (list.length < 2) return "";
+  return `<div class="cand-chips">${list.map((c, i) => `
+    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-active-video="${escapeHtml(c.path)}" data-shot="${escapeHtml(shot.id)}">草稿${i + 1}${c.path === active ? " ✓" : ""}</button>`).join("")}</div>`;
+}
+
+function shotVideoBlock(shot) {
+  const v = shot.video_asset || "";
+  const isVideo = v.startsWith("/generated/");
+  const vmode = shot.video_generation?.mode;
+  const hasImage = (shot.image_asset || "").startsWith("/generated/");
+  return `
+    <div class="shot-video">
+      ${isVideo
+        ? `<video src="${escapeHtml(v)}" controls preload="metadata" playsinline></video>${vmode ? `<span class="img-mode-badge">${vmode === "draft" ? "草稿·LTX本地" : "成片"}</span>` : ""}`
+        : `<div class="asset-placeholder">${hasImage ? "草稿视频待生成" : "先生成分镜图，再生成草稿视频"}</div>`}
+      ${videoCandidateStrip(shot)}
+      <div class="storyboard-actions">
+        <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" ${hasImage ? "" : "disabled"}>${isVideo ? "再生一版" : "生成草稿视频"}</button>
+        <button type="button" class="mini-button ghost" disabled title="Seedance 2.0 成片模式尚未接入">成片(待接入)</button>
+      </div>
+    </div>`;
 }
 
 function storyboardImageBlock(shot) {
   const asset = shot.image_asset || "";
   const isGenerated = asset.startsWith("/generated/");
+  const mode = shot.image_generation?.mode;
+  const modeBadge = isGenerated && mode ? `<span class="img-mode-badge">${mode === "image-edit" ? "图生图·参考人物卡" : "纯文字生图"}</span>` : "";
   return `
     <div class="storyboard-image">
-      ${isGenerated ? `<img src="${escapeHtml(asset)}" alt="${escapeHtml(shot.title || "分镜图")}" />` : `<div class="asset-placeholder">${escapeHtml(asset || "待生成")}</div>`}
-      <button type="button" class="mini-button generate-image-button" data-generate-image="${escapeHtml(shot.id)}">生成分镜图</button>
+      ${isGenerated ? `<img src="${escapeHtml(asset)}" alt="${escapeHtml(shot.title || "分镜图")}" data-image-zoom="${escapeHtml(asset)}" title="点击查看大图" />` : `<div class="asset-placeholder">${escapeHtml(asset || "待生成")}</div>`}
+      ${modeBadge}
+      ${imageCandidateStrip(shot)}
+      <div class="storyboard-actions">
+        <button type="button" class="mini-button generate-image-button" data-generate-image="${escapeHtml(shot.id)}">${isGenerated ? "再生一版" : "生成分镜图"}</button>
+        <button type="button" class="mini-button ghost" data-prompt-preview="${escapeHtml(shot.id)}">查看提示词</button>
+      </div>
     </div>`;
 }
 
@@ -453,9 +805,88 @@ function formatSrtLine(line, index) {
   return `${index + 1}\n${line.time || "00:00:00,000 --> 00:00:03,000"}\n${line.text || ""}`;
 }
 
+function ensureModalHost() {
+  let host = document.getElementById("modalHost");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "modalHost";
+    document.body.appendChild(host);
+  }
+  return host;
+}
+
+function closeModal() {
+  const host = document.getElementById("modalHost");
+  if (host) host.innerHTML = "";
+}
+
+function mountModal(inner) {
+  const host = ensureModalHost();
+  host.innerHTML = `<div class="modal-overlay" data-modal-close="1"><div class="modal-card">${inner}</div></div>`;
+  host.querySelectorAll("[data-modal-close]").forEach((node) => {
+    node.addEventListener("click", (event) => { if (event.target === node) closeModal(); });
+  });
+  const closeBtn = host.querySelector(".modal-close-button");
+  if (closeBtn) closeBtn.addEventListener("click", closeModal);
+}
+
+function openImageModal(src) {
+  if (!src) return;
+  mountModal(`
+    <button type="button" class="modal-close-button" aria-label="关闭">×</button>
+    <div class="modal-image-wrap"><img src="${escapeHtml(src)}" alt="分镜大图" /></div>`);
+}
+
+function refThumb(ref) {
+  return `
+    <figure class="ref-thumb">
+      <img src="${escapeHtml(ref.path)}" alt="${escapeHtml(ref.name)}" data-image-zoom="${escapeHtml(ref.path)}" />
+      <figcaption>${escapeHtml(ref.name)}<small>${ref.kind === "character" ? "人物卡" : "背景"}</small></figcaption>
+    </figure>`;
+}
+
+function openPromptModal(data) {
+  const refs = data.references || [];
+  const modeLabel = data.mode === "image-edit" ? "图生图（多图参考）" : "纯文字生图";
+  const ctx = data.context || {};
+  const contextRows = [
+    ["剧集", ctx.episode_title],
+    ["故事背景", ctx.logline],
+    ["真实度目标", ctx.realism_target],
+    ["色彩", ctx.color_palette],
+    ["年代细节", ctx.period_detail],
+  ].filter(([, v]) => v).map(([k, v]) => `<div class="ctx-row"><span>${escapeHtml(k)}</span><p>${escapeHtml(v)}</p></div>`).join("");
+  const characters = (data.characters || []).map((c) => `
+    <div class="ctx-row"><span>${escapeHtml(c.name)}</span><p>${escapeHtml(c.visual_front || "")}${c.reference_image ? "" : "（无参考卡）"}</p></div>`).join("");
+  mountModal(`
+    <button type="button" class="modal-close-button" aria-label="关闭">×</button>
+    <div class="modal-head">
+      <h3>${escapeHtml(data.title || "分镜提示词")}</h3>
+      <div class="modal-tags">
+        <span class="badge">${escapeHtml(modeLabel)}</span>
+        ${data.model ? `<span class="badge">${escapeHtml(data.model)}</span>` : ""}
+        ${data.size ? `<span class="badge">${escapeHtml(data.size)}</span>` : ""}
+        ${data.duration ? `<span class="badge">${escapeHtml(data.duration)}</span>` : ""}
+      </div>
+    </div>
+    <div class="modal-body">
+      ${refs.length ? `<section class="modal-section"><label>参考图（实际喂给模型）</label><div class="ref-grid">${refs.map(refThumb).join("")}</div></section>` : `<section class="modal-section"><p class="muted">本镜暂无可用参考卡，将走纯文字生图。</p></section>`}
+      <section class="modal-section"><label>生成提示词（Prompt）</label><pre class="prompt-pre">${escapeHtml(data.prompt || "")}</pre></section>
+      ${data.negative_prompt ? `<section class="modal-section"><label>负面提示词</label><pre class="prompt-pre">${escapeHtml(data.negative_prompt)}</pre></section>` : ""}
+      ${characters ? `<section class="modal-section"><label>人物背景</label>${characters}</section>` : ""}
+      ${contextRows ? `<section class="modal-section"><label>故事 / 视觉背景</label>${contextRows}</section>` : ""}
+    </div>`);
+  document.getElementById("modalHost").querySelectorAll("[data-image-zoom]").forEach((node) => {
+    node.addEventListener("click", () => openImageModal(node.dataset.imageZoom));
+  });
+}
+
 function itemCard(item) {
   const title = item.name || item.title || item.type || item.id;
   const body = item.logline || item.promise || item.conflict || item.note || item.prompt || item.character_card?.identity || item.hidden_truth || "";
+  const key = item.number ? `EP-${String(item.number).padStart(3, "0")}` : String(item.id || "").split("-").slice(-2).join("-").toUpperCase();
+  const thumb = item.reference_card?.image_asset || item.image_asset || "";
+  const hasThumb = typeof thumb === "string" && thumb.startsWith("/generated/");
   const meta = [
     item.role,
     item.type,
@@ -463,10 +894,13 @@ function itemCard(item) {
     item.number ? `<span class="badge">第 ${item.number} 集</span>` : "",
   ].filter(Boolean).map((part) => String(part).startsWith("<") ? part : `<span class="badge">${escapeHtml(part)}</span>`).join("");
   return `
-    <button class="item-card ${item.id === selectedId ? "active" : ""}" data-select="${escapeHtml(item.id)}">
-      <h3>${escapeHtml(title)}</h3>
-      <p>${escapeHtml(body).slice(0, 180)}</p>
-      <div class="card-meta">${meta}</div>
+    <button class="item-card ${hasThumb ? "has-thumb" : ""} ${item.id === selectedId ? "active" : ""}" data-select="${escapeHtml(item.id)}">
+      ${hasThumb ? `<span class="item-card-thumb"><img src="${escapeHtml(thumb)}" alt="" loading="lazy" /></span>` : `<span class="row-key">${escapeHtml(key)}</span>`}
+      <span class="row-main">
+        <strong>${escapeHtml(title)}</strong>
+        <small>${escapeHtml(body).slice(0, 140)}</small>
+      </span>
+      <span class="card-meta">${meta}</span>
     </button>`;
 }
 
@@ -521,10 +955,12 @@ function characterForm(item) {
   const card = item.character_card || {};
   const visual = item.visual || {};
   const reference = item.reference_card || {};
+  const vp = item.voice_profile || {};
   return `
     <form class="detail-card" data-kind="characters" data-id="${escapeHtml(item.id)}">
       <h2>${escapeHtml(item.name || "新角色")}</h2>
       ${characterReferencePreview(reference)}
+      ${characterVoicePreview(item)}
       <div class="form-grid">
         ${input("id", "角色 ID", item.id)}
         ${input("name", "姓名", item.name)}
@@ -536,7 +972,13 @@ function characterForm(item) {
         ${textarea("wound", "创伤", card.wound, false)}
         ${textarea("secret", "秘密", card.secret, false)}
         ${textarea("arc", "人物弧光", card.arc, false)}
-        ${textarea("voice", "台词声音", card.voice, false)}
+        ${textarea("voice", "台词声音（语气基调）", card.voice, false)}
+        ${input("voice_type", "音色", vp.type)}
+        ${input("voice_pace", "语速节奏", vp.pace)}
+        ${input("voice_accent", "口音 / 官话", vp.accent)}
+        ${input("voice_signature", "标志性语气", vp.signature)}
+        ${input("voice_casting", "配音参考声线", vp.casting_reference)}
+        ${textarea("voice_sample", "试音台词（参考声音脚本）", vp.sample_script, false)}
         ${textarea("front", "三视图：正面", visual.front, false)}
         ${textarea("side", "三视图：侧面", visual.side, false)}
         ${textarea("back", "三视图：背面", visual.back, false)}
@@ -557,6 +999,40 @@ function characterReferencePreview(reference) {
       </div>
       ${reference.image_asset ? `<img src="${escapeHtml(reference.image_asset)}" alt="人物资料卡图" />` : `<div class="asset-placeholder">人物资料卡图待生成</div>`}
     </section>`;
+}
+
+function characterVoicePreview(item) {
+  const vp = item.voice_profile || {};
+  const vr = item.voice_reference || {};
+  const summary = [vp.type, vp.pace, vp.accent, vp.signature].filter(Boolean).join(" · ");
+  const generated = vr.asset && vr.status === "generated";
+  return `
+    <section class="character-voice">
+      <div class="voice-head">
+        <div>
+          <h3>人物声音</h3>
+          <p class="muted">${escapeHtml(summary || "音色 / 语速 / 口音 / 标志语气（用于配音与对白一致性）")}</p>
+        </div>
+        <span class="voice-status ${generated ? "ok" : "planned"}">${generated ? "参考声音已生成" : "参考声音：待生成"}</span>
+      </div>
+      ${vp.casting_reference ? `<p class="voice-line"><span class="mini-label">配音参考</span>${escapeHtml(vp.casting_reference)}</p>` : ""}
+      ${vp.sample_script ? `<p class="voice-line"><span class="mini-label">试音台词</span>${escapeHtml(vp.sample_script)}</p>` : ""}
+      <div class="voice-ref">
+        ${generated
+          ? `<audio controls src="${escapeHtml(vr.asset)}"></audio>`
+          : `<div class="asset-placeholder">参考声音待生成（Qwen3-TTS 本地）</div>`}
+        <button type="button" class="mini-button generate-voice-button" data-generate-voice="${escapeHtml(item.id)}">${generated ? "再生一版" : "生成参考声音"}</button>
+      </div>
+      ${voiceCandidateStrip(item)}
+    </section>`;
+}
+
+function voiceCandidateStrip(character) {
+  const list = character.voice_candidates || [];
+  const active = character.voice_reference?.asset || "";
+  if (list.length < 2) return "";
+  return `<div class="cand-chips">${list.map((c, i) => `
+    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-voice-active="${escapeHtml(c.path)}" data-char="${escapeHtml(character.id)}">声${i + 1}${c.path === active ? " ✓" : ""}</button>`).join("")}</div>`;
 }
 
 function relationshipForm(item) {
@@ -620,14 +1096,25 @@ function shotForm(item) {
         ${input("beat_id", "节拍 ID", item.beat_id)}
         ${input("title", "画面标题", item.title)}
         ${statusSelect(item.status)}
+        ${input("duration_seconds", "时长(秒,取4/5/6/8/10/12)", item.duration_seconds)}
+        ${input("emotion", "情绪", item.emotion)}
+        ${input("shot_size", "景别", item.shot_size)}
+        ${input("camera_angle", "机位角度", item.camera_angle)}
+        ${input("camera_movement", "运镜", item.camera_movement)}
+        ${input("lens", "镜头", item.lens)}
+        ${input("transition_in", "入场转场", item.transition_in)}
+        ${input("transition_out", "出场转场", item.transition_out)}
         ${textarea("characters", "出场角色 ID（一行一条）", lines(item.characters), false)}
-        ${textarea("composition", "构图", item.composition, false)}
-        ${textarea("camera", "镜头", item.camera, false)}
+        ${textarea("composition", "构图(静帧)", item.composition, false)}
+        ${textarea("camera", "镜头(自由文本)", item.camera, false)}
         ${textarea("setting", "场景", item.setting, false)}
         ${textarea("lighting", "光线", item.lighting, false)}
+        ${textarea("action", "动作脚本(运动)", item.action, false)}
         ${textarea("prompt", "生图提示词", item.prompt)}
+        ${textarea("video_prompt", "视频运动提示", item.video_prompt)}
         ${textarea("negative_prompt", "负面提示词", item.negative_prompt)}
       </div>
+      <p class="form-note">声音设计 (audio)、连续性 (continuity) 与台词 SRT 为结构化字段，保存时自动保留；如需编辑可用 @ai 或直接改 project.json。</p>
       ${formActions()}
     </form>`;
 }
@@ -656,58 +1143,56 @@ function taskForm(item) {
 }
 
 function formActions() {
-  return `<div class="form-actions"><button type="submit">保存</button><button type="button" class="danger" data-delete>删除</button><span class="muted">保存后写入本地 project.json</span></div>`;
+  return `<div class="form-actions"><button type="submit">保存</button><button type="button" class="danger" data-delete>删除</button><span class="muted save-hint">已连接本地 project.json</span></div>`;
 }
 
 function bindForm() {
   document.querySelectorAll("[data-go]").forEach((node) => {
     node.addEventListener("click", () => {
-      view = node.dataset.go;
-      selectedId = null;
-      episodeMode = "list";
-      episodeTab = "summary";
-      render();
+      navigateTo({ view: node.dataset.go, selectedId: null, episodeMode: "list", episodeTab: "summary" });
     });
   });
   document.querySelectorAll("[data-select]").forEach((node) => {
     node.addEventListener("click", () => {
-      selectedId = node.dataset.select;
-      render();
+      navigateTo({ selectedId: node.dataset.select });
     });
   });
   document.querySelectorAll("[data-episode-detail]").forEach((node) => {
     node.addEventListener("click", () => {
-      selectedId = node.dataset.episodeDetail;
-      episodeMode = "detail";
-      episodeTab = "summary";
-      render();
+      navigateTo({ view: "episodes", selectedId: node.dataset.episodeDetail, episodeMode: "detail", episodeTab: "summary" });
+    });
+  });
+  document.querySelectorAll("[data-row-episode]").forEach((node) => {
+    node.addEventListener("click", (event) => {
+      if (event.target.closest("button")) return;
+      navigateTo({ view: "episodes", selectedId: node.dataset.rowEpisode, episodeMode: "detail", episodeTab: "summary" });
     });
   });
   document.querySelectorAll("[data-episode-list]").forEach((node) => {
     node.addEventListener("click", () => {
-      episodeMode = "list";
-      episodeTab = "summary";
-      render();
+      navigateTo({ view: "episodes", selectedId: null, episodeMode: "list", episodeTab: "summary" });
     });
   });
   document.querySelectorAll("[data-episode-tab]").forEach((node) => {
     node.addEventListener("click", () => {
-      episodeTab = node.dataset.episodeTab;
+      navigateTo({ view: "episodes", episodeMode: "detail", episodeTab: node.dataset.episodeTab });
+    });
+  });
+  document.querySelectorAll("[data-shot-toggle]").forEach((node) => {
+    node.addEventListener("click", (event) => {
+      if (event.target.closest("[data-generate-image], [data-prompt-preview], [data-image-zoom]")) return;
+      const id = node.dataset.shotToggle;
+      if (expandedShots.has(id)) expandedShots.delete(id);
+      else expandedShots.add(id);
       render();
     });
   });
-  const imageConfigForm = document.querySelector("[data-image-config]");
-  if (imageConfigForm) {
-    imageConfigForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const keepKey = !value(imageConfigForm, "api_key");
-      imageConfig = await api("/api/image-config", {
-        base_url: value(imageConfigForm, "base_url"),
-        api_key: keepKey ? "__KEEP__" : value(imageConfigForm, "api_key"),
-        model: value(imageConfigForm, "model"),
-        size: value(imageConfigForm, "size"),
-      });
-      toast("图像配置已保存");
+  const expandAll = document.querySelector("[data-shots-expand-all]");
+  if (expandAll) {
+    expandAll.addEventListener("click", () => {
+      const shots = shotsForEpisode(selectedId);
+      const allOpen = shots.every((s) => expandedShots.has(s.id));
+      shots.forEach((s) => allOpen ? expandedShots.delete(s.id) : expandedShots.add(s.id));
       render();
     });
   }
@@ -728,8 +1213,87 @@ function bindForm() {
       }
     });
   });
+  document.querySelectorAll("[data-generate-video]").forEach((node) => {
+    node.addEventListener("click", async () => {
+      const shotId = node.dataset.generateVideo;
+      node.disabled = true;
+      node.textContent = "生成中(本地LTX,较慢)...";
+      try {
+        const result = await api("/api/shot-video", { shot_id: shotId, mode: "draft" });
+        state = result.state || await api("/api/state");
+        toast("草稿视频已生成");
+        render();
+      } catch (error) {
+        toast(error.message || "草稿视频生成失败");
+        node.disabled = false;
+        node.textContent = "生成草稿视频";
+      }
+    });
+  });
+  document.querySelectorAll("[data-generate-voice]").forEach((node) => {
+    node.addEventListener("click", async () => {
+      const id = node.dataset.generateVoice;
+      node.disabled = true;
+      node.textContent = "生成中(本地TTS)...";
+      try {
+        const result = await api("/api/character-voice", { character_id: id });
+        state = result.state || await api("/api/state");
+        toast("参考声音已生成");
+        render();
+      } catch (error) {
+        toast(error.message || "语音生成失败");
+        node.disabled = false;
+        node.textContent = "生成参考声音";
+      }
+    });
+  });
+  document.querySelectorAll("[data-set-voice-active]").forEach((node) => {
+    node.addEventListener("click", async () => {
+      try {
+        state = await api("/api/character-voice-active", { character_id: node.dataset.char, path: node.dataset.setVoiceActive });
+        toast("已设为选用声音");
+        render();
+      } catch (error) { toast(error.message || "切换失败"); }
+    });
+  });
+  document.querySelectorAll("[data-set-active-image]").forEach((node) => {
+    node.addEventListener("click", async () => {
+      try {
+        state = await api("/api/shot-active", { shot_id: node.dataset.shot, kind: "image", path: node.dataset.setActiveImage });
+        toast("已设为选用图");
+        render();
+      } catch (error) { toast(error.message || "切换失败"); }
+    });
+  });
+  document.querySelectorAll("[data-set-active-video]").forEach((node) => {
+    node.addEventListener("click", async () => {
+      try {
+        state = await api("/api/shot-active", { shot_id: node.dataset.shot, kind: "video", path: node.dataset.setActiveVideo });
+        toast("已设为选用视频");
+        render();
+      } catch (error) { toast(error.message || "切换失败"); }
+    });
+  });
+  document.querySelectorAll("[data-prompt-preview]").forEach((node) => {
+    node.addEventListener("click", async () => {
+      try {
+        const data = await api(`/api/storyboard-prompt?shot_id=${encodeURIComponent(node.dataset.promptPreview)}`);
+        openPromptModal(data);
+      } catch (error) {
+        toast(error.message || "无法加载提示词");
+      }
+    });
+  });
+  document.querySelectorAll("[data-image-zoom]").forEach((node) => {
+    node.addEventListener("click", () => openImageModal(node.dataset.imageZoom));
+  });
   const form = document.querySelector("form.detail-card");
   if (!form) return;
+  form.addEventListener("input", () => {
+    form.classList.add("is-dirty");
+    const hint = form.querySelector(".save-hint");
+    if (hint) hint.textContent = "有未保存修改";
+  });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     await saveForm(form);
@@ -774,6 +1338,7 @@ async function saveForm(form) {
     selectedId = payload.id;
   }
   toast("已保存");
+  syncRoute({ replace: true });
   render();
 }
 
@@ -801,6 +1366,14 @@ function serializeItem(form, kind) {
         wardrobe: value(form, "wardrobe"),
         anchors: arr(value(form, "anchors")),
         forbidden_drift: arr(value(form, "forbidden_drift")),
+      },
+      voice_profile: {
+        type: value(form, "voice_type"),
+        pace: value(form, "voice_pace"),
+        accent: value(form, "voice_accent"),
+        signature: value(form, "voice_signature"),
+        casting_reference: value(form, "voice_casting"),
+        sample_script: value(form, "voice_sample"),
       },
     };
   }
@@ -839,20 +1412,36 @@ function serializeItem(form, kind) {
     };
   }
   if (kind === "shots") {
-    return {
+    const durRaw = value(form, "duration_seconds");
+    const dur = Number.parseInt(durRaw, 10);
+    const payload = {
       ...base,
       episode_id: value(form, "episode_id"),
       beat_id: value(form, "beat_id"),
       title: value(form, "title"),
       status: value(form, "status"),
       characters: arr(value(form, "characters")),
+      emotion: value(form, "emotion"),
+      shot_size: value(form, "shot_size"),
+      camera_angle: value(form, "camera_angle"),
+      camera_movement: value(form, "camera_movement"),
+      lens: value(form, "lens"),
+      transition_in: value(form, "transition_in"),
+      transition_out: value(form, "transition_out"),
       composition: value(form, "composition"),
       camera: value(form, "camera"),
       setting: value(form, "setting"),
       lighting: value(form, "lighting"),
+      action: value(form, "action"),
       prompt: value(form, "prompt"),
+      video_prompt: value(form, "video_prompt"),
       negative_prompt: value(form, "negative_prompt"),
     };
+    if (Number.isFinite(dur) && dur > 0) {
+      payload.duration_seconds = dur;
+      payload.duration_preset = `${dur}s`;
+    }
+    return payload;
   }
   return {
     ...base,
@@ -876,17 +1465,13 @@ function newItem() {
   const item = templates[view];
   selectedId = item.id;
   state.project[view].push(item);
-  render();
+  navigateTo({ selectedId: item.id, episodeMode: view === "episodes" ? "detail" : episodeMode, episodeTab: "summary" });
 }
 
 document.addEventListener("click", (event) => {
   const viewButton = event.target.closest("[data-view]");
   if (viewButton) {
-    view = viewButton.dataset.view;
-    selectedId = null;
-    episodeMode = "list";
-    episodeTab = "summary";
-    render();
+    navigateTo({ view: viewButton.dataset.view, selectedId: null, episodeMode: "list", episodeTab: "summary" });
   }
 });
 
@@ -902,10 +1487,104 @@ $("projectSelect").addEventListener("change", async () => {
   episodeTab = "summary";
   state = await api("/api/active-project", { project_id: $("projectSelect").value });
   toast(`已切换到《${option?.textContent || "当前短剧"}》`);
-  render();
+  navigateTo({ view: "overview", selectedId: null, episodeMode: "list", episodeTab: "summary" }, { replace: true });
 });
 
 $("newItemButton").addEventListener("click", newItem);
+$("settingsButton").addEventListener("click", openSettings);
+$("closeSettings").addEventListener("click", closeSettings);
+$("settingsModal").addEventListener("click", (event) => {
+  if (event.target === $("settingsModal")) closeSettings();
+});
+document.querySelectorAll("[data-settings-tab]").forEach((node) => {
+  node.addEventListener("click", () => setSettingsTab(node.dataset.settingsTab));
+});
+
+function isTypingTarget(target) {
+  return ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName);
+}
+
+function moveSelection(direction) {
+  if (view === "overview") return;
+  if (view === "episodes" && episodeMode === "detail") return;
+  const items = collectionFor().filter(matches).sort((a, b) => view === "episodes" ? (a.number || 0) - (b.number || 0) : 0);
+  if (!items.length) return;
+  const foundIndex = items.findIndex((item) => item.id === selectedId);
+  const currentIndex = foundIndex < 0 ? (direction > 0 ? -1 : items.length) : foundIndex;
+  const nextIndex = Math.min(items.length - 1, Math.max(0, currentIndex + direction));
+  navigateTo({ selectedId: items[nextIndex].id }, { replace: true });
+}
+
+document.addEventListener("keydown", (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    $("searchInput").focus();
+    $("searchInput").select();
+    return;
+  }
+  if (event.key === "/" && !isTypingTarget(event.target)) {
+    event.preventDefault();
+    $("searchInput").focus();
+    return;
+  }
+  if (event.key.toLowerCase() === "n" && !isTypingTarget(event.target) && view !== "overview") {
+    event.preventDefault();
+    newItem();
+    return;
+  }
+  if (event.key === "Escape") {
+    const modalHost = document.getElementById("modalHost");
+    if (modalHost && modalHost.innerHTML) {
+      closeModal();
+      return;
+    }
+    if (!$("settingsModal").classList.contains("hidden")) {
+      closeSettings();
+      return;
+    }
+    if (document.activeElement === $("searchInput") && query) {
+      query = "";
+      $("searchInput").value = "";
+      render();
+      return;
+    }
+    if (view === "episodes" && episodeMode === "detail") {
+      navigateTo({ view: "episodes", selectedId: null, episodeMode: "list", episodeTab: "summary" });
+    }
+  }
+  if (!isTypingTarget(event.target) && event.key === "ArrowDown") {
+    event.preventDefault();
+    moveSelection(1);
+  }
+  if (!isTypingTarget(event.target) && event.key === "ArrowUp") {
+    event.preventDefault();
+    moveSelection(-1);
+  }
+  if (!isTypingTarget(event.target) && event.key === "Enter" && view === "episodes" && episodeMode === "list" && selectedId) {
+    event.preventDefault();
+    navigateTo({ view: "episodes", selectedId, episodeMode: "detail", episodeTab: "summary" });
+  }
+});
+
+window.addEventListener("hashchange", () => {
+  if (state) applyRouteFromHash();
+});
+
+window.addEventListener("popstate", () => {
+  if (state) applyRouteFromHash();
+});
+
+window.addEventListener("pageshow", () => {
+  if (state) applyRouteFromHash({ replaceEmpty: true });
+});
+
+setInterval(() => {
+  if (!state || isApplyingRoute || isTypingTarget(document.activeElement)) return;
+  const currentHash = window.location.hash || "#/overview";
+  if (currentHash !== lastAppliedHash || currentHash !== `#${routeFor()}`) {
+    applyRouteFromHash({ replaceEmpty: true });
+  }
+}, 300);
 
 load().catch((error) => {
   document.body.innerHTML = `<pre>${escapeHtml(error.stack || error.message)}</pre>`;

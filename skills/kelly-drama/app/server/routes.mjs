@@ -2,7 +2,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { APP_DIR, GENERATED_DIR } from "./paths.mjs";
 import { assertUnlocked } from "./lock.mjs";
-import { generateCharacterCard, generateStoryboardImage, generateVisualBackground, imageConfigPayload, saveImageConfig } from "./image-service.mjs";
+import { generateCharacterCard, generateStoryboardImage, generateVisualBackground, imageConfigPayload, saveImageConfig, storyboardPromptPreview } from "./image-service.mjs";
+import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.mjs";
+import { generateCharacterVoice, setCharacterVoiceActive } from "./voice-service.mjs";
 import { loadProject, saveProject, upsertById } from "./project-store.mjs";
 import { setActiveProject, statePayload } from "./state.mjs";
 import { slug } from "./utils.mjs";
@@ -14,6 +16,9 @@ const CONTENT_TYPES = {
   ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
   ".png": "image/png",
+  ".mp4": "video/mp4",
+  ".wav": "audio/wav",
+  ".mp3": "audio/mpeg",
 };
 
 function send(res, status, body, headers = {}) {
@@ -61,6 +66,28 @@ async function updateCollection(kind, item) {
   return statePayload();
 }
 
+async function setShotActive(shotId, kind, assetPath) {
+  await assertUnlocked();
+  const project = await loadProject();
+  const shot = (project.shots || []).find((s) => String(s.id) === shotId);
+  if (!shot) throw new Error(`Unknown shot: ${shotId}`);
+  const isVideo = kind === "video";
+  const candidates = (isVideo ? shot.video_candidates : shot.image_candidates) || [];
+  const match = candidates.find((c) => c.path === assetPath);
+  if (!match) throw new Error("该候选不存在，无法设为选用。");
+  if (isVideo) {
+    shot.video_asset = match.path;
+    shot.video_generated_at = match.generated_at;
+    shot.video_generation = match.generation;
+  } else {
+    shot.image_asset = match.path;
+    shot.image_generated_at = match.generated_at;
+    shot.image_generation = match.generation;
+  }
+  await saveProject(project);
+  return statePayload();
+}
+
 async function deleteCollectionItem(kind, id) {
   await assertUnlocked();
   const project = await loadProject();
@@ -85,6 +112,7 @@ export async function handleRequest(req, res) {
       if (url.pathname.startsWith("/generated/")) return sendFile(res, path.join(GENERATED_DIR, url.pathname.replace(/^\/generated\//, "")));
       if (url.pathname === "/api/state") return sendJson(res, await statePayload());
       if (url.pathname === "/api/image-config") return sendJson(res, await imageConfigPayload());
+      if (url.pathname === "/api/storyboard-prompt") return sendJson(res, await storyboardPromptPreview(String(url.searchParams.get("shot_id") || "")));
       send(res, 404, "Not Found");
       return;
     }
@@ -107,6 +135,17 @@ export async function handleRequest(req, res) {
         await assertUnlocked();
         return sendJson(res, await generateStoryboardImage(String(body.shot_id || "")));
       }
+      if (url.pathname === "/api/shot-video") {
+        await assertUnlocked();
+        const mode = String(body.mode || "draft");
+        return sendJson(res, mode === "prod"
+          ? await generateShotVideoProd(String(body.shot_id || ""))
+          : await generateShotVideoDraft(String(body.shot_id || "")));
+      }
+      if (url.pathname === "/api/shot-active") {
+        await assertUnlocked();
+        return sendJson(res, await setShotActive(String(body.shot_id || ""), String(body.kind || "image"), String(body.path || "")));
+      }
       if (url.pathname === "/api/visual-background-image") {
         await assertUnlocked();
         return sendJson(res, await generateVisualBackground());
@@ -114,6 +153,14 @@ export async function handleRequest(req, res) {
       if (url.pathname === "/api/character-card-image") {
         await assertUnlocked();
         return sendJson(res, await generateCharacterCard(String(body.character_id || "")));
+      }
+      if (url.pathname === "/api/character-voice") {
+        await assertUnlocked();
+        return sendJson(res, await generateCharacterVoice(String(body.character_id || "")));
+      }
+      if (url.pathname === "/api/character-voice-active") {
+        await assertUnlocked();
+        return sendJson(res, await setCharacterVoiceActive(String(body.character_id || ""), String(body.path || "")));
       }
       const match = url.pathname.match(/^\/api\/(characters|relationships|episodes|shots|tasks)(?:\/([^/]+))?$/);
       if (match) {
