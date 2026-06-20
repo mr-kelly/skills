@@ -32,6 +32,8 @@ export function normalizeProject(project) {
   return {
     project_id: String(safe.project_id || "kelly-drama-project"),
     updated_at: safe.updated_at || utcNow(),
+    projects: Array.isArray(safe.projects) ? safe.projects : [],
+    library: safe.library && typeof safe.library === "object" ? safe.library : {},
     series: safe.series && typeof safe.series === "object" ? safe.series : {},
     characters: Array.isArray(safe.characters) ? safe.characters : [],
     relationships: Array.isArray(safe.relationships) ? safe.relationships : [],
