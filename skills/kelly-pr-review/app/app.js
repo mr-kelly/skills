@@ -7,6 +7,8 @@ let selectedId = null;
 let refreshTimer = null;
 let saveTimer = null;
 const language = params.get("lang") === "zh-CN" ? "zh-CN" : "en";
+let isApplyingRoute = false;
+let routeNeedsReplace = false;
 
 const I18N = {
   en: {
@@ -282,6 +284,82 @@ function modeForDemo(value) {
   return "needs_review";
 }
 
+function routeModes() {
+  return ["all", "needs_review", "to_approve", "approved", "done", "blocked"];
+}
+
+function encodeRoutePart(value) {
+  return encodeURIComponent(String(value || ""));
+}
+
+function decodeRoutePart(value) {
+  try {
+    return decodeURIComponent(value || "");
+  } catch {
+    return value || "";
+  }
+}
+
+function routeFor(nextMode = mode, nextSelectedId = selectedId) {
+  const modePart = routeModes().includes(nextMode) ? nextMode : "needs_review";
+  return nextSelectedId ? `/${modePart}/${encodeRoutePart(nextSelectedId)}` : `/${modePart}`;
+}
+
+function parseHashRoute() {
+  const raw = (window.location.hash || "").replace(/^#\/?/, "");
+  const parts = raw.split("/").filter(Boolean).map(decodeRoutePart);
+  return {
+    mode: routeModes().includes(parts[0]) ? parts[0] : mode,
+    selectedId: parts[1] || null,
+  };
+}
+
+function applyRouteFromHash() {
+  isApplyingRoute = true;
+  routeNeedsReplace = false;
+  const route = parseHashRoute();
+  mode = route.mode;
+  selectedId = route.selectedId;
+  syncModeButtons();
+  isApplyingRoute = false;
+}
+
+function syncRoute({ push = false } = {}) {
+  if (isApplyingRoute) {
+    routeNeedsReplace = true;
+    return;
+  }
+  const target = `#${routeFor()}`;
+  if (window.location.hash === target) return;
+  if (push) window.location.hash = target;
+  else history.replaceState(null, "", target);
+}
+
+function navigateTo(next = {}, { replace = false, reload = false } = {}) {
+  if ("mode" in next) mode = next.mode;
+  if ("selectedId" in next) selectedId = next.selectedId;
+  syncModeButtons();
+  const target = `#${routeFor()}`;
+  if (window.location.hash === target) {
+    if (reload) loadState().catch((error) => toast(error.message));
+    else {
+      renderList();
+      renderDetail();
+    }
+    return;
+  }
+  if (replace) {
+    history.replaceState(null, "", target);
+    if (reload) loadState().catch((error) => toast(error.message));
+    else {
+      renderList();
+      renderDetail();
+    }
+  } else {
+    window.location.hash = target;
+  }
+}
+
 function countFor(name) {
   if (name === "all") return state.total_cached || 0;
   return state.counts?.[name] || 0;
@@ -367,7 +445,10 @@ function renderList() {
     renderDetail();
     return;
   }
-  if (!selectedId || !state.items.some((item) => item.id === selectedId)) selectedId = state.items[0].id;
+  if (!selectedId || !state.items.some((item) => item.id === selectedId)) {
+    selectedId = state.items[0].id;
+    syncRoute({ push: false });
+  }
   list.innerHTML = state.items.map((item) => `
     <button class="pr-row ${item.id === selectedId ? "active" : ""}" data-id="${escapeHtml(item.id)}">
       <a class="pr-open-button" href="${escapeHtml(item.url)}" target="_blank" rel="noopener" title="${escapeHtml(t("open_pr"))}" aria-label="${escapeHtml(t("open_pr"))} ${escapeHtml(item.repo)} #${escapeHtml(item.number)}">↗</a>
@@ -382,9 +463,7 @@ function renderList() {
   `).join("");
   list.querySelectorAll(".pr-row").forEach((row) => {
     row.addEventListener("click", () => {
-      selectedId = row.dataset.id;
-      renderList();
-      renderDetail();
+      navigateTo({ selectedId: row.dataset.id });
     });
   });
   list.querySelectorAll(".pr-open-button").forEach((link) => {
@@ -526,20 +605,23 @@ function closeHelp() {
 }
 
 async function loadState() {
+  applyRouteFromHash();
   const q = encodeURIComponent($("searchInput")?.value || "");
   state = await api(`/api/state?mode=${encodeURIComponent(mode)}&repo=${encodeURIComponent(repoFilter)}&q=${q}`);
   renderCounts();
   renderHeader();
   renderLock();
   renderList();
+  if (routeNeedsReplace) {
+    history.replaceState(null, "", `#${routeFor()}`);
+    routeNeedsReplace = false;
+  }
 }
 
 function wire() {
   document.querySelectorAll("#filters button").forEach((button) => {
     button.addEventListener("click", () => {
-      mode = button.dataset.mode;
-      syncModeButtons();
-      loadState().catch((error) => toast(error.message));
+      navigateTo({ mode: button.dataset.mode, selectedId: null }, { reload: true });
     });
   });
   $("searchInput").addEventListener("input", () => {
@@ -549,6 +631,7 @@ function wire() {
   $("repoFilter").addEventListener("change", () => {
     repoFilter = $("repoFilter").value || "all";
     selectedId = null;
+    syncRoute({ push: false });
     loadState().catch((error) => toast(error.message));
   });
   $("reloadButton").addEventListener("click", () => loadState().catch((error) => toast(error.message)));
@@ -563,6 +646,7 @@ function wire() {
     if (active && ["TEXTAREA", "INPUT"].includes(active.tagName)) return;
     loadState().catch(() => {});
   }, 5000);
+  window.addEventListener("hashchange", () => loadState().catch((error) => toast(error.message)));
 }
 
 applyTranslations();

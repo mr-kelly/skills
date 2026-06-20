@@ -136,6 +136,8 @@ Keep shared code in `lib/`. Keep `scripts/` as thin entrypoints. Keep real confi
 
 Put a small human-attention panel at the top-left of the app, above the normal sidebar filters. It should answer "what do I need to do?" immediately: one primary task such as `Need a note or decision`, plus secondary counts such as `Ready for agent next` and `Blocked`. Add a divider below it before the ordinary views.
 
+For zero-dependency single-page apps, use native hash routing by default. Meaningful states should have copyable URLs such as `#/items`, `#/items/<id>`, or `#/settings`, without adding a router package. Route sidebar views, selected rows, detail tabs, and settings/help panels through one small hash router so refresh restores the same view and browser back/forward works. Use `history.replaceState` for keyboard selection or automatic cleanup so rapid navigation does not fill the history stack.
+
 Avoid extra approval layers. If an item already has a safe, concrete next step, show it as approved/ready for the agent rather than making the human click through a `To approve` holding state. Save human clicks for judgment, edits, exceptions, and irreversible actions.
 
 Execution reports should describe the real operation and target, not only a generic action label. If a connector needs a folder, channel, path, account id, or other target and it is missing, block and ask for configuration instead of guessing.

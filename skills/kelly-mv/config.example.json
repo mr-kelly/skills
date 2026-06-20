@@ -1,0 +1,16 @@
+{
+  "data_provider": "local",
+  "project_defaults": {
+    "language": "auto",
+    "image_style": "16:9 photoreal cinematic music video",
+    "shot_duration_presets_seconds": [4, 5, 6, 8, 10, 12]
+  },
+  "song_generation": {
+    "draft_backend": "songgeneration-v2-mlx",
+    "voice_clone_backend": "ace-step-1.5",
+    "status": "stub"
+  },
+  "export": {
+    "default_format": "markdown"
+  }
+}

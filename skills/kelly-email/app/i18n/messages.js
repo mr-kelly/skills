@@ -1,6 +1,6 @@
 export const I18N = {
   en: {
-    "brand.subtitle": "File-only approval desk",
+    "brand.subtitle": "Personal email assistant review desk",
     "filter.all": "All",
     "filter.all.tooltip": "Everything in the current local batch.",
     "filter.needs_review": "Needs Review",
@@ -217,7 +217,7 @@ export const I18N = {
     "toast.saved_detail": "Saved to local batch file"
   },
   "zh-CN": {
-    "brand.subtitle": "本地审批台",
+    "brand.subtitle": "私人 email 助理审批处理台",
     "filter.all": "全部",
     "filter.all.tooltip": "当前本地批次里的所有项目。",
     "filter.needs_review": "需查看",

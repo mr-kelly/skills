@@ -67,25 +67,27 @@ function hasGeneratedRef(character) {
 }
 
 export function storyboardPrompt(project, shot) {
-  const bible = project.series?.visual_bible || {};
+  const concept = project.treatment || {};
+  const song = project.song || {};
   const characters = shotCharacters(project, shot);
   const characterNames = characters.map((c) => `${c.name}: ${c.visual?.front || c.role || ""}`.trim()).filter(Boolean);
   const withRefs = characters.filter(hasGeneratedRef);
+  // The shot's free-text scene description is the main brief. Old rich-sheet data falls
+  // back to its composed fields so existing projects still generate.
+  const scene = shot.description
+    || [shot.composition, shot.action, shot.setting, shot.lighting].filter(Boolean).join(". ")
+    || shot.prompt || "";
+  const look = concept.look || concept.realism_target || concept.color_palette || "";
   return [
-    `Storyboard frame for a historical Chinese short drama adaptation of ${project.series?.title || "三国演义"}.`,
-    bible.aspect_ratio ? `Aspect ratio: ${bible.aspect_ratio} ${bible.orientation || ""}.` : "",
-    bible.realism_target ? `Visual target: ${bible.realism_target}` : "",
-    bible.cinematography ? `Cinematography: ${bible.cinematography}` : "",
-    bible.color_palette ? `Color palette: ${bible.color_palette}` : "",
-    `Shot title: ${shot.title || shot.id}.`,
-    `Composition: ${shot.composition || ""}`,
-    `Camera: ${shot.camera || ""}`,
-    `Setting: ${shot.setting || ""}`,
-    `Lighting: ${shot.lighting || ""}`,
+    `Music video storyboard frame for the song "${song.title || "untitled"}"${song.artist ? ` by ${song.artist}` : ""}.`,
+    concept.summary || concept.concept ? `MV concept: ${concept.summary || concept.concept}` : "",
+    look ? `Visual style: ${look}` : "",
+    concept.aspect_ratio ? `Aspect ratio: ${concept.aspect_ratio}.` : "",
+    `Shot: ${shot.title || shot.id}.`,
+    scene ? `Scene: ${scene}` : "",
     characterNames.length ? `Characters: ${characterNames.join("; ")}` : "",
-    withRefs.length ? `Character consistency: reference portrait images are provided for ${withRefs.map((c) => c.name).join("、")}. Keep each character's face, hairstyle, beard, body type and costume identical to their reference image; do not redesign or swap them.` : "",
-    shot.prompt ? `Shot brief: ${shot.prompt}` : "",
-    `Style: ${bible.style_medium || "cinematic storyboard still, clear character blocking, production-ready frame"}.`,
+    withRefs.length ? `Character consistency: reference portrait images are provided for ${withRefs.map((c) => c.name).join("、")}. Keep each performer's face, hairstyle, body type and wardrobe identical to their reference image; do not redesign or swap them.` : "",
+    `Style: cinematic music-video still, ${look || "photoreal"}, production-ready frame. No on-screen lyrics, captions, watermarks or UI.`,
     shot.negative_prompt ? `Avoid: ${shot.negative_prompt}` : "",
   ].filter(Boolean).join("\n");
 }
@@ -103,10 +105,10 @@ function collectShotReferences(project, shot) {
       refs.push({ kind: "character", id: character.id, name: character.name, path: character.reference_card.image_asset });
     }
   }
-  const backgrounds = project.series?.visual_bible?.background_reference_assets || [];
+  const backgrounds = project.treatment?.background_reference_assets || [];
   const bg = backgrounds[backgrounds.length - 1];
   if (refs.length < MAX_SHOT_REFERENCES && bg?.path?.startsWith("/generated/")) {
-    refs.push({ kind: "background", id: bg.id || "background", name: bg.title || "背景参考", path: bg.path });
+    refs.push({ kind: "background", id: bg.id || "background", name: bg.title || "风格参考", path: bg.path });
   }
   return refs.slice(0, MAX_SHOT_REFERENCES);
 }
@@ -145,8 +147,7 @@ export async function storyboardPromptPreview(shotId) {
   if (!shot) throw new Error(`Unknown shot: ${shotId}`);
   const config = await loadImageConfig();
   const references = collectShotReferences(project, shot);
-  const bible = project.series?.visual_bible || {};
-  const episode = (project.episodes || []).find((item) => item.id === shot.episode_id);
+  const treatment = project.treatment || {};
   return {
     shot_id: shot.id,
     title: shot.title || shot.id,
@@ -164,32 +165,34 @@ export async function storyboardPromptPreview(shotId) {
       reference_image: hasGeneratedRef(c) ? c.reference_card.image_asset : "",
     })),
     context: {
-      series_title: project.series?.title || "",
-      logline: project.series?.logline || "",
-      episode_title: episode?.title || "",
-      realism_target: bible.realism_target || "",
-      color_palette: bible.color_palette || "",
-      period_detail: bible.period_detail || "",
+      song_title: project.song?.title || "",
+      artist: project.song?.artist || "",
+      concept: treatment.concept || "",
+      realism_target: treatment.realism_target || "",
+      color_palette: treatment.color_palette || "",
     },
   };
 }
 
 function visualBackgroundPrompt(project) {
-  const bible = project.series?.visual_bible || {};
-  return bible.background_prompt || [
-    `Visual background reference for ${project.series?.title || "short drama"}.`,
-    bible.aspect_ratio ? `Aspect ratio: ${bible.aspect_ratio} ${bible.orientation || ""}.` : "",
-    bible.realism_target || "",
-    bible.period_detail || "",
-    bible.cinematography || "",
+  const treatment = project.treatment || {};
+  return treatment.background_prompt || [
+    `Visual style reference frame for the music video of "${project.song?.title || "untitled"}".`,
+    treatment.concept ? `Concept: ${treatment.concept}` : "",
+    treatment.aspect_ratio ? `Aspect ratio: ${treatment.aspect_ratio} ${treatment.orientation || ""}.` : "",
+    treatment.realism_target || "",
+    treatment.color_palette ? `Color palette: ${treatment.color_palette}` : "",
+    treatment.cinematography || "",
+    "No on-screen text, captions, watermarks or UI.",
   ].filter(Boolean).join("\n");
 }
 
 function characterCardPrompt(character, project) {
+  const treatment = project.treatment || {};
   return [
     character.reference_card?.prompt || "",
-    project.series?.visual_bible?.realism_target ? `Series visual target: ${project.series.visual_bible.realism_target}` : "",
-    project.series?.visual_bible?.aspect_ratio ? `Aspect ratio: ${project.series.visual_bible.aspect_ratio} ${project.series.visual_bible.orientation || ""}.` : "",
+    treatment.realism_target ? `MV visual target: ${treatment.realism_target}` : "",
+    treatment.aspect_ratio ? `Aspect ratio: ${treatment.aspect_ratio} ${treatment.orientation || ""}.` : "",
   ].filter(Boolean).join("\n");
 }
 
@@ -289,22 +292,19 @@ export async function generateVisualBackground() {
   const diskPath = path.join(REFERENCE_IMAGE_DIR, filename);
   await fs.writeFile(diskPath, bytes);
   const publicPath = `/generated/references/${filename}`;
-  project.series = {
-    ...project.series,
-    visual_bible: {
-      ...(project.series?.visual_bible || {}),
-      background_reference_assets: [
-        ...((project.series?.visual_bible?.background_reference_assets || []).filter((item) => item.path !== publicPath)),
-        {
-          id: `bg-ref-${Date.now()}`,
-          title: "汉末乱世背景参考",
-          path: publicPath,
-          generated_at: new Date().toISOString(),
-          model: payload.model,
-          size: payload.size,
-        },
-      ],
-    },
+  project.treatment = {
+    ...(project.treatment || {}),
+    background_reference_assets: [
+      ...((project.treatment?.background_reference_assets || []).filter((item) => item.path !== publicPath)),
+      {
+        id: `bg-ref-${Date.now()}`,
+        title: "MV 风格参考",
+        path: publicPath,
+        generated_at: new Date().toISOString(),
+        model: payload.model,
+        size: payload.size,
+      },
+    ],
   };
   await saveProject(project);
   return { path: publicPath, state: await import("./state.mjs").then((mod) => mod.statePayload()) };
