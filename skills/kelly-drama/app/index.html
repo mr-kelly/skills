@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kelly Drama</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">KD</div>
+          <div>
+            <div class="brand-title">Kelly Drama</div>
+            <div class="brand-subtitle">短剧创作工作台</div>
+          </div>
+        </div>
+
+        <section class="attention" aria-labelledby="attentionTitle">
+          <div class="eyebrow">现在最该补</div>
+          <h1 id="attentionTitle">创作缺口</h1>
+          <button class="attention-primary" data-view="tasks" title="查看需要你或 AI 处理的任务">
+            <strong id="attentionNeeds">0</strong>
+            <span>需要决定 / 改稿</span>
+          </button>
+          <div class="attention-grid">
+            <button data-view="shots" title="查看分镜生图提示词">
+              <strong id="attentionShots">0</strong>
+              <span>分镜待补</span>
+            </button>
+            <button data-view="characters" title="查看角色三视图完整度">
+              <strong id="attentionViews">0</strong>
+              <span>三视图缺口</span>
+            </button>
+          </div>
+        </section>
+
+        <div class="separator"></div>
+
+        <nav class="nav" id="nav">
+          <button class="active" data-view="overview" title="查看项目总览">总览</button>
+          <button data-view="characters" title="维护人物库、演员设定、三视图">人物库</button>
+          <button data-view="relationships" title="维护人物关系和权力变化">关系网</button>
+          <button data-view="episodes" title="编辑分级剧情和单集节拍">剧集</button>
+          <button data-view="shots" title="编辑分镜和生图提示词">分镜生图</button>
+          <button data-view="tasks" title="查看 AI 或人工待办">任务</button>
+        </nav>
+
+        <div class="local-note">
+          <div>本地文件</div>
+          <code id="projectPath">loading...</code>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <div class="project-title" id="projectTitle">加载中</div>
+            <div class="project-meta" id="projectMeta">本地短剧项目</div>
+          </div>
+          <div class="topbar-actions">
+            <input id="searchInput" placeholder="搜索人物、剧情、分镜、任务" />
+            <button id="newItemButton" title="在当前视图中新建一项">新建</button>
+          </div>
+        </header>
+
+        <div id="lockBanner" class="lock-banner hidden">本地项目文件正在被 agent 使用，暂时只读。</div>
+
+        <section class="workspace">
+          <div class="list-panel">
+            <div class="panel-head">
+              <div>
+                <h2 id="viewTitle">总览</h2>
+                <p id="viewSubtitle">项目健康度与创作入口</p>
+              </div>
+              <span id="itemCount" class="count-pill">0</span>
+            </div>
+            <div id="list" class="item-list"></div>
+          </div>
+
+          <aside class="detail-panel">
+            <div id="detail" class="detail"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
