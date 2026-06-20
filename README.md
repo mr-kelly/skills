@@ -29,26 +29,28 @@ In Claude Code:
 
 ## App UI Screenshots
 
-These skills include local browser UIs for review, approval, and handoff workflows.
+These skills include local browser UIs for review, approval, and handoff workflows. They are useful when an agent can prepare work, but a person still needs a clear place to inspect context, edit drafts, approve safe actions, block risky ones, and export or execute only after review.
+
+The common pattern is a local command desk: demo-safe queues, status filters, detail panes, editable recommendations, approval controls, and handoff records. The screenshots below show the main use cases for each App UI rather than just isolated screens.
 
 ### `kelly-content`
 
 <table>
   <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-content-ui.png" alt="Kelly Content todo queue"></td>
     <td width="50%"><img src="docs/screenshots/kelly-content-topics.png" alt="Kelly Content topic discovery"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-content-main.png" alt="Kelly Content main draft"></td>
   </tr>
   <tr>
+    <td><strong>Todo queue</strong><br>Confirmed content directions queued for AI writing, with ownership, status, and next-step controls.</td>
     <td><strong>Topic discovery</strong><br>Mock editorial planning with keyword clusters, audience fit, and topic opportunities.</td>
-    <td><strong>Main draft</strong><br>Long-form writing workspace with outline, draft sections, source notes, and approval status.</td>
   </tr>
   <tr>
+    <td><img src="docs/screenshots/kelly-content-main.png" alt="Kelly Content main draft"></td>
     <td><img src="docs/screenshots/kelly-content-distribution.png" alt="Kelly Content distribution review"></td>
-    <td></td>
   </tr>
   <tr>
+    <td><strong>Main draft</strong><br>Long-form writing workspace with outline, draft sections, source notes, and approval status.</td>
     <td><strong>Distribution review</strong><br>Channel handoff view for publishing, social snippets, newsletter framing, and final checks.</td>
-    <td></td>
   </tr>
 </table>
 
@@ -56,20 +58,20 @@ These skills include local browser UIs for review, approval, and handoff workflo
 
 <table>
   <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-email-ui.png" alt="Kelly Email overview"></td>
     <td width="50%"><img src="docs/screenshots/kelly-email-all.png" alt="Kelly Email inbox approval desk"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-email-review.png" alt="Kelly Email needs review"></td>
   </tr>
   <tr>
+    <td><strong>Overview</strong><br>Inbox-zero command desk with account context, queue metrics, and review workflow controls.</td>
     <td><strong>Inbox approval desk</strong><br>Mock inbox queue with approvals, sender context, reply drafts, and status filters.</td>
-    <td><strong>Needs review</strong><br>Human-in-the-loop review scene for a partnership reply that needs tone and timing judgment.</td>
   </tr>
   <tr>
+    <td><img src="docs/screenshots/kelly-email-review.png" alt="Kelly Email needs review"></td>
     <td><img src="docs/screenshots/kelly-email-blocked.png" alt="Kelly Email blocked security request"></td>
-    <td></td>
   </tr>
   <tr>
+    <td><strong>Needs review</strong><br>Human-in-the-loop review scene for a partnership reply that needs tone and timing judgment.</td>
     <td><strong>Blocked security request</strong><br>Risk-heavy email scenario where the assistant blocks a suspicious request instead of drafting a reply.</td>
-    <td></td>
   </tr>
 </table>
 
@@ -77,20 +79,20 @@ These skills include local browser UIs for review, approval, and handoff workflo
 
 <table>
   <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-pr-review-ui.png" alt="Kelly PR Review overview"></td>
     <td width="50%"><img src="docs/screenshots/kelly-pr-review-review.png" alt="Kelly PR Review needs review"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-pr-review-ready.png" alt="Kelly PR Review ready to approve"></td>
   </tr>
   <tr>
+    <td><strong>Overview</strong><br>Pull request review desk with repository filters, status counts, and reviewer configuration.</td>
     <td><strong>Needs review</strong><br>Mock pull request review with findings, confidence signals, test notes, and suggested actions.</td>
-    <td><strong>Ready to approve</strong><br>Approval-focused review where checks pass and the final recommendation is ready to send.</td>
   </tr>
   <tr>
+    <td><img src="docs/screenshots/kelly-pr-review-ready.png" alt="Kelly PR Review ready to approve"></td>
     <td><img src="docs/screenshots/kelly-pr-review-blocked.png" alt="Kelly PR Review blocked review"></td>
-    <td></td>
   </tr>
   <tr>
+    <td><strong>Ready to approve</strong><br>Approval-focused review where checks pass and the final recommendation is ready to send.</td>
     <td><strong>Blocked review</strong><br>Security-sensitive PR scenario with unresolved risk, blocking rationale, and reviewer handoff details.</td>
-    <td></td>
   </tr>
 </table>
 
