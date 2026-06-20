@@ -2,16 +2,19 @@ let state = null;
 let view = "overview";
 let selectedId = null;
 let query = "";
+let episodeMode = "list";
+let episodeTab = "summary";
+let imageConfig = null;
 
 const $ = (id) => document.getElementById(id);
 
 const viewMeta = {
-  overview: ["总览", "项目健康度与创作入口"],
+  overview: ["背景", "短剧大背景、世界规则和创作入口"],
   characters: ["人物库", "角色卡、演员设定、三视图和一致性锚点"],
-  relationships: ["关系网", "公开关系、隐藏真相、权力方向和证据集"],
-  episodes: ["剧集", "分级剧情、节拍、反转和悬念"],
+  relationships: ["人物关系图", "公开关系、隐藏真相、权力方向和证据集"],
+  episodes: ["剧集", "先扫剧集表，再进入单集剧本和分镜执行层"],
   shots: ["分镜生图", "画面、镜头、生图提示词和负面提示词"],
-  tasks: ["任务", "人工判断、AI 改稿请求和导出准备"],
+  tasks: ["审批", "人工判断、AI 改稿请求和导出准备"],
 };
 
 function escapeHtml(value) {
@@ -67,6 +70,7 @@ async function api(path, body = null) {
 
 async function load() {
   state = await api("/api/state");
+  imageConfig = await api("/api/image-config").catch(() => null);
   render();
 }
 
@@ -103,6 +107,9 @@ function episodeTitle(id) {
 
 function updateChrome() {
   const p = project();
+  document.body.classList.toggle("episodes-list-mode", view === "episodes" && episodeMode === "list");
+  document.body.classList.toggle("episode-focus-mode", view === "episodes" && episodeMode === "detail");
+  renderProjectSwitcher();
   $("projectTitle").textContent = p.series?.title || "未命名短剧";
   $("projectMeta").textContent = `${p.series?.genre || "类型未定"} · ${p.series?.format || "格式未定"}`;
   $("projectPath").textContent = state.paths?.project_path || "";
@@ -118,10 +125,31 @@ function updateChrome() {
   $("viewSubtitle").textContent = subtitle;
 }
 
+function renderProjectSwitcher() {
+  const select = $("projectSelect");
+  const projects = state.projects?.length ? state.projects : [{
+    id: state.project?.project_id,
+    title: state.project?.series?.title,
+    genre: state.project?.series?.genre,
+    format: state.project?.series?.format,
+  }];
+  const currentId = state.active_project_id || state.project?.project_id || projects[0]?.id || "";
+  select.innerHTML = projects.map((item) => {
+    const selected = item.id === currentId ? "selected" : "";
+    return `<option value="${escapeHtml(item.id || item.title)}" ${selected}>${escapeHtml(item.title || "未命名短剧")}</option>`;
+  }).join("");
+  const current = projects.find((item) => item.id === currentId) || projects[0] || {};
+  $("projectSwitchMeta").innerHTML = `
+    <span>${escapeHtml(current.genre || state.project?.series?.genre || "")}</span>
+    <span>${escapeHtml(current.format || state.project?.series?.format || "")}</span>
+  `;
+}
+
 function render() {
   if (!state) return;
   updateChrome();
   if (view === "overview") renderOverview();
+  else if (view === "episodes") renderEpisodesWorkspace();
   else renderListAndDetail();
 }
 
@@ -141,6 +169,7 @@ function renderOverview() {
     ${overviewCard("剧情推进", `${state.completeness.episodes_missing_cliffhanger} 集缺少明确悬念`, "episodes")}
     ${overviewCard("分镜生图", `${state.completeness.shots_missing_prompt} 个分镜缺提示词`, "shots")}
     ${overviewCard("关系证据", `${state.completeness.relationships_missing_evidence} 条关系缺证据集`, "relationships")}
+    ${visualBiblePreview(p.series?.visual_bible || {})}
   `;
   $("detail").innerHTML = seriesForm(p.series || {});
   bindForm();
@@ -148,6 +177,21 @@ function renderOverview() {
 
 function overviewCard(title, body, target) {
   return `<button class="item-card" data-go="${target}"><h3>${escapeHtml(title)}</h3><p>${escapeHtml(body)}</p></button>`;
+}
+
+function visualBiblePreview(bible) {
+  const assets = bible.background_reference_assets || [];
+  return `
+    <section class="visual-bible-card">
+      <div>
+        <h3>画面基准</h3>
+        <p>${escapeHtml(bible.format_note || "")}</p>
+        <p class="muted">${escapeHtml(bible.realism_target || "")}</p>
+      </div>
+      <div class="reference-grid">
+        ${assets.map((asset) => `<figure><img src="${escapeHtml(asset.path)}" alt="${escapeHtml(asset.title || "背景参考")}" /><figcaption>${escapeHtml(asset.title || "背景参考")}</figcaption></figure>`).join("") || `<div class="asset-placeholder">背景参考图待生成</div>`}
+      </div>
+    </section>`;
 }
 
 function renderListAndDetail() {
@@ -158,6 +202,255 @@ function renderListAndDetail() {
   $("list").innerHTML = items.map(itemCard).join("") || `<div class="item-card"><h3>还没有内容</h3><p>点击右上角新建，先搭一个骨架。</p></div>`;
   $("detail").innerHTML = detailForm(selectedItem());
   bindForm();
+}
+
+function renderEpisodesWorkspace() {
+  $("newItemButton").style.visibility = "visible";
+  const allEpisodes = collectionFor("episodes");
+  const items = allEpisodes.filter(matches).sort((a, b) => (a.number || 0) - (b.number || 0));
+  $("itemCount").textContent = String(items.length);
+  if (episodeMode === "detail" && (!selectedId || !allEpisodes.some((item) => item.id === selectedId))) {
+    selectedId = items[0]?.id || null;
+  }
+  const workspace = document.querySelector(".workspace");
+  workspace?.classList.toggle("episode-detail-mode", episodeMode === "detail");
+  workspace?.classList.toggle("episodes-list-layout", episodeMode === "list");
+  if (episodeMode === "detail") {
+    $("list").innerHTML = episodeDetail(selectedItem());
+    $("detail").innerHTML = "";
+  } else {
+    $("list").innerHTML = episodeTable(items);
+    $("detail").innerHTML = "";
+  }
+  bindForm();
+}
+
+function episodeTable(items) {
+  if (!items.length) {
+    return `<div class="item-card"><h3>还没有剧集</h3><p>点击右上角新建，先搭一个单集骨架。</p></div>`;
+  }
+  return `
+    <div class="episode-table-wrap">
+      <table class="episode-table">
+        <thead>
+          <tr>
+            <th>回</th>
+            <th>剧集</th>
+            <th>总结</th>
+            <th>状态</th>
+            <th>分镜</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map((episode) => episodeRow(episode)).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function episodeRow(episode) {
+  const shots = shotsForEpisode(episode.id);
+  const summary = episode.summary || episode.promise || "";
+  return `
+    <tr class="${episode.id === selectedId ? "active" : ""}">
+      <td class="episode-no">${escapeHtml(String(episode.number || "").padStart(3, "0"))}</td>
+      <td>
+        <button class="episode-link" data-episode-detail="${escapeHtml(episode.id)}">${escapeHtml(episode.title || episode.id)}</button>
+        <div class="table-sub">${escapeHtml(episode.source_chapter?.chapter_title || "")}</div>
+      </td>
+      <td>${escapeHtml(summary).slice(0, 86)}</td>
+      <td>${statusBadge(episode.status)}</td>
+      <td><span class="badge">${shots.length} 镜</span></td>
+      <td><button class="mini-button table-action" data-episode-detail="${escapeHtml(episode.id)}">查看详情</button></td>
+    </tr>`;
+}
+
+function shotsForEpisode(episodeId) {
+  return (project().shots || []).filter((shot) => shot.episode_id === episodeId);
+}
+
+function episodeDetail(item) {
+  if (!item) return `<div class="detail-card"><h2>选择一集</h2><p class="muted">从左侧剧集表格进入单集详情。</p></div>`;
+  const shots = shotsForEpisode(item.id);
+  return `
+    <form class="detail-card episode-detail" data-kind="episodes" data-id="${escapeHtml(item.id)}">
+      <button type="button" class="back-button" data-episode-list>返回剧集列表</button>
+      <div class="detail-head">
+        <div>
+          <div class="eyebrow">约 3 分钟 · 单集工作台</div>
+          <h2>${escapeHtml(item.title || "新一集")}</h2>
+          <p>${escapeHtml(item.source_chapter?.work || "三国演义")} · 第 ${escapeHtml(item.source_chapter?.chapter_number || item.number || "")} 回 · ${escapeHtml(item.runtime || "about 3 minutes")}</p>
+        </div>
+        ${statusBadge(item.status)}
+      </div>
+
+      <div class="episode-tabs" role="tablist" aria-label="剧集详情">
+        <button type="button" class="${episodeTab === "summary" ? "active" : ""}" data-episode-tab="summary">剧集总述</button>
+        <button type="button" class="${episodeTab === "shots" ? "active" : ""}" data-episode-tab="shots">分镜详情</button>
+      </div>
+
+      ${episodeTab === "shots" ? episodeShotsTab(item, shots) : episodeSummaryTab(item)}
+      ${episodeTab === "shots" ? `<div class="form-actions"><span class="muted">分镜详情当前用于查看执行层，编辑分镜可后续接到单镜头弹窗。</span></div>` : formActions()}
+    </form>`;
+}
+
+function episodeSummaryTab(item) {
+  return `
+    <section class="script-section">
+      <h3>单集总结</h3>
+      <div class="form-grid">
+        ${input("id", "剧集 ID", item.id)}
+        ${input("number", "回目 / 集数", item.number || "", "number")}
+        ${input("title", "标题", item.title)}
+        ${statusSelect(item.status)}
+        ${textarea("summary", "总结", item.summary || item.promise)}
+        ${textarea("promise", "原著锚点 / 本集承诺", item.promise)}
+        ${textarea("a_plot", "A 剧情", item.a_plot, false)}
+        ${textarea("b_plot", "B 剧情", item.b_plot, false)}
+        ${textarea("cliffhanger", "结尾悬念", item.cliffhanger)}
+        ${textarea("beats_json", "节拍 JSON", JSON.stringify(item.beats || [], null, 2))}
+      </div>
+    </section>
+    ${scriptPreview(item)}`;
+}
+
+function episodeShotsTab(item, shots) {
+  return executionTimeline(item, shots);
+}
+
+function scriptPreview(item) {
+  const beats = item.beats || [];
+  return `
+    <section class="script-section">
+      <h3>剧本结构</h3>
+      <div class="beat-stack">
+        ${beats.map((beat, index) => `
+          <article class="beat-row">
+            <div class="beat-index">${String(index + 1).padStart(2, "0")}</div>
+            <div>
+              <strong>${escapeHtml(beat.label || beat.id)}</strong>
+              <p>${escapeHtml(beat.hook || "")}</p>
+              <p class="muted">${escapeHtml(beat.conflict || "")}</p>
+            </div>
+          </article>
+        `).join("") || `<p class="muted">还没有节拍。</p>`}
+      </div>
+    </section>`;
+}
+
+function executionTimeline(item, shots) {
+  const execution = item.execution || {};
+  return `
+    <section class="script-section">
+      <div class="section-head">
+        <div>
+          <h3>Storyboard</h3>
+          <p class="muted">分镜图使用 OpenAI-compatible Images API，本地保存生成结果。</p>
+        </div>
+      </div>
+      ${imageConfigPanel()}
+      <div class="execution-grid">
+        <div class="execution-card">
+          <span>01</span>
+          <strong>镜头描述</strong>
+          <p>${escapeHtml(execution.shot_description || "按下方分镜逐镜确认画面、构图、场景和镜头运动。")}</p>
+        </div>
+        <div class="execution-card">
+          <span>02</span>
+          <strong>台词 SRT</strong>
+          <p>${escapeHtml(execution.srt_status || "先放样例台词和时间轴，后续再逐集精修。")}</p>
+        </div>
+        <div class="execution-card">
+          <span>03</span>
+          <strong>分镜图片</strong>
+          <p>${escapeHtml(execution.image_status || "分镜图片先作为占位状态，不急着生成。")}</p>
+        </div>
+        <div class="execution-card">
+          <span>04</span>
+          <strong>最终分镜视频</strong>
+          <p>${escapeHtml(execution.video_status || "视频生成保持未开始，只保留未来入口。")}</p>
+        </div>
+      </div>
+      <div class="shot-stack">
+        ${shots.map(shotPreview).join("") || `<div class="empty-shot">本集还没有独立分镜。可以先用剧本节拍推进，后面再补镜头。</div>`}
+      </div>
+    </section>`;
+}
+
+function imageConfigPanel() {
+  const config = imageConfig || {};
+  return `
+    <form class="image-config" data-image-config>
+      <div class="field">
+        <label for="imageBaseUrl">BASE_URL</label>
+        <input id="imageBaseUrl" name="base_url" value="${escapeHtml(config.base_url || "https://moonrouter.dev/v1")}" />
+      </div>
+      <div class="field">
+        <label for="imageApiKey">API Key</label>
+        <input id="imageApiKey" name="api_key" type="password" placeholder="${escapeHtml(config.has_api_key ? `已配置：${config.api_key_preview}` : "粘贴 API Key")}" value="" />
+      </div>
+      <div class="field">
+        <label for="imageModel">模型</label>
+        <input id="imageModel" name="model" value="${escapeHtml(config.model || "gpt-image-2")}" />
+      </div>
+      <div class="field">
+        <label for="imageSize">尺寸</label>
+        <select id="imageSize" name="size">
+          ${["1024x1024", "1536x1024", "1024x1536"].map((size) => `<option value="${size}" ${size === (config.size || "1024x1024") ? "selected" : ""}>${size}</option>`).join("")}
+        </select>
+      </div>
+      <button type="submit">保存图像配置</button>
+    </form>`;
+}
+
+function shotPreview(shot) {
+  const srt = shot.srt || [];
+  return `
+    <article class="shot-script-card">
+      <div class="shot-script-head">
+        <div>
+          <span class="badge">${escapeHtml(shot.beat_id || "beat")}</span>
+          <span class="badge">${escapeHtml(shot.duration_preset || `${shot.duration_seconds || ""}s` || "时长待定")}</span>
+          <h4>${escapeHtml(shot.title || shot.id)}</h4>
+        </div>
+        ${statusBadge(shot.status)}
+      </div>
+      <div class="shot-pipeline">
+        <div>
+          <label>镜头描述</label>
+          <p>${escapeHtml(shot.composition || "")}</p>
+          <p class="muted">${escapeHtml([shot.camera, shot.setting, shot.lighting].filter(Boolean).join(" · "))}</p>
+        </div>
+        <div>
+          <label>台词 SRT</label>
+          <pre>${escapeHtml(srt.length ? srt.map(formatSrtLine).join("\n\n") : shot.dialogue_srt || "00:00:00,000 --> 00:00:03,000\n（待补台词）")}</pre>
+        </div>
+        <div>
+          <label>分镜图片</label>
+          ${storyboardImageBlock(shot)}
+        </div>
+        <div>
+          <label>最终分镜视频</label>
+          <div class="asset-placeholder">${escapeHtml(shot.video_asset || "暂不生成")}</div>
+        </div>
+      </div>
+    </article>`;
+}
+
+function storyboardImageBlock(shot) {
+  const asset = shot.image_asset || "";
+  const isGenerated = asset.startsWith("/generated/");
+  return `
+    <div class="storyboard-image">
+      ${isGenerated ? `<img src="${escapeHtml(asset)}" alt="${escapeHtml(shot.title || "分镜图")}" />` : `<div class="asset-placeholder">${escapeHtml(asset || "待生成")}</div>`}
+      <button type="button" class="mini-button generate-image-button" data-generate-image="${escapeHtml(shot.id)}">生成分镜图</button>
+    </div>`;
+}
+
+function formatSrtLine(line, index) {
+  if (typeof line === "string") return line;
+  return `${index + 1}\n${line.time || "00:00:00,000 --> 00:00:03,000"}\n${line.text || ""}`;
 }
 
 function itemCard(item) {
@@ -227,9 +520,11 @@ function statusSelect(value) {
 function characterForm(item) {
   const card = item.character_card || {};
   const visual = item.visual || {};
+  const reference = item.reference_card || {};
   return `
     <form class="detail-card" data-kind="characters" data-id="${escapeHtml(item.id)}">
       <h2>${escapeHtml(item.name || "新角色")}</h2>
+      ${characterReferencePreview(reference)}
       <div class="form-grid">
         ${input("id", "角色 ID", item.id)}
         ${input("name", "姓名", item.name)}
@@ -251,6 +546,17 @@ function characterForm(item) {
       </div>
       ${formActions()}
     </form>`;
+}
+
+function characterReferencePreview(reference) {
+  return `
+    <section class="character-reference">
+      <div>
+        <h3>人物资料卡图</h3>
+        <p class="muted">${escapeHtml(reference.purpose || "用于后续分镜和视频一致性。")}</p>
+      </div>
+      ${reference.image_asset ? `<img src="${escapeHtml(reference.image_asset)}" alt="人物资料卡图" />` : `<div class="asset-placeholder">人物资料卡图待生成</div>`}
+    </section>`;
 }
 
 function relationshipForm(item) {
@@ -358,6 +664,8 @@ function bindForm() {
     node.addEventListener("click", () => {
       view = node.dataset.go;
       selectedId = null;
+      episodeMode = "list";
+      episodeTab = "summary";
       render();
     });
   });
@@ -365,6 +673,59 @@ function bindForm() {
     node.addEventListener("click", () => {
       selectedId = node.dataset.select;
       render();
+    });
+  });
+  document.querySelectorAll("[data-episode-detail]").forEach((node) => {
+    node.addEventListener("click", () => {
+      selectedId = node.dataset.episodeDetail;
+      episodeMode = "detail";
+      episodeTab = "summary";
+      render();
+    });
+  });
+  document.querySelectorAll("[data-episode-list]").forEach((node) => {
+    node.addEventListener("click", () => {
+      episodeMode = "list";
+      episodeTab = "summary";
+      render();
+    });
+  });
+  document.querySelectorAll("[data-episode-tab]").forEach((node) => {
+    node.addEventListener("click", () => {
+      episodeTab = node.dataset.episodeTab;
+      render();
+    });
+  });
+  const imageConfigForm = document.querySelector("[data-image-config]");
+  if (imageConfigForm) {
+    imageConfigForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const keepKey = !value(imageConfigForm, "api_key");
+      imageConfig = await api("/api/image-config", {
+        base_url: value(imageConfigForm, "base_url"),
+        api_key: keepKey ? "__KEEP__" : value(imageConfigForm, "api_key"),
+        model: value(imageConfigForm, "model"),
+        size: value(imageConfigForm, "size"),
+      });
+      toast("图像配置已保存");
+      render();
+    });
+  }
+  document.querySelectorAll("[data-generate-image]").forEach((node) => {
+    node.addEventListener("click", async () => {
+      const shotId = node.dataset.generateImage;
+      node.disabled = true;
+      node.textContent = "生成中...";
+      try {
+        const result = await api("/api/storyboard-image", { shot_id: shotId });
+        state = result.state || await api("/api/state");
+        toast("分镜图已生成");
+        render();
+      } catch (error) {
+        toast(error.message || "生成失败");
+        node.disabled = false;
+        node.textContent = "生成分镜图";
+      }
     });
   });
   const form = document.querySelector("form.detail-card");
@@ -469,6 +830,7 @@ function serializeItem(form, kind) {
       number: Number.parseInt(value(form, "number"), 10) || 0,
       title: value(form, "title"),
       status: value(form, "status"),
+      summary: value(form, "summary"),
       promise: value(form, "promise"),
       a_plot: value(form, "a_plot"),
       b_plot: value(form, "b_plot"),
@@ -522,12 +884,24 @@ document.addEventListener("click", (event) => {
   if (viewButton) {
     view = viewButton.dataset.view;
     selectedId = null;
+    episodeMode = "list";
+    episodeTab = "summary";
     render();
   }
 });
 
 $("searchInput").addEventListener("input", (event) => {
   query = event.target.value;
+  render();
+});
+
+$("projectSelect").addEventListener("change", async () => {
+  const option = $("projectSelect").selectedOptions[0];
+  selectedId = null;
+  episodeMode = "list";
+  episodeTab = "summary";
+  state = await api("/api/active-project", { project_id: $("projectSelect").value });
+  toast(`已切换到《${option?.textContent || "当前短剧"}》`);
   render();
 });
 
