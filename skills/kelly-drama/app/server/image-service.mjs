@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { IMAGE_CONFIG_PATH, REFERENCE_IMAGE_DIR, STORYBOARD_IMAGE_DIR } from "./paths.mjs";
+import { GENERATED_DIR, IMAGE_CONFIG_PATH, REFERENCE_IMAGE_DIR, STORYBOARD_IMAGE_DIR } from "./paths.mjs";
 import { loadProject, saveProject } from "./project-store.mjs";
 import { pathExists, readJson, slug, writeJson } from "./utils.mjs";
 
@@ -56,13 +56,21 @@ export async function saveImageConfig(input = {}) {
   return publicConfig(next);
 }
 
-function storyboardPrompt(project, shot) {
+function shotCharacters(project, shot) {
+  return (shot.characters || [])
+    .map((id) => (project.characters || []).find((item) => item.id === id))
+    .filter(Boolean);
+}
+
+function hasGeneratedRef(character) {
+  return Boolean(character?.reference_card?.image_asset?.startsWith("/generated/"));
+}
+
+export function storyboardPrompt(project, shot) {
   const bible = project.series?.visual_bible || {};
-  const characterNames = (shot.characters || []).map((id) => {
-    const character = (project.characters || []).find((item) => item.id === id);
-    const ref = character?.reference_card?.image_asset ? ` reference image already exists: ${character.reference_card.image_asset}` : "";
-    return character ? `${character.name}: ${character.visual?.front || character.role || ""}${ref}` : id;
-  }).filter(Boolean);
+  const characters = shotCharacters(project, shot);
+  const characterNames = characters.map((c) => `${c.name}: ${c.visual?.front || c.role || ""}`.trim()).filter(Boolean);
+  const withRefs = characters.filter(hasGeneratedRef);
   return [
     `Storyboard frame for a historical Chinese short drama adaptation of ${project.series?.title || "三国演义"}.`,
     bible.aspect_ratio ? `Aspect ratio: ${bible.aspect_ratio} ${bible.orientation || ""}.` : "",
@@ -75,9 +83,95 @@ function storyboardPrompt(project, shot) {
     `Setting: ${shot.setting || ""}`,
     `Lighting: ${shot.lighting || ""}`,
     characterNames.length ? `Characters: ${characterNames.join("; ")}` : "",
+    withRefs.length ? `Character consistency: reference portrait images are provided for ${withRefs.map((c) => c.name).join("、")}. Keep each character's face, hairstyle, beard, body type and costume identical to their reference image; do not redesign or swap them.` : "",
+    shot.prompt ? `Shot brief: ${shot.prompt}` : "",
     `Style: cinematic storyboard still, grounded historical realism, clear character blocking, production-ready frame.`,
     shot.negative_prompt ? `Avoid: ${shot.negative_prompt}` : "",
   ].filter(Boolean).join("\n");
+}
+
+const MAX_SHOT_REFERENCES = 4;
+
+function referenceAbsPath(publicPath) {
+  return path.join(GENERATED_DIR, String(publicPath).replace(/^\/generated\//, ""));
+}
+
+function collectShotReferences(project, shot) {
+  const refs = [];
+  for (const character of shotCharacters(project, shot)) {
+    if (hasGeneratedRef(character)) {
+      refs.push({ kind: "character", id: character.id, name: character.name, path: character.reference_card.image_asset });
+    }
+  }
+  const backgrounds = project.series?.visual_bible?.background_reference_assets || [];
+  const bg = backgrounds[backgrounds.length - 1];
+  if (refs.length < MAX_SHOT_REFERENCES && bg?.path?.startsWith("/generated/")) {
+    refs.push({ kind: "background", id: bg.id || "background", name: bg.title || "背景参考", path: bg.path });
+  }
+  return refs.slice(0, MAX_SHOT_REFERENCES);
+}
+
+async function callImageEdits(prompt, references, config) {
+  const endpoint = `${cleanBaseUrl(config.base_url)}/images/edits`;
+  const form = new FormData();
+  form.append("model", config.model || DEFAULT_CONFIG.model);
+  form.append("prompt", prompt);
+  form.append("size", config.size || DEFAULT_CONFIG.size);
+  form.append("n", "1");
+  for (const ref of references) {
+    const abs = referenceAbsPath(ref.path);
+    const buf = await fs.readFile(abs);
+    form.append("image[]", new Blob([buf], { type: "image/png" }), path.basename(abs));
+  }
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${config.api_key}` },
+    body: form,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = data?.error?.message || data?.message || `Image edits API failed: ${response.status}`;
+    throw new Error(message);
+  }
+  return {
+    bytes: imageBytesFromResponse(data),
+    payload: { model: config.model || DEFAULT_CONFIG.model, size: config.size || DEFAULT_CONFIG.size, mode: "image-edit" },
+  };
+}
+
+export async function storyboardPromptPreview(shotId) {
+  const project = await loadProject();
+  const shot = (project.shots || []).find((item) => item.id === shotId);
+  if (!shot) throw new Error(`Unknown shot: ${shotId}`);
+  const config = await loadImageConfig();
+  const references = collectShotReferences(project, shot);
+  const bible = project.series?.visual_bible || {};
+  const episode = (project.episodes || []).find((item) => item.id === shot.episode_id);
+  return {
+    shot_id: shot.id,
+    title: shot.title || shot.id,
+    duration: shot.duration_preset || (shot.duration_seconds ? `${shot.duration_seconds}s` : ""),
+    mode: references.length ? "image-edit" : "text-to-image",
+    model: config.model,
+    size: config.size,
+    prompt: storyboardPrompt(project, shot),
+    negative_prompt: shot.negative_prompt || "",
+    references: references.map((ref) => ({ kind: ref.kind, name: ref.name, path: ref.path })),
+    characters: shotCharacters(project, shot).map((c) => ({
+      id: c.id,
+      name: c.name,
+      visual_front: c.visual?.front || "",
+      reference_image: hasGeneratedRef(c) ? c.reference_card.image_asset : "",
+    })),
+    context: {
+      series_title: project.series?.title || "",
+      logline: project.series?.logline || "",
+      episode_title: episode?.title || "",
+      realism_target: bible.realism_target || "",
+      color_palette: bible.color_palette || "",
+      period_detail: bible.period_detail || "",
+    },
+  };
 }
 
 function visualBackgroundPrompt(project) {
@@ -113,45 +207,50 @@ export async function generateStoryboardImage(shotId) {
   const shot = (project.shots || []).find((item) => item.id === shotId);
   if (!shot) throw new Error(`Unknown shot: ${shotId}`);
 
-  const endpoint = `${cleanBaseUrl(config.base_url)}/images/generations`;
-  const payload = {
-    model: config.model || DEFAULT_CONFIG.model,
-    prompt: storyboardPrompt(project, shot),
-    size: config.size || DEFAULT_CONFIG.size,
-    response_format: "b64_json",
-  };
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${config.api_key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = data?.error?.message || data?.message || `Image API failed: ${response.status}`;
-    throw new Error(message);
+  const prompt = storyboardPrompt(project, shot);
+  const references = collectShotReferences(project, shot);
+  let bytes;
+  let payload;
+  if (references.length) {
+    ({ bytes, payload } = await callImageEdits(prompt, references, config));
+  } else {
+    ({ bytes, payload } = await callImageApi(prompt, config));
+    payload = { ...payload, mode: "text-to-image" };
   }
 
-  const bytes = imageBytesFromResponse(data);
   await fs.mkdir(STORYBOARD_IMAGE_DIR, { recursive: true });
   const filename = `${slug(shot.id)}-${Date.now()}.png`;
   const diskPath = path.join(STORYBOARD_IMAGE_DIR, filename);
   await fs.writeFile(diskPath, bytes);
   const publicPath = `/generated/storyboards/${filename}`;
 
-  project.shots = (project.shots || []).map((item) => item.id === shot.id ? {
-    ...item,
-    image_asset: publicPath,
-    image_generated_at: new Date().toISOString(),
-    image_generation: {
-      provider: "openai-compatible",
-      base_url: config.base_url,
-      model: payload.model,
-      size: payload.size,
-    },
-  } : item);
+  const generation = {
+    provider: "openai-compatible",
+    base_url: config.base_url,
+    model: payload.model,
+    size: payload.size,
+    mode: payload.mode || "text-to-image",
+    reference_assets: references.map((ref) => ref.path),
+  };
+  const generatedAt = new Date().toISOString();
+
+  project.shots = (project.shots || []).map((item) => {
+    if (item.id !== shot.id) return item;
+    // Append as a new candidate; keep prior generations. Newest becomes active.
+    const prior = item.image_candidates && item.image_candidates.length
+      ? item.image_candidates
+      : (item.image_asset?.startsWith("/generated/")
+        ? [{ path: item.image_asset, generated_at: item.image_generated_at || generatedAt, generation: item.image_generation || {} }]
+        : []);
+    const image_candidates = [...prior, { path: publicPath, generated_at: generatedAt, generation }];
+    return {
+      ...item,
+      image_candidates,
+      image_asset: publicPath, // active pointer
+      image_generated_at: generatedAt,
+      image_generation: generation,
+    };
+  });
   await saveProject(project);
   return { path: publicPath, state: await import("./state.mjs").then((mod) => mod.statePayload()) };
 }

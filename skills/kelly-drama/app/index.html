@@ -12,49 +12,47 @@
         <div class="brand">
           <div class="brand-mark">KD</div>
           <div>
-            <div class="brand-title">短剧切换器</div>
-            <div class="brand-subtitle">短剧创作工作台</div>
+            <div class="brand-title">Kelly Drama</div>
+            <div class="brand-subtitle">短剧工作台</div>
           </div>
         </div>
 
         <section class="project-switcher" aria-label="Drama switcher">
-          <label for="projectSelect">当前短剧</label>
+          <label for="projectSelect">项目</label>
           <select id="projectSelect"></select>
           <div id="projectSwitchMeta" class="switch-meta"></div>
         </section>
 
-        <section class="attention" aria-labelledby="attentionTitle">
-          <div class="eyebrow">现在最该补</div>
-          <h1 id="attentionTitle">创作缺口</h1>
-          <button class="attention-primary" data-view="tasks" title="查看需要你或 AI 处理的任务">
-            <strong id="attentionNeeds">0</strong>
-            <span>需要决定 / 改稿</span>
+        <section class="quick-stats" aria-label="Project status">
+          <button data-view="tasks" title="查看需要处理的任务">
+            <span id="attentionNeeds">0</span>
+            <small>待处理</small>
           </button>
-          <div class="attention-grid">
-            <button data-view="shots" title="查看分镜生图提示词">
-              <strong id="attentionShots">0</strong>
-              <span>分镜待补</span>
-            </button>
-            <button data-view="characters" title="查看角色三视图完整度">
-              <strong id="attentionViews">0</strong>
-              <span>三视图缺口</span>
-            </button>
-          </div>
+          <button data-view="episodes" title="查看待补分镜（在剧集内）">
+            <span id="attentionShots">0</span>
+            <small>分镜</small>
+          </button>
+          <button data-view="characters" title="查看人物三视图缺口">
+            <span id="attentionViews">0</span>
+            <small>人物</small>
+          </button>
         </section>
 
         <div class="separator"></div>
 
         <nav class="nav" id="nav">
-          <button class="active" data-view="overview" title="查看短剧背景、世界规则和项目总览">背景</button>
-          <button data-view="characters" title="维护人物库、演员设定、三视图">人物库</button>
-          <button data-view="relationships" title="维护人物关系、权力变化和证据">人物关系图</button>
+          <button class="active" data-view="overview" title="查看短剧背景、世界规则和项目总览">总览</button>
+          <button data-view="characters" title="维护人物库、演员设定、三视图">人物</button>
+          <button data-view="relationships" title="维护人物关系、权力变化和证据">关系</button>
           <button data-view="episodes" title="浏览剧集表格并进入单集剧本详情">剧集</button>
           <button data-view="tasks" title="查看 AI 或人工待办">审批</button>
         </nav>
 
-        <div class="local-note">
-          <div>本地文件</div>
-          <code id="projectPath">loading...</code>
+        <div class="settings-dock">
+          <button id="settingsButton" class="settings-button" title="打开设置和本地文件信息">
+            <span>设置</span>
+            <small>图像 API / 文件</small>
+          </button>
         </div>
       </aside>
 
@@ -65,8 +63,8 @@
             <div class="project-meta" id="projectMeta">本地短剧项目</div>
           </div>
           <div class="topbar-actions">
-            <input id="searchInput" placeholder="搜索人物、剧情、分镜、任务" />
-            <button id="newItemButton" title="在当前视图中新建一项">新建</button>
+            <input id="searchInput" placeholder="搜索" />
+            <button id="newItemButton" title="在当前视图中新建一项" aria-label="新建">+</button>
           </div>
         </header>
 
@@ -89,6 +87,37 @@
           </aside>
         </section>
       </main>
+    </div>
+    <div id="settingsModal" class="modal-backdrop hidden" aria-hidden="true">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-head">
+          <div>
+            <div id="settingsTitle" class="modal-title">设置</div>
+            <div class="modal-subtitle" id="settingsSubtitle">短剧生成与本地项目配置</div>
+          </div>
+          <button id="closeSettings" class="modal-close" aria-label="关闭设置">关闭</button>
+        </div>
+        <nav class="modal-tabs" aria-label="设置标签">
+          <button class="active" data-settings-tab="image">图像 API</button>
+          <button data-settings-tab="files">文件</button>
+        </nav>
+        <div class="modal-body">
+          <section class="settings-panel active" data-settings-panel="image">
+            <h2>图像 API</h2>
+            <p class="muted">用于生成分镜图。API Key 只显示配置状态，不会在界面里回显完整密钥。</p>
+            <div id="imageSettingsMount"></div>
+          </section>
+          <section class="settings-panel" data-settings-panel="files">
+            <h2>本地文件</h2>
+            <div class="settings-card">
+              <div class="settings-row">
+                <span>项目文件</span>
+                <code id="projectPath">loading...</code>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
     </div>
     <script type="module" src="/app.js"></script>
   </body>
