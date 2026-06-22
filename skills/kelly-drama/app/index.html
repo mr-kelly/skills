@@ -13,63 +13,63 @@
           <div class="brand-mark">KD</div>
           <div class="brand-copy">
             <div class="brand-title">Kelly Drama</div>
-            <div class="brand-subtitle">短剧工作台</div>
+            <div class="brand-subtitle" data-i18n="brand_subtitle">短剧工作台</div>
           </div>
-          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="收起侧栏" aria-label="收起侧栏">☰</button>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" data-i18n-title="sidebar_toggle_title" title="收起侧栏" aria-label="收起侧栏">☰</button>
         </div>
 
         <section class="project-switcher" aria-label="Drama switcher">
-          <label for="projectSelect">项目</label>
+          <label for="projectSelect" data-i18n="project_label">项目</label>
           <select id="projectSelect"></select>
           <div id="projectSwitchMeta" class="switch-meta"></div>
         </section>
 
         <div class="sidebar-actions">
-          <input id="searchInput" placeholder="搜索" />
-          <button id="newItemButton" title="在当前视图中新建一项" aria-label="新建">+</button>
+          <input id="searchInput" data-i18n-placeholder="search_placeholder" placeholder="搜索" />
+          <button id="newItemButton" data-i18n-title="new_item_title" title="在当前视图中新建一项" aria-label="新建">+</button>
         </div>
 
         <section class="quick-stats" aria-label="Project status">
-          <button data-view="tasks" title="查看需要处理的任务">
+          <button data-view="tasks" data-i18n-title="nav_tasks_title" title="查看需要处理的任务">
             <span id="attentionNeeds">0</span>
-            <small>待处理</small>
+            <small data-i18n="stat_pending">待处理</small>
           </button>
-          <button data-view="episodes" title="查看待补分镜（在剧集内）">
+          <button data-view="episodes" data-i18n-title="nav_episodes_title" title="查看待补分镜（在剧集内）">
             <span id="attentionShots">0</span>
-            <small>分镜</small>
+            <small data-i18n="stat_shots">分镜</small>
           </button>
-          <button data-view="characters" title="查看人物三视图缺口">
+          <button data-view="characters" data-i18n-title="nav_characters_title" title="查看人物三视图缺口">
             <span id="attentionViews">0</span>
-            <small>人物</small>
+            <small data-i18n="stat_characters">人物</small>
           </button>
         </section>
 
         <div class="separator"></div>
 
         <nav class="nav" id="nav">
-          <button class="active" data-view="overview" title="查看短剧背景、世界规则和项目总览">总览</button>
-          <button data-view="characters" title="维护人物库、演员设定、三视图">人物</button>
-          <button data-view="relationships" title="维护人物关系、权力变化和证据">关系</button>
-          <button data-view="episodes" title="浏览剧集表格并进入单集剧本详情">剧集</button>
-          <button data-view="tasks" title="查看 AI 或人工待办">审批</button>
+          <button class="active" data-view="overview" data-i18n-title="nav_overview_title" title="查看短剧背景、世界规则和项目总览" data-i18n="nav_overview">总览</button>
+          <button data-view="characters" data-i18n-title="nav_characters_title" title="维护人物库、演员设定、三视图" data-i18n="nav_characters">人物</button>
+          <button data-view="relationships" data-i18n-title="nav_relationships_title" title="维护人物关系、权力变化和证据" data-i18n="nav_relationships">关系</button>
+          <button data-view="episodes" data-i18n-title="nav_episodes_title" title="浏览剧集表格并进入单集剧本详情" data-i18n="nav_episodes">剧集</button>
+          <button data-view="tasks" data-i18n-title="nav_tasks_title" title="查看 AI 或人工待办" data-i18n="nav_tasks">审批</button>
         </nav>
 
         <div class="settings-dock">
           <button id="settingsButton" class="settings-button" title="打开设置和本地文件信息">
-            <span>设置</span>
-            <small>图像 API / 文件</small>
+            <span data-i18n="settings">设置</span>
+            <small data-i18n="settings_sub">图像 API / 文件</small>
           </button>
         </div>
       </aside>
 
       <main class="main">
-        <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="打开侧栏" title="打开侧栏">☰</button>
+        <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" data-i18n-aria-label="mobile_open_sidebar" aria-label="打开侧栏" data-i18n-title="mobile_open_sidebar" title="打开侧栏">☰</button>
         <div class="content-title">
-          <div class="project-title" id="projectTitle">加载中</div>
-          <div class="project-meta" id="projectMeta">本地短剧项目</div>
+          <div class="project-title" id="projectTitle" data-i18n="project_unnamed">加载中</div>
+          <div class="project-meta" id="projectMeta"></div>
         </div>
 
-        <div id="lockBanner" class="lock-banner hidden">本地项目文件正在被 agent 使用，暂时只读。</div>
+        <div id="lockBanner" class="lock-banner hidden" data-i18n="lock_banner">本地项目文件正在被 agent 使用，暂时只读。</div>
 
         <section class="workspace">
           <div class="list-panel">
@@ -84,7 +84,7 @@
           </div>
 
           <aside class="detail-panel">
-            <button id="backToList" class="back-to-list" type="button">← 列表</button>
+            <button id="backToList" class="back-to-list" type="button" data-i18n="back_to_list">← 列表</button>
             <div id="detail" class="detail"></div>
           </aside>
         </section>
@@ -95,26 +95,40 @@
       <section class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
         <div class="modal-head">
           <div>
-            <div id="settingsTitle" class="modal-title">设置</div>
-            <div class="modal-subtitle" id="settingsSubtitle">短剧生成与本地项目配置</div>
+            <div id="settingsTitle" class="modal-title" data-i18n="settings">设置</div>
+            <div class="modal-subtitle" id="settingsSubtitle" data-i18n="settings_title_default">短剧生成与本地项目配置</div>
           </div>
-          <button id="closeSettings" class="modal-close" aria-label="关闭设置">关闭</button>
+          <button id="closeSettings" class="modal-close" data-i18n="settings_close" aria-label="关闭设置">关闭</button>
         </div>
         <nav class="modal-tabs" aria-label="设置标签">
-          <button class="active" data-settings-tab="image">图像 API</button>
-          <button data-settings-tab="files">文件</button>
+          <button class="active" data-settings-tab="image" data-i18n="settings_tab_image">图像 API</button>
+          <button data-settings-tab="general" data-i18n="settings_tab_general">通用</button>
+          <button data-settings-tab="files" data-i18n="settings_tab_files">文件</button>
         </nav>
         <div class="modal-body">
           <section class="settings-panel active" data-settings-panel="image">
-            <h2>图像 API</h2>
-            <p class="muted">用于生成分镜图。API Key 只显示配置状态，不会在界面里回显完整密钥。</p>
+            <h2 data-i18n="settings_tab_image">图像 API</h2>
+            <p class="muted" data-i18n="image_config_hint">用于生成分镜图。API Key 只显示配置状态，不会在界面里回显完整密钥。</p>
             <div id="imageSettingsMount"></div>
           </section>
-          <section class="settings-panel" data-settings-panel="files">
-            <h2>本地文件</h2>
+          <section class="settings-panel" data-settings-panel="general">
+            <h2 data-i18n="settings_tab_general">通用</h2>
             <div class="settings-card">
               <div class="settings-row">
-                <span>项目文件</span>
+                <span data-i18n="settings_language">界面语言</span>
+                <select id="languageSelect">
+                  <option value="auto" data-i18n="settings_language_auto">跟随系统</option>
+                  <option value="zh" data-i18n="settings_language_zh">中文</option>
+                  <option value="en" data-i18n="settings_language_en">English</option>
+                </select>
+              </div>
+            </div>
+          </section>
+          <section class="settings-panel" data-settings-panel="files">
+            <h2 data-i18n="settings_files_title">本地文件</h2>
+            <div class="settings-card">
+              <div class="settings-row">
+                <span data-i18n="settings_project_file">项目文件</span>
                 <code id="projectPath">loading...</code>
               </div>
             </div>

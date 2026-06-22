@@ -25,6 +25,7 @@ const DEFAULT_VIDEO_CONFIG = {
   prod_resolution: "720p", // 480p|720p|1080p|2K
   prod_ratio: "16:9", // or "adaptive" to keep the keyframe's dims
   prod_watermark: false,
+  generate_audio: true, // Seedance native synced audio; auto-falls back to silent if the audio filter blocks a shot
 };
 
 async function loadVideoConfig() {
@@ -62,47 +63,56 @@ export async function generateShotVideoProd(shotId) {
   const duration = Math.max(4, Math.min(Number(shot.duration_seconds) || 5, 15));
   const headers = { Authorization: `Bearer ${cfg.ark_api_key}`, "Content-Type": "application/json" };
   const textPart = { type: "text", text: prodPrompt(shot) };
+  const hasImage = shot.image_asset?.startsWith("/generated/") && await pathExists(absFromPublic(shot.image_asset));
+  const i2vContent = hasImage
+    ? [textPart, { type: "image_url", image_url: { url: `data:image/png;base64,${(await fs.readFile(absFromPublic(shot.image_asset))).toString("base64")}` } }]
+    : null;
+  const t2vContent = [textPart];
 
-  const submitTask = async (content) => {
+  const submit = async (content, generate_audio) => {
     const r = await fetch(`${base}/contents/generations/tasks`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ model: cfg.ark_model, content, ratio: cfg.prod_ratio, duration, resolution: cfg.prod_resolution, watermark: cfg.prod_watermark }),
+      body: JSON.stringify({ model: cfg.ark_model, content, ratio: cfg.prod_ratio, duration, resolution: cfg.prod_resolution, watermark: cfg.prod_watermark, generate_audio }),
     });
     const d = await r.json().catch(() => ({}));
     return { ok: r.ok, id: d.id, err: d?.error?.message || d?.message || `HTTP ${r.status}` };
   };
-
-  // Try image-to-video (keyframe-consistent); if the safety filter rejects the
-  // photoreal human keyframe, fall back to text-to-video automatically.
-  const hasImage = shot.image_asset?.startsWith("/generated/") && await pathExists(absFromPublic(shot.image_asset));
-  let method = "text-to-video";
-  let sub;
-  if (hasImage) {
-    const dataUri = `data:image/png;base64,${(await fs.readFile(absFromPublic(shot.image_asset))).toString("base64")}`;
-    sub = await submitTask([textPart, { type: "image_url", image_url: { url: dataUri } }]);
-    if (sub.ok && sub.id) method = "image-to-video";
-    else if (/real person|真人|人脸|face/i.test(String(sub.err))) sub = await submitTask([textPart]); // fallback
-  } else {
-    sub = await submitTask([textPart]);
-  }
-  if (!sub.ok || !sub.id) throw new Error(`Seedance 提交失败: ${sub.err}`);
-  const taskId = sub.id;
-
-  // 2) poll
-  let videoUrl = "";
-  const deadline = Date.now() + 12 * 60 * 1000;
-  while (Date.now() < deadline) {
-    await sleep(5000);
-    const poll = await fetch(`${base}/contents/generations/tasks/${taskId}`, { headers });
-    const pd = await poll.json().catch(() => ({}));
-    const status = pd?.status;
-    if (status === "succeeded") { videoUrl = pd?.content?.video_url || ""; break; }
-    if (status === "failed" || status === "cancelled" || status === "expired") {
-      throw new Error(`Seedance 任务${status}: ${pd?.error?.message || ""}`);
+  const poll = async (taskId) => {
+    const deadline = Date.now() + 12 * 60 * 1000;
+    while (Date.now() < deadline) {
+      await sleep(5000);
+      const p = await fetch(`${base}/contents/generations/tasks/${taskId}`, { headers });
+      const pd = await p.json().catch(() => ({}));
+      if (pd?.status === "succeeded") return { url: pd?.content?.video_url || "" };
+      if (["failed", "cancelled", "expired"].includes(pd?.status)) return { fail: `${pd.status}: ${pd?.error?.message || ""}` };
     }
+    return { fail: "timeout" };
+  };
+  const attempt = async (content, generate_audio) => {
+    const s = await submit(content, generate_audio);
+    if (!s.ok || !s.id) return { submitErr: s.err };
+    const r = await poll(s.id);
+    return r.url ? { url: r.url } : { pollErr: r.fail };
+  };
+
+  // Default: generate WITH native audio. NO real-person→text-to-video fallback — if the
+  // keyframe is rejected as a real person, surface the error (don't silently degrade
+  // image-to-video consistency). Only fallback kept: audio-sensitive → retry silent.
+  const wantAudio = cfg.generate_audio !== false;
+  const method = hasImage ? "image-to-video" : "text-to-video";
+  let audioOn = wantAudio;
+  const content = i2vContent || t2vContent;
+
+  let res = await attempt(content, wantAudio);
+  if (res.pollErr && /audio|sensitiv|敏感/i.test(res.pollErr) && wantAudio) {
+    audioOn = false;
+    res = await attempt(content, false);
   }
-  if (!videoUrl) throw new Error("Seedance 任务超时未产出视频。");
+  if (res.submitErr) throw new Error(`Seedance 提交失败: ${res.submitErr}`);
+  if (res.pollErr) throw new Error(`Seedance 任务失败: ${res.pollErr}`);
+  const videoUrl = res.url;
+  if (!videoUrl) throw new Error("Seedance 未产出视频。");
 
   // 3) download
   const resp = await fetch(videoUrl);
@@ -113,7 +123,7 @@ export async function generateShotVideoProd(shotId) {
   await fs.writeFile(path.join(VIDEO_DIR, filename), bytes);
   const publicPath = `/generated/videos/${filename}`;
   const generatedAt = new Date().toISOString();
-  const generation = { mode: "prod", backend: cfg.prod_backend, model: cfg.ark_model, method, resolution: cfg.prod_resolution, ratio: cfg.prod_ratio, duration, source_image: method === "image-to-video" ? shot.image_asset : "", task_id: taskId };
+  const generation = { mode: "prod", backend: cfg.prod_backend, model: cfg.ark_model, method, audio: audioOn, resolution: cfg.prod_resolution, ratio: cfg.prod_ratio, duration, source_image: method === "image-to-video" ? shot.image_asset : "" };
 
   project.shots = (project.shots || []).map((s) => {
     if (s.id !== shot.id) return s;

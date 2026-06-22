@@ -7,6 +7,13 @@
       "runtimeArgs": ["/Users/kelly/Documents/skills/skills/kelly-mv/app/start.sh"],
       "port": 3041,
       "autoPort": false
+    },
+    {
+      "name": "kelly-drama",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["/Users/kelly/Documents/skills/skills/kelly-drama/app/start.sh"],
+      "port": 3038,
+      "autoPort": false
     }
   ]
 }
