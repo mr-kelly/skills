@@ -29,6 +29,19 @@ Open:
 http://127.0.0.1:3000
 ```
 
+Demo recording URLs:
+
+```text
+http://127.0.0.1:3000/?demo=needs-review&lang=en
+http://127.0.0.1:3000/?demo=approved&lang=en
+http://127.0.0.1:3000/?demo=done&lang=en
+http://127.0.0.1:3000/?demo=needs-review&lang=zh-CN
+http://127.0.0.1:3000/?demo=approved&lang=zh-CN
+http://127.0.0.1:3000/?demo=done&lang=zh-CN
+```
+
+Use `needs-review` to show the inbox before decisions, `approved` to show approved actions waiting for `/kelly-email`, and `done` to show everything already executed.
+
 Local batch and decision files are ignored by git.
 
 Typical workflow:

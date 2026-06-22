@@ -1,3 +1,5 @@
+import { MESSAGES, resolveLang } from "/i18n/messages.js";
+
 let state = null;
 let view = "overview";
 let selectedId = null;
@@ -9,6 +11,25 @@ let isApplyingRoute = false;
 let routeNeedsReplace = false;
 let lastAppliedHash = "";
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-drama.sidebarCollapsed";
+const LANG_STORAGE_KEY = "kdrama_lang";
+
+let langPref = localStorage.getItem(LANG_STORAGE_KEY) || "auto";
+
+function lang() { return resolveLang(langPref); }
+function t(key) { const l = lang(); return MESSAGES[l]?.[key] || MESSAGES.zh[key] || key; }
+
+function applyI18n() {
+  document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => { node.placeholder = t(node.dataset.i18nPlaceholder); });
+  document.querySelectorAll("[data-i18n-title]").forEach((node) => { node.title = t(node.dataset.i18nTitle); });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => { node.setAttribute("aria-label", t(node.dataset.i18nAriaLabel)); });
+  document.documentElement.lang = lang() === "en" ? "en" : "zh-CN";
+  const langSel = document.getElementById("languageSelect");
+  if (langSel) {
+    langSel.value = langPref;
+    langSel.querySelectorAll("[data-i18n]").forEach((opt) => { opt.textContent = t(opt.dataset.i18n); });
+  }
+}
 
 const $ = (id) => document.getElementById(id);
 
@@ -49,13 +70,15 @@ function toggleSidebar() {
   else setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
 }
 
-const viewMeta = {
-  overview: ["总览", "项目状态和下一步"],
-  characters: ["人物", "角色卡、演员设定和三视图"],
-  relationships: ["关系", "公开关系、隐藏真相和证据"],
-  episodes: ["剧集", "剧集表、单集剧本和分镜执行"],
-  tasks: ["审批", "人工判断、AI 改稿和导出准备"],
-};
+function viewMeta() {
+  return {
+    overview: [t("view_overview"), t("view_overview_sub")],
+    characters: [t("view_characters"), t("view_characters_sub")],
+    relationships: [t("view_relationships"), t("view_relationships_sub")],
+    episodes: [t("view_episodes"), t("view_episodes_sub")],
+    tasks: [t("view_tasks"), t("view_tasks_sub")],
+  };
+}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -77,13 +100,13 @@ function lines(value) {
 
 function statusBadge(status) {
   const label = {
-    draft: "草稿",
-    needs_review: "待审",
-    changes_requested: "需改稿",
-    approved: "已定稿",
-    done: "完成",
-    blocked: "卡住",
-  }[status] || status || "草稿";
+    draft: t("status_draft"),
+    needs_review: t("status_needs_review"),
+    changes_requested: t("status_changes_requested"),
+    approved: t("status_approved"),
+    done: t("status_done"),
+    blocked: t("status_blocked"),
+  }[status] || status || t("status_draft");
   return `<span class="badge status-${escapeHtml(status || "draft")}">${escapeHtml(label)}</span>`;
 }
 
@@ -148,7 +171,8 @@ function routeFor(next = {}) {
 function parseHashRoute() {
   const raw = (window.location.hash || "").replace(/^#\/?/, "");
   const parts = raw.split("/").filter(Boolean).map(decodeRoutePart);
-  const routeView = viewMeta[parts[0]] ? parts[0] : "overview";
+  const meta = viewMeta();
+  const routeView = meta[parts[0]] ? parts[0] : "overview";
   if (routeView === "episodes") {
     const routeSelectedId = parts[1] || null;
     return {
@@ -262,8 +286,8 @@ function updateChrome() {
   document.body.classList.toggle("episodes-list-mode", view === "episodes" && episodeMode === "list");
   document.body.classList.toggle("episode-focus-mode", view === "episodes" && episodeMode === "detail");
   renderProjectSwitcher();
-  $("projectTitle").textContent = p.series?.title || "未命名短剧";
-  $("projectMeta").textContent = `${p.series?.genre || "类型未定"} · ${p.series?.format || "格式未定"}`;
+  $("projectTitle").textContent = p.series?.title || t("project_unnamed");
+  $("projectMeta").textContent = `${p.series?.genre || t("project_meta_genre_placeholder")} · ${p.series?.format || t("project_meta_format_placeholder")}`;
   $("projectPath").textContent = state.paths?.project_path || "";
   $("attentionNeeds").textContent = state.attention?.needs_review || 0;
   $("attentionShots").textContent = state.completeness?.shots_missing_prompt || 0;
@@ -272,9 +296,11 @@ function updateChrome() {
   document.querySelectorAll("[data-view]").forEach((button) => {
     button.classList.toggle("active", button.dataset.view === view);
   });
-  const [title, subtitle] = viewMeta[view];
+  const meta = viewMeta();
+  const [title, subtitle] = meta[view] || ["", ""];
   $("viewTitle").textContent = title;
   $("viewSubtitle").textContent = subtitle;
+  applyI18n();
 }
 
 function renderProjectSwitcher() {
@@ -288,7 +314,7 @@ function renderProjectSwitcher() {
   const currentId = state.active_project_id || state.project?.project_id || projects[0]?.id || "";
   select.innerHTML = projects.map((item) => {
     const selected = item.id === currentId ? "selected" : "";
-    return `<option value="${escapeHtml(item.id || item.title)}" ${selected}>${escapeHtml(item.title || "未命名短剧")}</option>`;
+    return `<option value="${escapeHtml(item.id || item.title)}" ${selected}>${escapeHtml(item.title || t("project_unnamed"))}</option>`;
   }).join("");
   const current = projects.find((item) => item.id === currentId) || projects[0] || {};
   $("projectSwitchMeta").innerHTML = `
@@ -307,21 +333,21 @@ function render() {
 
 function renderOverview() {
   const p = project();
-  $("itemCount").textContent = "总览";
+  $("itemCount").textContent = t("overview_label");
   $("newItemButton").style.visibility = "hidden";
   const list = $("list");
   list.innerHTML = `
     <div class="metrics">
-      <div class="metric"><strong>${p.characters?.length || 0}</strong><span>人物</span></div>
-      <div class="metric"><strong>${p.relationships?.length || 0}</strong><span>关系</span></div>
-      <div class="metric"><strong>${p.episodes?.length || 0}</strong><span>剧集</span></div>
-      <div class="metric"><strong>${p.shots?.length || 0}</strong><span>分镜</span></div>
+      <div class="metric"><strong>${p.characters?.length || 0}</strong><span>${t("overview_metric_characters")}</span></div>
+      <div class="metric"><strong>${p.relationships?.length || 0}</strong><span>${t("overview_metric_relationships")}</span></div>
+      <div class="metric"><strong>${p.episodes?.length || 0}</strong><span>${t("overview_metric_episodes")}</span></div>
+      <div class="metric"><strong>${p.shots?.length || 0}</strong><span>${t("overview_metric_shots")}</span></div>
     </div>
-    <div class="section-label">下一步</div>
-    ${overviewCard("人物一致性", `${state.completeness.characters_missing_views} 个角色缺三视图`, "characters", "人物")}
-    ${overviewCard("剧情推进", `${state.completeness.episodes_missing_cliffhanger} 集缺少明确悬念`, "episodes", "剧集")}
-    ${overviewCard("分镜生图", `${state.completeness.shots_missing_prompt} 个分镜缺提示词`, "episodes", "分镜")}
-    ${overviewCard("关系证据", `${state.completeness.relationships_missing_evidence} 条关系缺证据集`, "relationships", "关系")}
+    <div class="section-label">${t("overview_next_steps")}</div>
+    ${overviewCard(t("overview_card_char_consistency"), t("overview_card_char_consistency_body").replace("{n}", state.completeness.characters_missing_views), "characters", t("view_characters"))}
+    ${overviewCard(t("overview_card_plot"), t("overview_card_plot_body").replace("{n}", state.completeness.episodes_missing_cliffhanger), "episodes", t("view_episodes"))}
+    ${overviewCard(t("overview_card_storyboard"), t("overview_card_storyboard_body").replace("{n}", state.completeness.shots_missing_prompt), "episodes", t("stat_shots"))}
+    ${overviewCard(t("overview_card_relationship"), t("overview_card_relationship_body").replace("{n}", state.completeness.relationships_missing_evidence), "relationships", t("view_relationships"))}
     ${visualBiblePreview(p.series?.visual_bible || {})}
   `;
   $("detail").innerHTML = seriesForm(p.series || {});
@@ -336,7 +362,7 @@ function overviewCard(title, body, target, tag) {
         <strong>${escapeHtml(title)}</strong>
         <small>${escapeHtml(body)}</small>
       </span>
-      <span class="row-arrow">打开</span>
+      <span class="row-arrow">${t("overview_card_open")}</span>
     </button>`;
 }
 
@@ -345,12 +371,12 @@ function visualBiblePreview(bible) {
   return `
     <section class="visual-bible-card">
       <div>
-        <h3>画面基准</h3>
+        <h3>${t("visual_bible_title")}</h3>
         <p>${escapeHtml(bible.format_note || "")}</p>
         <p class="muted">${escapeHtml(bible.realism_target || "")}</p>
       </div>
       <div class="reference-grid">
-        ${assets.map((asset) => `<figure><img src="${escapeHtml(asset.path)}" alt="${escapeHtml(asset.title || "背景参考")}" /><figcaption>${escapeHtml(asset.title || "背景参考")}</figcaption></figure>`).join("") || `<div class="asset-placeholder">背景参考图待生成</div>`}
+        ${assets.map((asset) => `<figure><img src="${escapeHtml(asset.path)}" alt="${escapeHtml(asset.title || t("visual_bible_title"))}" /><figcaption>${escapeHtml(asset.title || t("visual_bible_title"))}</figcaption></figure>`).join("") || `<div class="asset-placeholder">${t("visual_bible_placeholder")}</div>`}
       </div>
     </section>`;
 }
@@ -363,7 +389,7 @@ function renderListAndDetail() {
     selectedId = items[0]?.id || null;
     syncRoute({ replace: true });
   }
-  $("list").innerHTML = items.map(itemCard).join("") || `<div class="item-card"><h3>还没有内容</h3><p>点击右上角新建，先搭一个骨架。</p></div>`;
+  $("list").innerHTML = items.map(itemCard).join("") || `<div class="item-card"><h3>${t("empty_list")}</h3><p>${t("empty_list_hint")}</p></div>`;
   $("detail").innerHTML = detailForm(selectedItem());
   bindForm();
 }
@@ -392,19 +418,19 @@ function renderEpisodesWorkspace() {
 
 function episodeTable(items) {
   if (!items.length) {
-    return `<div class="item-card"><h3>还没有剧集</h3><p>点击右上角新建，先搭一个单集骨架。</p></div>`;
+    return `<div class="item-card"><h3>${t("episode_empty")}</h3><p>${t("episode_empty_hint")}</p></div>`;
   }
   return `
     <div class="episode-table-wrap">
       <table class="episode-table">
         <thead>
           <tr>
-            <th>回</th>
-            <th>剧集</th>
-            <th>总结</th>
-            <th>状态</th>
-            <th>分镜</th>
-            <th>操作</th>
+            <th>${t("episode_table_ep")}</th>
+            <th>${t("episode_table_title")}</th>
+            <th>${t("episode_table_summary")}</th>
+            <th>${t("episode_table_status")}</th>
+            <th>${t("episode_table_shots")}</th>
+            <th>${t("episode_table_actions")}</th>
           </tr>
         </thead>
         <tbody>
@@ -426,8 +452,8 @@ function episodeRow(episode) {
       </td>
       <td>${escapeHtml(summary).slice(0, 86)}</td>
       <td>${statusBadge(episode.status)}</td>
-      <td><span class="badge">${shots.length} 镜</span></td>
-      <td><button class="mini-button table-action" data-episode-detail="${escapeHtml(episode.id)}">查看详情</button></td>
+      <td><span class="badge">${shots.length}</span></td>
+      <td><button class="mini-button table-action" data-episode-detail="${escapeHtml(episode.id)}">${t("episode_view_detail")}</button></td>
     </tr>`;
 }
 
@@ -436,45 +462,45 @@ function shotsForEpisode(episodeId) {
 }
 
 function episodeDetail(item) {
-  if (!item) return `<div class="detail-card"><h2>选择一集</h2><p class="muted">从左侧剧集表格进入单集详情。</p></div>`;
+  if (!item) return `<div class="detail-card"><h2>${t("episode_select_hint")}</h2><p class="muted">${t("episode_select_hint_sub")}</p></div>`;
   const shots = shotsForEpisode(item.id);
   return `
     <form class="detail-card episode-detail" data-kind="episodes" data-id="${escapeHtml(item.id)}">
-      <button type="button" class="back-button" data-episode-list>返回剧集列表</button>
+      <button type="button" class="back-button" data-episode-list>${t("episode_back")}</button>
       <div class="detail-head">
         <div>
-          <div class="eyebrow">约 3 分钟 · 单集工作台</div>
-          <h2>${escapeHtml(item.title || "新一集")}</h2>
-          <p>${escapeHtml(item.source_chapter?.work || "三国演义")} · 第 ${escapeHtml(item.source_chapter?.chapter_number || item.number || "")} 回 · ${escapeHtml(item.runtime || "about 3 minutes")}</p>
+          <div class="eyebrow">${t("episode_detail_eyebrow")}</div>
+          <h2>${escapeHtml(item.title || "New episode")}</h2>
+          <p>${escapeHtml(item.source_chapter?.work || "")}${item.source_chapter?.work ? " · " : ""}${escapeHtml(item.source_chapter?.chapter_number || item.number || "")}${item.source_chapter?.chapter_number || item.number ? " · " : ""}${escapeHtml(item.runtime || "")}</p>
         </div>
         ${statusBadge(item.status)}
       </div>
 
-      <div class="episode-tabs" role="tablist" aria-label="剧集详情">
-        <button type="button" class="${episodeTab === "summary" ? "active" : ""}" data-episode-tab="summary">剧集总述</button>
-        <button type="button" class="${episodeTab === "shots" ? "active" : ""}" data-episode-tab="shots">分镜详情</button>
+      <div class="episode-tabs" role="tablist" aria-label="Episode detail">
+        <button type="button" class="${episodeTab === "summary" ? "active" : ""}" data-episode-tab="summary">${t("episode_tab_summary")}</button>
+        <button type="button" class="${episodeTab === "shots" ? "active" : ""}" data-episode-tab="shots">${t("episode_tab_shots")}</button>
       </div>
 
       ${episodeTab === "shots" ? episodeShotsTab(item, shots) : episodeSummaryTab(item)}
-      ${episodeTab === "shots" ? `<div class="form-actions"><span class="muted">分镜详情当前用于查看执行层，编辑分镜可后续接到单镜头弹窗。</span></div>` : formActions()}
+      ${episodeTab === "shots" ? `<div class="form-actions"><span class="muted">${t("episode_shots_note")}</span></div>` : formActions()}
     </form>`;
 }
 
 function episodeSummaryTab(item) {
   return `
     <section class="script-section">
-      <h3>单集总结</h3>
+      <h3>${t("script_section_episode_summary")}</h3>
       <div class="form-grid">
-        ${input("id", "剧集 ID", item.id)}
-        ${input("number", "回目 / 集数", item.number || "", "number")}
-        ${input("title", "标题", item.title)}
+        ${input("id", "ID", item.id)}
+        ${input("number", "Ep #", item.number || "", "number")}
+        ${input("title", "Title", item.title)}
         ${statusSelect(item.status)}
-        ${textarea("summary", "总结", item.summary || item.promise)}
-        ${textarea("promise", "原著锚点 / 本集承诺", item.promise)}
-        ${textarea("a_plot", "A 剧情", item.a_plot, false)}
-        ${textarea("b_plot", "B 剧情", item.b_plot, false)}
-        ${textarea("cliffhanger", "结尾悬念", item.cliffhanger)}
-        ${textarea("beats_json", "节拍 JSON", JSON.stringify(item.beats || [], null, 2))}
+        ${textarea("summary", "Summary", item.summary || item.promise)}
+        ${textarea("promise", "Source anchor / episode promise", item.promise)}
+        ${textarea("a_plot", "A-plot", item.a_plot, false)}
+        ${textarea("b_plot", "B-plot", item.b_plot, false)}
+        ${textarea("cliffhanger", "Cliffhanger", item.cliffhanger)}
+        ${textarea("beats_json", "Beats JSON", JSON.stringify(item.beats || [], null, 2))}
       </div>
     </section>
     ${scriptPreview(item)}`;
@@ -492,13 +518,16 @@ function shotListRow(shot, index) {
   const asset = shot.image_asset || "";
   const isImg = asset.startsWith("/generated/");
   const dur = shot.duration_preset || (shot.duration_seconds ? `${shot.duration_seconds}s` : "—");
-  const readyDot = r.ready ? `<span class="row-ready ok" title="视频就绪">●</span>` : `<span class="row-ready warn" title="待补 ${r.missing.length + (r.pacingWarn ? 1 : 0)} 项">●</span>`;
+  const pendingCount = r.missing.length + (r.pacingWarn ? 1 : 0);
+  const readyDot = r.ready
+    ? `<span class="row-ready ok" title="${t("shot_video_ready")}">●</span>`
+    : `<span class="row-ready warn" title="${t("shot_pending").replace("{n}", pendingCount)}">●</span>`;
   const specs = [shot.shot_size, shot.camera_movement].filter(Boolean).join(" · ");
   return `
     <div class="shot-row-wrap ${expanded ? "open" : ""}">
       <button type="button" class="shot-row" data-shot-toggle="${escapeHtml(shot.id)}" aria-expanded="${expanded}">
         <span class="shot-row-no">${String(index + 1).padStart(2, "0")}</span>
-        <span class="shot-row-thumb">${isImg ? `<img src="${escapeHtml(asset)}" alt="" loading="lazy" />` : `<span class="thumb-empty">无图</span>`}</span>
+        <span class="shot-row-thumb">${isImg ? `<img src="${escapeHtml(asset)}" alt="" loading="lazy" />` : `<span class="thumb-empty">${t("shot_no_image")}</span>`}</span>
         <span class="shot-row-main">
           <strong>${readyDot}${escapeHtml(shot.title || shot.id)}</strong>
           <small>${escapeHtml(shot.composition || "")}</small>
@@ -518,7 +547,7 @@ function scriptPreview(item) {
   const beats = item.beats || [];
   return `
     <section class="script-section">
-      <h3>剧本结构</h3>
+      <h3>${t("script_section_title")}</h3>
       <div class="beat-stack">
         ${beats.map((beat, index) => `
           <article class="beat-row">
@@ -529,55 +558,59 @@ function scriptPreview(item) {
               <p class="muted">${escapeHtml(beat.conflict || "")}</p>
             </div>
           </article>
-        `).join("") || `<p class="muted">还没有节拍。</p>`}
+        `).join("") || `<p class="muted">${t("script_beats_empty")}</p>`}
       </div>
     </section>`;
 }
 
 function executionTimeline(item, shots) {
   const execution = item.execution || {};
+  const allExpanded = shots.every((s) => expandedShots.has(s.id));
   return `
     <section class="script-section">
       <div class="section-head">
         <div>
           <h3>Storyboard</h3>
-          <p class="muted">逐镜确认画面、台词、分镜图和视频状态。</p>
+          <p class="muted">${t("exec_card_01_body")}</p>
         </div>
       </div>
       <div class="execution-grid">
         <div class="execution-card">
           <span>01</span>
-          <strong>镜头描述</strong>
-          <p>${escapeHtml(execution.shot_description || "按下方分镜逐镜确认画面、构图、场景和镜头运动。")}</p>
+          <strong>${t("exec_card_01_title")}</strong>
+          <p>${escapeHtml(execution.shot_description || t("exec_card_01_body"))}</p>
         </div>
         <div class="execution-card">
           <span>02</span>
-          <strong>台词 SRT</strong>
-          <p>${escapeHtml(execution.srt_status || "先放样例台词和时间轴，后续再逐集精修。")}</p>
+          <strong>${t("exec_card_02_title")}</strong>
+          <p>${escapeHtml(execution.srt_status || t("exec_card_02_body"))}</p>
         </div>
         <div class="execution-card">
           <span>03</span>
-          <strong>分镜图片</strong>
-          <p>${escapeHtml(execution.image_status || "分镜图片先作为占位状态，不急着生成。")}</p>
+          <strong>${t("exec_card_03_title")}</strong>
+          <p>${escapeHtml(execution.image_status || t("exec_card_03_body"))}</p>
         </div>
         <div class="execution-card">
           <span>04</span>
-          <strong>最终分镜视频</strong>
-          <p>${escapeHtml(execution.video_status || "视频生成保持未开始，只保留未来入口。")}</p>
+          <strong>${t("exec_card_04_title")}</strong>
+          <p>${escapeHtml(execution.video_status || t("exec_card_04_body"))}</p>
         </div>
       </div>
       <div class="shot-list-head">
-        <span>共 ${shots.length} 个分镜 · 点击展开详情</span>
-        ${shots.length ? `<button type="button" class="mini-button ghost" data-shots-expand-all>${shots.every((s) => expandedShots.has(s.id)) ? "全部收起" : "全部展开"}</button>` : ""}
+        <span>${t("shot_count").replace("{n}", shots.length)}</span>
+        ${shots.length ? `<button type="button" class="mini-button ghost" data-shots-expand-all>${allExpanded ? t("shot_collapse_all") : t("shot_expand_all")}</button>` : ""}
       </div>
       <div class="shot-list">
-        ${shots.map((shot, index) => shotListRow(shot, index)).join("") || `<div class="empty-shot">本集还没有独立分镜。可以先用剧本节拍推进，后面再补镜头。</div>`}
+        ${shots.map((shot, index) => shotListRow(shot, index)).join("") || `<div class="empty-shot">${t("shot_empty")}</div>`}
       </div>
     </section>`;
 }
 
 function imageConfigPanel() {
   const config = imageConfig || {};
+  const keyPlaceholder = config.has_api_key
+    ? t("image_config_key_configured").replace("{preview}", config.api_key_preview)
+    : t("image_config_key_placeholder");
   return `
     <form class="image-config" data-image-config>
       <div class="field">
@@ -586,19 +619,19 @@ function imageConfigPanel() {
       </div>
       <div class="field">
         <label for="imageApiKey">API Key</label>
-        <input id="imageApiKey" name="api_key" type="password" placeholder="${escapeHtml(config.has_api_key ? `已配置：${config.api_key_preview}` : "粘贴 API Key")}" value="" />
+        <input id="imageApiKey" name="api_key" type="password" placeholder="${escapeHtml(keyPlaceholder)}" value="" />
       </div>
       <div class="field">
-        <label for="imageModel">模型</label>
+        <label for="imageModel">${t("image_config_model")}</label>
         <input id="imageModel" name="model" value="${escapeHtml(config.model || "gpt-image-2")}" />
       </div>
       <div class="field">
-        <label for="imageSize">尺寸</label>
+        <label for="imageSize">${t("image_config_size")}</label>
         <select id="imageSize" name="size">
           ${["1024x1024", "1536x1024", "1024x1536"].map((size) => `<option value="${size}" ${size === (config.size || "1024x1024") ? "selected" : ""}>${size}</option>`).join("")}
         </select>
       </div>
-      <button type="submit">保存图像配置</button>
+      <button type="submit">${t("image_config_save")}</button>
     </form>`;
 }
 
@@ -613,12 +646,13 @@ function setSettingsTab(name) {
 
 function openSettings() {
   const modal = $("settingsModal");
-  $("settingsSubtitle").textContent = project().series?.title
-    ? `《${project().series.title}》 · 短剧生成与本地项目配置`
-    : "短剧生成与本地项目配置";
+  const titleSuffix = project().series?.title ? `《${project().series.title}》 · ` : "";
+  $("settingsSubtitle").textContent = titleSuffix + t("settings_title_default");
   $("imageSettingsMount").innerHTML = imageConfigPanel();
   bindImageConfigForm();
+  bindLangSelect();
   setSettingsTab("image");
+  applyI18n();
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
 }
@@ -627,6 +661,18 @@ function closeSettings() {
   const modal = $("settingsModal");
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
+}
+
+function bindLangSelect() {
+  const langSel = document.getElementById("languageSelect");
+  if (!langSel) return;
+  langSel.value = langPref;
+  langSel.addEventListener("change", (e) => {
+    langPref = e.target.value;
+    localStorage.setItem(LANG_STORAGE_KEY, langPref);
+    render();
+    openSettings();
+  });
 }
 
 function bindImageConfigForm() {
@@ -641,22 +687,22 @@ function bindImageConfigForm() {
       model: value(imageConfigForm, "model"),
       size: value(imageConfigForm, "size"),
     });
-    toast("图像配置已保存");
+    toast(t("image_config_saved"));
     openSettings();
   });
 }
 
 const SHOT_READINESS_FIELDS = [
-  ["composition", "构图", (s) => s.composition],
-  ["camera", "镜头规格", (s) => s.shot_size || s.camera_movement || s.camera],
-  ["setting", "场景", (s) => s.setting],
-  ["lighting", "光线", (s) => s.lighting],
-  ["action", "动作脚本", (s) => s.action],
-  ["prompt", "生图提示词", (s) => s.prompt],
-  ["video_prompt", "视频运动提示", (s) => s.video_prompt],
-  ["audio", "声音设计", (s) => s.audio && (s.audio.ambient || (s.audio.dialogue || []).length || s.audio.narration || (s.audio.sfx || []).length || s.audio.music)],
-  ["transition", "转场", (s) => s.transition_in && s.transition_out],
-  ["continuity", "连续性锚点", (s) => s.continuity && (s.continuity.anchors || []).length],
+  ["composition", "Composition", (s) => s.composition],
+  ["camera", "Camera spec", (s) => s.shot_size || s.camera_movement || s.camera],
+  ["setting", "Setting", (s) => s.setting],
+  ["lighting", "Lighting", (s) => s.lighting],
+  ["action", "Action script", (s) => s.action],
+  ["prompt", "Image prompt", (s) => s.prompt],
+  ["video_prompt", "Video prompt", (s) => s.video_prompt],
+  ["audio", "Sound design", (s) => s.audio && (s.audio.ambient || (s.audio.dialogue || []).length || s.audio.narration || (s.audio.sfx || []).length || s.audio.music)],
+  ["transition", "Transition", (s) => s.transition_in && s.transition_out],
+  ["continuity", "Continuity anchors", (s) => s.continuity && (s.continuity.anchors || []).length],
 ];
 
 function shotIsSilent(shot) {
@@ -680,40 +726,40 @@ function dialogueCps(shot) {
 function shotReadiness(shot) {
   const missing = SHOT_READINESS_FIELDS.filter(([, , get]) => !get(shot)).map(([, label]) => label);
   const durOk = [4, 5, 6, 8, 10, 12].includes(Number(shot.duration_seconds));
-  if (!durOk) missing.push("合规时长");
+  if (!durOk) missing.push("Duration");
   const silent = shotIsSilent(shot);
   const cps = dialogueCps(shot);
   let pacingWarn = false;
   if (silent) {
-    if (!hasSoundBed(shot)) missing.push("声音床");
+    if (!hasSoundBed(shot)) missing.push("Sound bed");
   } else {
-    if (!(shot.srt || []).length) missing.push("台词时间轴");
+    if (!(shot.srt || []).length) missing.push("Dialogue SRT");
     pacingWarn = cps > 8;
   }
   return { missing, cps, pacingWarn, silent, ready: missing.length === 0 && !pacingWarn };
 }
 
 function audioBlock(audio) {
-  if (!audio) return `<p class="muted">待补声音设计</p>`;
+  if (!audio) return `<p class="muted">${t("shot_pending_audio")}</p>`;
   const dlg = (audio.dialogue || []).map((d) => `<li><b>${escapeHtml(d.speaker || "")}</b>${d.tone ? `<span class="tag">${escapeHtml(d.tone)}</span>` : ""}：${escapeHtml(d.line || "")}</li>`).join("");
   return `
     ${dlg ? `<ul class="audio-lines">${dlg}</ul>` : ""}
-    ${audio.narration ? `<p><span class="mini-label">旁白</span>${escapeHtml(audio.narration)}</p>` : ""}
+    ${audio.narration ? `<p><span class="mini-label">${t("audio_narration")}</span>${escapeHtml(audio.narration)}</p>` : ""}
     <div class="audio-grid">
-      ${audio.sfx && audio.sfx.length ? `<div><span class="mini-label">音效</span>${escapeHtml((audio.sfx || []).join("、"))}</div>` : ""}
-      ${audio.ambient ? `<div><span class="mini-label">环境声</span>${escapeHtml(audio.ambient)}</div>` : ""}
-      ${audio.music ? `<div><span class="mini-label">配乐</span>${escapeHtml(audio.music)}</div>` : ""}
+      ${audio.sfx && audio.sfx.length ? `<div><span class="mini-label">${t("audio_sfx")}</span>${escapeHtml((audio.sfx || []).join(", "))}</div>` : ""}
+      ${audio.ambient ? `<div><span class="mini-label">${t("audio_ambient")}</span>${escapeHtml(audio.ambient)}</div>` : ""}
+      ${audio.music ? `<div><span class="mini-label">${t("audio_music")}</span>${escapeHtml(audio.music)}</div>` : ""}
     </div>`;
 }
 
 function specRow(shot) {
   const specs = [
-    ["景别", shot.shot_size],
-    ["机位", shot.camera_angle],
-    ["运镜", shot.camera_movement],
-    ["镜头", shot.lens],
-    ["画幅", shot.aspect_ratio],
-    ["情绪", shot.emotion],
+    [t("spec_shot_size"), shot.shot_size],
+    [t("spec_angle"), shot.camera_angle],
+    [t("spec_movement"), shot.camera_movement],
+    [t("spec_lens"), shot.lens],
+    [t("spec_ratio"), shot.aspect_ratio],
+    [t("spec_emotion"), shot.emotion],
   ].filter(([, v]) => v);
   if (!specs.length) return shot.camera ? `<p class="muted">${escapeHtml(shot.camera)}</p>` : "";
   return `<div class="spec-row">${specs.map(([k, v]) => `<span class="spec"><i>${escapeHtml(k)}</i>${escapeHtml(v)}</span>`).join("")}</div>`;
@@ -722,17 +768,18 @@ function specRow(shot) {
 function shotPreview(shot) {
   const srt = shot.srt || [];
   const r = shotReadiness(shot);
+  const pendingCount = r.missing.length + (r.pacingWarn ? 1 : 0);
   const readinessChip = r.ready
-    ? `<span class="ready-chip ok">视频就绪 ✓</span>`
-    : `<span class="ready-chip warn" title="${escapeHtml([...r.missing.map((m) => "缺" + m), r.pacingWarn ? `台词过密 ${r.cps.toFixed(1)}字/秒` : ""].filter(Boolean).join("，"))}">待补 ${r.missing.length + (r.pacingWarn ? 1 : 0)} 项</span>`;
+    ? `<span class="ready-chip ok">${t("shot_video_ready")}</span>`
+    : `<span class="ready-chip warn" title="${escapeHtml([...r.missing.map((m) => m), r.pacingWarn ? `Pace: ${r.cps.toFixed(1)} chars/s` : ""].filter(Boolean).join(", "))}">${t("shot_pending").replace("{n}", pendingCount)}</span>`;
   const cont = shot.continuity || {};
   return `
     <article class="shot-script-card">
       <div class="shot-script-head">
         <div>
           <span class="badge">${escapeHtml(shot.beat_id || "beat")}</span>
-          <span class="badge">${escapeHtml(shot.duration_preset || `${shot.duration_seconds || ""}s` || "时长待定")}</span>
-          ${r.silent ? `<span class="badge soft">纯画面</span>` : ""}
+          <span class="badge">${escapeHtml(shot.duration_preset || `${shot.duration_seconds || ""}s` || "—")}</span>
+          ${r.silent ? `<span class="badge soft">${t("shot_pure_visual")}</span>` : ""}
           ${readinessChip}
           <h4>${escapeHtml(shot.title || shot.id)}</h4>
         </div>
@@ -740,37 +787,37 @@ function shotPreview(shot) {
       </div>
       <div class="shot-sheet">
         <section class="sheet-block">
-          <label>镜头描述 / 规格</label>
+          <label>${t("shot_label_composition")}</label>
           <p>${escapeHtml(shot.composition || "")}</p>
           ${specRow(shot)}
           <p class="muted">${escapeHtml([shot.setting, shot.lighting].filter(Boolean).join(" · "))}</p>
         </section>
-        ${shot.action ? `<section class="sheet-block"><label>动作脚本（运动）</label><p>${escapeHtml(shot.action)}</p></section>` : ""}
-        ${shot.video_prompt ? `<section class="sheet-block"><label>视频运动提示（图生视频）</label><pre class="soft-pre">${escapeHtml(shot.video_prompt)}</pre></section>` : ""}
+        ${shot.action ? `<section class="sheet-block"><label>${t("shot_label_action")}</label><p>${escapeHtml(shot.action)}</p></section>` : ""}
+        ${shot.video_prompt ? `<section class="sheet-block"><label>${t("shot_label_video_prompt")}</label><pre class="soft-pre">${escapeHtml(shot.video_prompt)}</pre></section>` : ""}
         <section class="sheet-block">
-          <label>声音设计</label>
+          <label>${t("shot_label_audio")}</label>
           ${audioBlock(shot.audio)}
         </section>
         <section class="sheet-block">
-          <label>台词 SRT ${r.silent ? "" : (srt.length ? `<span class="cps ${r.pacingWarn ? "warn" : ""}">${r.cps.toFixed(1)} 字/秒 · ${srt.length} 条</span>` : "")}</label>
+          <label>${t("shot_label_srt")} ${r.silent ? "" : (srt.length ? `<span class="cps ${r.pacingWarn ? "warn" : ""}">${r.cps.toFixed(1)} chars/s · ${srt.length} cues</span>` : "")}</label>
           ${r.silent
-            ? `<p class="muted">纯画面镜头 · 无台词，由画面、音效与配乐承载。</p>`
-            : `<pre>${escapeHtml(srt.length ? srt.map(formatSrtLine).join("\n\n") : "00:00:00,000 --> 00:00:03,000\n（待补台词）")}</pre>`}
+            ? `<p class="muted">${t("shot_pure_visual_note")}</p>`
+            : `<pre>${escapeHtml(srt.length ? srt.map(formatSrtLine).join("\n\n") : t("shot_srt_pending"))}</pre>`}
         </section>
-        ${(shot.transition_in || shot.transition_out) ? `<section class="sheet-block"><label>转场</label><p class="muted">入：${escapeHtml(shot.transition_in || "cut")} ／ 出：${escapeHtml(shot.transition_out || "cut")}</p></section>` : ""}
-        ${(cont.anchors || cont.props || cont.wardrobe) ? `<section class="sheet-block"><label>连续性</label>
-          ${cont.wardrobe ? `<p><span class="mini-label">服装</span>${escapeHtml(cont.wardrobe)}</p>` : ""}
-          ${(cont.props || []).length ? `<p><span class="mini-label">道具</span>${escapeHtml((cont.props || []).join("、"))}</p>` : ""}
-          ${cont.carries_from_prev ? `<p><span class="mini-label">承接</span>${escapeHtml(cont.carries_from_prev)}</p>` : ""}
-          ${(cont.anchors || []).length ? `<p><span class="mini-label">锚点</span>${escapeHtml((cont.anchors || []).join("；"))}</p>` : ""}
+        ${(shot.transition_in || shot.transition_out) ? `<section class="sheet-block"><label>${t("shot_label_transition")}</label><p class="muted">${t("trans_in")}：${escapeHtml(shot.transition_in || "cut")} ／ ${t("trans_out")}：${escapeHtml(shot.transition_out || "cut")}</p></section>` : ""}
+        ${(cont.anchors || cont.props || cont.wardrobe) ? `<section class="sheet-block"><label>${t("shot_label_continuity")}</label>
+          ${cont.wardrobe ? `<p><span class="mini-label">${t("cont_wardrobe")}</span>${escapeHtml(cont.wardrobe)}</p>` : ""}
+          ${(cont.props || []).length ? `<p><span class="mini-label">${t("cont_props")}</span>${escapeHtml((cont.props || []).join(", "))}</p>` : ""}
+          ${cont.carries_from_prev ? `<p><span class="mini-label">${t("cont_carries")}</span>${escapeHtml(cont.carries_from_prev)}</p>` : ""}
+          ${(cont.anchors || []).length ? `<p><span class="mini-label">${t("cont_anchors")}</span>${escapeHtml((cont.anchors || []).join("; "))}</p>` : ""}
         </section>` : ""}
         <section class="sheet-block sheet-assets">
           <div>
-            <label>分镜图片</label>
+            <label>${t("shot_label_storyboard_image")}</label>
             ${storyboardImageBlock(shot)}
           </div>
           <div>
-            <label>最终分镜视频</label>
+            <label>${t("shot_label_video")}</label>
             ${shotVideoBlock(shot)}
           </div>
         </section>
@@ -790,17 +837,17 @@ function imageCandidateStrip(shot) {
   const { list, active } = candidateList(shot, "image");
   if (list.length < 2) return "";
   return `<div class="cand-strip">${list.map((c, i) => `
-    <button type="button" class="cand-thumb ${c.path === active ? "active" : ""}" data-set-active-image="${escapeHtml(c.path)}" data-shot="${escapeHtml(shot.id)}" title="第${i + 1}版${c.path === active ? "（当前选用）" : "，点击选用"}">
+    <button type="button" class="cand-thumb ${c.path === active ? "active" : ""}" data-set-active-image="${escapeHtml(c.path)}" data-shot="${escapeHtml(shot.id)}" title="v${i + 1}${c.path === active ? " (active)" : " — click to select"}">
       <img src="${escapeHtml(c.path)}" alt="" loading="lazy" />
       ${c.path === active ? `<span class="cand-pick">✓</span>` : ""}
     </button>`).join("")}</div>`;
 }
 
 function videoModelLabel(generation) {
-  if (!generation) return "视频";
+  if (!generation) return "Video";
   const b = generation.backend || "";
-  const model = /seedance/i.test(b) ? "Seedance" : /ltx/i.test(b) ? "LTX" : (generation.model || "视频");
-  const m = generation.method === "text-to-video" ? "文生" : generation.method === "image-to-video" ? "图生" : "";
+  const model = /seedance/i.test(b) ? "Seedance" : /ltx/i.test(b) ? "LTX" : (generation.model || "Video");
+  const m = generation.method === "text-to-video" ? "T2V" : generation.method === "image-to-video" ? "I2V" : "";
   return m ? `${model}·${m}` : model;
 }
 
@@ -819,10 +866,10 @@ function shotVideoBlock(shot) {
     <div class="shot-video">
       ${isVideo
         ? `<video src="${escapeHtml(v)}" controls preload="metadata" playsinline></video><span class="img-mode-badge">${escapeHtml(videoModelLabel(shot.video_generation))}</span>`
-        : `<div class="asset-placeholder">${hasImage ? "分镜视频待生成" : "先生成分镜图，再生成分镜视频"}</div>`}
+        : `<div class="asset-placeholder">${hasImage ? t("video_pending") : t("video_pending_image")}</div>`}
       ${videoCandidateStrip(shot)}
       <div class="storyboard-actions">
-        <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" ${hasImage ? "" : "disabled"}>${isVideo ? "再生一版" : "生成分镜视频"}</button>
+        <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" ${hasImage ? "" : "disabled"}>${isVideo ? t("regenerate_video") : t("generate_video")}</button>
       </div>
     </div>`;
 }
@@ -831,15 +878,15 @@ function storyboardImageBlock(shot) {
   const asset = shot.image_asset || "";
   const isGenerated = asset.startsWith("/generated/");
   const mode = shot.image_generation?.mode;
-  const modeBadge = isGenerated && mode ? `<span class="img-mode-badge">${mode === "image-edit" ? "图生图·参考人物卡" : "纯文字生图"}</span>` : "";
+  const modeBadge = isGenerated && mode ? `<span class="img-mode-badge">${mode === "image-edit" ? t("modal_mode_image_edit") : t("modal_mode_text")}</span>` : "";
   return `
     <div class="storyboard-image">
-      ${isGenerated ? `<img src="${escapeHtml(asset)}" alt="${escapeHtml(shot.title || "分镜图")}" data-image-zoom="${escapeHtml(asset)}" title="点击查看大图" />` : `<div class="asset-placeholder">${escapeHtml(asset || "待生成")}</div>`}
+      ${isGenerated ? `<img src="${escapeHtml(asset)}" alt="${escapeHtml(shot.title || "Storyboard image")}" data-image-zoom="${escapeHtml(asset)}" title="Click to enlarge" />` : `<div class="asset-placeholder">${escapeHtml(asset || t("image_pending"))}</div>`}
       ${modeBadge}
       ${imageCandidateStrip(shot)}
       <div class="storyboard-actions">
-        <button type="button" class="mini-button generate-image-button" data-generate-image="${escapeHtml(shot.id)}">${isGenerated ? "再生一版" : "生成分镜图"}</button>
-        <button type="button" class="mini-button ghost" data-prompt-preview="${escapeHtml(shot.id)}">查看提示词</button>
+        <button type="button" class="mini-button generate-image-button" data-generate-image="${escapeHtml(shot.id)}">${isGenerated ? t("regenerate_image") : t("generate_image")}</button>
+        <button type="button" class="mini-button ghost" data-prompt-preview="${escapeHtml(shot.id)}">${t("view_prompt")}</button>
       </div>
     </div>`;
 }
@@ -877,35 +924,35 @@ function mountModal(inner) {
 function openImageModal(src) {
   if (!src) return;
   mountModal(`
-    <button type="button" class="modal-close-button" aria-label="关闭">×</button>
-    <div class="modal-image-wrap"><img src="${escapeHtml(src)}" alt="分镜大图" /></div>`);
+    <button type="button" class="modal-close-button" aria-label="Close">${t("modal_close")}</button>
+    <div class="modal-image-wrap"><img src="${escapeHtml(src)}" alt="Storyboard enlarged" /></div>`);
 }
 
 function refThumb(ref) {
   return `
     <figure class="ref-thumb">
       <img src="${escapeHtml(ref.path)}" alt="${escapeHtml(ref.name)}" data-image-zoom="${escapeHtml(ref.path)}" />
-      <figcaption>${escapeHtml(ref.name)}<small>${ref.kind === "character" ? "人物卡" : "背景"}</small></figcaption>
+      <figcaption>${escapeHtml(ref.name)}<small>${ref.kind === "character" ? "Character card" : "Background"}</small></figcaption>
     </figure>`;
 }
 
 function openPromptModal(data) {
   const refs = data.references || [];
-  const modeLabel = data.mode === "image-edit" ? "图生图（多图参考）" : "纯文字生图";
+  const modeLabel = data.mode === "image-edit" ? t("modal_mode_image_edit") : t("modal_mode_text");
   const ctx = data.context || {};
   const contextRows = [
-    ["剧集", ctx.episode_title],
-    ["故事背景", ctx.logline],
-    ["真实度目标", ctx.realism_target],
-    ["色彩", ctx.color_palette],
-    ["年代细节", ctx.period_detail],
+    ["Episode", ctx.episode_title],
+    ["Logline", ctx.logline],
+    ["Realism target", ctx.realism_target],
+    ["Color palette", ctx.color_palette],
+    ["Period detail", ctx.period_detail],
   ].filter(([, v]) => v).map(([k, v]) => `<div class="ctx-row"><span>${escapeHtml(k)}</span><p>${escapeHtml(v)}</p></div>`).join("");
   const characters = (data.characters || []).map((c) => `
-    <div class="ctx-row"><span>${escapeHtml(c.name)}</span><p>${escapeHtml(c.visual_front || "")}${c.reference_image ? "" : "（无参考卡）"}</p></div>`).join("");
+    <div class="ctx-row"><span>${escapeHtml(c.name)}</span><p>${escapeHtml(c.visual_front || "")}${c.reference_image ? "" : t("char_no_ref")}</p></div>`).join("");
   mountModal(`
-    <button type="button" class="modal-close-button" aria-label="关闭">×</button>
+    <button type="button" class="modal-close-button" aria-label="Close">${t("modal_close")}</button>
     <div class="modal-head">
-      <h3>${escapeHtml(data.title || "分镜提示词")}</h3>
+      <h3>${escapeHtml(data.title || t("modal_prompt_title"))}</h3>
       <div class="modal-tags">
         <span class="badge">${escapeHtml(modeLabel)}</span>
         ${data.model ? `<span class="badge">${escapeHtml(data.model)}</span>` : ""}
@@ -914,11 +961,11 @@ function openPromptModal(data) {
       </div>
     </div>
     <div class="modal-body">
-      ${refs.length ? `<section class="modal-section"><label>参考图（实际喂给模型）</label><div class="ref-grid">${refs.map(refThumb).join("")}</div></section>` : `<section class="modal-section"><p class="muted">本镜暂无可用参考卡，将走纯文字生图。</p></section>`}
-      <section class="modal-section"><label>生成提示词（Prompt）</label><pre class="prompt-pre">${escapeHtml(data.prompt || "")}</pre></section>
-      ${data.negative_prompt ? `<section class="modal-section"><label>负面提示词</label><pre class="prompt-pre">${escapeHtml(data.negative_prompt)}</pre></section>` : ""}
-      ${characters ? `<section class="modal-section"><label>人物背景</label>${characters}</section>` : ""}
-      ${contextRows ? `<section class="modal-section"><label>故事 / 视觉背景</label>${contextRows}</section>` : ""}
+      ${refs.length ? `<section class="modal-section"><label>${t("modal_prompt_refs_label")}</label><div class="ref-grid">${refs.map(refThumb).join("")}</div></section>` : `<section class="modal-section"><p class="muted">${t("modal_prompt_no_refs")}</p></section>`}
+      <section class="modal-section"><label>${t("modal_prompt_label")}</label><pre class="prompt-pre">${escapeHtml(data.prompt || "")}</pre></section>
+      ${data.negative_prompt ? `<section class="modal-section"><label>${t("modal_negative_prompt_label")}</label><pre class="prompt-pre">${escapeHtml(data.negative_prompt)}</pre></section>` : ""}
+      ${characters ? `<section class="modal-section"><label>${t("modal_characters_label")}</label>${characters}</section>` : ""}
+      ${contextRows ? `<section class="modal-section"><label>${t("modal_context_label")}</label>${contextRows}</section>` : ""}
     </div>`);
   document.getElementById("modalHost").querySelectorAll("[data-image-zoom]").forEach((node) => {
     node.addEventListener("click", () => openImageModal(node.dataset.imageZoom));
@@ -935,7 +982,7 @@ function itemCard(item) {
     item.role,
     item.type,
     item.status ? statusBadge(item.status) : "",
-    item.number ? `<span class="badge">第 ${item.number} 集</span>` : "",
+    item.number ? `<span class="badge">Ep ${item.number}</span>` : "",
   ].filter(Boolean).map((part) => String(part).startsWith("<") ? part : `<span class="badge">${escapeHtml(part)}</span>`).join("");
   return `
     <button class="item-card ${hasThumb ? "has-thumb" : ""} ${item.id === selectedId ? "active" : ""}" data-select="${escapeHtml(item.id)}">
@@ -965,24 +1012,24 @@ function select(name, label, value, options) {
 function seriesForm(series) {
   return `
     <form class="detail-card" data-kind="series">
-      <h2>系列设定</h2>
+      <h2>${t("form_series_title")}</h2>
       <div class="form-grid">
-        ${input("title", "剧名", series.title)}
-        ${input("genre", "类型", series.genre)}
-        ${input("platform", "平台/形态", series.platform)}
-        ${input("format", "集数/时长", series.format)}
-        ${input("tone", "气质", series.tone)}
-        ${input("audience", "目标观众", series.audience)}
-        ${textarea("logline", "一句话卖点", series.logline)}
-        ${textarea("hook_rules", "钩子规则（一行一条）", lines(series.hook_rules))}
-        ${textarea("world_rules", "世界规则（一行一条）", lines(series.world_rules))}
+        ${input("title", "Title", series.title)}
+        ${input("genre", "Genre", series.genre)}
+        ${input("platform", "Platform / format", series.platform)}
+        ${input("format", "Episodes / runtime", series.format)}
+        ${input("tone", "Tone", series.tone)}
+        ${input("audience", "Target audience", series.audience)}
+        ${textarea("logline", "One-line logline", series.logline)}
+        ${textarea("hook_rules", "Hook rules (one per line)", lines(series.hook_rules))}
+        ${textarea("world_rules", "World rules (one per line)", lines(series.world_rules))}
       </div>
-      <div class="form-actions"><button type="submit">保存系列</button></div>
+      <div class="form-actions"><button type="submit">${t("form_series_save")}</button></div>
     </form>`;
 }
 
 function detailForm(item) {
-  if (!item) return `<div class="detail-card"><h2>选择或新建一项</h2><p class="muted">这里会显示当前视图的编辑表单。</p></div>`;
+  if (!item) return `<div class="detail-card"><h2>${t("form_select_or_new")}</h2><p class="muted">${t("form_select_or_new_hint")}</p></div>`;
   if (view === "characters") return characterForm(item);
   if (view === "relationships") return relationshipForm(item);
   if (view === "episodes") return episodeForm(item);
@@ -992,7 +1039,7 @@ function detailForm(item) {
 }
 
 function statusSelect(value) {
-  return select("status", "状态", value || "draft", ["draft", "needs_review", "changes_requested", "approved", "done", "blocked"]);
+  return select("status", "Status", value || "draft", ["draft", "needs_review", "changes_requested", "approved", "done", "blocked"]);
 }
 
 function characterForm(item) {
@@ -1002,33 +1049,33 @@ function characterForm(item) {
   const vp = item.voice_profile || {};
   return `
     <form class="detail-card" data-kind="characters" data-id="${escapeHtml(item.id)}">
-      <h2>${escapeHtml(item.name || "新角色")}</h2>
+      <h2>${escapeHtml(item.name || "New character")}</h2>
       ${characterReferencePreview(reference)}
       ${characterVoicePreview(item)}
       <div class="form-grid">
-        ${input("id", "角色 ID", item.id)}
-        ${input("name", "姓名", item.name)}
-        ${input("role", "戏剧功能", item.role)}
+        ${input("id", "Character ID", item.id)}
+        ${input("name", "Name", item.name)}
+        ${input("role", "Dramatic function", item.role)}
         ${statusSelect(item.status)}
-        ${textarea("actor_profile", "演员/表演设定", item.actor_profile)}
-        ${textarea("identity", "身份", card.identity, false)}
-        ${textarea("motivation", "欲望", card.motivation, false)}
-        ${textarea("wound", "创伤", card.wound, false)}
-        ${textarea("secret", "秘密", card.secret, false)}
-        ${textarea("arc", "人物弧光", card.arc, false)}
-        ${textarea("voice", "台词声音（语气基调）", card.voice, false)}
-        ${input("voice_type", "音色", vp.type)}
-        ${input("voice_pace", "语速节奏", vp.pace)}
-        ${input("voice_accent", "口音 / 官话", vp.accent)}
-        ${input("voice_signature", "标志性语气", vp.signature)}
-        ${input("voice_casting", "配音参考声线", vp.casting_reference)}
-        ${textarea("voice_sample", "试音台词（参考声音脚本）", vp.sample_script, false)}
-        ${textarea("front", "三视图：正面", visual.front, false)}
-        ${textarea("side", "三视图：侧面", visual.side, false)}
-        ${textarea("back", "三视图：背面", visual.back, false)}
-        ${textarea("wardrobe", "服装", visual.wardrobe, false)}
-        ${textarea("anchors", "一致性锚点（一行一条）", lines(visual.anchors))}
-        ${textarea("forbidden_drift", "禁止漂移（一行一条）", lines(visual.forbidden_drift))}
+        ${textarea("actor_profile", "Actor / performance notes", item.actor_profile)}
+        ${textarea("identity", "Identity", card.identity, false)}
+        ${textarea("motivation", "Desire", card.motivation, false)}
+        ${textarea("wound", "Wound", card.wound, false)}
+        ${textarea("secret", "Secret", card.secret, false)}
+        ${textarea("arc", "Character arc", card.arc, false)}
+        ${textarea("voice", "Dialogue voice (tone baseline)", card.voice, false)}
+        ${input("voice_type", "Timbre / type", vp.type)}
+        ${input("voice_pace", "Pace", vp.pace)}
+        ${input("voice_accent", "Accent / dialect", vp.accent)}
+        ${input("voice_signature", "Signature delivery", vp.signature)}
+        ${input("voice_casting", "Casting reference voice", vp.casting_reference)}
+        ${textarea("voice_sample", "Audition line (voice script sample)", vp.sample_script, false)}
+        ${textarea("front", "Three-view: front", visual.front, false)}
+        ${textarea("side", "Three-view: side", visual.side, false)}
+        ${textarea("back", "Three-view: back", visual.back, false)}
+        ${textarea("wardrobe", "Wardrobe", visual.wardrobe, false)}
+        ${textarea("anchors", "Consistency anchors (one per line)", lines(visual.anchors))}
+        ${textarea("forbidden_drift", "Forbidden drift (one per line)", lines(visual.forbidden_drift))}
       </div>
       ${formActions()}
     </form>`;
@@ -1038,10 +1085,10 @@ function characterReferencePreview(reference) {
   return `
     <section class="character-reference">
       <div>
-        <h3>人物资料卡图</h3>
-        <p class="muted">${escapeHtml(reference.purpose || "用于后续分镜和视频一致性。")}</p>
+        <h3>${t("char_ref_title")}</h3>
+        <p class="muted">${escapeHtml(reference.purpose || t("char_ref_hint"))}</p>
       </div>
-      ${reference.image_asset ? `<img src="${escapeHtml(reference.image_asset)}" alt="人物资料卡图" />` : `<div class="asset-placeholder">人物资料卡图待生成</div>`}
+      ${reference.image_asset ? `<img src="${escapeHtml(reference.image_asset)}" alt="${t("char_ref_title")}" />` : `<div class="asset-placeholder">${t("char_ref_placeholder")}</div>`}
     </section>`;
 }
 
@@ -1054,18 +1101,18 @@ function characterVoicePreview(item) {
     <section class="character-voice">
       <div class="voice-head">
         <div>
-          <h3>人物声音</h3>
-          <p class="muted">${escapeHtml(summary || "音色 / 语速 / 口音 / 标志语气（用于配音与对白一致性）")}</p>
+          <h3>${t("char_voice_title")}</h3>
+          <p class="muted">${escapeHtml(summary || t("char_voice_hint"))}</p>
         </div>
-        <span class="voice-status ${generated ? "ok" : "planned"}">${generated ? "参考声音已生成" : "参考声音：待生成"}</span>
+        <span class="voice-status ${generated ? "ok" : "planned"}">${generated ? t("char_voice_generated") : t("char_voice_planned")}</span>
       </div>
-      ${vp.casting_reference ? `<p class="voice-line"><span class="mini-label">配音参考</span>${escapeHtml(vp.casting_reference)}</p>` : ""}
-      ${vp.sample_script ? `<p class="voice-line"><span class="mini-label">试音台词</span>${escapeHtml(vp.sample_script)}</p>` : ""}
+      ${vp.casting_reference ? `<p class="voice-line"><span class="mini-label">${t("char_voice_casting")}</span>${escapeHtml(vp.casting_reference)}</p>` : ""}
+      ${vp.sample_script ? `<p class="voice-line"><span class="mini-label">${t("char_voice_sample")}</span>${escapeHtml(vp.sample_script)}</p>` : ""}
       <div class="voice-ref">
         ${generated
           ? `<audio controls src="${escapeHtml(vr.asset)}"></audio>`
-          : `<div class="asset-placeholder">参考声音待生成（Qwen3-TTS 本地）</div>`}
-        <button type="button" class="mini-button generate-voice-button" data-generate-voice="${escapeHtml(item.id)}">${generated ? "再生一版" : "生成参考声音"}</button>
+          : `<div class="asset-placeholder">${t("char_voice_placeholder")}</div>`}
+        <button type="button" class="mini-button generate-voice-button" data-generate-voice="${escapeHtml(item.id)}">${generated ? t("regenerate_voice") : t("generate_voice")}</button>
       </div>
       ${voiceCandidateStrip(item)}
     </section>`;
@@ -1076,24 +1123,24 @@ function voiceCandidateStrip(character) {
   const active = character.voice_reference?.asset || "";
   if (list.length < 2) return "";
   return `<div class="cand-chips">${list.map((c, i) => `
-    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-voice-active="${escapeHtml(c.path)}" data-char="${escapeHtml(character.id)}">声${i + 1}${c.path === active ? " ✓" : ""}</button>`).join("")}</div>`;
+    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-voice-active="${escapeHtml(c.path)}" data-char="${escapeHtml(character.id)}">v${i + 1}${c.path === active ? " ✓" : ""}</button>`).join("")}</div>`;
 }
 
 function relationshipForm(item) {
   return `
     <form class="detail-card" data-kind="relationships" data-id="${escapeHtml(item.id)}">
-      <h2>${escapeHtml(item.type || "新关系")}</h2>
+      <h2>${escapeHtml(item.type || "New relationship")}</h2>
       <div class="form-grid">
-        ${input("id", "关系 ID", item.id)}
-        ${characterSelect("from", "关系起点", item.from)}
-        ${characterSelect("to", "关系终点", item.to)}
-        ${input("type", "关系类型", item.type)}
-        ${input("emotional_temperature", "情感温度", item.emotional_temperature)}
-        ${textarea("public_status", "公开关系", item.public_status, false)}
-        ${textarea("hidden_truth", "隐藏真相", item.hidden_truth, false)}
-        ${textarea("power_dynamic", "权力方向", item.power_dynamic, false)}
-        ${textarea("conflict", "当前冲突", item.conflict)}
-        ${textarea("evidence", "证据集（一行一条）", lines(item.evidence))}
+        ${input("id", "Relationship ID", item.id)}
+        ${characterSelect("from", "From", item.from)}
+        ${characterSelect("to", "To", item.to)}
+        ${input("type", "Relationship type", item.type)}
+        ${input("emotional_temperature", "Emotional temperature", item.emotional_temperature)}
+        ${textarea("public_status", "Public relationship", item.public_status, false)}
+        ${textarea("hidden_truth", "Hidden truth", item.hidden_truth, false)}
+        ${textarea("power_dynamic", "Power direction", item.power_dynamic, false)}
+        ${textarea("conflict", "Current conflict", item.conflict)}
+        ${textarea("evidence", "Evidence (one per line)", lines(item.evidence))}
       </div>
       ${relationshipPreview(item)}
       ${formActions()}
@@ -1114,17 +1161,17 @@ function relationshipPreview(item) {
 function episodeForm(item) {
   return `
     <form class="detail-card" data-kind="episodes" data-id="${escapeHtml(item.id)}">
-      <h2>第 ${escapeHtml(item.number || "")} 集：${escapeHtml(item.title || "")}</h2>
+      <h2>Ep ${escapeHtml(item.number || "")} — ${escapeHtml(item.title || "")}</h2>
       <div class="form-grid">
-        ${input("id", "剧集 ID", item.id)}
-        ${input("number", "集数", item.number || "", "number")}
-        ${input("title", "标题", item.title)}
+        ${input("id", "Episode ID", item.id)}
+        ${input("number", "Episode number", item.number || "", "number")}
+        ${input("title", "Title", item.title)}
         ${statusSelect(item.status)}
-        ${textarea("promise", "本集承诺", item.promise)}
-        ${textarea("a_plot", "A 剧情", item.a_plot, false)}
-        ${textarea("b_plot", "B 剧情", item.b_plot, false)}
-        ${textarea("cliffhanger", "结尾悬念", item.cliffhanger)}
-        ${textarea("beats_json", "节拍 JSON", JSON.stringify(item.beats || [], null, 2))}
+        ${textarea("promise", "Episode promise", item.promise)}
+        ${textarea("a_plot", "A-plot", item.a_plot, false)}
+        ${textarea("b_plot", "B-plot", item.b_plot, false)}
+        ${textarea("cliffhanger", "Cliffhanger", item.cliffhanger)}
+        ${textarea("beats_json", "Beats JSON", JSON.stringify(item.beats || [], null, 2))}
       </div>
       ${formActions()}
     </form>`;
@@ -1133,32 +1180,32 @@ function episodeForm(item) {
 function shotForm(item) {
   return `
     <form class="detail-card" data-kind="shots" data-id="${escapeHtml(item.id)}">
-      <h2>${escapeHtml(item.title || "新分镜")}</h2>
+      <h2>${escapeHtml(item.title || "New shot")}</h2>
       <div class="form-grid">
-        ${input("id", "分镜 ID", item.id)}
-        ${episodeSelect("episode_id", "所属剧集", item.episode_id)}
-        ${input("beat_id", "节拍 ID", item.beat_id)}
-        ${input("title", "画面标题", item.title)}
+        ${input("id", "Shot ID", item.id)}
+        ${episodeSelect("episode_id", "Episode", item.episode_id)}
+        ${input("beat_id", "Beat ID", item.beat_id)}
+        ${input("title", "Shot title", item.title)}
         ${statusSelect(item.status)}
-        ${input("duration_seconds", "时长(秒,取4/5/6/8/10/12)", item.duration_seconds)}
-        ${input("emotion", "情绪", item.emotion)}
-        ${input("shot_size", "景别", item.shot_size)}
-        ${input("camera_angle", "机位角度", item.camera_angle)}
-        ${input("camera_movement", "运镜", item.camera_movement)}
-        ${input("lens", "镜头", item.lens)}
-        ${input("transition_in", "入场转场", item.transition_in)}
-        ${input("transition_out", "出场转场", item.transition_out)}
-        ${textarea("characters", "出场角色 ID（一行一条）", lines(item.characters), false)}
-        ${textarea("composition", "构图(静帧)", item.composition, false)}
-        ${textarea("camera", "镜头(自由文本)", item.camera, false)}
-        ${textarea("setting", "场景", item.setting, false)}
-        ${textarea("lighting", "光线", item.lighting, false)}
-        ${textarea("action", "动作脚本(运动)", item.action, false)}
-        ${textarea("prompt", "生图提示词", item.prompt)}
-        ${textarea("video_prompt", "视频运动提示", item.video_prompt)}
-        ${textarea("negative_prompt", "负面提示词", item.negative_prompt)}
+        ${input("duration_seconds", "Duration (s — 4/5/6/8/10/12)", item.duration_seconds)}
+        ${input("emotion", "Emotion", item.emotion)}
+        ${input("shot_size", "Shot size", item.shot_size)}
+        ${input("camera_angle", "Camera angle", item.camera_angle)}
+        ${input("camera_movement", "Camera movement", item.camera_movement)}
+        ${input("lens", "Lens", item.lens)}
+        ${input("transition_in", "Transition in", item.transition_in)}
+        ${input("transition_out", "Transition out", item.transition_out)}
+        ${textarea("characters", "Characters (one ID per line)", lines(item.characters), false)}
+        ${textarea("composition", "Composition (still frame)", item.composition, false)}
+        ${textarea("camera", "Camera (freeform)", item.camera, false)}
+        ${textarea("setting", "Setting", item.setting, false)}
+        ${textarea("lighting", "Lighting", item.lighting, false)}
+        ${textarea("action", "Action script (motion)", item.action, false)}
+        ${textarea("prompt", "Image prompt", item.prompt)}
+        ${textarea("video_prompt", "Video motion prompt", item.video_prompt)}
+        ${textarea("negative_prompt", "Negative prompt", item.negative_prompt)}
       </div>
-      <p class="form-note">声音设计 (audio)、连续性 (continuity) 与台词 SRT 为结构化字段，保存时自动保留；如需编辑可用 @ai 或直接改 project.json。</p>
+      <p class="form-note">Sound design (audio), continuity, and SRT are structured fields — preserved on save. Edit via @ai or directly in project.json.</p>
       ${formActions()}
     </form>`;
 }
@@ -1173,21 +1220,21 @@ function episodeSelect(name, label, value) {
 function taskForm(item) {
   return `
     <form class="detail-card" data-kind="tasks" data-id="${escapeHtml(item.id)}">
-      <h2>${escapeHtml(item.title || "新任务")}</h2>
+      <h2>${escapeHtml(item.title || "New task")}</h2>
       <div class="form-grid">
-        ${input("id", "任务 ID", item.id)}
-        ${input("kind", "类型", item.kind)}
-        ${input("target_id", "目标 ID", item.target_id)}
+        ${input("id", "Task ID", item.id)}
+        ${input("kind", "Kind", item.kind)}
+        ${input("target_id", "Target ID", item.target_id)}
         ${statusSelect(item.status)}
-        ${input("title", "标题", item.title)}
-        ${textarea("note", "说明 / @ai 请求", item.note)}
+        ${input("title", "Title", item.title)}
+        ${textarea("note", "Note / @ai request", item.note)}
       </div>
       ${formActions()}
     </form>`;
 }
 
 function formActions() {
-  return `<div class="form-actions"><button type="submit">保存</button><button type="button" class="danger" data-delete>删除</button><span class="muted save-hint">已连接本地 project.json</span></div>`;
+  return `<div class="form-actions"><button type="submit">${t("form_save")}</button><button type="button" class="danger" data-delete>${t("form_delete")}</button><span class="muted save-hint">${t("form_saved_connected")}</span></div>`;
 }
 
 function bindForm() {
@@ -1247,16 +1294,16 @@ function bindForm() {
     node.addEventListener("click", async () => {
       const shotId = node.dataset.generateImage;
       node.disabled = true;
-      node.textContent = "生成中...";
+      node.textContent = t("generating");
       try {
         const result = await api("/api/storyboard-image", { shot_id: shotId });
         state = result.state || await api("/api/state");
-        toast("分镜图已生成");
+        toast(t("toast_image_generated"));
         render();
       } catch (error) {
-        toast(error.message || "生成失败");
+        toast(error.message || t("generate_image_failed"));
         node.disabled = false;
-        node.textContent = "生成分镜图";
+        node.textContent = t("generate_image");
       }
     });
   });
@@ -1264,16 +1311,16 @@ function bindForm() {
     node.addEventListener("click", async () => {
       const shotId = node.dataset.generateVideo;
       node.disabled = true;
-      node.textContent = "生成中(云端,约30-120s)...";
+      node.textContent = t("generating_video");
       try {
         const result = await api("/api/shot-video", { shot_id: shotId });
         state = result.state || await api("/api/state");
-        toast("分镜视频已生成");
+        toast(t("toast_video_generated"));
         render();
       } catch (error) {
-        toast(error.message || "分镜视频生成失败");
+        toast(error.message || t("generate_video_failed"));
         node.disabled = false;
-        node.textContent = "生成分镜视频";
+        node.textContent = t("generate_video");
       }
     });
   });
@@ -1281,16 +1328,16 @@ function bindForm() {
     node.addEventListener("click", async () => {
       const id = node.dataset.generateVoice;
       node.disabled = true;
-      node.textContent = "生成中(本地TTS)...";
+      node.textContent = t("generating_voice");
       try {
         const result = await api("/api/character-voice", { character_id: id });
         state = result.state || await api("/api/state");
-        toast("参考声音已生成");
+        toast(t("toast_voice_generated"));
         render();
       } catch (error) {
-        toast(error.message || "语音生成失败");
+        toast(error.message || t("generate_voice_failed"));
         node.disabled = false;
-        node.textContent = "生成参考声音";
+        node.textContent = t("generate_voice");
       }
     });
   });
@@ -1298,27 +1345,27 @@ function bindForm() {
     node.addEventListener("click", async () => {
       try {
         state = await api("/api/character-voice-active", { character_id: node.dataset.char, path: node.dataset.setVoiceActive });
-        toast("已设为选用声音");
+        toast(t("toast_voice_active"));
         render();
-      } catch (error) { toast(error.message || "切换失败"); }
+      } catch (error) { toast(error.message || "Failed"); }
     });
   });
   document.querySelectorAll("[data-set-active-image]").forEach((node) => {
     node.addEventListener("click", async () => {
       try {
         state = await api("/api/shot-active", { shot_id: node.dataset.shot, kind: "image", path: node.dataset.setActiveImage });
-        toast("已设为选用图");
+        toast(t("toast_image_active"));
         render();
-      } catch (error) { toast(error.message || "切换失败"); }
+      } catch (error) { toast(error.message || "Failed"); }
     });
   });
   document.querySelectorAll("[data-set-active-video]").forEach((node) => {
     node.addEventListener("click", async () => {
       try {
         state = await api("/api/shot-active", { shot_id: node.dataset.shot, kind: "video", path: node.dataset.setActiveVideo });
-        toast("已设为选用视频");
+        toast(t("toast_video_active"));
         render();
-      } catch (error) { toast(error.message || "切换失败"); }
+      } catch (error) { toast(error.message || "Failed"); }
     });
   });
   document.querySelectorAll("[data-prompt-preview]").forEach((node) => {
@@ -1327,7 +1374,7 @@ function bindForm() {
         const data = await api(`/api/storyboard-prompt?shot_id=${encodeURIComponent(node.dataset.promptPreview)}`);
         openPromptModal(data);
       } catch (error) {
-        toast(error.message || "无法加载提示词");
+        toast(error.message || "Could not load prompt");
       }
     });
   });
@@ -1339,7 +1386,7 @@ function bindForm() {
   form.addEventListener("input", () => {
     form.classList.add("is-dirty");
     const hint = form.querySelector(".save-hint");
-    if (hint) hint.textContent = "有未保存修改";
+    if (hint) hint.textContent = t("form_unsaved");
   });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -1348,12 +1395,12 @@ function bindForm() {
   const deleteButton = form.querySelector("[data-delete]");
   if (deleteButton) {
     deleteButton.addEventListener("click", async () => {
-      if (!confirm("确定删除这一项？")) return;
+      if (!confirm(t("confirm_delete"))) return;
       const kind = form.dataset.kind;
       const id = form.dataset.id;
       state = await api(`/api/${kind}/${encodeURIComponent(id)}`, { delete: true });
       selectedId = null;
-      toast("已删除");
+      toast(t("toast_deleted"));
       render();
     });
   }
@@ -1384,7 +1431,7 @@ async function saveForm(form) {
     state = await api(`/api/${kind}/${encodeURIComponent(payload.id)}`, payload);
     selectedId = payload.id;
   }
-  toast("已保存");
+  toast(t("toast_saved"));
   syncRoute({ replace: true });
   render();
 }
@@ -1443,7 +1490,7 @@ function serializeItem(form, kind) {
     try {
       beats = JSON.parse(value(form, "beats_json") || "[]");
     } catch {
-      throw new Error("节拍 JSON 格式不正确");
+      throw new Error("Invalid beats JSON");
     }
     return {
       ...base,
@@ -1503,11 +1550,11 @@ function serializeItem(form, kind) {
 function newItem() {
   const timestamp = Date.now().toString().slice(-5);
   const templates = {
-    characters: { id: `char-new-${timestamp}`, name: "新角色", role: "helper", status: "draft", character_card: {}, visual: { anchors: [], forbidden_drift: [] } },
+    characters: { id: `char-new-${timestamp}`, name: "New character", role: "helper", status: "draft", character_card: {}, visual: { anchors: [], forbidden_drift: [] } },
     relationships: { id: `rel-new-${timestamp}`, from: project().characters?.[0]?.id || "", to: project().characters?.[1]?.id || "", type: "new relationship", evidence: [] },
-    episodes: { id: `ep-new-${timestamp}`, number: (project().episodes?.length || 0) + 1, title: "新一集", status: "draft", beats: [] },
-    shots: { id: `shot-new-${timestamp}`, episode_id: project().episodes?.[0]?.id || "", title: "新分镜", status: "draft", characters: [] },
-    tasks: { id: `task-new-${timestamp}`, kind: "episode", status: "needs_review", title: "新任务", note: "" },
+    episodes: { id: `ep-new-${timestamp}`, number: (project().episodes?.length || 0) + 1, title: "New episode", status: "draft", beats: [] },
+    shots: { id: `shot-new-${timestamp}`, episode_id: project().episodes?.[0]?.id || "", title: "New shot", status: "draft", characters: [] },
+    tasks: { id: `task-new-${timestamp}`, kind: "episode", status: "needs_review", title: "New task", note: "" },
   };
   const item = templates[view];
   selectedId = item.id;
@@ -1535,7 +1582,7 @@ $("projectSelect").addEventListener("change", async () => {
   episodeMode = "list";
   episodeTab = "summary";
   state = await api("/api/active-project", { project_id: $("projectSelect").value });
-  toast(`已切换到《${option?.textContent || "当前短剧"}》`);
+  toast(t("toast_switch_project").replace("{title}", option?.textContent || ""));
   navigateTo({ view: "overview", selectedId: null, episodeMode: "list", episodeTab: "summary" }, { replace: true });
 });
 

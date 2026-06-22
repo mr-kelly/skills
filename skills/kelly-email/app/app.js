@@ -170,7 +170,7 @@ function withContextParams(path) {
 }
 
 function modeForDemo(value) {
-  if (value === "review") return "needs_review";
+  if (["review", "needs-review", "needs_review", "needs"].includes(value)) return "needs_review";
   if (["approved", "blocked", "done"].includes(value)) return value;
   return "all";
 }

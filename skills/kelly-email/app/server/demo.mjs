@@ -1,44 +1,51 @@
+import { isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.mjs";
+
 const now = "2026-06-18T09:30:00.000Z";
+const scenarioUpdatedAt = {
+  "needs-review": "2026-06-18T09:30:00.000Z",
+  approved: "2026-06-18T09:42:00.000Z",
+  done: "2026-06-18T09:55:00.000Z",
+  mixed: now,
+};
 
 export function isDemoQuery(query = {}) {
   return Boolean(query.demo);
 }
 
 export function demoStatePayload(query = {}) {
-  const allItems = demoItems();
-  const mode = String(query.mode || "all");
+  const scenario = demoScenario(query);
+  const allItems = withReviewNumbers(demoItemsForScenario(scenario));
+  const mode = queryValue(query.mode, "all");
   const search = String(query.q || "").toLowerCase().trim();
   let items = allItems;
   if (mode !== "all") {
-    if (mode === "needs_review") items = items.filter((item) => item.status === "needs_review");
-    else if (mode === "approved") items = items.filter((item) => ["prepared", "drafted", "draft_requested"].includes(item.status) && item.decision?.action);
-    else if (mode === "done") items = items.filter((item) => item.status === "executed" || item.decision?.action === "no_action");
-    else if (mode === "blocked") items = items.filter((item) => item.execution?.status === "blocked");
+    if (mode === "needs_review") items = items.filter(isNeedsReview);
+    else if (mode === "approved") items = items.filter(isApprovedForExecution);
+    else if (mode === "done") items = items.filter(isDone);
+    else if (mode === "blocked") items = items.filter(isBlocked);
     else items = items.filter((item) => item.status === mode);
   }
   if (search) {
     items = items.filter((item) => `${item.review_ref} ${item.from} ${item.subject} ${item.summary}`.toLowerCase().includes(search));
   }
+  items.sort((a, b) => uidNumber(b) - uidNumber(a));
+  const counts = countByStatus(allItems);
+  counts.needs_review = allItems.filter(isNeedsReview).length;
+  counts.to_approve = 0;
+  counts.approved = allItems.filter(isApprovedForExecution).length;
+  counts.done = allItems.filter(isDone).length;
+  counts.blocked = allItems.filter(isBlocked).length;
   return {
     demo: true,
+    demo_scenario: scenario,
     batch: {
-      batch_id: "demo-email-20260618",
+      batch_id: `demo-email-${scenario}-20260618`,
       generated_at: now,
-      updated_at: now,
-      source: "demo",
-      last_scan: now
+      updated_at: scenarioUpdatedAt[scenario] || now,
+      source: `demo:${scenario}`,
+      last_scan: scenarioUpdatedAt[scenario] || now
     },
-    counts: {
-      needs_review: 3,
-      to_approve: 0,
-      approved: 4,
-      done: 1,
-      blocked: 1,
-      prepared: 2,
-      drafted: 1,
-      draft_requested: 1,
-      executed: 1
-    },
+    counts,
     items,
     total_cached: allItems.length,
     batch_path: "demo://kelly-email/current_batch.json",
@@ -46,6 +53,125 @@ export function demoStatePayload(query = {}) {
     email_accounts: demoAccounts(),
     lock: { locked: false },
   };
+}
+
+function queryValue(value, fallback = "") {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return String(raw ?? fallback);
+}
+
+function demoScenario(query = {}) {
+  const value = queryValue(query.demo, "mixed").toLowerCase().trim();
+  if (["review", "needs-review", "needs_review", "needs"].includes(value)) return "needs-review";
+  if (["approved", "waiting", "waiting-approved", "waiting_approved"].includes(value)) return "approved";
+  if (["done", "completed", "complete"].includes(value)) return "done";
+  return "mixed";
+}
+
+function uidNumber(item) {
+  return Number.parseInt(item.uid || "0", 10) || 0;
+}
+
+function withReviewNumbers(items) {
+  const reviewItems = items
+    .filter(isNeedsReview)
+    .sort((a, b) => uidNumber(b) - uidNumber(a));
+  const byId = new Map(reviewItems.map((item, index) => [String(item.id), index + 1]));
+  return items.map((item) => {
+    const reviewNumber = byId.get(String(item.id)) || null;
+    if (!reviewNumber) return { ...item, review_number: null, review_ref: "" };
+    return { ...item, review_number: reviewNumber, review_ref: `Review #${reviewNumber}` };
+  });
+}
+
+function countByStatus(items) {
+  const counts = {};
+  for (const item of items) {
+    counts[item.status || "unknown"] = (counts[item.status || "unknown"] || 0) + 1;
+  }
+  return counts;
+}
+
+function demoItemsForScenario(scenario) {
+  const items = demoItems().slice(0, 6);
+  if (scenario === "needs-review") return items.map(asNeedsReviewItem);
+  if (scenario === "approved") return items.map(asApprovedItem);
+  if (scenario === "done") return items.map(asDoneItem);
+  return demoItems();
+}
+
+function asNeedsReviewItem(item, index) {
+  return {
+    ...item,
+    status: "needs_review",
+    proposed_action: proposedActionFor(item, index),
+    review_number: null,
+    review_ref: "",
+    reason: needsReviewReasonFor(item, index),
+    decision: {},
+    execution: {},
+    updated_at: "2026-06-18T09:30:00.000Z"
+  };
+}
+
+function asApprovedItem(item, index) {
+  const action = approvedActionFor(item, index);
+  const status = action === "draft_reply" ? "draft_requested" : action === "send_reply" ? "drafted" : "prepared";
+  return {
+    ...item,
+    status,
+    proposed_action: action,
+    review_number: null,
+    review_ref: "",
+    reason: approvedReasonFor(action),
+    decision: { action, decided_at: "2026-06-18T09:42:00.000Z" },
+    execution: {},
+    updated_at: "2026-06-18T09:42:00.000Z"
+  };
+}
+
+function asDoneItem(item, index) {
+  const approved = asApprovedItem(item, index);
+  const action = approved.decision.action;
+  return {
+    ...approved,
+    status: "executed",
+    execution: { status: "executed", action, executed_at: "2026-06-18T09:55:00.000Z" },
+    updated_at: "2026-06-18T09:55:00.000Z"
+  };
+}
+
+function proposedActionFor(item, index) {
+  if (item.suggested_reply || item.draft) return index % 2 ? "send_reply" : "draft_reply";
+  if (item.category === "security") return "review";
+  if (item.category === "newsletter") return "archive";
+  return item.proposed_action || "archive";
+}
+
+function approvedActionFor(item, index) {
+  if (item.suggested_reply || item.draft) return index % 2 ? "send_reply" : "draft_reply";
+  if (item.category === "security") return "mark_read";
+  if (item.category === "money") return "draft_reply";
+  return index % 3 === 0 ? "mark_read" : "archive";
+}
+
+function needsReviewReasonFor(item, index) {
+  const reasons = [
+    "Demo recording: this message still needs a human note or decision.",
+    "Demo recording: the assistant is waiting for approval before taking action.",
+    "Demo recording: this item has enough context, but the operator should choose the next step."
+  ];
+  return item.reason || reasons[index % reasons.length];
+}
+
+function approvedReasonFor(action) {
+  const labels = {
+    archive: "Demo recording: approved for archive and waiting for execution.",
+    mark_read: "Demo recording: approved to mark read and waiting for execution.",
+    send_reply: "Demo recording: reply approved and waiting for execution.",
+    draft_reply: "Demo recording: draft request approved and waiting for the assistant."
+  };
+  return labels[action] || "Demo recording: approved and waiting for execution.";
 }
 
 export function demoDecisionResponse(body = {}) {

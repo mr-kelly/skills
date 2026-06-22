@@ -103,8 +103,11 @@ function collectShotReferences(project, shot) {
       refs.push({ kind: "character", id: character.id, name: character.name, path: character.reference_card.image_asset });
     }
   }
+  // Use the latest GENERAL background (scene-specific bgs carry a `scene` tag and are
+  // human/library references only — don't bias every shot toward e.g. a naval scene).
   const backgrounds = project.series?.visual_bible?.background_reference_assets || [];
-  const bg = backgrounds[backgrounds.length - 1];
+  const general = backgrounds.filter((b) => !b.scene);
+  const bg = (general.length ? general : backgrounds)[(general.length ? general : backgrounds).length - 1];
   if (refs.length < MAX_SHOT_REFERENCES && bg?.path?.startsWith("/generated/")) {
     refs.push({ kind: "background", id: bg.id || "background", name: bg.title || "背景参考", path: bg.path });
   }
