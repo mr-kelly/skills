@@ -5,6 +5,7 @@ import { APP_DIR } from "./paths.mjs";
 import { lockPayload } from "./lock.mjs";
 import { statePayload } from "./state.mjs";
 import { updateDetail, updateItems } from "./decisions.mjs";
+import { setTested } from "./tested-cache.mjs";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.mjs";
 
 const CONTENT_TYPES = {
@@ -78,11 +79,12 @@ export async function handleRequest(req, res) {
     }
     if (req.method === "POST") {
       const body = await readJsonBody(req);
-      if (demo && ["/api/decision", "/api/detail", "/api/reload"].includes(url.pathname)) {
+      if (demo && ["/api/decision", "/api/detail", "/api/reload", "/api/tested"].includes(url.pathname)) {
         return sendJson(res, url.pathname === "/api/reload" ? demoStatePayload(query) : demoDecisionResponse(body));
       }
       if (url.pathname === "/api/decision") return sendJson(res, await updateItems(body));
       if (url.pathname === "/api/detail") return sendJson(res, await updateDetail(body));
+      if (url.pathname === "/api/tested") return sendJson(res, await setTested(body.id, body.tested));
       if (url.pathname === "/api/reload") return sendJson(res, await statePayload({}));
       send(res, 404, "Not Found");
       return;

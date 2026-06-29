@@ -18,6 +18,7 @@ const I18N = {
     "filter.needs_review": "Needs your review",
     "filter.to_approve": "Ready to approve",
     "filter.approved": "Approved",
+    "filter.tested": "Tested",
     "filter.blocked": "Blocked",
     "filter.done": "Done",
     "filter.all": "All",
@@ -53,6 +54,7 @@ const I18N = {
     "mode.needs_review": "Needs your review",
     "mode.to_approve": "Ready to approve",
     "mode.approved": "Approved",
+    "mode.tested": "Tested",
     "mode.done": "Done",
     "mode.blocked": "Blocked",
     "empty.list": "No pull requests in this view",
@@ -85,6 +87,7 @@ const I18N = {
     "status.needs_review": "Needs review",
     "status.to_approve": "Ready",
     "status.approved": "Approved",
+    "status.tested": "Tested",
     "status.done": "Done",
     "status.blocked": "Blocked",
     "action.approve": "Approve",
@@ -93,13 +96,21 @@ const I18N = {
     "action.no_action": "No action",
     "action.needs_review": "Needs review",
     "action.block": "Block",
-    "action.review": "Review"
+    "action.review": "Review",
+    "tested.title": "Manual test",
+    "tested.body": "This flag is local only. Use it after you manually verified this PR.",
+    "tested.mark": "Mark tested",
+    "tested.unmark": "Clear tested",
+    "tested.saved": "Tested status saved",
+    "tested.at": "Tested {time} ago",
+    "tested.not_yet": "Not tested locally"
   },
   "zh-CN": {
     "brand.subtitle": "GitHub 审阅台",
     "filter.needs_review": "需要审阅",
     "filter.to_approve": "待批准",
     "filter.approved": "已批准",
+    "filter.tested": "已测试",
     "filter.blocked": "受阻",
     "filter.done": "完成",
     "filter.all": "全部",
@@ -135,6 +146,7 @@ const I18N = {
     "mode.needs_review": "需要你审阅",
     "mode.to_approve": "待批准",
     "mode.approved": "已批准",
+    "mode.tested": "已测试",
     "mode.done": "完成",
     "mode.blocked": "受阻",
     "empty.list": "这个视图没有 Pull Request",
@@ -167,6 +179,7 @@ const I18N = {
     "status.needs_review": "需审阅",
     "status.to_approve": "就绪",
     "status.approved": "已批准",
+    "status.tested": "已测试",
     "status.done": "完成",
     "status.blocked": "受阻",
     "action.approve": "批准",
@@ -175,7 +188,14 @@ const I18N = {
     "action.no_action": "无需操作",
     "action.needs_review": "需要审阅",
     "action.block": "阻止",
-    "action.review": "审阅"
+    "action.review": "审阅",
+    "tested.title": "人工测试",
+    "tested.body": "这个标记只保存在本地。人工验证过这个 PR 后再使用。",
+    "tested.mark": "标记已测试",
+    "tested.unmark": "清除已测试",
+    "tested.saved": "测试状态已保存",
+    "tested.at": "{time} 前测试",
+    "tested.not_yet": "本地未测试"
   }
 };
 
@@ -274,6 +294,11 @@ function statusBadge(item) {
   return `<span class="badge ${klass}">${escapeHtml(labels[status] || status)}</span>`;
 }
 
+function testedBadge(item) {
+  if (!item.tested) return "";
+  return `<span class="badge tested">${escapeHtml(t("status.tested"))}</span>`;
+}
+
 function actionBadge(action) {
   const labels = {
     approve: t("action.approve"),
@@ -320,12 +345,12 @@ function withContextParams(path) {
 
 function modeForDemo(value) {
   if (value === "ready") return "to_approve";
-  if (["approved", "blocked", "done", "all"].includes(value)) return value;
+  if (["approved", "tested", "blocked", "done", "all"].includes(value)) return value;
   return "needs_review";
 }
 
 function routeModes() {
-  return ["all", "needs_review", "to_approve", "approved", "done", "blocked"];
+  return ["all", "needs_review", "to_approve", "approved", "tested", "done", "blocked"];
 }
 
 function encodeRoutePart(value) {
@@ -406,7 +431,7 @@ function countFor(name) {
 }
 
 function renderCounts() {
-  ["all", "needs_review", "to_approve", "approved", "done", "blocked"].forEach((name) => {
+  ["all", "needs_review", "to_approve", "approved", "tested", "done", "blocked"].forEach((name) => {
     const node = $(`count-${name}`);
     if (node) node.textContent = countFor(name);
   });
@@ -418,6 +443,7 @@ function modeTitle() {
     needs_review: t("mode.needs_review"),
     to_approve: t("mode.to_approve"),
     approved: t("mode.approved"),
+    tested: t("mode.tested"),
     done: t("mode.done"),
     blocked: t("mode.blocked"),
   }[mode] || t("mode.all");
@@ -496,7 +522,7 @@ function renderList() {
         <div class="pr-title">${escapeHtml(item.title)}</div>
         <div class="pr-meta">${escapeHtml(item.review_ref || "")} · ${escapeHtml(item.author || "unknown")} · ${escapeHtml(item.repo)} #${escapeHtml(item.number)}</div>
       </span>
-      <span>${statusBadge(item)}</span>
+      <span class="status-stack">${statusBadge(item)}${testedBadge(item)}</span>
       <span class="changes"><span class="plus">+${escapeHtml(item.additions)}</span> <span class="minus">−${escapeHtml(item.deletions)}</span></span>
       <span class="muted">${escapeHtml(timeAgo(item.updated_at))}</span>
     </button>
@@ -551,8 +577,16 @@ function renderDetail() {
     <div class="detail-body">
       <section class="section">
         <h2>${escapeHtml(t("recommendation"))}</h2>
-        <div class="action-row">${actionBadge(item.proposed_action)} ${statusBadge(item)}</div>
+        <div class="action-row">${actionBadge(item.proposed_action)} ${statusBadge(item)} ${testedBadge(item)}</div>
         <p>${escapeHtml(item.reason || item.summary || t("no.recommendation"))}</p>
+      </section>
+      <section class="section tested-section">
+        <h2>${escapeHtml(t("tested.title"))}</h2>
+        <p>${escapeHtml(t("tested.body"))}</p>
+        <div class="tested-controls">
+          <button class="${item.tested ? "" : "primary"}" data-tested="${item.tested ? "false" : "true"}">${escapeHtml(t(item.tested ? "tested.unmark" : "tested.mark"))}</button>
+          <span class="muted">${escapeHtml(item.tested ? t("tested.at", { time: timeAgo(item.tested_at) }) : t("tested.not_yet"))}</span>
+        </div>
       </section>
       <section class="section">
         <h2>${escapeHtml(t("risk"))}</h2>
@@ -589,6 +623,9 @@ function renderDetail() {
   panel.querySelectorAll("[data-action]").forEach((button) => {
     button.addEventListener("click", () => decide(button.dataset.action));
   });
+  panel.querySelector("[data-tested]")?.addEventListener("click", (event) => {
+    setTestedStatus(event.currentTarget.dataset.tested === "true").catch((error) => toast(error.message));
+  });
   renderLock();
 }
 
@@ -617,6 +654,14 @@ async function decide(action) {
   await loadState();
 }
 
+async function setTestedStatus(tested) {
+  const item = selectedItem();
+  if (!item) return;
+  await api("/api/tested", { id: item.id, tested });
+  toast(t("tested.saved"));
+  await loadState();
+}
+
 function helpHtml() {
   const summary = state.config_summary || {};
   const repos = (summary.repos || []).map((repo) => `<span class="badge">${escapeHtml(repo.repo)}</span>`).join(" ");
@@ -627,6 +672,7 @@ function helpHtml() {
       <dt>${escapeHtml(t("config_source"))}</dt><dd><code>${escapeHtml(summary.source || t("not_configured"))}</code></dd>
       <dt>${escapeHtml(t("batch_file"))}</dt><dd><code>${escapeHtml(state.batch_path || "")}</code></dd>
       <dt>${escapeHtml(t("decision_file"))}</dt><dd><code>${escapeHtml(state.decisions_path || "")}</code></dd>
+      <dt>${escapeHtml(t("filter.tested"))}</dt><dd><code>${escapeHtml(state.tested_path || "")}</code></dd>
       <dt>${escapeHtml(t("execution_report"))}</dt><dd><code>${escapeHtml(state.execution_report_path || "")}</code></dd>
       <dt>${escapeHtml(t("reviewer"))}</dt><dd><code>${escapeHtml(summary.reviewer?.handle || "@me")}</code></dd>
       <dt>${escapeHtml(t("repositories"))}</dt><dd>${repos || `<span class="muted">${escapeHtml(t("no_repos"))}</span>`}</dd>

@@ -10,7 +10,7 @@ export function demoStatePayload(query = {}) {
   const mode = String(query.mode || "all");
   const search = String(query.q || "").toLowerCase().trim();
   const repoItems = repo !== "all" ? allItems.filter((item) => item.repo === repo) : allItems;
-  let items = repoItems.filter((item) => mode === "all" || item.status === mode);
+  let items = repoItems.filter((item) => mode === "all" || (mode === "tested" ? item.tested : item.status === mode));
   if (search) {
     items = items.filter((item) => `${item.review_ref} ${item.repo} ${item.number} ${item.title} ${item.author} ${item.summary}`.toLowerCase().includes(search));
   }
@@ -56,7 +56,8 @@ function countByStatus(items) {
     to_approve: items.filter((item) => item.status === "to_approve").length,
     approved: items.filter((item) => item.status === "approved").length,
     done: items.filter((item) => item.status === "done").length,
-    blocked: items.filter((item) => item.status === "blocked").length
+    blocked: items.filter((item) => item.status === "blocked").length,
+    tested: items.filter((item) => item.tested).length
   };
 }
 
@@ -159,6 +160,8 @@ function demoItems() {
       comments_count: 0,
       checks: "passing",
       updated_at: "2026-06-17T16:05:00.000Z",
+      tested: true,
+      tested_at: "2026-06-17T16:12:00.000Z",
       review_body: "Approved. Clear explanation of local decisions and final execution.",
       decision: { action: "approve", approved_for_execution: true, decided_at: "2026-06-17T16:10:00.000Z" }
     },

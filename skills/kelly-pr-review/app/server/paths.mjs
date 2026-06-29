@@ -15,4 +15,5 @@ export {
   ROOT_DIR,
   SERVER_DIR,
   SKILL_DIR,
+  TESTED_PATH,
 } from "../../lib/paths.mjs";

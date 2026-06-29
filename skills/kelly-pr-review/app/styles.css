@@ -487,6 +487,13 @@ body.sidebar-collapsed .setup-card {
   white-space: nowrap;
 }
 
+.status-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 .pr-meta {
   margin-top: 3px;
   color: var(--muted);
@@ -527,6 +534,12 @@ body.sidebar-collapsed .setup-card {
   color: var(--danger);
   border-color: #f3b9b9;
   background: var(--danger-soft);
+}
+
+.badge.tested {
+  color: #285e61;
+  border-color: #9fd6d3;
+  background: #e7f6f4;
 }
 
 .changes {
@@ -616,6 +629,18 @@ body.sidebar-collapsed .setup-card {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
+}
+
+.tested-section p {
+  color: var(--muted);
+}
+
+.tested-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
 }
 
 .file-list code {
