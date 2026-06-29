@@ -26,7 +26,7 @@
       "url": "https://github.com/owner/repo/pull/123",
       "summary": "Short reason for review",
       "body": "Trimmed PR body or review context",
-      "status": "needs_review|to_approve|approved|done|blocked",
+      "status": "needs_review|to_approve|approved|done|blocked|merged",
       "proposed_action": "approve|comment|request_changes|no_action|needs_review",
       "reason": "Why this action is proposed",
       "risk": ["security"],
@@ -35,6 +35,19 @@
       "additions": 10,
       "deletions": 2,
       "updated_at": "ISO timestamp",
+      "state": "open|closed",
+      "merged": true,
+      "merged_at": "ISO timestamp",
+      "verification_status": "needs_test|tested",
+      "tested_at": "ISO timestamp",
+      "test_note": "Human verification notes",
+      "test_evidence": [
+        {
+          "filename": "screenshot.png",
+          "content_type": "image/png",
+          "url": "/test-evidence/owner-repo-123/screenshot.png"
+        }
+      ],
       "review_body": "Editable review body",
       "decision": {
         "action": "approve|comment|request_changes|no_action|needs_review|block",
@@ -53,3 +66,5 @@
 ```
 
 `app/.cache/decisions.json` contains approved decisions keyed by item id plus the editable review body.
+
+`app/.cache/tested.json` is local-only post-merge verification state. A merged PR can move from `needs_test` to `tested` only when a human adds a test note or uploads screenshot evidence.

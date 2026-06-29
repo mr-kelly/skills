@@ -14,7 +14,8 @@ function countByWorkflow(items) {
     approved: items.filter(isApprovedForExecution).length,
     done: items.filter(isDone).length,
     blocked: items.filter(isBlocked).length,
-    tested: items.filter((item) => item.tested).length,
+    needs_test: items.filter((item) => item.verification_status === "needs_test").length,
+    tested: items.filter((item) => item.verification_status === "tested").length,
   };
 }
 
@@ -33,7 +34,8 @@ function matchesMode(item, mode) {
   if (mode === "approved") return isApprovedForExecution(item);
   if (mode === "done") return isDone(item);
   if (mode === "blocked") return isBlocked(item);
-  if (mode === "tested") return Boolean(item.tested);
+  if (mode === "needs_test") return item.verification_status === "needs_test";
+  if (mode === "tested") return item.verification_status === "tested";
   return item.status === mode;
 }
 

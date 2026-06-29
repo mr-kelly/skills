@@ -14,6 +14,8 @@
     "state": "open",
     "review_requested": "@me",
     "limit": 30,
+    "merged_limit": 30,
+    "merged_at": ">=2026-01-01",
     "sort": "updated",
     "order": "desc",
     "include_drafts": false

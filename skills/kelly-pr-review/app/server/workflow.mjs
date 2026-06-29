@@ -1,4 +1,4 @@
-export const WORKFLOW_STATUSES = ["needs_review", "to_approve", "approved", "done", "blocked"];
+export const WORKFLOW_STATUSES = ["needs_review", "to_approve", "approved", "done", "blocked", "merged"];
 
 export function isNeedsReview(item) {
   return item.status === "needs_review";
