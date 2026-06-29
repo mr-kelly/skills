@@ -1,8 +1,9 @@
-import { CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH } from "./paths.mjs";
+import { CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH, TESTED_PATH } from "./paths.mjs";
 import { loadBatch, normalizeItem } from "./batch-store.mjs";
 import { lockPayload } from "./lock.mjs";
 import { normalizeQueryValue, readJson } from "./utils.mjs";
 import { isApprovedForExecution, isBlocked, isDone, isNeedsReview, isToApprove } from "./workflow.mjs";
+import { applyTestedCache, loadTestedCache } from "./tested-cache.mjs";
 import { loadConfigWithMeta } from "../../lib/data-reader/index.mjs";
 import { publicConfigSummary } from "../../lib/data-reader/local-file-reader.mjs";
 
@@ -13,6 +14,7 @@ function countByWorkflow(items) {
     approved: items.filter(isApprovedForExecution).length,
     done: items.filter(isDone).length,
     blocked: items.filter(isBlocked).length,
+    tested: items.filter((item) => item.tested).length,
   };
 }
 
@@ -31,6 +33,7 @@ function matchesMode(item, mode) {
   if (mode === "approved") return isApprovedForExecution(item);
   if (mode === "done") return isDone(item);
   if (mode === "blocked") return isBlocked(item);
+  if (mode === "tested") return Boolean(item.tested);
   return item.status === mode;
 }
 
@@ -47,8 +50,9 @@ function reposFor(items) {
 
 export async function statePayload(query = {}) {
   const batch = await loadBatch();
+  const testedCache = await loadTestedCache();
   const meta = await loadConfigWithMeta();
-  const allItems = withReviewRefs((batch.items || []).map(normalizeItem));
+  const allItems = applyTestedCache(withReviewRefs((batch.items || []).map(normalizeItem)), testedCache);
   const mode = normalizeQueryValue(query.mode, "all");
   const search = normalizeQueryValue(query.q, "").toLowerCase().trim();
   const repo = normalizeQueryValue(query.repo, "all");
@@ -78,6 +82,7 @@ export async function statePayload(query = {}) {
     total_all_repos: allItems.length,
     batch_path: CURRENT_BATCH_PATH,
     decisions_path: DECISIONS_PATH,
+    tested_path: TESTED_PATH,
     execution_report_path: EXECUTION_REPORT_PATH,
     config_summary: publicConfigSummary(meta),
     execution_report: await readJson(EXECUTION_REPORT_PATH, {}),
