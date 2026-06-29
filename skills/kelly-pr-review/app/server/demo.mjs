@@ -10,7 +10,7 @@ export function demoStatePayload(query = {}) {
   const mode = String(query.mode || "all");
   const search = String(query.q || "").toLowerCase().trim();
   const repoItems = repo !== "all" ? allItems.filter((item) => item.repo === repo) : allItems;
-  let items = repoItems.filter((item) => mode === "all" || (mode === "tested" ? item.tested : item.status === mode));
+  let items = repoItems.filter((item) => mode === "all" || (mode === "needs_test" ? item.verification_status === "needs_test" : mode === "tested" ? item.verification_status === "tested" : item.status === mode));
   if (search) {
     items = items.filter((item) => `${item.review_ref} ${item.repo} ${item.number} ${item.title} ${item.author} ${item.summary}`.toLowerCase().includes(search));
   }
@@ -57,7 +57,8 @@ function countByStatus(items) {
     approved: items.filter((item) => item.status === "approved").length,
     done: items.filter((item) => item.status === "done").length,
     blocked: items.filter((item) => item.status === "blocked").length,
-    tested: items.filter((item) => item.tested).length
+    needs_test: items.filter((item) => item.verification_status === "needs_test").length,
+    tested: items.filter((item) => item.verification_status === "tested").length
   };
 }
 
@@ -150,6 +151,7 @@ function demoItems() {
       url: "https://github.com/example/northstar-docs/pull/18",
       summary: "Documents the support queue, review note field, and final execution step.",
       status: "approved",
+      verification_status: "tested",
       proposed_action: "approve",
       reason: "Docs match the current UI and include the safety boundary.",
       risk: ["docs"],
@@ -162,12 +164,40 @@ function demoItems() {
       updated_at: "2026-06-17T16:05:00.000Z",
       tested: true,
       tested_at: "2026-06-17T16:12:00.000Z",
+      test_note: "Verified docs render locally after merge.",
+      test_evidence: [],
       review_body: "Approved. Clear explanation of local decisions and final execution.",
       decision: { action: "approve", approved_for_execution: true, decided_at: "2026-06-17T16:10:00.000Z" }
     },
     {
-      id: "northstar/sdk#31",
+      id: "northstar/app#63",
       review_ref: "Review #4",
+      repo: "northstar/app",
+      number: 63,
+      title: "Polish merged dashboard settings flow",
+      author: "alex",
+      url: "https://github.com/example/northstar-app/pull/63",
+      summary: "Merged settings polish waiting for manual test verification.",
+      status: "merged",
+      verification_status: "needs_test",
+      proposed_action: "no_action",
+      reason: "Merged PR is waiting for human test verification.",
+      risk: ["frontend"],
+      labels: ["frontend"],
+      changed_files: ["app/settings/SettingsPanel.tsx"],
+      additions: 74,
+      deletions: 18,
+      comments_count: 1,
+      checks: "passing",
+      state: "closed",
+      merged: true,
+      merged_at: "2026-06-18T06:45:00.000Z",
+      updated_at: "2026-06-18T06:45:00.000Z",
+      review_body: ""
+    },
+    {
+      id: "northstar/sdk#31",
+      review_ref: "Review #5",
       repo: "northstar/sdk",
       number: 31,
       title: "Expose batch validation helper",
@@ -190,7 +220,7 @@ function demoItems() {
     },
     {
       id: "northstar/docs#22",
-      review_ref: "Review #5",
+      review_ref: "Review #6",
       repo: "northstar/docs",
       number: 22,
       title: "Refresh onboarding screenshots",

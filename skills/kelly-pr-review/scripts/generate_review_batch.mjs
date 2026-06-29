@@ -92,6 +92,31 @@ function sampleItems() {
       review_body: "Looks good. The empty state spacing is clearer and the change is nicely scoped.",
       patch_excerpt: "",
     },
+    {
+      id: "sample/repo#44",
+      repo: "sample/repo",
+      number: 44,
+      title: "Ship post-merge profile settings polish",
+      author: "alex",
+      url: "https://github.com/sample/repo/pull/44",
+      summary: "Merged UI polish that still needs manual product verification.",
+      body: "Sample merged PR body for local UI preview.",
+      status: "merged",
+      proposed_action: "no_action",
+      reason: "Merged PR is waiting for human test verification.",
+      risk: ["frontend"],
+      labels: ["frontend"],
+      changed_files: ["app/profile/Settings.tsx"],
+      additions: 48,
+      deletions: 9,
+      comments_count: 1,
+      state: "closed",
+      merged: true,
+      merged_at: utcNow(),
+      updated_at: utcNow(),
+      review_body: "",
+      patch_excerpt: "",
+    },
   ];
 }
 
@@ -106,6 +131,8 @@ function defaultConfig(config = {}) {
       state: "open",
       review_requested: "@me",
       limit: 30,
+      merged_limit: 30,
+      merged_at: ">=2026-01-01",
       sort: "updated",
       order: "desc",
       include_drafts: false,
@@ -168,14 +195,15 @@ async function patchExcerpt(repo, number, maxChars) {
   }
 }
 
-async function hydratePullRequest(pr, config) {
+async function hydratePullRequest(pr, config, options = {}) {
   const repo = pr.repository?.nameWithOwner || pr.repository?.fullName || pr.repository?.name || "";
   const number = Number(pr.number);
   const policy = config.review_policy || {};
   const files = await changedFiles(repo, number);
   const risks = riskFor(pr, files, policy);
+  const merged = Boolean(options.merged);
   const action = proposedActionFor(pr, risks, policy);
-  const status = action === "needs_review" || risks.length ? "needs_review" : "to_approve";
+  const status = merged ? "merged" : action === "needs_review" || risks.length ? "needs_review" : "to_approve";
   const reviewBody = action === "approve"
     ? `Looks good. The change appears scoped and I did not see obvious review blockers in the loaded context.`
     : `Thanks, I reviewed this locally. ${risks.length ? `Risk areas to confirm: ${risks.join(", ")}.` : "Leaving a review note for confirmation."}`;
@@ -189,14 +217,17 @@ async function hydratePullRequest(pr, config) {
     summary: truncateText(pr.body || "", 600),
     body: truncateText(pr.body || "", 2000),
     status,
-    proposed_action: action,
-    reason: risks.length ? `Detected risk: ${risks.join(", ")}` : "No configured risk keywords detected.",
+    proposed_action: merged ? "no_action" : action,
+    reason: merged ? "Merged PR is waiting for human test verification." : risks.length ? `Detected risk: ${risks.join(", ")}` : "No configured risk keywords detected.",
     risk: risks,
     labels: (pr.labels || []).map((label) => label.name || label).filter(Boolean),
     changed_files: files,
     additions: Number(pr.additions || 0),
     deletions: Number(pr.deletions || 0),
     comments_count: Number(pr.commentsCount || 0),
+    state: pr.state || "",
+    merged,
+    merged_at: options.merged_at || pr.mergedAt || pr.closedAt || "",
     is_draft: Boolean(pr.isDraft),
     created_at: pr.createdAt || "",
     updated_at: pr.updatedAt || utcNow(),
@@ -214,7 +245,18 @@ function metrics(items) {
     approved: items.filter((item) => item.status === "approved").length,
     done: items.filter((item) => item.status === "done").length,
     blocked: items.filter((item) => item.status === "blocked").length,
+    needs_test: items.filter((item) => item.merged && item.status === "merged").length,
+    tested: 0,
   };
+}
+
+function dedupeItems(items) {
+  const byId = new Map();
+  for (const item of items) {
+    const existing = byId.get(item.id);
+    if (!existing || existing.status === "merged") byId.set(item.id, item);
+  }
+  return Array.from(byId.values());
 }
 
 async function buildBatch() {
@@ -232,7 +274,7 @@ async function buildBatch() {
       throw new Error("gh is not authenticated. Run `gh auth login` first.");
     }
     const query = config.query || {};
-    const args = [
+    const openArgs = [
       "search",
       "prs",
       "--state",
@@ -249,12 +291,34 @@ async function buildBatch() {
       "title,number,author,body,labels,repository,url,updatedAt,createdAt,isDraft,commentsCount",
       ...repoArgs(config),
     ];
-    const prs = await ghJson(args);
+    const prs = await ghJson(openArgs);
     const filtered = query.include_drafts ? prs : prs.filter((pr) => !pr.isDraft);
     items = [];
     for (const pr of filtered) {
       items.push(await hydratePullRequest(pr, config));
     }
+    const mergedArgs = [
+      "search",
+      "prs",
+      "--state",
+      "closed",
+      "--merged",
+      "--limit",
+      String(query.merged_limit || query.limit || 30),
+      "--sort",
+      query.sort || "updated",
+      "--order",
+      query.order || "desc",
+      "--json",
+      "title,number,author,body,labels,repository,url,updatedAt,createdAt,closedAt,isDraft,commentsCount,state",
+      ...repoArgs(config),
+    ];
+    if (query.merged_at) mergedArgs.splice(5, 0, "--merged-at", String(query.merged_at));
+    const mergedPrs = await ghJson(mergedArgs);
+    for (const pr of mergedPrs) {
+      items.push(await hydratePullRequest(pr, config, { merged: true, merged_at: pr.closedAt || "" }));
+    }
+    items = dedupeItems(items);
   }
   const batch = {
     batch_id: `kelly-pr-review-${compactTimestamp()}`,

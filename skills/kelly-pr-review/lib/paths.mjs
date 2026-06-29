@@ -11,6 +11,7 @@ export const BATCH_DIR = path.join(CACHE_DIR, "batches");
 export const CURRENT_BATCH_PATH = path.join(CACHE_DIR, "current_batch.json");
 export const DECISIONS_PATH = path.join(CACHE_DIR, "decisions.json");
 export const TESTED_PATH = path.join(CACHE_DIR, "tested.json");
+export const TEST_EVIDENCE_DIR = path.join(CACHE_DIR, "test-evidence");
 export const LOCK_PATH = path.join(CACHE_DIR, "agent.lock");
 export const LOG_PATH = path.join(CACHE_DIR, "server.log");
 export const PID_PATH = path.join(CACHE_DIR, "server.pid");

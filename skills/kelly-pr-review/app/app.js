@@ -18,6 +18,7 @@ const I18N = {
     "filter.needs_review": "Needs your review",
     "filter.to_approve": "Ready to approve",
     "filter.approved": "Approved",
+    "filter.needs_test": "Needs test",
     "filter.tested": "Tested",
     "filter.blocked": "Blocked",
     "filter.done": "Done",
@@ -54,6 +55,7 @@ const I18N = {
     "mode.needs_review": "Needs your review",
     "mode.to_approve": "Ready to approve",
     "mode.approved": "Approved",
+    "mode.needs_test": "Needs test",
     "mode.tested": "Tested",
     "mode.done": "Done",
     "mode.blocked": "Blocked",
@@ -87,6 +89,8 @@ const I18N = {
     "status.needs_review": "Needs review",
     "status.to_approve": "Ready",
     "status.approved": "Approved",
+    "status.merged": "Merged",
+    "status.needs_test": "Needs test",
     "status.tested": "Tested",
     "status.done": "Done",
     "status.blocked": "Blocked",
@@ -98,18 +102,23 @@ const I18N = {
     "action.block": "Block",
     "action.review": "Review",
     "tested.title": "Manual test",
-    "tested.body": "This flag is local only. Use it after you manually verified this PR.",
+    "tested.body": "Merged PRs need a local test note or screenshot before they count as tested.",
     "tested.mark": "Mark tested",
     "tested.unmark": "Clear tested",
     "tested.saved": "Tested status saved",
     "tested.at": "Tested {time} ago",
-    "tested.not_yet": "Not tested locally"
+    "tested.not_yet": "Not tested locally",
+    "tested.note.placeholder": "What did you verify?",
+    "tested.screenshot": "Screenshot evidence",
+    "tested.need_evidence": "Add a test note or upload a screenshot first.",
+    "merged.at": "Merged {time} ago"
   },
   "zh-CN": {
     "brand.subtitle": "GitHub 审阅台",
     "filter.needs_review": "需要审阅",
     "filter.to_approve": "待批准",
     "filter.approved": "已批准",
+    "filter.needs_test": "未测试验证",
     "filter.tested": "已测试",
     "filter.blocked": "受阻",
     "filter.done": "完成",
@@ -146,6 +155,7 @@ const I18N = {
     "mode.needs_review": "需要你审阅",
     "mode.to_approve": "待批准",
     "mode.approved": "已批准",
+    "mode.needs_test": "未测试验证",
     "mode.tested": "已测试",
     "mode.done": "完成",
     "mode.blocked": "受阻",
@@ -179,6 +189,8 @@ const I18N = {
     "status.needs_review": "需审阅",
     "status.to_approve": "就绪",
     "status.approved": "已批准",
+    "status.merged": "已合并",
+    "status.needs_test": "未测试",
     "status.tested": "已测试",
     "status.done": "完成",
     "status.blocked": "受阻",
@@ -190,12 +202,16 @@ const I18N = {
     "action.block": "阻止",
     "action.review": "审阅",
     "tested.title": "人工测试",
-    "tested.body": "这个标记只保存在本地。人工验证过这个 PR 后再使用。",
+    "tested.body": "合并后的 PR 需要留下本地测试说明或截图证据，才算已测试。",
     "tested.mark": "标记已测试",
     "tested.unmark": "清除已测试",
     "tested.saved": "测试状态已保存",
     "tested.at": "{time} 前测试",
-    "tested.not_yet": "本地未测试"
+    "tested.not_yet": "本地未测试",
+    "tested.note.placeholder": "你验证了什么？",
+    "tested.screenshot": "截图证据",
+    "tested.need_evidence": "请先填写测试说明或上传截图。",
+    "merged.at": "{time} 前合并"
   }
 };
 
@@ -287,6 +303,7 @@ function statusBadge(item) {
     needs_review: t("status.needs_review"),
     to_approve: t("status.to_approve"),
     approved: t("status.approved"),
+    merged: t("status.merged"),
     done: t("status.done"),
     blocked: t("status.blocked"),
   };
@@ -295,8 +312,9 @@ function statusBadge(item) {
 }
 
 function testedBadge(item) {
-  if (!item.tested) return "";
-  return `<span class="badge tested">${escapeHtml(t("status.tested"))}</span>`;
+  if (item.verification_status === "tested") return `<span class="badge tested">${escapeHtml(t("status.tested"))}</span>`;
+  if (item.verification_status === "needs_test") return `<span class="badge warn">${escapeHtml(t("status.needs_test"))}</span>`;
+  return "";
 }
 
 function actionBadge(action) {
@@ -345,12 +363,12 @@ function withContextParams(path) {
 
 function modeForDemo(value) {
   if (value === "ready") return "to_approve";
-  if (["approved", "tested", "blocked", "done", "all"].includes(value)) return value;
+  if (["approved", "needs_test", "tested", "blocked", "done", "all"].includes(value)) return value;
   return "needs_review";
 }
 
 function routeModes() {
-  return ["all", "needs_review", "to_approve", "approved", "tested", "done", "blocked"];
+  return ["all", "needs_review", "to_approve", "approved", "needs_test", "tested", "done", "blocked"];
 }
 
 function encodeRoutePart(value) {
@@ -431,7 +449,7 @@ function countFor(name) {
 }
 
 function renderCounts() {
-  ["all", "needs_review", "to_approve", "approved", "tested", "done", "blocked"].forEach((name) => {
+  ["all", "needs_review", "to_approve", "approved", "needs_test", "tested", "done", "blocked"].forEach((name) => {
     const node = $(`count-${name}`);
     if (node) node.textContent = countFor(name);
   });
@@ -443,6 +461,7 @@ function modeTitle() {
     needs_review: t("mode.needs_review"),
     to_approve: t("mode.to_approve"),
     approved: t("mode.approved"),
+    needs_test: t("mode.needs_test"),
     tested: t("mode.tested"),
     done: t("mode.done"),
     blocked: t("mode.blocked"),
@@ -557,6 +576,42 @@ function filesHtml(item) {
   return `${files.map((file) => `<code>${escapeHtml(file)}</code>`).join("")}${extra}`;
 }
 
+function evidenceHtml(item) {
+  const evidence = item.test_evidence || [];
+  if (!evidence.length) return "";
+  return `
+    <div class="evidence-grid">
+      ${evidence.map((file) => `
+        <a href="${escapeHtml(file.url || "")}" target="_blank" rel="noopener">
+          <img src="${escapeHtml(file.url || "")}" alt="${escapeHtml(file.filename || t("tested.screenshot"))}" />
+        </a>
+      `).join("")}
+    </div>
+  `;
+}
+
+function testSectionHtml(item) {
+  if (!item.merged && item.status !== "merged") return "";
+  const testedText = item.tested ? t("tested.at", { time: timeAgo(item.tested_at) }) : t("tested.not_yet");
+  const mergedText = item.merged_at ? t("merged.at", { time: timeAgo(item.merged_at) }) : "";
+  return `
+    <section class="section tested-section">
+      <h2>${escapeHtml(t("tested.title"))}</h2>
+      <p>${escapeHtml(t("tested.body"))}</p>
+      <textarea id="testNote" class="comment-box" placeholder="${escapeHtml(t("tested.note.placeholder"))}">${escapeHtml(item.test_note || "")}</textarea>
+      <label class="upload-control">
+        <span>${escapeHtml(t("tested.screenshot"))}</span>
+        <input id="testEvidence" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple />
+      </label>
+      ${evidenceHtml(item)}
+      <div class="tested-controls">
+        <button class="${item.tested ? "" : "primary"}" data-tested="${item.tested ? "false" : "true"}">${escapeHtml(t(item.tested ? "tested.unmark" : "tested.mark"))}</button>
+        <span class="muted">${escapeHtml([testedText, mergedText].filter(Boolean).join(" · "))}</span>
+      </div>
+    </section>
+  `;
+}
+
 function renderDetail() {
   const panel = $("detailPanel");
   const item = selectedItem();
@@ -580,14 +635,7 @@ function renderDetail() {
         <div class="action-row">${actionBadge(item.proposed_action)} ${statusBadge(item)} ${testedBadge(item)}</div>
         <p>${escapeHtml(item.reason || item.summary || t("no.recommendation"))}</p>
       </section>
-      <section class="section tested-section">
-        <h2>${escapeHtml(t("tested.title"))}</h2>
-        <p>${escapeHtml(t("tested.body"))}</p>
-        <div class="tested-controls">
-          <button class="${item.tested ? "" : "primary"}" data-tested="${item.tested ? "false" : "true"}">${escapeHtml(t(item.tested ? "tested.unmark" : "tested.mark"))}</button>
-          <span class="muted">${escapeHtml(item.tested ? t("tested.at", { time: timeAgo(item.tested_at) }) : t("tested.not_yet"))}</span>
-        </div>
-      </section>
+      ${testSectionHtml(item)}
       <section class="section">
         <h2>${escapeHtml(t("risk"))}</h2>
         <div class="risk-list">${riskHtml(item)}</div>
@@ -657,9 +705,33 @@ async function decide(action) {
 async function setTestedStatus(tested) {
   const item = selectedItem();
   if (!item) return;
-  await api("/api/tested", { id: item.id, tested });
+  const note = $("testNote")?.value.trim() || "";
+  const evidenceInput = $("testEvidence");
+  const files = evidenceInput?.files ? Array.from(evidenceInput.files) : [];
+  if (tested && !note && !files.length && !(item.test_evidence || []).length) {
+    toast(t("tested.need_evidence"));
+    return;
+  }
+  const evidence = await Promise.all(files.map(fileToPayload));
+  await api("/api/tested", { id: item.id, tested, note, evidence });
   toast(t("tested.saved"));
   await loadState();
+}
+
+function fileToPayload(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      const result = String(reader.result || "");
+      resolve({
+        filename: file.name,
+        content_type: file.type,
+        base64: result.split(",")[1] || "",
+      });
+    });
+    reader.addEventListener("error", () => reject(reader.error || new Error("Could not read screenshot.")));
+    reader.readAsDataURL(file);
+  });
 }
 
 function helpHtml() {
