@@ -126,6 +126,14 @@ Kelly Money is a local finance dashboard for seeing money movement across Mercur
     <td><strong>Ready to approve</strong><br>Approval-focused review where checks pass and the final recommendation is ready to send.</td>
     <td><strong>Blocked review</strong><br>Security-sensitive PR scenario with unresolved risk, blocking rationale, and reviewer handoff details.</td>
   </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-pr-review-needs-test.png" alt="Kelly PR Review merged PR needs test"></td>
+    <td><img src="docs/screenshots/kelly-pr-review-tested.png" alt="Kelly PR Review tested verification"></td>
+  </tr>
+  <tr>
+    <td><strong>Needs test</strong><br>Merged pull request waiting for human verification with a required test note or screenshot evidence.</td>
+    <td><strong>Tested</strong><br>Post-merge verification record showing the local test note that proves a human checked the change.</td>
+  </tr>
 </table>
 
 ### `kelly-drama`

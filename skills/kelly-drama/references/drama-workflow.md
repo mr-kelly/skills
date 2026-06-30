@@ -2,17 +2,43 @@
 
 ## What "Good" Looks Like
 
-A strong short-drama workspace separates canon from generation. Canon lives in the story bible, character cards, relationships, episode beats, and storyboard notes. Generated text or images are candidates until accepted back into canon.
+A strong short-drama workspace separates planning canon from final motion production. Canon lives in the story bible, character cards, relationships, episode beats, storyboard notes, and review state. Final animation, captions, audio timing, render, and publish live in the paired HyperFrame project. Generated text, images, videos, or HyperFrame renders are candidates until accepted back into canon.
 
 ## Information Architecture
 
-Use five connected layers:
+Use six connected layers:
 
 1. Series bible: title, premise, genre, audience, platform, episode length, tone, commercial hook, world rules, taboo constraints.
 2. Characters and actors: stable ids, role function, biography, motivation, secret, arc, visual anchors, three-view notes, voice, wardrobe, props, forbidden drift.
 3. Relationships: source character, target character, relationship type, power dynamic, emotional temperature, public status, hidden truth, active conflict, evidence episodes.
 4. Episodes: episode number, title, promise, A/B plot, beat list, reveals, reversals, cliffhanger, continuity updates.
 5. Storyboard shots: shot id, episode/beat link, composition, camera, setting, lighting, character ids, prompt, negative prompt, image status, notes.
+6. HyperFrame links: project-level `hyperframe_project_path`; episode-level `hyperframe_composition` and `hyperframe_video_asset`; shot-level source scene/time/frame references when importing from an existing composition.
+
+## HyperFrame Production Model
+
+Default mapping:
+
+- One Kelly Drama project maps to one explicit HyperFrame project path.
+- One episode maps to one HyperFrame composition within that project.
+- Kelly Drama manages planning and review; HyperFrame is the final video workbench.
+
+Do not infer or relocate a HyperFrame project when the user gives a path. Store the absolute path in `series.hyperframe_project_path` and treat it as the source of truth for final-cut work.
+
+For an existing HyperFrame project:
+
+1. Read `index.html` or the requested composition, plus `design.md` and changelog notes if present.
+2. Extract the scene list, timing, on-screen copy, narration/audio tracks, visual system, and key UI objects.
+3. Mirror each scene as a Kelly Drama beat/shot, preserving source scene id and source time ranges.
+4. Copy or extract rendered reference frames and the rendered video into `app/.data/generated/hyperframes/<project-episode>/`.
+5. Set `episode.hyperframe_composition` and `episode.hyperframe_video_asset`.
+
+For a new episode planned in Kelly Drama first:
+
+1. Plan beats and shots in Kelly Drama.
+2. Decide the composition path before final production, such as `compositions/ep-002-blog-cms.html`.
+3. Build/refine the composition in HyperFrame.
+4. Re-import rendered frames/video to Kelly Drama when the composition becomes the reviewable or final version.
 
 ## Character Library Best Practices
 

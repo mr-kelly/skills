@@ -23,6 +23,10 @@ Required fields: `title`, `logline`, `genre`, `platform`, `format`, `tone`, `aud
 
 `hook_rules` and `world_rules` are arrays of short strings.
 
+Recommended HyperFrame field:
+
+- `hyperframe_project_path`: absolute path to the HyperFrame project paired with this Kelly Drama project. One Kelly Drama project should map to one HyperFrame project for final composition work.
+
 ## Character
 
 Required fields:
@@ -50,6 +54,11 @@ Required fields: `id`, `from`, `to`, `type`, `public_status`, `hidden_truth`, `p
 
 Required fields: `id`, `number`, `title`, `promise`, `a_plot`, `b_plot`, `beats`, `cliffhanger`, `status`.
 
+Recommended HyperFrame fields:
+
+- `hyperframe_composition`: composition path relative to `series.hyperframe_project_path`, such as `index.html` or `compositions/ep-001-introducing.html`.
+- `hyperframe_video_asset`: rendered/reference video asset indexed back into Kelly Drama, commonly under `/generated/hyperframes/...`.
+
 Each beat should include `id`, `label`, `hook`, `conflict`, `turn`, `emotion`, `canon_update`, `characters`.
 
 `characters` should reference character ids where possible.
@@ -59,6 +68,20 @@ Each beat should include `id`, `label`, `hook`, `conflict`, `turn`, `emotion`, `
 Structural required fields (checked by `validate_ui_schema.mjs`): `id`, `episode_id`, `beat_id`, `title`, `characters`, `composition`, `camera`, `setting`, `lighting`, `prompt`, `negative_prompt`, `status`.
 
 `episode_id` references an episode. `beat_id` should reference a beat in that episode. `characters` should reference character ids.
+
+Imported HyperFrame shots may additionally carry a `source` object such as:
+
+```json
+{
+  "type": "hyperframes_scene",
+  "project_path": "/absolute/path/to/videos/project",
+  "composition": "index.html",
+  "scene_id": "s1",
+  "source_time": "0.0s-7.6s",
+  "source_duration_seconds": 7.6,
+  "imported_frame_time": 3.8
+}
+```
 
 ### Video-ready fields (Definition of Done)
 

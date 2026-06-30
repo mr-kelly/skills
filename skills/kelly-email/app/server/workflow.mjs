@@ -20,6 +20,9 @@ export function isDone(item) {
 
 export function isApprovedForExecution(item) {
   const action = decisionAction(item);
+  if (item.status === "drafted" && item.proposed_action === "send_reply" && !isExecuted(item) && !isBlocked(item)) {
+    return true;
+  }
   if (action === "draft_reply") {
     return item.status === "draft_requested" && !isExecuted(item) && !isBlocked(item);
   }

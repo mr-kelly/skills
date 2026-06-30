@@ -7,6 +7,8 @@ let query = "";
 let episodeMode = "list";
 let episodeTab = "summary";
 let imageConfig = null;
+let hyperframeStatus = null;
+let hyperframeLoading = false;
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
 let lastAppliedHash = "";
@@ -348,10 +350,72 @@ function renderOverview() {
     ${overviewCard(t("overview_card_plot"), t("overview_card_plot_body").replace("{n}", state.completeness.episodes_missing_cliffhanger), "episodes", t("view_episodes"))}
     ${overviewCard(t("overview_card_storyboard"), t("overview_card_storyboard_body").replace("{n}", state.completeness.shots_missing_prompt), "episodes", t("stat_shots"))}
     ${overviewCard(t("overview_card_relationship"), t("overview_card_relationship_body").replace("{n}", state.completeness.relationships_missing_evidence), "relationships", t("view_relationships"))}
+    ${hyperframeOverview(p)}
     ${visualBiblePreview(p.series?.visual_bible || {})}
   `;
   $("detail").innerHTML = seriesForm(p.series || {});
   bindForm();
+}
+
+function hyperframeOverview(p) {
+  const series = p.series || {};
+  const path = series.hyperframe_project_path || series.hyperframe_source?.project_path || "";
+  const status = hyperframeStatus;
+  const matches = status?.project_path && path && status.project_path === path;
+  return `
+    <section class="hyperframe-card">
+      <div class="section-head">
+        <div>
+          <h3>HyperFrame</h3>
+          <p class="muted">${escapeHtml(path || "No project path set")}</p>
+        </div>
+        <button type="button" class="mini-button" data-hyperframe-refresh ${hyperframeLoading ? "disabled" : ""}>${hyperframeLoading ? "Reading..." : "Read project"}</button>
+      </div>
+      ${!path ? `<div class="asset-placeholder">Set the HyperFrame project path in the project form.</div>` : ""}
+      ${path && status && !matches ? `<p class="muted">Status was read for another path. Refresh to read this project.</p>` : ""}
+      ${path && matches ? hyperframeStatusPanel(status) : ""}
+    </section>`;
+}
+
+function hyperframeStatusPanel(status) {
+  if (!status.ok) return `<p class="form-note">${escapeHtml(status.error || "Could not read HyperFrame project.")}</p>`;
+  const compositions = status.compositions || [];
+  const renders = status.renders || [];
+  const audio = status.audio || [];
+  const changelogs = status.changelogs || [];
+  return `
+    <div class="hyperframe-metrics">
+      <div><strong>${status.counts?.compositions || 0}</strong><span>compositions</span></div>
+      <div><strong>${status.counts?.scenes || 0}</strong><span>scenes</span></div>
+      <div><strong>${status.counts?.renders || 0}</strong><span>renders</span></div>
+      <div><strong>${status.counts?.audio || 0}</strong><span>audio</span></div>
+    </div>
+    <div class="hyperframe-list">
+      <h4>Compositions</h4>
+      ${compositions.map((item) => `
+        <div class="hyperframe-row">
+          <code>${escapeHtml(item.path)}</code>
+          <span>${escapeHtml(item.scenes?.length || 0)} scenes</span>
+          <span>${Number.isFinite(item.duration_seconds) ? `${item.duration_seconds}s` : ""}</span>
+        </div>`).join("") || `<p class="muted">No HTML compositions found.</p>`}
+    </div>
+    <div class="hyperframe-list compact">
+      <h4>Renders</h4>
+      ${renders.slice(0, 5).map((item) => `<div class="hyperframe-row"><code>${escapeHtml(item.path)}</code><span>${Number.isFinite(item.duration_seconds) ? `${item.duration_seconds.toFixed(1)}s` : ""}</span><span>${formatBytes(item.size_bytes)}</span></div>`).join("") || `<p class="muted">No rendered videos found.</p>`}
+    </div>
+    <div class="hyperframe-list compact">
+      <h4>Audio</h4>
+      ${audio.slice(0, 8).map((item) => `<span class="hf-chip">${escapeHtml(item.path)}</span>`).join("") || `<p class="muted">No audio files found.</p>`}
+    </div>
+    ${changelogs.length ? `<div class="hyperframe-list compact"><h4>Latest changelog</h4><div class="hyperframe-row"><code>${escapeHtml(changelogs[0].path)}</code><span>${escapeHtml((changelogs[0].updated_at || "").slice(0, 10))}</span></div></div>` : ""}
+  `;
+}
+
+function formatBytes(bytes) {
+  const n = Number(bytes || 0);
+  if (n >= 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
+  if (n >= 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${n} B`;
 }
 
 function overviewCard(title, body, target, tag) {
@@ -1020,6 +1084,7 @@ function seriesForm(series) {
         ${input("format", "Episodes / runtime", series.format)}
         ${input("tone", "Tone", series.tone)}
         ${input("audience", "Target audience", series.audience)}
+        ${input("hyperframe_project_path", "HyperFrame project path", series.hyperframe_project_path || series.hyperframe_source?.project_path || "")}
         ${textarea("logline", "One-line logline", series.logline)}
         ${textarea("hook_rules", "Hook rules (one per line)", lines(series.hook_rules))}
         ${textarea("world_rules", "World rules (one per line)", lines(series.world_rules))}
@@ -1167,6 +1232,8 @@ function episodeForm(item) {
         ${input("number", "Episode number", item.number || "", "number")}
         ${input("title", "Title", item.title)}
         ${statusSelect(item.status)}
+        ${input("hyperframe_composition", "HyperFrame composition", item.hyperframe_composition || item.source_composition || "")}
+        ${input("hyperframe_video_asset", "HyperFrame video asset", item.hyperframe_video_asset || item.source_video_asset || "")}
         ${textarea("promise", "Episode promise", item.promise)}
         ${textarea("a_plot", "A-plot", item.a_plot, false)}
         ${textarea("b_plot", "B-plot", item.b_plot, false)}
@@ -1381,6 +1448,9 @@ function bindForm() {
   document.querySelectorAll("[data-image-zoom]").forEach((node) => {
     node.addEventListener("click", () => openImageModal(node.dataset.imageZoom));
   });
+  document.querySelectorAll("[data-hyperframe-refresh]").forEach((node) => {
+    node.addEventListener("click", refreshHyperframeStatus);
+  });
   const form = document.querySelector("form.detail-card");
   if (!form) return;
   form.addEventListener("input", () => {
@@ -1406,6 +1476,25 @@ function bindForm() {
   }
 }
 
+async function refreshHyperframeStatus() {
+  const path = project().series?.hyperframe_project_path || project().series?.hyperframe_source?.project_path || "";
+  if (!path) {
+    toast("Set a HyperFrame project path first.");
+    return;
+  }
+  hyperframeLoading = true;
+  render();
+  try {
+    hyperframeStatus = await api(`/api/hyperframe-status?path=${encodeURIComponent(path)}`);
+    toast(hyperframeStatus.ok ? "HyperFrame project read." : (hyperframeStatus.error || "Could not read HyperFrame project."));
+  } catch (error) {
+    toast(error.message || "Could not read HyperFrame project.");
+  } finally {
+    hyperframeLoading = false;
+    render();
+  }
+}
+
 function value(form, name) {
   return form.elements[name]?.value ?? "";
 }
@@ -1421,6 +1510,7 @@ async function saveForm(form) {
       format: value(form, "format"),
       tone: value(form, "tone"),
       audience: value(form, "audience"),
+      hyperframe_project_path: value(form, "hyperframe_project_path"),
       logline: value(form, "logline"),
       hook_rules: arr(value(form, "hook_rules")),
       world_rules: arr(value(form, "world_rules")),
@@ -1497,6 +1587,8 @@ function serializeItem(form, kind) {
       number: Number.parseInt(value(form, "number"), 10) || 0,
       title: value(form, "title"),
       status: value(form, "status"),
+      hyperframe_composition: value(form, "hyperframe_composition"),
+      hyperframe_video_asset: value(form, "hyperframe_video_asset"),
       summary: value(form, "summary"),
       promise: value(form, "promise"),
       a_plot: value(form, "a_plot"),
