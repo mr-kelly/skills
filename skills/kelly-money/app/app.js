@@ -140,7 +140,7 @@ function ledgerTable(transactions) {
       <table>
         <thead>
           <tr>
-            <th>Date</th><th>Description</th><th>Provider</th><th>Account</th><th>Type</th><th>Status</th><th>Invoice</th><th>Gross</th><th>Fee</th><th>Net</th>
+            <th>${t("date")}</th><th>${t("description")}</th><th>${t("provider")}</th><th>${t("account")}</th><th>${t("type")}</th><th>${t("status")}</th><th>${t("invoice")}</th><th>${t("gross")}</th><th>${t("fee")}</th><th>${t("net")}</th>
           </tr>
         </thead>
         <tbody>
@@ -203,7 +203,7 @@ function renderOverview() {
         `).join("")}
       </div>
       <div class="overview-panel wide">
-        <h2>Invoice Matching</h2>
+        <h2>${t("invoiceMatching")}</h2>
         <div class="invoice-summary">
           ${invoiceSummaryCards()}
         </div>
@@ -239,7 +239,7 @@ function renderInvoices() {
   const invoices = filteredInvoices();
   const matches = invoiceMatches();
   const needsReview = matches.filter((match) => match.status !== "matched").length;
-  els.subtitle.textContent = `${invoices.length} invoices · ${needsReview} ${t("invoiceNeedsReview")}`;
+  els.subtitle.textContent = `${invoices.length} ${t("invoices")} · ${needsReview} ${t("invoiceNeedsReview")}`;
   els.content.innerHTML = `
     <div class="metrics invoice-metrics">
       ${invoiceSummaryCards()}
@@ -249,7 +249,7 @@ function renderInvoices() {
         <table>
           <thead>
             <tr>
-              <th>Invoice</th><th>Vendor / Customer</th><th>Issue date</th><th>Due date</th><th>Status</th><th>Match</th><th>Review</th><th>Amount</th>
+              <th>${t("invoice")}</th><th>${t("vendorCustomer")}</th><th>${t("issueDate")}</th><th>${t("dueDate")}</th><th>${t("status")}</th><th>${t("match")}</th><th>${t("review")}</th><th>${t("amount")}</th>
             </tr>
           </thead>
           <tbody>
@@ -293,16 +293,16 @@ function renderInvoiceDetail() {
         ${tx ? ledgerTable([tx]) : `<div class="empty">No matching transaction selected yet.</div>`}
       </div>
       <aside class="detail-side">
-        <h2>Invoice Detail</h2>
+        <h2>${t("invoiceDetail")}</h2>
         <dl>
-          <dt>Direction</dt><dd>${escapeHtml(invoice.direction)}</dd>
-          <dt>Currency</dt><dd>${escapeHtml(invoice.currency)}</dd>
-          <dt>Subtotal</dt><dd>${money(invoice.subtotal, invoice.currency)}</dd>
-          <dt>Tax</dt><dd>${money(invoice.tax, invoice.currency)}</dd>
-          <dt>Total</dt><dd>${money(invoice.total, invoice.currency)}</dd>
-          <dt>Source</dt><dd>${escapeHtml(invoice.source || "")}</dd>
-          <dt>Rule</dt><dd>${escapeHtml(match?.matching_rule || "")}</dd>
-          <dt>Review</dt><dd>${escapeHtml(match?.review_status?.replaceAll("_", " ") || "needs review")}</dd>
+          <dt>${t("direction")}</dt><dd>${escapeHtml(invoice.direction)}</dd>
+          <dt>${t("currency")}</dt><dd>${escapeHtml(invoice.currency)}</dd>
+          <dt>${t("subtotal")}</dt><dd>${money(invoice.subtotal, invoice.currency)}</dd>
+          <dt>${t("tax")}</dt><dd>${money(invoice.tax, invoice.currency)}</dd>
+          <dt>${t("total")}</dt><dd>${money(invoice.total, invoice.currency)}</dd>
+          <dt>${t("source")}</dt><dd>${escapeHtml(invoice.source || "")}</dd>
+          <dt>${t("rule")}</dt><dd>${escapeHtml(match?.matching_rule || "")}</dd>
+          <dt>${t("review")}</dt><dd>${escapeHtml(match?.review_status?.replaceAll("_", " ") || "needs review")}</dd>
         </dl>
       </aside>
     </section>
@@ -436,7 +436,7 @@ function invoiceSummaryCards() {
     <div class="metric"><span>${t("invoices")}</span><strong>${invoices().length}</strong></div>
     <div class="metric"><span>${t("invoiceMatched")}</span><strong>${matched}</strong></div>
     <div class="metric"><span>${t("invoiceNeedsReview")}</span><strong>${review + missing}</strong></div>
-    <div class="metric"><span>Total</span><strong>${money(total)}</strong></div>
+    <div class="metric"><span>${t("total")}</span><strong>${money(total)}</strong></div>
   `;
 }
 
@@ -444,41 +444,41 @@ function invoiceDetailPanel(invoice, match, tx) {
   return `
     <div class="invoice-detail-panel">
       <div>
-        <span class="muted">Invoice amount</span>
+        <span class="muted">${t("invoiceAmount")}</span>
         <strong>${money(invoice.total, invoice.currency)}</strong>
       </div>
       <div>
-        <span class="muted">Match status</span>
+        <span class="muted">${t("matchStatus")}</span>
         ${invoiceMatchBadge(match)}
       </div>
       <div>
-        <span class="muted">Confidence</span>
+        <span class="muted">${t("confidence")}</span>
         <strong>${match ? `${Math.round(Number(match.confidence || 0) * 100)}%` : "0%"}</strong>
       </div>
       <div>
-        <span class="muted">Amount delta</span>
+        <span class="muted">${t("amountDelta")}</span>
         <strong class="${Number(match?.amount_delta || 0) === 0 ? "positive" : "negative"}">${money(match?.amount_delta || 0, invoice.currency)}</strong>
       </div>
       <div>
-        <span class="muted">Date delta</span>
+        <span class="muted">${t("dateDelta")}</span>
         <strong>${match ? `${match.date_delta_days || 0} days` : "n/a"}</strong>
       </div>
       <div>
-        <span class="muted">Tolerance</span>
+        <span class="muted">${t("tolerance")}</span>
         <strong>${match ? `${money(match.amount_tolerance || 0, invoice.currency)} / ${match.date_tolerance_days || 0} days` : "n/a"}</strong>
       </div>
       <div>
-        <span class="muted">Method</span>
+        <span class="muted">${t("method")}</span>
         <strong>${escapeHtml(match?.matching_method || "unmatched")}</strong>
       </div>
       <div>
-        <span class="muted">Transaction</span>
+        <span class="muted">${t("transaction")}</span>
         <strong>${escapeHtml(tx?.description || "Not selected")}</strong>
       </div>
     </div>
     ${match?.audit_events?.length ? `
       <div class="audit-panel">
-        <h2>Match Audit Trail</h2>
+        <h2>${t("matchAuditTrail")}</h2>
         ${match.audit_events.map((event) => `
           <div class="audit-row">
             <strong>${escapeHtml(event.event?.replaceAll("_", " ") || "")}</strong>
