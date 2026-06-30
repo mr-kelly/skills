@@ -65,12 +65,15 @@ Required app views:
 - `#/overview`: dashboard summary with account health, totals, and recent money movement.
 - `#/accounts`: Accounts sidebar/list. Each configured or imported account appears with provider, currency, balance, inflow, outflow, net, and last sync.
 - `#/accounts/<account_id>`: Account Detail. Show balances, recent transactions, counterparties, statuses, provider identifiers, and sync health.
+- `#/invoices`: invoice reconciliation desk. Show invoices, match status, amount deltas, missing matches, and transactions that need human review.
+- `#/invoices/<invoice_id>`: Invoice Detail. Show invoice metadata, selected transaction, confidence, amount/date deltas, and notes.
 - `#/settings`: sanitized setup summary. Show account names, provider types, configured env var readiness booleans, data provider name, onboarding state, and safe file paths. Never expose secret values.
 
 Demo mode:
 
 - `?demo=1` opens a deterministic mock ledger for documentation and screenshots.
 - `?demo=overview`, `?demo=ledger`, `?demo=accounts`, and `?demo=detail` select named mock scenes.
+- `?demo=invoices` opens the invoice matching mock scene.
 - `lang=en` or `lang=zh` forces UI chrome language for screenshots.
 - Demo API responses must never read or write live provider data or local private ledger files.
 
@@ -90,6 +93,8 @@ Primary local files:
 
 Use `scripts/validate_ui_schema.mjs app/.data/ledger_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists.
 
+Invoice matching lives inside Kelly Money rather than a separate skill until it becomes a full invoice-generation or tax-export workflow. Write imported invoice metadata into `invoices[]` and matching decisions into `invoice_matches[]`; do not store private invoice PDFs in git.
+
 ## Normal Workflow
 
 1. Detect mode. Default to App UI.
@@ -99,6 +104,8 @@ Use `scripts/validate_ui_schema.mjs app/.data/ledger_snapshot.json` before relyi
 5. After approval, acquire `app/.data/agent.lock`, fetch or import provider data, normalize to the ledger schema, write `ledger_snapshot.json`, write `sync_report.json`, validate, and release the lock.
 6. Start/reuse the UI and report the URL.
 7. For discrepancies, surface them as ledger warnings and ask before any remote action.
+
+For invoice reconciliation, match by amount/currency, signed direction, counterparty/vendor/customer names, provider references, invoice number in memo/metadata, and nearby dates. Mark uncertain cases `needs_review` instead of forcing a match. Use `amount_mismatch` for partial payments, credits, refunds, fee-vs-gross confusion, or invoice totals that do not equal transaction net/gross.
 
 ## Provider Notes
 

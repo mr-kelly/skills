@@ -65,7 +65,7 @@ The common pattern is a local command desk: demo-safe data, status filters, deta
 
 ### `kelly-money`
 
-Kelly Money is a local finance dashboard for seeing money movement across Mercury, Stripe, Airwallex, and Creem without exposing live credentials or provider data in documentation. Demo mode shows the intended operating surface: total cashflow, provider/account columns, account health, and drill-down detail for reconciliation.
+Kelly Money is a local finance dashboard for seeing money movement across Mercury, Stripe, Airwallex, and Creem without exposing live credentials or provider data in documentation. Demo mode shows the intended operating surface: total cashflow, provider/account columns, account health, invoice matching, exception review, and drill-down detail for reconciliation.
 
 <table>
   <tr>
@@ -78,11 +78,19 @@ Kelly Money is a local finance dashboard for seeing money movement across Mercur
   </tr>
   <tr>
     <td><img src="docs/screenshots/kelly-money-accounts.png" alt="Kelly Money accounts"></td>
-    <td><img src="docs/screenshots/kelly-money-detail.png" alt="Kelly Money account detail"></td>
+    <td><img src="docs/screenshots/kelly-money-invoices.png" alt="Kelly Money invoice matching"></td>
   </tr>
   <tr>
     <td><strong>Accounts</strong><br>Provider account inventory with balances, currency, sync status, inflow, fees, and net movement per account.</td>
-    <td><strong>Account detail</strong><br>Stripe detail view with account metadata, pending balance, recent transactions, and a reconciliation warning.</td>
+    <td><strong>Invoice matching</strong><br>Invoice-to-transaction reconciliation with matched items, missing invoices, amount mismatches, and review status.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-money-detail.png" alt="Kelly Money invoice exception detail"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><strong>Exception detail</strong><br>Invoice exception view with amount/date deltas, matching rule, explicit tolerance, candidate transaction, and audit trail.</td>
+    <td></td>
   </tr>
 </table>
 

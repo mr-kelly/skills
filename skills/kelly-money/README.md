@@ -8,6 +8,7 @@ Kelly Money is a local App-in-Skill dashboard for aggregating Mercury, Stripe, A
 - Ledger: normalized transactions across providers and accounts.
 - Accounts: provider account inventory with balances and sync status.
 - Account detail: per-account transactions, provider ids, pending balance, and warnings.
+- Invoices: invoice-to-transaction matching, missing invoices, amount mismatches, and review notes.
 
 ## Demo Mode
 
@@ -23,6 +24,7 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=overview&lang=en#/overview
 /?demo=ledger&lang=en#/ledger
 /?demo=accounts&lang=en#/accounts
+/?demo=invoices&lang=en#/invoices
 /?demo=detail&lang=en#/accounts/stripe-main
 ```
 

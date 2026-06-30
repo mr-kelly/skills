@@ -340,6 +340,10 @@ th {
   gap: 18px;
 }
 
+.overview-panel.wide {
+  grid-column: 1 / -1;
+}
+
 .overview-panel {
   padding: 16px;
 }
@@ -419,6 +423,95 @@ dd {
   color: var(--muted);
 }
 
+.invoice-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #eef1ee;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.invoice-badge.matched {
+  background: var(--accent-weak);
+  color: var(--accent);
+}
+
+.invoice-badge.amount_mismatch,
+.invoice-badge.date_mismatch,
+.invoice-badge.needs_review {
+  background: #fff2df;
+  color: var(--warn);
+}
+
+.invoice-badge.missing {
+  background: #f4e7e7;
+  color: var(--bad);
+}
+
+.invoice-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.invoice-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.invoice-detail-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.invoice-detail-panel > div,
+.audit-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 14px;
+}
+
+.invoice-detail-panel strong {
+  display: block;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+
+.audit-panel {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.audit-row {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.audit-row:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.audit-row span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.audit-row p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
 .empty {
   color: var(--muted);
 }
@@ -443,6 +536,8 @@ dd {
   .topbar-actions,
   .metrics,
   .overview-grid,
+  .invoice-summary,
+  .invoice-detail-panel,
   .settings-account {
     grid-template-columns: 1fr;
     display: grid;

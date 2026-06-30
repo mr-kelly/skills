@@ -34,7 +34,7 @@ export function demoStatePayload(query = {}) {
 function demoSnapshot(scenario) {
   const accounts = [
     account("mercury-main", "mercury", "Mercury Operating", "Atlas Studio LLC", "USD", 84250.42, 0, "ok"),
-    account("stripe-main", "stripe", "Stripe Global", "Atlas Studio LLC", "USD", 12840.2, 3410.78, scenario === "detail" ? "warning" : "ok"),
+    account("stripe-main", "stripe", "Stripe Global", "Atlas Studio LLC", "USD", 12840.2, 3410.78, ["detail", "invoices"].includes(scenario) ? "warning" : "ok"),
     account("airwallex-main", "airwallex", "Airwallex Multi-currency", "Atlas Studio LLC", "USD", 23750.66, 0, "ok"),
     account("creem-main", "creem", "Creem SaaS", "Atlas Studio LLC", "USD", 6240.15, 980.44, "ok")
   ];
@@ -65,6 +65,8 @@ function demoSnapshot(scenario) {
     acc.net += item.totals.net;
     return acc;
   }, { account_count: accounts.length, transaction_count: transactions.length, gross_inflow: 0, gross_outflow: 0, fees: 0, net: 0 });
+  const invoices = demoInvoices();
+  const invoice_matches = demoInvoiceMatches();
   return {
     schema_version: "1",
     generated_at: now,
@@ -74,7 +76,9 @@ function demoSnapshot(scenario) {
     metrics,
     accounts,
     transactions,
-    warnings: scenario === "detail" ? [
+    invoices,
+    invoice_matches,
+    warnings: ["detail", "invoices"].includes(scenario) ? [
       {
         id: "stripe-pending-spike",
         severity: "warning",
@@ -84,6 +88,27 @@ function demoSnapshot(scenario) {
       }
     ] : []
   };
+}
+
+function demoInvoices() {
+  return [
+    invoice("inv-northstar-20260629", "INV-2026-0618", "incoming", "Northstar Labs", "", "2026-06-29", "2026-06-29", "paid", "USD", 2490, 0, 2490, "stripe"),
+    invoice("inv-bright-20260629", "CN-2026-0042", "outgoing", "Bright Desk", "", "2026-06-29", "2026-06-29", "credited", "USD", 320, 0, 320, "stripe"),
+    invoice("inv-moonlit-20260628", "INV-2026-0617", "incoming", "Moonlit Tools", "", "2026-06-28", "2026-06-28", "paid", "USD", 1188, 0, 1188, "creem"),
+    invoice("inv-design-20260628", "BILL-2026-117", "outgoing", "Design Partners", "", "2026-06-27", "2026-06-28", "paid", "USD", 4500, 0, 4500, "mercury"),
+    invoice("inv-render-20260625", "RB-8841", "outgoing", "Render Bay", "", "2026-06-25", "2026-06-25", "needs_review", "USD", 700, 0, 700, "airwallex"),
+    invoice("inv-orbit-20260626", "INV-2026-0616", "incoming", "Orbit Works", "", "2026-06-26", "2026-06-26", "open", "USD", 149, 0, 149, "creem")
+  ];
+}
+
+function demoInvoiceMatches() {
+  return [
+    match("match-northstar", "inv-northstar-20260629", "stripe-bal-1024", "matched", 0, 0, 1, "auto", "amount_currency_counterparty_date", "auto_accepted", [], ["Amount and counterparty match Stripe balance transaction."]),
+    match("match-bright", "inv-bright-20260629", "stripe-ref-1025", "matched", 0, 0, 0.98, "auto", "credit_note_refund_amount", "auto_accepted", [], ["Credit note matches refund transaction."]),
+    match("match-moonlit", "inv-moonlit-20260628", "creem-pay-330", "matched", 0, 0, 0.97, "auto", "provider_checkout_reference", "auto_accepted", [], ["Creem checkout total matches invoice."]),
+    match("match-design", "inv-design-20260628", "mercury-ach-882", "matched", 0, 1, 0.95, "auto", "amount_counterparty_near_date", "auto_accepted", [], ["ACH payout amount and due date match bill."]),
+    match("match-render", "inv-render-20260625", "airwallex-card-942", "amount_mismatch", -20, 0, 0.72, "suggested", "counterparty_near_date_amount_outside_tolerance", "needs_review", ["airwallex-card-942"], ["Invoice total is $700.00 but transaction is $680.00. Check discount, credit, or partial payment."])
+  ];
 }
 
 function account(account_id, provider, display_name, entity, currency, available, pending, status) {
@@ -121,5 +146,54 @@ function tx(id, provider, account_id, occurred_at, description, counterparty, ty
     direction,
     source_url: "",
     tags: []
+  };
+}
+
+function invoice(invoice_id, invoice_number, direction, vendor, customer, issue_date, due_date, status, currency, subtotal, tax, total, source) {
+  return {
+    invoice_id,
+    invoice_number,
+    direction,
+    vendor,
+    customer,
+    issue_date,
+    due_date,
+    status,
+    currency,
+    subtotal,
+    tax,
+    total,
+    source,
+    source_url: "",
+    file_path: "",
+    notes: ""
+  };
+}
+
+function match(match_id, invoice_id, transaction_id, status, amount_delta, date_delta_days, confidence, matching_method, matching_rule, review_status, candidate_transaction_ids, notes) {
+  return {
+    match_id,
+    invoice_id,
+    transaction_id,
+    status,
+    amount_delta,
+    date_delta_days,
+    confidence,
+    matching_method,
+    matching_rule,
+    review_status,
+    amount_tolerance: 1,
+    date_tolerance_days: 3,
+    candidate_transaction_ids,
+    matched_at: now,
+    audit_events: [
+      {
+        event: status === "matched" ? "auto_matched" : "exception_flagged",
+        actor: "kelly-money-demo",
+        at: now,
+        note: notes[0] || ""
+      }
+    ],
+    notes
   };
 }
