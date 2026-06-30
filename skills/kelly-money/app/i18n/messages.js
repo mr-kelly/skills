@@ -1,0 +1,42 @@
+export const messages = {
+  en: {
+    accounts: "Accounts",
+    attention: "Need attention",
+    configured: "configured",
+    empty: "No ledger snapshot yet",
+    fees: "Fees",
+    grossIn: "Gross in",
+    grossOut: "Gross out",
+    language: "Language",
+    ledger: "Ledger",
+    net: "Net",
+    overview: "Overview",
+    refresh: "Refresh",
+    search: "Search",
+    settings: "Help & Settings",
+    setupNeeded: "Needs configuration",
+    synced: "Ledger ready",
+    tx: "transactions",
+    warnings: "warnings"
+  },
+  zh: {
+    accounts: "Accounts",
+    attention: "需要处理",
+    configured: "已配置",
+    empty: "还没有台账快照",
+    fees: "手续费",
+    grossIn: "总流入",
+    grossOut: "总流出",
+    language: "语言",
+    ledger: "总流水",
+    net: "净额",
+    overview: "总览",
+    refresh: "刷新",
+    search: "搜索",
+    settings: "帮助与设置",
+    setupNeeded: "需要配置",
+    synced: "台账已就绪",
+    tx: "笔交易",
+    warnings: "个提醒"
+  }
+};

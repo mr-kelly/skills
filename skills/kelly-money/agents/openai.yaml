@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Money"
+  short_description: "Local ledger for money accounts"
+  default_prompt: "Use $kelly-money to open my money ledger app and review total cashflow."

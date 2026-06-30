@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly Money</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div id="app" class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">$</div>
+          <div>
+            <div class="brand-title">Kelly Money</div>
+            <div id="sync-status" class="muted">Loading</div>
+          </div>
+        </div>
+        <section class="attention">
+          <div class="attention-label" data-i18n="attention">Need attention</div>
+          <div id="attention-primary" class="attention-primary">Loading</div>
+          <div id="attention-secondary" class="attention-secondary"></div>
+        </section>
+        <nav class="nav" aria-label="Main">
+          <a href="#/overview" data-route="overview" data-i18n="overview">Overview</a>
+          <a href="#/ledger" data-route="ledger" data-i18n="ledger">Ledger</a>
+          <a href="#/accounts" data-route="accounts" data-i18n="accounts">Accounts</a>
+          <a href="#/settings" data-route="settings" data-i18n="settings">Help & Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          <label for="language" data-i18n="language">Language</label>
+          <select id="language">
+            <option value="auto">Auto</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+      </aside>
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h1 id="page-title">Ledger</h1>
+            <p id="page-subtitle" class="muted"></p>
+          </div>
+          <div class="topbar-actions">
+            <input id="search" type="search" placeholder="Search" aria-label="Search">
+            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+          </div>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
