@@ -79,6 +79,8 @@ function applyDemoRoute() {
       ? "#/accounts/stripe-main"
       : scenario === "ledger"
         ? "#/ledger"
+        : scenario === "invoices"
+          ? "#/invoices"
         : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
@@ -96,10 +98,11 @@ function renderShell() {
   applyI18n();
   const snapshot = state.snapshot;
   const warningCount = snapshot?.warnings?.length || 0;
+  const reviewCount = invoiceMatches().filter((match) => match.status !== "matched").length;
   const configuredCount = state.settings?.config_summary?.accounts?.length || 0;
   const txCount = snapshot?.transactions?.length || 0;
   els.syncStatus.textContent = snapshot ? `${txCount} ${t("tx")}` : t("empty");
-  els.attentionPrimary.textContent = warningCount ? `${warningCount} ${t("warnings")}` : (configuredCount ? t("synced") : t("setupNeeded"));
+  els.attentionPrimary.textContent = reviewCount ? `${reviewCount} ${t("invoiceNeedsReview")}` : (warningCount ? `${warningCount} ${t("warnings")}` : (configuredCount ? t("synced") : t("setupNeeded")));
   els.attentionSecondary.textContent = `${configuredCount} ${t("configured")}`;
   document.querySelectorAll(".nav a").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -123,7 +126,8 @@ function filteredTransactions(accountId = "") {
   return (state.snapshot?.transactions || []).filter((tx) => {
     if (accountId && tx.account_id !== accountId) return false;
     if (!query) return true;
-    return [tx.description, tx.counterparty, tx.provider, tx.account_id, tx.type, tx.status]
+    const match = matchForTransaction(tx.transaction_id);
+    return [tx.description, tx.counterparty, tx.provider, tx.account_id, tx.type, tx.status, match?.status, invoiceForMatch(match)?.invoice_number]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
   });
@@ -136,7 +140,7 @@ function ledgerTable(transactions) {
       <table>
         <thead>
           <tr>
-            <th>Date</th><th>Description</th><th>Provider</th><th>Account</th><th>Type</th><th>Status</th><th>Gross</th><th>Fee</th><th>Net</th>
+            <th>Date</th><th>Description</th><th>Provider</th><th>Account</th><th>Type</th><th>Status</th><th>Invoice</th><th>Gross</th><th>Fee</th><th>Net</th>
           </tr>
         </thead>
         <tbody>
@@ -148,6 +152,7 @@ function ledgerTable(transactions) {
               <td><a href="#/accounts/${encodeURIComponent(tx.account_id)}">${escapeHtml(accountName(tx.account_id))}</a></td>
               <td>${escapeHtml(tx.type)}</td>
               <td>${escapeHtml(tx.status)}</td>
+              <td>${invoiceBadgeForTransaction(tx.transaction_id)}</td>
               <td class="num">${money(tx.gross, tx.currency)}</td>
               <td class="num">${money(tx.fee, tx.currency)}</td>
               <td class="num ${Number(tx.net) < 0 ? "negative" : "positive"}">${money(tx.net, tx.currency)}</td>
@@ -197,6 +202,12 @@ function renderOverview() {
           </div>
         `).join("")}
       </div>
+      <div class="overview-panel wide">
+        <h2>Invoice Matching</h2>
+        <div class="invoice-summary">
+          ${invoiceSummaryCards()}
+        </div>
+      </div>
     </section>
   `;
 }
@@ -221,6 +232,81 @@ function renderAccounts() {
       `).join("")}
     </div>
   ` : `<div class="empty">${t("empty")}</div>`;
+}
+
+function renderInvoices() {
+  els.title.textContent = t("invoices");
+  const invoices = filteredInvoices();
+  const matches = invoiceMatches();
+  const needsReview = matches.filter((match) => match.status !== "matched").length;
+  els.subtitle.textContent = `${invoices.length} invoices · ${needsReview} ${t("invoiceNeedsReview")}`;
+  els.content.innerHTML = `
+    <div class="metrics invoice-metrics">
+      ${invoiceSummaryCards()}
+    </div>
+    <div class="invoice-layout">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice</th><th>Vendor / Customer</th><th>Issue date</th><th>Due date</th><th>Status</th><th>Match</th><th>Review</th><th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${invoices.map((invoice) => {
+              const match = matchForInvoice(invoice.invoice_id);
+              return `
+                <tr>
+                  <td><a href="#/invoices/${encodeURIComponent(invoice.invoice_id)}"><strong>${escapeHtml(invoice.invoice_number)}</strong></a><div class="muted">${escapeHtml(invoice.direction)}</div></td>
+                  <td>${escapeHtml(invoice.vendor || invoice.customer || "")}</td>
+                  <td>${date(invoice.issue_date)}</td>
+                  <td>${date(invoice.due_date)}</td>
+                  <td>${escapeHtml(invoice.status)}</td>
+                  <td>${invoiceMatchBadge(match)}</td>
+                  <td>${escapeHtml(match?.review_status?.replaceAll("_", " ") || "needs review")}</td>
+                  <td class="num">${money(invoice.total, invoice.currency)}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderInvoiceDetail() {
+  const invoice = invoices().find((item) => item.invoice_id === state.route.id);
+  if (!invoice) {
+    renderInvoices();
+    return;
+  }
+  const match = matchForInvoice(invoice.invoice_id);
+  const tx = match?.transaction_id ? transactionById(match.transaction_id) : null;
+  els.title.textContent = invoice.invoice_number;
+  els.subtitle.textContent = `${invoice.vendor || invoice.customer || ""} · ${invoice.status}`;
+  els.content.innerHTML = `
+    <section class="detail">
+      <div class="detail-main">
+        ${invoiceDetailPanel(invoice, match, tx)}
+        ${match?.notes?.length ? `<div class="warnings">${match.notes.map((note) => `<div><strong>${escapeHtml(note)}</strong></div>`).join("")}</div>` : ""}
+        ${tx ? ledgerTable([tx]) : `<div class="empty">No matching transaction selected yet.</div>`}
+      </div>
+      <aside class="detail-side">
+        <h2>Invoice Detail</h2>
+        <dl>
+          <dt>Direction</dt><dd>${escapeHtml(invoice.direction)}</dd>
+          <dt>Currency</dt><dd>${escapeHtml(invoice.currency)}</dd>
+          <dt>Subtotal</dt><dd>${money(invoice.subtotal, invoice.currency)}</dd>
+          <dt>Tax</dt><dd>${money(invoice.tax, invoice.currency)}</dd>
+          <dt>Total</dt><dd>${money(invoice.total, invoice.currency)}</dd>
+          <dt>Source</dt><dd>${escapeHtml(invoice.source || "")}</dd>
+          <dt>Rule</dt><dd>${escapeHtml(match?.matching_rule || "")}</dd>
+          <dt>Review</dt><dd>${escapeHtml(match?.review_status?.replaceAll("_", " ") || "needs review")}</dd>
+        </dl>
+      </aside>
+    </section>
+  `;
 }
 
 function renderAccountDetail() {
@@ -292,6 +378,119 @@ function renderSettings() {
   `;
 }
 
+function invoices() {
+  return state.snapshot?.invoices || [];
+}
+
+function invoiceMatches() {
+  return state.snapshot?.invoice_matches || [];
+}
+
+function filteredInvoices() {
+  const query = state.query.trim().toLowerCase();
+  if (!query) return invoices();
+  return invoices().filter((invoice) => {
+    const match = matchForInvoice(invoice.invoice_id);
+    return [invoice.invoice_number, invoice.vendor, invoice.customer, invoice.status, invoice.direction, invoice.source, match?.status]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  });
+}
+
+function matchForTransaction(transactionId) {
+  return invoiceMatches().find((match) => match.transaction_id === transactionId);
+}
+
+function matchForInvoice(invoiceId) {
+  return invoiceMatches().find((match) => match.invoice_id === invoiceId);
+}
+
+function invoiceForMatch(match) {
+  if (!match) return null;
+  return invoices().find((invoice) => invoice.invoice_id === match.invoice_id);
+}
+
+function transactionById(transactionId) {
+  return (state.snapshot?.transactions || []).find((tx) => tx.transaction_id === transactionId);
+}
+
+function invoiceBadgeForTransaction(transactionId) {
+  const match = matchForTransaction(transactionId);
+  if (!match) return `<span class="invoice-badge missing">missing</span>`;
+  const invoice = invoiceForMatch(match);
+  return `<a class="invoice-badge ${escapeHtml(match.status)}" href="#/invoices/${encodeURIComponent(match.invoice_id)}">${escapeHtml(invoice?.invoice_number || match.status)}</a>`;
+}
+
+function invoiceMatchBadge(match) {
+  if (!match) return `<span class="invoice-badge missing">missing</span>`;
+  return `<span class="invoice-badge ${escapeHtml(match.status)}">${escapeHtml(match.status.replaceAll("_", " "))}</span>`;
+}
+
+function invoiceSummaryCards() {
+  const matches = invoiceMatches();
+  const matched = matches.filter((match) => match.status === "matched").length;
+  const review = matches.filter((match) => match.status !== "matched").length;
+  const missing = invoices().filter((invoice) => !matchForInvoice(invoice.invoice_id)).length;
+  const total = invoices().reduce((sum, invoice) => sum + Number(invoice.total || 0), 0);
+  return `
+    <div class="metric"><span>${t("invoices")}</span><strong>${invoices().length}</strong></div>
+    <div class="metric"><span>${t("invoiceMatched")}</span><strong>${matched}</strong></div>
+    <div class="metric"><span>${t("invoiceNeedsReview")}</span><strong>${review + missing}</strong></div>
+    <div class="metric"><span>Total</span><strong>${money(total)}</strong></div>
+  `;
+}
+
+function invoiceDetailPanel(invoice, match, tx) {
+  return `
+    <div class="invoice-detail-panel">
+      <div>
+        <span class="muted">Invoice amount</span>
+        <strong>${money(invoice.total, invoice.currency)}</strong>
+      </div>
+      <div>
+        <span class="muted">Match status</span>
+        ${invoiceMatchBadge(match)}
+      </div>
+      <div>
+        <span class="muted">Confidence</span>
+        <strong>${match ? `${Math.round(Number(match.confidence || 0) * 100)}%` : "0%"}</strong>
+      </div>
+      <div>
+        <span class="muted">Amount delta</span>
+        <strong class="${Number(match?.amount_delta || 0) === 0 ? "positive" : "negative"}">${money(match?.amount_delta || 0, invoice.currency)}</strong>
+      </div>
+      <div>
+        <span class="muted">Date delta</span>
+        <strong>${match ? `${match.date_delta_days || 0} days` : "n/a"}</strong>
+      </div>
+      <div>
+        <span class="muted">Tolerance</span>
+        <strong>${match ? `${money(match.amount_tolerance || 0, invoice.currency)} / ${match.date_tolerance_days || 0} days` : "n/a"}</strong>
+      </div>
+      <div>
+        <span class="muted">Method</span>
+        <strong>${escapeHtml(match?.matching_method || "unmatched")}</strong>
+      </div>
+      <div>
+        <span class="muted">Transaction</span>
+        <strong>${escapeHtml(tx?.description || "Not selected")}</strong>
+      </div>
+    </div>
+    ${match?.audit_events?.length ? `
+      <div class="audit-panel">
+        <h2>Match Audit Trail</h2>
+        ${match.audit_events.map((event) => `
+          <div class="audit-row">
+            <strong>${escapeHtml(event.event?.replaceAll("_", " ") || "")}</strong>
+            <span>${escapeHtml(event.actor || "")} · ${escapeHtml(event.at || "")}</span>
+            <p>${escapeHtml(event.note || "")}</p>
+          </div>
+        `).join("")}
+      </div>
+    ` : ""}
+  `;
+}
+
 function warnings(accountId = "") {
   const items = (state.snapshot?.warnings || []).filter((item) => !accountId || !item.account_id || item.account_id === accountId);
   if (!items.length) return "";
@@ -307,6 +506,8 @@ function render() {
   renderShell();
   if (state.route.view === "accounts" && state.route.id) renderAccountDetail();
   else if (state.route.view === "accounts") renderAccounts();
+  else if (state.route.view === "invoices" && state.route.id) renderInvoiceDetail();
+  else if (state.route.view === "invoices") renderInvoices();
   else if (state.route.view === "settings") renderSettings();
   else if (state.route.view === "overview") renderOverview();
   else renderLedger();

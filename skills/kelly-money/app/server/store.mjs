@@ -44,6 +44,8 @@ export function emptySnapshot() {
     },
     accounts: [],
     transactions: [],
+    invoices: [],
+    invoice_matches: [],
     warnings: [
       {
         id: "no-snapshot",

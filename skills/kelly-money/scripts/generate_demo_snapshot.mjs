@@ -20,6 +20,14 @@ const transactions = [
   tx("mercury-1", "mercury", "mercury-main", "2026-06-23T16:30:00Z", "Contractor payout", "transfer", "posted", 1200, 0, -1200, "out"),
   tx("airwallex-1", "airwallex", "airwallex-main", "2026-06-22T11:40:00Z", "Currency conversion fee", "fee", "posted", 12.4, 12.4, -12.4, "out")
 ];
+const invoices = [
+  invoice("inv-demo-stripe", "INV-DEMO-001", "incoming", "Example Customer", "", "2026-06-25", "2026-06-25", "paid", "USD", 499, 0, 499, "stripe"),
+  invoice("inv-demo-contractor", "BILL-DEMO-017", "outgoing", "Example Contractor", "", "2026-06-23", "2026-06-23", "paid", "USD", 1200, 0, 1200, "mercury")
+];
+const invoice_matches = [
+  match("match-demo-stripe", "inv-demo-stripe", "stripe-1", "matched", 0, 0, 1, "auto", "amount_currency_counterparty_date", "auto_accepted", [], ["Demo invoice matches Stripe payment."]),
+  match("match-demo-contractor", "inv-demo-contractor", "mercury-1", "matched", 0, 0, 0.96, "auto", "amount_counterparty_near_date", "auto_accepted", [], ["Demo bill matches Mercury transfer."])
+];
 
 const byAccount = new Map(accounts.map((item) => [item.account_id, item]));
 for (const item of transactions) {
@@ -48,6 +56,8 @@ await fs.writeFile(out, JSON.stringify({
   metrics,
   accounts,
   transactions,
+  invoices,
+  invoice_matches,
   warnings: []
 }, null, 2));
 
@@ -88,5 +98,54 @@ function tx(id, provider, account_id, occurred_at, description, type, status, gr
     direction,
     source_url: "",
     tags: []
+  };
+}
+
+function invoice(invoice_id, invoice_number, direction, vendor, customer, issue_date, due_date, status, currency, subtotal, tax, total, source) {
+  return {
+    invoice_id,
+    invoice_number,
+    direction,
+    vendor,
+    customer,
+    issue_date,
+    due_date,
+    status,
+    currency,
+    subtotal,
+    tax,
+    total,
+    source,
+    source_url: "",
+    file_path: "",
+    notes: ""
+  };
+}
+
+function match(match_id, invoice_id, transaction_id, status, amount_delta, date_delta_days, confidence, matching_method, matching_rule, review_status, candidate_transaction_ids, notes) {
+  return {
+    match_id,
+    invoice_id,
+    transaction_id,
+    status,
+    amount_delta,
+    date_delta_days,
+    confidence,
+    matching_method,
+    matching_rule,
+    review_status,
+    amount_tolerance: 1,
+    date_tolerance_days: 3,
+    candidate_transaction_ids,
+    matched_at: now,
+    audit_events: [
+      {
+        event: status === "matched" ? "auto_matched" : "exception_flagged",
+        actor: "kelly-money-demo",
+        at: now,
+        note: notes[0] || ""
+      }
+    ],
+    notes
   };
 }
