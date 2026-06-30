@@ -1,0 +1,51 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "locale": "auto",
+  "accounts": [
+    {
+      "account_id": "mercury-main",
+      "provider": "mercury",
+      "display_name": "Mercury Main",
+      "entity": "Example Company",
+      "currency": "USD",
+      "api_key_env": "KELLY_MONEY_MERCURY_API_KEY_MAIN",
+      "include_pending": true
+    },
+    {
+      "account_id": "stripe-main",
+      "provider": "stripe",
+      "display_name": "Stripe Main",
+      "entity": "Example Company",
+      "currency": "USD",
+      "api_key_env": "KELLY_MONEY_STRIPE_API_KEY_MAIN",
+      "include_pending": true
+    },
+    {
+      "account_id": "airwallex-main",
+      "provider": "airwallex",
+      "display_name": "Airwallex Main",
+      "entity": "Example Company",
+      "currency": "USD",
+      "client_id_env": "KELLY_MONEY_AIRWALLEX_CLIENT_ID_MAIN",
+      "api_key_env": "KELLY_MONEY_AIRWALLEX_API_KEY_MAIN",
+      "include_pending": true
+    },
+    {
+      "account_id": "creem-main",
+      "provider": "creem",
+      "display_name": "Creem Main",
+      "entity": "Example Company",
+      "currency": "USD",
+      "api_key_env": "KELLY_MONEY_CREEM_API_KEY_MAIN",
+      "include_pending": true
+    }
+  ],
+  "sync": {
+    "default_days": 90,
+    "read_only": true
+  },
+  "ui": {
+    "language": "auto"
+  }
+}
