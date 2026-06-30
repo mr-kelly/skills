@@ -44,6 +44,9 @@ function applyTranslations() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
+  document.querySelectorAll("option[data-i18n]").forEach((node) => {
+    node.textContent = t(node.dataset.i18n);
+  });
   document.querySelectorAll("[data-i18n-html]").forEach((node) => {
     node.innerHTML = t(node.dataset.i18nHtml);
   });
@@ -396,6 +399,47 @@ function actionLabel(action) {
   return labels[action] || action || t("action_label.review");
 }
 
+function primaryActionFor(item) {
+  if (item.status === "drafted" || item.proposed_action === "send_reply" || item.decision?.action === "send_reply") {
+    return {
+      id: "approveSend",
+      action: "approve_send",
+      label: t("action.approve_send"),
+      tooltip: t("detail.send.tooltip"),
+    };
+  }
+  if (item.proposed_action === "archive") {
+    return {
+      id: "approveArchive",
+      action: "approve_archive",
+      label: t("action.approve_archive"),
+      tooltip: t("detail.archive.tooltip"),
+    };
+  }
+  if (item.proposed_action === "mark_read" || item.proposed_action === "keep_unread") {
+    return {
+      id: "approveRead",
+      action: "approve_mark_read",
+      label: t("action.approve_read"),
+      tooltip: t("detail.read.tooltip"),
+    };
+  }
+  if (item.proposed_action === "draft_reply") {
+    return {
+      id: "draftReply",
+      action: "draft_reply",
+      label: t("action.draft_reply"),
+      tooltip: t("detail.draft.tooltip"),
+    };
+  }
+  return {
+    id: "approveProposed",
+    action: "approve_proposed",
+    label: t("action.approve_plan"),
+    tooltip: t("detail.approve.tooltip"),
+  };
+}
+
 function planBadge(item) {
   const action = item.proposed_action || "review";
   if (action === "review") return badge(t("action_label.review"), "review");
@@ -475,6 +519,8 @@ function renderBulkActions() {
   const count = checked.size;
   bar.classList.toggle("is-hidden", count === 0);
   selected.textContent = t("list.selected", { count });
+  const bulkSelect = $("bulkDecisionSelect");
+  if (bulkSelect) bulkSelect.value = "";
 }
 
 function accountsCardsHtml() {
@@ -723,7 +769,7 @@ function applyLockState() {
       ? state.lock.message || t("lock.processing")
       : t("lock.default");
   }
-  document.querySelectorAll("button, input, textarea").forEach((node) => {
+  document.querySelectorAll("button, input, textarea, select").forEach((node) => {
     if (node.id === "searchInput") return;
     node.disabled = locked;
   });
@@ -971,27 +1017,33 @@ function renderDetail() {
   const reviewMeta = item.review_ref
     ? `<strong>${escapeHtml(t("detail.review"))}</strong><div><span class="review-ref detail-review-ref">${escapeHtml(item.review_ref)}</span></div>`
     : "";
+  const primaryAction = primaryActionFor(item);
+  const menuActions = [
+    ["draftReply", "draft_reply", t("action.draft_reply"), t("detail.draft.tooltip")],
+    ["approveArchive", "approve_archive", t("action.approve_archive"), t("detail.archive.tooltip")],
+    ["approveRead", "approve_mark_read", t("action.approve_read"), t("detail.read.tooltip")],
+    ["approveSend", "approve_send", t("action.approve_send"), t("detail.send.tooltip")],
+    ["markReview", "needs_review", t("action.needs_review"), t("detail.review.tooltip")],
+    ["noAction", "no_action", t("action.no_action"), t("detail.no_action.tooltip")],
+  ].filter(([id]) => id !== primaryAction.id);
   const actionBar = `
     <div class="detail-actions detail-actions-top">
-      <div class="split-action">
-        <button id="approveProposed" class="split-action-main primary has-tooltip" data-tooltip="${escapeHtml(t("detail.approve.tooltip"))}" title="${escapeHtml(t("detail.approve.tooltip"))}">${escapeHtml(t("action.approve_plan"))}</button>
+      <div class="action-cluster">
+        <button id="primaryDetailAction" class="detail-primary-action primary has-tooltip" data-tooltip="${escapeHtml(primaryAction.tooltip)}" title="${escapeHtml(primaryAction.tooltip)}">${escapeHtml(primaryAction.label)}</button>
         <button
           id="detailActionMenuToggle"
-          class="split-action-toggle primary"
+          class="detail-more-action"
           type="button"
           aria-haspopup="menu"
           aria-expanded="false"
           aria-label="${escapeHtml(t("action.more"))}"
           title="${escapeHtml(t("action.more"))}"
-        >⌄</button>
-        <div id="detailActionMenu" class="split-action-menu" role="menu">
-          <button id="draftReply" type="button" role="menuitem" ${tooltipAttr(t("detail.draft.tooltip"))}>${escapeHtml(t("action.draft_reply"))}</button>
-          <button id="approveArchive" type="button" role="menuitem" ${tooltipAttr(t("detail.archive.tooltip"))}>${escapeHtml(t("action.approve_archive"))}</button>
-          <button id="approveRead" type="button" role="menuitem" ${tooltipAttr(t("detail.read.tooltip"))}>${escapeHtml(t("action.approve_read"))}</button>
-          <button id="approveSend" type="button" role="menuitem" ${tooltipAttr(t("detail.send.tooltip"))}>${escapeHtml(t("action.approve_send"))}</button>
-          <span class="split-action-separator" aria-hidden="true"></span>
-          <button id="markReview" type="button" role="menuitem" ${tooltipAttr(t("detail.review.tooltip"))}>${escapeHtml(t("action.needs_review"))}</button>
-          <button id="noAction" type="button" role="menuitem" ${tooltipAttr(t("detail.no_action.tooltip"))}>${escapeHtml(t("action.no_action"))}</button>
+        >${escapeHtml(t("action.more"))}</button>
+        <div id="detailActionMenu" class="detail-action-menu" role="menu">
+          ${menuActions.map(([id, action, label, tooltip], index) => `
+            ${index === 4 ? `<span class="detail-action-separator" aria-hidden="true"></span>` : ""}
+            <button id="${escapeHtml(id)}" type="button" role="menuitem" data-action="${escapeHtml(action)}" ${tooltipAttr(tooltip)}>${escapeHtml(label)}</button>
+          `).join("")}
         </div>
       </div>
     </div>
@@ -1026,7 +1078,7 @@ function renderDetail() {
   attachHtmlPreviewAutoResize();
   applyLockState();
   closeDetailActionMenu();
-  $("approveProposed").onclick = () => decide("approve_proposed", [item.id]);
+  $("primaryDetailAction").onclick = () => decide(primaryAction.action, [item.id]);
   $("detailActionMenuToggle").onclick = (event) => {
     event.stopPropagation();
     if (isLocked()) return toast(t("lock.processing"));
@@ -1034,15 +1086,10 @@ function renderDetail() {
     $("detailActionMenu").classList.toggle("is-open", openActionMenu);
     $("detailActionMenuToggle").setAttribute("aria-expanded", String(openActionMenu));
   };
-  [
-    ["draftReply", "draft_reply"],
-    ["approveArchive", "approve_archive"],
-    ["approveRead", "approve_mark_read"],
-    ["approveSend", "approve_send"],
-    ["markReview", "needs_review"],
-    ["noAction", "no_action"],
-  ].forEach(([id, action]) => {
-    $(id).onclick = () => {
+  menuActions.forEach(([id, action]) => {
+    const button = $(id);
+    if (!button) return;
+    button.onclick = () => {
       closeDetailActionMenu();
       decide(action, [item.id]);
     };
@@ -1118,7 +1165,7 @@ function wire() {
     if (event.key === "Escape") closeDetailActionMenu();
   });
   document.addEventListener("click", (event) => {
-    if (!event.target.closest(".split-action")) closeDetailActionMenu();
+    if (!event.target.closest(".action-cluster")) closeDetailActionMenu();
   });
   $("sidebarToggle").onclick = toggleSidebar;
   $("mobileSidebarToggle").onclick = () => setMobileSidebarOpen(true);
@@ -1134,8 +1181,17 @@ function wire() {
     };
   });
   $("approveSelected").onclick = () => decide("approve_proposed");
+  $("archiveSelected").onclick = () => decide("approve_archive");
+  $("draftSelected").onclick = () => decide("draft_reply");
   $("reviewSelected").onclick = () => decide("needs_review");
   $("noActionSelected").onclick = () => decide("no_action");
+  $("bulkDecisionSelect").onchange = (event) => {
+    const action = event.target.value;
+    if (!action) return;
+    decide(action).finally(() => {
+      event.target.value = "";
+    });
+  };
   $("selectAll").onchange = (event) => {
     if (isLocked()) {
       event.target.checked = false;

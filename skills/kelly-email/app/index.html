@@ -118,13 +118,25 @@
               <span id="listCount">0 items</span>
             </div>
             <div class="bulk-actions is-hidden" id="bulkActions" aria-live="polite">
-              <span id="selectedCount">0 selected</span>
+              <span id="selectedCount" class="bulk-selected">0 selected</span>
               <button
                 id="approveSelected"
                 class="has-tooltip"
                 data-i18n-tooltip="bulk.approve.tooltip"
                 data-i18n="action.approve_plan"
               >Approve plan</button>
+              <button
+                id="archiveSelected"
+                class="has-tooltip"
+                data-i18n-tooltip="detail.archive.tooltip"
+                data-i18n="action.approve_archive"
+              >Approve archive</button>
+              <button
+                id="draftSelected"
+                class="has-tooltip"
+                data-i18n-tooltip="detail.draft.tooltip"
+                data-i18n="action.draft_reply"
+              >Draft reply</button>
               <button
                 id="reviewSelected"
                 class="has-tooltip"
@@ -137,6 +149,15 @@
                 data-i18n-tooltip="bulk.no_action.tooltip"
                 data-i18n="action.no_action"
               >No action</button>
+              <label class="bulk-more">
+                <span data-i18n="bulk.more_label">More</span>
+                <select id="bulkDecisionSelect" data-i18n-aria-label="bulk.more_aria">
+                  <option value="" data-i18n="bulk.more_placeholder">Choose decision</option>
+                  <option value="approve_mark_read" data-i18n="action.approve_read">Approve mark read</option>
+                  <option value="approve_send" data-i18n="action.approve_send">Approve send</option>
+                  <option value="revise" data-i18n="action.revise">Revise</option>
+                </select>
+              </label>
             </div>
             <div id="messageList" class="message-list"></div>
           </div>

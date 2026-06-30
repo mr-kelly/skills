@@ -5,6 +5,7 @@ import { assertUnlocked } from "./lock.mjs";
 import { generateCharacterCard, generateStoryboardImage, generateVisualBackground, imageConfigPayload, saveImageConfig, storyboardPromptPreview } from "./image-service.mjs";
 import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.mjs";
 import { generateCharacterVoice, setCharacterVoiceActive } from "./voice-service.mjs";
+import { hyperframeProjectStatus } from "./hyperframe-service.mjs";
 import { loadProject, saveProject, upsertById } from "./project-store.mjs";
 import { setActiveProject, statePayload } from "./state.mjs";
 import { slug } from "./utils.mjs";
@@ -112,6 +113,11 @@ export async function handleRequest(req, res) {
       if (url.pathname.startsWith("/generated/")) return sendFile(res, path.join(GENERATED_DIR, url.pathname.replace(/^\/generated\//, "")));
       if (url.pathname === "/api/state") return sendJson(res, await statePayload());
       if (url.pathname === "/api/image-config") return sendJson(res, await imageConfigPayload());
+      if (url.pathname === "/api/hyperframe-status") {
+        const project = await loadProject();
+        const requestedPath = String(url.searchParams.get("path") || project.series?.hyperframe_project_path || project.series?.hyperframe_source?.project_path || "");
+        return sendJson(res, await hyperframeProjectStatus(requestedPath));
+      }
       if (url.pathname === "/api/storyboard-prompt") return sendJson(res, await storyboardPromptPreview(String(url.searchParams.get("shot_id") || "")));
       send(res, 404, "Not Found");
       return;

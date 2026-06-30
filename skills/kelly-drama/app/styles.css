@@ -595,6 +595,7 @@ body.episode-focus-mode .content-title {
 .metric,
 .relationship-node,
 .visual-bible-card,
+.hyperframe-card,
 .character-reference,
 .shot-script-card,
 .empty-shot {
@@ -908,6 +909,90 @@ body.episode-focus-mode .content-title {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-soft);
+}
+
+.hyperframe-card {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.hyperframe-card .section-head {
+  margin-bottom: 0;
+}
+
+.hyperframe-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hyperframe-metrics div {
+  display: grid;
+  gap: 2px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-soft);
+}
+
+.hyperframe-metrics strong {
+  font-size: 18px;
+}
+
+.hyperframe-metrics span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.hyperframe-list {
+  display: grid;
+  gap: 7px;
+}
+
+.hyperframe-list h4 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.hyperframe-list.compact {
+  gap: 6px;
+}
+
+.hyperframe-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.hyperframe-row code {
+  overflow: hidden;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hf-chip {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--surface-soft);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
 }
 
 .beat-stack,
