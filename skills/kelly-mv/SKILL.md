@@ -1,5 +1,6 @@
 ---
 name: kelly-mv
+license: MIT
 description: "Music-video production skill for turning an existing MP3 into a pure-visual (no-voiceover) music video through a bundled local App-in-Skill UI. Use when the user wants to build an MV from a song they upload: write a one-line concept, keep a cast of characters with reference cards, and break the song into storyboard shots where each shot has a scene description and an image + video that can be either AI-generated (image-to-image from the character cards, draft video via local LTX) or uploaded by the user. Same character/storyboard management model as kelly-drama. Song generation (creating the song itself, incl. voice-cloned singing) is a documented future capability."
 ---
 

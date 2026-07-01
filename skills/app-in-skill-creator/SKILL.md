@@ -1,5 +1,6 @@
 ---
 name: app-in-skill-creator
+license: MIT
 description: "Create or update App-in-Skill patterns: Codex skills that bundle a local file-backed web app for review, approval, dashboards, or lightweight workflows. Use when the user wants a skill with an embedded local UI, file handoff, lock files, app launcher, schemas, or a reusable App-in-Skill scaffold."
 ---
 

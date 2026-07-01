@@ -1,5 +1,6 @@
 ---
 name: kelly-money
+license: MIT
 description: Personal App-in-Skill money ledger for aggregating Mercury, Stripe, Airwallex, and Creem accounts into a local dashboard. Use when the user invokes $kelly-money or /kelly-money, wants a total cashflow ledger, account columns, Accounts sidebar, Account Detail views, finance onboarding, connector setup, transaction import/sync, reconciliation, balances, payouts, payments, fees, refunds, transfers, or local review of money movement across these providers.
 ---
 
