@@ -77,6 +77,39 @@ yet open to third-party self-serve** ("coming soon") — the git-marketplace pat
 `plugins/<name>/.mcp.json` and set `"mcpServers": "./.mcp.json"` in the plugin manifest, or omit MCP
 from the Codex plugin (the skill already documents `/api/mcp`).
 
+### Codex plugin — build, verify, publish (recipe, verified with codex-cli 0.139)
+
+1. **Scaffold** the self-contained layout (per-skill, or one bundle dir holding several skills):
+   ```bash
+   mkdir -p plugins/<name>/.codex-plugin plugins/<name>/skills .agents/plugins
+   # write plugins/<name>/.codex-plugin/plugin.json  ("skills": "./skills/")   — template above
+   # write .agents/plugins/marketplace.json  (source.path "./plugins/<name>")  — template above
+   ```
+2. **Sync the skill copy** into the plugin (Codex can't reach the canonical `skills/` — no symlinks, no `../`):
+   ```bash
+   rsync -a --delete skills/<name>/ plugins/<name>/skills/<name>/
+   ```
+3. **Verify locally** — add the repo as a local marketplace, install, and confirm the skill is bundled:
+   ```bash
+   codex plugin marketplace add ./
+   codex plugin list | grep <name>                 # expect: <name>@<marketplace>  not installed
+   codex plugin add <name>@<marketplace>            # the install verb is `add`
+   find ~/.codex/plugins/cache/<marketplace> -name SKILL.md   # MUST list the bundled skill
+   codex plugin remove <name>@<marketplace>; codex plugin marketplace remove <marketplace>   # cleanup
+   ```
+   If `codex plugin list` shows nothing, the marketplace file isn't at `.agents/plugins/marketplace.json`
+   or the `source.path` points at `"."` instead of the `plugins/<name>` subdir. If it lists but
+   `find` shows no `SKILL.md`, the skill wasn't copied *inside* the plugin dir (step 2).
+4. **Publish** — commit the `plugins/` + `.agents/plugins/` tree and push. Others install with:
+   ```bash
+   codex plugin marketplace add <owner>/<repo>       # optionally --ref <tag>
+   codex plugin add <name>@<marketplace>
+   ```
+   Zero review — live as soon as the repo is public. (OpenAI's *curated* Directory is separate and not
+   yet self-serve.)
+5. **Update** — bump `version` in `plugins/<name>/.codex-plugin/plugin.json`, re-run the step-2 rsync so
+   the copy matches, commit. Existing users refresh with `codex plugin marketplace upgrade`.
+
 ## Review-gated channel checklists
 
 Only pursue once the product has a **public HTTPS MCP server + OAuth + a privacy policy**. Human review;
