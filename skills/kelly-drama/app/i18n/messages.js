@@ -35,7 +35,7 @@ export const MESSAGES = {
     settings_files_title: "本地文件",
     settings_project_file: "项目文件",
     settings_language: "界面语言",
-    settings_language_auto: "跟随系统",
+    settings_language_auto: "自动",
     settings_language_zh: "中文",
     settings_language_en: "English",
     // view meta
@@ -260,7 +260,7 @@ export const MESSAGES = {
     settings_files_title: "Local files",
     settings_project_file: "Project file",
     settings_language: "UI language",
-    settings_language_auto: "Auto (system)",
+    settings_language_auto: "Auto",
     settings_language_zh: "中文",
     settings_language_en: "English",
     // view meta

@@ -215,6 +215,18 @@ dt {
   border-top: 1px solid var(--line);
 }
 
+.language-control {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.language-control select {
+  width: 100%;
+}
+
 main {
   min-width: 0;
   position: relative;

@@ -72,7 +72,7 @@ export const I18N = {
     "language.title": "Language",
     "language.auto": "Auto",
     "language.english": "English",
-    "language.chinese": "Chinese",
+    "language.chinese": "中文",
     "language.summary.auto": "Auto follows your browser language. Current UI: {language}.",
     "language.summary.fixed": "The UI is fixed to {language}.",
     "language.current.en": "English",
