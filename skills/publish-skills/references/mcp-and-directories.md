@@ -8,14 +8,24 @@ Claude Code + Codex marketplaces + the official MCP Registry.
 ## Repo layout (mirror busabase/skills)
 
 ```
-skills/<name>/SKILL.md            the skill — used by `skills` / Claude Code / Codex
-.claude-plugin/plugin.json        Claude Code plugin manifest        (Step 4)
-.claude-plugin/marketplace.json   Claude Code marketplace listing    (Step 4)
-.codex-plugin/plugin.json         Codex plugin manifest
-marketplace.json                  Codex marketplace listing
+skills/<name>/SKILL.md            the CANONICAL skill — used by `skills` / Claude Code / Buda
+.claude-plugin/plugin.json        Claude Code plugin manifest (auto-discovers ./skills/)  (Step 4)
+.claude-plugin/marketplace.json   Claude Code marketplace listing                          (Step 4)
+.agents/plugins/marketplace.json  Codex marketplace listing (source.path → ./plugins/<name>)
+plugins/<name>/.codex-plugin/plugin.json   Codex plugin manifest ("skills": "./skills/")
+plugins/<name>/skills/<name>/SKILL.md      Codex needs a REAL copy inside the plugin dir
+                                           (sync from the canonical skills/<name>/)
 .mcp.json                         bundled MCP server (http/stdio)
 server.json                       official MCP Registry entry
 ```
+
+**Why Codex duplicates the skill:** verified empirically with `codex-cli` — Codex only resolves a
+plugin from a `plugins/<name>/` **subdir** (root-as-plugin `path: "."` / `"./"` does not resolve), and
+on install it copies **only files inside that subdir** (symlinks are not followed; a `"skills":
+"../../skills/"` escape lists but is dropped on install). So the canonical skill stays at
+`skills/<name>/` for the `skills` installer + Claude Code + Buda, and a synced copy lives at
+`plugins/<name>/skills/<name>/` for Codex. Re-copy on every skill change:
+`rsync -a --delete skills/<name>/ plugins/<name>/skills/<name>/`.
 
 Note the **hosted MCP URL** (`https://<app>.com/api/mcp`; local default often
 `http://localhost:15419/api/mcp`) and whether auth is a Bearer key. A **public HTTPS URL** is required
@@ -56,12 +66,16 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=<name>"   # v
 - Versions are immutable — bump `version` to ship an update. Automate with a GitHub Action on `v*` tags
   using `mcp-publisher login github-oidc` (needs `permissions: id-token: write`; no stored secret).
 
-**Codex** plugins bundle skills + apps (`.app.json`) + MCP (`.mcp.json`); manifest at
-`.codex-plugin/plugin.json`, consumed from a git repo's `marketplace.json`. OpenAI's own curated Plugin
-Directory is **not yet open to third-party self-serve** ("coming soon") — the git-marketplace path is
-how you ship now. **`.mcp.json` key differs from Claude Code:** Codex uses `{ "<name>": {...} }` (or
-`{ "mcp_servers": {...} }`); Claude Code uses `{ "mcpServers": {...} }`. Keep separate files if bundling
-into both, or omit MCP from the Codex manifest (the skill already documents `/api/mcp`).
+**Codex** plugins bundle skills + apps (`.app.json`) + MCP (`.mcp.json`) inside a self-contained
+`plugins/<name>/` dir (manifest `plugins/<name>/.codex-plugin/plugin.json`), listed by
+`.agents/plugins/marketplace.json` and consumed via `codex plugin marketplace add <owner>/<repo>` →
+`codex plugin add <name>@<marketplace>` (the install verb is `add`, not `install`). This mirrors
+OpenAI's own bundled marketplaces (`openai-bundled`, etc.). OpenAI's curated Plugin Directory is **not
+yet open to third-party self-serve** ("coming soon") — the git-marketplace path is how you ship now.
+**`.mcp.json` key differs from Claude Code:** Codex uses `{ "<name>": {...} }` (or
+`{ "mcp_servers": {...} }`); Claude Code uses `{ "mcpServers": {...} }`. Put the Codex one at
+`plugins/<name>/.mcp.json` and set `"mcpServers": "./.mcp.json"` in the plugin manifest, or omit MCP
+from the Codex plugin (the skill already documents `/api/mcp`).
 
 ## Review-gated channel checklists
 
@@ -107,7 +121,7 @@ Local MCP server bundled as a `.mcpb` zip (renamed from `.dxt`, Nov 2025 — old
 
 ## Templates
 
-**`.codex-plugin/plugin.json`**
+**`plugins/<name>/.codex-plugin/plugin.json`** (skill copy sits at `plugins/<name>/skills/<name>/`)
 ```json
 {
   "name": "<name>",
@@ -130,7 +144,8 @@ Local MCP server bundled as a `.mcpb` zip (renamed from `.dxt`, Nov 2025 — old
 }
 ```
 
-**`marketplace.json`** (Codex)
+**`.agents/plugins/marketplace.json`** (Codex — `source.path` is relative to the repo root, and points
+at the plugin **subdir**, never `"."`)
 ```json
 {
   "name": "<name>",
@@ -138,7 +153,7 @@ Local MCP server bundled as a `.mcpb` zip (renamed from `.dxt`, Nov 2025 — old
   "plugins": [
     {
       "name": "<name>",
-      "source": { "source": "local", "path": "./" },
+      "source": { "source": "local", "path": "./plugins/<name>" },
       "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
       "category": "Productivity"
     }

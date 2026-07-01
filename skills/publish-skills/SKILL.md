@@ -157,10 +157,15 @@ per-channel review checklists live in [`references/mcp-and-directories.md`](./re
   mcp-publisher publish             # validates + publishes; live instantly, reactive moderation only
   ```
   Versions are immutable — bump `version` to update. Automate on `v*` tags with `login github-oidc`.
-- **Codex git marketplace** — the flat repo works directly: `codex plugin marketplace add <owner>/<repo>`
-  (a self-serve alternative to the `openai/plugins` PR route in Step 6). Needs `.codex-plugin/plugin.json`.
-  Note: Codex `.mcp.json` uses a `{ "<name>": {...} }` map, Claude Code uses `{ "mcpServers": {...} }` —
-  keep separate files if bundling into both.
+- **Codex marketplace** — `codex plugin marketplace add <owner>/<repo>` (self-serve, zero-review; an
+  alternative to the `openai/plugins` PR route in Step 6). **Verified layout (Codex is strict):** the
+  marketplace file must be `.agents/plugins/marketplace.json`, and each plugin a **subdir**
+  `plugins/<name>/` (`source.path: "./plugins/<name>"`) holding its own `.codex-plugin/plugin.json`
+  (`"skills": "./skills/"`). On install Codex bundles **only files inside the plugin subdir** — symlinks
+  and `../` escapes are silently dropped — so the skill must be a **real copy** at
+  `plugins/<name>/skills/<name>/SKILL.md`, synced from the canonical `skills/<name>/`. A root-level
+  `marketplace.json` or root `.codex-plugin/` does **not** resolve. (Codex `.mcp.json` also differs from
+  Claude Code's — see below.) Full templates in the references file.
 - **Claude Code** — already wired in Step 4; its `/plugin` also carries a bundled MCP via `.mcp.json`.
 
 **Review-gated — second wave** (worth it once the product has a public HTTPS MCP server + OAuth + a
@@ -179,7 +184,7 @@ privacy policy). Prep the checklist in the references file, then hand off the su
 | GitHub skill index | SKILL.md repo | none | `gh skill search <name>` |
 | skills.sh / SkillsMP / claudeskills.info | SKILL.md repo | none | `npx skills add <owner>/<repo>` |
 | Claude Code `/plugin` | `.claude-plugin/marketplace.json` | none | `/plugin marketplace add <owner>/<repo>` |
-| Codex marketplace | `.codex-plugin/plugin.json` | none | `codex plugin marketplace add <owner>/<repo>` |
+| Codex marketplace | `.agents/plugins/marketplace.json` + `plugins/<name>/` | none | `codex plugin marketplace add <owner>/<repo>` |
 | Official MCP Registry | `server.json` | none (ownership proof) | `mcp-publisher publish` |
 | Agensi | zip | 8-point scan | `dist/agensi/*.zip` + Stripe |
 | Buda Marketplace | `skills/*/SKILL.md` repo | ~24h review | connect GitHub App → set pricing → publish |
