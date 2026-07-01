@@ -1,5 +1,6 @@
 ---
 name: agent-rules
+license: MIT
 description: Align all AI coding agents to single source of truth. AGENTS.md for rules, .agents/skills/ for skills. All other files are symlinks.
 disable-model-invocation: false
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash

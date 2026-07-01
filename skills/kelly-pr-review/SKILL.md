@@ -1,5 +1,6 @@
 ---
 name: kelly-pr-review
+license: MIT
 description: GitHub pull request review desk using gh CLI, local App-in-Skill UI, AI review notes, human approval, and approved gh pr review execution. Use when the user invokes /kelly-pr-review, asks to review GitHub PRs, generate a PR review batch, approve/comment/request changes through a local UI, or execute approved GitHub reviews.
 ---
 
