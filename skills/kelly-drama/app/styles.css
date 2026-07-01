@@ -132,7 +132,11 @@ body.sidebar-collapsed .settings-dock {
   display: none;
 }
 
-.brand-mark {
+.sidebar-scrim[hidden] {
+  display: none;
+}
+
+.brand-icon {
   width: 30px;
   height: 30px;
   display: grid;
@@ -2132,5 +2136,9 @@ body.episode-focus-mode .content-title {
 
   .content-title {
     padding-top: 58px;
+  }
+
+  .sidebar-scrim[hidden] {
+    display: none;
   }
 }
