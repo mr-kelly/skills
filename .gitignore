@@ -21,3 +21,6 @@ skills/*/.env.local
 
 # Build/packaging artifacts
 dist/
+
+# Claude Code local run config (machine-specific: absolute paths + ports)
+.claude/launch.json
