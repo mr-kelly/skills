@@ -17,7 +17,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const demo = isDemoQuery(url.searchParams);
-    if (url.pathname === "/api/state") return json(res, demo ? demoState() : await provider.getState());
+    if (url.pathname === "/api/state") return json(res, demo ? demoState(url.searchParams) : await provider.getState());
     if (demo && req.method === "POST" && [
       "/api/decision",
       "/api/confirm-direction",

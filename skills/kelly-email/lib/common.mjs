@@ -461,12 +461,16 @@ export function isBlocked(item) {
   return executionStatus(item) === "blocked";
 }
 
+export function isDraftAwaitingSendReview(item) {
+  return item.status === "drafted" && !decisionAction(item) && !isDone(item) && !isBlocked(item);
+}
+
 export function isNeedsReview(item) {
-  return !isDone(item) && !isBlocked(item) && (item.status === "needs_review" || ["needs_review", "revise"].includes(decisionAction(item)));
+  return !isDone(item) && !isBlocked(item) && (isDraftAwaitingSendReview(item) || item.status === "needs_review" || ["needs_review", "revise"].includes(decisionAction(item)));
 }
 
 export function isToApprove(item) {
-  return !isDone(item) && !isBlocked(item) && !decisionAction(item) && ["prepared", "drafted"].includes(item.status);
+  return !isDone(item) && !isBlocked(item) && !isNeedsReview(item) && !decisionAction(item) && item.status === "prepared";
 }
 
 export function isApproved(item) {

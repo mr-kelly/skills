@@ -19,20 +19,82 @@ const I18N = {
     "topics": "topics",
     "distribution.drafts": "distribution drafts",
     "empty.batch": "Generate a content batch, then the repository will appear here.",
+    "content.repository": "Content Repository",
+    "workspace": "Workspace",
+    "refresh": "Refresh",
+    "refresh.batch.title": "Refresh batch",
     "topics.pool": "Topic Pool",
+    "subject.discovery": "Subject Discovery",
+    "refresh.subjects.title": "Refresh subjects",
+    "directions": "directions",
+    "score": "score",
     "subject": "Subject",
+    "confirm.direction": "Confirm title + description",
+    "confirm.direction.title": "Confirm selected title and description direction, then create todo",
+    "audience": "Audience",
+    "selected.direction": "Selected Direction",
+    "no.direction": "No direction selected",
+    "choose.direction": "Choose a title and description direction for this subject.",
+    "angle": "Angle",
+    "status": "Status",
+    "evidence": "Evidence",
+    "no.evidence": "No source evidence attached yet.",
     "todos.title": "Todos",
+    "production.queue": "Production Queue",
     "todos.empty": "Confirm a title and description direction, then todos will appear here.",
+    "assignee": "Assignee",
+    "ai.writer": "AI writer",
+    "next.action": "Next action",
     "todo.start": "Start",
     "todo.start.title": "Start AI writing for this todo",
     "todo.next.started": "AI writing has started. Next, generate the outline, article body, and cover brief.",
     "todo.next.waiting": "Click Start to move this direction into the AI writing queue.",
     "main.title": "Main Draft & Cover",
+    "canonical.draft": "Canonical Draft",
+    "preview": "Preview",
+    "preview.title": "Preview HTML",
+    "approve.main": "Approve main",
+    "approve.main.title": "Approve main draft",
+    "cover": "Cover",
+    "visual.brief": "Visual brief",
     "distribution.title": "Distribution Versions",
+    "channel.adaptation": "Channel Adaptation",
+    "validate": "Validate",
+    "validate.title": "Validate all drafts",
+    "export": "Export",
+    "export.title": "Export approved drafts",
+    "approve": "Approve",
+    "approve.title": "Approve this version",
+    "save": "Save",
+    "save.title": "Save your edits as a new version",
+    "request.changes": "Request changes",
+    "request.changes.title": "Send back for the AI to revise (request changes)",
+    "block": "Block",
+    "block.title": "Block this version",
+    "title": "Title",
+    "draft": "Draft",
+    "review.note": "Review note",
+    "title.options": "Title Options",
+    "media.brief": "Media Brief",
+    "hashtags": "Hashtags",
+    "status.ready": "ready",
+    "readiness.ready": "ready",
+    "readiness.blocked": "blocked",
+    "readiness.aiToRevise": "AI to revise",
+    "readiness.needsEdit": "needs edit",
+    "readiness.toApprove": "to approve",
     "status.todo": "Not started",
     "status.started": "Started",
     "status.done": "Done",
-    "status.blocked": "Blocked"
+    "status.blocked": "Blocked",
+    "status.confirmed": "Confirmed",
+    "status.selected": "Selected",
+    "status.approved": "Approved",
+    "status.needsReview": "Needs review",
+    "status.changesRequested": "Changes requested",
+    "status.draft": "Draft",
+    "channel": "Channel",
+    "local": "local"
   },
   "zh-CN": {
     "stage.topics": "选题",
@@ -40,9 +102,9 @@ const I18N = {
     "stage.todos": "待办",
     "stage.todos.caption": "确认后等待开工",
     "stage.main": "主稿",
-    "stage.main.caption": "主 Blog 与配图",
+    "stage.main.caption": "主稿与配图",
     "stage.distribution": "分发",
-    "stage.distribution.caption": "官方 Blog、公众号、小红书",
+    "stage.distribution.caption": "官网、公众号、小红书",
     "batch.none": "未加载批次",
     "drafts": "草稿",
     "locked": "已锁定",
@@ -51,20 +113,82 @@ const I18N = {
     "topics": "题材",
     "distribution.drafts": "分发草稿",
     "empty.batch": "生成内容批次后，内容仓库会显示在这里。",
+    "content.repository": "内容仓库",
+    "workspace": "工作区",
+    "refresh": "刷新",
+    "refresh.batch.title": "刷新内容批次",
     "topics.pool": "题材池",
+    "subject.discovery": "选题发现",
+    "refresh.subjects.title": "刷新题材",
+    "directions": "方向",
+    "score": "评分",
     "subject": "题材",
+    "confirm.direction": "确认标题与描述",
+    "confirm.direction.title": "确认所选标题和描述方向，并创建待办",
+    "audience": "受众",
+    "selected.direction": "已选方向",
+    "no.direction": "未选择方向",
+    "choose.direction": "为这个题材选择一个标题和描述方向。",
+    "angle": "角度",
+    "status": "状态",
+    "evidence": "依据",
+    "no.evidence": "还没有附上来源依据。",
     "todos.title": "待办",
+    "production.queue": "生产队列",
     "todos.empty": "确认标题和描述方向后，会在这里出现待办。",
+    "assignee": "负责人",
+    "ai.writer": "AI 写手",
+    "next.action": "下一步",
     "todo.start": "开工",
     "todo.start.title": "开始这个待办的 AI 写作",
     "todo.next.started": "AI 主稿处理已开工。下一步应生成主稿 outline、正文和配图 brief。",
     "todo.next.waiting": "点击“开工”后，这个方向才正式进入 AI 主稿处理队列。",
     "main.title": "主稿与配图",
+    "canonical.draft": "主版本草稿",
+    "preview": "预览",
+    "preview.title": "预览 HTML",
+    "approve.main": "批准主稿",
+    "approve.main.title": "批准主稿草稿",
+    "cover": "封面",
+    "visual.brief": "视觉说明",
     "distribution.title": "分发版本",
+    "channel.adaptation": "渠道改写",
+    "validate": "校验",
+    "validate.title": "校验所有草稿",
+    "export": "导出",
+    "export.title": "导出已批准草稿",
+    "approve": "批准",
+    "approve.title": "批准这个版本",
+    "save": "保存",
+    "save.title": "把你的修改保存为新版本",
+    "request.changes": "请求修改",
+    "request.changes.title": "退回给 AI 重新修改",
+    "block": "阻塞",
+    "block.title": "阻塞这个版本",
+    "title": "标题",
+    "draft": "草稿",
+    "review.note": "复核备注",
+    "title.options": "标题选项",
+    "media.brief": "媒体说明",
+    "hashtags": "话题标签",
+    "status.ready": "就绪",
+    "readiness.ready": "可发布",
+    "readiness.blocked": "已阻塞",
+    "readiness.aiToRevise": "待 AI 修改",
+    "readiness.needsEdit": "需编辑",
+    "readiness.toApprove": "待批准",
     "status.todo": "待开工",
     "status.started": "已开工",
     "status.done": "完成",
-    "status.blocked": "阻塞"
+    "status.blocked": "阻塞",
+    "status.confirmed": "已确认",
+    "status.selected": "已选择",
+    "status.approved": "已批准",
+    "status.needsReview": "需复核",
+    "status.changesRequested": "需修改",
+    "status.draft": "草稿",
+    "channel": "渠道",
+    "local": "本地"
   }
 };
 
@@ -110,6 +234,13 @@ const els = {
   refreshBtn: document.querySelector("#refreshBtn")
 };
 
+function applyStaticI18n() {
+  document.documentElement.lang = language;
+  document.querySelector(".settings h2").textContent = t("workspace");
+  els.refreshBtn.textContent = t("refresh");
+  els.refreshBtn.title = t("refresh.batch.title");
+}
+
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
 }
@@ -149,6 +280,7 @@ window.addEventListener("resize", syncResponsiveShell);
 
 wireHashRouting();
 syncResponsiveShell();
+applyStaticI18n();
 loadState();
 setInterval(() => {
   if (!editing) loadState();
@@ -447,7 +579,7 @@ function renderShell(repo) {
 
   const shown = visibleStages();
   if (!shown.some((stage) => stage.id === activeStage)) activeStage = shown[0]?.id || "distribution";
-  els.pageTitle.textContent = shown.find((stage) => stage.id === activeStage)?.label || "Content Repository";
+  els.pageTitle.textContent = shown.find((stage) => stage.id === activeStage)?.label || t("content.repository");
 
   const counts = {
     topics: repo.topics.length,
@@ -494,10 +626,10 @@ function renderTopics(repo) {
   els.stagePanel.innerHTML = `
     <div class="stageHeader">
       <div>
-        <p class="eyebrow">Subject Discovery</p>
+        <p class="eyebrow">${escapeHtml(t("subject.discovery"))}</p>
         <h2>${escapeHtml(t("topics.pool"))}</h2>
       </div>
-      <button class="quietButton" title="Refresh subjects">Refresh</button>
+      <button class="quietButton" title="${escapeAttr(t("refresh.subjects.title"))}">${escapeHtml(t("refresh"))}</button>
     </div>
     <div class="split">
       <div class="recordList">
@@ -523,7 +655,7 @@ function topicRow(topic, selectedId) {
     <button class="recordRow ${topic.id === selectedId ? "selected" : ""}" data-topic="${escapeAttr(topic.id)}">
       <span class="statusDot ${topic.status}"></span>
       <strong>${escapeHtml(topic.title)}</strong>
-      <small>${escapeHtml(topic.source)} · ${topic.directions?.length || 0} directions · score ${topic.score || "-"}</small>
+      <small>${escapeHtml(topic.source)} · ${topic.directions?.length || 0} ${escapeHtml(t("directions"))} · ${escapeHtml(t("score"))} ${topic.score || "-"}</small>
     </button>
   `;
 }
@@ -535,14 +667,14 @@ function topicDetail(topic) {
     <div class="canvasHead">
       <div>
         <span class="pill">${escapeHtml(topic.source)}</span>
-        <span class="pill">${escapeHtml(topic.status)}</span>
+        <span class="pill">${escapeHtml(statusLabel(topic.status))}</span>
       </div>
-      <button class="primaryButton" data-action="confirm-direction" title="Confirm selected title and description direction, then create todo">Confirm title + description</button>
+      <button class="primaryButton" data-action="confirm-direction" title="${escapeAttr(t("confirm.direction.title"))}">${escapeHtml(t("confirm.direction"))}</button>
     </div>
     <h2>${escapeHtml(topic.title)}</h2>
     <dl class="metaGrid">
-      <div><dt>Audience</dt><dd>${escapeHtml(topic.audience || "Not set")}</dd></div>
-      <div><dt>Score</dt><dd>${escapeHtml(topic.score || "-")}</dd></div>
+      <div><dt>${escapeHtml(t("audience"))}</dt><dd>${escapeHtml(topic.audience || "-")}</dd></div>
+      <div><dt>${escapeHtml(t("score"))}</dt><dd>${escapeHtml(topic.score || "-")}</dd></div>
     </dl>
     <section class="sectionBlock">
       <h3>${escapeHtml(t("subject"))}</h3>
@@ -553,18 +685,18 @@ function topicDetail(topic) {
         ${directions.map((direction) => directionCard(direction, selectedDirection?.id)).join("")}
       </div>
       <section class="directionPreview">
-        <p class="eyebrow">Selected Direction</p>
-        <h3>${escapeHtml(selectedDirection?.title || "No direction selected")}</h3>
-        <p>${escapeHtml(selectedDirection?.description || "Choose a title and description direction for this subject.")}</p>
+        <p class="eyebrow">${escapeHtml(t("selected.direction"))}</p>
+        <h3>${escapeHtml(selectedDirection?.title || t("no.direction"))}</h3>
+        <p>${escapeHtml(selectedDirection?.description || t("choose.direction"))}</p>
         <dl class="miniMeta">
-          <div><dt>Angle</dt><dd>${escapeHtml(selectedDirection?.angle || "-")}</dd></div>
-          <div><dt>Status</dt><dd>${escapeHtml(selectedDirection?.status || "-")}</dd></div>
+          <div><dt>${escapeHtml(t("angle"))}</dt><dd>${escapeHtml(selectedDirection?.angle || "-")}</dd></div>
+          <div><dt>${escapeHtml(t("status"))}</dt><dd>${escapeHtml(statusLabel(selectedDirection?.status) || "-")}</dd></div>
         </dl>
       </section>
     </div>
     <section class="sectionBlock">
-      <h3>Evidence</h3>
-      <p>${escapeHtml(topic.evidence || "No source evidence attached yet.")}</p>
+      <h3>${escapeHtml(t("evidence"))}</h3>
+      <p>${escapeHtml(topic.evidence || t("no.evidence"))}</p>
     </section>
   `;
 }
@@ -575,7 +707,7 @@ function renderTodos(repo) {
   els.stagePanel.innerHTML = `
     <div class="stageHeader">
       <div>
-        <p class="eyebrow">Production Queue</p>
+        <p class="eyebrow">${escapeHtml(t("production.queue"))}</p>
         <h2>${escapeHtml(t("todos.title"))}</h2>
       </div>
       <button class="primaryButton" data-action="start-selected-todo" title="${escapeAttr(t("todo.start.title"))}">${escapeHtml(t("todo.start"))}</button>
@@ -602,7 +734,7 @@ function todoRow(todo, selectedId) {
     <button class="recordRow ${todo.id === selectedId ? "selected" : ""}" data-todo="${escapeAttr(todo.id)}">
       <span class="statusDot ${todo.status}"></span>
       <strong>${escapeHtml(todo.title)}</strong>
-      <small>${escapeHtml(todo.statusLabel)} · ${escapeHtml(todo.assignee || "AI writer")}</small>
+      <small>${escapeHtml(todo.statusLabel)} · ${escapeHtml(todo.assignee || t("ai.writer"))}</small>
     </button>
   `;
 }
@@ -612,7 +744,7 @@ function todoDetail(todo) {
     <div class="canvasHead">
       <div>
         <span class="pill">${escapeHtml(todo.statusLabel)}</span>
-        <span class="pill">${escapeHtml(todo.source || "local")}</span>
+        <span class="pill">${escapeHtml(todo.source || t("local"))}</span>
       </div>
       <button class="primaryButton" data-action="start-todo" title="${escapeAttr(t("todo.start.title"))}">${escapeHtml(t("todo.start"))}</button>
     </div>
@@ -620,10 +752,10 @@ function todoDetail(todo) {
     <p class="leadText">${escapeHtml(todo.description)}</p>
     <dl class="metaGrid">
       <div><dt>${escapeHtml(t("subject"))}</dt><dd>${escapeHtml(todo.subject || "-")}</dd></div>
-      <div><dt>Assignee</dt><dd>${escapeHtml(todo.assignee || "AI writer")}</dd></div>
+      <div><dt>${escapeHtml(t("assignee"))}</dt><dd>${escapeHtml(todo.assignee || t("ai.writer"))}</dd></div>
     </dl>
     <section class="sectionBlock">
-      <h3>Next action</h3>
+      <h3>${escapeHtml(t("next.action"))}</h3>
       <p>${todo.status === "in_progress"
         ? t("todo.next.started")
         : t("todo.next.waiting")}</p>
@@ -634,7 +766,7 @@ function todoDetail(todo) {
 function directionCard(direction, selectedId) {
   return `
     <button class="directionCard ${direction.id === selectedId ? "selected" : ""}" data-direction="${escapeAttr(direction.id)}">
-      <span>${escapeHtml(direction.status || "ready")}</span>
+      <span>${escapeHtml(statusLabel(direction.status || "ready"))}</span>
       <strong>${escapeHtml(direction.title)}</strong>
       <small>${escapeHtml(direction.description)}</small>
     </button>
@@ -646,21 +778,21 @@ function renderMainContent(repo) {
   els.stagePanel.innerHTML = `
     <div class="stageHeader">
       <div>
-        <p class="eyebrow">Canonical Draft</p>
+        <p class="eyebrow">${escapeHtml(t("canonical.draft"))}</p>
         <h2>${escapeHtml(t("main.title"))}</h2>
       </div>
       <div class="toolbar">
-        <button class="quietButton" title="Preview HTML">Preview</button>
-        <button class="primaryButton" title="Approve main draft">Approve main</button>
+        <button class="quietButton" title="${escapeAttr(t("preview.title"))}">${escapeHtml(t("preview"))}</button>
+        <button class="primaryButton" title="${escapeAttr(t("approve.main.title"))}">${escapeHtml(t("approve.main"))}</button>
       </div>
     </div>
     <article class="mainPreview">
       <div class="coverFrame">
-        <span>Cover</span>
-        <strong>${escapeHtml(main.cover_brief || main.hero_alt || "Visual brief")}</strong>
+        <span>${escapeHtml(t("cover"))}</span>
+        <strong>${escapeHtml(main.cover_brief || main.hero_alt || t("visual.brief"))}</strong>
       </div>
       <div class="articleShell">
-        <span class="pill">${escapeHtml(main.status || "draft")}</span>
+        <span class="pill">${escapeHtml(statusLabel(main.status || "draft"))}</span>
         <h1>${escapeHtml(main.title)}</h1>
         <p class="dek">${escapeHtml(main.dek || "")}</p>
         <div class="articleBody">${main.html || `<p>${escapeHtml(main.body || "")}</p>`}</div>
@@ -675,12 +807,12 @@ function renderDistribution(repo) {
   els.stagePanel.innerHTML = `
     <div class="stageHeader">
       <div>
-        <p class="eyebrow">Channel Adaptation</p>
+        <p class="eyebrow">${escapeHtml(t("channel.adaptation"))}</p>
         <h2>${escapeHtml(t("distribution.title"))}</h2>
       </div>
       <div class="toolbar">
-        <button class="quietButton" title="Validate all drafts">Validate</button>
-        <button class="primaryButton" title="Export approved drafts">Export</button>
+        <button class="quietButton" title="${escapeAttr(t("validate.title"))}">${escapeHtml(t("validate"))}</button>
+        <button class="primaryButton" title="${escapeAttr(t("export.title"))}">${escapeHtml(t("export"))}</button>
       </div>
     </div>
     <div class="split">
@@ -717,28 +849,28 @@ function distributionDetail(item) {
     <div class="canvasHead">
       <div>
         <span class="pill">${escapeHtml(item.channel)}</span>
-        <span class="pill">${escapeHtml(item.status)}</span>
+        <span class="pill">${escapeHtml(statusLabel(item.status))}</span>
       </div>
       <div class="actions">
-        <button data-action="approve" title="Approve this version">Approve</button>
-        <button data-action="revise" title="Save your edits as a new version">Save</button>
-        <button data-action="request_changes" title="Send back for the AI to revise (request changes)">Request changes</button>
-        <button data-action="block" title="Block this version">Block</button>
+        <button data-action="approve" title="${escapeAttr(t("approve.title"))}">${escapeHtml(t("approve"))}</button>
+        <button data-action="revise" title="${escapeAttr(t("save.title"))}">${escapeHtml(t("save"))}</button>
+        <button data-action="request_changes" title="${escapeAttr(t("request.changes.title"))}">${escapeHtml(t("request.changes"))}</button>
+        <button data-action="block" title="${escapeAttr(t("block.title"))}">${escapeHtml(t("block"))}</button>
       </div>
     </div>
-    <label>Title
+    <label>${escapeHtml(t("title"))}
       <input id="titleInput" value="${escapeAttr(title)}">
     </label>
-    <label>Draft
+    <label>${escapeHtml(t("draft"))}
       <textarea id="bodyInput">${escapeHtml(body)}</textarea>
     </label>
-    <label>Review note
+    <label>${escapeHtml(t("review.note"))}
       <textarea id="commentInput" class="note">${escapeHtml(comment)}</textarea>
     </label>
     <div class="supportGrid">
-      ${item.title_options?.length ? `<section class="sectionBlock"><h3>Title Options</h3><p>${item.title_options.map(escapeHtml).join("<br>")}</p></section>` : ""}
-      ${item.media_brief ? `<section class="sectionBlock"><h3>Media Brief</h3><p>${escapeHtml(item.media_brief)}</p></section>` : ""}
-      ${item.hashtags?.length ? `<section class="sectionBlock"><h3>Hashtags</h3><p>${item.hashtags.map(escapeHtml).join(" ")}</p></section>` : ""}
+      ${item.title_options?.length ? `<section class="sectionBlock"><h3>${escapeHtml(t("title.options"))}</h3><p>${item.title_options.map(escapeHtml).join("<br>")}</p></section>` : ""}
+      ${item.media_brief ? `<section class="sectionBlock"><h3>${escapeHtml(t("media.brief"))}</h3><p>${escapeHtml(item.media_brief)}</p></section>` : ""}
+      ${item.hashtags?.length ? `<section class="sectionBlock"><h3>${escapeHtml(t("hashtags"))}</h3><p>${item.hashtags.map(escapeHtml).join(" ")}</p></section>` : ""}
     </div>
   `;
 }
@@ -815,6 +947,25 @@ function normalizeTodo(todo) {
   };
 }
 
+function statusLabel(status = "") {
+  const labels = {
+    todo: t("status.todo"),
+    queued: t("status.todo"),
+    in_progress: t("status.started"),
+    writing: t("status.started"),
+    done: t("status.done"),
+    blocked: t("status.blocked"),
+    confirmed: t("status.confirmed"),
+    selected: t("status.selected"),
+    approved: t("status.approved"),
+    needs_review: t("status.needsReview"),
+    changes_requested: t("status.changesRequested"),
+    draft: t("status.draft"),
+    ready: t("status.ready")
+  };
+  return labels[status] || status;
+}
+
 function getSelectedDirection(topic) {
   if (!topic?.directions?.length) return null;
   return topic.directions.find((direction) => direction.status === "selected" || direction.status === "confirmed") || topic.directions[0];
@@ -863,11 +1014,11 @@ function itemStatus(item) {
 }
 
 function readinessFor(status) {
-  if (status === "approved" || status === "done") return "ready";
-  if (status === "blocked") return "blocked";
-  if (status === "changes_requested") return "AI to revise";
-  if (status === "needs_review") return "needs edit";
-  return "to approve";
+  if (status === "approved" || status === "done") return t("readiness.ready");
+  if (status === "blocked") return t("readiness.blocked");
+  if (status === "changes_requested") return t("readiness.aiToRevise");
+  if (status === "needs_review") return t("readiness.needsEdit");
+  return t("readiness.toApprove");
 }
 
 function normalizeChannel(channel = "") {
@@ -878,7 +1029,7 @@ function normalizeChannel(channel = "") {
   if (value === "wechat") return language === "zh-CN" ? "公众号" : "WeChat";
   if (value === "newsletter") return "NewsNet";
   if (value === "linkedin") return "LinkedIn";
-  return channel || "Channel";
+  return channel || t("channel");
 }
 
 function channelInitial(channel) {

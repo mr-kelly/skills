@@ -3,7 +3,7 @@ import { loadBatch, normalizeItem } from "./batch-store.mjs";
 import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./config.mjs";
 import { lockPayload } from "./lock.mjs";
 import { normalizeQueryValue } from "./utils.mjs";
-import { isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.mjs";
+import { approvedPriority, isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.mjs";
 
 function countByStatus(items) {
   const counts = {};
@@ -48,7 +48,13 @@ export async function statePayload(query = {}) {
   if (search) {
     items = items.filter((item) => `${item.review_ref} ${item.from} ${item.subject} ${item.summary}`.toLowerCase().includes(search));
   }
-  items.sort((a, b) => uidNumber(b) - uidNumber(a));
+  items.sort((a, b) => {
+    if (mode === "approved") {
+      const priority = approvedPriority(a) - approvedPriority(b);
+      if (priority) return priority;
+    }
+    return uidNumber(b) - uidNumber(a);
+  });
   const counts = countByStatus(allItems);
   counts.needs_review = allItems.filter(isNeedsReview).length;
   counts.to_approve = 0;

@@ -5,8 +5,9 @@ export function isDemoQuery(query = {}) {
   return Boolean(value);
 }
 
-export function demoState() {
-  return {
+export function demoState(query = {}) {
+  const lang = query.get?.("lang") || query.lang || "en";
+  const state = {
     demo: true,
     batch: {
       batch_id: "demo-content-20260618",
@@ -188,4 +189,76 @@ export function demoState() {
       config_paths: []
     }
   };
+  return String(lang).toLowerCase().startsWith("zh") ? localizeZh(state) : state;
+}
+
+function localizeZh(state) {
+  const batch = state.batch;
+  batch.canonical_idea = "本地优先 AI 工作流的实用发布指南";
+  batch.source_summary = "源文章说明小团队如何用本地复核队列、审批门和按渠道生成的发布草稿，在不暴露私密客户数据的前提下使用 AI。";
+  batch.topics[0].title = "本地优先的 AI 工作流先建立信任，再追求速度";
+  batch.topics[0].audience = "创始人、运营和产品团队";
+  batch.topics[0].subject = "一种让私密上下文留在本地，同时让 AI 准备有用草稿的工作流。";
+  batch.topics[0].evidence = "原文强调三个证据点：本地文件、显式审批和按渠道导出。";
+  batch.topics[0].directions[0].title = "先搭审批台，再自动执行动作";
+  batch.topics[0].directions[0].description = "先讲安全原则，再展示本地复核文件如何让团队快速推进，同时不放弃最终决策权。";
+  batch.topics[0].directions[0].angle = "信任优先的操作系统";
+  batch.topics[0].directions[1].title = "适合不能泄露上下文团队的安静自动化";
+  batch.topics[0].directions[1].description = "把这个工作流定位成保护隐私的助手：先准备工作，但等待人类确认。";
+  batch.topics[1].title = "一个来源，五个渠道草稿";
+  batch.topics[1].audience = "内容运营";
+  batch.topics[1].subject = "把一篇主文章改写成适合不同渠道的帖子。";
+  batch.topics[1].directions[0].title = "保留证据，替换包装";
+  batch.topics[1].directions[0].description = "解释如何保留核心论点，同时为每个平台重写 hook、节奏和素材。";
+  batch.topics[2].title = "复核队列才是产品界面";
+  batch.topics[2].audience = "AI 产品构建者";
+  batch.topics[2].subject = "审批界面让智能体的工作变得可检查。";
+  batch.topics[2].directions[0].title = "先让智能体工作可见，再让它变强";
+  batch.todos[0].title = "先搭审批台，再自动执行动作";
+  batch.todos[0].description = "围绕本地文件、人工审批和安全导出边界撰写主稿。";
+  batch.todos[0].subject = "本地优先 AI 工作流";
+  batch.todos[1].title = "保留证据，替换包装";
+  batch.todos[1].description = "为不同渠道的文案变体准备分发备忘。";
+  batch.todos[1].subject = "渠道原生分发";
+  batch.main_content.title = "先搭审批台，再自动执行动作";
+  batch.main_content.hero_alt = "带草稿卡片和审批控件的本地复核台";
+  batch.main_content.cover_brief = "一个干净的工作台：一篇源文章进入邮件、代码评审和发布队列，最后导出已批准草稿。";
+  batch.main_content.dek = "本地优先 AI 工作流应该先让下一步动作可检查，再让动作可执行。";
+  batch.main_content.html = "<p>最快的智能体工作流不是跳过复核，而是让复核足够轻，轻到每次都值得做。</p><h3>1. 让上下文留在本地</h3><p>用本地交接文件保存批次、草稿和决定。界面可以很丰富，但不需要把私密数据发出去。</p><h3>2. 把准备和执行分开</h3><p>智能体准备摘要、建议和草稿；人类批准最终动作。</p><h3>3. 只导出已批准内容</h3><p>输出步骤读取显式决定，再写出适合各渠道的成品。</p>";
+  for (const item of batch.distribution) {
+    if (item.id === "dist-blog") {
+      item.title = "先搭审批台，再自动执行动作";
+      item.summary = "给正在设计本地优先 AI 工作流团队的主文章。";
+      item.body = "本地审批台让团队获得速度，同时不交出控制权。先建立队列，显示建议，保留本地编辑，只在明确批准后执行。";
+      item.cta = "把这个模式用于下一个会接触客户数据的工作流。";
+      item.media_brief = "图示：源文章 -> 本地复核队列 -> 已批准的渠道导出。";
+      item.title_options = ["先搭审批台，再自动执行动作", "本地优先智能体需要复核台，不需要黑盒"];
+      item.hashtags = ["#本地优先", "#AI工作流", "#产品运营"];
+    } else if (item.id === "dist-linkedin") {
+      item.title = "审批台让 AI 工作变成团队工作";
+      item.summary = "面向运营和创始人的短 LinkedIn 帖子。";
+      item.body = "我最近看到最好的 AI 工作流其实很朴素：生成批次，本地复核，批准下一步，再执行。这个小小的审批层，才让智能体从聪明演示变成可用运营工具。";
+      item.cta = "你会先把哪个工作流放到审批台后面？";
+      item.media_brief = "截图轮播：队列、详情面板和审批按钮。";
+      item.hashtags = ["#AI", "#运营", "#工作流"];
+    } else if (item.id === "dist-newsletter") {
+      item.title = "一种更安静地交付 AI 辅助工作的方式";
+      item.summary = "带实用 checklist 的 newsletter 版本。";
+      item.body = "本周：一个不需要盲目信任的 AI 辅助工作模式。批次留在本地，展示每条建议，保留草稿，并把审批保存成文件记录。";
+      item.cta = "回复我：你想把哪个工作流放进审批门？";
+      item.media_brief = "简洁 checklist 图。";
+      item.hashtags = ["#AI", "#复核"];
+    } else if (item.id === "dist-x") {
+      item.title = "智能体需要审批台";
+      item.summary = "更短的串文草稿。";
+      item.body = "有用的智能体工作流有两个独立时刻：准备工作，然后执行已批准动作。把两者混在一起，团队很快会失去信任。";
+      item.cta = "先搭复核队列。";
+      item.media_brief = "不配图，保持文字优先。";
+      item.hashtags = ["#AI", "#本地优先"];
+    }
+  }
+  state.decisions["dist-newsletter"].title = "一种更安静地交付 AI 辅助工作的方式";
+  state.decisions["dist-newsletter"].body = "本周：一个不需要盲目信任的 AI 辅助工作模式。批次留在本地，展示每条建议，保留草稿，并把审批保存成文件记录。";
+  state.decisions["dist-newsletter"].comment = "可以导出。";
+  return state;
 }

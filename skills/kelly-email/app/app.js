@@ -384,7 +384,20 @@ function attachmentHtml(att) {
 }
 
 function badge(text, extra = "") {
-  return `<span class="badge ${extra}">${escapeHtml(text)}</span>`;
+  return `<span class="badge ${extra}">${escapeHtml(badgeLabel(text))}</span>`;
+}
+
+function badgeLabel(value) {
+  if (!value) return "";
+  const key = String(value);
+  return optionalT(`label.status.${key}`)
+    || optionalT(`label.category.${key}`)
+    || optionalT(`label.risk.${key}`)
+    || key.replaceAll("_", " ");
+}
+
+function optionalT(key) {
+  return I18N[uiLanguage]?.[key] || I18N.en[key] || "";
 }
 
 function actionLabel(action) {
@@ -808,12 +821,12 @@ function decisionLabel(item) {
   if (action === "mark_read") return badge(t("badge.approved_mark_read"), "decided");
   if (action === "send_reply") return badge(t("badge.approved_send"), "decided");
   if (action === "no_action") return badge(t("badge.no_action"), "done");
-  return badge(t("badge.approved_action", { action }), "decided");
+  return badge(t("badge.approved_action", { action: actionLabel(action) }), "decided");
 }
 
 function executionLabel(item) {
   const execution = item.execution || {};
-  if (execution.status === "executed") return badge(t("badge.executed", { action: execution.action }), "executed");
+  if (execution.status === "executed") return badge(t("badge.executed", { action: actionLabel(execution.action) }), "executed");
   if (execution.status === "blocked") return badge(t("badge.blocked"), "blocked");
   return "";
 }

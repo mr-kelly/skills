@@ -350,7 +350,7 @@ For every `Needs Review` item, include a short review briefing for the user. The
 
 Number the current `Needs Review` queue for conversational edits. The UI should show a stable per-batch reference such as `Review #1`, `Review #2`, etc., derived from the current batch's Needs Review items in newest-first order. Show the reference in both the list row and the detail view. When the user says "改 2", "第二封", or similar, resolve that against this current Needs Review numbering before editing drafts or notes.
 
-The review UI should keep human input lightweight. Prefer a single `Review note` field for the user's instruction to `/kelly-email`; show an editable reply draft only when an actual draft exists or the user is approving a send action. Treat the note as the user's natural-language decision context, for example "ask Casper", "ok to archive", "draft a short reply", or "paid invoice; leave unread". Provide a `Draft reply` decision for messages where the user wants `/kelly-email` to compose a reply from the review note without sending it. Treat `draft_reply` as an approved next support action and show it under `Approved`; it is not a mailbox mutation and must not send email.
+The review UI should keep human input lightweight. Prefer a single `Review note` field for the user's instruction to `/kelly-email`; show an editable reply draft only when an actual draft exists or the user is approving a send action. Treat the note as the user's natural-language decision context, for example "ask Casper", "ok to archive", "draft a short reply", or "paid invoice; leave unread". Provide a `Draft reply` decision for messages where the user wants `/kelly-email` to compose a reply from the review note without sending it. Treat `draft_reply` as an approved next support action and show it under `Approved` only until the agent creates the draft; it is not a mailbox mutation and must not send email. After the draft is created, set the item to `status=drafted` and return it to `Needs Review` so the user can inspect the final wording before choosing `Approve send`.
 
 The review UI should auto-refresh local batch files on a timer and should not need a manual refresh button. Do not redraw the batch while the user is actively editing a textarea or non-search input; in that case poll only the lock state so the user's draft/note is not interrupted.
 
@@ -453,8 +453,8 @@ Generate a batch file at `.agents/skills/kelly-email/app/.data/current_batch.jso
 Current UI workflow state is derived from the item rather than stored as a separate field:
 
 - `All`: every item in the current batch.
-- `Needs Review`: `status=needs_review` or `decision.action` is `needs_review`/`revise`.
-- `Approved`: explicit executable decision waiting for `/kelly-email`, such as `archive`, `mark_read`, `send_reply`, or `draft_reply` while `status=draft_requested`; also includes prepared/drafted items with a clear AI next step, so the user does not need to approve an extra intermediate state.
+- `Needs Review`: `status=needs_review`, `status=drafted` without `decision.action=send_reply`, or `decision.action` is `needs_review`/`revise`. Drafted replies always return here for final human send approval.
+- `Approved`: explicit executable decision waiting for `/kelly-email`, such as `archive`, `mark_read`, `send_reply`, or `draft_reply` while `status=draft_requested`; also includes prepared non-reply cleanup items with a clear AI next step, so the user does not need to approve an extra intermediate state. Do not include drafted replies unless the user explicitly approved sending them.
 - `Done`: `execution.status=executed` or `decision.action=no_action`.
 - `Blocked`: `execution.status=blocked`.
 

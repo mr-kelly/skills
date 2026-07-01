@@ -14,7 +14,8 @@ export function isDemoQuery(query = {}) {
 
 export function demoStatePayload(query = {}) {
   const scenario = demoScenario(query);
-  const allItems = withReviewNumbers(demoItemsForScenario(scenario));
+  const zh = String(query.lang || "").toLowerCase().startsWith("zh");
+  const allItems = withReviewNumbers(zh ? localizeItemsZh(demoItemsForScenario(scenario)) : demoItemsForScenario(scenario));
   const mode = queryValue(query.mode, "all");
   const search = String(query.q || "").toLowerCase().trim();
   let items = allItems;
@@ -50,9 +51,149 @@ export function demoStatePayload(query = {}) {
     total_cached: allItems.length,
     batch_path: "demo://kelly-email/current_batch.json",
     decisions_path: "demo://kelly-email/decisions.json",
-    email_accounts: demoAccounts(),
+    email_accounts: zh ? localizeAccountsZh(demoAccounts()) : demoAccounts(),
     lock: { locked: false },
   };
+}
+
+function localizeAccountsZh(accounts) {
+  return {
+    ...accounts,
+    onboarding: { ...accounts.onboarding, message: "Demo 模式只使用模拟账号和邮件。" },
+    profile: {
+      ...accounts.profile,
+      role: "创始人",
+      default_reply_as: "Northstar 的 Alex",
+      public_bio: "为运营团队构建本地优先 AI 工作流。",
+      languages: ["中文", "英文"]
+    },
+    brands: accounts.brands.map((brand) => ({
+      ...brand,
+      description: "面向敏感工作流团队的本地优先 AI 工具。"
+    })),
+    style: {
+      ...accounts.style,
+      default_language: "zh-CN",
+      tone: "温暖、准确、不过度营销",
+      audience: "客户、合作伙伴和产品团队",
+      paragraph_style: "短段落，每封邮件只有一个清楚下一步。",
+      reply_rules: ["先确认请求，再承诺时间。", "不要透露私密路线图。", "优先写短回复，并给一个行动。"]
+    },
+    accounts: accounts.accounts.map((account) => ({
+      ...account,
+      display_name: "支持收件箱",
+      identities: (account.identities || []).map((identity) => ({
+        ...identity,
+        display_name: "Alex 创始人"
+      }))
+    })),
+    knowledge_base: {
+      ...accounts.knowledge_base,
+      usage: "用于支持和合作邮件的产品事实。",
+      facts: ["Northstar 会把 review batch 留在本地。", "执行动作需要明确批准。", "Demo 模式不会读取真实邮件。"],
+      do_not_say: ["不要声称已经通过 SOC2。", "不要承诺企业客户当天 onboarding。"]
+    }
+  };
+}
+
+function localizeItemsZh(items) {
+  const map = {
+    "demo-email-001": {
+      from: "陈 Maya <maya@acme.example>",
+      subject: "客服场景可以使用审批队列吗？",
+      reason: "发件人在询问产品能力，需要一封准确且有边界的回复。",
+      summary: "Maya 想确认本地审批工作流能否总结 support threads，同时保护客户数据隐私。",
+      body_original: "你好 Alex，我们正在评估 AI support workflow。Northstar 能否在不把邮件内容发送到 hosted dashboard 的情况下，总结进入的客户线程？我们需要在回复发出前有人工审批步骤。",
+      body_original_language: "zh-CN",
+      suggested_reply: "Hi Maya，可以。复核批次可以留在你的机器上，界面只写入本地决定；只有当你明确要求智能体执行已批准回复时，才会发出动作。我也可以发你设置清单。",
+      draft: "Hi Maya，可以。复核批次可以留在你的机器上，界面只写入本地决定；只有当你明确要求智能体执行已批准回复时，才会发出动作。我也可以发你设置清单。",
+      review_brief: {
+        user_language: "zh-CN",
+        suggested_reply: "Hi Maya，可以。复核批次可以留在你的机器上...",
+        background: "客户正在评估私密 AI support workflow。",
+        why_review: "产品承诺需要准确、范围清楚。",
+        recommendation: "起草简短回复，并提供 setup checklist。"
+      },
+      html: "<p>你好 Alex，</p><p>Northstar 能否在不把邮件内容发送到托管看板的情况下，总结进入的客户线程？</p><p>我们需要在回复发出前有人工审批步骤。</p>"
+    },
+    "demo-email-002": {
+      from: "李 Jordan <jordan@partner.example>",
+      subject: "本地优先 AI 线上分享大纲",
+      reason: "合作方的信息同步邮件，内容已进入 content queue。",
+      summary: "合作伙伴分享线上分享大纲，并请求一个轻量确认。",
+      body_original: "大纲见附件。如果方向没问题，我们下周会开始官宣。",
+      body_original_language: "zh-CN",
+      html: "<p>大纲见附件。如果方向没问题，我们下周会开始官宣。</p>"
+    },
+    "demo-email-003": {
+      from: "安全机器人 <alerts@example.test>",
+      subject: "来自香港的新登录",
+      reason: "安全相关邮件不应自动归档。",
+      summary: "账户安全提醒，包含地点和浏览器信息。",
+      body_original: "我们检测到一次来自香港、使用 macOS Chrome 的新登录。如果是你本人操作，则无需处理。",
+      body_original_language: "zh-CN",
+      html: "<p>我们检测到一次来自香港、使用 macOS Chrome 的新登录。</p>"
+    },
+    "demo-email-004": {
+      from: "财务 Nina <nina@finance.example>",
+      subject: "6 月工作区复核发票",
+      reason: "财务相关邮件需要确认后再清理。",
+      summary: "供应商发送发票，并询问 billing contact 是否需要变更。",
+      body_original: "发票见附件。账单联系人继续使用 Alex Rivera，还是改成 operations@example.test？",
+      body_original_language: "zh-CN",
+      suggested_reply: "Hi Nina，6 月请先保留当前账单联系人。下次发票前如果需要变更，我会再确认。",
+      draft: "Hi Nina，6 月请先保留当前账单联系人。下次发票前如果需要变更，我会再确认。"
+    },
+    "demo-email-005": {
+      from: "产品更新 <updates@example.test>",
+      subject: "6 月更新：审批、锁和导出",
+      reason: "简报可以在复核后归档。",
+      summary: "产品更新邮件，包含 changelog 链接。",
+      body_original: "这个月我们增加了显式锁、更安全的导出和更完整的复核台。",
+      body_original_language: "zh-CN",
+      html: "<h1>6 月更新</h1><p>显式锁、更安全的导出和更完整的复核台。</p>"
+    },
+    "demo-email-006": {
+      from: "Eli 工作室 <eli@studio.example>",
+      subject: "关于截图安全 demo 数据的问题",
+      reason: "隐私相关问题需要准确回答。",
+      summary: "Eli 询问演示模式如何避免文档截图暴露真实队列数据。",
+      body_original: "你们是否支持演示标记，确保文档截图永远不会显示真实客户邮件？",
+      body_original_language: "zh-CN",
+      suggested_reply: "支持。给应用 URL 加上 ?demo=1 后，服务会返回模拟批次，而不是读取本地缓存文件。",
+      draft: "支持。给应用 URL 加上 ?demo=1 后，服务会返回模拟批次，而不是读取本地缓存文件。",
+      html: "<p>你们是否支持演示标记，确保文档截图永远不会显示真实客户邮件？</p>"
+    },
+    "demo-email-007": {
+      subject: "已归档：每日摘要完成",
+      reason: "已由批准过的清理动作处理。",
+      summary: "每日摘要在批准后已归档。",
+      body_original: "摘要已成功归档。",
+      body_original_language: "zh-CN"
+    },
+    "demo-email-008": {
+      from: "未知发件人 <unknown@example.test>",
+      subject: "紧急变更账户所有者",
+      reason: "已阻止：发件人身份未验证。",
+      summary: "请求变更所有者，并要求绕过常规确认。",
+      body_original: "请今天变更所有者，并且不要通知当前管理员。",
+      body_original_language: "zh-CN",
+      execution: { status: "blocked", action: "archive", reason: "安全敏感请求需要人工验证。" }
+    }
+  };
+  return items.map((item) => {
+    const patch = map[item.id];
+    const reviewPatch = item.review_number ? { review_ref: `复核 #${item.review_number}` } : {};
+    if (!patch) return { ...item, ...reviewPatch };
+    return {
+      ...item,
+      ...patch,
+      ...reviewPatch,
+      review_brief: patch.review_brief || item.review_brief,
+      body_translation: "",
+      body_translation_language: ""
+    };
+  });
 }
 
 function queryValue(value, fallback = "") {
@@ -80,7 +221,8 @@ function withReviewNumbers(items) {
   return items.map((item) => {
     const reviewNumber = byId.get(String(item.id)) || null;
     if (!reviewNumber) return { ...item, review_number: null, review_ref: "" };
-    return { ...item, review_number: reviewNumber, review_ref: `Review #${reviewNumber}` };
+    const prefix = String(item.body_original_language || item.review_brief?.user_language || "").toLowerCase().startsWith("zh") ? "复核" : "Review";
+    return { ...item, review_number: reviewNumber, review_ref: `${prefix} #${reviewNumber}` };
   });
 }
 
