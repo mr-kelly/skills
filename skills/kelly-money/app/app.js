@@ -9,17 +9,66 @@ const state = {
   demo: new URLSearchParams(location.search).get("demo") || ""
 };
 
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-money.sidebarCollapsed";
+
 const els = {
   title: document.querySelector("#page-title"),
   subtitle: document.querySelector("#page-subtitle"),
   content: document.querySelector("#content"),
   search: document.querySelector("#search"),
   refresh: document.querySelector("#refresh"),
+  mobileRefresh: document.querySelector("#mobileRefresh"),
+  sidebarToggle: document.querySelector("#sidebarToggle"),
+  mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
+  sidebarScrim: document.querySelector("#sidebarScrim"),
+  mobileViewTitle: document.querySelector("#mobileViewTitle"),
+  mobileViewMeta: document.querySelector("#mobileViewMeta"),
   syncStatus: document.querySelector("#sync-status"),
   attentionPrimary: document.querySelector("#attention-primary"),
   attentionSecondary: document.querySelector("#attention-secondary"),
+  reviewCount: document.querySelector("#count-review"),
+  txCount: document.querySelector("#count-transactions"),
+  accountCount: document.querySelector("#count-accounts"),
   language: document.querySelector("#language")
 };
+
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 720px)").matches;
+}
+
+function syncSidebarState() {
+  const collapsed = document.body.classList.contains("sidebar-collapsed");
+  els.sidebarToggle?.setAttribute("aria-expanded", String(!collapsed));
+}
+
+function setSidebarCollapsed(collapsed, { persist = true } = {}) {
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+  syncSidebarState();
+  if (persist) localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
+}
+
+function setMobileSidebarOpen(open) {
+  document.body.classList.toggle("sidebar-open", Boolean(open));
+  if (els.sidebarScrim) els.sidebarScrim.hidden = !open;
+}
+
+function toggleSidebar() {
+  if (isMobileLayout()) {
+    setMobileSidebarOpen(!document.body.classList.contains("sidebar-open"));
+    return;
+  }
+  setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+}
+
+function syncResponsiveShell() {
+  if (isMobileLayout()) {
+    document.body.classList.remove("sidebar-collapsed");
+    setMobileSidebarOpen(false);
+  } else {
+    setMobileSidebarOpen(false);
+    setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "1", { persist: false });
+  }
+}
 
 function activeLang() {
   if (state.lang !== "auto") return state.lang;
@@ -111,6 +160,7 @@ function applyI18n() {
   }
   els.search.placeholder = t("search");
   els.refresh.textContent = t("refresh");
+  if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
 }
 
 function renderShell() {
@@ -121,11 +171,26 @@ function renderShell() {
   const configuredCount = state.settings?.config_summary?.accounts?.length || 0;
   const txCount = snapshot?.transactions?.length || 0;
   els.syncStatus.textContent = snapshot ? `${txCount} ${t("tx")}` : t("empty");
-  els.attentionPrimary.textContent = reviewCount ? `${reviewCount} ${t("invoiceNeedsReview")}` : (warningCount ? `${warningCount} ${t("warnings")}` : (configuredCount ? t("synced") : t("setupNeeded")));
-  els.attentionSecondary.textContent = `${configuredCount} ${t("configured")}`;
-  document.querySelectorAll(".nav a").forEach((link) => {
+  if (els.reviewCount) els.reviewCount.textContent = reviewCount + warningCount;
+  if (els.txCount) els.txCount.textContent = txCount;
+  if (els.accountCount) els.accountCount.textContent = configuredCount;
+  if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
+  if (els.mobileViewMeta) {
+    els.mobileViewMeta.textContent = reviewCount
+      ? `${reviewCount} ${t("invoiceNeedsReview")}`
+      : (warningCount ? `${warningCount} ${t("warnings")}` : `${txCount} ${t("tx")}`);
+  }
+  document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
   });
+}
+
+function viewLabel(view) {
+  if (view === "overview") return t("overview");
+  if (view === "accounts") return t("accounts");
+  if (view === "invoices") return t("invoices");
+  if (view === "settings") return t("settings");
+  return t("ledger");
 }
 
 function metricCards() {
@@ -543,11 +608,16 @@ function escapeHtml(value) {
 }
 
 window.addEventListener("hashchange", setRoute);
+window.addEventListener("resize", syncResponsiveShell);
+els.sidebarToggle?.addEventListener("click", toggleSidebar);
+els.mobileSidebarToggle?.addEventListener("click", () => setMobileSidebarOpen(true));
+els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.search.addEventListener("input", () => {
   state.query = els.search.value;
   render();
 });
 els.refresh.addEventListener("click", () => loadState());
+els.mobileRefresh?.addEventListener("click", () => loadState());
 els.language.value = state.lang;
 els.language.addEventListener("change", () => {
   state.lang = normalizeLang(els.language.value);
@@ -555,6 +625,7 @@ els.language.addEventListener("change", () => {
   render();
 });
 
+syncResponsiveShell();
 loadState().catch((error) => {
   els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
 });

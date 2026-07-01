@@ -10,6 +10,7 @@
     <div class="app-shell">
       <aside class="sidebar" id="appSidebar">
         <div class="brand">
+          <div class="brand-icon" aria-hidden="true">EM</div>
           <div class="brand-copy">
             <div class="brand-title">Kelly Email</div>
             <div class="brand-subtitle" data-i18n="brand.subtitle">Email review desk</div>
@@ -22,7 +23,7 @@
             aria-expanded="true"
             title="Toggle sidebar"
             aria-label="Toggle sidebar"
-          >☰</button>
+          ><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
         </div>
         <div class="search sidebar-search">
           <input id="searchInput" data-i18n-placeholder="search.placeholder" placeholder="Search sender, subject, summary" />
@@ -98,14 +99,27 @@
       </aside>
 
       <main class="main">
-        <button
-          id="mobileSidebarToggle"
-          class="mobile-sidebar-toggle"
-          type="button"
-          aria-controls="appSidebar"
-          aria-label="Open sidebar"
-          title="Open sidebar"
-        >☰</button>
+        <div class="mobile-topbar">
+          <button
+            id="mobileSidebarToggle"
+            class="mobile-sidebar-toggle"
+            type="button"
+            aria-controls="appSidebar"
+            aria-label="Open sidebar"
+            title="Open sidebar"
+          ><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+          <div class="mobile-topbar-copy">
+            <div id="mobileViewTitle" class="mobile-view-title">Kelly Email</div>
+            <div id="mobileViewMeta" class="mobile-view-meta">0 items</div>
+          </div>
+          <button
+            id="mobileHelpButton"
+            class="mobile-help-button"
+            type="button"
+            data-i18n="help.title"
+            aria-label="Help & Settings"
+          >Help & Settings</button>
+        </div>
         <div id="lockBanner" class="lock-banner is-hidden">
           <strong data-i18n="lock.title">Locked</strong>
           <span id="lockMessage" data-i18n="lock.default">The local files are locked for a moment.</span>

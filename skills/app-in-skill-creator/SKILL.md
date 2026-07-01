@@ -270,6 +270,9 @@ The skill should:
 Build the app as a quiet local tool, not a landing page. Keep controls obvious and stable.
 
 - Default to launching/reusing the local app when the skill is invoked for review/approval work; use chat-only review only when the user explicitly asks for it.
+- Use a quiet, minimal visual language by default: neutral surfaces, soft borders, sparse shadows, restrained accent color, and transparent icon buttons. Avoid black floating mobile buttons, hamburger glyphs, loud selected-row fills, heavy card shadows, decorative gradients, and hover states that turn every control into a high-contrast call-to-action.
+- Prefer the minimal panel-style sidebar icon from `references/mobile-shell-layout.md` for sidebar collapse/open controls. It should look like a tool affordance, not a primary action button.
+- Always include a small brand/skill icon in the sidebar's top-left brand area and keep it visible when the sidebar is collapsed. The collapse/open control is separate from the brand icon.
 - Put a human-attention summary at the top-left of the app, above the normal sidebar navigation. This area answers "what do I need to do?" before anything else. Show the primary human task first, such as `Need a note or decision`, then secondary counts such as `Ready for agent next` and `Blocked`. Add a visual divider below this area before the ordinary filters.
 - Use fixed sidebar workflow filters such as `All`, `Needs Review`, `Approved`, `Done`, and `Blocked`. Add `To approve` only when it represents a genuinely distinct human decision, not as a default waiting room for obvious next steps.
 - Add hover tooltips for icon buttons, workflow filters, and action buttons.
@@ -279,6 +282,10 @@ Build the app as a quiet local tool, not a landing page. Keep controls obvious a
 - For queues that users discuss back in chat, show stable per-batch row references such as `Review #1` in both the list and detail views so comments like "change #2" can be resolved unambiguously.
 - Auto-refresh files on a timer, but do not redraw while the user is actively editing a textarea or non-search input.
 - Keep the top bar and sidebar fixed if the item list scrolls.
+- Treat mobile responsiveness as part of the default app contract, not a polish pass. At `<=720px`, collapse the app to one column, use a top mobile bar with the current view/item count and a drawer button, move the sidebar into an off-canvas drawer with a scrim, and show list and detail as separate full-height panes instead of squeezing them side by side. Selecting a row should open the detail pane; the detail pane must have a sticky back-to-list control.
+- Make mobile action surfaces touch-friendly and stable. Keep primary detail actions sticky near the top of the detail pane, put secondary actions in a compact menu, and make bulk actions appear only after selection as a horizontally scrollable toolbar. Buttons and row targets should be at least about 36-44px tall where practical, text must truncate or wrap within its container, and no toolbar/menu should create horizontal page overflow.
+- Verify the app in both desktop and phone-sized browser viewports before handing it off. For review queues, check at least a 390px-wide viewport and one desktop viewport: the sidebar drawer opens/closes, list rows are scannable, selecting a row opens detail, back returns to the list, sticky actions do not cover content, modals fit, and `document.documentElement.scrollWidth <= window.innerWidth`.
+- Use `references/mobile-shell-layout.md` as the reusable checklist/patch template for this pattern: Linear-style desktop shell, phone shell, sidebar icon, scrim behavior, Help & Settings modal, and viewport verification.
 - For zero-dependency single-page apps, use native hash routing by default for meaningful view state: `#/items`, `#/items/<id>`, `#/settings`, or workflow-specific equivalents. Do not add a router dependency just to make URLs change. Route all sidebar navigation, list selection, detail tabs, settings/help panels, and other share-worthy states through one small hash router so browser back/forward works, refresh restores the same view, and users can copy a URL back into chat. Use `history.replaceState` for keyboard selection or automatic route cleanup so arrow-key browsing does not flood history; use normal hash changes for user-initiated navigation. Prefer hash routes over `history.pushState` unless the local server intentionally implements an index.html fallback for every app path.
 - Use local HTTP on `127.0.0.1`; do not expose the app externally.
 - Prefer local app ports in the `3000-4000` range, starting at `3000`; if the port is occupied, reuse it only when the health/state response proves it is the same app, otherwise choose the next available port in the range. Always report the actual URL printed by the launcher.
@@ -396,8 +403,9 @@ When creating or updating an App-in-Skill:
 9. Add a sanitized config summary, active data-provider name, and onboarding status to `/api/state` when the user needs to verify configured accounts, operator profile, style, official URLs, knowledge sources, or data sources.
 10. Add the human-attention panel at the top-left and verify that it clearly tells the user what they need to do before they inspect the list.
 11. Add a zero-dependency hash router for the app's meaningful state and verify deep links, refresh restore, and browser back/forward behavior. At minimum, sidebar views and selected item/detail routes should have stable hashes.
-12. Start the app with `app/start.sh` and verify the onboarding and main workflow in a browser when available.
-13. Run the validator and a dry-run execution before enabling real side effects.
+12. Add the mobile responsive shell: drawer sidebar, mobile top bar, single-pane list/detail navigation, touch-sized action controls, scroll-contained panels, and overflow-safe text. Use `references/mobile-shell-layout.md` as the checklist/patch template for the Linear-style desktop shell, phone shell, sidebar icon, scrim behavior, Help & Settings modal, and verification checks.
+13. Start the app with `app/start.sh` and verify the onboarding and main workflow in a browser when available, including at least one phone viewport and one desktop viewport.
+14. Run the validator and a dry-run execution before enabling real side effects.
 
 ## Safety Defaults
 

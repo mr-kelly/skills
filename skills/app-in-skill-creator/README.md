@@ -136,7 +136,13 @@ Keep shared code in `lib/`. Keep `scripts/` as thin entrypoints. Keep real confi
 
 Put a small human-attention panel at the top-left of the app, above the normal sidebar filters. It should answer "what do I need to do?" immediately: one primary task such as `Need a note or decision`, plus secondary counts such as `Ready for agent next` and `Blocked`. Add a divider below it before the ordinary views.
 
+Use a quiet, minimal visual language by default: neutral surfaces, soft borders, sparse shadows, restrained accent color, and transparent icon buttons. Avoid black floating mobile buttons, hamburger glyphs, loud selected-row fills, heavy card shadows, decorative gradients, and hover states that make every control feel primary.
+
 For zero-dependency single-page apps, use native hash routing by default. Meaningful states should have copyable URLs such as `#/items`, `#/items/<id>`, or `#/settings`, without adding a router package. Route sidebar views, selected rows, detail tabs, and settings/help panels through one small hash router so refresh restores the same view and browser back/forward works. Use `history.replaceState` for keyboard selection or automatic cleanup so rapid navigation does not fill the history stack.
+
+Mobile responsiveness is part of the default contract. At phone widths, collapse to one column, use an off-canvas sidebar drawer with a scrim, add a compact top bar with the current view and count, and show list/detail as separate full-height panes with a sticky back control. Keep primary actions sticky, secondary actions in a compact menu, and bulk actions as a selection-only horizontal toolbar. Verify at a phone viewport and a desktop viewport, including no horizontal page overflow.
+
+See `references/mobile-shell-layout.md` for the reusable checklist and patch template for the mobile shell, sidebar icon, scrim behavior, modal layout, and Linear-style desktop shell.
 
 Avoid extra approval layers. If an item already has a safe, concrete next step, show it as approved/ready for the agent rather than making the human click through a `To approve` holding state. Save human clicks for judgment, edits, exceptions, and irreversible actions.
 
