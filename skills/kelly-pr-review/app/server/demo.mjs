@@ -5,7 +5,8 @@ export function isDemoQuery(query = {}) {
 }
 
 export function demoStatePayload(query = {}) {
-  const allItems = demoItems();
+  const zh = String(query.lang || "").toLowerCase().startsWith("zh");
+  const allItems = zh ? demoItemsZh() : demoItems();
   const repo = String(query.repo || "all");
   const mode = String(query.mode || "all");
   const search = String(query.q || "").toLowerCase().trim();
@@ -34,10 +35,69 @@ export function demoStatePayload(query = {}) {
     batch_path: "demo://kelly-pr-review/current_batch.json",
     decisions_path: "demo://kelly-pr-review/decisions.json",
     execution_report_path: "demo://kelly-pr-review/execution_report.json",
-    config_summary: demoConfig(),
+    config_summary: zh ? demoConfigZh() : demoConfig(),
     execution_report: {},
     lock: { locked: false }
   };
+}
+
+function demoConfigZh() {
+  const config = demoConfig();
+  config.source = "模拟数据";
+  config.onboarding.message = "Demo 模式只使用模拟 PR。";
+  config.reviewer.display_name = "Alex Rivera";
+  config.repos = [
+    { repo: "northstar/app", label: "Northstar App", include: true },
+    { repo: "northstar/docs", label: "Northstar Docs", include: true },
+    { repo: "northstar/sdk", label: "Northstar SDK", include: true }
+  ];
+  config.style.tone = "具体、友好、简洁";
+  return config;
+}
+
+function demoItemsZh() {
+  return demoItems().map((item) => {
+    const zh = {
+      "northstar/app#42": {
+        title: "优化计费 webhook 重试处理",
+        summary: "为计费 webhook 增加幂等 key 和带抖动的重试策略。",
+        reason: "计费逻辑有变化；批准前需要确认重复投递测试。",
+        review_body: "我看过重试流程了。批准前请再确认重复 webhook 投递时的幂等处理。"
+      },
+      "northstar/app#57": {
+        title: "给本地 review desk 增加 demo 模式",
+        summary: "增加 ?demo=1 mock data，用于截图和 onboarding。",
+        reason: "实现只影响本地 UI routes，避免读取真实队列数据。",
+        review_body: "看起来可以。Demo 模式把文档截图和本地真实数据隔离开了。"
+      },
+      "northstar/docs#18": {
+        title: "记录 support 回复审批流程",
+        summary: "说明 support queue、review note 字段和最终执行步骤。",
+        reason: "已合并 PR 有本地人工测试记录。",
+        review_body: "已批准。说明清楚表达了本地 decision 和最终执行边界。",
+        test_note: "合并后已在本地验证文档可渲染。"
+      },
+      "northstar/app#63": {
+        title: "完善已合并 dashboard 设置流程",
+        summary: "已合并的设置页 polish，等待人工测试确认。",
+        reason: "已合并 PR 正在等待人工测试验证。"
+      },
+      "northstar/sdk#31": {
+        title: "暴露 batch validation helper",
+        summary: "导出 handoff batch shape 的验证 helper，渲染前可检查数据。",
+        reason: "阻塞，直到重新生成 type definitions。",
+        review_body: "先阻塞：生成的 declarations 已经过期。",
+        decision: { action: "block", comment: "批准前请重新生成 type definitions。", decided_at: "2026-06-17T11:25:00.000Z" }
+      },
+      "northstar/docs#22": {
+        title: "刷新 onboarding 截图",
+        summary: "把旧截图替换成中文 demo-mode 截图。",
+        reason: "本地批准后已经执行。",
+        review_body: "已执行。"
+      }
+    }[item.id];
+    return zh ? { ...item, ...zh } : item;
+  });
 }
 
 export function demoDecisionResponse(body = {}) {

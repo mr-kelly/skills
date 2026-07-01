@@ -6,7 +6,8 @@ export function isDemoQuery(query = {}) {
 
 export function demoStatePayload(query = {}) {
   const scenario = String(query.demo || "overview");
-  const snapshot = demoSnapshot(scenario);
+  const zh = String(query.lang || "").toLowerCase().startsWith("zh");
+  const snapshot = zh ? localizeSnapshotZh(demoSnapshot(scenario)) : demoSnapshot(scenario);
   return {
     demo: true,
     demo_scenario: scenario,
@@ -29,6 +30,71 @@ export function demoStatePayload(query = {}) {
     },
     snapshot
   };
+}
+
+function localizeSnapshotZh(snapshot) {
+  const accountNames = {
+    "mercury-main": "Mercury 运营账户",
+    "stripe-main": "Stripe 全球收款",
+    "airwallex-main": "Airwallex 多币种账户",
+    "creem-main": "Creem SaaS 收款"
+  };
+  snapshot.accounts = snapshot.accounts.map((account) => ({
+    ...account,
+    display_name: accountNames[account.account_id] || account.display_name,
+    entity: "Atlas Studio LLC"
+  }));
+  const txText = {
+    "stripe-bal-1024": ["团队版订阅收入", "北星实验室"],
+    "stripe-ref-1025": ["重复席位退款", "明桌科技"],
+    "creem-pay-330": ["年度授权结账", "月光工具"],
+    "mercury-ach-882": ["外包付款批次", "设计伙伴"],
+    "airwallex-fx-231": ["美元到港币兑换点差", "Airwallex FX"],
+    "stripe-pay-1026": ["创作者课程付款", "陈琳"],
+    "mercury-int-184": ["金库收益入账", "Mercury 金库"],
+    "creem-sub-331": ["月度产品订阅", "星环工作室"],
+    "airwallex-card-942": ["云渲染发票付款", "渲染湾"],
+    "stripe-payout-77": ["Stripe 提现到 Mercury", "Stripe"]
+  };
+  snapshot.transactions = snapshot.transactions.map((tx) => {
+    const pair = txText[tx.transaction_id];
+    return pair ? { ...tx, description: pair[0], counterparty: pair[1] } : tx;
+  });
+  const vendors = {
+    "inv-northstar-20260629": "北星实验室",
+    "inv-bright-20260629": "明桌科技",
+    "inv-moonlit-20260628": "月光工具",
+    "inv-design-20260628": "设计伙伴",
+    "inv-render-20260625": "渲染湾",
+    "inv-orbit-20260626": "星环工作室"
+  };
+  snapshot.invoices = snapshot.invoices.map((invoice) => ({
+    ...invoice,
+    vendor: vendors[invoice.invoice_id] || invoice.vendor
+  }));
+  snapshot.invoice_matches = snapshot.invoice_matches.map((match) => {
+    if (match.match_id !== "match-render") return {
+      ...match,
+      notes: match.notes.map((note) => note
+        .replace("Amount and counterparty match Stripe balance transaction.", "金额和交易对手与 Stripe balance transaction 匹配。")
+        .replace("Credit note matches refund transaction.", "Credit note 与退款交易匹配。")
+        .replace("Creem checkout total matches invoice.", "Creem checkout 总额与发票匹配。")
+        .replace("ACH payout amount and due date match bill.", "ACH 付款金额和到期日与账单匹配。")),
+      audit_events: match.audit_events.map((event) => ({ ...event, note: event.note }))
+    };
+    const note = "发票总额为 US$700.00，但交易金额为 US$680.00。请检查折扣、credit 或部分付款。";
+    return {
+      ...match,
+      notes: [note],
+      audit_events: match.audit_events.map((event) => ({ ...event, note }))
+    };
+  });
+  snapshot.warnings = snapshot.warnings.map((warning) => ({
+    ...warning,
+    message: "Stripe 待入账余额高于平时；月结前请核对下一笔提现。",
+    detail: "演示提醒，没有读取真实平台数据。"
+  }));
+  return snapshot;
 }
 
 function demoSnapshot(scenario) {

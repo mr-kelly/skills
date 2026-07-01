@@ -5,7 +5,7 @@ const state = {
   settings: null,
   route: parseRoute(),
   query: "",
-  lang: new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-money-language") || "auto",
+  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-money-language") || "auto"),
   demo: new URLSearchParams(location.search).get("demo") || ""
 };
 
@@ -26,8 +26,20 @@ function activeLang() {
   return navigator.languages?.some((lang) => lang.toLowerCase().startsWith("zh")) ? "zh" : "en";
 }
 
+function normalizeLang(lang) {
+  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+}
+
 function t(key) {
   return messages[activeLang()]?.[key] || messages.en[key] || key;
+}
+
+function enumLabel(value, group = "status") {
+  if (!value) return "";
+  const key = String(value);
+  return messages[activeLang()]?.enum?.[group]?.[key]
+    || messages.en.enum?.[group]?.[key]
+    || key.replaceAll("_", " ");
 }
 
 function money(value, currency = state.snapshot?.base_currency || "USD") {
@@ -87,9 +99,16 @@ function applyDemoRoute() {
 }
 
 function applyI18n() {
+  document.documentElement.lang = activeLang() === "zh" ? "zh-CN" : "en";
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
+  const languageLabels = activeLang() === "zh"
+    ? { auto: "自动", en: "英文", zh: "中文" }
+    : { auto: "Auto", en: "English", zh: "中文" };
+  for (const option of els.language.options) {
+    option.textContent = languageLabels[option.value] || option.textContent;
+  }
   els.search.placeholder = t("search");
   els.refresh.textContent = t("refresh");
 }
@@ -150,8 +169,8 @@ function ledgerTable(transactions) {
               <td><div class="strong">${escapeHtml(tx.description)}</div><div class="muted">${escapeHtml(tx.counterparty || tx.provider_transaction_id || "")}</div></td>
               <td><span class="badge">${escapeHtml(tx.provider)}</span></td>
               <td><a href="#/accounts/${encodeURIComponent(tx.account_id)}">${escapeHtml(accountName(tx.account_id))}</a></td>
-              <td>${escapeHtml(tx.type)}</td>
-              <td>${escapeHtml(tx.status)}</td>
+              <td>${escapeHtml(enumLabel(tx.type, "type"))}</td>
+              <td>${escapeHtml(enumLabel(tx.status))}</td>
               <td>${invoiceBadgeForTransaction(tx.transaction_id)}</td>
               <td class="num">${money(tx.gross, tx.currency)}</td>
               <td class="num">${money(tx.fee, tx.currency)}</td>
@@ -170,13 +189,13 @@ function accountName(accountId) {
 
 function renderLedger() {
   els.title.textContent = t("ledger");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `Generated ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
   els.content.innerHTML = `${metricCards()}${warnings()}${ledgerTable(filteredTransactions())}`;
 }
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `Generated ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
   const accounts = state.snapshot?.accounts || [];
   const recent = filteredTransactions().slice(0, 6);
   els.content.innerHTML = `
@@ -184,17 +203,17 @@ function renderOverview() {
     ${warnings()}
     <section class="overview-grid">
       <div class="overview-panel">
-        <h2>Account Health</h2>
+        <h2>${t("accountHealth")}</h2>
         ${accounts.map((account) => `
           <a class="health-row" href="#/accounts/${encodeURIComponent(account.account_id)}">
             <span><strong>${escapeHtml(account.display_name)}</strong><small>${escapeHtml(account.provider)} · ${escapeHtml(account.currency)}</small></span>
             <span class="num">${money(account.balance?.current, account.currency)}</span>
-            <span class="status ${account.status}">${escapeHtml(account.status)}</span>
+            <span class="status ${account.status}">${escapeHtml(enumLabel(account.status))}</span>
           </a>
         `).join("")}
       </div>
       <div class="overview-panel">
-        <h2>Recent Money Movement</h2>
+        <h2>${t("recentMoneyMovement")}</h2>
         ${recent.map((tx) => `
           <div class="movement-row">
             <span><strong>${escapeHtml(tx.description)}</strong><small>${escapeHtml(tx.counterparty || tx.provider)}</small></span>
@@ -227,7 +246,7 @@ function renderAccounts() {
             <span>${t("grossIn")} ${money(account.totals?.gross_inflow, account.currency)}</span>
             <span>${t("net")} ${money(account.totals?.net, account.currency)}</span>
           </div>
-          <div class="status ${account.status}">${escapeHtml(account.status)}</div>
+          <div class="status ${account.status}">${escapeHtml(enumLabel(account.status))}</div>
         </a>
       `).join("")}
     </div>
@@ -257,13 +276,13 @@ function renderInvoices() {
               const match = matchForInvoice(invoice.invoice_id);
               return `
                 <tr>
-                  <td><a href="#/invoices/${encodeURIComponent(invoice.invoice_id)}"><strong>${escapeHtml(invoice.invoice_number)}</strong></a><div class="muted">${escapeHtml(invoice.direction)}</div></td>
+                  <td><a href="#/invoices/${encodeURIComponent(invoice.invoice_id)}"><strong>${escapeHtml(invoice.invoice_number)}</strong></a><div class="muted">${escapeHtml(enumLabel(invoice.direction))}</div></td>
                   <td>${escapeHtml(invoice.vendor || invoice.customer || "")}</td>
                   <td>${date(invoice.issue_date)}</td>
                   <td>${date(invoice.due_date)}</td>
-                  <td>${escapeHtml(invoice.status)}</td>
+                  <td>${escapeHtml(enumLabel(invoice.status))}</td>
                   <td>${invoiceMatchBadge(match)}</td>
-                  <td>${escapeHtml(match?.review_status?.replaceAll("_", " ") || "needs review")}</td>
+                  <td>${escapeHtml(enumLabel(match?.review_status || "needs_review"))}</td>
                   <td class="num">${money(invoice.total, invoice.currency)}</td>
                 </tr>
               `;
@@ -284,25 +303,25 @@ function renderInvoiceDetail() {
   const match = matchForInvoice(invoice.invoice_id);
   const tx = match?.transaction_id ? transactionById(match.transaction_id) : null;
   els.title.textContent = invoice.invoice_number;
-  els.subtitle.textContent = `${invoice.vendor || invoice.customer || ""} · ${invoice.status}`;
+  els.subtitle.textContent = `${invoice.vendor || invoice.customer || ""} · ${enumLabel(invoice.status)}`;
   els.content.innerHTML = `
     <section class="detail">
       <div class="detail-main">
         ${invoiceDetailPanel(invoice, match, tx)}
         ${match?.notes?.length ? `<div class="warnings">${match.notes.map((note) => `<div><strong>${escapeHtml(note)}</strong></div>`).join("")}</div>` : ""}
-        ${tx ? ledgerTable([tx]) : `<div class="empty">No matching transaction selected yet.</div>`}
+        ${tx ? ledgerTable([tx]) : `<div class="empty">${t("noMatchingTransaction")}</div>`}
       </div>
       <aside class="detail-side">
         <h2>${t("invoiceDetail")}</h2>
         <dl>
-          <dt>${t("direction")}</dt><dd>${escapeHtml(invoice.direction)}</dd>
+          <dt>${t("direction")}</dt><dd>${escapeHtml(enumLabel(invoice.direction))}</dd>
           <dt>${t("currency")}</dt><dd>${escapeHtml(invoice.currency)}</dd>
           <dt>${t("subtotal")}</dt><dd>${money(invoice.subtotal, invoice.currency)}</dd>
           <dt>${t("tax")}</dt><dd>${money(invoice.tax, invoice.currency)}</dd>
           <dt>${t("total")}</dt><dd>${money(invoice.total, invoice.currency)}</dd>
           <dt>${t("source")}</dt><dd>${escapeHtml(invoice.source || "")}</dd>
           <dt>${t("rule")}</dt><dd>${escapeHtml(match?.matching_rule || "")}</dd>
-          <dt>${t("review")}</dt><dd>${escapeHtml(match?.review_status?.replaceAll("_", " ") || "needs review")}</dd>
+          <dt>${t("review")}</dt><dd>${escapeHtml(enumLabel(match?.review_status || "needs_review"))}</dd>
         </dl>
       </aside>
     </section>
@@ -316,7 +335,7 @@ function renderAccountDetail() {
     return;
   }
   els.title.textContent = account.display_name;
-  els.subtitle.textContent = `${account.provider} · ${account.currency} · ${account.status}`;
+  els.subtitle.textContent = `${account.provider} · ${account.currency} · ${enumLabel(account.status)}`;
   els.content.innerHTML = `
     <section class="detail">
       <div class="detail-main">
@@ -325,14 +344,14 @@ function renderAccountDetail() {
         ${ledgerTable(filteredTransactions(account.account_id))}
       </div>
       <aside class="detail-side">
-        <h2>Account Detail</h2>
+        <h2>${t("accountDetail")}</h2>
         <dl>
-          <dt>Provider</dt><dd>${escapeHtml(account.provider)}</dd>
-          <dt>Account ID</dt><dd>${escapeHtml(account.account_id)}</dd>
-          <dt>Provider ID</dt><dd>${escapeHtml(account.provider_account_id || "")}</dd>
-          <dt>Last sync</dt><dd>${escapeHtml(account.last_sync_at || "")}</dd>
-          <dt>Available</dt><dd>${money(account.balance?.available, account.currency)}</dd>
-          <dt>Pending</dt><dd>${money(account.balance?.pending, account.currency)}</dd>
+          <dt>${t("provider")}</dt><dd>${escapeHtml(account.provider)}</dd>
+          <dt>${t("accountId")}</dt><dd>${escapeHtml(account.account_id)}</dd>
+          <dt>${t("providerId")}</dt><dd>${escapeHtml(account.provider_account_id || "")}</dd>
+          <dt>${t("lastSync")}</dt><dd>${escapeHtml(account.last_sync_at || "")}</dd>
+          <dt>${t("available")}</dt><dd>${money(account.balance?.available, account.currency)}</dd>
+          <dt>${t("pending")}</dt><dd>${money(account.balance?.pending, account.currency)}</dd>
         </dl>
       </aside>
     </section>
@@ -342,7 +361,7 @@ function renderAccountDetail() {
 function metricCardsFor(account) {
   return `
     <div class="metrics">
-      <div class="metric"><span>Current</span><strong>${money(account.balance?.current, account.currency)}</strong></div>
+      <div class="metric"><span>${t("current")}</span><strong>${money(account.balance?.current, account.currency)}</strong></div>
       <div class="metric"><span>${t("grossIn")}</span><strong>${money(account.totals?.gross_inflow, account.currency)}</strong></div>
       <div class="metric"><span>${t("fees")}</span><strong>${money(account.totals?.fees, account.currency)}</strong></div>
       <div class="metric"><span>${t("net")}</span><strong>${money(account.totals?.net, account.currency)}</strong></div>
@@ -352,16 +371,16 @@ function metricCardsFor(account) {
 
 function renderSettings() {
   els.title.textContent = t("settings");
-  els.subtitle.textContent = "Local files only";
+  els.subtitle.textContent = t("localFilesOnly");
   const summary = state.settings?.config_summary || {};
   els.content.innerHTML = `
     <div class="settings">
       <section>
-        <h2>Configuration</h2>
+        <h2>${t("configuration")}</h2>
         <dl>
-          <dt>Provider</dt><dd>${escapeHtml(state.settings?.data_provider || "local")}</dd>
-          <dt>Config path</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
-          <dt>Onboarding</dt><dd>${state.settings?.onboarding?.completed ? "completed" : "incomplete"}</dd>
+          <dt>${t("provider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "local")}</dd>
+          <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
+          <dt>${t("onboarding")}</dt><dd>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</dd>
         </dl>
       </section>
       <section>
@@ -370,7 +389,7 @@ function renderSettings() {
           <div class="settings-account">
             <strong>${escapeHtml(account.display_name)}</strong>
             <span>${escapeHtml(account.provider)} · ${escapeHtml(account.currency || "")}</span>
-            <span>${account.secrets_ready ? "secrets ready" : "missing secrets"}</span>
+            <span>${account.secrets_ready ? t("secretsReady") : t("missingSecrets")}</span>
           </div>
         `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
       </section>
@@ -416,14 +435,14 @@ function transactionById(transactionId) {
 
 function invoiceBadgeForTransaction(transactionId) {
   const match = matchForTransaction(transactionId);
-  if (!match) return `<span class="invoice-badge missing">missing</span>`;
+  if (!match) return `<span class="invoice-badge missing">${escapeHtml(enumLabel("missing"))}</span>`;
   const invoice = invoiceForMatch(match);
   return `<a class="invoice-badge ${escapeHtml(match.status)}" href="#/invoices/${encodeURIComponent(match.invoice_id)}">${escapeHtml(invoice?.invoice_number || match.status)}</a>`;
 }
 
 function invoiceMatchBadge(match) {
-  if (!match) return `<span class="invoice-badge missing">missing</span>`;
-  return `<span class="invoice-badge ${escapeHtml(match.status)}">${escapeHtml(match.status.replaceAll("_", " "))}</span>`;
+  if (!match) return `<span class="invoice-badge missing">${escapeHtml(enumLabel("missing"))}</span>`;
+  return `<span class="invoice-badge ${escapeHtml(match.status)}">${escapeHtml(enumLabel(match.status))}</span>`;
 }
 
 function invoiceSummaryCards() {
@@ -461,19 +480,19 @@ function invoiceDetailPanel(invoice, match, tx) {
       </div>
       <div>
         <span class="muted">${t("dateDelta")}</span>
-        <strong>${match ? `${match.date_delta_days || 0} days` : "n/a"}</strong>
+        <strong>${match ? `${match.date_delta_days || 0} ${t("days")}` : t("notAvailable")}</strong>
       </div>
       <div>
         <span class="muted">${t("tolerance")}</span>
-        <strong>${match ? `${money(match.amount_tolerance || 0, invoice.currency)} / ${match.date_tolerance_days || 0} days` : "n/a"}</strong>
+        <strong>${match ? `${money(match.amount_tolerance || 0, invoice.currency)} / ${match.date_tolerance_days || 0} ${t("days")}` : t("notAvailable")}</strong>
       </div>
       <div>
         <span class="muted">${t("method")}</span>
-        <strong>${escapeHtml(match?.matching_method || "unmatched")}</strong>
+        <strong>${escapeHtml(enumLabel(match?.matching_method || "unmatched"))}</strong>
       </div>
       <div>
         <span class="muted">${t("transaction")}</span>
-        <strong>${escapeHtml(tx?.description || "Not selected")}</strong>
+        <strong>${escapeHtml(tx?.description || t("notSelected"))}</strong>
       </div>
     </div>
     ${match?.audit_events?.length ? `
@@ -481,7 +500,7 @@ function invoiceDetailPanel(invoice, match, tx) {
         <h2>${t("matchAuditTrail")}</h2>
         ${match.audit_events.map((event) => `
           <div class="audit-row">
-            <strong>${escapeHtml(event.event?.replaceAll("_", " ") || "")}</strong>
+            <strong>${escapeHtml(enumLabel(event.event || ""))}</strong>
             <span>${escapeHtml(event.actor || "")} · ${escapeHtml(event.at || "")}</span>
             <p>${escapeHtml(event.note || "")}</p>
           </div>
@@ -531,7 +550,7 @@ els.search.addEventListener("input", () => {
 els.refresh.addEventListener("click", () => loadState());
 els.language.value = state.lang;
 els.language.addEventListener("change", () => {
-  state.lang = els.language.value;
+  state.lang = normalizeLang(els.language.value);
   localStorage.setItem("kelly-money-language", state.lang);
   render();
 });
