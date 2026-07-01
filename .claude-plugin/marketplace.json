@@ -1,1 +1,44 @@
-{ "name": "mr-kelly-skills", "owner": { "name": "Kelly" }, "metadata": { "description": "Mr Kelly skills marketplace", "version": "0.1.0" }, "plugins": [ { "name": "mr-kelly-skills", "description": "Local skills pack", "source": "./", "strict": false, "skills": [ "./skills/agent-rules" ] } ] }
+{
+  "name": "mr-kelly-skills",
+  "owner": {
+    "name": "Kelly Peilin Chan",
+    "url": "https://github.com/mr-kelly"
+  },
+  "metadata": {
+    "description": "Kelly's App-in-Skill business tools for daily operations.",
+    "version": "0.1.1"
+  },
+  "plugins": [
+    {
+      "name": "mr-kelly-skills",
+      "description": "Kelly's App-in-Skill business tools: email inbox-zero, money ledger, content repurposing, GitHub PR review, short-drama & music-video production, and multi-agent rule setup. Each bundles a local browser UI for human review and approval.",
+      "version": "0.1.1",
+      "author": {
+        "name": "Kelly Peilin Chan"
+      },
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "email",
+        "finance",
+        "content",
+        "pr-review",
+        "video",
+        "app-in-skill",
+        "agent-skills"
+      ],
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/agent-rules",
+        "./skills/app-in-skill-creator",
+        "./skills/kelly-content",
+        "./skills/kelly-drama",
+        "./skills/kelly-email",
+        "./skills/kelly-money",
+        "./skills/kelly-mv",
+        "./skills/kelly-pr-review"
+      ]
+    }
+  ]
+}
