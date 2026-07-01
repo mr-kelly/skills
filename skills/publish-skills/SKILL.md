@@ -200,3 +200,7 @@ privacy policy). Prep the checklist in the references file, then hand off the su
 - Bump the release tag on every publish so indexers and `/plugin` users get the update.
 - This skill can publish the repo it lives in (dogfood): run Steps 1-5 against `<owner>/<repo>` = this repo.
 - Steps 1-6 are the SKILL.md-repo track; Step 7 is a separate MCP-server track — do it only when an MCP server is part of what you ship. The four zero-review channels (skills index, Claude Code, Codex, MCP Registry) ship today; the human-reviewed directories are a deliberate second wave.
+- **Never hand-maintain the Codex skill copy.** The canonical skill is `skills/<name>/`; the Codex
+  `plugins/<name>/skills/<name>/` is *build output* (Codex can't symlink/`../`-escape). Wire
+  `scripts/sync-codex-plugins.sh` as a pre-commit hook (+ optional CI drift check) so the copy
+  regenerates from canonical and can never go stale — script + hook in the references file.

@@ -128,6 +128,40 @@ disable sharing with `features.plugin_sharing = false` in `requirements.toml`.
 5. **Update** — bump `version` in `plugins/<name>/.codex-plugin/plugin.json`, re-run the step-2 rsync so
    the copy matches, commit. Existing users refresh with `codex plugin marketplace upgrade`.
 
+### Keep the Codex copy in sync — never hand-maintain it
+
+`plugins/<name>/skills/` is a **generated mirror** of the canonical `skills/<name>/` (Codex can't
+symlink or `../`-escape — verified). Editing or hand-copying it invites silent drift: Codex users get a
+stale skill while every other channel serves the fresh one. Automate it instead.
+
+`scripts/sync-codex-plugins.sh` — regenerate every Codex plugin's skill copy from the canonical tree:
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+# name → plugin map for this repo (a plugin may bundle several skills)
+for name in busabase; do
+  rsync -a --delete "skills/$name/" "plugins/$name/skills/$name/"
+done
+git add plugins
+```
+
+Wire it as a **pre-commit hook** so the copy can never be committed stale (tracked, portable):
+```bash
+mkdir -p .githooks
+printf '#!/usr/bin/env bash\nexec ./scripts/sync-codex-plugins.sh\n' > .githooks/pre-commit
+chmod +x .githooks/pre-commit scripts/sync-codex-plugins.sh
+git config core.hooksPath .githooks   # each clone runs: git config core.hooksPath .githooks
+```
+
+**CI drift guard** (belt-and-suspenders — fails if someone bypasses the hook):
+```bash
+./scripts/sync-codex-plugins.sh
+git diff --exit-code plugins/ || { echo "Codex skill copy drifted — run scripts/sync-codex-plugins.sh"; exit 1; }
+```
+
+Rule of thumb: **the canonical skill is `skills/<name>/`; `plugins/` is build output.** Only ever edit
+the canonical, then let the hook/script regenerate `plugins/`.
+
 ## Review-gated channel checklists
 
 Only pursue once the product has a **public HTTPS MCP server + OAuth + a privacy policy**. Human review;
