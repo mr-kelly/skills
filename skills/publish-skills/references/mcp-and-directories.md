@@ -134,15 +134,31 @@ disable sharing with `features.plugin_sharing = false` in `requirements.toml`.
 symlink or `../`-escape — verified). Editing or hand-copying it invites silent drift: Codex users get a
 stale skill while every other channel serves the fresh one. Automate it instead.
 
-`scripts/sync-codex-plugins.sh` — regenerate every Codex plugin's skill copy from the canonical tree:
+`scripts/sync-codex-plugins.sh` — regenerate every Codex plugin's skill copy from the canonical tree.
+**Crucial: exclude runtime state** — a bare `rsync -a` would copy the skill's local `.data/` /
+`.cache/` / `.env` into `plugins/`, and because most `.gitignore` patterns are anchored to `skills/`
+(e.g. `skills/*/app/.data/`), the mirrored `plugins/.../.data/` would NOT be ignored and could get
+committed. Always pass the excludes:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
+# runtime/private state must never be mirrored into the published plugin
+EX=(--exclude '.data/' --exclude '.cache/' --exclude 'exports/' --exclude '.env' \
+    --exclude '.env.*' --exclude 'config.local*' --exclude '*.local.json' --exclude 'node_modules/')
 # name → plugin map for this repo (a plugin may bundle several skills)
 for name in busabase; do
-  rsync -a --delete "skills/$name/" "plugins/$name/skills/$name/"
+  rsync -a --delete "${EX[@]}" "skills/$name/" "plugins/$name/skills/$name/"
 done
 git add plugins
+```
+Belt-and-suspenders, also make `.gitignore` cover the mirror with **unanchored** patterns (so both
+`skills/` and `plugins/` copies are ignored):
+```gitignore
+**/.data/
+**/.cache/
+**/exports/
+**/.env
+**/*.local.json
 ```
 
 Wire it as a **pre-commit hook** so the copy can never be committed stale (tracked, portable):
