@@ -10,11 +10,12 @@
     <div class="app-shell">
       <aside class="sidebar" id="appSidebar">
         <div class="sidebar-top">
-          <button id="sidebarToggle" class="icon-button" type="button" aria-controls="appSidebar" aria-expanded="true" aria-label="Toggle sidebar" title="Toggle sidebar">☰</button>
+          <div class="brand-icon" aria-hidden="true">PR</div>
           <div>
             <div class="brand-title">Kelly PR Review</div>
             <div class="brand-subtitle" data-i18n="brand.subtitle">GitHub review desk</div>
           </div>
+          <button id="sidebarToggle" class="icon-button sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" aria-label="Toggle sidebar" title="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
         </div>
         <div class="sidebar-controls">
           <input id="searchInput" placeholder="Search title, repo, author" data-i18n-placeholder="search.placeholder" />
@@ -51,7 +52,7 @@
       </aside>
 
       <main class="main">
-        <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar">☰</button>
+        <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
         <div id="lockBanner" class="lock-banner is-hidden">
           <strong data-i18n="locked">Locked</strong>
           <span id="lockMessage">The local files are locked for a moment.</span>

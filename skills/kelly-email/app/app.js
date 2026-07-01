@@ -512,6 +512,19 @@ function countFor(name) {
   return state.counts[name] || 0;
 }
 
+function modeLabel(name = mode) {
+  const key = `filter.${name}`;
+  return I18N[uiLanguage]?.[key] || I18N.en[key] || "Kelly Email";
+}
+
+function renderMobileTopbar() {
+  const title = $("mobileViewTitle");
+  const meta = $("mobileViewMeta");
+  if (!title || !meta) return;
+  title.textContent = selectedId && mobileDetailOpen ? selectedItem()?.subject || t("empty.select_message") : modeLabel();
+  meta.textContent = t("list.items", { count: state.items?.length || 0 });
+}
+
 function renderCounts() {
   ["all", "needs_review", "approved", "done", "blocked"].forEach((name) => {
     const el = $(`count-${name}`);
@@ -523,6 +536,7 @@ function renderCounts() {
   if (humanNeeds) humanNeeds.textContent = countFor("needs_review");
   if (humanApproved) humanApproved.textContent = countFor("approved");
   if (humanBlocked) humanBlocked.textContent = countFor("blocked");
+  renderMobileTopbar();
 }
 
 function renderBulkActions() {
@@ -958,6 +972,7 @@ function renderList() {
   }
   $("messageList").innerHTML = state.items.map(rowHtml).join("") || `<div class="empty-detail">${escapeHtml(t("list.no_items"))}</div>`;
   $("listCount").textContent = t("list.items", { count: state.items.length });
+  renderMobileTopbar();
   document.querySelectorAll(".message-row").forEach((row) => {
     row.addEventListener("click", (event) => {
       if (isLocked()) return;
@@ -1007,11 +1022,13 @@ function renderDetail() {
   const backButton = `<button class="back-to-list" type="button">${escapeHtml(t("detail.back_to_list"))}</button>`;
   if (state.email_accounts?.onboarding && !state.email_accounts.onboarding.configured) {
     $("detailPanel").innerHTML = `${backButton}${onboardingHtml()}`;
+    renderMobileTopbar();
     return;
   }
   const item = selectedItem();
   if (!item) {
     $("detailPanel").innerHTML = `${backButton}<div class="empty-detail">${escapeHtml(t("empty.select_message"))}</div>`;
+    renderMobileTopbar();
     return;
   }
   const attachments = (item.attachments || []).map(attachmentHtml).join("");
@@ -1088,6 +1105,7 @@ function renderDetail() {
     </div>
     ${emailBodySectionsHtml(item)}
   `;
+  renderMobileTopbar();
   attachHtmlPreviewAutoResize();
   applyLockState();
   closeDetailActionMenu();
@@ -1169,6 +1187,7 @@ async function decide(action, ids = null) {
 
 function wire() {
   $("helpButton").onclick = openHelp;
+  $("mobileHelpButton").onclick = openHelp;
   $("closeHelp").onclick = closeHelp;
   $("helpModal").addEventListener("click", (event) => {
     if (event.target.id === "helpModal") closeHelp();

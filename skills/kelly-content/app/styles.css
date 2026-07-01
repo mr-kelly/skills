@@ -103,11 +103,12 @@ body.sidebar-collapsed .sidebar {
 
 body.sidebar-collapsed .brand {
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  gap: 8px;
   padding: 4px 0 16px;
 }
 
-body.sidebar-collapsed .mark,
 body.sidebar-collapsed .brand-copy,
 body.sidebar-collapsed .stageNav,
 body.sidebar-collapsed .settings {
@@ -808,5 +809,67 @@ tr:last-child td {
 
   .coverFrame {
     min-height: 260px;
+  }
+}
+
+/* Quiet Kelly shell tune */
+.sidebar-toggle,
+.mobile-sidebar-toggle {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.sidebar-toggle:hover,
+.sidebar-toggle:focus-visible,
+.mobile-sidebar-toggle:hover,
+.mobile-sidebar-toggle:focus-visible {
+  border-color: transparent;
+  background: #eef1f5;
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.sidebar-toggle-icon {
+  position: relative;
+  display: block;
+  width: 17px;
+  height: 15px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  opacity: 0.82;
+}
+
+.sidebar-toggle-icon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 5px;
+  width: 1.5px;
+  background: currentColor;
+  opacity: 0.52;
+}
+
+.stageNav button:hover,
+.actions button:hover,
+button:hover {
+  box-shadow: none;
+}
+
+@media (max-width: 720px) {
+  .sidebar {
+    box-shadow: none;
+  }
+
+  body.sidebar-open .sidebar {
+    box-shadow: 18px 0 36px rgba(16, 24, 40, 0.12);
+  }
+
+  .mobile-sidebar-toggle {
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(10px);
   }
 }
