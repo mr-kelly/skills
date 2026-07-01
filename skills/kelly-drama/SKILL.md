@@ -42,7 +42,7 @@ Default architecture:
 
 Use these fields consistently:
 
-- `series.hyperframe_project_path`: absolute path to the HyperFrame project, e.g. `/Users/kelly/Documents/kapps/.../videos/busabase`.
+- `series.hyperframe_project_path`: absolute path to the HyperFrame project, e.g. `/Users/you/projects/my-app/videos/my-series`.
 - `episode.hyperframe_composition`: composition filename/path relative to the HyperFrame project, e.g. `index.html` or `compositions/ep-001-introducing.html`.
 - `episode.hyperframe_video_asset`: rendered/reference video asset path indexed in Kelly Drama, often under `/generated/hyperframes/...`.
 
