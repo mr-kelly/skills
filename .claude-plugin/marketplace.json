@@ -37,7 +37,8 @@
         "./skills/kelly-email",
         "./skills/kelly-money",
         "./skills/kelly-mv",
-        "./skills/kelly-pr-review"
+        "./skills/kelly-pr-review",
+        "./skills/publish-skills"
       ]
     }
   ]
