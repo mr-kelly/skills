@@ -69,7 +69,7 @@ select {
   min-width: 0;
 }
 
-.mark {
+.brand-icon {
   width: 36px;
   height: 36px;
   display: grid;
@@ -222,6 +222,10 @@ main {
 
 .mobile-sidebar-toggle,
 .sidebar-scrim {
+  display: none;
+}
+
+.sidebar-scrim[hidden] {
   display: none;
 }
 
@@ -871,5 +875,9 @@ button:hover {
     color: var(--muted);
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(10px);
+  }
+
+  .sidebar-scrim[hidden] {
+    display: none;
   }
 }

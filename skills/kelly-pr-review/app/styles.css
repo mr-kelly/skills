@@ -158,6 +158,10 @@ body.sidebar-collapsed .setup-card {
   display: none;
 }
 
+.sidebar-scrim[hidden] {
+  display: none;
+}
+
 .brand-title {
   font-size: 16px;
   font-weight: 650;
@@ -973,5 +977,9 @@ textarea {
 
   .content {
     padding-top: 58px;
+  }
+
+  .sidebar-scrim[hidden] {
+    display: none;
   }
 }
