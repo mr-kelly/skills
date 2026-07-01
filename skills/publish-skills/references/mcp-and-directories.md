@@ -66,16 +66,34 @@ curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=<name>"   # v
 - Versions are immutable — bump `version` to ship an update. Automate with a GitHub Action on `v*` tags
   using `mcp-publisher login github-oidc` (needs `permissions: id-token: write`; no stored secret).
 
-**Codex** plugins bundle skills + apps (`.app.json`) + MCP (`.mcp.json`) inside a self-contained
-`plugins/<name>/` dir (manifest `plugins/<name>/.codex-plugin/plugin.json`), listed by
-`.agents/plugins/marketplace.json` and consumed via `codex plugin marketplace add <owner>/<repo>` →
-`codex plugin add <name>@<marketplace>` (the install verb is `add`, not `install`). This mirrors
+**Codex** plugins bundle skills + apps (`.app.json`) + MCP (`.mcp.json`) + hooks (`hooks/hooks.json`)
+inside a self-contained `plugins/<name>/` dir (manifest `plugins/<name>/.codex-plugin/plugin.json`),
+listed by a marketplace file and consumed via `codex plugin marketplace add <owner>/<repo>` →
+`codex plugin add <name>@<marketplace>`. Per OpenAI's docs the canonical install is through the Codex
+UI after discovery, but the CLI `codex plugin add` works too (verified — scriptable). This mirrors
 OpenAI's own bundled marketplaces (`openai-bundled`, etc.). OpenAI's curated Plugin Directory is **not
 yet open to third-party self-serve** ("coming soon") — the git-marketplace path is how you ship now.
+
+**Marketplace file — three read locations** (use the first for a shipped repo):
+`$REPO_ROOT/.agents/plugins/marketplace.json` (repo-scoped), `~/.agents/plugins/marketplace.json`
+(personal/local testing), and `$REPO_ROOT/.claude-plugin/marketplace.json` (**legacy-compatible — Codex
+also reads the Claude Code marketplace file**). The plugin *structure* still differs from Claude Code
+(Codex needs the `plugins/<name>/` subdir with the skill copied inside), so keep the two marketplace
+files even though Codex can parse either.
+
+**`source` types** in the marketplace: `{ "source": "local", "path": "./plugins/<name>" }` (or the
+shorthand string `"./plugins/<name>"`) for same-repo; `{ "source": "git-subdir", "url": …, "path": …,
+"ref": "main" }` for a plugin in another repo/subdir; or a repo-root `url`.
+
+**Fast scaffold:** the built-in `@plugin-creator` skill (invoked from the Codex UI) generates the
+`.codex-plugin/plugin.json` and a local marketplace entry for testing.
+
 **`.mcp.json` key differs from Claude Code:** Codex uses `{ "<name>": {...} }` (or
 `{ "mcp_servers": {...} }`); Claude Code uses `{ "mcpServers": {...} }`. Put the Codex one at
 `plugins/<name>/.mcp.json` and set `"mcpServers": "./.mcp.json"` in the plugin manifest, or omit MCP
-from the Codex plugin (the skill already documents `/api/mcp`).
+from the Codex plugin (the skill already documents `/api/mcp`). Bundled hooks/scripts read
+`PLUGIN_ROOT` / `PLUGIN_DATA` (aliased `CLAUDE_PLUGIN_ROOT` / `CLAUDE_PLUGIN_DATA`). Workspace admins can
+disable sharing with `features.plugin_sharing = false` in `requirements.toml`.
 
 ### Codex plugin — build, verify, publish (recipe, verified with codex-cli 0.139)
 
