@@ -804,6 +804,18 @@ textarea {
   margin: 0;
 }
 
+.language-control {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.language-control select {
+  min-height: 34px;
+}
+
 .is-hidden {
   display: none !important;
 }

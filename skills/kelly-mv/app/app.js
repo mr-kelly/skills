@@ -192,6 +192,13 @@ function wireChrome() {
 
 function applyChrome() {
   document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); });
+  const langSel = document.getElementById("languageSelect");
+  if (langSel) {
+    const labels = lang() === "zh"
+      ? { auto: "自动", en: "English", zh: "中文" }
+      : { auto: "Auto", en: "English", zh: "中文" };
+    for (const option of langSel.options) option.textContent = labels[option.value] || option.textContent;
+  }
   const si = document.getElementById("searchInput"); if (si) si.placeholder = t("search_placeholder");
   document.documentElement.lang = lang() === "en" ? "en" : "zh-CN";
 }

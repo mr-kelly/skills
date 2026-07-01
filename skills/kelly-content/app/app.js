@@ -1,8 +1,15 @@
 const params = new URLSearchParams(window.location.search);
-const language = params.get("lang") === "zh-CN" ? "zh-CN" : "en";
+const LANGUAGE_STORAGE_KEY = "kelly-content.uiLanguage";
+let languageMode = normalizeLanguageMode(params.get("lang") || localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto");
+const language = resolveLanguage();
 const demoScenario = params.get("demo") || "";
 const I18N = {
   en: {
+    "language": "Language",
+    "language.auto": "Auto",
+    "language.english": "English",
+    "language.chinese": "中文",
+    "language.saved": "Language updated",
     "stage.topics": "Topics",
     "stage.topics.caption": "Subjects and title directions",
     "stage.todos": "Todos",
@@ -97,6 +104,11 @@ const I18N = {
     "local": "local"
   },
   "zh-CN": {
+    "language": "语言",
+    "language.auto": "自动",
+    "language.english": "English",
+    "language.chinese": "中文",
+    "language.saved": "语言已更新",
     "stage.topics": "选题",
     "stage.topics.caption": "题材与标题描述方向",
     "stage.todos": "待办",
@@ -196,6 +208,29 @@ function t(key) {
   return I18N[language]?.[key] || I18N.en[key] || key;
 }
 
+function normalizeLanguageMode(value) {
+  if (value === "zh" || value === "zh-CN") return "zh-CN";
+  if (value === "en") return "en";
+  return "auto";
+}
+
+function browserLanguage() {
+  const languages = navigator.languages?.length ? navigator.languages : [navigator.language || "en"];
+  return languages.some((item) => String(item).toLowerCase().startsWith("zh")) ? "zh-CN" : "en";
+}
+
+function resolveLanguage() {
+  return languageMode === "auto" ? browserLanguage() : languageMode;
+}
+
+function setLanguageMode(value) {
+  languageMode = normalizeLanguageMode(value);
+  localStorage.setItem(LANGUAGE_STORAGE_KEY, languageMode);
+  const nextParams = new URLSearchParams(window.location.search);
+  nextParams.set("lang", languageMode);
+  window.location.search = nextParams.toString();
+}
+
 const stages = [
   { id: "topics", label: t("stage.topics"), caption: t("stage.topics.caption") },
   { id: "todos", label: t("stage.todos"), caption: t("stage.todos.caption") },
@@ -231,12 +266,18 @@ const els = {
   lockText: document.querySelector("#lockText"),
   settingsText: document.querySelector("#settingsText"),
   pageTitle: document.querySelector("#pageTitle"),
-  refreshBtn: document.querySelector("#refreshBtn")
+  refreshBtn: document.querySelector("#refreshBtn"),
+  languageSelect: document.querySelector("#languageSelect")
 };
 
 function applyStaticI18n() {
   document.documentElement.lang = language;
   document.querySelector(".settings h2").textContent = t("workspace");
+  document.querySelector(".language-control span").textContent = t("language");
+  els.languageSelect.value = languageMode;
+  els.languageSelect.options[0].textContent = t("language.auto");
+  els.languageSelect.options[1].textContent = t("language.english");
+  els.languageSelect.options[2].textContent = t("language.chinese");
   els.refreshBtn.textContent = t("refresh");
   els.refreshBtn.title = t("refresh.batch.title");
 }
@@ -273,6 +314,7 @@ function toggleSidebar() {
 }
 
 els.refreshBtn.addEventListener("click", () => loadState());
+els.languageSelect.addEventListener("change", () => setLanguageMode(els.languageSelect.value));
 document.querySelector("#sidebarToggle").addEventListener("click", toggleSidebar);
 document.querySelector("#mobileSidebarToggle").addEventListener("click", () => setMobileSidebarOpen(true));
 document.querySelector("#sidebarScrim").addEventListener("click", () => setMobileSidebarOpen(false));
@@ -387,6 +429,7 @@ function withContextParams(path) {
     const value = params.get(key);
     if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
   }
+  url.searchParams.set("lang", language);
   return `${url.pathname}${url.search}`;
 }
 

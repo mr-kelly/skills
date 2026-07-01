@@ -1,12 +1,14 @@
 let state = { items: [], counts: {}, batch: null, lock: { locked: false }, config_summary: {} };
 const params = new URLSearchParams(window.location.search);
 const demoScenario = params.get("demo") || "";
+const LANGUAGE_STORAGE_KEY = "kelly-pr-review.uiLanguage";
+let languageMode = normalizeLanguageMode(params.get("lang") || localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto");
 let mode = modeForDemo(demoScenario);
 let repoFilter = "all";
 let selectedId = null;
 let refreshTimer = null;
 let saveTimer = null;
-const language = params.get("lang") === "zh-CN" ? "zh-CN" : "en";
+const language = resolveLanguage();
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
 let mobileDetailOpen = false;
@@ -35,6 +37,11 @@ const I18N = {
     "table.updated": "Updated",
     "help.title": "Help & Settings",
     "help.subtitle": "Local file contract and configuration",
+    "language": "Language",
+    "language.auto": "Auto",
+    "language.english": "English",
+    "language.chinese": "中文",
+    "language.saved": "Language updated",
     "close": "Close",
     "refresh": "Refresh",
     "setup.title": "Local setup",
@@ -135,6 +142,11 @@ const I18N = {
     "table.updated": "更新",
     "help.title": "帮助与设置",
     "help.subtitle": "本地文件协议与配置",
+    "language": "语言",
+    "language.auto": "自动",
+    "language.english": "English",
+    "language.chinese": "中文",
+    "language.saved": "语言已更新",
     "close": "关闭",
     "refresh": "刷新",
     "setup.title": "本地设置",
@@ -259,6 +271,29 @@ function t(key, params = {}) {
   return String(I18N[language]?.[key] || I18N.en[key] || key).replace(/\{(\w+)\}/g, (_, name) => params[name] ?? "");
 }
 
+function normalizeLanguageMode(value) {
+  if (value === "zh" || value === "zh-CN") return "zh-CN";
+  if (value === "en") return "en";
+  return "auto";
+}
+
+function browserLanguage() {
+  const languages = navigator.languages?.length ? navigator.languages : [navigator.language || "en"];
+  return languages.some((item) => String(item).toLowerCase().startsWith("zh")) ? "zh-CN" : "en";
+}
+
+function resolveLanguage() {
+  return languageMode === "auto" ? browserLanguage() : languageMode;
+}
+
+function setLanguageMode(value) {
+  languageMode = normalizeLanguageMode(value);
+  localStorage.setItem(LANGUAGE_STORAGE_KEY, languageMode);
+  const nextParams = new URLSearchParams(window.location.search);
+  nextParams.set("lang", languageMode);
+  window.location.search = nextParams.toString();
+}
+
 function applyTranslations() {
   document.documentElement.lang = language;
   document.querySelectorAll("[data-i18n]").forEach((node) => {
@@ -358,6 +393,7 @@ function withContextParams(path) {
     const value = params.get(key);
     if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
   }
+  url.searchParams.set("lang", language);
   return `${url.pathname}${url.search}`;
 }
 
@@ -738,6 +774,14 @@ function helpHtml() {
   const summary = state.config_summary || {};
   const repos = (summary.repos || []).map((repo) => `<span class="badge">${escapeHtml(repo.repo)}</span>`).join(" ");
   return `
+    <label class="language-control" for="languageSelect">
+      <span>${escapeHtml(t("language"))}</span>
+      <select id="languageSelect">
+        <option value="auto"${languageMode === "auto" ? " selected" : ""}>${escapeHtml(t("language.auto"))}</option>
+        <option value="en"${languageMode === "en" ? " selected" : ""}>${escapeHtml(t("language.english"))}</option>
+        <option value="zh-CN"${languageMode === "zh-CN" ? " selected" : ""}>${escapeHtml(t("language.chinese"))}</option>
+      </select>
+    </label>
     <p>${escapeHtml(t("help.body"))}</p>
     <dl>
       <dt>${escapeHtml(t("data_reader"))}</dt><dd><code>${escapeHtml(summary.reader || "local")}</code></dd>
@@ -755,6 +799,7 @@ function helpHtml() {
 
 function openHelp() {
   $("helpBody").innerHTML = helpHtml();
+  $("languageSelect")?.addEventListener("change", (event) => setLanguageMode(event.target.value));
   $("helpModal").classList.remove("is-hidden");
   $("helpModal").setAttribute("aria-hidden", "false");
 }

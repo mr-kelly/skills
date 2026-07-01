@@ -153,7 +153,7 @@ function applyI18n() {
     node.textContent = t(node.dataset.i18n);
   });
   const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "英文", zh: "中文" }
+    ? { auto: "自动", en: "English", zh: "中文" }
     : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
