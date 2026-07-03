@@ -1,0 +1,56 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "property": {
+    "name": "Example Residences",
+    "buildings": 3,
+    "timezone": "Asia/Shanghai"
+  },
+  "channels": ["wechat", "phone", "form", "email", "walk_in"],
+  "categories": ["plumbing", "electrical", "hvac", "elevator", "security", "noise", "parking", "cleaning", "amenity", "other"],
+  "crews": [
+    {
+      "crew_id": "plumbing",
+      "name": "Plumbing & HVAC Crew",
+      "skills": ["plumbing", "hvac"],
+      "members": "Example Lead",
+      "contact_env": "KELLY_TICKETS_CREW_PLUMBING_CONTACT",
+      "active": true
+    },
+    {
+      "crew_id": "electrical",
+      "name": "Electrical Crew",
+      "skills": ["electrical", "elevator"],
+      "members": "Example Lead",
+      "contact_env": "KELLY_TICKETS_CREW_ELECTRICAL_CONTACT",
+      "active": true
+    },
+    {
+      "crew_id": "security",
+      "name": "Security Team",
+      "skills": ["security", "parking", "noise"],
+      "members": "Example Lead",
+      "contact_env": "KELLY_TICKETS_CREW_SECURITY_CONTACT",
+      "active": true
+    },
+    {
+      "crew_id": "general",
+      "name": "General Maintenance",
+      "skills": ["cleaning", "amenity", "other"],
+      "members": "Example Lead",
+      "contact_env": "KELLY_TICKETS_CREW_GENERAL_CONTACT",
+      "active": true
+    }
+  ],
+  "sla_rules": [
+    { "category": "plumbing", "urgency": "urgent", "hours": 4 },
+    { "category": "*", "urgency": "urgent", "hours": 8 },
+    { "category": "*", "urgency": "high", "hours": 24 },
+    { "category": "*", "urgency": "normal", "hours": 72 },
+    { "category": "*", "urgency": "low", "hours": 168 }
+  ],
+  "sla_default_hours": 72,
+  "ui": {
+    "language": "auto"
+  }
+}
