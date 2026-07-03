@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Messenger"
+  short_description: "Unified local inbox for WhatsApp, Discord, Slack, and Telegram"
+  default_prompt: "Use $kelly-messenger to open my unified chat inbox and review what needs a reply."
