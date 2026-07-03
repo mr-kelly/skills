@@ -15,7 +15,12 @@ let lastAppliedHash = "";
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-drama.sidebarCollapsed";
 const LANG_STORAGE_KEY = "kdrama_lang";
 
-let langPref = localStorage.getItem(LANG_STORAGE_KEY) || "auto";
+// Demo mode: `/?demo=<scene>&lang=en|zh` shows deterministic mock data.
+const PAGE_QUERY = new URLSearchParams(window.location.search);
+const DEMO_SCENARIO = PAGE_QUERY.get("demo") || "";
+const URL_LANG = PAGE_QUERY.get("lang") || "";
+
+let langPref = URL_LANG || localStorage.getItem(LANG_STORAGE_KEY) || "auto";
 
 function lang() { return resolveLang(langPref); }
 function t(key) { const l = lang(); return MESSAGES[l]?.[key] || MESSAGES.zh[key] || key; }
@@ -122,8 +127,16 @@ function toast(message) {
   setTimeout(() => node.remove(), 2800);
 }
 
+function withDemoParams(path) {
+  if (!DEMO_SCENARIO) return path;
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set("demo", DEMO_SCENARIO);
+  if (URL_LANG) url.searchParams.set("lang", URL_LANG);
+  return url.pathname + url.search;
+}
+
 async function api(path, body = null) {
-  const res = await fetch(path, {
+  const res = await fetch(withDemoParams(path), {
     method: body ? "POST" : "GET",
     headers: body ? { "Content-Type": "application/json" } : {},
     body: body ? JSON.stringify(body) : null,
@@ -136,6 +149,10 @@ async function api(path, body = null) {
 async function load() {
   state = await api("/api/state");
   imageConfig = await api("/api/image-config").catch(() => null);
+  if (DEMO_SCENARIO && !window.location.hash) {
+    const demoRoutes = { overview: "/overview", characters: "/characters", relationships: "/relationships", episodes: "/episodes" };
+    history.replaceState(null, "", `#${demoRoutes[DEMO_SCENARIO] || "/overview"}`);
+  }
   applyRouteFromHash({ replaceEmpty: true });
 }
 

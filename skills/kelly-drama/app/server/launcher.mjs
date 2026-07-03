@@ -22,7 +22,7 @@ function isReady(port) {
       res.on("end", () => {
         try {
           const state = JSON.parse(body);
-          resolve(res.statusCode >= 200 && res.statusCode < 300 && state.project?.project_id);
+          resolve(res.statusCode >= 200 && res.statusCode < 300 && state.app === "kelly-drama" && Boolean(state.project?.project_id));
         } catch {
           resolve(false);
         }
