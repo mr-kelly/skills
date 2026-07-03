@@ -1,0 +1,59 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "fx_rates": {
+    "CNY": 0.14
+  },
+  "company": {
+    "name": "Example Trading Co.",
+    "contact_email": "finance@example.com",
+    "fiscal_year_start": "01-01"
+  },
+  "import": {
+    "orders": {
+      "format": "csv",
+      "columns": {
+        "order_no": "OrderNo",
+        "customer": "Customer",
+        "order_date": "OrderDate",
+        "amount": "Total",
+        "currency": "Currency"
+      }
+    },
+    "invoices": {
+      "format": "csv",
+      "columns": {
+        "invoice_no": "InvoiceNo",
+        "order_no": "OrderNo",
+        "customer": "Customer",
+        "issue_date": "IssueDate",
+        "due_date": "DueDate",
+        "amount": "Total",
+        "currency": "Currency",
+        "kind": "Kind"
+      }
+    },
+    "payments": {
+      "format": "csv",
+      "columns": {
+        "payment_ref": "Reference",
+        "invoice_no": "InvoiceNo",
+        "order_no": "OrderNo",
+        "payer": "Payer",
+        "paid_date": "PaidDate",
+        "amount": "Amount",
+        "currency": "Currency",
+        "method": "Method"
+      }
+    }
+  },
+  "rules": {
+    "days_to_invoice": 14,
+    "amount_tolerance_pct": 1,
+    "aging_buckets": [30, 60, 90],
+    "duplicate_window_days": 7
+  },
+  "ui": {
+    "language": "auto"
+  }
+}
