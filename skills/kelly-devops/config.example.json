@@ -1,0 +1,39 @@
+{
+  "data_provider": "local",
+  "currency": "USD",
+  "locale": "auto",
+  "products": [
+    { "product_id": "example-app", "name": "Example App" }
+  ],
+  "services": [
+    { "service_id": "example-app-web", "name": "Example App Web", "product": "Example App", "url": "https://app.example.com" },
+    { "service_id": "example-app-api", "name": "Example App API", "product": "Example App", "url": "https://api.example.com/health" }
+  ],
+  "domains": [
+    { "domain": "example.com", "product": "Example App", "registrar": "Example Registrar", "auto_renew": true }
+  ],
+  "key_rotation": [
+    {
+      "key_id": "example-mail-key",
+      "name": "Example mail API key",
+      "env": "EXAMPLE_MAIL_API_KEY",
+      "product": "Example App",
+      "rotate_every_days": 90,
+      "last_rotated_on": "2026-01-01"
+    }
+  ],
+  "billing_sources": [
+    { "provider_id": "aws", "name": "AWS", "api_key_env": "KELLY_DEVOPS_AWS_BILLING_KEY" },
+    { "provider_id": "gcp", "name": "Google Cloud", "api_key_env": "KELLY_DEVOPS_GCP_BILLING_KEY" },
+    { "provider_id": "cloudflare", "name": "Cloudflare", "token_env": "KELLY_DEVOPS_CLOUDFLARE_TOKEN" }
+  ],
+  "thresholds": {
+    "expiry_warning_days": 30,
+    "expiry_critical_days": 7,
+    "degraded_latency_ms": 1500,
+    "spend_anomaly_pct": 40
+  },
+  "ui": {
+    "language": "auto"
+  }
+}
