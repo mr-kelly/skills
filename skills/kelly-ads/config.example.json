@@ -1,0 +1,109 @@
+{
+  "data_provider": "local",
+  "currency": "USD",
+  "locale": "auto",
+  "platforms": [
+    {
+      "platform_id": "amazon",
+      "name": "Amazon Ads US",
+      "account_id": "ENTITY-EXAMPLE",
+      "profile_id": "0000000000",
+      "client_id_env": "KELLY_ADS_AMAZON_CLIENT_ID",
+      "client_secret_env": "KELLY_ADS_AMAZON_CLIENT_SECRET",
+      "token_env": "KELLY_ADS_AMAZON_REFRESH_TOKEN"
+    },
+    {
+      "platform_id": "meta",
+      "name": "Meta Ads",
+      "account_id": "act_000000000",
+      "token_env": "KELLY_ADS_META_ACCESS_TOKEN"
+    },
+    {
+      "platform_id": "tiktok",
+      "name": "TikTok Ads",
+      "account_id": "adv-0000000000",
+      "token_env": "KELLY_ADS_TIKTOK_ACCESS_TOKEN"
+    },
+    {
+      "platform_id": "google",
+      "name": "Google Ads",
+      "account_id": "000-000-0000",
+      "developer_token_env": "KELLY_ADS_GOOGLE_DEVELOPER_TOKEN",
+      "token_env": "KELLY_ADS_GOOGLE_REFRESH_TOKEN"
+    }
+  ],
+  "targets": {
+    "default_acos_pct": 25,
+    "default_roas": 4,
+    "per_platform": {
+      "amazon": { "acos_pct": 25 },
+      "meta": { "acos_pct": 30 },
+      "tiktok": { "acos_pct": 30 },
+      "google": { "acos_pct": 20 }
+    },
+    "per_product": [
+      { "sku": "EXAMPLE-SKU-01", "acos_pct": 22 }
+    ]
+  },
+  "thresholds": {
+    "acos_breach_days": 3,
+    "budget_exhausted_pct": 100,
+    "budget_risk_pct": 85,
+    "zero_conversion_spend_floor": 50,
+    "cpc_spike_pct": 40,
+    "cpc_trailing_days": 14
+  },
+  "currency_rates": {
+    "USD": 1,
+    "EUR": 1.08,
+    "GBP": 1.27,
+    "CNY": 0.14,
+    "JPY": 0.0068
+  },
+  "csv_mappings": {
+    "amazon": {
+      "campaign": "Campaign Name",
+      "date": "Date",
+      "spend": "Spend",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "conversions": "14 Day Total Orders (#)",
+      "revenue": "14 Day Total Sales",
+      "currency": "Currency"
+    },
+    "meta": {
+      "campaign": "Campaign name",
+      "date": "Day",
+      "spend": "Amount spent (USD)",
+      "impressions": "Impressions",
+      "clicks": "Link clicks",
+      "conversions": "Purchases",
+      "revenue": "Purchases conversion value"
+    },
+    "tiktok": {
+      "campaign": "Campaign name",
+      "date": "Date",
+      "spend": "Cost",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "conversions": "Conversions",
+      "revenue": "Total purchase value"
+    },
+    "google": {
+      "campaign": "Campaign",
+      "date": "Day",
+      "spend": "Cost",
+      "impressions": "Impr.",
+      "clicks": "Clicks",
+      "conversions": "Conversions",
+      "revenue": "Conv. value"
+    }
+  },
+  "sync": {
+    "default_days": 14,
+    "read_only": true
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

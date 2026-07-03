@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Ads"
+  short_description: "Local ad-campaign command desk for Amazon, Meta, TikTok, and Google Ads"
+  default_prompt: "Use $kelly-ads to open my ads command desk and review the adjustment queue."
