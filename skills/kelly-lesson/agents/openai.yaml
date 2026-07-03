@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Lesson"
+  short_description: "Local lesson-plan drafting and compliance desk"
+  default_prompt: "Use $kelly-lesson to open my lesson-plan desk and review the plans awaiting approval."

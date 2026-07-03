@@ -38,6 +38,10 @@ Claude Code：
 | `kelly-feedback` | 聚合全渠道用户反馈，聚类成带权重的 feature requests，并运行带草稿回复和 changelog 的 roadmap 裁决队列。 | 分诊用户反馈、给需求排优先级、做有证据支撑的 roadmap 采纳/拒绝决定时使用。 | [Open README](../skills/kelly-feedback/README.md) |
 | `kelly-radar` | 市场情报台：竞品信号监控（定价、changelog、发布、口碑 diff）+ 带 brief 审批和引用报告的研究课题工作台 + 关键词/话题趋势跟踪。 | 盯竞品、发起深度研究报告、把上升的搜索和社区趋势转成机会卡时使用。 | [Open README](../skills/kelly-radar/README.md) |
 | `kelly-devops` | 盯产品矩阵的运维面：服务可用性和延迟、SSL 证书和域名到期、API key 轮换、云支出异常，带 agent 提出的行动卡审批。 | 检查服务健康、避免域名/证书过期、review 云支出异常、批准续费和轮换动作时使用。 | [Open README](../skills/kelly-devops/README.md) |
+| `kelly-audit` | 导入订单、发票、回款三表并互相稽核：缺发票、金额不符、逾期应收（带账龄）、重复回款、无主回款，每条异常带证据链和催收草稿。 | 对账订单-发票-回款链条、催收应收账款、月底前 review 财务异常时使用。 | [Open README](../skills/kelly-audit/README.md) |
+| `kelly-tickets` | 把微信群导出、来电记录、表单、邮件里的投诉分类成工单，生成带 SLA 的派单建议供审批，并在看板上跟踪到解决。 | 管理物业/设施投诉、给班组派工单，或运行任何「接入-分类-派单-跟踪」流程时使用。 | [Open README](../skills/kelly-tickets/README.md) |
+| `kelly-lesson` | 从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。 | 统一全校教案格式、检查教案合规性、批量审核批准教学计划时使用。 | [Open README](../skills/kelly-lesson/README.md) |
+| `kelly-inquiry` | 把 WhatsApp、Instagram、Messenger、邮件询盘聚合成销售 pipeline：商品知识库、带底价护栏的报价单、审批制外发和跟进提醒。 | 处理外贸/跨境询盘、基于商品库起草准确回复和报价、防止商机逾期漏单时使用。 | [Open README](../skills/kelly-inquiry/README.md) |
 | `kelly-writer` | 把一个想法、文章、 transcript、outline 或公告改写成适合小红书、公众号、newsletter、LinkedIn、X/Twitter、短视频、SEO 的内容包。 | 把长内容拆成多平台内容包，并在本地 review、编辑、批准、导出时使用。 | [Open README](../skills/kelly-content/README.md) |
 | `kelly-pr-review` | 通过 `gh` CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 `gh pr review`。 | review PR、批准/comment/request changes，或批量处理 PR review decision 时使用。 | [Open README](../skills/kelly-pr-review/README.md) |
 | `kelly-drama` | 短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。 | 从策划到分镜管理短剧系列，写分集、建角色、管理 storyboard、review AI 生成图时使用。 | [Open README](../skills/kelly-drama/SKILL.md) |
@@ -337,6 +341,90 @@ Kelly Money 是本地财务 dashboard，用来查看 Mercury、Stripe、Airwalle
   <tr>
     <td><strong>到期台账</strong><br>域名、SSL 证书、key 轮换和套餐续费在一张表里，按剩余天数分级着色。</td>
     <td><strong>行动队列</strong><br>Agent 提出的续费/轮换/排查行动卡，带证据和审批控件。</td>
+  </tr>
+</table>
+
+### `kelly-audit`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-audit-ui-zh-CN.png" alt="Kelly Audit 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-audit-orders-zh-CN.png" alt="Kelly Audit 订单"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>财务稽核台：风险金额、应收账龄条、异常复核队列预览和导入历史。</td>
+    <td><strong>订单</strong><br>标准化订单表，带开票/回款状态标记和关联异常指示。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-audit-invoices-zh-CN.png" alt="Kelly Audit 发票"></td>
+    <td><img src="screenshots/kelly-audit-anomalies-zh-CN.png" alt="Kelly Audit 异常队列"></td>
+  </tr>
+  <tr>
+    <td><strong>发票</strong><br>发票台账：到期日、已回款金额、逾期天数和匹配状态。</td>
+    <td><strong>异常队列</strong><br>规则命中的异常，带订单-发票-回款证据链和可审批的催款邮件草稿。</td>
+  </tr>
+</table>
+
+### `kelly-tickets`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-tickets-ui-zh-CN.png" alt="Kelly Tickets 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-tickets-intake-zh-CN.png" alt="Kelly Tickets 进线"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>派单指挥台：SLA 风险、本周各渠道进线、工单分类分布和班组负载。</td>
+    <td><strong>进线</strong><br>微信、电话、表单、邮件的原始投诉，带分类字段和转工单控件。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-tickets-dispatch-zh-CN.png" alt="Kelly Tickets 派单审批"></td>
+    <td><img src="screenshots/kelly-tickets-board-zh-CN.png" alt="Kelly Tickets 工单看板"></td>
+  </tr>
+  <tr>
+    <td><strong>派单审批</strong><br>Agent 提出的班组指派：优先级、SLA 目标、派单理由和给班组的可编辑备注。</td>
+    <td><strong>工单看板</strong><br>工单沿「未结-已派-处理中-等待-已解决」跟踪，带 SLA 指示和历史时间线。</td>
+  </tr>
+</table>
+
+### `kelly-lesson`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-lesson-ui-zh-CN.png" alt="Kelly Lesson 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-lesson-plans-zh-CN.png" alt="Kelly Lesson 教案库"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>教学质量台：合规通过率、年级×学科覆盖、教师概览和审核队列。</td>
+    <td><strong>教案库</strong><br>按学科、年级、教师组织的教案，带来源标记、合规得分和结构化教案详情。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-lesson-checks-zh-CN.png" alt="Kelly Lesson 合规检查"></td>
+    <td><img src="screenshots/kelly-lesson-review-zh-CN.png" alt="Kelly Lesson 审核队列"></td>
+  </tr>
+  <tr>
+    <td><strong>合规检查</strong><br>逐条规则的通过/提醒/不合格结果，带证据片段，可按规则和教师筛选。</td>
+    <td><strong>审核队列</strong><br>教案提交带合规摘要、智能体修改建议和给教师的反馈草稿，供审批。</td>
+  </tr>
+</table>
+
+### `kelly-inquiry`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-inquiry-ui-zh-CN.png" alt="Kelly Inquiry 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-inquiry-inquiries-zh-CN.png" alt="Kelly Inquiry 询盘"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>询盘指挥台：回复 SLA 计数、本周渠道构成、销售漏斗和逾期商机提醒。</td>
+    <td><strong>询盘</strong><br>WhatsApp、Instagram、邮件询盘：国家、阶段、预估金额和下次跟进。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-inquiry-quotes-zh-CN.png" alt="Kelly Inquiry 报价"></td>
+    <td><img src="screenshots/kelly-inquiry-approvals-zh-CN.png" alt="Kelly Inquiry 审批队列"></td>
+  </tr>
+  <tr>
+    <td><strong>报价</strong><br>报价单工作台：行项目来自商品知识库，带有效期和底价护栏。</td>
+    <td><strong>审批队列</strong><br>回复和报价的审批制 outbox——未经批准不会发出任何消息。</td>
   </tr>
 </table>
 
