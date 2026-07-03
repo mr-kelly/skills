@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly SEO"
+  short_description: "Local GSC dashboard and SEO opportunities review queue"
+  default_prompt: "Use $kelly-seo to open my SEO desk and review search performance and opportunities."

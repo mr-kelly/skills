@@ -1,0 +1,122 @@
+---
+name: kelly-social
+license: MIT
+description: Personal App-in-Skill social media aggregator for Kelly's Twitter/X, Facebook, and Instagram accounts (extensible to LinkedIn, YouTube, Threads, TikTok, Xiaohongshu) with a local dashboard. Use when the user invokes $kelly-social or /kelly-social, wants social media aggregation, unified cross-platform timelines, account stats, follower counts, follower growth, engagement rates, impressions, social traffic metrics, post performance, top posts, or agent-driven collection of their own social accounts.
+---
+
+# Kelly Social
+
+## Overview
+
+Use this skill as Kelly's local social media command desk. It aggregates her Twitter/X, Facebook, and Instagram accounts (and later LinkedIn, YouTube, Threads, TikTok, Xiaohongshu) into one file-backed App-in-Skill dashboard with per-platform KPI cards, a unified cross-platform timeline, account detail pages with follower trends, and per-post engagement metrics.
+
+Collection is agent-driven, not API-first: most of these platforms have hostile or expensive APIs, so the agent gathers the data through the method configured per account and normalizes it into a local snapshot. The app only renders that local snapshot; it never touches any network beyond `127.0.0.1`.
+
+Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local social snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
+
+## Boundary
+
+- The skill (agent side) may read the user's own social accounts and their public metrics, parse analytics exports the user downloaded, call an official API when the user configured one, normalize the data, validate schemas, and write local handoff files through `scripts/ingest_snapshot.mjs`.
+- The app reads and writes local files only. It must not initiate platform requests, post, like, follow, delete, or mutate any remote system.
+- Collect only the user's own accounts plus the public metrics attached to their own posts. Never scrape other people's private data, DMs, or non-public profiles.
+- Respect login sessions the user owns: reuse an existing authenticated browser session; never ask for, capture, or store passwords, cookies, or session tokens anywhere (not in config, snapshots, sync logs, or chat).
+- Respect platform terms of service: prefer official analytics exports and user-owned sessions, throttle politely (small page counts, pauses between navigations, stop on rate-limit signals), and never bypass anti-bot walls.
+- The skill must never create fake engagement: no automated likes, follows, comments, reposts, or engagement pods. Normal Kelly Social operation is read-only aggregation.
+- Treat all account data as personal. Do not commit `config.local.json`, env files, `app/.data/`, exports, or tokens.
+
+## First Run And Onboarding
+
+On invocation, check `app/.data/onboarding.json` and private config readiness. If onboarding is absent/incomplete, guide setup before collecting real accounts.
+
+Private config priority:
+
+1. `KELLY_SOCIAL_CONFIG=/absolute/path/to/config.json`
+2. `skills/kelly-social/config.local.json`
+3. `~/.config/kelly-social/config.json`
+4. `skills/kelly-social/config.example.json` as template only
+
+Env priority:
+
+1. Existing environment variables
+2. `KELLY_SOCIAL_ENV_FILE=/absolute/path/to/.env`
+3. Repository root `.env`
+4. `skills/kelly-social/.env.local`
+5. `~/.config/kelly-social/.env`
+
+Onboarding asks, turn by turn: which platforms the user is on, the handle and display name per account, and the collection method per account — `browser_agent` (agent browses with the user's own logged-in session), `manual_export` (user downloads the platform's analytics export and tells the skill where it is), or `api` (user has an official API token; ask only for the env var name that holds it). Ask for non-secret details only. Never ask the user to paste secret values into chat; secrets belong only in local env files.
+
+When setup is complete and the user confirms, write `app/.data/onboarding.json`:
+
+```json
+{
+  "completed": true,
+  "completed_at": "ISO timestamp",
+  "config_version": "1"
+}
+```
+
+## Local App
+
+Start the dashboard with:
+
+```bash
+skills/kelly-social/app/start.sh
+```
+
+The app uses local HTTP on `127.0.0.1`, preferring port `3000` through `4000`, or `KELLY_SOCIAL_UI_PORT` when set. `/api/state` reports `app: "kelly-social"` so the launcher can reuse a matching server and skip past ports held by other apps.
+
+Required app views:
+
+- `#/overview`: social command desk. Per-platform KPI cards (followers, following, posts, impressions, engagement rate, profile visits) with 7d/28d deltas and platform badges, a cross-platform followers trend summary with inline SVG sparklines, top posts this week, and collection freshness per account (last sync + method).
+- `#/timeline`: unified reverse-chronological timeline across all platforms. Each row shows platform badge, account, timestamp, text preview, media indicator, and per-post metrics (likes, replies/comments, reposts/shares, views/impressions). Platform badge chips filter the list.
+- `#/timeline/<post_id>`: Post Detail. Full text, metrics breakdown, engagement rate, permalink, and agent notes.
+- `#/accounts`: account inventory. Handle, platform, display name, followers, growth deltas, engagement rate, last sync, and collection method.
+- `#/accounts/<account_id>`: Account Detail. Profile summary, follower trend rendered as an inline SVG sparkline (no chart library), top posts, traffic sources when available, and sync history with warnings.
+- `#/settings`: sanitized setup summary. Account handles, platforms, collection methods, configured env var readiness booleans, data provider name, and onboarding state. Never expose secret values.
+
+Demo mode:
+
+- `?demo=1` opens a deterministic mock dashboard for documentation and screenshots.
+- `?demo=overview`, `?demo=timeline`, `?demo=accounts`, and `?demo=detail` select named mock scenes.
+- `lang=en` or `lang=zh` forces UI chrome language for screenshots.
+- Demo API responses must never read or write live platform data or local private snapshot files.
+
+UI language: support English and Chinese chrome with `Auto` default. Keep handles, post text, and imported data in their original language.
+
+## File Contract
+
+Read `references/social-schema.md` before editing the app, scripts, or any generated snapshot JSON.
+
+Primary local files:
+
+- `app/.data/social_snapshot.json`: canonical dashboard snapshot — accounts with metric series, posts, metrics rollups, and `sync_log[]`. Written only by `scripts/ingest_snapshot.mjs`.
+- `app/.data/onboarding.json`: onboarding completion marker.
+- `app/.data/agent.lock`: temporary lock while the skill is collecting or rewriting files. This is a dashboard-type App-in-Skill: there is no `decisions.json`, but the lock must still be honored as a read-only indicator by the app and by `ingest_snapshot.mjs`.
+- `config.local.json`: private account configuration, ignored by git.
+
+Use `scripts/validate_ui_schema.mjs app/.data/social_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists. Demo mode never reads `app/.data/`.
+
+## Collection Workflow
+
+1. Detect mode. Default to App UI.
+2. Load private config. If only `config.example.json` exists, enter onboarding.
+3. If the user asks to refresh data, propose a collection scope first: which accounts, date window, and method per account.
+4. Acquire `app/.data/agent.lock` before collecting (owner `kelly-social`, short message, `started_at`). Remove it in a `finally` step.
+5. Collect per account according to its `collection` value:
+   - `browser_agent`: use a browser automation skill available in the session (for example a Stagehand/Playwright `browser` skill) with the user's own logged-in session. Read the user's profile page and their own posts' public/analytics metrics. Throttle politely: few pages, pauses between navigations, stop and report on rate-limit or captcha signals. Never enter credentials, never store cookies.
+   - `manual_export`: ask the user for the platform's analytics export (e.g. Meta Business Suite CSV, X analytics CSV, TikTok/YouTube studio export), parse it locally, and note the export date. Warn when an export is older than 7 days.
+   - `api`: call the official API with the token from the configured env var, read-only scopes only.
+6. Normalize the collected data into the payload shape documented in `references/social-schema.md` and `scripts/ingest_snapshot.mjs`, write it to a temp file, then run `node scripts/ingest_snapshot.mjs <payload.json>`. This is the single write path: it validates, merges by stable ids, appends per-account `sync_log` entries, and recomputes rollups. Do not write `social_snapshot.json` directly.
+7. Validate with `scripts/validate_ui_schema.mjs`, start/reuse the UI, and report the URL.
+8. Surface collection problems (stale exports, missing metrics, rate limits) as snapshot `warnings[]` rather than guessing numbers.
+
+Platform vocabulary normalization: map replies/comments onto `replies`, reposts/shares onto `reposts`, and views/impressions/plays onto `views`. Preserve provenance: `platform`, `provider_post_id`, `permalink`, and original handles. Deduplicate by stable ids (`post_id`, `account_id`) so repeated collections are idempotent.
+
+## Safety Defaults
+
+- Treat posting, liking, following, deleting, and any other remote mutation as out of scope; if the user asks, require explicit approval and a separate, clearly-scoped plan.
+- Only collect the user's own accounts and public metrics; skip anything requiring someone else's login or private data.
+- Never store passwords, cookies, tokens, or session material in any file this skill writes. Expose only boolean readiness for configured secret env vars.
+- Throttle politely and back off on rate-limit or anti-bot signals; a stale dashboard beats a banned account.
+- Keep local snapshots minimal and use stable ids so repeated ingests are idempotent.
+- If numbers between a platform's UI and an export disagree, do not invent corrections. Mark the account `warning` and explain the mismatch.

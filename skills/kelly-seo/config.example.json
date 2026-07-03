@@ -1,0 +1,30 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "sites": [
+    {
+      "site_id": "example-product",
+      "property_url": "https://example-product.com/",
+      "verification_type": "url_prefix"
+    },
+    {
+      "site_id": "example-docs",
+      "property_url": "https://docs.example-product.com/",
+      "verification_type": "url_prefix"
+    }
+  ],
+  "auth": {
+    "method": "service_account",
+    "service_account_file_env": "KELLY_SEO_GSC_SERVICE_ACCOUNT_FILE",
+    "access_token_env": "KELLY_SEO_GSC_ACCESS_TOKEN"
+  },
+  "sync": {
+    "window_days": 28,
+    "compare_previous_period": true,
+    "row_limit": 250,
+    "read_only": true
+  },
+  "ui": {
+    "language": "auto"
+  }
+}
