@@ -1,0 +1,80 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "products": [
+    {
+      "product_id": "example-app",
+      "display_name": "Example App",
+      "tagline": "What the product does in one line"
+    },
+    {
+      "product_id": "example-forms",
+      "display_name": "Example Forms",
+      "tagline": "Second product, if any"
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "support-email",
+      "channel": "email",
+      "name": "Support inbox",
+      "collection": "kelly-email handoff"
+    },
+    {
+      "source_id": "discord-community",
+      "channel": "discord",
+      "name": "Discord #feedback",
+      "collection": "kelly-messenger handoff",
+      "token_env": "KELLY_FEEDBACK_DISCORD_TOKEN"
+    },
+    {
+      "source_id": "slack-workspace",
+      "channel": "slack",
+      "name": "Slack community",
+      "collection": "kelly-messenger handoff",
+      "token_env": "KELLY_FEEDBACK_SLACK_TOKEN"
+    },
+    {
+      "source_id": "x-mentions",
+      "channel": "x",
+      "name": "X replies and mentions",
+      "collection": "kelly-social handoff"
+    },
+    {
+      "source_id": "appstore-reviews",
+      "channel": "appstore",
+      "name": "App Store reviews",
+      "collection": "manual export",
+      "api_key_env": "KELLY_FEEDBACK_APPSTORE_API_KEY"
+    },
+    {
+      "source_id": "in-app-survey",
+      "channel": "survey",
+      "name": "In-app NPS survey",
+      "collection": "CSV export",
+      "api_key_env": "KELLY_FEEDBACK_SURVEY_API_KEY"
+    },
+    {
+      "source_id": "user-interviews",
+      "channel": "interview",
+      "name": "User interviews",
+      "collection": "agent notes"
+    }
+  ],
+  "scoring": {
+    "plan_weights": {
+      "free": 1,
+      "pro": 3,
+      "team": 5
+    },
+    "default_weight": 1,
+    "recency_half_life_days": 30
+  },
+  "roadmap": {
+    "lanes": ["now", "next", "later"],
+    "document_path": ""
+  },
+  "ui": {
+    "language": "auto"
+  }
+}
