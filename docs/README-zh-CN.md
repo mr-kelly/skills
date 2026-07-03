@@ -42,10 +42,14 @@ Claude Code：
 | `kelly-tickets` | 把微信群导出、来电记录、表单、邮件里的投诉分类成工单，生成带 SLA 的派单建议供审批，并在看板上跟踪到解决。 | 管理物业/设施投诉、给班组派工单，或运行任何「接入-分类-派单-跟踪」流程时使用。 | [Open README](../skills/kelly-tickets/README.md) |
 | `kelly-lesson` | 从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。 | 统一全校教案格式、检查教案合规性、批量审核批准教学计划时使用。 | [Open README](../skills/kelly-lesson/README.md) |
 | `kelly-inquiry` | 把 WhatsApp、Instagram、Messenger、邮件询盘聚合成销售 pipeline：商品知识库、带底价护栏的报价单、审批制外发和跟进提醒。 | 处理外贸/跨境询盘、基于商品库起草准确回复和报价、防止商机逾期漏单时使用。 | [Open README](../skills/kelly-inquiry/README.md) |
+| `kelly-picks` | 跨境选品雷达：agent 扫 BSR 飙升、TikTok 爆款、上升搜索词产出候选品，每个候选带可实时改数的利润卡（售价、到岸成本、费用、保本 ACOS）和竞争解读。 | 找品、上架前压测利润空间、带采购/上架 brief 做「立项/观察/放弃」决策时使用。 | [Open README](../skills/kelly-picks/README.md) |
+| `kelly-listing` | 上架工厂：生成各平台 listing（Amazon 标题/五点/描述/后台词/A+、Shopify、TikTok Shop、eBay）和多站点语言变体，跑平台合规检查，批准后导出。 | 写或本地化平台 listing、执行禁用词和字数规则、批量审核上架文案时使用。 | [Open README](../skills/kelly-listing/README.md) |
+| `kelly-ads` | 投放指挥台：聚合 Amazon、Meta、TikTok、Google 广告到一块看板，跟踪 ACOS/ROAS，确定性异常检测，审批制调整卡（否定词、出价、预算）。 | 跨平台看广告花费、抓零转化烧钱和预算烧穿、带证据批准出价和关键词调整时使用。 | [Open README](../skills/kelly-ads/README.md) |
+| `kelly-standup` | 团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。 | 异步开晨会、一眼看到每个人在干什么、跟踪阻塞和参与率时使用。 | [Open README](../skills/kelly-standup/README.md) |
 | `kelly-writer` | 把一个想法、文章、 transcript、outline 或公告改写成适合小红书、公众号、newsletter、LinkedIn、X/Twitter、短视频、SEO 的内容包。 | 把长内容拆成多平台内容包，并在本地 review、编辑、批准、导出时使用。 | [Open README](../skills/kelly-content/README.md) |
 | `kelly-pr-review` | 通过 `gh` CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 `gh pr review`。 | review PR、批准/comment/request changes，或批量处理 PR review decision 时使用。 | [Open README](../skills/kelly-pr-review/README.md) |
-| `kelly-drama` | 短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。 | 从策划到分镜管理短剧系列，写分集、建角色、管理 storyboard、review AI 生成图时使用。 | [Open README](../skills/kelly-drama/SKILL.md) |
-| `kelly-mv` | 纯视觉 MV 工作台：上传 MP3、写 MV concept、建立角色和参考卡、生成/上传镜头图和视频，并围绕音乐做 storyboard。 | 做没有旁白/字幕的纯视觉 MV，用歌曲驱动镜头和画面规划时使用。 | [Open README](../skills/kelly-mv/SKILL.md) |
+| `kelly-drama` | 短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。 | 从策划到分镜管理短剧系列，写分集、建角色、管理 storyboard、review AI 生成图时使用。 | [Open README](../skills/kelly-drama/README.md) |
+| `kelly-mv` | 纯视觉 MV 工作台：上传 MP3、写 MV concept、建立角色和参考卡、生成/上传镜头图和视频，并围绕音乐做 storyboard。 | 做没有旁白/字幕的纯视觉 MV，用歌曲驱动镜头和画面规划时使用。 | [Open README](../skills/kelly-mv/README.md) |
 
 ## App UI 截图
 
@@ -425,6 +429,90 @@ Kelly Money 是本地财务 dashboard，用来查看 Mercury、Stripe、Airwalle
   <tr>
     <td><strong>报价</strong><br>报价单工作台：行项目来自商品知识库，带有效期和底价护栏。</td>
     <td><strong>审批队列</strong><br>回复和报价的审批制 outbox——未经批准不会发出任何消息。</td>
+  </tr>
+</table>
+
+### `kelly-picks`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-picks-ui-zh-CN.png" alt="Kelly Picks 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-picks-candidates-zh-CN.png" alt="Kelly Picks 候选品"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>选品台：本周各来源候选品、Top movers 和各来源扫描新鲜度。</td>
+    <td><strong>候选品</strong><br>候选品表：动量、预估毛利率、竞争评级和「立项/观察/放弃」阶段。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-picks-detail-zh-CN.png" alt="Kelly Picks 利润卡"></td>
+    <td><img src="screenshots/kelly-picks-decisions-zh-CN.png" alt="Kelly Picks 评审队列"></td>
+  </tr>
+  <tr>
+    <td><strong>利润卡</strong><br>可实时改数的利润测算——售价、到岸成本、运费、平台费、广告费 → 毛利率和保本 ACOS——外加前 10 名评论数竞争解读。</td>
+    <td><strong>评审队列</strong><br>Agent 提出的立项/观察/放弃提案，带采购和上架 brief 供审批。</td>
+  </tr>
+</table>
+
+### `kelly-listing`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-listing-ui-zh-CN.png" alt="Kelly Listing 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-listing-drafts-zh-CN.png" alt="Kelly Listing 草稿工作台"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>上架指挥台：产品 × 平台状态矩阵、合规通过率和可导出数。</td>
+    <td><strong>草稿工作台</strong><br>Amazon 草稿：标题实时字数、五点描述、后台搜索词字节计数、A+ 大纲和站点语言变体切换。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-listing-checks-zh-CN.png" alt="Kelly Listing 合规检查"></td>
+    <td><img src="screenshots/kelly-listing-review-zh-CN.png" alt="Kelly Listing 审核队列"></td>
+  </tr>
+  <tr>
+    <td><strong>合规检查</strong><br>逐条规则的通过/提醒/不合格——禁用词、字数上限、五点条数——覆盖全部草稿。</td>
+    <td><strong>审核队列</strong><br>草稿提交带合规摘要和关键词策略说明，批准后才能导出或发布。</td>
+  </tr>
+</table>
+
+### `kelly-ads`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-ads-ui-zh-CN.png" alt="Kelly Ads 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-ads-campaigns-zh-CN.png" alt="Kelly Ads 广告活动"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>跨平台投放看板：综合 ROAS/ACOS 对比目标、各平台卡片、花费收入柱状图和「只花钱不出单排行」。</td>
+    <td><strong>广告活动</strong><br>Amazon、Meta、TikTok、Google 的活动表：预算进度、花费、ROAS 和按目标着色的 ACOS。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-ads-alerts-zh-CN.png" alt="Kelly Ads 异常"></td>
+    <td><img src="screenshots/kelly-ads-adjustments-zh-CN.png" alt="Kelly Ads 调整队列"></td>
+  </tr>
+  <tr>
+    <td><strong>异常</strong><br>确定性异常流：ACOS 超标、预算烧穿、零转化花费、CPC 飙升、素材被拒。</td>
+    <td><strong>调整队列</strong><br>Agent 提出的出价/预算/否定词调整，带证据和影响预估，批准后才执行。</td>
+  </tr>
+</table>
+
+### `kelly-standup`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-standup-ui-zh-CN.png" alt="Kelly Standup 今日看板"></td>
+    <td width="50%"><img src="screenshots/kelly-standup-members-zh-CN.png" alt="Kelly Standup 成员"></td>
+  </tr>
+  <tr>
+    <td><strong>今日看板</strong><br>晨会一屏看全：团队摘要、提交统计、每人「昨天/今天/阻塞」卡片和来源渠道标记。</td>
+    <td><strong>成员</strong><br>团队名册：连续打卡、30 天参与率、未解决阻塞和每人更新时间线。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-standup-blockers-zh-CN.png" alt="Kelly Standup 阻塞"></td>
+    <td><img src="screenshots/kelly-standup-reminders-zh-CN.png" alt="Kelly Standup 提醒"></td>
+  </tr>
+  <tr>
+    <td><strong>阻塞</strong><br>全团队阻塞汇总：严重度、挂起时长和 agent 建议的下一步。</td>
+    <td><strong>提醒</strong><br>催交提醒审批队列——agent 起草，批准后才发出。</td>
   </tr>
 </table>
 
