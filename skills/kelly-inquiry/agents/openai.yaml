@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Inquiry"
+  short_description: "Inbound-inquiry desk with pipeline, quotes, and approvals"
+  default_prompt: "Use $kelly-inquiry to open my inquiry desk and review what needs a reply or a quote."

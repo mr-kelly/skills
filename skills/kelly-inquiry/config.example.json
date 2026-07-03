@@ -1,0 +1,83 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "owner": "Kelly",
+  "accounts": [
+    {
+      "account_id": "whatsapp-sales",
+      "channel": "whatsapp",
+      "connector": "whatsapp_cloud",
+      "display_name": "WhatsApp Business",
+      "handle": "+00 000 0000 0000",
+      "access_token_env": "KELLY_INQUIRY_WHATSAPP_ACCESS_TOKEN_SALES",
+      "phone_number_id_env": "KELLY_INQUIRY_WHATSAPP_PHONE_NUMBER_ID_SALES"
+    },
+    {
+      "account_id": "instagram-main",
+      "channel": "instagram",
+      "connector": "instagram_graph",
+      "display_name": "Instagram Business",
+      "handle": "@example.brand",
+      "access_token_env": "KELLY_INQUIRY_INSTAGRAM_ACCESS_TOKEN_MAIN",
+      "ig_user_id_env": "KELLY_INQUIRY_INSTAGRAM_USER_ID_MAIN"
+    },
+    {
+      "account_id": "messenger-page",
+      "channel": "messenger",
+      "connector": "messenger_graph",
+      "display_name": "Facebook Page",
+      "handle": "fb.com/example",
+      "access_token_env": "KELLY_INQUIRY_MESSENGER_PAGE_TOKEN_MAIN",
+      "page_id_env": "KELLY_INQUIRY_MESSENGER_PAGE_ID_MAIN"
+    },
+    {
+      "account_id": "sales-email",
+      "channel": "email",
+      "connector": "email_agent",
+      "display_name": "Sales Mailbox",
+      "handle": "sales@example.com",
+      "handoff_skill": "kelly-email"
+    },
+    {
+      "account_id": "whatsapp-web",
+      "channel": "whatsapp",
+      "connector": "browser_agent",
+      "display_name": "WhatsApp Web (own session)"
+    }
+  ],
+  "product_kb": {
+    "source_path": "/absolute/path/to/products.json",
+    "refresh_with": "scripts/sync_products.mjs"
+  },
+  "quote_defaults": {
+    "currency": "USD",
+    "validity_days": 30,
+    "incoterm": "FOB Example Port",
+    "payment_terms": "30% T/T deposit, 70% before shipment",
+    "min_price_guard": {
+      "enabled": true,
+      "block_below_price_min": true
+    }
+  },
+  "follow_up": {
+    "sla_days": {
+      "new": 1,
+      "replied": 2,
+      "quoted": 3,
+      "negotiating": 5
+    }
+  },
+  "reply_style": {
+    "tone": "professional, warm, factory-direct",
+    "language": "match the buyer",
+    "signature": "",
+    "avoid": ["quoting below the product KB floor", "promising certifications not in the KB", "unconfirmed lead times"]
+  },
+  "sync": {
+    "default_limit": 50,
+    "cadence_minutes": 30
+  },
+  "ui": {
+    "language": "auto"
+  }
+}
