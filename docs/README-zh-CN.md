@@ -1,6 +1,6 @@
 # mr-kelly/skills
 
-Kelly 的个人 AI skills 工作区，用来处理日常业务里的重复工作。
+Kelly 的个人 AI skills 工作区，用来处理日常业务里的重复工作。**[在线浏览全部 skills](https://mr-kelly.github.io/skills/?lang=zh)**
 
 这个仓库收集 Kelly 在邮件、资金台账、CRM、聊天聚合、社媒运营、SEO、用户反馈、市场情报、运维监控、内容生产、PR review、短剧制作、MV 策划和 agent 配置里经常使用的 skills。很多 skill 都是 **App-in-Skill**：skill 负责告诉 agent 怎么做事，本地浏览器 App UI 则给 Kelly 一个更稳定的操作台，用来 review、approve、编辑、查看 dashboard，或者把任务带着备注交还给 agent。
 

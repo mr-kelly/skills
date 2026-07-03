@@ -2,7 +2,7 @@
 
 Kelly's personal AI skills workspace for daily business operations.
 
-[中文版 README](docs/README-zh-CN.md)
+[中文版 README](docs/README-zh-CN.md) · **[Browse all skills on the website](https://mr-kelly.github.io/skills/)**
 
 This repo collects the skills Kelly uses repeatedly across email, money, content, PR review, short-drama production, music-video planning, and agent setup. Many of these are **App-in-Skill** workflows: the skill gives the agent the operating procedure, while a bundled local browser UI gives Kelly a calmer place to review, approve, edit, inspect dashboards, or hand work back to the agent.
 
