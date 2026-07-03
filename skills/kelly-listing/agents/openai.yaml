@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Listing"
+  short_description: "Listing factory for cross-border e-commerce"
+  default_prompt: "Use $kelly-listing to open my listing workbench and review platform drafts."
