@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "Kelly's App-in-Skill business tools for daily operations.",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "plugins": [
     {
       "name": "mr-kelly-skills",
-      "description": "Kelly's App-in-Skill business tools: email inbox-zero, money ledger, personal CRM, unified chat inbox, social media aggregation, Search Console SEO desk, user feedback roadmap, market intelligence radar, fleet ops monitoring, content repurposing, GitHub PR review, short-drama & music-video production, and multi-agent rule setup. Each bundles a local browser UI for human review and approval.",
-      "version": "0.2.0",
+      "description": "Kelly's App-in-Skill business tools: email inbox-zero, money ledger, finance anomaly audit, personal CRM, unified chat inbox, inquiry-to-quote desk, ticket triage & dispatch, lesson-plan compliance, social media aggregation, Search Console SEO desk, user feedback roadmap, market intelligence radar, fleet ops monitoring, content repurposing, GitHub PR review, short-drama & music-video production, and multi-agent rule setup. Each bundles a local browser UI for human review and approval.",
+      "version": "0.3.0",
       "author": {
         "name": "Kelly Peilin Chan"
       },
@@ -21,6 +21,10 @@
       "tags": [
         "email",
         "finance",
+        "audit",
+        "tickets",
+        "education",
+        "sales",
         "crm",
         "messaging",
         "social-media",
@@ -39,12 +43,15 @@
       "skills": [
         "./skills/agent-rules",
         "./skills/app-in-skill-creator",
+        "./skills/kelly-audit",
         "./skills/kelly-content",
         "./skills/kelly-crm",
         "./skills/kelly-devops",
         "./skills/kelly-drama",
         "./skills/kelly-email",
         "./skills/kelly-feedback",
+        "./skills/kelly-inquiry",
+        "./skills/kelly-lesson",
         "./skills/kelly-messenger",
         "./skills/kelly-money",
         "./skills/kelly-mv",
@@ -52,6 +59,7 @@
         "./skills/kelly-radar",
         "./skills/kelly-seo",
         "./skills/kelly-social",
+        "./skills/kelly-tickets",
         "./skills/publish-skills"
       ]
     }

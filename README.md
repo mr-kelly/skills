@@ -40,6 +40,10 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-feedback` | Aggregates user feedback from every channel, clusters it into weighted feature requests, and runs a roadmap decision queue with drafted replies and changelog notes. | Use it when triaging user feedback, prioritizing feature requests, or making evidence-backed roadmap promote/decline decisions. | [Open README](skills/kelly-feedback/README.md) |
 | `kelly-radar` | Market-intelligence desk merging competitor signal monitoring (pricing, changelog, launch, review diffs), a research question workbench with brief approval and cited reports, and keyword/topic trend tracking. | Use it when watching competitors, commissioning deep research reports, or turning rising search and community trends into opportunity cards. | [Open README](skills/kelly-radar/README.md) |
 | `kelly-devops` | Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval. | Use it when checking service health, catching expiring domains and certificates, reviewing cloud spend spikes, or approving renewal and rotation actions. | [Open README](skills/kelly-devops/README.md) |
+| `kelly-audit` | Imports orders, invoices, and payments from business exports and audits them against each other: missing invoices, amount mismatches, overdue receivables with aging, duplicates, and unmatched payments, each with an evidence chain and drafted follow-up. | Use it when reconciling the order-invoice-payment chain, chasing receivables, or reviewing finance anomalies before month-end. | [Open README](skills/kelly-audit/README.md) |
+| `kelly-tickets` | Triages complaints and requests from WeChat exports, call logs, forms, and email into classified tickets, proposes crew dispatches with SLA targets for approval, and tracks everything on a resolution board. | Use it when managing property or facilities complaints, dispatching work orders to crews, or running any intake-classify-dispatch-track workflow. | [Open README](skills/kelly-tickets/README.md) |
+| `kelly-lesson` | Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export. | Use it when standardizing lesson plans across teachers, checking plan compliance, or reviewing and approving teaching plans at scale. | [Open README](skills/kelly-lesson/README.md) |
+| `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [Open README](skills/kelly-inquiry/README.md) |
 | `kelly-writer` | Repurposes one source idea, article, transcript, outline, or announcement into channel-ready drafts for platforms like Xiaohongshu, WeChat, newsletters, LinkedIn, X/Twitter, short video, and SEO snippets. | Use it when turning long-form source material into a multi-platform content pack with local review, edits, approvals, and export. | [Open README](skills/kelly-content/README.md) |
 | `kelly-pr-review` | Runs a GitHub PR review desk through `gh` CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved `gh pr review` actions. | Use it when reviewing GitHub pull requests, approving/commenting/requesting changes from a local queue, or batching PR review decisions. | [Open README](skills/kelly-pr-review/README.md) |
 | `kelly-drama` | Produces short-drama series with a local workbench for series overview, character library, relationship map, episode table, and shot sheets. Generates storyboard images with character reference cards and coordinates AI and human tasks. | Use it when planning and producing a short-drama series end-to-end: writing episode scripts, building character sheets, managing storyboard shots, and reviewing AI-generated images before use. | [Open README](skills/kelly-drama/SKILL.md) |
@@ -339,6 +343,90 @@ Kelly Money is a local finance dashboard for seeing money movement across Mercur
   <tr>
     <td><strong>Expiry ledger</strong><br>Domains, SSL certificates, key rotations, and plan renewals in one table with color-coded days-left.</td>
     <td><strong>Action queue</strong><br>Agent-proposed renew/rotate/investigate action cards with evidence and approval controls.</td>
+  </tr>
+</table>
+
+### `kelly-audit`
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-audit-ui.png" alt="Kelly Audit overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-audit-orders.png" alt="Kelly Audit orders"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Finance audit desk with amount at risk, receivable aging bar, anomaly queue preview, and import history.</td>
+    <td><strong>Orders</strong><br>Normalized orders with invoice and payment status badges and linked anomaly indicators.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-audit-invoices.png" alt="Kelly Audit invoices"></td>
+    <td><img src="docs/screenshots/kelly-audit-anomalies.png" alt="Kelly Audit anomaly queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Invoices</strong><br>Invoice ledger with due dates, paid amounts, days overdue, and match status.</td>
+    <td><strong>Anomaly queue</strong><br>Rule-flagged anomalies with the order-invoice-payment evidence chain and a drafted chasing email for approval.</td>
+  </tr>
+</table>
+
+### `kelly-tickets`
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-tickets-ui.png" alt="Kelly Tickets overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-tickets-intake.png" alt="Kelly Tickets intake"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Dispatch command desk with SLA risk, weekly intake by channel, category distribution, and crew load.</td>
+    <td><strong>Intake</strong><br>Raw complaints from WeChat, phone, forms, and email with classification fields and convert-to-ticket controls.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-tickets-dispatch.png" alt="Kelly Tickets dispatch queue"></td>
+    <td><img src="docs/screenshots/kelly-tickets-board.png" alt="Kelly Tickets board"></td>
+  </tr>
+  <tr>
+    <td><strong>Dispatch queue</strong><br>Agent-proposed crew assignments with priority, SLA target, reasoning, and an editable note to the crew.</td>
+    <td><strong>Board</strong><br>Tickets tracked across open, assigned, in-progress, waiting, and resolved with SLA indicators and history timelines.</td>
+  </tr>
+</table>
+
+### `kelly-lesson`
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-lesson-ui.png" alt="Kelly Lesson overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-lesson-plans.png" alt="Kelly Lesson plan library"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Teaching-quality desk with compliance pass rate, grade-by-subject coverage, per-teacher status, and the review queue.</td>
+    <td><strong>Plan library</strong><br>Lesson plans by subject, grade, and teacher with source badges, compliance scores, and structured plan detail.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-lesson-checks.png" alt="Kelly Lesson compliance checks"></td>
+    <td><img src="docs/screenshots/kelly-lesson-review.png" alt="Kelly Lesson review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results with evidence snippets, filterable by rule and teacher.</td>
+    <td><strong>Review queue</strong><br>Plan submissions with compliance summaries, agent revision suggestions, and drafted teacher feedback for approval.</td>
+  </tr>
+</table>
+
+### `kelly-inquiry`
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-inquiry-ui.png" alt="Kelly Inquiry overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-inquiry-inquiries.png" alt="Kelly Inquiry pipeline"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Inquiry command desk with reply SLA counters, weekly channel mix, pipeline funnel, and stale-deal alerts.</td>
+    <td><strong>Pipeline</strong><br>Inquiries across WhatsApp, Instagram, and email with country, stage, value estimate, and next follow-up.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-inquiry-quotes.png" alt="Kelly Inquiry quotes"></td>
+    <td><img src="docs/screenshots/kelly-inquiry-approvals.png" alt="Kelly Inquiry approvals"></td>
+  </tr>
+  <tr>
+    <td><strong>Quotes</strong><br>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</td>
+    <td><strong>Approvals</strong><br>Approval-gated outbox for replies and quotes — nothing is sent until reviewed.</td>
   </tr>
 </table>
 
