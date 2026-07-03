@@ -37,6 +37,7 @@ export function demoStatePayload(query = {}) {
   counts.done = allItems.filter(isDone).length;
   counts.blocked = allItems.filter(isBlocked).length;
   return {
+    app: "kelly-email",
     demo: true,
     demo_scenario: scenario,
     batch: {
