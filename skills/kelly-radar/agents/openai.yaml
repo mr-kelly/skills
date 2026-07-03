@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Radar"
+  short_description: "Local market-intelligence desk: signals, research, trends"
+  default_prompt: "Use $kelly-radar to open my market-intelligence desk and triage new competitor signals."
