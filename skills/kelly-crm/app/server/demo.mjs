@@ -1,0 +1,317 @@
+const now = "2026-07-02T09:30:00.000Z";
+
+export function isDemoQuery(query = {}) {
+  return Boolean(query.demo);
+}
+
+export function demoStatePayload(query = {}) {
+  const scenario = String(query.demo || "overview");
+  const zh = String(query.lang || "").toLowerCase().startsWith("zh");
+  const snapshot = zh ? localizeSnapshotZh(demoSnapshot(scenario)) : demoSnapshot(scenario);
+  return {
+    demo: true,
+    demo_scenario: scenario,
+    app: "kelly-crm",
+    data_provider: "demo",
+    onboarding: { completed: true, completed_at: now, config_version: "demo" },
+    lock: null,
+    config_summary: {
+      config_path: "demo://kelly-crm/config.json",
+      is_example: false,
+      operator: { name: "Kelly Chan", role: "Founder", company: "Atlas Studio LLC", timezone: "Asia/Shanghai" },
+      pipeline_stages: ["lead", "qualified", "proposal", "negotiation", "won", "lost"],
+      base_currency: "USD",
+      style_tone: "concise, warm, direct",
+      channels: [
+        {
+          channel_id: "email-main",
+          type: "email",
+          display_name: "Founder Email",
+          handoff_skill: "kelly-email",
+          secret_envs: ["KELLY_CRM_EMAIL_TOKEN_DEMO"],
+          secrets_ready: true
+        },
+        {
+          channel_id: "linkedin-main",
+          type: "linkedin",
+          display_name: "LinkedIn Outreach",
+          handoff_skill: "linkedin-posting",
+          secret_envs: ["KELLY_CRM_LINKEDIN_TOKEN_DEMO"],
+          secrets_ready: true
+        }
+      ]
+    },
+    decisions: demoDecisions(),
+    agent_tasks: demoAgentTasks(),
+    execution_report: demoExecutionReport(),
+    snapshot
+  };
+}
+
+function demoDecisions() {
+  return {
+    updated_at: "2026-07-01T15:40:00.000Z",
+    decisions: {
+      "fu-atlas-workshop": {
+        action: "approve",
+        comment: "Good as written. Send Thursday morning her time.",
+        decided_at: "2026-07-01T15:38:00.000Z"
+      },
+      "fu-vantage-security": {
+        action: "request_changes",
+        comment: "Soften the HIPAA wording — we are SOC 2 in progress, not certified. Say 'audit underway'.",
+        decided_at: "2026-07-01T15:32:00.000Z"
+      },
+      "fu-fernwood-checkin": {
+        action: "block",
+        comment: "Marcus said the fund is refocusing. Hold all pings until their new thesis is public.",
+        decided_at: "2026-07-01T15:40:00.000Z"
+      }
+    }
+  };
+}
+
+function demoAgentTasks() {
+  return {
+    updated_at: "2026-07-01T15:32:00.000Z",
+    tasks: [
+      {
+        task_id: "task-fu-vantage-security-1783093920000",
+        type: "revise_followup",
+        followup_id: "fu-vantage-security",
+        comment: "Soften the HIPAA wording — we are SOC 2 in progress, not certified. Say 'audit underway'.",
+        requested_at: "2026-07-01T15:32:00.000Z",
+        status: "queued"
+      }
+    ]
+  };
+}
+
+function demoExecutionReport() {
+  return {
+    executed_at: "2026-06-27T10:05:00.000Z",
+    dry_run: false,
+    source: "kelly-crm-demo",
+    results: [
+      {
+        followup_id: "fu-orbit-thanks",
+        ref: 7,
+        status: "handed_off",
+        operation: "handoff_to_email",
+        channel: "email-main",
+        target: "grace.lim@orbitworks.dev",
+        reason: "Approved thank-you note after Orbit Works signed the annual license.",
+        executed_at: "2026-06-27T10:05:00.000Z"
+      }
+    ]
+  };
+}
+
+function localizeSnapshotZh(snapshot) {
+  const nextSteps = {
+    "deal-brightpath-pilot": "发送安全评审纪要并确认试点时间表",
+    "deal-beacon-api": "回复合作分成方案的报价问题",
+    "deal-vantage-pilot": "修改合规措辞后重发跟进邮件",
+    "deal-harborline-integration": "发送集成沙箱账号和文档",
+    "deal-atlas-retainer": "安排范围界定工作坊",
+    "deal-nimbus-rollout": "等待 Priya 内部预算确认",
+    "deal-orbit-license": "已签约，安排上手培训",
+    "deal-fernwood-workshop": "暂停跟进，等待基金新方向"
+  };
+  snapshot.deals = snapshot.deals.map((deal) => ({
+    ...deal,
+    next_step: nextSteps[deal.deal_id] || deal.next_step
+  }));
+  const reasons = {
+    "fu-brightpath-recap": "周二的安全评审电话需要书面纪要，趁热确认时间表。",
+    "fu-beacon-pricing": "Sofia 在等合作层级报价，本周内答复才能赶上他们的季度规划。",
+    "fu-harborline-sandbox": "Jonas 答应把沙箱转给工程团队，附上文档能加快评估。",
+    "fu-vantage-security": "David 问了合规问题，草稿里的 HIPAA 措辞被要求修改。",
+    "fu-atlas-workshop": "Elena 确认了预算，需要敲定工作坊日期。",
+    "fu-fernwood-checkin": "常规季度问候，但对方基金正在调整方向。",
+    "fu-orbit-thanks": "Orbit Works 已签约，感谢邮件已交接给邮件技能发送。"
+  };
+  snapshot.followups = snapshot.followups.map((followup) => ({
+    ...followup,
+    reason: reasons[followup.followup_id] || followup.reason
+  }));
+  snapshot.warnings = snapshot.warnings.map((warning) => ({
+    ...warning,
+    message: "Vantage Health 的草稿包含合规敏感措辞，发送前需要人工确认。",
+    detail: "演示提醒，未读取真实数据。"
+  }));
+  return snapshot;
+}
+
+function demoSnapshot(scenario) {
+  const companies = [
+    company("comp-brightpath", "Brightpath Labs", "brightpathlabs.com", "Analytics SaaS", "120 people", "San Francisco, US"),
+    company("comp-beacon", "Beacon Robotics", "beaconrobotics.io", "Industrial robotics", "260 people", "Austin, US"),
+    company("comp-vantage", "Vantage Health", "vantagehealth.co", "Digital health", "90 people", "Boston, US"),
+    company("comp-harborline", "Harborline", "harborline.eu", "Logistics platform", "340 people", "Rotterdam, NL"),
+    company("comp-atlas-design", "Atlas Design Co", "atlasdesign.co", "Design agency", "35 people", "Berlin, DE"),
+    company("comp-nimbus", "Nimbus Retail", "nimbusretail.com", "E-commerce ops", "150 people", "London, UK"),
+    company("comp-orbitworks", "Orbit Works", "orbitworks.dev", "Developer tools", "48 people", "Singapore, SG"),
+    company("comp-fernwood", "Fernwood Capital", "fernwood.vc", "Venture capital", "18 people", "New York, US")
+  ];
+
+  const contacts = [
+    contact("ct-mira", "Mira Solano", "comp-brightpath", "VP Data Platform", "mira@brightpathlabs.com", "strong", ["pilot", "champion"], "2026-06-30T17:00:00.000Z", "2026-07-03", "Technical champion. Prefers written recaps within 24h of every call."),
+    contact("ct-sofia", "Sofia Andersson", "comp-beacon", "VP Product", "sofia@beaconrobotics.io", "warm", ["partnership", "pricing"], "2026-06-29T15:30:00.000Z", "2026-07-04", "Drives the API partnership. Wants pricing before their quarterly planning."),
+    contact("ct-ken", "Ken Watanabe", "comp-beacon", "Platform Lead", "ken@beaconrobotics.io", "new", ["technical"], "2026-06-26T09:00:00.000Z", "", "Joined the last demo. Evaluates webhook throughput; send benchmarks when ready."),
+    contact("ct-david", "David Okafor", "comp-vantage", "CTO", "david@vantagehealth.co", "warm", ["pilot", "compliance"], "2026-06-27T14:00:00.000Z", "2026-07-05", "Compliance-first. Never overstate certifications; SOC 2 audit is still underway."),
+    contact("ct-jonas", "Jonas Vermeer", "comp-harborline", "Head of Partnerships", "jonas@harborline.eu", "warm", ["integration"], "2026-06-25T10:00:00.000Z", "2026-07-06", "Wants a sandbox his engineers can test before the August integration window."),
+    contact("ct-elena", "Elena Fischer", "comp-atlas-design", "Managing Partner", "elena@atlasdesign.co", "strong", ["retainer", "referral"], "2026-07-01T08:30:00.000Z", "2026-07-05", "Long-time ally; referred two customers. Budget confirmed for the retainer."),
+    contact("ct-priya", "Priya Raghavan", "comp-nimbus", "COO", "priya@nimbusretail.com", "new", ["inbound"], "2026-06-24T11:00:00.000Z", "2026-07-10", "Inbound from the pricing page. Waiting on her internal budget confirmation."),
+    contact("ct-grace", "Grace Lim", "comp-orbitworks", "Engineering Manager", "grace.lim@orbitworks.dev", "strong", ["customer"], "2026-06-27T10:05:00.000Z", "", "Signed the annual license. Onboarding session scheduled for mid-July."),
+    contact("ct-marcus", "Marcus Hale", "comp-fernwood", "Partner", "marcus@fernwood.vc", "cool", ["investor"], "2026-06-12T16:00:00.000Z", "", "Fund is refocusing its thesis. Do not ping until their announcement."),
+    contact("ct-leah", "Leah Barnett", "comp-brightpath", "Procurement Manager", "leah@brightpathlabs.com", "cool", ["procurement"], "2026-06-23T13:00:00.000Z", "", "Owns the paperwork for the pilot. Strict about redlines and payment terms.")
+  ];
+
+  const deals = [
+    deal("deal-brightpath-pilot", "Enterprise pilot", "comp-brightpath", "ct-mira", "negotiation", 48000, "USD", 0.7, "Send security review recap and confirm pilot timeline", "Kelly", "2026-05-12", "2026-07-18", "2026-06-30T17:00:00.000Z", "open", "Draft the recap email while the security call is fresh; Leah needs the redlined order form by July 10."),
+    deal("deal-beacon-api", "API partnership", "comp-beacon", "ct-sofia", "negotiation", 52000, "USD", 0.65, "Reply with partnership-tier pricing", "Kelly", "2026-05-02", "2026-07-25", "2026-06-29T15:30:00.000Z", "open", "Sofia needs pricing before Beacon's quarterly planning; include the volume discount table Ken asked about."),
+    deal("deal-vantage-pilot", "Compliance pilot", "comp-vantage", "ct-david", "proposal", 36000, "USD", 0.5, "Revise compliance wording, then resend follow-up", "Kelly", "2026-05-20", "2026-08-08", "2026-06-27T14:00:00.000Z", "open", "Rework the draft per Kelly's note: say 'SOC 2 audit underway', never 'certified'."),
+    deal("deal-harborline-integration", "Partnership integration", "comp-harborline", "ct-jonas", "proposal", 30000, "USD", 0.55, "Send sandbox credentials and integration docs", "Kelly", "2026-05-28", "2026-08-15", "2026-06-25T10:00:00.000Z", "open", "Ship the sandbox before Harborline's August integration window closes."),
+    deal("deal-atlas-retainer", "Design retainer", "comp-atlas-design", "ct-elena", "qualified", 24000, "USD", 0.4, "Schedule the scope workshop", "Kelly", "2026-06-10", "2026-08-01", "2026-07-01T08:30:00.000Z", "open", "Budget is confirmed; lock a workshop date this week while momentum is high."),
+    deal("deal-nimbus-rollout", "Team plan rollout", "comp-nimbus", "ct-priya", "lead", 12000, "USD", 0.2, "Wait for Priya's budget confirmation", "Kelly", "2026-06-24", "2026-09-05", "2026-06-24T11:00:00.000Z", "open", "Low touch until budget confirms; queue a gentle check-in for July 10."),
+    deal("deal-orbit-license", "Annual license", "comp-orbitworks", "ct-grace", "won", 18000, "USD", 1, "Signed — schedule onboarding", "Kelly", "2026-04-15", "2026-06-27", "2026-06-27T10:05:00.000Z", "won", "Won on June 27. Onboarding session set for mid-July; ask for a case study after 60 days."),
+    deal("deal-fernwood-workshop", "Portfolio workshop", "comp-fernwood", "ct-marcus", "lost", 8000, "USD", 0, "Paused — fund is refocusing", "Kelly", "2026-04-02", "2026-06-15", "2026-06-12T16:00:00.000Z", "lost", "Closed lost for now. Revisit once Fernwood publishes its new thesis.")
+  ];
+
+  const interactions = [
+    interaction("int-01", "ct-elena", "comp-atlas-design", "deal-atlas-retainer", "email", "2026-07-01T08:30:00.000Z", "inbound", "Elena confirmed the retainer budget and asked for two workshop date options next week.", "email"),
+    interaction("int-02", "ct-mira", "comp-brightpath", "deal-brightpath-pilot", "meeting", "2026-06-30T17:00:00.000Z", "outbound", "Security review call: passed data-residency questions; Mira wants a written recap and a pilot timeline by Friday.", "meeting notes"),
+    interaction("int-03", "ct-sofia", "comp-beacon", "deal-beacon-api", "call", "2026-06-29T15:30:00.000Z", "inbound", "Sofia asked for partnership-tier pricing with volume discounts before Beacon's quarterly planning.", "call notes"),
+    interaction("int-04", "ct-david", "comp-vantage", "deal-vantage-pilot", "email", "2026-06-27T14:00:00.000Z", "inbound", "David asked how we handle PHI and which certifications are complete versus in progress.", "email"),
+    interaction("int-05", "ct-grace", "comp-orbitworks", "deal-orbit-license", "email", "2026-06-27T10:05:00.000Z", "outbound", "Sent the countersigned annual license and thank-you note; proposed onboarding dates.", "email"),
+    interaction("int-06", "ct-ken", "comp-beacon", "deal-beacon-api", "meeting", "2026-06-26T09:00:00.000Z", "outbound", "Technical demo for Ken's platform team; he asked for webhook throughput benchmarks.", "meeting notes"),
+    interaction("int-07", "ct-jonas", "comp-harborline", "deal-harborline-integration", "meeting", "2026-06-25T10:00:00.000Z", "outbound", "Walked through the integration plan; Jonas wants a sandbox for his engineers before August.", "meeting notes"),
+    interaction("int-08", "ct-priya", "comp-nimbus", "deal-nimbus-rollout", "email", "2026-06-24T11:00:00.000Z", "inbound", "Priya asked about team-plan pricing for 40 seats; budget review happens in early July.", "email"),
+    interaction("int-09", "ct-leah", "comp-brightpath", "deal-brightpath-pilot", "email", "2026-06-23T13:00:00.000Z", "inbound", "Leah sent procurement redlines: net-45 payment terms and a liability cap question.", "email"),
+    interaction("int-10", "ct-sofia", "comp-beacon", "deal-beacon-api", "social", "2026-06-20T12:00:00.000Z", "inbound", "Sofia shared Beacon's integration marketplace announcement on LinkedIn; commented and reshared.", "linkedin"),
+    interaction("int-11", "ct-marcus", "comp-fernwood", "deal-fernwood-workshop", "call", "2026-06-12T16:00:00.000Z", "inbound", "Marcus said the fund is refocusing its thesis; workshop is on hold until the announcement.", "call notes"),
+    interaction("int-12", "ct-mira", "comp-brightpath", "deal-brightpath-pilot", "note", "2026-06-18T09:00:00.000Z", "internal", "Mira is presenting the pilot internally on July 8 — everything she needs must land before then.", "note")
+  ];
+
+  const followups = [
+    followup("fu-brightpath-recap", 1, "ct-mira", "deal-brightpath-pilot", "email-main", "email", "Security review recap + pilot timeline", "Tuesday's security review call needs a written recap while it is fresh, and Mira presents internally on July 8.", ["commitment"], "2026-07-03", "needs_review",
+      "Hi Mira,\n\nThank you for the thorough security review on Tuesday — great questions from your team.\n\nRecapping what we agreed:\n- Data residency: all pilot data stays in the US-West region.\n- SSO: SAML config will be ready in your sandbox by July 7.\n- Pilot window: 6 weeks starting July 14, success criteria as in the shared doc.\n\nI'll send the redlined order form to Leah separately this week. Anything you'd like added before your July 8 internal presentation?\n\nBest,\nKelly"),
+    followup("fu-beacon-pricing", 2, "ct-sofia", "deal-beacon-api", "email-main", "email", "Partnership-tier pricing", "Sofia needs pricing before Beacon's quarterly planning; replying this week keeps us in their Q3 budget.", ["money", "commitment"], "2026-07-04", "needs_review",
+      "Hi Sofia,\n\nAs promised, here is the partnership-tier pricing for the API integration:\n\n- Base platform fee: $2,400/month, billed annually.\n- Included volume: 500k API calls/month; $0.90 per additional 1k calls.\n- Volume discount: 15% above 2M calls/month (the tier Ken's benchmarks suggest you'd hit).\n\nHappy to walk your finance team through this before your quarterly planning. Would Tuesday or Wednesday next week work?\n\nBest,\nKelly"),
+    followup("fu-harborline-sandbox", 3, "ct-jonas", "deal-harborline-integration", "email-main", "email", "Sandbox access for Harborline engineers", "Jonas promised to route the sandbox to his engineers; sending credentials and docs now keeps the August window realistic.", [], "2026-07-06", "needs_review",
+      "Hi Jonas,\n\nYour integration sandbox is ready. Your engineers can start today:\n\n- Sandbox URL: added to the shared workspace.\n- API docs and Postman collection: linked in the same folder.\n- Test credentials: sent separately to your security alias.\n\nIf the team hits anything odd, they can write to us directly — we usually answer within a few hours on weekdays.\n\nBest,\nKelly"),
+    followup("fu-vantage-security", 4, "ct-david", "deal-vantage-pilot", "email-main", "email", "Compliance answers for Vantage Health", "David asked which certifications are complete; the first draft overstated SOC 2 status and Kelly asked for a revision.", ["legal"], "2026-07-05", "changes_requested",
+      "Hi David,\n\nGood questions on compliance. Where we stand today:\n\n- SOC 2 Type II: audit underway, report expected in September.\n- PHI handling: encrypted at rest and in transit; the pilot can run on de-identified data only.\n- BAA: we can sign your standard BAA for the pilot phase.\n\nHappy to put your security lead and ours on a short call if that is faster.\n\nBest,\nKelly"),
+    followup("fu-atlas-workshop", 5, "ct-elena", "deal-atlas-retainer", "email-main", "email", "Scope workshop scheduling", "Elena confirmed budget and asked for date options; locking the workshop this week keeps the retainer on track.", [], "2026-07-05", "approved",
+      "Hi Elena,\n\nGreat news on the budget — let's lock the scope workshop.\n\nTwo options next week: Tuesday July 7, 14:00–16:00 CET, or Thursday July 9, 10:00–12:00 CET. Both at your Berlin studio or on a call, your choice.\n\nI'll bring the draft scope doc and the two case studies you asked about.\n\nBest,\nKelly"),
+    followup("fu-fernwood-checkin", 6, "ct-marcus", "deal-fernwood-workshop", "linkedin-main", "linkedin", "Quarterly check-in", "Regular quarterly touch-point, but Fernwood is refocusing its thesis and asked for quiet until the announcement.", [], "2026-07-15", "blocked",
+      "Hi Marcus — hope the summer is treating you well. Would love to catch up once things settle on your side; no agenda, just keeping in touch."),
+    followup("fu-orbit-thanks", 7, "ct-grace", "deal-orbit-license", "email-main", "email", "Thank-you note after signing", "Orbit Works signed the annual license; the approved thank-you note was handed off to kelly-email on June 27.", [], "2026-06-27", "done",
+      "Hi Grace,\n\nThank you for trusting us with the annual license — the countersigned copy is attached.\n\nOnboarding is set for July 15; your team will get calendar invites this week.\n\nBest,\nKelly")
+  ];
+
+  const openDeals = deals.filter((item) => item.status === "open");
+  const metrics = {
+    contact_count: contacts.length,
+    company_count: companies.length,
+    deal_count: deals.length,
+    open_deal_count: openDeals.length,
+    pipeline_value: openDeals.reduce((sum, item) => sum + item.amount, 0),
+    weighted_pipeline_value: Math.round(openDeals.reduce((sum, item) => sum + item.amount * item.probability, 0)),
+    followups_needs_review: followups.filter((item) => item.status === "needs_review").length,
+    followups_due: followups.filter((item) => ["needs_review", "changes_requested", "approved"].includes(item.status)).length
+  };
+
+  return {
+    schema_version: "1",
+    generated_at: now,
+    source: "kelly-crm-demo",
+    base_currency: "USD",
+    pipeline_stages: ["lead", "qualified", "proposal", "negotiation", "won", "lost"],
+    metrics,
+    companies,
+    contacts,
+    deals,
+    interactions,
+    followups,
+    warnings: ["followups", "detail"].includes(scenario) ? [
+      {
+        id: "vantage-legal-wording",
+        severity: "warning",
+        deal_id: "deal-vantage-pilot",
+        message: "The Vantage Health draft touches compliance claims; confirm wording before it is sent.",
+        detail: "Demo warning, no live data."
+      }
+    ] : []
+  };
+}
+
+function company(company_id, name, domain, industry, size, location) {
+  return { company_id, name, domain, industry, size, location, notes: "" };
+}
+
+function contact(contact_id, name, company_id, role, email, relationship, tags, last_touch_at, next_followup_at, agent_notes) {
+  return {
+    contact_id,
+    name,
+    company_id,
+    role,
+    email,
+    relationship,
+    tags,
+    last_touch_at,
+    next_followup_at,
+    agent_notes,
+    channels: ["email"]
+  };
+}
+
+const EXTRA_DEAL_CONTACTS = {
+  "deal-brightpath-pilot": ["ct-leah"],
+  "deal-beacon-api": ["ct-ken"]
+};
+
+function deal(deal_id, name, company_id, primary_contact_id, stage, amount, currency, probability, next_step, owner, opened_at, expected_close, last_activity_at, status, agent_next_action) {
+  return {
+    deal_id,
+    name,
+    company_id,
+    primary_contact_id,
+    contact_ids: [primary_contact_id, ...(EXTRA_DEAL_CONTACTS[deal_id] || [])],
+    stage,
+    amount,
+    currency,
+    probability,
+    next_step,
+    owner,
+    opened_at,
+    expected_close,
+    last_activity_at,
+    status,
+    agent_next_action,
+    notes: ""
+  };
+}
+
+function interaction(interaction_id, contact_id, company_id, deal_id, type, occurred_at, direction, summary, source) {
+  return { interaction_id, contact_id, company_id, deal_id, type, occurred_at, direction, summary, source };
+}
+
+function followup(followup_id, ref, contact_id, deal_id, channel_id, channel_type, subject, reason, risk, due_at, status, suggested_reply) {
+  return {
+    followup_id,
+    ref,
+    contact_id,
+    deal_id,
+    channel_id,
+    channel_type,
+    subject,
+    reason,
+    risk,
+    due_at,
+    status,
+    suggested_reply,
+    created_at: now
+  };
+}

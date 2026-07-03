@@ -2,7 +2,7 @@
 
 Kelly 的个人 AI skills 工作区，用来处理日常业务里的重复工作。
 
-这个仓库收集 Kelly 在邮件、资金台账、内容生产、PR review、短剧制作、MV 策划和 agent 配置里经常使用的 skills。很多 skill 都是 **App-in-Skill**：skill 负责告诉 agent 怎么做事，本地浏览器 App UI 则给 Kelly 一个更稳定的操作台，用来 review、approve、编辑、查看 dashboard，或者把任务带着备注交还给 agent。
+这个仓库收集 Kelly 在邮件、资金台账、CRM、聊天聚合、社媒运营、SEO、用户反馈、市场情报、运维监控、内容生产、PR review、短剧制作、MV 策划和 agent 配置里经常使用的 skills。很多 skill 都是 **App-in-Skill**：skill 负责告诉 agent 怎么做事，本地浏览器 App UI 则给 Kelly 一个更稳定的操作台，用来 review、approve、编辑、查看 dashboard，或者把任务带着备注交还给 agent。
 
 它仍然可以作为 skill/plugin bundle 安装，但重点不是通用 marketplace，而是一组 Kelly 自己日常业务里真的会用的工具。
 
@@ -31,10 +31,17 @@ Claude Code：
 | `app-in-skill-creator` | 记录和脚手架化 App-in-Skill 模式：skill 内置本地 review UI、handoff 文件、锁、脚本和安全边界。 | 构建带浏览器 review queue、approval desk、dashboard 或本地 workflow 的 skill 时使用。 | [Open README](../skills/app-in-skill-creator/README.md) |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [Open README](../skills/kelly-email/README.md) |
 | `kelly-money` | 聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。 | 查看余额、付款、payout、手续费、退款、转账、provider sync 状态、发票和流水匹配时使用。 | [Open README](../skills/kelly-money/README.md) |
-| `kelly-writer` | 把一个想法、文章、 transcript、outline 或公告改写成适合小红书、公众号、newsletter、LinkedIn、X/Twitter、短视频、SEO 的内容包。 | 把长内容拆成多平台内容包，并在本地 review、编辑、批准、导出时使用。 | [Open README](../skills/kelly-writer/README.md) |
+| `kelly-crm` | 个人 CRM：联系人、公司、交易和互动记录，带 pipeline dashboard 和 agent 起草的跟进审批队列。 | 跟踪交易和人脉、查看 pipeline 健康度、批准/编辑跟进草稿（由 agent 经其他渠道发出）时使用。 | [Open README](../skills/kelly-crm/README.md) |
+| `kelly-messenger` | 把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。 | 在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。 | [Open README](../skills/kelly-messenger/README.md) |
+| `kelly-social` | 把 Twitter/X、Facebook、Instagram 聚合成一个本地 dashboard：统一时间线、账号数据、粉丝趋势和互动指标，采集由 agent 侧完成（浏览器自动化、导出或 API）。 | 不依赖官方 API，跨平台查看账号、时间线、帖子表现、粉丝增长和流量时使用。 | [Open README](../skills/kelly-social/README.md) |
+| `kelly-seo` | 打通 Google Search Console 的本地 SEO 工作台：按查询和页面看点击、曝光、CTR、排名，带趋势图和 agent 提出的 SEO 机会审批队列。 | 分析搜索表现、找 striking-distance 查询、批准标题重写/内链/内容 brief 时使用。 | [Open README](../skills/kelly-seo/README.md) |
+| `kelly-feedback` | 聚合全渠道用户反馈，聚类成带权重的 feature requests，并运行带草稿回复和 changelog 的 roadmap 裁决队列。 | 分诊用户反馈、给需求排优先级、做有证据支撑的 roadmap 采纳/拒绝决定时使用。 | [Open README](../skills/kelly-feedback/README.md) |
+| `kelly-radar` | 市场情报台：竞品信号监控（定价、changelog、发布、口碑 diff）+ 带 brief 审批和引用报告的研究课题工作台 + 关键词/话题趋势跟踪。 | 盯竞品、发起深度研究报告、把上升的搜索和社区趋势转成机会卡时使用。 | [Open README](../skills/kelly-radar/README.md) |
+| `kelly-devops` | 盯产品矩阵的运维面：服务可用性和延迟、SSL 证书和域名到期、API key 轮换、云支出异常，带 agent 提出的行动卡审批。 | 检查服务健康、避免域名/证书过期、review 云支出异常、批准续费和轮换动作时使用。 | [Open README](../skills/kelly-devops/README.md) |
+| `kelly-writer` | 把一个想法、文章、 transcript、outline 或公告改写成适合小红书、公众号、newsletter、LinkedIn、X/Twitter、短视频、SEO 的内容包。 | 把长内容拆成多平台内容包，并在本地 review、编辑、批准、导出时使用。 | [Open README](../skills/kelly-content/README.md) |
 | `kelly-pr-review` | 通过 `gh` CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 `gh pr review`。 | review PR、批准/comment/request changes，或批量处理 PR review decision 时使用。 | [Open README](../skills/kelly-pr-review/README.md) |
-| `kelly-drama` | 短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。 | 从策划到分镜管理短剧系列，写分集、建角色、管理 storyboard、review AI 生成图时使用。 | [Open README](../skills/kelly-drama/README.md) |
-| `kelly-mv` | 纯视觉 MV 工作台：上传 MP3、写 MV concept、建立角色和参考卡、生成/上传镜头图和视频，并围绕音乐做 storyboard。 | 做没有旁白/字幕的纯视觉 MV，用歌曲驱动镜头和画面规划时使用。 | [Open README](../skills/kelly-mv/README.md) |
+| `kelly-drama` | 短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。 | 从策划到分镜管理短剧系列，写分集、建角色、管理 storyboard、review AI 生成图时使用。 | [Open README](../skills/kelly-drama/SKILL.md) |
+| `kelly-mv` | 纯视觉 MV 工作台：上传 MP3、写 MV concept、建立角色和参考卡、生成/上传镜头图和视频，并围绕音乐做 storyboard。 | 做没有旁白/字幕的纯视觉 MV，用歌曲驱动镜头和画面规划时使用。 | [Open README](../skills/kelly-mv/SKILL.md) |
 
 ## App UI 截图
 
@@ -183,6 +190,153 @@ Kelly Money 是本地财务 dashboard，用来查看 Mercury、Stripe、Airwalle
   <tr>
     <td><strong>角色</strong><br>角色列表和参考卡状态，支持视觉描述、服装和一致性锚点。</td>
     <td><strong>歌曲</strong><br>MP3 上传和歌曲信息表单，展示时长识别和 song-gen backend 状态。</td>
+  </tr>
+</table>
+
+### `kelly-crm`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-crm-ui-zh-CN.png" alt="Kelly CRM 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-crm-deals-zh-CN.png" alt="Kelly CRM 交易 pipeline"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>CRM 操作台：分阶段 pipeline 金额、到期跟进、近期互动和人脉统计。</td>
+    <td><strong>交易</strong><br>跨阶段的 pipeline 表格，包含金额、概率、下一步和每笔交易的互动时间线。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-crm-contacts-zh-CN.png" alt="Kelly CRM 联系人"></td>
+    <td><img src="screenshots/kelly-crm-followups-zh-CN.png" alt="Kelly CRM 跟进队列"></td>
+  </tr>
+  <tr>
+    <td><strong>联系人</strong><br>联系人列表：关系强度、最近接触，以及每个联系人的互动历史和进行中交易。</td>
+    <td><strong>跟进队列</strong><br>Agent 起草的跟进消息，带可编辑草稿、风险标记和批准/请求修改/搁置决定。</td>
+  </tr>
+</table>
+
+### `kelly-messenger`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-messenger-ui-zh-CN.png" alt="Kelly Messenger 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-messenger-inbox-zh-CN.png" alt="Kelly Messenger 统一收件箱"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>消息操作台：待回复决定计数、各平台同步状态和最久等待指示。</td>
+    <td><strong>统一收件箱</strong><br>WhatsApp、Slack、Discord、Telegram 的会话按最新活动排序，带等待时长标记。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-messenger-chat-zh-CN.png" alt="Kelly Messenger 会话"></td>
+    <td><img src="screenshots/kelly-messenger-outbox-zh-CN.png" alt="Kelly Messenger 回复 outbox"></td>
+  </tr>
+  <tr>
+    <td><strong>会话</strong><br>聊天记录视图，composer 预填 agent 建议回复，可直接编辑后进入队列。</td>
+    <td><strong>回复 outbox</strong><br>外发回复的审批队列：每条消息先经人工批准，再由 agent 通过平台连接器发送。</td>
+  </tr>
+</table>
+
+### `kelly-social`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-social-ui-zh-CN.png" alt="Kelly Social 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-social-timeline-zh-CN.png" alt="Kelly Social 统一时间线"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>X、Instagram、Facebook 的跨平台 KPI 卡片，带粉丝趋势和本周热门帖子。</td>
+    <td><strong>统一时间线</strong><br>所有平台的帖子在一条流里，带每帖点赞、回复、转发和浏览数据。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-social-accounts-zh-CN.png" alt="Kelly Social 账号"></td>
+    <td><img src="screenshots/kelly-social-detail-zh-CN.png" alt="Kelly Social 账号详情"></td>
+  </tr>
+  <tr>
+    <td><strong>账号</strong><br>账号清单：粉丝数、互动率、采集方式和同步新鲜度。</td>
+    <td><strong>账号详情</strong><br>单账号画像：粉丝趋势 sparkline、热门帖子和同步历史。</td>
+  </tr>
+</table>
+
+### `kelly-seo`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-seo-ui-zh-CN.png" alt="Kelly SEO 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-seo-queries-zh-CN.png" alt="Kelly SEO 查询"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>Search Console KPI 卡片、每日点击/曝光图表、Top movers 和各站点同步状态。</td>
+    <td><strong>查询</strong><br>Top 查询表：点击、曝光、CTR、排名、周期变化和机会标记。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-seo-pages-zh-CN.png" alt="Kelly SEO 页面"></td>
+    <td><img src="screenshots/kelly-seo-opportunities-zh-CN.png" alt="Kelly SEO 机会"></td>
+  </tr>
+  <tr>
+    <td><strong>页面</strong><br>Top 页面的搜索表现变化和收录警告。</td>
+    <td><strong>机会</strong><br>Agent 提出的 SEO 动作——标题重写、内链、内容 brief——带可编辑草稿和审批。</td>
+  </tr>
+</table>
+
+### `kelly-feedback`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-feedback-ui-zh-CN.png" alt="Kelly Feedback 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-feedback-inbox-zh-CN.png" alt="Kelly Feedback 收件箱"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>用户之声操作台：每周各渠道流入、情绪分布、热门聚类和来源新鲜度。</td>
+    <td><strong>收件箱</strong><br>来自邮件、Discord、Slack、X 和应用商店评论的原始反馈流，带分诊控件。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-feedback-requests-zh-CN.png" alt="Kelly Feedback 需求"></td>
+    <td><img src="screenshots/kelly-feedback-roadmap-zh-CN.png" alt="Kelly Feedback roadmap 裁决"></td>
+  </tr>
+  <tr>
+    <td><strong>需求</strong><br>聚类后的 feature requests：频次、加权分数、趋势和代表性引述。</td>
+    <td><strong>Roadmap 裁决</strong><br>Agent 提出的采纳/拒绝/合并提案，带 changelog 草稿和用户回复草稿供审批。</td>
+  </tr>
+</table>
+
+### `kelly-radar`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-radar-ui-zh-CN.png" alt="Kelly Radar 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-radar-signals-zh-CN.png" alt="Kelly Radar 竞品信号"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>市场情报台：待分诊信号、watchlist 新鲜度、趋势 movers 和研究 pipeline。</td>
+    <td><strong>信号</strong><br>竞品定价、changelog、发布、口碑和招聘信号，带严重度标记和 Act/Watch/Ignore 分诊。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-radar-research-zh-CN.png" alt="Kelly Radar 研究台"></td>
+    <td><img src="screenshots/kelly-radar-trends-zh-CN.png" alt="Kelly Radar 趋势"></td>
+  </tr>
+  <tr>
+    <td><strong>研究台</strong><br>研究课题按 brief 审批 → 深度研究 → 引用报告的流程推进。</td>
+    <td><strong>趋势</strong><br>上升关键词和社区话题，带动量 sparkline 和可移交内容/roadmap 的机会卡。</td>
+  </tr>
+</table>
+
+### `kelly-devops`
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-devops-ui-zh-CN.png" alt="Kelly DevOps 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-devops-services-zh-CN.png" alt="Kelly DevOps 服务"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>产品矩阵健康台：服务、证书、域名和支出摘要，以及近期事件流。</td>
+    <td><strong>服务</strong><br>被监控端点的可用性、延迟 sparkline、TLS 证书状态和检查历史。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-devops-expiries-zh-CN.png" alt="Kelly DevOps 到期台账"></td>
+    <td><img src="screenshots/kelly-devops-actions-zh-CN.png" alt="Kelly DevOps 行动队列"></td>
+  </tr>
+  <tr>
+    <td><strong>到期台账</strong><br>域名、SSL 证书、key 轮换和套餐续费在一张表里，按剩余天数分级着色。</td>
+    <td><strong>行动队列</strong><br>Agent 提出的续费/轮换/排查行动卡，带证据和审批控件。</td>
   </tr>
 </table>
 

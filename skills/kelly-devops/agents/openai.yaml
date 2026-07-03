@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly DevOps"
+  short_description: "Local ops desk for the product fleet"
+  default_prompt: "Use $kelly-devops to open my ops desk, run the health and expiry checks, and review pending action cards."

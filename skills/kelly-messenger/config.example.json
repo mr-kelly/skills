@@ -1,0 +1,67 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "accounts": [
+    {
+      "account_id": "slack-team",
+      "platform": "slack",
+      "connector": "slack",
+      "display_name": "Team Workspace",
+      "workspace": "example-team.slack.com",
+      "bot_token_env": "KELLY_MESSENGER_SLACK_BOT_TOKEN_TEAM",
+      "channels": ["C0123456789"]
+    },
+    {
+      "account_id": "discord-community",
+      "platform": "discord",
+      "connector": "discord",
+      "display_name": "Product Community",
+      "workspace": "discord.gg/example",
+      "bot_token_env": "KELLY_MESSENGER_DISCORD_BOT_TOKEN_COMMUNITY",
+      "channels": ["987654321098765432"]
+    },
+    {
+      "account_id": "telegram-main",
+      "platform": "telegram",
+      "connector": "telegram",
+      "display_name": "Product Bot",
+      "workspace": "@ExampleBot",
+      "bot_token_env": "KELLY_MESSENGER_TELEGRAM_BOT_TOKEN_MAIN"
+    },
+    {
+      "account_id": "whatsapp-biz",
+      "platform": "whatsapp",
+      "connector": "whatsapp_cloud",
+      "display_name": "WhatsApp Business",
+      "workspace": "Example Company",
+      "access_token_env": "KELLY_MESSENGER_WHATSAPP_ACCESS_TOKEN_BIZ",
+      "phone_number_id_env": "KELLY_MESSENGER_WHATSAPP_PHONE_NUMBER_ID_BIZ"
+    },
+    {
+      "account_id": "whatsapp-personal",
+      "platform": "whatsapp",
+      "connector": "browser_agent",
+      "display_name": "WhatsApp Personal",
+      "workspace": "WhatsApp Web"
+    },
+    {
+      "account_id": "wechat-personal",
+      "platform": "wechat",
+      "connector": "manual",
+      "display_name": "WeChat"
+    }
+  ],
+  "reply_style": {
+    "tone": "warm, concise, founder-to-user",
+    "language": "match incoming message",
+    "signature": "",
+    "avoid": ["overpromising dates", "legal or medical advice"]
+  },
+  "sync": {
+    "default_limit": 50,
+    "cadence_minutes": 30
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

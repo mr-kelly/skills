@@ -1,0 +1,58 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "profile": {
+    "products": [
+      {
+        "name": "Example Product",
+        "positioning": "Who it serves and against whom it competes"
+      }
+    ]
+  },
+  "watchlist": [
+    {
+      "target_id": "competitor-a",
+      "name": "Competitor A",
+      "type": "competitor",
+      "sources": [
+        { "source_id": "competitor-a-pricing", "kind": "pricing", "url": "https://competitor-a.example.com/pricing", "method": "browser_agent" },
+        { "source_id": "competitor-a-changelog", "kind": "changelog", "url": "https://competitor-a.example.com/changelog", "method": "browser_agent" },
+        { "source_id": "competitor-a-reviews", "kind": "reviews", "url": "https://reviews.example.com/competitor-a", "method": "manual" }
+      ]
+    },
+    {
+      "target_id": "category-keyword",
+      "name": "example category keyword",
+      "type": "keyword",
+      "sources": [
+        { "source_id": "category-launches", "kind": "launch", "url": "https://producthunt.example.com/topics/example", "method": "browser_agent" }
+      ]
+    },
+    {
+      "target_id": "community-main",
+      "name": "r/example-community",
+      "type": "community",
+      "sources": [
+        { "source_id": "community-feed", "kind": "community", "url": "https://reddit.example.com/r/example", "method": "browser_agent" }
+      ]
+    }
+  ],
+  "research": {
+    "default_depth": "standard",
+    "source_policy": "public_pages_only",
+    "require_citations": true,
+    "max_sources": 8
+  },
+  "trend_sources": [
+    { "source_id": "search-rising", "kind": "search", "name": "Rising search queries", "method": "browser_agent", "api_key_env": "KELLY_RADAR_SERP_API_KEY" },
+    { "source_id": "community-volume", "kind": "community", "name": "Community topic volume", "method": "browser_agent" },
+    { "source_id": "category-interest", "kind": "category", "name": "Category launch interest", "method": "browser_agent" }
+  ],
+  "cadence": {
+    "monitor": "daily",
+    "trends": "weekly"
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

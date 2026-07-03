@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Feedback"
+  short_description: "Voice-of-customer desk for feedback, requests, and roadmap decisions"
+  default_prompt: "Use $kelly-feedback to open my feedback desk and review the roadmap decision queue."

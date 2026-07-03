@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Social"
+  short_description: "Local aggregator for social media accounts"
+  default_prompt: "Use $kelly-social to open my social dashboard and review cross-platform timelines and follower growth."

@@ -1,0 +1,41 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "accounts": [
+    {
+      "account_id": "x-main",
+      "platform": "x",
+      "handle": "@example",
+      "display_name": "X Main",
+      "profile_url": "https://x.com/example",
+      "collection": "browser_agent"
+    },
+    {
+      "account_id": "instagram-main",
+      "platform": "instagram",
+      "handle": "@example",
+      "display_name": "Instagram Main",
+      "profile_url": "https://instagram.com/example",
+      "collection": "manual_export",
+      "export_dir": "~/Downloads/social-exports"
+    },
+    {
+      "account_id": "facebook-page",
+      "platform": "facebook",
+      "handle": "Example Page",
+      "display_name": "Facebook Page",
+      "profile_url": "https://facebook.com/example",
+      "collection": "api",
+      "api_token_env": "KELLY_SOCIAL_FACEBOOK_TOKEN_MAIN"
+    }
+  ],
+  "collection": {
+    "default_days": 28,
+    "refresh_cadence": "weekly",
+    "throttle_seconds": 5,
+    "own_accounts_only": true
+  },
+  "ui": {
+    "language": "auto"
+  }
+}
