@@ -1,0 +1,358 @@
+// Deterministic demo scenes for documentation and screenshots.
+// Demo mode never reads or writes app/.data or private config.
+
+const NOW = "2026-07-03T09:00:00.000Z";
+
+export function isDemoQuery(query = {}) {
+  return Boolean(query.demo);
+}
+
+export function demoStatePayload(query = {}) {
+  const scenario = String(query.demo || "overview");
+  const zh = String(query.lang || "").toLowerCase().startsWith("zh");
+  const snapshot = buildDemoSnapshot(zh, scenario);
+  return {
+    demo: true,
+    demo_scenario: scenario,
+    app: "kelly-tickets",
+    data_provider: "demo",
+    onboarding: { completed: true, completed_at: NOW, config_version: "demo" },
+    lock: null,
+    config_summary: {
+      config_path: "demo://kelly-tickets/config.json",
+      is_example: false,
+      property: { name: snapshot.property.name, buildings: 3, timezone: "Asia/Shanghai" },
+      channels: ["wechat", "phone", "form", "email", "walk_in"],
+      categories: ["plumbing", "electrical", "hvac", "elevator", "security", "noise", "parking", "cleaning", "amenity", "other"],
+      crews: snapshot.crews.map((crew) => ({
+        crew_id: crew.crew_id,
+        name: crew.name,
+        skills: crew.skills,
+        contact_env: `KELLY_TICKETS_CREW_${crew.crew_id.toUpperCase()}_CONTACT`,
+        contact_ready: true
+      })),
+      sla_rules: [
+        { category: "plumbing", urgency: "urgent", hours: 4 },
+        { category: "*", urgency: "urgent", hours: 8 },
+        { category: "*", urgency: "high", hours: 24 },
+        { category: "*", urgency: "normal", hours: 72 },
+        { category: "*", urgency: "low", hours: 168 }
+      ],
+      sla_default_hours: 72
+    },
+    agent_tasks: { updated_at: NOW, tasks: [] },
+    execution_report: null,
+    snapshot
+  };
+}
+
+export function buildDemoSnapshot(zh = false, scenario = "overview") {
+  const L = (en, cn) => (zh ? cn : en);
+  const at = (hoursAgo) => new Date(Date.parse(NOW) - hoursAgo * 3600000).toISOString();
+  const inHours = (hours) => new Date(Date.parse(NOW) + hours * 3600000).toISOString();
+
+  const crews = [
+    crew("plumbing", L("Plumbing & HVAC Crew", "水暖空调组"), ["plumbing", "hvac"], L("Lead: Sam Porter", "组长：周建国"), 3),
+    crew("electrical", L("Electrical Crew", "电工班组"), ["electrical", "elevator"], L("Lead: Ray Ma", "组长：马磊"), 1),
+    crew("security", L("Security Team", "安保队"), ["security", "parking", "noise"], L("Lead: Dana Cole", "队长：柯丹"), 1),
+    crew("general", L("General Maintenance", "综合维修组"), ["cleaning", "amenity", "other"], L("Lead: Leo Fan", "组长：范立"), 1)
+  ];
+
+  const intake = [
+    intakeItem("in-9001", "wechat", "W-88121", L("Mrs. Tang", "唐女士"), "wechat:@tang***", "12B", L("Building 2", "2 号楼"),
+      L("Water dripping from the bathroom ceiling and spreading fast — the downstairs neighbor already knocked on our door.", "卫生间天花板滴水，扩散得很快，楼下邻居已经上来敲门了。"),
+      at(1.4), "urgent", "plumbing", "ticketed", "T-1001", L("2 photos shared in the WeChat group", "微信群里有 2 张现场照片")),
+    intakeItem("in-9002", "phone", "C-4471", L("Mr. Wei", "魏先生"), "138****2214", "", L("Building 2 · Elevator 2", "2 号楼 · 2 号电梯"),
+      L("Elevator No.2 makes a grinding metal noise between floors 5 and 8.", "2 号电梯在 5 到 8 层之间有金属摩擦的异响。"),
+      at(20), "high", "elevator", "ticketed", "T-1002", ""),
+    intakeItem("in-9003", "form", "F-2036", L("Vivian Ho", "何薇"), "137****8821", "", L("Parking spot P-88", "P-88 车位"),
+      L("A white SUV has been parked in my paid spot P-88 for two days.", "一辆白色 SUV 连续两天占用我购买的 P-88 车位。"),
+      at(26), "normal", "parking", "ticketed", "T-1003", L("Plate photo attached to the form", "表单附有车牌照片")),
+    intakeItem("in-9004", "wechat", "W-88146", L("Building 1 owners group", "1 号楼业主群"), "wechat:group", "", L("Building 1 · Lobby", "1 号楼 · 大堂"),
+      L("The lobby ceiling light near the mailboxes is out; it is very dark at night.", "大堂信报箱旁边的顶灯不亮了，晚上很黑。"),
+      at(30), "normal", "electrical", "ticketed", "T-1004", ""),
+    intakeItem("in-9005", "phone", "C-4478", L("Anonymous resident", "匿名住户"), "139****0034", "7A", L("Building 1", "1 号楼"),
+      L("Loud party noise from 7A after 11pm — third time this week.", "7A 晚上 11 点以后还在开派对，这周已经第三次了。"),
+      at(34), "high", "noise", "ticketed", "T-1005", ""),
+    intakeItem("in-9006", "form", "F-2037", L("Gym front desk", "健身房前台"), "ext. 8012", "", L("Clubhouse · Gym", "会所 · 健身房"),
+      L("Treadmill #3 stops abruptly at high speed — safety risk.", "3 号跑步机高速运行时会突然停止，有安全隐患。"),
+      at(50), "high", "amenity", "ticketed", "T-1006", ""),
+    intakeItem("in-9007", "wechat", "W-88152", L("Mr. Kwan", "关先生"), "wechat:@kwan***", "", L("Building 3 · 3F corridor", "3 号楼 · 3 层走廊"),
+      L("Trash has been piling up next to the freight elevator on 3F for two days.", "3 层货梯旁的垃圾堆了两天没人清理。"),
+      at(8), "normal", "cleaning", "classified", "", ""),
+    intakeItem("in-9008", "email", "E-1203", L("Lydia Sun", "孙丽"), "l.sun***@***.com", "15C", L("Building 3", "3 号楼"),
+      L("Kitchen water pressure has been very low since Tuesday.", "厨房水压从周二开始一直很低。"),
+      at(12), "normal", "plumbing", "classified", "", ""),
+    intakeItem("in-9009", "wechat", "W-88161", L("Mrs. Gao", "高阿姨"), "wechat:@gao***", "9D", L("Building 1", "1 号楼"),
+      L("The video intercom screen stays black; I cannot buzz visitors in.", "可视对讲屏幕一直黑屏，访客来了没办法开门。"),
+      at(3), "normal", "electrical", "new", "", ""),
+    intakeItem("in-9010", "walk_in", "D-0311", L("Tommy Xu", "徐同"), L("front desk visit", "前台来访"), "5E", L("Building 2", "2 号楼"),
+      L("Lost access card; requests replacement and deactivation of the old card.", "门禁卡丢失，申请补办新卡并注销旧卡。"),
+      at(2), "normal", "security", "new", "", ""),
+    intakeItem("in-9011", "phone", "C-4483", L("Mr. Bo", "薄先生"), "136****7719", "6F", L("Building 2", "2 号楼"),
+      L("The AC indoor unit drips onto the floor; a towel gets soaked within an hour.", "空调室内机往地板上滴水，一小时就湿透一条毛巾。"),
+      at(28), "high", "hvac", "ticketed", "T-1007", ""),
+    intakeItem("in-9012", "wechat", "W-88170", L("Playground parents group", "亲子活动群"), "wechat:group", "", L("Central playground", "中心儿童乐园"),
+      L("A swing chain looks about to snap and kids are still using it.", "秋千的链条眼看要断了，还有小朋友在上面玩。"),
+      at(4.5), "urgent", "amenity", "ticketed", "T-1008", L("Short video in the group chat", "群里有一段短视频")),
+    intakeItem("in-9013", "email", "E-1210", L("Jason Lam", "林捷"), "j.lam***@***.com", "", L("Building 1 · Garage", "1 号楼 · 车库"),
+      L("The garage door remote only works within one meter of the door.", "车库门遥控器要贴到一米以内才有反应。"),
+      at(6), "low", "security", "new", "", ""),
+    intakeItem("in-9014", "form", "F-2039", L("Mrs. Ng", "吴太"), "135****4402", "2A", L("Building 3", "3 号楼"),
+      L("Wall seepage and mold in the living room after last week's rain.", "上周下雨之后客厅墙面渗水发霉。"),
+      at(72), "high", "plumbing", "ticketed", "T-1009", L("3 photos uploaded with the form", "表单上传了 3 张照片"))
+  ];
+
+  const tickets = [
+    ticket("T-1001", L("Water leak from bathroom ceiling in 12B", "12B 卫生间天花板漏水"), "plumbing", "urgent", "12B", L("Building 2", "2 号楼"),
+      L("Mrs. Tang", "唐女士"), "wechat:@tang***", "in_progress", "plumbing", L("Sam Porter", "周建国"), at(1.4), at(0.3), inHours(1.2), "at_risk", ["in-9001"], "", [
+        ev("intake", "kelly-tickets", at(1.4), L("Received via WeChat group export.", "通过微信群导出接收。")),
+        ev("classified", "kelly-tickets", at(1.2), L("Classified plumbing / urgent; unit 12B has 2 prior leak reports.", "分类为 管道/紧急；12B 此前已有 2 次漏水记录。")),
+        ev("dispatch_proposed", "kelly-tickets", at(1.1), L("Proposed Plumbing & HVAC Crew, P1, 4h SLA.", "建议派水暖空调组，P1，4 小时 SLA。")),
+        ev("dispatch_approved", L("operator", "值班主管"), at(1.0), L("Approved; asked crew to check riser valve first.", "已批准；要求班组先检查立管阀门。")),
+        ev("crew_notified", "kelly-tickets", at(0.9), L("Work order sent to Plumbing & HVAC Crew.", "工单已发送给水暖空调组。")),
+        ev("crew_update", L("Sam Porter", "周建国"), at(0.3), L("Riser valve shut, area drying. Ceiling panel needs replacement tomorrow.", "已关闭立管阀门，现场晾干中。天花板面板明天需要更换。"))
+      ]),
+    ticket("T-1002", L("Grinding noise in Elevator 2, floors 5-8", "2 号电梯 5-8 层异响"), "elevator", "high", "", L("Building 2 · Elevator 2", "2 号楼 · 2 号电梯"),
+      L("Mr. Wei", "魏先生"), "138****2214", "open", "", "", at(20), at(19), inHours(4), "ok", ["in-9002"], "", [
+        ev("intake", "kelly-tickets", at(20), L("Received via phone-call log.", "通过来电记录接收。")),
+        ev("classified", "kelly-tickets", at(19), L("Classified elevator / high.", "分类为 电梯/较急。"))
+      ]),
+    ticket("T-1003", L("Unauthorized vehicle in paid spot P-88", "P-88 车位被占用"), "parking", "normal", "", L("Parking spot P-88", "P-88 车位"),
+      L("Vivian Ho", "何薇"), "137****8821", "open", "", "", at(26), at(25), inHours(46), "ok", ["in-9003"], "", [
+        ev("intake", "kelly-tickets", at(26), L("Received via front-desk form.", "通过前台表单接收。")),
+        ev("classified", "kelly-tickets", at(25), L("Classified parking / normal.", "分类为 车位/普通。"))
+      ]),
+    ticket("T-1004", L("Lobby ceiling light out near mailboxes", "大堂信报箱旁顶灯不亮"), "electrical", "normal", "", L("Building 1 · Lobby", "1 号楼 · 大堂"),
+      L("Building 1 owners group", "1 号楼业主群"), "wechat:group", "assigned", "electrical", L("Ray Ma", "马磊"), at(30), at(5), inHours(42), "ok", ["in-9004"], "", [
+        ev("intake", "kelly-tickets", at(30), L("Received via WeChat group export.", "通过微信群导出接收。")),
+        ev("classified", "kelly-tickets", at(29), L("Classified electrical / normal.", "分类为 电工/普通。")),
+        ev("dispatch_approved", L("operator", "值班主管"), at(6), L("Approved dispatch to Electrical Crew.", "已批准派电工班组。")),
+        ev("crew_notified", "kelly-tickets", at(5), L("Work order sent; scheduled for tomorrow morning.", "工单已发送，安排明天上午处理。"))
+      ]),
+    ticket("T-1005", L("Repeated late-night noise from 7A", "7A 深夜噪音屡次投诉"), "noise", "high", "7A", L("Building 1", "1 号楼"),
+      L("Anonymous resident", "匿名住户"), "139****0034", "waiting", "security", L("Dana Cole", "柯丹"), at(34), at(10), inHours(14), "ok", ["in-9005"], "", [
+        ev("intake", "kelly-tickets", at(34), L("Received via phone-call log.", "通过来电记录接收。")),
+        ev("classified", "kelly-tickets", at(33), L("Classified noise / high; third complaint this week.", "分类为 噪音/较急；本周第三次投诉。")),
+        ev("crew_notified", "kelly-tickets", at(24), L("Security night patrol asked to visit 7A after 22:30.", "已通知安保夜间巡逻 22:30 后上门 7A。")),
+        ev("crew_update", L("Dana Cole", "柯丹"), at(10), L("Spoke with the tenant; waiting to confirm quiet hours are kept tonight.", "已与住户沟通；等待确认今晚是否保持安静。"))
+      ]),
+    ticket("T-1006", L("Treadmill #3 stops abruptly at high speed", "3 号跑步机高速时突停"), "amenity", "high", "", L("Clubhouse · Gym", "会所 · 健身房"),
+      L("Gym front desk", "健身房前台"), "ext. 8012", "assigned", "general", L("Leo Fan", "范立"), at(50), at(20), at(2), "breached", ["in-9006"], "", [
+        ev("intake", "kelly-tickets", at(50), L("Received via front-desk form.", "通过前台表单接收。")),
+        ev("classified", "kelly-tickets", at(49), L("Classified amenity / high; machine taken out of service.", "分类为 设施/较急；跑步机已停用。")),
+        ev("crew_notified", "kelly-tickets", at(26), L("General Maintenance to inspect; spare part may be needed.", "综合维修组安排检查；可能需要备件。")),
+        ev("sla_breach", "kelly-tickets", at(2), L("SLA breached: spare belt still in transit.", "SLA 超时：备用跑带仍在途。"))
+      ]),
+    ticket("T-1007", L("AC indoor unit dripping in 6F", "6F 空调室内机滴水"), "hvac", "high", "6F", L("Building 2", "2 号楼"),
+      L("Mr. Bo", "薄先生"), "136****7719", "in_progress", "plumbing", L("Sam Porter", "周建国"), at(28), at(3), inHours(6), "ok", ["in-9011"], "", [
+        ev("intake", "kelly-tickets", at(28), L("Received via phone-call log.", "通过来电记录接收。")),
+        ev("classified", "kelly-tickets", at(27), L("Classified HVAC / high.", "分类为 空调/较急。")),
+        ev("crew_notified", "kelly-tickets", at(22), L("Plumbing & HVAC Crew scheduled a visit.", "水暖空调组已安排上门。")),
+        ev("crew_update", L("Sam Porter", "周建国"), at(3), L("Drain line clogged; flushing and re-testing now.", "冷凝水管堵塞，正在疏通并复测。"))
+      ]),
+    ticket("T-1008", L("Playground swing chain about to snap", "儿童乐园秋千链条即将断裂"), "amenity", "urgent", "", L("Central playground", "中心儿童乐园"),
+      L("Playground parents group", "亲子活动群"), "wechat:group", "open", "", "", at(4.5), at(4), inHours(3.5), "ok", ["in-9012"], "", [
+        ev("intake", "kelly-tickets", at(4.5), L("Received via WeChat group export.", "通过微信群导出接收。")),
+        ev("classified", "kelly-tickets", at(4), L("Classified amenity / urgent; safety hazard.", "分类为 设施/紧急；存在安全隐患。"))
+      ]),
+    ticket("T-1009", L("Wall seepage in 2A living room after rain", "2A 客厅雨后墙面渗水"), "plumbing", "high", "2A", L("Building 3", "3 号楼"),
+      L("Mrs. Ng", "吴太"), "135****4402", "waiting", "plumbing", L("Sam Porter", "周建国"), at(72), at(30), inHours(24), "ok", ["in-9014"], "", [
+        ev("intake", "kelly-tickets", at(72), L("Received via front-desk form.", "通过前台表单接收。")),
+        ev("classified", "kelly-tickets", at(70), L("Classified plumbing / high; likely exterior crack.", "分类为 管道/较急；疑似外墙裂缝。")),
+        ev("crew_update", L("Sam Porter", "周建国"), at(30), L("Interior dried and sealed; exterior sealing waits for dry weather.", "室内已干燥并封堵；外墙打胶需等晴天。"))
+      ]),
+    ticket("T-1010", L("Mailroom door closer broken in Building 1", "1 号楼信报间闭门器损坏"), "other", "normal", "", L("Building 1 · Mailroom", "1 号楼 · 信报间"),
+      L("Front desk", "前台"), "ext. 8001", "resolved", "general", L("Leo Fan", "范立"), at(96), at(40), at(48), "met", [],
+      L("Replaced the door closer and adjusted closing speed; resident confirmed.", "已更换闭门器并调整关门速度，住户确认恢复正常。"), [
+        ev("intake", "kelly-tickets", at(96), L("Reported by front desk during walk-through.", "前台巡检时上报。")),
+        ev("crew_notified", "kelly-tickets", at(80), L("General Maintenance assigned.", "已指派综合维修组。")),
+        ev("crew_update", L("Leo Fan", "范立"), at(44), L("New closer installed.", "已安装新闭门器。")),
+        ev("resolved", L("operator", "值班主管"), at(40), L("Resident confirmed the fix; ticket closed.", "住户确认修复，工单关闭。"))
+      ], at(40))
+  ];
+
+  const dispatch_proposals = [
+    proposal("dp-2001", 1, "T-1002", L("Dispatch Electrical Crew to Elevator 2", "派电工班组检查 2 号电梯"),
+      L("Grinding noise between floors 5-8 in Elevator 2, Building 2.", "2 号楼 2 号电梯在 5-8 层之间有金属摩擦异响。"),
+      "electrical", L("Ray Ma", "马磊"), "P2", inHours(4), 24,
+      L("Elevator noise → electrical crew to inspect and coordinate the elevator vendor; Elevator 2 was last serviced on 2026-05-12.", "电梯异响 → 电工班组先行检查并联系电梯维保单位；2 号电梯上次保养是 2026-05-12。"),
+      L("Please inspect the traction room first and stop the elevator if the noise persists. Vendor hotline is in the work order.", "请先检查曳引机房，如异响持续请停梯。维保单位电话见工单。"),
+      "needs_review", null, null),
+    proposal("dp-2002", 2, "T-1003", L("Dispatch Security Team to spot P-88", "派安保队处理 P-88 占位"),
+      L("A white SUV has occupied paid spot P-88 for two days.", "白色 SUV 连续两天占用已售 P-88 车位。"),
+      "security", L("Dana Cole", "柯丹"), "P3", inHours(46), 72,
+      L("Parking dispute → security team; post a notice on the vehicle and reach the owner via plate registration.", "车位纠纷 → 安保队；在车辆上张贴通知，并通过车牌登记联系车主。"),
+      L("Photograph the vehicle, leave a move notice, and call the registered owner. Escalate to towing only with manager sign-off.", "请拍照留证、张贴挪车通知并电话联系登记车主。未经主管批准不得直接拖车。"),
+      "needs_review", null, null),
+    proposal("dp-2003", 3, "T-1008", L("Dispatch General Maintenance to the playground swing", "派综合维修组处理秋千隐患"),
+      L("A swing chain is about to snap and children are still using it.", "秋千链条即将断裂，仍有儿童在使用。"),
+      "general", L("Leo Fan", "范立"), "P1", inHours(3.5), 8,
+      L("Safety hazard on playground equipment → general maintenance; cordon off the swing immediately, then replace the chain.", "游乐设施安全隐患 → 综合维修组；立即围挡秋千，随后更换链条。"),
+      L("Cordon off the swing first, then replace both chains and load-test before reopening.", "请先围挡秋千，再更换两条链条并做承重测试后开放。"),
+      "needs_review", null, null),
+    proposal("dp-2004", 4, "T-1009", L("Schedule exterior sealing for 2A seepage", "安排 2A 渗水外墙打胶"),
+      L("Living-room wall seepage in 2A after rain; interior already dried and sealed.", "2A 客厅雨后渗水；室内已干燥封堵。"),
+      "plumbing", L("Sam Porter", "周建国"), "P2", inHours(24), 24,
+      L("Wall seepage → plumbing crew; exterior crack above 2A window is the likely source.", "墙面渗水 → 水暖空调组；渗水源疑似 2A 窗上方外墙裂缝。"),
+      L("Book the rope-access team for the first dry morning and re-check unit 2A after the next rain.", "请在第一个晴天上午预约高空作业队，下次降雨后回访 2A。"),
+      "changes_requested",
+      { action: "request_changes", note: L("Use the rope-access vendor, not a ladder crew, and add a quote before work starts.", "请改用高空作业外包队而不是梯子作业，并在开工前补一份报价。"), draft: null, decided_at: at(5) },
+      null),
+    proposal("dp-2005", 5, "T-1004", L("Dispatch Electrical Crew to the Building 1 lobby light", "派电工班组维修 1 号楼大堂顶灯"),
+      L("Lobby ceiling light near the mailboxes is out; dark at night.", "大堂信报箱旁顶灯不亮，夜间过暗。"),
+      "electrical", L("Ray Ma", "马磊"), "P3", inHours(42), 72,
+      L("Lighting fault → electrical crew; same fixture failed in March, check the driver, not just the tube.", "照明故障 → 电工班组；该灯具 3 月曾故障，请检查驱动器而不仅是灯管。"),
+      L("Replace the LED driver and log the fixture model for the renovation list.", "请更换 LED 驱动器，并登记灯具型号纳入改造清单。"),
+      "approved",
+      { action: "approve", note: L("Go ahead tomorrow morning.", "明早处理即可。"), draft: null, decided_at: at(6) },
+      null),
+    proposal("dp-2006", 6, "T-1006", L("Dispatch General Maintenance to Treadmill #3", "派综合维修组检修 3 号跑步机"),
+      L("Treadmill #3 stops abruptly at high speed; machine already out of service.", "3 号跑步机高速时突停，已停用。"),
+      "general", L("Leo Fan", "范立"), "P2", at(2), 24,
+      L("Amenity fault with safety risk → general maintenance; belt sensor suspected, spare part ordered.", "设施故障且有安全风险 → 综合维修组；疑似跑带传感器故障，备件已下单。"),
+      L("Keep the machine locked out until the new belt sensor is installed and tested.", "在新传感器安装并测试完成前，请保持设备停用上锁。"),
+      "done",
+      { action: "approve", note: "", draft: null, decided_at: at(26) },
+      {
+        status: "executed",
+        operations: [
+          { operation: "notify_crew", target: "general", detail: L("Work order and message draft handed to General Maintenance.", "工单与通知草稿已交综合维修组。") },
+          { operation: "update_board", target: "T-1006", detail: L("Ticket moved open → assigned.", "工单状态 open → assigned。") }
+        ],
+        detail: L("Crew notified by the agent outside the app.", "由代理在应用之外完成班组通知。"),
+        executed_at: at(25)
+      })
+  ];
+
+  const sync_log = [
+    log(at(1.5), "wechat_export", "ingest", L("Parsed 6 items from the owners-group export; 0 duplicates skipped.", "从业主群导出解析 6 条；跳过重复 0 条。"), 6),
+    log(at(2), "phone_log", "ingest", L("Parsed 3 items from the front-desk call log; 1 duplicate skipped.", "从前台来电记录解析 3 条；跳过重复 1 条。"), 3),
+    log(at(2.5), "form", "ingest", L("Parsed 3 front-desk forms.", "解析前台表单 3 条。"), 3),
+    log(at(3), "email", "ingest", L("Parsed 2 items from the service mailbox.", "从服务邮箱解析 2 条。"), 2),
+    log(at(1.1), "kelly-tickets", "triage", L("Classified 11 intake items, created 4 tickets, proposed 3 dispatches.", "完成 11 条分类，新建 4 张工单，生成 3 条派单建议。"), 11)
+  ];
+
+  const snapshot = {
+    schema_version: "1",
+    generated_at: NOW,
+    source: "kelly-tickets-demo",
+    property: { name: L("Riverside Gardens", "滨江花园"), buildings: 3 },
+    range: { start: "2026-06-27", end: "2026-07-03" },
+    metrics: {},
+    intake,
+    tickets,
+    dispatch_proposals,
+    crews,
+    sync_log,
+    warnings: scenario === "detail" ? [
+      {
+        id: "sla-treadmill",
+        severity: "warning",
+        ticket_id: "T-1006",
+        message: L("Ticket T-1006 breached its SLA; spare part still in transit.", "工单 T-1006 已超出 SLA；备件仍在运输途中。"),
+        detail: L("Demo warning, no live data.", "演示提醒，未读取真实数据。")
+      }
+    ] : []
+  };
+  snapshot.metrics = computeDemoMetrics(snapshot);
+  return snapshot;
+}
+
+function computeDemoMetrics(snapshot) {
+  const open = new Set(["open", "assigned", "in_progress", "waiting"]);
+  const resolved = snapshot.tickets.filter((ticket) => ticket.status === "resolved");
+  const hours = resolved
+    .filter((ticket) => ticket.created_at && ticket.resolved_at)
+    .map((ticket) => (Date.parse(ticket.resolved_at) - Date.parse(ticket.created_at)) / 3600000);
+  const byChannel = {};
+  for (const item of snapshot.intake) byChannel[item.channel] = (byChannel[item.channel] || 0) + 1;
+  return {
+    intake_count: snapshot.intake.length,
+    unclassified_intake: snapshot.intake.filter((item) => item.triage_state === "new").length,
+    ticket_count: snapshot.tickets.length,
+    open_tickets: snapshot.tickets.filter((ticket) => open.has(ticket.status)).length,
+    resolved_tickets: resolved.length,
+    avg_resolution_hours: hours.length ? Math.round((hours.reduce((sum, value) => sum + value, 0) / hours.length) * 10) / 10 : 0,
+    sla_at_risk: snapshot.tickets.filter((ticket) => open.has(ticket.status) && ["at_risk", "breached"].includes(ticket.sla_state)).length,
+    proposal_count: snapshot.dispatch_proposals.length,
+    needs_review: snapshot.dispatch_proposals.filter((proposal) => proposal.status === "needs_review").length,
+    intake_by_channel: byChannel
+  };
+}
+
+function crew(crew_id, name, skills, members, open_tickets) {
+  return { crew_id, name, skills, members, contact_env: `KELLY_TICKETS_CREW_${crew_id.toUpperCase()}_CONTACT`, open_tickets, active: true };
+}
+
+function intakeItem(id, channel, external_id, reporter, contact_masked, unit, location, text, received_at, urgency_guess, category_guess, triage_state, ticket_id, attachments_note) {
+  return {
+    id,
+    channel,
+    external_id,
+    content_hash: id.replace("in-", "demo"),
+    reporter,
+    contact_masked,
+    unit,
+    location,
+    text,
+    received_at,
+    urgency_guess,
+    category_guess,
+    triage_state,
+    ticket_id,
+    attachments_note
+  };
+}
+
+function ticket(id, title, category, urgency, unit, location, reporter, contact_masked, status, crew_id, assignee, created_at, updated_at, sla_due_at, sla_state, intake_ids, resolution_note, history, resolved_at = "") {
+  return {
+    id,
+    title,
+    category,
+    urgency,
+    unit,
+    location,
+    reporter,
+    contact_masked,
+    status,
+    crew_id,
+    assignee,
+    created_at,
+    updated_at,
+    resolved_at,
+    sla_due_at,
+    sla_state,
+    intake_ids,
+    resolution_note,
+    history
+  };
+}
+
+function proposal(id, ref, ticket_id, title, summary, crew_id, assignee, priority, sla_due_at, sla_hours, reason, note_to_crew, status, decision, execution) {
+  return {
+    id,
+    ref,
+    ticket_id,
+    title,
+    summary,
+    proposed_crew_id: crew_id,
+    proposed_assignee: assignee,
+    priority,
+    sla_due_at,
+    sla_hours,
+    reason,
+    note_to_crew,
+    status,
+    decision,
+    execution
+  };
+}
+
+function ev(event, actor, at, note) {
+  return { event, actor, at, note };
+}
+
+function log(at, source, action, detail, count) {
+  return { at, source, action, detail, count };
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Audit"
+  short_description: "Finance anomaly review desk for orders, invoices, and payments"
+  default_prompt: "Use $kelly-audit to open my finance audit desk and review flagged anomalies."

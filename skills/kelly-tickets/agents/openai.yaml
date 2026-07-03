@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Tickets"
+  short_description: "Local complaint triage and dispatch desk"
+  default_prompt: "Use $kelly-tickets to open my ticket desk, triage new complaints, and review dispatch proposals."

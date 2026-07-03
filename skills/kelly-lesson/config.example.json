@@ -1,0 +1,86 @@
+{
+  "data_provider": "local",
+  "ui": {
+    "language": "auto"
+  },
+  "school": {
+    "name": "Example Middle School",
+    "kind": "middle_school",
+    "term": "Example Term",
+    "class_length_minutes": 45
+  },
+  "subjects": ["Math", "Chinese", "English", "Physics"],
+  "grades": ["Grade 7", "Grade 8", "Grade 9"],
+  "template_sections": [
+    { "key": "objectives", "label": "Learning objectives", "required": true },
+    { "key": "key_points", "label": "Key points", "required": true },
+    { "key": "difficulties", "label": "Difficulties", "required": true },
+    { "key": "materials", "label": "Materials & preparation", "required": true },
+    { "key": "stages", "label": "Lesson flow stages", "required": true },
+    { "key": "board_plan", "label": "Board plan", "required": true },
+    { "key": "homework", "label": "Homework", "required": true },
+    { "key": "reflection", "label": "Teaching reflection", "required": false },
+    { "key": "curriculum_refs", "label": "Curriculum standard refs", "required": false },
+    { "key": "safety_notes", "label": "Safety notes (lab lessons)", "required": false }
+  ],
+  "compliance_rules": [
+    {
+      "rule_id": "measurable_objectives",
+      "name": "Objectives are measurable",
+      "severity": "error",
+      "type": "deterministic",
+      "params": {
+        "min_objectives": 2,
+        "measurable_verbs": ["identify", "solve", "explain", "apply", "list", "compare", "calculate", "summarize", "analyze", "use", "describe", "state", "measure", "construct", "sketch", "recite", "predict", "compute", "extract", "write", "说出", "写出", "计算", "运用", "分析", "归纳", "比较", "解释", "识别", "列举", "描述", "背诵", "测量", "画出", "会画", "预测", "陈述", "提取", "完成"]
+      }
+    },
+    {
+      "rule_id": "stage_count_timing",
+      "name": "3+ stages with time allocation",
+      "severity": "error",
+      "type": "deterministic",
+      "params": { "min_stages": 3 }
+    },
+    {
+      "rule_id": "duration_sum",
+      "name": "Stage timing sums to class length",
+      "severity": "error",
+      "type": "deterministic",
+      "params": { "tolerance_minutes": 2 }
+    },
+    {
+      "rule_id": "homework_assigned",
+      "name": "Homework assigned",
+      "severity": "warning",
+      "type": "deterministic"
+    },
+    {
+      "rule_id": "template_sections",
+      "name": "Uses school template sections",
+      "severity": "error",
+      "type": "deterministic"
+    },
+    {
+      "rule_id": "safety_note_lab",
+      "name": "Safety note for lab lessons",
+      "severity": "error",
+      "type": "deterministic",
+      "params": { "lab_keywords": ["lab", "experiment", "实验"] }
+    },
+    {
+      "rule_id": "curriculum_alignment",
+      "name": "Objectives align with curriculum refs",
+      "severity": "warning",
+      "type": "agent_review"
+    }
+  ],
+  "export": {
+    "format": "markdown",
+    "out_dir": "exports",
+    "docx_via_agent": true
+  },
+  "feedback": {
+    "handoff_skill": "kelly-email",
+    "requires_approval": true
+  }
+}
