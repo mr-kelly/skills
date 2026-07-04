@@ -17,7 +17,10 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const demo = isDemoQuery(url.searchParams);
-    if (url.pathname === "/api/state") return json(res, demo ? demoState(url.searchParams) : await provider.getState());
+    if (url.pathname === "/api/state") {
+      const state = demo ? demoState(url.searchParams) : await provider.getState();
+      return json(res, { app: "kelly-content", ...state });
+    }
     if (demo && req.method === "POST" && [
       "/api/decision",
       "/api/confirm-direction",

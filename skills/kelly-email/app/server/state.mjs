@@ -62,6 +62,7 @@ export async function statePayload(query = {}) {
   counts.done = allItems.filter(isDone).length;
   counts.blocked = allItems.filter(isBlocked).length;
   return {
+    app: "kelly-email",
     batch: {
       batch_id: batch.batch_id,
       generated_at: batch.generated_at,

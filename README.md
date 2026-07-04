@@ -44,10 +44,14 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-tickets` | Triages complaints and requests from WeChat exports, call logs, forms, and email into classified tickets, proposes crew dispatches with SLA targets for approval, and tracks everything on a resolution board. | Use it when managing property or facilities complaints, dispatching work orders to crews, or running any intake-classify-dispatch-track workflow. | [Open README](skills/kelly-tickets/README.md) |
 | `kelly-lesson` | Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export. | Use it when standardizing lesson plans across teachers, checking plan compliance, or reviewing and approving teaching plans at scale. | [Open README](skills/kelly-lesson/README.md) |
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [Open README](skills/kelly-inquiry/README.md) |
+| `kelly-picks` | Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read. | Use it when hunting products to sell, pressure-testing margins before committing, or running develop/watch/drop decisions with sourcing and listing briefs. | [Open README](skills/kelly-picks/README.md) |
+| `kelly-listing` | Listing factory: drafts platform-specific listings (Amazon title/bullets/description/backend terms/A+, Shopify, TikTok Shop, eBay) with locale variants, runs per-platform compliance checks, and exports approved copy. | Use it when writing or localizing marketplace listings, enforcing banned-word and character-limit rules, or batch-reviewing listing drafts before upload. | [Open README](skills/kelly-listing/README.md) |
+| `kelly-ads` | Ad-campaign command desk aggregating Amazon, Meta, TikTok, and Google ads into one board with ACOS/ROAS tracking, deterministic anomaly detection, and approval-gated adjustment cards (negative keywords, bids, budgets). | Use it when reviewing ad spend across platforms, catching zero-conversion spend and budget burnouts, or approving bid and keyword adjustments with evidence. | [Open README](skills/kelly-ads/README.md) |
+| `kelly-standup` | Team standup board: the agent collects members' daily check-ins from chat channels on demand, structures them into yesterday/today/blockers cards with a team digest, and drafts approval-gated nudges for missing check-ins. | Use it when running daily standups asynchronously, seeing what everyone is working on at a glance, or tracking blockers and participation across the team. | [Open README](skills/kelly-standup/README.md) |
 | `kelly-writer` | Repurposes one source idea, article, transcript, outline, or announcement into channel-ready drafts for platforms like Xiaohongshu, WeChat, newsletters, LinkedIn, X/Twitter, short video, and SEO snippets. | Use it when turning long-form source material into a multi-platform content pack with local review, edits, approvals, and export. | [Open README](skills/kelly-content/README.md) |
 | `kelly-pr-review` | Runs a GitHub PR review desk through `gh` CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved `gh pr review` actions. | Use it when reviewing GitHub pull requests, approving/commenting/requesting changes from a local queue, or batching PR review decisions. | [Open README](skills/kelly-pr-review/README.md) |
-| `kelly-drama` | Produces short-drama series with a local workbench for series overview, character library, relationship map, episode table, and shot sheets. Generates storyboard images with character reference cards and coordinates AI and human tasks. | Use it when planning and producing a short-drama series end-to-end: writing episode scripts, building character sheets, managing storyboard shots, and reviewing AI-generated images before use. | [Open README](skills/kelly-drama/SKILL.md) |
-| `kelly-mv` | Builds a pure-visual music video workbench: upload an MP3, write the MV concept, build a cast of on-screen characters with reference cards, and create a shot-by-shot storyboard with generated or uploaded images and draft videos. | Use it when producing a pure-visual music video — no narration or subtitles — by generating or uploading shot images and videos and assembling them over the song. | [Open README](skills/kelly-mv/SKILL.md) |
+| `kelly-drama` | Produces short-drama series with a local workbench for series overview, character library, relationship map, episode table, and shot sheets. Generates storyboard images with character reference cards and coordinates AI and human tasks. | Use it when planning and producing a short-drama series end-to-end: writing episode scripts, building character sheets, managing storyboard shots, and reviewing AI-generated images before use. | [Open README](skills/kelly-drama/README.md) |
+| `kelly-mv` | Builds a pure-visual music video workbench: upload an MP3, write the MV concept, build a cast of on-screen characters with reference cards, and create a shot-by-shot storyboard with generated or uploaded images and draft videos. | Use it when producing a pure-visual music video — no narration or subtitles — by generating or uploading shot images and videos and assembling them over the song. | [Open README](skills/kelly-mv/README.md) |
 
 ## App UI Screenshots
 
@@ -427,6 +431,90 @@ Kelly Money is a local finance dashboard for seeing money movement across Mercur
   <tr>
     <td><strong>Quotes</strong><br>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</td>
     <td><strong>Approvals</strong><br>Approval-gated outbox for replies and quotes — nothing is sent until reviewed.</td>
+  </tr>
+</table>
+
+### `kelly-picks`
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-picks-ui.png" alt="Kelly Picks overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-picks-candidates.png" alt="Kelly Picks candidates"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Product-research desk with weekly candidates by source, top movers, and per-source sweep freshness.</td>
+    <td><strong>Candidates</strong><br>Candidate table with momentum, estimated margin, competition grade, and develop/watch/drop stages.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-picks-detail.png" alt="Kelly Picks margin card"></td>
+    <td><img src="docs/screenshots/kelly-picks-decisions.png" alt="Kelly Picks decision queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Margin card</strong><br>Live-editable margin math — price, landed cost, freight, fees, ad cost → margin % and breakeven ACOS — plus a top-10 review-count competition read.</td>
+    <td><strong>Decision queue</strong><br>Agent-proposed develop/watch/drop verdicts with sourcing and listing briefs for approval.</td>
+  </tr>
+</table>
+
+### `kelly-listing`
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-listing-ui.png" alt="Kelly Listing overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-listing-drafts.png" alt="Kelly Listing draft workbench"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Listing command desk with product × platform status matrix, compliance pass rate, and export readiness.</td>
+    <td><strong>Draft workbench</strong><br>Amazon draft with live title character count, five bullets, backend search terms byte counter, A+ outline, and locale tabs.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-listing-checks.png" alt="Kelly Listing compliance checks"></td>
+    <td><img src="docs/screenshots/kelly-listing-review.png" alt="Kelly Listing review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results — banned words, character caps, bullet counts — across all drafts.</td>
+    <td><strong>Review queue</strong><br>Draft submissions with compliance summaries and keyword-strategy notes for approval before export or publish.</td>
+  </tr>
+</table>
+
+### `kelly-ads`
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-ads-ui.png" alt="Kelly Ads overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-ads-campaigns.png" alt="Kelly Ads campaigns"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Cross-platform ads board: blended ROAS/ACOS vs target, per-platform cards, spend vs revenue bars, and worst offenders.</td>
+    <td><strong>Campaigns</strong><br>Campaign table with budget pace, spend, ROAS, and color-coded ACOS vs target across Amazon, Meta, TikTok, and Google.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-ads-alerts.png" alt="Kelly Ads anomaly alerts"></td>
+    <td><img src="docs/screenshots/kelly-ads-adjustments.png" alt="Kelly Ads adjustment queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Alerts</strong><br>Deterministic anomaly feed: ACOS breaches, budget burnouts, zero-conversion spend, CPC spikes, rejected ads.</td>
+    <td><strong>Adjustment queue</strong><br>Agent-proposed bid, budget, and negative-keyword changes with evidence and expected impact, gated on approval.</td>
+  </tr>
+</table>
+
+### `kelly-standup`
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-standup-ui.png" alt="Kelly Standup today board"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-standup-members.png" alt="Kelly Standup members"></td>
+  </tr>
+  <tr>
+    <td><strong>Today board</strong><br>Daily standup at a glance: team digest, participation count, and per-member yesterday/today/blockers cards with source badges.</td>
+    <td><strong>Members</strong><br>Team roster with check-in streaks, 30-day participation, open blockers, and per-member update timelines.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-standup-blockers.png" alt="Kelly Standup blockers"></td>
+    <td><img src="docs/screenshots/kelly-standup-reminders.png" alt="Kelly Standup reminders"></td>
+  </tr>
+  <tr>
+    <td><strong>Blockers</strong><br>All blockers across the team with severity, age, and agent-suggested next actions.</td>
+    <td><strong>Reminders</strong><br>Approval-gated nudges for missing check-ins — drafted by the agent, sent only after review.</td>
   </tr>
 </table>
 
