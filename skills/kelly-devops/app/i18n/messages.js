@@ -109,7 +109,7 @@ export const messages = {
         done: "done",
         blocked: "blocked",
         queued: "queued",
-        planned: "planned"
+        planned: "planned",
       },
       type: {
         domain: "domain",
@@ -125,9 +125,9 @@ export const messages = {
         check: "check",
         expiry: "expiry",
         spend: "spend",
-        action: "action"
-      }
-    }
+        action: "action",
+      },
+    },
   },
   zh: {
     actionRef: "行动",
@@ -239,7 +239,7 @@ export const messages = {
         done: "已完成",
         blocked: "已拦截",
         queued: "已排队",
-        planned: "已计划"
+        planned: "已计划",
       },
       type: {
         domain: "域名",
@@ -255,8 +255,8 @@ export const messages = {
         check: "检查",
         expiry: "到期",
         spend: "支出",
-        action: "行动"
-      }
-    }
-  }
+        action: "行动",
+      },
+    },
+  },
 };

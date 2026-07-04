@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { serve } from "@hono/node-server";
-import { defaultHost, defaultPort } from "../../lib/paths.mjs";
 import { ensureDirs } from "../../lib/common.mjs";
+import { defaultHost, defaultPort } from "../../lib/paths.mjs";
 import { app } from "./hono.mjs";
 
 // Local runtime: run the platform-neutral Hono app on Node. The same app.fetch

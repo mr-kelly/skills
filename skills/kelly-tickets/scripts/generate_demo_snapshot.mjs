@@ -4,9 +4,9 @@
 // Demo mode itself (?demo=<scene>) never reads this file.
 // Usage: node scripts/generate_demo_snapshot.mjs [--zh]
 
+import { buildDemoSnapshot } from "../app/server/demo.mjs";
 import { SNAPSHOT_PATH } from "../app/server/paths.mjs";
 import { ensureDirs, writeJson } from "../app/server/store.mjs";
-import { buildDemoSnapshot } from "../app/server/demo.mjs";
 
 const zh = process.argv.includes("--zh");
 const snapshot = buildDemoSnapshot(zh, "overview");

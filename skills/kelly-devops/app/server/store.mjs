@@ -7,7 +7,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -53,7 +53,7 @@ export function emptySnapshot() {
     checks: {
       services_checked_at: "",
       domains_checked_at: "",
-      spend_ingested_at: ""
+      spend_ingested_at: "",
     },
     metrics: {
       services_total: 0,
@@ -68,7 +68,7 @@ export function emptySnapshot() {
       actions_needing_review: 0,
       spend_mtd: 0,
       spend_last_month: 0,
-      spend_anomalies: 0
+      spend_anomalies: 0,
     },
     services: [],
     expiries: [],
@@ -79,9 +79,9 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No ops snapshot exists yet. Configure services and domains, then run the checks."
-      }
-    ]
+        message: "No ops snapshot exists yet. Configure services and domains, then run the checks.",
+      },
+    ],
   };
 }
 
@@ -145,26 +145,26 @@ export function summarizeConfig(configResult) {
     thresholds: config.thresholds || {},
     products: products.map((product) => ({
       product_id: product.product_id || "",
-      name: product.name || product.product_id || ""
+      name: product.name || product.product_id || "",
     })),
     services: services.map((service) => ({
       service_id: service.service_id || "",
       name: service.name || service.service_id || "",
       product: service.product || "",
-      url: service.url || ""
+      url: service.url || "",
     })),
     domains: domains.map((domain) => ({
       domain: domain.domain || "",
       product: domain.product || "",
       registrar: domain.registrar || "",
-      auto_renew: Boolean(domain.auto_renew)
+      auto_renew: Boolean(domain.auto_renew),
     })),
     key_rotation: keyRotation.map((key) => ({
       key_id: key.key_id || "",
       name: key.name || key.key_id || "",
       env: key.env || "",
       rotate_every_days: Number(key.rotate_every_days || 0),
-      env_ready: Boolean(key.env && process.env[key.env])
+      env_ready: Boolean(key.env && process.env[key.env]),
     })),
     billing_sources: billingSources.map((source) => {
       const secretKeys = ["api_key_env", "token_env", "client_secret_env"].filter((key) => source[key]);
@@ -172,16 +172,18 @@ export function summarizeConfig(configResult) {
         provider_id: source.provider_id || "",
         name: source.name || source.provider_id || "",
         secret_envs: secretKeys.map((key) => source[key]),
-        secrets_ready: secretKeys.every((key) => Boolean(process.env[source[key]]))
+        secrets_ready: secretKeys.every((key) => Boolean(process.env[source[key]])),
       };
-    })
+    }),
   };
 }
 
 export async function acquireLock(owner, message) {
   const existing = await readLock();
   if (existing && existing.owner !== owner) {
-    const error = new Error(`Agent lock is held by ${existing.owner || "unknown"}: ${existing.message || "working"}`);
+    const error = /** @type {any} */ (
+      new Error(`Agent lock is held by ${existing.owner || "unknown"}: ${existing.message || "working"}`)
+    );
     error.code = "LOCKED";
     throw error;
   }
@@ -214,7 +216,7 @@ export function recomputeMetrics(snapshot, thresholds = {}) {
     actions_needing_review: actions.filter((action) => action.status === "needs_review").length,
     spend_mtd: round2(providers.reduce((sum, row) => sum + Number(row.mtd || 0), 0)),
     spend_last_month: round2(providers.reduce((sum, row) => sum + Number(row.last_month || 0), 0)),
-    spend_anomalies: providers.filter((row) => row.anomaly).length
+    spend_anomalies: providers.filter((row) => row.anomaly).length,
   };
   return snapshot;
 }
@@ -235,7 +237,7 @@ const VERDICTS = new Set(["approve", "request_changes", "block", "note"]);
 const VERDICT_STATUS = {
   approve: "approved",
   request_changes: "changes_requested",
-  block: "blocked"
+  block: "blocked",
 };
 
 export async function applyDecision({ action_id, verdict, note }) {
@@ -243,7 +245,9 @@ export async function applyDecision({ action_id, verdict, note }) {
   if (!VERDICTS.has(verdict)) throw new Error(`verdict must be one of: ${[...VERDICTS].join(", ")}`);
   const lock = await readLock();
   if (lock) {
-    const error = new Error(`Agent lock is held by ${lock.owner || "unknown"}: ${lock.message || "working"}`);
+    const error = /** @type {any} */ (
+      new Error(`Agent lock is held by ${lock.owner || "unknown"}: ${lock.message || "working"}`)
+    );
     error.code = "LOCKED";
     throw error;
   }
@@ -255,7 +259,7 @@ export async function applyDecision({ action_id, verdict, note }) {
     action_id,
     verdict,
     note: typeof note === "string" ? note : "",
-    decided_at: decidedAt
+    decided_at: decidedAt,
   };
   if (verdict !== "note") action.status = VERDICT_STATUS[verdict];
   action.decision = decision;
@@ -267,7 +271,9 @@ export async function applyDecision({ action_id, verdict, note }) {
   decisions.updated_at = decidedAt;
 
   snapshot.metrics = snapshot.metrics || {};
-  snapshot.metrics.actions_needing_review = (snapshot.actions || []).filter((item) => item.status === "needs_review").length;
+  snapshot.metrics.actions_needing_review = (snapshot.actions || []).filter(
+    (item) => item.status === "needs_review",
+  ).length;
 
   await writeJson(DECISIONS_PATH, decisions);
   await writeJson(SNAPSHOT_PATH, snapshot);
@@ -282,7 +288,7 @@ export async function applyDecision({ action_id, verdict, note }) {
       title: action.title || "",
       request: decision.note,
       status: "queued",
-      created_at: decidedAt
+      created_at: decidedAt,
     });
     tasks.updated_at = decidedAt;
     await writeJson(AGENT_TASKS_PATH, tasks);

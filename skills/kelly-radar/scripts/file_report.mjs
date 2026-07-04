@@ -15,7 +15,8 @@ const payloadPath = process.argv[2];
 if (!payloadPath) fail("usage: node scripts/file_report.mjs <payload.json>");
 
 const payload = await readJson(payloadPath, null);
-if (!payload || typeof payload.question_id !== "string" || !payload.question_id) fail("payload.question_id must be a non-empty string");
+if (!payload || typeof payload.question_id !== "string" || !payload.question_id)
+  fail("payload.question_id must be a non-empty string");
 if (!payload.brief && !payload.report) fail("payload must contain a brief or a report");
 if (payload.brief && payload.report) fail("payload must contain either a brief or a report, not both");
 
@@ -34,18 +35,21 @@ if (payload.report) {
     if (typeof report[key] !== "string" || !report[key]) fail(`report.${key} must be a non-empty string`);
   }
   if (!Array.isArray(report.sections) || !report.sections.length) fail("report.sections must be a non-empty array");
-  if (!Array.isArray(report.sources) || !report.sources.length) fail("report.sources must be a non-empty array (citations are required)");
+  if (!Array.isArray(report.sources) || !report.sources.length)
+    fail("report.sources must be a non-empty array (citations are required)");
   const sourceIds = new Set();
   report.sources.forEach((source, index) => {
     for (const key of ["source_id", "title", "url"]) {
-      if (typeof source[key] !== "string" || !source[key]) fail(`report.sources[${index}].${key} must be a non-empty string`);
+      if (typeof source[key] !== "string" || !source[key])
+        fail(`report.sources[${index}].${key} must be a non-empty string`);
     }
     if (sourceIds.has(source.source_id)) fail(`report.sources[${index}].source_id duplicates ${source.source_id}`);
     sourceIds.add(source.source_id);
   });
   report.sections.forEach((section, index) => {
     for (const key of ["section_id", "heading", "body"]) {
-      if (typeof section[key] !== "string" || !section[key]) fail(`report.sections[${index}].${key} must be a non-empty string`);
+      if (typeof section[key] !== "string" || !section[key])
+        fail(`report.sections[${index}].${key} must be a non-empty string`);
     }
     if (!Array.isArray(section.source_ids)) fail(`report.sections[${index}].source_ids must be an array`);
     for (const sourceId of section.source_ids) {
@@ -76,7 +80,7 @@ try {
       brief_id: "",
       report_id: "",
       confidence: null,
-      followups: []
+      followups: [],
     };
     questions.push(question);
   }
@@ -89,7 +93,7 @@ try {
       depth: question.depth || "standard",
       notes: "",
       ...payload.brief,
-      question_id: payload.question_id
+      question_id: payload.question_id,
     };
     const index = briefs.findIndex((entry) => entry.brief_id === brief.brief_id);
     if (index >= 0) briefs[index] = brief;
@@ -103,10 +107,14 @@ try {
       confidence: null,
       annotations: [],
       ...payload.report,
-      question_id: payload.question_id
+      question_id: payload.question_id,
     };
     const index = reports.findIndex((entry) => entry.report_id === report.report_id);
-    if (index >= 0) reports[index] = { ...report, annotations: reports[index].annotations?.length ? reports[index].annotations : report.annotations };
+    if (index >= 0)
+      reports[index] = {
+        ...report,
+        annotations: reports[index].annotations?.length ? reports[index].annotations : report.annotations,
+      };
     else reports.push(report);
     question.report_id = report.report_id;
     question.status = "report_ready";
@@ -119,7 +127,7 @@ try {
     ...snapshot.metrics,
     questions_open: questions.filter((entry) => entry.status !== "closed").length,
     briefs_needs_review: briefs.filter((entry) => entry.status === "needs_review").length,
-    reports_ready: questions.filter((entry) => entry.status === "report_ready").length
+    reports_ready: questions.filter((entry) => entry.status === "report_ready").length,
   };
   snapshot.sync_log = snapshot.sync_log || [];
   snapshot.sync_log.unshift({ at: now, actor: "kelly-radar-agent", action: "file_report", detail });

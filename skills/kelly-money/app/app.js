@@ -5,8 +5,10 @@ const state = {
   settings: null,
   route: parseRoute(),
   query: "",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-money-language") || "auto"),
-  demo: new URLSearchParams(location.search).get("demo") || ""
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-money-language") || "auto",
+  ),
+  demo: new URLSearchParams(location.search).get("demo") || "",
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-money.sidebarCollapsed";
@@ -29,7 +31,7 @@ const els = {
   reviewCount: document.querySelector("#count-review"),
   txCount: document.querySelector("#count-transactions"),
   accountCount: document.querySelector("#count-accounts"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -76,7 +78,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -86,16 +92,14 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function money(value, currency = state.snapshot?.base_currency || "USD") {
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     style: "currency",
     currency,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(Number(value || 0));
 }
 
@@ -104,7 +108,7 @@ function date(value) {
   return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     month: "short",
     day: "2-digit",
-    year: "numeric"
+    year: "numeric",
   }).format(new Date(value));
 }
 
@@ -134,15 +138,16 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "accounts"
-    ? "#/accounts"
-    : scenario === "detail"
-      ? "#/accounts/stripe-main"
-      : scenario === "ledger"
-        ? "#/ledger"
-        : scenario === "invoices"
-          ? "#/invoices"
-        : "#/overview";
+  const route =
+    scenario === "accounts"
+      ? "#/accounts"
+      : scenario === "detail"
+        ? "#/accounts/stripe-main"
+        : scenario === "ledger"
+          ? "#/ledger"
+          : scenario === "invoices"
+            ? "#/invoices"
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -152,9 +157,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -178,7 +182,9 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = reviewCount
       ? `${reviewCount} ${t("invoiceNeedsReview")}`
-      : (warningCount ? `${warningCount} ${t("warnings")}` : `${txCount} ${t("tx")}`);
+      : warningCount
+        ? `${warningCount} ${t("warnings")}`
+        : `${txCount} ${t("tx")}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -211,7 +217,16 @@ function filteredTransactions(accountId = "") {
     if (accountId && tx.account_id !== accountId) return false;
     if (!query) return true;
     const match = matchForTransaction(tx.transaction_id);
-    return [tx.description, tx.counterparty, tx.provider, tx.account_id, tx.type, tx.status, match?.status, invoiceForMatch(match)?.invoice_number]
+    return [
+      tx.description,
+      tx.counterparty,
+      tx.provider,
+      tx.account_id,
+      tx.type,
+      tx.status,
+      match?.status,
+      invoiceForMatch(match)?.invoice_number,
+    ]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
   });
@@ -228,7 +243,9 @@ function ledgerTable(transactions) {
           </tr>
         </thead>
         <tbody>
-          ${transactions.map((tx) => `
+          ${transactions
+            .map(
+              (tx) => `
             <tr>
               <td>${date(tx.occurred_at)}</td>
               <td><div class="strong">${escapeHtml(tx.description)}</div><div class="muted">${escapeHtml(tx.counterparty || tx.provider_transaction_id || "")}</div></td>
@@ -241,7 +258,9 @@ function ledgerTable(transactions) {
               <td class="num">${money(tx.fee, tx.currency)}</td>
               <td class="num ${Number(tx.net) < 0 ? "negative" : "positive"}">${money(tx.net, tx.currency)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -254,13 +273,17 @@ function accountName(accountId) {
 
 function renderLedger() {
   els.title.textContent = t("ledger");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at
+    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+    : t("empty");
   els.content.innerHTML = `${metricCards()}${warnings()}${ledgerTable(filteredTransactions())}`;
 }
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at
+    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+    : t("empty");
   const accounts = state.snapshot?.accounts || [];
   const recent = filteredTransactions().slice(0, 6);
   els.content.innerHTML = `
@@ -269,22 +292,30 @@ function renderOverview() {
     <section class="overview-grid">
       <div class="overview-panel">
         <h2>${t("accountHealth")}</h2>
-        ${accounts.map((account) => `
+        ${accounts
+          .map(
+            (account) => `
           <a class="health-row" href="#/accounts/${encodeURIComponent(account.account_id)}">
             <span><strong>${escapeHtml(account.display_name)}</strong><small>${escapeHtml(account.provider)} · ${escapeHtml(account.currency)}</small></span>
             <span class="num">${money(account.balance?.current, account.currency)}</span>
             <span class="status ${account.status}">${escapeHtml(enumLabel(account.status))}</span>
           </a>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
       <div class="overview-panel">
         <h2>${t("recentMoneyMovement")}</h2>
-        ${recent.map((tx) => `
+        ${recent
+          .map(
+            (tx) => `
           <div class="movement-row">
             <span><strong>${escapeHtml(tx.description)}</strong><small>${escapeHtml(tx.counterparty || tx.provider)}</small></span>
             <span class="num ${Number(tx.net) < 0 ? "negative" : "positive"}">${money(tx.net, tx.currency)}</span>
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
       <div class="overview-panel wide">
         <h2>${t("invoiceMatching")}</h2>
@@ -300,9 +331,12 @@ function renderAccounts() {
   els.title.textContent = t("accounts");
   els.subtitle.textContent = `${state.snapshot?.accounts?.length || 0} ${t("configured")}`;
   const accounts = state.snapshot?.accounts || [];
-  els.content.innerHTML = accounts.length ? `
+  els.content.innerHTML = accounts.length
+    ? `
     <div class="account-grid">
-      ${accounts.map((account) => `
+      ${accounts
+        .map(
+          (account) => `
         <a class="account-card" href="#/accounts/${encodeURIComponent(account.account_id)}">
           <div class="row between"><strong>${escapeHtml(account.display_name)}</strong><span class="badge">${escapeHtml(account.provider)}</span></div>
           <div class="muted">${escapeHtml(account.entity || account.account_id)} · ${escapeHtml(account.currency)}</div>
@@ -313,9 +347,12 @@ function renderAccounts() {
           </div>
           <div class="status ${account.status}">${escapeHtml(enumLabel(account.status))}</div>
         </a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
-  ` : `<div class="empty">${t("empty")}</div>`;
+  `
+    : `<div class="empty">${t("empty")}</div>`;
 }
 
 function renderInvoices() {
@@ -337,9 +374,10 @@ function renderInvoices() {
             </tr>
           </thead>
           <tbody>
-            ${invoices.map((invoice) => {
-              const match = matchForInvoice(invoice.invoice_id);
-              return `
+            ${invoices
+              .map((invoice) => {
+                const match = matchForInvoice(invoice.invoice_id);
+                return `
                 <tr>
                   <td><a href="#/invoices/${encodeURIComponent(invoice.invoice_id)}"><strong>${escapeHtml(invoice.invoice_number)}</strong></a><div class="muted">${escapeHtml(enumLabel(invoice.direction))}</div></td>
                   <td>${escapeHtml(invoice.vendor || invoice.customer || "")}</td>
@@ -351,7 +389,8 @@ function renderInvoices() {
                   <td class="num">${money(invoice.total, invoice.currency)}</td>
                 </tr>
               `;
-            }).join("")}
+              })
+              .join("")}
           </tbody>
         </table>
       </div>
@@ -450,13 +489,19 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("accounts")}</h2>
-        ${(summary.accounts || []).map((account) => `
+        ${
+          (summary.accounts || [])
+            .map(
+              (account) => `
           <div class="settings-account">
             <strong>${escapeHtml(account.display_name)}</strong>
             <span>${escapeHtml(account.provider)} · ${escapeHtml(account.currency || "")}</span>
             <span>${account.secrets_ready ? t("secretsReady") : t("missingSecrets")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
     </div>
   `;
@@ -475,7 +520,15 @@ function filteredInvoices() {
   if (!query) return invoices();
   return invoices().filter((invoice) => {
     const match = matchForInvoice(invoice.invoice_id);
-    return [invoice.invoice_number, invoice.vendor, invoice.customer, invoice.status, invoice.direction, invoice.source, match?.status]
+    return [
+      invoice.invoice_number,
+      invoice.vendor,
+      invoice.customer,
+      invoice.status,
+      invoice.direction,
+      invoice.source,
+      match?.status,
+    ]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
   });
@@ -560,30 +613,44 @@ function invoiceDetailPanel(invoice, match, tx) {
         <strong>${escapeHtml(tx?.description || t("notSelected"))}</strong>
       </div>
     </div>
-    ${match?.audit_events?.length ? `
+    ${
+      match?.audit_events?.length
+        ? `
       <div class="audit-panel">
         <h2>${t("matchAuditTrail")}</h2>
-        ${match.audit_events.map((event) => `
+        ${match.audit_events
+          .map(
+            (event) => `
           <div class="audit-row">
             <strong>${escapeHtml(enumLabel(event.event || ""))}</strong>
             <span>${escapeHtml(event.actor || "")} · ${escapeHtml(event.at || "")}</span>
             <p>${escapeHtml(event.note || "")}</p>
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
-    ` : ""}
+    `
+        : ""
+    }
   `;
 }
 
 function warnings(accountId = "") {
-  const items = (state.snapshot?.warnings || []).filter((item) => !accountId || !item.account_id || item.account_id === accountId);
+  const items = (state.snapshot?.warnings || []).filter(
+    (item) => !accountId || !item.account_id || item.account_id === accountId,
+  );
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 function render() {
@@ -598,13 +665,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

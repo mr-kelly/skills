@@ -3,6 +3,15 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, rm, unlink, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
 import {
+  configFileCandidates,
+  envFileCandidates,
+  loadConfig,
+  loadConfigWithMeta,
+  loadDotenv,
+  onboardingStatus,
+  privateConfigCandidates,
+} from "./data-provider/index.mjs";
+import {
   APP_DIR,
   ATTACHMENTS_DIR,
   CURRENT_BATCH_PATH,
@@ -12,27 +21,35 @@ import {
   ROOT_DIR,
   SCAN_STATE_PATH,
   SKILL_CACHE_DIR,
-  SKILL_DIR
+  SKILL_DIR,
 } from "./paths.mjs";
-import {
+
+export const SCRIPTS_DIR = join(SKILL_DIR, "scripts");
+export const ROOT = ROOT_DIR;
+export const APP_DATA_DIR = join(APP_DIR, ".data");
+export const APP_CACHE_DIR = APP_DATA_DIR; // back-compat alias
+export {
+  ATTACHMENTS_DIR,
+  CURRENT_BATCH_PATH,
+  DECISIONS_PATH,
+  LOCK_PATH,
+  REPORTS_DIR,
+  SCAN_STATE_PATH,
+  SKILL_CACHE_DIR,
+  SKILL_DIR,
+};
+
+export const CLASSIFICATION_PIPELINE_VERSION = "2026-06-16-app-in-skill-v2-node";
+
+export {
   configFileCandidates,
   envFileCandidates,
   loadConfig,
   loadConfigWithMeta,
   loadDotenv,
   onboardingStatus,
-  privateConfigCandidates
-} from "./data-provider/index.mjs";
-
-export const SCRIPTS_DIR = join(SKILL_DIR, "scripts");
-export const ROOT = ROOT_DIR;
-export const APP_DATA_DIR = join(APP_DIR, ".data");
-export const APP_CACHE_DIR = APP_DATA_DIR; // back-compat alias
-export { ATTACHMENTS_DIR, CURRENT_BATCH_PATH, DECISIONS_PATH, LOCK_PATH, REPORTS_DIR, SCAN_STATE_PATH, SKILL_CACHE_DIR, SKILL_DIR };
-
-export const CLASSIFICATION_PIPELINE_VERSION = "2026-06-16-app-in-skill-v2-node";
-
-export { configFileCandidates, envFileCandidates, loadConfig, loadConfigWithMeta, loadDotenv, onboardingStatus, privateConfigCandidates };
+  privateConfigCandidates,
+};
 
 export function utcNow() {
   return new Date().toISOString();
@@ -48,7 +65,7 @@ export async function writeAgentLock(message) {
   await writeJson(LOCK_PATH, {
     owner: "kelly-email-agent",
     message,
-    started_at: utcNow()
+    started_at: utcNow(),
   });
 }
 
@@ -84,7 +101,7 @@ export function configuredEmailAccounts(config, source = "") {
       send_as_email: identity.send_as_email || "",
       display_name: identity.display_name || "",
       brand_or_product: identity.brand_or_product || "",
-      reply_to: identity.reply_to || ""
+      reply_to: identity.reply_to || "",
     });
     identitiesByMailbox.set(identity.mailbox_id, rows);
   }
@@ -109,9 +126,9 @@ export function configuredEmailAccounts(config, source = "") {
         smtp_password_env: smtpEnv,
         imap_env_configured: Boolean(imapEnv && process.env[imapEnv]),
         smtp_env_configured: Boolean(smtpEnv && process.env[smtpEnv]),
-        identities: identitiesByMailbox.get(mailbox.mailbox_id) || []
+        identities: identitiesByMailbox.get(mailbox.mailbox_id) || [],
       };
-    })
+    }),
   };
 }
 
@@ -174,7 +191,9 @@ export function summaryFrom(subject, body) {
 }
 
 export function normalizeLanguageCode(value = "") {
-  const text = String(value || "").trim().toLowerCase();
+  const text = String(value || "")
+    .trim()
+    .toLowerCase();
   if (!text || text === "auto") return "";
   if (/(^zh\b|zh-|chinese|mandarin|cantonese|中文|汉语|普通话|粤语|廣東話)/i.test(text)) return "zh-CN";
   if (/(^en\b|en-|english|英文)/i.test(text)) return "en";
@@ -185,7 +204,7 @@ export function preferredUserLanguage(config = {}) {
   const candidates = [
     process.env.KELLY_EMAIL_USER_LANGUAGE,
     config.style?.default_language,
-    ...(Array.isArray(config.user_profile?.languages) ? config.user_profile.languages : [])
+    ...(Array.isArray(config.user_profile?.languages) ? config.user_profile.languages : []),
   ];
   for (const candidate of candidates) {
     const normalized = normalizeLanguageCode(candidate);
@@ -211,13 +230,19 @@ const REVIEW_COPY = {
   en: {
     background: '{sender} sent "{subject}". {summary}',
     why_default: "Needs a human decision before mailbox changes.",
-    recommend_default: "Read the original message, then write your instruction in Review note. If it is safe cleanup, approve archive.",
-    recommend_money: "Confirm whether this needs finance/payment handling. If no action is needed, approve archive; otherwise write what I should do next.",
-    recommend_course: "Review the student's submission or feedback first. Add a note if you want me to summarize or draft a reply.",
-    recommend_security: "Check whether this involves account, privacy, security, or permission changes before approving cleanup.",
-    recommend_partnership: "Decide whether this is worth pursuing. You can ask me to draft a short reply, forward internally, or archive.",
-    recommend_customer: "A reply is likely needed. Edit the draft below, approve send when ready, or leave one direction for me to refine.",
-    recommend_attachments: "Review the attachment context before cleanup. Ask me to summarize or reply if needed."
+    recommend_default:
+      "Read the original message, then write your instruction in Review note. If it is safe cleanup, approve archive.",
+    recommend_money:
+      "Confirm whether this needs finance/payment handling. If no action is needed, approve archive; otherwise write what I should do next.",
+    recommend_course:
+      "Review the student's submission or feedback first. Add a note if you want me to summarize or draft a reply.",
+    recommend_security:
+      "Check whether this involves account, privacy, security, or permission changes before approving cleanup.",
+    recommend_partnership:
+      "Decide whether this is worth pursuing. You can ask me to draft a short reply, forward internally, or archive.",
+    recommend_customer:
+      "A reply is likely needed. Edit the draft below, approve send when ready, or leave one direction for me to refine.",
+    recommend_attachments: "Review the attachment context before cleanup. Ask me to summarize or reply if needed.",
   },
   "zh-CN": {
     background: "{sender} 发来 “{subject}”。{summary}",
@@ -228,8 +253,8 @@ const REVIEW_COPY = {
     recommend_security: "建议先确认是否涉及账号、安全、隐私或权限变更；不要直接归档，除非你确认只是通知。",
     recommend_partnership: "建议判断是否有合作价值；可以让我起草简短回复、转给同事，或确认不感兴趣后归档。",
     recommend_customer: "建议回复。下面给了一个短草稿；你可以直接改草稿后批准发送，或写一句方向让我继续打磨。",
-    recommend_attachments: "建议先看附件语境；确认附件不需要处理后再归档，或写明要我总结/回复什么。"
-  }
+    recommend_attachments: "建议先看附件语境；确认附件不需要处理后再归档，或写明要我总结/回复什么。",
+  },
 };
 
 function recommendationKeyFor(category, risks, attachments) {
@@ -288,10 +313,10 @@ export function reviewRecommendationFor(classification, sender, subject, body, a
       background: fillTemplate(copy.background, {
         sender: sender || (language === "zh-CN" ? "未知发件人" : "Unknown sender"),
         subject: subject || (language === "zh-CN" ? "（无主题）" : "(no subject)"),
-        summary: bodyHint
+        summary: bodyHint,
       }).slice(0, 620),
       why_review: classification.reason_i18n?.[language] || copy.why_default,
-      recommendation: copy[recommendationKey] || copy.recommend_default
+      recommendation: copy[recommendationKey] || copy.recommend_default,
     };
   }
   const productName = configuredProductName(config);
@@ -312,12 +337,15 @@ export function reviewRecommendationFor(classification, sender, subject, body, a
     background: preferred.background,
     why_review: preferred.why_review,
     recommendation: preferred.recommendation,
-    suggested_reply: suggestedReply
+    suggested_reply: suggestedReply,
   };
 }
 
 export function stableItemId(mailboxId, uid, messageId, subject) {
-  return createHash("sha1").update(`${mailboxId}:${uid}:${messageId || ""}:${subject || ""}`).digest("hex").slice(0, 16);
+  return createHash("sha1")
+    .update(`${mailboxId}:${uid}:${messageId || ""}:${subject || ""}`)
+    .digest("hex")
+    .slice(0, 16);
 }
 
 export function safeFilename(value, fallback) {
@@ -341,7 +369,10 @@ export async function persistAttachments(batchId, itemId, htmlBody, attachments)
 
   for (const [index, attachment] of attachments.entries()) {
     const content = attachment.content || Buffer.alloc(0);
-    let filename = safeFilename(attachment.filename, `attachment-${index + 1}${extname(attachment.filename || "") || ".bin"}`);
+    let filename = safeFilename(
+      attachment.filename,
+      `attachment-${index + 1}${extname(attachment.filename || "") || ".bin"}`,
+    );
     let path = join(itemDir, filename);
     if (existsSync(path)) {
       const extension = extname(filename);
@@ -359,7 +390,8 @@ export async function persistAttachments(batchId, itemId, htmlBody, attachments)
       size: attachment.size || content.length,
       content_id: contentId,
       url,
-      preview: String(attachment.contentType || "").startsWith("image/") || attachment.contentType === "application/pdf"
+      preview:
+        String(attachment.contentType || "").startsWith("image/") || attachment.contentType === "application/pdf",
     });
   }
 
@@ -375,7 +407,7 @@ export function hasMoneySignal(text) {
     /\$\s?\d/i,
     /\b(USD|HKD|RMB|CNY)\b/i,
     /\b(invoice|receipt|payment|paid|refund|charge|subscription|billing|payout|bank|tax)\b/i,
-    /付款|支付|发票|收据|退款|收费|续费|订阅|银行|税/
+    /付款|支付|发票|收据|退款|收费|续费|订阅|银行|税/,
   ].some((pattern) => pattern.test(text));
 }
 
@@ -386,14 +418,14 @@ export function hasStrongMoneySignal(sender, subject, body) {
     /\b(invoice|receipt|billing|payment receipt|payment due)\b/i,
     /\b(refund|chargeback|paid subscription|sponsorship amount|next billing date)\b/i,
     /\bsubscription.*(starts|renew|ending|due)\b/i,
-    /账单|发票|付款通知|付款单|支付|提交凭证|余量预警|按量计费|续包|限额告警/
+    /账单|发票|付款通知|付款单|支付|提交凭证|余量预警|按量计费|续包|限额告警/,
   ];
   return patterns.some((pattern) => pattern.test(header) || pattern.test(leadingBody));
 }
 
 export function isCourseSubmission(sender, subject, body) {
   return /course_homework|course_feedback|course lesson feedback|course homework|new course|homework submission|lesson feedback|课后作业|课程反馈|作业提交/i.test(
-    `${sender}\n${subject}\n${String(body || "").slice(0, 1600)}`
+    `${sender}\n${subject}\n${String(body || "").slice(0, 1600)}`,
   );
 }
 
@@ -410,39 +442,119 @@ export function classify(sender, subject, body, attachments = [], config = {}) {
   const original = `${sender}\n${subject}\n${body}`;
 
   if (isCourseSubmission(sender, subject, body)) {
-    return { category: "course_feedback", risk: [], status: "needs_review", proposed_action: "review", reason: "课程反馈或作业提交需要展开内容给你看。" };
+    return {
+      category: "course_feedback",
+      risk: [],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "课程反馈或作业提交需要展开内容给你看。",
+    };
   }
   if (hasStrongMoneySignal(sender, subject, body)) {
-    return { category: "money", risk: ["money"], status: "needs_review", proposed_action: "review", reason: "强账单、支付、凭证、订阅或额度信号，按金钱规则停下给你 review。" };
+    return {
+      category: "money",
+      risk: ["money"],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "强账单、支付、凭证、订阅或额度信号，按金钱规则停下给你 review。",
+    };
   }
   if (configuredRiskSignal(config, "money", original)) {
-    return { category: "money", risk: ["money"], status: "needs_review", proposed_action: "review", reason: "命中本地配置的 money review keyword，停下给你 review。" };
+    return {
+      category: "money",
+      risk: ["money"],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "命中本地配置的 money review keyword，停下给你 review。",
+    };
   }
-  if (/newsletter|digest|weekly|monthly|webinar|event|invitation|linkedin|github|mongodb atlas|acquire|notification|no-?reply|noreply|beehiiv|discoursemail|community roadmap|product roadmap|onboarding submission|form submission|new submission|unsubscribe|marketing|product update|通知|邀请|摘要|简报|订阅|营销/i.test(text)) {
-    return { category: "marketing", risk: [], status: "prepared", proposed_action: "archive", reason: "低风险通知、表单、摘要或营销邮件，准备归档，等你在 UI 批准。" };
+  if (
+    /newsletter|digest|weekly|monthly|webinar|event|invitation|linkedin|github|mongodb atlas|acquire|notification|no-?reply|noreply|beehiiv|discoursemail|community roadmap|product roadmap|onboarding submission|form submission|new submission|unsubscribe|marketing|product update|通知|邀请|摘要|简报|订阅|营销/i.test(
+      text,
+    )
+  ) {
+    return {
+      category: "marketing",
+      risk: [],
+      status: "prepared",
+      proposed_action: "archive",
+      reason: "低风险通知、表单、摘要或营销邮件，准备归档，等你在 UI 批准。",
+    };
   }
   if (hasMoneySignal(original)) {
-    return { category: "money", risk: ["money"], status: "needs_review", proposed_action: "review", reason: "涉及金额、付款、订阅、账单或收据，按金钱规则停下给你 review。" };
+    return {
+      category: "money",
+      risk: ["money"],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "涉及金额、付款、订阅、账单或收据，按金钱规则停下给你 review。",
+    };
   }
-  if (/security|privacy|vulnerability|password|login|account access|data deletion|compliance|安全|隐私|漏洞|登录/i.test(text)) {
-    return { category: "data_privacy_security", risk: ["security"], status: "needs_review", proposed_action: "review", reason: "可能涉及账号、安全、隐私或合规，不能自动清理。" };
+  if (
+    /security|privacy|vulnerability|password|login|account access|data deletion|compliance|安全|隐私|漏洞|登录/i.test(
+      text,
+    )
+  ) {
+    return {
+      category: "data_privacy_security",
+      risk: ["security"],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "可能涉及账号、安全、隐私或合规，不能自动清理。",
+    };
   }
   if (configuredRiskSignal(config, "security", original)) {
-    return { category: "data_privacy_security", risk: ["security"], status: "needs_review", proposed_action: "review", reason: "命中本地配置的 security review keyword，停下给你 review。" };
+    return {
+      category: "data_privacy_security",
+      risk: ["security"],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "命中本地配置的 security review keyword，停下给你 review。",
+    };
   }
   if (/refund|cancel|angry|complaint|not working|bug|error|failed|broken|无法|不能|错误|失败|崩溃/i.test(text)) {
-    return { category: "customer", risk: [], status: "needs_review", proposed_action: "review", reason: "可能是客户问题、投诉或 bug，需要人工判断。" };
+    return {
+      category: "customer",
+      risk: [],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "可能是客户问题、投诉或 bug，需要人工判断。",
+    };
   }
   if (/partnership|collaboration|sponsor|affiliate|reseller|合作|赞助|代理|推广/i.test(text)) {
-    return { category: "partnership", risk: [], status: "needs_review", proposed_action: "review", reason: "合作或销售机会需要你确认方向。" };
+    return {
+      category: "partnership",
+      risk: [],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "合作或销售机会需要你确认方向。",
+    };
   }
   if (attachments.length) {
-    return { category: "other", risk: ["attachment"], status: "needs_review", proposed_action: "review", reason: "真实来信且带附件，需要人工判断附件语境。" };
+    return {
+      category: "other",
+      risk: ["attachment"],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "真实来信且带附件，需要人工判断附件语境。",
+    };
   }
   if (/@[a-z0-9.-]+/i.test(sender) && !/no-?reply|noreply|notification/i.test(sender)) {
-    return { category: "customer", risk: [], status: "needs_review", proposed_action: "review", reason: "真实联系人来信，意图不适合自动清理。" };
+    return {
+      category: "customer",
+      risk: [],
+      status: "needs_review",
+      proposed_action: "review",
+      reason: "真实联系人来信，意图不适合自动清理。",
+    };
   }
-  return { category: "other", risk: [], status: "prepared", proposed_action: "archive", reason: "未发现需要回复的支持信号，准备归档，等你在 UI 批准。" };
+  return {
+    category: "other",
+    risk: [],
+    status: "prepared",
+    proposed_action: "archive",
+    reason: "未发现需要回复的支持信号，准备归档，等你在 UI 批准。",
+  };
 }
 
 export function decisionAction(item) {
@@ -466,11 +578,19 @@ export function isDraftAwaitingSendReview(item) {
 }
 
 export function isNeedsReview(item) {
-  return !isDone(item) && !isBlocked(item) && (isDraftAwaitingSendReview(item) || item.status === "needs_review" || ["needs_review", "revise"].includes(decisionAction(item)));
+  return (
+    !isDone(item) &&
+    !isBlocked(item) &&
+    (isDraftAwaitingSendReview(item) ||
+      item.status === "needs_review" ||
+      ["needs_review", "revise"].includes(decisionAction(item)))
+  );
 }
 
 export function isToApprove(item) {
-  return !isDone(item) && !isBlocked(item) && !isNeedsReview(item) && !decisionAction(item) && item.status === "prepared";
+  return (
+    !isDone(item) && !isBlocked(item) && !isNeedsReview(item) && !decisionAction(item) && item.status === "prepared"
+  );
 }
 
 export function isApproved(item) {

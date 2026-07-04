@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR } from "./paths.mjs";
 import { demoStatePayload, isDemoQuery } from "./demo.mjs";
+import { APP_DIR } from "./paths.mjs";
 import {
   applyDecision,
   mergeOpportunities,
@@ -13,7 +13,7 @@ import {
   readLock,
   readOnboarding,
   readSnapshot,
-  summarizeConfig
+  summarizeConfig,
 } from "./store.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
@@ -30,13 +30,13 @@ const types = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
-  ".svg": "image/svg+xml; charset=utf-8"
+  ".svg": "image/svg+xml; charset=utf-8",
 };
 
 function jsonResponse(c, status, body) {
   return c.body(JSON.stringify(body), status, {
     "content-type": "application/json; charset=utf-8",
-    "cache-control": "no-store"
+    "cache-control": "no-store",
   });
 }
 
@@ -48,7 +48,7 @@ async function state() {
     readConfig(),
     readDecisions(),
     readAgentTasks(),
-    readExecutionReport()
+    readExecutionReport(),
   ]);
   return {
     app: "kelly-seo",
@@ -58,7 +58,7 @@ async function state() {
     config_summary: summarizeConfig(configResult),
     agent_tasks: agentTasks,
     execution_report: executionReport,
-    snapshot: mergeOpportunities(snapshot, decisions, executionReport)
+    snapshot: mergeOpportunities(snapshot, decisions, executionReport),
   };
 }
 
@@ -86,7 +86,7 @@ app.post("/api/decision", async (c) => {
     id: String(payload.id || ""),
     action: String(payload.action || ""),
     note: payload.note,
-    draft: payload.draft
+    draft: payload.draft,
   });
   if (!result.ok) {
     return jsonResponse(c, result.status || 400, { error: result.error });

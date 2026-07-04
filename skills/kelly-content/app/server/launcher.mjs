@@ -1,8 +1,8 @@
 #!/usr/bin/env node
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import http from "node:http";
-import { spawn } from "node:child_process";
 import { cacheDir, defaultHost, defaultPort, logPath, pidPath, preferredPortMax, serverDir } from "../../lib/paths.mjs";
 
 const host = process.env.KELLY_CONTENT_UI_HOST || defaultHost;
@@ -80,7 +80,7 @@ async function main() {
     cwd: serverDir,
     detached: true,
     stdio: ["ignore", log, log],
-    env: { ...process.env, KELLY_CONTENT_UI_HOST: host, KELLY_CONTENT_UI_PORT: port }
+    env: { ...process.env, KELLY_CONTENT_UI_HOST: host, KELLY_CONTENT_UI_PORT: port },
   });
   child.unref();
   await fsp.writeFile(pidPath, `${child.pid}\n`);

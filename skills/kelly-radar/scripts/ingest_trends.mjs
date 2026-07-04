@@ -32,15 +32,17 @@ if (seoSnapshotPath) {
   if (!seo) {
     console.warn(`Note: kelly-seo snapshot not readable at ${seoSnapshotPath}; skipping import.`);
   } else {
-    const candidates = [seo.rising_queries, seo.queries, seo.search_queries, seo.keywords, seo.snapshot?.rising_queries]
-      .find((value) => Array.isArray(value) && value.length) || [];
+    const candidates =
+      [seo.rising_queries, seo.queries, seo.search_queries, seo.keywords, seo.snapshot?.rising_queries].find(
+        (value) => Array.isArray(value) && value.length,
+      ) || [];
     seoImported = candidates
       .map((entry) => ({
         keyword: entry.keyword || entry.query || entry.term || "",
         source: "search",
         volume_proxy: Number(entry.volume_proxy ?? entry.impressions ?? entry.volume ?? entry.clicks ?? 0),
         delta_pct: Number(entry.delta_pct ?? entry.change_pct ?? entry.delta ?? 0),
-        momentum: Array.isArray(entry.momentum) ? entry.momentum : []
+        momentum: Array.isArray(entry.momentum) ? entry.momentum : [],
       }))
       .filter((entry) => entry.keyword);
     if (!seoImported.length) console.warn(`Note: no rising queries found in ${seoSnapshotPath}; nothing imported.`);
@@ -71,7 +73,12 @@ try {
       updated += 1;
     } else {
       const mover = {
-        mover_id: incoming.mover_id || `mv-${incoming.keyword.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${incoming.source}`,
+        mover_id:
+          incoming.mover_id ||
+          `mv-${incoming.keyword
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "")}-${incoming.source}`,
         keyword: incoming.keyword,
         source: incoming.source,
         volume_proxy: Number(incoming.volume_proxy ?? 0),
@@ -79,7 +86,7 @@ try {
         momentum: Array.isArray(incoming.momentum) ? incoming.momentum : [],
         first_seen: incoming.first_seen || today,
         last_updated: now,
-        opportunity_id: incoming.opportunity_id || ""
+        opportunity_id: incoming.opportunity_id || "",
       };
       snapshot.trends.movers.push(mover);
       byKey.set(keyFor(mover), mover);
@@ -95,7 +102,7 @@ try {
       status: "needs_review",
       created_at: now,
       mover_ids: [],
-      ...incoming
+      ...incoming,
     });
     opportunityIds.add(incoming.opportunity_id);
     opportunitiesAdded += 1;
@@ -106,19 +113,21 @@ try {
   snapshot.metrics = {
     ...snapshot.metrics,
     trend_mover_count: snapshot.trends.movers.length,
-    opportunities_open: snapshot.trends.opportunities.filter((item) => item.status === "needs_review").length
+    opportunities_open: snapshot.trends.opportunities.filter((item) => item.status === "needs_review").length,
   };
   snapshot.sync_log = snapshot.sync_log || [];
   snapshot.sync_log.unshift({
     at: now,
     actor: "kelly-radar-agent",
     action: "ingest_trends",
-    detail: `${added} movers added, ${updated} updated, ${opportunitiesAdded} opportunities added${seoImported.length ? `, ${seoImported.length} rising queries imported from kelly-seo` : ""}.`
+    detail: `${added} movers added, ${updated} updated, ${opportunitiesAdded} opportunities added${seoImported.length ? `, ${seoImported.length} rising queries imported from kelly-seo` : ""}.`,
   });
   snapshot.sync_log = snapshot.sync_log.slice(0, 50);
 
   await writeJson(SNAPSHOT_PATH, snapshot);
-  console.log(`OK: ${added} movers added, ${updated} updated, ${opportunitiesAdded} opportunities added → ${SNAPSHOT_PATH}`);
+  console.log(
+    `OK: ${added} movers added, ${updated} updated, ${opportunitiesAdded} opportunities added → ${SNAPSHOT_PATH}`,
+  );
 } finally {
   await releaseLock();
 }

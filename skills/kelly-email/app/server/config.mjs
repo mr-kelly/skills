@@ -1,4 +1,5 @@
 export { loadConfig, loadConfigWithMeta, loadDotenvFiles, onboardingStatus } from "../../lib/data-provider/index.mjs";
+import { onboardingStatus } from "../../lib/data-provider/index.mjs";
 
 function asArray(value) {
   if (!value) return [];
@@ -10,7 +11,7 @@ function safeStringMap(value) {
   return Object.fromEntries(
     Object.entries(value)
       .filter(([key, val]) => typeof val === "string" || typeof val === "number" || typeof val === "boolean")
-      .map(([key, val]) => [key, String(val)])
+      .map(([key, val]) => [key, String(val)]),
   );
 }
 
@@ -23,23 +24,27 @@ function publicProfile(config) {
     default_reply_as: profile.default_reply_as || "",
     languages: asArray(profile.languages).map(String),
     public_bio: profile.public_bio || "",
-    contact_methods: asArray(profile.contact_methods).map((method) => ({
-      label: method?.label || "",
-      value: method?.value || ""
-    })).filter((method) => method.label || method.value)
+    contact_methods: asArray(profile.contact_methods)
+      .map((method) => ({
+        label: method?.label || "",
+        value: method?.value || "",
+      }))
+      .filter((method) => method.label || method.value),
   };
 }
 
 function publicBrands(config) {
-  return asArray(config.brands).map((brand) => ({
-    brand_id: brand?.brand_id || "",
-    name: brand?.name || "",
-    description: brand?.description || "",
-    homepage: brand?.homepage || "",
-    docs_url: brand?.docs_url || "",
-    support_url: brand?.support_url || "",
-    youtube_url: brand?.youtube_url || ""
-  })).filter((brand) => brand.name || brand.brand_id || brand.homepage);
+  return asArray(config.brands)
+    .map((brand) => ({
+      brand_id: brand?.brand_id || "",
+      name: brand?.name || "",
+      description: brand?.description || "",
+      homepage: brand?.homepage || "",
+      docs_url: brand?.docs_url || "",
+      support_url: brand?.support_url || "",
+      youtube_url: brand?.youtube_url || "",
+    }))
+    .filter((brand) => brand.name || brand.brand_id || brand.homepage);
 }
 
 function publicStyle(config) {
@@ -55,7 +60,7 @@ function publicStyle(config) {
     signature_mode: style.signature_mode || "",
     preferred_signoff: style.preferred_signoff || "",
     reply_rules: asArray(style.reply_rules).map(String),
-    cta_urls: safeStringMap(style.cta_urls)
+    cta_urls: safeStringMap(style.cta_urls),
   };
 }
 
@@ -66,15 +71,17 @@ function publicKnowledgeBase(config) {
     usage: kb.usage || "",
     facts: asArray(kb.facts).map(String),
     do_not_say: asArray(kb.do_not_say).map(String),
-    sources: asArray(kb.sources).map((source) => ({
-      source_id: source?.source_id || "",
-      type: source?.type || "",
-      title: source?.title || source?.source_id || "",
-      url: source?.url || "",
-      path: source?.path || "",
-      use_for: asArray(source?.use_for).map(String),
-      enabled: source?.enabled !== false
-    })).filter((source) => source.title || source.url || source.path)
+    sources: asArray(kb.sources)
+      .map((source) => ({
+        source_id: source?.source_id || "",
+        type: source?.type || "",
+        title: source?.title || source?.source_id || "",
+        url: source?.url || "",
+        path: source?.path || "",
+        use_for: asArray(source?.use_for).map(String),
+        enabled: source?.enabled !== false,
+      }))
+      .filter((source) => source.title || source.url || source.path),
   };
 }
 
@@ -87,7 +94,7 @@ export function publicAccounts(config, source = "", onboarding = onboardingStatu
       send_as_email: identity.send_as_email || "",
       display_name: identity.display_name || "",
       brand_or_product: identity.brand_or_product || "",
-      reply_to: identity.reply_to || ""
+      reply_to: identity.reply_to || "",
     });
     identitiesByMailbox.set(identity.mailbox_id, rows);
   }
@@ -120,8 +127,8 @@ export function publicAccounts(config, source = "", onboarding = onboardingStatu
         smtp_password_env: smtpEnv,
         imap_env_configured: Boolean(imapEnv && process.env[imapEnv]),
         smtp_env_configured: Boolean(smtpEnv && process.env[smtpEnv]),
-        identities: identitiesByMailbox.get(mailbox.mailbox_id) || []
+        identities: identitiesByMailbox.get(mailbox.mailbox_id) || [],
       };
-    })
+    }),
   };
 }

@@ -85,7 +85,7 @@ export const messages = {
         conversion: "conversion",
         interest: "interest",
         charge: "charge",
-        payout: "payout"
+        payout: "payout",
       },
       status: {
         posted: "posted",
@@ -112,9 +112,9 @@ export const messages = {
         auto_matched: "auto matched",
         exception_flagged: "exception flagged",
         rematched: "rematched",
-        unmatched: "unmatched"
-      }
-    }
+        unmatched: "unmatched",
+      },
+    },
   },
   zh: {
     accounts: "账户",
@@ -202,7 +202,7 @@ export const messages = {
         conversion: "换汇",
         interest: "利息",
         charge: "扣款",
-        payout: "提现"
+        payout: "提现",
       },
       status: {
         posted: "已入账",
@@ -229,8 +229,8 @@ export const messages = {
         auto_matched: "自动匹配",
         exception_flagged: "异常标记",
         rematched: "重新匹配",
-        unmatched: "未匹配"
-      }
-    }
-  }
+        unmatched: "未匹配",
+      },
+    },
+  },
 };

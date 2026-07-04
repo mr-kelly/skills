@@ -7,6 +7,10 @@ const PLATFORMS = ["x", "facebook", "instagram", "linkedin", "youtube", "threads
 const COLLECTION_METHODS = ["browser_agent", "api", "manual_export"];
 const MEDIA_KINDS = ["none", "image", "video", "carousel", "link"];
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -44,7 +48,14 @@ requireString(snapshot, "schema_version", "root");
 requireString(snapshot, "generated_at", "root");
 requireString(snapshot, "source", "root");
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
-for (const key of ["account_count", "post_count", "total_followers", "followers_delta_7d", "impressions_7d", "engagement_rate_7d"]) {
+for (const key of [
+  "account_count",
+  "post_count",
+  "total_followers",
+  "followers_delta_7d",
+  "impressions_7d",
+  "engagement_rate_7d",
+]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
 if (!Array.isArray(snapshot.accounts)) fail("root.accounts must be an array");
@@ -56,7 +67,8 @@ const accountIds = new Set();
 snapshot.accounts.forEach((account, index) => {
   const path = `root.accounts[${index}]`;
   if (!isObject(account)) fail(`${path} must be an object`);
-  for (const key of ["account_id", "platform", "handle", "display_name", "collection", "status"]) requireString(account, key, path);
+  for (const key of ["account_id", "platform", "handle", "display_name", "collection", "status"])
+    requireString(account, key, path);
   requireEnum(account, "platform", PLATFORMS, path);
   requireEnum(account, "collection", COLLECTION_METHODS, path);
   if (accountIds.has(account.account_id)) fail(`${path}.account_id duplicates ${account.account_id}`);

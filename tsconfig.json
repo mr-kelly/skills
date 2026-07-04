@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "// scope": "Typecheck Node-side code (.mjs: servers, scripts, lib) where imports resolve and checks are high-signal. Browser client files (app/*.js) are un-annotated vanilla DOM code and are linted by Biome, not typechecked.",
+  "include": ["skills/**/*.mjs", "scripts/**/*.mjs"],
+  "exclude": ["**/node_modules", "**/.data", "**/.cache", "**/dist", "**/exports", "docs"]
+}

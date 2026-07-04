@@ -25,7 +25,7 @@ body {
   grid-template-columns: 268px minmax(0, 1fr);
   color: var(--ink);
   background: var(--soft);
-  font: 13px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font: 13px / 1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   letter-spacing: 0;
   transition: grid-template-columns 0.18s ease;
 }
@@ -578,10 +578,8 @@ dd {
   gap: 10px;
   padding: 22px;
   color: #14332f;
-  background:
-    linear-gradient(90deg, rgba(15, 118, 110, 0.10) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(15, 118, 110, 0.10) 1px, transparent 1px),
-    #edf6f3;
+  background: linear-gradient(90deg, rgba(15, 118, 110, 0.1) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(15, 118, 110, 0.1) 1px, transparent 1px), #edf6f3;
   background-size: 28px 28px;
   border-right: 1px solid var(--line);
 }

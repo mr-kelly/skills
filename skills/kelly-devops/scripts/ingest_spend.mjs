@@ -28,7 +28,7 @@ import {
   recomputeMetrics,
   releaseLock,
   round2,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const OWNER = "kelly-devops-ingest-spend";
@@ -53,7 +53,8 @@ async function main() {
   await loadDotenvFiles(envSearchPaths());
   const payload = await readJson(payloadPath, null);
   if (!payload) fail(`cannot read payload JSON at ${payloadPath}`);
-  if (!Array.isArray(payload.providers) || !payload.providers.length) fail("payload.providers must be a non-empty array");
+  if (!Array.isArray(payload.providers) || !payload.providers.length)
+    fail("payload.providers must be a non-empty array");
   payload.providers.forEach((row, index) => {
     if (!row.provider_id) fail(`payload.providers[${index}].provider_id is required`);
     requireNumber(row, "mtd", `payload.providers[${index}]`);
@@ -106,17 +107,17 @@ async function main() {
               evidence: [
                 `Month-to-date: ${currency} ${mtd.toFixed(2)}.`,
                 `Last month total: ${currency} ${lastMonth.toFixed(2)}.`,
-                `Delta: ${deltaPct > 0 ? "+" : ""}${deltaPct}% against a ${anomalyPct}% threshold.`
+                `Delta: ${deltaPct > 0 ? "+" : ""}${deltaPct}% against a ${anomalyPct}% threshold.`,
               ],
               plan: [
                 `Pull a per-service cost breakdown for ${row.name || providerId}.`,
                 "Identify which service or deploy drives the increase.",
-                "Propose a budget alert or remediation."
+                "Propose a budget alert or remediation.",
               ],
               target: { kind: "spend", id: providerId, provider: providerId },
               note: "",
               created_at: now,
-              decision: null
+              decision: null,
             });
           }
         }
@@ -131,18 +132,22 @@ async function main() {
         delta_pct: deltaPct,
         anomaly,
         action_id: anomaly ? actionId : "",
-        note: row.note || ""
+        note: row.note || "",
       };
     });
 
     const totalMtd = round2(providers.reduce((sum, row) => sum + row.mtd, 0));
     const products = (payload.products || []).map((row) => ({
-      product_id: row.product_id || String(row.product).toLowerCase().replaceAll(/[^a-z0-9]+/g, "-"),
+      product_id:
+        row.product_id ||
+        String(row.product)
+          .toLowerCase()
+          .replaceAll(/[^a-z0-9]+/g, "-"),
       product: row.product,
       currency,
       mtd: round2(row.mtd),
       last_month: round2(row.last_month),
-      share_pct: totalMtd > 0 ? Math.round((round2(row.mtd) / totalMtd) * 100) : 0
+      share_pct: totalMtd > 0 ? Math.round((round2(row.mtd) / totalMtd) * 100) : 0,
     }));
 
     snapshot.spend = { currency, providers, products };
@@ -153,7 +158,7 @@ async function main() {
         severity: "warning",
         kind: "spend",
         message: `${anomaly.providerId} month-to-date spend is ${anomaly.deltaPct > 0 ? "+" : ""}${anomaly.deltaPct}% vs last month; anomaly flagged.`,
-        service_id: ""
+        service_id: "",
       });
     }
     pushEvent(snapshot, {
@@ -162,7 +167,7 @@ async function main() {
       severity: anomalies.length ? "warning" : "info",
       kind: "spend",
       message: `Spend ingest completed: ${providers.length} provider(s), ${anomalies.length} anomaly(ies).`,
-      service_id: ""
+      service_id: "",
     });
     snapshot.generated_at = now;
     snapshot.source = "kelly-devops";

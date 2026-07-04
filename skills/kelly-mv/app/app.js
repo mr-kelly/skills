@@ -19,17 +19,29 @@ const DURATIONS = [4, 5, 6, 8, 10, 12];
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-mv.sidebarCollapsed";
 
 function esc(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+  );
 }
-function lang() { return resolveLang(state.lang); }
-function t(key) { const l = lang(); return MESSAGES[l]?.[key] || MESSAGES.zh[key] || key; }
+function lang() {
+  return resolveLang(state.lang);
+}
+function t(key) {
+  const l = lang();
+  return MESSAGES[l]?.[key] || MESSAGES.zh[key] || key;
+}
 function secs(n) {
   const v = Math.round(Number(n) || 0);
   return `${Math.floor(v / 60)}:${String(v % 60).padStart(2, "0")}`;
 }
-function project() { return state.data?.project || {}; }
+function project() {
+  return state.data?.project || {};
+}
 
-function isMobileLayout() { return window.matchMedia("(max-width: 720px)").matches; }
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 720px)").matches;
+}
 function setSidebarCollapsed(collapsed, { persist = true } = {}) {
   document.body.classList.toggle("sidebar-collapsed", collapsed);
   document.getElementById("sidebarToggle")?.setAttribute("aria-expanded", String(!collapsed));
@@ -66,7 +78,11 @@ async function api(path, options = {}) {
   return data;
 }
 async function post(path, body) {
-  return api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) });
+  return api(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {}),
+  });
 }
 function applyState(payload) {
   state.data = payload.state || payload;
@@ -75,7 +91,12 @@ function applyState(payload) {
 function toast(message, kind = "ok") {
   state.toast = { message, kind };
   render();
-  setTimeout(() => { if (state.toast?.message === message) { state.toast = null; render(); } }, 4200);
+  setTimeout(() => {
+    if (state.toast?.message === message) {
+      state.toast = null;
+      render();
+    }
+  }, 4200);
 }
 
 // File pickers / readers for uploads.
@@ -100,7 +121,10 @@ function audioDuration(file) {
   return new Promise((resolve) => {
     const audio = document.createElement("audio");
     audio.preload = "metadata";
-    audio.onloadedmetadata = () => { resolve(audio.duration || 0); URL.revokeObjectURL(audio.src); };
+    audio.onloadedmetadata = () => {
+      resolve(audio.duration || 0);
+      URL.revokeObjectURL(audio.src);
+    };
     audio.onerror = () => resolve(0);
     audio.src = URL.createObjectURL(file);
   });
@@ -134,17 +158,33 @@ async function boot() {
   setInterval(pollLock, 5000);
 }
 async function refresh() {
-  try { state.data = await api("/api/state"); render(); } catch (e) { console.error(e); }
+  try {
+    state.data = await api("/api/state");
+    render();
+  } catch (e) {
+    console.error(e);
+  }
 }
 async function pollLock() {
   const active = document.activeElement;
   if (active && ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName)) return;
   await refresh();
 }
-async function loadImageConfig() { try { state.imageConfig = await api("/api/image-config"); } catch {} }
-async function loadSongConfig() { try { state.songConfig = await api("/api/song-config"); } catch {} }
+async function loadImageConfig() {
+  try {
+    state.imageConfig = await api("/api/image-config");
+  } catch {}
+}
+async function loadSongConfig() {
+  try {
+    state.songConfig = await api("/api/song-config");
+  } catch {}
+}
 
-window.addEventListener("hashchange", () => { parseHash(); render(); });
+window.addEventListener("hashchange", () => {
+  parseHash();
+  render();
+});
 
 // ---------------------------------------------------------------------------
 // Chrome wiring
@@ -165,19 +205,30 @@ function wireChrome() {
   document.getElementById("sidebarScrim").addEventListener("click", () => setMobileSidebarOpen(false));
   document.getElementById("backToList").addEventListener("click", () => setMobileDetailOpen(false));
   window.addEventListener("resize", syncResponsiveShell);
-  document.getElementById("searchInput").addEventListener("input", (e) => { state.search = e.target.value; renderList(); });
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+    state.search = e.target.value;
+    renderList();
+  });
   document.getElementById("projectSelect").addEventListener("change", async (e) => {
-    try { applyState(await post("/api/active-project", { project_id: e.target.value })); } catch (err) { toast(err.message, "danger"); }
+    try {
+      applyState(await post("/api/active-project", { project_id: e.target.value }));
+    } catch (err) {
+      toast(err.message, "danger");
+    }
   });
   const modal = document.getElementById("settingsModal");
   document.getElementById("settingsButton").addEventListener("click", () => openSettings());
   document.getElementById("closeSettings").addEventListener("click", () => modal.classList.add("hidden"));
-  modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.add("hidden"); });
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.add("hidden");
+  });
   document.querySelector(".modal-tabs").addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-settings-tab]");
     if (!btn) return;
     document.querySelectorAll(".modal-tabs button").forEach((b) => b.classList.toggle("active", b === btn));
-    document.querySelectorAll(".settings-panel").forEach((p) => p.classList.toggle("active", p.dataset.settingsPanel === btn.dataset.settingsTab));
+    document
+      .querySelectorAll(".settings-panel")
+      .forEach((p) => p.classList.toggle("active", p.dataset.settingsPanel === btn.dataset.settingsTab));
   });
   const langSel = document.getElementById("languageSelect");
   langSel.value = state.lang;
@@ -191,15 +242,17 @@ function wireChrome() {
 }
 
 function applyChrome() {
-  document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); });
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.dataset.i18n);
+  });
   const langSel = document.getElementById("languageSelect");
   if (langSel) {
-    const labels = lang() === "zh"
-      ? { auto: "自动", en: "English", zh: "中文" }
-      : { auto: "Auto", en: "English", zh: "中文" };
+    const labels =
+      lang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
     for (const option of langSel.options) option.textContent = labels[option.value] || option.textContent;
   }
-  const si = document.getElementById("searchInput"); if (si) si.placeholder = t("search_placeholder");
+  const si = document.getElementById("searchInput");
+  if (si) si.placeholder = t("search_placeholder");
   document.documentElement.lang = lang() === "en" ? "en" : "zh-CN";
 }
 
@@ -217,7 +270,8 @@ function render() {
   document.getElementById("viewTitle").textContent = t(titleKey);
   document.getElementById("viewSubtitle").textContent = t(subKey);
   document.getElementById("lockBanner").classList.toggle("hidden", !state.data.lock?.locked);
-  document.getElementById("newItemButton").style.visibility = (state.view === "cast" || state.view === "storyboard") ? "visible" : "hidden";
+  document.getElementById("newItemButton").style.visibility =
+    state.view === "cast" || state.view === "storyboard" ? "visible" : "hidden";
   renderToast();
   renderList();
   renderDetail();
@@ -228,24 +282,44 @@ function syncSidebar() {
   document.querySelectorAll("#nav button").forEach((b) => b.classList.toggle("active", b.dataset.view === state.view));
   const song = project().song || {};
   document.getElementById("projectTitle").textContent = song.title || t("project_unnamed");
-  document.getElementById("projectMeta").textContent = [song.artist, song.duration_seconds ? secs(song.duration_seconds) : ""].filter(Boolean).join(" · ") || t("project_meta_fallback");
+  document.getElementById("projectMeta").textContent =
+    [song.artist, song.duration_seconds ? secs(song.duration_seconds) : ""].filter(Boolean).join(" · ") ||
+    t("project_meta_fallback");
   const sel = document.getElementById("projectSelect");
-  sel.innerHTML = (data.projects || []).map((p) => `<option value="${esc(p.id)}" ${p.id === data.active_project_id ? "selected" : ""}>${esc(p.title || p.id)}</option>`).join("");
+  sel.innerHTML = (data.projects || [])
+    .map(
+      (p) =>
+        `<option value="${esc(p.id)}" ${p.id === data.active_project_id ? "selected" : ""}>${esc(p.title || p.id)}</option>`,
+    )
+    .join("");
   document.getElementById("nextStepLabel").textContent = t(`step_${data.next_step || "review"}`);
 }
 
 function renderToast() {
   let node = document.getElementById("kmvToast");
-  if (!state.toast) { if (node) node.remove(); return; }
-  if (!node) { node = document.createElement("div"); node.id = "kmvToast"; document.body.appendChild(node); }
+  if (!state.toast) {
+    if (node) node.remove();
+    return;
+  }
+  if (!node) {
+    node = document.createElement("div");
+    node.id = "kmvToast";
+    document.body.appendChild(node);
+  }
   node.className = `toast ${state.toast.kind}`;
   node.textContent = state.toast.message;
 }
 
 function routeNextStep() {
   const map = {
-    upload_song: "song", set_concept: "concept", add_cast: "cast", generate_cast_refs: "cast",
-    add_shots: "storyboard", fill_shot_images: "storyboard", fill_shot_videos: "storyboard", review: "concept",
+    upload_song: "song",
+    set_concept: "concept",
+    add_cast: "cast",
+    generate_cast_refs: "cast",
+    add_shots: "storyboard",
+    fill_shot_images: "storyboard",
+    fill_shot_videos: "storyboard",
+    review: "concept",
   };
   go(map[state.data?.next_step] || "concept");
 }
@@ -258,7 +332,9 @@ function onNewItem() {
 // LIST panel
 // ---------------------------------------------------------------------------
 function statusClass(status) {
-  return { approved: "status-approved", needs_review: "status-needs", blocked: "status-blocked" }[status] || "status-draft";
+  return (
+    { approved: "status-approved", needs_review: "status-needs", blocked: "status-blocked" }[status] || "status-draft"
+  );
 }
 function matchSearch(item) {
   if (!state.search) return true;
@@ -272,31 +348,64 @@ function renderList() {
   const { html, count } = renderers[state.view]();
   host.innerHTML = html;
   countPill.textContent = count;
-  host.querySelectorAll("[data-select]").forEach((node) => node.addEventListener("click", () => {
-    if (isMobileLayout()) setMobileDetailOpen(true);
-    go(state.view, node.dataset.select, true);
-  }));
-  host.querySelectorAll("[data-jump]").forEach((node) => node.addEventListener("click", () => {
-    setMobileDetailOpen(false);
-    go(node.dataset.jump);
-  }));
+  host.querySelectorAll("[data-select]").forEach((node) =>
+    node.addEventListener("click", () => {
+      if (isMobileLayout()) setMobileDetailOpen(true);
+      go(state.view, node.dataset.select, true);
+    }),
+  );
+  host.querySelectorAll("[data-jump]").forEach((node) =>
+    node.addEventListener("click", () => {
+      setMobileDetailOpen(false);
+      go(node.dataset.jump);
+    }),
+  );
 }
 
 function listConcept() {
   const c = state.data.completeness || {};
   const song = project().song || {};
   const rows = [
-    ["song", t("checklist_song"), c.song_ready ? t("checklist_song_done").replace("{dur}", secs(song.duration_seconds)) : t("checklist_song_todo"), c.song_ready],
-    ["concept", t("checklist_concept"), c.concept_ready ? t("checklist_concept_done") : t("checklist_concept_todo"), c.concept_ready],
-    ["cast", t("checklist_cast"), t("checklist_cast_sub").replace("{n}", (project().characters || []).length).replace("{missing}", c.characters_missing_refs ?? 0), c.characters_missing_refs === 0 && (project().characters || []).length > 0],
-    ["storyboard", t("checklist_storyboard"), t("checklist_storyboard_sub").replace("{n}", (project().shots || []).length).replace("{img}", c.shots_missing_image ?? 0).replace("{vid}", c.shots_missing_video ?? 0), (project().shots || []).length > 0 && c.shots_missing_video === 0],
+    [
+      "song",
+      t("checklist_song"),
+      c.song_ready ? t("checklist_song_done").replace("{dur}", secs(song.duration_seconds)) : t("checklist_song_todo"),
+      c.song_ready,
+    ],
+    [
+      "concept",
+      t("checklist_concept"),
+      c.concept_ready ? t("checklist_concept_done") : t("checklist_concept_todo"),
+      c.concept_ready,
+    ],
+    [
+      "cast",
+      t("checklist_cast"),
+      t("checklist_cast_sub")
+        .replace("{n}", (project().characters || []).length)
+        .replace("{missing}", c.characters_missing_refs ?? 0),
+      c.characters_missing_refs === 0 && (project().characters || []).length > 0,
+    ],
+    [
+      "storyboard",
+      t("checklist_storyboard"),
+      t("checklist_storyboard_sub")
+        .replace("{n}", (project().shots || []).length)
+        .replace("{img}", c.shots_missing_image ?? 0)
+        .replace("{vid}", c.shots_missing_video ?? 0),
+      (project().shots || []).length > 0 && c.shots_missing_video === 0,
+    ],
   ];
-  const html = rows.map(([view, label, sub, ok]) => `
+  const html = rows
+    .map(
+      ([view, label, sub, ok]) => `
     <div class="item-card" data-jump="${view}">
       <span class="ready-chip ${ok ? "ok" : "planned"}">${ok ? "✓" : "…"}</span>
       <div class="row-main"><div class="row-key">${esc(label)}</div><div class="table-sub">${esc(sub)}</div></div>
       <span class="row-arrow">›</span>
-    </div>`).join("");
+    </div>`,
+    )
+    .join("");
   return { html, count: `${rows.filter((r) => r[3]).length}/${rows.length}` };
 }
 
@@ -310,17 +419,21 @@ function listSong() {
 
 function listCast() {
   const items = (project().characters || []).filter(matchSearch);
-  const html = items.length ? items.map((c) => {
-    const thumb = c.reference_card?.image_asset?.startsWith("/generated/")
-      ? `<img class="item-card-thumb" src="${esc(c.reference_card.image_asset)}" alt="" />`
-      : `<div class="item-card-thumb thumb-empty">${t("cast_no_thumb")}</div>`;
-    return `
+  const html = items.length
+    ? items
+        .map((c) => {
+          const thumb = c.reference_card?.image_asset?.startsWith("/generated/")
+            ? `<img class="item-card-thumb" src="${esc(c.reference_card.image_asset)}" alt="" />`
+            : `<div class="item-card-thumb thumb-empty">${t("cast_no_thumb")}</div>`;
+          return `
       <div class="item-card ${c.id === state.selectedId ? "active" : ""}" data-select="${esc(c.id)}">
         ${thumb}
         <div class="row-main"><div class="row-key">${esc(c.name)}</div><div class="table-sub">${esc(c.role || "")}</div></div>
         <span class="badge ${statusClass(c.status)}">${esc(c.status || "draft")}</span>
       </div>`;
-  }).join("") : `<div class="empty-shot">${t("cast_list_empty")}</div>`;
+        })
+        .join("")
+    : `<div class="empty-shot">${t("cast_list_empty")}</div>`;
   return { html, count: items.length };
 }
 
@@ -328,15 +441,24 @@ function listStoryboard() {
   const shots = (project().shots || []).filter(matchSearch);
   const c = state.data.completeness || {};
   const song = project().song || {};
-  const hint = `<div class="mv-timeline-meta">${t("shot_timeline_meta").replace("{n}", (project().shots || []).length).replace("{dur}", secs(c.shots_total_seconds))}${song.duration_seconds ? t("shot_timeline_meta_song").replace("{song}", secs(song.duration_seconds)) : ""}</div>`;
+  const hint = `<div class="mv-timeline-meta">${t("shot_timeline_meta")
+    .replace("{n}", (project().shots || []).length)
+    .replace(
+      "{dur}",
+      secs(c.shots_total_seconds),
+    )}${song.duration_seconds ? t("shot_timeline_meta_song").replace("{song}", secs(song.duration_seconds)) : ""}</div>`;
   let html = hint;
-  if (!shots.length) { html += `<div class="empty-shot">${t("shot_list_empty")}</div>`; return { html, count: 0 }; }
-  html += shots.map((shot, i) => {
-    const thumb = shot.image_asset?.startsWith("/generated/")
-      ? `<img class="shot-row-thumb" src="${esc(shot.image_asset)}" alt="" />`
-      : `<div class="shot-row-thumb thumb-empty">${t("shot_no_image")}</div>`;
-    const hasVideo = shot.video_asset?.startsWith("/generated/");
-    return `
+  if (!shots.length) {
+    html += `<div class="empty-shot">${t("shot_list_empty")}</div>`;
+    return { html, count: 0 };
+  }
+  html += shots
+    .map((shot, i) => {
+      const thumb = shot.image_asset?.startsWith("/generated/")
+        ? `<img class="shot-row-thumb" src="${esc(shot.image_asset)}" alt="" />`
+        : `<div class="shot-row-thumb thumb-empty">${t("shot_no_image")}</div>`;
+      const hasVideo = shot.video_asset?.startsWith("/generated/");
+      return `
       <div class="shot-row ${shot.id === state.selectedId ? "active" : ""}" data-select="${esc(shot.id)}">
         <span class="shot-row-no">${i + 1}</span>
         ${thumb}
@@ -350,7 +472,8 @@ function listStoryboard() {
         </div>
         <span class="row-arrow">›</span>
       </div>`;
-  }).join("");
+    })
+    .join("");
   return { html, count: (project().shots || []).length };
 }
 
@@ -372,15 +495,24 @@ function field(label, name, value, opts = {}) {
   return `<label class="field ${full ? "full" : ""}"><span>${esc(label)}</span>${control}</label>`;
 }
 function selectField(label, name, value, options, opts = {}) {
-  const opts2 = options.map((o) => `<option value="${esc(o)}" ${String(o) === String(value) ? "selected" : ""}>${esc(o)}</option>`).join("");
+  const opts2 = options
+    .map((o) => `<option value="${esc(o)}" ${String(o) === String(value) ? "selected" : ""}>${esc(o)}</option>`)
+    .join("");
   return `<label class="field ${opts.full ? "full" : ""}"><span>${esc(label)}</span><select data-field="${name}">${opts2}</select></label>`;
 }
 function collect(scope) {
   const out = {};
-  scope.querySelectorAll("[data-field]").forEach((node) => { out[node.dataset.field] = node.value; });
+  scope.querySelectorAll("[data-field]").forEach((node) => {
+    out[node.dataset.field] = node.value;
+  });
   return out;
 }
-function listToArray(value) { return String(value || "").split(/[\n,，、]/).map((s) => s.trim()).filter(Boolean); }
+function listToArray(value) {
+  return String(value || "")
+    .split(/[\n,，、]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 function detailConcept() {
   const c = project().treatment || {};
@@ -461,15 +593,27 @@ function detailStoryboard() {
   const shot = (project().shots || []).find((x) => x.id === state.selectedId);
   if (!shot) return `<div class="detail-card"><p class="muted">${t("shot_empty")}</p></div>`;
   const chars = project().characters || [];
-  const charChecks = chars.map((c) => `<label class="cand-chip"><input type="checkbox" data-char="${esc(c.id)}" ${(shot.characters || []).includes(c.id) ? "checked" : ""}/> ${esc(c.name)}</label>`).join("");
+  const charChecks = chars
+    .map(
+      (c) =>
+        `<label class="cand-chip"><input type="checkbox" data-char="${esc(c.id)}" ${(shot.characters || []).includes(c.id) ? "checked" : ""}/> ${esc(c.name)}</label>`,
+    )
+    .join("");
   const refChars = chars.filter((c) => (shot.characters || []).includes(c.id));
   const refReady = refChars.filter((c) => c.reference_card?.image_asset?.startsWith("/generated/")).length;
 
-  const candStrip = (cands, activePath, kind) => cands.length ? `<div class="cand-strip">${cands.map((cd) => `
+  const candStrip = (cands, activePath, kind) =>
+    cands.length
+      ? `<div class="cand-strip">${cands
+          .map(
+            (cd) => `
     <div class="cand-thumb ${cd.path === activePath ? "active" : ""}">
       ${kind === "video" ? `<video src="${esc(cd.path)}" muted></video>` : `<img src="${esc(cd.path)}" data-img-active="${esc(cd.path)}" alt="" />`}
       ${cd.path === activePath ? `<span class="cand-pick">${t("shot_cand_active")}</span>` : `<button class="cand-pick" data-${kind === "video" ? "vid" : "img"}-active="${esc(cd.path)}">${t("shot_cand_select")}</button>`}
-    </div>`).join("")}</div>` : "";
+    </div>`,
+          )
+          .join("")}</div>`
+      : "";
 
   return `
     <div class="detail-card shot-sheet" data-shot="${esc(shot.id)}">
@@ -478,7 +622,7 @@ function detailStoryboard() {
       <div class="section-label">${t("shot_section_image")}</div>
       ${shot.image_asset?.startsWith("/generated/") ? `<div class="storyboard-actions"><img class="storyboard-image" src="${esc(shot.image_asset)}" alt="" />${assetMode(shot.image_generation)}</div>` : `<div class="asset-placeholder">${t("shot_image_empty")}</div>`}
       ${candStrip(shot.image_candidates || [], shot.image_asset, "image")}
-      ${refChars.length ? `<p class="form-note">${t("cast_ref_note").replace("{ready}", refReady).replace("{total}", refChars.length)}${refReady < refChars.length ? " " + t("cast_ref_note_missing") : ""}</p>` : ""}
+      ${refChars.length ? `<p class="form-note">${t("cast_ref_note").replace("{ready}", refReady).replace("{total}", refChars.length)}${refReady < refChars.length ? ` ${t("cast_ref_note_missing")}` : ""}</p>` : ""}
       <div class="form-actions">
         <button class="generate-image-button" id="shotGenImg">${t("shot_gen_img")}</button>
         <button class="mini-button" id="shotUploadImg">${t("shot_upload_img")}</button>
@@ -514,30 +658,52 @@ function detailStoryboard() {
 // DETAIL actions
 // ---------------------------------------------------------------------------
 function bindDetail(host) {
-  const on = (id, fn) => { const n = host.querySelector(`#${id}`); if (n) n.addEventListener("click", fn); };
+  const on = (id, fn) => {
+    const n = host.querySelector(`#${id}`);
+    if (n) n.addEventListener("click", fn);
+  };
 
   // Concept
   on("conceptSave", async () => {
     const f = collect(host.querySelector("#conceptForm"));
-    try { applyState(await post("/api/treatment", { treatment: { ...project().treatment, ...f } })); toast(t("toast_concept_saved")); }
-    catch (e) { toast(e.message, "danger"); }
+    try {
+      applyState(await post("/api/treatment", { treatment: { ...project().treatment, ...f } }));
+      toast(t("toast_concept_saved"));
+    } catch (e) {
+      toast(e.message, "danger");
+    }
   });
 
   // Song
   on("songUpload", async (e) => {
     const file = await pickFile("audio/*");
     if (!file) return;
-    e.target.disabled = true; e.target.textContent = t("song_uploading");
+    e.target.disabled = true;
+    e.target.textContent = t("song_uploading");
     try {
       const [data_base64, duration_seconds] = await Promise.all([fileToBase64(file), audioDuration(file)]);
-      applyState(await post("/api/song-upload", { filename: file.name, data_base64, duration_seconds, title: project().song?.title || file.name.replace(/\.[^.]+$/, "") }));
+      applyState(
+        await post("/api/song-upload", {
+          filename: file.name,
+          data_base64,
+          duration_seconds,
+          title: project().song?.title || file.name.replace(/\.[^.]+$/, ""),
+        }),
+      );
       toast(t("toast_song_uploaded"));
-    } catch (err) { toast(err.message, "danger"); render(); }
+    } catch (err) {
+      toast(err.message, "danger");
+      render();
+    }
   });
   on("songSave", async () => {
     const f = collect(host.querySelector(".detail-card"));
-    try { applyState(await post("/api/song", { title: f.title, artist: f.artist })); toast(t("toast_song_saved")); }
-    catch (e) { toast(e.message, "danger"); }
+    try {
+      applyState(await post("/api/song", { title: f.title, artist: f.artist }));
+      toast(t("toast_song_saved"));
+    } catch (e) {
+      toast(e.message, "danger");
+    }
   });
 
   // Cast
@@ -546,53 +712,116 @@ function bindDetail(host) {
     const f = collect(card);
     const existing = (project().characters || []).find((x) => x.id === state.selectedId) || {};
     const payload = {
-      id: state.selectedId, name: f.name, role: f.role, status: f.status, actor_profile: f.actor_profile,
+      id: state.selectedId,
+      name: f.name,
+      role: f.role,
+      status: f.status,
+      actor_profile: f.actor_profile,
       character_card: existing.character_card || {},
-      visual: { ...(existing.visual || {}), front: f.front, side: f.side, back: f.back, wardrobe: f.wardrobe, anchors: listToArray(f.anchors), forbidden_drift: listToArray(f.forbidden_drift) },
+      visual: {
+        ...(existing.visual || {}),
+        front: f.front,
+        side: f.side,
+        back: f.back,
+        wardrobe: f.wardrobe,
+        anchors: listToArray(f.anchors),
+        forbidden_drift: listToArray(f.forbidden_drift),
+      },
       reference_card: { ...(existing.reference_card || {}), prompt: f.ref_prompt },
     };
-    try { applyState(await post(`/api/characters/${encodeURIComponent(state.selectedId)}`, payload)); toast(t("toast_cast_saved")); }
-    catch (e) { toast(e.message, "danger"); }
+    try {
+      applyState(await post(`/api/characters/${encodeURIComponent(state.selectedId)}`, payload));
+      toast(t("toast_cast_saved"));
+    } catch (e) {
+      toast(e.message, "danger");
+    }
   });
   on("castGenRef", async (e) => {
-    e.target.disabled = true; e.target.textContent = t("loading");
-    try { applyState(await post("/api/character-card-image", { character_id: state.selectedId })); toast(t("toast_ref_generated")); }
-    catch (err) { toast(err.message, "danger"); render(); }
+    e.target.disabled = true;
+    e.target.textContent = t("loading");
+    try {
+      applyState(await post("/api/character-card-image", { character_id: state.selectedId }));
+      toast(t("toast_ref_generated"));
+    } catch (err) {
+      toast(err.message, "danger");
+      render();
+    }
   });
   on("castDelete", async () => {
-    if (!confirm(t("cast_delete") + "?")) return;
-    try { applyState(await post(`/api/characters/${encodeURIComponent(state.selectedId)}`, { delete: true })); state.selectedId = null; toast(t("toast_cast_deleted")); }
-    catch (e) { toast(e.message, "danger"); }
+    if (!confirm(`${t("cast_delete")}?`)) return;
+    try {
+      applyState(await post(`/api/characters/${encodeURIComponent(state.selectedId)}`, { delete: true }));
+      state.selectedId = null;
+      toast(t("toast_cast_deleted"));
+    } catch (e) {
+      toast(e.message, "danger");
+    }
   });
 
   // Shot
   on("shotSave", () => saveShot(host));
   on("shotGenImg", async (e) => {
     await saveShot(host, true);
-    e.target.disabled = true; e.target.textContent = t("loading");
-    try { applyState(await post("/api/storyboard-image", { shot_id: state.selectedId })); toast(t("toast_img_generated")); }
-    catch (err) { toast(err.message, "danger"); render(); }
+    e.target.disabled = true;
+    e.target.textContent = t("loading");
+    try {
+      applyState(await post("/api/storyboard-image", { shot_id: state.selectedId }));
+      toast(t("toast_img_generated"));
+    } catch (err) {
+      toast(err.message, "danger");
+      render();
+    }
   });
   on("shotUploadImg", () => uploadShotAsset(host, "image"));
   on("shotGenVid", async (e) => {
     await saveShot(host, true);
-    e.target.disabled = true; e.target.textContent = t("loading");
-    try { applyState(await post("/api/shot-video", { shot_id: state.selectedId, mode: "draft" })); toast(t("toast_vid_generated")); }
-    catch (err) { toast(err.message, "danger"); render(); }
+    e.target.disabled = true;
+    e.target.textContent = t("loading");
+    try {
+      applyState(await post("/api/shot-video", { shot_id: state.selectedId, mode: "draft" }));
+      toast(t("toast_vid_generated"));
+    } catch (err) {
+      toast(err.message, "danger");
+      render();
+    }
   });
   on("shotUploadVid", () => uploadShotAsset(host, "video"));
-  on("shotPromptPreview", async () => { await saveShot(host, true); openPromptPreview(state.selectedId); });
-  on("shotDelete", async () => {
-    if (!confirm(t("shot_delete") + "?")) return;
-    try { applyState(await post(`/api/shots/${encodeURIComponent(state.selectedId)}`, { delete: true })); state.selectedId = null; toast(t("toast_shot_deleted")); }
-    catch (e) { toast(e.message, "danger"); }
+  on("shotPromptPreview", async () => {
+    await saveShot(host, true);
+    openPromptPreview(state.selectedId);
   });
-  host.querySelectorAll("[data-img-active]").forEach((n) => n.addEventListener("click", async () => {
-    try { applyState(await post("/api/shot-active", { shot_id: state.selectedId, kind: "image", path: n.dataset.imgActive })); } catch (e) { toast(e.message, "danger"); }
-  }));
-  host.querySelectorAll("[data-vid-active]").forEach((n) => n.addEventListener("click", async () => {
-    try { applyState(await post("/api/shot-active", { shot_id: state.selectedId, kind: "video", path: n.dataset.vidActive })); } catch (e) { toast(e.message, "danger"); }
-  }));
+  on("shotDelete", async () => {
+    if (!confirm(`${t("shot_delete")}?`)) return;
+    try {
+      applyState(await post(`/api/shots/${encodeURIComponent(state.selectedId)}`, { delete: true }));
+      state.selectedId = null;
+      toast(t("toast_shot_deleted"));
+    } catch (e) {
+      toast(e.message, "danger");
+    }
+  });
+  host.querySelectorAll("[data-img-active]").forEach((n) =>
+    n.addEventListener("click", async () => {
+      try {
+        applyState(
+          await post("/api/shot-active", { shot_id: state.selectedId, kind: "image", path: n.dataset.imgActive }),
+        );
+      } catch (e) {
+        toast(e.message, "danger");
+      }
+    }),
+  );
+  host.querySelectorAll("[data-vid-active]").forEach((n) =>
+    n.addEventListener("click", async () => {
+      try {
+        applyState(
+          await post("/api/shot-active", { shot_id: state.selectedId, kind: "video", path: n.dataset.vidActive }),
+        );
+      } catch (e) {
+        toast(e.message, "danger");
+      }
+    }),
+  );
 }
 
 async function uploadShotAsset(host, kind) {
@@ -601,9 +830,13 @@ async function uploadShotAsset(host, kind) {
   if (!file) return;
   try {
     const data_base64 = await fileToBase64(file);
-    applyState(await post("/api/shot-asset-upload", { shot_id: state.selectedId, kind, filename: file.name, data_base64 }));
+    applyState(
+      await post("/api/shot-asset-upload", { shot_id: state.selectedId, kind, filename: file.name, data_base64 }),
+    );
     toast(t("toast_song_uploaded"));
-  } catch (e) { toast(e.message, "danger"); }
+  } catch (e) {
+    toast(e.message, "danger");
+  }
 }
 
 async function saveShot(host, silent = false) {
@@ -613,26 +846,60 @@ async function saveShot(host, silent = false) {
   const existing = (project().shots || []).find((x) => x.id === state.selectedId) || {};
   const characters = [...host.querySelectorAll("#shotChars input[data-char]:checked")].map((n) => n.dataset.char);
   const payload = {
-    ...existing, id: state.selectedId,
-    title: f.title, duration_seconds: Number(f.duration_seconds) || 8,
-    description: f.description, negative_prompt: f.negative_prompt, video_prompt: f.video_prompt,
+    ...existing,
+    id: state.selectedId,
+    title: f.title,
+    duration_seconds: Number(f.duration_seconds) || 8,
+    description: f.description,
+    negative_prompt: f.negative_prompt,
+    video_prompt: f.video_prompt,
     characters,
   };
   try {
     const res = await post(`/api/shots/${encodeURIComponent(state.selectedId)}`, payload);
-    if (!silent) { applyState(res); toast(t("toast_shot_saved")); } else state.data = res.state || res;
-  } catch (e) { toast(e.message, "danger"); }
+    if (!silent) {
+      applyState(res);
+      toast(t("toast_shot_saved"));
+    } else state.data = res.state || res;
+  } catch (e) {
+    toast(e.message, "danger");
+  }
 }
 
 async function newCharacter() {
   const id = `char-${Date.now()}`;
-  try { applyState(await post(`/api/characters/${id}`, { id, name: t("new_character_name"), role: "", status: "draft", visual: { front: "", side: "", back: "" }, reference_card: { status: "ready_to_generate", prompt: "" } })); go("cast", id); }
-  catch (e) { toast(e.message, "danger"); }
+  try {
+    applyState(
+      await post(`/api/characters/${id}`, {
+        id,
+        name: t("new_character_name"),
+        role: "",
+        status: "draft",
+        visual: { front: "", side: "", back: "" },
+        reference_card: { status: "ready_to_generate", prompt: "" },
+      }),
+    );
+    go("cast", id);
+  } catch (e) {
+    toast(e.message, "danger");
+  }
 }
 async function newShot() {
   const id = `shot-${Date.now()}`;
-  try { applyState(await post(`/api/shots/${id}`, { id, title: t("new_shot_name"), description: "", duration_seconds: 8, characters: [] })); go("storyboard", id); }
-  catch (e) { toast(e.message, "danger"); }
+  try {
+    applyState(
+      await post(`/api/shots/${id}`, {
+        id,
+        title: t("new_shot_name"),
+        description: "",
+        duration_seconds: 8,
+        characters: [],
+      }),
+    );
+    go("storyboard", id);
+  } catch (e) {
+    toast(e.message, "danger");
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -640,7 +907,11 @@ async function newShot() {
 // ---------------------------------------------------------------------------
 async function openPromptPreview(shotId) {
   let data;
-  try { data = await api(`/api/storyboard-prompt?shot_id=${encodeURIComponent(shotId)}`); } catch (e) { return toast(e.message, "danger"); }
+  try {
+    data = await api(`/api/storyboard-prompt?shot_id=${encodeURIComponent(shotId)}`);
+  } catch (e) {
+    return toast(e.message, "danger");
+  }
   const refs = data.references || [];
   const chars = data.characters || [];
   const modeLabel = data.mode === "image-edit" ? t("prompt_mode_img_edit") : t("prompt_mode_text");
@@ -659,7 +930,9 @@ async function openPromptPreview(shotId) {
   document.body.appendChild(node);
   const close = () => node.remove();
   node.querySelector("#promptClose").addEventListener("click", close);
-  node.addEventListener("click", (e) => { if (e.target === node) close(); });
+  node.addEventListener("click", (e) => {
+    if (e.target === node) close();
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -678,8 +951,19 @@ function openSettings() {
       <div class="form-actions"><button class="mini-button" id="imgSave">保存</button></div>
     </div>`;
   document.getElementById("imgSave").addEventListener("click", async () => {
-    const body = { base_url: document.getElementById("imgBase").value, model: document.getElementById("imgModel").value, size: document.getElementById("imgSize").value, api_key: document.getElementById("imgKey").value || "__KEEP__" };
-    try { state.imageConfig = await post("/api/image-config", body); openSettings(); toast(t("toast_concept_saved")); } catch (e) { toast(e.message, "danger"); }
+    const body = {
+      base_url: document.getElementById("imgBase").value,
+      model: document.getElementById("imgModel").value,
+      size: document.getElementById("imgSize").value,
+      api_key: document.getElementById("imgKey").value || "__KEEP__",
+    };
+    try {
+      state.imageConfig = await post("/api/image-config", body);
+      openSettings();
+      toast(t("toast_concept_saved"));
+    } catch (e) {
+      toast(e.message, "danger");
+    }
   });
   const sc = state.songConfig || {};
   document.getElementById("songSettingsMount").innerHTML = `

@@ -11,6 +11,14 @@
 // Usage: node scripts/run_checks.mjs
 
 import fs from "node:fs/promises";
+import {
+  DEFAULT_RULES,
+  agingBucketKey,
+  daysBetween,
+  deriveSnapshot,
+  isCreditNote,
+  round2,
+} from "../app/server/compute.mjs";
 import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.mjs";
 import {
   ensureDirs,
@@ -19,9 +27,8 @@ import {
   readConfig,
   readJson,
   readLock,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
-import { DEFAULT_RULES, agingBucketKey, daysBetween, deriveSnapshot, isCreditNote, round2 } from "../app/server/compute.mjs";
 
 function fail(message) {
   console.error(`kelly-audit checks: ${message}`);
@@ -43,7 +50,7 @@ function chaseDraft(company, invoice, order) {
     "Could you confirm the payment status or share an expected remittance date? If the invoice or bank details need to be reissued, tell us and we will send them today.",
     "",
     "Thank you,",
-    `${company || "Finance"} — Finance`
+    `${company || "Finance"} — Finance`,
   ].join("\n");
 }
 
@@ -75,20 +82,28 @@ function detectAnomalies(snapshot, rules, now) {
         invoice_id: "",
         payment_ids: [],
         rows: [
-          { label: `Order ${order.order_no}`, detail: `${order.customer} · ${order.order_date}`, amount: order.amount, currency: order.currency },
-          { label: "Invoice", detail: "None found in imported invoices", amount: 0, currency: order.currency }
+          {
+            label: `Order ${order.order_no}`,
+            detail: `${order.customer} · ${order.order_date}`,
+            amount: order.amount,
+            currency: order.currency,
+          },
+          { label: "Invoice", detail: "None found in imported invoices", amount: 0, currency: order.currency },
         ],
-        computed: `${age} days since order date · threshold ${rules.days_to_invoice} days.`
+        computed: `${age} days since order date · threshold ${rules.days_to_invoice} days.`,
       },
       proposed_action: "reissue_invoice",
-      draft: `Internal request — billing:\n\nOrder ${order.order_no} for ${order.customer} (${moneyText(order.amount, order.currency)}, ${order.order_date}) has not been invoiced. Please issue the invoice with standard terms and reference ${order.order_no}.`
+      draft: `Internal request — billing:\n\nOrder ${order.order_no} for ${order.customer} (${moneyText(order.amount, order.currency)}, ${order.order_date}) has not been invoiced. Please issue the invoice with standard terms and reference ${order.order_no}.`,
     });
   }
 
   // 2. amount_mismatch: invoiced total differs from order amount beyond tolerance.
   for (const order of orders) {
     if (order.invoice_status !== "mismatch") continue;
-    const linked = (order.invoice_ids || []).map((id) => invoiceById.get(id)).filter(Boolean).filter((invoice) => !isCreditNote(invoice));
+    const linked = (order.invoice_ids || [])
+      .map((id) => invoiceById.get(id))
+      .filter(Boolean)
+      .filter((invoice) => !isCreditNote(invoice));
     const invoiced = linked.reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
     const delta = round2(invoiced - Number(order.amount || 0));
     const deltaPct = order.amount ? Math.abs(delta / order.amount) * 100 : 0;
@@ -107,13 +122,23 @@ function detectAnomalies(snapshot, rules, now) {
         invoice_id: first?.invoice_id || "",
         payment_ids: linked.flatMap((invoice) => invoice.payment_ids || []),
         rows: [
-          { label: `Order ${order.order_no}`, detail: `${order.customer} · ${order.order_date}`, amount: order.amount, currency: order.currency },
-          ...linked.map((invoice) => ({ label: `Invoice ${invoice.invoice_no}`, detail: `Issued ${invoice.issue_date} · due ${invoice.due_date}`, amount: invoice.amount, currency: invoice.currency }))
+          {
+            label: `Order ${order.order_no}`,
+            detail: `${order.customer} · ${order.order_date}`,
+            amount: order.amount,
+            currency: order.currency,
+          },
+          ...linked.map((invoice) => ({
+            label: `Invoice ${invoice.invoice_no}`,
+            detail: `Issued ${invoice.issue_date} · due ${invoice.due_date}`,
+            amount: invoice.amount,
+            currency: invoice.currency,
+          })),
         ],
-        computed: `Invoice − order = ${delta < 0 ? "-" : "+"}${moneyText(delta, order.currency)} (${deltaPct.toFixed(1)}%) · tolerance ${rules.amount_tolerance_pct}%.`
+        computed: `Invoice − order = ${delta < 0 ? "-" : "+"}${moneyText(delta, order.currency)} (${deltaPct.toFixed(1)}%) · tolerance ${rules.amount_tolerance_pct}%.`,
       },
       proposed_action: "reissue_invoice",
-      draft: `Internal request — billing:\n\nInvoice ${first?.invoice_no || ""} was issued at ${moneyText(invoiced, order.currency)} against order ${order.order_no} (${moneyText(order.amount, order.currency)}). Please confirm whether the difference was agreed. If not, issue a corrected or supplementary invoice for ${moneyText(delta, order.currency)} referencing ${order.order_no}.`
+      draft: `Internal request — billing:\n\nInvoice ${first?.invoice_no || ""} was issued at ${moneyText(invoiced, order.currency)} against order ${order.order_no} (${moneyText(order.amount, order.currency)}). Please confirm whether the difference was agreed. If not, issue a corrected or supplementary invoice for ${moneyText(delta, order.currency)} referencing ${order.order_no}.`,
     });
   }
 
@@ -137,14 +162,36 @@ function detectAnomalies(snapshot, rules, now) {
         invoice_id: invoice.invoice_id,
         payment_ids: invoice.payment_ids || [],
         rows: [
-          ...(order ? [{ label: `Order ${order.order_no}`, detail: `${order.customer} · ${order.order_date}`, amount: order.amount, currency: order.currency }] : []),
-          { label: `Invoice ${invoice.invoice_no}`, detail: `Issued ${invoice.issue_date} · due ${invoice.due_date}`, amount: invoice.amount, currency: invoice.currency },
-          { label: "Payments", detail: invoice.paid_amount > 0 ? `Partial: ${moneyText(invoice.paid_amount, invoice.currency)} received` : "No payment received", amount: invoice.paid_amount, currency: invoice.currency }
+          ...(order
+            ? [
+                {
+                  label: `Order ${order.order_no}`,
+                  detail: `${order.customer} · ${order.order_date}`,
+                  amount: order.amount,
+                  currency: order.currency,
+                },
+              ]
+            : []),
+          {
+            label: `Invoice ${invoice.invoice_no}`,
+            detail: `Issued ${invoice.issue_date} · due ${invoice.due_date}`,
+            amount: invoice.amount,
+            currency: invoice.currency,
+          },
+          {
+            label: "Payments",
+            detail:
+              invoice.paid_amount > 0
+                ? `Partial: ${moneyText(invoice.paid_amount, invoice.currency)} received`
+                : "No payment received",
+            amount: invoice.paid_amount,
+            currency: invoice.currency,
+          },
         ],
-        computed: `Outstanding ${moneyText(invoice.outstanding, invoice.currency)} · ${invoice.days_overdue} days past due as of ${now.slice(0, 10)}.`
+        computed: `Outstanding ${moneyText(invoice.outstanding, invoice.currency)} · ${invoice.days_overdue} days past due as of ${now.slice(0, 10)}.`,
       },
       proposed_action: "chase_receivable",
-      draft: chaseDraft(company, invoice, order)
+      draft: chaseDraft(company, invoice, order),
     });
   }
 
@@ -178,13 +225,23 @@ function detectAnomalies(snapshot, rules, now) {
           invoice_id: dup.invoice_id || "",
           payment_ids: [first.payment_id, dup.payment_id],
           rows: [
-            { label: `Payment ${first.payment_ref}`, detail: `${first.method} · ${first.paid_date}`, amount: first.amount, currency: first.currency },
-            { label: `Payment ${dup.payment_ref}`, detail: `${dup.method} · ${dup.paid_date} · same amount`, amount: dup.amount, currency: dup.currency }
+            {
+              label: `Payment ${first.payment_ref}`,
+              detail: `${first.method} · ${first.paid_date}`,
+              amount: first.amount,
+              currency: first.currency,
+            },
+            {
+              label: `Payment ${dup.payment_ref}`,
+              detail: `${dup.method} · ${dup.paid_date} · same amount`,
+              amount: dup.amount,
+              currency: dup.currency,
+            },
           ],
-          computed: `Two identical payments against invoice ${dup.invoice_no} · overpaid ${moneyText(dup.amount, dup.currency)}.`
+          computed: `Two identical payments against invoice ${dup.invoice_no} · overpaid ${moneyText(dup.amount, dup.currency)}.`,
         },
         proposed_action: "flag_to_accountant",
-        draft: `Flag for the accountant:\n\nInvoice ${dup.invoice_no} (${dup.payer}) received two identical payments of ${moneyText(dup.amount, dup.currency)} (${first.payment_ref}, ${dup.payment_ref}) within ${rules.duplicate_window_days} days. Please verify both cleared, then refund the duplicate or apply it as a credit after confirming with the customer.`
+        draft: `Flag for the accountant:\n\nInvoice ${dup.invoice_no} (${dup.payer}) received two identical payments of ${moneyText(dup.amount, dup.currency)} (${first.payment_ref}, ${dup.payment_ref}) within ${rules.duplicate_window_days} days. Please verify both cleared, then refund the duplicate or apply it as a credit after confirming with the customer.`,
       });
     }
   }
@@ -212,11 +269,18 @@ function detectAnomalies(snapshot, rules, now) {
         order_id: invoice.order_id || "",
         invoice_id: invoice.invoice_id,
         payment_ids: [],
-        rows: [{ label: `Invoice ${invoice.invoice_no}`, detail: `Issued ${invoice.issue_date}`, amount: invoice.amount, currency: invoice.currency }],
-        computed: `Invoice number ${invoice.invoice_no} duplicated in the import.`
+        rows: [
+          {
+            label: `Invoice ${invoice.invoice_no}`,
+            detail: `Issued ${invoice.issue_date}`,
+            amount: invoice.amount,
+            currency: invoice.currency,
+          },
+        ],
+        computed: `Invoice number ${invoice.invoice_no} duplicated in the import.`,
       },
       proposed_action: "flag_to_accountant",
-      draft: `Flag for the accountant:\n\nInvoice number ${invoice.invoice_no} appears more than once in the imported invoice table. Please confirm which record is canonical and void or renumber the other.`
+      draft: `Flag for the accountant:\n\nInvoice number ${invoice.invoice_no} appears more than once in the imported invoice table. Please confirm which record is canonical and void or renumber the other.`,
     });
   }
 
@@ -239,13 +303,23 @@ function detectAnomalies(snapshot, rules, now) {
         invoice_id: "",
         payment_ids: [payment.payment_id],
         rows: [
-          { label: `Payment ${payment.payment_ref}`, detail: `${payment.method} · ${payment.paid_date}${payment.invoice_no ? ` · memo: ${payment.invoice_no}` : ""}`, amount: payment.amount, currency: payment.currency },
-          { label: payment.invoice_no ? `Invoice ${payment.invoice_no}` : "Invoice", detail: "Not found in imported invoices", amount: 0, currency: payment.currency }
+          {
+            label: `Payment ${payment.payment_ref}`,
+            detail: `${payment.method} · ${payment.paid_date}${payment.invoice_no ? ` · memo: ${payment.invoice_no}` : ""}`,
+            amount: payment.amount,
+            currency: payment.currency,
+          },
+          {
+            label: payment.invoice_no ? `Invoice ${payment.invoice_no}` : "Invoice",
+            detail: "Not found in imported invoices",
+            amount: 0,
+            currency: payment.currency,
+          },
         ],
-        computed: `${moneyText(payment.amount, payment.currency)} received with no matching invoice or order.`
+        computed: `${moneyText(payment.amount, payment.currency)} received with no matching invoice or order.`,
       },
       proposed_action: "flag_to_accountant",
-      draft: `Flag for the accountant:\n\nPayment ${payment.payment_ref} from ${payment.payer || "an unknown payer"} (${moneyText(payment.amount, payment.currency)}, ${payment.paid_date}) matches no invoice in our books${payment.invoice_no ? ` (memo cites ${payment.invoice_no})` : ""}. Please check whether an invoice was issued outside the export window and confirm what this payment covers before applying it.`
+      draft: `Flag for the accountant:\n\nPayment ${payment.payment_ref} from ${payment.payer || "an unknown payer"} (${moneyText(payment.amount, payment.currency)}, ${payment.paid_date}) matches no invoice in our books${payment.invoice_no ? ` (memo cites ${payment.invoice_no})` : ""}. Please check whether an invoice was issued outside the export window and confirm what this payment covers before applying it.`,
     });
   }
 
@@ -267,13 +341,18 @@ function detectAnomalies(snapshot, rules, now) {
         invoice_id: invoice.invoice_id,
         payment_ids: [],
         rows: [
-          { label: `Credit note ${invoice.invoice_no}`, detail: `Issued ${invoice.issue_date} · no order reference`, amount: invoice.amount, currency: invoice.currency },
-          { label: "Original invoice", detail: "No linked invoice found", amount: 0, currency: invoice.currency }
+          {
+            label: `Credit note ${invoice.invoice_no}`,
+            detail: `Issued ${invoice.issue_date} · no order reference`,
+            amount: invoice.amount,
+            currency: invoice.currency,
+          },
+          { label: "Original invoice", detail: "No linked invoice found", amount: 0, currency: invoice.currency },
         ],
-        computed: `Negative entry ${invoice.amount < 0 ? "-" : ""}${moneyText(invoice.amount, invoice.currency)} with no linked original document.`
+        computed: `Negative entry ${invoice.amount < 0 ? "-" : ""}${moneyText(invoice.amount, invoice.currency)} with no linked original document.`,
       },
       proposed_action: "flag_to_accountant",
-      draft: `Flag for the accountant:\n\nCredit note ${invoice.invoice_no} (${invoice.amount < 0 ? "-" : ""}${moneyText(invoice.amount, invoice.currency)}) for ${invoice.customer} has no linked original invoice or order. Please attach the supporting agreement or reverse the credit note.`
+      draft: `Flag for the accountant:\n\nCredit note ${invoice.invoice_no} (${invoice.amount < 0 ? "-" : ""}${moneyText(invoice.amount, invoice.currency)}) for ${invoice.customer} has no linked original invoice or order. Please attach the supporting agreement or reverse the credit note.`,
     });
   }
   for (const payment of payments) {
@@ -291,11 +370,18 @@ function detectAnomalies(snapshot, rules, now) {
         order_id: payment.order_id || "",
         invoice_id: payment.invoice_id || "",
         payment_ids: [payment.payment_id],
-        rows: [{ label: `Payment ${payment.payment_ref}`, detail: `${payment.method} · ${payment.paid_date}`, amount: payment.amount, currency: payment.currency }],
-        computed: `Negative payment of ${moneyText(payment.amount, payment.currency)}.`
+        rows: [
+          {
+            label: `Payment ${payment.payment_ref}`,
+            detail: `${payment.method} · ${payment.paid_date}`,
+            amount: payment.amount,
+            currency: payment.currency,
+          },
+        ],
+        computed: `Negative payment of ${moneyText(payment.amount, payment.currency)}.`,
       },
       proposed_action: "flag_to_accountant",
-      draft: `Flag for the accountant:\n\nPayment ${payment.payment_ref} from ${payment.payer || "an unknown payer"} is negative (${payment.amount} ${payment.currency}). Please confirm the refund/reversal it belongs to and document it.`
+      draft: `Flag for the accountant:\n\nPayment ${payment.payment_ref} from ${payment.payer || "an unknown payer"} is negative (${payment.amount} ${payment.currency}). Please confirm the refund/reversal it belongs to and document it.`,
     });
   }
 
@@ -307,7 +393,9 @@ async function main() {
   await loadDotenvFiles(envSearchPaths());
   const existingLock = await readLock();
   if (existingLock) {
-    fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`);
+    fail(
+      `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
+    );
   }
 
   const snapshot = await readJson(SNAPSHOT_PATH, null);
@@ -320,7 +408,7 @@ async function main() {
   await writeJson(LOCK_PATH, {
     owner: "kelly-audit",
     message: "Running deterministic anomaly checks",
-    started_at: now
+    started_at: now,
   });
 
   try {
@@ -344,7 +432,9 @@ async function main() {
           ...anomaly,
           status: "done",
           resolved_at: now,
-          agent_notes: [anomaly.agent_notes, `Auto-resolved: the flagged condition cleared on ${now.slice(0, 10)}.`].filter(Boolean).join(" ")
+          agent_notes: [anomaly.agent_notes, `Auto-resolved: the flagged condition cleared on ${now.slice(0, 10)}.`]
+            .filter(Boolean)
+            .join(" "),
         });
       } else {
         next.push(anomaly);
@@ -352,6 +442,8 @@ async function main() {
     }
     for (const anomaly of detected) {
       const previous = existingById.get(anomaly.id);
+      /** @type {any} */
+      const anomalyAny = anomaly;
       if (previous) {
         updatedCount += 1;
         next.push({
@@ -361,9 +453,9 @@ async function main() {
           status: previous.status,
           created_at: previous.created_at,
           draft: previous.decision?.draft ?? anomaly.draft,
-          agent_notes: previous.agent_notes || anomaly.agent_notes || "",
+          agent_notes: previous.agent_notes || anomalyAny.agent_notes || "",
           decision: previous.decision || null,
-          execution: previous.execution || null
+          execution: previous.execution || null,
         });
       } else {
         maxRef += 1;
@@ -372,10 +464,10 @@ async function main() {
           ...anomaly,
           ref: maxRef,
           status: "needs_review",
-          agent_notes: anomaly.agent_notes || "",
+          agent_notes: anomalyAny.agent_notes || "",
           created_at: now,
           decision: null,
-          execution: null
+          execution: null,
         });
       }
     }
@@ -388,7 +480,9 @@ async function main() {
     await writeJson(SNAPSHOT_PATH, snapshot);
 
     console.log(`Wrote ${SNAPSHOT_PATH}`);
-    console.log(`  anomalies: +${addedCount} new, ${updatedCount} refreshed, ${resolvedCount} auto-resolved (total ${next.length})`);
+    console.log(
+      `  anomalies: +${addedCount} new, ${updatedCount} refreshed, ${resolvedCount} auto-resolved (total ${next.length})`,
+    );
     for (const anomaly of next.filter((item) => item.status === "needs_review")) {
       console.log(`  Anomaly #${anomaly.ref} [${anomaly.rule}] ${anomaly.title}`);
     }

@@ -32,7 +32,7 @@ body {
   min-height: 0;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font: 14px / 1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 a {
@@ -646,10 +646,18 @@ button.danger {
   background: var(--muted-soft);
 }
 
-.channel-badge.whatsapp .dot { background: #1faa61; }
-.channel-badge.instagram .dot { background: #d6409f; }
-.channel-badge.messenger .dot { background: #2f6fed; }
-.channel-badge.email .dot { background: #b7791f; }
+.channel-badge.whatsapp .dot {
+  background: #1faa61;
+}
+.channel-badge.instagram .dot {
+  background: #d6409f;
+}
+.channel-badge.messenger .dot {
+  background: #2f6fed;
+}
+.channel-badge.email .dot {
+  background: #b7791f;
+}
 
 .stage-chip,
 .status-chip {
@@ -664,23 +672,71 @@ button.danger {
   white-space: nowrap;
 }
 
-.stage-chip.new { background: #eff8ff; color: #175cd3; }
-.stage-chip.replied { background: #f0f9ff; color: #0e7090; }
-.stage-chip.quoted { background: #fdf4e7; color: #b25e09; }
-.stage-chip.negotiating { background: #f3ebff; color: #6941c6; }
-.stage-chip.won { background: #ecfdf3; color: var(--good); }
-.stage-chip.lost { background: #f2f4f7; color: var(--muted); }
+.stage-chip.new {
+  background: #eff8ff;
+  color: #175cd3;
+}
+.stage-chip.replied {
+  background: #f0f9ff;
+  color: #0e7090;
+}
+.stage-chip.quoted {
+  background: #fdf4e7;
+  color: #b25e09;
+}
+.stage-chip.negotiating {
+  background: #f3ebff;
+  color: #6941c6;
+}
+.stage-chip.won {
+  background: #ecfdf3;
+  color: var(--good);
+}
+.stage-chip.lost {
+  background: #f2f4f7;
+  color: var(--muted);
+}
 
-.status-chip.needs_review { background: #fff8db; color: var(--warn); }
-.status-chip.changes_requested { background: #f3ebff; color: #6941c6; }
-.status-chip.approved { background: #eff8ff; color: #175cd3; }
-.status-chip.done { background: #ecfdf3; color: var(--good); }
-.status-chip.blocked { background: #fff1f0; color: var(--bad); }
-.status-chip.draft { background: #f2f4f7; color: var(--muted); }
-.status-chip.sent { background: #eff8ff; color: #175cd3; }
-.status-chip.accepted { background: #ecfdf3; color: var(--good); }
-.status-chip.expired { background: #fff1f0; color: var(--bad); }
-.status-chip.declined { background: #f2f4f7; color: var(--muted); }
+.status-chip.needs_review {
+  background: #fff8db;
+  color: var(--warn);
+}
+.status-chip.changes_requested {
+  background: #f3ebff;
+  color: #6941c6;
+}
+.status-chip.approved {
+  background: #eff8ff;
+  color: #175cd3;
+}
+.status-chip.done {
+  background: #ecfdf3;
+  color: var(--good);
+}
+.status-chip.blocked {
+  background: #fff1f0;
+  color: var(--bad);
+}
+.status-chip.draft {
+  background: #f2f4f7;
+  color: var(--muted);
+}
+.status-chip.sent {
+  background: #eff8ff;
+  color: #175cd3;
+}
+.status-chip.accepted {
+  background: #ecfdf3;
+  color: var(--good);
+}
+.status-chip.expired {
+  background: #fff1f0;
+  color: var(--bad);
+}
+.status-chip.declined {
+  background: #f2f4f7;
+  color: var(--muted);
+}
 
 .country {
   white-space: nowrap;

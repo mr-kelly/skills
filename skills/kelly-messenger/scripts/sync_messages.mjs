@@ -5,6 +5,7 @@
 import fs from "node:fs/promises";
 import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.mjs";
 import {
+  SECRET_ENV_KEYS,
   ensureDirs,
   envSearchPaths,
   loadDotenvFiles,
@@ -13,8 +14,7 @@ import {
   readLock,
   readSnapshot,
   recomputeMetrics,
-  SECRET_ENV_KEYS,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const API_CONNECTORS = new Set(["slack", "discord", "telegram", "whatsapp_cloud"]);
@@ -24,7 +24,9 @@ function nowIso() {
 }
 
 function missingEnvs(account) {
-  return SECRET_ENV_KEYS.filter((key) => account[key]).map((key) => account[key]).filter((name) => !process.env[name]);
+  return SECRET_ENV_KEYS.filter((key) => account[key])
+    .map((key) => account[key])
+    .filter((name) => !process.env[name]);
 }
 
 async function main() {
@@ -37,7 +39,9 @@ async function main() {
     console.log("Kelly Messenger sync: no API-connector accounts configured yet.");
     console.log("Copy config.example.json to config.local.json (or ~/.config/kelly-messenger/config.json),");
     console.log("declare accounts with connector slack/discord/telegram/whatsapp_cloud, and put tokens in env files.");
-    console.log("Browser-collected platforms (WhatsApp Web, WeChat, iMessage) use scripts/ingest_messages.mjs instead.");
+    console.log(
+      "Browser-collected platforms (WhatsApp Web, WeChat, iMessage) use scripts/ingest_messages.mjs instead.",
+    );
     return;
   }
 
@@ -60,12 +64,18 @@ async function main() {
 
   const lock = await readLock();
   if (lock) {
-    console.error(`Kelly Messenger sync: agent lock is active (${lock.owner || "unknown"}: ${lock.message || ""}). Try again later.`);
+    console.error(
+      `Kelly Messenger sync: agent lock is active (${lock.owner || "unknown"}: ${lock.message || ""}). Try again later.`,
+    );
     process.exitCode = 1;
     return;
   }
 
-  await writeJson(LOCK_PATH, { owner: "kelly-messenger", message: "Syncing messages from API connectors", started_at: nowIso() });
+  await writeJson(LOCK_PATH, {
+    owner: "kelly-messenger",
+    message: "Syncing messages from API connectors",
+    started_at: nowIso(),
+  });
   try {
     const snapshot = await readSnapshot();
     snapshot.source = "kelly-messenger";
@@ -86,9 +96,11 @@ async function main() {
           at: startedAt,
           status: "ok",
           message: result.note || `Synced ${result.conversations.length} conversations.`,
-          new_messages: added
+          new_messages: added,
         });
-        console.log(`Synced ${account.account_id}: ${result.conversations.length} conversations, ${added} new messages.`);
+        console.log(
+          `Synced ${account.account_id}: ${result.conversations.length} conversations, ${added} new messages.`,
+        );
       } catch (error) {
         upsertAccount(snapshot, account, 0, startedAt, "warning");
         snapshot.sync_log.push({
@@ -98,7 +110,7 @@ async function main() {
           at: startedAt,
           status: "error",
           message: error.message,
-          new_messages: 0
+          new_messages: 0,
         });
         console.error(`Sync failed for ${account.account_id}: ${error.message}`);
       }
@@ -127,7 +139,7 @@ function upsertAccount(snapshot, account, added, at, status) {
     status,
     unread_count: owned.filter((item) => item.unread).length,
     conversation_count: owned.length,
-    last_sync_at: at
+    last_sync_at: at,
   };
   if (existing) Object.assign(existing, patch);
   else snapshot.accounts.push(patch);
@@ -156,24 +168,45 @@ async function syncSlack(account) {
   const selfId = auth.user_id;
   let channelIds = account.channels || [];
   if (!channelIds.length) {
-    const list = await fetchJson("https://slack.com/api/conversations.list?types=public_channel,private_channel,im&limit=100", { headers });
+    const list = await fetchJson(
+      "https://slack.com/api/conversations.list?types=public_channel,private_channel,im&limit=100",
+      { headers },
+    );
     if (!list.ok) throw new Error(`Slack conversations.list failed: ${list.error}`);
-    channelIds = (list.channels || []).filter((channel) => channel.is_member || channel.is_im).slice(0, 20).map((channel) => channel.id);
+    channelIds = (list.channels || [])
+      .filter((channel) => channel.is_member || channel.is_im)
+      .slice(0, 20)
+      .map((channel) => channel.id);
   }
   const conversations = [];
   for (const channelId of channelIds) {
-    const history = await fetchJson(`https://slack.com/api/conversations.history?channel=${encodeURIComponent(channelId)}&limit=50`, { headers });
+    const history = await fetchJson(
+      `https://slack.com/api/conversations.history?channel=${encodeURIComponent(channelId)}&limit=50`,
+      { headers },
+    );
     if (!history.ok) throw new Error(`Slack conversations.history failed for ${channelId}: ${history.error}`);
-    const messages = (history.messages || []).filter((message) => message.type === "message" && message.text).reverse().map((message) => ({
-      message_id: `slack-${channelId}-${message.ts}`,
-      direction: message.user === selfId ? "outgoing" : "incoming",
-      sender: message.user === selfId ? "Kelly" : (message.username || message.user || "unknown"),
-      text: message.text,
-      sent_at: new Date(Number.parseFloat(message.ts) * 1000).toISOString(),
-      attachment: message.files?.length ? `file: ${message.files[0].name}` : ""
-    }));
+    const messages = (history.messages || [])
+      .filter((message) => message.type === "message" && message.text)
+      .reverse()
+      .map((message) => ({
+        message_id: `slack-${channelId}-${message.ts}`,
+        direction: message.user === selfId ? "outgoing" : "incoming",
+        sender: message.user === selfId ? "Kelly" : message.username || message.user || "unknown",
+        text: message.text,
+        sent_at: new Date(Number.parseFloat(message.ts) * 1000).toISOString(),
+        attachment: message.files?.length ? `file: ${message.files[0].name}` : "",
+      }));
     if (!messages.length) continue;
-    conversations.push(baseConversation(account, `slack-${account.account_id}-${channelId}`, channelId, "channel", `#${channelId}`, messages));
+    conversations.push(
+      baseConversation(
+        account,
+        `slack-${account.account_id}-${channelId}`,
+        channelId,
+        "channel",
+        `#${channelId}`,
+        messages,
+      ),
+    );
   }
   return { conversations, note: `${channelIds.length} channels scanned via conversations.history.` };
 }
@@ -188,16 +221,29 @@ async function syncDiscord(account) {
   for (const channelId of channelIds) {
     const channel = await fetchJson(`https://discord.com/api/v10/channels/${channelId}`, { headers });
     const raw = await fetchJson(`https://discord.com/api/v10/channels/${channelId}/messages?limit=50`, { headers });
-    const messages = raw.filter((message) => message.content).reverse().map((message) => ({
-      message_id: `discord-${channelId}-${message.id}`,
-      direction: message.author?.id === me.id ? "outgoing" : "incoming",
-      sender: message.author?.id === me.id ? "Kelly" : (message.author?.global_name || message.author?.username || "unknown"),
-      text: message.content,
-      sent_at: message.timestamp,
-      attachment: message.attachments?.length ? `file: ${message.attachments[0].filename}` : ""
-    }));
+    const messages = raw
+      .filter((message) => message.content)
+      .reverse()
+      .map((message) => ({
+        message_id: `discord-${channelId}-${message.id}`,
+        direction: message.author?.id === me.id ? "outgoing" : "incoming",
+        sender:
+          message.author?.id === me.id ? "Kelly" : message.author?.global_name || message.author?.username || "unknown",
+        text: message.content,
+        sent_at: message.timestamp,
+        attachment: message.attachments?.length ? `file: ${message.attachments[0].filename}` : "",
+      }));
     if (!messages.length) continue;
-    conversations.push(baseConversation(account, `discord-${account.account_id}-${channelId}`, channelId, channel.type === 1 ? "dm" : "channel", channel.name ? `#${channel.name}` : "", messages));
+    conversations.push(
+      baseConversation(
+        account,
+        `discord-${account.account_id}-${channelId}`,
+        channelId,
+        channel.type === 1 ? "dm" : "channel",
+        channel.name ? `#${channel.name}` : "",
+        messages,
+      ),
+    );
   }
   return { conversations, note: `${channelIds.length} channels scanned via REST.` };
 }
@@ -218,21 +264,23 @@ async function syncTelegram(account) {
     byChat.get(key).messages.push({
       message_id: `telegram-${chat.id}-${message.message_id}`,
       direction: message.from?.id === me.result.id ? "outgoing" : "incoming",
-      sender: message.from?.id === me.result.id ? "Kelly" : (message.from?.first_name || chat.title || "unknown"),
+      sender: message.from?.id === me.result.id ? "Kelly" : message.from?.first_name || chat.title || "unknown",
       text: message.text,
       sent_at: new Date(message.date * 1000).toISOString(),
-      attachment: ""
+      attachment: "",
     });
   }
-  const conversations = [...byChat.values()].map(({ chat, messages }) => baseConversation(
-    account,
-    `telegram-${account.account_id}-${chat.id}`,
-    String(chat.id),
-    chat.type === "private" ? "dm" : "group",
-    "",
-    messages,
-    chat.title || [chat.first_name, chat.last_name].filter(Boolean).join(" ")
-  ));
+  const conversations = [...byChat.values()].map(({ chat, messages }) =>
+    baseConversation(
+      account,
+      `telegram-${account.account_id}-${chat.id}`,
+      String(chat.id),
+      chat.type === "private" ? "dm" : "group",
+      "",
+      messages,
+      chat.title || [chat.first_name, chat.last_name].filter(Boolean).join(" "),
+    ),
+  );
   return { conversations, note: "getUpdates drained. Note: the bot must share the chats it should read." };
 }
 
@@ -243,11 +291,11 @@ async function syncWhatsappCloud(account) {
   // Verify credentials; the Cloud API delivers inbound messages via webhooks only,
   // so history collection happens through ingest payloads or a webhook relay.
   await fetchJson(`https://graph.facebook.com/v20.0/${phoneNumberId}?fields=display_phone_number`, {
-    headers: { authorization: `Bearer ${token}` }
+    headers: { authorization: `Bearer ${token}` },
   });
   return {
     conversations: [],
-    note: "Credentials verified. WhatsApp Cloud API is webhook-based: ingest collected payloads via scripts/ingest_messages.mjs."
+    note: "Credentials verified. WhatsApp Cloud API is webhook-based: ingest collected payloads via scripts/ingest_messages.mjs.",
   };
 }
 
@@ -269,7 +317,7 @@ function baseConversation(account, conversationId, providerConversationId, kind,
     last_message_at: last?.sent_at || "",
     last_incoming_at: lastIncoming?.sent_at || "",
     suggested_reply: "",
-    messages
+    messages,
   };
 }
 

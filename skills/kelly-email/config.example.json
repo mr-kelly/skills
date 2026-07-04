@@ -12,10 +12,7 @@
       "display_name": "Primary Support Inbox",
       "primary_email": "support@example.com",
       "provider": "imap",
-      "aliases": [
-        "help@example.com",
-        "hello@example.com"
-      ],
+      "aliases": ["help@example.com", "hello@example.com"],
       "imap": {
         "host": "imap.example.com",
         "port": 993,
@@ -30,10 +27,7 @@
         "username": "support@example.com",
         "password_env": "KELLY_EMAIL_SMTP_PASSWORD_PRIMARY"
       },
-      "support_folders_or_labels": [
-        "Inbox",
-        "Support"
-      ],
+      "support_folders_or_labels": ["Inbox", "Support"],
       "archive_routing": {
         "default_folder": "Processed",
         "by_category": {
@@ -52,9 +46,7 @@
       },
       "default_language": "auto",
       "mailbox_group_id": "example-mailbox-group",
-      "send_identities": [
-        "primary-support"
-      ],
+      "send_identities": ["primary-support"],
       "support_goal": {
         "target": "unread_zero",
         "unread_only": true,
@@ -67,10 +59,7 @@
       "display_name": "Founder Inbox",
       "primary_email": "founder@example.com",
       "provider": "imap",
-      "aliases": [
-        "founder@brand.example",
-        "partnerships@brand.example"
-      ],
+      "aliases": ["founder@brand.example", "partnerships@brand.example"],
       "imap": {
         "host": "imap.example.com",
         "port": 993,
@@ -85,10 +74,7 @@
         "username": "founder@example.com",
         "password_env": "KELLY_EMAIL_SMTP_PASSWORD_FOUNDER"
       },
-      "support_folders_or_labels": [
-        "Inbox",
-        "Support"
-      ],
+      "support_folders_or_labels": ["Inbox", "Support"],
       "archive_routing": {
         "default_folder": "Processed",
         "by_category": {
@@ -107,9 +93,7 @@
       },
       "default_language": "auto",
       "mailbox_group_id": "example-mailbox-group",
-      "send_identities": [
-        "founder"
-      ],
+      "send_identities": ["founder"],
       "support_goal": {
         "target": "unread_zero",
         "unread_only": true,
@@ -129,14 +113,9 @@
       "reply_to": "support@example.com",
       "signature": "Support\nExample Product",
       "use_when": {
-        "recipient_addresses": [
-          "support@example.com"
-        ],
+        "recipient_addresses": ["support@example.com"],
         "customer_domains": [],
-        "keywords": [
-          "support",
-          "help"
-        ]
+        "keywords": ["support", "help"]
       },
       "avoid_when": []
     },
@@ -150,14 +129,9 @@
       "reply_to": "founder@example.com",
       "signature": "Founder\nExample Product",
       "use_when": {
-        "recipient_addresses": [
-          "founder@example.com"
-        ],
+        "recipient_addresses": ["founder@example.com"],
         "customer_domains": [],
-        "keywords": [
-          "founder",
-          "partnership"
-        ]
+        "keywords": ["founder", "partnership"]
       },
       "avoid_when": []
     }
@@ -167,10 +141,7 @@
     "role": "Founder",
     "company": "Example Company",
     "default_reply_as": "Support",
-    "languages": [
-      "auto",
-      "English"
-    ],
+    "languages": ["auto", "English"],
     "contact_methods": [
       {
         "label": "Calendar",
@@ -197,12 +168,8 @@
       "support_url": "mailto:support@example.com",
       "youtube_url": "https://www.youtube.com/@example",
       "use_when": {
-        "recipient_addresses": [
-          "support@example.com"
-        ],
-        "keywords": [
-          "example product"
-        ]
+        "recipient_addresses": ["support@example.com"],
+        "keywords": ["example product"]
       }
     }
   ],
@@ -224,34 +191,24 @@
         "type": "url",
         "title": "Public website",
         "url": "https://example.com",
-        "use_for": [
-          "product positioning",
-          "CTA links"
-        ]
+        "use_for": ["product positioning", "CTA links"]
       },
       {
         "source_id": "docs",
         "type": "url",
         "title": "Product docs",
         "url": "https://docs.example.com",
-        "use_for": [
-          "how-to answers",
-          "feature details"
-        ]
+        "use_for": ["how-to answers", "feature details"]
       },
       {
         "source_id": "local-faq",
         "type": "file",
         "title": "Local FAQ notes",
         "path": "~/Documents/kelly-email/faq.md",
-        "use_for": [
-          "repeat support answers"
-        ]
+        "use_for": ["repeat support answers"]
       }
     ],
-    "facts": [
-      "Add durable product facts here. Keep them short and non-secret."
-    ],
+    "facts": ["Add durable product facts here. Keep them short and non-secret."],
     "do_not_say": [
       "Do not promise custom work, refunds, discounts, roadmap dates, or legal/compliance guarantees unless the user explicitly approves."
     ]
@@ -315,9 +272,7 @@
     }
   },
   "risk_policy": {
-    "block_by_default": [
-      "send_reply"
-    ],
+    "block_by_default": ["send_reply"],
     "review_keywords": {
       "money": [
         "invoice",
@@ -332,22 +287,9 @@
         "付款",
         "支付"
       ],
-      "security": [
-        "password",
-        "login",
-        "account access",
-        "privacy",
-        "PAT",
-        "token"
-      ],
-      "attachments": [
-        "report attached",
-        "invoice attached"
-      ]
+      "security": ["password", "login", "account access", "privacy", "PAT", "token"],
+      "attachments": ["report attached", "invoice attached"]
     },
-    "allow_override_for": [
-      "archive",
-      "mark_read"
-    ]
+    "allow_override_for": ["archive", "mark_read"]
   }
 }

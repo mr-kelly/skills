@@ -114,7 +114,7 @@ export const messages = {
         hiring: "hiring",
         community: "community",
         search: "search",
-        category: "category"
+        category: "category",
       },
       severity: { high: "high", medium: "medium", low: "low" },
       status: {
@@ -132,19 +132,25 @@ export const messages = {
         researching: "researching",
         report_ready: "report ready",
         annotated: "annotated",
-        closed: "closed"
+        closed: "closed",
       },
       target_type: { competitor: "competitor", category: "category", keyword: "keyword", community: "community" },
       method: { browser_agent: "browser agent", manual: "manual" },
       depth: { quick: "quick", standard: "standard", deep: "deep" },
-      action: { approve: "act", watch: "watch", ignore: "ignore", block: "needs info", request_changes: "changes requested" },
+      action: {
+        approve: "act",
+        watch: "watch",
+        ignore: "ignore",
+        block: "needs info",
+        request_changes: "changes requested",
+      },
       operation: {
         handoff_content_brief: "content brief → kelly-writer",
         handoff_roadmap_candidate: "roadmap candidate → kelly-feedback",
         add_watch_source: "add watch source",
-        start_research: "start research"
-      }
-    }
+        start_research: "start research",
+      },
+    },
   },
   zh: {
     act: "行动",
@@ -261,7 +267,7 @@ export const messages = {
         hiring: "招聘",
         community: "社区",
         search: "搜索",
-        category: "品类"
+        category: "品类",
       },
       severity: { high: "高", medium: "中", low: "低" },
       status: {
@@ -279,7 +285,7 @@ export const messages = {
         researching: "研究中",
         report_ready: "报告已就绪",
         annotated: "已批注",
-        closed: "已关闭"
+        closed: "已关闭",
       },
       target_type: { competitor: "竞品", category: "品类", keyword: "关键词", community: "社区" },
       method: { browser_agent: "浏览器智能体", manual: "手动" },
@@ -289,8 +295,8 @@ export const messages = {
         handoff_content_brief: "内容简报 → kelly-writer",
         handoff_roadmap_candidate: "路线图候选 → kelly-feedback",
         add_watch_source: "新增监控源",
-        start_research: "启动研究"
-      }
-    }
-  }
+        start_research: "启动研究",
+      },
+    },
+  },
 };

@@ -101,7 +101,7 @@ export const messages = {
         lost: "lost",
         queued: "queued",
         handed_off: "handed off",
-        dry_run: "dry run"
+        dry_run: "dry run",
       },
       stage: {
         lead: "lead",
@@ -109,13 +109,13 @@ export const messages = {
         proposal: "proposal",
         negotiation: "negotiation",
         won: "won",
-        lost: "lost"
+        lost: "lost",
       },
       relationship: {
         strong: "strong",
         warm: "warm",
         cool: "cool",
-        new: "new"
+        new: "new",
       },
       type: {
         email: "email",
@@ -124,26 +124,26 @@ export const messages = {
         chat: "chat",
         social: "social",
         note: "note",
-        linkedin: "linkedin"
+        linkedin: "linkedin",
       },
       direction: {
         inbound: "inbound",
         outbound: "outbound",
-        internal: "internal"
+        internal: "internal",
       },
       risk: {
         money: "money",
         legal: "legal",
         commitment: "commitment",
-        privacy: "privacy"
+        privacy: "privacy",
       },
       action: {
         approve: "approved",
         request_changes: "changes requested",
         block: "blocked",
-        revise: "revised"
-      }
-    }
+        revise: "revised",
+      },
+    },
   },
   zh: {
     all: "全部",
@@ -247,7 +247,7 @@ export const messages = {
         lost: "已输单",
         queued: "排队中",
         handed_off: "已交接",
-        dry_run: "试运行"
+        dry_run: "试运行",
       },
       stage: {
         lead: "线索",
@@ -255,13 +255,13 @@ export const messages = {
         proposal: "方案",
         negotiation: "谈判",
         won: "赢单",
-        lost: "输单"
+        lost: "输单",
       },
       relationship: {
         strong: "紧密",
         warm: "友好",
         cool: "疏远",
-        new: "新建"
+        new: "新建",
       },
       type: {
         email: "邮件",
@@ -270,25 +270,25 @@ export const messages = {
         chat: "聊天",
         social: "社交",
         note: "备注",
-        linkedin: "领英"
+        linkedin: "领英",
       },
       direction: {
         inbound: "收到",
         outbound: "发出",
-        internal: "内部"
+        internal: "内部",
       },
       risk: {
         money: "涉及金额",
         legal: "涉及法务",
         commitment: "涉及承诺",
-        privacy: "涉及隐私"
+        privacy: "涉及隐私",
       },
       action: {
         approve: "已批准",
         request_changes: "请求修改",
         block: "已搁置",
-        revise: "已修订"
-      }
-    }
-  }
+        revise: "已修订",
+      },
+    },
+  },
 };

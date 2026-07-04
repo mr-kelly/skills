@@ -9,7 +9,7 @@ import {
   readJson,
   utcNow,
   writeAgentLock,
-  writeJson
+  writeJson,
 } from "../lib/common.mjs";
 
 function parseArgs(argv) {
@@ -37,8 +37,8 @@ function configuredKeywords(config, riskName) {
 }
 
 function hasConfiguredRisk(config, riskName, text) {
-  return configuredKeywords(config, riskName).some((keyword) =>
-    keyword && text.toLowerCase().includes(String(keyword).toLowerCase())
+  return configuredKeywords(config, riskName).some(
+    (keyword) => keyword && text.toLowerCase().includes(String(keyword).toLowerCase()),
   );
 }
 
@@ -58,10 +58,14 @@ function safetyBlockReason(item, action, config) {
   const category = item.category || "";
   const risks = new Set(item.risk || []);
 
-  if (category === "money" || risks.has("money") || hasConfiguredRisk(config, "money", text)) return "configured money cleanup block matched";
-  if (category === "course_feedback" || hasConfiguredRisk(config, "course_feedback", text)) return "configured course cleanup block matched";
-  if (risks.has("security") || category === "data_privacy_security" || hasConfiguredRisk(config, "security", text)) return "configured security cleanup block matched";
-  if (item.attachments?.length || hasConfiguredRisk(config, "attachments", text)) return "configured attachment cleanup block matched";
+  if (category === "money" || risks.has("money") || hasConfiguredRisk(config, "money", text))
+    return "configured money cleanup block matched";
+  if (category === "course_feedback" || hasConfiguredRisk(config, "course_feedback", text))
+    return "configured course cleanup block matched";
+  if (risks.has("security") || category === "data_privacy_security" || hasConfiguredRisk(config, "security", text))
+    return "configured security cleanup block matched";
+  if (item.attachments?.length || hasConfiguredRisk(config, "attachments", text))
+    return "configured attachment cleanup block matched";
   return null;
 }
 
@@ -94,7 +98,7 @@ function archiveTargetFolder(config, mailbox, item) {
   const mailboxRouting = asObject(mailbox.archive_routing);
   const byCategory = {
     ...asObject(globalRouting.by_category),
-    ...asObject(mailboxRouting.by_category)
+    ...asObject(mailboxRouting.by_category),
   };
   return firstString(
     item.target_folder,
@@ -106,7 +110,7 @@ function archiveTargetFolder(config, mailbox, item) {
     riskTarget(globalRouting, item),
     mailboxRouting.default_folder,
     mailbox.archive_folder,
-    globalRouting.default_folder
+    globalRouting.default_folder,
   );
 }
 
@@ -125,7 +129,9 @@ function parseAddresses(value) {
 }
 
 function normalizeEmail(value) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .trim()
+    .toLowerCase();
 }
 
 function resolveIdentity(item, config) {
@@ -152,25 +158,25 @@ function resolveIdentity(item, config) {
 function executionPlan(entry) {
   const base = {
     ...entry,
-    mark_read: ["archive", "mark_read", "send_reply"].includes(entry.action)
+    mark_read: ["archive", "mark_read", "send_reply"].includes(entry.action),
   };
   if (entry.action === "archive") {
     return {
       ...base,
       mailbox_operation: "move_to_folder",
-      target_folder: entry.target_folder
+      target_folder: entry.target_folder,
     };
   }
   if (entry.action === "mark_read") {
     return {
       ...base,
-      mailbox_operation: "mark_read"
+      mailbox_operation: "mark_read",
     };
   }
   if (entry.action === "send_reply") {
     return {
       ...base,
-      mailbox_operation: "send_reply"
+      mailbox_operation: "send_reply",
     };
   }
   return base;
@@ -182,7 +188,7 @@ function connectorBlock(entry) {
     ...plan,
     status: "blocked",
     skip_reason:
-      "IMAP/SMTP execution connector is not bundled in the zero-dependency Kelly Email skill. Use an external connector to apply approved mailbox actions exactly as planned."
+      "IMAP/SMTP execution connector is not bundled in the zero-dependency Kelly Email skill. Use an external connector to apply approved mailbox actions exactly as planned.",
   };
 }
 
@@ -202,7 +208,7 @@ function compactResult(result) {
     identity: result.identity,
     send_as: result.send_as,
     skip_reason: result.skip_reason,
-    error: result.error
+    error: result.error,
   };
 }
 
@@ -217,13 +223,16 @@ async function writeReport(batch, results, blocked, dryRun, allowRiskApproved) {
     allow_risk_approved: allowRiskApproved,
     connector: {
       status: "not_bundled",
-      message: "Zero-dependency Kelly Email did not mutate mailboxes or send email."
+      message: "Zero-dependency Kelly Email did not mutate mailboxes or send email.",
     },
     summary,
     results: results.map(compactResult),
-    blocked: blocked.map(compactResult)
+    blocked: blocked.map(compactResult),
   };
-  const stamp = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
+  const stamp = new Date()
+    .toISOString()
+    .replace(/[-:T.Z]/g, "")
+    .slice(0, 14);
   const path = `${REPORTS_DIR}/${batch.batch_id}-${stamp}.json`;
   await writeJson(path, report);
   return path;
@@ -240,7 +249,7 @@ async function updateBatchAfterExecution(batch, results, blocked) {
       mailbox_operation: result.mailbox_operation,
       target_folder: result.target_folder,
       mark_read: result.mark_read,
-      checked_at: utcNow()
+      checked_at: utcNow(),
     };
   }
   for (const result of blocked) {
@@ -253,7 +262,7 @@ async function updateBatchAfterExecution(batch, results, blocked) {
       target_folder: result.target_folder,
       mark_read: result.mark_read,
       reason: result.skip_reason,
-      checked_at: utcNow()
+      checked_at: utcNow(),
     };
     item.status = "needs_review";
     item.proposed_action = "review";
@@ -272,7 +281,8 @@ async function main() {
   const mailboxes = mailboxMap(config);
   const batch = await readJson(CURRENT_BATCH_PATH);
   const decisionsPayload = await readJson(DECISIONS_PATH);
-  if (decisionsPayload.batch_id !== batch.batch_id) throw new Error("decisions.json batch_id does not match current_batch.json");
+  if (decisionsPayload.batch_id !== batch.batch_id)
+    throw new Error("decisions.json batch_id does not match current_batch.json");
 
   const items = new Map((batch.items || []).map((item) => [String(item.id), item]));
   const results = [];
@@ -283,7 +293,12 @@ async function main() {
     if (!["archive", "mark_read", "send_reply"].includes(action)) continue;
     const item = items.get(String(decisionRow.id));
     if (!item) {
-      blocked.push({ item: { uid: decisionRow.uid, subject: decisionRow.subject }, action, status: "blocked", skip_reason: "item missing from batch" });
+      blocked.push({
+        item: { uid: decisionRow.uid, subject: decisionRow.subject },
+        action,
+        status: "blocked",
+        skip_reason: "item missing from batch",
+      });
       continue;
     }
     if (decisionRow.edited_draft !== undefined) item.draft = decisionRow.edited_draft;
@@ -311,7 +326,7 @@ async function main() {
           status: "blocked",
           mailbox_operation: "move_to_folder",
           mark_read: true,
-          skip_reason: `archive requires a target folder for account ${item.account}; configure archive_routing.default_folder or archive_routing.by_category.${item.category || "other"}`
+          skip_reason: `archive requires a target folder for account ${item.account}; configure archive_routing.default_folder or archive_routing.by_category.${item.category || "other"}`,
         });
         continue;
       }
@@ -332,17 +347,23 @@ async function main() {
 
   if (!args.dryRun) await updateBatchAfterExecution(batch, results, blocked);
   const reportPath = await writeReport(batch, results, blocked, args.dryRun, args.allowRiskApproved);
-  console.log(JSON.stringify({
-    batch_id: batch.batch_id,
-    dry_run: args.dryRun,
-    allow_risk_approved: args.allowRiskApproved,
-    executed: 0,
-    dry_run_count: results.filter((result) => result.status === "dry_run").length,
-    errors: results.filter((result) => result.status === "error").length,
-    blocked: blocked.length,
-    connector_status: "not_bundled",
-    report_path: reportPath
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        batch_id: batch.batch_id,
+        dry_run: args.dryRun,
+        allow_risk_approved: args.allowRiskApproved,
+        executed: 0,
+        dry_run_count: results.filter((result) => result.status === "dry_run").length,
+        errors: results.filter((result) => result.status === "error").length,
+        blocked: blocked.length,
+        connector_status: "not_bundled",
+        report_path: reportPath,
+      },
+      null,
+      2,
+    ),
+  );
   return 0;
 }
 

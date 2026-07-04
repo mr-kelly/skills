@@ -131,7 +131,7 @@ export const messages = {
         whatsapp: "WhatsApp",
         instagram: "Instagram",
         messenger: "Messenger",
-        email: "Email"
+        email: "Email",
       },
       connector: {
         whatsapp_cloud: "WhatsApp Cloud API",
@@ -139,7 +139,7 @@ export const messages = {
         messenger_graph: "Messenger Graph API",
         email_agent: "kelly-email handoff",
         browser_agent: "Browser agent",
-        manual: "Manual ingest"
+        manual: "Manual ingest",
       },
       stage: {
         new: "new",
@@ -147,11 +147,11 @@ export const messages = {
         quoted: "quoted",
         negotiating: "negotiating",
         won: "won",
-        lost: "lost"
+        lost: "lost",
       },
       kind: {
         reply: "Reply",
-        quote: "Quote"
+        quote: "Quote",
       },
       status: {
         needs_review: "needs review",
@@ -170,9 +170,9 @@ export const messages = {
         executed: "executed",
         handoff: "handoff to agent",
         pending: "pending",
-        open: "open"
-      }
-    }
+        open: "open",
+      },
+    },
   },
   zh: {
     accounts: "渠道",
@@ -306,7 +306,7 @@ export const messages = {
         whatsapp: "WhatsApp",
         instagram: "Instagram",
         messenger: "Messenger",
-        email: "邮件"
+        email: "邮件",
       },
       connector: {
         whatsapp_cloud: "WhatsApp Cloud API",
@@ -314,7 +314,7 @@ export const messages = {
         messenger_graph: "Messenger Graph API",
         email_agent: "kelly-email 移交",
         browser_agent: "浏览器 Agent",
-        manual: "手动导入"
+        manual: "手动导入",
       },
       stage: {
         new: "新询盘",
@@ -322,11 +322,11 @@ export const messages = {
         quoted: "已报价",
         negotiating: "谈判中",
         won: "已成交",
-        lost: "已流失"
+        lost: "已流失",
       },
       kind: {
         reply: "回复",
-        quote: "报价"
+        quote: "报价",
       },
       status: {
         needs_review: "待审核",
@@ -345,8 +345,8 @@ export const messages = {
         executed: "已执行",
         handoff: "移交 Agent",
         pending: "待处理",
-        open: "进行中"
-      }
-    }
-  }
+        open: "进行中",
+      },
+    },
+  },
 };

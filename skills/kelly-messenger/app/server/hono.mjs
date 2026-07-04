@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR } from "./paths.mjs";
 import { demoStatePayload, isDemoQuery } from "./demo.mjs";
+import { APP_DIR } from "./paths.mjs";
 import {
   decideReply,
   queueReply,
@@ -13,7 +13,7 @@ import {
   readOnboarding,
   readOutbox,
   readSnapshot,
-  summarizeConfig
+  summarizeConfig,
 } from "./store.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
@@ -29,13 +29,13 @@ const types = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8"
+  ".json": "application/json; charset=utf-8",
 };
 
 function jsonResponse(c, status, body) {
   return c.body(JSON.stringify(body), status, {
     "content-type": "application/json; charset=utf-8",
-    "cache-control": "no-store"
+    "cache-control": "no-store",
   });
 }
 
@@ -47,7 +47,7 @@ async function state() {
     readLock(),
     readAgentTasks(),
     readExecutionReport(),
-    readConfig()
+    readConfig(),
   ]);
   return {
     app: "kelly-messenger",
@@ -58,7 +58,7 @@ async function state() {
     snapshot,
     outbox,
     agent_tasks: agentTasks,
-    execution_report: executionReport
+    execution_report: executionReport,
   };
 }
 
@@ -82,7 +82,7 @@ app.post("/api/outbox/*", async (c) => {
       conversation_id: String(body.conversation_id || ""),
       text: String(body.text || ""),
       note: String(body.note || ""),
-      suggested_by: "human"
+      suggested_by: "human",
     });
     return jsonResponse(c, 200, { ok: true, reply });
   }
@@ -91,7 +91,7 @@ app.post("/api/outbox/*", async (c) => {
       reply_id: String(body.reply_id || ""),
       action: String(body.action || ""),
       comment: String(body.comment || ""),
-      text: typeof body.text === "string" ? body.text : undefined
+      text: typeof body.text === "string" ? body.text : undefined,
     });
     return jsonResponse(c, 200, { ok: true, reply });
   }

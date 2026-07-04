@@ -65,9 +65,45 @@ const templateSections = Array.isArray(config.template_sections) ? config.templa
 const classLength = config.school?.class_length_minutes ?? snapshot.school?.class_length_minutes ?? 45;
 
 const DEFAULT_MEASURABLE_VERBS = [
-  "identify", "solve", "explain", "apply", "list", "compare", "calculate", "summarize", "analyze", "use",
-  "describe", "state", "measure", "construct", "sketch", "recite", "predict", "compute", "extract", "write",
-  "说出", "写出", "计算", "运用", "分析", "归纳", "比较", "解释", "识别", "列举", "描述", "背诵", "测量", "画出", "会画", "预测", "陈述", "提取", "完成"
+  "identify",
+  "solve",
+  "explain",
+  "apply",
+  "list",
+  "compare",
+  "calculate",
+  "summarize",
+  "analyze",
+  "use",
+  "describe",
+  "state",
+  "measure",
+  "construct",
+  "sketch",
+  "recite",
+  "predict",
+  "compute",
+  "extract",
+  "write",
+  "说出",
+  "写出",
+  "计算",
+  "运用",
+  "分析",
+  "归纳",
+  "比较",
+  "解释",
+  "识别",
+  "列举",
+  "描述",
+  "背诵",
+  "测量",
+  "画出",
+  "会画",
+  "预测",
+  "陈述",
+  "提取",
+  "完成",
 ];
 const DEFAULT_LAB_KEYWORDS = ["lab", "experiment", "实验"];
 
@@ -83,14 +119,19 @@ function sectionPresent(plan, key) {
 
 function isLabLesson(plan, keywords) {
   const haystack = [
-    plan.title, plan.unit,
+    plan.title,
+    plan.unit,
     ...(plan.sections?.materials || []),
-    ...(plan.sections?.stages || []).map((stage) => `${stage.name} ${stage.activities || ""}`)
-  ].filter(Boolean).join(" ").toLowerCase();
+    ...(plan.sections?.stages || []).map((stage) => `${stage.name} ${stage.activities || ""}`),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
   return keywords.some((keyword) => {
     const needle = String(keyword).toLowerCase();
     // Word-boundary match for ASCII keywords so "lab" does not match "label";
     // CJK keywords (no word boundaries) use plain substring matching.
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional ASCII-range (\x00-\x7f) test to distinguish ASCII from CJK keywords
     if (/^[\x00-\x7f]+$/.test(needle)) {
       return new RegExp(`\\b${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(haystack);
     }
@@ -107,16 +148,22 @@ function evaluateRule(rule, plan) {
       const minObjectives = params.min_objectives ?? 2;
       const verbs = (params.measurable_verbs || DEFAULT_MEASURABLE_VERBS).map((verb) => String(verb).toLowerCase());
       if (!objectives.length) return ["fail", "No learning objectives listed."];
-      const measurable = objectives.filter((objective) => verbs.some((verb) => String(objective).toLowerCase().includes(verb)));
+      const measurable = objectives.filter((objective) =>
+        verbs.some((verb) => String(objective).toLowerCase().includes(verb)),
+      );
       if (measurable.length === objectives.length && objectives.length >= minObjectives) {
         return ["pass", `${objectives.length} objectives, all with measurable verbs.`];
       }
       if (!measurable.length) return ["fail", `None of the ${objectives.length} objectives uses a measurable verb.`];
-      return ["warn", `${measurable.length} of ${objectives.length} objectives use measurable verbs (minimum ${minObjectives} objectives).`];
+      return [
+        "warn",
+        `${measurable.length} of ${objectives.length} objectives use measurable verbs (minimum ${minObjectives} objectives).`,
+      ];
     }
     case "stage_count_timing": {
       const minStages = params.min_stages ?? 3;
-      if (stages.length < minStages) return ["fail", `Only ${stages.length} stage(s) listed; at least ${minStages} required.`];
+      if (stages.length < minStages)
+        return ["fail", `Only ${stages.length} stage(s) listed; at least ${minStages} required.`];
       const untimed = stages.filter((stage) => !(Number(stage.minutes) > 0));
       if (untimed.length) return ["fail", `${stages.length} stages but ${untimed.length} have no time allocation.`];
       return ["pass", `${stages.length} stages, all with time allocation.`];
@@ -187,7 +234,7 @@ for (const plan of snapshot.plans || []) {
       result,
       evidence,
       ...(existing?.judged_by ? { judged_by: existing.judged_by } : {}),
-      checked_at: now
+      checked_at: now,
     });
   }
 }
@@ -204,7 +251,7 @@ snapshot.rules = configRules.map((rule) => ({
   rule_id: rule.rule_id,
   name: rule.name || rule.rule_id,
   severity: rule.severity || "warning",
-  type: rule.type || "deterministic"
+  type: rule.type || "deterministic",
 }));
 snapshot.checks = checks;
 
@@ -217,7 +264,9 @@ snapshot.metrics = {
   plans_in_revision: (snapshot.plans || []).filter((plan) => plan.status === "changes_requested").length,
   plans_needs_review: (snapshot.plans || []).filter((plan) => plan.status === "needs_review").length,
   checks_failed: checks.filter((check) => check.result === "fail").length,
-  compliance_pass_rate: Math.round((resolved.filter((check) => check.result === "pass").length / Math.max(1, resolved.length)) * 100)
+  compliance_pass_rate: Math.round(
+    (resolved.filter((check) => check.result === "pass").length / Math.max(1, resolved.length)) * 100,
+  ),
 };
 snapshot.generated_at = now;
 
@@ -225,5 +274,7 @@ await fs.writeFile(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
 const failCount = snapshot.metrics.checks_failed;
 const warnCount = checks.filter((check) => check.result === "warn").length;
 const pending = checks.filter((check) => check.result === "agent_review").length;
-console.log(`Checked ${(snapshot.plans || []).length} plan(s) against ${configRules.length} rule(s): ${failCount} fail, ${warnCount} warn, ${pending} awaiting agent review.`);
+console.log(
+  `Checked ${(snapshot.plans || []).length} plan(s) against ${configRules.length} rule(s): ${failCount} fail, ${warnCount} warn, ${pending} awaiting agent review.`,
+);
 console.log(`Wrote ${snapshotPath}`);

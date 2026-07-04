@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { currentBatchPath } from "../lib/paths.mjs";
 import { readJson } from "../lib/common.mjs";
+import { currentBatchPath } from "../lib/paths.mjs";
 
 const allowedStatuses = new Set(["needs_review", "to_approve", "changes_requested", "approved", "done", "blocked"]);
 const batchPath = process.argv[2] || currentBatchPath;

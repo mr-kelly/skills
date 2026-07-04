@@ -4,9 +4,11 @@ export const I18N = {
     "filter.all": "All",
     "filter.all.tooltip": "Everything in the current local batch.",
     "filter.needs_review": "Needs Review",
-    "filter.needs_review.tooltip": "Messages that need your note or another /kelly-email pass. No mailbox action will run yet.",
+    "filter.needs_review.tooltip":
+      "Messages that need your note or another /kelly-email pass. No mailbox action will run yet.",
     "filter.approved": "Approved",
-    "filter.approved.tooltip": "Items with a clear next step. /kelly-email can take the next approved AI step after the final safety check.",
+    "filter.approved.tooltip":
+      "Items with a clear next step. /kelly-email can take the next approved AI step after the final safety check.",
     "filter.done": "Done",
     "filter.done.tooltip": "Already executed or explicitly marked as no action.",
     "filter.blocked": "Blocked",
@@ -46,7 +48,8 @@ export const I18N = {
     "tab.language": "Language",
     "tab.config": "Config",
     "guide.how_title": "How It Works",
-    "guide.how_body": "<code>/kelly-email</code> reads mail and writes a local batch. This app only edits local review files. After you approve items here, ask <code>/kelly-email</code> to execute approved decisions.",
+    "guide.how_body":
+      "<code>/kelly-email</code> reads mail and writes a local batch. This app only edits local review files. After you approve items here, ask <code>/kelly-email</code> to execute approved decisions.",
     "guide.workflow_title": "Workflow",
     "guide.step1": "Ask <code>/kelly-email</code> to generate a review batch.",
     "guide.step2": "Review messages here and approve, request a draft, or leave a note.",
@@ -82,8 +85,10 @@ export const I18N = {
     "config.title": "Configuration",
     "config.recommended": "Recommended user-wide files:",
     "config.alternative": "Alternative local files:",
-    "config.reader": "The data reader is currently local config. Later it can be swapped for Supabase, Postgres, or pusa-cloud without changing the approval UI contract.",
-    "config.json": "JSON stores accounts, aliases, identities, user profile, brands, official URLs, knowledge sources, style, CTA URLs, and risk keywords. Secrets stay in env files and are referenced by variable name.",
+    "config.reader":
+      "The data reader is currently local config. Later it can be swapped for Supabase, Postgres, or pusa-cloud without changing the approval UI contract.",
+    "config.json":
+      "JSON stores accounts, aliases, identities, user profile, brands, official URLs, knowledge sources, style, CTA URLs, and risk keywords. Secrets stay in env files and are referenced by variable name.",
     "action.approve_plan": "Approve plan",
     "action.needs_review": "Needs review",
     "action.no_action": "No action",
@@ -97,14 +102,19 @@ export const I18N = {
     "bulk.more_label": "More",
     "bulk.more_placeholder": "Choose decision",
     "bulk.more_aria": "More bulk decisions",
-    "bulk.approve.tooltip": "Approve each selected item's current plan in the local file. /kelly-email still applies the final safety gate before touching email.",
-    "bulk.review.tooltip": "Send the selected messages back to /kelly-email for human review. No mailbox action will be taken.",
+    "bulk.approve.tooltip":
+      "Approve each selected item's current plan in the local file. /kelly-email still applies the final safety gate before touching email.",
+    "bulk.review.tooltip":
+      "Send the selected messages back to /kelly-email for human review. No mailbox action will be taken.",
     "bulk.no_action.tooltip": "Record that no action should be taken for the selected messages in this batch.",
-    "detail.approve.tooltip": "Approve the suggested plan for this message. This only writes a local decision; /kelly-email still checks safety before execution.",
+    "detail.approve.tooltip":
+      "Approve the suggested plan for this message. This only writes a local decision; /kelly-email still checks safety before execution.",
     "detail.draft.tooltip": "Ask /kelly-email to draft a reply using your Review note. This does not send email.",
-    "detail.archive.tooltip": "Approve moving this message to the configured category folder and marking it read when /kelly-email executes approved decisions.",
+    "detail.archive.tooltip":
+      "Approve moving this message to the configured category folder and marking it read when /kelly-email executes approved decisions.",
     "detail.read.tooltip": "Approve marking this message as read while keeping it in the mailbox folder.",
-    "detail.send.tooltip": "Approve sending the edited draft as a reply. /kelly-email will still require safe threading and final send handling.",
+    "detail.send.tooltip":
+      "Approve sending the edited draft as a reply. /kelly-email will still require safe threading and final send handling.",
     "detail.review.tooltip": "Keep this message for human review. No mailbox action will be taken.",
     "detail.no_action.tooltip": "Record no action for this message in the local decision file.",
     "detail.save.tooltip": "Save this note to the local batch file. It does not touch email.",
@@ -115,7 +125,8 @@ export const I18N = {
     "detail.attachments": "Attachments",
     "detail.no_attachments": "No attachments",
     "detail.review_note": "Review note",
-    "detail.comment.placeholder": "Type one instruction for /kelly-email. Example: ask Casper; ok to archive; draft a short reply; this is paid invoice, leave unread.",
+    "detail.comment.placeholder":
+      "Type one instruction for /kelly-email. Example: ask Casper; ok to archive; draft a short reply; this is paid invoice, leave unread.",
     "detail.original_text": "Original text",
     "detail.translation_text": "Translation",
     "detail.translation_empty": "No translation is attached to this batch item yet.",
@@ -169,15 +180,22 @@ export const I18N = {
     "action_label.draft_reply": "draft reply",
     "action_label.keep_unread": "keep unread",
     "action_label.review": "needs review",
-    "review.background.default": "{from} sent \"{subject}\". {summary}",
+    "review.background.default": '{from} sent "{subject}". {summary}',
     "review.why.default": "Needs a human decision before mailbox changes.",
-    "review.recommend.default": "Read the message, then write your instruction in Review note. If it is safe cleanup, approve archive to the configured category folder.",
-    "review.recommend.money": "Confirm whether this needs finance/payment handling. If no action is needed, approve archive to the configured finance/category folder; otherwise write what I should do next.",
-    "review.recommend.course": "Review the student's submission or feedback first. Add a note if you want me to summarize or draft a reply.",
-    "review.recommend.security": "Check whether this involves account, privacy, security, or permission changes before approving cleanup.",
-    "review.recommend.partnership": "Decide whether this is worth pursuing. You can ask me to draft a short reply, forward internally, or archive.",
-    "review.recommend.customer": "Decide whether the sender needs a reply. Write the reply direction here and choose Draft reply.",
-    "review.recommend.attachments": "Review the attachment context before cleanup. Ask me to summarize or reply if needed.",
+    "review.recommend.default":
+      "Read the message, then write your instruction in Review note. If it is safe cleanup, approve archive to the configured category folder.",
+    "review.recommend.money":
+      "Confirm whether this needs finance/payment handling. If no action is needed, approve archive to the configured finance/category folder; otherwise write what I should do next.",
+    "review.recommend.course":
+      "Review the student's submission or feedback first. Add a note if you want me to summarize or draft a reply.",
+    "review.recommend.security":
+      "Check whether this involves account, privacy, security, or permission changes before approving cleanup.",
+    "review.recommend.partnership":
+      "Decide whether this is worth pursuing. You can ask me to draft a short reply, forward internally, or archive.",
+    "review.recommend.customer":
+      "Decide whether the sender needs a reply. Write the reply direction here and choose Draft reply.",
+    "review.recommend.attachments":
+      "Review the attachment context before cleanup. Ask me to summarize or reply if needed.",
     "onboarding.add_secrets": "Add missing secrets",
     "onboarding.setup": "Set up Kelly Email",
     "onboarding.default_message": "Configure email accounts before generating a mail batch.",
@@ -229,7 +247,8 @@ export const I18N = {
     "settings.path": "Path",
     "settings.no_usage_tags": "No usage tags",
     "account.add_title": "Add or change accounts with /kelly-email",
-    "account.add_body": "Tell the agent what mailbox, aliases, identity, folders, and provider you want. Keep passwords in the env file only.",
+    "account.add_body":
+      "Tell the agent what mailbox, aliases, identity, folders, and provider you want. Keep passwords in the env file only.",
     "account.secrets_missing": "Secrets missing",
     "account.setup_required": "Email setup required",
     "account.no_accounts": "No accounts configured",
@@ -240,7 +259,7 @@ export const I18N = {
     "account.smtp_missing": "SMTP missing",
     "toast.select_one": "Select at least one message",
     "toast.saved_count": "Saved local decision for {count} item(s)",
-    "toast.saved_detail": "Saved to local batch file"
+    "toast.saved_detail": "Saved to local batch file",
   },
   "zh-CN": {
     "brand.subtitle": "邮件审批台",
@@ -289,7 +308,8 @@ export const I18N = {
     "tab.language": "语言",
     "tab.config": "配置",
     "guide.how_title": "工作方式",
-    "guide.how_body": "<code>/kelly-email</code> 读取邮件并写入本地批次。这个应用只编辑本地审核文件。你在这里批准后，再让 <code>/kelly-email</code> 执行已批准的决定。",
+    "guide.how_body":
+      "<code>/kelly-email</code> 读取邮件并写入本地批次。这个应用只编辑本地审核文件。你在这里批准后，再让 <code>/kelly-email</code> 执行已批准的决定。",
     "guide.workflow_title": "流程",
     "guide.step1": "让 <code>/kelly-email</code> 生成审核批次。",
     "guide.step2": "在这里查看邮件、批准、请求草稿或留下备注。",
@@ -325,8 +345,10 @@ export const I18N = {
     "config.title": "配置",
     "config.recommended": "推荐的用户级文件：",
     "config.alternative": "可选的本地文件：",
-    "config.reader": "当前数据读取器使用本地配置。以后可以切换到 Supabase、Postgres 或 pusa-cloud，而不改变审批 UI 的文件契约。",
-    "config.json": "JSON 保存账号、别名、身份、用户资料、品牌、官方链接、知识来源、风格、CTA 链接和风险关键词。密钥只放在 env 文件里，并通过变量名引用。",
+    "config.reader":
+      "当前数据读取器使用本地配置。以后可以切换到 Supabase、Postgres 或 pusa-cloud，而不改变审批 UI 的文件契约。",
+    "config.json":
+      "JSON 保存账号、别名、身份、用户资料、品牌、官方链接、知识来源、风格、CTA 链接和风险关键词。密钥只放在 env 文件里，并通过变量名引用。",
     "action.approve_plan": "批准方案",
     "action.needs_review": "需查看",
     "action.no_action": "无需操作",
@@ -358,7 +380,8 @@ export const I18N = {
     "detail.attachments": "附件",
     "detail.no_attachments": "没有附件",
     "detail.review_note": "审核备注",
-    "detail.comment.placeholder": "写一条给 /kelly-email 的指令。例如：问 Casper；可以归档；起草简短回复；这是已付款发票，保持未读。",
+    "detail.comment.placeholder":
+      "写一条给 /kelly-email 的指令。例如：问 Casper；可以归档；起草简短回复；这是已付款发票，保持未读。",
     "detail.original_text": "原始文本",
     "detail.translation_text": "翻译",
     "detail.translation_empty": "这个批次项目还没有附带翻译。",
@@ -414,8 +437,10 @@ export const I18N = {
     "action_label.review": "需查看",
     "review.background.default": "{from} 发来 “{subject}”。{summary}",
     "review.why.default": "在更改邮箱前需要人工决定。",
-    "review.recommend.default": "先阅读邮件，然后在审核备注里写你的指令。如果只是安全清理，可以批准归档到配置好的分类文件夹。",
-    "review.recommend.money": "确认是否需要财务或付款处理。如果不需要操作，可以批准归档到配置好的财务/分类文件夹；否则写下下一步。",
+    "review.recommend.default":
+      "先阅读邮件，然后在审核备注里写你的指令。如果只是安全清理，可以批准归档到配置好的分类文件夹。",
+    "review.recommend.money":
+      "确认是否需要财务或付款处理。如果不需要操作，可以批准归档到配置好的财务/分类文件夹；否则写下下一步。",
     "review.recommend.course": "先查看学生提交或反馈。需要我总结或起草回复的话，在备注里写明。",
     "review.recommend.security": "批准清理前，先确认是否涉及账号、隐私、安全或权限变更。",
     "review.recommend.partnership": "决定是否值得继续推进。你可以让我起草简短回复、内部转发或归档。",
@@ -483,6 +508,6 @@ export const I18N = {
     "account.smtp_missing": "SMTP 缺失",
     "toast.select_one": "请至少选择一封邮件",
     "toast.saved_count": "已为 {count} 项保存本地决定",
-    "toast.saved_detail": "已保存到本地批次文件"
-  }
+    "toast.saved_detail": "已保存到本地批次文件",
+  },
 };

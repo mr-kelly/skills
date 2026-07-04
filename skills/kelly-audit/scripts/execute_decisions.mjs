@@ -17,7 +17,7 @@ import {
   readExecutionReport,
   readLock,
   readSnapshot,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const OPERATION_BY_RULE = {
@@ -26,7 +26,7 @@ const OPERATION_BY_RULE = {
   missing_invoice: "reissue_invoice",
   duplicate: "flag_to_accountant",
   unmatched_payment: "flag_to_accountant",
-  irregular_entry: "flag_to_accountant"
+  irregular_entry: "flag_to_accountant",
 };
 
 const apply = process.argv.includes("--apply");
@@ -41,13 +41,15 @@ await ensureDirs();
 
 const existingLock = await readLock();
 if (existingLock) {
-  fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`);
+  fail(
+    `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
+  );
 }
 
 const [snapshot, decisions, previousReport] = await Promise.all([
   readSnapshot(),
   readDecisions(),
-  readExecutionReport()
+  readExecutionReport(),
 ]);
 const merged = mergeAnomalies(snapshot, decisions, previousReport);
 const approved = merged.anomalies.filter((anomaly) => anomaly.status === "approved");
@@ -60,7 +62,7 @@ if (!approved.length) {
 await writeJson(LOCK_PATH, {
   owner: "kelly-audit",
   message: dryRun ? "Dry-run: planning approved anomalies" : "Preparing approved anomalies for the agent",
-  started_at: new Date().toISOString()
+  started_at: new Date().toISOString(),
 });
 
 try {
@@ -79,13 +81,13 @@ try {
       customer: anomaly.customer || "",
       amount_at_stake: anomaly.amount_at_stake,
       currency: anomaly.currency,
-      draft: anomaly.draft || ""
+      draft: anomaly.draft || "",
     };
     if (!target) {
       return {
         ...base,
         status: "blocked",
-        detail: "No target order/invoice/payment id in the evidence; ask the user before executing."
+        detail: "No target order/invoice/payment id in the evidence; ask the user before executing.",
       };
     }
     return {
@@ -93,7 +95,7 @@ try {
       status: dryRun ? "planned" : "ready_for_agent",
       detail: dryRun
         ? `Dry run: would ${operation.replaceAll("_", " ")} for ${target} using the ${decision?.draft ? "user-edited" : "agent"} draft. No email sent, no records changed.`
-        : `Approved: agent should ${operation.replaceAll("_", " ")} for ${target} (${anomaly.customer}) using the ${decision?.draft ? "user-edited" : "agent"} draft — e.g. send the chasing email via kelly-email or open the billing task — then record the real result here.`
+        : `Approved: agent should ${operation.replaceAll("_", " ")} for ${target} (${anomaly.customer}) using the ${decision?.draft ? "user-edited" : "agent"} draft — e.g. send the chasing email via kelly-email or open the billing task — then record the real result here.`,
     };
   });
 
@@ -101,7 +103,7 @@ try {
     generated_at: new Date().toISOString(),
     dry_run: dryRun,
     source: "kelly-audit",
-    results
+    results,
   };
   await writeJson(EXECUTION_REPORT_PATH, report);
   console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote ${EXECUTION_REPORT_PATH}`);

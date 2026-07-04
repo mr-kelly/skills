@@ -5,9 +5,11 @@ const state = {
   settings: null,
   route: parseRoute(),
   query: "",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-radar-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-radar-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  saving: false
+  saving: false,
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-radar.sidebarCollapsed";
@@ -29,7 +31,7 @@ const els = {
   triageCount: document.querySelector("#count-triage"),
   briefsCount: document.querySelector("#count-briefs"),
   reportsCount: document.querySelector("#count-reports"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -76,7 +78,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -86,16 +92,14 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function date(value) {
   if (!value) return "";
   return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     month: "short",
-    day: "2-digit"
+    day: "2-digit",
   }).format(new Date(value));
 }
 
@@ -105,7 +109,7 @@ function dateTime(value) {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -135,15 +139,16 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "signals"
-    ? "#/signals"
-    : scenario === "detail"
-      ? "#/signals/sig-formora-pricing"
-      : scenario === "research"
-        ? "#/research"
-        : scenario === "trends"
-          ? "#/trends"
-          : "#/overview";
+  const route =
+    scenario === "signals"
+      ? "#/signals"
+      : scenario === "detail"
+        ? "#/signals/sig-formora-pricing"
+        : scenario === "research"
+          ? "#/research"
+          : scenario === "trends"
+            ? "#/trends"
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -203,16 +208,20 @@ function attentionCounts() {
   const triage = signals().filter((item) => item.status === "needs_review").length;
   const briefs = research().briefs.filter((item) => item.status === "needs_review").length;
   const reports = research().questions.filter((item) => item.status === "report_ready").length;
-  const followups = research().questions.reduce((sum, question) => sum + (question.followups || []).filter((fu) => fu.status !== "closed").length, 0);
+  const followups = research().questions.reduce(
+    (sum, question) => sum + (question.followups || []).filter((fu) => fu.status !== "closed").length,
+    0,
+  );
   return { triage, briefs, reports, followups };
 }
 
 function renderShell() {
   applyI18n();
   const counts = attentionCounts();
-  els.syncStatus.textContent = state.snapshot?.generated_at && state.snapshot.generated_at !== new Date(0).toISOString()
-    ? `${signals().length} ${t("signals").toLowerCase()} · ${watchlist().length} ${t("watchTargets")}`
-    : t("empty");
+  els.syncStatus.textContent =
+    state.snapshot?.generated_at && state.snapshot.generated_at !== new Date(0).toISOString()
+      ? `${signals().length} ${t("signals").toLowerCase()} · ${watchlist().length} ${t("watchTargets")}`
+      : t("empty");
   if (els.triageCount) els.triageCount.textContent = counts.triage;
   if (els.briefsCount) els.briefsCount.textContent = counts.briefs;
   if (els.reportsCount) els.reportsCount.textContent = counts.reports;
@@ -267,7 +276,10 @@ function sparkline(momentum = []) {
   const span = max - min || 1;
   const step = width / Math.max(momentum.length - 1, 1);
   const points = momentum
-    .map((value, index) => `${(index * step).toFixed(1)},${(height - 3 - ((value - min) / span) * (height - 6)).toFixed(1)}`)
+    .map(
+      (value, index) =>
+        `${(index * step).toFixed(1)},${(height - 3 - ((value - min) / span) * (height - 6)).toFixed(1)}`,
+    )
     .join(" ");
   return `<svg class="sparkline" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" aria-hidden="true"><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
@@ -283,7 +295,9 @@ function deltaArrow(delta) {
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at
+    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+    : t("empty");
   const counts = attentionCounts();
   const topSignals = signals()
     .filter((item) => item.status === "needs_review" || item.severity === "high")
@@ -303,7 +317,10 @@ function renderOverview() {
     <section class="overview-grid">
       <div class="overview-panel">
         <h2>${t("topSignals")}</h2>
-        ${topSignals.map((item) => `
+        ${
+          topSignals
+            .map(
+              (item) => `
           <a class="signal-row" href="#/signals/${encodeURIComponent(item.signal_id)}">
             <span class="signal-row-main">
               <strong>${escapeHtml(item.headline)}</strong>
@@ -312,11 +329,17 @@ function renderOverview() {
             ${severityBadge(item.severity)}
             ${statusBadge(item.status)}
           </a>
-        `).join("") || `<div class="empty-inline">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("empty")}</div>`
+        }
       </div>
       <div class="overview-panel">
         <h2>${t("freshness")}</h2>
-        ${watchlist().map((item) => `
+        ${
+          watchlist()
+            .map(
+              (item) => `
           <a class="freshness-row" href="#/watchlist/${encodeURIComponent(item.target_id)}">
             <span class="signal-row-main">
               <strong>${escapeHtml(item.name)}</strong>
@@ -325,11 +348,17 @@ function renderOverview() {
             <span class="muted">${dateTime(item.last_check_at)}</span>
             ${statusBadge(item.status)}
           </a>
-        `).join("") || `<div class="empty-inline">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("empty")}</div>`
+        }
       </div>
       <div class="overview-panel">
         <h2>${t("topMovers")}</h2>
-        ${movers.map((item) => `
+        ${
+          movers
+            .map(
+              (item) => `
           <a class="mover-row" href="#/trends">
             <span class="signal-row-main">
               <strong>${escapeHtml(item.keyword)}</strong>
@@ -338,19 +367,30 @@ function renderOverview() {
             ${sparkline(item.momentum)}
             ${deltaArrow(item.delta_pct)}
           </a>
-        `).join("") || `<div class="empty-inline">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("empty")}</div>`
+        }
       </div>
       <div class="overview-panel">
         <h2>${t("researchPipeline")}</h2>
         <div class="pipeline">
-          ${pipeline.map((stage) => `
+          ${pipeline
+            .map(
+              (stage) => `
             <div class="pipeline-stage">
               <strong>${questions.filter((question) => question.status === stage || (stage === "closed" && question.status === "annotated")).length}</strong>
               <span>${escapeHtml(enumLabel(stage))}</span>
             </div>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </div>
-        ${questions.filter((question) => question.status !== "closed").slice(0, 3).map((question) => `
+        ${questions
+          .filter((question) => question.status !== "closed")
+          .slice(0, 3)
+          .map(
+            (question) => `
           <a class="freshness-row" href="#/research/${encodeURIComponent(question.question_id)}">
             <span class="signal-row-main">
               <strong>${escapeHtml(question.question)}</strong>
@@ -358,7 +398,9 @@ function renderOverview() {
             </span>
             ${statusBadge(question.status)}
           </a>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
     </section>
   `;
@@ -369,9 +411,11 @@ function renderOverview() {
 function filteredSignals() {
   const query = state.query.trim().toLowerCase();
   if (!query) return signals();
-  return signals().filter((item) => [item.headline, item.summary, item.source_kind, item.severity, item.status, targetName(item.target_id)]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return signals().filter((item) =>
+    [item.headline, item.summary, item.source_kind, item.severity, item.status, targetName(item.target_id)]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderSignals() {
@@ -390,7 +434,9 @@ function renderSignals() {
           </tr>
         </thead>
         <tbody>
-          ${items.map((item) => `
+          ${items
+            .map(
+              (item) => `
             <tr>
               <td class="muted ref-cell">${escapeHtml(signalRef(item.signal_id))}</td>
               <td>${kindBadge(item.source_kind)}</td>
@@ -403,7 +449,9 @@ function renderSignals() {
               <td class="muted">${dateTime(item.detected_at)}</td>
               <td>${statusBadge(item.status)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -496,7 +544,13 @@ function renderWatchlist() {
   els.title.textContent = t("watchlist");
   els.subtitle.textContent = `${watchlist().length} ${t("watchTargets")}`;
   const query = state.query.trim().toLowerCase();
-  const items = watchlist().filter((item) => !query || [item.name, item.type, item.status, item.notes].filter(Boolean).some((value) => String(value).toLowerCase().includes(query)));
+  const items = watchlist().filter(
+    (item) =>
+      !query ||
+      [item.name, item.type, item.status, item.notes]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query)),
+  );
   els.content.innerHTML = `
     ${demoBanner()}
     <div class="table-wrap">
@@ -507,7 +561,9 @@ function renderWatchlist() {
           </tr>
         </thead>
         <tbody>
-          ${items.map((item) => `
+          ${items
+            .map(
+              (item) => `
             <tr>
               <td><a href="#/watchlist/${encodeURIComponent(item.target_id)}"><span class="strong">${escapeHtml(item.name)}</span></a><div class="muted clamp">${escapeHtml(item.notes || "")}</div></td>
               <td><span class="badge">${escapeHtml(enumLabel(item.type, "target_type"))}</span></td>
@@ -516,7 +572,9 @@ function renderWatchlist() {
               <td class="num">${item.signals_7d ?? 0}</td>
               <td>${statusBadge(item.status)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -543,7 +601,9 @@ function renderWatchTargetDetail() {
             <table>
               <thead><tr><th>${t("source")}</th><th>${t("type")}</th><th>${t("method")}</th><th>${t("lastCheck")}</th><th>${t("lastChange")}</th></tr></thead>
               <tbody>
-                ${(item.sources || []).map((source) => `
+                ${(item.sources || [])
+                  .map(
+                    (source) => `
                   <tr>
                     <td><a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(source.url)}</a></td>
                     <td>${kindBadge(source.kind)}</td>
@@ -551,14 +611,19 @@ function renderWatchTargetDetail() {
                     <td class="muted">${dateTime(source.last_check_at)}</td>
                     <td class="muted">${dateTime(source.last_change_at)}</td>
                   </tr>
-                `).join("")}
+                `,
+                  )
+                  .join("")}
               </tbody>
             </table>
           </div>
         </div>
         <div class="panel">
           <h2>${t("recentSignals")}</h2>
-          ${history.map((signal) => `
+          ${
+            history
+              .map(
+                (signal) => `
             <a class="signal-row" href="#/signals/${encodeURIComponent(signal.signal_id)}">
               <span class="signal-row-main">
                 <strong>${escapeHtml(signal.headline)}</strong>
@@ -567,7 +632,10 @@ function renderWatchTargetDetail() {
               ${severityBadge(signal.severity)}
               ${statusBadge(signal.status)}
             </a>
-          `).join("") || `<div class="empty-inline">${t("empty")}</div>`}
+          `,
+              )
+              .join("") || `<div class="empty-inline">${t("empty")}</div>`
+          }
         </div>
       </div>
       <aside class="detail-side">
@@ -590,7 +658,13 @@ function renderResearch() {
   els.title.textContent = t("research");
   const questions = research().questions;
   const query = state.query.trim().toLowerCase();
-  const items = questions.filter((item) => !query || [item.question, item.status, item.depth].filter(Boolean).some((value) => String(value).toLowerCase().includes(query)));
+  const items = questions.filter(
+    (item) =>
+      !query ||
+      [item.question, item.status, item.depth]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query)),
+  );
   els.subtitle.textContent = `${items.length} ${t("questions").toLowerCase()}`;
   els.content.innerHTML = `
     ${demoBanner()}
@@ -601,7 +675,9 @@ function renderResearch() {
           <tr><th>${t("question")}</th><th>${t("status")}</th><th>${t("depth")}</th><th>${t("askedAt")}</th><th>${t("costNote")}</th></tr>
         </thead>
         <tbody>
-          ${items.map((item) => `
+          ${items
+            .map(
+              (item) => `
             <tr>
               <td><a href="#/research/${encodeURIComponent(item.question_id)}"><span class="strong">${escapeHtml(item.question)}</span></a></td>
               <td>${statusBadge(item.status)}</td>
@@ -609,7 +685,9 @@ function renderResearch() {
               <td class="muted">${date(item.asked_at)}</td>
               <td class="muted">${escapeHtml(item.cost_note || "")}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -660,22 +738,35 @@ function reportStagePanel(question, report) {
       </div>
       <h3 class="report-title">${escapeHtml(report.title)}</h3>
       <p>${escapeHtml(report.summary)}</p>
-      ${(report.sections || []).map((section) => `
+      ${(report.sections || [])
+        .map(
+          (section) => `
         <section class="report-section">
           <h3>${escapeHtml(section.heading)}</h3>
           <p>${escapeHtml(section.body)}</p>
           <div class="citation-chips">
-            ${(section.source_ids || []).map((sourceId) => {
-              const index = sourceIndex.get(sourceId);
-              const source = (report.sources || []).find((entry) => entry.source_id === sourceId);
-              return source ? `<a class="citation-chip" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer noopener" title="${escapeHtml(source.title)}">[${index}] ${escapeHtml(source.title)}</a>` : "";
-            }).join("")}
+            ${(section.source_ids || [])
+              .map((sourceId) => {
+                const index = sourceIndex.get(sourceId);
+                const source = (report.sources || []).find((entry) => entry.source_id === sourceId);
+                return source
+                  ? `<a class="citation-chip" href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer noopener" title="${escapeHtml(source.title)}">[${index}] ${escapeHtml(source.title)}</a>`
+                  : "";
+              })
+              .join("")}
           </div>
-          ${(report.annotations || []).filter((annotation) => annotation.section_id === section.section_id).map((annotation) => `
+          ${(report.annotations || [])
+            .filter((annotation) => annotation.section_id === section.section_id)
+            .map(
+              (annotation) => `
             <div class="annotation"><strong>${escapeHtml(annotation.author)}</strong> · ${dateTime(annotation.at)}<p>${escapeHtml(annotation.text)}</p></div>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </section>
-      `).join("")}
+      `,
+        )
+        .join("")}
       <h3>${t("sources")}</h3>
       <ol class="source-list">
         ${(report.sources || []).map((source) => `<li><a href="${escapeHtml(source.url)}" target="_blank" rel="noreferrer noopener">${escapeHtml(source.title)}</a></li>`).join("")}
@@ -684,9 +775,13 @@ function reportStagePanel(question, report) {
     <div class="panel">
       <h2>${t("rateConfidence")}</h2>
       <div class="action-row confidence-row">
-        ${[1, 2, 3, 4, 5].map((value) => `
+        ${[1, 2, 3, 4, 5]
+          .map(
+            (value) => `
           <button type="button" class="action confidence ${confidence >= value ? "filled" : ""}" data-action="approve" data-kind="report" data-id="${escapeHtml(report.report_id)}" data-confidence="${value}" ${disabled} title="${t("confidence")} ${value}/5">${value}</button>
-        `).join("")}
+        `,
+          )
+          .join("")}
         <span class="muted">${t("confidence")}: ${confidence || "—"}/5</span>
       </div>
       <label class="note-label" for="followup-input">${t("followups")}</label>
@@ -694,9 +789,13 @@ function reportStagePanel(question, report) {
       <div class="action-row">
         <button type="button" class="action primary" id="file-followup" data-question="${escapeHtml(question.question_id)}" ${disabled}>${t("askFollowup")}</button>
       </div>
-      ${(question.followups || []).map((fu) => `
+      ${(question.followups || [])
+        .map(
+          (fu) => `
         <div class="followup-row"><span>${escapeHtml(fu.question)}</span>${statusBadge(fu.status)}</div>
-      `).join("")}
+      `,
+        )
+        .join("")}
       <div id="decision-feedback" class="muted decision-feedback"></div>
     </div>
   `;
@@ -745,7 +844,9 @@ function renderTrends() {
   els.title.textContent = t("trends");
   const { movers, opportunities } = trends();
   const query = state.query.trim().toLowerCase();
-  const items = movers.filter((item) => !query || [item.keyword, item.source].some((value) => String(value).toLowerCase().includes(query)));
+  const items = movers.filter(
+    (item) => !query || [item.keyword, item.source].some((value) => String(value).toLowerCase().includes(query)),
+  );
   els.subtitle.textContent = `${items.length} ${t("topMovers").toLowerCase()} · ${opportunities.length} ${t("opportunityCards").toLowerCase()}`;
   const opportunityById = new Map(opportunities.map((item) => [item.opportunity_id, item]));
   const disabled = isLocked() || state.saving ? "disabled" : "";
@@ -758,9 +859,10 @@ function renderTrends() {
           <tr><th>${t("keyword")}</th><th>${t("source")}</th><th>${t("volume")}</th><th>${t("delta")}</th><th>${t("momentum")}</th><th>${t("opportunity")}</th></tr>
         </thead>
         <tbody>
-          ${items.map((item) => {
-            const opportunity = opportunityById.get(item.opportunity_id);
-            return `
+          ${items
+            .map((item) => {
+              const opportunity = opportunityById.get(item.opportunity_id);
+              return `
               <tr>
                 <td><span class="strong">${escapeHtml(item.keyword)}</span></td>
                 <td>${kindBadge(item.source)}</td>
@@ -770,13 +872,17 @@ function renderTrends() {
                 <td>${opportunity ? statusBadge(opportunity.status) : `<span class="muted">${t("noOpportunity")}</span>`}</td>
               </tr>
             `;
-          }).join("")}
+            })
+            .join("")}
         </tbody>
       </table>
     </div>
     <h2 class="section-heading">${t("opportunityCards")}</h2>
     <div class="opportunity-grid">
-      ${opportunities.map((item) => `
+      ${
+        opportunities
+          .map(
+            (item) => `
         <div class="opportunity-card">
           <div class="detail-head">
             ${statusBadge(item.status)}
@@ -786,13 +892,20 @@ function renderTrends() {
           <p class="muted">${escapeHtml(item.rationale)}</p>
           <div class="handoff-chip">${t("proposedNextStep")}: <strong>${escapeHtml(enumLabel(item.proposed_next_step?.operation, "operation"))}</strong><br>${escapeHtml(item.proposed_next_step?.summary || "")}</div>
           <div class="action-row">
-            ${item.status === "needs_review" ? `
+            ${
+              item.status === "needs_review"
+                ? `
               <button type="button" class="action primary" data-action="approve" data-kind="opportunity" data-id="${escapeHtml(item.opportunity_id)}" ${disabled}>${t("approve")}</button>
               <button type="button" class="action" data-action="ignore" data-kind="opportunity" data-id="${escapeHtml(item.opportunity_id)}" ${disabled}>${t("ignore")}</button>
-            ` : `<span class="muted">${escapeHtml(item.triage?.comment || "")}</span>`}
+            `
+                : `<span class="muted">${escapeHtml(item.triage?.comment || "")}</span>`
+            }
           </div>
         </div>
-      `).join("") || `<div class="empty">${t("empty")}</div>`}
+      `,
+          )
+          .join("") || `<div class="empty">${t("empty")}</div>`
+      }
     </div>
     <div id="decision-feedback" class="muted decision-feedback"></div>
   `;
@@ -815,27 +928,43 @@ function renderSettings() {
           <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "local")}</dd>
           <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
           <dt>${t("onboarding")}</dt><dd>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</dd>
-          <dt>${t("cadence")}</dt><dd>${escapeHtml(Object.entries(summary.cadence || {}).map(([key, value]) => `${key}: ${value}`).join(" · ") || "—")}</dd>
+          <dt>${t("cadence")}</dt><dd>${escapeHtml(
+            Object.entries(summary.cadence || {})
+              .map(([key, value]) => `${key}: ${value}`)
+              .join(" · ") || "—",
+          )}</dd>
         </dl>
       </section>
       <section>
         <h2>${t("products")}</h2>
-        ${(summary.profile?.products || []).map((product) => `
+        ${
+          (summary.profile?.products || [])
+            .map(
+              (product) => `
           <div class="settings-row">
             <strong>${escapeHtml(product.name)}</strong>
             <span>${escapeHtml(product.positioning)}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("watchlist")}</h2>
-        ${(summary.watchlist || []).map((target) => `
+        ${
+          (summary.watchlist || [])
+            .map(
+              (target) => `
           <div class="settings-row">
             <strong>${escapeHtml(target.name)}</strong>
             <span>${escapeHtml(enumLabel(target.type, "target_type"))} · ${target.source_count} ${t("sources").toLowerCase()}</span>
             <span>${(target.methods || []).map((method) => escapeHtml(enumLabel(method, "method"))).join(", ")}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("researchDefaults")}</h2>
@@ -848,32 +977,49 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("trendSources")}</h2>
-        ${(summary.trend_sources || []).map((source) => `
+        ${
+          (summary.trend_sources || [])
+            .map(
+              (source) => `
           <div class="settings-row">
             <strong>${escapeHtml(source.name)}</strong>
             <span>${kindBadge(source.kind)}</span>
             <span>${escapeHtml(enumLabel(source.method, "method"))}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("envReadiness")}</h2>
-        ${(summary.env_readiness || []).map((entry) => `
+        ${
+          (summary.env_readiness || [])
+            .map(
+              (entry) => `
           <div class="settings-row">
             <strong>${escapeHtml(entry.name)}</strong>
             <span class="${entry.ready ? "positive" : "negative"}">${entry.ready ? t("ready") : t("missing")}</span>
           </div>
-        `).join("") || `<div class="empty-inline">—</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">—</div>`
+        }
       </section>
       <section>
         <h2>${t("syncLog")}</h2>
-        ${(state.snapshot?.sync_log || []).slice(0, 8).map((entry) => `
+        ${(state.snapshot?.sync_log || [])
+          .slice(0, 8)
+          .map(
+            (entry) => `
           <div class="settings-row">
             <strong>${escapeHtml(entry.action)}</strong>
             <span>${escapeHtml(entry.detail)}</span>
             <span class="muted">${dateTime(entry.at)}</span>
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </section>
     </div>
   `;
@@ -890,7 +1036,7 @@ function bindDecisionButtons() {
         id: button.dataset.id,
         action: button.dataset.action,
         comment: note,
-        confidence: button.dataset.confidence ? Number(button.dataset.confidence) : undefined
+        confidence: button.dataset.confidence ? Number(button.dataset.confidence) : undefined,
       });
     });
   });
@@ -908,7 +1054,7 @@ function bindFollowup() {
       const res = await fetch("/api/task", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ question_id: button.dataset.question, question, demo: Boolean(state.settings?.demo) })
+        body: JSON.stringify({ question_id: button.dataset.question, question, demo: Boolean(state.settings?.demo) }),
       });
       const body = await res.json();
       if (!res.ok || !body.ok) throw new Error(body.error || `Request failed: ${res.status}`);
@@ -916,7 +1062,12 @@ function bindFollowup() {
         const target = research().questions.find((item) => item.question_id === button.dataset.question);
         if (target) {
           target.followups = target.followups || [];
-          target.followups.push({ followup_id: `fu-${Date.now()}`, question, status: "queued", asked_at: new Date().toISOString() });
+          target.followups.push({
+            followup_id: `fu-${Date.now()}`,
+            question,
+            status: "queued",
+            asked_at: new Date().toISOString(),
+          });
         }
         render();
       } else {
@@ -937,7 +1088,7 @@ async function submitDecision(payload) {
     const res = await fetch("/api/decision", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...payload, demo: Boolean(state.settings?.demo) })
+      body: JSON.stringify({ ...payload, demo: Boolean(state.settings?.demo) }),
     });
     const body = await res.json();
     if (!res.ok || !body.ok) throw new Error(body.error || `Request failed: ${res.status}`);
@@ -964,7 +1115,13 @@ function statusForAction(action) {
 }
 
 function applyLocalDecision({ kind, id, action, comment, confidence }) {
-  const triage = { kind, action, status: statusForAction(action), comment: comment || "", decided_at: new Date().toISOString() };
+  const triage = {
+    kind,
+    action,
+    status: statusForAction(action),
+    comment: comment || "",
+    decided_at: new Date().toISOString(),
+  };
   if (kind === "signal") {
     const item = signals().find((signal) => signal.signal_id === id);
     if (item) Object.assign(item, { status: triage.status, triage });
@@ -1011,13 +1168,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 function isEditing() {

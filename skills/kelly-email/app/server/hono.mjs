@@ -1,11 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR, ATTACHMENTS_DIR } from "./paths.mjs";
-import { lockPayload } from "./lock.mjs";
-import { statePayload } from "./state.mjs";
 import { updateDetail, updateItems } from "./decisions.mjs";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.mjs";
+import { lockPayload } from "./lock.mjs";
+import { APP_DIR, ATTACHMENTS_DIR } from "./paths.mjs";
+import { statePayload } from "./state.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic modules (data-provider
@@ -63,14 +63,14 @@ app.post("/api/decision", async (c) => {
   const query = c.req.query();
   const body = await c.req.json().catch(() => ({}));
   if (isDemoQuery(query)) return c.json(demoDecisionResponse(body));
-  return c.json(await updateItems(body));
+  return c.json(/** @type {any} */ (await updateItems(body)));
 });
 
 app.post("/api/detail", async (c) => {
   const query = c.req.query();
   const body = await c.req.json().catch(() => ({}));
   if (isDemoQuery(query)) return c.json(demoDecisionResponse(body));
-  return c.json(await updateDetail(body));
+  return c.json(/** @type {any} */ (await updateDetail(body)));
 });
 
 app.post("/api/reload", async (c) => {

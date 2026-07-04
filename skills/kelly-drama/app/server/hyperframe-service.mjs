@@ -1,6 +1,6 @@
+import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { pathExists, readJson } from "./utils.mjs";
 
@@ -39,12 +39,11 @@ function fileSummary(projectPath, pathname, stat) {
 
 async function mediaDuration(pathname) {
   try {
-    const { stdout } = await execFileAsync("ffprobe", [
-      "-v", "error",
-      "-show_entries", "format=duration",
-      "-of", "default=nk=1:nw=1",
-      pathname,
-    ], { timeout: 3000 });
+    const { stdout } = await execFileAsync(
+      "ffprobe",
+      ["-v", "error", "-show_entries", "format=duration", "-of", "default=nk=1:nw=1", pathname],
+      { timeout: 3000 },
+    );
     const duration = Number.parseFloat(String(stdout).trim());
     return Number.isFinite(duration) ? duration : null;
   } catch {
@@ -82,7 +81,9 @@ async function collectFiles(projectPath, dir, predicate, limit = 80) {
 }
 
 function parseRootMeta(html) {
-  const root = html.match(/data-composition-id=["']([^"']+)["'][\s\S]*?data-start=["']([^"']+)["'][\s\S]*?data-duration=["']([^"']+)["'][\s\S]*?data-width=["']([^"']+)["'][\s\S]*?data-height=["']([^"']+)["']/);
+  const root = html.match(
+    /data-composition-id=["']([^"']+)["'][\s\S]*?data-start=["']([^"']+)["'][\s\S]*?data-duration=["']([^"']+)["'][\s\S]*?data-width=["']([^"']+)["'][\s\S]*?data-height=["']([^"']+)["']/,
+  );
   if (!root) return {};
   return {
     composition_id: root[1],
@@ -166,12 +167,34 @@ export async function hyperframeProjectStatus(projectPath) {
   const design = designStat ? fileSummary(normalized, designPath, designStat) : null;
 
   const htmlFiles = await collectFiles(normalized, normalized, (pathname) => path.extname(pathname) === ".html", 60);
-  const compositions = (await Promise.all(htmlFiles.map((file) => compositionSummary(normalized, file.path)))).filter(Boolean);
-  const renderFiles = await collectFiles(normalized, normalized, (pathname) => VIDEO_EXTS.has(path.extname(pathname).toLowerCase()), 60);
+  const compositions = (await Promise.all(htmlFiles.map((file) => compositionSummary(normalized, file.path)))).filter(
+    Boolean,
+  );
+  const renderFiles = await collectFiles(
+    normalized,
+    normalized,
+    (pathname) => VIDEO_EXTS.has(path.extname(pathname).toLowerCase()),
+    60,
+  );
   const renders = await Promise.all(renderFiles.map((file) => videoSummary(normalized, file.absolute_path)));
-  const audio = await collectFiles(normalized, path.join(normalized, "audio"), (pathname) => AUDIO_EXTS.has(path.extname(pathname).toLowerCase()), 80);
-  const thumbnails = await collectFiles(normalized, path.join(normalized, ".thumbnails"), (pathname) => /\.(png|jpe?g|webp)$/i.test(pathname), 120);
-  const changelogs = await collectFiles(normalized, path.join(normalized, "changelog"), (pathname) => path.extname(pathname) === ".md", 40);
+  const audio = await collectFiles(
+    normalized,
+    path.join(normalized, "audio"),
+    (pathname) => AUDIO_EXTS.has(path.extname(pathname).toLowerCase()),
+    80,
+  );
+  const thumbnails = await collectFiles(
+    normalized,
+    path.join(normalized, ".thumbnails"),
+    (pathname) => /\.(png|jpe?g|webp)$/i.test(pathname),
+    120,
+  );
+  const changelogs = await collectFiles(
+    normalized,
+    path.join(normalized, "changelog"),
+    (pathname) => path.extname(pathname) === ".md",
+    40,
+  );
   changelogs.sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at)));
 
   return {

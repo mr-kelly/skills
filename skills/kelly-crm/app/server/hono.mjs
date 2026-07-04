@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR } from "./paths.mjs";
 import { demoStatePayload, isDemoQuery } from "./demo.mjs";
+import { APP_DIR } from "./paths.mjs";
 import {
   applyDecision,
   readAgentTasks,
@@ -12,7 +12,7 @@ import {
   readLock,
   readOnboarding,
   readSnapshot,
-  summarizeConfig
+  summarizeConfig,
 } from "./store.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
@@ -28,7 +28,7 @@ const types = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8"
+  ".json": "application/json; charset=utf-8",
 };
 
 async function state() {
@@ -39,7 +39,7 @@ async function state() {
     readExecutionReport(),
     readOnboarding(),
     readLock(),
-    readConfig()
+    readConfig(),
   ]);
   return {
     app: "kelly-crm",
@@ -50,7 +50,7 @@ async function state() {
     decisions,
     agent_tasks: agentTasks,
     execution_report: executionReport,
-    snapshot
+    snapshot,
   };
 }
 
@@ -65,11 +65,9 @@ app.get("/api/state", async (c) => {
 app.post("/api/decision", async (c) => {
   const lock = await readLock();
   if (lock) {
-    return c.json(
-      { error: "Agent lock is active; the queue is read-only right now.", lock },
-      423,
-      { "cache-control": "no-store" }
-    );
+    return c.json({ error: "Agent lock is active; the queue is read-only right now.", lock }, 423, {
+      "cache-control": "no-store",
+    });
   }
   const raw = await c.req.text();
   let payload;

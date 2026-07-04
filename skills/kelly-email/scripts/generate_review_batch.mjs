@@ -14,7 +14,7 @@ import {
   onboardingStatus,
   utcNow,
   writeAgentLock,
-  writeJson
+  writeJson,
 } from "../lib/common.mjs";
 
 function parseArgs(argv) {
@@ -52,8 +52,8 @@ function connectorNotice() {
       "config/env readiness checks",
       "batch/decision/report JSON files",
       "approval UI",
-      "schema validation"
-    ]
+      "schema validation",
+    ],
   };
 }
 
@@ -73,21 +73,21 @@ async function writeEmptyConnectorBatch(args, configMeta) {
     requested_scope: {
       review_quota: args.reviewQuota,
       max_scan_per_mailbox: args.maxScanPerMailbox,
-      config_source: configMeta.source || ""
+      config_source: configMeta.source || "",
     },
     classification_pipeline: {
       version: CLASSIFICATION_PIPELINE_VERSION,
       stage: "connector_required",
       requires_agent_review: true,
-      note: "Zero-dependency Kelly Email did not scan mail. Add email items from an external connector or agent step before approval/execution."
+      note: "Zero-dependency Kelly Email did not scan mail. Add email items from an external connector or agent step before approval/execution.",
     },
     items: [],
     metrics: {
       scanned: 0,
       prepared: 0,
       needs_review: 0,
-      drafted: 0
-    }
+      drafted: 0,
+    },
   };
   await writeJson(CURRENT_BATCH_PATH, batch);
   await writeJson(DECISIONS_PATH, { batch_id: batch.batch_id, updated_at: utcNow(), decisions: [] });
@@ -95,7 +95,7 @@ async function writeEmptyConnectorBatch(args, configMeta) {
     last_generated_batch_id: batch.batch_id,
     last_generated_at: batch.generated_at,
     connector: batch.connector,
-    items: []
+    items: [],
   });
   return batch;
 }
@@ -111,39 +111,57 @@ async function main() {
   const config = configMeta.config;
   const onboarding = onboardingStatus(config, configMeta);
   if (!onboarding.configured) {
-    console.log(JSON.stringify({
-      onboarding_required: true,
-      state: onboarding.state,
-      message: onboarding.message,
-      recommended_config: onboarding.recommended_config,
-      recommended_env: onboarding.recommended_env,
-      example_config: onboarding.example_config,
-      legacy_source: onboarding.legacy_source,
-      missing_env: onboarding.missing_env
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          onboarding_required: true,
+          state: onboarding.state,
+          message: onboarding.message,
+          recommended_config: onboarding.recommended_config,
+          recommended_env: onboarding.recommended_env,
+          example_config: onboarding.example_config,
+          legacy_source: onboarding.legacy_source,
+          missing_env: onboarding.missing_env,
+        },
+        null,
+        2,
+      ),
+    );
     return 0;
   }
 
   if (args.dryRun) {
-    console.log(JSON.stringify({
-      dry_run: true,
-      ...connectorNotice(),
-      skill_dir: SKILL_DIR,
-      cache_dir: APP_CACHE_DIR,
-      attachments_dir: ATTACHMENTS_DIR
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          dry_run: true,
+          ...connectorNotice(),
+          skill_dir: SKILL_DIR,
+          cache_dir: APP_CACHE_DIR,
+          attachments_dir: ATTACHMENTS_DIR,
+        },
+        null,
+        2,
+      ),
+    );
     return 0;
   }
 
   const batch = await writeEmptyConnectorBatch(args, configMeta);
-  console.log(JSON.stringify({
-    batch_id: batch.batch_id,
-    items: 0,
-    prepared: 0,
-    needs_review: 0,
-    batch_path: CURRENT_BATCH_PATH,
-    ...connectorNotice()
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        batch_id: batch.batch_id,
+        items: 0,
+        prepared: 0,
+        needs_review: 0,
+        batch_path: CURRENT_BATCH_PATH,
+        ...connectorNotice(),
+      },
+      null,
+      2,
+    ),
+  );
   return 0;
 }
 

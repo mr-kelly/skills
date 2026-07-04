@@ -11,20 +11,47 @@ const PAGES_DIR = path.join(DOCS, "s");
 const REPO_URL = "https://github.com/mr-kelly/skills";
 
 const GROUPS = [
-  { id: "finance", en: "Finance & Back Office", zh: "经营台账", skills: ["kelly-money", "kelly-audit", "kelly-crm", "kelly-inquiry"] },
+  {
+    id: "finance",
+    en: "Finance & Back Office",
+    zh: "经营台账",
+    skills: ["kelly-money", "kelly-audit", "kelly-crm", "kelly-inquiry"],
+  },
   { id: "comms", en: "Comms & Service", zh: "沟通与协作", skills: ["kelly-email", "kelly-messenger", "kelly-tickets"] },
-  { id: "growth", en: "Growth & Market", zh: "增长与市场", skills: ["kelly-social", "kelly-seo", "kelly-feedback", "kelly-radar", "kelly-writer"] },
-  { id: "production", en: "Production & Teaching", zh: "制作与教学", skills: ["kelly-drama", "kelly-mv", "kelly-lesson"] },
+  {
+    id: "growth",
+    en: "Growth & Market",
+    zh: "增长与市场",
+    skills: ["kelly-social", "kelly-seo", "kelly-feedback", "kelly-radar", "kelly-writer"],
+  },
+  {
+    id: "production",
+    en: "Production & Teaching",
+    zh: "制作与教学",
+    skills: ["kelly-drama", "kelly-mv", "kelly-lesson"],
+  },
   { id: "eng", en: "Engineering & Ops", zh: "工程与运维", skills: ["kelly-devops", "kelly-pr-review"] },
-  { id: "workspace", en: "Workspace Helpers", zh: "工作区工具", skills: ["agent-rules", "app-in-skill-creator", "publish-skills"] }
+  {
+    id: "workspace",
+    en: "Workspace Helpers",
+    zh: "工作区工具",
+    skills: ["agent-rules", "app-in-skill-creator", "publish-skills"],
+  },
 ];
 
 function esc(s) {
-  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function stripMd(s) {
-  return String(s ?? "").replace(/`([^`]+)`/g, "$1").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").trim();
+  return String(s ?? "")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .trim();
 }
 
 function parseTable(md) {
@@ -43,7 +70,10 @@ function parseShotSections(md, imgPrefix) {
     const name = parts[i];
     const body = parts[i + 1] || "";
     const imgs = [...body.matchAll(/<img src="([^"]+)"/g)].map((x) => x[1].replace(imgPrefix, ""));
-    const caps = [...body.matchAll(/<strong>(.*?)<\/strong><br>(.*?)<\/td>/g)].map((x) => ({ title: x[1], text: x[2] }));
+    const caps = [...body.matchAll(/<strong>(.*?)<\/strong><br>(.*?)<\/td>/g)].map((x) => ({
+      title: x[1],
+      text: x[2],
+    }));
     sections[name] = { imgs, caps };
   }
   return sections;
@@ -256,7 +286,9 @@ async function main() {
   // Display-name → folder mapping (kelly-writer lives in skills/kelly-content).
   const folderFor = (name) => (dirs.includes(name) ? name : name === "kelly-writer" ? "kelly-content" : name);
 
-  const allNames = [...new Set([...Object.keys(tableEn), ...dirs.map((d) => (d === "kelly-content" ? "kelly-writer" : d))])];
+  const allNames = [
+    ...new Set([...Object.keys(tableEn), ...dirs.map((d) => (d === "kelly-content" ? "kelly-writer" : d))]),
+  ];
 
   const skills = {};
   for (const name of allNames) {
@@ -270,14 +302,17 @@ async function main() {
       en: src,
       zh: sZh.imgs[i] || src,
       capEn: sEn.caps[i] || { title: "", text: "" },
-      capZh: sZh.caps[i] || sEn.caps[i] || { title: "", text: "" }
+      capZh: sZh.caps[i] || sEn.caps[i] || { title: "", text: "" },
     }));
     skills[name] = {
-      name, folder,
-      descEn, descZh: zh.desc || descEn,
-      whenEn: en.when || "", whenZh: zh.when || en.when || "",
+      name,
+      folder,
+      descEn,
+      descZh: zh.desc || descEn,
+      whenEn: en.when || "",
+      whenZh: zh.when || en.when || "",
       shots,
-      hasApp: shots.length > 0
+      hasApp: shots.length > 0,
     };
   }
 
@@ -290,13 +325,13 @@ async function main() {
     members.forEach((n) => placed.add(n));
     groupsHtml += `<h2 class="group" id="${g.id}">${bilingual(esc(g.en), esc(g.zh))}</h2>\n<div class="grid">\n`;
     for (const n of members) groupsHtml += cardHtml(skills[n]);
-    groupsHtml += `</div>\n`;
+    groupsHtml += "</div>\n";
   }
   const leftovers = allNames.filter((n) => !placed.has(n));
   if (leftovers.length) {
     groupsHtml += `<h2 class="group">${bilingual("More", "更多")}</h2>\n<div class="grid">\n`;
     for (const n of leftovers) groupsHtml += cardHtml(skills[n]);
-    groupsHtml += `</div>\n`;
+    groupsHtml += "</div>\n";
   }
 
   const appCount = Object.values(skills).filter((s) => s.hasApp).length;
@@ -306,7 +341,7 @@ async function main() {
   <p class="lede">
     ${bilingual(
       "Agent skills for daily business operations. Each App-in-Skill pairs an operating procedure for the agent with a local browser UI where a human reviews, approves, edits, and hands work back — dashboards for money, CRM, chat, SEO, market intel, ops, and more.",
-      "服务日常业务的 agent skills。每个 App-in-Skill 都由两部分组成：给 agent 的操作规程 + 一个本地浏览器操作台，供人 review、批准、编辑并把任务交还给 agent —— 覆盖资金、CRM、聊天聚合、SEO、市场情报、运维等场景。"
+      "服务日常业务的 agent skills。每个 App-in-Skill 都由两部分组成：给 agent 的操作规程 + 一个本地浏览器操作台，供人 review、批准、编辑并把任务交还给 agent —— 覆盖资金、CRM、聊天聚合、SEO、市场情报、运维等场景。",
     )}
   </p>
   <div class="stats">
@@ -337,7 +372,10 @@ ${groupsHtml}`;
   }
 
   await fs.mkdir(PAGES_DIR, { recursive: true });
-  await fs.writeFile(path.join(DOCS, "index.html"), pageShell({ title: "mr-kelly/skills — Kelly's App-in-Skill workspace", body: indexBody, rel: "" }));
+  await fs.writeFile(
+    path.join(DOCS, "index.html"),
+    pageShell({ title: "mr-kelly/skills — Kelly's App-in-Skill workspace", body: indexBody, rel: "" }),
+  );
 
   // --- per-skill pages ---
   for (const s of Object.values(skills)) {
@@ -348,7 +386,7 @@ ${groupsHtml}`;
   <figcaption class="cap">
     ${bilingual(`<strong>${esc(sh.capEn.title)}</strong><span>${esc(sh.capEn.text)}</span>`, `<strong>${esc(sh.capZh.title)}</strong><span>${esc(sh.capZh.text)}</span>`, "div")}
   </figcaption>
-</figure>`
+</figure>`,
       )
       .join("\n");
 
@@ -366,7 +404,10 @@ ${groupsHtml}`;
 ${s.whenEn ? `<div class="panel"><h3>${bilingual("When to use it", "什么时候用")}</h3><p>${bilingual(esc(s.whenEn), esc(s.whenZh))}</p></div>` : ""}
 ${shotsHtml ? `<div class="shots">${shotsHtml}</div>` : ""}`;
 
-    await fs.writeFile(path.join(PAGES_DIR, `${s.name}.html`), pageShell({ title: `${s.name} — mr-kelly/skills`, body, rel: "../" }));
+    await fs.writeFile(
+      path.join(PAGES_DIR, `${s.name}.html`),
+      pageShell({ title: `${s.name} — mr-kelly/skills`, body, rel: "../" }),
+    );
   }
 
   await fs.writeFile(path.join(DOCS, ".nojekyll"), "");

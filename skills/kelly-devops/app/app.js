@@ -5,9 +5,11 @@ const state = {
   settings: null,
   route: parseRoute(),
   query: "",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-devops-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-devops-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  notice: ""
+  notice: "",
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-devops.sidebarCollapsed";
@@ -28,7 +30,7 @@ const els = {
   reviewCount: document.querySelector("#count-review"),
   expiringCount: document.querySelector("#count-expiring"),
   downCount: document.querySelector("#count-down"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -75,7 +77,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -85,16 +91,14 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function money(value, currency = state.snapshot?.currency || "USD") {
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     style: "currency",
     currency,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(Number(value || 0));
 }
 
@@ -103,7 +107,7 @@ function date(value) {
   return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     month: "short",
     day: "2-digit",
-    year: "numeric"
+    year: "numeric",
   }).format(new Date(value));
 }
 
@@ -113,7 +117,7 @@ function dateTime(value) {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -149,15 +153,16 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "services"
-    ? "#/services"
-    : scenario === "expiries"
-      ? "#/expiries"
-      : scenario === "spend"
-        ? "#/spend"
-        : scenario === "actions"
-          ? "#/actions"
-          : "#/overview";
+  const route =
+    scenario === "services"
+      ? "#/services"
+      : scenario === "expiries"
+        ? "#/expiries"
+        : scenario === "spend"
+          ? "#/spend"
+          : scenario === "actions"
+            ? "#/actions"
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -167,9 +172,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -211,9 +215,10 @@ function renderShell() {
   const reviewCount = actions().filter((item) => item.status === "needs_review").length;
   const expiringCount = expiries().filter((item) => Number(item.days_left) <= 14).length;
   const downCount = services().filter((item) => item.status === "down").length;
-  els.syncStatus.textContent = state.snapshot?.generated_at && Date.parse(state.snapshot.generated_at) > 0
-    ? `${services().length} ${t("services").toLowerCase()}`
-    : t("empty");
+  els.syncStatus.textContent =
+    state.snapshot?.generated_at && Date.parse(state.snapshot.generated_at) > 0
+      ? `${services().length} ${t("services").toLowerCase()}`
+      : t("empty");
   if (els.reviewCount) els.reviewCount.textContent = reviewCount;
   if (els.expiringCount) els.expiringCount.textContent = expiringCount;
   if (els.downCount) els.downCount.textContent = downCount;
@@ -221,7 +226,9 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = reviewCount
       ? `${reviewCount} ${t("needDecision")}`
-      : (downCount ? `${downCount} ${t("servicesDown")}` : `${services().length} ${t("services").toLowerCase()}`);
+      : downCount
+        ? `${downCount} ${t("servicesDown")}`
+        : `${services().length} ${t("services").toLowerCase()}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -248,9 +255,7 @@ function statusBadge(status) {
 function daysLeftBadge(daysLeft) {
   const days = Number(daysLeft);
   const cls = days < 7 ? "crit" : days < 30 ? "warn" : "ok";
-  const label = days < 0
-    ? `${Math.abs(days)} ${t("days")} ${t("overdue")}`
-    : `${days} ${t("days")}`;
+  const label = days < 0 ? `${Math.abs(days)} ${t("days")} ${t("overdue")}` : `${days} ${t("days")}`;
   return `<span class="days-badge ${cls}">${escapeHtml(label)}</span>`;
 }
 
@@ -264,14 +269,20 @@ function notice() {
 }
 
 function warnings(serviceId = "") {
-  const items = (state.snapshot?.warnings || []).filter((item) => !serviceId || !item.service_id || item.service_id === serviceId);
+  const items = (state.snapshot?.warnings || []).filter(
+    (item) => !serviceId || !item.service_id || item.service_id === serviceId,
+  );
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 function sparkline(history) {
@@ -285,10 +296,14 @@ function sparkline(history) {
   const y = (value) => height - pad - (value / max) * (height - pad * 2);
   const coords = points.map((value, index) => [pad + index * step, y(value)]);
   const line = coords.map(([x, yy], index) => `${index === 0 ? "M" : "L"}${x.toFixed(1)},${yy.toFixed(1)}`).join(" ");
-  const dots = coords.map(([x, yy], index) => {
-    const status = history[index]?.status || "up";
-    return status === "up" ? "" : `<circle cx="${x.toFixed(1)}" cy="${yy.toFixed(1)}" r="3" class="spark-dot ${escapeHtml(status)}"></circle>`;
-  }).join("");
+  const dots = coords
+    .map(([x, yy], index) => {
+      const status = history[index]?.status || "up";
+      return status === "up"
+        ? ""
+        : `<circle cx="${x.toFixed(1)}" cy="${yy.toFixed(1)}" r="3" class="spark-dot ${escapeHtml(status)}"></circle>`;
+    })
+    .join("");
   return `
     <svg class="sparkline" viewBox="0 0 ${width} ${height}" role="img" aria-label="${t("latency")}" preserveAspectRatio="none">
       <path d="${line}" fill="none"></path>
@@ -299,9 +314,10 @@ function sparkline(history) {
 
 function fleetCards() {
   const m = metrics();
-  const spendDelta = Number(m.spend_last_month) > 0
-    ? ((Number(m.spend_mtd) - Number(m.spend_last_month)) / Number(m.spend_last_month)) * 100
-    : 0;
+  const spendDelta =
+    Number(m.spend_last_month) > 0
+      ? ((Number(m.spend_mtd) - Number(m.spend_last_month)) / Number(m.spend_last_month)) * 100
+      : 0;
   return `
     <div class="metrics">
       <div class="metric"><span>${t("services")}</span><strong>${m.services_up || 0} / ${m.services_total || 0}</strong><small>${m.services_degraded || 0} ${enumLabel("degraded")} · ${m.services_down || 0} ${enumLabel("down")}</small></div>
@@ -314,9 +330,10 @@ function fleetCards() {
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at && Date.parse(state.snapshot.generated_at) > 0
-    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
-    : t("empty");
+  els.subtitle.textContent =
+    state.snapshot?.generated_at && Date.parse(state.snapshot.generated_at) > 0
+      ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+      : t("empty");
   const needsDecision = actions().filter((item) => item.status === "needs_review");
   const expiring = expiries().filter((item) => Number(item.days_left) <= 14);
   const down = services().filter((item) => item.status !== "up");
@@ -328,34 +345,53 @@ function renderOverview() {
     <section class="overview-grid">
       <div class="overview-panel">
         <h2>${t("humanWorkTitle")}</h2>
-        ${needsDecision.map((item) => `
+        ${needsDecision
+          .map(
+            (item) => `
           <a class="attention-row" href="#/actions/${encodeURIComponent(item.action_id)}">
             <span><strong>${t("actionRef")} #${item.ref} · ${escapeHtml(item.title)}</strong><small>${escapeHtml(item.reason)}</small></span>
             ${typeBadge(item.type)}
           </a>
-        `).join("")}
-        ${expiring.map((item) => `
+        `,
+          )
+          .join("")}
+        ${expiring
+          .map(
+            (item) => `
           <a class="attention-row" href="#/expiries/${encodeURIComponent(item.expiry_id)}">
             <span><strong>${escapeHtml(item.item)}</strong><small>${escapeHtml(item.product)} · ${date(item.expires_on)}</small></span>
             ${daysLeftBadge(item.days_left)}
           </a>
-        `).join("")}
-        ${down.map((item) => `
+        `,
+          )
+          .join("")}
+        ${down
+          .map(
+            (item) => `
           <a class="attention-row" href="#/services/${encodeURIComponent(item.service_id)}">
             <span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.url)}</small></span>
             ${statusBadge(item.status)}
           </a>
-        `).join("")}
+        `,
+          )
+          .join("")}
         ${!needsDecision.length && !expiring.length && !down.length ? `<div class="empty">${t("empty")}</div>` : ""}
       </div>
       <div class="overview-panel">
         <h2>${t("recentEvents")}</h2>
-        ${events().slice(0, 8).map((event) => `
+        ${
+          events()
+            .slice(0, 8)
+            .map(
+              (event) => `
           <div class="event-row">
             <span class="event-meta">${statusDot(event.severity)}<small>${dateTime(event.at)}</small>${typeBadge(event.kind)}</span>
             <span class="event-message">${escapeHtml(event.message)}</span>
           </div>
-        `).join("") || `<div class="empty">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("empty")}</div>`
+        }
       </div>
       <div class="overview-panel wide">
         <h2>${t("checkFreshness")}</h2>
@@ -372,9 +408,11 @@ function renderOverview() {
 function filteredServices() {
   const query = state.query.trim().toLowerCase();
   if (!query) return services();
-  return services().filter((service) => [service.name, service.product, service.url, service.status]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return services().filter((service) =>
+    [service.name, service.product, service.url, service.status]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderServices() {
@@ -392,7 +430,9 @@ function renderServices() {
           </tr>
         </thead>
         <tbody>
-          ${rows.map((service) => `
+          ${rows
+            .map(
+              (service) => `
             <tr>
               <td><a href="#/services/${encodeURIComponent(service.service_id)}"><strong>${escapeHtml(service.name)}</strong></a></td>
               <td><span class="badge">${escapeHtml(service.product)}</span></td>
@@ -403,7 +443,9 @@ function renderServices() {
               <td>${service.ssl ? daysLeftBadge(service.ssl.days_left) : t("notAvailable")}</td>
               <td class="muted">${dateTime(service.last_check_at)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -419,7 +461,9 @@ function renderServiceDetail() {
   }
   els.title.textContent = service.name;
   els.subtitle.textContent = `${service.product} · ${service.url}`;
-  const linkedAction = actions().find((item) => item.target?.id === service.service_id || item.target?.service_id === service.service_id);
+  const linkedAction = actions().find(
+    (item) => item.target?.id === service.service_id || item.target?.service_id === service.service_id,
+  );
   els.content.innerHTML = `
     ${notice()}
     ${service.warnings?.length ? `<div class="warnings">${service.warnings.map((message) => `<div class="warning"><strong>${escapeHtml(message)}</strong></div>`).join("")}</div>` : ""}
@@ -435,15 +479,23 @@ function renderServiceDetail() {
           <h2>${t("checkHistory")}</h2>
           ${sparkline(service.history)}
           <div class="history-list">
-            ${(service.history || []).slice(-6).reverse().map((entry) => `
+            ${(service.history || [])
+              .slice(-6)
+              .reverse()
+              .map(
+                (entry) => `
               <div class="history-row">
                 <span>${statusDot(entry.status)}${dateTime(entry.at)}</span>
                 <span class="num">${entry.status === "down" ? `HTTP ${entry.http_status || "—"}` : `${entry.latency_ms} ms`}</span>
               </div>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </div>
         </div>
-        ${linkedAction ? `
+        ${
+          linkedAction
+            ? `
           <div class="panel">
             <h2>${t("actions")}</h2>
             <a class="attention-row" href="#/actions/${encodeURIComponent(linkedAction.action_id)}">
@@ -451,7 +503,9 @@ function renderServiceDetail() {
               ${statusBadge(linkedAction.status)}
             </a>
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
       <aside class="detail-side">
         <h2>${t("cert")}</h2>
@@ -476,9 +530,11 @@ function filteredExpiries() {
   const query = state.query.trim().toLowerCase();
   const rows = [...expiries()].sort((a, b) => Number(a.days_left) - Number(b.days_left));
   if (!query) return rows;
-  return rows.filter((item) => [item.item, item.product, item.type, item.registrar, item.detail]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return rows.filter((item) =>
+    [item.item, item.product, item.type, item.registrar, item.detail]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderExpiries() {
@@ -496,7 +552,9 @@ function renderExpiries() {
           </tr>
         </thead>
         <tbody>
-          ${rows.map((item) => `
+          ${rows
+            .map(
+              (item) => `
             <tr>
               <td><a href="#/expiries/${encodeURIComponent(item.expiry_id)}"><strong>${escapeHtml(item.item)}</strong></a></td>
               <td><span class="badge">${escapeHtml(item.product)}</span></td>
@@ -506,7 +564,9 @@ function renderExpiries() {
               <td>${item.auto_renew ? "✓" : "—"}</td>
               <td>${item.action_id ? actionLink(item.action_id) : `<span class="muted">${t("notAvailable")}</span>`}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -561,7 +621,9 @@ function renderSpend() {
   els.content.innerHTML = `
     ${notice()}
     <div class="spend-grid">
-      ${data.providers.map((row) => `
+      ${data.providers
+        .map(
+          (row) => `
         <div class="spend-card ${row.anomaly ? "anomaly" : ""}">
           <div class="row between">
             <strong>${escapeHtml(row.name)}</strong>
@@ -572,7 +634,9 @@ function renderSpend() {
           ${row.note ? `<div class="muted spend-note">${escapeHtml(row.note)}</div>` : ""}
           ${row.action_id ? `<div>${actionLink(row.action_id)}</div>` : ""}
         </div>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
     <div class="panel">
       <h2>${t("allocation")}</h2>
@@ -582,9 +646,13 @@ function renderSpend() {
             <tr><th>${t("product")}</th><th class="num">${t("mtd")}</th><th class="num">${t("lastMonth")}</th><th class="num">${t("delta")}</th><th class="num">${t("share")}</th></tr>
           </thead>
           <tbody>
-            ${data.products.map((row) => {
-              const delta = Number(row.last_month) > 0 ? ((Number(row.mtd) - Number(row.last_month)) / Number(row.last_month)) * 100 : 0;
-              return `
+            ${data.products
+              .map((row) => {
+                const delta =
+                  Number(row.last_month) > 0
+                    ? ((Number(row.mtd) - Number(row.last_month)) / Number(row.last_month)) * 100
+                    : 0;
+                return `
                 <tr>
                   <td><strong>${escapeHtml(row.product)}</strong></td>
                   <td class="num">${money(row.mtd, row.currency)}</td>
@@ -593,7 +661,8 @@ function renderSpend() {
                   <td class="num">${Number(row.share_pct || 0)}%</td>
                 </tr>
               `;
-            }).join("")}
+              })
+              .join("")}
           </tbody>
         </table>
       </div>
@@ -606,9 +675,11 @@ function filteredActions() {
   const order = { needs_review: 0, changes_requested: 1, approved: 2, blocked: 3, done: 4 };
   const rows = [...actions()].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9) || a.ref - b.ref);
   if (!query) return rows;
-  return rows.filter((item) => [item.title, item.reason, item.type, item.status, item.note]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return rows.filter((item) =>
+    [item.title, item.reason, item.type, item.status, item.note]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderActions() {
@@ -620,7 +691,9 @@ function renderActions() {
     ${notice()}
     ${lockBanner()}
     <div class="action-list">
-      ${rows.map((item) => `
+      ${rows
+        .map(
+          (item) => `
         <a class="action-card" href="#/actions/${encodeURIComponent(item.action_id)}">
           <div class="action-card-head">
             <span class="action-ref">${t("actionRef")} #${item.ref}</span>
@@ -631,7 +704,9 @@ function renderActions() {
           <span class="muted">${escapeHtml(item.reason)}</span>
           ${item.decision?.note ? `<span class="action-note">“${escapeHtml(item.decision.note)}”</span>` : ""}
         </a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
     ${rows.length ? "" : `<div class="empty">${t("empty")}</div>`}
   `;
@@ -689,14 +764,22 @@ function renderActionDetail() {
         <h2>${t("decision")}</h2>
         <dl>
           <dt>${t("status")}</dt><dd>${statusBadge(action.status)}</dd>
-          ${action.decision ? `
+          ${
+            action.decision
+              ? `
             <dt>${t("decision")}</dt><dd>${escapeHtml(enumLabel(action.decision.verdict === "approve" ? "approved" : action.decision.verdict === "block" ? "blocked" : "changes_requested"))}</dd>
             <dt>${t("generated")}</dt><dd>${dateTime(action.decision.decided_at)}</dd>
-          ` : ""}
+          `
+              : ""
+          }
         </dl>
         <h2>${t("target")}</h2>
         <dl>
-          ${Object.entries(target).map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd class="mono">${escapeHtml(String(value))}</dd>`).join("") || `<dd>${t("notAvailable")}</dd>`}
+          ${
+            Object.entries(target)
+              .map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd class="mono">${escapeHtml(String(value))}</dd>`)
+              .join("") || `<dd>${t("notAvailable")}</dd>`
+          }
         </dl>
       </aside>
     </section>
@@ -725,7 +808,7 @@ async function submitDecision(actionId, verdict) {
     const res = await fetch("/api/decision", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action_id: actionId, verdict, note })
+      body: JSON.stringify({ action_id: actionId, verdict, note }),
     });
     const body = await res.json();
     if (!res.ok) throw new Error(body.error || `Decision failed: ${res.status}`);
@@ -754,43 +837,67 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("services")}</h2>
-        ${(summary.services || []).map((service) => `
+        ${
+          (summary.services || [])
+            .map(
+              (service) => `
           <div class="settings-row">
             <strong>${escapeHtml(service.name)}</strong>
             <span>${escapeHtml(service.product || "")}</span>
             <span class="mono muted">${escapeHtml(service.url || "")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("domains")}</h2>
-        ${(summary.domains || []).map((domain) => `
+        ${
+          (summary.domains || [])
+            .map(
+              (domain) => `
           <div class="settings-row">
             <strong>${escapeHtml(domain.domain)}</strong>
             <span>${escapeHtml(domain.registrar || "")}</span>
             <span>${t("autoRenew")}: ${domain.auto_renew ? "✓" : "—"}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("keyRotation")}</h2>
-        ${(summary.key_rotation || []).map((key) => `
+        ${
+          (summary.key_rotation || [])
+            .map(
+              (key) => `
           <div class="settings-row">
             <strong>${escapeHtml(key.name)}</strong>
             <span class="mono muted">${escapeHtml(key.env || "")}</span>
             <span>${key.env_ready ? t("secretsReady") : t("missingSecrets")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("billingSources")}</h2>
-        ${(summary.billing_sources || []).map((source) => `
+        ${
+          (summary.billing_sources || [])
+            .map(
+              (source) => `
           <div class="settings-row">
             <strong>${escapeHtml(source.name)}</strong>
             <span class="mono muted">${escapeHtml((source.secret_envs || []).join(", "))}</span>
             <span>${source.secrets_ready ? t("secretsReady") : t("missingSecrets")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
     </div>
   `;
@@ -810,13 +917,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

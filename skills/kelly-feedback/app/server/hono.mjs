@@ -1,9 +1,17 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR } from "./paths.mjs";
 import { demoStatePayload, isDemoQuery } from "./demo.mjs";
-import { readConfig, readDecisions, readLock, readOnboarding, readSnapshot, recordDecision, summarizeConfig } from "./store.mjs";
+import { APP_DIR } from "./paths.mjs";
+import {
+  readConfig,
+  readDecisions,
+  readLock,
+  readOnboarding,
+  readSnapshot,
+  recordDecision,
+  summarizeConfig,
+} from "./store.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic modules (data-provider
@@ -18,7 +26,7 @@ const types = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8"
+  ".json": "application/json; charset=utf-8",
 };
 
 async function state() {
@@ -27,7 +35,7 @@ async function state() {
     readOnboarding(),
     readLock(),
     readDecisions(),
-    readConfig()
+    readConfig(),
   ]);
   return {
     app: "kelly-feedback",
@@ -36,7 +44,7 @@ async function state() {
     lock,
     decisions,
     config_summary: summarizeConfig(configResult),
-    snapshot
+    snapshot,
   };
 }
 
@@ -48,7 +56,7 @@ async function sendFile(c, filePath) {
     return c.body("Not found", 404);
   }
   return c.body(data, 200, {
-    "content-type": types[path.extname(filePath)] || "application/octet-stream"
+    "content-type": types[path.extname(filePath)] || "application/octet-stream",
   });
 }
 
@@ -63,7 +71,9 @@ app.get("/api/state", async (c) => {
 app.post("/api/decisions", async (c) => {
   const lock = await readLock();
   if (lock) {
-    return c.json({ error: "agent lock is active; try again after the agent finishes", lock }, 423, { "cache-control": "no-store" });
+    return c.json({ error: "agent lock is active; try again after the agent finishes", lock }, 423, {
+      "cache-control": "no-store",
+    });
   }
   try {
     const body = await c.req.json().catch(() => ({}));

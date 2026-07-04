@@ -1,15 +1,22 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR, GENERATED_DIR } from "./paths.mjs";
-import { assertUnlocked } from "./lock.mjs";
-import { generateCharacterCard, generateStoryboardImage, generateVisualBackground, imageConfigPayload, saveImageConfig, storyboardPromptPreview } from "./image-service.mjs";
-import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.mjs";
-import { generateCharacterVoice, setCharacterVoiceActive } from "./voice-service.mjs";
 import { hyperframeProjectStatus } from "./hyperframe-service.mjs";
+import {
+  generateCharacterCard,
+  generateStoryboardImage,
+  generateVisualBackground,
+  imageConfigPayload,
+  saveImageConfig,
+  storyboardPromptPreview,
+} from "./image-service.mjs";
+import { assertUnlocked } from "./lock.mjs";
+import { APP_DIR, GENERATED_DIR } from "./paths.mjs";
 import { loadProject, saveProject, upsertById } from "./project-store.mjs";
 import { setActiveProject, statePayload } from "./state.mjs";
 import { slug } from "./utils.mjs";
+import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.mjs";
+import { generateCharacterVoice, setCharacterVoiceActive } from "./voice-service.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic/service modules, so the
@@ -44,7 +51,8 @@ async function sendFile(c, absPath) {
 
 function idFor(kind, item) {
   if (item.id) return String(item.id);
-  const prefix = { characters: "char", relationships: "rel", episodes: "ep", shots: "shot", tasks: "task" }[kind] || "item";
+  const prefix =
+    { characters: "char", relationships: "rel", episodes: "ep", shots: "shot", tasks: "task" }[kind] || "item";
   const base = item.name || item.title || item.type || Date.now();
   return `${prefix}-${slug(base)}`;
 }
@@ -100,11 +108,18 @@ app.get("/api/image-config", async (c) => c.json(await imageConfigPayload()));
 
 app.get("/api/hyperframe-status", async (c) => {
   const project = await loadProject();
-  const requestedPath = String(c.req.query("path") || project.series?.hyperframe_project_path || project.series?.hyperframe_source?.project_path || "");
+  const requestedPath = String(
+    c.req.query("path") ||
+      project.series?.hyperframe_project_path ||
+      project.series?.hyperframe_source?.project_path ||
+      "",
+  );
   return c.json(await hyperframeProjectStatus(requestedPath));
 });
 
-app.get("/api/storyboard-prompt", async (c) => c.json(await storyboardPromptPreview(String(c.req.query("shot_id") || ""))));
+app.get("/api/storyboard-prompt", async (c) =>
+  c.json(await storyboardPromptPreview(String(c.req.query("shot_id") || ""))),
+);
 
 // ---- POST API ----
 app.post("/api/series", async (c) => {
@@ -137,9 +152,11 @@ app.post("/api/shot-video", async (c) => {
   await assertUnlocked();
   // Unified: every backend just appends a video candidate. Default = Seedance (cloud).
   const backend = String(body.backend || body.mode || "seedance");
-  return c.json(backend === "ltx"
-    ? await generateShotVideoDraft(String(body.shot_id || ""))
-    : await generateShotVideoProd(String(body.shot_id || "")));
+  return c.json(
+    backend === "ltx"
+      ? await generateShotVideoDraft(String(body.shot_id || ""))
+      : await generateShotVideoProd(String(body.shot_id || "")),
+  );
 });
 
 app.post("/api/shot-active", async (c) => {

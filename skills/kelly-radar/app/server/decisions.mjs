@@ -32,7 +32,7 @@ export async function saveDecision(body) {
     action,
     status: statusForAction(action),
     comment: typeof body.comment === "string" ? body.comment : "",
-    decided_at: now
+    decided_at: now,
   };
   if (kind === "report" && body.confidence !== undefined) {
     const confidence = Number(body.confidence);
@@ -47,7 +47,7 @@ export async function saveDecision(body) {
       kind: kind === "brief" ? "revise_brief" : kind === "signal" ? "collect_more_evidence" : `revise_${kind}`,
       ref_id: id,
       note: decision.comment,
-      created_at: now
+      created_at: now,
     });
   }
   return { ok: true, decision: { id, ...decision } };
@@ -66,7 +66,7 @@ export async function saveFollowup(body) {
     kind: "research_followup",
     ref_id: questionId,
     note: question,
-    created_at: now
+    created_at: now,
   });
   return { ok: true, task };
 }
@@ -76,7 +76,7 @@ async function enqueueAgentTask(entry) {
   const task = {
     task_id: `task-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     status: "queued",
-    ...entry
+    ...entry,
   };
   tasks.tasks.push(task);
   tasks.updated_at = entry.created_at;
@@ -117,7 +117,7 @@ export function applyDecisions(snapshot, decisions) {
   next.trends = {
     ...trends,
     movers: trends.movers || [],
-    opportunities: (trends.opportunities || []).map((item) => decorate(item, "opportunity_id"))
+    opportunities: (trends.opportunities || []).map((item) => decorate(item, "opportunity_id")),
   };
   return next;
 }

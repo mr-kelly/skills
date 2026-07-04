@@ -11,12 +11,19 @@ const state = {
   checkResultFilter: "all",
   edits: {},
   notice: "",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-lesson-language") || "auto"),
-  demo: new URLSearchParams(location.search).get("demo") || ""
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-lesson-language") || "auto",
+  ),
+  demo: new URLSearchParams(location.search).get("demo") || "",
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-lesson.sidebarCollapsed";
-const DECISION_STATUS = { approve: "approved", request_changes: "changes_requested", block: "blocked", revise: "needs_review" };
+const DECISION_STATUS = {
+  approve: "approved",
+  request_changes: "changes_requested",
+  block: "blocked",
+  revise: "needs_review",
+};
 
 const els = {
   title: document.querySelector("#page-title"),
@@ -34,7 +41,7 @@ const els = {
   reviewCount: document.querySelector("#count-review"),
   failedCount: document.querySelector("#count-failed"),
   revisionCount: document.querySelector("#count-revision"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -81,7 +88,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -91,9 +102,7 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function date(value) {
@@ -101,7 +110,7 @@ function date(value) {
   return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     month: "short",
     day: "2-digit",
-    year: "numeric"
+    year: "numeric",
   }).format(new Date(value));
 }
 
@@ -132,15 +141,16 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "plans"
-    ? "#/plans"
-    : scenario === "checks"
-      ? "#/checks"
-      : scenario === "review"
-        ? "#/review"
-        : scenario === "detail"
-          ? "#/plans/plan-math-linear-eq"
-          : "#/overview";
+  const route =
+    scenario === "plans"
+      ? "#/plans"
+      : scenario === "checks"
+        ? "#/checks"
+        : scenario === "review"
+          ? "#/review"
+          : scenario === "detail"
+            ? "#/plans/plan-math-linear-eq"
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -150,9 +160,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -227,9 +236,10 @@ function renderShell() {
   const reviewCount = reviewItems().filter((item) => effectiveReviewStatus(item) === "needs_review").length;
   const failedCount = checks().filter((item) => item.result === "fail").length;
   const revisionCount = plans().filter((item) => effectivePlanStatus(item) === "changes_requested").length;
-  els.syncStatus.textContent = snapshot && plans().length
-    ? `${snapshot.school?.name || ""}`.trim() || `${plans().length} ${t("plans")}`
-    : t("empty");
+  els.syncStatus.textContent =
+    snapshot && plans().length
+      ? `${snapshot.school?.name || ""}`.trim() || `${plans().length} ${t("plans")}`
+      : t("empty");
   if (els.reviewCount) els.reviewCount.textContent = reviewCount;
   if (els.failedCount) els.failedCount.textContent = failedCount;
   if (els.revisionCount) els.revisionCount.textContent = revisionCount;
@@ -288,12 +298,16 @@ function noticeBanner() {
 function warnings(planId = "") {
   const items = (state.snapshot?.warnings || []).filter((item) => !planId || !item.plan_id || item.plan_id === planId);
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 function metricCards() {
@@ -311,10 +325,19 @@ function metricCards() {
 function filteredPlans() {
   const query = state.query.trim().toLowerCase();
   if (!query) return plans();
-  return plans().filter((item) => [
-    item.title, item.subject, item.grade, item.unit, item.source, effectivePlanStatus(item),
-    teacherById(item.teacher_id)?.name
-  ].filter(Boolean).some((value) => String(value).toLowerCase().includes(query)));
+  return plans().filter((item) =>
+    [
+      item.title,
+      item.subject,
+      item.grade,
+      item.unit,
+      item.source,
+      effectivePlanStatus(item),
+      teacherById(item.teacher_id)?.name,
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function filteredChecks() {
@@ -338,7 +361,15 @@ function filteredReviewItems() {
     if (state.reviewFilter !== "all" && status !== state.reviewFilter) return false;
     if (!query) return true;
     const plan = planById(item.plan_id);
-    return [plan?.title, plan?.subject, plan?.grade, item.compliance_summary, item.feedback_draft, status, teacherById(plan?.teacher_id)?.name]
+    return [
+      plan?.title,
+      plan?.subject,
+      plan?.grade,
+      item.compliance_summary,
+      item.feedback_draft,
+      status,
+      teacherById(plan?.teacher_id)?.name,
+    ]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
   });
@@ -356,8 +387,14 @@ function configOrdered(values, configured = []) {
 
 function coverageTable() {
   const summary = state.settings?.config_summary || {};
-  const grades = configOrdered(plans().map((item) => item.grade), summary.grades);
-  const subjects = configOrdered(plans().map((item) => item.subject), summary.subjects);
+  const grades = configOrdered(
+    plans().map((item) => item.grade),
+    summary.grades,
+  );
+  const subjects = configOrdered(
+    plans().map((item) => item.subject),
+    summary.subjects,
+  );
   if (!grades.length) return `<div class="empty-inline">${t("noPlans")}</div>`;
   return `
     <div class="coverage-grid">
@@ -366,15 +403,21 @@ function coverageTable() {
           <tr><th>${t("subject")}</th>${grades.map((grade) => `<th>${escapeHtml(grade)}</th>`).join("")}</tr>
         </thead>
         <tbody>
-          ${subjects.map((subject) => `
+          ${subjects
+            .map(
+              (subject) => `
             <tr>
               <td class="strong">${escapeHtml(subject)}</td>
-              ${grades.map((grade) => {
-                const count = plans().filter((item) => item.subject === subject && item.grade === grade).length;
-                return `<td><span class="coverage-count ${count ? "" : "zero"}">${count}</span></td>`;
-              }).join("")}
+              ${grades
+                .map((grade) => {
+                  const count = plans().filter((item) => item.subject === subject && item.grade === grade).length;
+                  return `<td><span class="coverage-count ${count ? "" : "zero"}">${count}</span></td>`;
+                })
+                .join("")}
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -387,13 +430,18 @@ function renderOverview() {
     ? `${state.snapshot.school?.name || ""} · ${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
     : t("empty");
   const awaiting = reviewItems().filter((item) => effectiveReviewStatus(item) === "needs_review");
-  const activity = (state.snapshot?.activity_log || []).slice().sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 8);
+  const activity = (state.snapshot?.activity_log || [])
+    .slice()
+    .sort((a, b) => String(b.at).localeCompare(String(a.at)))
+    .slice(0, 8);
   const teacherRows = teachers().map((teacher) => {
     const own = plans().filter((item) => item.teacher_id === teacher.teacher_id);
     const approved = own.filter((item) => ["approved", "done"].includes(effectivePlanStatus(item))).length;
     const revision = own.filter((item) => effectivePlanStatus(item) === "changes_requested").length;
     const needsReview = own.filter((item) => effectivePlanStatus(item) === "needs_review").length;
-    const avg = own.length ? Math.round(own.reduce((sum, item) => sum + Number(item.compliance_score || 0), 0) / own.length) : 0;
+    const avg = own.length
+      ? Math.round(own.reduce((sum, item) => sum + Number(item.compliance_score || 0), 0) / own.length)
+      : 0;
     return { teacher, own, approved, revision, needsReview, avg };
   });
   els.content.innerHTML = `
@@ -406,15 +454,19 @@ function renderOverview() {
       </div>
       <div class="overview-panel">
         <h2>${t("reviewQueue")}</h2>
-        ${awaiting.map((item) => {
-          const plan = planById(item.plan_id);
-          return `
+        ${
+          awaiting
+            .map((item) => {
+              const plan = planById(item.plan_id);
+              return `
             <a class="due-row" href="#/review">
               <span><strong>${t("planRef")} #${item.ref} · ${escapeHtml(plan?.title || item.plan_id)}</strong><small>${escapeHtml(item.compliance_summary || "")}</small></span>
               <span class="due-meta">${statusBadge(effectiveReviewStatus(item))}${plan ? `<small>${scoreCell(plan.compliance_score)}</small>` : ""}</span>
             </a>
           `;
-        }).join("") || `<div class="empty-inline">${t("noReviewItems")}</div>`}
+            })
+            .join("") || `<div class="empty-inline">${t("noReviewItems")}</div>`
+        }
       </div>
       <div class="overview-panel wide">
         <h2>${t("teacherStatus")}</h2>
@@ -424,7 +476,9 @@ function renderOverview() {
               <tr><th>${t("teacher")}</th><th>${t("subject")}</th><th>${t("grades")}</th><th>${t("plans")}</th><th>${t("approved")}</th><th>${t("inRevision")}</th><th>${t("status")}</th><th>${t("avgScore")}</th></tr>
             </thead>
             <tbody>
-              ${teacherRows.map(({ teacher, own, approved, revision, needsReview, avg }) => `
+              ${teacherRows
+                .map(
+                  ({ teacher, own, approved, revision, needsReview, avg }) => `
                 <tr>
                   <td class="strong">${escapeHtml(teacher.name)}</td>
                   <td>${escapeHtml(teacher.subject)}</td>
@@ -435,20 +489,28 @@ function renderOverview() {
                   <td>${statusBadge(needsReview ? "needs_review" : revision ? "changes_requested" : "done")}</td>
                   <td>${scoreCell(avg)}</td>
                 </tr>
-              `).join("")}
+              `,
+                )
+                .join("")}
             </tbody>
           </table>
         </div>
       </div>
       <div class="overview-panel wide">
         <h2>${t("recentActivity")}</h2>
-        ${activity.map((item) => `
+        ${
+          activity
+            .map(
+              (item) => `
           <div class="activity-row">
             <span class="badge">${escapeHtml(enumLabel(item.actor, "actor"))}</span>
             <span><small>${escapeHtml(item.detail)}</small></span>
             <span class="muted">${date(item.at)}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("noActivity")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("noActivity")}</div>`
+        }
       </div>
     </section>
   `;
@@ -461,7 +523,9 @@ function renderPlans() {
   els.content.innerHTML = `
     ${metricCards()}
     ${warnings()}
-    ${items.length ? `
+    ${
+      items.length
+        ? `
       <div class="table-wrap">
         <table>
           <thead>
@@ -470,7 +534,9 @@ function renderPlans() {
             </tr>
           </thead>
           <tbody>
-            ${items.map((item) => `
+            ${items
+              .map(
+                (item) => `
               <tr>
                 <td><a href="#/plans/${encodeURIComponent(item.plan_id)}"><span class="strong">${t("planRef")} #${item.ref} · ${escapeHtml(item.title)}</span></a></td>
                 <td>${escapeHtml(item.subject)}</td>
@@ -482,11 +548,15 @@ function renderPlans() {
                 <td>${statusBadge(effectivePlanStatus(item))}</td>
                 <td>${date(item.updated_at)}</td>
               </tr>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </tbody>
         </table>
       </div>
-    ` : `<div class="empty">${t("noPlans")}</div>`}
+    `
+        : `<div class="empty">${t("noPlans")}</div>`
+    }
   `;
 }
 
@@ -533,25 +603,33 @@ function renderPlanDetail() {
         ${sectionList(t("objectives"), sections.objectives)}
         ${sectionList(t("keyPoints"), [...(sections.key_points || []), ...(sections.difficulties || [])])}
         ${sectionList(t("materials"), sections.materials)}
-        ${sections.stages?.length ? `
+        ${
+          sections.stages?.length
+            ? `
           <div class="section-block">
             <h2>${t("lessonFlow")}</h2>
             <div class="stage-table table-wrap">
               <table>
                 <thead><tr><th>${t("stage")}</th><th>${t("minutes")}</th><th>${t("activities")}</th></tr></thead>
                 <tbody>
-                  ${sections.stages.map((item) => `
+                  ${sections.stages
+                    .map(
+                      (item) => `
                     <tr>
                       <td class="strong">${escapeHtml(item.name)}</td>
                       <td class="num">${Number(item.minutes || 0) || "—"}</td>
                       <td>${escapeHtml(item.activities || "")}</td>
                     </tr>
-                  `).join("")}
+                  `,
+                    )
+                    .join("")}
                 </tbody>
               </table>
             </div>
           </div>
-        ` : ""}
+        `
+            : ""
+        }
         ${sectionText(t("boardPlan"), sections.board_plan)}
         ${sectionText(t("homework"), sections.homework)}
         ${sectionText(t("safetyNotes"), sections.safety_notes)}
@@ -573,7 +651,10 @@ function renderPlanDetail() {
         </div>
         <div>
           <h2>${t("complianceChecks")}</h2>
-          ${planChecks.map((item) => `
+          ${
+            planChecks
+              .map(
+                (item) => `
             <div class="check-row">
               ${resultBadge(item.result)}
               <span>
@@ -581,7 +662,10 @@ function renderPlanDetail() {
                 <small>${escapeHtml(item.evidence || "")}</small>
               </span>
             </div>
-          `).join("") || `<div class="empty-inline">${t("noChecks")}</div>`}
+          `,
+              )
+              .join("") || `<div class="empty-inline">${t("noChecks")}</div>`
+          }
         </div>
         <div class="notes-panel">
           <h2>${t("editNotes")}</h2>
@@ -623,18 +707,30 @@ function renderChecks() {
     <div class="check-filters">
       <select id="ruleFilter" aria-label="${t("rule")}">
         <option value="all">${t("all")} · ${t("rule")}</option>
-        ${rules().map((rule) => `<option value="${escapeHtml(rule.rule_id)}" ${state.checkRuleFilter === rule.rule_id ? "selected" : ""}>${escapeHtml(rule.name)}</option>`).join("")}
+        ${rules()
+          .map(
+            (rule) =>
+              `<option value="${escapeHtml(rule.rule_id)}" ${state.checkRuleFilter === rule.rule_id ? "selected" : ""}>${escapeHtml(rule.name)}</option>`,
+          )
+          .join("")}
       </select>
       <select id="teacherFilter" aria-label="${t("teacher")}">
         <option value="all">${t("all")} · ${t("teacher")}</option>
-        ${teachers().map((teacher) => `<option value="${escapeHtml(teacher.teacher_id)}" ${state.checkTeacherFilter === teacher.teacher_id ? "selected" : ""}>${escapeHtml(teacher.name)}</option>`).join("")}
+        ${teachers()
+          .map(
+            (teacher) =>
+              `<option value="${escapeHtml(teacher.teacher_id)}" ${state.checkTeacherFilter === teacher.teacher_id ? "selected" : ""}>${escapeHtml(teacher.name)}</option>`,
+          )
+          .join("")}
       </select>
       <select id="resultFilter" aria-label="${t("result")}">
         <option value="all">${t("all")} · ${t("result")}</option>
         ${["pass", "warn", "fail", "agent_review"].map((result) => `<option value="${result}" ${state.checkResultFilter === result ? "selected" : ""}>${escapeHtml(enumLabel(result, "result"))}</option>`).join("")}
       </select>
     </div>
-    ${items.length ? `
+    ${
+      items.length
+        ? `
       <div class="table-wrap">
         <table>
           <thead>
@@ -643,10 +739,11 @@ function renderChecks() {
             </tr>
           </thead>
           <tbody>
-            ${items.map((item) => {
-              const plan = planById(item.plan_id);
-              const rule = ruleById(item.rule_id);
-              return `
+            ${items
+              .map((item) => {
+                const plan = planById(item.plan_id);
+                const rule = ruleById(item.rule_id);
+                return `
                 <tr>
                   <td><a href="#/plans/${encodeURIComponent(item.plan_id)}"><span class="strong">${t("planRef")} #${plan?.ref || ""} · ${escapeHtml(plan?.title || item.plan_id)}</span></a></td>
                   <td>${escapeHtml(teacherById(plan?.teacher_id)?.name || "")}</td>
@@ -656,11 +753,14 @@ function renderChecks() {
                   <td>${escapeHtml(item.evidence || "")}</td>
                 </tr>
               `;
-            }).join("")}
+              })
+              .join("")}
           </tbody>
         </table>
       </div>
-    ` : `<div class="empty">${t("noChecks")}</div>`}
+    `
+        : `<div class="empty">${t("noChecks")}</div>`
+    }
   `;
   els.content.querySelector("#ruleFilter")?.addEventListener("change", (event) => {
     state.checkRuleFilter = event.target.value;
@@ -680,11 +780,16 @@ function reviewFilters() {
   const states = ["all", "needs_review", "changes_requested", "approved", "done", "blocked"];
   return `
     <div class="queue-filters">
-      ${states.map((value) => {
-        const count = value === "all" ? reviewItems().length : reviewItems().filter((item) => effectiveReviewStatus(item) === value).length;
-        const label = value === "all" ? t("all") : enumLabel(value);
-        return `<button type="button" class="queue-filter ${state.reviewFilter === value ? "active" : ""}" data-filter="${value}">${escapeHtml(label)} <small>${count}</small></button>`;
-      }).join("")}
+      ${states
+        .map((value) => {
+          const count =
+            value === "all"
+              ? reviewItems().length
+              : reviewItems().filter((item) => effectiveReviewStatus(item) === value).length;
+          const label = value === "all" ? t("all") : enumLabel(value);
+          return `<button type="button" class="queue-filter ${state.reviewFilter === value ? "active" : ""}" data-filter="${value}">${escapeHtml(label)} <small>${count}</small></button>`;
+        })
+        .join("")}
     </div>
   `;
 }
@@ -702,15 +807,17 @@ function renderReview() {
     ${warnings()}
     ${reviewFilters()}
     <div class="queue">
-      ${items.map((item) => {
-        const status = effectiveReviewStatus(item);
-        const plan = planById(item.plan_id);
-        const teacher = teacherById(plan?.teacher_id);
-        const decision = decisionFor(item.review_id);
-        const edits = state.edits[item.review_id] || {};
-        const draft = edits.draft ?? decision?.draft ?? item.feedback_draft ?? "";
-        const note = edits.note ?? decision?.comment ?? "";
-        return `
+      ${
+        items
+          .map((item) => {
+            const status = effectiveReviewStatus(item);
+            const plan = planById(item.plan_id);
+            const teacher = teacherById(plan?.teacher_id);
+            const decision = decisionFor(item.review_id);
+            const edits = state.edits[item.review_id] || {};
+            const draft = edits.draft ?? decision?.draft ?? item.feedback_draft ?? "";
+            const note = edits.note ?? decision?.comment ?? "";
+            return `
           <article class="queue-card status-${escapeHtml(status)}" data-review="${escapeHtml(item.review_id)}">
             <header class="queue-head">
               <span class="queue-ref">${t("planRef")} #${item.ref}</span>
@@ -723,10 +830,14 @@ function renderReview() {
               ${teacher ? ` · ${escapeHtml(teacher.name)}` : ""}
             </div>
             <p class="queue-summary"><span class="muted">${t("complianceSummary")}:</span> ${escapeHtml(item.compliance_summary || "")}</p>
-            ${item.suggestions?.length ? `
+            ${
+              item.suggestions?.length
+                ? `
               <span class="queue-label">${t("suggestions")}</span>
               <ul class="queue-suggestions">${item.suggestions.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("")}</ul>
-            ` : ""}
+            `
+                : ""
+            }
             <label class="queue-label">${t("feedbackDraft")}</label>
             <textarea class="queue-draft" data-field="draft" rows="7" ${disabled}>${escapeHtml(draft)}</textarea>
             <label class="queue-label">${t("reviewNote")}</label>
@@ -739,7 +850,9 @@ function renderReview() {
             </div>
           </article>
         `;
-      }).join("") || `<div class="empty">${t("noReviewItems")}</div>`}
+          })
+          .join("") || `<div class="empty">${t("noReviewItems")}</div>`
+      }
     </div>
   `;
   bindReviewEvents();
@@ -780,7 +893,7 @@ async function submitDecision(reviewId, action, { comment = "", draft } = {}) {
   const res = await fetch("/api/decision", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -823,23 +936,35 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("templateSections")}</h2>
-        ${(summary.template_sections || []).map((section) => `
+        ${
+          (summary.template_sections || [])
+            .map(
+              (section) => `
           <div class="settings-row">
             <strong>${escapeHtml(section.label)}</strong>
             <span class="muted">${escapeHtml(section.key)}</span>
             <span>${section.required ? `<span class="tag">${t("required")}</span>` : ""}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("complianceRules")}</h2>
-        ${(summary.compliance_rules || []).map((rule) => `
+        ${
+          (summary.compliance_rules || [])
+            .map(
+              (rule) => `
           <div class="settings-row">
             <strong>${escapeHtml(rule.name)}</strong>
             <span>${severityBadge(rule.severity)}</span>
             <span class="muted">${escapeHtml(enumLabel(rule.type, "type"))}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("exportPrefs")}</h2>
@@ -855,13 +980,17 @@ function renderSettings() {
           <dt>${t("handoffSkill")}</dt><dd>${escapeHtml(feedback.handoff_skill || "")}</dd>
           <dt>${t("requiresApproval")}</dt><dd>${feedback.requires_approval ? t("yes") : t("no")}</dd>
         </dl>
-        ${(feedback.secret_envs || []).length ? `
+        ${
+          (feedback.secret_envs || []).length
+            ? `
           <div class="settings-row">
             <strong>${(feedback.secret_envs || []).join(", ")}</strong>
             <span></span>
             <span class="${feedback.secrets_ready ? "ok" : "warn"}">${feedback.secrets_ready ? t("secretsReady") : t("missingSecrets")}</span>
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       </section>
     </div>
   `;
@@ -878,13 +1007,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

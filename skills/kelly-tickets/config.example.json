@@ -7,7 +7,18 @@
     "timezone": "Asia/Shanghai"
   },
   "channels": ["wechat", "phone", "form", "email", "walk_in"],
-  "categories": ["plumbing", "electrical", "hvac", "elevator", "security", "noise", "parking", "cleaning", "amenity", "other"],
+  "categories": [
+    "plumbing",
+    "electrical",
+    "hvac",
+    "elevator",
+    "security",
+    "noise",
+    "parking",
+    "cleaning",
+    "amenity",
+    "other"
+  ],
   "crews": [
     {
       "crew_id": "plumbing",

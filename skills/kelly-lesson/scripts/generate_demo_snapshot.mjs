@@ -12,7 +12,7 @@ const now = new Date().toISOString();
 
 const teachers = [
   { teacher_id: "t-example-math", name: "Example Math Teacher", subject: "Math", grades: ["Grade 7"] },
-  { teacher_id: "t-example-physics", name: "Example Physics Teacher", subject: "Physics", grades: ["Grade 8"] }
+  { teacher_id: "t-example-physics", name: "Example Physics Teacher", subject: "Physics", grades: ["Grade 8"] },
 ];
 
 const rules = [
@@ -22,7 +22,12 @@ const rules = [
   { rule_id: "homework_assigned", name: "Homework assigned", severity: "warning", type: "deterministic" },
   { rule_id: "template_sections", name: "Uses school template sections", severity: "error", type: "deterministic" },
   { rule_id: "safety_note_lab", name: "Safety note for lab lessons", severity: "error", type: "deterministic" },
-  { rule_id: "curriculum_alignment", name: "Objectives align with curriculum refs", severity: "warning", type: "agent_review" }
+  {
+    rule_id: "curriculum_alignment",
+    name: "Objectives align with curriculum refs",
+    severity: "warning",
+    type: "agent_review",
+  },
 ];
 
 const plans = [
@@ -42,7 +47,7 @@ const plans = [
     sections: {
       objectives: [
         "Compute sums of fractions with unlike denominators using common denominators.",
-        "Explain why a common denominator is required before adding."
+        "Explain why a common denominator is required before adding.",
       ],
       key_points: ["Finding the least common denominator"],
       difficulties: ["Simplifying results after adding"],
@@ -51,17 +56,17 @@ const plans = [
         { name: "Warm-up", minutes: 6, activities: "Fraction strip comparison puzzles." },
         { name: "Concept building", minutes: 14, activities: "Derive common-denominator method from strips." },
         { name: "Guided practice", minutes: 13, activities: "Solve four problems together." },
-        { name: "Independent practice & summary", minutes: 12, activities: "Worksheet 2.3, then summarize." }
+        { name: "Independent practice & summary", minutes: 12, activities: "Worksheet 2.3, then summarize." },
       ],
       board_plan: "Strip diagram, worked example, common mistakes corner.",
       homework: "Textbook p.41 problems 1–5.",
       reflection: "",
       curriculum_refs: ["Standards: Number System 7.NS.1"],
-      safety_notes: ""
+      safety_notes: "",
     },
     notes: "",
     created_at: now,
-    updated_at: now
+    updated_at: now,
   },
   {
     plan_id: "plan-example-density",
@@ -83,18 +88,18 @@ const plans = [
       materials: ["Balances, graduated cylinders, metal samples"],
       stages: [
         { name: "Lab experiment", minutes: 30, activities: "Groups measure mass and volume of samples." },
-        { name: "Wrap-up", minutes: 0, activities: "Discuss results." }
+        { name: "Wrap-up", minutes: 0, activities: "Discuss results." },
       ],
       board_plan: "",
       homework: "",
       reflection: "",
       curriculum_refs: [],
-      safety_notes: ""
+      safety_notes: "",
     },
     notes: "",
     created_at: now,
-    updated_at: now
-  }
+    updated_at: now,
+  },
 ];
 
 const review_items = [
@@ -106,7 +111,7 @@ const review_items = [
     compliance_summary: "Checks pending — run scripts/run_checks.mjs.",
     suggestions: [],
     feedback_draft: "Hi, the fractions plan is drafted from the Unit 2 materials and is ready for your review.",
-    created_at: now
+    created_at: now,
   },
   {
     review_id: "rv-example-density",
@@ -114,13 +119,11 @@ const review_items = [
     plan_id: "plan-example-density",
     status: "needs_review",
     compliance_summary: "Checks pending — run scripts/run_checks.mjs.",
-    suggestions: [
-      "Add a safety note for the lab stage.",
-      "Time every stage and add board plan plus homework."
-    ],
-    feedback_draft: "Hi, the density lab plan is missing several template sections; please complete them before resubmitting.",
-    created_at: now
-  }
+    suggestions: ["Add a safety note for the lab stage.", "Time every stage and add board plan plus homework."],
+    feedback_draft:
+      "Hi, the density lab plan is missing several template sections; please complete them before resubmitting.",
+    created_at: now,
+  },
 ];
 
 const snapshot = {
@@ -135,7 +138,7 @@ const snapshot = {
     plans_in_revision: 0,
     plans_needs_review: plans.length,
     checks_failed: 0,
-    compliance_pass_rate: 0
+    compliance_pass_rate: 0,
   },
   teachers,
   plans,
@@ -143,9 +146,15 @@ const snapshot = {
   checks: [],
   review_items,
   activity_log: [
-    { id: "act-example-1", at: now, actor: "agent", detail: "Generated example snapshot with 2 plans.", plan_id: "plan-example-fractions" }
+    {
+      id: "act-example-1",
+      at: now,
+      actor: "agent",
+      detail: "Generated example snapshot with 2 plans.",
+      plan_id: "plan-example-fractions",
+    },
   ],
-  warnings: []
+  warnings: [],
 };
 
 await fs.mkdir(path.dirname(out), { recursive: true });

@@ -5,9 +5,11 @@ const state = {
   settings: null,
   route: parseRoute(),
   query: "",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-feedback-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-feedback-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  edits: { draft: {}, note: {}, effort: {}, assign: {} }
+  edits: { draft: {}, note: {}, effort: {}, assign: {} },
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-feedback.sidebarCollapsed";
@@ -28,7 +30,7 @@ const els = {
   decisionCount: document.querySelector("#count-decisions"),
   newCount: document.querySelector("#count-new"),
   needsInfoCount: document.querySelector("#count-needsinfo"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -75,7 +77,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -85,9 +91,7 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function date(value) {
@@ -95,7 +99,7 @@ function date(value) {
   return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     month: "short",
     day: "2-digit",
-    year: "numeric"
+    year: "numeric",
   }).format(new Date(value));
 }
 
@@ -137,15 +141,16 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "inbox"
-    ? "#/inbox"
-    : scenario === "requests"
-      ? "#/requests"
-      : scenario === "roadmap"
-        ? "#/roadmap"
-        : scenario === "detail"
-          ? "#/requests/req-csv-export"
-          : "#/overview";
+  const route =
+    scenario === "inbox"
+      ? "#/inbox"
+      : scenario === "requests"
+        ? "#/requests"
+        : scenario === "roadmap"
+          ? "#/roadmap"
+          : scenario === "detail"
+            ? "#/requests/req-csv-export"
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -155,9 +160,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -191,7 +195,7 @@ function effectiveProposal(proposal) {
     status: statusByAction[decision.action] || proposal.status,
     review_note: decision.review_note || proposal.review_note,
     draft: typeof decision.draft === "string" ? decision.draft : proposal.draft,
-    decided_at: decision.decided_at || proposal.decided_at
+    decided_at: decision.decided_at || proposal.decided_at,
   };
 }
 
@@ -202,7 +206,7 @@ function effectiveFeedback(item) {
   return {
     ...item,
     triage: triageByAction[decision.action] || item.triage,
-    request_id: decision.action === "assign" ? decision.request_id || item.request_id : item.request_id
+    request_id: decision.action === "assign" ? decision.request_id || item.request_id : item.request_id,
   };
 }
 
@@ -217,7 +221,8 @@ function renderShell() {
   const fresh = feedbackItems().filter((item) => item.triage === "new").length;
   const needsInfo = requests().filter((item) => item.status === "needs_info").length;
   const total = feedbackItems().length;
-  els.syncStatus.textContent = snapshot && total ? `${total} ${t("items")} · ${requests().length} ${t("requests").toLowerCase()}` : t("empty");
+  els.syncStatus.textContent =
+    snapshot && total ? `${total} ${t("items")} · ${requests().length} ${t("requests").toLowerCase()}` : t("empty");
   if (els.decisionCount) els.decisionCount.textContent = waiting;
   if (els.newCount) els.newCount.textContent = fresh;
   if (els.needsInfoCount) els.needsInfoCount.textContent = needsInfo;
@@ -225,7 +230,9 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = waiting
       ? `${waiting} ${t("decisionsWaiting")}`
-      : (fresh ? `${fresh} ${t("newUncategorized")}` : `${total} ${t("items")}`);
+      : fresh
+        ? `${fresh} ${t("newUncategorized")}`
+        : `${total} ${t("items")}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -289,7 +296,9 @@ function preview(text, length = 110) {
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at
+    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+    : t("empty");
   const metrics = state.snapshot?.metrics || {};
   const waiting = decisionsWaiting();
   const fresh = feedbackItems().filter((item) => item.triage === "new").length;
@@ -328,13 +337,17 @@ function inflowPanel() {
   const entries = Object.entries(inflow).sort((a, b) => b[1] - a[1]);
   if (!entries.length) return `<div class="empty">${t("empty")}</div>`;
   const max = Math.max(...entries.map(([, count]) => count), 1);
-  return entries.map(([channel, count]) => `
+  return entries
+    .map(
+      ([channel, count]) => `
     <div class="inflow-row">
       ${channelBadge(channel)}
       <span class="inflow-bar"><span style="width:${Math.round((count / max) * 100)}%"></span></span>
       <strong class="num">${count}</strong>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function sentimentPanel() {
@@ -342,30 +355,34 @@ function sentimentPanel() {
   const rows = [
     ["positive", "#1f7a4d", sentiment.positive || 0],
     ["neutral", "#64748b", sentiment.neutral || 0],
-    ["negative", "#b42318", sentiment.negative || 0]
+    ["negative", "#b42318", sentiment.negative || 0],
   ];
   const max = Math.max(...rows.map(([, , count]) => count), 1);
   const barWidth = 210;
-  const svgRows = rows.map(([key, color, count], index) => {
-    const y = index * 26 + 6;
-    const width = Math.max(3, Math.round((count / max) * barWidth));
-    return `
+  const svgRows = rows
+    .map(([key, color, count], index) => {
+      const y = index * 26 + 6;
+      const width = Math.max(3, Math.round((count / max) * barWidth));
+      return `
       <text x="0" y="${y + 11}" class="svg-label">${escapeHtml(enumLabel(key, "sentiment"))}</text>
       <rect x="72" y="${y}" width="${barWidth}" height="14" rx="4" fill="#eef1f5"></rect>
       <rect x="72" y="${y}" width="${width}" height="14" rx="4" fill="${color}" fill-opacity="0.82"></rect>
       <text x="${72 + barWidth + 10}" y="${y + 11}" class="svg-count">${count}</text>
     `;
-  }).join("");
+    })
+    .join("");
   return `<svg class="sentiment-svg" viewBox="0 0 320 86" role="img" aria-label="${escapeHtml(t("sentimentSplit"))}">${svgRows}</svg>`;
 }
 
 function topClustersPanel() {
   const trendRank = { up: 2, flat: 1, down: 0 };
   const top = [...requests()]
-    .sort((a, b) => (trendRank[b.trend] - trendRank[a.trend]) || (b.weighted_score - a.weighted_score))
+    .sort((a, b) => trendRank[b.trend] - trendRank[a.trend] || b.weighted_score - a.weighted_score)
     .slice(0, 5);
   if (!top.length) return `<div class="empty">${t("empty")}</div>`;
-  return top.map((request) => `
+  return top
+    .map(
+      (request) => `
     <a class="cluster-row" href="#/requests/${encodeURIComponent(request.request_id)}">
       <span class="cluster-copy">
         <strong>${escapeHtml(request.title)}</strong>
@@ -374,13 +391,17 @@ function topClustersPanel() {
       ${trendArrow(request.trend)}
       ${statusBadge(request.status)}
     </a>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function freshnessPanel() {
   const sources = state.snapshot?.sources || [];
   if (!sources.length) return `<div class="empty">${t("setupNeeded")}</div>`;
-  return sources.map((source) => `
+  return sources
+    .map(
+      (source) => `
     <div class="freshness-row">
       ${channelBadge(source.channel)}
       <span class="cluster-copy">
@@ -390,7 +411,9 @@ function freshnessPanel() {
       <span class="muted">${escapeHtml(relativeTime(source.last_ingest_at))}</span>
       <strong class="num">${source.item_count ?? 0}</strong>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 // ---------- Inbox ----------
@@ -400,7 +423,16 @@ function filteredFeedback() {
   return feedbackItems().filter((item) => {
     if (!query) return true;
     const request = requestById(item.request_id);
-    return [item.text, item.user?.handle, item.channel, item.product, item.sentiment, item.triage, request?.title, item.source_id]
+    return [
+      item.text,
+      item.user?.handle,
+      item.channel,
+      item.product,
+      item.sentiment,
+      item.triage,
+      request?.title,
+      item.source_id,
+    ]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
   });
@@ -418,7 +450,9 @@ function feedbackTable(items) {
           </tr>
         </thead>
         <tbody>
-          ${sorted.map((item) => `
+          ${sorted
+            .map(
+              (item) => `
             <tr>
               <td class="nowrap">${date(item.received_at)}</td>
               <td><div class="strong">${escapeHtml(item.user?.handle || "")}</div><div class="muted">${escapeHtml(productName(item.product))} · ${escapeHtml(enumLabel(item.user?.plan || "", "status") || item.user?.plan || "")}</div></td>
@@ -428,7 +462,9 @@ function feedbackTable(items) {
               <td>${requestLink(item.request_id)}</td>
               <td>${triageBadge(item.triage)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -467,7 +503,12 @@ function renderInboxDetail() {
           <div class="triage-actions">
             <select id="assignSelect" ${locked ? "disabled" : ""}>
               <option value="">${escapeHtml(t("noRequest"))}</option>
-              ${requests().map((request) => `<option value="${escapeHtml(request.request_id)}" ${request.request_id === assignValue ? "selected" : ""}>${escapeHtml(request.title)}</option>`).join("")}
+              ${requests()
+                .map(
+                  (request) =>
+                    `<option value="${escapeHtml(request.request_id)}" ${request.request_id === assignValue ? "selected" : ""}>${escapeHtml(request.title)}</option>`,
+                )
+                .join("")}
             </select>
             <button type="button" data-action="assign" ${locked ? "disabled" : ""}>${t("assignToRequest")}</button>
             <button type="button" data-action="ignore" ${locked ? "disabled" : ""}>${t("ignore")}</button>
@@ -503,7 +544,7 @@ function renderInboxDetail() {
         kind: "feedback",
         id: item.feedback_id,
         action,
-        request_id: action === "assign" ? (state.edits.assign[item.feedback_id] ?? item.request_id ?? "") : ""
+        request_id: action === "assign" ? (state.edits.assign[item.feedback_id] ?? item.request_id ?? "") : "",
       });
     });
   });
@@ -514,9 +555,11 @@ function renderInboxDetail() {
 function filteredRequests() {
   const query = state.query.trim().toLowerCase();
   if (!query) return requests();
-  return requests().filter((request) => [request.title, request.product, request.status, request.problem_statement]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return requests().filter((request) =>
+    [request.title, request.product, request.status, request.problem_statement]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderRequests() {
@@ -534,9 +577,10 @@ function renderRequests() {
           </tr>
         </thead>
         <tbody>
-          ${sorted.map((request) => {
-            const linked = feedbackItems().filter((item) => item.request_id === request.request_id).length;
-            return `
+          ${sorted
+            .map((request) => {
+              const linked = feedbackItems().filter((item) => item.request_id === request.request_id).length;
+              return `
               <tr>
                 <td><a href="#/requests/${encodeURIComponent(request.request_id)}"><strong>${escapeHtml(request.title)}</strong></a><div class="muted">${escapeHtml(preview(request.problem_statement, 90))}</div></td>
                 <td><span class="badge">${escapeHtml(productName(request.product))}</span></td>
@@ -548,7 +592,8 @@ function renderRequests() {
                 <td class="nowrap">${date(request.updated_at)}</td>
               </tr>
             `;
-          }).join("")}
+            })
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -581,17 +626,25 @@ function renderRequestDetail() {
           <h2>${t("specSummary")}</h2>
           <p>${escapeHtml(request.spec_summary || "")}</p>
         </div>
-        ${quoteItems.length ? `
+        ${
+          quoteItems.length
+            ? `
           <div class="panel">
             <h2>${t("quotes")}</h2>
-            ${quoteItems.map((item) => `
+            ${quoteItems
+              .map(
+                (item) => `
               <blockquote class="quote">
                 <p>${escapeHtml(item.text)}</p>
                 <footer>${escapeHtml(item.user?.handle || "")} · ${channelBadge(item.channel)} · ${date(item.received_at)}</footer>
               </blockquote>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </div>
-        ` : ""}
+        `
+            : ""
+        }
         <div class="panel">
           <h2>${t("allLinkedFeedback")} (${linked.length})</h2>
           ${feedbackTable(linked)}
@@ -615,13 +668,19 @@ function renderRequestDetail() {
         </div>
         <h2>${t("decisionHistory")}</h2>
         <div class="history">
-          ${(request.decision_history || []).map((entry) => `
+          ${
+            (request.decision_history || [])
+              .map(
+                (entry) => `
             <div class="history-row">
               <strong>${escapeHtml(enumLabel(entry.action, "action"))}</strong>
               <span>${escapeHtml(entry.actor || "")} · ${date(entry.at)}</span>
               ${entry.note ? `<p>${escapeHtml(entry.note)}</p>` : ""}
             </div>
-          `).join("") || `<div class="muted">${t("notAvailable")}</div>`}
+          `,
+              )
+              .join("") || `<div class="muted">${t("notAvailable")}</div>`
+          }
         </div>
       </aside>
     </section>
@@ -634,7 +693,7 @@ function renderRequestDetail() {
     submitDecision({
       kind: "request",
       id: request.request_id,
-      effort_estimate: state.edits.effort[request.request_id] ?? effortValue
+      effort_estimate: state.edits.effort[request.request_id] ?? effortValue,
     });
   });
 }
@@ -656,18 +715,28 @@ function renderRoadmap() {
     <section class="roadmap-board">
       <h2 class="section-title">${t("currentRoadmap")}</h2>
       <div class="roadmap-columns">
-        ${["now", "next", "later"].map((laneKey) => `
+        ${["now", "next", "later"]
+          .map(
+            (laneKey) => `
           <div class="roadmap-column">
             <h3>${escapeHtml(enumLabel(laneKey, "lane"))}</h3>
-            ${(roadmap[laneKey] || []).map((item) => `
+            ${
+              (roadmap[laneKey] || [])
+                .map(
+                  (item) => `
               <div class="roadmap-card">
                 <strong>${escapeHtml(item.title)}</strong>
                 ${item.note ? `<p class="muted">${escapeHtml(item.note)}</p>` : ""}
                 ${item.request_id ? `<div>${requestLink(item.request_id)}</div>` : ""}
               </div>
-            `).join("") || `<div class="muted roadmap-empty">${t("notAvailable")}</div>`}
+            `,
+                )
+                .join("") || `<div class="muted roadmap-empty">${t("notAvailable")}</div>`
+            }
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
     </section>
   `;
@@ -692,10 +761,14 @@ function proposalCard(proposal) {
       <p class="proposal-reason"><strong>${t("reason")}</strong> ${escapeHtml(proposal.reason)}</p>
       ${proposal.evidence ? `<p class="proposal-evidence"><strong>${t("evidence")}</strong> ${escapeHtml(proposal.evidence)}</p>` : ""}
       ${proposal.request_id ? `<p class="proposal-request">${requestLink(proposal.request_id)}${(proposal.request_ids || []).length > 1 ? ` + ${proposal.request_ids.length - 1}` : ""}</p>` : ""}
-      ${showDraft ? `
+      ${
+        showDraft
+          ? `
         <label class="field-label">${t("draft")}${proposal.draft_kind ? ` · ${escapeHtml(proposal.draft_kind.replaceAll("_", " "))}` : ""}</label>
         <textarea class="proposal-draft" data-field="draft" rows="4" ${locked || decided ? "disabled" : ""}>${escapeHtml(draftValue)}</textarea>
-      ` : ""}
+      `
+          : ""
+      }
       <label class="field-label">${t("reviewNote")}</label>
       <textarea class="proposal-note" data-field="note" rows="2" placeholder="${escapeHtml(t("reviewNotePlaceholder"))}" ${locked ? "disabled" : ""}>${escapeHtml(noteValue)}</textarea>
       <footer class="proposal-actions">
@@ -723,7 +796,7 @@ function bindProposalCards() {
           id: proposalId,
           action: button.dataset.verdict,
           review_note: state.edits.note[proposalId] ?? "",
-          draft: state.edits.draft[proposalId]
+          draft: state.edits.draft[proposalId],
         });
       });
     });
@@ -752,23 +825,35 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("products")}</h2>
-        ${(summary.products || []).map((product) => `
+        ${
+          (summary.products || [])
+            .map(
+              (product) => `
           <div class="settings-row">
             <strong>${escapeHtml(product.display_name)}</strong>
             <span>${escapeHtml(product.product_id)}</span>
             <span class="muted">${escapeHtml(product.tagline || "")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("sources")}</h2>
-        ${(summary.sources || []).map((source) => `
+        ${
+          (summary.sources || [])
+            .map(
+              (source) => `
           <div class="settings-row">
             <strong>${escapeHtml(source.name)}</strong>
             <span>${channelBadge(source.channel)} ${escapeHtml(source.collection || "")}</span>
             <span class="${source.secrets_ready ? "positive" : "negative"}">${source.secrets_ready ? t("secretsReady") : t("missingSecrets")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("scoringWeights")}</h2>
@@ -780,13 +865,19 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("syncLog")}</h2>
-        ${syncLog.map((entry) => `
+        ${
+          syncLog
+            .map(
+              (entry) => `
           <div class="settings-row">
             <strong>${escapeHtml(enumLabel(entry.action, "action"))}</strong>
             <span class="muted">${date(entry.at)}</span>
             <span>${escapeHtml(entry.detail || "")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("empty")}</div>`
+        }
       </section>
     </div>
   `;
@@ -809,7 +900,7 @@ async function submitDecision(payload) {
     const res = await fetch("/api/decisions", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -832,7 +923,7 @@ function applyDecisionLocally(payload) {
       action: payload.action,
       review_note: payload.review_note || "",
       draft: payload.draft,
-      decided_at: now
+      decided_at: now,
     };
   } else if (payload.kind === "feedback") {
     store.feedback[payload.id] = { action: payload.action, request_id: payload.request_id || "", decided_at: now };
@@ -869,13 +960,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

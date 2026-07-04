@@ -9,6 +9,7 @@ const ACTION_STATUSES = new Set(["needs_review", "changes_requested", "approved"
 const SERVICE_STATUSES = new Set(["up", "degraded", "down", "unknown"]);
 const EVENT_SEVERITIES = new Set(["info", "warning", "error"]);
 
+/** @param {string} message @returns {never} */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -45,9 +46,19 @@ requireString(snapshot, "currency", "root");
 if (!isObject(snapshot.checks)) fail("root.checks must be an object");
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
 for (const key of [
-  "services_total", "services_up", "services_degraded", "services_down",
-  "certs_ok", "certs_expiring", "domains_ok", "domains_expiring",
-  "expiring_14d", "actions_needing_review", "spend_mtd", "spend_last_month", "spend_anomalies"
+  "services_total",
+  "services_up",
+  "services_degraded",
+  "services_down",
+  "certs_ok",
+  "certs_expiring",
+  "domains_ok",
+  "domains_expiring",
+  "expiring_14d",
+  "actions_needing_review",
+  "spend_mtd",
+  "spend_last_month",
+  "spend_anomalies",
 ]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
@@ -117,7 +128,8 @@ snapshot.expiries.forEach((expiry, index) => {
   if (typeof expiry.auto_renew !== "boolean") fail(`${path}.auto_renew must be a boolean`);
   if (expiryIds.has(expiry.expiry_id)) fail(`${path}.expiry_id duplicates ${expiry.expiry_id}`);
   expiryIds.add(expiry.expiry_id);
-  if (expiry.action_id && !actionIds.has(expiry.action_id)) fail(`${path}.action_id does not match an action: ${expiry.action_id}`);
+  if (expiry.action_id && !actionIds.has(expiry.action_id))
+    fail(`${path}.action_id does not match an action: ${expiry.action_id}`);
 });
 
 const providerIds = new Set();
@@ -129,7 +141,8 @@ snapshot.spend.providers.forEach((provider, index) => {
   if (typeof provider.anomaly !== "boolean") fail(`${path}.anomaly must be a boolean`);
   if (providerIds.has(provider.provider_id)) fail(`${path}.provider_id duplicates ${provider.provider_id}`);
   providerIds.add(provider.provider_id);
-  if (provider.action_id && !actionIds.has(provider.action_id)) fail(`${path}.action_id does not match an action: ${provider.action_id}`);
+  if (provider.action_id && !actionIds.has(provider.action_id))
+    fail(`${path}.action_id does not match an action: ${provider.action_id}`);
 });
 
 snapshot.spend.products.forEach((product, index) => {

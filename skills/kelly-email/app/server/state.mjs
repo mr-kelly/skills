@@ -1,7 +1,7 @@
-import { CURRENT_BATCH_PATH, DECISIONS_PATH } from "./paths.mjs";
 import { loadBatch, normalizeItem } from "./batch-store.mjs";
 import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./config.mjs";
 import { lockPayload } from "./lock.mjs";
+import { CURRENT_BATCH_PATH, DECISIONS_PATH } from "./paths.mjs";
 import { normalizeQueryValue } from "./utils.mjs";
 import { approvedPriority, isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.mjs";
 
@@ -18,9 +18,7 @@ function uidNumber(item) {
 }
 
 function withReviewNumbers(items) {
-  const reviewItems = items
-    .filter(isNeedsReview)
-    .sort((a, b) => uidNumber(b) - uidNumber(a));
+  const reviewItems = items.filter(isNeedsReview).sort((a, b) => uidNumber(b) - uidNumber(a));
   const byId = new Map(reviewItems.map((item, index) => [String(item.id), index + 1]));
   return items.map((item) => {
     const reviewNumber = byId.get(String(item.id)) || null;
@@ -46,7 +44,9 @@ export async function statePayload(query = {}) {
     else items = items.filter((item) => item.status === mode);
   }
   if (search) {
-    items = items.filter((item) => `${item.review_ref} ${item.from} ${item.subject} ${item.summary}`.toLowerCase().includes(search));
+    items = items.filter((item) =>
+      `${item.review_ref} ${item.from} ${item.subject} ${item.summary}`.toLowerCase().includes(search),
+    );
   }
   items.sort((a, b) => {
     if (mode === "approved") {

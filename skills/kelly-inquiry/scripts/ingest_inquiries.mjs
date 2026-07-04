@@ -22,7 +22,7 @@ import {
   readLock,
   readSnapshot,
   recomputeMetrics,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 function fail(message) {
@@ -51,7 +51,7 @@ const { config } = await readConfig();
 const account = (config.accounts || []).find((item) => item.account_id === payload.account_id);
 if (!account) fail(`payload.account_id "${payload.account_id}" is not in the config accounts[]`);
 
-const method = CONNECTORS.includes(payload.method) ? payload.method : (account.connector || "manual");
+const method = CONNECTORS.includes(payload.method) ? payload.method : account.connector || "manual";
 const nowIso = new Date().toISOString();
 
 const inquiries = payload.inquiries.map((entry, index) => {
@@ -60,11 +60,13 @@ const inquiries = payload.inquiries.map((entry, index) => {
   if (!Array.isArray(entry.messages) || !entry.messages.length) fail(`${path}.messages must be a non-empty array`);
   const customer = entry.customer || {};
   if (!customer.name || typeof customer.name !== "string") fail(`${path}.customer.name must be a string`);
-  if (entry.stage !== undefined && !STAGES.includes(entry.stage)) fail(`${path}.stage must be one of ${STAGES.join("|")}`);
+  if (entry.stage !== undefined && !STAGES.includes(entry.stage))
+    fail(`${path}.stage must be one of ${STAGES.join("|")}`);
   const messages = entry.messages.map((message, mIndex) => {
     const mPath = `${path}.messages[${mIndex}]`;
     if (!message.message_id || typeof message.message_id !== "string") fail(`${mPath}.message_id must be a string`);
-    if (message.direction !== "incoming" && message.direction !== "outgoing") fail(`${mPath}.direction must be incoming|outgoing`);
+    if (message.direction !== "incoming" && message.direction !== "outgoing")
+      fail(`${mPath}.direction must be incoming|outgoing`);
     if (typeof message.text !== "string") fail(`${mPath}.text must be a string`);
     if (!message.sent_at || typeof message.sent_at !== "string") fail(`${mPath}.sent_at must be an ISO string`);
     return {
@@ -73,13 +75,16 @@ const inquiries = payload.inquiries.map((entry, index) => {
       sender: String(message.sender || (message.direction === "outgoing" ? "Kelly" : customer.name)),
       text: message.text,
       sent_at: message.sent_at,
-      attachment: String(message.attachment || "")
+      attachment: String(message.attachment || ""),
     };
   });
   const last = messages[messages.length - 1];
   const lastIncoming = [...messages].reverse().find((message) => message.direction === "incoming");
-  const inquiryId = entry.inquiry_id
-    || `${account.channel}-${account.account_id}-${String(customer.name || index).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const inquiryId =
+    entry.inquiry_id ||
+    `${account.channel}-${account.account_id}-${String(customer.name || index)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")}`;
   return {
     inquiry_id: inquiryId,
     account_id: account.account_id,
@@ -88,7 +93,7 @@ const inquiries = payload.inquiries.map((entry, index) => {
       name: customer.name,
       company: String(customer.company || ""),
       country: String(customer.country || "").toUpperCase(),
-      source: String(customer.source || method)
+      source: String(customer.source || method),
     },
     product_interest: String(entry.product_interest || ""),
     product_ids: Array.isArray(entry.product_ids) ? entry.product_ids : [],
@@ -104,7 +109,7 @@ const inquiries = payload.inquiries.map((entry, index) => {
     next_follow_up: String(entry.next_follow_up || ""),
     provider_conversation_id: String(entry.provider_conversation_id || ""),
     suggested_reply: String(entry.suggested_reply || ""),
-    messages
+    messages,
   };
 });
 
@@ -136,7 +141,7 @@ try {
     status: "ok",
     inquiry_count: owned.length,
     unread_count: owned.filter((item) => item.unread).length,
-    last_sync_at: payload.collected_at || nowIso
+    last_sync_at: payload.collected_at || nowIso,
   };
   if (existing) Object.assign(existing, patch);
   else snapshot.accounts.push(patch);
@@ -147,7 +152,7 @@ try {
     at: nowIso,
     status: "ok",
     message: `Ingested ${inquiries.length} inquiries from ${file}.`,
-    new_messages: added
+    new_messages: added,
   });
   snapshot.sync_log = snapshot.sync_log.slice(-100);
   snapshot.generated_at = nowIso;

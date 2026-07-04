@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR } from "./paths.mjs";
 import { demoStatePayload, isDemoQuery } from "./demo.mjs";
+import { APP_DIR } from "./paths.mjs";
 import {
   decideApproval,
   queueReply,
@@ -15,7 +15,7 @@ import {
   readSnapshot,
   setFollowUp,
   summarizeConfig,
-  updateQuote
+  updateQuote,
 } from "./store.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
@@ -31,13 +31,13 @@ const types = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8"
+  ".json": "application/json; charset=utf-8",
 };
 
 function jsonResponse(c, status, body) {
   return c.body(JSON.stringify(body), status, {
     "content-type": "application/json; charset=utf-8",
-    "cache-control": "no-store"
+    "cache-control": "no-store",
   });
 }
 
@@ -49,7 +49,7 @@ async function state() {
     readLock(),
     readAgentTasks(),
     readExecutionReport(),
-    readConfig()
+    readConfig(),
   ]);
   return {
     app: "kelly-inquiry",
@@ -60,7 +60,7 @@ async function state() {
     snapshot,
     decisions,
     agent_tasks: agentTasks,
-    execution_report: executionReport
+    execution_report: executionReport,
   };
 }
 
@@ -75,7 +75,7 @@ async function handleWrite(c, pathname) {
       inquiry_id: String(body.inquiry_id || ""),
       text: String(body.text || ""),
       note: String(body.note || ""),
-      suggested_by: "human"
+      suggested_by: "human",
     });
     return jsonResponse(c, 200, { ok: true, item });
   }
@@ -84,14 +84,14 @@ async function handleWrite(c, pathname) {
       item_id: String(body.item_id || ""),
       action: String(body.action || ""),
       comment: String(body.comment || ""),
-      text: typeof body.text === "string" ? body.text : undefined
+      text: typeof body.text === "string" ? body.text : undefined,
     });
     return jsonResponse(c, 200, { ok: true, item });
   }
   if (pathname === "/api/inquiries/followup") {
     const inquiry = await setFollowUp({
       inquiry_id: String(body.inquiry_id || ""),
-      next_follow_up: String(body.next_follow_up || "")
+      next_follow_up: String(body.next_follow_up || ""),
     });
     return jsonResponse(c, 200, { ok: true, inquiry });
   }
@@ -101,7 +101,7 @@ async function handleWrite(c, pathname) {
       items: Array.isArray(body.items) ? body.items : undefined,
       valid_until: typeof body.valid_until === "string" ? body.valid_until : undefined,
       terms: typeof body.terms === "string" ? body.terms : undefined,
-      pricing_notes: typeof body.pricing_notes === "string" ? body.pricing_notes : undefined
+      pricing_notes: typeof body.pricing_notes === "string" ? body.pricing_notes : undefined,
     });
     return jsonResponse(c, 200, { ok: true, quote });
   }

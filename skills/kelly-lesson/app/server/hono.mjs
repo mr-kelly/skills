@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR } from "./paths.mjs";
 import { demoStatePayload, isDemoQuery } from "./demo.mjs";
+import { APP_DIR } from "./paths.mjs";
 import {
   applyDecision,
   readAgentTasks,
@@ -12,7 +12,7 @@ import {
   readLock,
   readOnboarding,
   readSnapshot,
-  summarizeConfig
+  summarizeConfig,
 } from "./store.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
@@ -29,7 +29,7 @@ const types = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
-  ".svg": "image/svg+xml; charset=utf-8"
+  ".svg": "image/svg+xml; charset=utf-8",
 };
 
 function jsonResponse(c, status, body) {
@@ -44,7 +44,7 @@ async function state() {
     readExecutionReport(),
     readOnboarding(),
     readLock(),
-    readConfig()
+    readConfig(),
   ]);
   return {
     app: "kelly-lesson",
@@ -55,7 +55,7 @@ async function state() {
     decisions,
     agent_tasks: agentTasks,
     execution_report: executionReport,
-    snapshot
+    snapshot,
   };
 }
 
@@ -72,7 +72,7 @@ app.post("/api/decision", async (c) => {
   if (lock) {
     return jsonResponse(c, 423, {
       error: "Agent lock is active; the review queue is read-only right now.",
-      lock
+      lock,
     });
   }
   let payload;
@@ -106,7 +106,7 @@ app.all("*", async (c) => {
     return c.text("Not found", 404);
   }
   return c.body(data, 200, {
-    "content-type": types[path.extname(filePath)] || "application/octet-stream"
+    "content-type": types[path.extname(filePath)] || "application/octet-stream",
   });
 });
 

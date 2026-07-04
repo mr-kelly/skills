@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { serve } from "@hono/node-server";
+import { app } from "./hono.mjs";
 import { DEFAULT_HOST, DEFAULT_PORT } from "./paths.mjs";
 import { ensureDirs, envSearchPaths, loadDotenvFiles } from "./store.mjs";
-import { app } from "./hono.mjs";
 
 // Local runtime: run the platform-neutral Hono app on Node. The same app.fetch
 // deploys to other fetch-based runtimes unchanged once the data layer is cloud-backed.

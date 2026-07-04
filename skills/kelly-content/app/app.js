@@ -5,7 +5,7 @@ const language = resolveLanguage();
 const demoScenario = params.get("demo") || "";
 const I18N = {
   en: {
-    "language": "Language",
+    language: "Language",
     "language.auto": "Auto",
     "language.english": "English",
     "language.chinese": "中文",
@@ -19,37 +19,37 @@ const I18N = {
     "stage.distribution": "Distribution",
     "stage.distribution.caption": "Blog, newsletter, social posts",
     "batch.none": "No batch loaded",
-    "drafts": "drafts",
-    "locked": "Locked",
+    drafts: "drafts",
+    locked: "Locked",
     "workspace.local": "Local workspace · publishing disabled",
-    "data": "data",
-    "topics": "topics",
+    data: "data",
+    topics: "topics",
     "distribution.drafts": "distribution drafts",
     "empty.batch": "Generate a content batch, then the repository will appear here.",
     "content.repository": "Content Repository",
-    "workspace": "Workspace",
-    "refresh": "Refresh",
+    workspace: "Workspace",
+    refresh: "Refresh",
     "refresh.batch.title": "Refresh batch",
     "topics.pool": "Topic Pool",
     "subject.discovery": "Subject Discovery",
     "refresh.subjects.title": "Refresh subjects",
-    "directions": "directions",
-    "score": "score",
-    "subject": "Subject",
+    directions: "directions",
+    score: "score",
+    subject: "Subject",
     "confirm.direction": "Confirm title + description",
     "confirm.direction.title": "Confirm selected title and description direction, then create todo",
-    "audience": "Audience",
+    audience: "Audience",
     "selected.direction": "Selected Direction",
     "no.direction": "No direction selected",
     "choose.direction": "Choose a title and description direction for this subject.",
-    "angle": "Angle",
-    "status": "Status",
-    "evidence": "Evidence",
+    angle: "Angle",
+    status: "Status",
+    evidence: "Evidence",
     "no.evidence": "No source evidence attached yet.",
     "todos.title": "Todos",
     "production.queue": "Production Queue",
     "todos.empty": "Confirm a title and description direction, then todos will appear here.",
-    "assignee": "Assignee",
+    assignee: "Assignee",
     "ai.writer": "AI writer",
     "next.action": "Next action",
     "todo.start": "Start",
@@ -58,32 +58,32 @@ const I18N = {
     "todo.next.waiting": "Click Start to move this direction into the AI writing queue.",
     "main.title": "Main Draft & Cover",
     "canonical.draft": "Canonical Draft",
-    "preview": "Preview",
+    preview: "Preview",
     "preview.title": "Preview HTML",
     "approve.main": "Approve main",
     "approve.main.title": "Approve main draft",
-    "cover": "Cover",
+    cover: "Cover",
     "visual.brief": "Visual brief",
     "distribution.title": "Distribution Versions",
     "channel.adaptation": "Channel Adaptation",
-    "validate": "Validate",
+    validate: "Validate",
     "validate.title": "Validate all drafts",
-    "export": "Export",
+    export: "Export",
     "export.title": "Export approved drafts",
-    "approve": "Approve",
+    approve: "Approve",
     "approve.title": "Approve this version",
-    "save": "Save",
+    save: "Save",
     "save.title": "Save your edits as a new version",
     "request.changes": "Request changes",
     "request.changes.title": "Send back for the AI to revise (request changes)",
-    "block": "Block",
+    block: "Block",
     "block.title": "Block this version",
-    "title": "Title",
-    "draft": "Draft",
+    title: "Title",
+    draft: "Draft",
     "review.note": "Review note",
     "title.options": "Title Options",
     "media.brief": "Media Brief",
-    "hashtags": "Hashtags",
+    hashtags: "Hashtags",
     "status.ready": "ready",
     "readiness.ready": "ready",
     "readiness.blocked": "blocked",
@@ -100,11 +100,11 @@ const I18N = {
     "status.needsReview": "Needs review",
     "status.changesRequested": "Changes requested",
     "status.draft": "Draft",
-    "channel": "Channel",
-    "local": "local"
+    channel: "Channel",
+    local: "local",
   },
   "zh-CN": {
-    "language": "语言",
+    language: "语言",
     "language.auto": "自动",
     "language.english": "English",
     "language.chinese": "中文",
@@ -118,37 +118,37 @@ const I18N = {
     "stage.distribution": "分发",
     "stage.distribution.caption": "官网、公众号、小红书",
     "batch.none": "未加载批次",
-    "drafts": "草稿",
-    "locked": "已锁定",
+    drafts: "草稿",
+    locked: "已锁定",
     "workspace.local": "本地工作区 · 发布已禁用",
-    "data": "数据",
-    "topics": "题材",
+    data: "数据",
+    topics: "题材",
     "distribution.drafts": "分发草稿",
     "empty.batch": "生成内容批次后，内容仓库会显示在这里。",
     "content.repository": "内容仓库",
-    "workspace": "工作区",
-    "refresh": "刷新",
+    workspace: "工作区",
+    refresh: "刷新",
     "refresh.batch.title": "刷新内容批次",
     "topics.pool": "题材池",
     "subject.discovery": "选题发现",
     "refresh.subjects.title": "刷新题材",
-    "directions": "方向",
-    "score": "评分",
-    "subject": "题材",
+    directions: "方向",
+    score: "评分",
+    subject: "题材",
     "confirm.direction": "确认标题与描述",
     "confirm.direction.title": "确认所选标题和描述方向，并创建待办",
-    "audience": "受众",
+    audience: "受众",
     "selected.direction": "已选方向",
     "no.direction": "未选择方向",
     "choose.direction": "为这个题材选择一个标题和描述方向。",
-    "angle": "角度",
-    "status": "状态",
-    "evidence": "依据",
+    angle: "角度",
+    status: "状态",
+    evidence: "依据",
     "no.evidence": "还没有附上来源依据。",
     "todos.title": "待办",
     "production.queue": "生产队列",
     "todos.empty": "确认标题和描述方向后，会在这里出现待办。",
-    "assignee": "负责人",
+    assignee: "负责人",
     "ai.writer": "AI 写手",
     "next.action": "下一步",
     "todo.start": "开工",
@@ -157,32 +157,32 @@ const I18N = {
     "todo.next.waiting": "点击“开工”后，这个方向才正式进入 AI 主稿处理队列。",
     "main.title": "主稿与配图",
     "canonical.draft": "主版本草稿",
-    "preview": "预览",
+    preview: "预览",
     "preview.title": "预览 HTML",
     "approve.main": "批准主稿",
     "approve.main.title": "批准主稿草稿",
-    "cover": "封面",
+    cover: "封面",
     "visual.brief": "视觉说明",
     "distribution.title": "分发版本",
     "channel.adaptation": "渠道改写",
-    "validate": "校验",
+    validate: "校验",
     "validate.title": "校验所有草稿",
-    "export": "导出",
+    export: "导出",
     "export.title": "导出已批准草稿",
-    "approve": "批准",
+    approve: "批准",
     "approve.title": "批准这个版本",
-    "save": "保存",
+    save: "保存",
     "save.title": "把你的修改保存为新版本",
     "request.changes": "请求修改",
     "request.changes.title": "退回给 AI 重新修改",
-    "block": "阻塞",
+    block: "阻塞",
     "block.title": "阻塞这个版本",
-    "title": "标题",
-    "draft": "草稿",
+    title: "标题",
+    draft: "草稿",
     "review.note": "复核备注",
     "title.options": "标题选项",
     "media.brief": "媒体说明",
-    "hashtags": "话题标签",
+    hashtags: "话题标签",
     "status.ready": "就绪",
     "readiness.ready": "可发布",
     "readiness.blocked": "已阻塞",
@@ -199,9 +199,9 @@ const I18N = {
     "status.needsReview": "需复核",
     "status.changesRequested": "需修改",
     "status.draft": "草稿",
-    "channel": "渠道",
-    "local": "本地"
-  }
+    channel: "渠道",
+    local: "本地",
+  },
 };
 
 function t(key) {
@@ -235,7 +235,7 @@ const stages = [
   { id: "topics", label: t("stage.topics"), caption: t("stage.topics.caption") },
   { id: "todos", label: t("stage.todos"), caption: t("stage.todos.caption") },
   { id: "main", label: t("stage.main"), caption: t("stage.main.caption") },
-  { id: "distribution", label: t("stage.distribution"), caption: t("stage.distribution.caption") }
+  { id: "distribution", label: t("stage.distribution"), caption: t("stage.distribution.caption") },
 ];
 
 // Ideation stages (topics/todos/main) are local-only. In busabase mode the skill
@@ -267,7 +267,7 @@ const els = {
   settingsText: document.querySelector("#settingsText"),
   pageTitle: document.querySelector("#pageTitle"),
   refreshBtn: document.querySelector("#refreshBtn"),
-  languageSelect: document.querySelector("#languageSelect")
+  languageSelect: document.querySelector("#languageSelect"),
 };
 
 function applyStaticI18n() {
@@ -358,7 +358,8 @@ function routeFor() {
   }
   if (activeStage === "todos") return selectedTodoId ? `/todos/${encodeRoutePart(selectedTodoId)}` : "/todos";
   if (activeStage === "main") return "/main";
-  if (activeStage === "distribution") return selectedDistributionId ? `/distribution/${encodeRoutePart(selectedDistributionId)}` : "/distribution";
+  if (activeStage === "distribution")
+    return selectedDistributionId ? `/distribution/${encodeRoutePart(selectedDistributionId)}` : "/distribution";
   return "/topics";
 }
 
@@ -466,25 +467,28 @@ function normalizeTopics(batch, items) {
         {
           id: "dir-main-system",
           title: "A calmer way to repurpose one blog into many posts",
-          description: "Position the piece as an operating system for turning one canonical article into platform-specific drafts without diluting the original claim.",
+          description:
+            "Position the piece as an operating system for turning one canonical article into platform-specific drafts without diluting the original claim.",
           angle: "Systematic, practical, calm",
-          status: "selected"
+          status: "selected",
         },
         {
           id: "dir-proof-first",
           title: "Stop copying posts across platforms. Preserve proof instead.",
-          description: "Lead with the common mistake, then show why proof and promise stay stable while hook, pacing, and media change by channel.",
+          description:
+            "Lead with the common mistake, then show why proof and promise stay stable while hook, pacing, and media change by channel.",
           angle: "Contrarian lesson",
-          status: "ready"
+          status: "ready",
         },
         {
           id: "dir-creator-workflow",
           title: "The solo creator's content repurposing checklist",
-          description: "Frame the same topic as a checklist for founders and creators who want a repeatable publishing flow from one main blog.",
+          description:
+            "Frame the same topic as a checklist for founders and creators who want a repeatable publishing flow from one main blog.",
           angle: "Checklist and workflow",
-          status: "ready"
-        }
-      ]
+          status: "ready",
+        },
+      ],
     },
     {
       id: "topic-xhs",
@@ -501,16 +505,16 @@ function normalizeTopics(batch, items) {
           title: "别急着发长文，先拆成这 7 页小红书",
           description: "强调收藏价值和 carousel 结构，适合把主稿拆成方法型图文。",
           angle: "收藏型教程",
-          status: "ready"
+          status: "ready",
         },
         {
           id: "dir-xhs-mistake",
           title: "很多人做内容分发，第一步就错了",
           description: "用反常识开头，指出复制粘贴不是分发，真正要改的是包装。",
           angle: "反常识提醒",
-          status: "ready"
-        }
-      ]
+          status: "ready",
+        },
+      ],
     },
     {
       id: "topic-system",
@@ -527,24 +531,28 @@ function normalizeTopics(batch, items) {
           title: "内容系统的核心：保留主张，改变包装",
           description: "解释为什么每个平台需要不同 wrapper，但主张、证据和例子不能变形。",
           angle: "Principle essay",
-          status: "ready"
+          status: "ready",
         },
         {
           id: "dir-system-operator",
           title: "给内容运营的一张分发判断表",
           description: "把题材做成一张判断表，帮助运营决定哪些内容适合公众号、小红书或 NewsNet。",
           angle: "Operator tool",
-          status: "ready"
-        }
-      ]
-    }
+          status: "ready",
+        },
+      ],
+    },
   ].map(normalizeTopic);
 }
 
 function normalizeTodos(batch, topics) {
   if (Array.isArray(batch.todos) && batch.todos.length) return batch.todos.map(normalizeTodo);
   return topics
-    .filter((topic) => topic.status === "confirmed" || topic.directions?.some((direction) => direction.status === "selected" || direction.status === "confirmed"))
+    .filter(
+      (topic) =>
+        topic.status === "confirmed" ||
+        topic.directions?.some((direction) => direction.status === "selected" || direction.status === "confirmed"),
+    )
     .map((topic) => {
       const direction = getSelectedDirection(topic);
       return normalizeTodo({
@@ -557,7 +565,7 @@ function normalizeTodos(batch, topics) {
         status: "todo",
         assignee: "AI writer",
         source: topic.source,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       });
     });
 }
@@ -565,10 +573,15 @@ function normalizeTodos(batch, topics) {
 function normalizeMainContent(batch, topics, todos, items) {
   if (batch.main_content) return batch.main_content;
   const activeTodo = todos.find((todo) => todo.status === "in_progress" || todo.status === "writing") || todos[0];
-  const confirmed = topics.find((topic) => topic.id === activeTodo?.topic_id) || topics.find((topic) => topic.status === "confirmed") || topics[0];
+  const confirmed =
+    topics.find((topic) => topic.id === activeTodo?.topic_id) ||
+    topics.find((topic) => topic.status === "confirmed") ||
+    topics[0];
   const selectedDirection = getSelectedDirection(confirmed);
   const title = activeTodo?.title || selectedDirection?.title || confirmed?.title || "Building a calmer content system";
-  const body = stripMarkdown(batch.source_summary || items[0]?.summary || "A strong blog post should be the source of many smaller pieces.");
+  const body = stripMarkdown(
+    batch.source_summary || items[0]?.summary || "A strong blog post should be the source of many smaller pieces.",
+  );
   const status = activeTodo?.status === "in_progress" ? "writing" : "waiting";
   return {
     id: "main-blog",
@@ -576,7 +589,10 @@ function normalizeMainContent(batch, topics, todos, items) {
     status,
     hero_alt: "Editorial cover preview",
     cover_brief: "A clean workspace image: one canonical article connected to several publishing channels.",
-    dek: activeTodo?.description || selectedDirection?.description || "A canonical post that keeps the core claim, proof, and examples intact before channel adaptation.",
+    dek:
+      activeTodo?.description ||
+      selectedDirection?.description ||
+      "A canonical post that keeps the core claim, proof, and examples intact before channel adaptation.",
     html: `
       <p>${escapeHtml(status === "writing" ? "AI writer has started this main draft. The outline below is ready to expand into the canonical article." : "This direction is waiting in Todo. Mark it as 开工 before the AI writer starts the main draft.")}</p>
       <p>${escapeHtml(body)}</p>
@@ -588,7 +604,7 @@ function normalizeMainContent(batch, topics, todos, items) {
       </figure>
       <h3>Distribution principle</h3>
       <p>The main claim should remain stable. The hook, pacing, CTA, and media treatment can change per platform.</p>
-    `
+    `,
   };
 }
 
@@ -605,7 +621,7 @@ function normalizeDistribution(batch, items) {
     body: item.body || "",
     summary: item.summary || "",
     cta: item.cta || "",
-    media_brief: item.media_brief || ""
+    media_brief: item.media_brief || "",
   }));
 }
 
@@ -616,7 +632,9 @@ function render(repo) {
 
 function renderShell(repo) {
   const batch = repo.batch;
-  els.batchMeta.textContent = batch?.batch_id ? `${batch.batch_id} · ${repo.distribution.length} ${t("drafts")}` : t("batch.none");
+  els.batchMeta.textContent = batch?.batch_id
+    ? `${batch.batch_id} · ${repo.distribution.length} ${t("drafts")}`
+    : t("batch.none");
   els.lockText.textContent = state.lock ? `${t("locked")}: ${state.lock.message}` : t("workspace.local");
   els.settingsText.textContent = `${state.config_summary?.provider || "local"} ${t("data")} · ${repo.topics.length} ${t("topics")} · ${repo.distribution.length} ${t("distribution.drafts")}`;
 
@@ -628,16 +646,20 @@ function renderShell(repo) {
     topics: repo.topics.length,
     todos: repo.todos.length,
     main: repo.main ? 1 : 0,
-    distribution: repo.distribution.length
+    distribution: repo.distribution.length,
   };
 
-  els.stageNav.innerHTML = shown.map((stage) => `
+  els.stageNav.innerHTML = shown
+    .map(
+      (stage) => `
     <button class="stageButton ${stage.id === activeStage ? "active" : ""}" data-stage="${stage.id}" title="${escapeAttr(stage.caption)}">
       <span>${stage.label}</span>
       <small>${stage.caption}</small>
       <em>${counts[stage.id] || 0}</em>
     </button>
-  `).join("");
+  `,
+    )
+    .join("");
 
   for (const button of els.stageNav.querySelectorAll("[data-stage]")) {
     button.addEventListener("click", () => {
@@ -767,7 +789,9 @@ function renderTodos(repo) {
   bindRecordSelection("todo", (id) => {
     navigateTo({ stage: "todos", todoId: id });
   });
-  for (const button of els.stagePanel.querySelectorAll("[data-action='start-todo'], [data-action='start-selected-todo']")) {
+  for (const button of els.stagePanel.querySelectorAll(
+    "[data-action='start-todo'], [data-action='start-selected-todo']",
+  )) {
     button.addEventListener("click", () => startTodo(selectedTodoId));
   }
 }
@@ -799,9 +823,7 @@ function todoDetail(todo) {
     </dl>
     <section class="sectionBlock">
       <h3>${escapeHtml(t("next.action"))}</h3>
-      <p>${todo.status === "in_progress"
-        ? t("todo.next.started")
-        : t("todo.next.waiting")}</p>
+      <p>${todo.status === "in_progress" ? t("todo.next.started") : t("todo.next.waiting")}</p>
     </section>
   `;
 }
@@ -929,7 +951,7 @@ async function confirmDirection(topicId, directionId) {
   const response = await fetch(withContextParams("/api/confirm-direction"), {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ topic_id: topicId, direction_id: directionId })
+    body: JSON.stringify({ topic_id: topicId, direction_id: directionId }),
   });
   if (!response.ok) {
     alert(`Could not create todo: ${await response.text()}`);
@@ -946,7 +968,7 @@ async function startTodo(id) {
   const response = await fetch(withContextParams("/api/start-todo"), {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id })
+    body: JSON.stringify({ id }),
   });
   if (!response.ok) {
     alert(`Could not start todo: ${await response.text()}`);
@@ -958,19 +980,22 @@ async function startTodo(id) {
 }
 
 function normalizeTopic(topic) {
-  const directions = Array.isArray(topic.directions) && topic.directions.length
-    ? topic.directions
-    : [{
-      id: `${topic.id || "topic"}-direction-1`,
-      title: topic.title || "Untitled direction",
-      description: topic.description || topic.angle || "No description yet.",
-      angle: topic.angle || "General",
-      status: topic.status === "confirmed" ? "selected" : "ready"
-    }];
+  const directions =
+    Array.isArray(topic.directions) && topic.directions.length
+      ? topic.directions
+      : [
+          {
+            id: `${topic.id || "topic"}-direction-1`,
+            title: topic.title || "Untitled direction",
+            description: topic.description || topic.angle || "No description yet.",
+            angle: topic.angle || "General",
+            status: topic.status === "confirmed" ? "selected" : "ready",
+          },
+        ];
   return {
     ...topic,
     subject: topic.subject || topic.topic || topic.title,
-    directions
+    directions,
   };
 }
 
@@ -981,12 +1006,12 @@ function normalizeTodo(todo) {
     in_progress: t("status.started"),
     writing: t("status.started"),
     done: t("status.done"),
-    blocked: t("status.blocked")
+    blocked: t("status.blocked"),
   };
   return {
     ...todo,
     status: todo.status || "todo",
-    statusLabel: labels[todo.status || "todo"] || todo.status || t("status.todo")
+    statusLabel: labels[todo.status || "todo"] || todo.status || t("status.todo"),
   };
 }
 
@@ -1004,21 +1029,28 @@ function statusLabel(status = "") {
     needs_review: t("status.needsReview"),
     changes_requested: t("status.changesRequested"),
     draft: t("status.draft"),
-    ready: t("status.ready")
+    ready: t("status.ready"),
   };
   return labels[status] || status;
 }
 
 function getSelectedDirection(topic) {
   if (!topic?.directions?.length) return null;
-  return topic.directions.find((direction) => direction.status === "selected" || direction.status === "confirmed") || topic.directions[0];
+  return (
+    topic.directions.find((direction) => direction.status === "selected" || direction.status === "confirmed") ||
+    topic.directions[0]
+  );
 }
 
 function bindEditorActions(id) {
   if (!id) return;
   for (const input of els.stagePanel.querySelectorAll("input, textarea")) {
-    input.addEventListener("focus", () => { editing = true; });
-    input.addEventListener("blur", () => { editing = false; });
+    input.addEventListener("focus", () => {
+      editing = true;
+    });
+    input.addEventListener("blur", () => {
+      editing = false;
+    });
   }
   for (const button of els.stagePanel.querySelectorAll("[data-action]")) {
     button.disabled = Boolean(state.lock);
@@ -1032,12 +1064,12 @@ async function saveDecision(id, action) {
     action,
     title: document.querySelector("#titleInput")?.value || "",
     body: document.querySelector("#bodyInput")?.value || "",
-    comment: document.querySelector("#commentInput")?.value || ""
+    comment: document.querySelector("#commentInput")?.value || "",
   };
   const response = await fetch(withContextParams("/api/decision"), {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
   if (!response.ok) {
     alert(`Could not save: ${await response.text()}`);
@@ -1068,7 +1100,8 @@ function normalizeChannel(channel = "") {
   const value = String(channel).toLowerCase();
   if (value === "x") return "X";
   if (value === "xiaohongshu") return language === "zh-CN" ? "小红书" : "Xiaohongshu";
-  if (value === "official_blog" || value === "official-blog" || value === "blog") return language === "zh-CN" ? "官方 Blog" : "Official Blog";
+  if (value === "official_blog" || value === "official-blog" || value === "blog")
+    return language === "zh-CN" ? "官方 Blog" : "Official Blog";
   if (value === "wechat") return language === "zh-CN" ? "公众号" : "WeChat";
   if (value === "newsletter") return "NewsNet";
   if (value === "linkedin") return "LinkedIn";
@@ -1076,7 +1109,9 @@ function normalizeChannel(channel = "") {
 }
 
 function channelInitial(channel) {
-  return String(channel || "C").slice(0, 1).toUpperCase();
+  return String(channel || "C")
+    .slice(0, 1)
+    .toUpperCase();
 }
 
 function stripMarkdown(value) {
@@ -1094,13 +1129,17 @@ function smartTitle(value) {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "\"": "&quot;",
-    "'": "&#39;"
-  })[char]);
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 function escapeAttr(value) {

@@ -25,18 +25,12 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { skillDir } from "../paths.mjs";
-import { createLocalFileProvider } from "./local-file-provider.mjs";
 import { createBusabaseProvider } from "./busabase-provider.mjs";
+import { createLocalFileProvider } from "./local-file-provider.mjs";
 
 // Workflow status is shared across providers. Busabase maps its change-request
 // status onto these so the UI renders identically in either mode.
-export const WORKFLOW_STATUSES = [
-  "needs_review",
-  "to_approve",
-  "approved",
-  "done",
-  "blocked",
-];
+export const WORKFLOW_STATUSES = ["needs_review", "to_approve", "approved", "done", "blocked"];
 
 export const DECISION_ACTIONS = ["approve", "revise", "request_changes", "block"];
 
@@ -62,9 +56,7 @@ async function loadConfig() {
 }
 
 export function resolveProviderKind(config = {}) {
-  return String(
-    process.env.KELLY_CONTENT_DATA_PROVIDER || config.data_provider || "local",
-  ).toLowerCase();
+  return String(process.env.KELLY_CONTENT_DATA_PROVIDER || config.data_provider || "local").toLowerCase();
 }
 
 export async function createProvider() {
@@ -72,7 +64,5 @@ export async function createProvider() {
   const kind = resolveProviderKind(meta.config);
   if (kind === "local") return createLocalFileProvider(meta);
   if (kind === "busabase") return createBusabaseProvider(meta);
-  throw new Error(
-    `Unknown KELLY_CONTENT_DATA_PROVIDER: "${kind}" (expected "local" or "busabase")`,
-  );
+  throw new Error(`Unknown KELLY_CONTENT_DATA_PROVIDER: "${kind}" (expected "local" or "busabase")`);
 }

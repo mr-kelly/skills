@@ -1,12 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR, TEST_EVIDENCE_DIR } from "./paths.mjs";
-import { lockPayload } from "./lock.mjs";
-import { statePayload } from "./state.mjs";
 import { updateDetail, updateItems } from "./decisions.mjs";
-import { setTested } from "./tested-cache.mjs";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.mjs";
+import { lockPayload } from "./lock.mjs";
+import { APP_DIR, TEST_EVIDENCE_DIR } from "./paths.mjs";
+import { statePayload } from "./state.mjs";
+import { setTested } from "./tested-cache.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic modules (data-provider

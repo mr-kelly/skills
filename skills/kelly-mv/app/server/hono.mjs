@@ -1,15 +1,22 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { APP_DIR, GENERATED_DIR } from "./paths.mjs";
+import {
+  generateCharacterCard,
+  generateStoryboardImage,
+  generateVisualBackground,
+  imageConfigPayload,
+  saveImageConfig,
+  storyboardPromptPreview,
+} from "./image-service.mjs";
 import { assertUnlocked } from "./lock.mjs";
-import { generateCharacterCard, generateStoryboardImage, generateVisualBackground, imageConfigPayload, saveImageConfig, storyboardPromptPreview } from "./image-service.mjs";
-import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.mjs";
-import { generateSongDraft, importSong, songConfigPayload, updateSong, uploadSong } from "./song-service.mjs";
-import { uploadShotAsset } from "./upload-service.mjs";
+import { APP_DIR, GENERATED_DIR } from "./paths.mjs";
 import { loadProject, saveProject, upsertById } from "./project-store.mjs";
+import { generateSongDraft, importSong, songConfigPayload, updateSong, uploadSong } from "./song-service.mjs";
 import { setActiveProject, statePayload } from "./state.mjs";
+import { uploadShotAsset } from "./upload-service.mjs";
 import { slug } from "./utils.mjs";
+import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic/service modules, so the
@@ -107,7 +114,8 @@ app.get("/api/state", async (c) => c.json(await statePayload()));
 app.get("/api/image-config", async (c) => c.json(await imageConfigPayload()));
 app.get("/api/song-config", async (c) => c.json(await songConfigPayload()));
 app.get("/api/storyboard-prompt", async (c) =>
-  c.json(await storyboardPromptPreview(String(c.req.query("shot_id") || ""))));
+  c.json(await storyboardPromptPreview(String(c.req.query("shot_id") || ""))),
+);
 
 // ---- API (POST) ----
 app.post("/api/treatment", async (c) => {
@@ -146,7 +154,7 @@ app.post("/api/shot-asset-upload", async (c) => {
 app.post("/api/song-generate", async (c) => {
   const body = await c.req.json().catch(() => ({}));
   await assertUnlocked();
-  return c.json(await generateSongDraft(body));
+  return c.json(await /** @type {any} */ (generateSongDraft)(body));
 });
 
 app.post("/api/active-project", async (c) => {
@@ -169,9 +177,11 @@ app.post("/api/shot-video", async (c) => {
   const body = await c.req.json().catch(() => ({}));
   await assertUnlocked();
   const mode = String(body.mode || "draft");
-  return c.json(mode === "prod"
-    ? await generateShotVideoProd(String(body.shot_id || ""))
-    : await generateShotVideoDraft(String(body.shot_id || "")));
+  return c.json(
+    mode === "prod"
+      ? await /** @type {any} */ (generateShotVideoProd)(String(body.shot_id || ""))
+      : await generateShotVideoDraft(String(body.shot_id || "")),
+  );
 });
 
 app.post("/api/shot-active", async (c) => {
@@ -212,7 +222,7 @@ app.get("/styles.css", (c) => sendFile(c, path.join(APP_DIR, "styles.css")));
 // and guard against path traversal outside the i18n directory.
 app.get("/i18n/*", (c) => {
   const decodedPath = decodeURIComponent(new URL(c.req.url).pathname);
-  const resolved = path.resolve(APP_DIR, "." + decodedPath);
+  const resolved = path.resolve(APP_DIR, `.${decodedPath}`);
   const root = path.resolve(APP_DIR, "i18n");
   if (resolved !== root && !resolved.startsWith(root + path.sep)) {
     return c.text("Forbidden", 403);

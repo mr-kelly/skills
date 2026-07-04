@@ -15,9 +15,11 @@ const state = {
   followUps: {},
   edits: {},
   quoteEdits: {},
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-inquiry-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-inquiry-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  demoRef: 100
+  demoRef: 100,
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-inquiry.sidebarCollapsed";
@@ -39,7 +41,7 @@ const els = {
   approvalsCount: document.querySelector("#count-approvals"),
   newCount: document.querySelector("#count-new"),
   staleCount: document.querySelector("#count-stale"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -90,7 +92,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -100,16 +106,14 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function money(value, currency = state.snapshot?.base_currency || "USD") {
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     style: "currency",
     currency,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(Number(value || 0));
 }
 
@@ -117,7 +121,7 @@ function dateOnly(value) {
   if (!value) return "—";
   return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     month: "short",
-    day: "2-digit"
+    day: "2-digit",
   }).format(new Date(value));
 }
 
@@ -127,7 +131,7 @@ function dateTime(value) {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -181,17 +185,18 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "inquiries"
-    ? "#/inquiries"
-    : scenario === "detail"
-      ? `#/inquiries/${FEATURED_DEMO_INQUIRY}`
-      : scenario === "quotes"
-        ? "#/quotes"
-        : scenario === "approvals"
-          ? "#/approvals"
-          : scenario === "products"
-            ? "#/products"
-            : "#/overview";
+  const route =
+    scenario === "inquiries"
+      ? "#/inquiries"
+      : scenario === "detail"
+        ? `#/inquiries/${FEATURED_DEMO_INQUIRY}`
+        : scenario === "quotes"
+          ? "#/quotes"
+          : scenario === "approvals"
+            ? "#/approvals"
+            : scenario === "products"
+              ? "#/products"
+              : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -201,9 +206,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -245,13 +249,17 @@ function pendingApprovalsFor(inquiryId) {
 }
 
 function unansweredNew() {
-  return inquiries().filter((item) => item.stage === "new" && !(item.messages || []).some((message) => message.direction === "outgoing"));
+  return inquiries().filter(
+    (item) => item.stage === "new" && !(item.messages || []).some((message) => message.direction === "outgoing"),
+  );
 }
 
 function oldestUnanswered() {
-  return unansweredNew()
-    .filter((item) => item.last_incoming_at)
-    .sort((a, b) => String(a.last_incoming_at).localeCompare(String(b.last_incoming_at)))[0] || null;
+  return (
+    unansweredNew()
+      .filter((item) => item.last_incoming_at)
+      .sort((a, b) => String(a.last_incoming_at).localeCompare(String(b.last_incoming_at)))[0] || null
+  );
 }
 
 function staleDeals() {
@@ -359,27 +367,33 @@ function matchesQuery(values) {
 }
 
 function filteredInquiries() {
-  return inquiries().filter((item) => matchesQuery([
-    item.customer?.name,
-    item.customer?.company,
-    item.customer?.country,
-    item.channel,
-    item.stage,
-    item.product_interest,
-    item.owner,
-    ...(item.messages || []).slice(-4).map((message) => message.text)
-  ]));
+  return inquiries().filter((item) =>
+    matchesQuery([
+      item.customer?.name,
+      item.customer?.company,
+      item.customer?.country,
+      item.channel,
+      item.stage,
+      item.product_interest,
+      item.owner,
+      ...(item.messages || []).slice(-4).map((message) => message.text),
+    ]),
+  );
 }
 
 function warningsHtml() {
   const items = state.snapshot?.warnings || [];
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 /* ----- overview ----- */
@@ -409,7 +423,9 @@ function funnelSvg() {
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at
+    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+    : t("empty");
   const metrics = state.snapshot?.metrics || {};
   const needsReview = approvals().filter((item) => item.status === "needs_review").length;
   const unanswered = unansweredNew().length;
@@ -420,9 +436,10 @@ function renderOverview() {
     .map(([channel, count]) => `${channelBadge(channel)} <strong class="channel-count">${count}</strong>`)
     .join(" ");
   const zh = activeLang() === "zh";
-  const medianLabel = metrics.reply_median_minutes >= 60
-    ? `${Math.round(metrics.reply_median_minutes / 6) / 10}${zh ? " 小时" : "h"}`
-    : `${metrics.reply_median_minutes || 0}${zh ? " 分钟" : "m"}`;
+  const medianLabel =
+    metrics.reply_median_minutes >= 60
+      ? `${Math.round(metrics.reply_median_minutes / 6) / 10}${zh ? " 小时" : "h"}`
+      : `${metrics.reply_median_minutes || 0}${zh ? " 分钟" : "m"}`;
   els.content.innerHTML = `
     <div class="metrics">
       <a class="metric ${needsReview ? "warn" : ""}" href="#/approvals"><span>${t("awaitingApproval")}</span><strong>${needsReview}</strong></a>
@@ -448,7 +465,11 @@ function renderOverview() {
       </div>
       <div class="overview-panel">
         <h2>${t("staleDealsTitle")}</h2>
-        ${stale.length ? stale.map((item) => `
+        ${
+          stale.length
+            ? stale
+                .map(
+                  (item) => `
           <a class="stale-row" href="#/inquiries/${encodeURIComponent(item.inquiry_id)}">
             <span class="stale-copy">
               <strong>${escapeHtml(item.customer?.name || "")} · ${escapeHtml(item.customer?.company || "")}</strong>
@@ -459,7 +480,11 @@ function renderOverview() {
               <small class="overdue">${t("followUp")} ${dateOnly(item.next_follow_up)} · ${t("followUpOverdue")}</small>
             </span>
           </a>
-        `).join("") : `<div class="empty-inline">—</div>`}
+        `,
+                )
+                .join("")
+            : `<div class="empty-inline">—</div>`
+        }
       </div>
     </section>
   `;
@@ -471,7 +496,8 @@ function renderInquiries() {
   els.title.textContent = t("inquiries");
   const list = filteredInquiries();
   els.subtitle.textContent = `${list.length} ${t("inquiryCount")} · ${unansweredNew().length} ${t("newInquiries")}`;
-  els.content.innerHTML = list.length ? `
+  els.content.innerHTML = list.length
+    ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -480,7 +506,9 @@ function renderInquiries() {
           </tr>
         </thead>
         <tbody>
-          ${list.map((item) => `
+          ${list
+            .map(
+              (item) => `
             <tr class="row-link" data-href="#/inquiries/${encodeURIComponent(item.inquiry_id)}">
               <td>
                 <a href="#/inquiries/${encodeURIComponent(item.inquiry_id)}"><strong>${escapeHtml(item.customer?.name || "")}</strong></a>
@@ -496,11 +524,14 @@ function renderInquiries() {
               <td>${item.next_follow_up ? `<span class="${isFollowUpOverdue(item) ? "overdue" : "muted"}">${dateOnly(item.next_follow_up)}${isFollowUpOverdue(item) ? ` · ${t("followUpOverdue")}` : ""}</span>` : "—"}</td>
               <td>${escapeHtml(item.owner || "")}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
-  ` : `<div class="empty">${t("empty")}</div>`;
+  `
+    : `<div class="empty">${t("empty")}</div>`;
 }
 
 function renderInquiryDetail() {
@@ -510,21 +541,33 @@ function renderInquiryDetail() {
     return;
   }
   els.title.textContent = `${inquiry.customer?.name || inquiry.inquiry_id}`;
-  els.subtitle.textContent = [inquiry.customer?.company, enumLabel(inquiry.channel, "channel"), enumLabel(inquiry.stage, "stage")].filter(Boolean).join(" · ");
+  els.subtitle.textContent = [
+    inquiry.customer?.company,
+    enumLabel(inquiry.channel, "channel"),
+    enumLabel(inquiry.stage, "stage"),
+  ]
+    .filter(Boolean)
+    .join(" · ");
   const pending = pendingApprovalsFor(inquiry.inquiry_id);
   const draft = state.drafts[inquiry.inquiry_id];
-  const prefill = draft !== undefined ? draft : (!pending.length && inquiry.suggested_reply ? inquiry.suggested_reply : "");
+  const prefill =
+    draft !== undefined ? draft : !pending.length && inquiry.suggested_reply ? inquiry.suggested_reply : "";
   const showSuggestedNote = draft === undefined && !pending.length && Boolean(inquiry.suggested_reply);
   const locked = isLocked();
   const linkedQuotes = (inquiry.quote_ids || []).map((id) => quoteById(id)).filter(Boolean);
   const linkedProducts = (inquiry.product_ids || []).map((id) => productById(id)).filter(Boolean);
-  const followUpValue = state.followUps[inquiry.inquiry_id] !== undefined ? state.followUps[inquiry.inquiry_id] : (inquiry.next_follow_up || "");
+  const followUpValue =
+    state.followUps[inquiry.inquiry_id] !== undefined
+      ? state.followUps[inquiry.inquiry_id]
+      : inquiry.next_follow_up || "";
   els.content.innerHTML = `
     <button class="back-to-list" type="button" data-action="back" data-target="inquiries">← ${t("backToInquiries")}</button>
     <section class="detail">
       <div class="detail-main conv-detail">
         <div class="transcript">
-          ${(inquiry.messages || []).map((message) => `
+          ${(inquiry.messages || [])
+            .map(
+              (message) => `
             <div class="bubble-row ${message.direction === "outgoing" ? "out" : "in"}">
               <div class="bubble">
                 <div class="bubble-meta"><strong>${escapeHtml(message.sender)}</strong><span>${dateTime(message.sent_at)}</span></div>
@@ -532,8 +575,12 @@ function renderInquiryDetail() {
                 ${message.attachment ? `<div class="bubble-attachment">${escapeHtml(message.attachment)}</div>` : ""}
               </div>
             </div>
-          `).join("")}
-          ${pending.map((item) => `
+          `,
+            )
+            .join("")}
+          ${pending
+            .map(
+              (item) => `
             <div class="bubble-row out">
               <div class="bubble queued-bubble">
                 <div class="bubble-meta">
@@ -543,7 +590,9 @@ function renderInquiryDetail() {
                 <div class="bubble-text">${escapeHtml(item.text)}</div>
               </div>
             </div>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </div>
         <div class="composer">
           ${showSuggestedNote ? `<div class="composer-hint">${t("agentSuggestedPrefill")}</div>` : ""}
@@ -572,19 +621,35 @@ function renderInquiryDetail() {
           <dt>${t("followUp")}</dt><dd>${inquiry.next_follow_up ? `${dateOnly(inquiry.next_follow_up)}${isFollowUpOverdue(inquiry) ? ` <span class="overdue">· ${t("followUpOverdue")}</span>` : ""}` : "—"}</dd>
         </dl>
         <h2>${t("linkedProducts")}</h2>
-        ${linkedProducts.length ? linkedProducts.map((product) => `
+        ${
+          linkedProducts.length
+            ? linkedProducts
+                .map(
+                  (product) => `
           <a class="side-row" href="#/products/${encodeURIComponent(product.product_id)}">
             <strong>${escapeHtml(product.name)}</strong>
             <span class="muted">${escapeHtml(product.sku)} · ${t("moq")} ${product.moq} · ${money(product.price_min, product.currency)}–${money(product.price_max, product.currency)}</span>
           </a>
-        `).join("") : `<div class="empty-inline">—</div>`}
+        `,
+                )
+                .join("")
+            : `<div class="empty-inline">—</div>`
+        }
         <h2>${t("quoteHistory")}</h2>
-        ${linkedQuotes.length ? linkedQuotes.map((quote) => `
+        ${
+          linkedQuotes.length
+            ? linkedQuotes
+                .map(
+                  (quote) => `
           <a class="side-row" href="#/quotes/${encodeURIComponent(quote.quote_id)}">
             <strong>${escapeHtml(quote.quote_no)} ${statusChip(quote.status)}</strong>
             <span class="muted">${money(quote.total, quote.currency)} · ${t("validity")} ${dateOnly(quote.valid_until)}</span>
           </a>
-        `).join("") : `<div class="empty-inline">—</div>`}
+        `,
+                )
+                .join("")
+            : `<div class="empty-inline">—</div>`
+        }
       </aside>
     </section>
   `;
@@ -606,15 +671,18 @@ function renderInquiryDetail() {
 
 function renderQuotes() {
   els.title.textContent = t("quotes");
-  const list = quotes().filter((quote) => matchesQuery([
-    quote.quote_no,
-    quote.customer,
-    quote.status,
-    quote.terms,
-    ...(quote.items || []).map((item) => item.sku)
-  ]));
+  const list = quotes().filter((quote) =>
+    matchesQuery([
+      quote.quote_no,
+      quote.customer,
+      quote.status,
+      quote.terms,
+      ...(quote.items || []).map((item) => item.sku),
+    ]),
+  );
   els.subtitle.textContent = `${list.length} ${t("quoteCount")} · ${state.snapshot?.metrics?.quotes_sent || 0} ${t("quotesSent").toLowerCase()}`;
-  els.content.innerHTML = list.length ? `
+  els.content.innerHTML = list.length
+    ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -623,7 +691,9 @@ function renderQuotes() {
           </tr>
         </thead>
         <tbody>
-          ${list.map((quote) => `
+          ${list
+            .map(
+              (quote) => `
             <tr class="row-link" data-href="#/quotes/${encodeURIComponent(quote.quote_id)}">
               <td><a href="#/quotes/${encodeURIComponent(quote.quote_id)}"><strong>${escapeHtml(quote.quote_no)}</strong></a></td>
               <td class="interest">${escapeHtml(quote.customer || "")}</td>
@@ -634,11 +704,14 @@ function renderQuotes() {
               <td>${dateOnly(quote.valid_until)}</td>
               <td>${statusChip(quote.status)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
-  ` : `<div class="empty">${t("empty")}</div>`;
+  `
+    : `<div class="empty">${t("empty")}</div>`;
 }
 
 function quoteGuardHtml(quote) {
@@ -661,30 +734,36 @@ function renderQuoteDetail() {
   const inquiry = inquiryById(quote.inquiry_id);
   const productsById = new Map(products().map((product) => [product.product_id, product]));
   let liveSubtotal = 0;
-  const rows = (quote.items || []).map((line) => {
-    const patch = edits.lines[line.line_id] || {};
-    const qty = patch.qty !== undefined ? Number(patch.qty) : line.qty;
-    const unit = patch.unit_price !== undefined ? Number(patch.unit_price) : line.unit_price;
-    const total = (Number(qty) || 0) * (Number(unit) || 0);
-    liveSubtotal += total;
-    const product = productsById.get(line.product_id);
-    const below = product && typeof product.price_min === "number" && Number(unit) < product.price_min;
-    return `
+  const rows = (quote.items || [])
+    .map((line) => {
+      const patch = edits.lines[line.line_id] || {};
+      const qty = patch.qty !== undefined ? Number(patch.qty) : line.qty;
+      const unit = patch.unit_price !== undefined ? Number(patch.unit_price) : line.unit_price;
+      const total = (Number(qty) || 0) * (Number(unit) || 0);
+      liveSubtotal += total;
+      const product = productsById.get(line.product_id);
+      const below = product && typeof product.price_min === "number" && Number(unit) < product.price_min;
+      return `
       <tr>
         <td><strong>${escapeHtml(line.sku)}</strong>${product ? `<div class="muted"><a href="#/products/${encodeURIComponent(product.product_id)}">${escapeHtml(product.name)}</a></div>` : ""}</td>
         <td class="interest">${escapeHtml(line.description || "")}</td>
-        <td class="num">${editable
-          ? `<input class="line-input" type="number" min="0" step="1" value="${qty}" data-line="${escapeHtml(line.line_id)}" data-field="qty">`
-          : qty}</td>
-        <td class="num">${editable
-          ? `<input class="line-input" type="number" min="0" step="0.01" value="${unit}" data-line="${escapeHtml(line.line_id)}" data-field="unit_price">`
-          : money(unit, quote.currency)}
+        <td class="num">${
+          editable
+            ? `<input class="line-input" type="number" min="0" step="1" value="${qty}" data-line="${escapeHtml(line.line_id)}" data-field="qty">`
+            : qty
+        }</td>
+        <td class="num">${
+          editable
+            ? `<input class="line-input" type="number" min="0" step="0.01" value="${unit}" data-line="${escapeHtml(line.line_id)}" data-field="unit_price">`
+            : money(unit, quote.currency)
+        }
           ${below ? `<div class="overdue guard-inline">${t("guardTripped")} (${money(product.price_min, quote.currency)})</div>` : ""}
         </td>
         <td class="num">${money(total, quote.currency)}</td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
   els.content.innerHTML = `
     <button class="back-to-list" type="button" data-action="back" data-target="quotes">← ${t("backToQuotes")}</button>
     <section class="detail">
@@ -702,7 +781,9 @@ function renderQuoteDetail() {
           </table>
         </div>
         ${quoteGuardHtml(quote)}
-        ${editable ? `
+        ${
+          editable
+            ? `
           <div class="composer-actions">
             <div class="follow-up-field">
               <label for="quote-validity">${t("validity")}</label>
@@ -710,7 +791,9 @@ function renderQuoteDetail() {
             </div>
             <button type="button" class="primary" data-action="save-quote" data-quote="${escapeHtml(quote.quote_id)}">${t("saveQuote")}</button>
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
       <aside class="detail-side">
         <h2>${t("quoteDetail")}</h2>
@@ -759,25 +842,21 @@ function renderQuoteDetail() {
 
 function renderApprovals() {
   els.title.textContent = t("approvals");
-  const list = approvals().filter((item) => matchesQuery([
-    item.text,
-    item.reason,
-    item.customer,
-    item.channel,
-    item.status,
-    item.kind,
-    `#${item.ref}`
-  ]));
+  const list = approvals().filter((item) =>
+    matchesQuery([item.text, item.reason, item.customer, item.channel, item.status, item.kind, `#${item.ref}`]),
+  );
   const needsReview = approvals().filter((item) => item.status === "needs_review").length;
   els.subtitle.textContent = `${approvals().length} · ${needsReview} ${enumLabel("needs_review")}`;
   const locked = isLocked();
-  els.content.innerHTML = list.length ? `
+  els.content.innerHTML = list.length
+    ? `
     <div class="approval-list">
-      ${list.map((item) => {
-        const editable = item.status !== "done";
-        const value = state.edits[item.item_id] !== undefined ? state.edits[item.item_id] : item.text;
-        const quote = item.quote_id ? quoteById(item.quote_id) : null;
-        return `
+      ${list
+        .map((item) => {
+          const editable = item.status !== "done";
+          const value = state.edits[item.item_id] !== undefined ? state.edits[item.item_id] : item.text;
+          const quote = item.quote_id ? quoteById(item.quote_id) : null;
+          return `
           <article class="approval-card" data-item-card="${escapeHtml(item.item_id)}">
             <header class="approval-head">
               <strong>${escapeHtml(enumLabel(item.kind, "kind"))} #${item.ref}</strong>
@@ -789,13 +868,17 @@ function renderApprovals() {
             </header>
             ${item.reason ? `<div class="approval-reason"><span class="muted">${t("reason")}:</span> ${escapeHtml(item.reason)}</div>` : ""}
             ${item.note ? `<div class="approval-reason"><span class="muted">${t("note")}:</span> ${escapeHtml(item.note)}</div>` : ""}
-            ${editable
-              ? `<textarea class="approval-text" data-item-text rows="4" ${locked ? "disabled" : ""}>${escapeHtml(value)}</textarea>`
-              : `<div class="approval-sent-text">${escapeHtml(item.text)}</div>`}
+            ${
+              editable
+                ? `<textarea class="approval-text" data-item-text rows="4" ${locked ? "disabled" : ""}>${escapeHtml(value)}</textarea>`
+                : `<div class="approval-sent-text">${escapeHtml(item.text)}</div>`
+            }
             ${item.decision?.comment ? `<div class="approval-reason"><span class="muted">${t("comment")}:</span> ${escapeHtml(item.decision.comment)} <small class="muted">(${t("decidedAt")} ${dateTime(item.decision.decided_at)})</small></div>` : ""}
             ${item.status === "approved" ? `<div class="approval-waiting">${t("waitingForSend")}</div>` : ""}
             ${item.execution ? `<div class="approval-execution">${t("sentVia")} ${escapeHtml(enumLabel(item.execution.connector, "connector"))} · ${t("target")} ${escapeHtml(item.execution.target || "")} · ${escapeHtml(enumLabel(item.execution.status))} ${item.execution.executed_at ? `· ${dateTime(item.execution.executed_at)}` : ""}</div>` : ""}
-            ${editable ? `
+            ${
+              editable
+                ? `
               <div class="approval-actions">
                 <input type="text" data-item-comment placeholder="${escapeHtml(t("commentPlaceholder"))}" ${locked ? "disabled" : ""}>
                 <div class="approval-buttons">
@@ -805,12 +888,16 @@ function renderApprovals() {
                   <button type="button" class="danger" data-action="decide" data-item="${escapeHtml(item.item_id)}" data-decision="block" ${locked ? "disabled" : ""}>${t("block")}</button>
                 </div>
               </div>
-            ` : ""}
+            `
+                : ""
+            }
           </article>
         `;
-      }).join("")}
+        })
+        .join("")}
     </div>
-  ` : `<div class="empty">${t("noApprovals")}</div>`;
+  `
+    : `<div class="empty">${t("noApprovals")}</div>`;
   els.content.querySelectorAll("[data-item-text]").forEach((textarea) => {
     const card = textarea.closest("[data-item-card]");
     textarea.addEventListener("input", () => {
@@ -825,9 +912,12 @@ function renderProducts() {
   els.title.textContent = t("products");
   const list = products().filter((product) => matchesQuery([product.name, product.sku, product.category]));
   els.subtitle.textContent = `${list.length} ${t("productCount")}`;
-  els.content.innerHTML = list.length ? `
+  els.content.innerHTML = list.length
+    ? `
     <div class="product-grid">
-      ${list.map((product) => `
+      ${list
+        .map(
+          (product) => `
         <a class="product-card" href="#/products/${encodeURIComponent(product.product_id)}">
           <div class="row between">
             <strong>${escapeHtml(product.name)}</strong>
@@ -841,9 +931,12 @@ function renderProducts() {
             <dt>${t("faq")}</dt><dd>${(product.faq || []).length} ${t("faqCount")}</dd>
           </dl>
         </a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
-  ` : `<div class="empty">${t("empty")}</div>`;
+  `
+    : `<div class="empty">${t("empty")}</div>`;
 }
 
 function renderProductDetail() {
@@ -867,26 +960,42 @@ function renderProductDetail() {
         </div>
         <div class="overview-panel faq-panel">
           <h2>${t("faq")}</h2>
-          ${(product.faq || []).map((entry) => `
+          ${
+            (product.faq || [])
+              .map(
+                (entry) => `
             <div class="faq-row">
               <strong>${escapeHtml(entry.q)}</strong>
               <p>${escapeHtml(entry.a)}</p>
             </div>
-          `).join("") || `<div class="empty-inline">—</div>`}
+          `,
+              )
+              .join("") || `<div class="empty-inline">—</div>`
+          }
         </div>
       </div>
       <aside class="detail-side">
         <h2>${t("specs")}</h2>
         <dl>
-          ${Object.entries(product.specs || {}).map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${escapeHtml(value)}</dd>`).join("")}
+          ${Object.entries(product.specs || {})
+            .map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd>${escapeHtml(value)}</dd>`)
+            .join("")}
         </dl>
         <h2>${t("inquiries")}</h2>
-        ${relatedInquiries.length ? relatedInquiries.map((item) => `
+        ${
+          relatedInquiries.length
+            ? relatedInquiries
+                .map(
+                  (item) => `
           <a class="side-row" href="#/inquiries/${encodeURIComponent(item.inquiry_id)}">
             <strong>${escapeHtml(item.customer?.name || "")}</strong>
             <span class="muted">${escapeHtml(item.customer?.company || "")} · ${escapeHtml(enumLabel(item.stage, "stage"))}</span>
           </a>
-        `).join("") : `<div class="empty-inline">—</div>`}
+        `,
+                )
+                .join("")
+            : `<div class="empty-inline">—</div>`
+        }
       </aside>
     </section>
   `;
@@ -921,41 +1030,71 @@ function renderSettings() {
           <dt>${t("validityDays")}</dt><dd>${escapeHtml(String(summary.quote_defaults?.validity_days ?? "—"))}</dd>
           <dt>${t("terms")}</dt><dd>${escapeHtml([summary.quote_defaults?.incoterm, summary.quote_defaults?.payment_terms].filter(Boolean).join(" · ") || "—")}</dd>
           <dt>${t("minPriceGuard")}</dt><dd>${guard ? (guard.enabled ? t("on") : t("off")) : "—"}</dd>
-          <dt>${t("followUpSla")}</dt><dd>${sla ? Object.entries(sla).map(([stage, days]) => `${enumLabel(stage, "stage")}: ${days} ${t("days")}`).join(" · ") : "—"}</dd>
+          <dt>${t("followUpSla")}</dt><dd>${
+            sla
+              ? Object.entries(sla)
+                  .map(([stage, days]) => `${enumLabel(stage, "stage")}: ${days} ${t("days")}`)
+                  .join(" · ")
+              : "—"
+          }</dd>
         </dl>
       </section>
       <section>
         <h2>${t("accounts")}</h2>
-        ${(summary.accounts || []).map((account) => `
+        ${
+          (summary.accounts || [])
+            .map(
+              (account) => `
           <div class="settings-account">
             <strong>${escapeHtml(account.display_name)}</strong>
             <span>${escapeHtml(enumLabel(account.channel, "channel"))} · ${escapeHtml(enumLabel(account.connector, "connector"))} ${account.handle ? `· ${escapeHtml(account.handle)}` : ""}</span>
             <span>${account.secret_envs.length ? (account.secrets_ready ? t("secretsReady") : t("missingSecrets")) : "—"}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("syncLog")}</h2>
-        ${syncLog.length ? syncLog.slice(-8).reverse().map((entry) => `
+        ${
+          syncLog.length
+            ? syncLog
+                .slice(-8)
+                .reverse()
+                .map(
+                  (entry) => `
           <div class="settings-account">
             <strong>${escapeHtml(entry.account_id)}</strong>
             <span>${escapeHtml(enumLabel(entry.method, "connector"))} · ${dateTime(entry.at)}</span>
             <span>${escapeHtml(entry.message || "")}</span>
           </div>
-        `).join("") : `<div class="empty-inline">—</div>`}
+        `,
+                )
+                .join("")
+            : `<div class="empty-inline">—</div>`
+        }
       </section>
-      ${report ? `
+      ${
+        report
+          ? `
         <section>
           <h2>${t("executionReport")}</h2>
-          ${(report.results || []).map((result) => `
+          ${(report.results || [])
+            .map(
+              (result) => `
             <div class="settings-account">
               <strong>${escapeHtml(enumLabel(result.kind || "reply", "kind"))} #${result.ref}</strong>
               <span>${escapeHtml(enumLabel(result.status))} · ${escapeHtml(enumLabel(result.connector, "connector"))}</span>
               <span>${escapeHtml(result.detail || result.target || "")}</span>
             </div>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </section>
-      ` : ""}
+      `
+          : ""
+      }
     </div>
   `;
 }
@@ -963,9 +1102,11 @@ function renderSettings() {
 /* ----- actions ----- */
 
 async function queueReplyAction(inquiryId) {
-  const text = String(state.drafts[inquiryId] !== undefined
-    ? state.drafts[inquiryId]
-    : (els.content.querySelector("#composer-text")?.value || "")).trim();
+  const text = String(
+    state.drafts[inquiryId] !== undefined
+      ? state.drafts[inquiryId]
+      : els.content.querySelector("#composer-text")?.value || "",
+  ).trim();
   const note = String(state.notes[inquiryId] || "").trim();
   if (!text) return;
   if (state.settings?.demo) {
@@ -988,7 +1129,7 @@ async function queueReplyAction(inquiryId) {
       decision: null,
       execution: null,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
     delete state.drafts[inquiryId];
     delete state.notes[inquiryId];
@@ -999,7 +1140,7 @@ async function queueReplyAction(inquiryId) {
   const res = await fetch("/api/approvals/queue", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ inquiry_id: inquiryId, text, note })
+    body: JSON.stringify({ inquiry_id: inquiryId, text, note }),
   });
   const data = await res.json();
   if (!res.ok) {
@@ -1031,7 +1172,7 @@ async function decideAction(itemId, action, card) {
   const res = await fetch("/api/approvals/decision", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ item_id: itemId, action, comment, text })
+    body: JSON.stringify({ item_id: itemId, action, comment, text }),
   });
   const data = await res.json();
   if (!res.ok) {
@@ -1055,7 +1196,7 @@ async function saveFollowUpAction(inquiryId) {
   const res = await fetch("/api/inquiries/followup", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ inquiry_id: inquiryId, next_follow_up: value })
+    body: JSON.stringify({ inquiry_id: inquiryId, next_follow_up: value }),
   });
   const data = await res.json();
   if (!res.ok) {
@@ -1095,7 +1236,7 @@ async function saveQuoteAction(quoteId) {
             sku: product.sku,
             unit_price: line.unit_price,
             price_min: product.price_min,
-            message: `${product.sku}: unit price ${line.unit_price} is below the KB floor ${product.price_min}.`
+            message: `${product.sku}: unit price ${line.unit_price} is below the KB floor ${product.price_min}.`,
           });
         }
       }
@@ -1108,7 +1249,7 @@ async function saveQuoteAction(quoteId) {
   const res = await fetch("/api/quotes/update", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
   const data = await res.json();
   if (!res.ok) {
@@ -1134,13 +1275,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

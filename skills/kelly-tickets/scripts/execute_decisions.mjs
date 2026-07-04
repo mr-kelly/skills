@@ -17,7 +17,7 @@ import {
   readExecutionReport,
   readLock,
   readSnapshot,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const apply = process.argv.includes("--apply");
@@ -32,14 +32,16 @@ await ensureDirs();
 
 const existingLock = await readLock();
 if (existingLock) {
-  fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`);
+  fail(
+    `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
+  );
 }
 
 const [snapshot, decisions, previousReport, configResult] = await Promise.all([
   readSnapshot(),
   readDecisions(),
   readExecutionReport(),
-  readConfig()
+  readConfig(),
 ]);
 const merged = mergeSnapshot(snapshot, decisions, previousReport);
 const approved = merged.dispatch_proposals.filter((proposal) => proposal.status === "approved");
@@ -52,7 +54,7 @@ if (!approved.length) {
 await writeJson(LOCK_PATH, {
   owner: "kelly-tickets",
   message: dryRun ? "Dry-run: planning approved dispatches" : "Preparing approved dispatches for the agent",
-  started_at: new Date().toISOString()
+  started_at: new Date().toISOString(),
 });
 
 try {
@@ -71,7 +73,7 @@ try {
         status: "blocked",
         detail: !ticket
           ? `Ticket ${proposal.ticket_id} not found in the snapshot; re-run triage before executing.`
-          : `Crew ${proposal.proposed_crew_id} is not configured; ask the user to add it before executing.`
+          : `Crew ${proposal.proposed_crew_id} is not configured; ask the user to add it before executing.`,
       };
     }
     const contactReady = Boolean(crew.contact_env && process.env[crew.contact_env]);
@@ -79,8 +81,10 @@ try {
       `[${proposal.priority}] ${ticket.id} ${ticket.title}`,
       [ticket.unit, ticket.location].filter(Boolean).join(" · "),
       `SLA: ${proposal.sla_due_at}`,
-      proposal.note_to_crew || proposal.reason
-    ].filter(Boolean).join("\n");
+      proposal.note_to_crew || proposal.reason,
+    ]
+      .filter(Boolean)
+      .join("\n");
     return {
       id: proposal.id,
       ref: proposal.ref,
@@ -93,7 +97,7 @@ try {
           target: crew.crew_id,
           contact_env: crew.contact_env || "",
           contact_ready: contactReady,
-          message_draft: message
+          message_draft: message,
         },
         {
           operation: "update_board",
@@ -101,13 +105,13 @@ try {
           from_status: ticket.status,
           to_status: "assigned",
           crew_id: crew.crew_id,
-          assignee: proposal.proposed_assignee || ""
-        }
+          assignee: proposal.proposed_assignee || "",
+        },
       ],
       status: dryRun ? "planned" : "ready_for_agent",
       detail: dryRun
         ? `Dry run: would hand the message draft to ${crew.name} and move ${ticket.id} to assigned.${contactReady ? "" : ` Contact env ${crew.contact_env || "(unset)"} is not configured.`}`
-        : `Approved: agent should notify ${crew.name}${contactReady ? "" : ` after configuring ${crew.contact_env || "a contact env"}`}, then record the real result here and update the board via apply_triage.`
+        : `Approved: agent should notify ${crew.name}${contactReady ? "" : ` after configuring ${crew.contact_env || "a contact env"}`}, then record the real result here and update the board via apply_triage.`,
     };
   });
 
@@ -116,12 +120,14 @@ try {
     dry_run: dryRun,
     source: "kelly-tickets",
     config_path: configResult.path,
-    results
+    results,
   };
   await writeJson(EXECUTION_REPORT_PATH, report);
   console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote ${EXECUTION_REPORT_PATH}`);
   for (const result of results) {
-    console.log(`  Dispatch #${result.ref} -> ${result.operations.map((op) => op.operation).join(" + ") || "blocked"} (${result.status}) ${result.ticket_id}`);
+    console.log(
+      `  Dispatch #${result.ref} -> ${result.operations.map((op) => op.operation).join(" + ") || "blocked"} (${result.status}) ${result.ticket_id}`,
+    );
   }
   if (dryRun) console.log("Re-run with --apply to mark items ready_for_agent. No external side effects either way.");
 } finally {

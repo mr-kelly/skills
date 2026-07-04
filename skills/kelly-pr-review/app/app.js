@@ -26,9 +26,9 @@ const I18N = {
     "filter.done": "Done",
     "filter.all": "All",
     "page.inbox": "Inbox",
-    "repo": "Repo",
-    "all_repos": "All repos",
-    "locked": "Locked",
+    repo: "Repo",
+    all_repos: "All repos",
+    locked: "Locked",
     "lock.default": "The local files are locked for a moment.",
     "search.placeholder": "Search title, repo, author",
     "table.title": "Title",
@@ -37,13 +37,13 @@ const I18N = {
     "table.updated": "Updated",
     "help.title": "Help & Settings",
     "help.subtitle": "Local file contract and configuration",
-    "language": "Language",
+    language: "Language",
     "language.auto": "Auto",
     "language.english": "English",
     "language.chinese": "中文",
     "language.saved": "Language updated",
-    "close": "Close",
-    "refresh": "Refresh",
+    close: "Close",
+    refresh: "Refresh",
     "setup.title": "Local setup",
     "loading.config": "Loading configuration...",
     "batch.none": "No batch loaded",
@@ -68,31 +68,33 @@ const I18N = {
     "mode.blocked": "Blocked",
     "empty.list": "No pull requests in this view",
     "empty.detail": "Select a pull request",
-    "open_pr": "Open PR",
-    "recommendation": "Recommendation",
-    "risk": "Risk",
-    "changed_files": "Changed files",
-    "no_changed_files": "No changed files loaded",
-    "more": "more",
-    "review_body": "Review body",
-    "review_note": "Review note",
-    "patch_excerpt": "Patch excerpt",
-    "action": "Action",
+    open_pr: "Open PR",
+    recommendation: "Recommendation",
+    risk: "Risk",
+    changed_files: "Changed files",
+    no_changed_files: "No changed files loaded",
+    more: "more",
+    review_body: "Review body",
+    review_note: "Review note",
+    patch_excerpt: "Patch excerpt",
+    action: "Action",
     "decision.saved": "Decision saved",
     "no.recommendation": "No recommendation loaded.",
-    "unknown": "unknown",
-    "normal": "normal",
-    "help.body": "This UI only reads and writes local files. GitHub actions happen later through the skill execution script.",
-    "help.flow": "Typical flow: generate a batch, review PRs here, then execute approved decisions. Default execution is dry-run.",
-    "data_reader": "Data reader",
-    "config_source": "Config source",
-    "batch_file": "Batch file",
-    "decision_file": "Decision file",
-    "execution_report": "Execution report",
-    "reviewer": "Reviewer",
-    "repositories": "Repositories",
-    "not_configured": "not configured",
-    "no_repos": "No repos configured",
+    unknown: "unknown",
+    normal: "normal",
+    "help.body":
+      "This UI only reads and writes local files. GitHub actions happen later through the skill execution script.",
+    "help.flow":
+      "Typical flow: generate a batch, review PRs here, then execute approved decisions. Default execution is dry-run.",
+    data_reader: "Data reader",
+    config_source: "Config source",
+    batch_file: "Batch file",
+    decision_file: "Decision file",
+    execution_report: "Execution report",
+    reviewer: "Reviewer",
+    repositories: "Repositories",
+    not_configured: "not configured",
+    no_repos: "No repos configured",
     "status.needs_review": "Needs review",
     "status.to_approve": "Ready",
     "status.approved": "Approved",
@@ -118,7 +120,7 @@ const I18N = {
     "tested.note.placeholder": "What did you verify?",
     "tested.screenshot": "Screenshot evidence",
     "tested.need_evidence": "Add a test note or upload a screenshot first.",
-    "merged.at": "Merged {time} ago"
+    "merged.at": "Merged {time} ago",
   },
   "zh-CN": {
     "brand.subtitle": "GitHub 审阅台",
@@ -131,9 +133,9 @@ const I18N = {
     "filter.done": "完成",
     "filter.all": "全部",
     "page.inbox": "收件箱",
-    "repo": "仓库",
-    "all_repos": "全部仓库",
-    "locked": "已锁定",
+    repo: "仓库",
+    all_repos: "全部仓库",
+    locked: "已锁定",
     "lock.default": "本地文件暂时被锁定。",
     "search.placeholder": "搜索标题、仓库、作者",
     "table.title": "标题",
@@ -142,13 +144,13 @@ const I18N = {
     "table.updated": "更新",
     "help.title": "帮助与设置",
     "help.subtitle": "本地文件协议与配置",
-    "language": "语言",
+    language: "语言",
     "language.auto": "自动",
     "language.english": "English",
     "language.chinese": "中文",
     "language.saved": "语言已更新",
-    "close": "关闭",
-    "refresh": "刷新",
+    close: "关闭",
+    refresh: "刷新",
     "setup.title": "本地设置",
     "loading.config": "正在加载配置...",
     "batch.none": "未加载批次",
@@ -173,31 +175,31 @@ const I18N = {
     "mode.blocked": "受阻",
     "empty.list": "这个视图没有 Pull Request",
     "empty.detail": "选择一个 Pull Request",
-    "open_pr": "打开 PR",
-    "recommendation": "建议",
-    "risk": "风险",
-    "changed_files": "改动文件",
-    "no_changed_files": "没有加载改动文件",
-    "more": "更多",
-    "review_body": "Review 内容",
-    "review_note": "Review 备注",
-    "patch_excerpt": "Patch 片段",
-    "action": "动作",
+    open_pr: "打开 PR",
+    recommendation: "建议",
+    risk: "风险",
+    changed_files: "改动文件",
+    no_changed_files: "没有加载改动文件",
+    more: "更多",
+    review_body: "Review 内容",
+    review_note: "Review 备注",
+    patch_excerpt: "Patch 片段",
+    action: "动作",
     "decision.saved": "决定已保存",
     "no.recommendation": "没有加载建议。",
-    "unknown": "未知",
-    "normal": "普通",
+    unknown: "未知",
+    normal: "普通",
     "help.body": "这个 UI 只读写本地文件。GitHub 操作稍后由 skill 执行脚本完成。",
     "help.flow": "典型流程：生成批次，在这里审阅 PR，然后执行已批准决定。默认执行为 dry-run。",
-    "data_reader": "数据读取器",
-    "config_source": "配置来源",
-    "batch_file": "批次文件",
-    "decision_file": "决定文件",
-    "execution_report": "执行报告",
-    "reviewer": "审阅者",
-    "repositories": "仓库",
-    "not_configured": "未配置",
-    "no_repos": "未配置仓库",
+    data_reader: "数据读取器",
+    config_source: "配置来源",
+    batch_file: "批次文件",
+    decision_file: "决定文件",
+    execution_report: "执行报告",
+    reviewer: "审阅者",
+    repositories: "仓库",
+    not_configured: "未配置",
+    no_repos: "未配置仓库",
     "status.needs_review": "需审阅",
     "status.to_approve": "就绪",
     "status.approved": "已批准",
@@ -223,8 +225,8 @@ const I18N = {
     "tested.note.placeholder": "你验证了什么？",
     "tested.screenshot": "截图证据",
     "tested.need_evidence": "请先填写测试说明或上传截图。",
-    "merged.at": "{time} 前合并"
-  }
+    "merged.at": "{time} 前合并",
+  },
 };
 
 const $ = (id) => document.getElementById(id);
@@ -342,13 +344,22 @@ function statusBadge(item) {
     done: t("status.done"),
     blocked: t("status.blocked"),
   };
-  const klass = status === "approved" || status === "done" ? "ok" : status === "blocked" ? "danger" : status === "to_approve" ? "warn" : "";
+  const klass =
+    status === "approved" || status === "done"
+      ? "ok"
+      : status === "blocked"
+        ? "danger"
+        : status === "to_approve"
+          ? "warn"
+          : "";
   return `<span class="badge ${klass}">${escapeHtml(labels[status] || status)}</span>`;
 }
 
 function testedBadge(item) {
-  if (item.verification_status === "tested") return `<span class="badge tested">${escapeHtml(t("status.tested"))}</span>`;
-  if (item.verification_status === "needs_test") return `<span class="badge warn">${escapeHtml(t("status.needs_test"))}</span>`;
+  if (item.verification_status === "tested")
+    return `<span class="badge tested">${escapeHtml(t("status.tested"))}</span>`;
+  if (item.verification_status === "needs_test")
+    return `<span class="badge warn">${escapeHtml(t("status.needs_test"))}</span>`;
   return "";
 }
 
@@ -361,7 +372,14 @@ function actionBadge(action) {
     needs_review: t("action.needs_review"),
     block: t("action.block"),
   };
-  const klass = action === "approve" ? "ok" : action === "request_changes" || action === "block" ? "danger" : action === "comment" ? "warn" : "";
+  const klass =
+    action === "approve"
+      ? "ok"
+      : action === "request_changes" || action === "block"
+        ? "danger"
+        : action === "comment"
+          ? "warn"
+          : "";
   return `<span class="badge ${klass}">${escapeHtml(labels[action] || action || t("action.review"))}</span>`;
 }
 
@@ -492,23 +510,26 @@ function renderCounts() {
 }
 
 function modeTitle() {
-  return {
-    all: t("mode.all"),
-    needs_review: t("mode.needs_review"),
-    to_approve: t("mode.to_approve"),
-    approved: t("mode.approved"),
-    needs_test: t("mode.needs_test"),
-    tested: t("mode.tested"),
-    done: t("mode.done"),
-    blocked: t("mode.blocked"),
-  }[mode] || t("mode.all");
+  return (
+    {
+      all: t("mode.all"),
+      needs_review: t("mode.needs_review"),
+      to_approve: t("mode.to_approve"),
+      approved: t("mode.approved"),
+      needs_test: t("mode.needs_test"),
+      tested: t("mode.tested"),
+      done: t("mode.done"),
+      blocked: t("mode.blocked"),
+    }[mode] || t("mode.all")
+  );
 }
 
 function renderHeader() {
   const batch = state.batch || {};
-  $("batchMeta").textContent = batch.batch_id && batch.batch_id !== "empty"
-    ? t("batch.generated", { id: batch.batch_id, time: timeAgo(batch.generated_at) })
-    : t("batch.none");
+  $("batchMeta").textContent =
+    batch.batch_id && batch.batch_id !== "empty"
+      ? t("batch.generated", { id: batch.batch_id, time: timeAgo(batch.generated_at) })
+      : t("batch.none");
   renderRepoFilter();
   $("sectionTitle").textContent = modeTitle();
   $("listCount").textContent = `${state.items.length}`;
@@ -543,7 +564,10 @@ function renderRepoFilter() {
   if (current !== repoFilter) repoFilter = current;
   const options = [
     `<option value="all">${escapeHtml(t("all_repos"))} (${state.total_cached || 0})</option>`,
-    ...repos.map((repo) => `<option value="${escapeHtml(repo.repo)}">${escapeHtml(repo.repo)} (${escapeHtml(repo.count)})</option>`),
+    ...repos.map(
+      (repo) =>
+        `<option value="${escapeHtml(repo.repo)}">${escapeHtml(repo.repo)} (${escapeHtml(repo.count)})</option>`,
+    ),
   ].join("");
   if (select.innerHTML !== options) select.innerHTML = options;
   select.value = repoFilter;
@@ -570,7 +594,9 @@ function renderList() {
     selectedId = state.items[0].id;
     syncRoute({ push: false });
   }
-  list.innerHTML = state.items.map((item) => `
+  list.innerHTML = state.items
+    .map(
+      (item) => `
     <button class="pr-row ${item.id === selectedId ? "active" : ""}" data-id="${escapeHtml(item.id)}">
       <a class="pr-open-button" href="${escapeHtml(item.url)}" target="_blank" rel="noopener" title="${escapeHtml(t("open_pr"))}" aria-label="${escapeHtml(t("open_pr"))} ${escapeHtml(item.repo)} #${escapeHtml(item.number)}">↗</a>
       <span>
@@ -581,7 +607,9 @@ function renderList() {
       <span class="changes"><span class="plus">+${escapeHtml(item.additions)}</span> <span class="minus">−${escapeHtml(item.deletions)}</span></span>
       <span class="muted">${escapeHtml(timeAgo(item.updated_at))}</span>
     </button>
-  `).join("");
+  `,
+    )
+    .join("");
   list.querySelectorAll(".pr-row").forEach((row) => {
     row.addEventListener("click", () => {
       if (isMobileLayout()) setMobileDetailOpen(true);
@@ -602,13 +630,18 @@ function selectedItem() {
 
 function riskHtml(item) {
   const risks = item.risk?.length ? item.risk : [t("normal")];
-  return risks.map((risk) => `<span class="badge ${risk === "normal" ? "" : "warn"}">${escapeHtml(risk)}</span>`).join("");
+  return risks
+    .map((risk) => `<span class="badge ${risk === "normal" ? "" : "warn"}">${escapeHtml(risk)}</span>`)
+    .join("");
 }
 
 function filesHtml(item) {
   const files = (item.changed_files || []).slice(0, 18);
   if (!files.length) return `<span class="muted">${escapeHtml(t("no_changed_files"))}</span>`;
-  const extra = item.changed_files.length > files.length ? `<span class="badge">+${item.changed_files.length - files.length} ${escapeHtml(t("more"))}</span>` : "";
+  const extra =
+    item.changed_files.length > files.length
+      ? `<span class="badge">+${item.changed_files.length - files.length} ${escapeHtml(t("more"))}</span>`
+      : "";
   return `${files.map((file) => `<code>${escapeHtml(file)}</code>`).join("")}${extra}`;
 }
 
@@ -617,11 +650,15 @@ function evidenceHtml(item) {
   if (!evidence.length) return "";
   return `
     <div class="evidence-grid">
-      ${evidence.map((file) => `
+      ${evidence
+        .map(
+          (file) => `
         <a href="${escapeHtml(file.url || "")}" target="_blank" rel="noopener">
           <img src="${escapeHtml(file.url || "")}" alt="${escapeHtml(file.filename || t("tested.screenshot"))}" />
         </a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
   `;
 }

@@ -14,7 +14,7 @@ import {
   readSnapshot,
   recomputeMetrics,
   releaseLock,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const OWNER = "kelly-devops-check-services";
@@ -32,7 +32,7 @@ async function probeHttp(url, degradedLatencyMs) {
       method: "GET",
       redirect: "follow",
       headers: { "user-agent": "kelly-devops-check/1.0" },
-      signal: AbortSignal.timeout(10000)
+      signal: AbortSignal.timeout(10000),
     });
     await res.arrayBuffer().catch(() => {});
     const latency = Date.now() - started;
@@ -44,7 +44,7 @@ async function probeHttp(url, degradedLatencyMs) {
       latency_ms: latency,
       http_status: res.status,
       server: res.headers.get("server") || "",
-      note: ""
+      note: "",
     };
   } catch (error) {
     return {
@@ -52,7 +52,7 @@ async function probeHttp(url, degradedLatencyMs) {
       latency_ms: Date.now() - started,
       http_status: 0,
       server: "",
-      note: `Request failed: ${error.cause?.code || error.name || error.message}`
+      note: `Request failed: ${error.cause?.code || error.name || error.message}`,
     };
   }
 }
@@ -84,9 +84,9 @@ function probeTls(url) {
         resolve({
           issuer: cert.issuer?.O || cert.issuer?.CN || "",
           valid_to: validTo.toISOString(),
-          days_left: Math.ceil((validTo.getTime() - Date.now()) / DAY_MS)
+          days_left: Math.ceil((validTo.getTime() - Date.now()) / DAY_MS),
         });
-      }
+      },
     );
     socket.on("timeout", () => {
       socket.destroy();
@@ -105,12 +105,15 @@ function uptimeFrom(history) {
 function mergeService(snapshot, configured, result, ssl, now) {
   const services = snapshot.services;
   const existing = services.find((service) => service.service_id === configured.service_id);
-  const history = [...(existing?.history || []), {
-    at: now,
-    status: result.status,
-    latency_ms: result.latency_ms,
-    http_status: result.http_status
-  }].slice(-HISTORY_CAP);
+  const history = [
+    ...(existing?.history || []),
+    {
+      at: now,
+      status: result.status,
+      latency_ms: result.latency_ms,
+      http_status: result.http_status,
+    },
+  ].slice(-HISTORY_CAP);
   const next = {
     service_id: configured.service_id,
     name: configured.name,
@@ -123,11 +126,13 @@ function mergeService(snapshot, configured, result, ssl, now) {
     last_check_at: now,
     history,
     meta: { http_status: result.http_status, server: result.server, note: result.note },
-    warnings: []
+    warnings: [],
   };
   if (result.status === "down") next.warnings.push(result.note || `Endpoint returned HTTP ${result.http_status}.`);
-  if (result.status === "degraded") next.warnings.push(`Slow or client-error response: HTTP ${result.http_status} in ${result.latency_ms} ms.`);
-  if (next.ssl && Number(next.ssl.days_left) <= 30) next.warnings.push(`TLS certificate expires in ${next.ssl.days_left} days.`);
+  if (result.status === "degraded")
+    next.warnings.push(`Slow or client-error response: HTTP ${result.http_status} in ${result.latency_ms} ms.`);
+  if (next.ssl && Number(next.ssl.days_left) <= 30)
+    next.warnings.push(`TLS certificate expires in ${next.ssl.days_left} days.`);
   const previousStatus = existing?.status;
   const index = services.findIndex((service) => service.service_id === configured.service_id);
   if (index >= 0) services[index] = next;
@@ -157,7 +162,7 @@ function mergeCertExpiries(snapshot, warningDays) {
         action_id: snapshot.expiries.find((item) => item.expiry_id === expiryId)?.action_id || "",
         source: "tls",
         registrar: "",
-        detail: `TLS certificate issued by ${service.ssl.issuer || "unknown CA"} expires in ${days} days. Check the automated renewal on this host.`
+        detail: `TLS certificate issued by ${service.ssl.issuer || "unknown CA"} expires in ${days} days. Check the automated renewal on this host.`,
       });
     } else {
       snapshot.expiries = snapshot.expiries.filter((item) => item.expiry_id !== expiryId);
@@ -182,7 +187,7 @@ function mergeKeyRotationExpiries(snapshot, config, now) {
       action_id: snapshot.expiries.find((item) => item.expiry_id === `key-${key.key_id || key.env}`)?.action_id || "",
       source: "config",
       registrar: "",
-      detail: `Rotation policy is every ${key.rotate_every_days} days; last rotated ${key.last_rotated_on}. Rotate the key at the provider, then update ${key.env || "the env var"}.`
+      detail: `Rotation policy is every ${key.rotate_every_days} days; last rotated ${key.last_rotated_on}. Rotate the key at the provider, then update ${key.env || "the env var"}.`,
     });
   }
 }
@@ -203,7 +208,9 @@ async function main() {
   const services = Array.isArray(config.services) ? config.services : [];
   if (configResult.is_example) {
     console.log("No private config found; only the template config.example.json exists.");
-    console.log("Create config.local.json (or set KELLY_DEVOPS_CONFIG) with your services[] before running real checks.");
+    console.log(
+      "Create config.local.json (or set KELLY_DEVOPS_CONFIG) with your services[] before running real checks.",
+    );
     return;
   }
   if (!services.length) {
@@ -235,10 +242,7 @@ async function main() {
         console.log(`- ${configured.name}: skipped (no url configured)`);
         continue;
       }
-      const [result, ssl] = await Promise.all([
-        probeHttp(configured.url, degradedLatencyMs),
-        probeTls(configured.url)
-      ]);
+      const [result, ssl] = await Promise.all([probeHttp(configured.url, degradedLatencyMs), probeTls(configured.url)]);
       counts[result.status] = (counts[result.status] || 0) + 1;
       const { previousStatus } = mergeService(snapshot, configured, result, ssl, now);
       if (previousStatus && previousStatus !== result.status) {
@@ -248,10 +252,12 @@ async function main() {
           severity: result.status === "up" ? "info" : result.status === "down" ? "error" : "warning",
           kind: "incident",
           message: `${configured.name} changed from ${previousStatus} to ${result.status}.`,
-          service_id: configured.service_id
+          service_id: configured.service_id,
         });
       }
-      console.log(`- ${configured.name}: ${result.status} (HTTP ${result.http_status || "n/a"}, ${result.latency_ms} ms${ssl ? `, cert ${ssl.days_left}d` : ""})`);
+      console.log(
+        `- ${configured.name}: ${result.status} (HTTP ${result.http_status || "n/a"}, ${result.latency_ms} ms${ssl ? `, cert ${ssl.days_left}d` : ""})`,
+      );
     }
 
     mergeCertExpiries(snapshot, warningDays);
@@ -262,7 +268,7 @@ async function main() {
       severity: counts.down ? "error" : counts.degraded ? "warning" : "info",
       kind: "check",
       message: `Service check completed: ${counts.up || 0} up, ${counts.degraded || 0} degraded, ${counts.down || 0} down.`,
-      service_id: ""
+      service_id: "",
     });
     snapshot.generated_at = now;
     snapshot.source = "kelly-devops";

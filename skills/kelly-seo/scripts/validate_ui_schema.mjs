@@ -3,6 +3,10 @@ import fs from "node:fs/promises";
 
 const target = process.argv[2] || new URL("../app/.data/seo_snapshot.json", import.meta.url).pathname;
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -48,9 +52,18 @@ if (!isObject(snapshot.range) || !isObject(snapshot.range.current) || !isObject(
 }
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
 for (const key of [
-  "site_count", "query_count", "page_count", "opportunity_count",
-  "clicks", "impressions", "ctr", "position",
-  "prev_clicks", "prev_impressions", "prev_ctr", "prev_position"
+  "site_count",
+  "query_count",
+  "page_count",
+  "opportunity_count",
+  "clicks",
+  "impressions",
+  "ctr",
+  "position",
+  "prev_clicks",
+  "prev_impressions",
+  "prev_ctr",
+  "prev_position",
 ]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
@@ -117,7 +130,8 @@ snapshot.opportunities.forEach((opportunity, index) => {
   }
   requireNumber(opportunity, "ref", path);
   if (typeof opportunity.draft !== "string") fail(`${path}.draft must be a string`);
-  if (!OPPORTUNITY_STATUSES.has(opportunity.status)) fail(`${path}.status is not a workflow state: ${opportunity.status}`);
+  if (!OPPORTUNITY_STATUSES.has(opportunity.status))
+    fail(`${path}.status is not a workflow state: ${opportunity.status}`);
   if (!OPPORTUNITY_TYPES.has(opportunity.type)) fail(`${path}.type is unknown: ${opportunity.type}`);
   if (!siteIds.has(opportunity.site_id)) fail(`${path}.site_id does not match a site: ${opportunity.site_id}`);
   if (opportunityIds.has(opportunity.id)) fail(`${path}.id duplicates ${opportunity.id}`);

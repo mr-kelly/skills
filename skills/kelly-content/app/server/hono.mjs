@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { appDir } from "../../lib/paths.mjs";
 import { createProvider } from "../../lib/data-provider/index.mjs";
+import { appDir } from "../../lib/paths.mjs";
 import { demoState, isDemoQuery } from "./demo.mjs";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response

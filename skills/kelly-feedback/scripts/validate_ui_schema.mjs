@@ -14,6 +14,10 @@ const PROPOSAL_TYPES = ["promote_request", "decline_request", "merge_requests", 
 const TRENDS = ["up", "flat", "down"];
 const LANES = ["now", "next", "later"];
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -32,7 +36,8 @@ function requireNumber(obj, key, path) {
 }
 
 function requireEnum(obj, key, values, path) {
-  if (!values.includes(obj[key])) fail(`${path}.${key} must be one of ${values.join("|")} (got ${JSON.stringify(obj[key])})`);
+  if (!values.includes(obj[key]))
+    fail(`${path}.${key} must be one of ${values.join("|")} (got ${JSON.stringify(obj[key])})`);
 }
 
 const raw = await fs.readFile(target, "utf8").catch((error) => {
@@ -58,7 +63,13 @@ for (const lane of LANES) {
   if (!Array.isArray(snapshot.roadmap[lane])) fail(`root.roadmap.${lane} must be an array`);
 }
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
-for (const key of ["feedback_count", "new_feedback", "request_count", "proposals_needs_review", "requests_needs_info"]) {
+for (const key of [
+  "feedback_count",
+  "new_feedback",
+  "request_count",
+  "proposals_needs_review",
+  "requests_needs_info",
+]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
 if (!isObject(snapshot.metrics.week_inflow)) fail("root.metrics.week_inflow must be an object");
@@ -110,7 +121,8 @@ snapshot.feedback.forEach((item, index) => {
   if (feedbackIds.has(item.feedback_id)) fail(`${path}.feedback_id duplicates ${item.feedback_id}`);
   feedbackIds.add(item.feedback_id);
   if (!sourceIds.has(item.source_id)) fail(`${path}.source_id does not match a source: ${item.source_id}`);
-  if (item.request_id && !requestIds.has(item.request_id)) fail(`${path}.request_id does not match a request: ${item.request_id}`);
+  if (item.request_id && !requestIds.has(item.request_id))
+    fail(`${path}.request_id does not match a request: ${item.request_id}`);
 });
 
 snapshot.requests.forEach((request, index) => {
@@ -125,7 +137,8 @@ for (const laneKey of LANES) {
     const path = `root.roadmap.${laneKey}[${index}]`;
     if (!isObject(item)) fail(`${path} must be an object`);
     for (const key of ["item_id", "title"]) requireString(item, key, path);
-    if (item.request_id && !requestIds.has(item.request_id)) fail(`${path}.request_id does not match a request: ${item.request_id}`);
+    if (item.request_id && !requestIds.has(item.request_id))
+      fail(`${path}.request_id does not match a request: ${item.request_id}`);
   });
 }
 
@@ -142,8 +155,10 @@ snapshot.proposals.forEach((proposal, index) => {
   proposalIds.add(proposal.proposal_id);
   if (proposalRefs.has(proposal.ref)) fail(`${path}.ref duplicates #${proposal.ref}`);
   proposalRefs.add(proposal.ref);
-  if (proposal.request_id && !requestIds.has(proposal.request_id)) fail(`${path}.request_id does not match a request: ${proposal.request_id}`);
-  if (proposal.target_lane && !LANES.includes(proposal.target_lane)) fail(`${path}.target_lane must be one of ${LANES.join("|")}`);
+  if (proposal.request_id && !requestIds.has(proposal.request_id))
+    fail(`${path}.request_id does not match a request: ${proposal.request_id}`);
+  if (proposal.target_lane && !LANES.includes(proposal.target_lane))
+    fail(`${path}.target_lane must be one of ${LANES.join("|")}`);
   for (const id of proposal.request_ids || []) {
     if (!requestIds.has(id)) fail(`${path}.request_ids references unknown request: ${id}`);
   }

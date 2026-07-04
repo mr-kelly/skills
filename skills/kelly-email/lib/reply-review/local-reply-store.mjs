@@ -77,10 +77,11 @@ export function createLocalReplyStore(meta = {}) {
       }));
     },
 
-    async reviewReply(reply_id, { verdict, edits, comment } = {}) {
+    async reviewReply(reply_id, /** @type {any} */ { verdict, edits, comment } = {}) {
       const store = await readStore(file);
       const r = store.reviews?.[reply_id];
       if (!r) {
+        /** @type {any} */
         const error = new Error(`reply not found: ${reply_id}`);
         error.statusCode = 404;
         throw error;
@@ -95,6 +96,7 @@ export function createLocalReplyStore(meta = {}) {
       else if (verdict === "revise") r.status = "needs_review";
       else if (verdict === "block") r.status = "blocked";
       else {
+        /** @type {any} */
         const error = new Error(`unknown verdict: ${verdict}`);
         error.statusCode = 400;
         throw error;

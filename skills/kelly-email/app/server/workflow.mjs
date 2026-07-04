@@ -1,9 +1,9 @@
 export function decisionAction(item) {
-  return (item.decision || {}).action || "";
+  return item.decision?.action || "";
 }
 
 export function executionStatus(item) {
-  return (item.execution || {}).status || "";
+  return item.execution?.status || "";
 }
 
 export function isExecuted(item) {
@@ -37,12 +37,16 @@ export function isNeedsReview(item) {
   return (
     !isDone(item) &&
     !isBlocked(item) &&
-    (isDraftAwaitingSendReview(item) || item.status === "needs_review" || ["review", "needs_review", "revise"].includes(decisionAction(item)))
+    (isDraftAwaitingSendReview(item) ||
+      item.status === "needs_review" ||
+      ["review", "needs_review", "revise"].includes(decisionAction(item)))
   );
 }
 
 export function isToApprove(item) {
-  return !isDone(item) && !isBlocked(item) && !isNeedsReview(item) && !decisionAction(item) && item.status === "prepared";
+  return (
+    !isDone(item) && !isBlocked(item) && !isNeedsReview(item) && !decisionAction(item) && item.status === "prepared"
+  );
 }
 
 export function approvedPriority(item) {
