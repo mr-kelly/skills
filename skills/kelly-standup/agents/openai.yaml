@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Standup"
+  short_description: "Local team standup board and check-in desk"
+  default_prompt: "Use $kelly-standup to collect today's team check-ins and open my standup board."

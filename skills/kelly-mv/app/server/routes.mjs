@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { APP_DIR, GENERATED_DIR } from "./paths.mjs";
 import { assertUnlocked } from "./lock.mjs";
+import { demoAsset, demoImageConfigPayload, demoNotice, demoSongConfigPayload, demoStatePayload, isDemoQuery } from "./demo.mjs";
 import { generateCharacterCard, generateStoryboardImage, generateVisualBackground, imageConfigPayload, saveImageConfig, storyboardPromptPreview } from "./image-service.mjs";
 import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.mjs";
 import { generateSongDraft, importSong, songConfigPayload, updateSong, uploadSong } from "./song-service.mjs";
@@ -106,6 +107,8 @@ async function deleteCollectionItem(kind, id) {
 
 export async function handleRequest(req, res) {
   const url = new URL(req.url || "/", "http://127.0.0.1");
+  const query = Object.fromEntries(url.searchParams.entries());
+  const demo = isDemoQuery(query);
   try {
     if (req.method === "HEAD" && ["/", "/app.js", "/styles.css", "/api/state"].includes(url.pathname)) {
       res.writeHead(200);
@@ -119,15 +122,27 @@ export async function handleRequest(req, res) {
       if (url.pathname === "/app.js") return await sendFile(res, path.join(APP_DIR, "app.js"));
       if (url.pathname === "/styles.css") return await sendFile(res, path.join(APP_DIR, "styles.css"));
       if (decodedPath.startsWith("/i18n/")) return await sendFile(res, path.join(APP_DIR, decodedPath));
+      if (decodedPath.startsWith("/generated/demo/")) {
+        const asset = demoAsset(decodedPath);
+        if (asset) return send(res, 200, asset.body, { "Content-Type": asset.type, "Content-Length": asset.body.length, "Cache-Control": "no-store" });
+        send(res, 404, "Not Found");
+        return;
+      }
       if (decodedPath.startsWith("/generated/")) return await sendFile(res, path.join(GENERATED_DIR, decodedPath.replace(/^\/generated\//, "")));
-      if (url.pathname === "/api/state") return sendJson(res, await statePayload());
-      if (url.pathname === "/api/image-config") return sendJson(res, await imageConfigPayload());
-      if (url.pathname === "/api/song-config") return sendJson(res, await songConfigPayload());
-      if (url.pathname === "/api/storyboard-prompt") return sendJson(res, await storyboardPromptPreview(String(url.searchParams.get("shot_id") || "")));
+      if (url.pathname === "/api/state") return sendJson(res, demo ? demoStatePayload(query) : await statePayload());
+      if (url.pathname === "/api/image-config") return sendJson(res, demo ? demoImageConfigPayload() : await imageConfigPayload());
+      if (url.pathname === "/api/song-config") return sendJson(res, demo ? demoSongConfigPayload(query) : await songConfigPayload());
+      if (url.pathname === "/api/storyboard-prompt") {
+        if (demo) return sendJson(res, { error: demoNotice(query) }, 403);
+        return sendJson(res, await storyboardPromptPreview(String(url.searchParams.get("shot_id") || "")));
+      }
       send(res, 404, "Not Found");
       return;
     }
     if (req.method === "POST") {
+      // Demo mode is strictly read-only: reject every write endpoint before
+      // any project file could be touched.
+      if (demo) return sendJson(res, { error: demoNotice(query) }, 403);
       const body = await readJsonBody(req);
       if (url.pathname === "/api/treatment") {
         await assertUnlocked();

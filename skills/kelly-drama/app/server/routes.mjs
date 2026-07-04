@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { APP_DIR, GENERATED_DIR } from "./paths.mjs";
 import { assertUnlocked } from "./lock.mjs";
+import { demoAsset, demoImageConfigPayload, demoNotice, demoStatePayload, isDemoQuery } from "./demo.mjs";
 import { generateCharacterCard, generateStoryboardImage, generateVisualBackground, imageConfigPayload, saveImageConfig, storyboardPromptPreview } from "./image-service.mjs";
 import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.mjs";
 import { generateCharacterVoice, setCharacterVoiceActive } from "./voice-service.mjs";
@@ -36,7 +37,14 @@ function sendJson(res, data, status = 200) {
 }
 
 async function sendFile(res, pathname) {
-  const body = await fs.readFile(pathname);
+  let body;
+  try {
+    body = await fs.readFile(pathname);
+  } catch {
+    // Missing file must never crash the server — return 404 instead.
+    send(res, 404, "Not Found");
+    return;
+  }
   send(res, 200, body, {
     "Content-Type": CONTENT_TYPES[path.extname(pathname)] || "application/octet-stream",
     "Content-Length": body.length,
@@ -99,6 +107,8 @@ async function deleteCollectionItem(kind, id) {
 
 export async function handleRequest(req, res) {
   const url = new URL(req.url || "/", "http://127.0.0.1");
+  const query = Object.fromEntries(url.searchParams.entries());
+  const demo = isDemoQuery(query);
   try {
     if (req.method === "HEAD" && ["/", "/app.js", "/styles.css", "/api/state"].includes(url.pathname)) {
       res.writeHead(200);
@@ -110,19 +120,32 @@ export async function handleRequest(req, res) {
       if (url.pathname === "/app.js") return sendFile(res, path.join(APP_DIR, "app.js"));
       if (url.pathname === "/styles.css") return sendFile(res, path.join(APP_DIR, "styles.css"));
       if (url.pathname.startsWith("/i18n/")) return sendFile(res, path.join(APP_DIR, url.pathname));
+      if (url.pathname.startsWith("/generated/demo/")) {
+        const asset = demoAsset(url.pathname);
+        if (asset) return send(res, 200, asset.body, { "Content-Type": asset.type, "Content-Length": asset.body.length, "Cache-Control": "no-store" });
+        send(res, 404, "Not Found");
+        return;
+      }
       if (url.pathname.startsWith("/generated/")) return sendFile(res, path.join(GENERATED_DIR, url.pathname.replace(/^\/generated\//, "")));
-      if (url.pathname === "/api/state") return sendJson(res, await statePayload());
-      if (url.pathname === "/api/image-config") return sendJson(res, await imageConfigPayload());
+      if (url.pathname === "/api/state") return sendJson(res, demo ? demoStatePayload(query) : await statePayload());
+      if (url.pathname === "/api/image-config") return sendJson(res, demo ? demoImageConfigPayload() : await imageConfigPayload());
       if (url.pathname === "/api/hyperframe-status") {
+        if (demo) return sendJson(res, { ok: false, error: demoNotice(query) });
         const project = await loadProject();
         const requestedPath = String(url.searchParams.get("path") || project.series?.hyperframe_project_path || project.series?.hyperframe_source?.project_path || "");
         return sendJson(res, await hyperframeProjectStatus(requestedPath));
       }
-      if (url.pathname === "/api/storyboard-prompt") return sendJson(res, await storyboardPromptPreview(String(url.searchParams.get("shot_id") || "")));
+      if (url.pathname === "/api/storyboard-prompt") {
+        if (demo) return sendJson(res, { error: demoNotice(query) }, 403);
+        return sendJson(res, await storyboardPromptPreview(String(url.searchParams.get("shot_id") || "")));
+      }
       send(res, 404, "Not Found");
       return;
     }
     if (req.method === "POST") {
+      // Demo mode is strictly read-only: reject every write endpoint before
+      // any project file could be touched.
+      if (demo) return sendJson(res, { error: demoNotice(query) }, 403);
       const body = await readJsonBody(req);
       if (url.pathname === "/api/series") {
         await assertUnlocked();

@@ -11,8 +11,9 @@ const PAGES_DIR = path.join(DOCS, "s");
 const REPO_URL = "https://github.com/mr-kelly/skills";
 
 const GROUPS = [
-  { id: "finance", en: "Finance & Back Office", zh: "经营台账", skills: ["kelly-money", "kelly-audit", "kelly-crm", "kelly-inquiry"] },
-  { id: "comms", en: "Comms & Service", zh: "沟通与协作", skills: ["kelly-email", "kelly-messenger", "kelly-tickets"] },
+  { id: "finance", en: "Finance & Back Office", zh: "经营台账", skills: ["kelly-money", "kelly-audit", "kelly-crm"] },
+  { id: "ecommerce", en: "Cross-Border E-commerce", zh: "跨境电商", skills: ["kelly-picks", "kelly-listing", "kelly-ads", "kelly-inquiry"] },
+  { id: "comms", en: "Comms & Service", zh: "沟通与协作", skills: ["kelly-email", "kelly-messenger", "kelly-tickets", "kelly-standup"] },
   { id: "growth", en: "Growth & Market", zh: "增长与市场", skills: ["kelly-social", "kelly-seo", "kelly-feedback", "kelly-radar", "kelly-writer"] },
   { id: "production", en: "Production & Teaching", zh: "制作与教学", skills: ["kelly-drama", "kelly-mv", "kelly-lesson"] },
   { id: "eng", en: "Engineering & Ops", zh: "工程与运维", skills: ["kelly-devops", "kelly-pr-review"] },
