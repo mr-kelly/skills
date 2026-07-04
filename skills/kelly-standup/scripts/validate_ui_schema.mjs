@@ -12,6 +12,10 @@ const REMINDER_TYPES = new Set(["missing_checkin", "blocker_escalation"]);
 const REMINDER_CHANNELS = new Set(["slack", "wecom", "discord", "whatsapp", "email"]);
 const WORKDAYS = new Set(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]);
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -38,7 +42,11 @@ function requireEnum(obj, key, path, allowed) {
 function requireIsoDate(obj, key, path, allowEmpty = false) {
   const value = obj[key];
   if (allowEmpty && value === "") return;
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(`${value}T00:00:00.000Z`))) {
+  if (
+    typeof value !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+    Number.isNaN(Date.parse(`${value}T00:00:00.000Z`))
+  ) {
     fail(`${path}.${key} must be a YYYY-MM-DD date`);
   }
 }
@@ -72,8 +80,16 @@ for (const day of snapshot.team.workdays) {
 }
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
 for (const key of [
-  "member_count", "active_member_count", "submitted_today", "expected_today", "on_leave_today",
-  "missing_today", "open_blockers", "high_open_blockers", "reminders_needs_review", "avg_participation_30d"
+  "member_count",
+  "active_member_count",
+  "submitted_today",
+  "expected_today",
+  "on_leave_today",
+  "missing_today",
+  "open_blockers",
+  "high_open_blockers",
+  "reminders_needs_review",
+  "avg_participation_30d",
 ]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
@@ -103,7 +119,8 @@ snapshot.blockers.forEach((blocker, index) => {
   requireEnum(blocker, "status", path, BLOCKER_STATUSES);
   requireIsoDate(blocker, "raised_date", path);
   requireIsoDate(blocker, "resolved_date", path, true);
-  if (blocker.status === "resolved" && !blocker.resolved_date) fail(`${path}.resolved_date is required for resolved blockers`);
+  if (blocker.status === "resolved" && !blocker.resolved_date)
+    fail(`${path}.resolved_date is required for resolved blockers`);
   if (blockerIds.has(blocker.blocker_id)) fail(`${path}.blocker_id duplicates ${blocker.blocker_id}`);
   blockerIds.add(blocker.blocker_id);
   if (!memberIds.has(blocker.member_id)) fail(`${path}.member_id does not match a member: ${blocker.member_id}`);
@@ -133,12 +150,14 @@ snapshot.days.forEach((day, index) => {
     if (!isObject(update)) fail(`${updatePath} must be an object`);
     requireString(update, "member_id", updatePath);
     if (!memberIds.has(update.member_id)) fail(`${updatePath}.member_id does not match a member: ${update.member_id}`);
-    if (updateMembers.has(update.member_id)) fail(`${updatePath}.member_id duplicates an update for ${update.member_id} on ${day.date}`);
+    if (updateMembers.has(update.member_id))
+      fail(`${updatePath}.member_id duplicates an update for ${update.member_id} on ${day.date}`);
     updateMembers.add(update.member_id);
     requireStringArray(update, "yesterday", updatePath);
     requireStringArray(update, "today", updatePath);
     requireEnum(update, "source", updatePath, SOURCES);
-    if (update.mood !== undefined && !MOODS.has(update.mood)) fail(`${updatePath}.mood has invalid value: ${update.mood}`);
+    if (update.mood !== undefined && !MOODS.has(update.mood))
+      fail(`${updatePath}.mood has invalid value: ${update.mood}`);
     requireString(update, "submitted_at", updatePath);
     if (Number.isNaN(Date.parse(update.submitted_at))) fail(`${updatePath}.submitted_at must be an ISO timestamp`);
     if (!Array.isArray(update.blockers)) fail(`${updatePath}.blockers must be an array`);
@@ -149,7 +168,8 @@ snapshot.days.forEach((day, index) => {
       requireString(blocker, "text", blockerPath);
       requireEnum(blocker, "severity", blockerPath, SEVERITIES);
       requireEnum(blocker, "status", blockerPath, BLOCKER_STATUSES);
-      if (!blockerIds.has(blocker.blocker_id)) fail(`${blockerPath}.blocker_id does not match a registered blocker: ${blocker.blocker_id}`);
+      if (!blockerIds.has(blocker.blocker_id))
+        fail(`${blockerPath}.blocker_id does not match a registered blocker: ${blocker.blocker_id}`);
     });
   });
 });

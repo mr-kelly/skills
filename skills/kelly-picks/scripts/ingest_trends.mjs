@@ -18,11 +18,19 @@ function fail(message) {
 }
 
 function slugify(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 48);
 }
 
 function contentHash(item) {
-  return crypto.createHash("sha256").update(`${item.source}::${item.title}::${item.url || ""}`).digest("hex").slice(0, 16);
+  return crypto
+    .createHash("sha256")
+    .update(`${item.source}::${item.title}::${item.url || ""}`)
+    .digest("hex")
+    .slice(0, 16);
 }
 
 const payloadPath = process.argv[2];
@@ -37,8 +45,10 @@ const incomingCandidates = Array.isArray(payload.candidates) ? payload.candidate
 
 incomingTrends.forEach((item, index) => {
   if (typeof item.title !== "string" || !item.title) fail(`trend_items[${index}].title must be a non-empty string`);
-  if (!SOURCE_KINDS.includes(item.source)) fail(`trend_items[${index}].source must be one of ${SOURCE_KINDS.join("|")}`);
-  if (item.momentum && !Array.isArray(item.momentum)) fail(`trend_items[${index}].momentum must be an array of numbers`);
+  if (!SOURCE_KINDS.includes(item.source))
+    fail(`trend_items[${index}].source must be one of ${SOURCE_KINDS.join("|")}`);
+  if (item.momentum && !Array.isArray(item.momentum))
+    fail(`trend_items[${index}].momentum must be an array of numbers`);
 });
 incomingCandidates.forEach((item, index) => {
   if (typeof item.name !== "string" || !item.name) fail(`candidates[${index}].name must be a non-empty string`);
@@ -55,7 +65,8 @@ try {
   snapshot.sources = snapshot.sources || [];
 
   // --- Trend items: dedupe by source + external_id, falling back to content hash ---
-  const trendKey = (item) => (item.external_id ? `${item.source}::${item.external_id}` : `hash::${item.content_hash || contentHash(item)}`);
+  const trendKey = (item) =>
+    item.external_id ? `${item.source}::${item.external_id}` : `hash::${item.content_hash || contentHash(item)}`;
   const trendByKey = new Map(snapshot.trend_items.map((item) => [trendKey(item), item]));
   let trendsAdded = 0;
   let trendsUpdated = 0;
@@ -63,12 +74,13 @@ try {
   for (const incoming of incomingTrends) {
     const normalized = {
       ...incoming,
-      content_hash: incoming.content_hash || contentHash(incoming)
+      content_hash: incoming.content_hash || contentHash(incoming),
     };
     const existing = trendByKey.get(trendKey(normalized));
     if (existing) {
-      const changed = Number(normalized.metric_value ?? existing.metric_value) !== Number(existing.metric_value)
-        || Number(normalized.delta_pct ?? existing.delta_pct) !== Number(existing.delta_pct);
+      const changed =
+        Number(normalized.metric_value ?? existing.metric_value) !== Number(existing.metric_value) ||
+        Number(normalized.delta_pct ?? existing.delta_pct) !== Number(existing.delta_pct);
       if (!changed) {
         trendsSkipped += 1;
         continue;
@@ -93,7 +105,7 @@ try {
         observed_at: normalized.observed_at || now,
         candidate_id: normalized.candidate_id || "",
         external_id: normalized.external_id || "",
-        content_hash: normalized.content_hash
+        content_hash: normalized.content_hash,
       };
       snapshot.trend_items.push(item);
       trendByKey.set(trendKey(item), item);
@@ -102,7 +114,8 @@ try {
   }
 
   // --- Candidates: dedupe by candidate_id, falling back to name + source ---
-  const candidateKey = (item) => (item.candidate_id ? `id::${item.candidate_id}` : `ns::${item.name.toLowerCase()}::${item.source}`);
+  const candidateKey = (item) =>
+    item.candidate_id ? `id::${item.candidate_id}` : `ns::${item.name.toLowerCase()}::${item.source}`;
   const candidateByKey = new Map();
   for (const item of snapshot.candidates) {
     candidateByKey.set(`id::${item.candidate_id}`, item);
@@ -111,7 +124,9 @@ try {
   let candidatesAdded = 0;
   let candidatesUpdated = 0;
   for (const incoming of incomingCandidates) {
-    const existing = candidateByKey.get(candidateKey(incoming)) || candidateByKey.get(`ns::${incoming.name.toLowerCase()}::${incoming.source}`);
+    const existing =
+      candidateByKey.get(candidateKey(incoming)) ||
+      candidateByKey.get(`ns::${incoming.name.toLowerCase()}::${incoming.source}`);
     if (existing) {
       existing.momentum_pct = Number(incoming.momentum_pct ?? existing.momentum_pct ?? 0);
       existing.est_price = Number(incoming.est_price ?? existing.est_price ?? 0);
@@ -150,19 +165,22 @@ try {
           breakeven_acos_pct: 0,
           below_floor: false,
           computed_at: "",
-          ...(incoming.margin_card && typeof incoming.margin_card === "object" ? incoming.margin_card : {})
+          ...(incoming.margin_card && typeof incoming.margin_card === "object" ? incoming.margin_card : {}),
         },
-        competition: incoming.competition && typeof incoming.competition === "object" ? incoming.competition : {
-          top_review_counts: [],
-          head_share_pct: 0,
-          dominance_note: "",
-          new_entrants_90d: 0,
-          velocity_note: ""
-        },
+        competition:
+          incoming.competition && typeof incoming.competition === "object"
+            ? incoming.competition
+            : {
+                top_review_counts: [],
+                head_share_pct: 0,
+                dominance_note: "",
+                new_entrants_90d: 0,
+                velocity_note: "",
+              },
         evidence: Array.isArray(incoming.evidence) ? incoming.evidence : [],
         why_it_matters: incoming.why_it_matters || "",
         first_seen: incoming.first_seen || now,
-        last_updated: now
+        last_updated: now,
       };
       snapshot.candidates.push(item);
       candidateByKey.set(`id::${item.candidate_id}`, item);
@@ -189,12 +207,14 @@ try {
     at: now,
     actor: "kelly-picks-agent",
     action: "ingest_trends",
-    detail: `${trendsAdded} trend items added, ${trendsUpdated} updated, ${trendsSkipped} duplicates skipped; ${candidatesAdded} candidates added, ${candidatesUpdated} updated.`
+    detail: `${trendsAdded} trend items added, ${trendsUpdated} updated, ${trendsSkipped} duplicates skipped; ${candidatesAdded} candidates added, ${candidatesUpdated} updated.`,
   });
   snapshot.sync_log = snapshot.sync_log.slice(0, 50);
 
   await writeJson(SNAPSHOT_PATH, snapshot);
-  console.log(`OK: ${trendsAdded} trend items added, ${trendsUpdated} updated, ${trendsSkipped} skipped; ${candidatesAdded} candidates added, ${candidatesUpdated} updated → ${SNAPSHOT_PATH}`);
+  console.log(
+    `OK: ${trendsAdded} trend items added, ${trendsUpdated} updated, ${trendsSkipped} skipped; ${candidatesAdded} candidates added, ${candidatesUpdated} updated → ${SNAPSHOT_PATH}`,
+  );
 } finally {
   await releaseLock();
 }

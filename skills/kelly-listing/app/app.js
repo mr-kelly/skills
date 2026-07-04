@@ -13,12 +13,19 @@ const state = {
   edits: {},
   fieldEdits: {},
   notice: "",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-listing-language") || "auto"),
-  demo: new URLSearchParams(location.search).get("demo") || ""
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-listing-language") || "auto",
+  ),
+  demo: new URLSearchParams(location.search).get("demo") || "",
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-listing.sidebarCollapsed";
-const DECISION_STATUS = { approve: "approved", request_changes: "changes_requested", block: "blocked", revise: "needs_review" };
+const DECISION_STATUS = {
+  approve: "approved",
+  request_changes: "changes_requested",
+  block: "blocked",
+  revise: "needs_review",
+};
 const FEATURED_DEMO_DRAFT = "d-lunchbox-amazon-us";
 
 const els = {
@@ -37,7 +44,7 @@ const els = {
   reviewCount: document.querySelector("#count-review"),
   failedCount: document.querySelector("#count-failed"),
   exportCount: document.querySelector("#count-export"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -84,7 +91,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -94,9 +105,7 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function date(value) {
@@ -104,7 +113,7 @@ function date(value) {
   return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     month: "short",
     day: "2-digit",
-    year: "numeric"
+    year: "numeric",
   }).format(new Date(value));
 }
 
@@ -135,17 +144,18 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "products"
-    ? "#/products"
-    : scenario === "drafts"
-      ? "#/drafts"
-      : scenario === "checks"
-        ? "#/checks"
-        : scenario === "review"
-          ? "#/review"
-          : scenario === "detail"
-            ? `#/drafts/${FEATURED_DEMO_DRAFT}`
-            : "#/overview";
+  const route =
+    scenario === "products"
+      ? "#/products"
+      : scenario === "drafts"
+        ? "#/drafts"
+        : scenario === "checks"
+          ? "#/checks"
+          : scenario === "review"
+            ? "#/review"
+            : scenario === "detail"
+              ? `#/drafts/${FEATURED_DEMO_DRAFT}`
+              : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -155,9 +165,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -245,9 +254,10 @@ function renderShell() {
   const reviewCount = reviewItems().filter((item) => effectiveReviewStatus(item) === "needs_review").length;
   const failedCount = checks().filter((item) => item.result === "fail").length;
   const exportCount = drafts().filter((item) => effectiveDraftStatus(item) === "approved").length;
-  els.syncStatus.textContent = snapshot && drafts().length
-    ? `${snapshot.seller?.brand || ""}`.trim() || `${drafts().length} ${t("draftsLower")}`
-    : t("setupNeeded");
+  els.syncStatus.textContent =
+    snapshot && drafts().length
+      ? `${snapshot.seller?.brand || ""}`.trim() || `${drafts().length} ${t("draftsLower")}`
+      : t("setupNeeded");
   if (els.reviewCount) els.reviewCount.textContent = reviewCount;
   if (els.failedCount) els.failedCount.textContent = failedCount;
   if (els.exportCount) els.exportCount.textContent = exportCount;
@@ -313,14 +323,20 @@ function noticeBanner() {
 }
 
 function warnings(draftId = "") {
-  const items = (state.snapshot?.warnings || []).filter((item) => !draftId || !item.draft_id || item.draft_id === draftId);
+  const items = (state.snapshot?.warnings || []).filter(
+    (item) => !draftId || !item.draft_id || item.draft_id === draftId,
+  );
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 function draftLabel(draft) {
@@ -332,7 +348,10 @@ function metricCards() {
   const metrics = state.snapshot?.metrics || {};
   const byPlatform = metrics.drafts_by_platform || {};
   const platformBits = Object.entries(byPlatform)
-    .map(([platform, count]) => `<span class="platform-badge ${escapeHtml(platform)}">${escapeHtml(enumLabel(platform, "platform"))} ${count}</span>`)
+    .map(
+      ([platform, count]) =>
+        `<span class="platform-badge ${escapeHtml(platform)}">${escapeHtml(enumLabel(platform, "platform"))} ${count}</span>`,
+    )
     .join(" ");
   return `
     <div class="metrics">
@@ -365,18 +384,25 @@ function statusMatrix() {
           <tr><th>${t("product")}</th>${allPlatforms.map((platform) => `<th>${escapeHtml(enumLabel(platform, "platform"))}</th>`).join("")}</tr>
         </thead>
         <tbody>
-          ${products().map((product) => `
+          ${products()
+            .map(
+              (product) => `
             <tr>
               <td><a class="strong" href="#/products/${encodeURIComponent(product.product_id)}">${escapeHtml(product.name)}</a><div class="muted">${escapeHtml(product.sku)}</div></td>
-              ${allPlatforms.map((platform) => {
-                const cell = matrixCell(product, platform);
-                const first = cell.drafts[0];
-                const label = enumLabel(cell.state, "cell");
-                if (cell.state === "none") return `<td><span class="matrix-cell none">${escapeHtml(label)}</span></td>`;
-                return `<td><a class="matrix-cell ${escapeHtml(cell.state)}" href="#/drafts/${encodeURIComponent(first.draft_id)}">${escapeHtml(label)}${cell.drafts.length > 1 ? ` ×${cell.drafts.length}` : ""}</a></td>`;
-              }).join("")}
+              ${allPlatforms
+                .map((platform) => {
+                  const cell = matrixCell(product, platform);
+                  const first = cell.drafts[0];
+                  const label = enumLabel(cell.state, "cell");
+                  if (cell.state === "none")
+                    return `<td><span class="matrix-cell none">${escapeHtml(label)}</span></td>`;
+                  return `<td><a class="matrix-cell ${escapeHtml(cell.state)}" href="#/drafts/${encodeURIComponent(first.draft_id)}">${escapeHtml(label)}${cell.drafts.length > 1 ? ` ×${cell.drafts.length}` : ""}</a></td>`;
+                })
+                .join("")}
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -389,7 +415,10 @@ function renderOverview() {
     ? `${state.snapshot.seller?.brand || ""} · ${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
     : t("empty");
   const awaiting = reviewItems().filter((item) => effectiveReviewStatus(item) === "needs_review");
-  const activity = (state.snapshot?.activity_log || []).slice().sort((a, b) => String(b.at).localeCompare(String(a.at))).slice(0, 8);
+  const activity = (state.snapshot?.activity_log || [])
+    .slice()
+    .sort((a, b) => String(b.at).localeCompare(String(a.at)))
+    .slice(0, 8);
   els.content.innerHTML = `
     ${metricCards()}
     ${warnings()}
@@ -400,25 +429,35 @@ function renderOverview() {
       </div>
       <div class="overview-panel">
         <h2>${t("reviewQueue")}</h2>
-        ${awaiting.map((item) => {
-          const draft = draftById(item.draft_id);
-          return `
+        ${
+          awaiting
+            .map((item) => {
+              const draft = draftById(item.draft_id);
+              return `
             <a class="due-row" href="#/review">
               <span><strong>${t("draftRef")} #${item.ref} · ${escapeHtml(draft ? draftLabel(draft) : item.draft_id)}</strong><small>${escapeHtml(item.compliance_summary || "")}</small></span>
               <span class="due-meta">${statusBadge(effectiveReviewStatus(item))}${draft ? `<small>${scoreCell(draft.compliance_score)}</small>` : ""}</span>
             </a>
           `;
-        }).join("") || `<div class="empty-inline">${t("noReviewItems")}</div>`}
+            })
+            .join("") || `<div class="empty-inline">${t("noReviewItems")}</div>`
+        }
       </div>
       <div class="overview-panel">
         <h2>${t("activities")}</h2>
-        ${activity.map((item) => `
+        ${
+          activity
+            .map(
+              (item) => `
           <div class="activity-row">
             <span class="badge">${escapeHtml(enumLabel(item.actor, "actor"))}</span>
             <span><small>${escapeHtml(item.detail)}</small></span>
             <span class="muted">${date(item.at)}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("noActivity")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("noActivity")}</div>`
+        }
       </div>
     </section>
   `;
@@ -427,9 +466,11 @@ function renderOverview() {
 function filteredProducts() {
   const query = state.query.trim().toLowerCase();
   if (!query) return products();
-  return products().filter((item) => [item.name, item.sku, item.category, item.source, ...(item.keywords || []), ...(item.platforms || [])]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return products().filter((item) =>
+    [item.name, item.sku, item.category, item.source, ...(item.keywords || []), ...(item.platforms || [])]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderProducts() {
@@ -439,7 +480,9 @@ function renderProducts() {
   els.content.innerHTML = `
     ${metricCards()}
     ${warnings()}
-    ${items.length ? `
+    ${
+      items.length
+        ? `
       <div class="table-wrap">
         <table>
           <thead>
@@ -448,12 +491,19 @@ function renderProducts() {
             </tr>
           </thead>
           <tbody>
-            ${items.map((item) => {
-              const own = drafts().filter((draft) => draft.product_id === item.product_id);
-              const needsReview = own.filter((draft) => effectiveDraftStatus(draft) === "needs_review").length;
-              const exported = own.filter((draft) => effectiveDraftStatus(draft) === "done").length;
-              const overall = needsReview ? "needs_review" : own.some((draft) => effectiveDraftStatus(draft) === "changes_requested") ? "changes_requested" : exported === own.length && own.length ? "done" : "approved";
-              return `
+            ${items
+              .map((item) => {
+                const own = drafts().filter((draft) => draft.product_id === item.product_id);
+                const needsReview = own.filter((draft) => effectiveDraftStatus(draft) === "needs_review").length;
+                const exported = own.filter((draft) => effectiveDraftStatus(draft) === "done").length;
+                const overall = needsReview
+                  ? "needs_review"
+                  : own.some((draft) => effectiveDraftStatus(draft) === "changes_requested")
+                    ? "changes_requested"
+                    : exported === own.length && own.length
+                      ? "done"
+                      : "approved";
+                return `
                 <tr>
                   <td><a href="#/products/${encodeURIComponent(item.product_id)}"><span class="strong">${escapeHtml(item.name)}</span></a></td>
                   <td>${escapeHtml(item.sku)}</td>
@@ -465,11 +515,14 @@ function renderProducts() {
                   <td>${date(item.updated_at)}</td>
                 </tr>
               `;
-            }).join("")}
+              })
+              .join("")}
           </tbody>
         </table>
       </div>
-    ` : `<div class="empty">${t("noProducts")}</div>`}
+    `
+        : `<div class="empty">${t("noProducts")}</div>`
+    }
   `;
 }
 
@@ -507,12 +560,18 @@ function renderProductDetail() {
         </div>
         <div class="section-block">
           <h2>${t("linkedDrafts")}</h2>
-          ${own.map((draft) => `
+          ${
+            own
+              .map(
+                (draft) => `
             <a class="due-row" href="#/drafts/${encodeURIComponent(draft.draft_id)}">
               <span><strong>${t("draftRef")} #${draft.ref} · ${escapeHtml(enumLabel(draft.platform, "platform"))} ${escapeHtml(draft.locale || "")}</strong><small>${escapeHtml(draft.fields?.title || "")}</small></span>
               <span class="due-meta">${statusBadge(effectiveDraftStatus(draft))}<small>${scoreCell(draft.compliance_score)}</small></span>
             </a>
-          `).join("") || `<div class="empty-inline">${t("noDrafts")}</div>`}
+          `,
+              )
+              .join("") || `<div class="empty-inline">${t("noDrafts")}</div>`
+          }
         </div>
       </div>
       <aside class="detail-side">
@@ -529,12 +588,16 @@ function renderProductDetail() {
         </div>
         <div>
           <h2>${t("imageChecklist")}</h2>
-          ${(product.images || []).map((image) => `
+          ${(product.images || [])
+            .map(
+              (image) => `
             <div class="check-row">
               <span class="image-tick ${escapeHtml(image.status)}" aria-hidden="true">${image.status === "ready" ? "✓" : image.status === "missing" ? "✕" : "…"}</span>
               <span><strong>${escapeHtml(image.name)}</strong><small>${escapeHtml(enumLabel(image.status, "image"))}</small></span>
             </div>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </div>
       </aside>
     </section>
@@ -544,10 +607,18 @@ function renderProductDetail() {
 function filteredDrafts() {
   const query = state.query.trim().toLowerCase();
   if (!query) return drafts();
-  return drafts().filter((item) => [
-    item.fields?.title, item.platform, item.locale, effectiveDraftStatus(item),
-    productById(item.product_id)?.name, productById(item.product_id)?.sku
-  ].filter(Boolean).some((value) => String(value).toLowerCase().includes(query)));
+  return drafts().filter((item) =>
+    [
+      item.fields?.title,
+      item.platform,
+      item.locale,
+      effectiveDraftStatus(item),
+      productById(item.product_id)?.name,
+      productById(item.product_id)?.sku,
+    ]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderDrafts() {
@@ -557,7 +628,9 @@ function renderDrafts() {
   els.content.innerHTML = `
     ${metricCards()}
     ${warnings()}
-    ${items.length ? `
+    ${
+      items.length
+        ? `
       <div class="table-wrap">
         <table>
           <thead>
@@ -566,10 +639,11 @@ function renderDrafts() {
             </tr>
           </thead>
           <tbody>
-            ${items.map((item) => {
-              const product = productById(item.product_id);
-              const title = item.fields?.title || "";
-              return `
+            ${items
+              .map((item) => {
+                const product = productById(item.product_id);
+                const title = item.fields?.title || "";
+                return `
                 <tr>
                   <td><a href="#/drafts/${encodeURIComponent(item.draft_id)}"><span class="strong">${t("draftRef")} #${item.ref}</span></a></td>
                   <td><a href="#/products/${encodeURIComponent(item.product_id)}">${escapeHtml(product?.name || item.product_id)}</a></td>
@@ -581,11 +655,14 @@ function renderDrafts() {
                   <td>${date(item.updated_at)}</td>
                 </tr>
               `;
-            }).join("")}
+              })
+              .join("")}
           </tbody>
         </table>
       </div>
-    ` : `<div class="empty">${t("noDrafts")}</div>`}
+    `
+        : `<div class="empty">${t("noDrafts")}</div>`
+    }
   `;
 }
 
@@ -660,9 +737,13 @@ function localeTabs(draft) {
   return `
     <div class="locale-tabs" role="tablist" aria-label="${t("variantTabs")}">
       <span class="muted">${t("variantTabs")}:</span>
-      ${variants.map((variant) => `
+      ${variants
+        .map(
+          (variant) => `
         <a role="tab" aria-selected="${variant.draft_id === draft.draft_id}" class="locale-tab ${variant.draft_id === draft.draft_id ? "active" : ""}" href="#/drafts/${encodeURIComponent(variant.draft_id)}">${escapeHtml(variant.locale || variant.draft_id)}</a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
   `;
 }
@@ -708,15 +789,22 @@ function renderDraftDetail() {
             <dt>${t("lastUpdated")}</dt><dd>${date(draft.updated_at)}</dd>
           </dl>
         </div>
-        ${draft.keyword_strategy ? `
+        ${
+          draft.keyword_strategy
+            ? `
           <div class="agent-panel">
             <h2>${t("keywordStrategy")}</h2>
             <p>${escapeHtml(draft.keyword_strategy)}</p>
           </div>
-        ` : ""}
+        `
+            : ""
+        }
         <div>
           <h2>${t("complianceChecks")}</h2>
-          ${draftChecks.map((item) => `
+          ${
+            draftChecks
+              .map(
+                (item) => `
             <div class="check-row">
               ${resultBadge(item.result)}
               <span>
@@ -724,7 +812,10 @@ function renderDraftDetail() {
                 <small>${escapeHtml(item.evidence || "")}</small>
               </span>
             </div>
-          `).join("") || `<div class="empty-inline">${t("noChecks")}</div>`}
+          `,
+              )
+              .join("") || `<div class="empty-inline">${t("noChecks")}</div>`
+          }
         </div>
       </aside>
     </section>
@@ -740,13 +831,19 @@ function bindWorkbenchEvents(draft, review) {
       const key = input.dataset.field;
       const edits = state.fieldEdits[draft.draft_id] || (state.fieldEdits[draft.draft_id] = {});
       if (input.dataset.kind === "list") {
-        const values = input.value.split("\n").map((line) => line.trim()).filter(Boolean);
-        edits[key] = key === "item_specifics"
-          ? values.map((line) => {
-              const idx = line.indexOf(":");
-              return idx === -1 ? { name: line, value: "" } : { name: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() };
-            })
-          : values;
+        const values = input.value
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean);
+        edits[key] =
+          key === "item_specifics"
+            ? values.map((line) => {
+                const idx = line.indexOf(":");
+                return idx === -1
+                  ? { name: line, value: "" }
+                  : { name: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() };
+              })
+            : values;
         const counter = workbench.querySelector(`#count-${CSS.escape(key)}`);
         if (counter) counter.textContent = String(values.length);
       } else {
@@ -803,7 +900,12 @@ function renderChecks() {
     <div class="check-filters">
       <select id="ruleFilter" aria-label="${t("rule")}">
         <option value="all">${t("all")} · ${t("rule")}</option>
-        ${rules().map((rule) => `<option value="${escapeHtml(rule.rule_id)}" ${state.checkRuleFilter === rule.rule_id ? "selected" : ""}>${escapeHtml(rule.name)}</option>`).join("")}
+        ${rules()
+          .map(
+            (rule) =>
+              `<option value="${escapeHtml(rule.rule_id)}" ${state.checkRuleFilter === rule.rule_id ? "selected" : ""}>${escapeHtml(rule.name)}</option>`,
+          )
+          .join("")}
       </select>
       <select id="platformFilter" aria-label="${t("platform")}">
         <option value="all">${t("all")} · ${t("platform")}</option>
@@ -811,14 +913,21 @@ function renderChecks() {
       </select>
       <select id="productFilter" aria-label="${t("product")}">
         <option value="all">${t("all")} · ${t("product")}</option>
-        ${products().map((product) => `<option value="${escapeHtml(product.product_id)}" ${state.checkProductFilter === product.product_id ? "selected" : ""}>${escapeHtml(product.name)}</option>`).join("")}
+        ${products()
+          .map(
+            (product) =>
+              `<option value="${escapeHtml(product.product_id)}" ${state.checkProductFilter === product.product_id ? "selected" : ""}>${escapeHtml(product.name)}</option>`,
+          )
+          .join("")}
       </select>
       <select id="resultFilter" aria-label="${t("result")}">
         <option value="all">${t("all")} · ${t("result")}</option>
         ${["pass", "warn", "fail"].map((result) => `<option value="${result}" ${state.checkResultFilter === result ? "selected" : ""}>${escapeHtml(enumLabel(result, "result"))}</option>`).join("")}
       </select>
     </div>
-    ${items.length ? `
+    ${
+      items.length
+        ? `
       <div class="table-wrap">
         <table>
           <thead>
@@ -827,10 +936,11 @@ function renderChecks() {
             </tr>
           </thead>
           <tbody>
-            ${items.map((item) => {
-              const draft = draftById(item.draft_id);
-              const rule = ruleById(item.rule_id);
-              return `
+            ${items
+              .map((item) => {
+                const draft = draftById(item.draft_id);
+                const rule = ruleById(item.rule_id);
+                return `
                 <tr>
                   <td><a href="#/drafts/${encodeURIComponent(item.draft_id)}"><span class="strong">${t("draftRef")} #${draft?.ref || ""} · ${escapeHtml(draft ? productById(draft.product_id)?.name || "" : item.draft_id)}</span></a><div class="muted">${escapeHtml(draft?.locale || "")}</div></td>
                   <td>${draft ? platformBadge(draft.platform) : ""}</td>
@@ -840,11 +950,14 @@ function renderChecks() {
                   <td class="evidence-cell">${escapeHtml(item.evidence || "")}</td>
                 </tr>
               `;
-            }).join("")}
+              })
+              .join("")}
           </tbody>
         </table>
       </div>
-    ` : `<div class="empty">${t("noChecks")}</div>`}
+    `
+        : `<div class="empty">${t("noChecks")}</div>`
+    }
   `;
   const bind = (id, prop) => {
     els.content.querySelector(id)?.addEventListener("change", (event) => {
@@ -875,11 +988,16 @@ function reviewFilters() {
   const states = ["all", "needs_review", "changes_requested", "approved", "done", "blocked"];
   return `
     <div class="queue-filters">
-      ${states.map((value) => {
-        const count = value === "all" ? reviewItems().length : reviewItems().filter((item) => effectiveReviewStatus(item) === value).length;
-        const label = value === "all" ? t("all") : enumLabel(value);
-        return `<button type="button" class="queue-filter ${state.reviewFilter === value ? "active" : ""}" data-filter="${value}">${escapeHtml(label)} <small>${count}</small></button>`;
-      }).join("")}
+      ${states
+        .map((value) => {
+          const count =
+            value === "all"
+              ? reviewItems().length
+              : reviewItems().filter((item) => effectiveReviewStatus(item) === value).length;
+          const label = value === "all" ? t("all") : enumLabel(value);
+          return `<button type="button" class="queue-filter ${state.reviewFilter === value ? "active" : ""}" data-filter="${value}">${escapeHtml(label)} <small>${count}</small></button>`;
+        })
+        .join("")}
     </div>
   `;
 }
@@ -897,13 +1015,15 @@ function renderReview() {
     ${warnings()}
     ${reviewFilters()}
     <div class="queue">
-      ${items.map((item) => {
-        const status = effectiveReviewStatus(item);
-        const draft = draftById(item.draft_id);
-        const decision = decisionFor(item.review_id);
-        const edits = state.edits[item.review_id] || {};
-        const note = edits.note ?? decision?.comment ?? "";
-        return `
+      ${
+        items
+          .map((item) => {
+            const status = effectiveReviewStatus(item);
+            const draft = draftById(item.draft_id);
+            const decision = decisionFor(item.review_id);
+            const edits = state.edits[item.review_id] || {};
+            const note = edits.note ?? decision?.comment ?? "";
+            return `
           <article class="queue-card status-${escapeHtml(status)}" data-review="${escapeHtml(item.review_id)}">
             <header class="queue-head">
               <span class="queue-ref">${t("draftRef")} #${item.ref}</span>
@@ -917,10 +1037,14 @@ function renderReview() {
             </div>
             <p class="queue-summary"><span class="muted">${t("complianceSummary")}:</span> ${escapeHtml(item.compliance_summary || "")}</p>
             ${draft?.keyword_strategy ? `<p class="queue-summary"><span class="muted">${t("keywordStrategy")}:</span> ${escapeHtml(draft.keyword_strategy)}</p>` : ""}
-            ${item.suggestions?.length ? `
+            ${
+              item.suggestions?.length
+                ? `
               <span class="queue-label">${t("suggestions")}</span>
               <ul class="queue-suggestions">${item.suggestions.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("")}</ul>
-            ` : ""}
+            `
+                : ""
+            }
             <label class="queue-label">${t("reviewNote")}</label>
             <textarea class="queue-note" data-field="note" rows="2" placeholder="${escapeHtml(t("reviewNotePlaceholder"))}" ${disabled}>${escapeHtml(note)}</textarea>
             <div class="queue-actions">
@@ -931,7 +1055,9 @@ function renderReview() {
             </div>
           </article>
         `;
-      }).join("") || `<div class="empty">${t("noReviewItems")}</div>`}
+          })
+          .join("") || `<div class="empty">${t("noReviewItems")}</div>`
+      }
     </div>
   `;
   bindReviewEvents();
@@ -971,7 +1097,7 @@ async function submitDecision(reviewId, action, { comment = "", fields } = {}) {
   const res = await fetch("/api/decision", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -1012,11 +1138,16 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("platforms")} · ${t("rules")}</h2>
-        ${(summary.platforms || []).map((entry) => {
-          const rulesList = Object.entries(entry.rules || {})
-            .map(([key, value]) => `<span class="tag">${escapeHtml(key)}: ${escapeHtml(Array.isArray(value) ? value.join(", ") : String(value))}</span>`)
-            .join(" ");
-          return `
+        ${
+          (summary.platforms || [])
+            .map((entry) => {
+              const rulesList = Object.entries(entry.rules || {})
+                .map(
+                  ([key, value]) =>
+                    `<span class="tag">${escapeHtml(key)}: ${escapeHtml(Array.isArray(value) ? value.join(", ") : String(value))}</span>`,
+                )
+                .join(" ");
+              return `
             <div class="settings-row">
               <strong>${escapeHtml(enumLabel(entry.platform, "platform"))}</strong>
               <span>${(entry.locales || []).map(localeBadge).join(" ")}</span>
@@ -1024,7 +1155,9 @@ function renderSettings() {
               <div class="chip-list rule-chips">${rulesList}</div>
             </div>
           `;
-        }).join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`}
+            })
+            .join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("bannedWords")} · ${t("competitorBrands")}</h2>
@@ -1047,13 +1180,17 @@ function renderSettings() {
           <dt>${t("handoffToAgent")}</dt><dd>${publish.handoff_to_agent ? t("byAgentAfterApproval") : t("no")}</dd>
           <dt>${t("requiresApproval")}</dt><dd>${publish.requires_approval ? t("yes") : t("no")}</dd>
         </dl>
-        ${(publish.secret_envs || []).length ? `
+        ${
+          (publish.secret_envs || []).length
+            ? `
           <div class="settings-row">
             <strong>${(publish.secret_envs || []).join(", ")}</strong>
             <span></span>
             <span class="${publish.secrets_ready ? "ok" : "warn"}">${publish.secrets_ready ? t("secretsReady") : t("missingSecrets")}</span>
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       </section>
     </div>
   `;
@@ -1072,13 +1209,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

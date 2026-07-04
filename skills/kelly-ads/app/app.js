@@ -5,9 +5,11 @@ const state = {
   settings: null,
   route: parseRoute(),
   query: "",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-ads-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-ads-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  notice: ""
+  notice: "",
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-ads.sidebarCollapsed";
@@ -28,7 +30,7 @@ const els = {
   reviewCount: document.querySelector("#count-review"),
   alertCount: document.querySelector("#count-alerts"),
   budgetCount: document.querySelector("#count-budget"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -75,7 +77,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -85,16 +91,14 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function money(value, currency = state.snapshot?.currency || "USD") {
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     style: "currency",
     currency,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(Number(value || 0));
 }
 
@@ -102,7 +106,7 @@ function date(value) {
   if (!value) return "";
   return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     month: "short",
-    day: "2-digit"
+    day: "2-digit",
   }).format(new Date(value));
 }
 
@@ -112,7 +116,7 @@ function dateTime(value) {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -157,15 +161,16 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "campaigns"
-    ? "#/campaigns"
-    : scenario === "alerts"
-      ? "#/alerts"
-      : scenario === "adjustments"
-        ? "#/adjustments"
-        : scenario === "detail"
-          ? "#/campaigns/amz-sp-manual-lunchbox"
-          : "#/overview";
+  const route =
+    scenario === "campaigns"
+      ? "#/campaigns"
+      : scenario === "alerts"
+        ? "#/alerts"
+        : scenario === "adjustments"
+          ? "#/adjustments"
+          : scenario === "detail"
+            ? "#/campaigns/amz-sp-manual-lunchbox"
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -175,9 +180,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -228,9 +232,10 @@ function renderShell() {
   const reviewCount = adjustments().filter((item) => item.status === "needs_review").length;
   const openAlerts = anomalies().filter((item) => item.state === "open").length;
   const budgetRisk = Number(m.budget_at_risk_today || 0);
-  els.syncStatus.textContent = state.snapshot?.generated_at && Date.parse(state.snapshot.generated_at) > 0
-    ? `${campaigns().length} ${t("campaigns").toLowerCase()}`
-    : t("empty");
+  els.syncStatus.textContent =
+    state.snapshot?.generated_at && Date.parse(state.snapshot.generated_at) > 0
+      ? `${campaigns().length} ${t("campaigns").toLowerCase()}`
+      : t("empty");
   if (els.reviewCount) els.reviewCount.textContent = reviewCount;
   if (els.alertCount) els.alertCount.textContent = openAlerts;
   if (els.budgetCount) els.budgetCount.textContent = budgetRisk;
@@ -238,7 +243,9 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = reviewCount
       ? `${reviewCount} ${t("needReview")}`
-      : (openAlerts ? `${openAlerts} ${t("openAlerts")}` : `${campaigns().length} ${t("campaigns").toLowerCase()}`);
+      : openAlerts
+        ? `${openAlerts} ${t("openAlerts")}`
+        : `${campaigns().length} ${t("campaigns").toLowerCase()}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -304,14 +311,20 @@ function lockBanner() {
 }
 
 function warnings(campaignId = "") {
-  const items = (state.snapshot?.warnings || []).filter((item) => !campaignId || !item.campaign_id || item.campaign_id === campaignId);
+  const items = (state.snapshot?.warnings || []).filter(
+    (item) => !campaignId || !item.campaign_id || item.campaign_id === campaignId,
+  );
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 function dailyTotals() {
@@ -339,17 +352,22 @@ function spendRevenueChart() {
   const slot = (width - padX * 2) / days.length;
   const barW = Math.max(4, Math.min(14, slot * 0.32));
   const yFor = (value) => padTop + (1 - value / max) * (height - padTop - padBottom);
-  const bars = days.map((day, index) => {
-    const x = padX + index * slot + slot / 2;
-    const spendY = yFor(day.spend);
-    const revenueY = yFor(day.revenue);
-    const label = index % 2 === 0 ? `<text class="axis-label" x="${x}" y="${height - 6}" text-anchor="middle">${escapeHtml(date(day.date))}</text>` : "";
-    return `
+  const bars = days
+    .map((day, index) => {
+      const x = padX + index * slot + slot / 2;
+      const spendY = yFor(day.spend);
+      const revenueY = yFor(day.revenue);
+      const label =
+        index % 2 === 0
+          ? `<text class="axis-label" x="${x}" y="${height - 6}" text-anchor="middle">${escapeHtml(date(day.date))}</text>`
+          : "";
+      return `
       <rect class="bar-spend" x="${(x - barW - 1).toFixed(1)}" y="${spendY.toFixed(1)}" width="${barW.toFixed(1)}" height="${(height - padBottom - spendY).toFixed(1)}" rx="1.5"><title>${escapeHtml(day.date)} · ${t("spend")} ${escapeHtml(money(day.spend))}</title></rect>
       <rect class="bar-revenue" x="${(x + 1).toFixed(1)}" y="${revenueY.toFixed(1)}" width="${barW.toFixed(1)}" height="${(height - padBottom - revenueY).toFixed(1)}" rx="1.5"><title>${escapeHtml(day.date)} · ${t("revenue")} ${escapeHtml(money(day.revenue))}</title></rect>
       ${label}
     `;
-  }).join("");
+    })
+    .join("");
   return `
     <svg class="barchart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${t("spendVsRevenue")}" preserveAspectRatio="none">${bars}</svg>
     <div class="chart-legend">
@@ -374,16 +392,23 @@ function campaignChart(campaign) {
   const barW = Math.max(6, Math.min(22, slot * 0.5));
   const ySpend = (value) => padTop + (1 - value / maxSpend) * (height - padTop - padBottom);
   const yRoas = (value) => padTop + (1 - value / maxRoas) * (height - padTop - padBottom);
-  const bars = days.map((day, index) => {
-    const x = padX + index * slot + (slot - barW) / 2;
-    const y = ySpend(Number(day.spend || 0));
-    const label = index % 2 === 0 ? `<text class="axis-label" x="${(x + barW / 2).toFixed(1)}" y="${height - 6}" text-anchor="middle">${escapeHtml(date(day.date))}</text>` : "";
-    return `<rect class="bar-spend" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${(height - padBottom - y).toFixed(1)}" rx="2"><title>${escapeHtml(day.date)} · ${t("spend")} ${escapeHtml(money(day.spend))} · ROAS ${roasValues[index].toFixed(2)}</title></rect>${label}`;
-  }).join("");
-  const line = roasValues.map((value, index) => {
-    const x = padX + index * slot + slot / 2;
-    return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${yRoas(value).toFixed(1)}`;
-  }).join(" ");
+  const bars = days
+    .map((day, index) => {
+      const x = padX + index * slot + (slot - barW) / 2;
+      const y = ySpend(Number(day.spend || 0));
+      const label =
+        index % 2 === 0
+          ? `<text class="axis-label" x="${(x + barW / 2).toFixed(1)}" y="${height - 6}" text-anchor="middle">${escapeHtml(date(day.date))}</text>`
+          : "";
+      return `<rect class="bar-spend" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${(height - padBottom - y).toFixed(1)}" rx="2"><title>${escapeHtml(day.date)} · ${t("spend")} ${escapeHtml(money(day.spend))} · ROAS ${roasValues[index].toFixed(2)}</title></rect>${label}`;
+    })
+    .join("");
+  const line = roasValues
+    .map((value, index) => {
+      const x = padX + index * slot + slot / 2;
+      return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${yRoas(value).toFixed(1)}`;
+    })
+    .join(" ");
   return `
     <svg class="linechart" viewBox="0 0 ${width} ${height}" role="img" aria-label="${t("dailySeries")}" preserveAspectRatio="none">
       ${bars}
@@ -415,7 +440,9 @@ function kpiCards() {
 function platformCards() {
   return `
     <div class="platform-grid">
-      ${platforms().map((platform) => `
+      ${platforms()
+        .map(
+          (platform) => `
         <div class="platform-card">
           <div class="row between">
             <strong>${statusDot(platform.status)}${escapeHtml(platform.name)}</strong>
@@ -428,7 +455,9 @@ function platformCards() {
           </div>
           <div class="muted">${platform.campaign_count || 0} ${t("campaigns").toLowerCase()} · ${t("lastSync")} ${dateTime(platform.last_sync_at)}</div>
         </div>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
   `;
 }
@@ -444,22 +473,30 @@ function worstOffenders() {
   }
   rows.sort((a, b) => Number(b.target.spend_14d) - Number(a.target.spend_14d));
   if (!rows.length) return `<div class="empty">${t("empty")}</div>`;
-  return rows.slice(0, 6).map(({ campaign, target }) => `
+  return rows
+    .slice(0, 6)
+    .map(
+      ({ campaign, target }) => `
     <a class="attention-row" href="#/campaigns/${encodeURIComponent(campaign.campaign_id)}">
       <span><strong>${escapeHtml(target.text)}</strong><small>${escapeHtml(campaign.name)} · ${escapeHtml(String(target.clicks || 0))} ${t("clicks").toLowerCase()}</small></span>
       <span class="badges">${platformBadge(campaign.platform)}<span class="acos-badge crit">${escapeHtml(money(target.spend_14d))} · ${t("zeroOrders")}</span></span>
     </a>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at && Date.parse(state.snapshot.generated_at) > 0
-    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
-    : t("empty");
+  els.subtitle.textContent =
+    state.snapshot?.generated_at && Date.parse(state.snapshot.generated_at) > 0
+      ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+      : t("empty");
   const needsDecision = adjustments().filter((item) => item.status === "needs_review");
   const critical = anomalies().filter((item) => item.state === "open" && item.severity === "critical");
-  const budgetRisk = campaigns().filter((item) => item.status === "active" && Number(item.budget_spent_today_pct || 0) >= 85);
+  const budgetRisk = campaigns().filter(
+    (item) => item.status === "active" && Number(item.budget_spent_today_pct || 0) >= 85,
+  );
   els.content.innerHTML = `
     ${notice()}
     ${warnings()}
@@ -468,24 +505,36 @@ function renderOverview() {
     <section class="overview-grid">
       <div class="overview-panel">
         <h2>${t("humanWorkTitle")}</h2>
-        ${needsDecision.map((item) => `
+        ${needsDecision
+          .map(
+            (item) => `
           <a class="attention-row" href="#/adjustments/${encodeURIComponent(item.adjustment_id)}">
             <span><strong>${t("adjustmentRef")} #${item.ref} · ${escapeHtml(item.title)}</strong><small>${escapeHtml(item.reason)}</small></span>
             <span class="badges">${adjTypeBadge(item.type)}</span>
           </a>
-        `).join("")}
-        ${critical.map((item) => `
+        `,
+          )
+          .join("")}
+        ${critical
+          .map(
+            (item) => `
           <a class="attention-row" href="#/alerts">
             <span><strong>${escapeHtml(campaignById(item.campaign_id)?.name || item.campaign_id)}</strong><small>${escapeHtml(item.evidence)}</small></span>
             <span class="badges">${typeBadge(item.type)}${statusBadge(item.severity)}</span>
           </a>
-        `).join("")}
-        ${budgetRisk.map((item) => `
+        `,
+          )
+          .join("")}
+        ${budgetRisk
+          .map(
+            (item) => `
           <a class="attention-row" href="#/campaigns/${encodeURIComponent(item.campaign_id)}">
             <span><strong>${escapeHtml(item.name)}</strong><small>${t("dailyBudget")} ${money(item.daily_budget, item.currency)} · ${Number(item.budget_spent_today_pct || 0)}% ${t("spentToday")}</small></span>
             <span class="badges">${platformBadge(item.platform)}</span>
           </a>
-        `).join("")}
+        `,
+          )
+          .join("")}
         ${!needsDecision.length && !critical.length && !budgetRisk.length ? `<div class="empty">${t("empty")}</div>` : ""}
       </div>
       <div class="overview-panel">
@@ -499,19 +548,32 @@ function renderOverview() {
       <div class="overview-panel">
         <h2>${t("dataFreshness")}</h2>
         <div class="freshness">
-          ${platforms().map((platform) => `
+          ${
+            platforms()
+              .map(
+                (platform) => `
             <div class="freshness-item"><span>${statusDot(platform.status)}${escapeHtml(platform.name)}</span><strong>${dateTime(platform.last_sync_at)}</strong></div>
-          `).join("") || `<div class="empty">${t("empty")}</div>`}
+          `,
+              )
+              .join("") || `<div class="empty">${t("empty")}</div>`
+          }
         </div>
       </div>
       <div class="overview-panel">
         <h2>${t("syncActivity")}</h2>
-        ${syncLog().slice(0, 6).map((entry) => `
+        ${
+          syncLog()
+            .slice(0, 6)
+            .map(
+              (entry) => `
           <div class="sync-row">
             <span class="sync-meta"><small>${dateTime(entry.at)}</small><span class="badge">${escapeHtml(enumLabel(entry.kind, "kind"))}</span>${entry.platform ? platformBadge(entry.platform) : ""}</span>
             <span class="sync-message">${escapeHtml(entry.message)}</span>
           </div>
-        `).join("") || `<div class="empty">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("empty")}</div>`
+        }
       </div>
     </section>
   `;
@@ -520,9 +582,11 @@ function renderOverview() {
 function filteredCampaigns() {
   const query = state.query.trim().toLowerCase();
   if (!query) return campaigns();
-  return campaigns().filter((campaign) => [campaign.name, campaign.product, campaign.sku, campaign.platform, campaign.status]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return campaigns().filter((campaign) =>
+    [campaign.name, campaign.product, campaign.sku, campaign.platform, campaign.status]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderCampaigns() {
@@ -540,7 +604,9 @@ function renderCampaigns() {
           </tr>
         </thead>
         <tbody>
-          ${rows.map((campaign) => `
+          ${rows
+            .map(
+              (campaign) => `
             <tr>
               <td><a href="#/campaigns/${encodeURIComponent(campaign.campaign_id)}"><strong>${escapeHtml(campaign.name)}</strong></a><div class="muted">${escapeHtml(campaign.product || "")}${campaign.sku ? ` · ${escapeHtml(campaign.sku)}` : ""}</div></td>
               <td>${platformBadge(campaign.platform)}</td>
@@ -551,7 +617,9 @@ function renderCampaigns() {
               <td>${acosBadge(campaign.totals_7d?.acos_pct, campaign.acos_target_pct)}</td>
               <td>${trendArrow(campaign.trend)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -571,7 +639,9 @@ function targetsTable(campaign) {
           </tr>
         </thead>
         <tbody>
-          ${rows.map((target) => `
+          ${rows
+            .map(
+              (target) => `
             <tr>
               <td><strong>${escapeHtml(target.text)}</strong>${target.match_type ? `<div class="muted">${escapeHtml(target.match_type)}</div>` : ""}</td>
               <td><span class="badge">${escapeHtml(enumLabel(target.type, "targettype"))}</span></td>
@@ -583,7 +653,9 @@ function targetsTable(campaign) {
               <td class="num">${money(target.cpc, campaign.currency)}</td>
               <td class="num">${Number(target.revenue) > 0 ? `${Number(target.acos_pct || 0).toFixed(1)}%` : t("notAvailable")}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -616,7 +688,9 @@ function renderCampaignDetail() {
   els.title.textContent = campaign.name;
   els.subtitle.textContent = `${enumLabel(campaign.platform, "platform")} · ${campaign.product || ""} · ${enumLabel(campaign.status)}`;
   const linkedAnomalies = anomalies().filter((item) => item.campaign_id === campaign.campaign_id);
-  const linkedAdjustments = adjustments().filter((item) => item.campaign_id === campaign.campaign_id || item.target?.id === campaign.campaign_id);
+  const linkedAdjustments = adjustments().filter(
+    (item) => item.campaign_id === campaign.campaign_id || item.target?.id === campaign.campaign_id,
+  );
   const totals = campaign.totals_7d || {};
   els.content.innerHTML = `
     ${notice()}
@@ -637,25 +711,37 @@ function renderCampaignDetail() {
           <h2>${t("topTargets")}</h2>
           ${targetsTable(campaign)}
         </div>
-        ${linkedAnomalies.length ? `
+        ${
+          linkedAnomalies.length
+            ? `
           <div class="panel">
             <h2>${t("linkedAnomalies")}</h2>
-            ${linkedAnomalies.map((item) => `
+            ${linkedAnomalies
+              .map(
+                (item) => `
               <a class="attention-row" href="#/alerts">
                 <span><strong>${escapeHtml(enumLabel(item.type, "type"))}</strong><small>${escapeHtml(item.evidence)}</small></span>
                 <span class="badges">${statusBadge(item.severity)}${statusBadge(item.state)}</span>
               </a>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </div>
-        ` : ""}
-        ${linkedAdjustments.length ? `
+        `
+            : ""
+        }
+        ${
+          linkedAdjustments.length
+            ? `
           <div class="panel">
             <h2>${t("adjustmentHistory")}</h2>
             <div class="action-list">
               ${linkedAdjustments.map((item) => adjustmentCard(item)).join("")}
             </div>
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
       <aside class="detail-side">
         <h2>${t("campaign")}</h2>
@@ -679,11 +765,16 @@ function filteredAnomalies() {
   const query = state.query.trim().toLowerCase();
   const order = { critical: 0, warning: 1, info: 2 };
   const stateOrder = { open: 0, actioned: 1, dismissed: 2, resolved: 3 };
-  const rows = [...anomalies()].sort((a, b) => (stateOrder[a.state] ?? 9) - (stateOrder[b.state] ?? 9) || (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
+  const rows = [...anomalies()].sort(
+    (a, b) =>
+      (stateOrder[a.state] ?? 9) - (stateOrder[b.state] ?? 9) || (order[a.severity] ?? 9) - (order[b.severity] ?? 9),
+  );
   if (!query) return rows;
-  return rows.filter((item) => [item.type, item.severity, item.state, item.evidence, item.platform, campaignById(item.campaign_id)?.name]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return rows.filter((item) =>
+    [item.type, item.severity, item.state, item.evidence, item.platform, campaignById(item.campaign_id)?.name]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function adjustmentLink(adjustmentId) {
@@ -708,9 +799,10 @@ function renderAlerts() {
           </tr>
         </thead>
         <tbody>
-          ${rows.map((item) => {
-            const campaign = campaignById(item.campaign_id);
-            return `
+          ${rows
+            .map((item) => {
+              const campaign = campaignById(item.campaign_id);
+              return `
               <tr>
                 <td>${statusBadge(item.severity)}</td>
                 <td>${typeBadge(item.type)}</td>
@@ -722,7 +814,8 @@ function renderAlerts() {
                 <td>${item.adjustment_id ? adjustmentLink(item.adjustment_id) : `<span class="muted">${t("notAvailable")}</span>`}</td>
               </tr>
             `;
-          }).join("")}
+            })
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -735,9 +828,11 @@ function filteredAdjustments() {
   const order = { needs_review: 0, changes_requested: 1, approved: 2, blocked: 3, done: 4 };
   const rows = [...adjustments()].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9) || a.ref - b.ref);
   if (!query) return rows;
-  return rows.filter((item) => [item.title, item.reason, item.type, item.status, item.note, item.platform]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return rows.filter((item) =>
+    [item.title, item.reason, item.type, item.status, item.note, item.platform]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderAdjustments() {
@@ -797,7 +892,9 @@ function renderAdjustmentDetail() {
             <button type="button" data-verdict="note" ${locked ? "disabled" : ""} title="${t("saveNote")}">${t("saveNote")}</button>
           </div>
         </div>
-        ${adjustment.execution ? `
+        ${
+          adjustment.execution
+            ? `
           <div class="panel">
             <h2>${t("execution")}</h2>
             <dl>
@@ -808,30 +905,42 @@ function renderAdjustmentDetail() {
             </dl>
             ${adjustment.execution.detail ? `<p class="guidance muted">${escapeHtml(adjustment.execution.detail)}</p>` : ""}
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
       <aside class="detail-side">
         <h2>${t("decision")}</h2>
         <dl>
           <dt>${t("status")}</dt><dd>${statusBadge(adjustment.status)}</dd>
-          ${adjustment.decision ? `
+          ${
+            adjustment.decision
+              ? `
             <dt>${t("decision")}</dt><dd>${escapeHtml(enumLabel(adjustment.decision.verdict === "approve" ? "approved" : adjustment.decision.verdict === "block" ? "blocked" : "changes_requested"))}</dd>
             <dt>${t("generated")}</dt><dd>${dateTime(adjustment.decision.decided_at)}</dd>
-          ` : ""}
+          `
+              : ""
+          }
         </dl>
         <h2>${t("target")}</h2>
         <dl>
           <dt>${t("campaign")}</dt><dd>${campaign ? `<a href="#/campaigns/${encodeURIComponent(campaign.campaign_id)}">${escapeHtml(campaign.name)}</a>` : escapeHtml(adjustment.campaign_id)}</dd>
           <dt>${t("platform")}</dt><dd>${platformBadge(adjustment.platform)}</dd>
-          ${Object.entries(adjustment.target || {}).map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd class="mono">${escapeHtml(String(value))}</dd>`).join("")}
+          ${Object.entries(adjustment.target || {})
+            .map(([key, value]) => `<dt>${escapeHtml(key)}</dt><dd class="mono">${escapeHtml(String(value))}</dd>`)
+            .join("")}
         </dl>
-        ${anomaly ? `
+        ${
+          anomaly
+            ? `
           <h2>${t("linkedAnomalies")}</h2>
           <dl>
             <dt>${t("type")}</dt><dd>${typeBadge(anomaly.type)}</dd>
             <dt>${t("evidence")}</dt><dd>${escapeHtml(anomaly.evidence)}</dd>
           </dl>
-        ` : ""}
+        `
+            : ""
+        }
       </aside>
     </section>
   `;
@@ -859,7 +968,7 @@ async function submitDecision(adjustmentId, verdict) {
     const res = await fetch("/api/decision", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ adjustment_id: adjustmentId, verdict, note })
+      body: JSON.stringify({ adjustment_id: adjustmentId, verdict, note }),
     });
     const body = await res.json();
     if (!res.ok) throw new Error(body.error || `Decision failed: ${res.status}`);
@@ -891,24 +1000,39 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("platforms")}</h2>
-        ${(summary.platforms || []).map((platform) => `
+        ${
+          (summary.platforms || [])
+            .map(
+              (platform) => `
           <div class="settings-row">
             <strong>${escapeHtml(platform.name)}</strong>
             <span class="mono muted">${escapeHtml(platform.account_id || "")} · ${escapeHtml((platform.secret_envs || []).join(", "))}</span>
             <span>${platform.secrets_ready ? t("secretsReady") : t("missingSecrets")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("targets")}</h2>
         <dl>
-          ${Object.entries(targets).filter(([, value]) => typeof value !== "object").map(([key, value]) => `<dt class="mono">${escapeHtml(key)}</dt><dd>${escapeHtml(String(value))}</dd>`).join("") || `<dd>${t("setupNeeded")}</dd>`}
+          ${
+            Object.entries(targets)
+              .filter(([, value]) => typeof value !== "object")
+              .map(([key, value]) => `<dt class="mono">${escapeHtml(key)}</dt><dd>${escapeHtml(String(value))}</dd>`)
+              .join("") || `<dd>${t("setupNeeded")}</dd>`
+          }
         </dl>
       </section>
       <section>
         <h2>${t("thresholds")}</h2>
         <dl>
-          ${Object.entries(thresholds).map(([key, value]) => `<dt class="mono">${escapeHtml(key)}</dt><dd>${escapeHtml(String(value))}</dd>`).join("") || `<dd>${t("setupNeeded")}</dd>`}
+          ${
+            Object.entries(thresholds)
+              .map(([key, value]) => `<dt class="mono">${escapeHtml(key)}</dt><dd>${escapeHtml(String(value))}</dd>`)
+              .join("") || `<dd>${t("setupNeeded")}</dd>`
+          }
         </dl>
       </section>
     </div>
@@ -927,13 +1051,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

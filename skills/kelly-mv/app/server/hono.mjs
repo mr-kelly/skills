@@ -2,6 +2,14 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
 import {
+  demoAsset,
+  demoImageConfigPayload,
+  demoNotice,
+  demoSongConfigPayload,
+  demoStatePayload,
+  isDemoQuery,
+} from "./demo.mjs";
+import {
   generateCharacterCard,
   generateStoryboardImage,
   generateVisualBackground,
@@ -110,14 +118,33 @@ for (const p of ["/", "/app.js", "/styles.css", "/api/state"]) {
 }
 
 // ---- API (GET) ----
-app.get("/api/state", async (c) => c.json(await statePayload()));
-app.get("/api/image-config", async (c) => c.json(await imageConfigPayload()));
-app.get("/api/song-config", async (c) => c.json(await songConfigPayload()));
-app.get("/api/storyboard-prompt", async (c) =>
-  c.json(await storyboardPromptPreview(String(c.req.query("shot_id") || ""))),
+app.get("/api/state", async (c) => {
+  const query = c.req.query();
+  return c.json(isDemoQuery(query) ? demoStatePayload(query) : await statePayload());
+});
+app.get("/api/image-config", async (c) =>
+  c.json(isDemoQuery(c.req.query()) ? demoImageConfigPayload() : await imageConfigPayload()),
 );
+app.get("/api/song-config", async (c) => {
+  const query = c.req.query();
+  return c.json(isDemoQuery(query) ? demoSongConfigPayload(query) : await songConfigPayload());
+});
+app.get("/api/storyboard-prompt", async (c) => {
+  const query = c.req.query();
+  // Demo mode has no real project to derive a prompt from — mirror main's 403.
+  if (isDemoQuery(query)) return c.json({ error: demoNotice(query) }, /** @type {any} */ (403));
+  return c.json(await storyboardPromptPreview(String(c.req.query("shot_id") || "")));
+});
 
 // ---- API (POST) ----
+// Demo mode is strictly read-only: reject every write endpoint before any
+// project file could be touched (mirrors main's blanket POST demo guard).
+app.post("/api/*", async (c, next) => {
+  const query = c.req.query();
+  if (isDemoQuery(query)) return c.json({ error: demoNotice(query) }, /** @type {any} */ (403));
+  return next();
+});
+
 app.post("/api/treatment", async (c) => {
   const body = await c.req.json().catch(() => ({}));
   await assertUnlocked();
@@ -228,6 +255,21 @@ app.get("/i18n/*", (c) => {
     return c.text("Forbidden", 403);
   }
   return sendFile(c, resolved);
+});
+
+// Demo media is synthesized in-memory (no disk access). Must precede the
+// on-disk /generated/* route so demo asset paths resolve to demoAsset().
+app.get("/generated/demo/*", (c) => {
+  const decodedPath = decodeURIComponent(new URL(c.req.url).pathname);
+  const asset = demoAsset(decodedPath);
+  if (asset) {
+    return c.body(asset.body, 200, {
+      "Content-Type": asset.type,
+      "Content-Length": String(asset.body.length),
+      "Cache-Control": "no-store",
+    });
+  }
+  return c.text("Not Found", 404);
 });
 
 // Generated media lives on disk under .data/generated, served read-only with a

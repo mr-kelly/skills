@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { demoAsset, demoImageConfigPayload, demoNotice, demoStatePayload, isDemoQuery } from "./demo.mjs";
 import { hyperframeProjectStatus } from "./hyperframe-service.mjs";
 import {
   generateCharacterCard,
@@ -102,11 +103,19 @@ export const app = new Hono();
 app.on("HEAD", ["/", "/app.js", "/styles.css", "/api/state"], (c) => c.body(null, 200));
 
 // ---- GET API ----
-app.get("/api/state", async (c) => c.json(await statePayload()));
+app.get("/api/state", async (c) => {
+  const query = c.req.query();
+  return c.json(isDemoQuery(query) ? demoStatePayload(query) : await statePayload());
+});
 
-app.get("/api/image-config", async (c) => c.json(await imageConfigPayload()));
+app.get("/api/image-config", async (c) => {
+  const query = c.req.query();
+  return c.json(isDemoQuery(query) ? demoImageConfigPayload() : await imageConfigPayload());
+});
 
 app.get("/api/hyperframe-status", async (c) => {
+  const query = c.req.query();
+  if (isDemoQuery(query)) return c.json({ ok: false, error: demoNotice(query) });
   const project = await loadProject();
   const requestedPath = String(
     c.req.query("path") ||
@@ -117,11 +126,22 @@ app.get("/api/hyperframe-status", async (c) => {
   return c.json(await hyperframeProjectStatus(requestedPath));
 });
 
-app.get("/api/storyboard-prompt", async (c) =>
-  c.json(await storyboardPromptPreview(String(c.req.query("shot_id") || ""))),
-);
+app.get("/api/storyboard-prompt", async (c) => {
+  const query = c.req.query();
+  if (isDemoQuery(query)) return c.json({ error: demoNotice(query) }, /** @type {any} */ (403));
+  return c.json(await storyboardPromptPreview(String(c.req.query("shot_id") || "")));
+});
 
 // ---- POST API ----
+// Demo mode is strictly read-only: reject every write endpoint before any
+// project file could be touched. This mirrors the single guard the node:http
+// router placed at the top of its POST block.
+app.post("/api/*", async (c, next) => {
+  const query = c.req.query();
+  if (isDemoQuery(query)) return c.json({ error: demoNotice(query) }, /** @type {any} */ (403));
+  await next();
+});
+
 app.post("/api/series", async (c) => {
   const body = await c.req.json().catch(() => ({}));
   await assertUnlocked();
@@ -207,6 +227,20 @@ app.get("/i18n/*", (c) => {
   const resolved = path.resolve(base, rel);
   if (resolved !== base && !resolved.startsWith(base + path.sep)) return c.text("Forbidden", 403);
   return sendFile(c, resolved);
+});
+
+// Demo placeholder assets are generated in memory under /generated/demo/*.
+// This must be matched before the real /generated/* handler so demo mode never
+// touches app/.data.
+app.get("/generated/demo/*", (c) => {
+  const asset = demoAsset(c.req.path);
+  if (asset) {
+    return c.body(asset.body, 200, {
+      "Content-Type": asset.type,
+      "Cache-Control": "no-store",
+    });
+  }
+  return c.text("Not Found", 404);
 });
 
 // Generated media (storyboards, references, videos, voices) live under

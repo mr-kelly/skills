@@ -39,7 +39,7 @@ export async function saveDecision(body) {
     kind,
     action,
     comment: typeof body.comment === "string" ? body.comment : "",
-    decided_at: now
+    decided_at: now,
   };
   if (kind === "candidate") decision.stage = stageForCandidateAction(action);
   if (kind === "proposal") {
@@ -55,7 +55,7 @@ export async function saveDecision(body) {
       kind: action === "request_changes" ? "revise_proposal" : "unblock_proposal",
       ref_id: id,
       note: decision.comment,
-      created_at: now
+      created_at: now,
     });
   }
   if (kind === "candidate" && action === "develop") {
@@ -63,7 +63,7 @@ export async function saveDecision(body) {
       kind: "draft_development_proposal",
       ref_id: id,
       note: decision.comment,
-      created_at: now
+      created_at: now,
     });
   }
   if (kind === "trend" && action === "promote") {
@@ -71,7 +71,7 @@ export async function saveDecision(body) {
       kind: "promote_to_candidate",
       ref_id: id,
       note: decision.comment,
-      created_at: now
+      created_at: now,
     });
   }
   return { ok: true, decision: { id, ...decision } };
@@ -82,7 +82,7 @@ async function enqueueAgentTask(entry) {
   const task = {
     task_id: `task-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     status: "queued",
-    ...entry
+    ...entry,
   };
   tasks.tasks.push(task);
   tasks.updated_at = entry.created_at;

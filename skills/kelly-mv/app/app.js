@@ -165,7 +165,12 @@ function go(view, id, replace = false) {
 // ---------------------------------------------------------------------------
 async function boot() {
   if (DEMO_SCENARIO && !location.hash) {
-    const demoRoutes = { overview: "#/concept", song: "#/song", cast: "#/cast/char-demo-dreamer", storyboard: "#/storyboard/shot-demo-01" };
+    const demoRoutes = {
+      overview: "#/concept",
+      song: "#/song",
+      cast: "#/cast/char-demo-dreamer",
+      storyboard: "#/storyboard/shot-demo-01",
+    };
     history.replaceState(null, "", demoRoutes[DEMO_SCENARIO] || "#/concept");
   }
   parseHash();

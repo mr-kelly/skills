@@ -21,7 +21,7 @@ function makeDaily(spends, cpc, cvr, aov) {
       impressions: clicks ? Math.round(clicks / 0.02) : 0,
       clicks,
       conversions,
-      revenue: round2(conversions * aov)
+      revenue: round2(conversions * aov),
     };
   });
 }
@@ -40,10 +40,34 @@ const campaigns = [
     currency: "USD",
     daily: makeDaily([24, 25, 26, 24, 27, 26, 25, 24, 26, 27, 25, 26, 27, 26], 0.9, 0.15, 25),
     targets: [
-      { target_id: "ex-term-good", type: "search_term", text: "example product", match_type: "broad", state: "enabled", spend_14d: 120.4, clicks: 130, conversions: 21, revenue: 525.0, cpc: 0.93, acos_pct: 22.9 },
-      { target_id: "ex-term-bad", type: "search_term", text: "example product, cheap", match_type: "broad", state: "enabled", spend_14d: 61.2, clicks: 70, conversions: 0, revenue: 0, cpc: 0.87, acos_pct: 0 }
+      {
+        target_id: "ex-term-good",
+        type: "search_term",
+        text: "example product",
+        match_type: "broad",
+        state: "enabled",
+        spend_14d: 120.4,
+        clicks: 130,
+        conversions: 21,
+        revenue: 525.0,
+        cpc: 0.93,
+        acos_pct: 22.9,
+      },
+      {
+        target_id: "ex-term-bad",
+        type: "search_term",
+        text: "example product, cheap",
+        match_type: "broad",
+        state: "enabled",
+        spend_14d: 61.2,
+        clicks: 70,
+        conversions: 0,
+        revenue: 0,
+        cpc: 0.87,
+        acos_pct: 0,
+      },
     ],
-    last_sync_at: now
+    last_sync_at: now,
   },
   {
     campaign_id: "meta-example-test",
@@ -58,10 +82,22 @@ const campaigns = [
     currency: "USD",
     daily: makeDaily([12, 13, 12, 14, 13, 12, 13, 14, 12, 13, 14, 13, 12, 13], 0.5, 0.05, 25),
     targets: [
-      { target_id: "ex-creative-1", type: "creative", text: "Example Reel v1", match_type: "", state: "enabled", spend_14d: 178.0, clicks: 356, conversions: 18, revenue: 450.0, cpc: 0.5, acos_pct: 39.6 }
+      {
+        target_id: "ex-creative-1",
+        type: "creative",
+        text: "Example Reel v1",
+        match_type: "",
+        state: "enabled",
+        spend_14d: 178.0,
+        clicks: 356,
+        conversions: 18,
+        revenue: 450.0,
+        cpc: 0.5,
+        acos_pct: 39.6,
+      },
     ],
-    last_sync_at: now
-  }
+    last_sync_at: now,
+  },
 ];
 
 const anomalies = [
@@ -76,8 +112,8 @@ const anomalies = [
     evidence: "USD 61.20 on 'example product, cheap' with 70 clicks and 0 orders in 14 days.",
     detected_at: now,
     first_seen_at: now,
-    adjustment_id: "adj-example-negative"
-  }
+    adjustment_id: "adj-example-negative",
+  },
 ];
 
 const adjustments = [
@@ -99,8 +135,8 @@ const adjustments = [
     note: "",
     created_at: now,
     decision: null,
-    execution: null
-  }
+    execution: null,
+  },
 ];
 
 const snapshot = {
@@ -112,17 +148,45 @@ const snapshot = {
   targets: { acos_target_pct: 25, roas_target: 4 },
   metrics: { spend_last_month: 1180.5 },
   platforms: [
-    { platform_id: "amazon", name: "Amazon Ads US", account_id: "ENTITY-EXAMPLE", status: "ok", currency: "USD", last_sync_at: now },
-    { platform_id: "meta", name: "Meta Ads", account_id: "act_000000000", status: "ok", currency: "USD", last_sync_at: now }
+    {
+      platform_id: "amazon",
+      name: "Amazon Ads US",
+      account_id: "ENTITY-EXAMPLE",
+      status: "ok",
+      currency: "USD",
+      last_sync_at: now,
+    },
+    {
+      platform_id: "meta",
+      name: "Meta Ads",
+      account_id: "act_000000000",
+      status: "ok",
+      currency: "USD",
+      last_sync_at: now,
+    },
   ],
   campaigns,
   anomalies,
   adjustments,
   sync_log: [
-    { sync_id: `sync-amazon-${now.slice(0, 10)}`, at: now, platform: "amazon", kind: "ingest", message: "Amazon Ads example report ingested: 1 campaign, 14 days.", rows: 14 },
-    { sync_id: `sync-meta-${now.slice(0, 10)}`, at: now, platform: "meta", kind: "ingest", message: "Meta Ads example report ingested: 1 campaign, 14 days.", rows: 14 }
+    {
+      sync_id: `sync-amazon-${now.slice(0, 10)}`,
+      at: now,
+      platform: "amazon",
+      kind: "ingest",
+      message: "Amazon Ads example report ingested: 1 campaign, 14 days.",
+      rows: 14,
+    },
+    {
+      sync_id: `sync-meta-${now.slice(0, 10)}`,
+      at: now,
+      platform: "meta",
+      kind: "ingest",
+      message: "Meta Ads example report ingested: 1 campaign, 14 days.",
+      rows: 14,
+    },
   ],
-  warnings: []
+  warnings: [],
 };
 
 recomputeDerived(snapshot, { targets: { default_acos_pct: 25 }, thresholds: { budget_risk_pct: 85 } });

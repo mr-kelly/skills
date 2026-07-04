@@ -33,7 +33,13 @@ async function readJson(file, fallback = null) {
 }
 
 function slugify(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9一-鿿]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 72) || "listing";
+  return (
+    String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9一-鿿]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 72) || "listing"
+  );
 }
 
 const lock = await readJson(lockPath);
@@ -53,7 +59,7 @@ const previousReport = await readJson(reportPath);
 const alreadyExecuted = new Set(
   (previousReport?.results || [])
     .filter((item) => item.status === "executed")
-    .map((item) => `${item.review_id}:${item.operation}`)
+    .map((item) => `${item.review_id}:${item.operation}`),
 );
 
 const draftsById = new Map((snapshot.drafts || []).map((draft) => [draft.draft_id, draft]));
@@ -73,7 +79,7 @@ function pushResult(item, operation, target, extra = {}) {
       operation,
       target,
       reason: "Already executed; skipping to stay idempotent.",
-      executed_at: now
+      executed_at: now,
     });
     return;
   }
@@ -85,7 +91,7 @@ function pushResult(item, operation, target, extra = {}) {
     operation,
     target,
     ...extra,
-    executed_at: now
+    executed_at: now,
   });
 }
 
@@ -96,18 +102,21 @@ for (const item of snapshot.review_items || []) {
   if (!draft) continue;
   const product = productsById.get(draft.product_id);
   if (decision.action === "approve") {
-    const exportTarget = path.join("exports", `${slugify(`${snapshot.seller?.brand || ""}-${product?.name || draft.product_id}-${draft.platform}-${draft.locale}`)}.md`);
+    const exportTarget = path.join(
+      "exports",
+      `${slugify(`${snapshot.seller?.brand || ""}-${product?.name || draft.product_id}-${draft.platform}-${draft.locale}`)}.md`,
+    );
     pushResult(item, "export_listing", exportTarget, {
-      detail: "Run scripts/export_listings.mjs to write the Markdown document and CSV row."
+      detail: "Run scripts/export_listings.mjs to write the Markdown document and CSV row.",
     });
     pushResult(item, "publish_via_api", `${draft.platform}:${draft.locale || ""}`, {
       handoff_to_agent: true,
-      detail: "Publishing via the platform API is executed by the agent outside the app, after approval."
+      detail: "Publishing via the platform API is executed by the agent outside the app, after approval.",
     });
   } else if (decision.action === "request_changes") {
     pushResult(item, "request_revision", draft.draft_id, {
       comment: decision.comment || "",
-      detail: "Queued in agent_tasks.json for the agent to redraft."
+      detail: "Queued in agent_tasks.json for the agent to redraft.",
     });
     revisionTasks.push({
       task_id: `task-${item.review_id}-${Date.parse(now)}`,
@@ -117,7 +126,7 @@ for (const item of snapshot.review_items || []) {
       ref: item.ref,
       comment: decision.comment || "",
       requested_at: decision.decided_at || now,
-      status: "queued"
+      status: "queued",
     });
   }
 }
@@ -128,7 +137,9 @@ if (!results.length) {
 }
 
 for (const result of results) {
-  console.log(`Draft #${result.ref} ${result.review_id}: ${result.status} ${result.operation}${result.target ? ` -> ${result.target}` : ""}`);
+  console.log(
+    `Draft #${result.ref} ${result.review_id}: ${result.status} ${result.operation}${result.target ? ` -> ${result.target}` : ""}`,
+  );
 }
 
 if (!apply) {
@@ -137,22 +148,27 @@ if (!apply) {
 }
 
 // Preserve executed history so repeated --apply runs stay idempotent.
-const freshlyExecuted = new Set(results.filter((item) => item.status === "executed").map((item) => `${item.review_id}:${item.operation}`));
+const freshlyExecuted = new Set(
+  results.filter((item) => item.status === "executed").map((item) => `${item.review_id}:${item.operation}`),
+);
 const carriedForward = (previousReport?.results || []).filter(
-  (item) => item.status === "executed" && !freshlyExecuted.has(`${item.review_id}:${item.operation}`)
+  (item) => item.status === "executed" && !freshlyExecuted.has(`${item.review_id}:${item.operation}`),
 );
 const carriedKeys = new Set(carriedForward.map((item) => `${item.review_id}:${item.operation}`));
 const report = {
   executed_at: now,
   dry_run: false,
   source: "kelly-listing",
-  results: [...carriedForward, ...results.filter((item) => !(item.status === "skipped" && carriedKeys.has(`${item.review_id}:${item.operation}`)))]
+  results: [
+    ...carriedForward,
+    ...results.filter((item) => !(item.status === "skipped" && carriedKeys.has(`${item.review_id}:${item.operation}`))),
+  ],
 };
 await fs.mkdir(dataDir, { recursive: true });
 await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
 
 if (revisionTasks.length) {
-  const tasks = (await readJson(agentTasksPath, { updated_at: "", tasks: [] }));
+  const tasks = await readJson(agentTasksPath, { updated_at: "", tasks: [] });
   for (const task of revisionTasks) {
     tasks.tasks = (tasks.tasks || []).filter((entry) => entry.review_id !== task.review_id);
     tasks.tasks.push(task);
@@ -161,4 +177,6 @@ if (revisionTasks.length) {
   await fs.writeFile(agentTasksPath, `${JSON.stringify(tasks, null, 2)}\n`);
   console.log(`Queued ${revisionTasks.length} revision task(s) in ${agentTasksPath}.`);
 }
-console.log(`Wrote ${reportPath}. Exporting is done by scripts/export_listings.mjs; publishing is delegated to the agent per SKILL.md.`);
+console.log(
+  `Wrote ${reportPath}. Exporting is done by scripts/export_listings.mjs; publishing is delegated to the agent per SKILL.md.`,
+);

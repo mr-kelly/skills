@@ -9,23 +9,23 @@ export const PLATFORM_FIELD_SHAPES = {
   amazon: {
     strings: ["title", "description", "search_terms"],
     arrays: ["bullets", "aplus_outline"],
-    default_required: ["title", "bullets", "description", "search_terms"]
+    default_required: ["title", "bullets", "description", "search_terms"],
   },
   shopify: {
     strings: ["title", "description", "seo_title", "seo_description"],
     arrays: [],
-    default_required: ["title", "description", "seo_title", "seo_description"]
+    default_required: ["title", "description", "seo_title", "seo_description"],
   },
   tiktok_shop: {
     strings: ["title"],
     arrays: ["selling_points"],
-    default_required: ["title", "selling_points"]
+    default_required: ["title", "selling_points"],
   },
   ebay: {
     strings: ["title", "subtitle", "description"],
     arrays: ["item_specifics"],
-    default_required: ["title", "description"]
-  }
+    default_required: ["title", "description"],
+  },
 };
 
 const DEFAULT_TITLE_CAPS = { amazon: 200, shopify: 70, tiktok_shop: 255, ebay: 80 };
@@ -42,7 +42,7 @@ const RULE_DEFS = [
   { rule_id: "seo_meta_length", severity: "warning", platforms: ["shopify"] },
   { rule_id: "all_caps_words", severity: "warning", platforms: PLATFORMS },
   { rule_id: "keyword_stuffing", severity: "warning", platforms: PLATFORMS },
-  { rule_id: "image_checklist", severity: "warning", platforms: PLATFORMS }
+  { rule_id: "image_checklist", severity: "warning", platforms: PLATFORMS },
 ];
 
 const RULE_NAMES = {
@@ -57,7 +57,7 @@ const RULE_NAMES = {
     seo_meta_length: "SEO meta within limits",
     all_caps_words: "No shouting all-caps words",
     keyword_stuffing: "No keyword stuffing",
-    image_checklist: "Image checklist complete"
+    image_checklist: "Image checklist complete",
   },
   zh: {
     required_fields: "必填字段完整",
@@ -70,8 +70,8 @@ const RULE_NAMES = {
     seo_meta_length: "SEO 元信息长度达标",
     all_caps_words: "不含全大写喊话词",
     keyword_stuffing: "无关键词堆砌",
-    image_checklist: "图片清单齐备"
-  }
+    image_checklist: "图片清单齐备",
+  },
 };
 
 const EVIDENCE = {
@@ -100,7 +100,7 @@ const EVIDENCE = {
     stuffing_found: (kw, n, max) => `"${kw}" appears ${n} times in title and bullets (threshold ${max}).`,
     images_ok: (n) => `All ${n} checklist images are ready.`,
     images_missing: (names) => `Image checklist incomplete: ${names.join(", ")}.`,
-    images_none: () => "No image checklist defined for this product."
+    images_none: () => "No image checklist defined for this product.",
   },
   zh: {
     fields_ok: (fields) => `必填字段齐全：${fields.join("、")}。`,
@@ -127,8 +127,8 @@ const EVIDENCE = {
     stuffing_found: (kw, n, max) => `"${kw}" 在标题与五点中出现 ${n} 次（阈值 ${max}）。`,
     images_ok: (n) => `${n} 张清单图片全部就绪。`,
     images_missing: (names) => `图片清单未完成：${names.join("、")}。`,
-    images_none: () => "该产品还没有图片清单。"
-  }
+    images_none: () => "该产品还没有图片清单。",
+  },
 };
 
 export function ruleCatalog(config = {}, lang = "en") {
@@ -138,11 +138,11 @@ export function ruleCatalog(config = {}, lang = "en") {
     rule_id: rule.rule_id,
     name: overrides[rule.rule_id] || names[rule.rule_id] || rule.rule_id,
     severity: rule.severity,
-    platforms: rule.platforms
+    platforms: rule.platforms,
   }));
 }
 
-export function platformRules(config = {}, platform) {
+export function platformRules(config, platform) {
   const entry = (config.platforms || []).find((item) => item.platform === platform);
   return entry?.rules || {};
 }
@@ -152,6 +152,7 @@ function chars(value) {
 }
 
 function isAscii(value) {
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional ASCII-range (\x00-\x7f) test
   return /^[\x00-\x7f]+$/.test(value);
 }
 
@@ -188,7 +189,7 @@ function textCorpus(fields = {}) {
     fields.seo_description,
     ...(fields.selling_points || []),
     ...(fields.aplus_outline || []),
-    ...(fields.item_specifics || []).map((item) => `${item.name || ""} ${item.value || ""}`)
+    ...(fields.item_specifics || []).map((item) => `${item.name || ""} ${item.value || ""}`),
   ];
   return parts.filter(Boolean).map(String).join("\n");
 }
@@ -221,44 +222,73 @@ export function evaluateDraft(draft, product, config = {}, lang = "en") {
       case "required_fields": {
         const required = rules.required_fields || shape.default_required;
         const missing = required.filter((key) => !fieldPresent(fields, key));
-        push("required_fields", missing.length ? "fail" : "pass", missing.length ? say.fields_missing(missing) : say.fields_ok(required));
+        push(
+          "required_fields",
+          missing.length ? "fail" : "pass",
+          missing.length ? say.fields_missing(missing) : say.fields_ok(required),
+        );
         break;
       }
       case "title_length": {
         const max = Number(rules.title_max_chars) || DEFAULT_TITLE_CAPS[platform] || 200;
         const length = chars(fields.title);
         if (!length) push("title_length", "fail", say.title_missing());
-        else push("title_length", length > max ? "fail" : "pass", length > max ? say.title_over(length, max) : say.title_ok(length, max));
+        else
+          push(
+            "title_length",
+            length > max ? "fail" : "pass",
+            length > max ? say.title_over(length, max) : say.title_ok(length, max),
+          );
         break;
       }
       case "banned_words": {
         const words = [...(config.banned_words || []), ...(rules.extra_banned_words || [])];
         const hits = words.filter((word) => containsTerm(corpus, word));
-        push("banned_words", hits.length ? "fail" : "pass", hits.length ? say.banned_found(hits.map((hit) => `"${hit}"`)) : say.banned_ok());
+        push(
+          "banned_words",
+          hits.length ? "fail" : "pass",
+          hits.length ? say.banned_found(hits.map((hit) => `"${hit}"`)) : say.banned_ok(),
+        );
         break;
       }
       case "competitor_brands": {
         const brands = config.competitor_brands || [];
         const hits = brands.filter((brand) => containsTerm(corpus, brand));
-        push("competitor_brands", hits.length ? "fail" : "pass", hits.length ? say.competitor_found(hits) : say.competitor_ok());
+        push(
+          "competitor_brands",
+          hits.length ? "fail" : "pass",
+          hits.length ? say.competitor_found(hits) : say.competitor_ok(),
+        );
         break;
       }
       case "bullet_count": {
         const expected = Number(rules.bullets_exact) || 5;
         const count = (fields.bullets || []).filter((bullet) => String(bullet).trim()).length;
-        push("bullet_count", count === expected ? "pass" : "fail", count === expected ? say.bullets_ok(count) : say.bullets_bad(count, expected));
+        push(
+          "bullet_count",
+          count === expected ? "pass" : "fail",
+          count === expected ? say.bullets_ok(count) : say.bullets_bad(count, expected),
+        );
         break;
       }
       case "search_terms_bytes": {
         const max = Number(rules.search_terms_max_bytes) || 249;
         const bytes = Buffer.byteLength(String(fields.search_terms || ""), "utf8");
-        push("search_terms_bytes", bytes > max ? "fail" : "pass", bytes > max ? say.bytes_over(bytes, max) : say.bytes_ok(bytes, max));
+        push(
+          "search_terms_bytes",
+          bytes > max ? "fail" : "pass",
+          bytes > max ? say.bytes_over(bytes, max) : say.bytes_ok(bytes, max),
+        );
         break;
       }
       case "selling_points_count": {
         const min = Number(rules.min_selling_points) || 3;
         const count = (fields.selling_points || []).filter((point) => String(point).trim()).length;
-        push("selling_points_count", count >= min ? "pass" : "fail", count >= min ? say.points_ok(count) : say.points_low(count, min));
+        push(
+          "selling_points_count",
+          count >= min ? "pass" : "fail",
+          count >= min ? say.points_ok(count) : say.points_low(count, min),
+        );
         break;
       }
       case "seo_meta_length": {
@@ -282,21 +312,31 @@ export function evaluateDraft(draft, product, config = {}, lang = "en") {
         break;
       }
       case "all_caps_words": {
-        const allowed = new Set([...(config.allowed_all_caps || []), ...DEFAULT_ALLOWED_ALL_CAPS].map((word) => word.toUpperCase()));
-        const visible = [fields.title, fields.subtitle, ...(fields.bullets || []), ...(fields.selling_points || [])].filter(Boolean).join("\n");
+        const allowed = new Set(
+          [...(config.allowed_all_caps || []), ...DEFAULT_ALLOWED_ALL_CAPS].map((word) => word.toUpperCase()),
+        );
+        const visible = [fields.title, fields.subtitle, ...(fields.bullets || []), ...(fields.selling_points || [])]
+          .filter(Boolean)
+          .join("\n");
         const hits = [...new Set((visible.match(/\b[A-Z]{3,}\b/g) || []).filter((word) => !allowed.has(word)))];
         push("all_caps_words", hits.length ? "warn" : "pass", hits.length ? say.caps_found(hits) : say.caps_ok());
         break;
       }
       case "keyword_stuffing": {
         const max = Number(config.keyword_stuffing?.max_repeats) || 3;
-        const visible = [fields.title, ...(fields.bullets || []), ...(fields.selling_points || [])].filter(Boolean).join("\n");
+        const visible = [fields.title, ...(fields.bullets || []), ...(fields.selling_points || [])]
+          .filter(Boolean)
+          .join("\n");
         let worst = null;
         for (const keyword of product?.keywords || []) {
           const count = countTerm(visible, keyword);
           if (count > max && (!worst || count > worst.count)) worst = { keyword, count };
         }
-        push("keyword_stuffing", worst ? "warn" : "pass", worst ? say.stuffing_found(worst.keyword, worst.count, max) : say.stuffing_ok());
+        push(
+          "keyword_stuffing",
+          worst ? "warn" : "pass",
+          worst ? say.stuffing_found(worst.keyword, worst.count, max) : say.stuffing_ok(),
+        );
         break;
       }
       case "image_checklist": {
@@ -308,7 +348,9 @@ export function evaluateDraft(draft, product, config = {}, lang = "en") {
           push(
             "image_checklist",
             pending.length ? "warn" : "pass",
-            pending.length ? say.images_missing(pending.map((image) => `${image.name} (${image.status})`)) : say.images_ok(images.length)
+            pending.length
+              ? say.images_missing(pending.map((image) => `${image.name} (${image.status})`))
+              : say.images_ok(images.length),
           );
         }
         break;
@@ -346,7 +388,11 @@ export function computeMetrics(snapshot) {
     drafts_approved: drafts.filter((draft) => ["approved", "done"].includes(draft.status)).length,
     drafts_in_revision: drafts.filter((draft) => draft.status === "changes_requested").length,
     checks_failed: checks.filter((check) => check.result === "fail").length,
-    compliance_pass_rate: Math.round((resolved.filter((check) => check.result === "pass").length / Math.max(1, resolved.length)) * 100),
-    exported_this_week: drafts.filter((draft) => draft.status === "done" && Date.parse(draft.updated_at || 0) >= weekAgo).length
+    compliance_pass_rate: Math.round(
+      (resolved.filter((check) => check.result === "pass").length / Math.max(1, resolved.length)) * 100,
+    ),
+    exported_this_week: drafts.filter(
+      (draft) => draft.status === "done" && Date.parse(draft.updated_at || 0) >= weekAgo,
+    ).length,
   };
 }

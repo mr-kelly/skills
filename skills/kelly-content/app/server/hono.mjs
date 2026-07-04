@@ -28,7 +28,8 @@ export const app = new Hono();
 // ---- API ----
 app.get("/api/state", async (c) => {
   const query = searchParams(c);
-  return c.json(isDemoQuery(query) ? demoState(query) : await provider.getState());
+  const state = isDemoQuery(query) ? demoState(query) : await provider.getState();
+  return c.json({ app: "kelly-content", ...state });
 });
 
 app.post("/api/decision", async (c) => {

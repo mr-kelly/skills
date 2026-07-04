@@ -58,7 +58,9 @@ if (!snapshot) {
 
 const { config, path: configPath } = await readConfig();
 if (!Array.isArray(config.platforms) || !config.platforms.length) {
-  console.error(`No platforms[] rule sets found in config (${configPath || "no config file"}). Add them to config.local.json.`);
+  console.error(
+    `No platforms[] rule sets found in config (${configPath || "no config file"}). Add them to config.local.json.`,
+  );
   process.exit(1);
 }
 
@@ -86,7 +88,7 @@ for (const draft of snapshot.drafts || []) {
       severity: result.severity,
       result: result.result,
       evidence: result.evidence,
-      checked_at: now
+      checked_at: now,
     });
   }
   draft.compliance_score = scoreChecks(checks.filter((check) => check.draft_id === draft.draft_id));
@@ -100,5 +102,7 @@ snapshot.generated_at = now;
 await fs.writeFile(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
 const failCount = checks.filter((check) => check.result === "fail").length;
 const warnCount = checks.filter((check) => check.result === "warn").length;
-console.log(`Checked ${(snapshot.drafts || []).length} draft(s): ${failCount} fail, ${warnCount} warn, pass rate ${snapshot.metrics.compliance_pass_rate}%.`);
+console.log(
+  `Checked ${(snapshot.drafts || []).length} draft(s): ${failCount} fail, ${warnCount} warn, pass rate ${snapshot.metrics.compliance_pass_rate}%.`,
+);
 console.log(`Wrote ${snapshotPath}`);

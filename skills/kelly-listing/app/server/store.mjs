@@ -8,7 +8,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -74,7 +74,7 @@ export async function applyDecision(payload = {}) {
     action,
     comment: String(payload.comment || ""),
     fields: payload.fields && typeof payload.fields === "object" ? payload.fields : undefined,
-    decided_at: now
+    decided_at: now,
   };
   decisions.updated_at = now;
   await writeJson(DECISIONS_PATH, decisions);
@@ -89,7 +89,7 @@ export async function applyDecision(payload = {}) {
       ref: item.ref,
       comment: String(payload.comment || ""),
       requested_at: now,
-      status: "queued"
+      status: "queued",
     });
   }
   tasks.updated_at = now;
@@ -112,7 +112,7 @@ export function emptySnapshot() {
       drafts_in_revision: 0,
       checks_failed: 0,
       compliance_pass_rate: 0,
-      exported_this_week: 0
+      exported_this_week: 0,
     },
     products: [],
     drafts: [],
@@ -124,9 +124,10 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No listing snapshot exists yet. Ingest product source material, or ask the agent to draft listings from a kelly-picks brief."
-      }
-    ]
+        message:
+          "No listing snapshot exists yet. Ingest product source material, or ask the agent to draft listings from a kelly-picks brief.",
+      },
+    ],
   };
 }
 
@@ -189,27 +190,27 @@ export function summarizeConfig(configResult) {
     seller: {
       brand: seller.brand || "",
       entity: seller.entity || "",
-      tone: seller.tone || ""
+      tone: seller.tone || "",
     },
     locales: Array.isArray(config.locales) ? config.locales : [],
     platforms: (Array.isArray(config.platforms) ? config.platforms : []).map((entry) => ({
       platform: entry.platform || "",
       enabled: entry.enabled !== false,
       locales: Array.isArray(entry.locales) ? entry.locales : [],
-      rules: entry.rules || {}
+      rules: entry.rules || {},
     })),
     banned_words_count: Array.isArray(config.banned_words) ? config.banned_words.length : 0,
     competitor_brands_count: Array.isArray(config.competitor_brands) ? config.competitor_brands.length : 0,
     keyword_stuffing: { max_repeats: Number(config.keyword_stuffing?.max_repeats) || 3 },
     export: {
       format: exportPrefs.format || "markdown+csv",
-      out_dir: exportPrefs.out_dir || "exports"
+      out_dir: exportPrefs.out_dir || "exports",
     },
     publish: {
       handoff_to_agent: publish.handoff_to_agent ?? true,
       requires_approval: publish.requires_approval ?? true,
       secret_envs: secretKeys.map((key) => publish[key]),
-      secrets_ready: secretKeys.every((key) => Boolean(process.env[publish[key]]))
-    }
+      secrets_ready: secretKeys.every((key) => Boolean(process.env[publish[key]])),
+    },
   };
 }

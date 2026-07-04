@@ -35,11 +35,7 @@
       "active": true
     }
   ],
-  "standup_questions": [
-    "What did you finish yesterday?",
-    "What will you do today?",
-    "Anything blocking you?"
-  ],
+  "standup_questions": ["What did you finish yesterday?", "What will you do today?", "Anything blocking you?"],
   "digest": {
     "style": "concise",
     "language": "auto"

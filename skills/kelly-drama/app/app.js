@@ -171,7 +171,12 @@ async function load() {
   state = await api("/api/state");
   imageConfig = await api("/api/image-config").catch(() => null);
   if (DEMO_SCENARIO && !window.location.hash) {
-    const demoRoutes = { overview: "/overview", characters: "/characters", relationships: "/relationships", episodes: "/episodes" };
+    const demoRoutes = {
+      overview: "/overview",
+      characters: "/characters",
+      relationships: "/relationships",
+      episodes: "/episodes",
+    };
     history.replaceState(null, "", `#${demoRoutes[DEMO_SCENARIO] || "/overview"}`);
   }
   applyRouteFromHash({ replaceEmpty: true });

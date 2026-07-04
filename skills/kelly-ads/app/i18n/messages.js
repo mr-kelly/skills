@@ -124,14 +124,14 @@ export const messages = {
         executed: "executed",
         planned: "planned",
         enabled: "enabled",
-        negative: "negative"
+        negative: "negative",
       },
       type: {
         acos_breach: "ACOS breach",
         budget_exhausted: "budget exhausted",
         zero_conversion_spend: "zero-conversion spend",
         cpc_spike: "CPC spike",
-        rejected: "rejected"
+        rejected: "rejected",
       },
       adjtype: {
         negative_keyword: "negative keyword",
@@ -139,26 +139,26 @@ export const messages = {
         bid_up: "bid up",
         pause_target: "pause target",
         budget_shift: "budget shift",
-        creative_refresh: "creative refresh"
+        creative_refresh: "creative refresh",
       },
       targettype: {
         search_term: "search term",
         audience: "audience",
         creative: "creative",
-        asset_group: "asset group"
+        asset_group: "asset group",
       },
       kind: {
         ingest: "ingest",
         checks: "checks",
-        execution: "execution"
+        execution: "execution",
       },
       platform: {
         amazon: "Amazon",
         meta: "Meta",
         tiktok: "TikTok",
-        google: "Google"
-      }
-    }
+        google: "Google",
+      },
+    },
   },
   zh: {
     accountId: "账户 ID",
@@ -285,14 +285,14 @@ export const messages = {
         executed: "已执行",
         planned: "已计划",
         enabled: "投放中",
-        negative: "已否定"
+        negative: "已否定",
       },
       type: {
         acos_breach: "ACOS 超标",
         budget_exhausted: "预算耗尽",
         zero_conversion_spend: "零转化花费",
         cpc_spike: "CPC 飙升",
-        rejected: "素材被拒"
+        rejected: "素材被拒",
       },
       adjtype: {
         negative_keyword: "否定关键词",
@@ -300,25 +300,25 @@ export const messages = {
         bid_up: "提高出价",
         pause_target: "暂停对象",
         budget_shift: "预算转移",
-        creative_refresh: "更换素材"
+        creative_refresh: "更换素材",
       },
       targettype: {
         search_term: "搜索词",
         audience: "受众",
         creative: "素材",
-        asset_group: "素材组"
+        asset_group: "素材组",
       },
       kind: {
         ingest: "导入",
         checks: "检查",
-        execution: "执行"
+        execution: "执行",
       },
       platform: {
         amazon: "Amazon",
         meta: "Meta",
         tiktok: "TikTok",
-        google: "Google"
-      }
-    }
-  }
+        google: "Google",
+      },
+    },
+  },
 };

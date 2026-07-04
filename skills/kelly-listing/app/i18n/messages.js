@@ -121,49 +121,49 @@ export const messages = {
         changes_requested: "changes requested",
         approved: "approved",
         done: "done",
-        blocked: "blocked"
+        blocked: "blocked",
       },
       result: {
         pass: "pass",
         warn: "warn",
-        fail: "fail"
+        fail: "fail",
       },
       severity: {
         error: "error",
-        warning: "warning"
+        warning: "warning",
       },
       source: {
         manual: "manual",
-        kelly_picks: "kelly-picks"
+        kelly_picks: "kelly-picks",
       },
       platform: {
         amazon: "Amazon",
         shopify: "Shopify",
         tiktok_shop: "TikTok Shop",
-        ebay: "eBay"
+        ebay: "eBay",
       },
       image: {
         ready: "ready",
         missing: "missing",
-        needs_edit: "needs edit"
+        needs_edit: "needs edit",
       },
       cell: {
         none: "—",
         draft: "draft",
         approved: "approved",
-        exported: "exported"
+        exported: "exported",
       },
       actor: {
         agent: "agent",
-        seller: "seller"
+        seller: "seller",
       },
       action: {
         approve: "approve",
         request_changes: "request changes",
         block: "block",
-        revise: "revise"
-      }
-    }
+        revise: "revise",
+      },
+    },
   },
   zh: {
     activities: "近期动态",
@@ -287,48 +287,48 @@ export const messages = {
         changes_requested: "已要求修改",
         approved: "已批准",
         done: "已完成",
-        blocked: "已拦截"
+        blocked: "已拦截",
       },
       result: {
         pass: "通过",
         warn: "提醒",
-        fail: "未通过"
+        fail: "未通过",
       },
       severity: {
         error: "错误",
-        warning: "警告"
+        warning: "警告",
       },
       source: {
         manual: "手动录入",
-        kelly_picks: "kelly-picks"
+        kelly_picks: "kelly-picks",
       },
       platform: {
         amazon: "Amazon",
         shopify: "Shopify",
         tiktok_shop: "TikTok Shop",
-        ebay: "eBay"
+        ebay: "eBay",
       },
       image: {
         ready: "已就绪",
         missing: "缺失",
-        needs_edit: "待修图"
+        needs_edit: "待修图",
       },
       cell: {
         none: "—",
         draft: "草稿",
         approved: "已批准",
-        exported: "已导出"
+        exported: "已导出",
       },
       actor: {
         agent: "代理",
-        seller: "卖家"
+        seller: "卖家",
       },
       action: {
         approve: "批准",
         request_changes: "要求修改",
         block: "拦截",
-        revise: "修订"
-      }
-    }
-  }
+        revise: "修订",
+      },
+    },
+  },
 };
