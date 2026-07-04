@@ -1,5 +1,5 @@
-import { readJson, pathExists } from "./utils.mjs";
 import { LOCK_PATH } from "./paths.mjs";
+import { pathExists, readJson } from "./utils.mjs";
 
 const DEFAULT_MESSAGE = "/kelly-email is processing this batch.";
 

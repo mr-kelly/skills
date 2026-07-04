@@ -6,7 +6,14 @@ import fs from "node:fs/promises";
 
 const target = process.argv[2] || new URL("../app/.data/audit_snapshot.json", import.meta.url).pathname;
 
-const RULES = new Set(["missing_invoice", "amount_mismatch", "overdue_receivable", "duplicate", "unmatched_payment", "irregular_entry"]);
+const RULES = new Set([
+  "missing_invoice",
+  "amount_mismatch",
+  "overdue_receivable",
+  "duplicate",
+  "unmatched_payment",
+  "irregular_entry",
+]);
 const SEVERITIES = new Set(["low", "medium", "high"]);
 const WORKFLOW_STATUSES = new Set(["needs_review", "changes_requested", "approved", "done", "blocked"]);
 const INVOICE_STATUSES = new Set(["open", "partial", "paid", "overdue", "credit_note"]);
@@ -14,6 +21,10 @@ const ORDER_INVOICE_STATUSES = new Set(["invoiced", "missing", "mismatch"]);
 const ORDER_PAYMENT_STATUSES = new Set(["paid", "partial", "unpaid"]);
 const PROPOSED_ACTIONS = new Set(["chase_receivable", "reissue_invoice", "flag_to_accountant"]);
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -51,8 +62,16 @@ requireString(snapshot, "source", "root");
 requireString(snapshot, "base_currency", "root");
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
 for (const key of [
-  "order_count", "invoice_count", "payment_count", "matched_payment_count", "matched_pct",
-  "anomaly_count", "open_anomaly_count", "at_stake_total", "receivable_total", "overdue_receivable_total"
+  "order_count",
+  "invoice_count",
+  "payment_count",
+  "matched_payment_count",
+  "matched_pct",
+  "anomaly_count",
+  "open_anomaly_count",
+  "at_stake_total",
+  "receivable_total",
+  "overdue_receivable_total",
 ]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
@@ -72,12 +91,22 @@ const orderNos = new Set();
 snapshot.orders.forEach((order, index) => {
   const path = `root.orders[${index}]`;
   if (!isObject(order)) fail(`${path} must be an object`);
-  for (const key of ["order_id", "order_no", "customer", "order_date", "currency", "invoice_status", "payment_status"]) {
+  for (const key of [
+    "order_id",
+    "order_no",
+    "customer",
+    "order_date",
+    "currency",
+    "invoice_status",
+    "payment_status",
+  ]) {
     requireString(order, key, path);
   }
   requireNumber(order, "amount", path);
-  if (!ORDER_INVOICE_STATUSES.has(order.invoice_status)) fail(`${path}.invoice_status invalid: ${order.invoice_status}`);
-  if (!ORDER_PAYMENT_STATUSES.has(order.payment_status)) fail(`${path}.payment_status invalid: ${order.payment_status}`);
+  if (!ORDER_INVOICE_STATUSES.has(order.invoice_status))
+    fail(`${path}.invoice_status invalid: ${order.invoice_status}`);
+  if (!ORDER_PAYMENT_STATUSES.has(order.payment_status))
+    fail(`${path}.payment_status invalid: ${order.payment_status}`);
   for (const key of ["invoice_ids", "payment_ids", "anomaly_ids"]) {
     if (!Array.isArray(order[key])) fail(`${path}.${key} must be an array`);
   }
@@ -115,7 +144,8 @@ snapshot.payments.forEach((payment, index) => {
     requireString(payment, key, path);
   }
   requireNumber(payment, "amount", path);
-  if (!["matched", "unmatched"].includes(payment.match_status)) fail(`${path}.match_status invalid: ${payment.match_status}`);
+  if (!["matched", "unmatched"].includes(payment.match_status))
+    fail(`${path}.match_status invalid: ${payment.match_status}`);
   if (payment.match_status === "matched" && !invoiceIds.has(payment.invoice_id)) {
     fail(`${path}.invoice_id does not match an invoice: ${payment.invoice_id}`);
   }
@@ -137,7 +167,17 @@ const refs = new Set();
 snapshot.anomalies.forEach((anomaly, index) => {
   const path = `root.anomalies[${index}]`;
   if (!isObject(anomaly)) fail(`${path} must be an object`);
-  for (const key of ["id", "rule", "severity", "status", "title", "reason", "proposed_action", "currency", "created_at"]) {
+  for (const key of [
+    "id",
+    "rule",
+    "severity",
+    "status",
+    "title",
+    "reason",
+    "proposed_action",
+    "currency",
+    "created_at",
+  ]) {
     requireString(anomaly, key, path);
   }
   requireNumber(anomaly, "ref", path);
@@ -145,7 +185,8 @@ snapshot.anomalies.forEach((anomaly, index) => {
   if (!RULES.has(anomaly.rule)) fail(`${path}.rule invalid: ${anomaly.rule}`);
   if (!SEVERITIES.has(anomaly.severity)) fail(`${path}.severity invalid: ${anomaly.severity}`);
   if (!WORKFLOW_STATUSES.has(anomaly.status)) fail(`${path}.status invalid: ${anomaly.status}`);
-  if (!PROPOSED_ACTIONS.has(anomaly.proposed_action)) fail(`${path}.proposed_action invalid: ${anomaly.proposed_action}`);
+  if (!PROPOSED_ACTIONS.has(anomaly.proposed_action))
+    fail(`${path}.proposed_action invalid: ${anomaly.proposed_action}`);
   if (!isObject(anomaly.evidence)) fail(`${path}.evidence must be an object`);
   if (!Array.isArray(anomaly.evidence.rows)) fail(`${path}.evidence.rows must be an array`);
   if (!Array.isArray(anomaly.evidence.payment_ids)) fail(`${path}.evidence.payment_ids must be an array`);

@@ -22,9 +22,10 @@ async function readJson(file, fallback = null) {
   }
 }
 
-const config = (await readJson(path.join(skillDir, "config.local.json")))
-  || (await readJson(path.join(skillDir, "config.example.json")))
-  || {};
+const config =
+  (await readJson(path.join(skillDir, "config.local.json"))) ||
+  (await readJson(path.join(skillDir, "config.example.json"))) ||
+  {};
 
 const products = [
   {
@@ -38,17 +39,17 @@ const products = [
     locales: ["US"],
     specs: [
       { name: "Material", value: "18/8 stainless steel" },
-      { name: "Capacity", value: "750 ml" }
+      { name: "Capacity", value: "750 ml" },
     ],
     features: ["Keeps drinks cold 24h", "Leakproof sport cap"],
     keywords: ["insulated water bottle", "stainless steel bottle"],
     images: [
       { name: "Main image on white", status: "ready" },
-      { name: "Lifestyle: gym", status: "ready" }
+      { name: "Lifestyle: gym", status: "ready" },
     ],
     notes: "",
     created_at: now,
-    updated_at: now
+    updated_at: now,
   },
   {
     product_id: "prod-example-mat",
@@ -65,8 +66,8 @@ const products = [
     images: [{ name: "Main image on white", status: "missing" }],
     notes: "Sample kelly-picks handoff.",
     created_at: now,
-    updated_at: now
-  }
+    updated_at: now,
+  },
 ];
 
 const drafts = [
@@ -81,20 +82,23 @@ const drafts = [
     compliance_score: 0,
     keyword_strategy: "Lead with 'insulated water bottle'; capacity and cap type as differentiators.",
     fields: {
-      title: "Example Brand Insulated Water Bottle, 750ml Stainless Steel Sports Bottle with Leakproof Cap, Keeps Drinks Cold 24 Hours, BPA-Free for Gym Travel Office",
+      title:
+        "Example Brand Insulated Water Bottle, 750ml Stainless Steel Sports Bottle with Leakproof Cap, Keeps Drinks Cold 24 Hours, BPA-Free for Gym Travel Office",
       bullets: [
         "Cold for a full day: double-wall vacuum insulation keeps water iced for 24 hours.",
         "Leakproof sport cap: one-hand open, silicone seal, carry loop.",
         "18/8 stainless steel inside and out — no metal aftertaste.",
         "Fits car cup holders and most bike cages at 7.3 cm diameter.",
-        "Dishwasher-safe cap; hand-wash body to protect the finish."
+        "Dishwasher-safe cap; hand-wash body to protect the finish.",
       ],
-      description: "The Example Brand insulated bottle keeps 750 ml of water cold through a workday and then some. Double-wall vacuum insulation, a leakproof one-hand sport cap, and food-grade 18/8 stainless steel.",
-      search_terms: "insulated water bottle stainless steel vacuum flask sports gym travel leak proof cold 24 hours bpa free",
-      aplus_outline: ["Hero: 24h ice test", "Module: cap mechanism"]
+      description:
+        "The Example Brand insulated bottle keeps 750 ml of water cold through a workday and then some. Double-wall vacuum insulation, a leakproof one-hand sport cap, and food-grade 18/8 stainless steel.",
+      search_terms:
+        "insulated water bottle stainless steel vacuum flask sports gym travel leak proof cold 24 hours bpa free",
+      aplus_outline: ["Hero: 24h ice test", "Module: cap mechanism"],
     },
     created_at: now,
-    updated_at: now
+    updated_at: now,
   },
   {
     draft_id: "d-example-mat-amazon-us",
@@ -112,14 +116,14 @@ const drafts = [
         "Absorbs a full rack of drips in one go, guaranteed to keep counters dry.",
         "Microfiber dries fast and resists odors between washes.",
         "Machine washable — toss it in with the towels.",
-        "Rolls up to store in any drawer."
+        "Rolls up to store in any drawer.",
       ],
       description: "A sample failing draft used to demonstrate the compliance checks.",
       search_terms: "dish drying mat kitchen counter microfiber absorbent machine washable",
-      aplus_outline: []
+      aplus_outline: [],
     },
     created_at: now,
-    updated_at: now
+    updated_at: now,
   },
   {
     draft_id: "d-example-bottle-shopify-us",
@@ -135,11 +139,12 @@ const drafts = [
       title: "Insulated Water Bottle — 750ml Stainless Steel",
       description: "Keeps drinks cold for 24 hours. Leakproof one-hand sport cap, 18/8 stainless steel, BPA-free.",
       seo_title: "Insulated Water Bottle 750ml | Example Brand",
-      seo_description: "Double-wall insulated stainless steel bottle. Cold for 24 hours, leakproof sport cap. Free shipping over $35."
+      seo_description:
+        "Double-wall insulated stainless steel bottle. Cold for 24 hours, leakproof sport cap. Free shipping over $35.",
     },
     created_at: now,
-    updated_at: now
-  }
+    updated_at: now,
+  },
 ];
 
 const productsById = new Map(products.map((product) => [product.product_id, product]));
@@ -153,7 +158,7 @@ for (const draft of drafts) {
       severity: result.severity,
       result: result.result,
       evidence: result.evidence,
-      checked_at: now
+      checked_at: now,
     });
   }
   draft.compliance_score = scoreChecks(checks.filter((check) => check.draft_id === draft.draft_id));
@@ -168,7 +173,7 @@ const review_items = drafts.map((draft) => ({
     ? "Some checks fail — see the compliance panel."
     : "All checks pass.",
   suggestions: [],
-  created_at: now
+  created_at: now,
 }));
 
 const snapshot = {
@@ -177,7 +182,7 @@ const snapshot = {
   source: "kelly-listing-sample",
   seller: {
     brand: config.seller?.brand || "Example Brand",
-    entity: config.seller?.entity || "Example Trading Co."
+    entity: config.seller?.entity || "Example Trading Co.",
   },
   metrics: {},
   products,
@@ -185,10 +190,8 @@ const snapshot = {
   rules: ruleCatalog(config, "en"),
   checks,
   review_items,
-  activity_log: [
-    { id: "act-sample-1", at: now, actor: "agent", detail: "Generated sample snapshot.", draft_id: "" }
-  ],
-  warnings: []
+  activity_log: [{ id: "act-sample-1", at: now, actor: "agent", detail: "Generated sample snapshot.", draft_id: "" }],
+  warnings: [],
 };
 snapshot.metrics = computeMetrics(snapshot);
 

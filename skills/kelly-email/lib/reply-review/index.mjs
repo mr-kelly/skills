@@ -25,8 +25,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createLocalReplyStore } from "./local-reply-store.mjs";
 import { createBusabaseReplyStore } from "./busabase-reply-store.mjs";
+import { createLocalReplyStore } from "./local-reply-store.mjs";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
@@ -53,12 +53,8 @@ async function loadConfig() {
 export async function createReplyReviewStore() {
   const meta = await loadConfig();
   meta.skillDir = skillDir;
-  const kind = String(
-    process.env.KELLY_EMAIL_REPLY_PROVIDER || meta.config.reply_provider || "local",
-  ).toLowerCase();
+  const kind = String(process.env.KELLY_EMAIL_REPLY_PROVIDER || meta.config.reply_provider || "local").toLowerCase();
   if (kind === "local") return createLocalReplyStore(meta);
   if (kind === "busabase") return createBusabaseReplyStore(meta);
-  throw new Error(
-    `Unknown KELLY_EMAIL_REPLY_PROVIDER: "${kind}" (expected "local" or "busabase")`,
-  );
+  throw new Error(`Unknown KELLY_EMAIL_REPLY_PROVIDER: "${kind}" (expected "local" or "busabase")`);
 }

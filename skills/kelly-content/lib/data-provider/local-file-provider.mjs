@@ -7,14 +7,8 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import {
-  currentBatchPath,
-  decisionsPath,
-  exportReportPath,
-  exportsDir,
-  lockPath,
-} from "../paths.mjs";
 import { ensureDirs, readJson, slugify, withLock, writeJson } from "../common.mjs";
+import { currentBatchPath, decisionsPath, exportReportPath, exportsDir, lockPath } from "../paths.mjs";
 
 const AGENT_TASKS_PATH = path.join(path.dirname(currentBatchPath), "agent_tasks.json");
 
@@ -51,11 +45,13 @@ export function createLocalFileProvider(meta = {}) {
 
     async saveDecision(payload) {
       if (await readJson(lockPath, null)) {
+        /** @type {any} */
         const error = new Error("Content files are locked while the agent is writing.");
         error.statusCode = 423;
         throw error;
       }
       if (!payload || !payload.id) {
+        /** @type {any} */
         const error = new Error("missing id");
         error.statusCode = 400;
         throw error;
@@ -86,17 +82,20 @@ export function createLocalFileProvider(meta = {}) {
 
     async confirmDirection(payload) {
       if (await readJson(lockPath, null)) {
+        /** @type {any} */
         const error = new Error("Content files are locked while the agent is writing.");
         error.statusCode = 423;
         throw error;
       }
       if (!payload?.topic_id || !payload?.direction_id) {
+        /** @type {any} */
         const error = new Error("missing topic_id or direction_id");
         error.statusCode = 400;
         throw error;
       }
       const batch = await readJson(currentBatchPath, null);
       if (!batch) {
+        /** @type {any} */
         const error = new Error("missing batch");
         error.statusCode = 404;
         throw error;
@@ -104,6 +103,7 @@ export function createLocalFileProvider(meta = {}) {
       const topic = (batch.topics || []).find((item) => item.id === payload.topic_id);
       const direction = topic?.directions?.find((item) => item.id === payload.direction_id);
       if (!topic || !direction) {
+        /** @type {any} */
         const error = new Error("topic or direction not found");
         error.statusCode = 404;
         throw error;
@@ -136,23 +136,27 @@ export function createLocalFileProvider(meta = {}) {
 
     async startTodo(payload) {
       if (await readJson(lockPath, null)) {
+        /** @type {any} */
         const error = new Error("Content files are locked while the agent is writing.");
         error.statusCode = 423;
         throw error;
       }
       if (!payload?.id) {
+        /** @type {any} */
         const error = new Error("missing id");
         error.statusCode = 400;
         throw error;
       }
       const batch = await readJson(currentBatchPath, null);
       if (!batch) {
+        /** @type {any} */
         const error = new Error("missing batch");
         error.statusCode = 404;
         throw error;
       }
       const todo = (batch.todos || []).find((item) => item.id === payload.id);
       if (!todo) {
+        /** @type {any} */
         const error = new Error("todo not found");
         error.statusCode = 404;
         throw error;
@@ -192,6 +196,7 @@ export function createLocalFileProvider(meta = {}) {
     async exportApproved() {
       const batch = await readJson(currentBatchPath, null);
       if (!batch) {
+        /** @type {any} */
         const error = new Error("No current batch found. Generate a batch first.");
         error.statusCode = 404;
         throw error;
@@ -225,11 +230,11 @@ export function createLocalFileProvider(meta = {}) {
             body,
             "",
             item.cta ? `CTA: ${item.cta}` : "",
-            Array.isArray(item.hashtags) && item.hashtags.length
-              ? `Hashtags: ${item.hashtags.join(" ")}`
-              : "",
+            Array.isArray(item.hashtags) && item.hashtags.length ? `Hashtags: ${item.hashtags.join(" ")}` : "",
             item.media_brief ? `Media brief: ${item.media_brief}` : "",
-          ].filter(Boolean).join("\n");
+          ]
+            .filter(Boolean)
+            .join("\n");
           await fs.writeFile(target, `${markdown}\n`);
           exported.push({ id: item.id, file: target });
         }
@@ -249,8 +254,7 @@ export function createLocalFileProvider(meta = {}) {
 }
 
 async function syncAgentTask(id, decision) {
-  const queueable = decision.action === "request_changes"
-    || (decision.action === "revise" && decision.comment.trim());
+  const queueable = decision.action === "request_changes" || (decision.action === "revise" && decision.comment.trim());
   const store = await readJson(AGENT_TASKS_PATH, { tasks: {} });
   const tasks = store.tasks || {};
   if (queueable) {
@@ -267,11 +271,15 @@ async function syncAgentTask(id, decision) {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "\"": "&quot;",
-    "'": "&#39;",
-  })[char]);
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }

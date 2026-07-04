@@ -11,6 +11,10 @@ const PROPOSAL_STATUSES = new Set(["needs_review", "changes_requested", "approve
 const SLA_STATES = new Set(["ok", "at_risk", "breached", "met"]);
 const PRIORITIES = new Set(["P1", "P2", "P3", "P4"]);
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -51,7 +55,17 @@ requireString(snapshot, "generated_at", "root");
 requireString(snapshot, "source", "root");
 if (!isObject(snapshot.property)) fail("root.property must be an object");
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
-for (const key of ["intake_count", "unclassified_intake", "ticket_count", "open_tickets", "resolved_tickets", "avg_resolution_hours", "sla_at_risk", "proposal_count", "needs_review"]) {
+for (const key of [
+  "intake_count",
+  "unclassified_intake",
+  "ticket_count",
+  "open_tickets",
+  "resolved_tickets",
+  "avg_resolution_hours",
+  "sla_at_risk",
+  "proposal_count",
+  "needs_review",
+]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
 if (!isObject(snapshot.metrics.intake_by_channel)) fail("root.metrics.intake_by_channel must be an object");
@@ -104,7 +118,8 @@ snapshot.intake.forEach((item, index) => {
   const dedupeKey = `${item.channel}:${item.external_id || item.content_hash || item.id}`;
   if (dedupeKeys.has(dedupeKey)) fail(`${path} duplicates dedupe key ${dedupeKey}`);
   dedupeKeys.add(dedupeKey);
-  if (item.ticket_id && !ticketIds.has(item.ticket_id)) fail(`${path}.ticket_id does not match a ticket: ${item.ticket_id}`);
+  if (item.ticket_id && !ticketIds.has(item.ticket_id))
+    fail(`${path}.ticket_id does not match a ticket: ${item.ticket_id}`);
   if (/\d{7,}/.test(String(item.contact_masked || ""))) fail(`${path}.contact_masked looks unmasked`);
 });
 

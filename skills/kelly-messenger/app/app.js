@@ -12,9 +12,11 @@ const state = {
   drafts: {},
   notes: {},
   edits: {},
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-messenger-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-messenger-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  demoRef: 100
+  demoRef: 100,
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-messenger.sidebarCollapsed";
@@ -36,7 +38,7 @@ const els = {
   needsReplyCount: document.querySelector("#count-needs-reply"),
   approvedCount: document.querySelector("#count-approved"),
   blockedCount: document.querySelector("#count-blocked"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -87,7 +89,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -97,9 +103,7 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function dateTime(value) {
@@ -108,7 +112,7 @@ function dateTime(value) {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -157,15 +161,16 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "inbox"
-    ? "#/inbox"
-    : scenario === "chat"
-      ? `#/inbox/${FEATURED_DEMO_CONVERSATION}`
-      : scenario === "outbox"
-        ? "#/outbox"
-        : scenario === "accounts"
-          ? "#/accounts"
-          : "#/overview";
+  const route =
+    scenario === "inbox"
+      ? "#/inbox"
+      : scenario === "chat"
+        ? `#/inbox/${FEATURED_DEMO_CONVERSATION}`
+        : scenario === "outbox"
+          ? "#/outbox"
+          : scenario === "accounts"
+            ? "#/accounts"
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -175,9 +180,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -195,7 +199,9 @@ function outboxReplies() {
 }
 
 function pendingRepliesFor(conversationId) {
-  return outboxReplies().filter((reply) => reply.conversation_id === conversationId && PENDING_STATUSES.includes(reply.status));
+  return outboxReplies().filter(
+    (reply) => reply.conversation_id === conversationId && PENDING_STATUSES.includes(reply.status),
+  );
 }
 
 function conversationById(id) {
@@ -207,9 +213,11 @@ function awaitingConversations() {
 }
 
 function oldestWaiting() {
-  return awaitingConversations()
-    .filter((item) => item.last_incoming_at)
-    .sort((a, b) => String(a.last_incoming_at).localeCompare(String(b.last_incoming_at)))[0] || null;
+  return (
+    awaitingConversations()
+      .filter((item) => item.last_incoming_at)
+      .sort((a, b) => String(a.last_incoming_at).localeCompare(String(b.last_incoming_at)))[0] || null
+  );
 }
 
 function isLocked() {
@@ -291,30 +299,38 @@ function matchesQuery(values) {
 }
 
 function filteredConversations() {
-  return conversations().filter((item) => matchesQuery([
-    item.title,
-    item.channel,
-    item.workspace,
-    item.platform,
-    ...(item.participants || []),
-    ...(item.messages || []).slice(-6).map((message) => message.text)
-  ]));
+  return conversations().filter((item) =>
+    matchesQuery([
+      item.title,
+      item.channel,
+      item.workspace,
+      item.platform,
+      ...(item.participants || []),
+      ...(item.messages || []).slice(-6).map((message) => message.text),
+    ]),
+  );
 }
 
 function warningsHtml() {
   const items = state.snapshot?.warnings || [];
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at
+    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+    : t("empty");
   const accounts = state.snapshot?.accounts || [];
   const awaiting = awaitingConversations().length;
   const approved = outboxReplies().filter((reply) => reply.status === "approved").length;
@@ -340,7 +356,9 @@ function renderOverview() {
     <section class="overview-grid">
       <div class="overview-panel">
         <h2>${t("platforms")}</h2>
-        ${accounts.map((account) => `
+        ${accounts
+          .map(
+            (account) => `
           <a class="platform-row" href="#/accounts">
             <span class="platform-row-head">
               ${platformBadge(account.platform)}
@@ -353,11 +371,15 @@ function renderOverview() {
               <small>${t("lastSync")} ${account.last_sync_at ? dateTime(account.last_sync_at) : "—"}</small>
             </span>
           </a>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
       <div class="overview-panel">
         <h2>${t("recentActivity")}</h2>
-        ${recent.map((message) => `
+        ${recent
+          .map(
+            (message) => `
           <a class="activity-row" href="#/inbox/${encodeURIComponent(message.conversation.conversation_id)}">
             <span class="activity-copy">
               <strong>${escapeHtml(message.sender)}</strong>
@@ -368,7 +390,9 @@ function renderOverview() {
               <small>${dateTime(message.sent_at)}</small>
             </span>
           </a>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
     </section>
   `;
@@ -390,7 +414,11 @@ function renderInbox() {
   els.content.innerHTML = `
     <section class="inbox">
       <div class="conv-list list-panel">
-        ${list.length ? list.map((conversation) => `
+        ${
+          list.length
+            ? list
+                .map(
+                  (conversation) => `
           <a class="conv-row ${selected?.conversation_id === conversation.conversation_id ? "active" : ""}" href="#/inbox/${encodeURIComponent(conversation.conversation_id)}">
             <span class="conv-row-top">
               ${platformBadge(conversation.platform)}
@@ -404,7 +432,11 @@ function renderInbox() {
               ${conversation.awaiting_reply ? `<span class="wait-chip">${t("waited")} ${waitingLabel(conversation.last_incoming_at)}</span>` : ""}
             </span>
           </a>
-        `).join("") : `<div class="empty">${t("empty")}</div>`}
+        `,
+                )
+                .join("")
+            : `<div class="empty">${t("empty")}</div>`
+        }
       </div>
       <div class="conv-detail detail-panel">
         ${selected ? conversationDetail(selected) : `<div class="empty">${t("noConversation")}</div>`}
@@ -428,7 +460,8 @@ function renderInbox() {
 function conversationDetail(conversation) {
   const pending = pendingRepliesFor(conversation.conversation_id);
   const draft = state.drafts[conversation.conversation_id];
-  const prefill = draft !== undefined ? draft : (!pending.length && conversation.suggested_reply ? conversation.suggested_reply : "");
+  const prefill =
+    draft !== undefined ? draft : !pending.length && conversation.suggested_reply ? conversation.suggested_reply : "";
   const showSuggestedNote = draft === undefined && !pending.length && Boolean(conversation.suggested_reply);
   const locked = isLocked();
   return `
@@ -443,7 +476,9 @@ function conversationDetail(conversation) {
       <div class="muted">${t("participants")}: ${escapeHtml((conversation.participants || []).join(", "))}</div>
     </div>
     <div class="transcript">
-      ${(conversation.messages || []).map((message) => `
+      ${(conversation.messages || [])
+        .map(
+          (message) => `
         <div class="bubble-row ${message.direction === "outgoing" ? "out" : "in"}">
           <div class="bubble">
             <div class="bubble-meta"><strong>${escapeHtml(message.sender)}</strong><span>${dateTime(message.sent_at)}</span></div>
@@ -451,8 +486,12 @@ function conversationDetail(conversation) {
             ${message.attachment ? `<div class="bubble-attachment">${escapeHtml(message.attachment)}</div>` : ""}
           </div>
         </div>
-      `).join("")}
-      ${pending.map((reply) => `
+      `,
+        )
+        .join("")}
+      ${pending
+        .map(
+          (reply) => `
         <div class="bubble-row out">
           <div class="bubble queued-bubble">
             <div class="bubble-meta">
@@ -462,7 +501,9 @@ function conversationDetail(conversation) {
             <div class="bubble-text">${escapeHtml(reply.text)}</div>
           </div>
         </div>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
     <div class="composer">
       ${showSuggestedNote ? `<div class="composer-hint">${t("agentSuggestedPrefill")}</div>` : ""}
@@ -477,23 +518,20 @@ function conversationDetail(conversation) {
 
 function renderOutbox() {
   els.title.textContent = t("outbox");
-  const replies = outboxReplies().filter((reply) => matchesQuery([
-    reply.text,
-    reply.reason,
-    reply.conversation_title,
-    reply.platform,
-    reply.status,
-    `#${reply.ref}`
-  ]));
+  const replies = outboxReplies().filter((reply) =>
+    matchesQuery([reply.text, reply.reason, reply.conversation_title, reply.platform, reply.status, `#${reply.ref}`]),
+  );
   const needsReview = outboxReplies().filter((reply) => reply.status === "needs_review").length;
   els.subtitle.textContent = `${outboxReplies().length} ${t("replies")} · ${needsReview} ${enumLabel("needs_review")}`;
   const locked = isLocked();
-  els.content.innerHTML = replies.length ? `
+  els.content.innerHTML = replies.length
+    ? `
     <div class="outbox-list">
-      ${replies.map((reply) => {
-        const editable = reply.status !== "done";
-        const value = state.edits[reply.reply_id] !== undefined ? state.edits[reply.reply_id] : reply.text;
-        return `
+      ${replies
+        .map((reply) => {
+          const editable = reply.status !== "done";
+          const value = state.edits[reply.reply_id] !== undefined ? state.edits[reply.reply_id] : reply.text;
+          return `
           <article class="outbox-card" data-reply-card="${escapeHtml(reply.reply_id)}">
             <header class="outbox-head">
               <strong>${t("reply")} #${reply.ref}</strong>
@@ -504,13 +542,17 @@ function renderOutbox() {
             </header>
             ${reply.reason ? `<div class="outbox-reason"><span class="muted">${t("reason")}:</span> ${escapeHtml(reply.reason)}</div>` : ""}
             ${reply.note ? `<div class="outbox-reason"><span class="muted">${t("note")}:</span> ${escapeHtml(reply.note)}</div>` : ""}
-            ${editable
-              ? `<textarea class="outbox-text" data-reply-text rows="4" ${locked ? "disabled" : ""}>${escapeHtml(value)}</textarea>`
-              : `<div class="outbox-sent-text">${escapeHtml(reply.text)}</div>`}
+            ${
+              editable
+                ? `<textarea class="outbox-text" data-reply-text rows="4" ${locked ? "disabled" : ""}>${escapeHtml(value)}</textarea>`
+                : `<div class="outbox-sent-text">${escapeHtml(reply.text)}</div>`
+            }
             ${reply.decision?.comment ? `<div class="outbox-reason"><span class="muted">${t("comment")}:</span> ${escapeHtml(reply.decision.comment)} <small class="muted">(${t("decidedAt")} ${dateTime(reply.decision.decided_at)})</small></div>` : ""}
             ${reply.status === "approved" ? `<div class="outbox-waiting">${t("waitingForSend")}</div>` : ""}
             ${reply.execution ? `<div class="outbox-execution">${t("sentVia")} ${escapeHtml(enumLabel(reply.execution.connector, "connector"))} · ${t("target")} ${escapeHtml(reply.execution.target || "")} · ${escapeHtml(enumLabel(reply.execution.status))} ${reply.execution.executed_at ? `· ${dateTime(reply.execution.executed_at)}` : ""}</div>` : ""}
-            ${editable ? `
+            ${
+              editable
+                ? `
               <div class="outbox-actions">
                 <input type="text" data-reply-comment placeholder="${escapeHtml(t("commentPlaceholder"))}" ${locked ? "disabled" : ""}>
                 <div class="outbox-buttons">
@@ -520,12 +562,16 @@ function renderOutbox() {
                   <button type="button" class="danger" data-action="decide" data-reply="${escapeHtml(reply.reply_id)}" data-decision="block" ${locked ? "disabled" : ""}>${t("block")}</button>
                 </div>
               </div>
-            ` : ""}
+            `
+                : ""
+            }
           </article>
         `;
-      }).join("")}
+        })
+        .join("")}
     </div>
-  ` : `<div class="empty">${t("noOutbox")}</div>`;
+  `
+    : `<div class="empty">${t("noOutbox")}</div>`;
   els.content.querySelectorAll("[data-reply-text]").forEach((textarea) => {
     const card = textarea.closest("[data-reply-card]");
     textarea.addEventListener("input", () => {
@@ -538,14 +584,19 @@ function renderAccounts() {
   els.title.textContent = t("accounts");
   const accounts = state.snapshot?.accounts || [];
   const configAccounts = state.settings?.config_summary?.accounts || [];
-  els.subtitle.textContent = `${accounts.length || configAccounts.length} ${t("configured") || ""}`.trim() || t("accounts");
-  const rows = accounts.length ? accounts : configAccounts.map((account) => ({ ...account, unread_count: 0, conversation_count: 0, last_sync_at: "" }));
-  els.content.innerHTML = rows.length ? `
+  els.subtitle.textContent =
+    `${accounts.length || configAccounts.length} ${t("configured") || ""}`.trim() || t("accounts");
+  const rows = accounts.length
+    ? accounts
+    : configAccounts.map((account) => ({ ...account, unread_count: 0, conversation_count: 0, last_sync_at: "" }));
+  els.content.innerHTML = rows.length
+    ? `
     <div class="account-grid">
-      ${rows.map((account) => {
-        const config = configAccounts.find((item) => item.account_id === account.account_id);
-        const warningsFor = (state.snapshot?.warnings || []).filter((item) => item.account_id === account.account_id);
-        return `
+      ${rows
+        .map((account) => {
+          const config = configAccounts.find((item) => item.account_id === account.account_id);
+          const warningsFor = (state.snapshot?.warnings || []).filter((item) => item.account_id === account.account_id);
+          return `
           <div class="account-card">
             <div class="row between">
               <strong>${escapeHtml(account.display_name)}</strong>
@@ -560,13 +611,15 @@ function renderAccounts() {
               <dt>${t("connector")}</dt><dd>${escapeHtml(enumLabel(account.connector, "connector"))}</dd>
               <dt>${t("lastSync")}</dt><dd>${account.last_sync_at ? dateTime(account.last_sync_at) : "—"}</dd>
             </dl>
-            ${config ? `<div class="env-ready ${config.secrets_ready ? "ok" : "missing"}">${config.secrets_ready ? t("secretsReady") : (config.secret_envs.length ? t("missingSecrets") : enumLabel(account.connector, "connector"))}</div>` : ""}
+            ${config ? `<div class="env-ready ${config.secrets_ready ? "ok" : "missing"}">${config.secrets_ready ? t("secretsReady") : config.secret_envs.length ? t("missingSecrets") : enumLabel(account.connector, "connector")}</div>` : ""}
             ${warningsFor.map((item) => `<div class="account-warning">${escapeHtml(item.message)}</div>`).join("")}
           </div>
         `;
-      }).join("")}
+        })
+        .join("")}
     </div>
-  ` : `<div class="empty">${t("setupNeeded")}</div>`;
+  `
+    : `<div class="empty">${t("setupNeeded")}</div>`;
 }
 
 function renderSettings() {
@@ -589,44 +642,70 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("accounts")}</h2>
-        ${(summary.accounts || []).map((account) => `
+        ${
+          (summary.accounts || [])
+            .map(
+              (account) => `
           <div class="settings-account">
             <strong>${escapeHtml(account.display_name)}</strong>
             <span>${escapeHtml(enumLabel(account.platform, "platform"))} · ${escapeHtml(enumLabel(account.connector, "connector"))}</span>
             <span>${account.secret_envs.length ? (account.secrets_ready ? t("secretsReady") : t("missingSecrets")) : "—"}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("syncLog")}</h2>
-        ${syncLog.length ? syncLog.slice(-8).reverse().map((entry) => `
+        ${
+          syncLog.length
+            ? syncLog
+                .slice(-8)
+                .reverse()
+                .map(
+                  (entry) => `
           <div class="settings-account">
             <strong>${escapeHtml(entry.account_id)}</strong>
             <span>${escapeHtml(enumLabel(entry.method, "connector"))} · ${dateTime(entry.at)}</span>
             <span>${escapeHtml(entry.message || "")}</span>
           </div>
-        `).join("") : `<div class="empty">—</div>`}
+        `,
+                )
+                .join("")
+            : `<div class="empty">—</div>`
+        }
       </section>
-      ${report ? `
+      ${
+        report
+          ? `
         <section>
           <h2>${t("executionReport")}</h2>
-          ${(report.results || []).map((result) => `
+          ${(report.results || [])
+            .map(
+              (result) => `
             <div class="settings-account">
               <strong>${t("reply")} #${result.ref}</strong>
               <span>${escapeHtml(enumLabel(result.status))} · ${escapeHtml(enumLabel(result.connector, "connector"))}</span>
               <span>${escapeHtml(result.detail || result.target || "")}</span>
             </div>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </section>
-      ` : ""}
+      `
+          : ""
+      }
     </div>
   `;
 }
 
 async function queueReplyAction(conversationId) {
-  const text = String(state.drafts[conversationId] !== undefined
-    ? state.drafts[conversationId]
-    : (els.content.querySelector("#composer-text")?.value || "")).trim();
+  const text = String(
+    state.drafts[conversationId] !== undefined
+      ? state.drafts[conversationId]
+      : els.content.querySelector("#composer-text")?.value || "",
+  ).trim();
   const note = String(state.notes[conversationId] || "").trim();
   if (!text) return;
   if (state.settings?.demo) {
@@ -647,7 +726,7 @@ async function queueReplyAction(conversationId) {
       decision: null,
       execution: null,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
     delete state.drafts[conversationId];
     delete state.notes[conversationId];
@@ -658,7 +737,7 @@ async function queueReplyAction(conversationId) {
   const res = await fetch("/api/outbox/queue", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ conversation_id: conversationId, text, note })
+    body: JSON.stringify({ conversation_id: conversationId, text, note }),
   });
   const data = await res.json();
   if (!res.ok) {
@@ -690,7 +769,7 @@ async function decideAction(replyId, action, card) {
   const res = await fetch("/api/outbox/decision", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ reply_id: replyId, action, comment, text })
+    body: JSON.stringify({ reply_id: replyId, action, comment, text }),
   });
   const data = await res.json();
   if (!res.ok) {
@@ -711,13 +790,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

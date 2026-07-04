@@ -6,8 +6,8 @@ import {
   DECISIONS_PATH,
   LOCK_PATH,
   ONBOARDING_PATH,
+  SKILL_DIR,
   SNAPSHOT_PATH,
-  SKILL_DIR
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -52,7 +52,7 @@ export function emptyDecisions() {
     updated_at: new Date(0).toISOString(),
     proposals: {},
     feedback: {},
-    requests: {}
+    requests: {},
   };
 }
 
@@ -72,7 +72,7 @@ export function emptySnapshot() {
       new_feedback: 0,
       request_count: 0,
       proposals_needs_review: 0,
-      requests_needs_info: 0
+      requests_needs_info: 0,
     },
     sync_log: [
       {
@@ -80,9 +80,9 @@ export function emptySnapshot() {
         actor: "kelly-feedback",
         action: "init",
         detail: "No feedback snapshot exists yet. Configure sources, then ingest feedback payloads.",
-        count: 0
-      }
-    ]
+        count: 0,
+      },
+    ],
   };
 }
 
@@ -101,13 +101,13 @@ export async function recordDecision(body) {
       action,
       review_note: String(body.review_note || ""),
       draft: typeof body.draft === "string" ? body.draft : undefined,
-      decided_at: now
+      decided_at: now,
     };
     if (action === "request_changes") {
       await enqueueAgentTask({
         type: "revise_proposal",
         proposal_id: id,
-        note: String(body.review_note || "")
+        note: String(body.review_note || ""),
       });
     }
   } else if (kind === "feedback") {
@@ -119,13 +119,13 @@ export async function recordDecision(body) {
       action,
       request_id: String(body.request_id || ""),
       comment: String(body.comment || ""),
-      decided_at: now
+      decided_at: now,
     };
   } else if (kind === "request") {
     decisions.requests[id] = {
       effort_estimate: String(body.effort_estimate || ""),
       comment: String(body.comment || ""),
-      decided_at: now
+      decided_at: now,
     };
   } else {
     throw new Error(`unsupported decision kind: ${kind}`);
@@ -142,7 +142,7 @@ async function enqueueAgentTask(task) {
     task_id: `task-${Date.now()}-${tasks.tasks.length + 1}`,
     status: "queued",
     created_at: now,
-    ...task
+    ...task,
   });
   tasks.updated_at = now;
   await writeJson(AGENT_TASKS_PATH, tasks);
@@ -151,7 +151,9 @@ async function enqueueAgentTask(task) {
 export async function acquireLock(message) {
   const existing = await readLock();
   if (existing) {
-    throw new Error(`agent.lock is held by ${existing.owner || "unknown"} (${existing.message || "no message"}); refusing to write`);
+    throw new Error(
+      `agent.lock is held by ${existing.owner || "unknown"} (${existing.message || "no message"}); refusing to write`,
+    );
   }
   const lock = { owner: "kelly-feedback", message, started_at: new Date().toISOString() };
   await writeJson(LOCK_PATH, lock);
@@ -192,7 +194,7 @@ export function recomputeDerived(snapshot) {
     proposals_needs_review: (snapshot.proposals || []).filter((item) => item.status === "needs_review").length,
     requests_needs_info: (snapshot.requests || []).filter((item) => item.status === "needs_info").length,
     week_inflow,
-    sentiment
+    sentiment,
   };
   return snapshot;
 }
@@ -247,19 +249,17 @@ export async function readConfig() {
 export function summarizeConfig(configResult) {
   const products = Array.isArray(configResult.config.products) ? configResult.config.products : [];
   const sources = Array.isArray(configResult.config.sources) ? configResult.config.sources : [];
-  const scoring = configResult.config.scoring && typeof configResult.config.scoring === "object"
-    ? configResult.config.scoring
-    : {};
-  const roadmap = configResult.config.roadmap && typeof configResult.config.roadmap === "object"
-    ? configResult.config.roadmap
-    : {};
+  const scoring =
+    configResult.config.scoring && typeof configResult.config.scoring === "object" ? configResult.config.scoring : {};
+  const roadmap =
+    configResult.config.roadmap && typeof configResult.config.roadmap === "object" ? configResult.config.roadmap : {};
   return {
     config_path: configResult.path,
     is_example: configResult.is_example,
     products: products.map((product) => ({
       product_id: product.product_id || "",
       display_name: product.display_name || product.product_id || "",
-      tagline: product.tagline || ""
+      tagline: product.tagline || "",
     })),
     sources: sources.map((source) => {
       const secretKeys = ["api_key_env", "token_env", "webhook_env"].filter((key) => source[key]);
@@ -269,14 +269,14 @@ export function summarizeConfig(configResult) {
         name: source.name || source.source_id || "",
         collection: source.collection || "",
         secret_envs: secretKeys.map((key) => source[key]),
-        secrets_ready: secretKeys.every((key) => Boolean(process.env[source[key]]))
+        secrets_ready: secretKeys.every((key) => Boolean(process.env[source[key]])),
       };
     }),
     scoring: {
       plan_weights: scoring.plan_weights || {},
       default_weight: scoring.default_weight ?? 1,
-      recency_half_life_days: scoring.recency_half_life_days ?? 30
+      recency_half_life_days: scoring.recency_half_life_days ?? 30,
     },
-    roadmap_lanes: Array.isArray(roadmap.lanes) ? roadmap.lanes : ["now", "next", "later"]
+    roadmap_lanes: Array.isArray(roadmap.lanes) ? roadmap.lanes : ["now", "next", "later"],
   };
 }

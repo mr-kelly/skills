@@ -6,8 +6,10 @@ const state = {
   route: parseRoute(),
   query: "",
   platformFilter: "",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-social-language") || "auto"),
-  demo: new URLSearchParams(location.search).get("demo") || ""
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-social-language") || "auto",
+  ),
+  demo: new URLSearchParams(location.search).get("demo") || "",
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-social.sidebarCollapsed";
@@ -29,7 +31,7 @@ const els = {
   staleCount: document.querySelector("#count-stale"),
   postCount: document.querySelector("#count-posts"),
   accountCount: document.querySelector("#count-accounts"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -76,7 +78,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -86,16 +92,14 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function num(value) {
   const numeric = Number(value || 0);
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     notation: Math.abs(numeric) >= 10000 ? "compact" : "standard",
-    maximumFractionDigits: 1
+    maximumFractionDigits: 1,
   }).format(numeric);
 }
 
@@ -114,7 +118,7 @@ function date(value) {
   return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     month: "short",
     day: "2-digit",
-    year: "numeric"
+    year: "numeric",
   }).format(new Date(value));
 }
 
@@ -124,7 +128,7 @@ function dateTime(value) {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -154,13 +158,14 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "accounts"
-    ? "#/accounts"
-    : scenario === "detail"
-      ? "#/accounts/x-kelly"
-      : scenario === "timeline"
-        ? "#/timeline"
-        : "#/overview";
+  const route =
+    scenario === "accounts"
+      ? "#/accounts"
+      : scenario === "detail"
+        ? "#/accounts/x-kelly"
+        : scenario === "timeline"
+          ? "#/timeline"
+          : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -170,9 +175,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -215,7 +219,9 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = staleCount
       ? `${staleCount} ${t("needCollection")}`
-      : (warningCount ? `${warningCount} ${t("warnings")}` : `${postCount} ${t("posts")}`);
+      : warningCount
+        ? `${warningCount} ${t("warnings")}`
+        : `${postCount} ${t("posts")}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -250,7 +256,10 @@ function sparkline(seriesData, { width = 220, height = 46 } = {}) {
   const span = max - min || 1;
   const step = width / (values.length - 1);
   const points = values
-    .map((value, index) => `${(index * step).toFixed(1)},${(height - 4 - ((value - min) / span) * (height - 8)).toFixed(1)}`)
+    .map(
+      (value, index) =>
+        `${(index * step).toFixed(1)},${(height - 4 - ((value - min) / span) * (height - 8)).toFixed(1)}`,
+    )
     .join(" ");
   return `<svg class="spark" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
@@ -298,7 +307,9 @@ function timelineTable(list) {
           </tr>
         </thead>
         <tbody>
-          ${list.map((post) => `
+          ${list
+            .map(
+              (post) => `
             <tr>
               <td>${dateTime(post.posted_at)}</td>
               <td>${platformBadge(post.platform)}</td>
@@ -309,7 +320,9 @@ function timelineTable(list) {
               <td class="num">${num(post.metrics?.reposts)}</td>
               <td class="num">${num(post.metrics?.views)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -321,9 +334,13 @@ function platformChips() {
   return `
     <div class="chips" role="group" aria-label="${t("platform")}">
       <button type="button" class="chip ${state.platformFilter === "" ? "active" : ""}" data-platform="">${t("allPlatforms")}</button>
-      ${platforms.map((platform) => `
+      ${platforms
+        .map(
+          (platform) => `
         <button type="button" class="chip ${state.platformFilter === platform ? "active" : ""}" data-platform="${escapeHtml(platform)}">${escapeHtml(enumLabel(platform, "platform"))}</button>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
   `;
 }
@@ -339,7 +356,9 @@ function bindPlatformChips() {
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at
+    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+    : t("empty");
   const list = accounts();
   const reference = new Date(state.snapshot?.generated_at || Date.now()).getTime();
   const weekAgo = reference - STALE_AFTER_MS;
@@ -351,7 +370,9 @@ function renderOverview() {
     ${metricCards()}
     ${warnings()}
     <div class="kpi-grid">
-      ${list.map((account) => `
+      ${list
+        .map(
+          (account) => `
         <a class="account-card" href="#/accounts/${encodeURIComponent(account.account_id)}">
           <div class="row between"><strong>${escapeHtml(account.handle)}</strong>${platformBadge(account.platform)}</div>
           <div class="muted">${escapeHtml(account.display_name)}</div>
@@ -366,38 +387,54 @@ function renderOverview() {
             <span>${t("profileVisits")} ${num(account.metrics?.profile_visits_7d)}</span>
           </div>
         </a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
     <section class="overview-grid">
       <div class="overview-panel">
         <h2>${t("followersTrend")}</h2>
-        ${list.map((account) => `
+        ${list
+          .map(
+            (account) => `
           <a class="trend-row" href="#/accounts/${encodeURIComponent(account.account_id)}">
             <span><strong>${escapeHtml(account.handle)}</strong><small>${escapeHtml(enumLabel(account.platform, "platform"))}</small></span>
             <span class="trend-spark">${sparkline(account.follower_series)}</span>
             <span class="num">${num(account.metrics?.followers)} ${delta(account.metrics?.followers_delta_7d)}</span>
           </a>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
       <div class="overview-panel">
         <h2>${t("topPostsThisWeek")}</h2>
-        ${topPosts.map((post) => `
+        ${
+          topPosts
+            .map(
+              (post) => `
           <a class="movement-row" href="#/timeline/${encodeURIComponent(post.post_id)}">
             <span><strong>${escapeHtml(truncate(post.text, 76))}</strong><small>${escapeHtml(enumLabel(post.platform, "platform"))} · ${escapeHtml(accountName(post.account_id))}</small></span>
             <span class="num">${num(post.metrics?.views)} <small class="muted">${t("views")}</small></span>
           </a>
-        `).join("") || `<div class="empty">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("empty")}</div>`
+        }
       </div>
       <div class="overview-panel wide">
         <h2>${t("collectionFreshness")}</h2>
-        ${list.map((account) => `
+        ${list
+          .map(
+            (account) => `
           <div class="freshness-row">
             <span><strong>${escapeHtml(account.handle)}</strong><small>${escapeHtml(enumLabel(account.platform, "platform"))}</small></span>
             <span>${methodBadge(account.collection)}</span>
             <span class="muted">${t("lastSync")} ${dateTime(account.last_sync_at)}</span>
             <span class="status ${escapeHtml(account.status)}">${escapeHtml(enumLabel(account.status))}</span>
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
     </section>
   `;
@@ -468,10 +505,13 @@ function renderAccounts() {
   els.title.textContent = t("accounts");
   els.subtitle.textContent = `${accounts().length} ${t("configured")}`;
   const list = accounts();
-  els.content.innerHTML = list.length ? `
+  els.content.innerHTML = list.length
+    ? `
     ${warnings()}
     <div class="account-grid">
-      ${list.map((account) => `
+      ${list
+        .map(
+          (account) => `
         <a class="account-card" href="#/accounts/${encodeURIComponent(account.account_id)}">
           <div class="row between"><strong>${escapeHtml(account.handle)}</strong>${platformBadge(account.platform)}</div>
           <div class="muted">${escapeHtml(account.display_name)}</div>
@@ -486,9 +526,12 @@ function renderAccounts() {
           </div>
           <div class="status ${escapeHtml(account.status)}">${escapeHtml(enumLabel(account.status))}</div>
         </a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
-  ` : `<div class="empty">${t("empty")}</div>`;
+  `
+    : `<div class="empty">${t("empty")}</div>`;
 }
 
 function renderAccountDetail() {
@@ -525,22 +568,34 @@ function renderAccountDetail() {
         </div>
         <h2>${t("topPostsThisWeek")}</h2>
         ${timelineTable(accountPosts)}
-        ${(account.traffic_sources || []).length ? `
+        ${
+          (account.traffic_sources || []).length
+            ? `
           <div class="traffic-panel">
             <h2>${t("trafficSources")}</h2>
-            ${account.traffic_sources.map((item) => `
+            ${account.traffic_sources
+              .map(
+                (item) => `
               <div class="traffic-row">
                 <span>${escapeHtml(item.source)}</span>
                 <span class="traffic-bar"><span style="width:${Math.round(Number(item.share || 0) * 100)}%"></span></span>
                 <span class="num">${pct(item.share)}</span>
               </div>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </div>
-        ` : ""}
-        ${history.length ? `
+        `
+            : ""
+        }
+        ${
+          history.length
+            ? `
           <div class="sync-panel">
             <h2>${t("syncHistory")}</h2>
-            ${history.map((entry) => `
+            ${history
+              .map(
+                (entry) => `
               <div class="sync-row">
                 <span class="status ${escapeHtml(entry.status)}">${escapeHtml(enumLabel(entry.status))}</span>
                 <span>${methodBadge(entry.method)}</span>
@@ -548,9 +603,13 @@ function renderAccountDetail() {
                 <span>${num(entry.posts_collected)} ${t("posts")}</span>
                 <p>${escapeHtml(entry.message || "")}</p>
               </div>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
       <aside class="detail-side">
         <h2>${t("profileSummary")}</h2>
@@ -586,27 +645,39 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("accounts")}</h2>
-        ${(summary.accounts || []).map((account) => `
+        ${
+          (summary.accounts || [])
+            .map(
+              (account) => `
           <div class="settings-account">
             <strong>${escapeHtml(account.handle || account.display_name)}</strong>
             <span>${escapeHtml(enumLabel(account.platform, "platform"))} · ${escapeHtml(enumLabel(account.collection, "method"))}</span>
             <span>${account.secret_envs?.length ? (account.secrets_ready ? t("secretsReady") : t("missingSecrets")) : t("noSecretsNeeded")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
     </div>
   `;
 }
 
 function warnings(accountId = "") {
-  const items = (state.snapshot?.warnings || []).filter((item) => !accountId || !item.account_id || item.account_id === accountId);
+  const items = (state.snapshot?.warnings || []).filter(
+    (item) => !accountId || !item.account_id || item.account_id === accountId,
+  );
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 function render() {
@@ -625,13 +696,17 @@ function truncate(value, length) {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

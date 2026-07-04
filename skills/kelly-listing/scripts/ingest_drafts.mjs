@@ -63,9 +63,8 @@ if (!payloadRaw) {
   console.error(`Cannot read payload: ${payloadPath}`);
   process.exit(1);
 }
-const payload = Array.isArray(payloadRaw.products) || Array.isArray(payloadRaw.drafts)
-  ? payloadRaw
-  : { drafts: [payloadRaw] };
+const payload =
+  Array.isArray(payloadRaw.products) || Array.isArray(payloadRaw.drafts) ? payloadRaw : { drafts: [payloadRaw] };
 const incomingProducts = payload.products || [];
 const incomingDrafts = payload.drafts || [];
 
@@ -77,7 +76,13 @@ const STATUSES = new Set(["needs_review", "changes_requested", "approved", "done
 const IMAGE_STATUSES = new Set(["ready", "missing", "needs_edit"]);
 
 function slugify(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9一-鿿]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "item";
+  return (
+    String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9一-鿿]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "item"
+  );
 }
 
 function validateProduct(input, index) {
@@ -89,14 +94,18 @@ function validateProduct(input, index) {
   if (input.source && !SOURCES.has(input.source)) errors.push(`${where}.source must be manual or kelly_picks`);
   if (input.platforms !== undefined) {
     if (!Array.isArray(input.platforms)) errors.push(`${where}.platforms must be an array`);
-    else for (const platform of input.platforms) {
-      if (!PLATFORMS.includes(platform)) errors.push(`${where}.platforms contains unknown platform: ${platform}`);
-    }
+    else
+      for (const platform of input.platforms) {
+        if (!PLATFORMS.includes(platform)) errors.push(`${where}.platforms contains unknown platform: ${platform}`);
+      }
   }
   for (const key of ["features", "keywords", "locales"]) {
     if (input[key] !== undefined && !Array.isArray(input[key])) errors.push(`${where}.${key} must be an array`);
   }
-  for (const [key, fields] of [["specs", ["name", "value"]], ["images", ["name", "status"]]]) {
+  for (const [key, fields] of /** @type {[string, string[]][]} */ ([
+    ["specs", ["name", "value"]],
+    ["images", ["name", "status"]],
+  ])) {
     if (input[key] === undefined) continue;
     if (!Array.isArray(input[key])) {
       errors.push(`${where}.${key} must be an array`);
@@ -104,9 +113,11 @@ function validateProduct(input, index) {
     }
     input[key].forEach((entry, entryIndex) => {
       if (!entry || typeof entry !== "object") errors.push(`${where}.${key}[${entryIndex}] must be an object`);
-      else for (const field of fields) {
-        if (typeof entry[field] !== "string" || !entry[field]) errors.push(`${where}.${key}[${entryIndex}].${field} must be a non-empty string`);
-      }
+      else
+        for (const field of fields) {
+          if (typeof entry[field] !== "string" || !entry[field])
+            errors.push(`${where}.${key}[${entryIndex}].${field} must be a non-empty string`);
+        }
       if (key === "images" && entry?.status && !IMAGE_STATUSES.has(entry.status)) {
         errors.push(`${where}.images[${entryIndex}].status must be ready, missing, or needs_edit`);
       }
@@ -131,7 +142,8 @@ function validateDraft(input, index) {
   const shape = PLATFORM_FIELD_SHAPES[input.platform];
   if (!shape) return errors;
   for (const key of shape.strings) {
-    if (fields[key] !== undefined && typeof fields[key] !== "string") errors.push(`${where}.fields.${key} must be a string`);
+    if (fields[key] !== undefined && typeof fields[key] !== "string")
+      errors.push(`${where}.fields.${key} must be a string`);
   }
   for (const key of shape.arrays) {
     if (fields[key] === undefined) continue;
@@ -149,18 +161,23 @@ function validateDraft(input, index) {
   for (const key of Object.keys(fields)) {
     if (!known.has(key)) errors.push(`${where}.fields.${key} is not a known ${input.platform} field`);
   }
-  const required = (config.platforms || []).find((entry) => entry.platform === input.platform)?.rules?.required_fields || shape.default_required;
+  const required =
+    (config.platforms || []).find((entry) => entry.platform === input.platform)?.rules?.required_fields ||
+    shape.default_required;
   const missing = required.filter((key) => {
     const value = fields[key];
     return Array.isArray(value) ? value.length === 0 : !(typeof value === "string" && value.trim());
   });
-  if (missing.length) errors.push(`${where}.fields is missing required ${input.platform} fields: ${missing.join(", ")} (checks will also flag this)`);
+  if (missing.length)
+    errors.push(
+      `${where}.fields is missing required ${input.platform} fields: ${missing.join(", ")} (checks will also flag this)`,
+    );
   return errors;
 }
 
 const allErrors = [
   ...incomingProducts.flatMap((input, index) => validateProduct(input, index)),
-  ...incomingDrafts.flatMap((input, index) => validateDraft(input, index))
+  ...incomingDrafts.flatMap((input, index) => validateDraft(input, index)),
 ];
 // Missing-required-field errors are advisory when the draft is explicitly a
 // work-in-progress needs_review draft; hard-fail only on structural problems.
@@ -180,7 +197,7 @@ const emptySnapshot = {
   source: "kelly-listing",
   seller: {
     brand: config.seller?.brand || "",
-    entity: config.seller?.entity || ""
+    entity: config.seller?.entity || "",
   },
   metrics: {
     product_count: 0,
@@ -191,7 +208,7 @@ const emptySnapshot = {
     drafts_in_revision: 0,
     checks_failed: 0,
     compliance_pass_rate: 0,
-    exported_this_week: 0
+    exported_this_week: 0,
   },
   products: [],
   drafts: [],
@@ -199,7 +216,7 @@ const emptySnapshot = {
   checks: [],
   review_items: [],
   activity_log: [],
-  warnings: []
+  warnings: [],
 };
 const snapshot = (await readJson(snapshotPath)) || emptySnapshot;
 snapshot.products = snapshot.products || [];
@@ -226,7 +243,7 @@ function mergeProduct(input) {
     keywords: input.keywords || existing?.keywords || [],
     images: input.images || existing?.images || [],
     notes: input.notes ?? existing?.notes ?? "",
-    updated_at: now
+    updated_at: now,
   };
   if (existing) {
     Object.assign(existing, base);
@@ -255,9 +272,13 @@ function normalizeFields(platform, fields = {}) {
   const normalized = {};
   for (const key of shape.strings) normalized[key] = typeof fields[key] === "string" ? fields[key] : "";
   for (const key of shape.arrays) {
-    normalized[key] = key === "item_specifics"
-      ? (Array.isArray(fields[key]) ? fields[key] : []).map((entry) => ({ name: String(entry.name || ""), value: String(entry.value || "") }))
-      : (Array.isArray(fields[key]) ? fields[key] : []).map(String);
+    normalized[key] =
+      key === "item_specifics"
+        ? (Array.isArray(fields[key]) ? fields[key] : []).map((entry) => ({
+            name: String(entry.name || ""),
+            value: String(entry.value || ""),
+          }))
+        : (Array.isArray(fields[key]) ? fields[key] : []).map(String);
   }
   return normalized;
 }
@@ -268,7 +289,9 @@ const mergedDrafts = [];
 for (const input of incomingDrafts) {
   const productId = resolveProductId(input);
   if (!productId) {
-    console.error(`drafts: cannot resolve product for ${JSON.stringify(input.product_id || input.product)}; ingest the product first.`);
+    console.error(
+      `drafts: cannot resolve product for ${JSON.stringify(input.product_id || input.product)}; ingest the product first.`,
+    );
     process.exit(1);
   }
   const productKey = productId.replace(/^prod-/, "");
@@ -285,7 +308,7 @@ for (const input of incomingDrafts) {
       status: input.status || "needs_review",
       keyword_strategy: input.keyword_strategy ?? existing.keyword_strategy ?? "",
       fields,
-      updated_at: now
+      updated_at: now,
     });
     mergedDrafts.push({ draft: existing, created: false });
   } else {
@@ -301,7 +324,7 @@ for (const input of incomingDrafts) {
       keyword_strategy: input.keyword_strategy || "",
       fields,
       created_at: now,
-      updated_at: now
+      updated_at: now,
     };
     snapshot.drafts.push(draft);
     mergedDrafts.push({ draft, created: true });
@@ -316,7 +339,7 @@ for (const input of incomingDrafts) {
       status: draft.status,
       compliance_summary: "Checks pending — run scripts/run_checks.mjs.",
       suggestions: [],
-      created_at: now
+      created_at: now,
     };
     snapshot.review_items.push(reviewItem);
   } else {
@@ -329,14 +352,14 @@ for (const input of incomingDrafts) {
     at: now,
     actor: "agent",
     detail: `${mergedDrafts[mergedDrafts.length - 1].created ? "Ingested" : "Updated"} ${draft.platform} ${draft.locale} draft for ${snapshot.products.find((product) => product.product_id === productId)?.name || productId}.`,
-    draft_id: draft.draft_id
+    draft_id: draft.draft_id,
   });
 }
 
 snapshot.activity_log = snapshot.activity_log.slice(0, 50);
 snapshot.seller = {
   brand: config.seller?.brand || snapshot.seller?.brand || "",
-  entity: config.seller?.entity || snapshot.seller?.entity || ""
+  entity: config.seller?.entity || snapshot.seller?.entity || "",
 };
 const byPlatform = {};
 for (const draft of snapshot.drafts) byPlatform[draft.platform] = (byPlatform[draft.platform] || 0) + 1;
@@ -347,7 +370,7 @@ snapshot.metrics = {
   drafts_by_platform: byPlatform,
   drafts_needs_review: snapshot.drafts.filter((draft) => draft.status === "needs_review").length,
   drafts_approved: snapshot.drafts.filter((draft) => ["approved", "done"].includes(draft.status)).length,
-  drafts_in_revision: snapshot.drafts.filter((draft) => draft.status === "changes_requested").length
+  drafts_in_revision: snapshot.drafts.filter((draft) => draft.status === "changes_requested").length,
 };
 snapshot.generated_at = now;
 
@@ -357,6 +380,8 @@ for (const { product, created } of mergedProducts) {
   console.log(`${created ? "Created" : "Updated"} ${product.product_id} — ${product.name} (${product.sku})`);
 }
 for (const { draft, created } of mergedDrafts) {
-  console.log(`${created ? "Created" : "Updated"} ${draft.draft_id} (Draft #${draft.ref}) — ${draft.platform} ${draft.locale}`);
+  console.log(
+    `${created ? "Created" : "Updated"} ${draft.draft_id} (Draft #${draft.ref}) — ${draft.platform} ${draft.locale}`,
+  );
 }
 console.log(`Wrote ${snapshotPath}. Run scripts/run_checks.mjs to refresh compliance results.`);

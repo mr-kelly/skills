@@ -20,7 +20,7 @@ function history(base) {
     at: new Date(Date.now() - (7 - index) * 30 * 60 * 1000).toISOString(),
     status: "up",
     latency_ms: base + ((index * 13) % 21) - 10,
-    http_status: 200
+    http_status: 200,
   }));
 }
 
@@ -37,13 +37,13 @@ function service(service_id, name, product, url, latency, certDays) {
     last_check_at: now,
     history: history(latency),
     meta: { http_status: 200, server: "example", note: "" },
-    warnings: []
+    warnings: [],
   };
 }
 
 const services = [
   service("example-app-web", "Example App Web", "Example App", "https://app.example.com", 180, 62),
-  service("example-app-api", "Example App API", "Example App", "https://api.example.com/health", 110, 62)
+  service("example-app-api", "Example App API", "Example App", "https://api.example.com/health", 110, 62),
 ];
 
 const expiries = [
@@ -58,7 +58,7 @@ const expiries = [
     action_id: "act-renew-example",
     source: "rdap",
     registrar: "Example Registrar",
-    detail: "Auto-renew is off. Renew example.com at Example Registrar."
+    detail: "Auto-renew is off. Renew example.com at Example Registrar.",
   },
   {
     expiry_id: "key-example-mail-key",
@@ -71,19 +71,46 @@ const expiries = [
     action_id: "",
     source: "config",
     registrar: "",
-    detail: "Rotation policy is every 90 days."
-  }
+    detail: "Rotation policy is every 90 days.",
+  },
 ];
 
 const spend = {
   currency: "USD",
   providers: [
-    { provider_id: "aws", name: "AWS", currency: "USD", mtd: 420.5, last_month: 445.1, delta_pct: -5.5, anomaly: false, action_id: "", note: "" },
-    { provider_id: "cloudflare", name: "Cloudflare", currency: "USD", mtd: 25, last_month: 25, delta_pct: 0, anomaly: false, action_id: "", note: "" }
+    {
+      provider_id: "aws",
+      name: "AWS",
+      currency: "USD",
+      mtd: 420.5,
+      last_month: 445.1,
+      delta_pct: -5.5,
+      anomaly: false,
+      action_id: "",
+      note: "",
+    },
+    {
+      provider_id: "cloudflare",
+      name: "Cloudflare",
+      currency: "USD",
+      mtd: 25,
+      last_month: 25,
+      delta_pct: 0,
+      anomaly: false,
+      action_id: "",
+      note: "",
+    },
   ],
   products: [
-    { product_id: "example-app", product: "Example App", currency: "USD", mtd: 445.5, last_month: 470.1, share_pct: 100 }
-  ]
+    {
+      product_id: "example-app",
+      product: "Example App",
+      currency: "USD",
+      mtd: 445.5,
+      last_month: 470.1,
+      share_pct: 100,
+    },
+  ],
 };
 
 const actions = [
@@ -99,8 +126,8 @@ const actions = [
     target: { kind: "domain", id: "example.com", registrar: "Example Registrar" },
     note: "",
     created_at: now,
-    decision: null
-  }
+    decision: null,
+  },
 ];
 
 const events = [
@@ -110,7 +137,7 @@ const events = [
     severity: "info",
     kind: "check",
     message: "Service check completed: 2 up, 0 degraded, 0 down.",
-    service_id: ""
+    service_id: "",
   },
   {
     event_id: "evt-example-domain",
@@ -118,8 +145,8 @@ const events = [
     severity: "warning",
     kind: "expiry",
     message: "example.com expires in 12 days and auto-renew is off.",
-    service_id: ""
-  }
+    service_id: "",
+  },
 ];
 
 const metrics = {
@@ -135,27 +162,34 @@ const metrics = {
   actions_needing_review: 1,
   spend_mtd: 445.5,
   spend_last_month: 470.1,
-  spend_anomalies: 0
+  spend_anomalies: 0,
 };
 
 await fs.mkdir(path.dirname(out), { recursive: true });
-await fs.writeFile(out, `${JSON.stringify({
-  schema_version: "1",
-  generated_at: now,
-  source: "kelly-devops-demo",
-  currency: "USD",
-  checks: {
-    services_checked_at: now,
-    domains_checked_at: now,
-    spend_ingested_at: now
-  },
-  metrics,
-  services,
-  expiries,
-  spend,
-  actions,
-  events,
-  warnings: []
-}, null, 2)}\n`);
+await fs.writeFile(
+  out,
+  `${JSON.stringify(
+    {
+      schema_version: "1",
+      generated_at: now,
+      source: "kelly-devops-demo",
+      currency: "USD",
+      checks: {
+        services_checked_at: now,
+        domains_checked_at: now,
+        spend_ingested_at: now,
+      },
+      metrics,
+      services,
+      expiries,
+      spend,
+      actions,
+      events,
+      warnings: [],
+    },
+    null,
+    2,
+  )}\n`,
+);
 
 console.log(`Wrote ${out}`);

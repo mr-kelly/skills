@@ -52,7 +52,8 @@ export const messages = {
     lockActive: "Agent lock active — decisions are read-only until it finishes",
     margin: "Margin",
     marginCard: "Margin Card",
-    marginCardHint: "Edit the inputs to recompute margin and breakeven ACOS live. Edits here are in-memory only; the agent's compute_margins script is the authoritative write path.",
+    marginCardHint:
+      "Edit the inputs to recompute margin and breakeven ACOS live. Edits here are in-memory only; the agent's compute_margins script is the authoritative write path.",
     marginFloor: "Margin floor",
     marginPct: "Margin %",
     maxCogs: "Max COGS",
@@ -104,7 +105,8 @@ export const messages = {
     trends: "Trends",
     velocity: "Entrant velocity",
     verdict: "Verdict",
-    verdictHint: "Develop queues sourcing + listing briefs, Watch keeps it with re-check criteria, Drop archives it with the reason.",
+    verdictHint:
+      "Develop queues sourcing + listing briefs, Watch keeps it with re-check criteria, Drop archives it with the reason.",
     viewCandidate: "View candidate",
     watch: "Watch",
     watching: "Watching",
@@ -118,14 +120,14 @@ export const messages = {
         blocked: "blocked",
         ok: "ok",
         stale: "stale",
-        queued: "queued"
+        queued: "queued",
       },
       stage: {
         new: "new",
         reviewing: "reviewing",
         develop: "develop",
         watch: "watch",
-        dropped: "dropped"
+        dropped: "dropped",
       },
       source: {
         amazon_bsr: "Amazon BSR",
@@ -133,24 +135,24 @@ export const messages = {
         temu: "Temu",
         aliexpress: "AliExpress",
         trends: "Trends",
-        competitor: "Competitor"
+        competitor: "Competitor",
       },
       verdict: {
         develop: "develop",
         watch: "watch",
-        drop: "drop"
+        drop: "drop",
       },
       method: {
         browser_agent: "browser agent",
-        manual: "manual"
+        manual: "manual",
       },
       operation: {
         handoff_listing_brief: "listing brief → kelly-listing",
         create_sourcing_brief: "sourcing brief export",
         add_watch: "add watch",
-        drop_candidate: "drop candidate"
-      }
-    }
+        drop_candidate: "drop candidate",
+      },
+    },
   },
   zh: {
     adCost: "预估广告费",
@@ -205,7 +207,8 @@ export const messages = {
     lockActive: "Agent 正在写入——完成前决策为只读",
     margin: "毛利",
     marginCard: "利润卡",
-    marginCardHint: "修改输入即可实时重算毛利和保本 ACOS。此处编辑仅在内存中；agent 的 compute_margins 脚本才是权威写入路径。",
+    marginCardHint:
+      "修改输入即可实时重算毛利和保本 ACOS。此处编辑仅在内存中；agent 的 compute_margins 脚本才是权威写入路径。",
     marginFloor: "毛利红线",
     marginPct: "毛利率",
     maxCogs: "COGS 上限",
@@ -271,14 +274,14 @@ export const messages = {
         blocked: "已搁置",
         ok: "正常",
         stale: "过期",
-        queued: "排队中"
+        queued: "排队中",
       },
       stage: {
         new: "新发现",
         reviewing: "评审中",
         develop: "开发中",
         watch: "观察中",
-        dropped: "已放弃"
+        dropped: "已放弃",
       },
       source: {
         amazon_bsr: "亚马逊 BSR",
@@ -286,23 +289,23 @@ export const messages = {
         temu: "Temu",
         aliexpress: "速卖通",
         trends: "趋势搜索",
-        competitor: "竞品"
+        competitor: "竞品",
       },
       verdict: {
         develop: "开发",
         watch: "观察",
-        drop: "放弃"
+        drop: "放弃",
       },
       method: {
         browser_agent: "浏览器 agent",
-        manual: "人工"
+        manual: "人工",
       },
       operation: {
         handoff_listing_brief: "listing 简报 → kelly-listing",
         create_sourcing_brief: "导出采购简报",
         add_watch: "加入观察",
-        drop_candidate: "放弃候选品"
-      }
-    }
-  }
+        drop_candidate: "放弃候选品",
+      },
+    },
+  },
 };

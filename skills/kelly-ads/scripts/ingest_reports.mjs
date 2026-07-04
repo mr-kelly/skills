@@ -42,7 +42,7 @@ import {
   releaseLock,
   round1,
   round2,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const OWNER = "kelly-ads-ingest";
@@ -111,7 +111,10 @@ function parseArgs(argv) {
 }
 
 function slugify(value) {
-  return String(value || "").toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replaceAll(/^-+|-+$/g, "");
+  return String(value || "")
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, "-")
+    .replaceAll(/^-+|-+$/g, "");
 }
 
 function toNumber(value) {
@@ -145,23 +148,28 @@ function payloadFromCsv(text, platformId, mapping, fixedCampaignId) {
     clicks: indexOfColumn(mapping.clicks || "Clicks"),
     conversions: indexOfColumn(mapping.conversions || "Conversions"),
     revenue: indexOfColumn(mapping.revenue || "Revenue"),
-    currency: indexOfColumn(mapping.currency || "")
+    currency: indexOfColumn(mapping.currency || ""),
   };
   if (columns.date < 0) fail(`CSV is missing the date column "${mapping.date || "Date"}"`);
   if (columns.spend < 0) fail(`CSV is missing the spend column "${mapping.spend || "Spend"}"`);
-  if (columns.campaign < 0 && !fixedCampaignId) fail(`CSV is missing the campaign column "${mapping.campaign || "Campaign Name"}" (or pass --campaign)`);
+  if (columns.campaign < 0 && !fixedCampaignId)
+    fail(`CSV is missing the campaign column "${mapping.campaign || "Campaign Name"}" (or pass --campaign)`);
 
   const byCampaign = new Map();
   let currency = "";
   for (const cells of rows.slice(1)) {
     const name = columns.campaign >= 0 ? String(cells[columns.campaign] || "").trim() : "";
-    const campaignId = fixedCampaignId
-      || (columns.campaign_id >= 0 && String(cells[columns.campaign_id] || "").trim())
-      || `${platformId}-${slugify(name)}`;
+    const campaignId =
+      fixedCampaignId ||
+      (columns.campaign_id >= 0 && String(cells[columns.campaign_id] || "").trim()) ||
+      `${platformId}-${slugify(name)}`;
     if (!campaignId || campaignId === `${platformId}-`) continue;
     const date = normalizeDate(cells[columns.date]);
     if (!date) continue;
-    if (columns.currency >= 0 && !currency) currency = String(cells[columns.currency] || "").trim().toUpperCase();
+    if (columns.currency >= 0 && !currency)
+      currency = String(cells[columns.currency] || "")
+        .trim()
+        .toUpperCase();
     const entry = byCampaign.get(campaignId) || { campaign_id: campaignId, name: name || campaignId, daily: new Map() };
     const day = entry.daily.get(date) || { date, spend: 0, impressions: 0, clicks: 0, conversions: 0, revenue: 0 };
     day.spend += toNumber(cells[columns.spend]);
@@ -179,15 +187,16 @@ function payloadFromCsv(text, platformId, mapping, fixedCampaignId) {
     campaigns: [...byCampaign.values()].map((entry) => ({
       campaign_id: entry.campaign_id,
       name: entry.name,
-      daily: [...entry.daily.values()].sort((a, b) => a.date.localeCompare(b.date))
-    }))
+      daily: [...entry.daily.values()].sort((a, b) => a.date.localeCompare(b.date)),
+    })),
   };
 }
 
 function validatePayload(payload) {
   if (!payload || typeof payload !== "object") fail("payload must be an object");
   if (!PLATFORMS.has(payload.platform)) fail(`payload.platform must be one of: ${[...PLATFORMS].join(", ")}`);
-  if (!Array.isArray(payload.campaigns) || !payload.campaigns.length) fail("payload.campaigns must be a non-empty array");
+  if (!Array.isArray(payload.campaigns) || !payload.campaigns.length)
+    fail("payload.campaigns must be a non-empty array");
   payload.campaigns.forEach((campaign, index) => {
     if (!campaign.campaign_id) fail(`payload.campaigns[${index}].campaign_id is required`);
     if (!Array.isArray(campaign.daily)) fail(`payload.campaigns[${index}].daily must be an array`);
@@ -226,7 +235,7 @@ function mergeCampaign(existing, incoming, rate) {
     acos_target_pct: 0,
     currency: "",
     daily: [],
-    targets: []
+    targets: [],
   };
   for (const key of ["name", "product", "sku", "status"]) {
     if (incoming[key] !== undefined && incoming[key] !== "") campaign[key] = incoming[key];
@@ -243,7 +252,7 @@ function mergeCampaign(existing, incoming, rate) {
       impressions: Math.round(Number(day.impressions || 0)),
       clicks: Math.round(Number(day.clicks || 0)),
       conversions: Math.round(Number(day.conversions || 0)),
-      revenue: round2(Number(day.revenue || 0) * rate)
+      revenue: round2(Number(day.revenue || 0) * rate),
     });
   }
   campaign.daily = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
@@ -263,7 +272,7 @@ function mergeCampaign(existing, incoming, rate) {
         conversions: Math.round(Number(target.conversions || 0)),
         revenue,
         cpc: Number(target.clicks) > 0 ? round2(spend / Number(target.clicks)) : 0,
-        acos_pct: revenue > 0 ? round1((spend / revenue) * 100) : 0
+        acos_pct: revenue > 0 ? round1((spend / revenue) * 100) : 0,
       });
     }
     campaign.targets = [...byTarget.values()];
@@ -276,7 +285,9 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.payload && !args.csv) {
     console.log("Usage: node scripts/ingest_reports.mjs /path/to/performance_payload.json");
-    console.log("       node scripts/ingest_reports.mjs --csv /path/to/report.csv --platform amazon [--campaign <campaign_id>]");
+    console.log(
+      "       node scripts/ingest_reports.mjs --csv /path/to/report.csv --platform amazon [--campaign <campaign_id>]",
+    );
     console.log("The payload is performance data the agent pulled from platform APIs or report exports.");
     return;
   }
@@ -288,7 +299,9 @@ async function main() {
   let payload;
   if (args.csv) {
     if (!PLATFORMS.has(args.platform)) fail(`--platform must be one of: ${[...PLATFORMS].join(", ")}`);
-    const text = await fs.readFile(args.csv, "utf8").catch((error) => fail(`cannot read CSV at ${args.csv}: ${error.message}`));
+    const text = await fs
+      .readFile(args.csv, "utf8")
+      .catch((error) => fail(`cannot read CSV at ${args.csv}: ${error.message}`));
     const mapping = config.csv_mappings?.[args.platform] || {};
     payload = payloadFromCsv(text, args.platform, mapping, args.campaign);
   } else {
@@ -336,7 +349,7 @@ async function main() {
         name: configured.name || PLATFORM_NAMES[payload.platform] || payload.platform,
         account_id: configured.account_id || "",
         status: "ok",
-        currency: base
+        currency: base,
       };
       snapshot.platforms.push(platform);
     }
@@ -350,12 +363,14 @@ async function main() {
     snapshot.generated_at = now;
     snapshot.source = "kelly-ads";
     snapshot.currency = base;
-    snapshot.warnings = (snapshot.warnings || []).filter((warning) => warning.id !== "no-snapshot" && warning.id !== `unknown-currency-${payload.platform}`);
+    snapshot.warnings = (snapshot.warnings || []).filter(
+      (warning) => warning.id !== "no-snapshot" && warning.id !== `unknown-currency-${payload.platform}`,
+    );
     if (!known) {
       snapshot.warnings.push({
         id: `unknown-currency-${payload.platform}`,
         severity: "warning",
-        message: `No currency rate configured for ${from}; amounts were kept 1:1. Add it to config.currency_rates.`
+        message: `No currency rate configured for ${from}; amounts were kept 1:1. Add it to config.currency_rates.`,
       });
     }
     pushSyncLog(snapshot, {
@@ -364,7 +379,7 @@ async function main() {
       platform: payload.platform,
       kind: "ingest",
       message: `${PLATFORM_NAMES[payload.platform] || payload.platform} report ingested: ${merged} campaign(s), ${days} daily row(s)${from !== base ? `, ${from}→${base}` : ""}.`,
-      rows: days
+      rows: days,
     });
     recomputeDerived(snapshot, config);
     await writeJson(SNAPSHOT_PATH, snapshot);

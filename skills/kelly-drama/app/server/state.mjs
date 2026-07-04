@@ -1,6 +1,6 @@
+import { lockPayload } from "./lock.mjs";
 import { ACTIVE_PROJECT_PATH, PROJECT_PATH, REPORT_PATH, TASKS_PATH } from "./paths.mjs";
 import { loadProject } from "./project-store.mjs";
-import { lockPayload } from "./lock.mjs";
 import { pathExists, readJson, writeJson } from "./utils.mjs";
 
 function countBy(items, field = "status") {
@@ -17,7 +17,9 @@ function completeness(project) {
     const visual = character.visual || {};
     return !visual.front || !visual.side || !visual.back;
   }).length;
-  const relationshipsMissingEvidence = project.relationships.filter((relationship) => !(relationship.evidence || []).length).length;
+  const relationshipsMissingEvidence = project.relationships.filter(
+    (relationship) => !(relationship.evidence || []).length,
+  ).length;
   const episodesMissingCliffhanger = project.episodes.filter((episode) => !episode.cliffhanger).length;
   const shotsMissingPrompt = project.shots.filter((shot) => !shot.prompt || !shot.negative_prompt).length;
   return {
@@ -30,30 +32,38 @@ function completeness(project) {
 
 function attention(project) {
   const tasks = project.tasks || [];
-  const needsReview = tasks.filter((task) => ["needs_review", "changes_requested"].includes(task.status)).length
-    + project.characters.filter((item) => item.status === "needs_review").length
-    + project.episodes.filter((item) => item.status === "needs_review").length
-    + project.shots.filter((item) => item.status === "needs_review").length;
-  const approved = tasks.filter((task) => task.status === "approved").length
-    + project.characters.filter((item) => item.status === "approved").length
-    + project.episodes.filter((item) => item.status === "approved").length
-    + project.shots.filter((item) => item.status === "approved").length;
+  const needsReview =
+    tasks.filter((task) => ["needs_review", "changes_requested"].includes(task.status)).length +
+    project.characters.filter((item) => item.status === "needs_review").length +
+    project.episodes.filter((item) => item.status === "needs_review").length +
+    project.shots.filter((item) => item.status === "needs_review").length;
+  const approved =
+    tasks.filter((task) => task.status === "approved").length +
+    project.characters.filter((item) => item.status === "approved").length +
+    project.episodes.filter((item) => item.status === "approved").length +
+    project.shots.filter((item) => item.status === "approved").length;
   const blocked = tasks.filter((task) => task.status === "blocked").length;
   return { needs_review: needsReview, approved, blocked };
 }
 
 function projectOptions(project) {
   if (project.projects?.length) return project.projects;
-  return [{
-    id: project.project_id,
-    title: project.series?.title || "未命名短剧",
-    genre: project.series?.genre || "",
-    format: project.series?.format || "",
-  }];
+  return [
+    {
+      id: project.project_id,
+      title: project.series?.title || "未命名短剧",
+      genre: project.series?.genre || "",
+      format: project.series?.format || "",
+    },
+  ];
 }
 
 function activeProjectIdFor(project, activeState = {}) {
-  const known = new Set(projectOptions(project).map((item) => item.id).filter(Boolean));
+  const known = new Set(
+    projectOptions(project)
+      .map((item) => item.id)
+      .filter(Boolean),
+  );
   if (activeState.active_project_id && known.has(activeState.active_project_id)) return activeState.active_project_id;
   return project.project_id || projectOptions(project)[0]?.id || "";
 }
@@ -76,7 +86,11 @@ function viewForProject(project, activeProjectId) {
 
 export async function setActiveProject(activeProjectId) {
   const project = await loadProject();
-  const known = new Set(projectOptions(project).map((item) => item.id).filter(Boolean));
+  const known = new Set(
+    projectOptions(project)
+      .map((item) => item.id)
+      .filter(Boolean),
+  );
   if (!known.has(activeProjectId)) throw new Error(`Unknown project: ${activeProjectId}`);
   await writeJson(ACTIVE_PROJECT_PATH, {
     active_project_id: activeProjectId,

@@ -1,18 +1,20 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { TEST_EVIDENCE_DIR, TESTED_PATH } from "./paths.mjs";
 import { findItem, loadBatch } from "./batch-store.mjs";
 import { rejectIfLocked } from "./lock.mjs";
+import { TESTED_PATH, TEST_EVIDENCE_DIR } from "./paths.mjs";
 import { readJson, utcNow, writeJson } from "./utils.mjs";
 
 const MAX_EVIDENCE_BYTES = 8 * 1024 * 1024;
 const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 
 function safePart(value, fallback = "item") {
-  return String(value || fallback)
-    .replace(/[^a-z0-9._-]+/gi, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 120) || fallback;
+  return (
+    String(value || fallback)
+      .replace(/[^a-z0-9._-]+/gi, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 120) || fallback
+  );
 }
 
 function extensionFor(contentType, filename = "") {
@@ -79,7 +81,10 @@ async function persistEvidence(itemId, evidence = []) {
     if (!bytes.length) throw new Error("Uploaded screenshot is empty.");
     if (bytes.length > MAX_EVIDENCE_BYTES) throw new Error("Uploaded screenshot is too large.");
     const now = utcNow();
-    const filenameBase = safePart(path.basename(file.filename || "screenshot", path.extname(file.filename || "")), "screenshot");
+    const filenameBase = safePart(
+      path.basename(file.filename || "screenshot", path.extname(file.filename || "")),
+      "screenshot",
+    );
     const filename = `${Date.now()}-${index + 1}-${filenameBase}${extensionFor(contentType, file.filename)}`;
     const fullPath = path.join(dir, filename);
     await fs.writeFile(fullPath, bytes);
@@ -99,7 +104,8 @@ export async function setTested(itemId, tested, options = {}) {
   await rejectIfLocked();
   const batch = await loadBatch();
   const item = findItem(batch, String(itemId || ""));
-  if (!item.merged && item.status !== "merged") throw new Error("Only merged pull requests can enter test verification.");
+  if (!item.merged && item.status !== "merged")
+    throw new Error("Only merged pull requests can enter test verification.");
   const cache = await loadTestedCache();
   const id = String(itemId || "");
   if (!id) throw new Error("Missing item id");

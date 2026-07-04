@@ -51,18 +51,8 @@
         "side": "鼻梁直，肩背挺但不张扬，手常按佩剑或拱手",
         "back": "青袍朴素，腰间佩剑，背影不高大但稳",
         "wardrobe": "前期布衣青袍，起兵后简甲披风，色调青灰",
-        "anchors": [
-          "青袍",
-          "温厚眼神",
-          "短须",
-          "佩剑"
-        ],
-        "forbidden_drift": [
-          "不要帝王冠冕过早出现",
-          "不要油滑",
-          "不要过分软弱",
-          "不要现代发型"
-        ]
+        "anchors": ["青袍", "温厚眼神", "短须", "佩剑"],
+        "forbidden_drift": ["不要帝王冠冕过早出现", "不要油滑", "不要过分软弱", "不要现代发型"]
       },
       "reference_card": {
         "status": "ready_to_generate",
@@ -92,18 +82,8 @@
         "side": "身形高大，长髯垂胸，手扶青龙偃月刀",
         "back": "绿袍长髯，刀柄斜出肩后，背影如山",
         "wardrobe": "绿袍、皮甲、青龙偃月刀，后期战甲更重",
-        "anchors": [
-          "丹凤眼",
-          "美髯",
-          "绿袍",
-          "青龙偃月刀"
-        ],
-        "forbidden_drift": [
-          "不要无胡须",
-          "不要轻浮表情",
-          "不要换掉绿袍锚点",
-          "不要现代武器"
-        ]
+        "anchors": ["丹凤眼", "美髯", "绿袍", "青龙偃月刀"],
+        "forbidden_drift": ["不要无胡须", "不要轻浮表情", "不要换掉绿袍锚点", "不要现代武器"]
       },
       "reference_card": {
         "status": "ready_to_generate",
@@ -133,18 +113,8 @@
         "side": "肩背宽厚，手持丈八蛇矛，动作爆发力强",
         "back": "黑甲或深色短袍，蛇矛横肩，背影有压迫感",
         "wardrobe": "深色短袍、皮甲、丈八蛇矛",
-        "anchors": [
-          "豹头环眼",
-          "络腮胡",
-          "丈八蛇矛",
-          "深色短袍"
-        ],
-        "forbidden_drift": [
-          "不要瘦弱",
-          "不要文雅化",
-          "不要丢掉蛇矛",
-          "不要喜剧化过度"
-        ]
+        "anchors": ["豹头环眼", "络腮胡", "丈八蛇矛", "深色短袍"],
+        "forbidden_drift": ["不要瘦弱", "不要文雅化", "不要丢掉蛇矛", "不要喜剧化过度"]
       },
       "reference_card": {
         "status": "ready_to_generate",
@@ -175,18 +145,8 @@
         "side": "身形不魁梧但步伐快，手握短剑或竹简",
         "back": "黑红披风，背影利落，常有随从在后",
         "wardrobe": "黑红官服、轻甲、短剑、披风",
-        "anchors": [
-          "锐利眼神",
-          "短须",
-          "黑红色调",
-          "短剑"
-        ],
-        "forbidden_drift": [
-          "不要纯反派脸谱",
-          "不要肥胖油腻",
-          "不要过早帝王装",
-          "不要失去笑里藏锋"
-        ]
+        "anchors": ["锐利眼神", "短须", "黑红色调", "短剑"],
+        "forbidden_drift": ["不要纯反派脸谱", "不要肥胖油腻", "不要过早帝王装", "不要失去笑里藏锋"]
       },
       "reference_card": {
         "status": "planned",
@@ -216,17 +176,8 @@
         "side": "大腹便便但动作有压迫感，手常按刀",
         "back": "西凉重甲披风，身后甲士林立",
         "wardrobe": "深金黑甲、西凉披风、佩刀",
-        "anchors": [
-          "厚重体型",
-          "浓胡",
-          "西凉重甲",
-          "佩刀"
-        ],
-        "forbidden_drift": [
-          "不要瘦弱",
-          "不要文士化",
-          "不要削弱暴君气场"
-        ]
+        "anchors": ["厚重体型", "浓胡", "西凉重甲", "佩刀"],
+        "forbidden_drift": ["不要瘦弱", "不要文士化", "不要削弱暴君气场"]
       },
       "reference_card": {
         "status": "planned",
@@ -256,17 +207,8 @@
         "side": "身形挺拔，方天画戟斜握，赤兔马意象可出现",
         "back": "战甲鲜明，红黑披风，戟尖高出肩头",
         "wardrobe": "亮银或赤黑战甲、方天画戟、红黑披风",
-        "anchors": [
-          "方天画戟",
-          "红黑披风",
-          "束发金冠",
-          "英武锋利"
-        ],
-        "forbidden_drift": [
-          "不要山匪化",
-          "不要油腻",
-          "不要丢掉方天画戟"
-        ]
+        "anchors": ["方天画戟", "红黑披风", "束发金冠", "英武锋利"],
+        "forbidden_drift": ["不要山匪化", "不要油腻", "不要丢掉方天画戟"]
       },
       "reference_card": {
         "status": "planned",
@@ -296,17 +238,8 @@
         "side": "身形舒展，常有谋士侍立，手执节杖或书简",
         "back": "锦袍披风，仪仗感强，背影有门阀气",
         "wardrobe": "紫褐官服、华纹披风、玉带",
-        "anchors": [
-          "贵族冠服",
-          "短须",
-          "仪仗感",
-          "端正威仪"
-        ],
-        "forbidden_drift": [
-          "不要草莽化",
-          "不要喜剧化",
-          "不要过分阴鸷"
-        ]
+        "anchors": ["贵族冠服", "短须", "仪仗感", "端正威仪"],
+        "forbidden_drift": ["不要草莽化", "不要喜剧化", "不要过分阴鸷"]
       },
       "reference_card": {
         "status": "planned",
@@ -336,17 +269,8 @@
         "side": "步伐迅疾，手按古锭刀，披风后扬",
         "back": "赤黑披风，甲片厚重，背影如猛虎压境",
         "wardrobe": "玄赤甲、披风、古锭刀",
-        "anchors": [
-          "虎目",
-          "赤黑战甲",
-          "古锭刀",
-          "刚烈表情"
-        ],
-        "forbidden_drift": [
-          "不要文弱",
-          "不要华而不武",
-          "不要现代盔甲"
-        ]
+        "anchors": ["虎目", "赤黑战甲", "古锭刀", "刚烈表情"],
+        "forbidden_drift": ["不要文弱", "不要华而不武", "不要现代盔甲"]
       },
       "reference_card": {
         "status": "planned",
@@ -376,17 +300,8 @@
         "side": "身形矫健，长枪或佩剑，姿态前倾",
         "back": "青色披风，银甲轻便，背影年轻锐利",
         "wardrobe": "银甲、青披风、长枪",
-        "anchors": [
-          "银甲",
-          "青披风",
-          "少年英气",
-          "长枪"
-        ],
-        "forbidden_drift": [
-          "不要老成暮气",
-          "不要阴柔化",
-          "不要丢失速度感"
-        ]
+        "anchors": ["银甲", "青披风", "少年英气", "长枪"],
+        "forbidden_drift": ["不要老成暮气", "不要阴柔化", "不要丢失速度感"]
       },
       "reference_card": {
         "status": "planned",
@@ -416,17 +331,8 @@
         "side": "坐姿端正，常扶案听议，佩剑不轻出",
         "back": "青金披风，江东水军旗影，背影稳",
         "wardrobe": "青金袍甲、玉带、佩剑",
-        "anchors": [
-          "青金色调",
-          "紫髯意象",
-          "端坐议事",
-          "江东旗"
-        ],
-        "forbidden_drift": [
-          "不要莽夫化",
-          "不要过早老态",
-          "不要纯旁观者"
-        ]
+        "anchors": ["青金色调", "紫髯意象", "端坐议事", "江东旗"],
+        "forbidden_drift": ["不要莽夫化", "不要过早老态", "不要纯旁观者"]
       },
       "reference_card": {
         "status": "planned",
@@ -456,17 +362,8 @@
         "side": "身形清瘦，手执羽扇或竹简，衣袂轻",
         "back": "白青长衫，羽扇垂侧，背影孤高",
         "wardrobe": "白青长衫、纶巾、羽扇",
-        "anchors": [
-          "羽扇",
-          "纶巾",
-          "白青长衫",
-          "从容眼神"
-        ],
-        "forbidden_drift": [
-          "不要神仙化过度",
-          "不要油滑",
-          "不要武将装"
-        ]
+        "anchors": ["羽扇", "纶巾", "白青长衫", "从容眼神"],
+        "forbidden_drift": ["不要神仙化过度", "不要油滑", "不要武将装"]
       },
       "reference_card": {
         "status": "planned",
@@ -496,17 +393,8 @@
         "side": "身姿挺拔，手持令旗或佩剑，水军甲轻便",
         "back": "白蓝披风，江风水雾，背影潇洒",
         "wardrobe": "白蓝战袍、轻甲、令旗、佩剑",
-        "anchors": [
-          "白蓝战袍",
-          "俊朗",
-          "令旗",
-          "水军气质"
-        ],
-        "forbidden_drift": [
-          "不要阴险脸谱",
-          "不要粗鲁化",
-          "不要丢失儒将感"
-        ]
+        "anchors": ["白蓝战袍", "俊朗", "令旗", "水军气质"],
+        "forbidden_drift": ["不要阴险脸谱", "不要粗鲁化", "不要丢失儒将感"]
       },
       "reference_card": {
         "status": "planned",
@@ -536,17 +424,8 @@
         "side": "骑将姿态，银枪前指，动作干净",
         "back": "白袍披风，银甲反光，背影挺直",
         "wardrobe": "白袍、银甲、长枪",
-        "anchors": [
-          "白袍",
-          "银甲",
-          "长枪",
-          "清正眉眼"
-        ],
-        "forbidden_drift": [
-          "不要花哨轻浮",
-          "不要黑甲化",
-          "不要过分少年偶像化"
-        ]
+        "anchors": ["白袍", "银甲", "长枪", "清正眉眼"],
+        "forbidden_drift": ["不要花哨轻浮", "不要黑甲化", "不要过分少年偶像化"]
       },
       "reference_card": {
         "status": "planned",
@@ -576,17 +455,8 @@
         "side": "身形收敛，袖手或执简，姿态谨慎",
         "back": "深灰披风，背影沉静，像影子贴着朝堂",
         "wardrobe": "深灰官服、黑色披风、竹简",
-        "anchors": [
-          "深灰色调",
-          "深藏眼神",
-          "短须",
-          "袖手"
-        ],
-        "forbidden_drift": [
-          "不要外放狂笑",
-          "不要武夫化",
-          "不要过早帝王化"
-        ]
+        "anchors": ["深灰色调", "深藏眼神", "短须", "袖手"],
+        "forbidden_drift": ["不要外放狂笑", "不要武夫化", "不要过早帝王化"]
       },
       "reference_card": {
         "status": "planned",
@@ -616,17 +486,8 @@
         "side": "手持长枪或军书，姿态紧绷",
         "back": "青白披风，山道军旗，背影孤直",
         "wardrobe": "青白甲、长枪、军书",
-        "anchors": [
-          "青白甲",
-          "坚决眼神",
-          "长枪",
-          "军书"
-        ],
-        "forbidden_drift": [
-          "不要轻佻",
-          "不要反复无常",
-          "不要纯悲情化"
-        ]
+        "anchors": ["青白甲", "坚决眼神", "长枪", "军书"],
+        "forbidden_drift": ["不要轻佻", "不要反复无常", "不要纯悲情化"]
       },
       "reference_card": {
         "status": "planned",
@@ -656,17 +517,8 @@
         "side": "登山行军姿态，手持地图或长矛",
         "back": "灰褐披风，山道雪雾，背影耐苦",
         "wardrobe": "灰褐甲、地图、长矛",
-        "anchors": [
-          "灰褐甲",
-          "地图",
-          "坚硬眼神",
-          "山道意象"
-        ],
-        "forbidden_drift": [
-          "不要浮夸",
-          "不要贵族化",
-          "不要柔弱"
-        ]
+        "anchors": ["灰褐甲", "地图", "坚硬眼神", "山道意象"],
+        "forbidden_drift": ["不要浮夸", "不要贵族化", "不要柔弱"]
       },
       "reference_card": {
         "status": "planned",
@@ -795,10 +647,7 @@
           "turn": "段落转折落在“宴桃园豪杰三结义”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第1回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-001-b",
@@ -808,10 +657,7 @@
           "turn": "结尾把观众带入下一回“张翼德怒鞭督邮，何国舅谋诛宦竖”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第1回下半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         }
       ],
       "summary": "本集按 AI 视频生成限制拆成 15 个 12 秒镜头，共约 3 分钟：从乱世榜文、刘张关相遇、桃园结义，到招募乡勇、首战黄巾、接到新诏，为第002回督邮冲突埋钩子。",
@@ -848,9 +694,7 @@
           "turn": "段落转折落在“张翼德怒鞭督邮”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第2回上半回目。",
-          "characters": [
-            "char-zhang-fei"
-          ]
+          "characters": ["char-zhang-fei"]
         },
         {
           "id": "beat-002-b",
@@ -860,9 +704,7 @@
           "turn": "结尾把观众带入下一回“议温明董卓叱丁原，馈金珠李肃说吕布”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第2回下半回目。",
-          "characters": [
-            "char-zhang-fei"
-          ]
+          "characters": ["char-zhang-fei"]
         }
       ],
       "summary": "本集对应原著第2回，以“张翼德怒鞭督邮”起势，以“何国舅谋诛宦竖”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -898,9 +740,7 @@
           "turn": "段落转折落在“议温明董卓叱丁原”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第3回上半回目。",
-          "characters": [
-            "char-dong-zhuo"
-          ]
+          "characters": ["char-dong-zhuo"]
         },
         {
           "id": "beat-003-b",
@@ -910,9 +750,7 @@
           "turn": "结尾把观众带入下一回“废汉帝陈留为皇，谋董贼孟德献刀”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第3回下半回目。",
-          "characters": [
-            "char-lu-bu"
-          ]
+          "characters": ["char-lu-bu"]
         }
       ],
       "summary": "本集对应原著第3回，以“议温明董卓叱丁原”起势，以“馈金珠李肃说吕布”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -948,10 +786,7 @@
           "turn": "段落转折落在“废汉帝陈留为皇”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第4回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-004-b",
@@ -961,9 +796,7 @@
           "turn": "结尾把观众带入下一回“发矫诏诸镇应曹公，破关兵三英战吕布”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第4回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第4回，以“废汉帝陈留为皇”起势，以“谋董贼孟德献刀”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -999,9 +832,7 @@
           "turn": "段落转折落在“发矫诏诸镇应曹公”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第5回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-005-b",
@@ -1011,9 +842,7 @@
           "turn": "结尾把观众带入下一回“焚金阙董卓行凶，匿玉玺孙坚背约”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第5回下半回目。",
-          "characters": [
-            "char-lu-bu"
-          ]
+          "characters": ["char-lu-bu"]
         }
       ],
       "summary": "本集对应原著第5回，以“发矫诏诸镇应曹公”起势，以“破关兵三英战吕布”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1049,9 +878,7 @@
           "turn": "段落转折落在“焚金阙董卓行凶”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第6回上半回目。",
-          "characters": [
-            "char-dong-zhuo"
-          ]
+          "characters": ["char-dong-zhuo"]
         },
         {
           "id": "beat-006-b",
@@ -1061,9 +888,7 @@
           "turn": "结尾把观众带入下一回“袁绍磐河战公孙，孙坚跨江击刘表”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第6回下半回目。",
-          "characters": [
-            "char-sun-jian"
-          ]
+          "characters": ["char-sun-jian"]
         }
       ],
       "summary": "本集对应原著第6回，以“焚金阙董卓行凶”起势，以“匿玉玺孙坚背约”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1099,9 +924,7 @@
           "turn": "段落转折落在“袁绍磐河战公孙”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第7回上半回目。",
-          "characters": [
-            "char-yuan-shao"
-          ]
+          "characters": ["char-yuan-shao"]
         },
         {
           "id": "beat-007-b",
@@ -1111,9 +934,7 @@
           "turn": "结尾把观众带入下一回“王司徒巧使连环计，董太师大闹凤仪亭”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第7回下半回目。",
-          "characters": [
-            "char-sun-jian"
-          ]
+          "characters": ["char-sun-jian"]
         }
       ],
       "summary": "本集对应原著第7回，以“袁绍磐河战公孙”起势，以“孙坚跨江击刘表”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1149,10 +970,7 @@
           "turn": "段落转折落在“王司徒巧使连环计”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第8回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-008-b",
@@ -1162,9 +980,7 @@
           "turn": "结尾把观众带入下一回“除暴凶吕布助司徒，犯长安李傕听贾诩”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第8回下半回目。",
-          "characters": [
-            "char-dong-zhuo"
-          ]
+          "characters": ["char-dong-zhuo"]
         }
       ],
       "summary": "本集对应原著第8回，以“王司徒巧使连环计”起势，以“董太师大闹凤仪亭”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1200,9 +1016,7 @@
           "turn": "段落转折落在“除暴凶吕布助司徒”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第9回上半回目。",
-          "characters": [
-            "char-lu-bu"
-          ]
+          "characters": ["char-lu-bu"]
         },
         {
           "id": "beat-009-b",
@@ -1212,9 +1026,7 @@
           "turn": "结尾把观众带入下一回“勤王室马腾举义，报父雠曹操兴师”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第9回下半回目。",
-          "characters": [
-            "char-lu-bu"
-          ]
+          "characters": ["char-lu-bu"]
         }
       ],
       "summary": "本集对应原著第9回，以“除暴凶吕布助司徒”起势，以“犯长安李傕听贾诩”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1250,10 +1062,7 @@
           "turn": "段落转折落在“勤王室马腾举义”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第10回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-010-b",
@@ -1263,9 +1072,7 @@
           "turn": "结尾把观众带入下一回“刘皇叔北海救孔融，吕温侯濮阳破曹操”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第10回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第10回，以“勤王室马腾举义”起势，以“报父雠曹操兴师”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1301,10 +1108,7 @@
           "turn": "段落转折落在“刘皇叔北海救孔融”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第11回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-011-b",
@@ -1314,9 +1118,7 @@
           "turn": "结尾把观众带入下一回“陶恭祖三让徐州，曹孟德大战吕布”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第11回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第11回，以“刘皇叔北海救孔融”起势，以“吕温侯濮阳破曹操”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1352,10 +1154,7 @@
           "turn": "段落转折落在“陶恭祖三让徐州”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第12回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-012-b",
@@ -1365,10 +1164,7 @@
           "turn": "结尾把观众带入下一回“李傕郭汜大交兵，杨奉董承双救驾”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第12回下半回目。",
-          "characters": [
-            "char-cao-cao",
-            "char-lu-bu"
-          ]
+          "characters": ["char-cao-cao", "char-lu-bu"]
         }
       ],
       "summary": "本集对应原著第12回，以“陶恭祖三让徐州”起势，以“曹孟德大战吕布”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1404,10 +1200,7 @@
           "turn": "段落转折落在“李傕郭汜大交兵”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第13回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-013-b",
@@ -1417,10 +1210,7 @@
           "turn": "结尾把观众带入下一回“曹孟德移驾幸许都，吕奉先乘夜袭徐郡”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第13回下半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第13回，以“李傕郭汜大交兵”起势，以“杨奉董承双救驾”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1456,9 +1246,7 @@
           "turn": "段落转折落在“曹孟德移驾幸许都”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第14回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-014-b",
@@ -1468,9 +1256,7 @@
           "turn": "结尾把观众带入下一回“太史慈酣斗小霸王，孙伯符大战严白虎”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第14回下半回目。",
-          "characters": [
-            "char-lu-bu"
-          ]
+          "characters": ["char-lu-bu"]
         }
       ],
       "summary": "本集对应原著第14回，以“曹孟德移驾幸许都”起势，以“吕奉先乘夜袭徐郡”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1506,10 +1292,7 @@
           "turn": "段落转折落在“太史慈酣斗小霸王”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第15回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-015-b",
@@ -1519,10 +1302,7 @@
           "turn": "结尾把观众带入下一回“吕奉先射戟辕门，曹孟德拜师淯水”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第15回下半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第15回，以“太史慈酣斗小霸王”起势，以“孙伯符大战严白虎”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1558,9 +1338,7 @@
           "turn": "段落转折落在“吕奉先射戟辕门”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第16回上半回目。",
-          "characters": [
-            "char-lu-bu"
-          ]
+          "characters": ["char-lu-bu"]
         },
         {
           "id": "beat-016-b",
@@ -1570,9 +1348,7 @@
           "turn": "结尾把观众带入下一回“袁公路大起七军，曹孟德会合三将”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第16回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第16回，以“吕奉先射戟辕门”起势，以“曹孟德拜师淯水”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1608,10 +1384,7 @@
           "turn": "段落转折落在“袁公路大起七军”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第17回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-017-b",
@@ -1621,9 +1394,7 @@
           "turn": "结尾把观众带入下一回“贾文和料敌决胜，夏侯敦拔失啖睛”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第17回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第17回，以“袁公路大起七军”起势，以“曹孟德会合三将”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1659,10 +1430,7 @@
           "turn": "段落转折落在“贾文和料敌决胜”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第18回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-018-b",
@@ -1672,10 +1440,7 @@
           "turn": "结尾把观众带入下一回“下邳城曹操鏖兵，白门楼吕布殒命”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第18回下半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第18回，以“贾文和料敌决胜”起势，以“夏侯敦拔失啖睛”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1711,9 +1476,7 @@
           "turn": "段落转折落在“下邳城曹操鏖兵”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第19回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-019-b",
@@ -1723,9 +1486,7 @@
           "turn": "结尾把观众带入下一回“曹阿瞒许田打围，董国舅内阁受诏”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第19回下半回目。",
-          "characters": [
-            "char-lu-bu"
-          ]
+          "characters": ["char-lu-bu"]
         }
       ],
       "summary": "本集对应原著第19回，以“下邳城曹操鏖兵”起势，以“白门楼吕布殒命”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1761,10 +1522,7 @@
           "turn": "段落转折落在“曹阿瞒许田打围”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第20回上半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         },
         {
           "id": "beat-020-b",
@@ -1774,10 +1532,7 @@
           "turn": "结尾把观众带入下一回“曹操煮酒论英雄，关公赚城斩车胄”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第20回下半回目。",
-          "characters": [
-            "char-liu-bei",
-            "char-cao-cao"
-          ]
+          "characters": ["char-liu-bei", "char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第20回，以“曹阿瞒许田打围”起势，以“董国舅内阁受诏”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1813,9 +1568,7 @@
           "turn": "段落转折落在“曹操煮酒论英雄”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第21回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-021-b",
@@ -1825,9 +1578,7 @@
           "turn": "结尾把观众带入下一回“袁曹各起马步三军，关张共擒王刘二将”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第21回下半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         }
       ],
       "summary": "本集对应原著第21回，以“曹操煮酒论英雄”起势，以“关公赚城斩车胄”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1863,10 +1614,7 @@
           "turn": "段落转折落在“袁曹各起马步三军”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第22回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-022-b",
@@ -1876,10 +1624,7 @@
           "turn": "结尾把观众带入下一回“祢正平裸衣骂贼，吉太医下毒遭刑”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第22回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第22回，以“袁曹各起马步三军”起势，以“关张共擒王刘二将”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1915,10 +1660,7 @@
           "turn": "段落转折落在“祢正平裸衣骂贼”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第23回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-023-b",
@@ -1928,10 +1670,7 @@
           "turn": "结尾把观众带入下一回“国贼行凶杀贵妃，皇叔败走投袁绍”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第23回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第23回，以“祢正平裸衣骂贼”起势，以“吉太医下毒遭刑”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -1967,10 +1706,7 @@
           "turn": "段落转折落在“国贼行凶杀贵妃”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第24回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-024-b",
@@ -1980,9 +1716,7 @@
           "turn": "结尾把观众带入下一回“屯土山关公约三事，救白马曹操解重围”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第24回下半回目。",
-          "characters": [
-            "char-yuan-shao"
-          ]
+          "characters": ["char-yuan-shao"]
         }
       ],
       "summary": "本集对应原著第24回，以“国贼行凶杀贵妃”起势，以“皇叔败走投袁绍”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2018,9 +1752,7 @@
           "turn": "段落转折落在“屯土山关公约三事”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第25回上半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         },
         {
           "id": "beat-025-b",
@@ -2030,9 +1762,7 @@
           "turn": "结尾把观众带入下一回“袁本初败兵折将，关云长挂印封金”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第25回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第25回，以“屯土山关公约三事”起势，以“救白马曹操解重围”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2068,10 +1798,7 @@
           "turn": "段落转折落在“袁本初败兵折将”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第26回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-026-b",
@@ -2081,9 +1808,7 @@
           "turn": "结尾把观众带入下一回“美髯公千里走单骑，汉寿侯五关斩六将”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第26回下半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         }
       ],
       "summary": "本集对应原著第26回，以“袁本初败兵折将”起势，以“关云长挂印封金”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2119,10 +1844,7 @@
           "turn": "段落转折落在“美髯公千里走单骑”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第27回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-027-b",
@@ -2132,10 +1854,7 @@
           "turn": "结尾把观众带入下一回“斩蔡阳兄弟释疑，会古城主臣聚义”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第27回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第27回，以“美髯公千里走单骑”起势，以“汉寿侯五关斩六将”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2171,10 +1890,7 @@
           "turn": "段落转折落在“斩蔡阳兄弟释疑”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第28回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-028-b",
@@ -2184,10 +1900,7 @@
           "turn": "结尾把观众带入下一回“小霸王怒斩于吉，碧眼儿坐领江东”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第28回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第28回，以“斩蔡阳兄弟释疑”起势，以“会古城主臣聚义”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2223,10 +1936,7 @@
           "turn": "段落转折落在“小霸王怒斩于吉”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第29回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-029-b",
@@ -2236,10 +1946,7 @@
           "turn": "结尾把观众带入下一回“战官渡本初败绩，劫乌巢孟德烧粮”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第29回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第29回，以“小霸王怒斩于吉”起势，以“碧眼儿坐领江东”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2275,10 +1982,7 @@
           "turn": "段落转折落在“战官渡本初败绩”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第30回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-030-b",
@@ -2288,9 +1992,7 @@
           "turn": "结尾把观众带入下一回“曹操仓亭破本初，玄德荆州依刘表”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第30回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第30回，以“战官渡本初败绩”起势，以“劫乌巢孟德烧粮”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2326,9 +2028,7 @@
           "turn": "段落转折落在“曹操仓亭破本初”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第31回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-031-b",
@@ -2338,9 +2038,7 @@
           "turn": "结尾把观众带入下一回“夺冀州袁尚争锋，决漳河许攸献计”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第31回下半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         }
       ],
       "summary": "本集对应原著第31回，以“曹操仓亭破本初”起势，以“玄德荆州依刘表”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2376,10 +2074,7 @@
           "turn": "段落转折落在“夺冀州袁尚争锋”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第32回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-032-b",
@@ -2389,10 +2084,7 @@
           "turn": "结尾把观众带入下一回“曹丕乘乱纳甄氏，郭嘉遗计定辽东”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第32回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第32回，以“夺冀州袁尚争锋”起势，以“决漳河许攸献计”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2428,9 +2120,7 @@
           "turn": "段落转折落在“曹丕乘乱纳甄氏”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第33回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-033-b",
@@ -2440,9 +2130,7 @@
           "turn": "结尾把观众带入下一回“蔡夫人隔屏听密语，刘皇叔跃马过檀溪”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第33回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第33回，以“曹丕乘乱纳甄氏”起势，以“郭嘉遗计定辽东”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2478,10 +2166,7 @@
           "turn": "段落转折落在“蔡夫人隔屏听密语”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第34回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-034-b",
@@ -2491,10 +2176,7 @@
           "turn": "结尾把观众带入下一回“玄德南漳逢隐沦，单福新野遇英主”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第34回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第34回，以“蔡夫人隔屏听密语”起势，以“刘皇叔跃马过檀溪”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2530,9 +2212,7 @@
           "turn": "段落转折落在“玄德南漳逢隐沦”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第35回上半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         },
         {
           "id": "beat-035-b",
@@ -2542,9 +2222,7 @@
           "turn": "结尾把观众带入下一回“玄德用计袭樊城，元直走马荐诸葛”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第35回下半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         }
       ],
       "summary": "本集对应原著第35回，以“玄德南漳逢隐沦”起势，以“单福新野遇英主”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2580,9 +2258,7 @@
           "turn": "段落转折落在“玄德用计袭樊城”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第36回上半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         },
         {
           "id": "beat-036-b",
@@ -2592,9 +2268,7 @@
           "turn": "结尾把观众带入下一回“司马徽再荐名士，刘玄德三顾草庐”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第36回下半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         }
       ],
       "summary": "本集对应原著第36回，以“玄德用计袭樊城”起势，以“元直走马荐诸葛”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2630,10 +2304,7 @@
           "turn": "段落转折落在“司马徽再荐名士”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第37回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-037-b",
@@ -2643,9 +2314,7 @@
           "turn": "结尾把观众带入下一回“定三分隆中决策，战长江孙氏报雠”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第37回下半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         }
       ],
       "summary": "本集对应原著第37回，以“司马徽再荐名士”起势，以“刘玄德三顾草庐”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2681,10 +2350,7 @@
           "turn": "段落转折落在“定三分隆中决策”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第38回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-038-b",
@@ -2694,10 +2360,7 @@
           "turn": "结尾把观众带入下一回“荆州城公子三求计，博望坡军师初用兵”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第38回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第38回，以“定三分隆中决策”起势，以“战长江孙氏报雠”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2733,10 +2396,7 @@
           "turn": "段落转折落在“荆州城公子三求计”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第39回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-039-b",
@@ -2746,10 +2406,7 @@
           "turn": "结尾把观众带入下一回“蔡夫人议献荆州，诸葛亮火烧新野”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第39回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第39回，以“荆州城公子三求计”起势，以“博望坡军师初用兵”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2785,10 +2442,7 @@
           "turn": "段落转折落在“蔡夫人议献荆州”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第40回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-040-b",
@@ -2798,9 +2452,7 @@
           "turn": "结尾把观众带入下一回“刘玄德携民渡江，赵子龙单骑救主”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第40回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第40回，以“蔡夫人议献荆州”起势，以“诸葛亮火烧新野”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2836,9 +2488,7 @@
           "turn": "段落转折落在“刘玄德携民渡江”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第41回上半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         },
         {
           "id": "beat-041-b",
@@ -2848,9 +2498,7 @@
           "turn": "结尾把观众带入下一回“张翼德大闹长板桥，刘豫州败走汉津”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第41回下半回目。",
-          "characters": [
-            "char-zhao-yun"
-          ]
+          "characters": ["char-zhao-yun"]
         }
       ],
       "summary": "本集对应原著第41回，以“刘玄德携民渡江”起势，以“赵子龙单骑救主”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2886,9 +2534,7 @@
           "turn": "段落转折落在“张翼德大闹长板桥”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第42回上半回目。",
-          "characters": [
-            "char-zhang-fei"
-          ]
+          "characters": ["char-zhang-fei"]
         },
         {
           "id": "beat-042-b",
@@ -2898,9 +2544,7 @@
           "turn": "结尾把观众带入下一回“诸葛亮舌战群儒，鲁子敬力排众议”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第42回下半回目。",
-          "characters": [
-            "char-zhang-fei"
-          ]
+          "characters": ["char-zhang-fei"]
         }
       ],
       "summary": "本集对应原著第42回，以“张翼德大闹长板桥”起势，以“刘豫州败走汉津”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2936,9 +2580,7 @@
           "turn": "段落转折落在“诸葛亮舌战群儒”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第43回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-043-b",
@@ -2948,9 +2590,7 @@
           "turn": "结尾把观众带入下一回“孔明用智激周瑜，孙权决计破曹操”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第43回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第43回，以“诸葛亮舌战群儒”起势，以“鲁子敬力排众议”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -2986,10 +2626,7 @@
           "turn": "段落转折落在“孔明用智激周瑜”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第44回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-zhou-yu"
-          ]
+          "characters": ["char-zhuge-liang", "char-zhou-yu"]
         },
         {
           "id": "beat-044-b",
@@ -2999,10 +2636,7 @@
           "turn": "结尾把观众带入下一回“三江口曹操折兵，群英会蒋干中计”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第44回下半回目。",
-          "characters": [
-            "char-cao-cao",
-            "char-sun-quan"
-          ]
+          "characters": ["char-cao-cao", "char-sun-quan"]
         }
       ],
       "summary": "本集对应原著第44回，以“孔明用智激周瑜”起势，以“孙权决计破曹操”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3038,9 +2672,7 @@
           "turn": "段落转折落在“三江口曹操折兵”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第45回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-045-b",
@@ -3050,9 +2682,7 @@
           "turn": "结尾把观众带入下一回“用奇谋孔明借箭，献密计黄盖受刑”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第45回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第45回，以“三江口曹操折兵”起势，以“群英会蒋干中计”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3088,9 +2718,7 @@
           "turn": "段落转折落在“用奇谋孔明借箭”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第46回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-046-b",
@@ -3100,9 +2728,7 @@
           "turn": "结尾把观众带入下一回“阚泽密献诈书，庞统巧授连环计”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第46回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第46回，以“用奇谋孔明借箭”起势，以“献密计黄盖受刑”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3138,10 +2764,7 @@
           "turn": "段落转折落在“阚泽密献诈书”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第47回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-047-b",
@@ -3151,10 +2774,7 @@
           "turn": "结尾把观众带入下一回“宴长江曹操赋诗，锁战船北军用武”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第47回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第47回，以“阚泽密献诈书”起势，以“庞统巧授连环计”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3190,9 +2810,7 @@
           "turn": "段落转折落在“宴长江曹操赋诗”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第48回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-048-b",
@@ -3202,9 +2820,7 @@
           "turn": "结尾把观众带入下一回“七星坛诸葛祭风，三江口周瑜纵火”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第48回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第48回，以“宴长江曹操赋诗”起势，以“锁战船北军用武”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3240,10 +2856,7 @@
           "turn": "段落转折落在“七星坛诸葛祭风”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第49回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-049-b",
@@ -3253,9 +2866,7 @@
           "turn": "结尾把观众带入下一回“诸葛亮智算华容，关云长义释曹操”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第49回下半回目。",
-          "characters": [
-            "char-zhou-yu"
-          ]
+          "characters": ["char-zhou-yu"]
         }
       ],
       "summary": "本集对应原著第49回，以“七星坛诸葛祭风”起势，以“三江口周瑜纵火”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3291,9 +2902,7 @@
           "turn": "段落转折落在“诸葛亮智算华容”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第50回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-050-b",
@@ -3303,10 +2912,7 @@
           "turn": "结尾把观众带入下一回“曹仁大战东吴兵，孔明一气周公瑾”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第50回下半回目。",
-          "characters": [
-            "char-guan-yu",
-            "char-cao-cao"
-          ]
+          "characters": ["char-guan-yu", "char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第50回，以“诸葛亮智算华容”起势，以“关云长义释曹操”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3342,10 +2948,7 @@
           "turn": "段落转折落在“曹仁大战东吴兵”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第51回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-051-b",
@@ -3355,10 +2958,7 @@
           "turn": "结尾把观众带入下一回“诸葛亮智辞鲁肃，赵子龙计取桂阳”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第51回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-zhou-yu"
-          ]
+          "characters": ["char-zhuge-liang", "char-zhou-yu"]
         }
       ],
       "summary": "本集对应原著第51回，以“曹仁大战东吴兵”起势，以“孔明一气周公瑾”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3394,9 +2994,7 @@
           "turn": "段落转折落在“诸葛亮智辞鲁肃”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第52回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-052-b",
@@ -3406,9 +3004,7 @@
           "turn": "结尾把观众带入下一回“关云长义释黄汉升，孙仲谋大战张文远”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第52回下半回目。",
-          "characters": [
-            "char-zhao-yun"
-          ]
+          "characters": ["char-zhao-yun"]
         }
       ],
       "summary": "本集对应原著第52回，以“诸葛亮智辞鲁肃”起势，以“赵子龙计取桂阳”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3444,9 +3040,7 @@
           "turn": "段落转折落在“关云长义释黄汉升”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第53回上半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         },
         {
           "id": "beat-053-b",
@@ -3456,9 +3050,7 @@
           "turn": "结尾把观众带入下一回“吴国太佛寺看新郎，刘皇叔洞房续佳偶”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第53回下半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         }
       ],
       "summary": "本集对应原著第53回，以“关云长义释黄汉升”起势，以“孙仲谋大战张文远”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3494,10 +3086,7 @@
           "turn": "段落转折落在“吴国太佛寺看新郎”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第54回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-054-b",
@@ -3507,10 +3096,7 @@
           "turn": "结尾把观众带入下一回“玄德智激孙夫人，孔明二气周公瑾”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第54回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第54回，以“吴国太佛寺看新郎”起势，以“刘皇叔洞房续佳偶”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3546,9 +3132,7 @@
           "turn": "段落转折落在“玄德智激孙夫人”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第55回上半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         },
         {
           "id": "beat-055-b",
@@ -3558,10 +3142,7 @@
           "turn": "结尾把观众带入下一回“曹操大宴铜雀台，孔明三气周公瑾”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第55回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-zhou-yu"
-          ]
+          "characters": ["char-zhuge-liang", "char-zhou-yu"]
         }
       ],
       "summary": "本集对应原著第55回，以“玄德智激孙夫人”起势，以“孔明二气周公瑾”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3597,9 +3178,7 @@
           "turn": "段落转折落在“曹操大宴铜雀台”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第56回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-056-b",
@@ -3609,10 +3188,7 @@
           "turn": "结尾把观众带入下一回“柴桑口卧龙吊丧，耒阳县凤雏理事”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第56回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-zhou-yu"
-          ]
+          "characters": ["char-zhuge-liang", "char-zhou-yu"]
         }
       ],
       "summary": "本集对应原著第56回，以“曹操大宴铜雀台”起势，以“孔明三气周公瑾”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3648,9 +3224,7 @@
           "turn": "段落转折落在“柴桑口卧龙吊丧”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第57回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-057-b",
@@ -3660,9 +3234,7 @@
           "turn": "结尾把观众带入下一回“马孟起兴兵雪恨，曹阿瞒割须弃袍”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第57回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第57回，以“柴桑口卧龙吊丧”起势，以“耒阳县凤雏理事”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3698,10 +3270,7 @@
           "turn": "段落转折落在“马孟起兴兵雪恨”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第58回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-058-b",
@@ -3711,10 +3280,7 @@
           "turn": "结尾把观众带入下一回“许褚裸衣斗马超，曹操抹书间韩遂”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第58回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第58回，以“马孟起兴兵雪恨”起势，以“曹阿瞒割须弃袍”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3750,10 +3316,7 @@
           "turn": "段落转折落在“许褚裸衣斗马超”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第59回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-059-b",
@@ -3763,9 +3326,7 @@
           "turn": "结尾把观众带入下一回“张永年反难杨修，庞士元议取西蜀”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第59回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第59回，以“许褚裸衣斗马超”起势，以“曹操抹书间韩遂”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3801,10 +3362,7 @@
           "turn": "段落转折落在“张永年反难杨修”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第60回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-060-b",
@@ -3814,10 +3372,7 @@
           "turn": "结尾把观众带入下一回“赵云截江夺阿斗，孙权遗书退老瞒”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第60回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第60回，以“张永年反难杨修”起势，以“庞士元议取西蜀”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3853,9 +3408,7 @@
           "turn": "段落转折落在“赵云截江夺阿斗”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第61回上半回目。",
-          "characters": [
-            "char-zhao-yun"
-          ]
+          "characters": ["char-zhao-yun"]
         },
         {
           "id": "beat-061-b",
@@ -3865,9 +3418,7 @@
           "turn": "结尾把观众带入下一回“取涪关杨高授首，攻雒城黄魏争功”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第61回下半回目。",
-          "characters": [
-            "char-sun-quan"
-          ]
+          "characters": ["char-sun-quan"]
         }
       ],
       "summary": "本集对应原著第61回，以“赵云截江夺阿斗”起势，以“孙权遗书退老瞒”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3903,10 +3454,7 @@
           "turn": "段落转折落在“取涪关杨高授首”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第62回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-062-b",
@@ -3916,10 +3464,7 @@
           "turn": "结尾把观众带入下一回“诸葛亮痛哭庞统，张翼德义释严颜”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第62回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第62回，以“取涪关杨高授首”起势，以“攻雒城黄魏争功”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -3955,9 +3500,7 @@
           "turn": "段落转折落在“诸葛亮痛哭庞统”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第63回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-063-b",
@@ -3967,9 +3510,7 @@
           "turn": "结尾把观众带入下一回“孔明定计捉张任，杨阜借兵破马超”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第63回下半回目。",
-          "characters": [
-            "char-zhang-fei"
-          ]
+          "characters": ["char-zhang-fei"]
         }
       ],
       "summary": "本集对应原著第63回，以“诸葛亮痛哭庞统”起势，以“张翼德义释严颜”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4005,9 +3546,7 @@
           "turn": "段落转折落在“孔明定计捉张任”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第64回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-064-b",
@@ -4017,9 +3556,7 @@
           "turn": "结尾把观众带入下一回“马超大战葭萌关，刘备自领益州牧”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第64回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第64回，以“孔明定计捉张任”起势，以“杨阜借兵破马超”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4055,10 +3592,7 @@
           "turn": "段落转折落在“马超大战葭萌关”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第65回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-065-b",
@@ -4068,9 +3602,7 @@
           "turn": "结尾把观众带入下一回“关云长单刀赴会，伏皇后为国捐生”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第65回下半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         }
       ],
       "summary": "本集对应原著第65回，以“马超大战葭萌关”起势，以“刘备自领益州牧”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4106,9 +3638,7 @@
           "turn": "段落转折落在“关云长单刀赴会”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第66回上半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         },
         {
           "id": "beat-066-b",
@@ -4118,9 +3648,7 @@
           "turn": "结尾把观众带入下一回“曹操平定汉中地，张辽威震逍遥津”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第66回下半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         }
       ],
       "summary": "本集对应原著第66回，以“关云长单刀赴会”起势，以“伏皇后为国捐生”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4156,9 +3684,7 @@
           "turn": "段落转折落在“曹操平定汉中地”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第67回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-067-b",
@@ -4168,9 +3694,7 @@
           "turn": "结尾把观众带入下一回“甘宁百骑劫魏营，左慈掷杯戏曹操”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第67回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第67回，以“曹操平定汉中地”起势，以“张辽威震逍遥津”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4206,10 +3730,7 @@
           "turn": "段落转折落在“甘宁百骑劫魏营”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第68回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-068-b",
@@ -4219,9 +3740,7 @@
           "turn": "结尾把观众带入下一回“卜周易管辂知机，讨汉贼五臣死节”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第68回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第68回，以“甘宁百骑劫魏营”起势，以“左慈掷杯戏曹操”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4257,10 +3776,7 @@
           "turn": "段落转折落在“卜周易管辂知机”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第69回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-069-b",
@@ -4270,10 +3786,7 @@
           "turn": "结尾把观众带入下一回“猛张飞智取瓦口隘，老黄忠计夺天荡山”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第69回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第69回，以“卜周易管辂知机”起势，以“讨汉贼五臣死节”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4309,9 +3822,7 @@
           "turn": "段落转折落在“猛张飞智取瓦口隘”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第70回上半回目。",
-          "characters": [
-            "char-zhang-fei"
-          ]
+          "characters": ["char-zhang-fei"]
         },
         {
           "id": "beat-070-b",
@@ -4321,9 +3832,7 @@
           "turn": "结尾把观众带入下一回“占对山黄忠逸待劳，据汉水赵云寡胜众”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第70回下半回目。",
-          "characters": [
-            "char-zhang-fei"
-          ]
+          "characters": ["char-zhang-fei"]
         }
       ],
       "summary": "本集对应原著第70回，以“猛张飞智取瓦口隘”起势，以“老黄忠计夺天荡山”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4359,10 +3868,7 @@
           "turn": "段落转折落在“占对山黄忠逸待劳”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第71回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-071-b",
@@ -4372,9 +3878,7 @@
           "turn": "结尾把观众带入下一回“诸葛亮智取汉中，曹阿瞒兵退斜谷”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第71回下半回目。",
-          "characters": [
-            "char-zhao-yun"
-          ]
+          "characters": ["char-zhao-yun"]
         }
       ],
       "summary": "本集对应原著第71回，以“占对山黄忠逸待劳”起势，以“据汉水赵云寡胜众”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4410,9 +3914,7 @@
           "turn": "段落转折落在“诸葛亮智取汉中”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第72回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-072-b",
@@ -4422,9 +3924,7 @@
           "turn": "结尾把观众带入下一回“玄德进位汉中王，云长攻拔襄阳郡”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第72回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第72回，以“诸葛亮智取汉中”起势，以“曹阿瞒兵退斜谷”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4460,9 +3960,7 @@
           "turn": "段落转折落在“玄德进位汉中王”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第73回上半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         },
         {
           "id": "beat-073-b",
@@ -4472,9 +3970,7 @@
           "turn": "结尾把观众带入下一回“庞令明台榇决死战，关云长放水渰七军”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第73回下半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         }
       ],
       "summary": "本集对应原著第73回，以“玄德进位汉中王”起势，以“云长攻拔襄阳郡”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4510,10 +4006,7 @@
           "turn": "段落转折落在“庞令明台榇决死战”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第74回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-074-b",
@@ -4523,9 +4016,7 @@
           "turn": "结尾把观众带入下一回“关云长刮骨疗毒，吕子明白衣渡江”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第74回下半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         }
       ],
       "summary": "本集对应原著第74回，以“庞令明台榇决死战”起势，以“关云长放水渰七军”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4561,9 +4052,7 @@
           "turn": "段落转折落在“关云长刮骨疗毒”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第75回上半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         },
         {
           "id": "beat-075-b",
@@ -4573,9 +4062,7 @@
           "turn": "结尾把观众带入下一回“徐公明大战沔水，关云长败走麦城”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第75回下半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         }
       ],
       "summary": "本集对应原著第75回，以“关云长刮骨疗毒”起势，以“吕子明白衣渡江”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4611,10 +4098,7 @@
           "turn": "段落转折落在“徐公明大战沔水”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第76回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-076-b",
@@ -4624,9 +4108,7 @@
           "turn": "结尾把观众带入下一回“玉泉山关公显圣，洛阳城曹操感神”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第76回下半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         }
       ],
       "summary": "本集对应原著第76回，以“徐公明大战沔水”起势，以“关云长败走麦城”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4662,9 +4144,7 @@
           "turn": "段落转折落在“玉泉山关公显圣”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第77回上半回目。",
-          "characters": [
-            "char-guan-yu"
-          ]
+          "characters": ["char-guan-yu"]
         },
         {
           "id": "beat-077-b",
@@ -4674,9 +4154,7 @@
           "turn": "结尾把观众带入下一回“治风疾神医身死，传遗命奸雄数终”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第77回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第77回，以“玉泉山关公显圣”起势，以“洛阳城曹操感神”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4712,10 +4190,7 @@
           "turn": "段落转折落在“治风疾神医身死”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第78回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-078-b",
@@ -4725,10 +4200,7 @@
           "turn": "结尾把观众带入下一回“兄逼弟曹植赋诗，侄陷叔刘封伏法”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第78回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第78回，以“治风疾神医身死”起势，以“传遗命奸雄数终”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4764,10 +4236,7 @@
           "turn": "段落转折落在“兄逼弟曹植赋诗”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第79回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-079-b",
@@ -4777,10 +4246,7 @@
           "turn": "结尾把观众带入下一回“曹丕废帝篡炎刘，汉王正位续大统”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第79回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第79回，以“兄逼弟曹植赋诗”起势，以“侄陷叔刘封伏法”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4816,9 +4282,7 @@
           "turn": "段落转折落在“曹丕废帝篡炎刘”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第80回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-080-b",
@@ -4828,9 +4292,7 @@
           "turn": "结尾把观众带入下一回“急兄雠张飞遇害，雪弟恨先主兴兵”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第80回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第80回，以“曹丕废帝篡炎刘”起势，以“汉王正位续大统”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4866,9 +4328,7 @@
           "turn": "段落转折落在“急兄雠张飞遇害”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第81回上半回目。",
-          "characters": [
-            "char-zhang-fei"
-          ]
+          "characters": ["char-zhang-fei"]
         },
         {
           "id": "beat-081-b",
@@ -4878,9 +4338,7 @@
           "turn": "结尾把观众带入下一回“孙权降魏受九锡，先主征吴赏六军”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第81回下半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         }
       ],
       "summary": "本集对应原著第81回，以“急兄雠张飞遇害”起势，以“雪弟恨先主兴兵”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4916,9 +4374,7 @@
           "turn": "段落转折落在“孙权降魏受九锡”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第82回上半回目。",
-          "characters": [
-            "char-sun-quan"
-          ]
+          "characters": ["char-sun-quan"]
         },
         {
           "id": "beat-082-b",
@@ -4928,9 +4384,7 @@
           "turn": "结尾把观众带入下一回“战猇亭先主得雠人，守江口书生拜大将”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第82回下半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         }
       ],
       "summary": "本集对应原著第82回，以“孙权降魏受九锡”起势，以“先主征吴赏六军”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -4966,9 +4420,7 @@
           "turn": "段落转折落在“战猇亭先主得雠人”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第83回上半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         },
         {
           "id": "beat-083-b",
@@ -4978,9 +4430,7 @@
           "turn": "结尾把观众带入下一回“陆逊营烧七百里，孔明巧布八阵图”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第83回下半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         }
       ],
       "summary": "本集对应原著第83回，以“战猇亭先主得雠人”起势，以“守江口书生拜大将”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5016,10 +4466,7 @@
           "turn": "段落转折落在“陆逊营烧七百里”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第84回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-084-b",
@@ -5029,9 +4476,7 @@
           "turn": "结尾把观众带入下一回“刘先主遗诏托孤儿，诸葛亮安居平五路”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第84回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第84回，以“陆逊营烧七百里”起势，以“孔明巧布八阵图”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5067,9 +4512,7 @@
           "turn": "段落转折落在“刘先主遗诏托孤儿”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第85回上半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         },
         {
           "id": "beat-085-b",
@@ -5079,9 +4522,7 @@
           "turn": "结尾把观众带入下一回“难张温秦宓逞天辩，破曹丕徐盛用火攻”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第85回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第85回，以“刘先主遗诏托孤儿”起势，以“诸葛亮安居平五路”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5117,10 +4558,7 @@
           "turn": "段落转折落在“难张温秦宓逞天辩”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第86回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-086-b",
@@ -5130,9 +4568,7 @@
           "turn": "结尾把观众带入下一回“征南寇丞相大兴师，抗天兵蛮王初受执”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第86回下半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         }
       ],
       "summary": "本集对应原著第86回，以“难张温秦宓逞天辩”起势，以“破曹丕徐盛用火攻”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5168,10 +4604,7 @@
           "turn": "段落转折落在“征南寇丞相大兴师”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第87回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-087-b",
@@ -5181,10 +4614,7 @@
           "turn": "结尾把观众带入下一回“渡泸水再缚番王，识诈降三擒孟获”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第87回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第87回，以“征南寇丞相大兴师”起势，以“抗天兵蛮王初受执”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5220,10 +4650,7 @@
           "turn": "段落转折落在“渡泸水再缚番王”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第88回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-088-b",
@@ -5233,10 +4660,7 @@
           "turn": "结尾把观众带入下一回“武乡侯四番用计，南蛮王五次遭擒”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第88回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第88回，以“渡泸水再缚番王”起势，以“识诈降三擒孟获”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5272,10 +4696,7 @@
           "turn": "段落转折落在“武乡侯四番用计”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第89回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-089-b",
@@ -5285,10 +4706,7 @@
           "turn": "结尾把观众带入下一回“驱巨兽六破蛮兵，烧藤甲七擒孟获”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第89回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第89回，以“武乡侯四番用计”起势，以“南蛮王五次遭擒”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5324,10 +4742,7 @@
           "turn": "段落转折落在“驱巨兽六破蛮兵”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第90回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-090-b",
@@ -5337,10 +4752,7 @@
           "turn": "结尾把观众带入下一回“祭泸水汉相班师，伐中原武侯上表”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第90回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第90回，以“驱巨兽六破蛮兵”起势，以“烧藤甲七擒孟获”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5376,10 +4788,7 @@
           "turn": "段落转折落在“祭泸水汉相班师”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第91回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-091-b",
@@ -5389,9 +4798,7 @@
           "turn": "结尾把观众带入下一回“赵子龙力斩五将，诸葛亮智取三城”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第91回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第91回，以“祭泸水汉相班师”起势，以“伐中原武侯上表”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5427,9 +4834,7 @@
           "turn": "段落转折落在“赵子龙力斩五将”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第92回上半回目。",
-          "characters": [
-            "char-zhao-yun"
-          ]
+          "characters": ["char-zhao-yun"]
         },
         {
           "id": "beat-092-b",
@@ -5439,9 +4844,7 @@
           "turn": "结尾把观众带入下一回“姜伯约归降孔明，武乡侯骂死王朗”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第92回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第92回，以“赵子龙力斩五将”起势，以“诸葛亮智取三城”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5477,10 +4880,7 @@
           "turn": "段落转折落在“姜伯约归降孔明”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第93回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-jiang-wei"
-          ]
+          "characters": ["char-zhuge-liang", "char-jiang-wei"]
         },
         {
           "id": "beat-093-b",
@@ -5490,10 +4890,7 @@
           "turn": "结尾把观众带入下一回“诸葛亮乘雪破羌兵，司马懿克日擒孟达”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第93回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-jiang-wei"
-          ]
+          "characters": ["char-zhuge-liang", "char-jiang-wei"]
         }
       ],
       "summary": "本集对应原著第93回，以“姜伯约归降孔明”起势，以“武乡侯骂死王朗”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5529,9 +4926,7 @@
           "turn": "段落转折落在“诸葛亮乘雪破羌兵”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第94回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-094-b",
@@ -5541,9 +4936,7 @@
           "turn": "结尾把观众带入下一回“马谡拒谏失街亭，武侯弹琴退仲达”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第94回下半回目。",
-          "characters": [
-            "char-sima-yi"
-          ]
+          "characters": ["char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第94回，以“诸葛亮乘雪破羌兵”起势，以“司马懿克日擒孟达”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5579,10 +4972,7 @@
           "turn": "段落转折落在“马谡拒谏失街亭”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第95回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-095-b",
@@ -5592,10 +4982,7 @@
           "turn": "结尾把观众带入下一回“孔明挥泪斩马谡，周鲂断发赚曹休”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第95回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第95回，以“马谡拒谏失街亭”起势，以“武侯弹琴退仲达”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5631,9 +5018,7 @@
           "turn": "段落转折落在“孔明挥泪斩马谡”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第96回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-096-b",
@@ -5643,9 +5028,7 @@
           "turn": "结尾把观众带入下一回“讨魏国武侯再上表，破曹兵姜维诈献书”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第96回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第96回，以“孔明挥泪斩马谡”起势，以“周鲂断发赚曹休”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5681,9 +5064,7 @@
           "turn": "段落转折落在“讨魏国武侯再上表”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第97回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-097-b",
@@ -5693,9 +5074,7 @@
           "turn": "结尾把观众带入下一回“追汉军王双受诛，袭陈仓武侯取胜”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第97回下半回目。",
-          "characters": [
-            "char-jiang-wei"
-          ]
+          "characters": ["char-jiang-wei"]
         }
       ],
       "summary": "本集对应原著第97回，以“讨魏国武侯再上表”起势，以“破曹兵姜维诈献书”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5731,10 +5110,7 @@
           "turn": "段落转折落在“追汉军王双受诛”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第98回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-098-b",
@@ -5744,9 +5120,7 @@
           "turn": "结尾把观众带入下一回“诸葛亮大破魏兵，司马懿入寇西蜀”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第98回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第98回，以“追汉军王双受诛”起势，以“袭陈仓武侯取胜”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5782,9 +5156,7 @@
           "turn": "段落转折落在“诸葛亮大破魏兵”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第99回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-099-b",
@@ -5794,9 +5166,7 @@
           "turn": "结尾把观众带入下一回“汉兵劫寨破曹真，武侯斗阵辱仲达”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第99回下半回目。",
-          "characters": [
-            "char-sima-yi"
-          ]
+          "characters": ["char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第99回，以“诸葛亮大破魏兵”起势，以“司马懿入寇西蜀”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5832,10 +5202,7 @@
           "turn": "段落转折落在“汉兵劫寨破曹真”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第100回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-100-b",
@@ -5845,10 +5212,7 @@
           "turn": "结尾把观众带入下一回“出陇上诸葛妆神，奔剑阁张合中计”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第100回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第100回，以“汉兵劫寨破曹真”起势，以“武侯斗阵辱仲达”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5884,10 +5248,7 @@
           "turn": "段落转折落在“出陇上诸葛妆神”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第101回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-101-b",
@@ -5897,10 +5258,7 @@
           "turn": "结尾把观众带入下一回“司马懿战北原渭桥，诸葛亮造木牛流马”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第101回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第101回，以“出陇上诸葛妆神”起势，以“奔剑阁张合中计”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5936,9 +5294,7 @@
           "turn": "段落转折落在“司马懿战北原渭桥”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第102回上半回目。",
-          "characters": [
-            "char-sima-yi"
-          ]
+          "characters": ["char-sima-yi"]
         },
         {
           "id": "beat-102-b",
@@ -5948,9 +5304,7 @@
           "turn": "结尾把观众带入下一回“上方谷司马受困，五丈原诸葛禳星”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第102回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第102回，以“司马懿战北原渭桥”起势，以“诸葛亮造木牛流马”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -5986,10 +5340,7 @@
           "turn": "段落转折落在“上方谷司马受困”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第103回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-103-b",
@@ -5999,10 +5350,7 @@
           "turn": "结尾把观众带入下一回“陨大星汉丞相归天，见木像魏都督丧胆”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第103回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第103回，以“上方谷司马受困”起势，以“五丈原诸葛禳星”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6038,10 +5386,7 @@
           "turn": "段落转折落在“陨大星汉丞相归天”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第104回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-104-b",
@@ -6051,10 +5396,7 @@
           "turn": "结尾把观众带入下一回“武侯预伏锦囊计，魏主拆取承露盘”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第104回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第104回，以“陨大星汉丞相归天”起势，以“见木像魏都督丧胆”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6090,9 +5432,7 @@
           "turn": "段落转折落在“武侯预伏锦囊计”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第105回上半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         },
         {
           "id": "beat-105-b",
@@ -6102,9 +5442,7 @@
           "turn": "结尾把观众带入下一回“公孙渊兵败死襄平，司马懿诈病赚曹爽”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第105回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第105回，以“武侯预伏锦囊计”起势，以“魏主拆取承露盘”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6140,10 +5478,7 @@
           "turn": "段落转折落在“公孙渊兵败死襄平”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第106回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-106-b",
@@ -6153,9 +5488,7 @@
           "turn": "结尾把观众带入下一回“魏主政归司马氏，姜维兵败牛头山”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第106回下半回目。",
-          "characters": [
-            "char-sima-yi"
-          ]
+          "characters": ["char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第106回，以“公孙渊兵败死襄平”起势，以“司马懿诈病赚曹爽”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6191,10 +5524,7 @@
           "turn": "段落转折落在“魏主政归司马氏”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第107回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-107-b",
@@ -6204,9 +5534,7 @@
           "turn": "结尾把观众带入下一回“丁奉雪中奋短兵，孙峻席间施密计”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第107回下半回目。",
-          "characters": [
-            "char-jiang-wei"
-          ]
+          "characters": ["char-jiang-wei"]
         }
       ],
       "summary": "本集对应原著第107回，以“魏主政归司马氏”起势，以“姜维兵败牛头山”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6242,10 +5570,7 @@
           "turn": "段落转折落在“丁奉雪中奋短兵”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第108回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-108-b",
@@ -6255,10 +5580,7 @@
           "turn": "结尾把观众带入下一回“困司马汉将奇谋，废曹芳魏家果报”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第108回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第108回，以“丁奉雪中奋短兵”起势，以“孙峻席间施密计”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6294,10 +5616,7 @@
           "turn": "段落转折落在“困司马汉将奇谋”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第109回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-109-b",
@@ -6307,10 +5626,7 @@
           "turn": "结尾把观众带入下一回“文鸯单骑退雄兵，姜维背水破大敌”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第109回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第109回，以“困司马汉将奇谋”起势，以“废曹芳魏家果报”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6346,10 +5662,7 @@
           "turn": "段落转折落在“文鸯单骑退雄兵”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第110回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-110-b",
@@ -6359,9 +5672,7 @@
           "turn": "结尾把观众带入下一回“邓士载智败姜伯约，诸葛诞义讨司马昭”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第110回下半回目。",
-          "characters": [
-            "char-jiang-wei"
-          ]
+          "characters": ["char-jiang-wei"]
         }
       ],
       "summary": "本集对应原著第110回，以“文鸯单骑退雄兵”起势，以“姜维背水破大敌”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6397,10 +5708,7 @@
           "turn": "段落转折落在“邓士载智败姜伯约”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第111回上半回目。",
-          "characters": [
-            "char-jiang-wei",
-            "char-deng-ai"
-          ]
+          "characters": ["char-jiang-wei", "char-deng-ai"]
         },
         {
           "id": "beat-111-b",
@@ -6410,9 +5718,7 @@
           "turn": "结尾把观众带入下一回“救寿春于诠死节，取长城伯约凿兵”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第111回下半回目。",
-          "characters": [
-            "char-sima-yi"
-          ]
+          "characters": ["char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第111回，以“邓士载智败姜伯约”起势，以“诸葛诞义讨司马昭”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6448,10 +5754,7 @@
           "turn": "段落转折落在“救寿春于诠死节”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第112回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-112-b",
@@ -6461,10 +5764,7 @@
           "turn": "结尾把观众带入下一回“丁奉定计斩孙綝，姜维斗阵破邓艾”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第112回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第112回，以“救寿春于诠死节”起势，以“取长城伯约凿兵”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6500,9 +5800,7 @@
           "turn": "段落转折落在“丁奉定计斩孙綝”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第113回上半回目。",
-          "characters": [
-            "char-sun-quan"
-          ]
+          "characters": ["char-sun-quan"]
         },
         {
           "id": "beat-113-b",
@@ -6512,10 +5810,7 @@
           "turn": "结尾把观众带入下一回“曹髦驱车死南阙，姜维弃粮胜魏兵”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第113回下半回目。",
-          "characters": [
-            "char-jiang-wei",
-            "char-deng-ai"
-          ]
+          "characters": ["char-jiang-wei", "char-deng-ai"]
         }
       ],
       "summary": "本集对应原著第113回，以“丁奉定计斩孙綝”起势，以“姜维斗阵破邓艾”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6551,9 +5846,7 @@
           "turn": "段落转折落在“曹髦驱车死南阙”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第114回上半回目。",
-          "characters": [
-            "char-cao-cao"
-          ]
+          "characters": ["char-cao-cao"]
         },
         {
           "id": "beat-114-b",
@@ -6563,9 +5856,7 @@
           "turn": "结尾把观众带入下一回“诏班师后主信才，托屯田姜维避祸”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第114回下半回目。",
-          "characters": [
-            "char-jiang-wei"
-          ]
+          "characters": ["char-jiang-wei"]
         }
       ],
       "summary": "本集对应原著第114回，以“曹髦驱车死南阙”起势，以“姜维弃粮胜魏兵”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6601,9 +5892,7 @@
           "turn": "段落转折落在“诏班师后主信才”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第115回上半回目。",
-          "characters": [
-            "char-liu-bei"
-          ]
+          "characters": ["char-liu-bei"]
         },
         {
           "id": "beat-115-b",
@@ -6613,9 +5902,7 @@
           "turn": "结尾把观众带入下一回“锺会分兵汉中道，武侯显圣定军山”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第115回下半回目。",
-          "characters": [
-            "char-jiang-wei"
-          ]
+          "characters": ["char-jiang-wei"]
         }
       ],
       "summary": "本集对应原著第115回，以“诏班师后主信才”起势，以“托屯田姜维避祸”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6651,10 +5938,7 @@
           "turn": "段落转折落在“锺会分兵汉中道”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第116回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-116-b",
@@ -6664,9 +5948,7 @@
           "turn": "结尾把观众带入下一回“邓士载偷渡阴平，诸葛瞻战死绵竹”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第116回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第116回，以“锺会分兵汉中道”起势，以“武侯显圣定军山”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6702,9 +5984,7 @@
           "turn": "段落转折落在“邓士载偷渡阴平”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第117回上半回目。",
-          "characters": [
-            "char-deng-ai"
-          ]
+          "characters": ["char-deng-ai"]
         },
         {
           "id": "beat-117-b",
@@ -6714,9 +5994,7 @@
           "turn": "结尾把观众带入下一回“哭祖庙一王死孝，入西川二士争功”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第117回下半回目。",
-          "characters": [
-            "char-zhuge-liang"
-          ]
+          "characters": ["char-zhuge-liang"]
         }
       ],
       "summary": "本集对应原著第117回，以“邓士载偷渡阴平”起势，以“诸葛瞻战死绵竹”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6752,10 +6030,7 @@
           "turn": "段落转折落在“哭祖庙一王死孝”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第118回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-118-b",
@@ -6765,10 +6040,7 @@
           "turn": "结尾把观众带入下一回“假投降巧计成虚话，再受禅依样画葫芦”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第118回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第118回，以“哭祖庙一王死孝”起势，以“入西川二士争功”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6804,10 +6076,7 @@
           "turn": "段落转折落在“假投降巧计成虚话”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第119回上半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         },
         {
           "id": "beat-119-b",
@@ -6817,10 +6086,7 @@
           "turn": "结尾把观众带入下一回“荐杜预老将献新谋，降孙皓三分归一统”。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第119回下半回目。",
-          "characters": [
-            "char-zhuge-liang",
-            "char-sima-yi"
-          ]
+          "characters": ["char-zhuge-liang", "char-sima-yi"]
         }
       ],
       "summary": "本集对应原著第119回，以“假投降巧计成虚话”起势，以“再受禅依样画葫芦”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6856,9 +6122,7 @@
           "turn": "段落转折落在“荐杜预老将献新谋”完成后的局势变化。",
           "emotion": "紧张、悲壮、机变并存，保持章回体的强钩子感。",
           "canon_update": "原著锚点：第120回上半回目。",
-          "characters": [
-            "char-deng-ai"
-          ]
+          "characters": ["char-deng-ai"]
         },
         {
           "id": "beat-120-b",
@@ -6868,9 +6132,7 @@
           "turn": "结尾回到天下一统的终局感。",
           "emotion": "短促、有压迫感，保留评书式回环和余味。",
           "canon_update": "原著锚点：第120回下半回目。",
-          "characters": [
-            "char-sun-quan"
-          ]
+          "characters": ["char-sun-quan"]
         }
       ],
       "summary": "本集对应原著第120回，以“荐杜预老将献新谋”起势，以“降孙皓三分归一统”收束，保留章回小说的因果顺序和短剧钩子。",
@@ -6889,9 +6151,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-a",
       "title": "乱世榜文",
-      "characters": [
-        "char-liu-bei"
-      ],
+      "characters": ["char-liu-bei"],
       "composition": "残破城门旁张贴讨贼榜文，百姓挤在榜前低声议论，烟尘从远处压来。",
       "camera": "static wide shot, slow inward creep",
       "setting": "涿郡城门外",
@@ -6915,9 +6175,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-a",
       "title": "刘备读榜",
-      "characters": [
-        "char-liu-bei"
-      ],
+      "characters": ["char-liu-bei"],
       "composition": "刘备站在人群边缘读榜，手指停在征召义兵的字上，神情由沉默转为决断。",
       "camera": "medium close-up from notice to Liu Bei eyes",
       "setting": "榜文木架前",
@@ -6944,10 +6202,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-a",
       "title": "张飞出声",
-      "characters": [
-        "char-liu-bei",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-zhang-fei"],
       "composition": "张飞从酒肆门口走出，粗声叫住刘备，周围百姓让开一条路。",
       "camera": "handheld medium shot, energetic push",
       "setting": "涿郡酒肆外",
@@ -6971,10 +6226,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-a",
       "title": "二人同心",
-      "characters": [
-        "char-liu-bei",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-zhang-fei"],
       "composition": "刘备与张飞对坐，桌上摊着榜文和酒碗，张飞一掌拍定招募乡勇。",
       "camera": "over-table two-shot, small shake on Zhang Fei palm hit",
       "setting": "酒肆木桌旁",
@@ -6998,9 +6250,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-a",
       "title": "关羽推车入城",
-      "characters": [
-        "char-guan-yu"
-      ],
+      "characters": ["char-guan-yu"],
       "composition": "关羽推车穿过街市，长髯随风，听见二人谈义后停步回望。",
       "camera": "tracking from cart wheel to Guan Yu face",
       "setting": "涿郡街市",
@@ -7024,11 +6274,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-a",
       "title": "三人首次同框",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei"],
       "composition": "刘备起身答话，张飞侧立，关羽停在街口，三人被街道纵深连成一线。",
       "camera": "wide three-plane composition",
       "setting": "街市尽头",
@@ -7052,11 +6298,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-a",
       "title": "桃园备香案",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei"],
       "composition": "桃园中香案摆好，酒盏、牲礼、兵器一一入画，桃花落在案前。",
       "camera": "detail montage, slow cuts",
       "setting": "张飞庄后桃园",
@@ -7080,11 +6322,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-a",
       "title": "桃园跪誓",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei"],
       "composition": "三人并肩跪下，刘备居中，关羽张飞分列左右，香烟升起遮过画面。",
       "camera": "symmetrical wide shot, dolly in",
       "setting": "桃园香案前",
@@ -7111,11 +6349,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-a",
       "title": "誓词落定",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei"],
       "composition": "关羽握拳垂目，张飞抬头高声，刘备端酒洒地，誓言落定。",
       "camera": "three close-up sequence, cut on each vow",
       "setting": "桃园香案前",
@@ -7139,11 +6373,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-b",
       "title": "招募乡勇",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei"],
       "composition": "村中青壮排队登记，刘备安抚老者，张飞分发粮米，关羽检视队列。",
       "camera": "busy village montage, controlled pan",
       "setting": "涿郡村社",
@@ -7167,11 +6397,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-b",
       "title": "三兵器成形",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei"],
       "composition": "铁匠铺火星飞溅，双股剑、青龙偃月刀、丈八蛇矛依次被举起。",
       "camera": "fast close-ups of hammer, sparks, weapon edges",
       "setting": "铁匠铺",
@@ -7195,11 +6421,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-b",
       "title": "黄巾来袭",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei"],
       "composition": "黄巾军旗从坡后冒出，村民惊散，三兄弟率乡勇在村道列阵。",
       "camera": "wide battlefield reveal, dust rolling toward camera",
       "setting": "涿郡郊外村道",
@@ -7223,11 +6445,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-b",
       "title": "首战交锋",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei"],
       "composition": "张飞持矛先冲，关羽从侧翼劈开敌阵，刘备居中稳住乡勇阵脚。",
       "camera": "dynamic battle cross-cut, no slow motion fantasy",
       "setting": "村道战场",
@@ -7254,11 +6472,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-b",
       "title": "首功初立",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei"],
       "composition": "黄巾军退散，百姓从屋后走出拜谢，三兄弟站在倒旗前没有露出喜色。",
       "camera": "slow pullback from villagers to three brothers",
       "setting": "战后村口",
@@ -7282,10 +6496,7 @@
       "episode_id": "ep-001",
       "beat_id": "beat-001-b",
       "title": "新诏压来",
-      "characters": [
-        "char-liu-bei",
-        "char-zhang-fei"
-      ],
+      "characters": ["char-liu-bei", "char-zhang-fei"],
       "composition": "传令兵快马入村，递上新的朝廷文书，刘备接诏，张飞皱眉看向官道。",
       "camera": "telephoto rider entrance, cut to document close-up",
       "setting": "村口官道",
@@ -7309,10 +6520,7 @@
       "episode_id": "ep-004",
       "beat_id": "beat-004-b",
       "title": "孟德献刀",
-      "characters": [
-        "char-cao-cao",
-        "char-dong-zhuo"
-      ],
+      "characters": ["char-cao-cao", "char-dong-zhuo"],
       "composition": "曹操半跪献刀，董卓侧卧回望，镜面和刀锋同时制造危险反光。",
       "camera": "tight close-up on blade then rack focus to Cao Cao eyes",
       "setting": "洛阳相府内室",
@@ -7343,12 +6551,7 @@
       "episode_id": "ep-005",
       "beat_id": "beat-005-b",
       "title": "三英战吕布",
-      "characters": [
-        "char-liu-bei",
-        "char-guan-yu",
-        "char-zhang-fei",
-        "char-lu-bu"
-      ],
+      "characters": ["char-liu-bei", "char-guan-yu", "char-zhang-fei", "char-lu-bu"],
       "composition": "虎牢关前四骑交错，吕布居高斜劈，三兄弟从三个方向压上。",
       "camera": "wide battlefield shot with dust and crossing weapons",
       "setting": "虎牢关外战场",
@@ -7379,12 +6582,7 @@
       "episode_id": "ep-049",
       "beat_id": "beat-049-b",
       "title": "赤壁火起",
-      "characters": [
-        "char-zhou-yu",
-        "char-zhuge-liang",
-        "char-cao-cao",
-        "char-sun-quan"
-      ],
+      "characters": ["char-zhou-yu", "char-zhuge-liang", "char-cao-cao", "char-sun-quan"],
       "composition": "江面火船连环撞入曹军水寨，周瑜与诸葛亮分别站在不同前景，隔火相望。",
       "camera": "aerial wide shot then cut to faces lit by fire",
       "setting": "赤壁江面夜战",

@@ -3,6 +3,10 @@ import fs from "node:fs/promises";
 
 const target = process.argv[2] || new URL("../app/.data/ledger_snapshot.json", import.meta.url).pathname;
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -42,8 +46,10 @@ for (const key of ["account_count", "transaction_count", "gross_inflow", "gross_
 }
 if (!Array.isArray(snapshot.accounts)) fail("root.accounts must be an array");
 if (!Array.isArray(snapshot.transactions)) fail("root.transactions must be an array");
-if (snapshot.invoices !== undefined && !Array.isArray(snapshot.invoices)) fail("root.invoices must be an array when present");
-if (snapshot.invoice_matches !== undefined && !Array.isArray(snapshot.invoice_matches)) fail("root.invoice_matches must be an array when present");
+if (snapshot.invoices !== undefined && !Array.isArray(snapshot.invoices))
+  fail("root.invoices must be an array when present");
+if (snapshot.invoice_matches !== undefined && !Array.isArray(snapshot.invoice_matches))
+  fail("root.invoice_matches must be an array when present");
 if (!Array.isArray(snapshot.warnings)) fail("root.warnings must be an array");
 
 const accountIds = new Set();
@@ -56,14 +62,25 @@ snapshot.accounts.forEach((account, index) => {
   if (!isObject(account.balance)) fail(`${path}.balance must be an object`);
   for (const key of ["available", "pending", "current"]) requireNumber(account.balance, key, `${path}.balance`);
   if (!isObject(account.totals)) fail(`${path}.totals must be an object`);
-  for (const key of ["gross_inflow", "gross_outflow", "fees", "net"]) requireNumber(account.totals, key, `${path}.totals`);
+  for (const key of ["gross_inflow", "gross_outflow", "fees", "net"])
+    requireNumber(account.totals, key, `${path}.totals`);
 });
 
 const txIds = new Set();
 snapshot.transactions.forEach((tx, index) => {
   const path = `root.transactions[${index}]`;
   if (!isObject(tx)) fail(`${path} must be an object`);
-  for (const key of ["transaction_id", "provider", "account_id", "occurred_at", "description", "type", "status", "currency", "direction"]) {
+  for (const key of [
+    "transaction_id",
+    "provider",
+    "account_id",
+    "occurred_at",
+    "description",
+    "type",
+    "status",
+    "currency",
+    "direction",
+  ]) {
     requireString(tx, key, path);
   }
   for (const key of ["gross", "fee", "net"]) requireNumber(tx, key, path);
@@ -88,14 +105,25 @@ const matchIds = new Set();
 (snapshot.invoice_matches || []).forEach((match, index) => {
   const path = `root.invoice_matches[${index}]`;
   if (!isObject(match)) fail(`${path} must be an object`);
-  for (const key of ["match_id", "invoice_id", "transaction_id", "status", "matching_method", "matching_rule", "review_status"]) requireString(match, key, path);
-  for (const key of ["amount_delta", "date_delta_days", "confidence", "amount_tolerance", "date_tolerance_days"]) requireNumber(match, key, path);
+  for (const key of [
+    "match_id",
+    "invoice_id",
+    "transaction_id",
+    "status",
+    "matching_method",
+    "matching_rule",
+    "review_status",
+  ])
+    requireString(match, key, path);
+  for (const key of ["amount_delta", "date_delta_days", "confidence", "amount_tolerance", "date_tolerance_days"])
+    requireNumber(match, key, path);
   if (!Array.isArray(match.candidate_transaction_ids)) fail(`${path}.candidate_transaction_ids must be an array`);
   if (!Array.isArray(match.audit_events)) fail(`${path}.audit_events must be an array`);
   if (matchIds.has(match.match_id)) fail(`${path}.match_id duplicates ${match.match_id}`);
   matchIds.add(match.match_id);
   if (!invoiceIds.has(match.invoice_id)) fail(`${path}.invoice_id does not match an invoice: ${match.invoice_id}`);
-  if (!txIds.has(match.transaction_id)) fail(`${path}.transaction_id does not match a transaction: ${match.transaction_id}`);
+  if (!txIds.has(match.transaction_id))
+    fail(`${path}.transaction_id does not match a transaction: ${match.transaction_id}`);
 });
 
 console.log(`OK: ${target}`);

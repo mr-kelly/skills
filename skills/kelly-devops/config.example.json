@@ -2,12 +2,20 @@
   "data_provider": "local",
   "currency": "USD",
   "locale": "auto",
-  "products": [
-    { "product_id": "example-app", "name": "Example App" }
-  ],
+  "products": [{ "product_id": "example-app", "name": "Example App" }],
   "services": [
-    { "service_id": "example-app-web", "name": "Example App Web", "product": "Example App", "url": "https://app.example.com" },
-    { "service_id": "example-app-api", "name": "Example App API", "product": "Example App", "url": "https://api.example.com/health" }
+    {
+      "service_id": "example-app-web",
+      "name": "Example App Web",
+      "product": "Example App",
+      "url": "https://app.example.com"
+    },
+    {
+      "service_id": "example-app-api",
+      "name": "Example App API",
+      "product": "Example App",
+      "url": "https://api.example.com/health"
+    }
   ],
   "domains": [
     { "domain": "example.com", "product": "Example App", "registrar": "Example Registrar", "auto_renew": true }

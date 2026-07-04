@@ -59,7 +59,13 @@ function effectiveStatus(draft) {
 }
 
 function slugify(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9一-鿿]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 72) || "listing";
+  return (
+    String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9一-鿿]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 72) || "listing"
+  );
 }
 
 function csvCell(value) {
@@ -106,7 +112,12 @@ function listingMarkdown(draft, product) {
   if (fields.aplus_outline?.length) {
     lines.push("## A+ Content Outline", "", ...fields.aplus_outline.map((module) => `- ${module}`), "");
   }
-  lines.push("---", "", `Exported by kelly-listing on ${new Date().toISOString()} (Draft #${draft.ref}, ${draft.draft_id}). Publishing via platform APIs is executed by the agent after approval.`, "");
+  lines.push(
+    "---",
+    "",
+    `Exported by kelly-listing on ${new Date().toISOString()} (Draft #${draft.ref}, ${draft.draft_id}). Publishing via platform APIs is executed by the agent after approval.`,
+    "",
+  );
   return lines.join("\n");
 }
 
@@ -119,7 +130,21 @@ if (!exportable.length) {
 
 const now = new Date().toISOString();
 await fs.mkdir(outDir, { recursive: true });
-const csvRows = [["sku", "product", "platform", "locale", "title", "bullets", "description", "search_terms", "seo_title", "seo_description", "draft_id"]];
+const csvRows = [
+  [
+    "sku",
+    "product",
+    "platform",
+    "locale",
+    "title",
+    "bullets",
+    "description",
+    "search_terms",
+    "seo_title",
+    "seo_description",
+    "draft_id",
+  ],
+];
 const results = [];
 
 for (const draft of exportable) {
@@ -139,7 +164,7 @@ for (const draft of exportable) {
     fields.search_terms || "",
     fields.seo_title || "",
     fields.seo_description || "",
-    draft.draft_id
+    draft.draft_id,
   ]);
   const item = reviewFor(draft);
   results.push({
@@ -150,7 +175,7 @@ for (const draft of exportable) {
     operation: "export_listing",
     target: filePath,
     detail: "Markdown document and CSV row written.",
-    executed_at: now
+    executed_at: now,
   });
   draft.status = "done";
   draft.updated_at = now;
@@ -166,20 +191,22 @@ console.log(`Wrote ${csvPath}`);
 // draft_id:operation, preserving unrelated history.
 const previousReport = await readJson(reportPath);
 const kept = (previousReport?.results || []).filter(
-  (entry) => !results.some((result) => result.draft_id === entry.draft_id && result.operation === entry.operation)
+  (entry) => !results.some((result) => result.draft_id === entry.draft_id && result.operation === entry.operation),
 );
 const report = {
   executed_at: now,
   dry_run: false,
   source: "kelly-listing",
-  results: [...kept, ...results]
+  results: [...kept, ...results],
 };
 await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
 
 snapshot.metrics = {
   ...snapshot.metrics,
   drafts_approved: (snapshot.drafts || []).filter((draft) => ["approved", "done"].includes(draft.status)).length,
-  exported_this_week: (snapshot.drafts || []).filter((draft) => draft.status === "done" && Date.parse(draft.updated_at || 0) >= Date.now() - 7 * 24 * 3600 * 1000).length
+  exported_this_week: (snapshot.drafts || []).filter(
+    (draft) => draft.status === "done" && Date.parse(draft.updated_at || 0) >= Date.now() - 7 * 24 * 3600 * 1000,
+  ).length,
 };
 snapshot.generated_at = now;
 snapshot.activity_log = [
@@ -187,10 +214,12 @@ snapshot.activity_log = [
     id: `act-${Date.now()}-export`,
     at: now,
     actor: "agent",
-    detail: `Exported ${exportable.length} listing(s) to ${outDir}.`
+    detail: `Exported ${exportable.length} listing(s) to ${outDir}.`,
   },
-  ...(snapshot.activity_log || [])
+  ...(snapshot.activity_log || []),
 ].slice(0, 50);
 await fs.writeFile(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
 
-console.log(`Done: ${exportable.length} listing(s) exported to ${outDir}. Publishing via platform APIs is handed off to the agent.`);
+console.log(
+  `Done: ${exportable.length} listing(s) exported to ${outDir}. Publishing via platform APIs is handed off to the agent.`,
+);

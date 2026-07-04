@@ -104,18 +104,18 @@ export const messages = {
         x: "X",
         appstore: "App Store",
         survey: "Survey",
-        interview: "Interview"
+        interview: "Interview",
       },
       sentiment: {
         positive: "positive",
         neutral: "neutral",
-        negative: "negative"
+        negative: "negative",
       },
       triage: {
         new: "new",
         clustered: "clustered",
         ignored: "ignored",
-        insight: "insight"
+        insight: "insight",
       },
       status: {
         candidate: "candidate",
@@ -130,23 +130,23 @@ export const messages = {
         ok: "ok",
         warning: "warning",
         error: "error",
-        queued: "queued"
+        queued: "queued",
       },
       trend: {
         up: "rising",
         flat: "steady",
-        down: "cooling"
+        down: "cooling",
       },
       lane: {
         now: "Now",
         next: "Next",
-        later: "Later"
+        later: "Later",
       },
       type: {
         promote_request: "promote to roadmap",
         decline_request: "decline with reply",
         merge_requests: "merge duplicates",
-        publish_changelog: "publish changelog"
+        publish_changelog: "publish changelog",
       },
       action: {
         created: "created",
@@ -158,9 +158,9 @@ export const messages = {
         ingest: "ingest",
         cluster: "cluster",
         execute: "execute",
-        init: "init"
-      }
-    }
+        init: "init",
+      },
+    },
   },
   zh: {
     agentNote: "智能体备注",
@@ -267,18 +267,18 @@ export const messages = {
         x: "X",
         appstore: "应用商店",
         survey: "问卷",
-        interview: "访谈"
+        interview: "访谈",
       },
       sentiment: {
         positive: "正面",
         neutral: "中性",
-        negative: "负面"
+        negative: "负面",
       },
       triage: {
         new: "新",
         clustered: "已聚类",
         ignored: "已忽略",
-        insight: "洞察"
+        insight: "洞察",
       },
       status: {
         candidate: "候选",
@@ -293,23 +293,23 @@ export const messages = {
         ok: "正常",
         warning: "提醒",
         error: "错误",
-        queued: "排队中"
+        queued: "排队中",
       },
       trend: {
         up: "上升",
         flat: "平稳",
-        down: "降温"
+        down: "降温",
       },
       lane: {
         now: "现在",
         next: "接下来",
-        later: "以后"
+        later: "以后",
       },
       type: {
         promote_request: "提升到路线图",
         decline_request: "婉拒并回复",
         merge_requests: "合并重复项",
-        publish_changelog: "发布更新日志"
+        publish_changelog: "发布更新日志",
       },
       action: {
         created: "创建",
@@ -321,8 +321,8 @@ export const messages = {
         ingest: "摄取",
         cluster: "聚类",
         execute: "执行",
-        init: "初始化"
-      }
-    }
-  }
+        init: "初始化",
+      },
+    },
+  },
 };

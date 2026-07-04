@@ -28,7 +28,7 @@ export async function withLock(message, fn) {
   await writeJson(lockPath, {
     owner: "kelly-content",
     message,
-    started_at: new Date().toISOString()
+    started_at: new Date().toISOString(),
   });
   try {
     return await fn();
@@ -38,14 +38,16 @@ export async function withLock(message, fn) {
 }
 
 export function slugify(input) {
-  return String(input || "content")
-    .normalize("NFKD")
-    .replace(/[^\w\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .toLowerCase()
-    .slice(0, 80) || "content";
+  return (
+    String(input || "content")
+      .normalize("NFKD")
+      .replace(/[^\w\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .toLowerCase()
+      .slice(0, 80) || "content"
+  );
 }
 
 export function isoStamp() {

@@ -1,6 +1,6 @@
+import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import { DATA_DIR, GENERATED_DIR, SKILL_DIR } from "./paths.mjs";
 import { loadProject, saveProject } from "./project-store.mjs";
 import { pathExists, readJson, slug } from "./utils.mjs";
@@ -29,9 +29,7 @@ function voiceInstruct(character) {
 }
 
 function voiceScript(character) {
-  return character.voice_profile?.sample_script
-    || character.character_card?.voice
-    || `我是${character.name}。`;
+  return character.voice_profile?.sample_script || character.character_card?.voice || `我是${character.name}。`;
 }
 
 export async function generateCharacterVoice(characterId) {
@@ -65,16 +63,29 @@ export async function generateCharacterVoice(characterId) {
 
   project.characters = (project.characters || []).map((c) => {
     if (c.id !== ch.id) return c;
-    const prior = c.voice_candidates && c.voice_candidates.length
+    const prior = c.voice_candidates?.length
       ? c.voice_candidates
-      : (c.voice_reference?.asset?.startsWith("/generated/")
-        ? [{ path: c.voice_reference.asset, generated_at: c.voice_reference.generated_at || generatedAt, generation: c.voice_reference.generation || {} }]
-        : []);
+      : c.voice_reference?.asset?.startsWith("/generated/")
+        ? [
+            {
+              path: c.voice_reference.asset,
+              generated_at: c.voice_reference.generated_at || generatedAt,
+              generation: c.voice_reference.generation || {},
+            },
+          ]
+        : [];
     const voice_candidates = [...prior, { path: publicPath, generated_at: generatedAt, generation }];
     return {
       ...c,
       voice_candidates,
-      voice_reference: { ...(c.voice_reference || {}), status: "generated", provider: cfg.backend, asset: publicPath, generated_at: generatedAt, generation },
+      voice_reference: {
+        ...(c.voice_reference || {}),
+        status: "generated",
+        provider: cfg.backend,
+        asset: publicPath,
+        generated_at: generatedAt,
+        generation,
+      },
     };
   });
   await saveProject(project);
@@ -87,7 +98,13 @@ export async function setCharacterVoiceActive(characterId, assetPath) {
   if (!ch) throw new Error(`Unknown character: ${characterId}`);
   const match = (ch.voice_candidates || []).find((c) => c.path === assetPath);
   if (!match) throw new Error("该候选不存在，无法设为选用。");
-  ch.voice_reference = { ...(ch.voice_reference || {}), status: "generated", asset: match.path, generated_at: match.generated_at, generation: match.generation };
+  ch.voice_reference = {
+    ...(ch.voice_reference || {}),
+    status: "generated",
+    asset: match.path,
+    generated_at: match.generated_at,
+    generation: match.generation,
+  };
   await saveProject(project);
   return import("./state.mjs").then((m) => m.statePayload());
 }
@@ -97,8 +114,12 @@ function runWrapper(pyAbs, wrapperAbs, args) {
     const child = spawn(pyAbs, [wrapperAbs, JSON.stringify(args)], { stdio: ["ignore", "pipe", "pipe"] });
     let out = "";
     let err = "";
-    child.stdout.on("data", (d) => { out += d.toString(); });
-    child.stderr.on("data", (d) => { err += d.toString(); });
+    child.stdout.on("data", (d) => {
+      out += d.toString();
+    });
+    child.stderr.on("data", (d) => {
+      err += d.toString();
+    });
     child.on("error", reject);
     child.on("close", (code) => {
       if (code !== 0) return reject(new Error(`语音生成失败 (exit ${code}): ${(err || out).slice(-600)}`));

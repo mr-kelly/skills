@@ -6,8 +6,8 @@
 // dispatch proposals, appends ticket history, and recomputes metrics.
 // Usage: node scripts/apply_triage.mjs <payload.json>
 
-import fs from "node:fs/promises";
 import crypto from "node:crypto";
+import fs from "node:fs/promises";
 import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.mjs";
 import {
   computeMetrics,
@@ -18,7 +18,7 @@ import {
   readLock,
   readSnapshot,
   slaHoursFor,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const URGENCIES = new Set(["urgent", "high", "normal", "low"]);
@@ -38,7 +38,9 @@ await ensureDirs();
 
 const existingLock = await readLock();
 if (existingLock) {
-  fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`);
+  fail(
+    `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
+  );
 }
 
 const payload = await readJson(payloadFile, null);
@@ -50,7 +52,7 @@ const ticketUpdates = Array.isArray(payload.ticket_updates) ? payload.ticket_upd
 await writeJson(LOCK_PATH, {
   owner: "kelly-tickets",
   message: "Applying triage results",
-  started_at: new Date().toISOString()
+  started_at: new Date().toISOString(),
 });
 
 try {
@@ -67,7 +69,7 @@ try {
       members: crew.members || "",
       contact_env: crew.contact_env || "",
       open_tickets: 0,
-      active: crew.active !== false
+      active: crew.active !== false,
     }));
     for (const crew of snapshot.crews) crewIds.add(crew.crew_id);
   }
@@ -94,7 +96,8 @@ try {
     }
     if (entry.action !== "ticket") fail(`classification action must be "ticket" or "ignore": ${entry.action}`);
     if (!URGENCIES.has(entry.urgency)) fail(`classification urgency invalid for ${entry.intake_id}: ${entry.urgency}`);
-    if (typeof entry.category !== "string" || !entry.category) fail(`classification category required for ${entry.intake_id}`);
+    if (typeof entry.category !== "string" || !entry.category)
+      fail(`classification category required for ${entry.intake_id}`);
     item.category_guess = entry.category;
     item.urgency_guess = entry.urgency;
     if (entry.unit) item.unit = String(entry.unit);
@@ -128,8 +131,13 @@ try {
       resolution_note: "",
       history: [
         { event: "intake", actor: "kelly-tickets", at: item.received_at, note: `Received via ${item.channel}.` },
-        { event: "classified", actor: "kelly-tickets", at: now, note: String(entry.note || `Classified ${entry.category} / ${entry.urgency}; SLA ${hours}h.`) }
-      ]
+        {
+          event: "classified",
+          actor: "kelly-tickets",
+          at: now,
+          note: String(entry.note || `Classified ${entry.category} / ${entry.urgency}; SLA ${hours}h.`),
+        },
+      ],
     };
     snapshot.tickets.push(ticket);
     item.triage_state = "ticketed";
@@ -162,9 +170,14 @@ try {
       note_to_crew: String(entry.note_to_crew || ""),
       status: "needs_review",
       decision: null,
-      execution: null
+      execution: null,
     });
-    ticket.history.push({ event: "dispatch_proposed", actor: "kelly-tickets", at: now, note: `Proposed ${crewName}, ${entry.priority}, ${hours}h SLA.` });
+    ticket.history.push({
+      event: "dispatch_proposed",
+      actor: "kelly-tickets",
+      at: now,
+      note: `Proposed ${crewName}, ${entry.priority}, ${hours}h SLA.`,
+    });
     ticket.updated_at = now;
     proposalsCreated += 1;
   }
@@ -174,7 +187,8 @@ try {
     const ticket = (snapshot.tickets || []).find((candidate) => candidate.id === entry.ticket_id);
     if (!ticket) fail(`ticket_update references unknown ticket_id: ${entry.ticket_id}`);
     if (entry.status) {
-      if (!TICKET_STATUSES.has(entry.status)) fail(`ticket_update status invalid for ${entry.ticket_id}: ${entry.status}`);
+      if (!TICKET_STATUSES.has(entry.status))
+        fail(`ticket_update status invalid for ${entry.ticket_id}: ${entry.status}`);
       ticket.status = entry.status;
     }
     if (entry.crew_id) {
@@ -184,7 +198,12 @@ try {
     if (entry.assignee !== undefined) ticket.assignee = String(entry.assignee || "");
     if (entry.resolution_note) ticket.resolution_note = String(entry.resolution_note);
     const event = entry.status === "resolved" ? "resolved" : String(entry.event || "crew_update");
-    ticket.history.push({ event, actor: String(entry.actor || "kelly-tickets"), at: now, note: String(entry.note || "") });
+    ticket.history.push({
+      event,
+      actor: String(entry.actor || "kelly-tickets"),
+      at: now,
+      note: String(entry.note || ""),
+    });
     ticket.updated_at = now;
     if (entry.status === "resolved") ticket.resolved_at = now;
     updates += 1;
@@ -210,10 +229,12 @@ try {
     source: "kelly-tickets",
     action: "triage",
     detail: `Classified ${classifications.length} intake items (${ticketsCreated} tickets created, ${ignored} ignored), proposed ${proposalsCreated} dispatches, applied ${updates} ticket updates.`,
-    count: classifications.length
+    count: classifications.length,
   });
   await writeJson(SNAPSHOT_PATH, snapshot);
-  console.log(`Triage merged into ${SNAPSHOT_PATH}: ${ticketsCreated} tickets, ${proposalsCreated} proposals, ${updates} updates.`);
+  console.log(
+    `Triage merged into ${SNAPSHOT_PATH}: ${ticketsCreated} tickets, ${proposalsCreated} proposals, ${updates} updates.`,
+  );
 } finally {
   await fs.rm(LOCK_PATH, { force: true });
 }

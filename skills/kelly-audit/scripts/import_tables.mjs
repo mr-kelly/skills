@@ -15,6 +15,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { DEFAULT_RULES, dateOnly, deriveSnapshot } from "../app/server/compute.mjs";
 import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.mjs";
 import {
   emptySnapshot,
@@ -24,16 +25,19 @@ import {
   readConfig,
   readJson,
   readLock,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
-import { DEFAULT_RULES, dateOnly, deriveSnapshot } from "../app/server/compute.mjs";
 
 const CANONICAL_COLUMNS = {
   orders: ["order_no", "customer", "order_date", "amount", "currency"],
   invoices: ["invoice_no", "order_no", "customer", "issue_date", "due_date", "amount", "currency", "kind"],
-  payments: ["payment_ref", "invoice_no", "order_no", "payer", "paid_date", "amount", "currency", "method"]
+  payments: ["payment_ref", "invoice_no", "order_no", "payer", "paid_date", "amount", "currency", "method"],
 };
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`kelly-audit import: ${message}`);
   process.exit(1);
@@ -122,11 +126,14 @@ async function readRecords(file) {
 function normalizeAmount(value) {
   const cleaned = String(value ?? "").replace(/[^0-9.-]/g, "");
   const amount = Number.parseFloat(cleaned);
-  return Number.isFinite(amount) ? amount : NaN;
+  return Number.isFinite(amount) ? amount : Number.NaN;
 }
 
 function slugId(prefix, value) {
-  const slug = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const slug = String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
   return slug || `${prefix}-unknown`;
 }
 
@@ -155,8 +162,10 @@ function normalizeOrder(raw, baseCurrency, sourceFile, warnings, index) {
     customer: String(raw.customer || "").trim(),
     order_date: dateOnly(raw.order_date),
     amount,
-    currency: String(raw.currency || baseCurrency).trim().toUpperCase(),
-    source_file: sourceFile
+    currency: String(raw.currency || baseCurrency)
+      .trim()
+      .toUpperCase(),
+    source_file: sourceFile,
   };
 }
 
@@ -170,7 +179,12 @@ function normalizeInvoice(raw, baseCurrency, sourceFile, warnings, index) {
     warnings.push(`invoices row ${index + 1} (${raw.invoice_no}): unreadable amount "${raw.amount}", skipped.`);
     return null;
   }
-  const kind = String(raw.kind || "").trim().toLowerCase() === "credit_note" || amount < 0 ? "credit_note" : "invoice";
+  const kind =
+    String(raw.kind || "")
+      .trim()
+      .toLowerCase() === "credit_note" || amount < 0
+      ? "credit_note"
+      : "invoice";
   return {
     invoice_id: slugId("inv", raw.invoice_no),
     invoice_no: String(raw.invoice_no).trim(),
@@ -179,10 +193,12 @@ function normalizeInvoice(raw, baseCurrency, sourceFile, warnings, index) {
     issue_date: dateOnly(raw.issue_date),
     due_date: dateOnly(raw.due_date),
     amount,
-    currency: String(raw.currency || baseCurrency).trim().toUpperCase(),
+    currency: String(raw.currency || baseCurrency)
+      .trim()
+      .toUpperCase(),
     kind,
     notes: "",
-    source_file: sourceFile
+    source_file: sourceFile,
   };
 }
 
@@ -204,9 +220,14 @@ function normalizePayment(raw, baseCurrency, sourceFile, warnings, index) {
     payer: String(raw.payer || "").trim(),
     paid_date: dateOnly(raw.paid_date),
     amount,
-    currency: String(raw.currency || baseCurrency).trim().toUpperCase(),
-    method: String(raw.method || "other").trim().toLowerCase() || "other",
-    source_file: sourceFile
+    currency: String(raw.currency || baseCurrency)
+      .trim()
+      .toUpperCase(),
+    method:
+      String(raw.method || "other")
+        .trim()
+        .toLowerCase() || "other",
+    source_file: sourceFile,
   };
 }
 
@@ -231,7 +252,9 @@ function upsert(list, incoming, key) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help || (!args.orders && !args.invoices && !args.payments)) {
-    console.log("Usage: node scripts/import_tables.mjs [--orders file.csv|.json] [--invoices file.csv|.json] [--payments file.csv|.json]");
+    console.log(
+      "Usage: node scripts/import_tables.mjs [--orders file.csv|.json] [--invoices file.csv|.json] [--payments file.csv|.json]",
+    );
     process.exit(args.help ? 0 : 1);
   }
 
@@ -239,7 +262,9 @@ async function main() {
   await loadDotenvFiles(envSearchPaths());
   const existingLock = await readLock();
   if (existingLock) {
-    fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`);
+    fail(
+      `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
+    );
   }
 
   const configResult = await readConfig();
@@ -251,7 +276,7 @@ async function main() {
   await writeJson(LOCK_PATH, {
     owner: "kelly-audit",
     message: "Importing orders/invoices/payments tables",
-    started_at: new Date().toISOString()
+    started_at: new Date().toISOString(),
   });
 
   try {
@@ -273,7 +298,15 @@ async function main() {
     if (args.orders) {
       const records = await readRecords(args.orders);
       const normalized = records
-        .map((record, index) => normalizeOrder(mapRecord(record, "orders", importCfg.orders?.columns), baseCurrency, path.basename(args.orders), warnings, index))
+        .map((record, index) =>
+          normalizeOrder(
+            mapRecord(record, "orders", importCfg.orders?.columns),
+            baseCurrency,
+            path.basename(args.orders),
+            warnings,
+            index,
+          ),
+        )
         .filter(Boolean);
       const result = upsert(snapshot.orders, normalized, "order_no");
       added.orders = result.added;
@@ -283,7 +316,15 @@ async function main() {
     if (args.invoices) {
       const records = await readRecords(args.invoices);
       const normalized = records
-        .map((record, index) => normalizeInvoice(mapRecord(record, "invoices", importCfg.invoices?.columns), baseCurrency, path.basename(args.invoices), warnings, index))
+        .map((record, index) =>
+          normalizeInvoice(
+            mapRecord(record, "invoices", importCfg.invoices?.columns),
+            baseCurrency,
+            path.basename(args.invoices),
+            warnings,
+            index,
+          ),
+        )
         .filter(Boolean);
       const result = upsert(snapshot.invoices, normalized, "invoice_no");
       added.invoices = result.added;
@@ -293,7 +334,15 @@ async function main() {
     if (args.payments) {
       const records = await readRecords(args.payments);
       const normalized = records
-        .map((record, index) => normalizePayment(mapRecord(record, "payments", importCfg.payments?.columns), baseCurrency, path.basename(args.payments), warnings, index))
+        .map((record, index) =>
+          normalizePayment(
+            mapRecord(record, "payments", importCfg.payments?.columns),
+            baseCurrency,
+            path.basename(args.payments),
+            warnings,
+            index,
+          ),
+        )
         .filter(Boolean);
       const result = upsert(snapshot.payments, normalized, "payment_ref");
       added.payments = result.added;
@@ -310,7 +359,10 @@ async function main() {
       }
     }
 
-    const orderDates = snapshot.orders.map((order) => order.order_date).filter(Boolean).sort();
+    const orderDates = snapshot.orders
+      .map((order) => order.order_date)
+      .filter(Boolean)
+      .sort();
     snapshot.range = { start: orderDates[0] || "", end: orderDates[orderDates.length - 1] || "" };
     snapshot.generated_at = now;
     snapshot.source = "kelly-audit";
@@ -322,15 +374,19 @@ async function main() {
       files,
       added,
       updated,
-      warnings
+      warnings,
     });
     snapshot.import_log = snapshot.import_log.slice(0, 20);
 
     await writeJson(SNAPSHOT_PATH, snapshot);
     console.log(`Wrote ${SNAPSHOT_PATH}`);
     console.log(`  orders: +${added.orders} added, ${updated.orders} updated (total ${snapshot.orders.length})`);
-    console.log(`  invoices: +${added.invoices} added, ${updated.invoices} updated (total ${snapshot.invoices.length})`);
-    console.log(`  payments: +${added.payments} added, ${updated.payments} updated (total ${snapshot.payments.length})`);
+    console.log(
+      `  invoices: +${added.invoices} added, ${updated.invoices} updated (total ${snapshot.invoices.length})`,
+    );
+    console.log(
+      `  payments: +${added.payments} added, ${updated.payments} updated (total ${snapshot.payments.length})`,
+    );
     for (const warning of warnings) console.log(`  warning: ${warning}`);
     console.log("Next: node scripts/run_checks.mjs to refresh the anomaly queue.");
   } finally {

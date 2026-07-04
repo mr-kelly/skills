@@ -1,16 +1,19 @@
 #!/usr/bin/env node
+import { applyDecisions } from "../app/server/decisions.mjs";
 // Dry-run-by-default execution stub: turns approved items into concrete operations
 // in execution_report.json. No external side effects — handoffs are performed by the
 // agent (kelly-writer / kelly-feedback / watchlist config) after reading the report.
 // Usage: node scripts/execute_decisions.mjs [--apply]
 import { EXECUTION_REPORT_PATH, SNAPSHOT_PATH } from "../app/server/paths.mjs";
-import { applyDecisions } from "../app/server/decisions.mjs";
 import { acquireLock, emptySnapshot, readDecisions, readJson, releaseLock, writeJson } from "../app/server/store.mjs";
 
 const apply = process.argv.includes("--apply");
 const now = new Date().toISOString();
 
-await acquireLock("kelly-radar/execute_decisions", apply ? "Applying approved decisions" : "Dry-run of approved decisions");
+await acquireLock(
+  "kelly-radar/execute_decisions",
+  apply ? "Applying approved decisions" : "Dry-run of approved decisions",
+);
 try {
   const raw = (await readJson(SNAPSHOT_PATH, null)) || emptySnapshot();
   const decisions = await readDecisions();
@@ -28,7 +31,7 @@ try {
       summary: handoff.summary || signal.headline,
       note: signal.triage?.comment || "",
       dry_run: !apply,
-      status: apply ? "executed" : "planned"
+      status: apply ? "executed" : "planned",
     });
   }
 
@@ -44,7 +47,7 @@ try {
       summary: `Run approved brief for: ${question.question}`,
       note: brief.triage?.comment || "",
       dry_run: !apply,
-      status: apply ? "executed" : "planned"
+      status: apply ? "executed" : "planned",
     });
   }
 
@@ -59,7 +62,7 @@ try {
       summary: step.summary || opportunity.title,
       note: opportunity.triage?.comment || "",
       dry_run: !apply,
-      status: apply ? "executed" : "planned"
+      status: apply ? "executed" : "planned",
     });
   }
 
@@ -68,23 +71,27 @@ try {
     source: "kelly-radar",
     dry_run: !apply,
     operation_count: operations.length,
-    operations
+    operations,
   };
   await writeJson(EXECUTION_REPORT_PATH, report);
 
   if (apply && operations.length) {
     const doneSignalIds = new Set(operations.filter((op) => op.kind === "signal").map((op) => op.id));
     const doneOpportunityIds = new Set(operations.filter((op) => op.kind === "opportunity").map((op) => op.id));
-    raw.signals = (raw.signals || []).map((signal) => (doneSignalIds.has(signal.signal_id) ? { ...signal, status: "done" } : signal));
+    raw.signals = (raw.signals || []).map((signal) =>
+      doneSignalIds.has(signal.signal_id) ? { ...signal, status: "done" } : signal,
+    );
     raw.trends = raw.trends || { movers: [], opportunities: [] };
-    raw.trends.opportunities = (raw.trends.opportunities || []).map((item) => (doneOpportunityIds.has(item.opportunity_id) ? { ...item, status: "done" } : item));
+    raw.trends.opportunities = (raw.trends.opportunities || []).map((item) =>
+      doneOpportunityIds.has(item.opportunity_id) ? { ...item, status: "done" } : item,
+    );
     raw.generated_at = now;
     raw.sync_log = raw.sync_log || [];
     raw.sync_log.unshift({
       at: now,
       actor: "kelly-radar-agent",
       action: "execute_decisions",
-      detail: `${operations.length} approved operations recorded as executed handoffs.`
+      detail: `${operations.length} approved operations recorded as executed handoffs.`,
     });
     raw.sync_log = raw.sync_log.slice(0, 50);
     await writeJson(SNAPSHOT_PATH, raw);

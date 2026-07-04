@@ -37,7 +37,10 @@ for (const shot of shots) {
   }
   for (const cid of shot.characters || []) {
     const c = charById.get(cid);
-    if (!c) { errors.push(`${id}: 未知角色 ${cid}`); continue; }
+    if (!c) {
+      errors.push(`${id}: 未知角色 ${cid}`);
+      continue;
+    }
     if (!c.reference_card?.image_asset?.startsWith("/generated/")) {
       warnings.push(`${id}: 角色「${c.name || cid}」无参考卡图，图生图一致性会漂移`);
     }
@@ -47,8 +50,8 @@ for (const shot of shots) {
 
 console.log(`分镜就绪校验：${PROJECT}`);
 console.log(`就绪 ${ready}/${shots.length}  | 错误 ${errors.length}  | 警告 ${warnings.length}\n`);
-if (errors.length) console.log("❌ 错误：\n" + errors.map((e) => "  - " + e).join("\n") + "\n");
-if (warnings.length) console.log("⚠️  警告：\n" + warnings.map((w) => "  - " + w).join("\n") + "\n");
+if (errors.length) console.log(`❌ 错误：\n${errors.map((e) => `  - ${e}`).join("\n")}\n`);
+if (warnings.length) console.log(`⚠️  警告：\n${warnings.map((w) => `  - ${w}`).join("\n")}\n`);
 if (!errors.length && !warnings.length) console.log("✅ 全部分镜就绪。");
 
 if (errors.length || (strict && warnings.length)) process.exit(1);

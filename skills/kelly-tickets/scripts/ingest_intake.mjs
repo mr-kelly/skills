@@ -6,8 +6,8 @@
 // masks contacts defensively, merges into the snapshot, and appends sync_log.
 // Usage: node scripts/ingest_intake.mjs <payload.json> [more-payloads.json...]
 
-import fs from "node:fs/promises";
 import crypto from "node:crypto";
+import fs from "node:fs/promises";
 import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.mjs";
 import {
   computeMetrics,
@@ -18,7 +18,7 @@ import {
   readJson,
   readLock,
   readSnapshot,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const CHANNELS = new Set(["wechat", "phone", "form", "email", "walk_in"]);
@@ -37,7 +37,9 @@ await ensureDirs();
 
 const existingLock = await readLock();
 if (existingLock) {
-  fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`);
+  fail(
+    `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
+  );
 }
 
 function sha1(value) {
@@ -52,7 +54,7 @@ function dedupeKey(item) {
 await writeJson(LOCK_PATH, {
   owner: "kelly-tickets",
   message: "Ingesting intake payloads",
-  started_at: new Date().toISOString()
+  started_at: new Date().toISOString(),
 });
 
 try {
@@ -62,7 +64,7 @@ try {
   if (!base.property?.name && configResult.config.property?.name) {
     base.property = {
       name: configResult.config.property.name,
-      buildings: configResult.config.property.buildings || 0
+      buildings: configResult.config.property.buildings || 0,
     };
   }
   const seen = new Set((base.intake || []).map((item) => dedupeKey(item)));
@@ -105,7 +107,7 @@ try {
         triage_state: "new",
         ticket_id: "",
         attachments_note: String(item.attachments_note || ""),
-        decision: null
+        decision: null,
       });
       fileAdded += 1;
     });
@@ -116,7 +118,7 @@ try {
       source: String(payload.source || "ingest"),
       action: "ingest",
       detail: `Ingested ${fileAdded} new intake items from ${file}; skipped ${fileSkipped} duplicates.`,
-      count: fileAdded
+      count: fileAdded,
     });
   }
 

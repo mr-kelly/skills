@@ -8,7 +8,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export const UPDATE_SOURCES = new Set(["slack", "wecom", "discord", "whatsapp", "doc", "manual"]);
@@ -83,16 +83,16 @@ export function emptySnapshot() {
       open_blockers: 0,
       high_open_blockers: 0,
       reminders_needs_review: 0,
-      avg_participation_30d: 0
+      avg_participation_30d: 0,
     },
     sync_log: [],
     warnings: [
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No standup snapshot exists yet. Collect updates, then run ingest_updates.mjs."
-      }
-    ]
+        message: "No standup snapshot exists yet. Collect updates, then run ingest_updates.mjs.",
+      },
+    ],
   };
 }
 
@@ -146,7 +146,7 @@ export function recomputeDerived(snapshot) {
     member.last_submitted_date = last;
     member.participation_30d = windowDays ? Math.round((windowSubmitted / windowDays) * 100) / 100 : 0;
     member.open_blockers = (snapshot.blockers || []).filter(
-      (blocker) => blocker.member_id === member.member_id && blocker.status === "open"
+      (blocker) => blocker.member_id === member.member_id && blocker.status === "open",
     ).length;
   }
 
@@ -175,7 +175,7 @@ export function computeMetrics(snapshot) {
     open_blockers: openBlockers.length,
     high_open_blockers: openBlockers.filter((blocker) => blocker.severity === "high").length,
     reminders_needs_review: (snapshot.reminders || []).filter((reminder) => reminder.status === "needs_review").length,
-    avg_participation_30d: Math.round(participation * 100) / 100
+    avg_participation_30d: Math.round(participation * 100) / 100,
   };
 }
 
@@ -195,12 +195,16 @@ export function mergeSnapshot(snapshot, decisions, executionReport) {
   const reminders = (snapshot.reminders || []).map((reminder) => {
     const decision = verdicts[reminder.id] || reminder.decision || null;
     const reportEntry = execById.get(reminder.id);
-    const execution = reminder.execution || (reportEntry ? {
-      status: reportEntry.status,
-      operations: reportEntry.operations || [],
-      detail: reportEntry.detail || "",
-      executed_at: executionReport?.generated_at || ""
-    } : null);
+    const execution =
+      reminder.execution ||
+      (reportEntry
+        ? {
+            status: reportEntry.status,
+            operations: reportEntry.operations || [],
+            detail: reportEntry.detail || "",
+            executed_at: executionReport?.generated_at || "",
+          }
+        : null);
     let status = reminder.status;
     if (decision?.action === "approve") status = "approved";
     if (decision?.action === "request_changes") status = "changes_requested";
@@ -211,7 +215,7 @@ export function mergeSnapshot(snapshot, decisions, executionReport) {
       status,
       decision,
       draft: decision?.draft ?? reminder.draft,
-      execution
+      execution,
     };
   });
   return { ...snapshot, reminders };
@@ -234,7 +238,7 @@ export async function applyDecision({ id, action, note, draft }) {
     action,
     note: String(note || ""),
     draft: typeof draft === "string" ? draft : null,
-    decided_at: now
+    decided_at: now,
   };
   decisions.updated_at = now;
   await writeJson(DECISIONS_PATH, decisions);
@@ -248,7 +252,7 @@ export async function applyDecision({ id, action, note, draft }) {
       title: reminder.title,
       type: "revise_reminder",
       note: String(note || ""),
-      requested_at: now
+      requested_at: now,
     });
   }
   tasks.updated_at = now;
@@ -312,7 +316,7 @@ export function summarizeConfig(configResult) {
     team: {
       name: config.team?.name || "",
       timezone: config.team?.timezone || "",
-      workdays: Array.isArray(config.team?.workdays) ? config.team.workdays : []
+      workdays: Array.isArray(config.team?.workdays) ? config.team.workdays : [],
     },
     members: members.map((member) => ({
       member_id: member.member_id || "",
@@ -322,9 +326,9 @@ export function summarizeConfig(configResult) {
       channel: member.channel || "",
       active: member.active !== false,
       contact_env: member.contact_env || "",
-      contact_ready: Boolean(member.contact_env && process.env[member.contact_env])
+      contact_ready: Boolean(member.contact_env && process.env[member.contact_env]),
     })),
     standup_questions: Array.isArray(config.standup_questions) ? config.standup_questions : [],
-    digest_style: config.digest?.style || "concise"
+    digest_style: config.digest?.style || "concise",
   };
 }

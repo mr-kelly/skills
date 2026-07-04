@@ -14,14 +14,14 @@ import {
   readExecutionReport,
   readLock,
   readSnapshot,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const OPERATION_BY_TYPE = {
   title_meta_rewrite: "rewrite_title",
   internal_links: "add_internal_links",
   content_brief: "create_content_brief",
-  fix_page_issue: "fix_page_issue"
+  fix_page_issue: "fix_page_issue",
 };
 
 const apply = process.argv.includes("--apply");
@@ -36,13 +36,15 @@ await ensureDirs();
 
 const existingLock = await readLock();
 if (existingLock) {
-  fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`);
+  fail(
+    `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
+  );
 }
 
 const [snapshot, decisions, previousReport] = await Promise.all([
   readSnapshot(),
   readDecisions(),
-  readExecutionReport()
+  readExecutionReport(),
 ]);
 const merged = mergeOpportunities(snapshot, decisions, previousReport);
 const approved = merged.opportunities.filter((opportunity) => opportunity.status === "approved");
@@ -55,7 +57,7 @@ if (!approved.length) {
 await writeJson(LOCK_PATH, {
   owner: "kelly-seo",
   message: dryRun ? "Dry-run: planning approved opportunities" : "Preparing approved opportunities for the agent",
-  started_at: new Date().toISOString()
+  started_at: new Date().toISOString(),
 });
 
 try {
@@ -73,7 +75,7 @@ try {
         target_query: opportunity.target_query || "",
         site_id: opportunity.site_id,
         status: "blocked",
-        detail: "No target page or query configured; ask the user before executing."
+        detail: "No target page or query configured; ask the user before executing.",
       };
     }
     return {
@@ -87,7 +89,7 @@ try {
       status: dryRun ? "planned" : "ready_for_agent",
       detail: dryRun
         ? `Dry run: would ${operation.replaceAll("_", " ")} for ${target} using the ${decision?.draft ? "user-edited" : "agent"} draft.`
-        : `Approved: agent should ${operation.replaceAll("_", " ")} for ${target} in the site repo/CMS, then record the real result here.`
+        : `Approved: agent should ${operation.replaceAll("_", " ")} for ${target} in the site repo/CMS, then record the real result here.`,
     };
   });
 
@@ -95,12 +97,14 @@ try {
     generated_at: new Date().toISOString(),
     dry_run: dryRun,
     source: "kelly-seo",
-    results
+    results,
   };
   await writeJson(EXECUTION_REPORT_PATH, report);
   console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote ${EXECUTION_REPORT_PATH}`);
   for (const result of results) {
-    console.log(`  Opportunity #${result.ref} -> ${result.operation} (${result.status}) ${result.target_page || result.target_query}`);
+    console.log(
+      `  Opportunity #${result.ref} -> ${result.operation} (${result.status}) ${result.target_page || result.target_query}`,
+    );
   }
   if (dryRun) console.log("Re-run with --apply to mark items ready_for_agent. No external side effects either way.");
 } finally {

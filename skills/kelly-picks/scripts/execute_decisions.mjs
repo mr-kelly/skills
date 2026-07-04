@@ -4,15 +4,26 @@
 // (kelly-listing brief, sourcing brief export, watch entries) after reading the report.
 // Usage: node scripts/execute_decisions.mjs [--apply]
 import path from "node:path";
-import { EXECUTION_REPORT_PATH, SKILL_DIR, SNAPSHOT_PATH } from "../app/server/paths.mjs";
 import { applyDecisions } from "../app/server/decisions.mjs";
-import { acquireLock, computeMetrics, emptySnapshot, readDecisions, readJson, releaseLock, writeJson } from "../app/server/store.mjs";
+import { EXECUTION_REPORT_PATH, SKILL_DIR, SNAPSHOT_PATH } from "../app/server/paths.mjs";
+import {
+  acquireLock,
+  computeMetrics,
+  emptySnapshot,
+  readDecisions,
+  readJson,
+  releaseLock,
+  writeJson,
+} from "../app/server/store.mjs";
 
 const apply = process.argv.includes("--apply");
 const now = new Date().toISOString();
 const exportsDir = path.join(SKILL_DIR, "exports");
 
-await acquireLock("kelly-picks/execute_decisions", apply ? "Applying approved decisions" : "Dry-run of approved decisions");
+await acquireLock(
+  "kelly-picks/execute_decisions",
+  apply ? "Applying approved decisions" : "Dry-run of approved decisions",
+);
 try {
   const raw = (await readJson(SNAPSHOT_PATH, null)) || emptySnapshot();
   const decisions = await readDecisions();
@@ -34,7 +45,7 @@ try {
         summary: `Export sourcing brief for ${candidate?.name || proposal.candidate_id}`,
         note,
         dry_run: !apply,
-        status: apply ? "executed" : "planned"
+        status: apply ? "executed" : "planned",
       });
       operations.push({
         id: proposal.proposal_id,
@@ -44,7 +55,7 @@ try {
         summary: `Hand off listing brief for ${candidate?.name || proposal.candidate_id} to kelly-listing`,
         note,
         dry_run: !apply,
-        status: apply ? "executed" : "planned"
+        status: apply ? "executed" : "planned",
       });
     } else if (verdict === "watch") {
       operations.push({
@@ -55,7 +66,7 @@ try {
         summary: `Keep watching ${candidate?.name || proposal.candidate_id} — re-check criteria: ${firstLine(proposal.brief)}`,
         note,
         dry_run: !apply,
-        status: apply ? "executed" : "planned"
+        status: apply ? "executed" : "planned",
       });
     } else if (verdict === "drop") {
       operations.push({
@@ -66,7 +77,7 @@ try {
         summary: `Archive ${candidate?.name || proposal.candidate_id} — ${firstLine(proposal.reason)}`,
         note,
         dry_run: !apply,
-        status: apply ? "executed" : "planned"
+        status: apply ? "executed" : "planned",
       });
     }
   }
@@ -76,13 +87,15 @@ try {
     source: "kelly-picks",
     dry_run: !apply,
     operation_count: operations.length,
-    operations
+    operations,
   };
   await writeJson(EXECUTION_REPORT_PATH, report);
 
   if (apply && operations.length) {
     const doneProposalIds = new Set(operations.map((op) => op.id));
-    raw.proposals = (raw.proposals || []).map((proposal) => (doneProposalIds.has(proposal.proposal_id) ? { ...proposal, status: "done" } : proposal));
+    raw.proposals = (raw.proposals || []).map((proposal) =>
+      doneProposalIds.has(proposal.proposal_id) ? { ...proposal, status: "done" } : proposal,
+    );
     const stageByCandidate = new Map();
     for (const op of operations) {
       if (op.operation === "add_watch") stageByCandidate.set(op.target, "watch");
@@ -92,11 +105,11 @@ try {
         if (proposal) stageByCandidate.set(proposal.candidate_id, "develop");
       }
     }
-    raw.candidates = (raw.candidates || []).map((candidate) => (
+    raw.candidates = (raw.candidates || []).map((candidate) =>
       stageByCandidate.has(candidate.candidate_id)
         ? { ...candidate, stage: stageByCandidate.get(candidate.candidate_id), last_updated: now }
-        : candidate
-    ));
+        : candidate,
+    );
     raw.generated_at = now;
     raw.metrics = { ...raw.metrics, ...computeMetrics(raw) };
     raw.sync_log = raw.sync_log || [];
@@ -104,7 +117,7 @@ try {
       at: now,
       actor: "kelly-picks-agent",
       action: "execute_decisions",
-      detail: `${operations.length} approved operations recorded as executed handoffs.`
+      detail: `${operations.length} approved operations recorded as executed handoffs.`,
     });
     raw.sync_log = raw.sync_log.slice(0, 50);
     await writeJson(SNAPSHOT_PATH, raw);
@@ -120,5 +133,9 @@ try {
 }
 
 function firstLine(text) {
-  return String(text || "").split("\n").find((line) => line.trim()) || "";
+  return (
+    String(text || "")
+      .split("\n")
+      .find((line) => line.trim()) || ""
+  );
 }

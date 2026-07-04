@@ -15,5 +15,5 @@ export {
   PID_PATH,
   ROOT_DIR,
   SERVER_DIR,
-  SKILL_DIR
+  SKILL_DIR,
 } from "../../lib/paths.mjs";

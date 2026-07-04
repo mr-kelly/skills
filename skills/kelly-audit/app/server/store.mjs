@@ -8,7 +8,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -73,7 +73,7 @@ export function emptySnapshot() {
       at_stake_total: 0,
       receivable_total: 0,
       overdue_receivable_total: 0,
-      aging: []
+      aging: [],
     },
     orders: [],
     invoices: [],
@@ -85,9 +85,9 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No audit snapshot exists yet. Import orders/invoices/payments, then run the checks."
-      }
-    ]
+        message: "No audit snapshot exists yet. Import orders/invoices/payments, then run the checks.",
+      },
+    ],
   };
 }
 
@@ -102,13 +102,17 @@ export function mergeAnomalies(snapshot, decisions, executionReport) {
   const anomalies = (snapshot.anomalies || []).map((anomaly) => {
     const decision = verdicts[anomaly.id] || anomaly.decision || null;
     const reportEntry = execById.get(anomaly.id);
-    const execution = anomaly.execution || (reportEntry ? {
-      status: reportEntry.status,
-      operation: reportEntry.operation,
-      target: reportEntry.target || "",
-      detail: reportEntry.detail || "",
-      executed_at: executionReport?.generated_at || ""
-    } : null);
+    const execution =
+      anomaly.execution ||
+      (reportEntry
+        ? {
+            status: reportEntry.status,
+            operation: reportEntry.operation,
+            target: reportEntry.target || "",
+            detail: reportEntry.detail || "",
+            executed_at: executionReport?.generated_at || "",
+          }
+        : null);
     let status = anomaly.status;
     if (decision?.action === "approve") status = "approved";
     if (decision?.action === "request_changes") status = "changes_requested";
@@ -120,7 +124,7 @@ export function mergeAnomalies(snapshot, decisions, executionReport) {
       status,
       decision,
       draft: decision?.draft ?? anomaly.draft,
-      execution
+      execution,
     };
   });
   return { ...snapshot, anomalies };
@@ -143,7 +147,7 @@ export async function applyDecision({ id, action, note, draft }) {
     action,
     note: String(note || ""),
     draft: typeof draft === "string" ? draft : null,
-    decided_at: now
+    decided_at: now,
   };
   decisions.updated_at = now;
   await writeJson(DECISIONS_PATH, decisions);
@@ -158,7 +162,7 @@ export async function applyDecision({ id, action, note, draft }) {
       rule: anomaly.rule,
       type: "revise_anomaly",
       note: String(note || ""),
-      requested_at: now
+      requested_at: now,
     });
   }
   tasks.updated_at = now;
@@ -217,7 +221,7 @@ function summarizeColumns(table) {
   if (!table || typeof table !== "object") return { format: "csv", columns: {} };
   return {
     format: table.format || "csv",
-    columns: table.columns && typeof table.columns === "object" ? table.columns : {}
+    columns: table.columns && typeof table.columns === "object" ? table.columns : {},
   };
 }
 
@@ -229,25 +233,25 @@ export function summarizeConfig(configResult) {
     is_example: configResult.is_example,
     company: {
       name: config.company?.name || "",
-      contact_email: config.company?.contact_email || ""
+      contact_email: config.company?.contact_email || "",
     },
     base_currency: config.base_currency || "USD",
     rules: {
       days_to_invoice: rules.days_to_invoice ?? 14,
       amount_tolerance_pct: rules.amount_tolerance_pct ?? 1,
       aging_buckets: Array.isArray(rules.aging_buckets) ? rules.aging_buckets : [30, 60, 90],
-      duplicate_window_days: rules.duplicate_window_days ?? 7
+      duplicate_window_days: rules.duplicate_window_days ?? 7,
     },
     import: {
       orders: summarizeColumns(config.import?.orders),
       invoices: summarizeColumns(config.import?.invoices),
-      payments: summarizeColumns(config.import?.payments)
+      payments: summarizeColumns(config.import?.payments),
     },
     env: {
       config_env: "KELLY_AUDIT_CONFIG",
       config_env_set: Boolean(process.env.KELLY_AUDIT_CONFIG),
       env_file_env: "KELLY_AUDIT_ENV_FILE",
-      env_file_set: Boolean(process.env.KELLY_AUDIT_ENV_FILE)
-    }
+      env_file_set: Boolean(process.env.KELLY_AUDIT_ENV_FILE),
+    },
   };
 }

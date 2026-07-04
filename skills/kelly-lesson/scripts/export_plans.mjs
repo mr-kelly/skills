@@ -45,7 +45,13 @@ function effectiveStatus(plan) {
 }
 
 function slugify(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9一-鿿]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64) || "plan";
+  return (
+    String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9一-鿿]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 64) || "plan"
+  );
 }
 
 function listBlock(values) {
@@ -57,8 +63,8 @@ function planMarkdown(plan, teacher) {
   const lines = [];
   lines.push(`# ${plan.title}`);
   lines.push("");
-  lines.push(`| | |`);
-  lines.push(`| --- | --- |`);
+  lines.push("| | |");
+  lines.push("| --- | --- |");
   lines.push(`| School | ${snapshot.school?.name || ""} |`);
   lines.push(`| Subject | ${plan.subject} |`);
   lines.push(`| Grade | ${plan.grade} |`);
@@ -95,7 +101,12 @@ function planMarkdown(plan, teacher) {
   if (sections.curriculum_refs?.length) {
     lines.push("## Curriculum Standard Refs", "", listBlock(sections.curriculum_refs), "");
   }
-  lines.push("---", "", `Exported by kelly-lesson on ${new Date().toISOString()} (Plan #${plan.ref}, ${plan.plan_id}).`, "");
+  lines.push(
+    "---",
+    "",
+    `Exported by kelly-lesson on ${new Date().toISOString()} (Plan #${plan.ref}, ${plan.plan_id}).`,
+    "",
+  );
   return lines.join("\n");
 }
 

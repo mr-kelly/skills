@@ -71,9 +71,10 @@ function renderLanguageSummary() {
   const node = $("languageSummary");
   if (!node) return;
   const current = t(`language.current.${uiLanguage}`);
-  node.textContent = languageMode === "auto"
-    ? t("language.summary.auto", { language: current })
-    : t("language.summary.fixed", { language: current });
+  node.textContent =
+    languageMode === "auto"
+      ? t("language.summary.auto", { language: current })
+      : t("language.summary.fixed", { language: current });
 }
 
 function setLanguageMode(value) {
@@ -310,9 +311,17 @@ function parseEmailAddresses(value) {
 function accountForItem(item) {
   const accounts = state.email_accounts?.accounts || [];
   const itemAccount = item.account || item.account_id || item.mailbox_id || "";
-  return accounts.find((account) => account.mailbox_id === itemAccount)
-    || accounts.find((account) => account.primary_email && String(item.to || "").toLowerCase().includes(String(account.primary_email).toLowerCase()))
-    || null;
+  return (
+    accounts.find((account) => account.mailbox_id === itemAccount) ||
+    accounts.find(
+      (account) =>
+        account.primary_email &&
+        String(item.to || "")
+          .toLowerCase()
+          .includes(String(account.primary_email).toLowerCase()),
+    ) ||
+    null
+  );
 }
 
 function accountLabel(item) {
@@ -331,7 +340,7 @@ function replyIdentityForItem(item) {
   const recipients = new Set(parseEmailAddresses(item.to || "").map((address) => address.address));
   const account = accountForItem(item);
   const identities = accounts.flatMap((mailbox) =>
-    (mailbox.identities || []).map((identity) => ({ ...identity, mailbox }))
+    (mailbox.identities || []).map((identity) => ({ ...identity, mailbox })),
   );
   const direct = identities.find((entry) => recipients.has(String(entry.send_as_email || "").toLowerCase()));
   if (direct) return direct;
@@ -367,11 +376,12 @@ function attachmentHtml(att) {
   const meta = `${escapeHtml(att.content_type || "file")} ${sizeLabel(att.size)}`;
   const url = att.url ? escapeHtml(att.url) : "";
   const link = url ? `<a href="${url}" target="_blank" rel="noopener">${escapeHtml(t("attachment.open"))}</a>` : "";
-  const preview = url && isImage(att)
-    ? `<img class="attachment-preview-image" src="${url}" alt="${escapeHtml(att.filename)}" />`
-    : url && isPdf(att)
-      ? `<iframe class="attachment-preview-pdf" src="${url}" title="${escapeHtml(att.filename)}"></iframe>`
-      : "";
+  const preview =
+    url && isImage(att)
+      ? `<img class="attachment-preview-image" src="${url}" alt="${escapeHtml(att.filename)}" />`
+      : url && isPdf(att)
+        ? `<iframe class="attachment-preview-pdf" src="${url}" title="${escapeHtml(att.filename)}"></iframe>`
+        : "";
   return `
     <div class="attachment">
       <div class="attachment-head">
@@ -390,10 +400,12 @@ function badge(text, extra = "") {
 function badgeLabel(value) {
   if (!value) return "";
   const key = String(value);
-  return optionalT(`label.status.${key}`)
-    || optionalT(`label.category.${key}`)
-    || optionalT(`label.risk.${key}`)
-    || key.replaceAll("_", " ");
+  return (
+    optionalT(`label.status.${key}`) ||
+    optionalT(`label.category.${key}`) ||
+    optionalT(`label.risk.${key}`) ||
+    key.replaceAll("_", " ")
+  );
 }
 
 function optionalT(key) {
@@ -485,7 +497,7 @@ function resizeHtmlPreviewFrame(frame) {
       body?.offsetHeight || 0,
       root?.scrollHeight || 0,
       root?.offsetHeight || 0,
-      minHeight
+      minHeight,
     );
     const nextHeight = Math.min(height + 2, maxHeight);
     frame.style.height = `${nextHeight}px`;
@@ -499,11 +511,15 @@ function attachHtmlPreviewAutoResize() {
   const frame = document.querySelector(".html-preview");
   if (!frame) return;
   const resize = () => resizeHtmlPreviewFrame(frame);
-  frame.addEventListener("load", () => {
-    resize();
-    setTimeout(resize, 80);
-    setTimeout(resize, 400);
-  }, { once: true });
+  frame.addEventListener(
+    "load",
+    () => {
+      resize();
+      setTimeout(resize, 80);
+      setTimeout(resize, 400);
+    },
+    { once: true },
+  );
   requestAnimationFrame(resize);
 }
 
@@ -521,7 +537,8 @@ function renderMobileTopbar() {
   const title = $("mobileViewTitle");
   const meta = $("mobileViewMeta");
   if (!title || !meta) return;
-  title.textContent = selectedId && mobileDetailOpen ? selectedItem()?.subject || t("empty.select_message") : modeLabel();
+  title.textContent =
+    selectedId && mobileDetailOpen ? selectedItem()?.subject || t("empty.select_message") : modeLabel();
   meta.textContent = t("list.items", { count: state.items?.length || 0 });
 }
 
@@ -568,7 +585,9 @@ function accountsCardsHtml() {
     </article>
   `;
   if (!onboarding.configured) {
-    const missing = (onboarding.missing_env || []).map((name) => `<span class="env-pill warn">${escapeHtml(name)}</span>`).join("");
+    const missing = (onboarding.missing_env || [])
+      .map((name) => `<span class="env-pill warn">${escapeHtml(name)}</span>`)
+      .join("");
     return `
       ${promptCard}
       <div class="onboarding-card compact">
@@ -581,17 +600,22 @@ function accountsCardsHtml() {
   if (!accounts.length) {
     return `${promptCard}<div class="muted">${escapeHtml(t("account.no_accounts"))}</div>`;
   }
-  const accountCards = accounts.map((account) => {
-    const aliases = (account.aliases || []).map((alias) => `<span>${escapeHtml(alias)}</span>`).join("");
-    const identities = (account.identities || []).map((identity) => `
+  const accountCards = accounts
+    .map((account) => {
+      const aliases = (account.aliases || []).map((alias) => `<span>${escapeHtml(alias)}</span>`).join("");
+      const identities = (account.identities || [])
+        .map(
+          (identity) => `
       <div class="account-identity">
         <span>${escapeHtml(identity.display_name || identity.identity_id)}</span>
         <code>${escapeHtml(identity.send_as_email)}</code>
       </div>
-    `).join("");
-    const imapOk = account.imap_env_configured ? "ok" : "warn";
-    const smtpOk = account.smtp_env_configured ? "ok" : "warn";
-    return `
+    `,
+        )
+        .join("");
+      const imapOk = account.imap_env_configured ? "ok" : "warn";
+      const smtpOk = account.smtp_env_configured ? "ok" : "warn";
+      return `
       <article class="account-card">
         <div class="account-card-head">
           <div>
@@ -611,7 +635,8 @@ function accountsCardsHtml() {
         </div>
       </article>
     `;
-  }).join("");
+    })
+    .join("");
   return `${promptCard}${accountCards}`;
 }
 
@@ -632,12 +657,16 @@ function listPills(values, empty = t("settings.not_configured")) {
 function urlsHtml(urls = {}) {
   const rows = Object.entries(urls || {}).filter(([, value]) => value);
   if (!rows.length) return `<span class="muted">${escapeHtml(t("settings.no_urls"))}</span>`;
-  return rows.map(([label, value]) => `
+  return rows
+    .map(
+      ([label, value]) => `
     <div class="settings-row">
       <span>${escapeHtml(label)}</span>
       <a href="${escapeHtml(value)}" target="_blank" rel="noopener">${escapeHtml(value)}</a>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function profileSettingsHtml() {
@@ -646,7 +675,9 @@ function profileSettingsHtml() {
   const brands = payload.brands || [];
   const contacts = (profile.contact_methods || []).map((method) => `${method.label}: ${method.value}`);
   const brandHtml = brands.length
-    ? brands.map((brand) => `
+    ? brands
+        .map(
+          (brand) => `
       <article class="settings-card">
         <div class="settings-card-title">${escapeHtml(brand.name || brand.brand_id || t("settings.brands"))}</div>
         <p>${valueOrMuted(brand.description, t("settings.no_description"))}</p>
@@ -659,7 +690,9 @@ function profileSettingsHtml() {
           })}
         </div>
       </article>
-    `).join("")
+    `,
+        )
+        .join("")
     : `<article class="settings-card"><div class="settings-card-title">${escapeHtml(t("settings.brands"))}</div><p class="muted">${escapeHtml(t("settings.no_brands"))}</p></article>`;
   return `
     <article class="settings-card">
@@ -711,7 +744,9 @@ function knowledgeSettingsHtml() {
   const kb = state.email_accounts?.knowledge_base || {};
   const sources = kb.sources || [];
   const sourceHtml = sources.length
-    ? sources.map((source) => `
+    ? sources
+        .map(
+          (source) => `
       <article class="settings-card">
         <div class="settings-card-title">
           ${escapeHtml(source.title || source.source_id || "Knowledge source")}
@@ -723,7 +758,9 @@ function knowledgeSettingsHtml() {
           <div class="settings-pill-row">${listPills(source.use_for, t("settings.no_usage_tags"))}</div>
         </div>
       </article>
-    `).join("")
+    `,
+        )
+        .join("")
     : `<article class="settings-card"><div class="settings-card-title">${escapeHtml(t("settings.sources"))}</div><p class="muted">${escapeHtml(t("settings.no_sources"))}</p></article>`;
   return `
     <article class="settings-card">
@@ -756,10 +793,13 @@ function openHelp(tab = "guide") {
   $("helpBatchInfo").textContent = batch.batch_id
     ? t("batch.info", { id: batch.batch_id, count: state.total_cached || 0, date: batch.generated_at || "" })
     : t("batch.none");
-  $("helpDataReader").textContent = `${state.email_accounts?.data_reader || "local"}${state.email_accounts?.data_provider ? ` · ${state.email_accounts.data_provider}` : ""}`;
+  $("helpDataReader").textContent =
+    `${state.email_accounts?.data_reader || "local"}${state.email_accounts?.data_provider ? ` · ${state.email_accounts.data_provider}` : ""}`;
   $("helpBatchPath").textContent = state.batch_path || t("files.no_batch");
   $("helpDecisionsPath").textContent = state.decisions_path || t("files.no_decisions");
-  $("helpConfigPath").textContent = onboarding.configured ? state.email_accounts?.source || t("files.no_config") : t("files.onboarding");
+  $("helpConfigPath").textContent = onboarding.configured
+    ? state.email_accounts?.source || t("files.no_config")
+    : t("files.onboarding");
   $("helpAccounts").innerHTML = accountSummaryHtml();
   $("helpProfile").innerHTML = profileSettingsHtml();
   $("helpStyle").innerHTML = styleSettingsHtml();
@@ -779,7 +819,7 @@ function closeHelp({ skipRoute = false } = {}) {
 }
 
 function isLocked() {
-  return Boolean(state.lock && state.lock.locked);
+  return Boolean(state.lock?.locked);
 }
 
 function applyLockState() {
@@ -792,9 +832,7 @@ function applyLockState() {
   }
   const message = $("lockMessage");
   if (message) {
-    message.textContent = locked
-      ? state.lock.message || t("lock.processing")
-      : t("lock.default");
+    message.textContent = locked ? state.lock.message || t("lock.processing") : t("lock.default");
   }
   document.querySelectorAll("button, input, textarea, select").forEach((node) => {
     if (node.id === "searchInput") return;
@@ -840,7 +878,8 @@ function decisionLabel(item) {
 
 function executionLabel(item) {
   const execution = item.execution || {};
-  if (execution.status === "executed") return badge(t("badge.executed", { action: actionLabel(execution.action) }), "executed");
+  if (execution.status === "executed")
+    return badge(t("badge.executed", { action: actionLabel(execution.action) }), "executed");
   if (execution.status === "blocked") return badge(t("badge.blocked"), "blocked");
   return "";
 }
@@ -848,13 +887,18 @@ function executionLabel(item) {
 function reviewBriefFor(item) {
   const brief = item.review_brief || {};
   const localized = brief.i18n?.[uiLanguage] || brief.i18n?.[brief.user_language] || brief.i18n?.en || null;
-  const background = localized?.background || brief.background || t("review.background.default", {
-    from: item.from || t("unknown.sender"),
-    subject: item.subject || t("unknown.subject"),
-    summary: item.summary || "",
-  });
-  const why = localized?.why_review || (uiLanguage === "zh-CN" ? brief.why_review || item.reason : "") || t("review.why.default");
-  let recommendation = localized?.recommendation || (uiLanguage === "zh-CN" ? brief.recommendation : "") || t("review.recommend.default");
+  const background =
+    localized?.background ||
+    brief.background ||
+    t("review.background.default", {
+      from: item.from || t("unknown.sender"),
+      subject: item.subject || t("unknown.subject"),
+      summary: item.summary || "",
+    });
+  const why =
+    localized?.why_review || (uiLanguage === "zh-CN" ? brief.why_review || item.reason : "") || t("review.why.default");
+  let recommendation =
+    localized?.recommendation || (uiLanguage === "zh-CN" ? brief.recommendation : "") || t("review.recommend.default");
   const category = item.category || "";
   const risks = new Set(item.risk || []);
   if (!localized?.recommendation && !(uiLanguage === "zh-CN" && brief.recommendation)) {
@@ -888,10 +932,12 @@ function emailBodySectionsHtml(item) {
   const original = item.body_original || item.body || "";
   const translation = item.body_translation || item.translated_body || "";
   const sourceLanguage = item.body_original_language || item.source_language || "";
-  const translationLanguage = item.body_translation_language || item.translation_language || item.review_brief?.user_language || "";
-  const originalLabel = sourceLanguage && sourceLanguage !== "unknown"
-    ? `${t("detail.original_text")} · ${languageLabel(sourceLanguage)}`
-    : t("detail.original_text");
+  const translationLanguage =
+    item.body_translation_language || item.translation_language || item.review_brief?.user_language || "";
+  const originalLabel =
+    sourceLanguage && sourceLanguage !== "unknown"
+      ? `${t("detail.original_text")} · ${languageLabel(sourceLanguage)}`
+      : t("detail.original_text");
   const translationHtml = translation
     ? `
       <div class="section-title">${escapeHtml(t("detail.translation_text"))} · ${escapeHtml(languageLabel(translationLanguage))}</div>
@@ -970,7 +1016,8 @@ function renderList() {
       syncRoute({ push: false });
     }
   }
-  $("messageList").innerHTML = state.items.map(rowHtml).join("") || `<div class="empty-detail">${escapeHtml(t("list.no_items"))}</div>`;
+  $("messageList").innerHTML =
+    state.items.map(rowHtml).join("") || `<div class="empty-detail">${escapeHtml(t("list.no_items"))}</div>`;
   $("listCount").textContent = t("list.items", { count: state.items.length });
   renderMobileTopbar();
   document.querySelectorAll(".message-row").forEach((row) => {
@@ -997,7 +1044,9 @@ function renderList() {
 
 function onboardingHtml() {
   const onboarding = state.email_accounts?.onboarding || {};
-      const missing = (onboarding.missing_env || []).map((name) => `<span class="env-pill warn">${escapeHtml(name)}</span>`).join("");
+  const missing = (onboarding.missing_env || [])
+    .map((name) => `<span class="env-pill warn">${escapeHtml(name)}</span>`)
+    .join("");
   return `
     <div class="onboarding-card">
       <strong>${onboarding.state === "missing_secrets" ? escapeHtml(t("onboarding.add_secrets")) : escapeHtml(t("onboarding.setup"))}</strong>
@@ -1027,7 +1076,8 @@ function renderDetail() {
   }
   const item = selectedItem();
   if (!item) {
-    $("detailPanel").innerHTML = `${backButton}<div class="empty-detail">${escapeHtml(t("empty.select_message"))}</div>`;
+    $("detailPanel").innerHTML =
+      `${backButton}<div class="empty-detail">${escapeHtml(t("empty.select_message"))}</div>`;
     renderMobileTopbar();
     return;
   }
@@ -1070,10 +1120,14 @@ function renderDetail() {
           title="${escapeHtml(t("action.more"))}"
         >${escapeHtml(t("action.more"))}</button>
         <div id="detailActionMenu" class="detail-action-menu" role="menu">
-          ${menuActions.map(([id, action, label, tooltip], index) => `
+          ${menuActions
+            .map(
+              ([id, action, label, tooltip], index) => `
             ${index === 4 ? `<span class="detail-action-separator" aria-hidden="true"></span>` : ""}
             <button id="${escapeHtml(id)}" type="button" role="menuitem" data-action="${escapeHtml(action)}" ${tooltipAttr(tooltip)}>${escapeHtml(label)}</button>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </div>
       </div>
     </div>

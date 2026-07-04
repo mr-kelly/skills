@@ -97,7 +97,7 @@ export const messages = {
         phone: "Phone",
         form: "Form",
         email: "Email",
-        walk_in: "Walk-in"
+        walk_in: "Walk-in",
       },
       category: {
         plumbing: "Plumbing",
@@ -109,39 +109,39 @@ export const messages = {
         parking: "Parking",
         cleaning: "Cleaning",
         amenity: "Amenity",
-        other: "Other"
+        other: "Other",
       },
       urgency: {
         urgent: "Urgent",
         high: "High",
         normal: "Normal",
-        low: "Low"
+        low: "Low",
       },
       triage: {
         new: "New",
         classified: "Classified",
         ticketed: "Ticketed",
-        ignored: "Ignored"
+        ignored: "Ignored",
       },
       ticket_status: {
         open: "Open",
         assigned: "Assigned",
         in_progress: "In progress",
         waiting: "Waiting",
-        resolved: "Resolved"
+        resolved: "Resolved",
       },
       proposal_status: {
         needs_review: "Needs review",
         changes_requested: "Changes requested",
         approved: "Approved",
         done: "Done",
-        blocked: "Blocked"
+        blocked: "Blocked",
       },
       sla: {
         ok: "On track",
         at_risk: "At risk",
         breached: "Breached",
-        met: "Met"
+        met: "Met",
       },
       action: {
         approve: "Approved",
@@ -149,7 +149,7 @@ export const messages = {
         revise: "Note saved",
         block: "Blocked",
         convert_to_ticket: "Convert to ticket",
-        ignore: "Ignored"
+        ignore: "Ignored",
       },
       event: {
         intake: "Intake",
@@ -159,9 +159,9 @@ export const messages = {
         crew_notified: "Crew notified",
         crew_update: "Crew update",
         sla_breach: "SLA breached",
-        resolved: "Resolved"
-      }
-    }
+        resolved: "Resolved",
+      },
+    },
   },
   zh: {
     age: "时长",
@@ -261,7 +261,7 @@ export const messages = {
         phone: "电话",
         form: "表单",
         email: "邮件",
-        walk_in: "上门"
+        walk_in: "上门",
       },
       category: {
         plumbing: "管道",
@@ -273,39 +273,39 @@ export const messages = {
         parking: "车位",
         cleaning: "保洁",
         amenity: "设施",
-        other: "其他"
+        other: "其他",
       },
       urgency: {
         urgent: "紧急",
         high: "较急",
         normal: "普通",
-        low: "较低"
+        low: "较低",
       },
       triage: {
         new: "未分类",
         classified: "已分类",
         ticketed: "已建单",
-        ignored: "已忽略"
+        ignored: "已忽略",
       },
       ticket_status: {
         open: "待派单",
         assigned: "已指派",
         in_progress: "处理中",
         waiting: "等待中",
-        resolved: "已解决"
+        resolved: "已解决",
       },
       proposal_status: {
         needs_review: "待审批",
         changes_requested: "要求修改",
         approved: "已批准",
         done: "已完成",
-        blocked: "已搁置"
+        blocked: "已搁置",
       },
       sla: {
         ok: "正常",
         at_risk: "有风险",
         breached: "已超时",
-        met: "已达标"
+        met: "已达标",
       },
       action: {
         approve: "已批准",
@@ -313,7 +313,7 @@ export const messages = {
         revise: "备注已保存",
         block: "已搁置",
         convert_to_ticket: "转为工单",
-        ignore: "已忽略"
+        ignore: "已忽略",
       },
       event: {
         intake: "进线",
@@ -323,8 +323,8 @@ export const messages = {
         crew_notified: "已通知班组",
         crew_update: "班组反馈",
         sla_breach: "SLA 超时",
-        resolved: "已解决"
-      }
-    }
-  }
+        resolved: "已解决",
+      },
+    },
+  },
 };

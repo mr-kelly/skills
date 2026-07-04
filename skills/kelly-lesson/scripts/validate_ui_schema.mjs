@@ -3,6 +3,10 @@ import fs from "node:fs/promises";
 
 const target = process.argv[2] || new URL("../app/.data/lesson_snapshot.json", import.meta.url).pathname;
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -37,7 +41,15 @@ requireString(snapshot, "generated_at", "root");
 requireString(snapshot, "source", "root");
 if (!isObject(snapshot.school)) fail("root.school must be an object");
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
-for (const key of ["teacher_count", "plan_count", "plans_approved", "plans_in_revision", "plans_needs_review", "checks_failed", "compliance_pass_rate"]) {
+for (const key of [
+  "teacher_count",
+  "plan_count",
+  "plans_approved",
+  "plans_in_revision",
+  "plans_needs_review",
+  "checks_failed",
+  "compliance_pass_rate",
+]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
 for (const key of ["teachers", "plans", "rules", "checks", "review_items", "activity_log", "warnings"]) {
@@ -72,8 +84,10 @@ const planRefs = new Set();
 snapshot.plans.forEach((plan, index) => {
   const path = `root.plans[${index}]`;
   if (!isObject(plan)) fail(`${path} must be an object`);
-  for (const key of ["plan_id", "title", "subject", "grade", "teacher_id", "source", "status"]) requireString(plan, key, path);
-  for (const key of ["ref", "compliance_score", "class_length_minutes", "duration_minutes"]) requireNumber(plan, key, path);
+  for (const key of ["plan_id", "title", "subject", "grade", "teacher_id", "source", "status"])
+    requireString(plan, key, path);
+  for (const key of ["ref", "compliance_score", "class_length_minutes", "duration_minutes"])
+    requireNumber(plan, key, path);
   if (!PLAN_STATUSES.has(plan.status)) fail(`${path}.status is invalid: ${plan.status}`);
   if (!SOURCES.has(plan.source)) fail(`${path}.source is invalid: ${plan.source}`);
   if (planIds.has(plan.plan_id)) fail(`${path}.plan_id duplicates ${plan.plan_id}`);

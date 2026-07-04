@@ -9,12 +9,23 @@ const decisionsExplicit = Boolean(process.argv[3]);
 
 const STAGES = new Set(["new", "replied", "quoted", "negotiating", "won", "lost"]);
 const CHANNELS = new Set(["whatsapp", "instagram", "messenger", "email"]);
-const CONNECTORS = new Set(["whatsapp_cloud", "instagram_graph", "messenger_graph", "email_agent", "browser_agent", "manual"]);
+const CONNECTORS = new Set([
+  "whatsapp_cloud",
+  "instagram_graph",
+  "messenger_graph",
+  "email_agent",
+  "browser_agent",
+  "manual",
+]);
 const QUOTE_STATUSES = new Set(["draft", "sent", "accepted", "expired", "declined"]);
 const APPROVAL_STATUSES = new Set(["needs_review", "changes_requested", "approved", "done", "blocked"]);
 const APPROVAL_KINDS = new Set(["reply", "quote"]);
 const DIRECTIONS = new Set(["incoming", "outgoing"]);
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -55,7 +66,16 @@ requireString(snapshot, "generated_at", "root");
 requireString(snapshot, "source", "root");
 requireString(snapshot, "base_currency", "root");
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
-for (const key of ["account_count", "inquiry_count", "quote_count", "product_count", "unanswered_new_count", "quotes_sent", "win_rate", "reply_median_minutes"]) {
+for (const key of [
+  "account_count",
+  "inquiry_count",
+  "quote_count",
+  "product_count",
+  "unanswered_new_count",
+  "quotes_sent",
+  "win_rate",
+  "reply_median_minutes",
+]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
 if (!isObject(snapshot.metrics.inquiries_this_week)) fail("root.metrics.inquiries_this_week must be an object");
@@ -97,7 +117,16 @@ const inquiryIds = new Set();
 snapshot.inquiries.forEach((inquiry, index) => {
   const path = `root.inquiries[${index}]`;
   if (!isObject(inquiry)) fail(`${path} must be an object`);
-  for (const key of ["inquiry_id", "account_id", "channel", "stage", "owner", "created_at", "last_message_at", "currency"]) {
+  for (const key of [
+    "inquiry_id",
+    "account_id",
+    "channel",
+    "stage",
+    "owner",
+    "created_at",
+    "last_message_at",
+    "currency",
+  ]) {
     requireString(inquiry, key, path);
   }
   if (!CHANNELS.has(inquiry.channel)) fail(`${path}.channel must be one of ${[...CHANNELS].join("|")}`);
@@ -107,7 +136,8 @@ snapshot.inquiries.forEach((inquiry, index) => {
   requireNumber(inquiry, "value_estimate", path);
   requireBoolean(inquiry, "unread", path);
   if (typeof inquiry.next_follow_up !== "string") fail(`${path}.next_follow_up must be a string (may be empty)`);
-  if (inquiry.next_follow_up && !/^\d{4}-\d{2}-\d{2}$/.test(inquiry.next_follow_up)) fail(`${path}.next_follow_up must be YYYY-MM-DD`);
+  if (inquiry.next_follow_up && !/^\d{4}-\d{2}-\d{2}$/.test(inquiry.next_follow_up))
+    fail(`${path}.next_follow_up must be YYYY-MM-DD`);
   if (inquiryIds.has(inquiry.inquiry_id)) fail(`${path}.inquiry_id duplicates ${inquiry.inquiry_id}`);
   inquiryIds.add(inquiry.inquiry_id);
   if (!accountIds.has(inquiry.account_id)) fail(`${path}.account_id does not match an account: ${inquiry.account_id}`);
@@ -133,7 +163,16 @@ const quoteIds = new Set();
 snapshot.quotes.forEach((quote, index) => {
   const path = `root.quotes[${index}]`;
   if (!isObject(quote)) fail(`${path} must be an object`);
-  for (const key of ["quote_id", "quote_no", "inquiry_id", "customer", "currency", "status", "issue_date", "valid_until"]) {
+  for (const key of [
+    "quote_id",
+    "quote_no",
+    "inquiry_id",
+    "customer",
+    "currency",
+    "status",
+    "issue_date",
+    "valid_until",
+  ]) {
     requireString(quote, key, path);
   }
   if (!QUOTE_STATUSES.has(quote.status)) fail(`${path}.status must be one of ${[...QUOTE_STATUSES].join("|")}`);
@@ -148,7 +187,8 @@ snapshot.quotes.forEach((quote, index) => {
     if (!isObject(line)) fail(`${lPath} must be an object`);
     for (const key of ["line_id", "sku", "description"]) requireString(line, key, lPath);
     for (const key of ["qty", "unit_price", "total"]) requireNumber(line, key, lPath);
-    if (line.product_id && !productIds.has(line.product_id)) fail(`${lPath}.product_id references unknown product: ${line.product_id}`);
+    if (line.product_id && !productIds.has(line.product_id))
+      fail(`${lPath}.product_id references unknown product: ${line.product_id}`);
     if (lineIds.has(line.line_id)) fail(`${lPath}.line_id duplicates ${line.line_id}`);
     lineIds.add(line.line_id);
   });
@@ -167,14 +207,25 @@ const refs = new Set();
 snapshot.approvals.forEach((item, index) => {
   const path = `root.approvals[${index}]`;
   if (!isObject(item)) fail(`${path} must be an object`);
-  for (const key of ["item_id", "kind", "inquiry_id", "account_id", "channel", "customer", "text", "status", "created_at"]) {
+  for (const key of [
+    "item_id",
+    "kind",
+    "inquiry_id",
+    "account_id",
+    "channel",
+    "customer",
+    "text",
+    "status",
+    "created_at",
+  ]) {
     requireString(item, key, path);
   }
   requireNumber(item, "ref", path);
   if (!APPROVAL_KINDS.has(item.kind)) fail(`${path}.kind must be reply|quote`);
   if (!APPROVAL_STATUSES.has(item.status)) fail(`${path}.status must be one of ${[...APPROVAL_STATUSES].join("|")}`);
   if (!inquiryIds.has(item.inquiry_id)) fail(`${path}.inquiry_id does not match an inquiry: ${item.inquiry_id}`);
-  if (item.quote_id && !quoteIds.has(item.quote_id)) fail(`${path}.quote_id references unknown quote: ${item.quote_id}`);
+  if (item.quote_id && !quoteIds.has(item.quote_id))
+    fail(`${path}.quote_id references unknown quote: ${item.quote_id}`);
   if (itemIds.has(item.item_id)) fail(`${path}.item_id duplicates ${item.item_id}`);
   itemIds.add(item.item_id);
   if (refs.has(item.ref)) fail(`${path}.ref duplicates #${item.ref}`);
@@ -220,7 +271,8 @@ if (decisions) {
     if (!isObject(entry)) fail(`${path} must be an object`);
     requireString(entry, "action", path);
     requireString(entry, "decided_at", path);
-    if (entry.status && !APPROVAL_STATUSES.has(entry.status)) fail(`${path}.status must be one of ${[...APPROVAL_STATUSES].join("|")}`);
+    if (entry.status && !APPROVAL_STATUSES.has(entry.status))
+      fail(`${path}.status must be one of ${[...APPROVAL_STATUSES].join("|")}`);
   }
   console.log(`OK: ${decisionsTarget}`);
 }

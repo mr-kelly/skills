@@ -16,7 +16,7 @@ import {
   readExecutionReport,
   readLock,
   readSnapshot,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const apply = process.argv.includes("--apply");
@@ -31,14 +31,16 @@ await ensureDirs();
 
 const existingLock = await readLock();
 if (existingLock) {
-  fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`);
+  fail(
+    `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
+  );
 }
 
 const [snapshot, decisions, previousReport, configResult] = await Promise.all([
   readSnapshot(),
   readDecisions(),
   readExecutionReport(),
-  readConfig()
+  readConfig(),
 ]);
 const merged = mergeSnapshot(snapshot, decisions, previousReport);
 const approved = merged.reminders.filter((reminder) => reminder.status === "approved");
@@ -51,7 +53,7 @@ if (!approved.length) {
 await writeJson(LOCK_PATH, {
   owner: "kelly-standup",
   message: dryRun ? "Dry-run: planning approved reminders" : "Preparing approved reminders for the agent",
-  started_at: new Date().toISOString()
+  started_at: new Date().toISOString(),
 });
 
 try {
@@ -67,7 +69,7 @@ try {
         member_id: reminder.member_id,
         operations: [],
         status: "blocked",
-        detail: `Member ${reminder.member_id} is not in the snapshot roster; fix the config or re-ingest before executing.`
+        detail: `Member ${reminder.member_id} is not in the snapshot roster; fix the config or re-ingest before executing.`,
       };
     }
     const contactEnv = configMembers.get(reminder.member_id)?.contact_env || "";
@@ -84,13 +86,13 @@ try {
           target: reminder.member_id,
           contact_env: contactEnv,
           contact_ready: contactReady,
-          message_draft: reminder.draft || ""
-        }
+          message_draft: reminder.draft || "",
+        },
       ],
       status: dryRun ? "planned" : "ready_for_agent",
       detail: dryRun
         ? `Dry run: would hand the ${reminder.channel} draft for ${member.name} to the agent.${contactReady ? "" : ` Contact env ${contactEnv || "(unset)"} is not configured.`}`
-        : `Approved: agent should send this via kelly-messenger/kelly-email${contactReady ? "" : ` after configuring ${contactEnv || "a contact env"}`}, then record the outcome here.`
+        : `Approved: agent should send this via kelly-messenger/kelly-email${contactReady ? "" : ` after configuring ${contactEnv || "a contact env"}`}, then record the outcome here.`,
     };
   });
 
@@ -99,12 +101,14 @@ try {
     dry_run: dryRun,
     source: "kelly-standup",
     config_path: configResult.path,
-    results
+    results,
   };
   await writeJson(EXECUTION_REPORT_PATH, report);
   console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote ${EXECUTION_REPORT_PATH}`);
   for (const result of results) {
-    console.log(`  Reminder #${result.ref} -> ${result.operations.map((op) => `${op.operation}(${op.channel})`).join(" + ") || "blocked"} (${result.status}) ${result.member_id}`);
+    console.log(
+      `  Reminder #${result.ref} -> ${result.operations.map((op) => `${op.operation}(${op.channel})`).join(" + ") || "blocked"} (${result.status}) ${result.member_id}`,
+    );
   }
   if (dryRun) console.log("Re-run with --apply to mark items ready_for_agent. No external side effects either way.");
 } finally {

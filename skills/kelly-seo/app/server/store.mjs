@@ -1,5 +1,5 @@
-import fs from "node:fs/promises";
 import { existsSync } from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import {
   AGENT_TASKS_PATH,
@@ -9,7 +9,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -61,7 +61,7 @@ export function emptySnapshot() {
     source: "kelly-seo",
     range: {
       current: { start: "", end: "" },
-      previous: { start: "", end: "" }
+      previous: { start: "", end: "" },
     },
     metrics: {
       site_count: 0,
@@ -75,7 +75,7 @@ export function emptySnapshot() {
       prev_clicks: 0,
       prev_impressions: 0,
       prev_ctr: 0,
-      prev_position: 0
+      prev_position: 0,
     },
     sites: [],
     daily: [],
@@ -86,9 +86,9 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No SEO snapshot exists yet. Configure site properties, then run a read-only GSC sync."
-      }
-    ]
+        message: "No SEO snapshot exists yet. Configure site properties, then run a read-only GSC sync.",
+      },
+    ],
   };
 }
 
@@ -101,13 +101,17 @@ export function mergeOpportunities(snapshot, decisions, executionReport) {
   const opportunities = (snapshot.opportunities || []).map((opportunity) => {
     const decision = verdicts[opportunity.id] || opportunity.decision || null;
     const reportEntry = execById.get(opportunity.id);
-    const execution = opportunity.execution || (reportEntry ? {
-      status: reportEntry.status,
-      operation: reportEntry.operation,
-      target: reportEntry.target_page || reportEntry.target_query || "",
-      detail: reportEntry.detail || "",
-      executed_at: executionReport?.generated_at || ""
-    } : null);
+    const execution =
+      opportunity.execution ||
+      (reportEntry
+        ? {
+            status: reportEntry.status,
+            operation: reportEntry.operation,
+            target: reportEntry.target_page || reportEntry.target_query || "",
+            detail: reportEntry.detail || "",
+            executed_at: executionReport?.generated_at || "",
+          }
+        : null);
     let status = opportunity.status;
     if (decision?.action === "approve") status = "approved";
     if (decision?.action === "request_changes") status = "changes_requested";
@@ -118,7 +122,7 @@ export function mergeOpportunities(snapshot, decisions, executionReport) {
       status,
       decision,
       draft: decision?.draft ?? opportunity.draft,
-      execution
+      execution,
     };
   });
   return { ...snapshot, opportunities };
@@ -141,7 +145,7 @@ export async function applyDecision({ id, action, note, draft }) {
     action,
     note: String(note || ""),
     draft: typeof draft === "string" ? draft : null,
-    decided_at: now
+    decided_at: now,
   };
   decisions.updated_at = now;
   await writeJson(DECISIONS_PATH, decisions);
@@ -155,7 +159,7 @@ export async function applyDecision({ id, action, note, draft }) {
       title: opportunity.title,
       type: "revise_opportunity",
       note: String(note || ""),
-      requested_at: now
+      requested_at: now,
     });
   }
   tasks.updated_at = now;
@@ -223,20 +227,20 @@ export function summarizeConfig(configResult) {
     sites: sites.map((site) => ({
       site_id: site.site_id || "",
       property_url: site.property_url || "",
-      verification_type: site.verification_type || "url_prefix"
+      verification_type: site.verification_type || "url_prefix",
     })),
     auth: {
       method: auth.method || "service_account",
       service_account_file_env: serviceAccountEnv,
       service_account_ready: Boolean(serviceAccountPath) && existsSync(serviceAccountPath),
       access_token_env: accessTokenEnv,
-      access_token_ready: Boolean(process.env[accessTokenEnv])
+      access_token_ready: Boolean(process.env[accessTokenEnv]),
     },
     sync: {
       window_days: config.sync?.window_days ?? 28,
       compare_previous_period: config.sync?.compare_previous_period ?? true,
       row_limit: config.sync?.row_limit ?? 250,
-      read_only: config.sync?.read_only ?? true
-    }
+      read_only: config.sync?.read_only ?? true,
+    },
   };
 }

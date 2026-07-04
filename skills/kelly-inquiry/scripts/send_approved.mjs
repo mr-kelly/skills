@@ -15,7 +15,7 @@ import {
   readConfig,
   readLock,
   readSnapshot,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const send = process.argv.includes("--send");
@@ -44,7 +44,9 @@ async function main() {
 
   console.log(`${send ? "SEND" : "DRY-RUN"}: ${approved.length} approved item${approved.length === 1 ? "" : "s"}`);
   for (const plan of plans) {
-    console.log(`  - ${plan.item.kind === "quote" ? "Quote" : "Reply"} #${plan.item.ref} [${plan.item.channel}] -> ${plan.target || "(no target)"} via ${plan.operation}`);
+    console.log(
+      `  - ${plan.item.kind === "quote" ? "Quote" : "Reply"} #${plan.item.ref} [${plan.item.channel}] -> ${plan.target || "(no target)"} via ${plan.operation}`,
+    );
     console.log(`      "${truncate(plan.item.text)}"`);
     if (plan.blocker) console.log(`      blocker: ${plan.blocker}`);
   }
@@ -61,7 +63,11 @@ async function main() {
     return;
   }
 
-  await writeJson(LOCK_PATH, { owner: "kelly-inquiry", message: "Sending approved replies and quotes", started_at: nowIso() });
+  await writeJson(LOCK_PATH, {
+    owner: "kelly-inquiry",
+    message: "Sending approved replies and quotes",
+    started_at: nowIso(),
+  });
   const results = [];
   try {
     // Re-read immediately before sending: approvals may have changed.
@@ -69,7 +75,9 @@ async function main() {
     for (const plan of plans) {
       const item = (fresh.approvals || []).find((entry) => entry.item_id === plan.item.item_id);
       if (!item || item.status !== "approved") {
-        results.push(result(plan.item, "skipped", plan.operation, plan.target, "No longer approved at send time.", plan.connector));
+        results.push(
+          result(plan.item, "skipped", plan.operation, plan.target, "No longer approved at send time.", plan.connector),
+        );
         continue;
       }
       if (plan.blocker) {
@@ -78,7 +86,12 @@ async function main() {
         continue;
       }
       if (plan.operation === "handoff_to_agent") {
-        item.execution = execution("handoff", "handoff_to_agent", plan.target, `Agent must deliver this ${item.kind} via the ${item.channel} ${plan.connector} flow.`);
+        item.execution = execution(
+          "handoff",
+          "handoff_to_agent",
+          plan.target,
+          `Agent must deliver this ${item.kind} via the ${item.channel} ${plan.connector} flow.`,
+        );
         item.updated_at = nowIso();
         results.push(result(item, "handoff", "handoff_to_agent", plan.target, item.execution.detail, plan.connector));
         continue;
@@ -86,9 +99,16 @@ async function main() {
       try {
         await sendVia({ ...plan, item });
         item.status = "done";
-        item.execution = execution("executed", plan.item.kind === "quote" ? "send_quote" : "send_message", plan.target, `Sent via ${plan.connector}.`);
+        item.execution = execution(
+          "executed",
+          plan.item.kind === "quote" ? "send_quote" : "send_message",
+          plan.target,
+          `Sent via ${plan.connector}.`,
+        );
         item.updated_at = nowIso();
-        results.push(result(item, "executed", item.execution.operation, plan.target, item.execution.detail, plan.connector));
+        results.push(
+          result(item, "executed", item.execution.operation, plan.target, item.execution.detail, plan.connector),
+        );
         console.log(`Sent ${item.kind === "quote" ? "Quote" : "Reply"} #${item.ref} via ${plan.connector}.`);
       } catch (error) {
         item.execution = execution("error", "send_message", plan.target, error.message);
@@ -104,10 +124,12 @@ async function main() {
   }
 
   const report = {
-    report_id: `exec-${nowIso().replace(/[-:.TZ]/g, "").slice(0, 12)}`,
+    report_id: `exec-${nowIso()
+      .replace(/[-:.TZ]/g, "")
+      .slice(0, 12)}`,
     mode: "send",
     executed_at: nowIso(),
-    results
+    results,
   };
   await writeJson(EXECUTION_REPORT_PATH, report);
   console.log(`Wrote ${EXECUTION_REPORT_PATH}`);
@@ -125,7 +147,7 @@ function planFor(item, snapshot, config) {
     connector,
     target,
     operation: API_CONNECTORS.has(connector) ? "send_message" : "handoff_to_agent",
-    blocker: ""
+    blocker: "",
   };
   if (!account) plan.blocker = `Account ${item.account_id} is not in the config.`;
   else if (API_CONNECTORS.has(connector)) {
@@ -146,33 +168,45 @@ async function sendVia(plan) {
     const phoneNumberId = process.env[plan.account.phone_number_id_env] || plan.account.phone_number_id || "";
     if (!phoneNumberId) throw new Error("Missing phone_number_id for WhatsApp Cloud send.");
     const to = plan.target.replace(/@wa$/, "");
-    await postJson(`https://graph.facebook.com/v20.0/${phoneNumberId}/messages`, {
-      messaging_product: "whatsapp",
-      to,
-      type: "text",
-      text: { body: text }
-    }, { authorization: `Bearer ${token}` });
+    await postJson(
+      `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to,
+        type: "text",
+        text: { body: text },
+      },
+      { authorization: `Bearer ${token}` },
+    );
     return;
   }
   if (plan.connector === "instagram_graph") {
     const igUserId = process.env[plan.account.ig_user_id_env] || plan.account.ig_user_id || "";
     if (!igUserId) throw new Error("Missing ig_user_id for Instagram Graph send.");
     const recipient = plan.target.replace(/^ig:/, "");
-    await postJson(`https://graph.facebook.com/v20.0/${igUserId}/messages`, {
-      recipient: { id: recipient },
-      message: { text }
-    }, { authorization: `Bearer ${token}` });
+    await postJson(
+      `https://graph.facebook.com/v20.0/${igUserId}/messages`,
+      {
+        recipient: { id: recipient },
+        message: { text },
+      },
+      { authorization: `Bearer ${token}` },
+    );
     return;
   }
   if (plan.connector === "messenger_graph") {
     const pageId = process.env[plan.account.page_id_env] || plan.account.page_id || "";
     if (!pageId) throw new Error("Missing page_id for Messenger Graph send.");
     const recipient = plan.target.replace(/^fb:/, "");
-    await postJson(`https://graph.facebook.com/v20.0/${pageId}/messages`, {
-      recipient: { id: recipient },
-      messaging_type: "RESPONSE",
-      message: { text }
-    }, { authorization: `Bearer ${token}` });
+    await postJson(
+      `https://graph.facebook.com/v20.0/${pageId}/messages`,
+      {
+        recipient: { id: recipient },
+        messaging_type: "RESPONSE",
+        message: { text },
+      },
+      { authorization: `Bearer ${token}` },
+    );
     return;
   }
   throw new Error(`Unsupported connector: ${plan.connector}`);
@@ -182,10 +216,13 @@ async function postJson(url, payload, headers = {}) {
   const res = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json", ...headers },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`${url.split("?")[0]} -> HTTP ${res.status}${body.error ? ` (${JSON.stringify(body.error)})` : ""}`);
+  if (!res.ok)
+    throw new Error(
+      `${url.split("?")[0]} -> HTTP ${res.status}${body.error ? ` (${JSON.stringify(body.error)})` : ""}`,
+    );
   return body;
 }
 
@@ -203,7 +240,7 @@ function result(item, status, operation, target, detail, connector = "") {
     operation,
     connector,
     target,
-    detail
+    detail,
   };
 }
 

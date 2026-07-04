@@ -94,31 +94,31 @@ export const messages = {
         blocked: "blocked",
         planned: "planned",
         ready_for_agent: "ready for agent",
-        executed: "executed"
+        executed: "executed",
       },
       badge: {
         striking_distance: "position 8-15",
         low_ctr: "CTR below expected",
         canonical_mismatch: "canonical mismatch",
-        not_indexed: "not indexed"
+        not_indexed: "not indexed",
       },
       type: {
         title_meta_rewrite: "title/meta rewrite",
         internal_links: "internal links",
         content_brief: "content brief",
-        fix_page_issue: "fix page issue"
+        fix_page_issue: "fix page issue",
       },
       operation: {
         rewrite_title: "rewrite title",
         add_internal_links: "add internal links",
         create_content_brief: "create content brief",
-        fix_page_issue: "fix page issue"
+        fix_page_issue: "fix page issue",
       },
       verification: {
         url_prefix: "URL prefix",
-        domain: "Domain"
-      }
-    }
+        domain: "Domain",
+      },
+    },
   },
   zh: {
     agentNotes: "代理备注",
@@ -215,30 +215,30 @@ export const messages = {
         blocked: "已拦截",
         planned: "已计划",
         ready_for_agent: "待代理执行",
-        executed: "已执行"
+        executed: "已执行",
       },
       badge: {
         striking_distance: "排名 8-15",
         low_ctr: "CTR 低于预期",
         canonical_mismatch: "canonical 不一致",
-        not_indexed: "未收录"
+        not_indexed: "未收录",
       },
       type: {
         title_meta_rewrite: "标题/描述改写",
         internal_links: "内链",
         content_brief: "内容简报",
-        fix_page_issue: "页面修复"
+        fix_page_issue: "页面修复",
       },
       operation: {
         rewrite_title: "改写标题",
         add_internal_links: "添加内链",
         create_content_brief: "创建内容简报",
-        fix_page_issue: "修复页面问题"
+        fix_page_issue: "修复页面问题",
       },
       verification: {
         url_prefix: "URL 前缀",
-        domain: "域名"
-      }
-    }
-  }
+        domain: "域名",
+      },
+    },
+  },
 };

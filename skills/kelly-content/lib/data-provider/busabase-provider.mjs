@@ -24,20 +24,10 @@ const STATUS_MAP = {
   abandoned: "blocked",
 };
 
-const CONTENT_FIELD_KEYS = [
-  "title",
-  "body",
-  "channel",
-  "summary",
-  "format",
-  "cta",
-  "hashtags",
-  "media_brief",
-  "hook",
-];
+const CONTENT_FIELD_KEYS = ["title", "body", "channel", "summary", "format", "cta", "hashtags", "media_brief", "hook"];
 
 export function createBusabaseProvider(meta = {}) {
-  const busa = (meta.config && meta.config.busabase) || {};
+  const busa = meta.config?.busabase || {};
   const baseUrl = (process.env.KELLY_CONTENT_BUSABASE_URL || busa.base_url || "").replace(/\/$/, "");
   const baseId = process.env.KELLY_CONTENT_BUSABASE_BASE_ID || busa.base_id || "";
   const apiKey = busa.api_key_env
@@ -47,8 +37,8 @@ export function createBusabaseProvider(meta = {}) {
   function requireConfig() {
     if (!baseUrl || !baseId) {
       throw new Error(
-        "Busabase provider needs base_url and base_id. Set config.busabase.{base_url,base_id} "
-          + "or KELLY_CONTENT_BUSABASE_URL / KELLY_CONTENT_BUSABASE_BASE_ID.",
+        "Busabase provider needs base_url and base_id. Set config.busabase.{base_url,base_id} " +
+          "or KELLY_CONTENT_BUSABASE_URL / KELLY_CONTENT_BUSABASE_BASE_ID.",
       );
     }
   }
@@ -85,7 +75,7 @@ export function createBusabaseProvider(meta = {}) {
 
   function crToItem(cr) {
     const op = primaryOperation(cr) || {};
-    const fields = (op.headCommit && op.headCommit.fields) || {};
+    const fields = op.headCommit?.fields || {};
     return {
       id: cr.id,
       ref: `CR ${String(cr.id).slice(0, 8)}`,
@@ -164,21 +154,22 @@ export function createBusabaseProvider(meta = {}) {
 
     async saveDecision(payload) {
       if (!payload || !payload.id) {
+        /** @type {any} */
         const error = new Error("missing id");
         error.statusCode = 400;
         throw error;
       }
       const cr = await api("GET", `/api/v1/change-requests/${encodeURIComponent(payload.id)}`);
       const op = primaryOperation(cr);
-      const current = (op && op.headCommit && op.headCommit.fields) || {};
+      const current = op?.headCommit?.fields || {};
       const action = payload.action || "revise";
       const nextFields = {
         ...current,
         ...(payload.title ? { title: payload.title } : {}),
         ...(payload.body ? { body: payload.body } : {}),
       };
-      const edited = (payload.title && payload.title !== current.title)
-        || (payload.body && payload.body !== current.body);
+      const edited =
+        (payload.title && payload.title !== current.title) || (payload.body && payload.body !== current.body);
 
       if (action === "approve") {
         if (edited && op) {
@@ -203,6 +194,7 @@ export function createBusabaseProvider(meta = {}) {
           reason: payload.comment || "Closed by reviewer",
         });
       } else {
+        /** @type {any} */
         const error = new Error(`Unknown action: ${action}`);
         error.statusCode = 400;
         throw error;
@@ -247,6 +239,7 @@ export function createBusabaseProvider(meta = {}) {
     },
 
     async confirmDirection() {
+      /** @type {any} */
       const error = new Error(
         "Ideation stages (topics/directions) are local-only. Use KELLY_CONTENT_DATA_PROVIDER=local to plan, then publish to Busabase.",
       );
@@ -255,6 +248,7 @@ export function createBusabaseProvider(meta = {}) {
     },
 
     async startTodo() {
+      /** @type {any} */
       const error = new Error(
         "Ideation stages (todos/main draft) are local-only. Use KELLY_CONTENT_DATA_PROVIDER=local to plan, then publish to Busabase.",
       );

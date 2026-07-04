@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 import { ROOT_DIR, SKILL_DIR } from "../paths.mjs";
 
 export const CONFIG_LOCAL_PATH = path.join(SKILL_DIR, "config.local.json");
@@ -71,7 +71,7 @@ export async function loadConfigWithMeta() {
     recommended_config: USER_CONFIG_PATH,
     recommended_env: USER_ENV_PATH,
     example_config: CONFIG_EXAMPLE_PATH,
-    legacy_config_format: Boolean(sourceIsLegacy || legacySource)
+    legacy_config_format: Boolean(sourceIsLegacy || legacySource),
   };
   if (!source || sourceIsLegacy) {
     return {
@@ -79,7 +79,7 @@ export async function loadConfigWithMeta() {
       source: "",
       is_example: false,
       has_private_config: false,
-      ...baseMeta
+      ...baseMeta,
     };
   }
   const parsed = JSON.parse(await fs.readFile(source, "utf8")) || {};
@@ -91,6 +91,6 @@ export async function loadConfigWithMeta() {
     source,
     is_example: isExample,
     has_private_config: !isExample && privateConfigCandidates().some((candidate) => existsSync(candidate)),
-    ...baseMeta
+    ...baseMeta,
   };
 }

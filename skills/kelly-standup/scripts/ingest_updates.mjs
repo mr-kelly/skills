@@ -10,8 +10,8 @@
 // lock while writing.
 // Usage: node scripts/ingest_updates.mjs <payload.json> [more-payloads.json...]
 
-import fs from "node:fs/promises";
 import crypto from "node:crypto";
+import fs from "node:fs/promises";
 import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.mjs";
 import {
   BLOCKER_STATUSES,
@@ -28,7 +28,7 @@ import {
   readLock,
   readSnapshot,
   recomputeDerived,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const payloadFiles = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
@@ -44,7 +44,9 @@ await ensureDirs();
 
 const existingLock = await readLock();
 if (existingLock) {
-  fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`);
+  fail(
+    `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
+  );
 }
 
 function sha1(value) {
@@ -52,7 +54,11 @@ function sha1(value) {
 }
 
 function isIsoDate(value) {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`));
+  return (
+    typeof value === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    !Number.isNaN(Date.parse(`${value}T00:00:00.000Z`))
+  );
 }
 
 function stringList(value, path) {
@@ -66,7 +72,7 @@ function stringList(value, path) {
 await writeJson(LOCK_PATH, {
   owner: "kelly-standup",
   message: "Ingesting standup update payloads",
-  started_at: new Date().toISOString()
+  started_at: new Date().toISOString(),
 });
 
 try {
@@ -81,9 +87,10 @@ try {
     base.team = {
       name: config.team.name || base.team?.name || "",
       timezone: config.team.timezone || base.team?.timezone || "",
-      workdays: Array.isArray(config.team.workdays) && config.team.workdays.length
-        ? config.team.workdays
-        : (base.team?.workdays || ["mon", "tue", "wed", "thu", "fri"])
+      workdays:
+        Array.isArray(config.team.workdays) && config.team.workdays.length
+          ? config.team.workdays
+          : base.team?.workdays || ["mon", "tue", "wed", "thu", "fri"],
     };
   }
   base.members = base.members || [];
@@ -108,7 +115,7 @@ try {
         participation_30d: 0,
         open_blockers: 0,
         last_submitted_date: "",
-        notes: member.notes || ""
+        notes: member.notes || "",
       });
     }
   }
@@ -129,7 +136,8 @@ try {
     const date = payload.date;
     const payloadSource = UPDATE_SOURCES.has(payload.source) ? payload.source : "manual";
     if (payload.updates !== undefined && !Array.isArray(payload.updates)) fail(`${file}: updates must be an array`);
-    if (payload.reminders !== undefined && !Array.isArray(payload.reminders)) fail(`${file}: reminders must be an array`);
+    if (payload.reminders !== undefined && !Array.isArray(payload.reminders))
+      fail(`${file}: reminders must be an array`);
 
     let day = base.days.find((entry) => entry.date === date);
     if (!day) {
@@ -149,10 +157,12 @@ try {
     for (const [index, item] of (payload.updates || []).entries()) {
       const path = `${file} updates[${index}]`;
       if (!item || typeof item !== "object") fail(`${path} must be an object`);
-      if (!memberIds.has(item.member_id)) fail(`${path}: unknown member_id ${item.member_id}; add the member to config first`);
+      if (!memberIds.has(item.member_id))
+        fail(`${path}: unknown member_id ${item.member_id}; add the member to config first`);
       const source = item.source === undefined ? payloadSource : item.source;
       if (!UPDATE_SOURCES.has(source)) fail(`${path}: invalid source ${source}`);
-      if (item.mood !== undefined && item.mood !== "" && !MOODS.has(item.mood)) fail(`${path}: invalid mood ${item.mood}`);
+      if (item.mood !== undefined && item.mood !== "" && !MOODS.has(item.mood))
+        fail(`${path}: invalid mood ${item.mood}`);
       if (item.submitted_at !== undefined && Number.isNaN(Date.parse(item.submitted_at))) {
         fail(`${path}: submitted_at must be an ISO timestamp`);
       }
@@ -160,7 +170,8 @@ try {
 
       const updateBlockers = (item.blockers || []).map((blocker, blockerIndex) => {
         const blockerPath = `${path}.blockers[${blockerIndex}]`;
-        if (!blocker || typeof blocker.text !== "string" || !blocker.text.trim()) fail(`${blockerPath}: text is required`);
+        if (!blocker || typeof blocker.text !== "string" || !blocker.text.trim())
+          fail(`${blockerPath}: text is required`);
         const severity = blocker.severity === undefined ? "medium" : blocker.severity;
         if (!SEVERITIES.has(severity)) fail(`${blockerPath}: invalid severity ${blocker.severity}`);
         const status = blocker.status === undefined ? "open" : blocker.status;
@@ -180,7 +191,7 @@ try {
             status,
             text,
             suggested_action: String(blocker.suggested_action || ""),
-            resolved_date: status === "resolved" ? date : ""
+            resolved_date: status === "resolved" ? date : "",
           };
           base.blockers.push(registered);
         } else {
@@ -207,7 +218,7 @@ try {
         mood: MOODS.has(item.mood) ? item.mood : "",
         submitted_at: item.submitted_at ? new Date(item.submitted_at).toISOString() : `${date}T00:00:00.000Z`,
         source,
-        raw_excerpt: String(item.raw_excerpt || "")
+        raw_excerpt: String(item.raw_excerpt || ""),
       };
       const existingIndex = day.updates.findIndex((entry) => entry.member_id === item.member_id);
       if (existingIndex >= 0) day.updates[existingIndex] = normalized;
@@ -247,7 +258,7 @@ try {
           status,
           created_at: now,
           decision: null,
-          execution: null
+          execution: null,
         });
       }
       fileReminders += 1;
@@ -260,7 +271,7 @@ try {
       source: payloadSource,
       action: "ingest",
       detail: `Upserted ${fileUpdates} updates${fileReminders ? ` and ${fileReminders} reminders` : ""} for ${date} from ${file}.`,
-      count: fileUpdates
+      count: fileUpdates,
     });
   }
 

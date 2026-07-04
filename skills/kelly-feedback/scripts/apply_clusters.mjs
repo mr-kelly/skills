@@ -31,12 +31,14 @@ if (!requestDrafts.length && !assignments.length) fail("payload needs requests[]
 for (const [index, draft] of requestDrafts.entries()) {
   if (!draft.request_id) fail(`requests[${index}].request_id is required`);
   if (!draft.title) fail(`requests[${index}].title is required`);
-  if (draft.status && !REQUEST_STATUSES.includes(draft.status)) fail(`requests[${index}].status must be one of ${REQUEST_STATUSES.join("|")}`);
+  if (draft.status && !REQUEST_STATUSES.includes(draft.status))
+    fail(`requests[${index}].status must be one of ${REQUEST_STATUSES.join("|")}`);
   if (draft.trend && !TRENDS.includes(draft.trend)) fail(`requests[${index}].trend must be one of ${TRENDS.join("|")}`);
 }
 for (const [index, assignment] of assignments.entries()) {
   if (!assignment.feedback_id) fail(`assignments[${index}].feedback_id is required`);
-  if (typeof assignment.request_id !== "string") fail(`assignments[${index}].request_id must be a string ("" to unassign)`);
+  if (typeof assignment.request_id !== "string")
+    fail(`assignments[${index}].request_id must be a string ("" to unassign)`);
 }
 
 await acquireLock("Applying cluster assignments").catch((error) => fail(error.message));
@@ -50,11 +52,25 @@ try {
   for (const draft of requestDrafts) {
     const existing = requestsById.get(draft.request_id);
     if (existing) {
-      for (const key of ["title", "product", "status", "trend", "problem_statement", "spec_summary", "effort_estimate", "representative_feedback_ids"]) {
+      for (const key of [
+        "title",
+        "product",
+        "status",
+        "trend",
+        "problem_statement",
+        "spec_summary",
+        "effort_estimate",
+        "representative_feedback_ids",
+      ]) {
         if (draft[key] !== undefined) existing[key] = draft[key];
       }
       existing.updated_at = now;
-      existing.decision_history.push({ at: now, actor: "agent", action: "updated", note: draft.note || "Cluster draft updated." });
+      existing.decision_history.push({
+        at: now,
+        actor: "agent",
+        action: "updated",
+        note: draft.note || "Cluster draft updated.",
+      });
     } else {
       const request = {
         request_id: draft.request_id,
@@ -68,9 +84,11 @@ try {
         spec_summary: draft.spec_summary || "",
         effort_estimate: draft.effort_estimate || "",
         representative_feedback_ids: draft.representative_feedback_ids || [],
-        decision_history: [{ at: now, actor: "agent", action: "created", note: draft.note || "Created from cluster assignments." }],
+        decision_history: [
+          { at: now, actor: "agent", action: "created", note: draft.note || "Created from cluster assignments." },
+        ],
         created_at: now,
-        updated_at: now
+        updated_at: now,
       };
       snapshot.requests.push(request);
       requestsById.set(request.request_id, request);
@@ -87,7 +105,7 @@ try {
       fail(`assignments reference unknown request: ${assignment.request_id}`);
     }
     item.request_id = assignment.request_id;
-    item.triage = assignment.request_id ? "clustered" : (assignment.triage || "new");
+    item.triage = assignment.request_id ? "clustered" : assignment.triage || "new";
     if (assignment.agent_note !== undefined) item.agent_note = String(assignment.agent_note);
     assigned += 1;
   }
@@ -98,7 +116,7 @@ try {
     actor: "agent",
     action: "cluster",
     detail: `Applied cluster assignments: ${assigned} feedback item(s), ${upserted} request draft(s) upserted.`,
-    count: assigned
+    count: assigned,
   });
   recomputeDerived(snapshot);
   await writeJson(SNAPSHOT_PATH, snapshot);

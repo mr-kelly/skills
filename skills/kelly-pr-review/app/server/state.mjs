@@ -1,11 +1,11 @@
-import { CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH, TESTED_PATH } from "./paths.mjs";
-import { loadBatch, normalizeItem } from "./batch-store.mjs";
-import { lockPayload } from "./lock.mjs";
-import { normalizeQueryValue, readJson } from "./utils.mjs";
-import { isApprovedForExecution, isBlocked, isDone, isNeedsReview, isToApprove } from "./workflow.mjs";
-import { applyTestedCache, loadTestedCache } from "./tested-cache.mjs";
 import { loadConfigWithMeta } from "../../lib/data-reader/index.mjs";
 import { publicConfigSummary } from "../../lib/data-reader/local-file-reader.mjs";
+import { loadBatch, normalizeItem } from "./batch-store.mjs";
+import { lockPayload } from "./lock.mjs";
+import { CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH, TESTED_PATH } from "./paths.mjs";
+import { applyTestedCache, loadTestedCache } from "./tested-cache.mjs";
+import { normalizeQueryValue, readJson } from "./utils.mjs";
+import { isApprovedForExecution, isBlocked, isDone, isNeedsReview, isToApprove } from "./workflow.mjs";
 
 function countByWorkflow(items) {
   return {
@@ -58,12 +58,14 @@ export async function statePayload(query = {}) {
   const mode = normalizeQueryValue(query.mode, "all");
   const search = normalizeQueryValue(query.q, "").toLowerCase().trim();
   const repo = normalizeQueryValue(query.repo, "all");
-  const repoItems = repo && repo !== "all"
-    ? allItems.filter((item) => item.repo === repo)
-    : allItems;
+  const repoItems = repo && repo !== "all" ? allItems.filter((item) => item.repo === repo) : allItems;
   let items = repoItems.filter((item) => matchesMode(item, mode));
   if (search) {
-    items = items.filter((item) => `${item.review_ref} ${item.repo} ${item.number} ${item.title} ${item.author} ${item.summary}`.toLowerCase().includes(search));
+    items = items.filter((item) =>
+      `${item.review_ref} ${item.repo} ${item.number} ${item.title} ${item.author} ${item.summary}`
+        .toLowerCase()
+        .includes(search),
+    );
   }
   items.sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")));
   return {

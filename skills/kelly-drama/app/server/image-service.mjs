@@ -57,9 +57,7 @@ export async function saveImageConfig(input = {}) {
 }
 
 function shotCharacters(project, shot) {
-  return (shot.characters || [])
-    .map((id) => (project.characters || []).find((item) => item.id === id))
-    .filter(Boolean);
+  return (shot.characters || []).map((id) => (project.characters || []).find((item) => item.id === id)).filter(Boolean);
 }
 
 function hasGeneratedRef(character) {
@@ -83,11 +81,15 @@ export function storyboardPrompt(project, shot) {
     `Setting: ${shot.setting || ""}`,
     `Lighting: ${shot.lighting || ""}`,
     characterNames.length ? `Characters: ${characterNames.join("; ")}` : "",
-    withRefs.length ? `Character consistency: reference portrait images are provided for ${withRefs.map((c) => c.name).join("、")}. Keep each character's face, hairstyle, beard, body type and costume identical to their reference image; do not redesign or swap them.` : "",
+    withRefs.length
+      ? `Character consistency: reference portrait images are provided for ${withRefs.map((c) => c.name).join("、")}. Keep each character's face, hairstyle, beard, body type and costume identical to their reference image; do not redesign or swap them.`
+      : "",
     shot.prompt ? `Shot brief: ${shot.prompt}` : "",
     `Style: ${bible.style_medium || "cinematic storyboard still, clear character blocking, production-ready frame"}.`,
     shot.negative_prompt ? `Avoid: ${shot.negative_prompt}` : "",
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 const MAX_SHOT_REFERENCES = 4;
@@ -100,7 +102,12 @@ function collectShotReferences(project, shot) {
   const refs = [];
   for (const character of shotCharacters(project, shot)) {
     if (hasGeneratedRef(character)) {
-      refs.push({ kind: "character", id: character.id, name: character.name, path: character.reference_card.image_asset });
+      refs.push({
+        kind: "character",
+        id: character.id,
+        name: character.name,
+        path: character.reference_card.image_asset,
+      });
     }
   }
   // Use the latest GENERAL background (scene-specific bgs carry a `scene` tag and are
@@ -128,7 +135,7 @@ async function callImageEdits(prompt, references, config) {
   }
   const response = await fetch(endpoint, {
     method: "POST",
-    headers: { "Authorization": `Bearer ${config.api_key}` },
+    headers: { Authorization: `Bearer ${config.api_key}` },
     body: form,
   });
   const data = await response.json().catch(() => ({}));
@@ -138,7 +145,11 @@ async function callImageEdits(prompt, references, config) {
   }
   return {
     bytes: imageBytesFromResponse(data),
-    payload: { model: config.model || DEFAULT_CONFIG.model, size: config.size || DEFAULT_CONFIG.size, mode: "image-edit" },
+    payload: {
+      model: config.model || DEFAULT_CONFIG.model,
+      size: config.size || DEFAULT_CONFIG.size,
+      mode: "image-edit",
+    },
   };
 }
 
@@ -179,21 +190,32 @@ export async function storyboardPromptPreview(shotId) {
 
 function visualBackgroundPrompt(project) {
   const bible = project.series?.visual_bible || {};
-  return bible.background_prompt || [
-    `Visual background reference for ${project.series?.title || "short drama"}.`,
-    bible.aspect_ratio ? `Aspect ratio: ${bible.aspect_ratio} ${bible.orientation || ""}.` : "",
-    bible.realism_target || "",
-    bible.period_detail || "",
-    bible.cinematography || "",
-  ].filter(Boolean).join("\n");
+  return (
+    bible.background_prompt ||
+    [
+      `Visual background reference for ${project.series?.title || "short drama"}.`,
+      bible.aspect_ratio ? `Aspect ratio: ${bible.aspect_ratio} ${bible.orientation || ""}.` : "",
+      bible.realism_target || "",
+      bible.period_detail || "",
+      bible.cinematography || "",
+    ]
+      .filter(Boolean)
+      .join("\n")
+  );
 }
 
 function characterCardPrompt(character, project) {
   return [
     character.reference_card?.prompt || "",
-    project.series?.visual_bible?.realism_target ? `Series visual target: ${project.series.visual_bible.realism_target}` : "",
-    project.series?.visual_bible?.aspect_ratio ? `Aspect ratio: ${project.series.visual_bible.aspect_ratio} ${project.series.visual_bible.orientation || ""}.` : "",
-  ].filter(Boolean).join("\n");
+    project.series?.visual_bible?.realism_target
+      ? `Series visual target: ${project.series.visual_bible.realism_target}`
+      : "",
+    project.series?.visual_bible?.aspect_ratio
+      ? `Aspect ratio: ${project.series.visual_bible.aspect_ratio} ${project.series.visual_bible.orientation || ""}.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function imageBytesFromResponse(data) {
@@ -240,11 +262,17 @@ export async function generateStoryboardImage(shotId) {
   project.shots = (project.shots || []).map((item) => {
     if (item.id !== shot.id) return item;
     // Append as a new candidate; keep prior generations. Newest becomes active.
-    const prior = item.image_candidates && item.image_candidates.length
+    const prior = item.image_candidates?.length
       ? item.image_candidates
-      : (item.image_asset?.startsWith("/generated/")
-        ? [{ path: item.image_asset, generated_at: item.image_generated_at || generatedAt, generation: item.image_generation || {} }]
-        : []);
+      : item.image_asset?.startsWith("/generated/")
+        ? [
+            {
+              path: item.image_asset,
+              generated_at: item.image_generated_at || generatedAt,
+              generation: item.image_generation || {},
+            },
+          ]
+        : [];
     const image_candidates = [...prior, { path: publicPath, generated_at: generatedAt, generation }];
     return {
       ...item,
@@ -269,7 +297,7 @@ async function callImageApi(prompt, config) {
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${config.api_key}`,
+      Authorization: `Bearer ${config.api_key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
@@ -297,7 +325,7 @@ export async function generateVisualBackground() {
     visual_bible: {
       ...(project.series?.visual_bible || {}),
       background_reference_assets: [
-        ...((project.series?.visual_bible?.background_reference_assets || []).filter((item) => item.path !== publicPath)),
+        ...(project.series?.visual_bible?.background_reference_assets || []).filter((item) => item.path !== publicPath),
         {
           id: `bg-ref-${Date.now()}`,
           title: "汉末乱世背景参考",
@@ -325,21 +353,25 @@ export async function generateCharacterCard(characterId) {
   const diskPath = path.join(REFERENCE_IMAGE_DIR, filename);
   await fs.writeFile(diskPath, bytes);
   const publicPath = `/generated/references/${filename}`;
-  project.characters = (project.characters || []).map((item) => item.id === character.id ? {
-    ...item,
-    reference_card: {
-      ...(item.reference_card || {}),
-      status: "generated",
-      image_asset: publicPath,
-      generated_at: new Date().toISOString(),
-      generation: {
-        provider: "openai-compatible",
-        base_url: config.base_url,
-        model: payload.model,
-        size: payload.size,
-      },
-    },
-  } : item);
+  project.characters = (project.characters || []).map((item) =>
+    item.id === character.id
+      ? {
+          ...item,
+          reference_card: {
+            ...(item.reference_card || {}),
+            status: "generated",
+            image_asset: publicPath,
+            generated_at: new Date().toISOString(),
+            generation: {
+              provider: "openai-compatible",
+              base_url: config.base_url,
+              model: payload.model,
+              size: payload.size,
+            },
+          },
+        }
+      : item,
+  );
   await saveProject(project);
   return { path: publicPath, state: await import("./state.mjs").then((mod) => mod.statePayload()) };
 }

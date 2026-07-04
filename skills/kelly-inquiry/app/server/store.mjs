@@ -8,13 +8,20 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export const STAGES = ["new", "replied", "quoted", "negotiating", "won", "lost"];
 export const ACTIVE_STAGES = ["new", "replied", "quoted", "negotiating"];
 export const CHANNELS = ["whatsapp", "instagram", "messenger", "email"];
-export const CONNECTORS = ["whatsapp_cloud", "instagram_graph", "messenger_graph", "email_agent", "browser_agent", "manual"];
+export const CONNECTORS = [
+  "whatsapp_cloud",
+  "instagram_graph",
+  "messenger_graph",
+  "email_agent",
+  "browser_agent",
+  "manual",
+];
 export const QUOTE_STATUSES = ["draft", "sent", "accepted", "expired", "declined"];
 export const APPROVAL_STATUSES = ["needs_review", "changes_requested", "approved", "done", "blocked"];
 
@@ -77,9 +84,10 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No inquiry snapshot exists yet. Configure channels, then ingest collected inquiries with scripts/ingest_inquiries.mjs."
-      }
-    ]
+        message:
+          "No inquiry snapshot exists yet. Configure channels, then ingest collected inquiries with scripts/ingest_inquiries.mjs.",
+      },
+    ],
   };
 }
 
@@ -98,7 +106,7 @@ export function emptyMetrics() {
     win_rate: 0,
     reply_median_minutes: 0,
     inquiries_this_week: { total: 0, by_channel: {} },
-    stage_counts: { new: 0, replied: 0, quoted: 0, negotiating: 0, won: 0, lost: 0 }
+    stage_counts: { new: 0, replied: 0, quoted: 0, negotiating: 0, won: 0, lost: 0 },
   };
 }
 
@@ -122,26 +130,26 @@ export function recomputeMetrics(snapshot) {
     const firstIncoming = messages.find((message) => message.direction === "incoming");
     const firstOutgoing = messages.find((message) => message.direction === "outgoing");
     if (firstIncoming && firstOutgoing) {
-      const delta = (new Date(firstOutgoing.sent_at) - new Date(firstIncoming.sent_at)) / 60000;
+      const delta = (new Date(firstOutgoing.sent_at).getTime() - new Date(firstIncoming.sent_at).getTime()) / 60000;
       if (Number.isFinite(delta) && delta >= 0) replyDeltas.push(delta);
     }
   }
   replyDeltas.sort((a, b) => a - b);
-  const median = replyDeltas.length
-    ? replyDeltas[Math.floor((replyDeltas.length - 1) / 2)]
-    : 0;
+  const median = replyDeltas.length ? replyDeltas[Math.floor((replyDeltas.length - 1) / 2)] : 0;
   const closed = stage_counts.won + stage_counts.lost;
   snapshot.metrics = {
     account_count: Array.isArray(snapshot.accounts) ? snapshot.accounts.length : 0,
     inquiry_count: inquiries.length,
     quote_count: quotes.length,
     product_count: Array.isArray(snapshot.products) ? snapshot.products.length : 0,
-    unanswered_new_count: inquiries.filter((item) => item.stage === "new" && !(item.messages || []).some((message) => message.direction === "outgoing")).length,
+    unanswered_new_count: inquiries.filter(
+      (item) => item.stage === "new" && !(item.messages || []).some((message) => message.direction === "outgoing"),
+    ).length,
     quotes_sent: quotes.filter((quote) => ["sent", "accepted", "expired", "declined"].includes(quote.status)).length,
     win_rate: closed ? Number((stage_counts.won / closed).toFixed(2)) : 0,
     reply_median_minutes: Math.round(median),
     inquiries_this_week: { total: weekTotal, by_channel },
-    stage_counts
+    stage_counts,
   };
   return snapshot;
 }
@@ -164,7 +172,18 @@ export function mergeInquiries(snapshot, incoming = []) {
       newMessages += 1;
     }
     existing.messages.sort((a, b) => String(a.sent_at).localeCompare(String(b.sent_at)));
-    for (const key of ["customer", "product_interest", "product_ids", "quote_ids", "value_estimate", "currency", "owner", "provider_conversation_id", "next_follow_up", "suggested_reply"]) {
+    for (const key of [
+      "customer",
+      "product_interest",
+      "product_ids",
+      "quote_ids",
+      "value_estimate",
+      "currency",
+      "owner",
+      "provider_conversation_id",
+      "next_follow_up",
+      "suggested_reply",
+    ]) {
       if (inquiry[key] !== undefined) existing[key] = inquiry[key];
     }
     if (inquiry.stage && STAGES.includes(inquiry.stage)) existing.stage = inquiry.stage;
@@ -172,7 +191,9 @@ export function mergeInquiries(snapshot, incoming = []) {
     refreshInquiryDerived(existing);
   }
   for (const item of byId.values()) refreshInquiryDerived(item);
-  snapshot.inquiries = [...byId.values()].sort((a, b) => String(b.last_message_at || "").localeCompare(String(a.last_message_at || "")));
+  snapshot.inquiries = [...byId.values()].sort((a, b) =>
+    String(b.last_message_at || "").localeCompare(String(a.last_message_at || "")),
+  );
   return newMessages;
 }
 
@@ -217,7 +238,7 @@ export async function queueReply({ inquiry_id, text, note = "", suggested_by = "
     decision: null,
     execution: null,
     created_at: now,
-    updated_at: now
+    updated_at: now,
   };
   snapshot.approvals = Array.isArray(snapshot.approvals) ? snapshot.approvals : [];
   snapshot.approvals.push(item);
@@ -244,7 +265,7 @@ export async function decideApproval({ item_id, action, comment = "", text }) {
     comment: String(comment || ""),
     text: item.text,
     status: item.status,
-    decided_at: now
+    decided_at: now,
   };
   decisions.updated_at = now;
   await writeJson(DECISIONS_PATH, decisions);
@@ -264,7 +285,7 @@ async function appendAgentTask(item, comment) {
     quote_id: item.quote_id || "",
     comment: String(comment || ""),
     status: "open",
-    requested_at: now
+    requested_at: now,
   });
   tasks.updated_at = now;
   await writeJson(AGENT_TASKS_PATH, tasks);
@@ -294,7 +315,7 @@ export function applyMinPriceGuard(quote, products) {
         sku: product.sku,
         unit_price: Number(line.unit_price),
         price_min: product.price_min,
-        message: `${product.sku}: unit price ${line.unit_price} is below the KB floor ${product.price_min}.`
+        message: `${product.sku}: unit price ${line.unit_price} is below the KB floor ${product.price_min}.`,
       });
     }
   }
@@ -389,7 +410,7 @@ export const SECRET_ENV_KEYS = [
   "ig_user_id_env",
   "page_id_env",
   "token_env",
-  "api_key_env"
+  "api_key_env",
 ];
 
 export function summarizeConfig(configResult) {
@@ -412,8 +433,8 @@ export function summarizeConfig(configResult) {
         display_name: account.display_name || account.account_id || "",
         handle: account.handle || "",
         secret_envs: secretKeys.map((key) => account[key]),
-        secrets_ready: secretKeys.length > 0 && secretKeys.every((key) => Boolean(process.env[account[key]]))
+        secrets_ready: secretKeys.length > 0 && secretKeys.every((key) => Boolean(process.env[account[key]])),
       };
-    })
+    }),
   };
 }

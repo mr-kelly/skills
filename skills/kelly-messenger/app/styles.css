@@ -32,7 +32,7 @@ body {
   min-height: 0;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font: 14px / 1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 a {
@@ -626,11 +626,21 @@ button.danger {
   background: var(--muted-soft);
 }
 
-.platform-badge.whatsapp .dot { background: #1faa61; }
-.platform-badge.slack .dot { background: #7c3085; }
-.platform-badge.discord .dot { background: #5865f2; }
-.platform-badge.telegram .dot { background: #2aabee; }
-.platform-badge.wechat .dot { background: #09b83e; }
+.platform-badge.whatsapp .dot {
+  background: #1faa61;
+}
+.platform-badge.slack .dot {
+  background: #7c3085;
+}
+.platform-badge.discord .dot {
+  background: #5865f2;
+}
+.platform-badge.telegram .dot {
+  background: #2aabee;
+}
+.platform-badge.wechat .dot {
+  background: #09b83e;
+}
 
 .status-chip {
   display: inline-block;
@@ -644,11 +654,26 @@ button.danger {
   white-space: nowrap;
 }
 
-.status-chip.needs_review { background: #fff8db; color: var(--warn); }
-.status-chip.changes_requested { background: #f3ebff; color: #6941c6; }
-.status-chip.approved { background: #eff8ff; color: #175cd3; }
-.status-chip.done { background: #ecfdf3; color: var(--good); }
-.status-chip.blocked { background: #fff1f0; color: var(--bad); }
+.status-chip.needs_review {
+  background: #fff8db;
+  color: var(--warn);
+}
+.status-chip.changes_requested {
+  background: #f3ebff;
+  color: #6941c6;
+}
+.status-chip.approved {
+  background: #eff8ff;
+  color: #175cd3;
+}
+.status-chip.done {
+  background: #ecfdf3;
+  color: var(--good);
+}
+.status-chip.blocked {
+  background: #fff1f0;
+  color: var(--bad);
+}
 
 /* ----- overview ----- */
 

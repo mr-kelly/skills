@@ -13,7 +13,7 @@ import {
   readSnapshot,
   recomputeMetrics,
   releaseLock,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const OWNER = "kelly-devops-sync-domains";
@@ -27,7 +27,7 @@ async function rdapExpiration(domain) {
   const res = await fetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`, {
     headers: { accept: "application/rdap+json, application/json", "user-agent": "kelly-devops-check/1.0" },
     redirect: "follow",
-    signal: AbortSignal.timeout(15000)
+    signal: AbortSignal.timeout(15000),
   });
   if (!res.ok) throw new Error(`RDAP responded HTTP ${res.status}`);
   const body = await res.json();
@@ -50,7 +50,9 @@ async function main() {
   const domains = Array.isArray(config.domains) ? config.domains : [];
   if (configResult.is_example) {
     console.log("No private config found; only the template config.example.json exists.");
-    console.log("Create config.local.json (or set KELLY_DEVOPS_CONFIG) with your domains[] before syncing real expiry dates.");
+    console.log(
+      "Create config.local.json (or set KELLY_DEVOPS_CONFIG) with your domains[] before syncing real expiry dates.",
+    );
     return;
   }
   if (!domains.length) {
@@ -94,7 +96,7 @@ async function main() {
           registrar: entry.registrar || "",
           detail: entry.auto_renew
             ? `Auto-renew is on${entry.registrar ? ` at ${entry.registrar}` : ""}. Confirm the payment method stays valid.`
-            : `Auto-renew is off. Renew ${domain}${entry.registrar ? ` at ${entry.registrar}` : ""} before ${expires.toISOString().slice(0, 10)}.`
+            : `Auto-renew is off. Renew ${domain}${entry.registrar ? ` at ${entry.registrar}` : ""} before ${expires.toISOString().slice(0, 10)}.`,
         });
         if (soonest === null || daysLeft < soonest.daysLeft) soonest = { domain, daysLeft };
         console.log(`- ${domain}: expires ${expires.toISOString().slice(0, 10)} (${daysLeft} days)`);
@@ -102,7 +104,8 @@ async function main() {
         failures += 1;
         console.log(`- ${domain}: RDAP lookup failed (${error.message}); keeping previous data if any.`);
         if (existing) {
-          existing.detail = `${existing.detail || ""} RDAP refresh failed on ${now.slice(0, 10)}: ${error.message}.`.trim();
+          existing.detail =
+            `${existing.detail || ""} RDAP refresh failed on ${now.slice(0, 10)}: ${error.message}.`.trim();
         } else {
           upsertExpiry(snapshot, {
             expiry_id: expiryId,
@@ -115,7 +118,7 @@ async function main() {
             action_id: "",
             source: "rdap",
             registrar: entry.registrar || "",
-            detail: `RDAP lookup failed: ${error.message}. Verify the domain manually at the registrar.`
+            detail: `RDAP lookup failed: ${error.message}. Verify the domain manually at the registrar.`,
           });
         }
       }
@@ -129,7 +132,7 @@ async function main() {
       message: soonest
         ? `Domain check completed: soonest expiry is ${soonest.domain} in ${soonest.daysLeft} days.${failures ? ` ${failures} lookup(s) failed.` : ""}`
         : `Domain check completed with ${failures} failed lookup(s).`,
-      service_id: ""
+      service_id: "",
     });
     snapshot.generated_at = now;
     snapshot.source = "kelly-devops";

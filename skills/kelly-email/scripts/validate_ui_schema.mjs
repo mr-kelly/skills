@@ -9,12 +9,21 @@ import {
   isDone,
   isNeedsReview,
   isToApprove,
-  readJson
+  readJson,
 } from "../lib/common.mjs";
 
 const VALID_STATUS = new Set(["prepared", "needs_review", "draft_requested", "drafted", "executed"]);
 const VALID_ACTION = new Set(["archive", "mark_read", "send_reply", "draft_reply", "keep_unread", "review"]);
-const VALID_DECISION = new Set(["archive", "mark_read", "send_reply", "draft_reply", "keep_unread", "no_action", "needs_review", "revise"]);
+const VALID_DECISION = new Set([
+  "archive",
+  "mark_read",
+  "send_reply",
+  "draft_reply",
+  "keep_unread",
+  "no_action",
+  "needs_review",
+  "revise",
+]);
 const VALID_EXECUTION = new Set(["executed", "blocked", "error", "dry_run"]);
 const VALID_LANGUAGE = new Set(["en", "zh-CN", "unknown"]);
 
@@ -41,10 +50,12 @@ async function main() {
       if (!(key in item)) errors.push(`${label}: missing ${key}`);
     }
     if (!VALID_STATUS.has(item.status)) errors.push(`${label}: invalid status ${JSON.stringify(item.status)}`);
-    if (!VALID_ACTION.has(item.proposed_action)) errors.push(`${label}: invalid proposed_action ${JSON.stringify(item.proposed_action)}`);
+    if (!VALID_ACTION.has(item.proposed_action))
+      errors.push(`${label}: invalid proposed_action ${JSON.stringify(item.proposed_action)}`);
     if (item.status === "decided") errors.push(`${label}: status=decided is not part of UI schema`);
     for (const key of ["user_language", "source_language", "body_original_language", "body_translation_language"]) {
-      if (item[key] && !VALID_LANGUAGE.has(item[key])) errors.push(`${label}: invalid ${key} ${JSON.stringify(item[key])}`);
+      if (item[key] && !VALID_LANGUAGE.has(item[key]))
+        errors.push(`${label}: invalid ${key} ${JSON.stringify(item[key])}`);
     }
     for (const key of ["body_original", "body_translation"]) {
       if (key in item && typeof item[key] !== "string") errors.push(`${label}: ${key} must be a string`);
@@ -63,27 +74,35 @@ async function main() {
   const expectedDecisions = items.filter((item) => decisionAction(item));
   const actualDecisions = decisionsPayload.decisions || [];
   if (expectedDecisions.length !== actualDecisions.length) {
-    errors.push(`decisions.json has ${actualDecisions.length} decisions, expected ${expectedDecisions.length} from batch items`);
+    errors.push(
+      `decisions.json has ${actualDecisions.length} decisions, expected ${expectedDecisions.length} from batch items`,
+    );
   }
 
   const counts = {
     needs_review: items.filter(isNeedsReview).length,
     approved: items.filter(isApproved).length,
     done: items.filter(isDone).length,
-    blocked: items.filter(isBlocked).length
+    blocked: items.filter(isBlocked).length,
   };
 
-  console.log(JSON.stringify({
-    batch_id: batch.batch_id,
-    items: items.length,
-    counts,
-    execution_statuses: items.reduce((acc, item) => {
-      const status = executionStatus(item);
-      if (status) acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {}),
-    errors
-  }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        batch_id: batch.batch_id,
+        items: items.length,
+        counts,
+        execution_statuses: items.reduce((acc, item) => {
+          const status = executionStatus(item);
+          if (status) acc[status] = (acc[status] || 0) + 1;
+          return acc;
+        }, {}),
+        errors,
+      },
+      null,
+      2,
+    ),
+  );
   return errors.length ? 1 : 0;
 }
 
