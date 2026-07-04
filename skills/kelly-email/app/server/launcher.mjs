@@ -33,7 +33,7 @@ function isReady(port) {
       res.on("end", () => {
         try {
           const state = JSON.parse(body);
-          resolve(res.statusCode >= 200 && res.statusCode < 300 && Boolean(state.email_accounts));
+          resolve(res.statusCode >= 200 && res.statusCode < 300 && state.app === "kelly-email");
         } catch {
           resolve(false);
         }

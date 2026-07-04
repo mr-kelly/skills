@@ -1,0 +1,47 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "base_currency": "USD",
+  "seller_profile": {
+    "store_name": "Example Store",
+    "categories": ["home", "kitchen"],
+    "target_platforms": ["amazon_us", "tiktok_shop_us"],
+    "margin_floor_pct": 25,
+    "max_cogs": 12
+  },
+  "platforms": [
+    {
+      "platform_id": "amazon_us",
+      "name": "Amazon US",
+      "currency": "USD",
+      "referral_fee_pct": 15,
+      "fulfillment_flat": 0
+    },
+    {
+      "platform_id": "tiktok_shop_us",
+      "name": "TikTok Shop US",
+      "currency": "USD",
+      "referral_fee_pct": 8,
+      "fulfillment_flat": 0
+    }
+  ],
+  "freight": {
+    "default_per_unit": 1.8,
+    "rules": [
+      { "category": "home", "per_unit": 2.4 },
+      { "category": "kitchen", "per_unit": 2.1 }
+    ]
+  },
+  "ad_cost_default_pct": 15,
+  "sources": [
+    { "source_id": "amazon-bsr-main", "kind": "amazon_bsr", "name": "Amazon BSR movers — your category", "method": "browser_agent" },
+    { "source_id": "tiktok-main", "kind": "tiktok", "name": "TikTok viral product videos — your hashtags", "method": "browser_agent" },
+    { "source_id": "temu-main", "kind": "temu", "name": "Temu rising items — your category", "method": "browser_agent" },
+    { "source_id": "aliexpress-main", "kind": "aliexpress", "name": "AliExpress hot products — your category", "method": "browser_agent" },
+    { "source_id": "gtrends-main", "kind": "trends", "name": "Google Trends — your seed queries", "method": "browser_agent", "api_key_env": "KELLY_PICKS_SERP_API_KEY" },
+    { "source_id": "competitor-main", "kind": "competitor", "name": "Competitor new launches — tracked stores", "method": "manual" }
+  ],
+  "ui": {
+    "language": "auto"
+  }
+}

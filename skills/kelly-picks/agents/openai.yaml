@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Picks"
+  short_description: "Local product-research desk for e-commerce sourcing"
+  default_prompt: "Use $kelly-picks to open my product-research desk and review this week's candidates."

@@ -1,0 +1,50 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "team": {
+    "name": "Example Team",
+    "timezone": "Asia/Shanghai",
+    "workdays": ["mon", "tue", "wed", "thu", "fri"]
+  },
+  "members": [
+    {
+      "member_id": "alice",
+      "name": "Alice Example",
+      "role": "Engineer",
+      "timezone": "Asia/Shanghai",
+      "channel": "slack",
+      "contact_env": "KELLY_STANDUP_MEMBER_ALICE_CONTACT",
+      "active": true
+    },
+    {
+      "member_id": "bob",
+      "name": "Bob Example",
+      "role": "Designer",
+      "timezone": "Europe/Berlin",
+      "channel": "wecom",
+      "contact_env": "KELLY_STANDUP_MEMBER_BOB_CONTACT",
+      "active": true
+    },
+    {
+      "member_id": "carol",
+      "name": "Carol Example",
+      "role": "Founder · PM",
+      "timezone": "America/New_York",
+      "channel": "whatsapp",
+      "contact_env": "KELLY_STANDUP_MEMBER_CAROL_CONTACT",
+      "active": true
+    }
+  ],
+  "standup_questions": [
+    "What did you finish yesterday?",
+    "What will you do today?",
+    "Anything blocking you?"
+  ],
+  "digest": {
+    "style": "concise",
+    "language": "auto"
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

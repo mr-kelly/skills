@@ -8,6 +8,7 @@ export function isDemoQuery(query = {}) {
 export function demoState(query = {}) {
   const lang = query.get?.("lang") || query.lang || "en";
   const state = {
+    app: "kelly-content",
     demo: true,
     batch: {
       batch_id: "demo-content-20260618",

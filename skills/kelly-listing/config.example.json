@@ -1,0 +1,68 @@
+{
+  "data_provider": "local",
+  "ui": {
+    "language": "auto"
+  },
+  "seller": {
+    "brand": "Example Brand",
+    "entity": "Example Trading Co., Ltd.",
+    "tone": "Benefit-led, concrete, no hype words"
+  },
+  "locales": ["US", "DE", "JP"],
+  "banned_words": ["FDA approved", "cure", "guaranteed", "antibacterial", "medical grade", "best seller"],
+  "banned_words_file": "",
+  "competitor_brands": ["Example Rival", "Other Rival"],
+  "keyword_stuffing": { "max_repeats": 3 },
+  "allowed_all_caps": ["POV"],
+  "platforms": [
+    {
+      "platform": "amazon",
+      "enabled": true,
+      "locales": ["US", "DE"],
+      "rules": {
+        "title_max_chars": 200,
+        "bullets_exact": 5,
+        "search_terms_max_bytes": 249,
+        "required_fields": ["title", "bullets", "description", "search_terms"]
+      }
+    },
+    {
+      "platform": "shopify",
+      "enabled": true,
+      "locales": ["US"],
+      "rules": {
+        "title_max_chars": 70,
+        "seo_title_max_chars": 60,
+        "seo_description_max_chars": 160,
+        "required_fields": ["title", "description", "seo_title", "seo_description"]
+      }
+    },
+    {
+      "platform": "tiktok_shop",
+      "enabled": true,
+      "locales": ["US"],
+      "rules": {
+        "title_max_chars": 255,
+        "min_selling_points": 3,
+        "required_fields": ["title", "selling_points"]
+      }
+    },
+    {
+      "platform": "ebay",
+      "enabled": true,
+      "locales": ["US"],
+      "rules": {
+        "title_max_chars": 80,
+        "required_fields": ["title", "description"]
+      }
+    }
+  ],
+  "export": {
+    "format": "markdown+csv",
+    "out_dir": "exports"
+  },
+  "publish": {
+    "handoff_to_agent": true,
+    "requires_approval": true
+  }
+}

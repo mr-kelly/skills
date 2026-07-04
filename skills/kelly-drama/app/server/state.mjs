@@ -105,6 +105,7 @@ export async function statePayload() {
   const activeProjectId = activeProjectIdFor(rootProject, activeState);
   const project = viewForProject(rootProject, activeProjectId);
   return {
+    app: "kelly-drama",
     project,
     projects: projectOptions(rootProject),
     active_project_id: activeProjectId,

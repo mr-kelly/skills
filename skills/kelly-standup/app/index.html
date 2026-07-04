@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly Standup</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">SU</div>
+          <div class="brand-copy">
+            <div class="brand-title">Kelly Standup</div>
+            <div id="sync-status" class="brand-subtitle">Loading</div>
+          </div>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+        </div>
+        <div class="search sidebar-search">
+          <input id="search" type="search" placeholder="Search" aria-label="Search">
+        </div>
+        <section class="human-work" aria-labelledby="humanWorkTitle">
+          <div class="human-work-eyebrow" data-i18n="attention">Need attention</div>
+          <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">What needs your attention</div>
+          <a class="human-work-primary" href="#/reminders" data-route="reminders">
+            <span>
+              <strong id="count-review">0</strong>
+              <span data-i18n="remindersToReview">reminders to review</span>
+            </span>
+          </a>
+          <div class="human-work-secondary">
+            <a href="#/today" data-route="today">
+              <strong id="count-missing">0</strong>
+              <span data-i18n="missingToday">missing check-ins</span>
+            </a>
+            <a href="#/blockers" data-route="blockers">
+              <strong id="count-blockers">0</strong>
+              <span data-i18n="openBlockers">open blockers</span>
+            </a>
+          </div>
+        </section>
+        <div class="sidebar-separator"></div>
+        <nav class="filters" aria-label="Main">
+          <a href="#/today" data-route="today" data-i18n="today">Today</a>
+          <a href="#/members" data-route="members" data-i18n="members">Members</a>
+          <a href="#/blockers" data-route="blockers" data-i18n="blockers">Blockers</a>
+          <a href="#/reminders" data-route="reminders" data-i18n="reminders">Reminders</a>
+          <a href="#/history" data-route="history" data-i18n="history">History</a>
+          <a href="#/settings" data-route="settings" data-i18n="settings">Help & Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          <label for="language" data-i18n="language">Language</label>
+          <select id="language">
+            <option value="auto">Auto</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+          <div class="mobile-topbar-copy">
+            <div id="mobileViewTitle" class="mobile-view-title">Kelly Standup</div>
+            <div id="mobileViewMeta" class="mobile-view-meta">Loading</div>
+          </div>
+          <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
+        </div>
+        <header class="topbar">
+          <div>
+            <h1 id="page-title">Today</h1>
+            <p id="page-subtitle" class="muted"></p>
+          </div>
+          <div class="topbar-actions">
+            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+          </div>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

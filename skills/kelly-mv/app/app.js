@@ -3,6 +3,11 @@ import { MESSAGES, resolveLang } from "/i18n/messages.js";
 // ---------------------------------------------------------------------------
 // State + helpers
 // ---------------------------------------------------------------------------
+// Demo mode: `/?demo=<scene>&lang=en|zh` shows deterministic mock data.
+const PAGE_QUERY = new URLSearchParams(window.location.search);
+const DEMO_SCENARIO = PAGE_QUERY.get("demo") || "";
+const URL_LANG = PAGE_QUERY.get("lang") || "";
+
 const state = {
   data: null,
   imageConfig: null,
@@ -10,7 +15,7 @@ const state = {
   view: "concept",
   selectedId: null,
   search: "",
-  lang: localStorage.getItem("kmv_lang") || "auto",
+  lang: URL_LANG || localStorage.getItem("kmv_lang") || "auto",
   toast: null,
 };
 
@@ -71,8 +76,16 @@ function toggleSidebar() {
   else setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
 }
 
+function withDemoParams(path) {
+  if (!DEMO_SCENARIO) return path;
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set("demo", DEMO_SCENARIO);
+  if (URL_LANG) url.searchParams.set("lang", URL_LANG);
+  return url.pathname + url.search;
+}
+
 async function api(path, options = {}) {
-  const res = await fetch(path, options);
+  const res = await fetch(withDemoParams(path), options);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `${res.status}`);
   return data;
@@ -151,6 +164,10 @@ function go(view, id, replace = false) {
 // Boot
 // ---------------------------------------------------------------------------
 async function boot() {
+  if (DEMO_SCENARIO && !location.hash) {
+    const demoRoutes = { overview: "#/concept", song: "#/song", cast: "#/cast/char-demo-dreamer", storyboard: "#/storyboard/shot-demo-01" };
+    history.replaceState(null, "", demoRoutes[DEMO_SCENARIO] || "#/concept");
+  }
   parseHash();
   syncResponsiveShell();
   wireChrome();
