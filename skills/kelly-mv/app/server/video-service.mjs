@@ -1,6 +1,6 @@
+import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import { DATA_DIR, GENERATED_DIR } from "./paths.mjs";
 import { loadProject, saveProject } from "./project-store.mjs";
 import { pathExists, readJson, slug } from "./utils.mjs";
@@ -73,7 +73,7 @@ export async function generateShotVideoDraft(shotId) {
 
   const wrapperAbs = path.resolve(path.join(DATA_DIR, "..", ".."), cfg.draft_wrapper);
   const outPath = await runWrapper(wrapperAbs, args);
-  if (!(await pathExists(outPath))) throw new Error(`视频生成未产出文件，见日志。`);
+  if (!(await pathExists(outPath))) throw new Error("视频生成未产出文件，见日志。");
 
   const publicPath = `/generated/videos/${path.basename(outPath)}`;
   const generatedAt = new Date().toISOString();
@@ -89,13 +89,25 @@ export async function generateShotVideoDraft(shotId) {
   project.shots = (project.shots || []).map((s) => {
     if (s.id !== shot.id) return s;
     // Append as a new candidate; keep prior drafts. Newest becomes active.
-    const prior = s.video_candidates && s.video_candidates.length
+    const prior = s.video_candidates?.length
       ? s.video_candidates
-      : (s.video_asset?.startsWith("/generated/")
-        ? [{ path: s.video_asset, generated_at: s.video_generated_at || generatedAt, generation: s.video_generation || {} }]
-        : []);
+      : s.video_asset?.startsWith("/generated/")
+        ? [
+            {
+              path: s.video_asset,
+              generated_at: s.video_generated_at || generatedAt,
+              generation: s.video_generation || {},
+            },
+          ]
+        : [];
     const video_candidates = [...prior, { path: publicPath, generated_at: generatedAt, generation }];
-    return { ...s, video_candidates, video_asset: publicPath, video_generated_at: generatedAt, video_generation: generation };
+    return {
+      ...s,
+      video_candidates,
+      video_asset: publicPath,
+      video_generated_at: generatedAt,
+      video_generation: generation,
+    };
   });
   await saveProject(project);
   return { path: publicPath, state: await import("./state.mjs").then((m) => m.statePayload()) };
@@ -108,8 +120,12 @@ function runWrapper(wrapperAbs, args) {
     const child = spawn(cmd, [wrapperAbs, JSON.stringify(args)], { stdio: ["ignore", "pipe", "pipe"] });
     let out = "";
     let err = "";
-    child.stdout.on("data", (d) => { out += d.toString(); });
-    child.stderr.on("data", (d) => { err += d.toString(); });
+    child.stdout.on("data", (d) => {
+      out += d.toString();
+    });
+    child.stderr.on("data", (d) => {
+      err += d.toString();
+    });
     child.on("error", reject);
     child.on("close", (code) => {
       if (code !== 0) return reject(new Error(`视频生成失败 (exit ${code}): ${(err || out).slice(-600)}`));

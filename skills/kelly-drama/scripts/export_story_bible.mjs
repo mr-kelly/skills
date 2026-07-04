@@ -79,7 +79,10 @@ for (const shot of project.shots || []) {
 }
 
 await fs.mkdir(EXPORT_DIR, { recursive: true });
-const safeTitle = String(series.title || "kelly-drama").replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "") || "kelly-drama";
+const safeTitle =
+  String(series.title || "kelly-drama")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "") || "kelly-drama";
 const outputPath = path.join(EXPORT_DIR, `${safeTitle}-story-bible.md`);
 await fs.writeFile(outputPath, `${out.join("\n")}\n`, "utf8");
 console.log(`Exported story bible: ${outputPath}`);

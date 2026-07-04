@@ -1,9 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { SONG_DIR, SONG_CONFIG_PATH } from "./paths.mjs";
+import { SONG_CONFIG_PATH, SONG_DIR } from "./paths.mjs";
 import { loadProject, saveProject } from "./project-store.mjs";
-import { pathExists, readJson, slug, writeJson } from "./utils.mjs";
 import { statePayload } from "./state.mjs";
+import { pathExists, readJson, slug, writeJson } from "./utils.mjs";
 
 // Song generation is a documented future capability. Draft = local MLX model on Apple
 // Silicon (mirrors the local-LTX draft path in video-service.mjs); prod = cloud. Wiring it
@@ -56,7 +56,8 @@ export function parseLrc(text) {
   }
   out.sort((a, b) => a.start - b.start);
   for (let i = 0; i < out.length; i += 1) {
-    out[i].end = i + 1 < out.length ? out[i + 1].start : Math.round((out[i].start + 4) * 100) / 100;
+    /** @type {any} */ (out[i]).end =
+      i + 1 < out.length ? out[i + 1].start : Math.round((out[i].start + 4) * 100) / 100;
   }
   return out;
 }
@@ -77,7 +78,7 @@ function mergeSong(current, patch) {
 // Update song metadata in place. Re-parses lyric_lines from LRC when the lyrics look timed.
 export async function updateSong(patch = {}) {
   const project = await loadProject();
-  let song = mergeSong(project.song || {}, patch);
+  const song = mergeSong(project.song || {}, patch);
   if (patch.lyrics !== undefined && !Array.isArray(patch.lyric_lines)) {
     const parsed = parseLrc(patch.lyrics);
     if (parsed.length) song.lyric_lines = parsed;
@@ -106,7 +107,7 @@ export async function importSong(input = {}) {
   await fs.copyFile(abs, destAbs);
   const publicPath = `/generated/songs/${filename}`;
 
-  let song = mergeSong(project.song || {}, {
+  const song = mergeSong(project.song || {}, {
     title: input.title || project.song?.title || path.basename(abs, ext),
     artist: input.artist,
     genre: input.genre,
@@ -134,7 +135,7 @@ export async function importSong(input = {}) {
 export async function uploadSong(input = {}) {
   const raw = String(input.data_base64 || "");
   if (!raw) throw new Error("缺少音频数据。");
-  const ext = (path.extname(String(input.filename || "")).toLowerCase()) || ".mp3";
+  const ext = path.extname(String(input.filename || "")).toLowerCase() || ".mp3";
   if (!AUDIO_EXT.has(ext)) throw new Error(`不支持的音频格式: ${ext}`);
   const buf = Buffer.from(raw.replace(/^data:[^;]+;base64,/, ""), "base64");
   if (!buf.length) throw new Error("音频数据为空。");
@@ -169,8 +170,6 @@ export async function generateSongProd() {
 export async function generateSongDraft() {
   const cfg = await loadSongConfig();
   throw new Error(
-    `本地创歌还没接入。计划用 ${cfg.draft_backend}（SongGeneration v2，MLX，Apple Silicon），` +
-    `克隆音色用 ace-step-1.5。先在 ${cfg.draft_wrapper} 里接上推理，再用此按钮。` +
-    `当前请在「歌曲」里导入已有音频文件。`,
+    `本地创歌还没接入。计划用 ${cfg.draft_backend}（SongGeneration v2，MLX，Apple Silicon），克隆音色用 ace-step-1.5。先在 ${cfg.draft_wrapper} 里接上推理，再用此按钮。当前请在「歌曲」里导入已有音频文件。`,
   );
 }

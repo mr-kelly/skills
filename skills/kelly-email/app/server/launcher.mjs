@@ -1,10 +1,19 @@
 #!/usr/bin/env node
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import http from "node:http";
 import net from "node:net";
-import { spawn } from "node:child_process";
-import { DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, CACHE_DIR, SERVER_DIR, PREFERRED_PORT_MIN, PREFERRED_PORT_MAX } from "./paths.mjs";
+import {
+  CACHE_DIR,
+  DEFAULT_HOST,
+  DEFAULT_PORT,
+  LOG_PATH,
+  PID_PATH,
+  PREFERRED_PORT_MAX,
+  PREFERRED_PORT_MIN,
+  SERVER_DIR,
+} from "./paths.mjs";
 
 const host = process.env.KELLY_EMAIL_UI_HOST || DEFAULT_HOST;
 const explicitPort = process.env.KELLY_EMAIL_UI_PORT || "";

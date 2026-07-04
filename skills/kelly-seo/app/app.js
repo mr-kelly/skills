@@ -7,9 +7,11 @@ const state = {
   query: "",
   site: localStorage.getItem("kelly-seo-site") || "",
   oppFilter: "all",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-seo-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-seo-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  demoDecisions: {}
+  demoDecisions: {},
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-seo.sidebarCollapsed";
@@ -31,7 +33,7 @@ const els = {
   approvedCount: document.querySelector("#count-approved"),
   blockedCount: document.querySelector("#count-blocked"),
   site: document.querySelector("#site"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -78,7 +80,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -88,9 +94,7 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function locale() {
@@ -155,16 +159,19 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const detailQuery = state.snapshot?.queries?.find((query) => query.badges?.includes("striking_distance")) || state.snapshot?.queries?.[0];
-  const route = scenario === "queries"
-    ? "#/queries"
-    : scenario === "pages"
-      ? "#/pages"
-      : scenario === "opportunities"
-        ? "#/opportunities"
-        : scenario === "detail"
-          ? `#/queries/${encodeURIComponent(detailQuery?.query_id || "")}`
-          : "#/overview";
+  const detailQuery =
+    state.snapshot?.queries?.find((query) => query.badges?.includes("striking_distance")) ||
+    state.snapshot?.queries?.[0];
+  const route =
+    scenario === "queries"
+      ? "#/queries"
+      : scenario === "pages"
+        ? "#/pages"
+        : scenario === "opportunities"
+          ? "#/opportunities"
+          : scenario === "detail"
+            ? `#/queries/${encodeURIComponent(detailQuery?.query_id || "")}`
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -174,7 +181,9 @@ function populateSiteSelect() {
   const sites = state.snapshot?.sites || [];
   const current = state.site;
   els.site.innerHTML = [`<option value="">${escapeHtml(t("allSites"))}</option>`]
-    .concat(sites.map((site) => `<option value="${escapeHtml(site.site_id)}">${escapeHtml(site.property_url)}</option>`))
+    .concat(
+      sites.map((site) => `<option value="${escapeHtml(site.site_id)}">${escapeHtml(site.property_url)}</option>`),
+    )
     .join("");
   els.site.value = sites.some((site) => site.site_id === current) ? current : "";
   state.site = els.site.value;
@@ -185,9 +194,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -251,7 +259,7 @@ function scopedTotals() {
   const sites = sitesInScope();
   return {
     current: aggregateTotals(sites.map((site) => site.totals)),
-    previous: aggregateTotals(sites.map((site) => site.previous))
+    previous: aggregateTotals(sites.map((site) => site.previous)),
   };
 }
 
@@ -263,7 +271,7 @@ function aggregateTotals(list) {
     clicks,
     impressions,
     ctr: impressions ? clicks / impressions : 0,
-    position: impressions ? weighted / impressions : 0
+    position: impressions ? weighted / impressions : 0,
   };
 }
 
@@ -290,7 +298,9 @@ function filteredQueries() {
   return (state.snapshot?.queries || []).filter((item) => {
     if (state.site && item.site_id !== state.site) return false;
     if (!query) return true;
-    return [item.query, item.site_id, ...(item.badges || [])].some((value) => String(value).toLowerCase().includes(query));
+    return [item.query, item.site_id, ...(item.badges || [])].some((value) =>
+      String(value).toLowerCase().includes(query),
+    );
   });
 }
 
@@ -299,7 +309,9 @@ function filteredPages() {
   return (state.snapshot?.pages || []).filter((item) => {
     if (state.site && item.site_id !== state.site) return false;
     if (!query) return true;
-    return [item.url, item.site_id, ...(item.issues || [])].some((value) => String(value).toLowerCase().includes(query));
+    return [item.url, item.site_id, ...(item.issues || [])].some((value) =>
+      String(value).toLowerCase().includes(query),
+    );
   });
 }
 
@@ -348,18 +360,20 @@ function trendChart(points) {
   const height = 120;
   const maxClicks = Math.max(...points.map((point) => point.clicks), 1);
   const maxImpressions = Math.max(...points.map((point) => point.impressions), 1);
-  const bars = points.map((point, index) => {
-    const x = index * step;
-    const impH = Math.max(Math.round((point.impressions / maxImpressions) * (height - 8)), 2);
-    const clickH = Math.max(Math.round((point.clicks / maxClicks) * (height - 34)), 2);
-    return `
+  const bars = points
+    .map((point, index) => {
+      const x = index * step;
+      const impH = Math.max(Math.round((point.impressions / maxImpressions) * (height - 8)), 2);
+      const clickH = Math.max(Math.round((point.clicks / maxClicks) * (height - 34)), 2);
+      return `
       <g>
         <title>${point.date}: ${n(point.clicks)} ${t("clicks").toLowerCase()} / ${n(point.impressions)} ${t("impressions").toLowerCase()}</title>
         <rect x="${x + 1}" y="${height - impH}" width="${step - 2}" height="${impH}" rx="2" class="bar-impressions"></rect>
         <rect x="${x + 4}" y="${height - clickH}" width="${step - 8}" height="${clickH}" rx="2" class="bar-clicks"></rect>
       </g>
     `;
-  }).join("");
+    })
+    .join("");
   const first = points[0]?.date || "";
   const last = points[points.length - 1]?.date || "";
   return `
@@ -378,7 +392,9 @@ function trendChart(points) {
 
 function badgeList(badges, group = "badge") {
   if (!badges?.length) return "";
-  return badges.map((badge) => `<span class="badge badge-${escapeHtml(badge)}">${escapeHtml(enumLabel(badge, group))}</span>`).join(" ");
+  return badges
+    .map((badge) => `<span class="badge badge-${escapeHtml(badge)}">${escapeHtml(enumLabel(badge, group))}</span>`)
+    .join(" ");
 }
 
 function statusBadge(status) {
@@ -388,12 +404,16 @@ function statusBadge(status) {
 function warningsPanel(siteId = "") {
   const items = (state.snapshot?.warnings || []).filter((item) => !siteId || !item.site_id || item.site_id === siteId);
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 function siteName(siteId) {
@@ -402,12 +422,19 @@ function siteName(siteId) {
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at
+    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+    : t("empty");
   const totals = scopedTotals();
   const queries = filteredQueries();
-  const movers = [...queries].sort((a, b) => (b.clicks - (b.previous?.clicks || 0)) - (a.clicks - (a.previous?.clicks || 0)));
+  const movers = [...queries].sort(
+    (a, b) => b.clicks - (b.previous?.clicks || 0) - (a.clicks - (a.previous?.clicks || 0)),
+  );
   const gainers = movers.slice(0, 5);
-  const losers = movers.slice(-5).reverse().filter((item) => (item.clicks - (item.previous?.clicks || 0)) < 0);
+  const losers = movers
+    .slice(-5)
+    .reverse()
+    .filter((item) => item.clicks - (item.previous?.clicks || 0) < 0);
   const reviewItems = opportunities().filter((item) => item.status === "needs_review");
   els.content.innerHTML = `
     ${warningsPanel(state.site)}
@@ -424,26 +451,37 @@ function renderOverview() {
       </div>
       <div class="overview-panel">
         <h2>${t("siteFreshness")}</h2>
-        ${sitesInScope().map((site) => `
+        ${sitesInScope()
+          .map(
+            (site) => `
           <a class="health-row" href="#/sites">
             <span><strong>${escapeHtml(site.property_url)}</strong><small>${t("lastSync")} ${escapeHtml(site.last_sync_at ? new Date(site.last_sync_at).toLocaleString() : "-")}</small></span>
             <span class="num">${n(site.totals?.clicks)} ${t("clicks").toLowerCase()}</span>
             <span class="status ${escapeHtml(site.status)}">${escapeHtml(enumLabel(site.status))}</span>
           </a>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </div>
       <div class="overview-panel wide">
         <div class="row between">
           <h2>${t("opportunityQueue")}</h2>
           <a class="muted" href="#/opportunities">${t("viewAll")} →</a>
         </div>
-        ${reviewItems.slice(0, 4).map((item) => `
+        ${
+          reviewItems
+            .slice(0, 4)
+            .map(
+              (item) => `
           <a class="health-row" href="#/opportunities">
             <span><strong>${t("opportunity")} #${item.ref} · ${escapeHtml(item.title)}</strong><small>${escapeHtml(enumLabel(item.type, "type"))} · ${escapeHtml(item.target_query || item.target_page || "")}</small></span>
             <span class="num">${escapeHtml(item.expected_impact.split(".")[0])}</span>
             ${statusBadge(item.status)}
           </a>
-        `).join("") || `<div class="empty">${t("noOpportunities")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("noOpportunities")}</div>`
+        }
       </div>
     </section>
   `;
@@ -482,7 +520,9 @@ function queriesTable(items) {
           </tr>
         </thead>
         <tbody>
-          ${items.map((item) => `
+          ${items
+            .map(
+              (item) => `
             <tr>
               <td><a href="#/queries/${encodeURIComponent(item.query_id)}"><div class="strong">${escapeHtml(item.query)}</div></a><div class="muted">${escapeHtml(siteName(item.site_id))}</div></td>
               <td class="num">${n(item.clicks)} ${deltaHtml(item.clicks, item.previous?.clicks)}</td>
@@ -491,7 +531,9 @@ function queriesTable(items) {
               <td class="num">${pos1(item.position)} ${deltaHtml(item.position, item.previous?.position, { kind: "pos", invert: true })}</td>
               <td>${badgeList(item.badges)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -546,7 +588,9 @@ function renderPages() {
           </tr>
         </thead>
         <tbody>
-          ${items.map((item) => `
+          ${items
+            .map(
+              (item) => `
             <tr>
               <td><a href="#/pages/${encodeURIComponent(item.page_id)}"><div class="strong">${escapeHtml(displayPath(item.url))}</div></a><div class="muted">${escapeHtml(siteName(item.site_id))}</div></td>
               <td class="num">${n(item.clicks)} ${deltaHtml(item.clicks, item.previous?.clicks)}</td>
@@ -555,7 +599,9 @@ function renderPages() {
               <td class="num">${pos1(item.position)} ${deltaHtml(item.position, item.previous?.position, { kind: "pos", invert: true })}</td>
               <td>${badgeList(item.issues)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -600,7 +646,7 @@ function renderPageDetail() {
 function entityMetricCards(item) {
   return kpiCards(
     { clicks: item.clicks, impressions: item.impressions, ctr: item.ctr, position: item.position },
-    item.previous || {}
+    item.previous || {},
   );
 }
 
@@ -613,14 +659,18 @@ function miniTable(rows, keyField) {
           <tr><th>${keyField === "url" ? t("page") : t("query")}</th><th class="num">${t("clicks")}</th><th class="num">${t("impressions")}</th><th class="num">${t("position")}</th></tr>
         </thead>
         <tbody>
-          ${rows.map((row) => `
+          ${rows
+            .map(
+              (row) => `
             <tr>
               <td class="strong">${escapeHtml(keyField === "url" ? displayPath(row.url) : row.query)}</td>
               <td class="num">${n(row.clicks)}</td>
               <td class="num">${n(row.impressions)}</td>
               <td class="num">${pos1(row.position)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -653,9 +703,13 @@ function renderOpportunities() {
 function opportunityCard(item, locked) {
   const disabled = locked ? "disabled" : "";
   const targetBits = [
-    item.target_page ? `<a class="external" href="${escapeHtml(item.target_page)}" target="_blank" rel="noreferrer">${escapeHtml(displayPath(item.target_page))}</a>` : "",
-    item.target_query ? `<span class="badge">${escapeHtml(item.target_query)}</span>` : ""
-  ].filter(Boolean).join(" · ");
+    item.target_page
+      ? `<a class="external" href="${escapeHtml(item.target_page)}" target="_blank" rel="noreferrer">${escapeHtml(displayPath(item.target_page))}</a>`
+      : "",
+    item.target_query ? `<span class="badge">${escapeHtml(item.target_query)}</span>` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return `
     <article class="opp-card" data-opp-id="${escapeHtml(item.id)}">
       <header class="opp-head">
@@ -671,19 +725,27 @@ function opportunityCard(item, locked) {
       ${item.agent_notes ? `<p class="agent-notes">${escapeHtml(item.agent_notes)}</p>` : ""}
       <label class="opp-label" for="draft-${escapeHtml(item.id)}">${t("draft")}</label>
       <textarea id="draft-${escapeHtml(item.id)}" class="opp-draft" rows="6" ${disabled}>${escapeHtml(item.draft || "")}</textarea>
-      ${item.decision ? `
+      ${
+        item.decision
+          ? `
         <div class="opp-decision">
           <strong>${t("decision")}: ${escapeHtml(enumLabel(decisionStatus(item.decision.action)))}</strong>
           ${item.decision.note ? `<span>${escapeHtml(item.decision.note)}</span>` : ""}
           <small>${t("decided")} ${escapeHtml(item.decision.decided_at ? new Date(item.decision.decided_at).toLocaleString() : "")}</small>
         </div>
-      ` : ""}
-      ${item.execution ? `
+      `
+          : ""
+      }
+      ${
+        item.execution
+          ? `
         <div class="opp-execution">
           <strong>${t("execution")}: ${escapeHtml(enumLabel(item.execution.operation, "operation"))} · ${escapeHtml(enumLabel(item.execution.status))}</strong>
           ${item.execution.detail ? `<span>${escapeHtml(item.execution.detail)}</span>` : ""}
         </div>
-      ` : ""}
+      `
+          : ""
+      }
       <label class="opp-label" for="note-${escapeHtml(item.id)}">${t("reviewNote")}</label>
       <textarea id="note-${escapeHtml(item.id)}" class="opp-note" rows="2" placeholder="${escapeHtml(t("reviewNotePlaceholder"))}" ${disabled}></textarea>
       <div class="opp-actions">
@@ -714,7 +776,7 @@ async function submitDecision(id, action) {
   const res = await fetch("/api/decision", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id, action, note, draft })
+    body: JSON.stringify({ id, action, note, draft }),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -728,16 +790,21 @@ async function submitDecision(id, action) {
 }
 
 function cssEscape(value) {
-  return typeof CSS !== "undefined" && CSS.escape ? CSS.escape(value) : String(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+  return typeof CSS !== "undefined" && CSS.escape
+    ? CSS.escape(value)
+    : String(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
 }
 
 function renderSites() {
   els.title.textContent = t("sites");
   const sites = state.snapshot?.sites || [];
   els.subtitle.textContent = `${sites.length} ${t("sites").toLowerCase()}`;
-  els.content.innerHTML = sites.length ? `
+  els.content.innerHTML = sites.length
+    ? `
     <div class="account-grid">
-      ${sites.map((site) => `
+      ${sites
+        .map(
+          (site) => `
         <a class="account-card" href="#/overview" data-site-pick="${escapeHtml(site.site_id)}">
           <div class="row between"><strong>${escapeHtml(site.property_url)}</strong><span class="badge">${escapeHtml(enumLabel(site.verification_type, "verification"))}</span></div>
           <div class="muted">${t("permission")}: ${escapeHtml(site.permission_level || "unknown")} · ${t("lastSync")} ${escapeHtml(site.last_sync_at ? new Date(site.last_sync_at).toLocaleString() : "-")}</div>
@@ -753,9 +820,12 @@ function renderSites() {
           </div>
           <div class="status ${escapeHtml(site.status)}">${escapeHtml(enumLabel(site.status))}</div>
         </a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
-  ` : `<div class="empty">${t("setupNeeded")}</div>`;
+  `
+    : `<div class="empty">${t("setupNeeded")}</div>`;
 }
 
 function renderSettings() {
@@ -785,13 +855,19 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("sites")}</h2>
-        ${(summary.sites || []).map((site) => `
+        ${
+          (summary.sites || [])
+            .map(
+              (site) => `
           <div class="settings-account">
             <strong>${escapeHtml(site.property_url)}</strong>
             <span>${escapeHtml(site.site_id)}</span>
             <span>${escapeHtml(enumLabel(site.verification_type, "verification"))}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
     </div>
   `;
@@ -819,13 +895,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

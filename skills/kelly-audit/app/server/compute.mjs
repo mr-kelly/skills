@@ -7,7 +7,7 @@ export const DEFAULT_RULES = {
   days_to_invoice: 14,
   amount_tolerance_pct: 1,
   aging_buckets: [30, 60, 90],
-  duplicate_window_days: 7
+  duplicate_window_days: 7,
 };
 
 export function round2(value) {
@@ -45,9 +45,10 @@ export function toBase(amount, currency, snapshot) {
 
 function normalizeRules(rules) {
   const merged = { ...DEFAULT_RULES, ...(rules || {}) };
-  const buckets = Array.isArray(merged.aging_buckets) && merged.aging_buckets.length
-    ? [...merged.aging_buckets].map(Number).sort((a, b) => a - b)
-    : DEFAULT_RULES.aging_buckets;
+  const buckets =
+    Array.isArray(merged.aging_buckets) && merged.aging_buckets.length
+      ? [...merged.aging_buckets].map(Number).sort((a, b) => a - b)
+      : DEFAULT_RULES.aging_buckets;
   return { ...merged, aging_buckets: buckets };
 }
 
@@ -116,7 +117,7 @@ export function deriveSnapshot(snapshot, rules, now = new Date().toISOString()) 
         invoice_id: invoice.invoice_id,
         payment_id: payment.payment_id,
         rule: "invoice_no",
-        amount_delta: round2(Number(payment.amount || 0) - Number(invoice.amount || 0))
+        amount_delta: round2(Number(payment.amount || 0) - Number(invoice.amount || 0)),
       });
     }
   }
@@ -138,7 +139,10 @@ export function deriveSnapshot(snapshot, rules, now = new Date().toISOString()) 
   }
 
   for (const order of orders) {
-    const linked = order.invoice_ids.map((id) => invoiceById.get(id)).filter(Boolean).filter((invoice) => !isCreditNote(invoice));
+    const linked = order.invoice_ids
+      .map((id) => invoiceById.get(id))
+      .filter(Boolean)
+      .filter((invoice) => !isCreditNote(invoice));
     if (!linked.length) {
       order.invoice_status = "missing";
       order.payment_status = "unpaid";
@@ -146,7 +150,8 @@ export function deriveSnapshot(snapshot, rules, now = new Date().toISOString()) 
     }
     const invoiced = linked.reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
     const tolerance = Math.abs(Number(order.amount || 0)) * (cfg.amount_tolerance_pct / 100);
-    order.invoice_status = Math.abs(invoiced - Number(order.amount || 0)) <= tolerance + 0.005 ? "invoiced" : "mismatch";
+    order.invoice_status =
+      Math.abs(invoiced - Number(order.amount || 0)) <= tolerance + 0.005 ? "invoiced" : "mismatch";
     const outstanding = linked.reduce((sum, invoice) => sum + Number(invoice.outstanding || 0), 0);
     const paid = linked.reduce((sum, invoice) => sum + Number(invoice.paid_amount || 0), 0);
     if (outstanding <= 0.005) order.payment_status = "paid";
@@ -189,12 +194,14 @@ export function deriveSnapshot(snapshot, rules, now = new Date().toISOString()) 
     matched_pct: payments.length ? round2(matchedPayments / payments.length) : 0,
     anomaly_count: anomalies.length,
     open_anomaly_count: anomalies.filter((anomaly) => openStatuses.has(anomaly.status)).length,
-    at_stake_total: round2(anomalies
-      .filter((anomaly) => stakeStatuses.has(anomaly.status))
-      .reduce((sum, anomaly) => sum + toBase(anomaly.amount_at_stake, anomaly.currency, snapshot), 0)),
+    at_stake_total: round2(
+      anomalies
+        .filter((anomaly) => stakeStatuses.has(anomaly.status))
+        .reduce((sum, anomaly) => sum + toBase(anomaly.amount_at_stake, anomaly.currency, snapshot), 0),
+    ),
     receivable_total: round2(receivableTotal),
     overdue_receivable_total: round2(overdueTotal),
-    aging
+    aging,
   };
   return snapshot;
 }

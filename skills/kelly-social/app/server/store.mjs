@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { DATA_DIR, SNAPSHOT_PATH, ONBOARDING_PATH, LOCK_PATH, SKILL_DIR } from "./paths.mjs";
+import { DATA_DIR, LOCK_PATH, ONBOARDING_PATH, SKILL_DIR, SNAPSHOT_PATH } from "./paths.mjs";
 
 export async function ensureDirs() {
   await fs.mkdir(DATA_DIR, { recursive: true });
@@ -41,7 +41,7 @@ export function emptySnapshot() {
       followers_delta_28d: 0,
       impressions_7d: 0,
       engagements_7d: 0,
-      engagement_rate_7d: 0
+      engagement_rate_7d: 0,
     },
     accounts: [],
     posts: [],
@@ -50,9 +50,9 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No social snapshot exists yet. Configure accounts, then ask the agent to collect a snapshot."
-      }
-    ]
+        message: "No social snapshot exists yet. Configure accounts, then ask the agent to collect a snapshot.",
+      },
+    ],
   };
 }
 
@@ -109,7 +109,9 @@ export function summarizeConfig(configResult) {
     config_path: configResult.path,
     is_example: configResult.is_example,
     accounts: accounts.map((account) => {
-      const secretKeys = ["api_token_env", "api_key_env", "api_secret_env", "access_token_env"].filter((key) => account[key]);
+      const secretKeys = ["api_token_env", "api_key_env", "api_secret_env", "access_token_env"].filter(
+        (key) => account[key],
+      );
       return {
         account_id: account.account_id || "",
         platform: account.platform || "",
@@ -117,8 +119,8 @@ export function summarizeConfig(configResult) {
         display_name: account.display_name || account.handle || account.account_id || "",
         collection: account.collection || "browser_agent",
         secret_envs: secretKeys.map((key) => account[key]),
-        secrets_ready: secretKeys.every((key) => Boolean(process.env[account[key]]))
+        secrets_ready: secretKeys.every((key) => Boolean(process.env[account[key]])),
       };
-    })
+    }),
   };
 }

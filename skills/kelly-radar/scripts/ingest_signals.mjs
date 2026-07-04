@@ -24,15 +24,18 @@ payload.signals.forEach((signal, index) => {
   for (const key of ["target_id", "source_id", "source_kind", "headline", "summary", "detected_at"]) {
     if (typeof signal[key] !== "string" || !signal[key]) fail(`signals[${index}].${key} must be a non-empty string`);
   }
-  if (!SOURCE_KINDS.includes(signal.source_kind)) fail(`signals[${index}].source_kind must be one of ${SOURCE_KINDS.join("|")}`);
-  if (signal.severity && !SEVERITIES.includes(signal.severity)) fail(`signals[${index}].severity must be one of ${SEVERITIES.join("|")}`);
+  if (!SOURCE_KINDS.includes(signal.source_kind))
+    fail(`signals[${index}].source_kind must be one of ${SOURCE_KINDS.join("|")}`);
+  if (signal.severity && !SEVERITIES.includes(signal.severity))
+    fail(`signals[${index}].severity must be one of ${SEVERITIES.join("|")}`);
   if (signal.diff && !Array.isArray(signal.diff.lines)) fail(`signals[${index}].diff.lines must be an array`);
   if (signal.evidence && !Array.isArray(signal.evidence)) fail(`signals[${index}].evidence must be an array`);
 });
 
 function contentHash(signal) {
   const diffText = (signal.diff?.lines || []).map((line) => `${line.type}:${line.text}`).join("\n");
-  return crypto.createHash("sha256")
+  return crypto
+    .createHash("sha256")
     .update([signal.target_id, signal.source_id, signal.headline, signal.summary, diffText].join("|"))
     .digest("hex");
 }
@@ -69,7 +72,7 @@ try {
       ...(incoming.handoff ? { handoff: incoming.handoff } : {}),
       ...(incoming.diff ? { diff: incoming.diff } : {}),
       evidence: incoming.evidence || [],
-      content_hash: hash
+      content_hash: hash,
     });
     added += 1;
 
@@ -83,7 +86,7 @@ try {
         notes: "Auto-created by ingest_signals; review in config.",
         last_check_at: now,
         signals_7d: 0,
-        sources: []
+        sources: [],
       };
       snapshot.watchlist.push(target);
     }
@@ -95,7 +98,7 @@ try {
         url: incoming.source_url || "",
         method: incoming.source_method || "browser_agent",
         last_check_at: payload.collected_at || now,
-        last_change_at: incoming.detected_at
+        last_change_at: incoming.detected_at,
       });
     } else {
       const source = target.sources.find((entry) => entry.source_id === incoming.source_id);
@@ -106,7 +109,9 @@ try {
 
   const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
   for (const target of snapshot.watchlist) {
-    target.signals_7d = snapshot.signals.filter((signal) => signal.target_id === target.target_id && new Date(signal.detected_at).getTime() >= weekAgo).length;
+    target.signals_7d = snapshot.signals.filter(
+      (signal) => signal.target_id === target.target_id && new Date(signal.detected_at).getTime() >= weekAgo,
+    ).length;
   }
 
   snapshot.generated_at = now;
@@ -115,14 +120,14 @@ try {
     ...snapshot.metrics,
     watch_target_count: snapshot.watchlist.length,
     signal_count: snapshot.signals.length,
-    signals_needs_review: snapshot.signals.filter((signal) => signal.status === "needs_review").length
+    signals_needs_review: snapshot.signals.filter((signal) => signal.status === "needs_review").length,
   };
   snapshot.sync_log = snapshot.sync_log || [];
   snapshot.sync_log.unshift({
     at: now,
     actor: "kelly-radar-agent",
     action: "ingest_signals",
-    detail: `${added} new signals added, ${skipped} duplicates skipped (${payloadPath}).`
+    detail: `${added} new signals added, ${skipped} duplicates skipped (${payloadPath}).`,
   });
   snapshot.sync_log = snapshot.sync_log.slice(0, 50);
 

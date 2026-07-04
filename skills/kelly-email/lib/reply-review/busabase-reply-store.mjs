@@ -24,7 +24,7 @@ const STATUS_MAP = {
 const REPLY_KIND = "email_reply";
 
 export function createBusabaseReplyStore(meta = {}) {
-  const busa = (meta.config && meta.config.busabase) || {};
+  const busa = meta.config?.busabase || {};
   const baseUrl = (process.env.KELLY_EMAIL_BUSABASE_URL || busa.base_url || "").replace(/\/$/, "");
   const baseId = process.env.KELLY_EMAIL_BUSABASE_BASE_ID || busa.base_id || "";
   const apiKey = busa.api_key_env
@@ -34,8 +34,8 @@ export function createBusabaseReplyStore(meta = {}) {
   function requireConfig() {
     if (!baseUrl || !baseId) {
       throw new Error(
-        "Busabase reply store needs base_url and base_id. Set config.busabase.{base_url,base_id} "
-          + "or KELLY_EMAIL_BUSABASE_URL / KELLY_EMAIL_BUSABASE_BASE_ID.",
+        "Busabase reply store needs base_url and base_id. Set config.busabase.{base_url,base_id} " +
+          "or KELLY_EMAIL_BUSABASE_URL / KELLY_EMAIL_BUSABASE_BASE_ID.",
       );
     }
   }
@@ -64,7 +64,7 @@ export function createBusabaseReplyStore(meta = {}) {
 
   function toReply(cr) {
     const op = primaryOperation(cr) || {};
-    const fields = (op.headCommit && op.headCommit.fields) || {};
+    const fields = op.headCommit?.fields || {};
     return {
       reply_id: cr.id,
       email_id: fields.email_id || "",
@@ -108,18 +108,16 @@ export function createBusabaseReplyStore(meta = {}) {
     async listReplyDrafts() {
       const crs = await api("GET", "/api/v1/change-requests");
       const list = Array.isArray(crs) ? crs : crs?.items || [];
-      return list
-        .map(toReply)
-        .filter((r) => {
-          // Only reply records (others may share the base).
-          return r.to || r.subject || r.draft;
-        });
+      return list.map(toReply).filter((r) => {
+        // Only reply records (others may share the base).
+        return r.to || r.subject || r.draft;
+      });
     },
 
-    async reviewReply(reply_id, { verdict, edits, comment } = {}) {
+    async reviewReply(reply_id, /** @type {any} */ { verdict, edits, comment } = {}) {
       const cr = await getCr(reply_id);
       const op = primaryOperation(cr);
-      const current = (op && op.headCommit && op.headCommit.fields) || {};
+      const current = op?.headCommit?.fields || {};
       if (verdict === "approve") {
         if (edits !== undefined && edits !== null && edits !== current.body && op) {
           await api("POST", `/api/v1/operations/${encodeURIComponent(op.id)}/revisions`, {
@@ -132,7 +130,11 @@ export function createBusabaseReplyStore(meta = {}) {
       } else if (verdict === "revise") {
         if (!op) throw new Error("reply change request has no operation to revise");
         await api("POST", `/api/v1/operations/${encodeURIComponent(op.id)}/revisions`, {
-          payload: { fields: { ...current, body: edits ?? current.body }, message: comment || "Saved edits", author: "kelly-email" },
+          payload: {
+            fields: { ...current, body: edits ?? current.body },
+            message: comment || "Saved edits",
+            author: "kelly-email",
+          },
         });
       } else if (verdict === "request_changes") {
         await api("POST", `/api/v1/change-requests/${encodeURIComponent(reply_id)}/reviews`, {
@@ -143,6 +145,7 @@ export function createBusabaseReplyStore(meta = {}) {
           reason: comment || "Closed by reviewer",
         });
       } else {
+        /** @type {any} */
         const error = new Error(`unknown verdict: ${verdict}`);
         error.statusCode = 400;
         throw error;
@@ -153,7 +156,7 @@ export function createBusabaseReplyStore(meta = {}) {
     async getApprovedReply(reply_id) {
       const cr = await getCr(reply_id);
       if (cr.status !== "approved") return null;
-      const fields = (primaryOperation(cr)?.headCommit?.fields) || {};
+      const fields = primaryOperation(cr)?.headCommit?.fields || {};
       return { reply_id, to: fields.to || "", subject: fields.subject || "", body: fields.body || "" };
     },
 

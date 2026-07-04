@@ -41,8 +41,10 @@ for (const character of project.characters || []) {
 
 for (const relationship of project.relationships || []) {
   requireString(errors, relationship, "id", "relationship");
-  if (!characterIds.has(relationship.from)) errors.push(`relationship ${relationship.id} has unknown from: ${relationship.from}`);
-  if (!characterIds.has(relationship.to)) errors.push(`relationship ${relationship.id} has unknown to: ${relationship.to}`);
+  if (!characterIds.has(relationship.from))
+    errors.push(`relationship ${relationship.id} has unknown from: ${relationship.from}`);
+  if (!characterIds.has(relationship.to))
+    errors.push(`relationship ${relationship.id} has unknown to: ${relationship.to}`);
 }
 
 const episodeIds = new Set();
@@ -60,7 +62,8 @@ for (const episode of project.episodes || []) {
 for (const shot of project.shots || []) {
   requireString(errors, shot, "id", "shot");
   if (!episodeIds.has(shot.episode_id)) errors.push(`shot ${shot.id} has unknown episode_id: ${shot.episode_id}`);
-  if (shot.beat_id && !beatIds.has(`${shot.episode_id}:${shot.beat_id}`)) errors.push(`shot ${shot.id} has unknown beat_id: ${shot.beat_id}`);
+  if (shot.beat_id && !beatIds.has(`${shot.episode_id}:${shot.beat_id}`))
+    errors.push(`shot ${shot.id} has unknown beat_id: ${shot.beat_id}`);
   for (const characterId of shot.characters || []) {
     if (!characterIds.has(characterId)) errors.push(`shot ${shot.id} has unknown character: ${characterId}`);
   }

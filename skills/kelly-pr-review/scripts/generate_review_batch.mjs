@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
-import { BATCH_DIR, CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH } from "../lib/paths.mjs";
 import { pathExists, readJson, truncateText, utcNow, withLock, writeJson } from "../lib/common.mjs";
 import { loadConfigWithMeta } from "../lib/data-reader/index.mjs";
+import { BATCH_DIR, CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH } from "../lib/paths.mjs";
 
 const execFile = promisify(execFileCallback);
 const SAMPLE_FLAG = process.argv.includes("--sample");
@@ -67,7 +67,8 @@ function sampleItems() {
       deletions: 37,
       comments_count: 3,
       updated_at: utcNow(),
-      review_body: "Thanks, I reviewed the retry flow. Please double-check idempotency around duplicate webhook delivery before we approve this.",
+      review_body:
+        "Thanks, I reviewed the retry flow. Please double-check idempotency around duplicate webhook delivery before we approve this.",
       patch_excerpt: "",
     },
     {
@@ -180,7 +181,10 @@ function proposedActionFor(pr, risks, policy) {
 async function changedFiles(repo, number) {
   try {
     const text = await gh(["pr", "diff", String(number), "--repo", repo, "--name-only"]);
-    return text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    return text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
   } catch {
     return [];
   }
@@ -204,9 +208,10 @@ async function hydratePullRequest(pr, config, options = {}) {
   const merged = Boolean(options.merged);
   const action = proposedActionFor(pr, risks, policy);
   const status = merged ? "merged" : action === "needs_review" || risks.length ? "needs_review" : "to_approve";
-  const reviewBody = action === "approve"
-    ? `Looks good. The change appears scoped and I did not see obvious review blockers in the loaded context.`
-    : `Thanks, I reviewed this locally. ${risks.length ? `Risk areas to confirm: ${risks.join(", ")}.` : "Leaving a review note for confirmation."}`;
+  const reviewBody =
+    action === "approve"
+      ? "Looks good. The change appears scoped and I did not see obvious review blockers in the loaded context."
+      : `Thanks, I reviewed this locally. ${risks.length ? `Risk areas to confirm: ${risks.join(", ")}.` : "Leaving a review note for confirmation."}`;
   return {
     id: `${repo}#${number}`,
     repo,
@@ -218,7 +223,11 @@ async function hydratePullRequest(pr, config, options = {}) {
     body: truncateText(pr.body || "", 2000),
     status,
     proposed_action: merged ? "no_action" : action,
-    reason: merged ? "Merged PR is waiting for human test verification." : risks.length ? `Detected risk: ${risks.join(", ")}` : "No configured risk keywords detected.",
+    reason: merged
+      ? "Merged PR is waiting for human test verification."
+      : risks.length
+        ? `Detected risk: ${risks.join(", ")}`
+        : "No configured risk keywords detected.",
     risk: risks,
     labels: (pr.labels || []).map((label) => label.name || label).filter(Boolean),
     changed_files: files,

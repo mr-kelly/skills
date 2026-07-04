@@ -86,7 +86,7 @@ export const messages = {
         wechat: "WeChat",
         imessage: "iMessage",
         line: "LINE",
-        messenger: "Messenger"
+        messenger: "Messenger",
       },
       connector: {
         slack: "Slack Web API",
@@ -94,13 +94,13 @@ export const messages = {
         telegram: "Telegram Bot API",
         whatsapp_cloud: "WhatsApp Cloud API",
         browser_agent: "Browser agent",
-        manual: "Manual ingest"
+        manual: "Manual ingest",
       },
       kind: {
         dm: "DM",
         group: "Group",
         channel: "Channel",
-        thread: "Thread"
+        thread: "Thread",
       },
       status: {
         needs_review: "needs review",
@@ -114,9 +114,9 @@ export const messages = {
         executed: "executed",
         handoff: "handoff to agent",
         pending: "pending",
-        open: "open"
-      }
-    }
+        open: "open",
+      },
+    },
   },
   zh: {
     accounts: "账号",
@@ -205,7 +205,7 @@ export const messages = {
         wechat: "微信",
         imessage: "iMessage",
         line: "LINE",
-        messenger: "Messenger"
+        messenger: "Messenger",
       },
       connector: {
         slack: "Slack Web API",
@@ -213,13 +213,13 @@ export const messages = {
         telegram: "Telegram Bot API",
         whatsapp_cloud: "WhatsApp Cloud API",
         browser_agent: "浏览器 Agent",
-        manual: "手动导入"
+        manual: "手动导入",
       },
       kind: {
         dm: "私聊",
         group: "群组",
         channel: "频道",
-        thread: "子帖"
+        thread: "子帖",
       },
       status: {
         needs_review: "待审核",
@@ -233,8 +233,8 @@ export const messages = {
         executed: "已执行",
         handoff: "移交 Agent",
         pending: "待处理",
-        open: "进行中"
-      }
-    }
-  }
+        open: "进行中",
+      },
+    },
+  },
 };

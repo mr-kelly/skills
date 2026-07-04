@@ -29,7 +29,9 @@ function fmt(t) {
 const out = [];
 out.push(`# MV: ${song.title || "Untitled"}${song.artist ? ` — ${song.artist}` : ""}`);
 out.push("");
-out.push(`**Artist:** ${song.artist || ""}${song.duration_seconds ? `  |  **Duration:** ${fmt(song.duration_seconds)}` : ""}${song.audio_asset ? "  |  audio uploaded" : ""}`);
+out.push(
+  `**Artist:** ${song.artist || ""}${song.duration_seconds ? `  |  **Duration:** ${fmt(song.duration_seconds)}` : ""}${song.audio_asset ? "  |  audio uploaded" : ""}`,
+);
 out.push("");
 out.push("## Concept");
 out.push(`- Summary: ${treatment.summary || treatment.concept || ""}`);
@@ -61,7 +63,10 @@ for (const shot of project.shots || []) {
 }
 
 await fs.mkdir(EXPORT_DIR, { recursive: true });
-const safeTitle = String(song.title || "kelly-mv").replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, "") || "kelly-mv";
+const safeTitle =
+  String(song.title || "kelly-mv")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "") || "kelly-mv";
 const outputPath = path.join(EXPORT_DIR, `${safeTitle}-mv-treatment.md`);
 await fs.writeFile(outputPath, `${out.join("\n")}\n`, "utf8");
 console.log(`Exported MV treatment: ${outputPath}`);

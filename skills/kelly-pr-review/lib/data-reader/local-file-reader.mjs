@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { ROOT_DIR, SKILL_DIR } from "../paths.mjs";
 import { pathExists } from "../common.mjs";
+import { ROOT_DIR, SKILL_DIR } from "../paths.mjs";
 
 export const CONFIG_LOCAL_PATH = path.join(SKILL_DIR, "config.local.json");
 export const CONFIG_EXAMPLE_PATH = path.join(SKILL_DIR, "config.example.json");
@@ -40,7 +40,10 @@ async function loadEnvFile(pathname) {
     if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
     const index = trimmed.indexOf("=");
     const key = trimmed.slice(0, index).trim();
-    const value = trimmed.slice(index + 1).trim().replace(/^['"]|['"]$/g, "");
+    const value = trimmed
+      .slice(index + 1)
+      .trim()
+      .replace(/^['"]|['"]$/g, "");
     if (key && process.env[key] === undefined) process.env[key] = value;
   }
   return true;
@@ -89,12 +92,13 @@ export async function loadLocalConfig() {
         message: `Found legacy YAML config at ${legacySource}, but Kelly PR Review now reads JSON only. Convert it to ${USER_CONFIG_PATH} or set KELLY_PR_REVIEW_CONFIG to a JSON file.`,
       }
     : !defaultMode
-    ? { configured: true, state: "ready", message: "Kelly PR Review is configured." }
-    : {
-        configured: true,
-        state: "gh_defaults",
-        message: "Using gh CLI defaults: review requests for the current authenticated account across accessible repositories.",
-      };
+      ? { configured: true, state: "ready", message: "Kelly PR Review is configured." }
+      : {
+          configured: true,
+          state: "gh_defaults",
+          message:
+            "Using gh CLI defaults: review requests for the current authenticated account across accessible repositories.",
+        };
   return {
     reader: "local",
     configured,

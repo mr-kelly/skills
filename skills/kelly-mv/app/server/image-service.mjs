@@ -57,9 +57,7 @@ export async function saveImageConfig(input = {}) {
 }
 
 function shotCharacters(project, shot) {
-  return (shot.characters || [])
-    .map((id) => (project.characters || []).find((item) => item.id === id))
-    .filter(Boolean);
+  return (shot.characters || []).map((id) => (project.characters || []).find((item) => item.id === id)).filter(Boolean);
 }
 
 function hasGeneratedRef(character) {
@@ -74,9 +72,11 @@ export function storyboardPrompt(project, shot) {
   const withRefs = characters.filter(hasGeneratedRef);
   // The shot's free-text scene description is the main brief. Old rich-sheet data falls
   // back to its composed fields so existing projects still generate.
-  const scene = shot.description
-    || [shot.composition, shot.action, shot.setting, shot.lighting].filter(Boolean).join(". ")
-    || shot.prompt || "";
+  const scene =
+    shot.description ||
+    [shot.composition, shot.action, shot.setting, shot.lighting].filter(Boolean).join(". ") ||
+    shot.prompt ||
+    "";
   const look = concept.look || concept.realism_target || concept.color_palette || "";
   return [
     `Music video storyboard frame for the song "${song.title || "untitled"}"${song.artist ? ` by ${song.artist}` : ""}.`,
@@ -86,10 +86,14 @@ export function storyboardPrompt(project, shot) {
     `Shot: ${shot.title || shot.id}.`,
     scene ? `Scene: ${scene}` : "",
     characterNames.length ? `Characters: ${characterNames.join("; ")}` : "",
-    withRefs.length ? `Character consistency: reference portrait images are provided for ${withRefs.map((c) => c.name).join("、")}. Keep each performer's face, hairstyle, body type and wardrobe identical to their reference image; do not redesign or swap them.` : "",
+    withRefs.length
+      ? `Character consistency: reference portrait images are provided for ${withRefs.map((c) => c.name).join("、")}. Keep each performer's face, hairstyle, body type and wardrobe identical to their reference image; do not redesign or swap them.`
+      : "",
     `Style: cinematic music-video still, ${look || "photoreal"}, production-ready frame. No on-screen lyrics, captions, watermarks or UI.`,
     shot.negative_prompt ? `Avoid: ${shot.negative_prompt}` : "",
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 const MAX_SHOT_REFERENCES = 4;
@@ -102,7 +106,12 @@ function collectShotReferences(project, shot) {
   const refs = [];
   for (const character of shotCharacters(project, shot)) {
     if (hasGeneratedRef(character)) {
-      refs.push({ kind: "character", id: character.id, name: character.name, path: character.reference_card.image_asset });
+      refs.push({
+        kind: "character",
+        id: character.id,
+        name: character.name,
+        path: character.reference_card.image_asset,
+      });
     }
   }
   const backgrounds = project.treatment?.background_reference_assets || [];
@@ -127,7 +136,7 @@ async function callImageEdits(prompt, references, config) {
   }
   const response = await fetch(endpoint, {
     method: "POST",
-    headers: { "Authorization": `Bearer ${config.api_key}` },
+    headers: { Authorization: `Bearer ${config.api_key}` },
     body: form,
   });
   const data = await response.json().catch(() => ({}));
@@ -137,7 +146,11 @@ async function callImageEdits(prompt, references, config) {
   }
   return {
     bytes: imageBytesFromResponse(data),
-    payload: { model: config.model || DEFAULT_CONFIG.model, size: config.size || DEFAULT_CONFIG.size, mode: "image-edit" },
+    payload: {
+      model: config.model || DEFAULT_CONFIG.model,
+      size: config.size || DEFAULT_CONFIG.size,
+      mode: "image-edit",
+    },
   };
 }
 
@@ -176,15 +189,20 @@ export async function storyboardPromptPreview(shotId) {
 
 function visualBackgroundPrompt(project) {
   const treatment = project.treatment || {};
-  return treatment.background_prompt || [
-    `Visual style reference frame for the music video of "${project.song?.title || "untitled"}".`,
-    treatment.concept ? `Concept: ${treatment.concept}` : "",
-    treatment.aspect_ratio ? `Aspect ratio: ${treatment.aspect_ratio} ${treatment.orientation || ""}.` : "",
-    treatment.realism_target || "",
-    treatment.color_palette ? `Color palette: ${treatment.color_palette}` : "",
-    treatment.cinematography || "",
-    "No on-screen text, captions, watermarks or UI.",
-  ].filter(Boolean).join("\n");
+  return (
+    treatment.background_prompt ||
+    [
+      `Visual style reference frame for the music video of "${project.song?.title || "untitled"}".`,
+      treatment.concept ? `Concept: ${treatment.concept}` : "",
+      treatment.aspect_ratio ? `Aspect ratio: ${treatment.aspect_ratio} ${treatment.orientation || ""}.` : "",
+      treatment.realism_target || "",
+      treatment.color_palette ? `Color palette: ${treatment.color_palette}` : "",
+      treatment.cinematography || "",
+      "No on-screen text, captions, watermarks or UI.",
+    ]
+      .filter(Boolean)
+      .join("\n")
+  );
 }
 
 function characterCardPrompt(character, project) {
@@ -193,7 +211,9 @@ function characterCardPrompt(character, project) {
     character.reference_card?.prompt || "",
     treatment.realism_target ? `MV visual target: ${treatment.realism_target}` : "",
     treatment.aspect_ratio ? `Aspect ratio: ${treatment.aspect_ratio} ${treatment.orientation || ""}.` : "",
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function imageBytesFromResponse(data) {
@@ -240,11 +260,17 @@ export async function generateStoryboardImage(shotId) {
   project.shots = (project.shots || []).map((item) => {
     if (item.id !== shot.id) return item;
     // Append as a new candidate; keep prior generations. Newest becomes active.
-    const prior = item.image_candidates && item.image_candidates.length
+    const prior = item.image_candidates?.length
       ? item.image_candidates
-      : (item.image_asset?.startsWith("/generated/")
-        ? [{ path: item.image_asset, generated_at: item.image_generated_at || generatedAt, generation: item.image_generation || {} }]
-        : []);
+      : item.image_asset?.startsWith("/generated/")
+        ? [
+            {
+              path: item.image_asset,
+              generated_at: item.image_generated_at || generatedAt,
+              generation: item.image_generation || {},
+            },
+          ]
+        : [];
     const image_candidates = [...prior, { path: publicPath, generated_at: generatedAt, generation }];
     return {
       ...item,
@@ -269,7 +295,7 @@ async function callImageApi(prompt, config) {
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${config.api_key}`,
+      Authorization: `Bearer ${config.api_key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
@@ -295,7 +321,7 @@ export async function generateVisualBackground() {
   project.treatment = {
     ...(project.treatment || {}),
     background_reference_assets: [
-      ...((project.treatment?.background_reference_assets || []).filter((item) => item.path !== publicPath)),
+      ...(project.treatment?.background_reference_assets || []).filter((item) => item.path !== publicPath),
       {
         id: `bg-ref-${Date.now()}`,
         title: "MV 风格参考",
@@ -322,21 +348,25 @@ export async function generateCharacterCard(characterId) {
   const diskPath = path.join(REFERENCE_IMAGE_DIR, filename);
   await fs.writeFile(diskPath, bytes);
   const publicPath = `/generated/references/${filename}`;
-  project.characters = (project.characters || []).map((item) => item.id === character.id ? {
-    ...item,
-    reference_card: {
-      ...(item.reference_card || {}),
-      status: "generated",
-      image_asset: publicPath,
-      generated_at: new Date().toISOString(),
-      generation: {
-        provider: "openai-compatible",
-        base_url: config.base_url,
-        model: payload.model,
-        size: payload.size,
-      },
-    },
-  } : item);
+  project.characters = (project.characters || []).map((item) =>
+    item.id === character.id
+      ? {
+          ...item,
+          reference_card: {
+            ...(item.reference_card || {}),
+            status: "generated",
+            image_asset: publicPath,
+            generated_at: new Date().toISOString(),
+            generation: {
+              provider: "openai-compatible",
+              base_url: config.base_url,
+              model: payload.model,
+              size: payload.size,
+            },
+          },
+        }
+      : item,
+  );
   await saveProject(project);
   return { path: publicPath, state: await import("./state.mjs").then((mod) => mod.statePayload()) };
 }

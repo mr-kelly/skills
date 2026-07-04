@@ -37,7 +37,17 @@ const REQUIRED = [
   ["negative_prompt", "负面提示词", (s) => str(s.negative_prompt)],
   ["video_prompt", "视频运动提示", (s) => str(s.video_prompt)],
   ["emotion", "情绪", (s) => str(s.emotion)],
-  ["audio", "声音设计", (s) => s.audio && (str(s.audio.ambient) || (s.audio.dialogue || []).length || str(s.audio.narration) || (s.audio.sfx || []).length || str(s.audio.music))],
+  [
+    "audio",
+    "声音设计",
+    (s) =>
+      s.audio &&
+      (str(s.audio.ambient) ||
+        (s.audio.dialogue || []).length ||
+        str(s.audio.narration) ||
+        (s.audio.sfx || []).length ||
+        str(s.audio.music)),
+  ],
   ["transition", "转场", (s) => str(s.transition_in) && str(s.transition_out)],
   ["continuity", "连续性锚点", (s) => s.continuity && (s.continuity.anchors || []).length],
 ];
@@ -78,7 +88,7 @@ const ready = [];
 for (const shot of shots) {
   const id = shot.id || "(missing id)";
   const before = errors.length;
-  const missing = REQUIRED.filter(([, , test]) => !test(shot)).map(([, label]) => label);
+  const missing = REQUIRED.filter(([, , test]) => !(/** @type {any} */ (test)(shot))).map(([, label]) => label);
   for (const label of missing) errors.push(`${id}: 缺「${label}」`);
 
   const dur = Number(shot.duration_seconds);
@@ -112,8 +122,8 @@ for (const shot of shots) {
 const total = shots.length;
 console.log(`分镜就绪校验：${PROJECT}${episodeFilter ? `  [${episodeFilter}]` : ""}`);
 console.log(`视频就绪 ${ready.length}/${total}  | 错误 ${errors.length}  | 警告 ${warnings.length}\n`);
-if (errors.length) console.log("❌ 错误（必须修复）：\n" + errors.map((e) => "  - " + e).join("\n") + "\n");
-if (warnings.length) console.log("⚠️  警告：\n" + warnings.map((w) => "  - " + w).join("\n") + "\n");
+if (errors.length) console.log(`❌ 错误（必须修复）：\n${errors.map((e) => `  - ${e}`).join("\n")}\n`);
+if (warnings.length) console.log(`⚠️  警告：\n${warnings.map((w) => `  - ${w}`).join("\n")}\n`);
 if (!errors.length && !warnings.length) console.log("✅ 全部分镜达到视频就绪标准。");
 
 if (errors.length || (strict && warnings.length)) process.exit(1);

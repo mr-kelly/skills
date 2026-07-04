@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { DATA_DIR, LEDGER_PATH, ONBOARDING_PATH, LOCK_PATH, SKILL_DIR } from "./paths.mjs";
+import { DATA_DIR, LEDGER_PATH, LOCK_PATH, ONBOARDING_PATH, SKILL_DIR } from "./paths.mjs";
 
 export async function ensureDirs() {
   await fs.mkdir(DATA_DIR, { recursive: true });
@@ -40,7 +40,7 @@ export function emptySnapshot() {
       gross_inflow: 0,
       gross_outflow: 0,
       fees: 0,
-      net: 0
+      net: 0,
     },
     accounts: [],
     transactions: [],
@@ -50,9 +50,9 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No ledger snapshot exists yet. Configure accounts, then run a read-only sync."
-      }
-    ]
+        message: "No ledger snapshot exists yet. Configure accounts, then run a read-only sync.",
+      },
+    ],
   };
 }
 
@@ -109,7 +109,9 @@ export function summarizeConfig(configResult) {
     config_path: configResult.path,
     is_example: configResult.is_example,
     accounts: accounts.map((account) => {
-      const secretKeys = ["api_key_env", "client_id_env", "client_secret_env", "token_env"].filter((key) => account[key]);
+      const secretKeys = ["api_key_env", "client_id_env", "client_secret_env", "token_env"].filter(
+        (key) => account[key],
+      );
       return {
         account_id: account.account_id || "",
         provider: account.provider || "",
@@ -117,8 +119,8 @@ export function summarizeConfig(configResult) {
         entity: account.entity || "",
         currency: account.currency || "",
         secret_envs: secretKeys.map((key) => account[key]),
-        secrets_ready: secretKeys.every((key) => Boolean(process.env[account[key]]))
+        secrets_ready: secretKeys.every((key) => Boolean(process.env[account[key]])),
       };
-    })
+    }),
   };
 }

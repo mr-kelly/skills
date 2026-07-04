@@ -8,7 +8,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -66,7 +66,7 @@ export async function applyDecision(payload = {}) {
     action,
     comment: String(payload.comment || ""),
     draft: payload.draft === undefined ? undefined : String(payload.draft),
-    decided_at: now
+    decided_at: now,
   };
   decisions.updated_at = now;
   await writeJson(DECISIONS_PATH, decisions);
@@ -80,7 +80,7 @@ export async function applyDecision(payload = {}) {
       comment: String(payload.comment || ""),
       draft: payload.draft === undefined ? undefined : String(payload.draft),
       requested_at: now,
-      status: "queued"
+      status: "queued",
     });
     tasks.updated_at = now;
     await writeJson(AGENT_TASKS_PATH, tasks);
@@ -103,7 +103,7 @@ export function emptySnapshot() {
       pipeline_value: 0,
       weighted_pipeline_value: 0,
       followups_needs_review: 0,
-      followups_due: 0
+      followups_due: 0,
     },
     companies: [],
     contacts: [],
@@ -114,9 +114,9 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No CRM snapshot exists yet. Feed the skill emails or meeting notes, then let it generate one."
-      }
-    ]
+        message: "No CRM snapshot exists yet. Feed the skill emails or meeting notes, then let it generate one.",
+      },
+    ],
   };
 }
 
@@ -179,7 +179,7 @@ export function summarizeConfig(configResult) {
       name: operator.name || "",
       role: operator.role || "",
       company: operator.company || "",
-      timezone: operator.timezone || ""
+      timezone: operator.timezone || "",
     },
     pipeline_stages: Array.isArray(pipeline.stages) ? pipeline.stages : [],
     base_currency: pipeline.base_currency || "USD",
@@ -192,8 +192,8 @@ export function summarizeConfig(configResult) {
         display_name: channel.display_name || channel.channel_id || "",
         handoff_skill: channel.handoff_skill || "",
         secret_envs: secretKeys.map((key) => channel[key]),
-        secrets_ready: secretKeys.every((key) => Boolean(process.env[channel[key]]))
+        secrets_ready: secretKeys.every((key) => Boolean(process.env[channel[key]])),
       };
-    })
+    }),
   };
 }

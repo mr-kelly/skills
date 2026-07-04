@@ -62,9 +62,8 @@ if (!payloadRaw) {
   console.error(`Cannot read payload: ${payloadPath}`);
   process.exit(1);
 }
-const payload = Array.isArray(payloadRaw.plans) || Array.isArray(payloadRaw.check_results)
-  ? payloadRaw
-  : { plans: [payloadRaw] };
+const payload =
+  Array.isArray(payloadRaw.plans) || Array.isArray(payloadRaw.check_results) ? payloadRaw : { plans: [payloadRaw] };
 const incomingPlans = payload.plans || [];
 const incomingCheckResults = payload.check_results || [];
 
@@ -79,7 +78,13 @@ const SOURCES = new Set(["agent_draft", "teacher_import"]);
 const STATUSES = new Set(["needs_review", "changes_requested", "approved", "done", "blocked"]);
 
 function slugify(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9一-鿿]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "plan";
+  return (
+    String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9一-鿿]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "plan"
+  );
 }
 
 function validatePlan(input, index) {
@@ -99,25 +104,30 @@ function validatePlan(input, index) {
     return errors;
   }
   for (const key of ARRAY_SECTIONS) {
-    if (sections[key] !== undefined && !Array.isArray(sections[key])) errors.push(`${where}.sections.${key} must be an array`);
+    if (sections[key] !== undefined && !Array.isArray(sections[key]))
+      errors.push(`${where}.sections.${key} must be an array`);
   }
   for (const key of STRING_SECTIONS) {
-    if (sections[key] !== undefined && typeof sections[key] !== "string") errors.push(`${where}.sections.${key} must be a string`);
+    if (sections[key] !== undefined && typeof sections[key] !== "string")
+      errors.push(`${where}.sections.${key} must be a string`);
   }
   if (sections.stages !== undefined) {
     if (!Array.isArray(sections.stages)) {
       errors.push(`${where}.sections.stages must be an array`);
     } else {
       sections.stages.forEach((stage, stageIndex) => {
-        if (!stage || typeof stage !== "object") errors.push(`${where}.sections.stages[${stageIndex}] must be an object`);
-        else if (typeof stage.name !== "string" || !stage.name.trim()) errors.push(`${where}.sections.stages[${stageIndex}].name must be a non-empty string`);
+        if (!stage || typeof stage !== "object")
+          errors.push(`${where}.sections.stages[${stageIndex}] must be an object`);
+        else if (typeof stage.name !== "string" || !stage.name.trim())
+          errors.push(`${where}.sections.stages[${stageIndex}].name must be a non-empty string`);
       });
     }
   }
   const knownKeys = new Set([...ARRAY_SECTIONS, ...STRING_SECTIONS, "stages"]);
   const templateKeys = new Set(templateSections.map((section) => section.key));
   for (const key of Object.keys(sections)) {
-    if (!knownKeys.has(key) && !templateKeys.has(key)) errors.push(`${where}.sections.${key} is not a known template section`);
+    if (!knownKeys.has(key) && !templateKeys.has(key))
+      errors.push(`${where}.sections.${key} is not a known template section`);
   }
   return errors;
 }
@@ -129,7 +139,7 @@ function normalizeSections(sections = {}) {
   normalized.stages = (Array.isArray(sections.stages) ? sections.stages : []).map((stage) => ({
     name: String(stage.name || ""),
     minutes: Number(stage.minutes || 0),
-    activities: String(stage.activities || "")
+    activities: String(stage.activities || ""),
   }));
   return normalized;
 }
@@ -137,7 +147,7 @@ function normalizeSections(sections = {}) {
 const allErrors = incomingPlans.flatMap((input, index) => validatePlan(input, index));
 for (const result of incomingCheckResults) {
   if (!result?.plan_id || !result?.rule_id || !["pass", "warn", "fail"].includes(result?.result)) {
-    allErrors.push(`check_results entries need plan_id, rule_id, and result pass|warn|fail`);
+    allErrors.push("check_results entries need plan_id, rule_id, and result pass|warn|fail");
     break;
   }
 }
@@ -155,7 +165,7 @@ const emptySnapshot = {
     name: config.school?.name || "",
     kind: config.school?.kind || "",
     class_length_minutes: classLength,
-    term: config.school?.term || ""
+    term: config.school?.term || "",
   },
   metrics: {
     teacher_count: 0,
@@ -164,7 +174,7 @@ const emptySnapshot = {
     plans_in_revision: 0,
     plans_needs_review: 0,
     checks_failed: 0,
-    compliance_pass_rate: 0
+    compliance_pass_rate: 0,
   },
   teachers: [],
   plans: [],
@@ -172,7 +182,7 @@ const emptySnapshot = {
   checks: [],
   review_items: [],
   activity_log: [],
-  warnings: []
+  warnings: [],
 };
 const snapshot = (await readJson(snapshotPath)) || emptySnapshot;
 snapshot.teachers = snapshot.teachers || [];
@@ -199,7 +209,7 @@ function ensureTeacher(input) {
     teacher_id: teacherId,
     name: name || teacherId,
     subject: input.subject || "",
-    grades: input.grade ? [input.grade] : []
+    grades: input.grade ? [input.grade] : [],
   });
   return teacherId;
 }
@@ -227,7 +237,7 @@ for (const input of incomingPlans) {
       duration_minutes: durationMinutes,
       sections,
       notes: input.notes ?? existing.notes ?? "",
-      updated_at: now
+      updated_at: now,
     });
     merged.push({ plan: existing, created: false });
   } else {
@@ -247,7 +257,7 @@ for (const input of incomingPlans) {
       sections,
       notes: input.notes || "",
       created_at: now,
-      updated_at: now
+      updated_at: now,
     };
     snapshot.plans.push(plan);
     merged.push({ plan, created: true });
@@ -263,7 +273,7 @@ for (const input of incomingPlans) {
       compliance_summary: "Checks pending — run scripts/run_checks.mjs.",
       suggestions: [],
       feedback_draft: "",
-      created_at: now
+      created_at: now,
     };
     snapshot.review_items.push(reviewItem);
   } else {
@@ -277,7 +287,7 @@ for (const input of incomingPlans) {
     at: now,
     actor: "agent",
     detail: `${merged[merged.length - 1].created ? "Ingested" : "Updated"} plan "${plan.title}" (${plan.source}).`,
-    plan_id: plan.plan_id
+    plan_id: plan.plan_id,
   });
 }
 
@@ -297,7 +307,7 @@ for (const result of incomingCheckResults) {
     result: result.result,
     evidence: String(result.evidence || ""),
     judged_by: "agent",
-    checked_at: now
+    checked_at: now,
   };
   if (existing) Object.assign(existing, entry);
   else snapshot.checks.push(entry);
@@ -310,7 +320,7 @@ snapshot.metrics = {
   plan_count: snapshot.plans.length,
   plans_approved: snapshot.plans.filter((plan) => ["approved", "done"].includes(plan.status)).length,
   plans_in_revision: snapshot.plans.filter((plan) => plan.status === "changes_requested").length,
-  plans_needs_review: snapshot.plans.filter((plan) => plan.status === "needs_review").length
+  plans_needs_review: snapshot.plans.filter((plan) => plan.status === "needs_review").length,
 };
 snapshot.generated_at = now;
 

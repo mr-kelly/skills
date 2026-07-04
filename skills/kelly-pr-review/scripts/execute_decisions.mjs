@@ -4,8 +4,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import { CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH } from "../lib/paths.mjs";
 import { pathExists, readJson, utcNow, withLock, writeJson } from "../lib/common.mjs";
+import { CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH } from "../lib/paths.mjs";
 
 const execFile = promisify(execFileCallback);
 const LIVE = process.argv.includes("--live") && !process.argv.includes("--dry-run");
@@ -26,7 +26,10 @@ async function submitReview(decision) {
   const action = decision.decision?.action;
   const body = decision.decision?.review_body || decision.review_body || decision.decision?.comment || "";
   if (action === "no_action") return { status: "skipped", reason: "No action selected." };
-  const tempPath = path.join(os.tmpdir(), `kelly-pr-review-${decision.repo.replaceAll("/", "-")}-${decision.number}-${Date.now()}.txt`);
+  const tempPath = path.join(
+    os.tmpdir(),
+    `kelly-pr-review-${decision.repo.replaceAll("/", "-")}-${decision.number}-${Date.now()}.txt`,
+  );
   await fs.writeFile(tempPath, body || "Reviewed from Kelly PR Review.", "utf8");
   try {
     const args = [
@@ -60,7 +63,7 @@ async function main() {
       note: "No decisions file found. Review PRs in the UI first.",
     };
     await writeJson(EXECUTION_REPORT_PATH, report);
-    console.log(`No approved decisions yet. Review PRs in the UI first.`);
+    console.log("No approved decisions yet. Review PRs in the UI first.");
     console.log(`Report: ${EXECUTION_REPORT_PATH}`);
     return;
   }

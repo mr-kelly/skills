@@ -402,7 +402,8 @@ export const MESSAGES = {
     modal_close: "×",
     // image config
     image_config_title: "Image API",
-    image_config_hint: "Used for storyboard image generation. API Key status is shown but the full key is never echoed back.",
+    image_config_hint:
+      "Used for storyboard image generation. API Key status is shown but the full key is never echoed back.",
     image_config_save: "Save image config",
     image_config_saved: "Image config saved",
     image_config_key_configured: "Configured: {preview}",

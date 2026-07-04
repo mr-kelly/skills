@@ -7,7 +7,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -51,7 +51,9 @@ export async function readAgentTasks() {
 export async function acquireLock(owner, message) {
   const existing = await readLock();
   if (existing) {
-    throw new Error(`agent.lock is held by ${existing.owner || "unknown"} (${existing.message || "working"}). Retry after it is released.`);
+    throw new Error(
+      `agent.lock is held by ${existing.owner || "unknown"} (${existing.message || "working"}). Retry after it is released.`,
+    );
   }
   await writeJson(LOCK_PATH, { owner, message, started_at: new Date().toISOString() });
 }
@@ -74,7 +76,7 @@ export function emptySnapshot() {
       briefs_needs_review: 0,
       reports_ready: 0,
       trend_mover_count: 0,
-      opportunities_open: 0
+      opportunities_open: 0,
     },
     watchlist: [],
     signals: [],
@@ -85,9 +87,9 @@ export function emptySnapshot() {
         at: new Date(0).toISOString(),
         actor: "kelly-radar",
         action: "empty_snapshot",
-        detail: "No radar snapshot exists yet. Configure the watchlist, then let the agent collect signals."
-      }
-    ]
+        detail: "No radar snapshot exists yet. Configure the watchlist, then let the agent collect signals.",
+      },
+    ],
   };
 }
 
@@ -163,29 +165,31 @@ export function summarizeConfig(configResult) {
     profile: {
       products: (Array.isArray(profile.products) ? profile.products : []).map((product) => ({
         name: product.name || "",
-        positioning: product.positioning || ""
-      }))
+        positioning: product.positioning || "",
+      })),
     },
     watchlist: watchlist.map((target) => ({
       target_id: target.target_id || "",
       name: target.name || target.target_id || "",
       type: target.type || "",
       source_count: Array.isArray(target.sources) ? target.sources.length : 0,
-      methods: [...new Set((Array.isArray(target.sources) ? target.sources : []).map((source) => source.method || "manual"))]
+      methods: [
+        ...new Set((Array.isArray(target.sources) ? target.sources : []).map((source) => source.method || "manual")),
+      ],
     })),
     research_defaults: {
       default_depth: research.default_depth || "standard",
       source_policy: research.source_policy || "public_pages_only",
       require_citations: research.require_citations !== false,
-      max_sources: research.max_sources || 8
+      max_sources: research.max_sources || 8,
     },
     trend_sources: trendSources.map((source) => ({
       source_id: source.source_id || "",
       kind: source.kind || "",
       name: source.name || source.source_id || "",
-      method: source.method || "manual"
+      method: source.method || "manual",
     })),
     cadence: config.cadence && typeof config.cadence === "object" ? config.cadence : {},
-    env_readiness: secretEnvs.map((name) => ({ name, ready: Boolean(process.env[name]) }))
+    env_readiness: secretEnvs.map((name) => ({ name, ready: Boolean(process.env[name]) })),
   };
 }

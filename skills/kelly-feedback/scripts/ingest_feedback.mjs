@@ -7,7 +7,14 @@
 // Payload shape: see references/feedback-schema.md (Ingest Payload).
 import fs from "node:fs/promises";
 import { SNAPSHOT_PATH } from "../app/server/paths.mjs";
-import { acquireLock, emptySnapshot, readJson, recomputeDerived, releaseLock, writeJson } from "../app/server/store.mjs";
+import {
+  acquireLock,
+  emptySnapshot,
+  readJson,
+  recomputeDerived,
+  releaseLock,
+  writeJson,
+} from "../app/server/store.mjs";
 
 const CHANNELS = ["email", "discord", "slack", "x", "appstore", "survey", "interview"];
 const SENTIMENTS = ["positive", "neutral", "negative"];
@@ -24,7 +31,10 @@ function fail(message) {
 }
 
 function sanitizeId(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function validatePayload(payload, file) {
@@ -38,8 +48,10 @@ function validatePayload(payload, file) {
     const path = `${file}: items[${index}]`;
     if (!item.external_id) fail(`${path}.external_id is required`);
     if (!item.text || typeof item.text !== "string") fail(`${path}.text must be a non-empty string`);
-    if (!item.received_at || Number.isNaN(new Date(item.received_at).getTime())) fail(`${path}.received_at must be an ISO timestamp`);
-    if (item.sentiment && !SENTIMENTS.includes(item.sentiment)) fail(`${path}.sentiment must be one of ${SENTIMENTS.join("|")}`);
+    if (!item.received_at || Number.isNaN(new Date(item.received_at).getTime()))
+      fail(`${path}.received_at must be an ISO timestamp`);
+    if (item.sentiment && !SENTIMENTS.includes(item.sentiment))
+      fail(`${path}.sentiment must be one of ${SENTIMENTS.join("|")}`);
   });
 }
 
@@ -54,7 +66,7 @@ function normalizeItem(payload, item) {
       handle: String(item.user?.handle || "unknown"),
       plan: String(item.user?.plan || ""),
       tenure_months: Number(item.user?.tenure_months || 0),
-      weight: Number(item.user?.weight || 1)
+      weight: Number(item.user?.weight || 1),
     },
     text: String(item.text),
     sentiment: SENTIMENTS.includes(item.sentiment) ? item.sentiment : "neutral",
@@ -62,7 +74,7 @@ function normalizeItem(payload, item) {
     permalink: String(item.permalink || ""),
     request_id: "",
     triage: "new",
-    agent_note: String(item.agent_note || "")
+    agent_note: String(item.agent_note || ""),
   };
 }
 
@@ -111,7 +123,7 @@ try {
         collection: String(payload.source.collection || ""),
         last_ingest_at: now,
         item_count: addedForSource,
-        status: "ok"
+        status: "ok",
       });
     }
   }
@@ -123,7 +135,7 @@ try {
     actor: "kelly-feedback",
     action: "ingest",
     detail: `Ingested ${added} item(s) from ${payloads.length} payload(s); ${skipped} duplicate(s) skipped.`,
-    count: added
+    count: added,
   });
   recomputeDerived(snapshot);
   await writeJson(SNAPSHOT_PATH, snapshot);

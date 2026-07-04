@@ -1,9 +1,9 @@
 #!/usr/bin/env node
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import http from "node:http";
 import net from "node:net";
-import { spawn } from "node:child_process";
 import { CACHE_DIR, DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, PREFERRED_PORT_MAX, SERVER_DIR } from "./paths.mjs";
 
 const host = process.env.KELLY_MV_UI_HOST || DEFAULT_HOST;
@@ -18,11 +18,18 @@ function isReady(port) {
     const req = http.get(stateUrlFor(port), { timeout: 600 }, (res) => {
       let body = "";
       res.setEncoding("utf8");
-      res.on("data", (chunk) => { body += chunk; });
+      res.on("data", (chunk) => {
+        body += chunk;
+      });
       res.on("end", () => {
         try {
           const state = JSON.parse(body);
-          resolve(res.statusCode >= 200 && res.statusCode < 300 && state.app === "kelly-mv" && Boolean(state.project?.project_id));
+          resolve(
+            res.statusCode >= 200 &&
+              res.statusCode < 300 &&
+              state.app === "kelly-mv" &&
+              Boolean(state.project?.project_id),
+          );
         } catch {
           resolve(false);
         }

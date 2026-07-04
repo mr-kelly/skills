@@ -20,7 +20,7 @@ import {
   readLock,
   readSnapshot,
   recomputeMetrics,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 function fail(message) {
@@ -43,7 +43,8 @@ try {
 
 if (!payload || typeof payload !== "object") fail("payload must be a JSON object");
 if (!payload.account_id || typeof payload.account_id !== "string") fail("payload.account_id must be a string");
-if (!Array.isArray(payload.conversations) || !payload.conversations.length) fail("payload.conversations must be a non-empty array");
+if (!Array.isArray(payload.conversations) || !payload.conversations.length)
+  fail("payload.conversations must be a non-empty array");
 
 const { config } = await readConfig();
 const account = (config.accounts || []).find((item) => item.account_id === payload.account_id);
@@ -54,11 +55,13 @@ const nowIso = new Date().toISOString();
 const conversations = payload.conversations.map((conversation, index) => {
   const path = `conversations[${index}]`;
   if (!conversation || typeof conversation !== "object") fail(`${path} must be an object`);
-  if (!Array.isArray(conversation.messages) || !conversation.messages.length) fail(`${path}.messages must be a non-empty array`);
+  if (!Array.isArray(conversation.messages) || !conversation.messages.length)
+    fail(`${path}.messages must be a non-empty array`);
   const messages = conversation.messages.map((message, mIndex) => {
     const mPath = `${path}.messages[${mIndex}]`;
     if (!message.message_id || typeof message.message_id !== "string") fail(`${mPath}.message_id must be a string`);
-    if (message.direction !== "incoming" && message.direction !== "outgoing") fail(`${mPath}.direction must be incoming|outgoing`);
+    if (message.direction !== "incoming" && message.direction !== "outgoing")
+      fail(`${mPath}.direction must be incoming|outgoing`);
     if (typeof message.text !== "string") fail(`${mPath}.text must be a string`);
     if (!message.sent_at || typeof message.sent_at !== "string") fail(`${mPath}.sent_at must be an ISO string`);
     return {
@@ -67,13 +70,16 @@ const conversations = payload.conversations.map((conversation, index) => {
       sender: String(message.sender || (message.direction === "outgoing" ? "Kelly" : "unknown")),
       text: message.text,
       sent_at: message.sent_at,
-      attachment: String(message.attachment || "")
+      attachment: String(message.attachment || ""),
     };
   });
   const last = messages[messages.length - 1];
   const lastIncoming = [...messages].reverse().find((message) => message.direction === "incoming");
-  const conversationId = conversation.conversation_id
-    || `${account.platform}-${account.account_id}-${String(conversation.title || index).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const conversationId =
+    conversation.conversation_id ||
+    `${account.platform}-${account.account_id}-${String(conversation.title || index)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")}`;
   return {
     conversation_id: conversationId,
     account_id: account.account_id,
@@ -82,14 +88,20 @@ const conversations = payload.conversations.map((conversation, index) => {
     title: String(conversation.title || conversationId),
     channel: String(conversation.channel || ""),
     workspace: String(conversation.workspace || account.workspace || ""),
-    participants: Array.isArray(conversation.participants) ? conversation.participants : [...new Set(messages.map((message) => message.sender))],
-    unread: conversation.unread !== undefined ? Boolean(conversation.unread) : Boolean(last && last.direction === "incoming"),
-    awaiting_reply: conversation.awaiting_reply !== undefined ? Boolean(conversation.awaiting_reply) : Boolean(last && last.direction === "incoming"),
+    participants: Array.isArray(conversation.participants)
+      ? conversation.participants
+      : [...new Set(messages.map((message) => message.sender))],
+    unread:
+      conversation.unread !== undefined ? Boolean(conversation.unread) : Boolean(last && last.direction === "incoming"),
+    awaiting_reply:
+      conversation.awaiting_reply !== undefined
+        ? Boolean(conversation.awaiting_reply)
+        : Boolean(last && last.direction === "incoming"),
     provider_conversation_id: String(conversation.provider_conversation_id || ""),
     last_message_at: last?.sent_at || "",
     last_incoming_at: lastIncoming?.sent_at || "",
     suggested_reply: String(conversation.suggested_reply || ""),
-    messages
+    messages,
   };
 });
 
@@ -118,7 +130,7 @@ try {
     status: "ok",
     unread_count: owned.filter((item) => item.unread).length,
     conversation_count: owned.length,
-    last_sync_at: payload.collected_at || nowIso
+    last_sync_at: payload.collected_at || nowIso,
   };
   if (existing) Object.assign(existing, patch);
   else snapshot.accounts.push(patch);
@@ -129,7 +141,7 @@ try {
     at: nowIso,
     status: "ok",
     message: `Ingested ${conversations.length} conversations from ${file}.`,
-    new_messages: added
+    new_messages: added,
   });
   snapshot.sync_log = snapshot.sync_log.slice(-100);
   snapshot.generated_at = nowIso;

@@ -8,7 +8,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -70,7 +70,7 @@ export function emptySnapshot() {
       sla_at_risk: 0,
       proposal_count: 0,
       needs_review: 0,
-      intake_by_channel: {}
+      intake_by_channel: {},
     },
     intake: [],
     tickets: [],
@@ -81,9 +81,9 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No tickets snapshot exists yet. Ingest intake payloads, then run triage."
-      }
-    ]
+        message: "No tickets snapshot exists yet. Ingest intake payloads, then run triage.",
+      },
+    ],
   };
 }
 
@@ -127,15 +127,20 @@ export function computeMetrics(snapshot) {
     avg_resolution_hours: resolutionHours.length
       ? Math.round((resolutionHours.reduce((sum, hours) => sum + hours, 0) / resolutionHours.length) * 10) / 10
       : 0,
-    sla_at_risk: tickets.filter((ticket) => OPEN_TICKET_STATUSES.has(ticket.status) && ["at_risk", "breached"].includes(ticket.sla_state)).length,
+    sla_at_risk: tickets.filter(
+      (ticket) => OPEN_TICKET_STATUSES.has(ticket.status) && ["at_risk", "breached"].includes(ticket.sla_state),
+    ).length,
     proposal_count: proposals.length,
     needs_review: proposals.filter((proposal) => proposal.status === "needs_review").length,
-    intake_by_channel: byChannel
+    intake_by_channel: byChannel,
   };
 }
 
 export function maskContact(value) {
-  return String(value || "").replace(/\d{5,}/g, (run) => `${run.slice(0, 3)}${"*".repeat(Math.max(run.length - 5, 2))}${run.slice(-2)}`);
+  return String(value || "").replace(
+    /\d{5,}/g,
+    (run) => `${run.slice(0, 3)}${"*".repeat(Math.max(run.length - 5, 2))}${run.slice(-2)}`,
+  );
 }
 
 export function slaHoursFor(config, category, urgency) {
@@ -156,12 +161,16 @@ export function mergeSnapshot(snapshot, decisions, executionReport) {
   const dispatch_proposals = (snapshot.dispatch_proposals || []).map((proposal) => {
     const decision = verdicts[proposal.id] || proposal.decision || null;
     const reportEntry = execById.get(proposal.id);
-    const execution = proposal.execution || (reportEntry ? {
-      status: reportEntry.status,
-      operations: reportEntry.operations || [],
-      detail: reportEntry.detail || "",
-      executed_at: executionReport?.generated_at || ""
-    } : null);
+    const execution =
+      proposal.execution ||
+      (reportEntry
+        ? {
+            status: reportEntry.status,
+            operations: reportEntry.operations || [],
+            detail: reportEntry.detail || "",
+            executed_at: executionReport?.generated_at || "",
+          }
+        : null);
     let status = proposal.status;
     if (decision?.action === "approve") status = "approved";
     if (decision?.action === "request_changes") status = "changes_requested";
@@ -172,7 +181,7 @@ export function mergeSnapshot(snapshot, decisions, executionReport) {
       status,
       decision,
       note_to_crew: decision?.draft ?? proposal.note_to_crew,
-      execution
+      execution,
     };
   });
   const intake = (snapshot.intake || []).map((item) => {
@@ -187,7 +196,7 @@ export function mergeSnapshot(snapshot, decisions, executionReport) {
     return {
       ...ticket,
       decision,
-      resolution_note: decision.action === "revise" && decision.note ? decision.note : ticket.resolution_note
+      resolution_note: decision.action === "revise" && decision.note ? decision.note : ticket.resolution_note,
     };
   });
   return { ...snapshot, intake, tickets, dispatch_proposals };
@@ -216,7 +225,7 @@ export async function applyDecision({ id, action, note, draft, fields }) {
     note: String(note || ""),
     draft: typeof draft === "string" ? draft : null,
     fields: fields && typeof fields === "object" ? fields : null,
-    decided_at: now
+    decided_at: now,
   };
   decisions.updated_at = now;
   await writeJson(DECISIONS_PATH, decisions);
@@ -230,7 +239,7 @@ export async function applyDecision({ id, action, note, draft, fields }) {
       title: proposal.title,
       type: "revise_dispatch",
       note: String(note || ""),
-      requested_at: now
+      requested_at: now,
     });
   }
   if (intakeItem && action === "convert_to_ticket") {
@@ -240,7 +249,7 @@ export async function applyDecision({ id, action, note, draft, fields }) {
       type: "convert_intake",
       note: String(note || ""),
       fields: fields && typeof fields === "object" ? fields : null,
-      requested_at: now
+      requested_at: now,
     });
   }
   tasks.updated_at = now;
@@ -304,7 +313,7 @@ export function summarizeConfig(configResult) {
     property: {
       name: config.property?.name || "",
       buildings: config.property?.buildings || 0,
-      timezone: config.property?.timezone || ""
+      timezone: config.property?.timezone || "",
     },
     channels: Array.isArray(config.channels) ? config.channels : [],
     categories: Array.isArray(config.categories) ? config.categories : [],
@@ -313,13 +322,13 @@ export function summarizeConfig(configResult) {
       name: crew.name || crew.crew_id || "",
       skills: Array.isArray(crew.skills) ? crew.skills : [],
       contact_env: crew.contact_env || "",
-      contact_ready: Boolean(crew.contact_env && process.env[crew.contact_env])
+      contact_ready: Boolean(crew.contact_env && process.env[crew.contact_env]),
     })),
     sla_rules: (Array.isArray(config.sla_rules) ? config.sla_rules : []).map((rule) => ({
       category: rule.category || "*",
       urgency: rule.urgency || "*",
-      hours: Number(rule.hours) || 0
+      hours: Number(rule.hours) || 0,
     })),
-    sla_default_hours: Number(config.sla_default_hours) || 72
+    sla_default_hours: Number(config.sla_default_hours) || 72,
   };
 }

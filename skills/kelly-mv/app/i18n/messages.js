@@ -61,7 +61,8 @@ export const MESSAGES = {
     concept_ratio_label: "画幅",
     concept_save: "保存概括",
     how_to_title: "怎么用",
-    how_to_body: "① Song 上传 MP3 → ② 概括写清调性 → ③ 角色生成参考卡 → ④ 分镜里写画面描述，逐镜「生成」或「上传」图与视频。纯画面 MV，最终把分镜画面剪到歌上。",
+    how_to_body:
+      "① Song 上传 MP3 → ② 概括写清调性 → ③ 角色生成参考卡 → ④ 分镜里写画面描述，逐镜「生成」或「上传」图与视频。纯画面 MV，最终把分镜画面剪到歌上。",
     // song form
     song_placeholder: "还没有歌曲，点下面上传一首 MP3",
     song_upload: "上传 MP3",
@@ -217,7 +218,8 @@ export const MESSAGES = {
     concept_ratio_label: "Aspect ratio",
     concept_save: "Save concept",
     how_to_title: "How to use",
-    how_to_body: "① Upload an MP3 in Song → ② Write the concept and tone here → ③ Add cast and generate reference cards → ④ In Storyboard, describe each shot and generate or upload its image and video. Pure-visual MV — no narration, no subtitles.",
+    how_to_body:
+      "① Upload an MP3 in Song → ② Write the concept and tone here → ③ Add cast and generate reference cards → ④ In Storyboard, describe each shot and generate or upload its image and video. Pure-visual MV — no narration, no subtitles.",
     // song form
     song_placeholder: "No song yet — upload an MP3 below",
     song_upload: "Upload MP3",
@@ -228,7 +230,7 @@ export const MESSAGES = {
     song_save: "Save info",
     song_duration_auto: "Duration: {dur} — auto-detected.",
     song_duration_hint: "Pick any existing MP3. Duration is auto-detected.",
-    song_list_empty: "No song yet. Click \"Upload MP3\" on the right.",
+    song_list_empty: 'No song yet. Click "Upload MP3" on the right.',
     song_uploaded_badge: "Uploaded",
     // cast form
     cast_no_ref: "Reference card not generated",
@@ -250,7 +252,8 @@ export const MESSAGES = {
     cast_list_empty: "No characters yet. Click + to add.",
     cast_no_thumb: "No card",
     cast_ref_note: "Generating from characters: {ready}/{total} cast member(s) have reference cards.",
-    cast_ref_note_missing: "Missing cards will fall back to text-to-image and consistency may drift — generate reference cards first.",
+    cast_ref_note_missing:
+      "Missing cards will fall back to text-to-image and consistency may drift — generate reference cards first.",
     cast_add_cast_hint: "Add characters in Cast first",
     // storyboard form
     shot_section_image: "Image",
@@ -272,7 +275,8 @@ export const MESSAGES = {
     shot_save: "Save shot",
     shot_delete: "Delete",
     shot_empty: "Select a shot on the left, or click + to create one.",
-    shot_list_empty: "No shots yet. Click + to add a shot, then write a description and upload or generate an image and video.",
+    shot_list_empty:
+      "No shots yet. Click + to add a shot, then write a description and upload or generate an image and video.",
     shot_no_image: "No image",
     shot_timeline_meta: "{n} shot(s) · total {dur}",
     shot_timeline_meta_song: " / song {song}",
@@ -290,7 +294,8 @@ export const MESSAGES = {
     prompt_label_prompt: "Image prompt",
     prompt_label_neg: "Negative prompt",
     prompt_no_ref: "(no ref card — may drift)",
-    prompt_no_ref_hint: "No reference cards for this shot — will use text-to-image. Generate reference cards in Cast to improve consistency.",
+    prompt_no_ref_hint:
+      "No reference cards for this shot — will use text-to-image. Generate reference cards in Cast to improve consistency.",
     img_key_configured: "(configured {preview})",
     img_key_missing: "(not configured)",
     img_key_placeholder: "Leave blank to keep current",

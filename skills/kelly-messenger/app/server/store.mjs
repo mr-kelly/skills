@@ -8,7 +8,7 @@ import {
   ONBOARDING_PATH,
   OUTBOX_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -63,7 +63,7 @@ export function emptySnapshot() {
       conversation_count: 0,
       message_count: 0,
       unread_count: 0,
-      awaiting_reply_count: 0
+      awaiting_reply_count: 0,
     },
     accounts: [],
     conversations: [],
@@ -72,9 +72,10 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No message snapshot exists yet. Configure accounts, then run scripts/sync_messages.mjs or ingest a collected payload."
-      }
-    ]
+        message:
+          "No message snapshot exists yet. Configure accounts, then run scripts/sync_messages.mjs or ingest a collected payload.",
+      },
+    ],
   };
 }
 
@@ -82,7 +83,7 @@ export function emptyOutbox() {
   return {
     schema_version: "1",
     updated_at: new Date(0).toISOString(),
-    replies: []
+    replies: [],
   };
 }
 
@@ -93,7 +94,7 @@ export function recomputeMetrics(snapshot) {
     conversation_count: conversations.length,
     message_count: conversations.reduce((sum, item) => sum + (item.messages?.length || 0), 0),
     unread_count: conversations.filter((item) => item.unread).length,
-    awaiting_reply_count: conversations.filter((item) => item.awaiting_reply).length
+    awaiting_reply_count: conversations.filter((item) => item.awaiting_reply).length,
   };
   return snapshot;
 }
@@ -127,7 +128,9 @@ export function mergeConversations(snapshot, incoming = []) {
     const lastIncoming = [...existing.messages].reverse().find((message) => message.direction === "incoming");
     if (lastIncoming) existing.last_incoming_at = lastIncoming.sent_at;
   }
-  snapshot.conversations = [...byId.values()].sort((a, b) => String(b.last_message_at || "").localeCompare(String(a.last_message_at || "")));
+  snapshot.conversations = [...byId.values()].sort((a, b) =>
+    String(b.last_message_at || "").localeCompare(String(a.last_message_at || "")),
+  );
   return newMessages;
 }
 
@@ -153,7 +156,7 @@ export async function queueReply({ conversation_id, text, note = "", suggested_b
     decision: null,
     execution: null,
     created_at: now,
-    updated_at: now
+    updated_at: now,
   };
   outbox.replies.push(reply);
   outbox.updated_at = now;
@@ -190,7 +193,7 @@ async function appendAgentTask(reply, comment) {
     conversation_id: reply.conversation_id,
     comment: String(comment || ""),
     status: "open",
-    requested_at: now
+    requested_at: now,
   });
   tasks.updated_at = now;
   await writeJson(AGENT_TASKS_PATH, tasks);
@@ -243,7 +246,14 @@ export async function readConfig() {
   return { config: { accounts: [] }, path: "", is_example: false };
 }
 
-export const SECRET_ENV_KEYS = ["bot_token_env", "user_token_env", "access_token_env", "phone_number_id_env", "token_env", "api_key_env"];
+export const SECRET_ENV_KEYS = [
+  "bot_token_env",
+  "user_token_env",
+  "access_token_env",
+  "phone_number_id_env",
+  "token_env",
+  "api_key_env",
+];
 
 export function summarizeConfig(configResult) {
   const accounts = Array.isArray(configResult.config.accounts) ? configResult.config.accounts : [];
@@ -261,8 +271,8 @@ export function summarizeConfig(configResult) {
         display_name: account.display_name || account.account_id || "",
         workspace: account.workspace || "",
         secret_envs: secretKeys.map((key) => account[key]),
-        secrets_ready: secretKeys.length > 0 && secretKeys.every((key) => Boolean(process.env[account[key]]))
+        secrets_ready: secretKeys.length > 0 && secretKeys.every((key) => Boolean(process.env[account[key]])),
       };
-    })
+    }),
   };
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { CURRENT_BATCH_PATH, DECISIONS_PATH } from "../lib/paths.mjs";
 import { pathExists, readJson } from "../lib/common.mjs";
+import { CURRENT_BATCH_PATH, DECISIONS_PATH } from "../lib/paths.mjs";
 
 const STATUSES = new Set(["needs_review", "to_approve", "approved", "done", "blocked", "merged"]);
 const ACTIONS = new Set(["approve", "comment", "request_changes", "no_action", "needs_review", "block"]);
@@ -17,7 +17,8 @@ function validateItem(item, index) {
   assert(item.title, `${prefix}.title is required`);
   assert(STATUSES.has(item.status), `${prefix}.status is invalid: ${item.status}`);
   assert(ACTIONS.has(item.proposed_action), `${prefix}.proposed_action is invalid: ${item.proposed_action}`);
-  if (item.verification_status) assert(["needs_test", "tested"].includes(item.verification_status), `${prefix}.verification_status is invalid`);
+  if (item.verification_status)
+    assert(["needs_test", "tested"].includes(item.verification_status), `${prefix}.verification_status is invalid`);
   assert(Array.isArray(item.risk), `${prefix}.risk must be an array`);
   assert(Array.isArray(item.changed_files), `${prefix}.changed_files must be an array`);
   if (item.decision?.action) assert(ACTIONS.has(item.decision.action), `${prefix}.decision.action is invalid`);

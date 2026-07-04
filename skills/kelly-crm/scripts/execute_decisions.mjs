@@ -40,7 +40,7 @@ if (!snapshot) {
 const decisions = (await readJson(decisionsPath, { decisions: {} })).decisions || {};
 const previousReport = await readJson(reportPath);
 const alreadyHandedOff = new Set(
-  (previousReport?.results || []).filter((item) => item.status === "handed_off").map((item) => item.followup_id)
+  (previousReport?.results || []).filter((item) => item.status === "handed_off").map((item) => item.followup_id),
 );
 
 const contacts = new Map((snapshot.contacts || []).map((item) => [item.contact_id, item]));
@@ -57,7 +57,7 @@ for (const followup of snapshot.followups || []) {
       status: "skipped",
       operation: "none",
       reason: "Already handed off or marked done; skipping to stay idempotent.",
-      executed_at: now
+      executed_at: now,
     });
     continue;
   }
@@ -73,7 +73,7 @@ for (const followup of snapshot.followups || []) {
     draft: decision.draft ?? followup.suggested_reply ?? "",
     comment: decision.comment || "",
     reason: followup.reason || "",
-    executed_at: now
+    executed_at: now,
   });
 }
 
@@ -83,7 +83,9 @@ if (!results.length) {
 }
 
 for (const result of results) {
-  console.log(`#${result.ref} ${result.followup_id}: ${result.status} ${result.operation}${result.target ? ` -> ${result.target}` : ""}`);
+  console.log(
+    `#${result.ref} ${result.followup_id}: ${result.status} ${result.operation}${result.target ? ` -> ${result.target}` : ""}`,
+  );
 }
 
 if (!apply) {
@@ -93,16 +95,21 @@ if (!apply) {
 
 // Preserve handed_off history so repeated --apply runs stay idempotent:
 // a "skipped" result never replaces the handed_off record it refers to.
-const freshlyHandedOff = new Set(results.filter((item) => item.status === "handed_off").map((item) => item.followup_id));
+const freshlyHandedOff = new Set(
+  results.filter((item) => item.status === "handed_off").map((item) => item.followup_id),
+);
 const carriedForward = (previousReport?.results || []).filter(
-  (item) => item.status === "handed_off" && !freshlyHandedOff.has(item.followup_id)
+  (item) => item.status === "handed_off" && !freshlyHandedOff.has(item.followup_id),
 );
 const carriedIds = new Set(carriedForward.map((item) => item.followup_id));
 const report = {
   executed_at: now,
   dry_run: false,
   source: "kelly-crm",
-  results: [...carriedForward, ...results.filter((item) => !(item.status === "skipped" && carriedIds.has(item.followup_id)))]
+  results: [
+    ...carriedForward,
+    ...results.filter((item) => !(item.status === "skipped" && carriedIds.has(item.followup_id))),
+  ],
 };
 await fs.mkdir(dataDir, { recursive: true });
 await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);

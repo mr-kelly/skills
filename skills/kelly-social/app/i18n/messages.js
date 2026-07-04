@@ -83,25 +83,25 @@ export const messages = {
         threads: "Threads",
         tiktok: "TikTok",
         xiaohongshu: "Xiaohongshu",
-        manual: "manual"
+        manual: "manual",
       },
       method: {
         browser_agent: "browser agent",
         api: "API",
-        manual_export: "manual export"
+        manual_export: "manual export",
       },
       status: {
         ok: "ok",
         warning: "warning",
         error: "error",
-        not_configured: "not configured"
+        not_configured: "not configured",
       },
       media: {
         none: "text",
         image: "image",
         video: "video",
         carousel: "carousel",
-        link: "link"
+        link: "link",
       },
       type: {
         post: "post",
@@ -109,9 +109,9 @@ export const messages = {
         reel: "reel",
         story: "story",
         video: "video",
-        article: "article"
-      }
-    }
+        article: "article",
+      },
+    },
   },
   zh: {
     account: "账号",
@@ -197,25 +197,25 @@ export const messages = {
         threads: "Threads",
         tiktok: "TikTok",
         xiaohongshu: "小红书",
-        manual: "手动"
+        manual: "手动",
       },
       method: {
         browser_agent: "浏览器 Agent",
         api: "API",
-        manual_export: "手动导出"
+        manual_export: "手动导出",
       },
       status: {
         ok: "正常",
         warning: "提醒",
         error: "异常",
-        not_configured: "未配置"
+        not_configured: "未配置",
       },
       media: {
         none: "纯文本",
         image: "图片",
         video: "视频",
         carousel: "图集",
-        link: "链接"
+        link: "链接",
       },
       type: {
         post: "帖子",
@@ -223,8 +223,8 @@ export const messages = {
         reel: "Reel",
         story: "快拍",
         video: "视频",
-        article: "文章"
-      }
-    }
-  }
+        article: "文章",
+      },
+    },
+  },
 };

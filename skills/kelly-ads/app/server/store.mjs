@@ -7,7 +7,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -67,7 +67,7 @@ export function emptySnapshot() {
       anomalies_open: 0,
       anomalies_critical: 0,
       adjustments_needing_review: 0,
-      budget_at_risk_today: 0
+      budget_at_risk_today: 0,
     },
     platforms: [],
     campaigns: [],
@@ -78,9 +78,9 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No ads snapshot exists yet. Configure platforms, then ingest platform reports."
-      }
-    ]
+        message: "No ads snapshot exists yet. Configure platforms, then ingest platform reports.",
+      },
+    ],
   };
 }
 
@@ -141,22 +141,30 @@ export function summarizeConfig(configResult) {
     targets: config.targets || {},
     thresholds: config.thresholds || {},
     platforms: platforms.map((platform) => {
-      const secretKeys = ["token_env", "client_id_env", "client_secret_env", "api_key_env", "developer_token_env"].filter((key) => platform[key]);
+      const secretKeys = [
+        "token_env",
+        "client_id_env",
+        "client_secret_env",
+        "api_key_env",
+        "developer_token_env",
+      ].filter((key) => platform[key]);
       return {
         platform_id: platform.platform_id || "",
         name: platform.name || platform.platform_id || "",
         account_id: platform.account_id || "",
         secret_envs: secretKeys.map((key) => platform[key]),
-        secrets_ready: secretKeys.every((key) => Boolean(process.env[platform[key]]))
+        secrets_ready: secretKeys.every((key) => Boolean(process.env[platform[key]])),
       };
-    })
+    }),
   };
 }
 
 export async function acquireLock(owner, message) {
   const existing = await readLock();
   if (existing && existing.owner !== owner) {
-    const error = new Error(`Agent lock is held by ${existing.owner || "unknown"}: ${existing.message || "working"}`);
+    const error = /** @type {any} */ (
+      new Error(`Agent lock is held by ${existing.owner || "unknown"}: ${existing.message || "working"}`)
+    );
     error.code = "LOCKED";
     throw error;
   }
@@ -178,14 +186,17 @@ export function round1(value) {
 export function totalsForDays(campaign, days) {
   const daily = Array.isArray(campaign.daily) ? [...campaign.daily].sort((a, b) => a.date.localeCompare(b.date)) : [];
   const slice = days > 0 ? daily.slice(-days) : daily;
-  const totals = slice.reduce((acc, day) => {
-    acc.spend += Number(day.spend || 0);
-    acc.impressions += Number(day.impressions || 0);
-    acc.clicks += Number(day.clicks || 0);
-    acc.conversions += Number(day.conversions || 0);
-    acc.revenue += Number(day.revenue || 0);
-    return acc;
-  }, { spend: 0, impressions: 0, clicks: 0, conversions: 0, revenue: 0 });
+  const totals = slice.reduce(
+    (acc, day) => {
+      acc.spend += Number(day.spend || 0);
+      acc.impressions += Number(day.impressions || 0);
+      acc.clicks += Number(day.clicks || 0);
+      acc.conversions += Number(day.conversions || 0);
+      acc.revenue += Number(day.revenue || 0);
+      return acc;
+    },
+    { spend: 0, impressions: 0, clicks: 0, conversions: 0, revenue: 0 },
+  );
   return {
     spend: round2(totals.spend),
     impressions: totals.impressions,
@@ -194,7 +205,7 @@ export function totalsForDays(campaign, days) {
     revenue: round2(totals.revenue),
     roas: totals.spend > 0 ? round2(totals.revenue / totals.spend) : 0,
     acos_pct: totals.revenue > 0 ? round1((totals.spend / totals.revenue) * 100) : 0,
-    cpc: totals.clicks > 0 ? round2(totals.spend / totals.clicks) : 0
+    cpc: totals.clicks > 0 ? round2(totals.spend / totals.clicks) : 0,
   };
 }
 
@@ -242,13 +253,16 @@ export function recomputeDerived(snapshot, config = {}) {
   const platforms = Array.isArray(snapshot.platforms) ? snapshot.platforms : [];
   for (const platform of platforms) {
     const own = campaigns.filter((campaign) => campaign.platform === platform.platform_id);
-    const totals = own.reduce((acc, campaign) => {
-      const all = totalsForDays(campaign, 0);
-      acc.spend += all.spend;
-      acc.revenue += all.revenue;
-      acc.conversions += all.conversions;
-      return acc;
-    }, { spend: 0, revenue: 0, conversions: 0 });
+    const totals = own.reduce(
+      (acc, campaign) => {
+        const all = totalsForDays(campaign, 0);
+        acc.spend += all.spend;
+        acc.revenue += all.revenue;
+        acc.conversions += all.conversions;
+        return acc;
+      },
+      { spend: 0, revenue: 0, conversions: 0 },
+    );
     platform.campaign_count = own.length;
     platform.spend_14d = round2(totals.spend);
     platform.revenue_14d = round2(totals.revenue);
@@ -259,18 +273,21 @@ export function recomputeDerived(snapshot, config = {}) {
 
   const month = latest ? latest.slice(0, 7) : "";
   const inMonth = (day) => month && day.date.startsWith(month);
-  const all = campaigns.reduce((acc, campaign) => {
-    for (const day of campaign.daily || []) {
-      acc.spend += Number(day.spend || 0);
-      acc.revenue += Number(day.revenue || 0);
-      acc.conversions += Number(day.conversions || 0);
-      if (inMonth(day)) {
-        acc.spendMtd += Number(day.spend || 0);
-        acc.revenueMtd += Number(day.revenue || 0);
+  const all = campaigns.reduce(
+    (acc, campaign) => {
+      for (const day of campaign.daily || []) {
+        acc.spend += Number(day.spend || 0);
+        acc.revenue += Number(day.revenue || 0);
+        acc.conversions += Number(day.conversions || 0);
+        if (inMonth(day)) {
+          acc.spendMtd += Number(day.spend || 0);
+          acc.revenueMtd += Number(day.revenue || 0);
+        }
       }
-    }
-    return acc;
-  }, { spend: 0, revenue: 0, conversions: 0, spendMtd: 0, revenueMtd: 0 });
+      return acc;
+    },
+    { spend: 0, revenue: 0, conversions: 0, spendMtd: 0, revenueMtd: 0 },
+  );
 
   const budgetRiskPct = Number(config.thresholds?.budget_risk_pct || 85);
   snapshot.metrics = {
@@ -286,9 +303,12 @@ export function recomputeDerived(snapshot, config = {}) {
     campaigns_total: campaigns.length,
     campaigns_active: campaigns.filter((campaign) => campaign.status === "active").length,
     anomalies_open: anomalies.filter((anomaly) => anomaly.state === "open").length,
-    anomalies_critical: anomalies.filter((anomaly) => anomaly.state === "open" && anomaly.severity === "critical").length,
+    anomalies_critical: anomalies.filter((anomaly) => anomaly.state === "open" && anomaly.severity === "critical")
+      .length,
     adjustments_needing_review: adjustments.filter((item) => item.status === "needs_review").length,
-    budget_at_risk_today: campaigns.filter((campaign) => campaign.status === "active" && Number(campaign.budget_spent_today_pct || 0) >= budgetRiskPct).length
+    budget_at_risk_today: campaigns.filter(
+      (campaign) => campaign.status === "active" && Number(campaign.budget_spent_today_pct || 0) >= budgetRiskPct,
+    ).length,
   };
   return snapshot;
 }
@@ -305,7 +325,7 @@ const VERDICTS = new Set(["approve", "request_changes", "block", "note"]);
 const VERDICT_STATUS = {
   approve: "approved",
   request_changes: "changes_requested",
-  block: "blocked"
+  block: "blocked",
 };
 
 export async function applyDecision({ adjustment_id, verdict, note }) {
@@ -313,7 +333,9 @@ export async function applyDecision({ adjustment_id, verdict, note }) {
   if (!VERDICTS.has(verdict)) throw new Error(`verdict must be one of: ${[...VERDICTS].join(", ")}`);
   const lock = await readLock();
   if (lock) {
-    const error = new Error(`Agent lock is held by ${lock.owner || "unknown"}: ${lock.message || "working"}`);
+    const error = /** @type {any} */ (
+      new Error(`Agent lock is held by ${lock.owner || "unknown"}: ${lock.message || "working"}`)
+    );
     error.code = "LOCKED";
     throw error;
   }
@@ -325,7 +347,7 @@ export async function applyDecision({ adjustment_id, verdict, note }) {
     adjustment_id,
     verdict,
     note: typeof note === "string" ? note : "",
-    decided_at: decidedAt
+    decided_at: decidedAt,
   };
   if (verdict !== "note") adjustment.status = VERDICT_STATUS[verdict];
   adjustment.decision = decision;
@@ -337,7 +359,9 @@ export async function applyDecision({ adjustment_id, verdict, note }) {
   decisions.updated_at = decidedAt;
 
   snapshot.metrics = snapshot.metrics || {};
-  snapshot.metrics.adjustments_needing_review = (snapshot.adjustments || []).filter((item) => item.status === "needs_review").length;
+  snapshot.metrics.adjustments_needing_review = (snapshot.adjustments || []).filter(
+    (item) => item.status === "needs_review",
+  ).length;
 
   await writeJson(DECISIONS_PATH, decisions);
   await writeJson(SNAPSHOT_PATH, snapshot);
@@ -352,7 +376,7 @@ export async function applyDecision({ adjustment_id, verdict, note }) {
       title: adjustment.title || "",
       request: decision.note,
       status: "queued",
-      created_at: decidedAt
+      created_at: decidedAt,
     });
     tasks.updated_at = decidedAt;
     await writeJson(AGENT_TASKS_PATH, tasks);

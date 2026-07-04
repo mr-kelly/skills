@@ -21,7 +21,7 @@ import {
   round1,
   round2,
   totalsForDays,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const OWNER = "kelly-ads-checks";
@@ -60,13 +60,17 @@ function detectAnomalies(snapshot, thresholds, defaultAcos) {
           campaign_id: campaign.campaign_id,
           platform: campaign.platform,
           target_id: "",
-          evidence: `ACOS ${totals.acos_pct.toFixed(1)}% vs ${target.toFixed(0)}% target for ${breachDays}+ consecutive days.`
+          evidence: `ACOS ${totals.acos_pct.toFixed(1)}% vs ${target.toFixed(0)}% target for ${breachDays}+ consecutive days.`,
         });
       }
     }
 
     // 2) Daily budget exhausted before day end.
-    if (campaign.status === "active" && Number(campaign.daily_budget || 0) > 0 && Number(campaign.budget_spent_today_pct || 0) >= budgetPct) {
+    if (
+      campaign.status === "active" &&
+      Number(campaign.daily_budget || 0) > 0 &&
+      Number(campaign.budget_spent_today_pct || 0) >= budgetPct
+    ) {
       found.push({
         anomaly_id: `anm-budget_exhausted-${campaign.campaign_id}`,
         type: "budget_exhausted",
@@ -74,7 +78,7 @@ function detectAnomalies(snapshot, thresholds, defaultAcos) {
         campaign_id: campaign.campaign_id,
         platform: campaign.platform,
         target_id: "",
-        evidence: `Daily budget ${snapshot.currency || "USD"} ${round2(campaign.daily_budget).toFixed(2)} already ${Number(campaign.budget_spent_today_pct)}% spent before day end.`
+        evidence: `Daily budget ${snapshot.currency || "USD"} ${round2(campaign.daily_budget).toFixed(2)} already ${Number(campaign.budget_spent_today_pct)}% spent before day end.`,
       });
     }
 
@@ -90,7 +94,7 @@ function detectAnomalies(snapshot, thresholds, defaultAcos) {
           campaign_id: campaign.campaign_id,
           platform: campaign.platform,
           target_id: term.target_id,
-          evidence: `${snapshot.currency || "USD"} ${spend.toFixed(2)} on '${term.text}' with ${Number(term.clicks || 0)} clicks and 0 orders in 14 days.`
+          evidence: `${snapshot.currency || "USD"} ${spend.toFixed(2)} on '${term.text}' with ${Number(term.clicks || 0)} clicks and 0 orders in 14 days.`,
         });
       }
     }
@@ -112,7 +116,7 @@ function detectAnomalies(snapshot, thresholds, defaultAcos) {
             campaign_id: campaign.campaign_id,
             platform: campaign.platform,
             target_id: "",
-            evidence: `CPC ${round2(lastCpc).toFixed(2)} on ${last.date} vs ${round2(mean).toFixed(2)} trailing mean (+${round1(deltaPct)}%).`
+            evidence: `CPC ${round2(lastCpc).toFixed(2)} on ${last.date} vs ${round2(mean).toFixed(2)} trailing mean (+${round1(deltaPct)}%).`,
           });
         }
       }
@@ -127,7 +131,7 @@ function detectAnomalies(snapshot, thresholds, defaultAcos) {
         campaign_id: campaign.campaign_id,
         platform: campaign.platform,
         target_id: "",
-        evidence: `Campaign '${campaign.name}' is rejected by the platform.`
+        evidence: `Campaign '${campaign.name}' is rejected by the platform.`,
       });
     }
     for (const term of campaign.targets || []) {
@@ -139,7 +143,7 @@ function detectAnomalies(snapshot, thresholds, defaultAcos) {
           campaign_id: campaign.campaign_id,
           platform: campaign.platform,
           target_id: term.target_id,
-          evidence: `Ad '${term.text}' was rejected by the platform.`
+          evidence: `Ad '${term.text}' was rejected by the platform.`,
         });
       }
     }
@@ -162,7 +166,7 @@ function skeletonAdjustment(snapshot, anomaly, ref) {
     note: "",
     created_at: new Date().toISOString(),
     decision: null,
-    execution: null
+    execution: null,
   };
   if (anomaly.type === "zero_conversion_spend" && term && term.type === "search_term") {
     return {
@@ -172,7 +176,7 @@ function skeletonAdjustment(snapshot, anomaly, ref) {
       title: `Add '${term.text}' as a negative keyword`,
       target: { kind: "term", id: term.target_id, text: term.text },
       current_value: `${term.match_type || "broad"} match, enabled`,
-      proposed_value: `Negative exact on ${campaign.name || anomaly.campaign_id}`
+      proposed_value: `Negative exact on ${campaign.name || anomaly.campaign_id}`,
     };
   }
   if (anomaly.type === "zero_conversion_spend") {
@@ -183,7 +187,7 @@ function skeletonAdjustment(snapshot, anomaly, ref) {
       title: `Pause '${term?.text || anomaly.target_id}'`,
       target: { kind: "term", id: anomaly.target_id, text: term?.text || "" },
       current_value: "Enabled",
-      proposed_value: "Paused"
+      proposed_value: "Paused",
     };
   }
   if (anomaly.type === "rejected") {
@@ -192,9 +196,13 @@ function skeletonAdjustment(snapshot, anomaly, ref) {
       adjustment_id: `adj-refresh-${anomaly.campaign_id}${anomaly.target_id ? `-${anomaly.target_id}` : ""}`,
       type: "creative_refresh",
       title: `Replace rejected creative on ${campaign.name || anomaly.campaign_id}`,
-      target: { kind: "creative", id: anomaly.target_id || anomaly.campaign_id, text: term?.text || campaign.name || "" },
+      target: {
+        kind: "creative",
+        id: anomaly.target_id || anomaly.campaign_id,
+        text: term?.text || campaign.name || "",
+      },
       current_value: term?.text ? `${term.text} (rejected)` : "Rejected creative",
-      proposed_value: "New compliant creative (agent to propose)"
+      proposed_value: "New compliant creative (agent to propose)",
     };
   }
   // acos_breach fallback (only drafted when critical).
@@ -205,7 +213,7 @@ function skeletonAdjustment(snapshot, anomaly, ref) {
     title: `Lower bids on ${campaign.name || anomaly.campaign_id}`,
     target: { kind: "campaign", id: anomaly.campaign_id, text: "all enabled targets" },
     current_value: "Current bids",
-    proposed_value: "Lower bids (agent to size the cut)"
+    proposed_value: "Lower bids (agent to size the cut)",
   };
 }
 
@@ -254,7 +262,7 @@ async function main() {
           state: "open",
           detected_at: now,
           first_seen_at: now,
-          adjustment_id: ""
+          adjustment_id: "",
         });
         created += 1;
       }
@@ -282,7 +290,9 @@ async function main() {
       drafted += 1;
     }
 
-    const criticalOpen = snapshot.anomalies.filter((item) => item.state === "open" && item.severity === "critical").length;
+    const criticalOpen = snapshot.anomalies.filter(
+      (item) => item.state === "open" && item.severity === "critical",
+    ).length;
     snapshot.generated_at = now;
     snapshot.source = "kelly-ads";
     snapshot.warnings = (snapshot.warnings || []).filter((warning) => warning.id !== "no-snapshot");
@@ -292,11 +302,13 @@ async function main() {
       platform: "",
       kind: "checks",
       message: `Anomaly checks completed: ${found.length} anomaly(ies) active (${criticalOpen} critical), ${created} new, ${resolved} auto-resolved, ${drafted} skeleton adjustment(s) drafted.`,
-      rows: found.length
+      rows: found.length,
     });
     recomputeDerived(snapshot, config);
     await writeJson(SNAPSHOT_PATH, snapshot);
-    console.log(`Checks done: ${found.length} active anomaly(ies) (${created} new, ${updated} updated, ${resolved} auto-resolved), ${drafted} skeleton adjustment card(s) drafted.`);
+    console.log(
+      `Checks done: ${found.length} active anomaly(ies) (${created} new, ${updated} updated, ${resolved} auto-resolved), ${drafted} skeleton adjustment card(s) drafted.`,
+    );
     console.log(`Wrote ${SNAPSHOT_PATH}`);
   } finally {
     await releaseLock();

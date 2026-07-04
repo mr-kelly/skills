@@ -12,6 +12,10 @@ const DIRECTIONS = new Set(["incoming", "outgoing"]);
 const KINDS = new Set(["dm", "group", "channel", "thread"]);
 const CONNECTORS = new Set(["slack", "discord", "telegram", "whatsapp_cloud", "browser_agent", "manual"]);
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -63,7 +67,8 @@ const accountIds = new Set();
 snapshot.accounts.forEach((account, index) => {
   const path = `root.accounts[${index}]`;
   if (!isObject(account)) fail(`${path} must be an object`);
-  for (const key of ["account_id", "platform", "connector", "display_name", "status"]) requireString(account, key, path);
+  for (const key of ["account_id", "platform", "connector", "display_name", "status"])
+    requireString(account, key, path);
   if (!CONNECTORS.has(account.connector)) fail(`${path}.connector must be one of ${[...CONNECTORS].join("|")}`);
   if (accountIds.has(account.account_id)) fail(`${path}.account_id duplicates ${account.account_id}`);
   accountIds.add(account.account_id);
@@ -80,11 +85,14 @@ snapshot.conversations.forEach((conversation, index) => {
   if (!KINDS.has(conversation.kind)) fail(`${path}.kind must be one of ${[...KINDS].join("|")}`);
   requireBoolean(conversation, "unread", path);
   requireBoolean(conversation, "awaiting_reply", path);
-  if (conversationIds.has(conversation.conversation_id)) fail(`${path}.conversation_id duplicates ${conversation.conversation_id}`);
+  if (conversationIds.has(conversation.conversation_id))
+    fail(`${path}.conversation_id duplicates ${conversation.conversation_id}`);
   conversationIds.add(conversation.conversation_id);
-  if (!accountIds.has(conversation.account_id)) fail(`${path}.account_id does not match an account: ${conversation.account_id}`);
+  if (!accountIds.has(conversation.account_id))
+    fail(`${path}.account_id does not match an account: ${conversation.account_id}`);
   if (!Array.isArray(conversation.participants)) fail(`${path}.participants must be an array`);
-  if (!Array.isArray(conversation.messages) || !conversation.messages.length) fail(`${path}.messages must be a non-empty array`);
+  if (!Array.isArray(conversation.messages) || !conversation.messages.length)
+    fail(`${path}.messages must be a non-empty array`);
   const messageIds = new Set();
   conversation.messages.forEach((message, mIndex) => {
     const mPath = `${path}.messages[${mIndex}]`;
@@ -137,7 +145,8 @@ if (outbox) {
     replyIds.add(reply.reply_id);
     if (refs.has(reply.ref)) fail(`${path}.ref duplicates #${reply.ref}`);
     refs.add(reply.ref);
-    if (!conversationIds.has(reply.conversation_id)) fail(`${path}.conversation_id does not match a conversation: ${reply.conversation_id}`);
+    if (!conversationIds.has(reply.conversation_id))
+      fail(`${path}.conversation_id does not match a conversation: ${reply.conversation_id}`);
     if (reply.decision !== null && reply.decision !== undefined) {
       if (!isObject(reply.decision)) fail(`${path}.decision must be an object or null`);
       requireString(reply.decision, "action", `${path}.decision`);

@@ -18,7 +18,7 @@ import {
   readLock,
   readSnapshot,
   recomputeMetrics,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 function fail(message) {
@@ -130,7 +130,7 @@ function fromCsv(text) {
       currency: record.currency || "USD",
       lead_time_days: Number(record.lead_time_days) || 0,
       specs: parsePairs(record.specs),
-      faq: parseFaq(record.faq)
+      faq: parseFaq(record.faq),
     };
   });
 }
@@ -147,7 +147,11 @@ function fromJson(text) {
   return list.map((entry, index) => {
     if (!entry.sku || !entry.name) fail(`products[${index}] needs sku and name`);
     return {
-      product_id: entry.product_id || `prod-${String(entry.sku).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      product_id:
+        entry.product_id ||
+        `prod-${String(entry.sku)
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")}`,
       sku: String(entry.sku),
       name: String(entry.name),
       category: String(entry.category || ""),
@@ -157,7 +161,7 @@ function fromJson(text) {
       currency: String(entry.currency || "USD"),
       lead_time_days: Number(entry.lead_time_days) || 0,
       specs: entry.specs && typeof entry.specs === "object" ? entry.specs : {},
-      faq: Array.isArray(entry.faq) ? entry.faq.filter((item) => item && item.q && item.a) : []
+      faq: Array.isArray(entry.faq) ? entry.faq.filter((item) => item?.q && item.a) : [],
     };
   });
 }
@@ -168,8 +172,10 @@ const seen = new Set();
 for (const product of incoming) {
   if (seen.has(product.product_id)) fail(`duplicate product_id: ${product.product_id}`);
   seen.add(product.product_id);
-  if (product.price_min !== undefined && Number.isNaN(product.price_min)) fail(`${product.product_id}: price_min is not a number`);
-  if (product.price_max !== undefined && Number.isNaN(product.price_max)) fail(`${product.product_id}: price_max is not a number`);
+  if (product.price_min !== undefined && Number.isNaN(product.price_min))
+    fail(`${product.product_id}: price_min is not a number`);
+  if (product.price_max !== undefined && Number.isNaN(product.price_max))
+    fail(`${product.product_id}: price_max is not a number`);
   if (product.price_min !== undefined && product.price_max !== undefined && product.price_min > product.price_max) {
     fail(`${product.product_id}: price_min ${product.price_min} is greater than price_max ${product.price_max}`);
   }
@@ -182,7 +188,9 @@ const guard = config.quote_defaults?.min_price_guard;
 if (guard?.enabled) {
   const missing = incoming.filter((product) => product.price_min === undefined);
   if (missing.length) {
-    console.warn(`Warning: min-price guard is enabled but ${missing.length} product(s) have no price_min: ${missing.map((product) => product.sku).join(", ")}`);
+    console.warn(
+      `Warning: min-price guard is enabled but ${missing.length} product(s) have no price_min: ${missing.map((product) => product.sku).join(", ")}`,
+    );
   }
 }
 
@@ -205,7 +213,7 @@ try {
     const normalized = {
       ...product,
       price_min: product.price_min === undefined ? 0 : product.price_min,
-      price_max: product.price_max === undefined ? (product.price_min ?? 0) : product.price_max
+      price_max: product.price_max === undefined ? (product.price_min ?? 0) : product.price_max,
     };
     if (byId.has(product.product_id)) {
       Object.assign(byId.get(product.product_id), normalized);
@@ -224,13 +232,15 @@ try {
     at: nowIso,
     status: "ok",
     message: `Product KB sync from ${file}: ${created} added, ${updated} updated.`,
-    new_messages: 0
+    new_messages: 0,
   });
   snapshot.sync_log = snapshot.sync_log.slice(-100);
   snapshot.generated_at = nowIso;
   recomputeMetrics(snapshot);
   await writeJson(SNAPSHOT_PATH, snapshot);
-  console.log(`Product KB synced: ${created} added, ${updated} updated (${snapshot.products.length} total) -> ${SNAPSHOT_PATH}`);
+  console.log(
+    `Product KB synced: ${created} added, ${updated} updated (${snapshot.products.length} total) -> ${SNAPSHOT_PATH}`,
+  );
 } finally {
   await fs.rm(LOCK_PATH, { force: true });
 }

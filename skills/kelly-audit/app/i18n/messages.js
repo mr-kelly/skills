@@ -104,12 +104,12 @@ export const messages = {
         overdue_receivable: "overdue receivable",
         duplicate: "duplicate",
         unmatched_payment: "unmatched payment",
-        irregular_entry: "irregular entry"
+        irregular_entry: "irregular entry",
       },
       severity: {
         low: "low",
         medium: "medium",
-        high: "high"
+        high: "high",
       },
       status: {
         needs_review: "needs review",
@@ -131,12 +131,12 @@ export const messages = {
         executed: "executed",
         planned: "planned",
         ready_for_agent: "ready for agent",
-        current: "current"
+        current: "current",
       },
       operation: {
         chase_receivable: "chase receivable",
         reissue_invoice: "reissue invoice",
-        flag_to_accountant: "flag to accountant"
+        flag_to_accountant: "flag to accountant",
       },
       method: {
         wire: "wire",
@@ -144,9 +144,9 @@ export const messages = {
         check: "check",
         bank_transfer: "bank transfer",
         alipay: "Alipay",
-        other: "other"
-      }
-    }
+        other: "other",
+      },
+    },
   },
   zh: {
     agingTitle: "应收账龄",
@@ -253,12 +253,12 @@ export const messages = {
         overdue_receivable: "逾期应收",
         duplicate: "重复",
         unmatched_payment: "无主回款",
-        irregular_entry: "异常分录"
+        irregular_entry: "异常分录",
       },
       severity: {
         low: "低",
         medium: "中",
-        high: "高"
+        high: "高",
       },
       status: {
         needs_review: "待复核",
@@ -280,12 +280,12 @@ export const messages = {
         executed: "已执行",
         planned: "已计划",
         ready_for_agent: "待代理执行",
-        current: "未到期"
+        current: "未到期",
       },
       operation: {
         chase_receivable: "催收应收款",
         reissue_invoice: "补开/重开发票",
-        flag_to_accountant: "转交会计"
+        flag_to_accountant: "转交会计",
       },
       method: {
         wire: "电汇",
@@ -293,8 +293,8 @@ export const messages = {
         check: "支票",
         bank_transfer: "银行转账",
         alipay: "支付宝",
-        other: "其他"
-      }
-    }
-  }
+        other: "其他",
+      },
+    },
+  },
 };

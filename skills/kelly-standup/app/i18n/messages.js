@@ -92,7 +92,7 @@ export const messages = {
         discord: "Discord",
         whatsapp: "WhatsApp",
         doc: "Doc",
-        manual: "Manual"
+        manual: "Manual",
       },
       channel: {
         slack: "Slack",
@@ -100,38 +100,38 @@ export const messages = {
         discord: "Discord",
         whatsapp: "WhatsApp",
         email: "Email",
-        doc: "Doc"
+        doc: "Doc",
       },
       mood: {
         good: "good",
         ok: "ok",
-        stuck: "stuck"
+        stuck: "stuck",
       },
       severity: {
         high: "high",
         medium: "medium",
-        low: "low"
+        low: "low",
       },
       blocker_status: {
         open: "open",
-        resolved: "resolved"
+        resolved: "resolved",
       },
       reminder_status: {
         needs_review: "needs review",
         changes_requested: "changes requested",
         approved: "approved",
         done: "done",
-        blocked: "blocked"
+        blocked: "blocked",
       },
       reminder_type: {
         missing_checkin: "missing check-in",
-        blocker_escalation: "blocker escalation"
+        blocker_escalation: "blocker escalation",
       },
       action: {
         approve: "approve",
         request_changes: "request changes",
         revise: "revise",
-        block: "block"
+        block: "block",
       },
       workday: {
         mon: "Mon",
@@ -140,9 +140,9 @@ export const messages = {
         thu: "Thu",
         fri: "Fri",
         sat: "Sat",
-        sun: "Sun"
-      }
-    }
+        sun: "Sun",
+      },
+    },
   },
   zh: {
     age: "持续",
@@ -237,7 +237,7 @@ export const messages = {
         discord: "Discord",
         whatsapp: "WhatsApp",
         doc: "共享文档",
-        manual: "手动录入"
+        manual: "手动录入",
       },
       channel: {
         slack: "Slack",
@@ -245,38 +245,38 @@ export const messages = {
         discord: "Discord",
         whatsapp: "WhatsApp",
         email: "邮件",
-        doc: "共享文档"
+        doc: "共享文档",
       },
       mood: {
         good: "状态好",
         ok: "还行",
-        stuck: "卡住了"
+        stuck: "卡住了",
       },
       severity: {
         high: "高",
         medium: "中",
-        low: "低"
+        low: "低",
       },
       blocker_status: {
         open: "未解决",
-        resolved: "已解决"
+        resolved: "已解决",
       },
       reminder_status: {
         needs_review: "待复核",
         changes_requested: "请求修改",
         approved: "已批准",
         done: "已完成",
-        blocked: "已拒绝"
+        blocked: "已拒绝",
       },
       reminder_type: {
         missing_checkin: "缺交日报",
-        blocker_escalation: "阻塞升级"
+        blocker_escalation: "阻塞升级",
       },
       action: {
         approve: "批准",
         request_changes: "请求修改",
         revise: "修订",
-        block: "拒绝"
+        block: "拒绝",
       },
       workday: {
         mon: "周一",
@@ -285,8 +285,8 @@ export const messages = {
         thu: "周四",
         fri: "周五",
         sat: "周六",
-        sun: "周日"
-      }
-    }
-  }
+        sun: "周日",
+      },
+    },
+  },
 };

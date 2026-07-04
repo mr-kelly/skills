@@ -115,44 +115,44 @@ export const messages = {
         changes_requested: "changes requested",
         approved: "approved",
         done: "done",
-        blocked: "blocked"
+        blocked: "blocked",
       },
       result: {
         pass: "pass",
         warn: "warn",
         fail: "fail",
-        agent_review: "agent review"
+        agent_review: "agent review",
       },
       severity: {
         error: "error",
         warning: "warning",
-        info: "info"
+        info: "info",
       },
       source: {
         agent_draft: "agent draft",
-        teacher_import: "teacher import"
+        teacher_import: "teacher import",
       },
       action: {
         approve: "approved",
         request_changes: "changes requested",
         block: "blocked",
-        revise: "revised"
+        revise: "revised",
       },
       actor: {
         agent: "agent",
-        dean: "dean"
+        dean: "dean",
       },
       kind: {
         middle_school: "middle school",
         primary_school: "primary school",
         high_school: "high school",
-        training_program: "training program"
+        training_program: "training program",
       },
       type: {
         deterministic: "deterministic",
-        agent_review: "agent judged"
-      }
-    }
+        agent_review: "agent judged",
+      },
+    },
   },
   zh: {
     activities: "活动内容",
@@ -270,43 +270,43 @@ export const messages = {
         changes_requested: "已要求修改",
         approved: "已批准",
         done: "已完成",
-        blocked: "已退回"
+        blocked: "已退回",
       },
       result: {
         pass: "通过",
         warn: "提醒",
         fail: "不合格",
-        agent_review: "待智能体判断"
+        agent_review: "待智能体判断",
       },
       severity: {
         error: "错误",
         warning: "提醒",
-        info: "提示"
+        info: "提示",
       },
       source: {
         agent_draft: "智能体起草",
-        teacher_import: "教师导入"
+        teacher_import: "教师导入",
       },
       action: {
         approve: "已批准",
         request_changes: "已要求修改",
         block: "已退回",
-        revise: "已修订"
+        revise: "已修订",
       },
       actor: {
         agent: "智能体",
-        dean: "教导主任"
+        dean: "教导主任",
       },
       kind: {
         middle_school: "初中",
         primary_school: "小学",
         high_school: "高中",
-        training_program: "培训项目"
+        training_program: "培训项目",
       },
       type: {
         deterministic: "确定性",
-        agent_review: "智能体判断"
-      }
-    }
-  }
+        agent_review: "智能体判断",
+      },
+    },
+  },
 };

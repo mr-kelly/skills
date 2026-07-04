@@ -32,7 +32,13 @@ async function readJson(file, fallback = null) {
 }
 
 function slugify(value) {
-  return String(value).toLowerCase().replace(/[^a-z0-9一-鿿]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 64) || "plan";
+  return (
+    String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9一-鿿]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 64) || "plan"
+  );
 }
 
 const lock = await readJson(lockPath);
@@ -52,7 +58,7 @@ const previousReport = await readJson(reportPath);
 const alreadyExecuted = new Set(
   (previousReport?.results || [])
     .filter((item) => item.status === "executed")
-    .map((item) => `${item.review_id}:${item.operation}`)
+    .map((item) => `${item.review_id}:${item.operation}`),
 );
 
 const plansById = new Map((snapshot.plans || []).map((plan) => [plan.plan_id, plan]));
@@ -72,7 +78,7 @@ function pushResult(item, plan, operation, target, extra = {}) {
       operation,
       target,
       reason: "Already executed; skipping to stay idempotent.",
-      executed_at: now
+      executed_at: now,
     });
     return;
   }
@@ -84,7 +90,7 @@ function pushResult(item, plan, operation, target, extra = {}) {
     operation,
     target,
     ...extra,
-    executed_at: now
+    executed_at: now,
   });
 }
 
@@ -97,20 +103,20 @@ for (const item of snapshot.review_items || []) {
   if (decision.action === "approve") {
     const exportTarget = path.join("exports", `${slugify(`${plan.grade}-${plan.subject}-${plan.title}`)}.md`);
     pushResult(item, plan, "publish_plan", exportTarget, {
-      detail: "Run scripts/export_plans.mjs to write the Markdown document."
+      detail: "Run scripts/export_plans.mjs to write the Markdown document.",
     });
     const feedback = decision.draft ?? item.feedback_draft ?? "";
     if (feedback.trim()) {
       pushResult(item, plan, "send_feedback", teacher?.name || plan.teacher_id, {
         draft: feedback,
         comment: decision.comment || "",
-        detail: "Handoff only: the drafted note is sent by the agent via other channels after approval."
+        detail: "Handoff only: the drafted note is sent by the agent via other channels after approval.",
       });
     }
   } else if (decision.action === "request_changes") {
     pushResult(item, plan, "request_revision", plan.plan_id, {
       comment: decision.comment || "",
-      detail: "Queued in agent_tasks.json for the agent to redraft."
+      detail: "Queued in agent_tasks.json for the agent to redraft.",
     });
     revisionTasks.push({
       task_id: `task-${item.review_id}-${Date.parse(now)}`,
@@ -121,7 +127,7 @@ for (const item of snapshot.review_items || []) {
       comment: decision.comment || "",
       draft: decision.draft,
       requested_at: decision.decided_at || now,
-      status: "queued"
+      status: "queued",
     });
   }
 }
@@ -132,7 +138,9 @@ if (!results.length) {
 }
 
 for (const result of results) {
-  console.log(`Plan #${result.ref} ${result.review_id}: ${result.status} ${result.operation}${result.target ? ` -> ${result.target}` : ""}`);
+  console.log(
+    `Plan #${result.ref} ${result.review_id}: ${result.status} ${result.operation}${result.target ? ` -> ${result.target}` : ""}`,
+  );
 }
 
 if (!apply) {
@@ -141,22 +149,27 @@ if (!apply) {
 }
 
 // Preserve executed history so repeated --apply runs stay idempotent.
-const freshlyExecuted = new Set(results.filter((item) => item.status === "executed").map((item) => `${item.review_id}:${item.operation}`));
+const freshlyExecuted = new Set(
+  results.filter((item) => item.status === "executed").map((item) => `${item.review_id}:${item.operation}`),
+);
 const carriedForward = (previousReport?.results || []).filter(
-  (item) => item.status === "executed" && !freshlyExecuted.has(`${item.review_id}:${item.operation}`)
+  (item) => item.status === "executed" && !freshlyExecuted.has(`${item.review_id}:${item.operation}`),
 );
 const carriedKeys = new Set(carriedForward.map((item) => `${item.review_id}:${item.operation}`));
 const report = {
   executed_at: now,
   dry_run: false,
   source: "kelly-lesson",
-  results: [...carriedForward, ...results.filter((item) => !(item.status === "skipped" && carriedKeys.has(`${item.review_id}:${item.operation}`)))]
+  results: [
+    ...carriedForward,
+    ...results.filter((item) => !(item.status === "skipped" && carriedKeys.has(`${item.review_id}:${item.operation}`))),
+  ],
 };
 await fs.mkdir(dataDir, { recursive: true });
 await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
 
 if (revisionTasks.length) {
-  const tasks = (await readJson(agentTasksPath, { updated_at: "", tasks: [] }));
+  const tasks = await readJson(agentTasksPath, { updated_at: "", tasks: [] });
   for (const task of revisionTasks) {
     tasks.tasks = (tasks.tasks || []).filter((entry) => entry.review_id !== task.review_id);
     tasks.tasks.push(task);

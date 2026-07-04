@@ -8,7 +8,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -74,7 +74,7 @@ export async function applyDecision(payload = {}) {
     action,
     comment: String(payload.comment || ""),
     draft: payload.draft === undefined ? undefined : String(payload.draft),
-    decided_at: now
+    decided_at: now,
   };
   decisions.updated_at = now;
   await writeJson(DECISIONS_PATH, decisions);
@@ -90,7 +90,7 @@ export async function applyDecision(payload = {}) {
       comment: String(payload.comment || ""),
       draft: payload.draft === undefined ? undefined : String(payload.draft),
       requested_at: now,
-      status: "queued"
+      status: "queued",
     });
   }
   tasks.updated_at = now;
@@ -111,7 +111,7 @@ export function emptySnapshot() {
       plans_in_revision: 0,
       plans_needs_review: 0,
       checks_failed: 0,
-      compliance_pass_rate: 0
+      compliance_pass_rate: 0,
     },
     teachers: [],
     plans: [],
@@ -123,9 +123,10 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No lesson snapshot exists yet. Ingest a lesson plan or ask the agent to draft one from your curriculum materials."
-      }
-    ]
+        message:
+          "No lesson snapshot exists yet. Ingest a lesson plan or ask the agent to draft one from your curriculum materials.",
+      },
+    ],
   };
 }
 
@@ -189,31 +190,31 @@ export function summarizeConfig(configResult) {
       name: school.name || "",
       kind: school.kind || "",
       term: school.term || "",
-      class_length_minutes: school.class_length_minutes ?? 45
+      class_length_minutes: school.class_length_minutes ?? 45,
     },
     subjects: Array.isArray(config.subjects) ? config.subjects : [],
     grades: Array.isArray(config.grades) ? config.grades : [],
     template_sections: (Array.isArray(config.template_sections) ? config.template_sections : []).map((section) => ({
       key: section.key || "",
       label: section.label || section.key || "",
-      required: Boolean(section.required)
+      required: Boolean(section.required),
     })),
     compliance_rules: (Array.isArray(config.compliance_rules) ? config.compliance_rules : []).map((rule) => ({
       rule_id: rule.rule_id || "",
       name: rule.name || rule.rule_id || "",
       severity: rule.severity || "warning",
-      type: rule.type || "deterministic"
+      type: rule.type || "deterministic",
     })),
     export: {
       format: exportPrefs.format || "markdown",
       out_dir: exportPrefs.out_dir || "exports",
-      docx_via_agent: exportPrefs.docx_via_agent ?? true
+      docx_via_agent: exportPrefs.docx_via_agent ?? true,
     },
     feedback: {
       handoff_skill: feedback.handoff_skill || "",
       requires_approval: feedback.requires_approval ?? true,
       secret_envs: secretKeys.map((key) => feedback[key]),
-      secrets_ready: secretKeys.every((key) => Boolean(process.env[feedback[key]]))
-    }
+      secrets_ready: secretKeys.every((key) => Boolean(process.env[feedback[key]])),
+    },
   };
 }

@@ -7,9 +7,11 @@ const state = {
   query: "",
   blockerFilter: "open",
   reminderFilter: "all",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-standup-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-standup-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  demoDecisions: {}
+  demoDecisions: {},
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-standup.sidebarCollapsed";
@@ -31,7 +33,7 @@ const els = {
   reviewCount: document.querySelector("#count-review"),
   missingCount: document.querySelector("#count-missing"),
   blockerCount: document.querySelector("#count-blockers"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -78,7 +80,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -88,9 +94,7 @@ function t(key) {
 function enumLabel(value, group) {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function locale() {
@@ -99,20 +103,34 @@ function locale() {
 
 function dayLabel(isoDate) {
   if (!isoDate) return "";
-  return new Intl.DateTimeFormat(locale(), { month: "short", day: "2-digit", weekday: "short", timeZone: "UTC" })
-    .format(new Date(`${isoDate}T00:00:00.000Z`));
+  return new Intl.DateTimeFormat(locale(), {
+    month: "short",
+    day: "2-digit",
+    weekday: "short",
+    timeZone: "UTC",
+  }).format(new Date(`${isoDate}T00:00:00.000Z`));
 }
 
 function timeLabel(iso) {
   if (!iso) return "";
-  return new Intl.DateTimeFormat(locale(), { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: teamTimezone() })
-    .format(new Date(iso));
+  return new Intl.DateTimeFormat(locale(), {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: teamTimezone(),
+  }).format(new Date(iso));
 }
 
 function dateTimeLabel(iso) {
   if (!iso) return "";
-  return new Intl.DateTimeFormat(locale(), { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: teamTimezone() })
-    .format(new Date(iso));
+  return new Intl.DateTimeFormat(locale(), {
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: teamTimezone(),
+  }).format(new Date(iso));
 }
 
 function teamTimezone() {
@@ -131,7 +149,13 @@ function ageDays(isoDate) {
 
 function blockerAgeDays(blocker) {
   if (blocker.status === "resolved" && blocker.resolved_date) {
-    return Math.max(0, Math.round((Date.parse(`${blocker.resolved_date}T00:00:00.000Z`) - Date.parse(`${blocker.raised_date}T00:00:00.000Z`)) / 86400000));
+    return Math.max(
+      0,
+      Math.round(
+        (Date.parse(`${blocker.resolved_date}T00:00:00.000Z`) - Date.parse(`${blocker.raised_date}T00:00:00.000Z`)) /
+          86400000,
+      ),
+    );
   }
   return ageDays(blocker.raised_date);
 }
@@ -162,17 +186,18 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "today";
-  const route = scenario === "members"
-    ? "#/members"
-    : scenario === "blockers"
-      ? "#/blockers"
-      : scenario === "history"
-        ? "#/history"
-        : scenario === "detail"
-          ? "#/members/alex"
-          : scenario === "reminders"
-            ? "#/reminders"
-            : "#/today";
+  const route =
+    scenario === "members"
+      ? "#/members"
+      : scenario === "blockers"
+        ? "#/blockers"
+        : scenario === "history"
+          ? "#/history"
+          : scenario === "detail"
+            ? "#/members/alex"
+            : scenario === "reminders"
+              ? "#/reminders"
+              : "#/today";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -182,9 +207,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -248,7 +272,9 @@ function missingMembers(day) {
   if (!day) return [];
   const submitted = new Set((day.updates || []).map((update) => update.member_id));
   const onLeave = new Set(day.on_leave || []);
-  return members().filter((member) => member.active !== false && !submitted.has(member.member_id) && !onLeave.has(member.member_id));
+  return members().filter(
+    (member) => member.active !== false && !submitted.has(member.member_id) && !onLeave.has(member.member_id),
+  );
 }
 
 /* Shell */
@@ -332,13 +358,17 @@ function updateBlockerRows(update) {
   return `
     <div class="card-section blockers-section">
       <h4>${t("blockersLabel")}</h4>
-      ${update.blockers.map((blocker) => `
+      ${update.blockers
+        .map(
+          (blocker) => `
         <a class="card-blocker ${escapeHtml(blocker.status)}" href="#/blockers">
           ${severityBadge(blocker.severity)}
           ${blocker.status === "resolved" ? statusBadge("resolved", "blocker_status") : ""}
           <span>${escapeHtml(blocker.text)}</span>
         </a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
   `;
 }
@@ -382,7 +412,12 @@ function lastSubmittedBefore(memberId, beforeDate) {
 
 function missingCard(member, { withReminderLink = false, beforeDate = "" } = {}) {
   const reminder = withReminderLink
-    ? reminders().find((item) => item.member_id === member.member_id && item.type === "missing_checkin" && ["needs_review", "changes_requested", "approved"].includes(item.status))
+    ? reminders().find(
+        (item) =>
+          item.member_id === member.member_id &&
+          item.type === "missing_checkin" &&
+          ["needs_review", "changes_requested", "approved"].includes(item.status),
+      )
     : null;
   return `
     <article class="member-card missing">
@@ -424,12 +459,14 @@ function dayBoard(day, { withReminderLink = false } = {}) {
   const onLeave = new Set(day.on_leave || []);
   const cards = members()
     .filter((member) => member.active !== false)
-    .filter((member) => matchesQuery([
-      member.name,
-      member.role,
-      ...(updatesById.get(member.member_id)?.yesterday || []),
-      ...(updatesById.get(member.member_id)?.today || [])
-    ]))
+    .filter((member) =>
+      matchesQuery([
+        member.name,
+        member.role,
+        ...(updatesById.get(member.member_id)?.yesterday || []),
+        ...(updatesById.get(member.member_id)?.today || []),
+      ]),
+    )
     .map((member) => {
       const update = updatesById.get(member.member_id);
       if (update) return memberCard(member, update);
@@ -452,12 +489,16 @@ function digestPanel(day) {
 function warnings() {
   const items = state.snapshot?.warnings || [];
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 /* Views */
@@ -503,7 +544,8 @@ function renderMembers() {
   const rows = members().filter((member) => matchesQuery([member.name, member.role, member.timezone, member.channel]));
   els.title.textContent = t("members");
   els.subtitle.textContent = `${rows.length} ${t("members").toLowerCase()}`;
-  els.content.innerHTML = rows.length ? `
+  els.content.innerHTML = rows.length
+    ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -512,7 +554,9 @@ function renderMembers() {
           </tr>
         </thead>
         <tbody>
-          ${rows.map((member) => `
+          ${rows
+            .map(
+              (member) => `
             <tr>
               <td class="cell-text">
                 <a class="member-cell" href="#/members/${encodeURIComponent(member.member_id)}">
@@ -527,11 +571,14 @@ function renderMembers() {
               <td>${member.open_blockers ? `<a href="#/blockers">${member.open_blockers}</a>` : "0"}</td>
               <td>${member.last_submitted_date ? escapeHtml(dayLabel(member.last_submitted_date)) : "—"}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
-  ` : `<div class="empty">${t("empty")}</div>`;
+  `
+    : `<div class="empty">${t("empty")}</div>`;
 }
 
 function renderMemberDetail() {
@@ -540,7 +587,9 @@ function renderMemberDetail() {
     renderMembers();
     return;
   }
-  const openBlockers = blockersList().filter((blocker) => blocker.member_id === member.member_id && blocker.status === "open");
+  const openBlockers = blockersList().filter(
+    (blocker) => blocker.member_id === member.member_id && blocker.status === "open",
+  );
   const timeline = days()
     .map((day) => ({ day, update: (day.updates || []).find((update) => update.member_id === member.member_id) }))
     .reverse()
@@ -551,36 +600,52 @@ function renderMemberDetail() {
     <a class="back-link" href="#/members">← ${t("members")}</a>
     <section class="detail">
       <div class="detail-main">
-        ${openBlockers.length ? `
+        ${
+          openBlockers.length
+            ? `
           <div class="panel">
             <h2>${t("openBlockersLabel")}</h2>
-            ${openBlockers.map((blocker) => `
+            ${openBlockers
+              .map(
+                (blocker) => `
               <div class="blocker-row">
                 ${severityBadge(blocker.severity)}
                 <span class="blocker-text">${escapeHtml(blocker.text)}</span>
                 <span class="muted">${escapeHtml(dayLabel(blocker.raised_date))} · ${blockerAgeDays(blocker)} ${t("days")}</span>
               </div>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </div>
-        ` : ""}
+        `
+            : ""
+        }
         <div class="panel">
           <h2>${t("recentUpdates")}</h2>
           <ol class="timeline">
-            ${timeline.map(({ day, update }) => `
+            ${timeline
+              .map(
+                ({ day, update }) => `
               <li class="timeline-item ${update ? "" : "missed"}">
                 <div class="timeline-head">
                   <strong><a href="#/history/${encodeURIComponent(day.date)}">${escapeHtml(dayLabel(day.date))}</a></strong>
                   ${update ? `<span class="muted">${escapeHtml(timeLabel(update.submitted_at))} ${t("via")} ${escapeHtml(enumLabel(update.source, "source"))}</span> ${moodDot(update.mood)}` : `<span class="muted">${(day.on_leave || []).includes(member.member_id) ? t("onLeave") : t("notSubmitted")}</span>`}
                 </div>
-                ${update ? `
+                ${
+                  update
+                    ? `
                   <div class="timeline-cols">
                     <div><h4>${t("yesterday")}</h4><ul>${itemList(update.yesterday)}</ul></div>
                     <div><h4>${t("todayPlan")}</h4><ul>${itemList(update.today)}</ul></div>
                   </div>
                   ${updateBlockerRows(update)}
-                ` : ""}
+                `
+                    : ""
+                }
               </li>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </ol>
         </div>
       </div>
@@ -605,7 +670,15 @@ function renderBlockers() {
   const all = blockersList();
   const filtered = all
     .filter((blocker) => state.blockerFilter === "all" || blocker.status === state.blockerFilter)
-    .filter((blocker) => matchesQuery([blocker.text, memberName(blocker.member_id), blocker.severity, blocker.status, blocker.suggested_action]));
+    .filter((blocker) =>
+      matchesQuery([
+        blocker.text,
+        memberName(blocker.member_id),
+        blocker.severity,
+        blocker.status,
+        blocker.suggested_action,
+      ]),
+    );
   const chip = (key, label, count) => `
     <button type="button" class="chip ${state.blockerFilter === key ? "active" : ""}" data-blocker-filter="${key}" title="${escapeHtml(label)}">
       ${escapeHtml(label)} <span>${count}</span>
@@ -620,9 +693,11 @@ function renderBlockers() {
       ${chip("all", t("all"), all.length)}
     </div>
     <div class="blocker-list">
-      ${filtered.map((blocker) => {
-        const owner = memberById(blocker.member_id);
-        return `
+      ${
+        filtered
+          .map((blocker) => {
+            const owner = memberById(blocker.member_id);
+            return `
           <article class="blocker-card ${escapeHtml(blocker.status)} sev-${escapeHtml(blocker.severity)}">
             <header class="blocker-head">
               ${severityBadge(blocker.severity)}
@@ -631,19 +706,25 @@ function renderBlockers() {
               <span class="muted">${t("raised")} ${escapeHtml(dayLabel(blocker.raised_date))} · ${t("age")} ${blockerAgeDays(blocker)} ${t("days")}</span>
             </header>
             <p class="blocker-text">${escapeHtml(blocker.text)}</p>
-            ${blocker.suggested_action ? `
+            ${
+              blocker.suggested_action
+                ? `
               <div class="reason">
                 <span>${t("suggestedAction")}</span>
                 ${escapeHtml(blocker.suggested_action)}
               </div>
-            ` : ""}
+            `
+                : ""
+            }
             <div class="blocker-foot">
               <a href="#/history/${encodeURIComponent(blocker.raised_date)}">${t("linkedUpdate")}: ${escapeHtml(dayLabel(blocker.raised_date))}</a>
               ${blocker.resolved_date ? `<span class="muted">${t("resolved")}: ${escapeHtml(dayLabel(blocker.resolved_date))}</span>` : ""}
             </div>
           </article>
         `;
-      }).join("") || `<div class="empty">${t("noBlockers")}</div>`}
+          })
+          .join("") || `<div class="empty">${t("noBlockers")}</div>`
+      }
     </div>
   `;
 }
@@ -678,19 +759,27 @@ function reminderCard(reminder) {
         <button type="button" data-decision="revise" data-id="${escapeHtml(reminder.id)}" title="${t("saveNote")}" ${disabled}>${t("saveNote")}</button>
         <button type="button" class="danger" data-decision="block" data-id="${escapeHtml(reminder.id)}" title="${t("block")}" ${disabled}>${t("block")}</button>
       </div>
-      ${reminder.decision ? `
+      ${
+        reminder.decision
+          ? `
         <div class="decision-info">
           <strong>${t("decision")}: ${escapeHtml(enumLabel(reminder.decision.action, "action"))}</strong>
           ${reminder.decision.note ? `<span>${escapeHtml(reminder.decision.note)}</span>` : ""}
           <small>${t("decided")} ${escapeHtml(reminder.decision.decided_at ? dateTimeLabel(reminder.decision.decided_at) : "")}${reminder.decision.action === "request_changes" ? ` · ${t("agentQueued")}` : ""}</small>
         </div>
-      ` : ""}
-      ${reminder.execution ? `
+      `
+          : ""
+      }
+      ${
+        reminder.execution
+          ? `
         <div class="execution-info">
           ${(reminder.execution.operations || []).map((op) => `<div><code>${escapeHtml(op.operation)}</code> → ${escapeHtml(enumLabel(op.channel, "channel"))} · ${escapeHtml(memberName(op.target))}</div>`).join("")}
           <small>${escapeHtml(reminder.execution.detail || "")}</small>
         </div>
-      ` : ""}
+      `
+          : ""
+      }
     </article>
   `;
 }
@@ -699,7 +788,16 @@ function renderReminders() {
   const all = reminders();
   const filtered = all
     .filter((reminder) => state.reminderFilter === "all" || reminder.status === state.reminderFilter)
-    .filter((reminder) => matchesQuery([reminder.title, reminder.reason, reminder.draft, memberName(reminder.member_id), reminder.status, reminder.channel]));
+    .filter((reminder) =>
+      matchesQuery([
+        reminder.title,
+        reminder.reason,
+        reminder.draft,
+        memberName(reminder.member_id),
+        reminder.status,
+        reminder.channel,
+      ]),
+    );
   const chip = (key, label, count) => `
     <button type="button" class="chip ${state.reminderFilter === key ? "active" : ""}" data-reminder-filter="${key}" title="${escapeHtml(label)}">
       ${escapeHtml(label)} <span>${count}</span>
@@ -724,9 +822,12 @@ function renderHistory() {
   const list = days().slice().reverse();
   els.title.textContent = t("history");
   els.subtitle.textContent = `${list.length} ${t("days")}`;
-  els.content.innerHTML = list.length ? `
+  els.content.innerHTML = list.length
+    ? `
     <div class="history-list">
-      ${list.map((day) => `
+      ${list
+        .map(
+          (day) => `
         <a class="history-row" href="#/history/${encodeURIComponent(day.date)}">
           <span class="history-date"><strong>${escapeHtml(dayLabel(day.date))}</strong></span>
           <span class="history-participation">
@@ -735,9 +836,12 @@ function renderHistory() {
           </span>
           <span class="history-digest">${escapeHtml(day.digest || "")}</span>
         </a>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
-  ` : `<div class="empty">${t("empty")}</div>`;
+  `
+    : `<div class="empty">${t("empty")}</div>`;
 }
 
 function renderHistoryDetail() {
@@ -779,19 +883,31 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("members")}</h2>
-        ${(summary.members || []).map((member) => `
+        ${
+          (summary.members || [])
+            .map(
+              (member) => `
           <div class="settings-account">
             <strong>${escapeHtml(member.name)}</strong>
             <span>${escapeHtml(member.role || "")}${member.timezone ? ` · ${escapeHtml(member.timezone)}` : ""} · ${escapeHtml(enumLabel(member.channel, "channel"))}</span>
             <span><code>${escapeHtml(member.contact_env || "")}</code> ${member.contact_ready ? t("contactReady") : t("contactMissing")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("standupQuestions")}</h2>
-        ${(summary.standup_questions || []).map((question, index) => `
+        ${
+          (summary.standup_questions || [])
+            .map(
+              (question, index) => `
           <div class="settings-question"><span class="muted">${index + 1}.</span> ${escapeHtml(question)}</div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
     </div>
   `;
@@ -807,7 +923,7 @@ async function submitDecision(id, action) {
       action,
       note,
       draft: typeof draft === "string" ? draft : null,
-      decided_at: new Date().toISOString()
+      decided_at: new Date().toISOString(),
     };
     render();
     return;
@@ -819,8 +935,8 @@ async function submitDecision(id, action) {
       id,
       action,
       note,
-      draft: typeof draft === "string" ? draft : null
-    })
+      draft: typeof draft === "string" ? draft : null,
+    }),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -850,13 +966,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 window.addEventListener("hashchange", setRoute);

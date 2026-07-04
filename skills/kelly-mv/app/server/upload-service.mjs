@@ -2,8 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { GENERATED_DIR, STORYBOARD_IMAGE_DIR } from "./paths.mjs";
 import { loadProject, saveProject } from "./project-store.mjs";
-import { slug } from "./utils.mjs";
 import { statePayload } from "./state.mjs";
+import { slug } from "./utils.mjs";
 
 const VIDEO_DIR = path.join(GENERATED_DIR, "videos");
 const IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
@@ -25,7 +25,7 @@ export async function uploadShotAsset(input = {}) {
   if (!shot) throw new Error(`Unknown shot: ${shotId}`);
 
   const isVideo = kind === "video";
-  const ext = (path.extname(String(input.filename || "")).toLowerCase()) || (isVideo ? ".mp4" : ".png");
+  const ext = path.extname(String(input.filename || "")).toLowerCase() || (isVideo ? ".mp4" : ".png");
   const allowed = isVideo ? VIDEO_EXT : IMAGE_EXT;
   if (!allowed.has(ext)) throw new Error(`不支持的${isVideo ? "视频" : "图片"}格式: ${ext}`);
 
@@ -44,13 +44,41 @@ export async function uploadShotAsset(input = {}) {
     if (isVideo) {
       const prior = s.video_candidates?.length
         ? s.video_candidates
-        : (s.video_asset?.startsWith("/generated/") ? [{ path: s.video_asset, generated_at: s.video_generated_at || generatedAt, generation: s.video_generation || {} }] : []);
-      return { ...s, video_candidates: [...prior, candidate], video_asset: publicPath, video_generated_at: generatedAt, video_generation: generation };
+        : s.video_asset?.startsWith("/generated/")
+          ? [
+              {
+                path: s.video_asset,
+                generated_at: s.video_generated_at || generatedAt,
+                generation: s.video_generation || {},
+              },
+            ]
+          : [];
+      return {
+        ...s,
+        video_candidates: [...prior, candidate],
+        video_asset: publicPath,
+        video_generated_at: generatedAt,
+        video_generation: generation,
+      };
     }
     const prior = s.image_candidates?.length
       ? s.image_candidates
-      : (s.image_asset?.startsWith("/generated/") ? [{ path: s.image_asset, generated_at: s.image_generated_at || generatedAt, generation: s.image_generation || {} }] : []);
-    return { ...s, image_candidates: [...prior, candidate], image_asset: publicPath, image_generated_at: generatedAt, image_generation: generation };
+      : s.image_asset?.startsWith("/generated/")
+        ? [
+            {
+              path: s.image_asset,
+              generated_at: s.image_generated_at || generatedAt,
+              generation: s.image_generation || {},
+            },
+          ]
+        : [];
+    return {
+      ...s,
+      image_candidates: [...prior, candidate],
+      image_asset: publicPath,
+      image_generated_at: generatedAt,
+      image_generation: generation,
+    };
   });
   await saveProject(project);
   return { path: publicPath, state: await statePayload() };

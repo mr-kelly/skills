@@ -41,9 +41,7 @@
       "tiktok": { "acos_pct": 30 },
       "google": { "acos_pct": 20 }
     },
-    "per_product": [
-      { "sku": "EXAMPLE-SKU-01", "acos_pct": 22 }
-    ]
+    "per_product": [{ "sku": "EXAMPLE-SKU-01", "acos_pct": 22 }]
   },
   "thresholds": {
     "acos_breach_days": 3,

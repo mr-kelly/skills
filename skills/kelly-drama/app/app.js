@@ -22,19 +22,34 @@ const URL_LANG = PAGE_QUERY.get("lang") || "";
 
 let langPref = URL_LANG || localStorage.getItem(LANG_STORAGE_KEY) || "auto";
 
-function lang() { return resolveLang(langPref); }
-function t(key) { const l = lang(); return MESSAGES[l]?.[key] || MESSAGES.zh[key] || key; }
+function lang() {
+  return resolveLang(langPref);
+}
+function t(key) {
+  const l = lang();
+  return MESSAGES[l]?.[key] || MESSAGES.zh[key] || key;
+}
 
 function applyI18n() {
-  document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); });
-  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => { node.placeholder = t(node.dataset.i18nPlaceholder); });
-  document.querySelectorAll("[data-i18n-title]").forEach((node) => { node.title = t(node.dataset.i18nTitle); });
-  document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => { node.setAttribute("aria-label", t(node.dataset.i18nAriaLabel)); });
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    node.placeholder = t(node.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((node) => {
+    node.title = t(node.dataset.i18nTitle);
+  });
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => {
+    node.setAttribute("aria-label", t(node.dataset.i18nAriaLabel));
+  });
   document.documentElement.lang = lang() === "en" ? "en" : "zh-CN";
   const langSel = document.getElementById("languageSelect");
   if (langSel) {
     langSel.value = langPref;
-    langSel.querySelectorAll("[data-i18n]").forEach((opt) => { opt.textContent = t(opt.dataset.i18n); });
+    langSel.querySelectorAll("[data-i18n]").forEach((opt) => {
+      opt.textContent = t(opt.dataset.i18n);
+    });
   }
 }
 
@@ -98,7 +113,10 @@ function escapeHtml(value) {
 function arr(value) {
   if (Array.isArray(value)) return value;
   if (!value) return [];
-  return String(value).split(/\n|,/).map((item) => item.trim()).filter(Boolean);
+  return String(value)
+    .split(/\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function lines(value) {
@@ -106,14 +124,17 @@ function lines(value) {
 }
 
 function statusBadge(status) {
-  const label = {
-    draft: t("status_draft"),
-    needs_review: t("status_needs_review"),
-    changes_requested: t("status_changes_requested"),
-    approved: t("status_approved"),
-    done: t("status_done"),
-    blocked: t("status_blocked"),
-  }[status] || status || t("status_draft");
+  const label =
+    {
+      draft: t("status_draft"),
+      needs_review: t("status_needs_review"),
+      changes_requested: t("status_changes_requested"),
+      approved: t("status_approved"),
+      done: t("status_done"),
+      blocked: t("status_blocked"),
+    }[status] ||
+    status ||
+    t("status_draft");
   return `<span class="badge status-${escapeHtml(status || "draft")}">${escapeHtml(label)}</span>`;
 }
 
@@ -150,7 +171,12 @@ async function load() {
   state = await api("/api/state");
   imageConfig = await api("/api/image-config").catch(() => null);
   if (DEMO_SCENARIO && !window.location.hash) {
-    const demoRoutes = { overview: "/overview", characters: "/characters", relationships: "/relationships", episodes: "/episodes" };
+    const demoRoutes = {
+      overview: "/overview",
+      characters: "/characters",
+      relationships: "/relationships",
+      episodes: "/episodes",
+    };
     history.replaceState(null, "", `#${demoRoutes[DEMO_SCENARIO] || "/overview"}`);
   }
   applyRouteFromHash({ replaceEmpty: true });
@@ -306,7 +332,8 @@ function updateChrome() {
   document.body.classList.toggle("episode-focus-mode", view === "episodes" && episodeMode === "detail");
   renderProjectSwitcher();
   $("projectTitle").textContent = p.series?.title || t("project_unnamed");
-  $("projectMeta").textContent = `${p.series?.genre || t("project_meta_genre_placeholder")} · ${p.series?.format || t("project_meta_format_placeholder")}`;
+  $("projectMeta").textContent =
+    `${p.series?.genre || t("project_meta_genre_placeholder")} · ${p.series?.format || t("project_meta_format_placeholder")}`;
   $("projectPath").textContent = state.paths?.project_path || "";
   $("attentionNeeds").textContent = state.attention?.needs_review || 0;
   $("attentionShots").textContent = state.completeness?.shots_missing_prompt || 0;
@@ -324,17 +351,23 @@ function updateChrome() {
 
 function renderProjectSwitcher() {
   const select = $("projectSelect");
-  const projects = state.projects?.length ? state.projects : [{
-    id: state.project?.project_id,
-    title: state.project?.series?.title,
-    genre: state.project?.series?.genre,
-    format: state.project?.series?.format,
-  }];
+  const projects = state.projects?.length
+    ? state.projects
+    : [
+        {
+          id: state.project?.project_id,
+          title: state.project?.series?.title,
+          genre: state.project?.series?.genre,
+          format: state.project?.series?.format,
+        },
+      ];
   const currentId = state.active_project_id || state.project?.project_id || projects[0]?.id || "";
-  select.innerHTML = projects.map((item) => {
-    const selected = item.id === currentId ? "selected" : "";
-    return `<option value="${escapeHtml(item.id || item.title)}" ${selected}>${escapeHtml(item.title || t("project_unnamed"))}</option>`;
-  }).join("");
+  select.innerHTML = projects
+    .map((item) => {
+      const selected = item.id === currentId ? "selected" : "";
+      return `<option value="${escapeHtml(item.id || item.title)}" ${selected}>${escapeHtml(item.title || t("project_unnamed"))}</option>`;
+    })
+    .join("");
   const current = projects.find((item) => item.id === currentId) || projects[0] || {};
   $("projectSwitchMeta").innerHTML = `
     <span>${escapeHtml(current.genre || state.project?.series?.genre || "")}</span>
@@ -409,20 +442,39 @@ function hyperframeStatusPanel(status) {
     </div>
     <div class="hyperframe-list">
       <h4>Compositions</h4>
-      ${compositions.map((item) => `
+      ${
+        compositions
+          .map(
+            (item) => `
         <div class="hyperframe-row">
           <code>${escapeHtml(item.path)}</code>
           <span>${escapeHtml(item.scenes?.length || 0)} scenes</span>
           <span>${Number.isFinite(item.duration_seconds) ? `${item.duration_seconds}s` : ""}</span>
-        </div>`).join("") || `<p class="muted">No HTML compositions found.</p>`}
+        </div>`,
+          )
+          .join("") || `<p class="muted">No HTML compositions found.</p>`
+      }
     </div>
     <div class="hyperframe-list compact">
       <h4>Renders</h4>
-      ${renders.slice(0, 5).map((item) => `<div class="hyperframe-row"><code>${escapeHtml(item.path)}</code><span>${Number.isFinite(item.duration_seconds) ? `${item.duration_seconds.toFixed(1)}s` : ""}</span><span>${formatBytes(item.size_bytes)}</span></div>`).join("") || `<p class="muted">No rendered videos found.</p>`}
+      ${
+        renders
+          .slice(0, 5)
+          .map(
+            (item) =>
+              `<div class="hyperframe-row"><code>${escapeHtml(item.path)}</code><span>${Number.isFinite(item.duration_seconds) ? `${item.duration_seconds.toFixed(1)}s` : ""}</span><span>${formatBytes(item.size_bytes)}</span></div>`,
+          )
+          .join("") || `<p class="muted">No rendered videos found.</p>`
+      }
     </div>
     <div class="hyperframe-list compact">
       <h4>Audio</h4>
-      ${audio.slice(0, 8).map((item) => `<span class="hf-chip">${escapeHtml(item.path)}</span>`).join("") || `<p class="muted">No audio files found.</p>`}
+      ${
+        audio
+          .slice(0, 8)
+          .map((item) => `<span class="hf-chip">${escapeHtml(item.path)}</span>`)
+          .join("") || `<p class="muted">No audio files found.</p>`
+      }
     </div>
     ${changelogs.length ? `<div class="hyperframe-list compact"><h4>Latest changelog</h4><div class="hyperframe-row"><code>${escapeHtml(changelogs[0].path)}</code><span>${escapeHtml((changelogs[0].updated_at || "").slice(0, 10))}</span></div></div>` : ""}
   `;
@@ -470,7 +522,9 @@ function renderListAndDetail() {
     selectedId = items[0]?.id || null;
     syncRoute({ replace: true });
   }
-  $("list").innerHTML = items.map(itemCard).join("") || `<div class="item-card"><h3>${t("empty_list")}</h3><p>${t("empty_list_hint")}</p></div>`;
+  $("list").innerHTML =
+    items.map(itemCard).join("") ||
+    `<div class="item-card"><h3>${t("empty_list")}</h3><p>${t("empty_list_hint")}</p></div>`;
   $("detail").innerHTML = detailForm(selectedItem());
   bindForm();
 }
@@ -543,7 +597,8 @@ function shotsForEpisode(episodeId) {
 }
 
 function episodeDetail(item) {
-  if (!item) return `<div class="detail-card"><h2>${t("episode_select_hint")}</h2><p class="muted">${t("episode_select_hint_sub")}</p></div>`;
+  if (!item)
+    return `<div class="detail-card"><h2>${t("episode_select_hint")}</h2><p class="muted">${t("episode_select_hint_sub")}</p></div>`;
   const shots = shotsForEpisode(item.id);
   return `
     <form class="detail-card episode-detail" data-kind="episodes" data-id="${escapeHtml(item.id)}">
@@ -630,7 +685,10 @@ function scriptPreview(item) {
     <section class="script-section">
       <h3>${t("script_section_title")}</h3>
       <div class="beat-stack">
-        ${beats.map((beat, index) => `
+        ${
+          beats
+            .map(
+              (beat, index) => `
           <article class="beat-row">
             <div class="beat-index">${String(index + 1).padStart(2, "0")}</div>
             <div>
@@ -639,7 +697,10 @@ function scriptPreview(item) {
               <p class="muted">${escapeHtml(beat.conflict || "")}</p>
             </div>
           </article>
-        `).join("") || `<p class="muted">${t("script_beats_empty")}</p>`}
+        `,
+            )
+            .join("") || `<p class="muted">${t("script_beats_empty")}</p>`
+        }
       </div>
     </section>`;
 }
@@ -781,7 +842,17 @@ const SHOT_READINESS_FIELDS = [
   ["action", "Action script", (s) => s.action],
   ["prompt", "Image prompt", (s) => s.prompt],
   ["video_prompt", "Video prompt", (s) => s.video_prompt],
-  ["audio", "Sound design", (s) => s.audio && (s.audio.ambient || (s.audio.dialogue || []).length || s.audio.narration || (s.audio.sfx || []).length || s.audio.music)],
+  [
+    "audio",
+    "Sound design",
+    (s) =>
+      s.audio &&
+      (s.audio.ambient ||
+        (s.audio.dialogue || []).length ||
+        s.audio.narration ||
+        (s.audio.sfx || []).length ||
+        s.audio.music),
+  ],
   ["transition", "Transition", (s) => s.transition_in && s.transition_out],
   ["continuity", "Continuity anchors", (s) => s.continuity && (s.continuity.anchors || []).length],
 ];
@@ -800,7 +871,10 @@ function hasSoundBed(shot) {
 function dialogueCps(shot) {
   const seconds = Number(shot.duration_seconds) || 0;
   if (!seconds) return 0;
-  const chars = (shot.srt || []).map((l) => (typeof l === "string" ? l : l.text || "")).join("").replace(/\s/g, "").length;
+  const chars = (shot.srt || [])
+    .map((l) => (typeof l === "string" ? l : l.text || ""))
+    .join("")
+    .replace(/\s/g, "").length;
   return chars / seconds;
 }
 
@@ -822,12 +896,17 @@ function shotReadiness(shot) {
 
 function audioBlock(audio) {
   if (!audio) return `<p class="muted">${t("shot_pending_audio")}</p>`;
-  const dlg = (audio.dialogue || []).map((d) => `<li><b>${escapeHtml(d.speaker || "")}</b>${d.tone ? `<span class="tag">${escapeHtml(d.tone)}</span>` : ""}：${escapeHtml(d.line || "")}</li>`).join("");
+  const dlg = (audio.dialogue || [])
+    .map(
+      (d) =>
+        `<li><b>${escapeHtml(d.speaker || "")}</b>${d.tone ? `<span class="tag">${escapeHtml(d.tone)}</span>` : ""}：${escapeHtml(d.line || "")}</li>`,
+    )
+    .join("");
   return `
     ${dlg ? `<ul class="audio-lines">${dlg}</ul>` : ""}
     ${audio.narration ? `<p><span class="mini-label">${t("audio_narration")}</span>${escapeHtml(audio.narration)}</p>` : ""}
     <div class="audio-grid">
-      ${audio.sfx && audio.sfx.length ? `<div><span class="mini-label">${t("audio_sfx")}</span>${escapeHtml((audio.sfx || []).join(", "))}</div>` : ""}
+      ${audio.sfx?.length ? `<div><span class="mini-label">${t("audio_sfx")}</span>${escapeHtml((audio.sfx || []).join(", "))}</div>` : ""}
       ${audio.ambient ? `<div><span class="mini-label">${t("audio_ambient")}</span>${escapeHtml(audio.ambient)}</div>` : ""}
       ${audio.music ? `<div><span class="mini-label">${t("audio_music")}</span>${escapeHtml(audio.music)}</div>` : ""}
     </div>`;
@@ -880,18 +959,24 @@ function shotPreview(shot) {
           ${audioBlock(shot.audio)}
         </section>
         <section class="sheet-block">
-          <label>${t("shot_label_srt")} ${r.silent ? "" : (srt.length ? `<span class="cps ${r.pacingWarn ? "warn" : ""}">${r.cps.toFixed(1)} chars/s · ${srt.length} cues</span>` : "")}</label>
-          ${r.silent
-            ? `<p class="muted">${t("shot_pure_visual_note")}</p>`
-            : `<pre>${escapeHtml(srt.length ? srt.map(formatSrtLine).join("\n\n") : t("shot_srt_pending"))}</pre>`}
+          <label>${t("shot_label_srt")} ${r.silent ? "" : srt.length ? `<span class="cps ${r.pacingWarn ? "warn" : ""}">${r.cps.toFixed(1)} chars/s · ${srt.length} cues</span>` : ""}</label>
+          ${
+            r.silent
+              ? `<p class="muted">${t("shot_pure_visual_note")}</p>`
+              : `<pre>${escapeHtml(srt.length ? srt.map(formatSrtLine).join("\n\n") : t("shot_srt_pending"))}</pre>`
+          }
         </section>
-        ${(shot.transition_in || shot.transition_out) ? `<section class="sheet-block"><label>${t("shot_label_transition")}</label><p class="muted">${t("trans_in")}：${escapeHtml(shot.transition_in || "cut")} ／ ${t("trans_out")}：${escapeHtml(shot.transition_out || "cut")}</p></section>` : ""}
-        ${(cont.anchors || cont.props || cont.wardrobe) ? `<section class="sheet-block"><label>${t("shot_label_continuity")}</label>
+        ${shot.transition_in || shot.transition_out ? `<section class="sheet-block"><label>${t("shot_label_transition")}</label><p class="muted">${t("trans_in")}：${escapeHtml(shot.transition_in || "cut")} ／ ${t("trans_out")}：${escapeHtml(shot.transition_out || "cut")}</p></section>` : ""}
+        ${
+          cont.anchors || cont.props || cont.wardrobe
+            ? `<section class="sheet-block"><label>${t("shot_label_continuity")}</label>
           ${cont.wardrobe ? `<p><span class="mini-label">${t("cont_wardrobe")}</span>${escapeHtml(cont.wardrobe)}</p>` : ""}
           ${(cont.props || []).length ? `<p><span class="mini-label">${t("cont_props")}</span>${escapeHtml((cont.props || []).join(", "))}</p>` : ""}
           ${cont.carries_from_prev ? `<p><span class="mini-label">${t("cont_carries")}</span>${escapeHtml(cont.carries_from_prev)}</p>` : ""}
           ${(cont.anchors || []).length ? `<p><span class="mini-label">${t("cont_anchors")}</span>${escapeHtml((cont.anchors || []).join("; "))}</p>` : ""}
-        </section>` : ""}
+        </section>`
+            : ""
+        }
         <section class="sheet-block sheet-assets">
           <div>
             <label>${t("shot_label_storyboard_image")}</label>
@@ -910,24 +995,28 @@ function candidateList(shot, kind) {
   const list = kind === "video" ? shot.video_candidates : shot.image_candidates;
   const active = kind === "video" ? shot.video_asset : shot.image_asset;
   if (Array.isArray(list) && list.length) return { list, active };
-  if (active && active.startsWith("/generated/")) return { list: [{ path: active }], active };
+  if (active?.startsWith("/generated/")) return { list: [{ path: active }], active };
   return { list: [], active };
 }
 
 function imageCandidateStrip(shot) {
   const { list, active } = candidateList(shot, "image");
   if (list.length < 2) return "";
-  return `<div class="cand-strip">${list.map((c, i) => `
+  return `<div class="cand-strip">${list
+    .map(
+      (c, i) => `
     <button type="button" class="cand-thumb ${c.path === active ? "active" : ""}" data-set-active-image="${escapeHtml(c.path)}" data-shot="${escapeHtml(shot.id)}" title="v${i + 1}${c.path === active ? " (active)" : " — click to select"}">
       <img src="${escapeHtml(c.path)}" alt="" loading="lazy" />
       ${c.path === active ? `<span class="cand-pick">✓</span>` : ""}
-    </button>`).join("")}</div>`;
+    </button>`,
+    )
+    .join("")}</div>`;
 }
 
 function videoModelLabel(generation) {
   if (!generation) return "Video";
   const b = generation.backend || "";
-  const model = /seedance/i.test(b) ? "Seedance" : /ltx/i.test(b) ? "LTX" : (generation.model || "Video");
+  const model = /seedance/i.test(b) ? "Seedance" : /ltx/i.test(b) ? "LTX" : generation.model || "Video";
   const m = generation.method === "text-to-video" ? "T2V" : generation.method === "image-to-video" ? "I2V" : "";
   return m ? `${model}·${m}` : model;
 }
@@ -935,8 +1024,12 @@ function videoModelLabel(generation) {
 function videoCandidateStrip(shot) {
   const { list, active } = candidateList(shot, "video");
   if (list.length < 2) return "";
-  return `<div class="cand-chips">${list.map((c, i) => `
-    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-active-video="${escapeHtml(c.path)}" data-shot="${escapeHtml(shot.id)}">v${i + 1}·${escapeHtml(videoModelLabel(c.generation))}${c.path === active ? " ✓" : ""}</button>`).join("")}</div>`;
+  return `<div class="cand-chips">${list
+    .map(
+      (c, i) => `
+    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-active-video="${escapeHtml(c.path)}" data-shot="${escapeHtml(shot.id)}">v${i + 1}·${escapeHtml(videoModelLabel(c.generation))}${c.path === active ? " ✓" : ""}</button>`,
+    )
+    .join("")}</div>`;
 }
 
 function shotVideoBlock(shot) {
@@ -945,9 +1038,11 @@ function shotVideoBlock(shot) {
   const hasImage = (shot.image_asset || "").startsWith("/generated/");
   return `
     <div class="shot-video">
-      ${isVideo
-        ? `<video src="${escapeHtml(v)}" controls preload="metadata" playsinline></video><span class="img-mode-badge">${escapeHtml(videoModelLabel(shot.video_generation))}</span>`
-        : `<div class="asset-placeholder">${hasImage ? t("video_pending") : t("video_pending_image")}</div>`}
+      ${
+        isVideo
+          ? `<video src="${escapeHtml(v)}" controls preload="metadata" playsinline></video><span class="img-mode-badge">${escapeHtml(videoModelLabel(shot.video_generation))}</span>`
+          : `<div class="asset-placeholder">${hasImage ? t("video_pending") : t("video_pending_image")}</div>`
+      }
       ${videoCandidateStrip(shot)}
       <div class="storyboard-actions">
         <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" ${hasImage ? "" : "disabled"}>${isVideo ? t("regenerate_video") : t("generate_video")}</button>
@@ -959,7 +1054,10 @@ function storyboardImageBlock(shot) {
   const asset = shot.image_asset || "";
   const isGenerated = asset.startsWith("/generated/");
   const mode = shot.image_generation?.mode;
-  const modeBadge = isGenerated && mode ? `<span class="img-mode-badge">${mode === "image-edit" ? t("modal_mode_image_edit") : t("modal_mode_text")}</span>` : "";
+  const modeBadge =
+    isGenerated && mode
+      ? `<span class="img-mode-badge">${mode === "image-edit" ? t("modal_mode_image_edit") : t("modal_mode_text")}</span>`
+      : "";
   return `
     <div class="storyboard-image">
       ${isGenerated ? `<img src="${escapeHtml(asset)}" alt="${escapeHtml(shot.title || "Storyboard image")}" data-image-zoom="${escapeHtml(asset)}" title="Click to enlarge" />` : `<div class="asset-placeholder">${escapeHtml(asset || t("image_pending"))}</div>`}
@@ -996,7 +1094,9 @@ function mountModal(inner) {
   const host = ensureModalHost();
   host.innerHTML = `<div class="modal-overlay" data-modal-close="1"><div class="modal-card">${inner}</div></div>`;
   host.querySelectorAll("[data-modal-close]").forEach((node) => {
-    node.addEventListener("click", (event) => { if (event.target === node) closeModal(); });
+    node.addEventListener("click", (event) => {
+      if (event.target === node) closeModal();
+    });
   });
   const closeBtn = host.querySelector(".modal-close-button");
   if (closeBtn) closeBtn.addEventListener("click", closeModal);
@@ -1027,9 +1127,16 @@ function openPromptModal(data) {
     ["Realism target", ctx.realism_target],
     ["Color palette", ctx.color_palette],
     ["Period detail", ctx.period_detail],
-  ].filter(([, v]) => v).map(([k, v]) => `<div class="ctx-row"><span>${escapeHtml(k)}</span><p>${escapeHtml(v)}</p></div>`).join("");
-  const characters = (data.characters || []).map((c) => `
-    <div class="ctx-row"><span>${escapeHtml(c.name)}</span><p>${escapeHtml(c.visual_front || "")}${c.reference_image ? "" : t("char_no_ref")}</p></div>`).join("");
+  ]
+    .filter(([, v]) => v)
+    .map(([k, v]) => `<div class="ctx-row"><span>${escapeHtml(k)}</span><p>${escapeHtml(v)}</p></div>`)
+    .join("");
+  const characters = (data.characters || [])
+    .map(
+      (c) => `
+    <div class="ctx-row"><span>${escapeHtml(c.name)}</span><p>${escapeHtml(c.visual_front || "")}${c.reference_image ? "" : t("char_no_ref")}</p></div>`,
+    )
+    .join("");
   mountModal(`
     <button type="button" class="modal-close-button" aria-label="Close">${t("modal_close")}</button>
     <div class="modal-head">
@@ -1048,15 +1155,32 @@ function openPromptModal(data) {
       ${characters ? `<section class="modal-section"><label>${t("modal_characters_label")}</label>${characters}</section>` : ""}
       ${contextRows ? `<section class="modal-section"><label>${t("modal_context_label")}</label>${contextRows}</section>` : ""}
     </div>`);
-  document.getElementById("modalHost").querySelectorAll("[data-image-zoom]").forEach((node) => {
-    node.addEventListener("click", () => openImageModal(node.dataset.imageZoom));
-  });
+  document
+    .getElementById("modalHost")
+    .querySelectorAll("[data-image-zoom]")
+    .forEach((node) => {
+      node.addEventListener("click", () => openImageModal(node.dataset.imageZoom));
+    });
 }
 
 function itemCard(item) {
   const title = item.name || item.title || item.type || item.id;
-  const body = item.logline || item.promise || item.conflict || item.note || item.prompt || item.character_card?.identity || item.hidden_truth || "";
-  const key = item.number ? `EP-${String(item.number).padStart(3, "0")}` : String(item.id || "").split("-").slice(-2).join("-").toUpperCase();
+  const body =
+    item.logline ||
+    item.promise ||
+    item.conflict ||
+    item.note ||
+    item.prompt ||
+    item.character_card?.identity ||
+    item.hidden_truth ||
+    "";
+  const key = item.number
+    ? `EP-${String(item.number).padStart(3, "0")}`
+    : String(item.id || "")
+        .split("-")
+        .slice(-2)
+        .join("-")
+        .toUpperCase();
   const thumb = item.reference_card?.image_asset || item.image_asset || "";
   const hasThumb = typeof thumb === "string" && thumb.startsWith("/generated/");
   const meta = [
@@ -1064,7 +1188,10 @@ function itemCard(item) {
     item.type,
     item.status ? statusBadge(item.status) : "",
     item.number ? `<span class="badge">Ep ${item.number}</span>` : "",
-  ].filter(Boolean).map((part) => String(part).startsWith("<") ? part : `<span class="badge">${escapeHtml(part)}</span>`).join("");
+  ]
+    .filter(Boolean)
+    .map((part) => (String(part).startsWith("<") ? part : `<span class="badge">${escapeHtml(part)}</span>`))
+    .join("");
   return `
     <button class="item-card ${hasThumb ? "has-thumb" : ""} ${item.id === selectedId ? "active" : ""}" data-select="${escapeHtml(item.id)}">
       ${hasThumb ? `<span class="item-card-thumb"><img src="${escapeHtml(thumb)}" alt="" loading="lazy" /></span>` : `<span class="row-key">${escapeHtml(key)}</span>`}
@@ -1111,7 +1238,8 @@ function seriesForm(series) {
 }
 
 function detailForm(item) {
-  if (!item) return `<div class="detail-card"><h2>${t("form_select_or_new")}</h2><p class="muted">${t("form_select_or_new_hint")}</p></div>`;
+  if (!item)
+    return `<div class="detail-card"><h2>${t("form_select_or_new")}</h2><p class="muted">${t("form_select_or_new_hint")}</p></div>`;
   if (view === "characters") return characterForm(item);
   if (view === "relationships") return relationshipForm(item);
   if (view === "episodes") return episodeForm(item);
@@ -1121,7 +1249,14 @@ function detailForm(item) {
 }
 
 function statusSelect(value) {
-  return select("status", "Status", value || "draft", ["draft", "needs_review", "changes_requested", "approved", "done", "blocked"]);
+  return select("status", "Status", value || "draft", [
+    "draft",
+    "needs_review",
+    "changes_requested",
+    "approved",
+    "done",
+    "blocked",
+  ]);
 }
 
 function characterForm(item) {
@@ -1191,9 +1326,11 @@ function characterVoicePreview(item) {
       ${vp.casting_reference ? `<p class="voice-line"><span class="mini-label">${t("char_voice_casting")}</span>${escapeHtml(vp.casting_reference)}</p>` : ""}
       ${vp.sample_script ? `<p class="voice-line"><span class="mini-label">${t("char_voice_sample")}</span>${escapeHtml(vp.sample_script)}</p>` : ""}
       <div class="voice-ref">
-        ${generated
-          ? `<audio controls src="${escapeHtml(vr.asset)}"></audio>`
-          : `<div class="asset-placeholder">${t("char_voice_placeholder")}</div>`}
+        ${
+          generated
+            ? `<audio controls src="${escapeHtml(vr.asset)}"></audio>`
+            : `<div class="asset-placeholder">${t("char_voice_placeholder")}</div>`
+        }
         <button type="button" class="mini-button generate-voice-button" data-generate-voice="${escapeHtml(item.id)}">${generated ? t("regenerate_voice") : t("generate_voice")}</button>
       </div>
       ${voiceCandidateStrip(item)}
@@ -1204,8 +1341,12 @@ function voiceCandidateStrip(character) {
   const list = character.voice_candidates || [];
   const active = character.voice_reference?.asset || "";
   if (list.length < 2) return "";
-  return `<div class="cand-chips">${list.map((c, i) => `
-    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-voice-active="${escapeHtml(c.path)}" data-char="${escapeHtml(character.id)}">v${i + 1}${c.path === active ? " ✓" : ""}</button>`).join("")}</div>`;
+  return `<div class="cand-chips">${list
+    .map(
+      (c, i) => `
+    <button type="button" class="cand-chip ${c.path === active ? "active" : ""}" data-set-voice-active="${escapeHtml(c.path)}" data-char="${escapeHtml(character.id)}">v${i + 1}${c.path === active ? " ✓" : ""}</button>`,
+    )
+    .join("")}</div>`;
 }
 
 function relationshipForm(item) {
@@ -1336,14 +1477,24 @@ function bindForm() {
   document.querySelectorAll("[data-episode-detail]").forEach((node) => {
     node.addEventListener("click", () => {
       if (isMobileLayout()) setMobileDetailOpen(true);
-      navigateTo({ view: "episodes", selectedId: node.dataset.episodeDetail, episodeMode: "detail", episodeTab: "summary" });
+      navigateTo({
+        view: "episodes",
+        selectedId: node.dataset.episodeDetail,
+        episodeMode: "detail",
+        episodeTab: "summary",
+      });
     });
   });
   document.querySelectorAll("[data-row-episode]").forEach((node) => {
     node.addEventListener("click", (event) => {
       if (event.target.closest("button")) return;
       if (isMobileLayout()) setMobileDetailOpen(true);
-      navigateTo({ view: "episodes", selectedId: node.dataset.rowEpisode, episodeMode: "detail", episodeTab: "summary" });
+      navigateTo({
+        view: "episodes",
+        selectedId: node.dataset.rowEpisode,
+        episodeMode: "detail",
+        episodeTab: "summary",
+      });
     });
   });
   document.querySelectorAll("[data-episode-list]").forEach((node) => {
@@ -1370,7 +1521,7 @@ function bindForm() {
     expandAll.addEventListener("click", () => {
       const shots = shotsForEpisode(selectedId);
       const allOpen = shots.every((s) => expandedShots.has(s.id));
-      shots.forEach((s) => allOpen ? expandedShots.delete(s.id) : expandedShots.add(s.id));
+      shots.forEach((s) => (allOpen ? expandedShots.delete(s.id) : expandedShots.add(s.id)));
       render();
     });
   }
@@ -1381,7 +1532,7 @@ function bindForm() {
       node.textContent = t("generating");
       try {
         const result = await api("/api/storyboard-image", { shot_id: shotId });
-        state = result.state || await api("/api/state");
+        state = result.state || (await api("/api/state"));
         toast(t("toast_image_generated"));
         render();
       } catch (error) {
@@ -1398,7 +1549,7 @@ function bindForm() {
       node.textContent = t("generating_video");
       try {
         const result = await api("/api/shot-video", { shot_id: shotId });
-        state = result.state || await api("/api/state");
+        state = result.state || (await api("/api/state"));
         toast(t("toast_video_generated"));
         render();
       } catch (error) {
@@ -1415,7 +1566,7 @@ function bindForm() {
       node.textContent = t("generating_voice");
       try {
         const result = await api("/api/character-voice", { character_id: id });
-        state = result.state || await api("/api/state");
+        state = result.state || (await api("/api/state"));
         toast(t("toast_voice_generated"));
         render();
       } catch (error) {
@@ -1428,28 +1579,45 @@ function bindForm() {
   document.querySelectorAll("[data-set-voice-active]").forEach((node) => {
     node.addEventListener("click", async () => {
       try {
-        state = await api("/api/character-voice-active", { character_id: node.dataset.char, path: node.dataset.setVoiceActive });
+        state = await api("/api/character-voice-active", {
+          character_id: node.dataset.char,
+          path: node.dataset.setVoiceActive,
+        });
         toast(t("toast_voice_active"));
         render();
-      } catch (error) { toast(error.message || "Failed"); }
+      } catch (error) {
+        toast(error.message || "Failed");
+      }
     });
   });
   document.querySelectorAll("[data-set-active-image]").forEach((node) => {
     node.addEventListener("click", async () => {
       try {
-        state = await api("/api/shot-active", { shot_id: node.dataset.shot, kind: "image", path: node.dataset.setActiveImage });
+        state = await api("/api/shot-active", {
+          shot_id: node.dataset.shot,
+          kind: "image",
+          path: node.dataset.setActiveImage,
+        });
         toast(t("toast_image_active"));
         render();
-      } catch (error) { toast(error.message || "Failed"); }
+      } catch (error) {
+        toast(error.message || "Failed");
+      }
     });
   });
   document.querySelectorAll("[data-set-active-video]").forEach((node) => {
     node.addEventListener("click", async () => {
       try {
-        state = await api("/api/shot-active", { shot_id: node.dataset.shot, kind: "video", path: node.dataset.setActiveVideo });
+        state = await api("/api/shot-active", {
+          shot_id: node.dataset.shot,
+          kind: "video",
+          path: node.dataset.setActiveVideo,
+        });
         toast(t("toast_video_active"));
         render();
-      } catch (error) { toast(error.message || "Failed"); }
+      } catch (error) {
+        toast(error.message || "Failed");
+      }
     });
   });
   document.querySelectorAll("[data-prompt-preview]").forEach((node) => {
@@ -1503,7 +1671,9 @@ async function refreshHyperframeStatus() {
   render();
   try {
     hyperframeStatus = await api(`/api/hyperframe-status?path=${encodeURIComponent(path)}`);
-    toast(hyperframeStatus.ok ? "HyperFrame project read." : (hyperframeStatus.error || "Could not read HyperFrame project."));
+    toast(
+      hyperframeStatus.ok ? "HyperFrame project read." : hyperframeStatus.error || "Could not read HyperFrame project.",
+    );
   } catch (error) {
     toast(error.message || "Could not read HyperFrame project.");
   } finally {
@@ -1659,10 +1829,35 @@ function serializeItem(form, kind) {
 function newItem() {
   const timestamp = Date.now().toString().slice(-5);
   const templates = {
-    characters: { id: `char-new-${timestamp}`, name: "New character", role: "helper", status: "draft", character_card: {}, visual: { anchors: [], forbidden_drift: [] } },
-    relationships: { id: `rel-new-${timestamp}`, from: project().characters?.[0]?.id || "", to: project().characters?.[1]?.id || "", type: "new relationship", evidence: [] },
-    episodes: { id: `ep-new-${timestamp}`, number: (project().episodes?.length || 0) + 1, title: "New episode", status: "draft", beats: [] },
-    shots: { id: `shot-new-${timestamp}`, episode_id: project().episodes?.[0]?.id || "", title: "New shot", status: "draft", characters: [] },
+    characters: {
+      id: `char-new-${timestamp}`,
+      name: "New character",
+      role: "helper",
+      status: "draft",
+      character_card: {},
+      visual: { anchors: [], forbidden_drift: [] },
+    },
+    relationships: {
+      id: `rel-new-${timestamp}`,
+      from: project().characters?.[0]?.id || "",
+      to: project().characters?.[1]?.id || "",
+      type: "new relationship",
+      evidence: [],
+    },
+    episodes: {
+      id: `ep-new-${timestamp}`,
+      number: (project().episodes?.length || 0) + 1,
+      title: "New episode",
+      status: "draft",
+      beats: [],
+    },
+    shots: {
+      id: `shot-new-${timestamp}`,
+      episode_id: project().episodes?.[0]?.id || "",
+      title: "New shot",
+      status: "draft",
+      characters: [],
+    },
     tasks: { id: `task-new-${timestamp}`, kind: "episode", status: "needs_review", title: "New task", note: "" },
   };
   const item = templates[view];
@@ -1700,7 +1895,8 @@ $("sidebarToggle").addEventListener("click", toggleSidebar);
 $("mobileSidebarToggle").addEventListener("click", () => setMobileSidebarOpen(true));
 $("sidebarScrim").addEventListener("click", () => setMobileSidebarOpen(false));
 $("backToList").addEventListener("click", () => {
-  if (view === "episodes" && episodeMode === "detail") navigateTo({ view: "episodes", selectedId: null, episodeMode: "list", episodeTab: "summary" });
+  if (view === "episodes" && episodeMode === "detail")
+    navigateTo({ view: "episodes", selectedId: null, episodeMode: "list", episodeTab: "summary" });
   else setMobileDetailOpen(false);
 });
 window.addEventListener("resize", syncResponsiveShell);
@@ -1720,7 +1916,9 @@ function isTypingTarget(target) {
 function moveSelection(direction) {
   if (view === "overview") return;
   if (view === "episodes" && episodeMode === "detail") return;
-  const items = collectionFor().filter(matches).sort((a, b) => view === "episodes" ? (a.number || 0) - (b.number || 0) : 0);
+  const items = collectionFor()
+    .filter(matches)
+    .sort((a, b) => (view === "episodes" ? (a.number || 0) - (b.number || 0) : 0));
   if (!items.length) return;
   const foundIndex = items.findIndex((item) => item.id === selectedId);
   const currentIndex = foundIndex < 0 ? (direction > 0 ? -1 : items.length) : foundIndex;
@@ -1747,7 +1945,7 @@ document.addEventListener("keydown", (event) => {
   }
   if (event.key === "Escape") {
     const modalHost = document.getElementById("modalHost");
-    if (modalHost && modalHost.innerHTML) {
+    if (modalHost?.innerHTML) {
       closeModal();
       return;
     }
@@ -1773,7 +1971,13 @@ document.addEventListener("keydown", (event) => {
     event.preventDefault();
     moveSelection(-1);
   }
-  if (!isTypingTarget(event.target) && event.key === "Enter" && view === "episodes" && episodeMode === "list" && selectedId) {
+  if (
+    !isTypingTarget(event.target) &&
+    event.key === "Enter" &&
+    view === "episodes" &&
+    episodeMode === "list" &&
+    selectedId
+  ) {
     event.preventDefault();
     navigateTo({ view: "episodes", selectedId, episodeMode: "detail", episodeTab: "summary" });
   }

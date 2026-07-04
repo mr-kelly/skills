@@ -26,7 +26,10 @@ for (let i = 1; i < argv.length; i += 1) {
     const key = part.slice(2);
     const next = argv[i + 1];
     if (next === undefined || next.startsWith("--")) flags[key] = true;
-    else { flags[key] = next; i += 1; }
+    else {
+      flags[key] = next;
+      i += 1;
+    }
   } else {
     positional.push(part);
   }
@@ -79,9 +82,7 @@ try {
   } else if (command === "tasks") {
     out(await store.listAgentTasks());
   } else {
-    process.stderr.write(
-      "Usage: reply_review.mjs open|list|review|approved|sent|tasks ... (see file header)\n",
-    );
+    process.stderr.write("Usage: reply_review.mjs open|list|review|approved|sent|tasks ... (see file header)\n");
     process.exit(1);
   }
   out(`# provider: ${store.kind}`);

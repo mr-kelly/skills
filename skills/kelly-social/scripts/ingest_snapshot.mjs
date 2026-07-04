@@ -62,18 +62,19 @@ function emptySnapshot() {
       followers_delta_28d: 0,
       impressions_7d: 0,
       engagements_7d: 0,
-      engagement_rate_7d: 0
+      engagement_rate_7d: 0,
     },
     accounts: [],
     posts: [],
     sync_log: [],
-    warnings: []
+    warnings: [],
   };
 }
 
 function validatePayload(payload) {
   if (!isObject(payload)) fail("payload must be a JSON object");
-  if (!Array.isArray(payload.accounts) || payload.accounts.length === 0) fail("payload.accounts must be a non-empty array");
+  if (!Array.isArray(payload.accounts) || payload.accounts.length === 0)
+    fail("payload.accounts must be a non-empty array");
   if (!Array.isArray(payload.posts)) fail("payload.posts must be an array");
   const accountIds = new Set();
   payload.accounts.forEach((account, index) => {
@@ -83,11 +84,14 @@ function validatePayload(payload) {
       if (typeof account[key] !== "string" || !account[key]) fail(`${path}.${key} must be a non-empty string`);
     }
     if (!PLATFORMS.includes(account.platform)) fail(`${path}.platform must be one of ${PLATFORMS.join("|")}`);
-    if (!COLLECTION_METHODS.includes(account.collection)) fail(`${path}.collection must be one of ${COLLECTION_METHODS.join("|")}`);
+    if (!COLLECTION_METHODS.includes(account.collection))
+      fail(`${path}.collection must be one of ${COLLECTION_METHODS.join("|")}`);
     if (accountIds.has(account.account_id)) fail(`${path}.account_id duplicates ${account.account_id}`);
     accountIds.add(account.account_id);
-    if (account.metrics !== undefined && !isObject(account.metrics)) fail(`${path}.metrics must be an object when present`);
-    if (account.follower_series !== undefined && !Array.isArray(account.follower_series)) fail(`${path}.follower_series must be an array when present`);
+    if (account.metrics !== undefined && !isObject(account.metrics))
+      fail(`${path}.metrics must be an object when present`);
+    if (account.follower_series !== undefined && !Array.isArray(account.follower_series))
+      fail(`${path}.follower_series must be an array when present`);
   });
   payload.posts.forEach((post, index) => {
     const path = `payload.posts[${index}]`;
@@ -96,10 +100,12 @@ function validatePayload(payload) {
       if (typeof post[key] !== "string" || !post[key]) fail(`${path}.${key} must be a non-empty string`);
     }
     if (!MEDIA_KINDS.includes(post.media)) fail(`${path}.media must be one of ${MEDIA_KINDS.join("|")}`);
-    if (!accountIds.has(post.account_id)) fail(`${path}.account_id does not match a payload account: ${post.account_id}`);
+    if (!accountIds.has(post.account_id))
+      fail(`${path}.account_id does not match a payload account: ${post.account_id}`);
     if (!isObject(post.metrics)) fail(`${path}.metrics must be an object`);
     for (const key of ["likes", "replies", "reposts", "views"]) {
-      if (typeof post.metrics[key] !== "number" || Number.isNaN(post.metrics[key])) fail(`${path}.metrics.${key} must be a number`);
+      if (typeof post.metrics[key] !== "number" || Number.isNaN(post.metrics[key]))
+        fail(`${path}.metrics.${key} must be a number`);
     }
   });
 }
@@ -113,7 +119,7 @@ function normalizeAccount(existing, incoming, collectedAt) {
     ...existing,
     ...incoming,
     metrics: { ...(existing?.metrics || {}), ...(incoming.metrics || {}) },
-    last_sync_at: collectedAt
+    last_sync_at: collectedAt,
   };
   const metricDefaults = {
     followers: 0,
@@ -125,7 +131,7 @@ function normalizeAccount(existing, incoming, collectedAt) {
     engagement_rate_7d: 0,
     profile_visits_7d: 0,
     followers_delta_7d: 0,
-    followers_delta_28d: 0
+    followers_delta_28d: 0,
   };
   merged.metrics = { ...metricDefaults, ...merged.metrics };
   merged.display_name = merged.display_name || merged.handle || merged.account_id;
@@ -148,33 +154,38 @@ function normalizePost(post) {
     tags: [],
     ...post,
     metrics,
-    engagement_rate: typeof post.engagement_rate === "number"
-      ? post.engagement_rate
-      : (metrics.views > 0 ? Number((engagements / metrics.views).toFixed(4)) : 0)
+    engagement_rate:
+      typeof post.engagement_rate === "number"
+        ? post.engagement_rate
+        : metrics.views > 0
+          ? Number((engagements / metrics.views).toFixed(4))
+          : 0,
   };
 }
 
 function rollup(snapshot) {
-  const totals = snapshot.accounts.reduce((acc, item) => {
-    acc.total_followers += Number(item.metrics?.followers || 0);
-    acc.followers_delta_7d += Number(item.metrics?.followers_delta_7d || 0);
-    acc.followers_delta_28d += Number(item.metrics?.followers_delta_28d || 0);
-    acc.impressions_7d += Number(item.metrics?.impressions_7d || 0);
-    acc.engagements_7d += Number(item.metrics?.engagements_7d || 0);
-    return acc;
-  }, {
-    account_count: snapshot.accounts.length,
-    post_count: snapshot.posts.length,
-    total_followers: 0,
-    followers_delta_7d: 0,
-    followers_delta_28d: 0,
-    impressions_7d: 0,
-    engagements_7d: 0,
-    engagement_rate_7d: 0
-  });
-  totals.engagement_rate_7d = totals.impressions_7d > 0
-    ? Number((totals.engagements_7d / totals.impressions_7d).toFixed(4))
-    : 0;
+  const totals = snapshot.accounts.reduce(
+    (acc, item) => {
+      acc.total_followers += Number(item.metrics?.followers || 0);
+      acc.followers_delta_7d += Number(item.metrics?.followers_delta_7d || 0);
+      acc.followers_delta_28d += Number(item.metrics?.followers_delta_28d || 0);
+      acc.impressions_7d += Number(item.metrics?.impressions_7d || 0);
+      acc.engagements_7d += Number(item.metrics?.engagements_7d || 0);
+      return acc;
+    },
+    {
+      account_count: snapshot.accounts.length,
+      post_count: snapshot.posts.length,
+      total_followers: 0,
+      followers_delta_7d: 0,
+      followers_delta_28d: 0,
+      impressions_7d: 0,
+      engagements_7d: 0,
+      engagement_rate_7d: 0,
+    },
+  );
+  totals.engagement_rate_7d =
+    totals.impressions_7d > 0 ? Number((totals.engagements_7d / totals.impressions_7d).toFixed(4)) : 0;
   return totals;
 }
 
@@ -188,15 +199,24 @@ async function main() {
 
   const existingLock = await readJson(lockPath, null);
   if (existingLock) {
-    fail(`app/.data/agent.lock is held by "${existingLock.owner || "unknown"}" (${existingLock.message || "no message"}). Retry after the lock is released.`);
+    fail(
+      `app/.data/agent.lock is held by "${existingLock.owner || "unknown"}" (${existingLock.message || "no message"}). Retry after the lock is released.`,
+    );
   }
 
   await fs.mkdir(dataDir, { recursive: true });
-  await fs.writeFile(lockPath, JSON.stringify({
-    owner: "kelly-social-ingest",
-    message: "Merging collected snapshot payload",
-    started_at: now
-  }, null, 2));
+  await fs.writeFile(
+    lockPath,
+    JSON.stringify(
+      {
+        owner: "kelly-social-ingest",
+        message: "Merging collected snapshot payload",
+        started_at: now,
+      },
+      null,
+      2,
+    ),
+  );
 
   try {
     const snapshot = (await readJson(snapshotPath, null)) || emptySnapshot();
@@ -204,7 +224,10 @@ async function main() {
 
     const accountsById = new Map(snapshot.accounts.map((account) => [account.account_id, account]));
     for (const incoming of payload.accounts) {
-      accountsById.set(incoming.account_id, normalizeAccount(accountsById.get(incoming.account_id), incoming, collectedAt));
+      accountsById.set(
+        incoming.account_id,
+        normalizeAccount(accountsById.get(incoming.account_id), incoming, collectedAt),
+      );
     }
     snapshot.accounts = [...accountsById.values()];
 
@@ -212,7 +235,9 @@ async function main() {
     for (const incoming of payload.posts) {
       postsById.set(incoming.post_id, normalizePost(incoming));
     }
-    snapshot.posts = [...postsById.values()].sort((a, b) => new Date(b.posted_at) - new Date(a.posted_at));
+    snapshot.posts = [...postsById.values()].sort(
+      (a, b) => new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime(),
+    );
 
     const syncStatus = payload.sync?.status || "ok";
     const syncStamp = now.replace(/[-:.TZ]/g, "").slice(0, 14);
@@ -227,7 +252,7 @@ async function main() {
         status: syncStatus,
         posts_collected: postsCollected,
         message: payload.sync?.message || `Ingested ${postsCollected} posts via ${incoming.collection}.`,
-        actor: payload.source || "kelly-social"
+        actor: payload.source || "kelly-social",
       });
     }
     snapshot.sync_log = snapshot.sync_log.slice(0, 200);

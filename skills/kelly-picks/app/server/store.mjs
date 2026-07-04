@@ -8,7 +8,7 @@ import {
   LOCK_PATH,
   ONBOARDING_PATH,
   SKILL_DIR,
-  SNAPSHOT_PATH
+  SNAPSHOT_PATH,
 } from "./paths.mjs";
 
 export async function ensureDirs() {
@@ -56,7 +56,9 @@ export async function readExecutionReport() {
 export async function acquireLock(owner, message) {
   const existing = await readLock();
   if (existing) {
-    throw new Error(`agent.lock is held by ${existing.owner || "unknown"} (${existing.message || "working"}). Retry after it is released.`);
+    throw new Error(
+      `agent.lock is held by ${existing.owner || "unknown"} (${existing.message || "working"}). Retry after it is released.`,
+    );
   }
   await writeJson(LOCK_PATH, { owner, message, started_at: new Date().toISOString() });
 }
@@ -83,7 +85,7 @@ export function emptySnapshot() {
       dropped: 0,
       proposals_needs_review: 0,
       avg_margin_approved_pct: 0,
-      below_margin_floor: 0
+      below_margin_floor: 0,
     },
     sources: [],
     trend_items: [],
@@ -94,9 +96,9 @@ export function emptySnapshot() {
         at: new Date(0).toISOString(),
         actor: "kelly-picks",
         action: "empty_snapshot",
-        detail: "No picks snapshot exists yet. Configure sources, then let the agent sweep and ingest trend payloads."
-      }
-    ]
+        detail: "No picks snapshot exists yet. Configure sources, then let the agent sweep and ingest trend payloads.",
+      },
+    ],
   };
 }
 
@@ -120,7 +122,7 @@ export function computeMetrics(snapshot) {
     avg_margin_approved_pct: approved.length
       ? Math.round((approved.reduce((sum, item) => sum + marginOf(item), 0) / approved.length) * 10) / 10
       : 0,
-    below_margin_floor: candidates.filter((item) => item.margin_card?.below_floor).length
+    below_margin_floor: candidates.filter((item) => item.margin_card?.below_floor).length,
   };
 }
 
@@ -198,29 +200,29 @@ export function summarizeConfig(configResult) {
       categories: Array.isArray(profile.categories) ? profile.categories : [],
       target_platforms: Array.isArray(profile.target_platforms) ? profile.target_platforms : [],
       margin_floor_pct: Number(profile.margin_floor_pct) || 0,
-      max_cogs: Number(profile.max_cogs) || 0
+      max_cogs: Number(profile.max_cogs) || 0,
     },
     platforms: platforms.map((platform) => ({
       platform_id: platform.platform_id || "",
       name: platform.name || platform.platform_id || "",
       currency: platform.currency || "USD",
       referral_fee_pct: Number(platform.referral_fee_pct) || 0,
-      fulfillment_flat: Number(platform.fulfillment_flat) || 0
+      fulfillment_flat: Number(platform.fulfillment_flat) || 0,
     })),
     freight: {
       default_per_unit: Number(freight.default_per_unit) || 0,
       rules: (Array.isArray(freight.rules) ? freight.rules : []).map((rule) => ({
         category: rule.category || "*",
-        per_unit: Number(rule.per_unit) || 0
-      }))
+        per_unit: Number(rule.per_unit) || 0,
+      })),
     },
     ad_cost_default_pct: Number(config.ad_cost_default_pct) || 0,
     sources: sources.map((source) => ({
       source_id: source.source_id || "",
       kind: source.kind || "",
       name: source.name || source.source_id || "",
-      method: source.method || "manual"
+      method: source.method || "manual",
     })),
-    env_readiness: secretEnvs.map((name) => ({ name, ready: Boolean(process.env[name]) }))
+    env_readiness: secretEnvs.map((name) => ({ name, ready: Boolean(process.env[name]) })),
   };
 }

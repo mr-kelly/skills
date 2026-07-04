@@ -16,6 +16,7 @@ const MOVER_SOURCES = ["search", "community", "category"];
 const OPPORTUNITY_STATUSES = ["needs_review", "approved", "done", "blocked"];
 const DEPTHS = ["quick", "standard", "deep"];
 
+/** @param {string} message @returns {never} */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -34,7 +35,8 @@ function requireNumber(obj, key, path) {
 }
 
 function requireEnum(obj, key, values, path) {
-  if (!values.includes(obj[key])) fail(`${path}.${key} must be one of ${values.join("|")}, got ${JSON.stringify(obj[key])}`);
+  if (!values.includes(obj[key]))
+    fail(`${path}.${key} must be one of ${values.join("|")}, got ${JSON.stringify(obj[key])}`);
 }
 
 const raw = await fs.readFile(target, "utf8").catch((error) => {
@@ -53,7 +55,16 @@ requireString(snapshot, "schema_version", "root");
 requireString(snapshot, "generated_at", "root");
 requireString(snapshot, "source", "root");
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
-for (const key of ["watch_target_count", "signal_count", "signals_needs_review", "questions_open", "briefs_needs_review", "reports_ready", "trend_mover_count", "opportunities_open"]) {
+for (const key of [
+  "watch_target_count",
+  "signal_count",
+  "signals_needs_review",
+  "questions_open",
+  "briefs_needs_review",
+  "reports_ready",
+  "trend_mover_count",
+  "opportunities_open",
+]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
 if (!Array.isArray(snapshot.watchlist)) fail("root.watchlist must be an array");
@@ -162,8 +173,10 @@ snapshot.research.questions.forEach((question, index) => {
   requireEnum(question, "depth", DEPTHS, path);
   if (questionIds.has(question.question_id)) fail(`${path}.question_id duplicates ${question.question_id}`);
   questionIds.add(question.question_id);
-  if (question.brief_id && !briefIds.has(question.brief_id)) fail(`${path}.brief_id does not match a brief: ${question.brief_id}`);
-  if (question.report_id && !reportIds.has(question.report_id)) fail(`${path}.report_id does not match a report: ${question.report_id}`);
+  if (question.brief_id && !briefIds.has(question.brief_id))
+    fail(`${path}.brief_id does not match a brief: ${question.brief_id}`);
+  if (question.report_id && !reportIds.has(question.report_id))
+    fail(`${path}.report_id does not match a report: ${question.report_id}`);
   if (!Array.isArray(question.followups)) fail(`${path}.followups must be an array`);
 });
 
@@ -190,7 +203,8 @@ snapshot.trends.opportunities.forEach((opportunity, index) => {
   const path = `root.trends.opportunities[${index}]`;
   for (const key of ["opportunity_id", "title", "rationale"]) requireString(opportunity, key, path);
   requireEnum(opportunity, "status", OPPORTUNITY_STATUSES, path);
-  if (opportunityIds.has(opportunity.opportunity_id)) fail(`${path}.opportunity_id duplicates ${opportunity.opportunity_id}`);
+  if (opportunityIds.has(opportunity.opportunity_id))
+    fail(`${path}.opportunity_id duplicates ${opportunity.opportunity_id}`);
   opportunityIds.add(opportunity.opportunity_id);
   if (!isObject(opportunity.proposed_next_step)) fail(`${path}.proposed_next_step must be an object`);
   requireString(opportunity.proposed_next_step, "operation", `${path}.proposed_next_step`);

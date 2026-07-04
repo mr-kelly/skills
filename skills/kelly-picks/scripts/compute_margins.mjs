@@ -9,7 +9,15 @@
 // - Flags candidates whose margin_pct falls below seller_profile.margin_floor_pct.
 // Idempotent: re-running with the same config and snapshot changes nothing.
 import { SNAPSHOT_PATH } from "../app/server/paths.mjs";
-import { acquireLock, computeMetrics, emptySnapshot, readConfig, readJson, releaseLock, writeJson } from "../app/server/store.mjs";
+import {
+  acquireLock,
+  computeMetrics,
+  emptySnapshot,
+  readConfig,
+  readJson,
+  releaseLock,
+  writeJson,
+} from "../app/server/store.mjs";
 
 function round2(value) {
   return Math.round(value * 100) / 100;
@@ -20,8 +28,15 @@ function round1(value) {
 }
 
 const { config, path: configPath } = await readConfig();
-const platforms = new Map((Array.isArray(config.platforms) ? config.platforms : []).map((platform) => [platform.platform_id, platform]));
-const freightRules = new Map(((config.freight && Array.isArray(config.freight.rules)) ? config.freight.rules : []).map((rule) => [rule.category, Number(rule.per_unit) || 0]));
+const platforms = new Map(
+  (Array.isArray(config.platforms) ? config.platforms : []).map((platform) => [platform.platform_id, platform]),
+);
+const freightRules = new Map(
+  (config.freight && Array.isArray(config.freight.rules) ? config.freight.rules : []).map((rule) => [
+    rule.category,
+    Number(rule.per_unit) || 0,
+  ]),
+);
 const freightDefault = Number(config.freight?.default_per_unit) || 0;
 const adDefaultPct = Number(config.ad_cost_default_pct) || 0;
 const marginFloor = Number(config.seller_profile?.margin_floor_pct) || 0;
@@ -40,12 +55,16 @@ try {
     const platform = platforms.get(candidate.platform_id);
     const referralPct = Number(platform?.referral_fee_pct ?? card.platform_fee_pct ?? 0);
     const fulfillmentFlat = Number(platform?.fulfillment_flat ?? 0);
-    const freight = card.freight_quoted && Number.isFinite(Number(card.freight))
-      ? Number(card.freight)
-      : (freightRules.has(candidate.category) ? freightRules.get(candidate.category) : (Number(card.freight) || freightDefault));
-    const adCost = Number.isFinite(Number(card.ad_cost)) && Number(card.ad_cost) > 0
-      ? Number(card.ad_cost)
-      : round2(price * (adDefaultPct / 100));
+    const freight =
+      card.freight_quoted && Number.isFinite(Number(card.freight))
+        ? Number(card.freight)
+        : freightRules.has(candidate.category)
+          ? freightRules.get(candidate.category)
+          : Number(card.freight) || freightDefault;
+    const adCost =
+      Number.isFinite(Number(card.ad_cost)) && Number(card.ad_cost) > 0
+        ? Number(card.ad_cost)
+        : round2(price * (adDefaultPct / 100));
 
     const feeAmount = round2(price * (referralPct / 100) + fulfillmentFlat);
     const effectiveFeePct = price > 0 ? round1((feeAmount / price) * 100) : 0;
@@ -66,7 +85,7 @@ try {
       margin,
       margin_pct: marginPct,
       breakeven_acos_pct: acosPct,
-      below_floor: belowFloor
+      below_floor: belowFloor,
     };
     const before = JSON.stringify({ ...card, computed_at: "" });
     const after = JSON.stringify({ ...next, computed_at: "" });
@@ -87,7 +106,7 @@ try {
       at: now,
       actor: "kelly-picks-agent",
       action: "compute_margins",
-      detail: `${changed} margin cards recomputed from ${configPath || "defaults"}; ${flagged} candidates below the ${marginFloor}% margin floor.`
+      detail: `${changed} margin cards recomputed from ${configPath || "defaults"}; ${flagged} candidates below the ${marginFloor}% margin floor.`,
     });
     snapshot.sync_log = snapshot.sync_log.slice(0, 50);
     await writeJson(SNAPSHOT_PATH, snapshot);

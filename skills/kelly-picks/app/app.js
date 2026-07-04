@@ -6,9 +6,11 @@ const state = {
   route: parseRoute(),
   query: "",
   trendSource: "",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-picks-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-picks-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  saving: false
+  saving: false,
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-picks.sidebarCollapsed";
@@ -32,7 +34,7 @@ const els = {
   reviewCount: document.querySelector("#count-review"),
   developCount: document.querySelector("#count-develop"),
   watchCount: document.querySelector("#count-watch"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 /* ---------- Shell ---------- */
@@ -83,7 +85,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -93,13 +99,13 @@ function t(key) {
 function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function money(value, currency = state.snapshot?.base_currency || "USD") {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 2 }).format(Number(value || 0));
+  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 2 }).format(
+    Number(value || 0),
+  );
 }
 
 function pct(value) {
@@ -107,12 +113,18 @@ function pct(value) {
 }
 
 function compactNumber(value) {
-  return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value || 0));
+  return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(Number(value || 0));
 }
 
 function date(value) {
   if (!value) return "";
-  return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", { month: "short", day: "2-digit" }).format(new Date(value));
+  return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
+    month: "short",
+    day: "2-digit",
+  }).format(new Date(value));
 }
 
 function dateTime(value) {
@@ -121,7 +133,7 @@ function dateTime(value) {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -153,15 +165,16 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "candidates"
-    ? "#/candidates"
-    : scenario === "detail"
-      ? `#/candidates/${FEATURED_CANDIDATE_ID}`
-      : scenario === "trends"
-        ? "#/trends"
-        : scenario === "decisions"
-          ? "#/decisions"
-          : "#/overview";
+  const route =
+    scenario === "candidates"
+      ? "#/candidates"
+      : scenario === "detail"
+        ? `#/candidates/${FEATURED_CANDIDATE_ID}`
+        : scenario === "trends"
+          ? "#/trends"
+          : scenario === "decisions"
+            ? "#/decisions"
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -219,7 +232,9 @@ function attentionCounts() {
   const develop = candidates().filter((item) => item.stage === "develop").length;
   const watching = candidates().filter((item) => item.stage === "watch").length;
   const awaitingHandoff = proposals().filter((item) => item.status === "approved").length;
-  const staleWatches = candidates().filter((item) => item.stage === "watch" && Date.now() - Date.parse(item.last_updated || 0) > 14 * 24 * 3600 * 1000).length;
+  const staleWatches = candidates().filter(
+    (item) => item.stage === "watch" && Date.now() - Date.parse(item.last_updated || 0) > 14 * 24 * 3600 * 1000,
+  ).length;
   return { review, toReview, develop, watching, awaitingHandoff, staleWatches };
 }
 
@@ -290,7 +305,10 @@ function sparkline(momentum = []) {
   const span = max - min || 1;
   const step = width / Math.max(momentum.length - 1, 1);
   const points = momentum
-    .map((value, index) => `${(index * step).toFixed(1)},${(height - 3 - ((value - min) / span) * (height - 6)).toFixed(1)}`)
+    .map(
+      (value, index) =>
+        `${(index * step).toFixed(1)},${(height - 3 - ((value - min) / span) * (height - 6)).toFixed(1)}`,
+    )
     .join(" ");
   return `<svg class="sparkline" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" aria-hidden="true"><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
@@ -302,13 +320,15 @@ function reviewBars(counts = []) {
   const gap = 5;
   const barWidth = (width - gap * (counts.length - 1)) / counts.length;
   const max = Math.max(...counts) || 1;
-  const bars = counts.map((value, index) => {
-    const barHeight = Math.max((value / max) * (height - 18), 2);
-    const x = index * (barWidth + gap);
-    const y = height - 14 - barHeight;
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barHeight.toFixed(1)}" rx="2" class="${index === 0 ? "head" : ""}"><title>#${index + 1}: ${value.toLocaleString()}</title></rect>
+  const bars = counts
+    .map((value, index) => {
+      const barHeight = Math.max((value / max) * (height - 18), 2);
+      const x = index * (barWidth + gap);
+      const y = height - 14 - barHeight;
+      return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barHeight.toFixed(1)}" rx="2" class="${index === 0 ? "head" : ""}"><title>#${index + 1}: ${value.toLocaleString()}</title></rect>
       <text x="${(x + barWidth / 2).toFixed(1)}" y="${height - 3}" text-anchor="middle">${compactNumber(value)}</text>`;
-  }).join("");
+    })
+    .join("");
   return `<svg class="review-bars" viewBox="0 0 ${width} ${height}" role="img" aria-label="${t("topReviewCounts")}">${bars}</svg>`;
 }
 
@@ -326,13 +346,18 @@ function demoBanner() {
 
 function renderOverview() {
   els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}` : t("empty");
+  els.subtitle.textContent = state.snapshot?.generated_at
+    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
+    : t("empty");
   const metrics = state.snapshot?.metrics || {};
   const counts = attentionCounts();
-  const newThisWeek = candidates().filter((item) => Date.now() - Date.parse(item.first_seen || 0) <= 7 * 24 * 3600 * 1000);
-  const bySource = SOURCE_KINDS
-    .map((kind) => ({ kind, count: newThisWeek.filter((item) => item.source === kind).length }))
-    .filter((entry) => entry.count > 0);
+  const newThisWeek = candidates().filter(
+    (item) => Date.now() - Date.parse(item.first_seen || 0) <= 7 * 24 * 3600 * 1000,
+  );
+  const bySource = SOURCE_KINDS.map((kind) => ({
+    kind,
+    count: newThisWeek.filter((item) => item.source === kind).length,
+  })).filter((entry) => entry.count > 0);
   const movers = [...trendItems()].sort((a, b) => Math.abs(b.delta_pct) - Math.abs(a.delta_pct)).slice(0, 5);
   els.content.innerHTML = `
     ${demoBanner()}
@@ -369,7 +394,10 @@ function renderOverview() {
       </div>
       <div class="overview-panel">
         <h2>${t("topMovers")}</h2>
-        ${movers.map((item) => `
+        ${
+          movers
+            .map(
+              (item) => `
           <a class="mover-row" href="${item.candidate_id ? `#/candidates/${encodeURIComponent(item.candidate_id)}` : "#/trends"}">
             <span class="row-main">
               <strong>${escapeHtml(item.title)}</strong>
@@ -378,11 +406,17 @@ function renderOverview() {
             ${sparkline(item.momentum)}
             ${deltaArrow(item.delta_pct)}
           </a>
-        `).join("") || `<div class="empty-inline">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("empty")}</div>`
+        }
       </div>
       <div class="overview-panel wide">
         <h2>${t("sourceFreshness")}</h2>
-        ${sources().map((item) => `
+        ${
+          sources()
+            .map(
+              (item) => `
           <div class="freshness-row">
             <span class="row-main">
               <strong>${escapeHtml(item.name)}</strong>
@@ -392,7 +426,10 @@ function renderOverview() {
             <span class="muted">${t("lastSweep")} ${dateTime(item.last_sweep_at)}</span>
             ${statusBadge(item.status)}
           </div>
-        `).join("") || `<div class="empty-inline">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("empty")}</div>`
+        }
       </div>
     </section>
   `;
@@ -403,9 +440,11 @@ function renderOverview() {
 function filteredCandidates() {
   const query = state.query.trim().toLowerCase();
   if (!query) return candidates();
-  return candidates().filter((item) => [item.name, item.category, item.source, item.stage, item.competition_grade]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return candidates().filter((item) =>
+    [item.name, item.category, item.source, item.stage, item.competition_grade]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderCandidates() {
@@ -424,7 +463,9 @@ function renderCandidates() {
           </tr>
         </thead>
         <tbody>
-          ${items.map((item) => `
+          ${items
+            .map(
+              (item) => `
             <tr>
               <td>
                 <a href="#/candidates/${encodeURIComponent(item.candidate_id)}"><span class="strong">${escapeHtml(item.name)}</span></a>
@@ -438,7 +479,9 @@ function renderCandidates() {
               <td>${gradeBadge(item.competition_grade)}</td>
               <td>${stageBadge(item.stage)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -559,10 +602,14 @@ function renderCandidateDetail() {
           <dt>${t("stage")}</dt><dd>${escapeHtml(enumLabel(item.stage, "stage"))}</dd>
           ${item.verdict?.decided_at ? `<dt>${t("verdict")}</dt><dd>${escapeHtml(enumLabel(item.verdict.action, "verdict"))} · ${dateTime(item.verdict.decided_at)}</dd>` : ""}
         </dl>
-        ${proposal ? `
+        ${
+          proposal
+            ? `
           <h2>${t("reviewQueue")}</h2>
           <a class="handoff-chip block-link" href="#/decisions">${escapeHtml(pickRef(proposal.proposal_id))} · ${escapeHtml(proposal.title)} ${statusBadge(proposal.status)}</a>
-        ` : ""}
+        `
+            : ""
+        }
       </aside>
     </section>
   `;
@@ -629,9 +676,11 @@ function renderTrends() {
       ${SOURCE_KINDS.map((kind) => `<button type="button" class="chip source-${kind} ${state.trendSource === kind ? "active" : ""}" data-source="${kind}">${escapeHtml(enumLabel(kind, "source"))}</button>`).join("")}
     </div>
     <div class="trend-list">
-      ${items.map((item) => {
-        const linked = item.candidate_id ? candidateById(item.candidate_id) : null;
-        return `
+      ${
+        items
+          .map((item) => {
+            const linked = item.candidate_id ? candidateById(item.candidate_id) : null;
+            return `
           <div class="trend-row">
             <div class="trend-badge">${sourceBadge(item.source)}</div>
             <div class="row-main">
@@ -644,15 +693,19 @@ function renderTrends() {
               ${deltaArrow(item.delta_pct)}
             </div>
             <div class="trend-link">
-              ${linked
-                ? `<a class="badge link-badge" href="#/candidates/${encodeURIComponent(linked.candidate_id)}">${t("viewCandidate")}</a>`
-                : item.promotion
-                  ? `<span class="badge status-badge queued">${t("promoteQueued")}</span>`
-                  : `<button type="button" class="action small" data-action="promote" data-kind="trend" data-id="${escapeHtml(item.trend_id)}" ${disabled}>${t("promote")}</button>`}
+              ${
+                linked
+                  ? `<a class="badge link-badge" href="#/candidates/${encodeURIComponent(linked.candidate_id)}">${t("viewCandidate")}</a>`
+                  : item.promotion
+                    ? `<span class="badge status-badge queued">${t("promoteQueued")}</span>`
+                    : `<button type="button" class="action small" data-action="promote" data-kind="trend" data-id="${escapeHtml(item.trend_id)}" ${disabled}>${t("promote")}</button>`
+              }
             </div>
           </div>
         `;
-      }).join("") || `<div class="empty">${t("empty")}</div>`}
+          })
+          .join("") || `<div class="empty">${t("empty")}</div>`
+      }
     </div>
     <div id="decision-feedback" class="muted decision-feedback"></div>
   `;
@@ -670,9 +723,11 @@ function renderTrends() {
 function filteredProposals() {
   const query = state.query.trim().toLowerCase();
   if (!query) return proposals();
-  return proposals().filter((item) => [item.title, item.reason, item.brief, item.status, item.verdict]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(query)));
+  return proposals().filter((item) =>
+    [item.title, item.reason, item.brief, item.status, item.verdict]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query)),
+  );
 }
 
 function renderDecisions() {
@@ -685,15 +740,21 @@ function renderDecisions() {
     ${demoBanner()}
     ${lockBanner()}
     <div class="metrics">
-      ${["needs_review", "changes_requested", "approved", "done"].map((status) => `
+      ${["needs_review", "changes_requested", "approved", "done"]
+        .map(
+          (status) => `
         <div class="metric"><span>${escapeHtml(enumLabel(status))}</span><strong>${byStatus(status)}</strong></div>
-      `).join("")}
+      `,
+        )
+        .join("")}
     </div>
     <div class="proposal-list">
-      ${items.map((item) => {
-        const candidateItem = candidateById(item.candidate_id);
-        const open = ["needs_review", "changes_requested"].includes(item.status);
-        return `
+      ${
+        items
+          .map((item) => {
+            const candidateItem = candidateById(item.candidate_id);
+            const open = ["needs_review", "changes_requested"].includes(item.status);
+            return `
           <div class="proposal-card" data-proposal="${escapeHtml(item.proposal_id)}">
             <div class="detail-head">
               <span class="muted ref-cell">${escapeHtml(pickRef(item.proposal_id))}</span>
@@ -706,7 +767,9 @@ function renderDecisions() {
             <p class="proposal-reason"><span class="muted">${t("reason")}</span> ${escapeHtml(item.reason || "")}</p>
             <label class="note-label" for="brief-${escapeHtml(item.proposal_id)}">${t("briefEditable")}</label>
             <textarea id="brief-${escapeHtml(item.proposal_id)}" class="review-note brief-text" data-brief="${escapeHtml(item.proposal_id)}" ${open ? "" : "readonly"}>${escapeHtml(item.brief || "")}</textarea>
-            ${open ? `
+            ${
+              open
+                ? `
               <label class="note-label" for="note-${escapeHtml(item.proposal_id)}">${t("reviewNote")}</label>
               <textarea id="note-${escapeHtml(item.proposal_id)}" class="review-note note-text" data-note="${escapeHtml(item.proposal_id)}" placeholder="${t("reviewNote")}">${escapeHtml(item.review?.comment || "")}</textarea>
               <div class="action-row">
@@ -715,10 +778,14 @@ function renderDecisions() {
                 <button type="button" class="action" data-action="revise" data-kind="proposal" data-id="${escapeHtml(item.proposal_id)}" ${disabled}>${t("saveBrief")}</button>
                 <button type="button" class="action" data-action="block" data-kind="proposal" data-id="${escapeHtml(item.proposal_id)}" ${disabled}>${t("block")}</button>
               </div>
-            ` : `${item.verdictNote ? `<p class="muted verdict-note">${escapeHtml(item.verdictNote)}</p>` : ""}`}
+            `
+                : `${item.verdictNote ? `<p class="muted verdict-note">${escapeHtml(item.verdictNote)}</p>` : ""}`
+            }
           </div>
         `;
-      }).join("") || `<div class="empty">${t("empty")}</div>`}
+          })
+          .join("") || `<div class="empty">${t("empty")}</div>`
+      }
     </div>
     <div id="decision-feedback" class="muted decision-feedback"></div>
   `;
@@ -756,13 +823,19 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("feeTables")}</h2>
-        ${(summary.platforms || []).map((platform) => `
+        ${
+          (summary.platforms || [])
+            .map(
+              (platform) => `
           <div class="settings-row">
             <strong>${escapeHtml(platform.name)}</strong>
             <span>${t("referralFee")} ${pct(platform.referral_fee_pct)} · ${t("fulfillmentFlat")} ${money(platform.fulfillment_flat, platform.currency)}</span>
             <span class="muted">${escapeHtml(platform.currency)}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("freightRules")}</h2>
@@ -771,43 +844,64 @@ function renderSettings() {
           <span>${money(freight.default_per_unit)} ${t("perUnit")}</span>
           <span></span>
         </div>
-        ${(freight.rules || []).map((rule) => `
+        ${(freight.rules || [])
+          .map(
+            (rule) => `
           <div class="settings-row">
             <strong>${escapeHtml(rule.category)}</strong>
             <span>${money(rule.per_unit)} ${t("perUnit")}</span>
             <span></span>
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </section>
       <section>
         <h2>${t("sources")}</h2>
-        ${(summary.sources || []).map((source) => `
+        ${
+          (summary.sources || [])
+            .map(
+              (source) => `
           <div class="settings-row">
             <strong>${escapeHtml(source.name)}</strong>
             <span>${sourceBadge(source.kind)}</span>
             <span>${escapeHtml(enumLabel(source.method, "method"))}</span>
           </div>
-        `).join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("envReadiness")}</h2>
-        ${(summary.env_readiness || []).map((entry) => `
+        ${
+          (summary.env_readiness || [])
+            .map(
+              (entry) => `
           <div class="settings-row">
             <strong>${escapeHtml(entry.name)}</strong>
             <span class="${entry.ready ? "positive" : "negative"}">${entry.ready ? t("ready") : t("missing")}</span>
             <span></span>
           </div>
-        `).join("") || `<div class="empty-inline">—</div>`}
+        `,
+            )
+            .join("") || `<div class="empty-inline">—</div>`
+        }
       </section>
       <section>
         <h2>${t("syncLog")}</h2>
-        ${(state.snapshot?.sync_log || []).slice(0, 8).map((entry) => `
+        ${(state.snapshot?.sync_log || [])
+          .slice(0, 8)
+          .map(
+            (entry) => `
           <div class="settings-row">
             <strong>${escapeHtml(entry.action)}</strong>
             <span>${escapeHtml(entry.detail)}</span>
             <span class="muted">${dateTime(entry.at)}</span>
           </div>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </section>
     </div>
   `;
@@ -828,7 +922,7 @@ function bindDecisionButtons() {
         id: button.dataset.id,
         action: button.dataset.action,
         comment: note,
-        brief: button.dataset.kind === "proposal" ? brief : undefined
+        brief: button.dataset.kind === "proposal" ? brief : undefined,
       });
     });
   });
@@ -841,7 +935,7 @@ async function submitDecision(payload) {
     const res = await fetch("/api/decision", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...payload, demo: Boolean(state.settings?.demo) })
+      body: JSON.stringify({ ...payload, demo: Boolean(state.settings?.demo) }),
     });
     const body = await res.json();
     if (!res.ok || !body.ok) throw new Error(body.error || `Request failed: ${res.status}`);
@@ -876,7 +970,8 @@ function applyLocalDecision({ kind, id, action, comment, brief }) {
   const decided_at = new Date().toISOString();
   if (kind === "candidate") {
     const item = candidateById(id);
-    if (item) Object.assign(item, { stage: stageForCandidateAction(action), verdict: { kind, action, comment, decided_at } });
+    if (item)
+      Object.assign(item, { stage: stageForCandidateAction(action), verdict: { kind, action, comment, decided_at } });
   } else if (kind === "proposal") {
     const item = proposals().find((entry) => entry.proposal_id === id);
     if (item) {
@@ -909,13 +1004,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 function isEditing() {

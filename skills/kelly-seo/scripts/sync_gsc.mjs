@@ -4,12 +4,10 @@
 // with node:crypto) or a plain OAuth token (KELLY_SEO_GSC_ACCESS_TOKEN).
 // Never required for demo mode or app startup.
 
-import fs from "node:fs/promises";
 import crypto from "node:crypto";
+import fs from "node:fs/promises";
+import { badgesFor } from "../app/server/demo.mjs";
 import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.mjs";
-import {
-  badgesFor
-} from "../app/server/demo.mjs";
 import {
   ensureDirs,
   envSearchPaths,
@@ -17,7 +15,7 @@ import {
   readConfig,
   readJson,
   readLock,
-  writeJson
+  writeJson,
 } from "../app/server/store.mjs";
 
 const GSC_BASE = "https://www.googleapis.com/webmasters/v3";
@@ -45,13 +43,15 @@ async function serviceAccountToken(keyFilePath) {
   }
   const now = Math.floor(Date.now() / 1000);
   const header = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const claims = b64url(JSON.stringify({
-    iss: key.client_email,
-    scope: SCOPE,
-    aud: key.token_uri || TOKEN_URL,
-    iat: now,
-    exp: now + 3600
-  }));
+  const claims = b64url(
+    JSON.stringify({
+      iss: key.client_email,
+      scope: SCOPE,
+      aud: key.token_uri || TOKEN_URL,
+      iat: now,
+      exp: now + 3600,
+    }),
+  );
   const unsigned = `${header}.${claims}`;
   const signature = crypto.createSign("RSA-SHA256").update(unsigned).sign(key.private_key).toString("base64url");
   const assertion = `${unsigned}.${signature}`;
@@ -60,12 +60,14 @@ async function serviceAccountToken(keyFilePath) {
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion
-    })
+      assertion,
+    }),
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok || !body.access_token) {
-    fail(`token exchange failed (${res.status}): ${body.error_description || body.error || "no access_token returned"}. Check that the key is valid and the service account is added as a user on your Search Console properties.`);
+    fail(
+      `token exchange failed (${res.status}): ${body.error_description || body.error || "no access_token returned"}. Check that the key is valid and the service account is added as a user on your Search Console properties.`,
+    );
   }
   return body.access_token;
 }
@@ -84,17 +86,19 @@ async function resolveAccessToken(config) {
     console.log(`Using service-account key from ${fileEnv}.`);
     return serviceAccountToken(keyFile);
   }
-  fail([
-    "no Google Search Console credentials configured, so nothing was synced.",
-    "",
-    "To fix, choose one auth method:",
-    `  1. Service account (recommended): set ${fileEnv}=/absolute/path/to/key.json in a local env file`,
-    "     (e.g. skills/kelly-seo/.env.local) and add the service account email as a user on each",
-    "     Search Console property (Settings -> Users and permissions).",
-    `  2. Quick manual run: set ${tokenEnv}=<oauth token with ${SCOPE}>.`,
-    "",
-    "Demo mode and the local app do not need credentials: try /?demo=overview instead."
-  ].join("\n"));
+  fail(
+    [
+      "no Google Search Console credentials configured, so nothing was synced.",
+      "",
+      "To fix, choose one auth method:",
+      `  1. Service account (recommended): set ${fileEnv}=/absolute/path/to/key.json in a local env file`,
+      "     (e.g. skills/kelly-seo/.env.local) and add the service account email as a user on each",
+      "     Search Console property (Settings -> Users and permissions).",
+      `  2. Quick manual run: set ${tokenEnv}=<oauth token with ${SCOPE}>.`,
+      "",
+      "Demo mode and the local app do not need credentials: try /?demo=overview instead.",
+    ].join("\n"),
+  );
 }
 
 async function gscFetch(token, url, options = {}) {
@@ -103,8 +107,8 @@ async function gscFetch(token, url, options = {}) {
     headers: {
       authorization: `Bearer ${token}`,
       "content-type": "application/json",
-      ...(options.headers || {})
-    }
+      ...(options.headers || {}),
+    },
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -134,7 +138,7 @@ function dateWindows(windowDays) {
   previousStart.setUTCDate(previousStart.getUTCDate() - (windowDays - 1));
   return {
     current: { start: isoDay(currentStart), end: isoDay(end) },
-    previous: { start: isoDay(previousStart), end: isoDay(previousEnd) }
+    previous: { start: isoDay(previousStart), end: isoDay(previousEnd) },
   };
 }
 
@@ -143,7 +147,11 @@ function shortHash(value) {
 }
 
 function slugOrHash(value) {
-  const slug = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
+  const slug = String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
   return slug || shortHash(value);
 }
 
@@ -155,7 +163,7 @@ function rowTotals(rows) {
     clicks,
     impressions,
     ctr: impressions ? Number((clicks / impressions).toFixed(4)) : 0,
-    position: impressions ? Number((weighted / impressions).toFixed(1)) : 0
+    position: impressions ? Number((weighted / impressions).toFixed(1)) : 0,
   };
 }
 
@@ -164,19 +172,20 @@ function toMetricRow(row) {
     clicks: row.clicks || 0,
     impressions: row.impressions || 0,
     ctr: Number((row.ctr || 0).toFixed(4)),
-    position: Number((row.position || 0).toFixed(1))
+    position: Number((row.position || 0).toFixed(1)),
   };
 }
 
 async function syncSite(token, site, windows, rowLimit, warnings) {
   const property = site.property_url;
-  const query = (range, dimensions, limit = rowLimit) => searchAnalytics(token, property, {
-    startDate: range.start,
-    endDate: range.end,
-    dimensions,
-    rowLimit: limit,
-    dataState: "final"
-  });
+  const query = (range, dimensions, limit = rowLimit) =>
+    searchAnalytics(token, property, {
+      startDate: range.start,
+      endDate: range.end,
+      dimensions,
+      rowLimit: limit,
+      dataState: "final",
+    });
 
   const [curQueries, prevQueries, curPages, prevPages, dates, queryPages] = await Promise.all([
     query(windows.current, ["query"]),
@@ -184,7 +193,7 @@ async function syncSite(token, site, windows, rowLimit, warnings) {
     query(windows.current, ["page"]),
     query(windows.previous, ["page"]),
     query({ start: windows.previous.start, end: windows.current.end }, ["date"], 1000),
-    query(windows.current, ["query", "page"], 1000)
+    query(windows.current, ["query", "page"], 1000),
   ]);
 
   const prevQueryMap = new Map((prevQueries.rows || []).map((row) => [row.keys[0], toMetricRow(row)]));
@@ -216,7 +225,7 @@ async function syncSite(token, site, windows, rowLimit, warnings) {
       badges: badgesFor(current.clicks, current.impressions, current.position),
       top_pages: topOf(pagesByQuery.get(text)),
       trend: [],
-      agent_notes: ""
+      agent_notes: "",
     };
   });
 
@@ -232,14 +241,14 @@ async function syncSite(token, site, windows, rowLimit, warnings) {
       issues: [],
       top_queries: topOf(queriesByPage.get(url)),
       trend: [],
-      agent_notes: ""
+      agent_notes: "",
     };
   });
 
   const daily = (dates.rows || []).map((row) => ({
     date: row.keys[0],
     site_id: site.site_id,
-    ...toMetricRow(row)
+    ...toMetricRow(row),
   }));
   const currentDaily = daily.filter((point) => point.date >= windows.current.start);
   const previousDaily = daily.filter((point) => point.date < windows.current.start);
@@ -249,7 +258,7 @@ async function syncSite(token, site, windows, rowLimit, warnings) {
       severity: "warning",
       site_id: site.site_id,
       message: `No search analytics rows returned for ${property} in the current window.`,
-      detail: "The property may be new, empty, or the account may lack access."
+      detail: "The property may be new, empty, or the account may lack access.",
     });
   }
 
@@ -262,11 +271,11 @@ async function syncSite(token, site, windows, rowLimit, warnings) {
       status: currentDaily.length ? "ok" : "warning",
       last_sync_at: new Date().toISOString(),
       totals: rowTotals(currentDaily),
-      previous: rowTotals(previousDaily)
+      previous: rowTotals(previousDaily),
     },
     queries,
     pages,
-    daily
+    daily,
   };
 }
 
@@ -276,7 +285,9 @@ async function main() {
   const configResult = await readConfig();
   const config = configResult.config || {};
   if (configResult.is_example || !configResult.path) {
-    fail("no private config found (config.local.json, KELLY_SEO_CONFIG, or ~/.config/kelly-seo/config.json). Run onboarding first; config.example.json is a template only.");
+    fail(
+      "no private config found (config.local.json, KELLY_SEO_CONFIG, or ~/.config/kelly-seo/config.json). Run onboarding first; config.example.json is a template only.",
+    );
   }
   const sites = Array.isArray(config.sites) ? config.sites.filter((site) => site.site_id && site.property_url) : [];
   if (!sites.length) {
@@ -305,7 +316,7 @@ async function main() {
         severity: "error",
         site_id: site.site_id,
         message: `Property ${site.property_url} is not visible to this credential.`,
-        detail: "Add the service account / user to the property in Search Console (Settings -> Users and permissions)."
+        detail: "Add the service account / user to the property in Search Console (Settings -> Users and permissions).",
       });
     } else {
       site.permission_level = permission;
@@ -318,25 +329,33 @@ async function main() {
 
   const existingLock = await readLock();
   if (existingLock) {
-    fail(`agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Another run is in progress; remove the lock only if you are sure it is stale.`);
+    fail(
+      `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Another run is in progress; remove the lock only if you are sure it is stale.`,
+    );
   }
   await writeJson(LOCK_PATH, {
     owner: "kelly-seo",
     message: "Syncing Google Search Console search analytics",
-    started_at: new Date().toISOString()
+    started_at: new Date().toISOString(),
   });
 
   try {
     const results = [];
     for (const site of reachable) {
-      console.log(`Syncing ${site.property_url} (${windows.current.start}..${windows.current.end}, prev ${windows.previous.start}..${windows.previous.end})`);
+      console.log(
+        `Syncing ${site.property_url} (${windows.current.start}..${windows.current.end}, prev ${windows.previous.start}..${windows.previous.end})`,
+      );
       results.push(await syncSite(token, site, windows, rowLimit, warnings));
     }
     const previousSnapshot = await readJson(SNAPSHOT_PATH, null);
     const opportunities = previousSnapshot?.opportunities || [];
     const siteEntries = results.map((result) => result.site);
-    const totals = rowTotals(results.flatMap((result) => result.daily.filter((point) => point.date >= windows.current.start)));
-    const prevTotals = rowTotals(results.flatMap((result) => result.daily.filter((point) => point.date < windows.current.start)));
+    const totals = rowTotals(
+      results.flatMap((result) => result.daily.filter((point) => point.date >= windows.current.start)),
+    );
+    const prevTotals = rowTotals(
+      results.flatMap((result) => result.daily.filter((point) => point.date < windows.current.start)),
+    );
     const snapshot = {
       schema_version: "1",
       generated_at: new Date().toISOString(),
@@ -354,18 +373,20 @@ async function main() {
         prev_clicks: prevTotals.clicks,
         prev_impressions: prevTotals.impressions,
         prev_ctr: prevTotals.ctr,
-        prev_position: prevTotals.position
+        prev_position: prevTotals.position,
       },
       sites: siteEntries,
       daily: results.flatMap((result) => result.daily),
       queries: results.flatMap((result) => result.queries),
       pages: results.flatMap((result) => result.pages),
       opportunities,
-      warnings
+      warnings,
     };
     await writeJson(SNAPSHOT_PATH, snapshot);
     console.log(`Wrote ${SNAPSHOT_PATH}`);
-    console.log(`Sites: ${snapshot.metrics.site_count}, queries: ${snapshot.metrics.query_count}, pages: ${snapshot.metrics.page_count}, clicks 28d: ${snapshot.metrics.clicks}`);
+    console.log(
+      `Sites: ${snapshot.metrics.site_count}, queries: ${snapshot.metrics.query_count}, pages: ${snapshot.metrics.page_count}, clicks 28d: ${snapshot.metrics.clicks}`,
+    );
     if (warnings.length) {
       console.log(`Warnings: ${warnings.map((warning) => warning.message).join(" | ")}`);
     }

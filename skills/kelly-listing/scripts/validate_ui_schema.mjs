@@ -12,6 +12,10 @@ const RESULTS = new Set(["pass", "warn", "fail"]);
 const SOURCES = new Set(["manual", "kelly_picks"]);
 const IMAGE_STATUSES = new Set(["ready", "missing", "needs_edit"]);
 
+/**
+ * @param {string} message
+ * @returns {never}
+ */
 function fail(message) {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
@@ -46,7 +50,16 @@ requireString(snapshot, "generated_at", "root");
 requireString(snapshot, "source", "root");
 if (!isObject(snapshot.seller)) fail("root.seller must be an object");
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
-for (const key of ["product_count", "draft_count", "drafts_needs_review", "drafts_approved", "drafts_in_revision", "checks_failed", "compliance_pass_rate", "exported_this_week"]) {
+for (const key of [
+  "product_count",
+  "draft_count",
+  "drafts_needs_review",
+  "drafts_approved",
+  "drafts_in_revision",
+  "checks_failed",
+  "compliance_pass_rate",
+  "exported_this_week",
+]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
 if (!isObject(snapshot.metrics.drafts_by_platform)) fail("root.metrics.drafts_by_platform must be an object");
@@ -94,8 +107,10 @@ snapshot.drafts.forEach((draft, index) => {
   draftIds.add(draft.draft_id);
   if (!productIds.has(draft.product_id)) fail(`${path}.product_id does not match a product: ${draft.product_id}`);
   if (!isObject(draft.fields)) fail(`${path}.fields must be an object`);
-  if (draft.fields.bullets !== undefined && !Array.isArray(draft.fields.bullets)) fail(`${path}.fields.bullets must be an array`);
-  if (draft.fields.selling_points !== undefined && !Array.isArray(draft.fields.selling_points)) fail(`${path}.fields.selling_points must be an array`);
+  if (draft.fields.bullets !== undefined && !Array.isArray(draft.fields.bullets))
+    fail(`${path}.fields.bullets must be an array`);
+  if (draft.fields.selling_points !== undefined && !Array.isArray(draft.fields.selling_points))
+    fail(`${path}.fields.selling_points must be an array`);
 });
 
 const ruleIds = new Set();

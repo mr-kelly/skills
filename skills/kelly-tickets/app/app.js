@@ -6,15 +6,28 @@ const state = {
   route: parseRoute(),
   query: "",
   dispatchFilter: "all",
-  lang: normalizeLang(new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-tickets-language") || "auto"),
+  lang: normalizeLang(
+    new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-tickets-language") || "auto",
+  ),
   demo: new URLSearchParams(location.search).get("demo") || "",
-  demoDecisions: {}
+  demoDecisions: {},
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-tickets.sidebarCollapsed";
 const BOARD_STATUSES = ["open", "assigned", "in_progress", "waiting", "resolved"];
 const DISPATCH_STATUSES = ["needs_review", "changes_requested", "approved", "done", "blocked"];
-const CATEGORIES = ["plumbing", "electrical", "hvac", "elevator", "security", "noise", "parking", "cleaning", "amenity", "other"];
+const CATEGORIES = [
+  "plumbing",
+  "electrical",
+  "hvac",
+  "elevator",
+  "security",
+  "noise",
+  "parking",
+  "cleaning",
+  "amenity",
+  "other",
+];
 const URGENCIES = ["urgent", "high", "normal", "low"];
 
 const els = {
@@ -33,7 +46,7 @@ const els = {
   reviewCount: document.querySelector("#count-review"),
   unclassifiedCount: document.querySelector("#count-unclassified"),
   slaCount: document.querySelector("#count-sla"),
-  language: document.querySelector("#language")
+  language: document.querySelector("#language"),
 };
 
 function isMobileLayout() {
@@ -80,7 +93,11 @@ function activeLang() {
 }
 
 function normalizeLang(lang) {
-  return String(lang || "auto").toLowerCase().startsWith("zh") ? "zh" : (lang || "auto");
+  return String(lang || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : lang || "auto";
 }
 
 function t(key) {
@@ -90,9 +107,7 @@ function t(key) {
 function enumLabel(value, group) {
   if (!value) return "";
   const key = String(value);
-  return messages[activeLang()]?.enum?.[group]?.[key]
-    || messages.en.enum?.[group]?.[key]
-    || key.replaceAll("_", " ");
+  return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
 }
 
 function date(value) {
@@ -101,7 +116,7 @@ function date(value) {
     month: "short",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -144,15 +159,16 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route = scenario === "intake"
-    ? "#/intake"
-    : scenario === "dispatch"
-      ? "#/dispatch"
-      : scenario === "board"
-        ? "#/board"
-        : scenario === "detail"
-          ? "#/board/T-1001"
-          : "#/overview";
+  const route =
+    scenario === "intake"
+      ? "#/intake"
+      : scenario === "dispatch"
+        ? "#/dispatch"
+        : scenario === "board"
+          ? "#/board"
+          : scenario === "detail"
+            ? "#/board/T-1001"
+            : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -162,9 +178,8 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     node.textContent = t(node.dataset.i18n);
   });
-  const languageLabels = activeLang() === "zh"
-    ? { auto: "自动", en: "English", zh: "中文" }
-    : { auto: "Auto", en: "English", zh: "中文" };
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
   for (const option of els.language.options) {
     option.textContent = languageLabels[option.value] || option.textContent;
   }
@@ -232,23 +247,53 @@ function matchesQuery(values) {
 
 function filteredIntake() {
   return intakeItems().filter((item) =>
-    matchesQuery([item.text, item.reporter, item.unit, item.location, item.channel, item.category_guess, item.triage_state, item.ticket_id]));
+    matchesQuery([
+      item.text,
+      item.reporter,
+      item.unit,
+      item.location,
+      item.channel,
+      item.category_guess,
+      item.triage_state,
+      item.ticket_id,
+    ]),
+  );
 }
 
 function filteredTickets() {
   return tickets().filter((ticket) =>
-    matchesQuery([ticket.id, ticket.title, ticket.category, ticket.unit, ticket.location, ticket.reporter, crewName(ticket.crew_id), ticket.status]));
+    matchesQuery([
+      ticket.id,
+      ticket.title,
+      ticket.category,
+      ticket.unit,
+      ticket.location,
+      ticket.reporter,
+      crewName(ticket.crew_id),
+      ticket.status,
+    ]),
+  );
 }
 
 function filteredProposals() {
   return proposals().filter((proposal) => {
     if (state.dispatchFilter !== "all" && proposal.status !== state.dispatchFilter) return false;
-    return matchesQuery([proposal.title, proposal.summary, proposal.reason, proposal.ticket_id, crewName(proposal.proposed_crew_id), proposal.status, proposal.priority]);
+    return matchesQuery([
+      proposal.title,
+      proposal.summary,
+      proposal.reason,
+      proposal.ticket_id,
+      crewName(proposal.proposed_crew_id),
+      proposal.status,
+      proposal.priority,
+    ]);
   });
 }
 
 function slaAtRiskCount() {
-  return tickets().filter((ticket) => ticket.status !== "resolved" && ["at_risk", "breached"].includes(ticket.sla_state)).length;
+  return tickets().filter(
+    (ticket) => ticket.status !== "resolved" && ["at_risk", "breached"].includes(ticket.sla_state),
+  ).length;
 }
 
 function renderShell() {
@@ -305,18 +350,24 @@ function slaBadge(ticket) {
 function warnings() {
   const items = state.snapshot?.warnings || [];
   if (!items.length) return "";
-  return `<div class="warnings">${items.map((item) => `
+  return `<div class="warnings">${items
+    .map(
+      (item) => `
     <div class="${escapeHtml(item.severity || "warning")}">
       <strong>${escapeHtml(item.message)}</strong>
       ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
     </div>
-  `).join("")}</div>`;
+  `,
+    )
+    .join("")}</div>`;
 }
 
 function overviewAttention() {
   const reviewCount = proposals().filter((proposal) => proposal.status === "needs_review").length;
   const unclassified = intakeItems().filter((item) => item.triage_state === "new").length;
-  const breaching = tickets().filter((ticket) => ticket.status !== "resolved" && ticket.sla_state === "breached").length;
+  const breaching = tickets().filter(
+    (ticket) => ticket.status !== "resolved" && ticket.sla_state === "breached",
+  ).length;
   return `
     <div class="attention-row">
       <a class="attention-card ${reviewCount ? "hot" : ""}" href="#/dispatch">
@@ -340,7 +391,10 @@ function overviewMetrics() {
   const byChannel = metrics.intake_by_channel || {};
   const channelBadges = Object.entries(byChannel)
     .sort((a, b) => b[1] - a[1])
-    .map(([channel, count]) => `<span class="badge channel-${escapeHtml(channel)}">${escapeHtml(enumLabel(channel, "channel"))} ${count}</span>`)
+    .map(
+      ([channel, count]) =>
+        `<span class="badge channel-${escapeHtml(channel)}">${escapeHtml(enumLabel(channel, "channel"))} ${count}</span>`,
+    )
     .join(" ");
   return `
     <div class="metrics">
@@ -363,16 +417,18 @@ function categoryDistributionSvg() {
   const rowHeight = 26;
   const labelWidth = 96;
   const barSpan = 190;
-  const rows = entries.map(([category, count], index) => {
-    const y = index * rowHeight;
-    const width = Math.max(4, Math.round((count / max) * barSpan));
-    return `
+  const rows = entries
+    .map(([category, count], index) => {
+      const y = index * rowHeight;
+      const width = Math.max(4, Math.round((count / max) * barSpan));
+      return `
       <text x="${labelWidth - 8}" y="${y + 16}" text-anchor="end" class="svg-label">${escapeHtml(enumLabel(category, "category"))}</text>
       <rect x="${labelWidth}" y="${y + 6}" width="${barSpan}" height="12" rx="3" class="svg-track"></rect>
       <rect x="${labelWidth}" y="${y + 6}" width="${width}" height="12" rx="3" class="svg-bar"></rect>
       <text x="${labelWidth + barSpan + 8}" y="${y + 16}" class="svg-count">${count}</text>
     `;
-  }).join("");
+    })
+    .join("");
   return `
     <svg viewBox="0 0 320 ${entries.length * rowHeight}" role="img" aria-label="${t("categoryDistribution")}" class="category-svg" preserveAspectRatio="xMinYMin meet">
       ${rows}
@@ -387,16 +443,20 @@ function crewLoadPanel() {
     openByCrew.set(ticket.crew_id, (openByCrew.get(ticket.crew_id) || 0) + 1);
   }
   const max = Math.max(1, ...openByCrew.values());
-  return crews().map((crew) => {
-    const count = openByCrew.get(crew.crew_id) || 0;
-    return `
+  return (
+    crews()
+      .map((crew) => {
+        const count = openByCrew.get(crew.crew_id) || 0;
+        return `
       <div class="crew-row">
         <span class="crew-name"><strong>${escapeHtml(crew.name)}</strong><small>${escapeHtml((crew.skills || []).map((skill) => enumLabel(skill, "category")).join(" · "))}</small></span>
         <span class="crew-bar"><i style="width:${Math.round((count / max) * 100)}%"></i></span>
         <span class="crew-count">${count}</span>
       </div>
     `;
-  }).join("") || `<div class="empty">${t("setupNeeded")}</div>`;
+      })
+      .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+  );
 }
 
 function renderOverview() {
@@ -419,13 +479,21 @@ function renderOverview() {
       </div>
       <div class="overview-panel wide">
         <h2>${t("syncLog")}</h2>
-        ${(state.snapshot?.sync_log || []).slice(-6).reverse().map((entry) => `
+        ${
+          (state.snapshot?.sync_log || [])
+            .slice(-6)
+            .reverse()
+            .map(
+              (entry) => `
           <div class="log-row">
             <span class="badge">${escapeHtml(entry.source)}</span>
             <span class="log-detail">${escapeHtml(entry.detail || entry.action || "")}</span>
             <span class="muted">${date(entry.at)}</span>
           </div>
-        `).join("") || `<div class="empty">${t("empty")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("empty")}</div>`
+        }
       </div>
     </section>
   `;
@@ -435,7 +503,8 @@ function renderIntake() {
   const items = filteredIntake();
   els.title.textContent = t("intake");
   els.subtitle.textContent = `${items.length} ${t("intakeItems")}`;
-  els.content.innerHTML = items.length ? `
+  els.content.innerHTML = items.length
+    ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -444,7 +513,9 @@ function renderIntake() {
           </tr>
         </thead>
         <tbody>
-          ${items.map((item) => `
+          ${items
+            .map(
+              (item) => `
             <tr>
               <td>${channelBadge(item.channel)}</td>
               <td>${date(item.received_at)}</td>
@@ -455,11 +526,14 @@ function renderIntake() {
               <td>${statusBadge(item.triage_state, "triage")}</td>
               <td>${item.ticket_id ? `<a class="ticket-link" href="#/board/${encodeURIComponent(item.ticket_id)}">${escapeHtml(item.ticket_id)}</a>` : ""}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
-  ` : `<div class="empty">${t("empty")}</div>`;
+  `
+    : `<div class="empty">${t("empty")}</div>`;
 }
 
 function classificationEditor(item) {
@@ -491,13 +565,17 @@ function classificationEditor(item) {
         <button type="button" class="primary" data-decision="convert_to_ticket" data-id="${escapeHtml(item.id)}" ${disabled}>${t("convertToTicket")}</button>
         <button type="button" class="danger" data-decision="ignore" data-id="${escapeHtml(item.id)}" ${disabled}>${t("ignore")}</button>
       </div>
-      ${item.decision ? `
+      ${
+        item.decision
+          ? `
         <div class="decision-info">
           <strong>${t("decision")}: ${escapeHtml(enumLabel(item.decision.action, "action"))}</strong>
           ${item.decision.note ? `<span>${escapeHtml(item.decision.note)}</span>` : ""}
           <small>${t("decided")} ${escapeHtml(item.decision.decided_at ? new Date(item.decision.decided_at).toLocaleString() : "")} · ${t("agentQueued")}</small>
         </div>
-      ` : ""}
+      `
+          : ""
+      }
       ${state.demo ? `<div class="demo-note">${t("demoDecisionNote")}</div>` : ""}
     </div>
   `;
@@ -590,19 +668,27 @@ function proposalCard(proposal) {
         <button type="button" data-decision="revise" data-id="${escapeHtml(proposal.id)}" title="${t("saveNote")}" ${disabled}>${t("saveNote")}</button>
         <button type="button" class="danger" data-decision="block" data-id="${escapeHtml(proposal.id)}" title="${t("block")}" ${disabled}>${t("block")}</button>
       </div>
-      ${proposal.decision ? `
+      ${
+        proposal.decision
+          ? `
         <div class="decision-info">
           <strong>${t("decision")}: ${escapeHtml(enumLabel(proposal.decision.action, "action"))}</strong>
           ${proposal.decision.note ? `<span>${escapeHtml(proposal.decision.note)}</span>` : ""}
           <small>${t("decided")} ${escapeHtml(proposal.decision.decided_at ? new Date(proposal.decision.decided_at).toLocaleString() : "")}</small>
         </div>
-      ` : ""}
-      ${proposal.execution ? `
+      `
+          : ""
+      }
+      ${
+        proposal.execution
+          ? `
         <div class="execution-info">
           ${(proposal.execution.operations || []).map((op) => `<div><code>${escapeHtml(op.operation)}</code> → ${escapeHtml(op.target || "")} ${escapeHtml(op.detail || "")}</div>`).join("")}
           <small>${escapeHtml(proposal.execution.detail || "")}</small>
         </div>
-      ` : ""}
+      `
+          : ""
+      }
     </article>
   `;
 }
@@ -631,7 +717,9 @@ function boardTable(items) {
           </tr>
         </thead>
         <tbody>
-          ${items.map((ticket) => `
+          ${items
+            .map(
+              (ticket) => `
             <tr>
               <td class="cell-text"><a href="#/board/${encodeURIComponent(ticket.id)}"><span class="ticket-link">${escapeHtml(ticket.id)}</span> <span class="strong">${escapeHtml(ticket.title)}</span></a></td>
               <td>${categoryBadge(ticket.category)} ${urgencyBadge(ticket.urgency)}</td>
@@ -640,7 +728,9 @@ function boardTable(items) {
               <td>${formatAge(ticket.created_at)}</td>
               <td>${slaBadge(ticket)}</td>
             </tr>
-          `).join("")}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
     </div>
@@ -651,16 +741,17 @@ function renderBoard() {
   const items = filteredTickets();
   els.title.textContent = t("board");
   els.subtitle.textContent = `${items.length} ${t("tickets")}`;
-  els.content.innerHTML = BOARD_STATUSES.map((status) => {
-    const group = items.filter((ticket) => ticket.status === status);
-    if (!group.length) return "";
-    return `
+  els.content.innerHTML =
+    BOARD_STATUSES.map((status) => {
+      const group = items.filter((ticket) => ticket.status === status);
+      if (!group.length) return "";
+      return `
       <section class="board-group">
         <h2>${escapeHtml(enumLabel(status, "ticket_status"))} <span class="muted">${group.length}</span></h2>
         ${boardTable(group)}
       </section>
     `;
-  }).join("") || `<div class="empty">${t("empty")}</div>`;
+    }).join("") || `<div class="empty">${t("empty")}</div>`;
 }
 
 function renderBoardDetail() {
@@ -681,7 +772,9 @@ function renderBoardDetail() {
         <div class="timeline-panel">
           <h2>${t("timeline")}</h2>
           <ol class="timeline">
-            ${(ticket.history || []).map((event) => `
+            ${(ticket.history || [])
+              .map(
+                (event) => `
               <li class="timeline-item event-${escapeHtml(event.event)}">
                 <div class="timeline-head">
                   <strong>${escapeHtml(enumLabel(event.event, "event"))}</strong>
@@ -689,7 +782,9 @@ function renderBoardDetail() {
                 </div>
                 ${event.note ? `<p>${escapeHtml(event.note)}</p>` : ""}
               </li>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </ol>
         </div>
         <div class="editor-panel">
@@ -744,23 +839,35 @@ function renderSettings() {
       </section>
       <section>
         <h2>${t("crews")}</h2>
-        ${(summary.crews || []).map((crew) => `
+        ${
+          (summary.crews || [])
+            .map(
+              (crew) => `
           <div class="settings-account">
             <strong>${escapeHtml(crew.name)}</strong>
             <span>${escapeHtml((crew.skills || []).map((skill) => enumLabel(skill, "category")).join(" · "))}</span>
             <span><code>${escapeHtml(crew.contact_env || "")}</code> ${crew.contact_ready ? t("contactReady") : t("contactMissing")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
       </section>
       <section>
         <h2>${t("slaRules")}</h2>
-        ${(summary.sla_rules || []).map((rule) => `
+        ${
+          (summary.sla_rules || [])
+            .map(
+              (rule) => `
           <div class="settings-account">
             <strong>${escapeHtml(rule.category === "*" ? "*" : enumLabel(rule.category, "category"))}</strong>
             <span>${escapeHtml(enumLabel(rule.urgency, "urgency"))}</span>
             <span>${rule.hours}${t("hours")}</span>
           </div>
-        `).join("") || `<div class="empty">${t("setupNeeded")}</div>`}
+        `,
+            )
+            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
+        }
         <p class="muted">${t("defaultSla")}: ${summary.sla_default_hours || 72}${t("hours")}</p>
       </section>
     </div>
@@ -780,7 +887,7 @@ async function submitDecision(id, action) {
       note,
       draft: typeof draft === "string" ? draft : null,
       fields: Object.keys(fields).length ? fields : null,
-      decided_at: new Date().toISOString()
+      decided_at: new Date().toISOString(),
     };
     render();
     return;
@@ -793,8 +900,8 @@ async function submitDecision(id, action) {
       action,
       note,
       draft: typeof draft === "string" ? draft : null,
-      fields: Object.keys(fields).length ? fields : null
-    })
+      fields: Object.keys(fields).length ? fields : null,
+    }),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -823,13 +930,17 @@ function render() {
 }
 
 function escapeHtml(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
 function escapeText(value) {

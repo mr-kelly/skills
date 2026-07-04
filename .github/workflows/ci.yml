@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install tooling
+        run: npm install
+
+      - name: Biome (lint + format)
+        run: npm run lint
+
+      - name: Install skill deps (so module imports resolve for typecheck)
+        run: |
+          for pkg in skills/*/package.json; do
+            (cd "$(dirname "$pkg")" && npm install --no-audit --no-fund)
+          done
+
+      - name: Typecheck (.mjs)
+        run: npm run typecheck
