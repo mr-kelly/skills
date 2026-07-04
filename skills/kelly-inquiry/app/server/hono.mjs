@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { Hono } from "hono";
 import { APP_DIR } from "./paths.mjs";
 import { demoStatePayload, isDemoQuery } from "./demo.mjs";
 import {
@@ -17,6 +18,15 @@ import {
   updateQuote
 } from "./store.mjs";
 
+// Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
+// contract and reaches storage only through the logic modules (data-provider
+// backed), so the same app runs under @hono/node-server locally and — once the
+// data layer moves to a cloud provider — on other fetch-based runtimes.
+//
+// The frontend is the original zero-build vanilla app (index.html + app.js +
+// styles.css + i18n). Hono only serves those static files and the JSON API; it
+// does not render or bundle anything.
+
 const types = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -24,18 +34,11 @@ const types = {
   ".json": "application/json; charset=utf-8"
 };
 
-function sendJson(res, status, body) {
-  res.writeHead(status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
-  res.end(JSON.stringify(body));
-}
-
-async function readBody(req) {
-  let raw = "";
-  for await (const chunk of req) {
-    raw += chunk;
-    if (raw.length > 256 * 1024) throw new Error("Request body too large");
-  }
-  return raw ? JSON.parse(raw) : {};
+function jsonResponse(c, status, body) {
+  return c.body(JSON.stringify(body), status, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store"
+  });
 }
 
 async function state() {
@@ -61,42 +64,38 @@ async function state() {
   };
 }
 
-async function handleWrite(req, res, url) {
+async function handleWrite(c, pathname) {
   const lock = await readLock();
   if (lock) {
-    sendJson(res, 423, { error: "Agent lock is active; the desk is read-only right now.", lock });
-    return;
+    return jsonResponse(c, 423, { error: "Agent lock is active; the desk is read-only right now.", lock });
   }
-  const body = await readBody(req);
-  if (url.pathname === "/api/approvals/queue") {
+  const body = await c.req.json().catch(() => ({}));
+  if (pathname === "/api/approvals/queue") {
     const item = await queueReply({
       inquiry_id: String(body.inquiry_id || ""),
       text: String(body.text || ""),
       note: String(body.note || ""),
       suggested_by: "human"
     });
-    sendJson(res, 200, { ok: true, item });
-    return;
+    return jsonResponse(c, 200, { ok: true, item });
   }
-  if (url.pathname === "/api/approvals/decision") {
+  if (pathname === "/api/approvals/decision") {
     const item = await decideApproval({
       item_id: String(body.item_id || ""),
       action: String(body.action || ""),
       comment: String(body.comment || ""),
       text: typeof body.text === "string" ? body.text : undefined
     });
-    sendJson(res, 200, { ok: true, item });
-    return;
+    return jsonResponse(c, 200, { ok: true, item });
   }
-  if (url.pathname === "/api/inquiries/followup") {
+  if (pathname === "/api/inquiries/followup") {
     const inquiry = await setFollowUp({
       inquiry_id: String(body.inquiry_id || ""),
       next_follow_up: String(body.next_follow_up || "")
     });
-    sendJson(res, 200, { ok: true, inquiry });
-    return;
+    return jsonResponse(c, 200, { ok: true, inquiry });
   }
-  if (url.pathname === "/api/quotes/update") {
+  if (pathname === "/api/quotes/update") {
     const quote = await updateQuote({
       quote_id: String(body.quote_id || ""),
       items: Array.isArray(body.items) ? body.items : undefined,
@@ -104,45 +103,41 @@ async function handleWrite(req, res, url) {
       terms: typeof body.terms === "string" ? body.terms : undefined,
       pricing_notes: typeof body.pricing_notes === "string" ? body.pricing_notes : undefined
     });
-    sendJson(res, 200, { ok: true, quote });
-    return;
+    return jsonResponse(c, 200, { ok: true, quote });
   }
-  sendJson(res, 404, { error: "Unknown endpoint" });
+  return jsonResponse(c, 404, { error: "Unknown endpoint" });
 }
 
-async function serveStatic(req, res) {
-  const url = new URL(req.url, "http://127.0.0.1");
+async function serveStatic(c) {
+  const url = new URL(c.req.url);
   const pathname = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
   const filePath = path.normalize(path.join(APP_DIR, pathname));
   if (!filePath.startsWith(APP_DIR) || filePath.includes(`${path.sep}.data${path.sep}`)) {
-    res.writeHead(403);
-    res.end("Forbidden");
-    return;
+    return c.body("Forbidden", 403);
   }
   try {
     const data = await fs.readFile(filePath);
-    res.writeHead(200, { "content-type": types[path.extname(filePath)] || "application/octet-stream" });
-    res.end(data);
+    return c.body(data, 200, { "content-type": types[path.extname(filePath)] || "application/octet-stream" });
   } catch {
-    res.writeHead(404);
-    res.end("Not found");
+    return c.body("Not found", 404);
   }
 }
 
-export async function handleRequest(req, res) {
-  try {
-    const url = new URL(req.url || "/", "http://127.0.0.1");
-    if (url.pathname === "/api/state") {
-      const query = Object.fromEntries(url.searchParams.entries());
-      sendJson(res, 200, isDemoQuery(query) ? demoStatePayload(query) : await state());
-      return;
-    }
-    if (req.method === "POST" && url.pathname.startsWith("/api/")) {
-      await handleWrite(req, res, url);
-      return;
-    }
-    await serveStatic(req, res);
-  } catch (error) {
-    sendJson(res, error.message?.startsWith("Unknown") ? 400 : 500, { error: error.message });
-  }
-}
+export const app = new Hono();
+
+app.get("/api/state", async (c) => {
+  const query = c.req.query();
+  return jsonResponse(c, 200, isDemoQuery(query) ? demoStatePayload(query) : await state());
+});
+
+app.post("/api/*", async (c) => {
+  const url = new URL(c.req.url);
+  return handleWrite(c, url.pathname);
+});
+
+app.all("*", (c) => serveStatic(c));
+
+app.onError((err, c) => {
+  const status = err.message?.startsWith("Unknown") ? 400 : 500;
+  return jsonResponse(c, status, { error: err.message });
+});

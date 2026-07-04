@@ -33,24 +33,25 @@ Use this default structure when creating a new App-in-Skill:
 ```text
 skill-name/
 ├── SKILL.md
+├── package.json  # hono + @hono/node-server (the only base deps)
 ├── agents/
 │   └── openai.yaml
 ├── app/
-│   ├── index.html
+│   ├── index.html   # zero-build vanilla frontend (no bundler, no client framework)
 │   ├── app.js
 │   ├── styles.css
 │   ├── start.sh
 │   ├── i18n/
 │   │   └── messages.js
 │   ├── server/
-│   │   ├── index.mjs
+│   │   ├── index.mjs   # bootstrap: @hono/node-server serve({ fetch: app.fetch })
+│   │   ├── hono.mjs    # Hono app: API routes + static serving (platform-neutral fetch)
 │   │   ├── launcher.mjs
 │   │   ├── paths.mjs
 │   │   ├── lock.mjs
 │   │   ├── batch-store.mjs
 │   │   ├── decisions.mjs
-│   │   ├── state.mjs
-│   │   └── routes.mjs
+│   │   └── state.mjs
 │   └── .data/  # handoff files (gitignored)
 ├── scripts/
 │   ├── generate_batch.mjs
@@ -68,11 +69,15 @@ skill-name/
 └── config.local.json  # gitignored
 ```
 
-Use Node.js by default for both the local app server and deterministic App-in-Skill scripts. The default scaffold should be zero-npm-dependency: no `package.json`, no `npm install`, and no runtime packages. Prefer built-in `node:http`, `node:fs/promises`, `node:path`, `node:crypto`, `node:child_process`, and ESM `.mjs` modules for the app server, scripts, locking, JSON reads/writes, validation, and launching. Default local app ports should prefer the `3000-4000` range, starting at `3000`, while still allowing an explicit env override such as `<SKILL_ENV_PREFIX>_UI_PORT`.
+Use Node.js by default for the deterministic App-in-Skill scripts and the local app server. The app server is a **Hono** app: the base scaffold has one small `package.json` with exactly two dependencies, `hono` and `@hono/node-server`. Bootstrap it in `app/server/index.mjs` with `serve({ fetch: app.fetch, hostname, port })` and put the routes in `app/server/hono.mjs`. Hono is chosen for one concrete reason: it is Web-standard `fetch(Request) -> Response` code, so the same `app.fetch` runs locally under `@hono/node-server` and deploys to **Cloudflare Workers unchanged** once the data layer is cloud-backed (see Data Provider Spectrum). Keep the rest — scripts, locking, JSON reads/writes, validation, launching — on built-in `node:fs/promises`, `node:path`, `node:crypto`, `node:child_process`, and ESM `.mjs` modules. Default local app ports should prefer the `3000-4000` range, starting at `3000`, while still allowing an explicit env override such as `<SKILL_ENV_PREFIX>_UI_PORT`.
 
-Only add a small `package.json` when the skill truly needs an external integration or specialized parser that native Node cannot reasonably provide, such as IMAP, SMTP, MIME email parsing, browser automation, document parsing, OAuth/API clients, or database drivers. Keep those dependencies in integration/adapter code, not in the base App UI. If the app can run and review local handoff files without the dependency, it must still do so.
+The frontend stays **zero-build vanilla**: `index.html` + `app.js` + `styles.css` + `i18n/`, served as static files by the Hono app. Do not add a client framework or build step — **no Vite, React, Preact, wouter, esbuild, or bundler of any kind.** The vanilla app already owns hash routing, i18n, and the mobile shell (see UI Rules); a client framework solves problems this pattern does not have and breaks drop-and-run. If you want save-and-refresh during development, add a ~15-line dev-only SSE live-reload, not a bundler.
 
-Prefer JSON for runtime config and handoff files in the zero-dependency scaffold: `config.example.json`, `config.local.json`, `.env`, and files under `app/.data/`. Do not add YAML runtime config or the `yaml` package to a default App-in-Skill template; if a user has old YAML notes, convert them to JSON before the skill reads them. Do not add `dotenv`, Express, Vite, React, or other packages to a default App-in-Skill template.
+The Hono app must be platform-neutral: its handlers reach handoff files and config **only through `lib/data-provider/`**, never `node:fs` directly, so the same app runs on Node (local files) and later on Workers (a cloud provider such as Busabase). Attachment/file serving that must touch the disk stays behind a guard and is understood to be Node-only until the provider serves it.
+
+Add further dependencies only when the skill truly needs an external integration or specialized parser that native Node cannot reasonably provide — IMAP, SMTP, MIME email parsing, browser automation, document parsing, OAuth/API clients, database drivers, or a cloud data-provider SDK such as `busabase`. Keep those in integration/adapter code (e.g. `lib/data-provider/<name>.mjs`), not in the base App UI; if the app can run and review local handoff files without the dependency, it must still do so.
+
+Prefer JSON for runtime config and handoff files: `config.example.json`, `config.local.json`, `.env`, and files under `app/.data/`. Do not add YAML runtime config or the `yaml` package to a default App-in-Skill template; if a user has old YAML notes, convert them to JSON before the skill reads them. Do not add `dotenv`, Express, or a frontend build stack to the base template.
 
 Keep shared runtime code in `lib/`: path constants in `lib/paths.mjs`, JSON/lock/batch helpers in `lib/common.mjs`, and configurable data access in `lib/data-provider/`. Keep `scripts/` as thin CLI entrypoints that import from `lib/`; do not create a parallel `scripts/lib/` tree.
 
@@ -394,7 +399,7 @@ When creating or updating an App-in-Skill:
 
 1. Define the human story: what the agent prepares, what the user reviews, and what the skill executes.
 2. Define the file contract before building UI controls.
-3. Create the local app inside `app/`, with static UI files at the app root and Node server modules under `app/server/`.
+3. Create the local app inside `app/`, with zero-build vanilla UI files at the app root and Node server modules under `app/server/`. The server is a Hono app in `app/server/hono.mjs` (API routes + static serving of the vanilla files, with a `.data`/traversal guard) bootstrapped by `app/server/index.mjs` via `@hono/node-server`. Add a root `package.json` whose only base dependencies are `hono` and `@hono/node-server`, and have `start.sh` run `npm install` on first launch.
 4. Add generator, executor, and validator scripts under `scripts/`.
 5. Add lock handling to both the skill workflow and the app server.
 6. Add `config.example.json` with placeholders only; keep real accounts, tokens, URLs, and personal identities out of the skill. Avoid YAML runtime config in default App-in-Skill projects.

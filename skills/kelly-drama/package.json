@@ -1,0 +1,15 @@
+{
+  "name": "kelly-drama",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Kelly Drama App-in-Skill — local media studio (Hono server, zero-build vanilla frontend).",
+  "scripts": {
+    "start": "node app/server/launcher.mjs",
+    "serve": "node app/server/index.mjs"
+  },
+  "dependencies": {
+    "hono": "^4.6.14",
+    "@hono/node-server": "^1.13.7"
+  }
+}
