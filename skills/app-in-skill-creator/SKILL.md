@@ -33,17 +33,18 @@ Use this default structure when creating a new App-in-Skill:
 ```text
 skill-name/
 ├── SKILL.md
-├── package.json  # hono + @hono/node-server (the only base deps); "engines": { "node": ">=23.6" }
+├── package.json  # hono + @hono/node-server (base deps); "type":"module" + "engines":{"node":">=23.6"}
 ├── agents/
 │   └── openai.yaml
 ├── app/
+│   # ── frontend: plain vanilla .js, served to the browser (NO .ts here) ──────
 │   ├── index.html   # zero-build vanilla frontend (no bundler, no client framework)
 │   ├── app.js       # browser code stays .js — browsers can't strip TS types
 │   ├── styles.css
 │   ├── start.sh
 │   ├── i18n/
 │   │   └── messages.js
-│   ├── server/      # TypeScript, run directly by Node >=23.6 (or bun) — no build step
+│   ├── server/      # backend: TypeScript, run directly by Node ≥23.6 (or bun) — no build step
 │   │   ├── index.ts   # bootstrap: @hono/node-server serve({ fetch: app.fetch })
 │   │   ├── hono.ts    # Hono app: API routes + static serving (platform-neutral fetch)
 │   │   ├── launcher.ts
@@ -54,7 +55,7 @@ skill-name/
 │   │   ├── decisions.ts
 │   │   └── state.ts
 │   └── .data/  # handoff files (gitignored)
-├── scripts/
+├── scripts/          # backend TypeScript CLIs
 │   ├── generate_batch.ts
 │   ├── execute_decisions.ts
 │   └── validate_ui_schema.ts
@@ -62,6 +63,7 @@ skill-name/
 │   ├── paths.ts
 │   ├── common.ts
 │   └── data-provider/
+│       ├── provider-interface.ts
 │       ├── index.ts
 │       └── local-file-provider.ts
 ├── references/
@@ -72,9 +74,9 @@ skill-name/
 
 Use Node.js by default for the deterministic App-in-Skill scripts and the local app server. The app server is a **Hono** app: the base scaffold has one small `package.json` with exactly two dependencies, `hono` and `@hono/node-server`. Bootstrap it in `app/server/index.ts` with `serve({ fetch: app.fetch, hostname, port })` and put the routes in `app/server/hono.ts`. Hono is chosen for one concrete reason: it is Web-standard `fetch(Request) -> Response` code, so the same `app.fetch` runs locally under `@hono/node-server` and deploys to **Cloudflare Workers unchanged** once the data layer is cloud-backed (see Data Provider Spectrum). Keep the rest — scripts, locking, JSON reads/writes, validation, launching — on built-in `node:fs/promises`, `node:path`, `node:crypto`, `node:child_process`, and ESM modules. Default local app ports should prefer the `3000-4000` range, starting at `3000`, while still allowing an explicit env override such as `<SKILL_ENV_PREFIX>_UI_PORT`.
 
-**Author the Node side in TypeScript (`.ts`).** Server, scripts, and `lib/` are `.ts`, run directly by **Node ≥23.6 native type-stripping** (or **bun**) — no bundler, no build step, still drop-and-run. Set `"engines": { "node": ">=23.6" }` and point the `package.json` scripts and `start.sh` at the `.ts` entrypoints. Use **erasable-only syntax** — type annotations, `interface`/`type`, `as`, `import type` — and **not** `enum`, `namespace`, constructor parameter-properties, or decorators (Node throws `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX` on those). Relative imports carry the real `.ts` extension, and the repo `tsconfig.json` needs `allowImportingTsExtensions` plus `skills/**/*.ts` in `include`. Put the domain shapes (snapshot/batch/item/state/config) in `app/server/types.ts`, annotate exported function boundaries, and keep `catch`/config edges honest with small interfaces or `as` casts; `kelly-invest-webull` and `kelly-family-office` are the typed references. CI runs `biome check` + `tsc --noEmit`, so both must stay clean.
+**Author the Node side in TypeScript (`.ts`).** Server, scripts, and `lib/` are `.ts`, run directly by **Node ≥23.6 native type-stripping** (or **bun**) — no bundler, no build step, still drop-and-run. Set `"type": "module"` and `"engines": { "node": ">=23.6" }`, and point the `package.json` scripts and `start.sh` at the `.ts` entrypoints. Use **erasable-only syntax** — type annotations, `interface`/`type`, `as`, `as const`, `satisfies`, `import type` — and **not** `enum`, `namespace`, constructor parameter-properties, or decorators (Node throws `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX` on those). Relative imports carry the real `.ts` extension, and the repo `tsconfig.json` needs `allowImportingTsExtensions` plus `skills/**/*.ts` in `include`. Put the domain shapes (snapshot/batch/item/state/config) in `app/server/types.ts`, annotate exported function boundaries, and keep `catch`/config edges honest with small interfaces or `as` casts; `kelly-invest-webull` and `kelly-family-office` are the typed references. CI runs `biome check` + `tsc --noEmit`, so both must stay clean.
 
-The frontend stays **zero-build vanilla `.js`**: `index.html` + `app.js` + `styles.css` + `i18n/`, served as static files by the Hono app. The client files are `.js`, **not** `.ts` — the browser loads them directly and cannot strip TypeScript types, so a `.ts` client would require the bundler this pattern forbids. Do not add a client framework or build step — **no Vite, React, Preact, wouter, esbuild, or bundler of any kind.** The vanilla app already owns hash routing, i18n, and the mobile shell (see UI Rules); a client framework solves problems this pattern does not have and breaks drop-and-run. If you want save-and-refresh during development, add a ~15-line dev-only SSE live-reload, not a bundler.
+The frontend stays **zero-build vanilla `.js`**: `index.html` + `app.js` + `styles.css` + `i18n/`, served as static files by the Hono app. The client files are `.js`, **not** `.ts` — the browser loads them directly and cannot strip TypeScript types, so a `.ts` client would require the bundler this pattern forbids; the `.ts` rule is backend-only. Do not add a client framework or build step — **no Vite, React, Preact, wouter, esbuild, or bundler of any kind.** The vanilla app already owns hash routing, i18n, and the mobile shell (see UI Rules); a client framework solves problems this pattern does not have and breaks drop-and-run. If you want save-and-refresh during development, add a ~15-line dev-only SSE live-reload, not a bundler.
 
 The Hono app must be platform-neutral: its handlers reach handoff files and config **only through `lib/data-provider/`**, never `node:fs` directly, so the same app runs on Node (local files) and later on Workers (a cloud provider such as Busabase). Attachment/file serving that must touch the disk stays behind a guard and is understood to be Node-only until the provider serves it.
 
@@ -91,6 +93,8 @@ Keep `config.local.json`, legacy `config.local.yml`, `*.local.json`, legacy `*.l
 Use a layered private configuration pattern for any App-in-Skill that connects to user accounts, APIs, mailboxes, calendars, CRMs, billing systems, or other personal/business data. The skill code and committed templates should be generic; user-specific accounts, aliases, operator profile, brands/products, style, knowledge sources, policy, endpoints, and risk keywords should live in private config.
 
 Keep the data layer polymorphic. App code, scripts, onboarding, and UI summaries should access domain config and handoff data through a `lib/data-provider/` interface instead of directly importing local JSON/env readers or optional YAML readers. "Provider" (not "reader") is the right word: the same interface both reads state and writes input, and may be backed by a database or cloud service, not just a file reader. The first implementation is `local-file-provider` (the default), but the public interface should stay stable for future providers such as PostgreSQL, AITable.ai, Notion, Busabase, SQLite, remote config APIs, or product-specific clouds. Use an env selector such as `<SKILL_ENV_PREFIX>_DATA_PROVIDER=local` and reserve provider names such as `postgres`, `aitable`, `notion`, and `busabase` for later implementations.
+
+Make the interface explicit and enforce it, so providers are truly interchangeable and drift fails loud. Define the contract in one `lib/data-provider/provider-interface.ts` module: a real `interface DataProvider` listing the members every provider MUST implement (core reads/writes) plus any optional per-provider extensions. Each provider is a `class … implements DataProvider`, so a missing/mismatched method fails at author time (tsc/editor). The selector (`getProvider()`) MUST also run a **consistency guard** — an `assertProvider(name, provider)` that checks every core member is present — at registration, so a dynamic/JS caller still gets one actionable error there instead of failing later with `provider.getX is not a function`. Keep a stable provider `name` on each. Copy `references/provider-interface.ts` as a starting template (the `interface` + `CORE_METHODS`/`OPTIONAL_METHODS` + `assertProvider` + the typed `getProvider()` selector) and adapt the member list to your domain. (Pure-`.mjs` fallback for older Node: express the same contract as a JSDoc `@typedef` and keep the runtime `assertProvider` guard — the shape is identical, only the compile-time check is lost.)
 
 ### Data Provider Spectrum
 
@@ -402,7 +406,7 @@ When creating or updating an App-in-Skill:
 
 1. Define the human story: what the agent prepares, what the user reviews, and what the skill executes.
 2. Define the file contract before building UI controls.
-3. Create the local app inside `app/`, with zero-build vanilla UI files at the app root and Node server modules under `app/server/`. The server is a Hono app in `app/server/hono.ts` (API routes + static serving of the vanilla files, with a `.data`/traversal guard) bootstrapped by `app/server/index.ts` via `@hono/node-server`. Add a root `package.json` whose only base dependencies are `hono` and `@hono/node-server`, and have `start.sh` run `npm install` on first launch.
+3. Create the local app inside `app/`, with zero-build vanilla **`.js`** UI files at the app root (browser-served; not TypeScript) and TypeScript Node server modules under `app/server/`. The server is a Hono app in `app/server/hono.ts` (API routes + static serving of the vanilla files, with a `.data`/traversal guard) bootstrapped by `app/server/index.ts` via `@hono/node-server`, run on Node ≥23.6 (native type-stripping, no build). Add a root `package.json` with `"type": "module"` and `"engines": { "node": ">=23.6" }` whose only base dependencies are `hono` and `@hono/node-server`, and have `start.sh` run `npm install` on first launch.
 4. Add generator, executor, and validator scripts under `scripts/`.
 5. Add lock handling to both the skill workflow and the app server.
 6. Add `config.example.json` with placeholders only; keep real accounts, tokens, URLs, and personal identities out of the skill. Avoid YAML runtime config in default App-in-Skill projects.
