@@ -1,41 +1,59 @@
 // Copyable template: the data-provider interface + consistency guard.
 //
-// Drop this into `lib/data-provider/provider-interface.mjs` and adapt CORE_METHODS
+// Drop this into `lib/data-provider/provider-interface.ts` and adapt the members
 // to your domain. Every provider (local-file, and future db/cloud backends)
-// implements the same shape, so callers get one from `getProvider()` and use it
-// without knowing the backend. `assertProvider()` is the runtime guard that makes
-// a non-conforming provider fail loudly at registration instead of deep in a
-// request with `provider.getX is not a function`.
+// implements the same `DataProvider` shape, so callers get one from
+// `getProvider()` and use it without knowing the backend. `class … implements
+// DataProvider` is checked at author time; `assertProvider()` is the runtime guard
+// that makes a non-conforming provider fail loudly at registration instead of deep
+// in a request with `provider.getX is not a function`.
 //
-// TWO equivalent ways to express the contract:
-//   • .mjs (this file): a JSDoc @typedef + the runtime guard. Runs on any Node.
-//   • .ts (Node ≥23.6): a real `interface` + `class … implements` for compile-time
-//     checks. Erasable TypeScript only (no enum/namespace), run via native
-//     type-stripping — still no build. Add `lib/package.json {"type":"module"}`.
-// Keep the runtime guard either way — it protects dynamic/JS callers.
+// Runs on Node ≥23.6 via native type-stripping — erasable TypeScript only
+// (no enum/namespace), NO build step. Add `lib/package.json` `{"type":"module"}`
+// so Node treats the `.ts` as ESM. Targeting older Node? Express the same contract
+// as a `.mjs` JSDoc `@typedef` plus the `assertProvider` guard below — equivalent.
+
+/** Input to a human verdict on an item. Adapt to your domain. */
+export interface ReviewInput {
+  id?: string;
+  action?: string;
+  comment?: string;
+  [key: string]: unknown;
+}
 
 /**
- * @typedef {Object} DataProvider
  * The polymorphic contract shared by every provider. Adapt the member list to
- * your skill's handoff files (see the File Contract section of the spec).
- *
- * ── core (required) ──────────────────────────────────────────────────────────
- * @property {string} name                              Stable provider id, e.g. "local".
- * @property {() => Promise<object>} getState           Aggregate payload for `/api/state`.
- * @property {(review: object) => Promise<object>} submitReview  Apply a human verdict.
- * @property {() => Promise<object>} getAgentTasks      Queued agent work (changes_requested / @ai).
- * @property {() => Promise<object>} getConfigSummary   Sanitized config (never secrets).
- * @property {() => Promise<object>} getLock            Lock status guarding writes.
- * @property {() => Promise<object>} getOnboarding      Onboarding marker.
- * @property {(marker?: object) => Promise<object>} completeOnboarding  Write the marker.
- *
- * ── optional extensions (provider-specific) ─────────────────────────────────
- * @property {(input: object, options?: object) => Promise<object>} [createItem]
- * @property {() => Promise<object>} [verifyConnection]  Probe connectivity (remote providers).
+ * your skill's handoff files (see the File Contract section of the spec). Core
+ * members are required; the trailing optionals are provider-specific extensions.
  */
+export interface DataProvider {
+  /** Stable provider id, e.g. `"local"`. Echoed in `/api/state`. */
+  readonly name: string;
 
-/** Members every provider MUST implement. Adapt to your domain. */
-export const CORE_METHODS = Object.freeze([
+  // ── core (required) ────────────────────────────────────────────────────────
+  /** Aggregate payload for `/api/state`. */
+  getState(): Promise<Record<string, unknown>>;
+  /** Apply a human verdict to an item. */
+  submitReview(review: ReviewInput): Promise<Record<string, unknown>>;
+  /** Queued agent work (items in `changes_requested` or carrying an `@ai` comment). */
+  getAgentTasks(): Promise<Record<string, unknown>>;
+  /** Sanitized config summary (never secrets). */
+  getConfigSummary(): Promise<Record<string, unknown>>;
+  /** Lock status guarding writes. */
+  getLock(): Promise<Record<string, unknown>>;
+  /** Onboarding marker. */
+  getOnboarding(): Promise<Record<string, unknown>>;
+  /** Write the onboarding completion marker. */
+  completeOnboarding(marker?: Record<string, unknown>): Promise<Record<string, unknown>>;
+
+  // ── optional extensions (provider-specific) ────────────────────────────────
+  createItem?(input: Record<string, unknown>, options?: Record<string, unknown>): Promise<unknown>;
+  /** Probe connectivity (remote providers). */
+  verifyConnection?(): Promise<Record<string, unknown>>;
+}
+
+/** Members every provider MUST implement (kept in sync with the interface). */
+export const CORE_METHODS = [
   "getState",
   "submitReview",
   "getAgentTasks",
@@ -43,29 +61,31 @@ export const CORE_METHODS = Object.freeze([
   "getLock",
   "getOnboarding",
   "completeOnboarding",
-]);
+] as const satisfies readonly (keyof DataProvider)[];
 
 /** Members a provider MAY implement; validated only when present. */
-export const OPTIONAL_METHODS = Object.freeze(["createItem", "verifyConnection"]);
+export const OPTIONAL_METHODS = [
+  "createItem",
+  "verifyConnection",
+] as const satisfies readonly (keyof DataProvider)[];
 
 /**
  * Assert `provider` conforms to {@link DataProvider}; throw one actionable error
- * listing everything missing. Call at registration (in getProvider()).
- * @param {string} name
- * @param {unknown} provider
- * @returns {DataProvider}
+ * listing everything missing. Call at registration (in getProvider()) — the
+ * runtime backstop to the compile-time `implements` check.
  */
-export function assertProvider(name, provider) {
+export function assertProvider(name: string, provider: unknown): DataProvider {
   if (!provider || (typeof provider !== "object" && typeof provider !== "function")) {
     throw new Error(`Data provider "${name}" is not an object.`);
   }
-  const problems = [];
-  if (typeof provider.name !== "string" || !provider.name) problems.push("name (string)");
+  const candidate = provider as Record<string, unknown>;
+  const problems: string[] = [];
+  if (typeof candidate.name !== "string" || !candidate.name) problems.push("name (string)");
   for (const method of CORE_METHODS) {
-    if (typeof provider[method] !== "function") problems.push(`${method}()`);
+    if (typeof candidate[method] !== "function") problems.push(`${method}()`);
   }
   for (const method of OPTIONAL_METHODS) {
-    if (method in provider && typeof provider[method] !== "function") {
+    if (method in candidate && typeof candidate[method] !== "function") {
       problems.push(`${method}() [optional, must be a function if present]`);
     }
   }
@@ -74,23 +94,27 @@ export function assertProvider(name, provider) {
       `Data provider "${name}" does not satisfy DataProvider — missing/invalid: ${problems.join(", ")}.`,
     );
   }
-  return provider;
+  return provider as DataProvider;
 }
 
-// ── Usage in lib/data-provider/index.mjs ─────────────────────────────────────
+// ── Usage in lib/data-provider/index.ts ──────────────────────────────────────
 //
-//   import * as localFileProvider from "./local-file-provider.mjs";
-//   import { assertProvider } from "./provider-interface.mjs";
+//   import { localFileProvider } from "./local-file-provider.ts";
+//   import { assertProvider, type DataProvider } from "./provider-interface.ts";
 //
-//   const providers = { local: localFileProvider /*, postgres, busabase, … */ };
-//   const validated = new Map();
+//   const providers: Record<string, DataProvider> = { local: localFileProvider /*, … */ };
+//   const validated = new Map<string, DataProvider>();
 //
-//   export function getProvider() {
+//   export function getProvider(): DataProvider {
 //     const selected = process.env.<SKILL_ENV_PREFIX>_DATA_PROVIDER || "local";
-//     if (validated.has(selected)) return validated.get(selected);
+//     const cached = validated.get(selected);
+//     if (cached) return cached;
 //     const provider = providers[selected];
 //     if (!provider) throw new Error(`Unknown provider "${selected}".`);
 //     const conformed = assertProvider(selected, provider); // fail loud at registration
 //     validated.set(selected, conformed);
 //     return conformed;
 //   }
+//
+// Each provider is `export class LocalFileProvider implements DataProvider { … }`
+// with `export const localFileProvider = new LocalFileProvider();`.
