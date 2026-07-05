@@ -1,0 +1,7 @@
+type,month,date,category,amount,family,beneficiary,payee,occasion,shared,note
+income,2026-01,2026-01-05,,16000,,elder-grandpa,,祖父退休金,,祖父退休金入账
+income,2026-01,2026-01-05,,14000,,elder-grandma,,祖母退休金,,祖母退休金入账
+expense,2026-01,2026-01-05,care,20000,,,康乐养老院,月度护理费,false,养老院固定护理费
+expense,2026-01,2026-01-08,transport,1000,,,网约车/加油,探望往返,true,各家庭探望交通
+expense,2026-01,2026-01-15,meal,1200,,,家庭聚餐,团圆饭,true,全家聚餐费用共享
+expense,2026-01,2026-01-20,gift,900,fam-01,,生日礼物,长辈生日,false,为长辈备生日礼物

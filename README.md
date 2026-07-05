@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-26 App-in-Skill workflows — each an agent operating procedure paired with a calm local browser UI for review, approval, and dashboards.
+27 App-in-Skill workflows — each an agent operating procedure paired with a calm local browser UI for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-26-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-27-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -86,6 +86,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-money` | Aggregates Mercury, Stripe, Airwallex, and Creem into a local money ledger dashboard with total cashflow, account health, and account detail views. | Use it when reviewing balances, payments, payouts, fees, refunds, transfers, provider sync status, or total money movement across configured accounts. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-money.html) |
 | `kelly-invest-webull` | Aggregates a personal Webull brokerage account into a local read-only portfolio dashboard: holdings, cost basis, market value, unrealized P/L, day change, and allocation by asset type. Read-only — it never places or cancels orders. | Use it when reviewing personal investments, positions, portfolio value, unrealized gains, cash, or asset allocation synced from Webull OpenAPI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html) |
 | `kelly-family-office` | Consolidates multiple entities' and members' holdings from CSV import and manual entry into one family-office dashboard: total AUM in a base currency, plus roll-ups by entity, asset class, and institution, and performance. Read-only — it never moves money. | Use it when rolling up a family office across individuals, trusts, and companies; reviewing consolidated AUM, asset allocation, custodian exposure, or unrealized performance. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-family-office.html) |
+| `kelly-family-fund` | Pools elderly parents' pensions into one steward-managed fund and books the monthly care cost and shared-family spending in a base currency, so every sibling family can see the split is fair. Read-only — it never moves money. | Use it when a family jointly supports elderly parents from a pooled pension: tracking the nursing-home cost and splitting the surplus (transport, meals, birthday gifts, gifts of obligation) transparently across sibling families. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-family-fund.html) |
 | `kelly-crm` | Runs a personal CRM over contacts, companies, deals, and interactions with a pipeline dashboard and an agent-drafted follow-up review queue. | Use it when tracking deals and relationships, reviewing pipeline health, or approving and editing follow-up drafts before the agent sends them through other channels. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-crm.html) |
 | `kelly-messenger` | Aggregates WhatsApp, Discord, Slack, and Telegram into one unified local inbox with full conversation transcripts and an approval-gated reply outbox. | Use it when reading messages across chat platforms in one place, drafting replies in a single composer, and approving queued outbound messages that the agent then sends via platform connectors. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html) |
 | `kelly-social` | Aggregates Twitter/X, Facebook, and Instagram into one local dashboard: unified timeline, account stats, follower trends, and engagement metrics, collected agent-side via browser automation, analytics exports, or APIs. | Use it when reviewing social accounts, timelines, post performance, follower growth, or traffic across platforms without depending on official APIs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-social.html) |
@@ -220,6 +221,29 @@ Kelly Family Office consolidates the holdings of multiple entities and members �
   <tr>
     <td><strong>Performance</strong><br>Cost basis versus market value and unrealized P/L, per entity and for the whole family office, in the base currency.</td>
     <td></td>
+  </tr>
+</table>
+
+### `kelly-family-fund`
+
+Kelly Family Fund is a local, read-only ledger for a family pooling elderly parents' pensions into one steward-managed fund. It books the fixed care cost (nursing home) and splits the remaining surplus — transport, meals, birthday gifts, gifts of obligation — fairly across the sibling families, so the bookkeeping itself is the guarantee of fairness. Demo mode shows a six-month CNY fund with no real account data.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-family-fund-ui.png" alt="Kelly Family Fund overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-family-fund-ledger.png" alt="Kelly Family Fund ledger"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Fund balance, this-month income / expense / net, care and family totals, an expense-by-category donut, running-balance trend, and read-only insights.</td>
+    <td><strong>Ledger</strong><br>Unified income and expense timeline by month, each entry tagged with its category and the sibling family it benefits.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-family-fund-family.png" alt="Kelly Family Fund fairness by family"></td>
+    <td><img src="docs/screenshots/kelly-family-fund-category.png" alt="Kelly Family Fund by category"></td>
+  </tr>
+  <tr>
+    <td><strong>By family (fairness)</strong><br>Each sibling family's cumulative benefit, share, and deviation from the average — care excluded, shared costs split equally — so anyone can confirm it is balanced.</td>
+    <td><strong>By category</strong><br>Spending across care, transport, meals, gifts, and gifts of obligation, with the care-versus-family split.</td>
   </tr>
 </table>
 

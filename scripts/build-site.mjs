@@ -16,7 +16,7 @@ const GROUPS = [
     id: "invest",
     en: "Investing & Wealth",
     zh: "投资与财富",
-    skills: ["kelly-invest-webull", "kelly-family-office"],
+    skills: ["kelly-invest-webull", "kelly-family-office", "kelly-family-fund"],
   },
   {
     id: "ecommerce",
