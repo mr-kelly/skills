@@ -1,0 +1,39 @@
+{
+  "data_provider": "local",
+  "base_currency": "CNY",
+  "locale": "auto",
+  "fund": {
+    "name": "家庭统筹基金",
+    "steward": "老大 · 张伟",
+    "note": "祖父母退休金统筹，支付养老院费用，结余按各家庭分摊。"
+  },
+  "beneficiaries": [
+    {
+      "id": "elder-grandpa",
+      "name": "祖父 张国强",
+      "relation": "祖父",
+      "pension_monthly": 16000
+    },
+    {
+      "id": "elder-grandma",
+      "name": "祖母 李秀英",
+      "relation": "祖母",
+      "pension_monthly": 14000
+    }
+  ],
+  "families": [
+    { "id": "fam-01", "name": "老大 张伟家", "head": "张伟", "members_count": 4 },
+    { "id": "fam-02", "name": "老二 张丽家", "head": "张丽", "members_count": 3 },
+    { "id": "fam-03", "name": "老三 张军家", "head": "张军", "members_count": 4 },
+    { "id": "fam-04", "name": "老四 张敏家", "head": "张敏", "members_count": 2 }
+  ],
+  "fairness": {
+    "deviation_threshold_pct": 20
+  },
+  "import": {
+    "ledger_csv": "app/.data/ledger.csv"
+  },
+  "ui": {
+    "language": "auto"
+  }
+}
