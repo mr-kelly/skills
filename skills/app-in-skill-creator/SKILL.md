@@ -33,53 +33,57 @@ Use this default structure when creating a new App-in-Skill:
 ```text
 skill-name/
 ├── SKILL.md
-├── package.json  # hono + @hono/node-server (the only base deps)
+├── package.json  # hono + @hono/node-server (the only base deps); "type": "module"
 ├── agents/
 │   └── openai.yaml
 ├── app/
+│   # ── frontend: plain vanilla .js, served to the browser (NO .ts here) ──────
 │   ├── index.html   # zero-build vanilla frontend (no bundler, no client framework)
-│   ├── app.js
+│   ├── app.js       # browser can't strip types — the frontend stays .js
 │   ├── styles.css
 │   ├── start.sh
 │   ├── i18n/
 │   │   └── messages.js
-│   ├── server/
-│   │   ├── index.mjs   # bootstrap: @hono/node-server serve({ fetch: app.fetch })
-│   │   ├── hono.mjs    # Hono app: API routes + static serving (platform-neutral fetch)
-│   │   ├── launcher.mjs
-│   │   ├── paths.mjs
-│   │   ├── lock.mjs
-│   │   ├── batch-store.mjs
-│   │   ├── decisions.mjs
-│   │   └── state.mjs
+│   ├── server/      # ── backend: TypeScript, Node ≥23.6 native strip, no build ──
+│   │   ├── index.ts   # bootstrap: @hono/node-server serve({ fetch: app.fetch })
+│   │   ├── hono.ts    # Hono app: API routes + static serving (platform-neutral fetch)
+│   │   ├── launcher.ts
+│   │   ├── paths.ts
+│   │   ├── lock.ts
+│   │   ├── batch-store.ts
+│   │   ├── decisions.ts
+│   │   └── state.ts
 │   └── .data/  # handoff files (gitignored)
-├── scripts/
-│   ├── generate_batch.mjs
-│   ├── execute_decisions.mjs
-│   └── validate_ui_schema.mjs
+├── scripts/          # backend TypeScript CLIs
+│   ├── generate_batch.ts
+│   ├── execute_decisions.ts
+│   └── validate_ui_schema.ts
 ├── lib/
-│   ├── paths.mjs
-│   ├── common.mjs
+│   ├── paths.ts
+│   ├── common.ts
 │   └── data-provider/
-│       ├── index.mjs
-│       └── local-file-provider.mjs
+│       ├── provider-interface.ts
+│       ├── index.ts
+│       └── local-file-provider.ts
 ├── references/
 │   └── ui-schema.md
 ├── config.example.json
 └── config.local.json  # gitignored
 ```
 
-Use Node.js by default for the deterministic App-in-Skill scripts and the local app server. The app server is a **Hono** app: the base scaffold has one small `package.json` with exactly two dependencies, `hono` and `@hono/node-server`. Bootstrap it in `app/server/index.mjs` with `serve({ fetch: app.fetch, hostname, port })` and put the routes in `app/server/hono.mjs`. Hono is chosen for one concrete reason: it is Web-standard `fetch(Request) -> Response` code, so the same `app.fetch` runs locally under `@hono/node-server` and deploys to **Cloudflare Workers unchanged** once the data layer is cloud-backed (see Data Provider Spectrum). Keep the rest — scripts, locking, JSON reads/writes, validation, launching — on built-in `node:fs/promises`, `node:path`, `node:crypto`, `node:child_process`, and ESM `.mjs` modules. Default local app ports should prefer the `3000-4000` range, starting at `3000`, while still allowing an explicit env override such as `<SKILL_ENV_PREFIX>_UI_PORT`.
+Use Node.js by default for the deterministic App-in-Skill scripts and the local app server. **The backend is TypeScript — `.ts` files run directly on Node ≥23.6 via native type-stripping, so there is still NO build step.** Use **erasable TypeScript only** (interfaces, type annotations, `as const`, `satisfies`; no `enum`/`namespace`/constructor parameter properties). Put `"type": "module"` in the root `package.json` so Node treats the `.ts` (and any `.js`) as ESM. This buys real interfaces and compile-time checks (see the data-provider guard below) while keeping drop-and-run. (Targeting older Node, or prefer `.mjs`? The whole backend also works as `.mjs` with JSDoc `@typedef` types — the guarantees are weaker but the shape is identical.)
 
-The frontend stays **zero-build vanilla**: `index.html` + `app.js` + `styles.css` + `i18n/`, served as static files by the Hono app. Do not add a client framework or build step — **no Vite, React, Preact, wouter, esbuild, or bundler of any kind.** The vanilla app already owns hash routing, i18n, and the mobile shell (see UI Rules); a client framework solves problems this pattern does not have and breaks drop-and-run. If you want save-and-refresh during development, add a ~15-line dev-only SSE live-reload, not a bundler.
+The app server is a **Hono** app: the base scaffold has one small `package.json` with exactly two dependencies, `hono` and `@hono/node-server`. Bootstrap it in `app/server/index.ts` with `serve({ fetch: app.fetch, hostname, port })` and put the routes in `app/server/hono.ts`. Hono is chosen for one concrete reason: it is Web-standard `fetch(Request) -> Response` code, so the same `app.fetch` runs locally under `@hono/node-server` and deploys to **Cloudflare Workers unchanged** once the data layer is cloud-backed (see Data Provider Spectrum). Keep the rest — scripts, locking, JSON reads/writes, validation, launching — on built-in `node:fs/promises`, `node:path`, `node:crypto`, `node:child_process`, and ESM modules. Default local app ports should prefer the `3000-4000` range, starting at `3000`, while still allowing an explicit env override such as `<SKILL_ENV_PREFIX>_UI_PORT`.
+
+The frontend stays **zero-build vanilla `.js`**: `index.html` + `app.js` + `styles.css` + `i18n/messages.js`, served as static files by the Hono app. It is **NOT TypeScript** — the browser runs these files directly and cannot strip types, so making the frontend `.ts` would force a build; the `.ts` rule is backend-only. Do not add a client framework or build step — **no Vite, React, Preact, wouter, esbuild, or bundler of any kind.** The vanilla app already owns hash routing, i18n, and the mobile shell (see UI Rules); a client framework solves problems this pattern does not have and breaks drop-and-run. If you want save-and-refresh during development, add a ~15-line dev-only SSE live-reload, not a bundler.
 
 The Hono app must be platform-neutral: its handlers reach handoff files and config **only through `lib/data-provider/`**, never `node:fs` directly, so the same app runs on Node (local files) and later on Workers (a cloud provider such as Busabase). Attachment/file serving that must touch the disk stays behind a guard and is understood to be Node-only until the provider serves it.
 
-Add further dependencies only when the skill truly needs an external integration or specialized parser that native Node cannot reasonably provide — IMAP, SMTP, MIME email parsing, browser automation, document parsing, OAuth/API clients, database drivers, or a cloud data-provider SDK such as `busabase`. Keep those in integration/adapter code (e.g. `lib/data-provider/<name>.mjs`), not in the base App UI; if the app can run and review local handoff files without the dependency, it must still do so.
+Add further dependencies only when the skill truly needs an external integration or specialized parser that native Node cannot reasonably provide — IMAP, SMTP, MIME email parsing, browser automation, document parsing, OAuth/API clients, database drivers, or a cloud data-provider SDK such as `busabase`. Keep those in integration/adapter code (e.g. `lib/data-provider/<name>.ts`), not in the base App UI; if the app can run and review local handoff files without the dependency, it must still do so.
 
 Prefer JSON for runtime config and handoff files: `config.example.json`, `config.local.json`, `.env`, and files under `app/.data/`. Do not add YAML runtime config or the `yaml` package to a default App-in-Skill template; if a user has old YAML notes, convert them to JSON before the skill reads them. Do not add `dotenv`, Express, or a frontend build stack to the base template.
 
-Keep shared runtime code in `lib/`: path constants in `lib/paths.mjs`, JSON/lock/batch helpers in `lib/common.mjs`, and configurable data access in `lib/data-provider/`. Keep `scripts/` as thin CLI entrypoints that import from `lib/`; do not create a parallel `scripts/lib/` tree.
+Keep shared runtime code in `lib/`: path constants in `lib/paths.ts`, JSON/lock/batch helpers in `lib/common.ts`, and configurable data access in `lib/data-provider/`. Keep `scripts/` as thin CLI entrypoints that import from `lib/`; do not create a parallel `scripts/lib/` tree.
 
 Keep `config.local.json`, legacy `config.local.yml`, `*.local.json`, legacy `*.local.yml`, `.env.local`, `.env`, and `app/.data/` ignored by git. Note that `.data/` is not a name most default `.gitignore` templates exclude (unlike `.cache/`), so it must be added to `.gitignore` explicitly — the handoff files contain user decisions and execution history and must never be committed.
 
@@ -89,7 +93,7 @@ Use a layered private configuration pattern for any App-in-Skill that connects t
 
 Keep the data layer polymorphic. App code, scripts, onboarding, and UI summaries should access domain config and handoff data through a `lib/data-provider/` interface instead of directly importing local JSON/env readers or optional YAML readers. "Provider" (not "reader") is the right word: the same interface both reads state and writes input, and may be backed by a database or cloud service, not just a file reader. The first implementation is `local-file-provider` (the default), but the public interface should stay stable for future providers such as PostgreSQL, AITable.ai, Notion, Busabase, SQLite, remote config APIs, or product-specific clouds. Use an env selector such as `<SKILL_ENV_PREFIX>_DATA_PROVIDER=local` and reserve provider names such as `postgres`, `aitable`, `notion`, and `busabase` for later implementations.
 
-Make the interface explicit and enforce it, so providers are truly interchangeable and drift fails loud. Define the contract in one `lib/data-provider/provider-interface` module: the shared members every provider MUST implement (core reads/writes) plus any optional per-provider extensions. The selector (`getProvider()`) MUST run a **consistency guard** — an `assertProvider(name, provider)` that checks every core member is present — at registration, so a provider that forgot a method throws one actionable error there instead of failing later with `provider.getX is not a function`. Keep a stable provider `name` on each. On **Node ≥23.6** you may write the provider layer as `lib/data-provider/*.ts` and get a real `interface` + `class … implements` (compile-time checking, higher readability), run directly via native type-stripping — **erasable TypeScript only** (no `enum`/`namespace`), still **no build step**; add `lib/package.json` `{"type":"module"}` so Node treats the `.ts` as ESM. If you target older Node or want to stay pure `.mjs`, express the same contract as a JSDoc `@typedef` plus the runtime `assertProvider` guard — the enforcement is equivalent. Copy `references/provider-interface.ts` as a starting template (a real `interface` + `CORE_METHODS`/`OPTIONAL_METHODS` + `assertProvider` + the `getProvider()` selector) and adapt the member list to your domain; drop to a `.mjs` JSDoc `@typedef` if you target older Node.
+Make the interface explicit and enforce it, so providers are truly interchangeable and drift fails loud. Define the contract in one `lib/data-provider/provider-interface.ts` module: a real `interface DataProvider` listing the members every provider MUST implement (core reads/writes) plus any optional per-provider extensions. Each provider is a `class … implements DataProvider`, so a missing/mismatched method fails at author time (tsc/editor). The selector (`getProvider()`) MUST also run a **consistency guard** — an `assertProvider(name, provider)` that checks every core member is present — at registration, so a dynamic/JS caller still gets one actionable error there instead of failing later with `provider.getX is not a function`. Keep a stable provider `name` on each. Copy `references/provider-interface.ts` as a starting template (the `interface` + `CORE_METHODS`/`OPTIONAL_METHODS` + `assertProvider` + the typed `getProvider()` selector) and adapt the member list to your domain. (Pure-`.mjs` fallback for older Node: express the same contract as a JSDoc `@typedef` and keep the runtime `assertProvider` guard — the shape is identical, only the compile-time check is lost.)
 
 ### Data Provider Spectrum
 
@@ -264,7 +268,7 @@ The app server should:
 - Disable editing while the lock exists.
 - Reject write endpoints while locked.
 - Continue showing read-only batch content.
-- Keep routes thin and delegate file handling, lock checks, state derivation, and decisions to separate `app/server/*.mjs` modules.
+- Keep routes thin and delegate file handling, lock checks, state derivation, and decisions to separate `app/server/*.ts` modules.
 
 The skill should:
 
@@ -401,7 +405,7 @@ When creating or updating an App-in-Skill:
 
 1. Define the human story: what the agent prepares, what the user reviews, and what the skill executes.
 2. Define the file contract before building UI controls.
-3. Create the local app inside `app/`, with zero-build vanilla UI files at the app root and Node server modules under `app/server/`. The server is a Hono app in `app/server/hono.mjs` (API routes + static serving of the vanilla files, with a `.data`/traversal guard) bootstrapped by `app/server/index.mjs` via `@hono/node-server`. Add a root `package.json` whose only base dependencies are `hono` and `@hono/node-server`, and have `start.sh` run `npm install` on first launch.
+3. Create the local app inside `app/`, with zero-build vanilla **`.js`** UI files at the app root (browser-served; not TypeScript) and TypeScript Node server modules under `app/server/`. The server is a Hono app in `app/server/hono.ts` (API routes + static serving of the vanilla files, with a `.data`/traversal guard) bootstrapped by `app/server/index.ts` via `@hono/node-server`, run on Node ≥23.6 (native type-stripping, no build). Add a root `package.json` with `"type": "module"` whose only base dependencies are `hono` and `@hono/node-server`, and have `start.sh` run `npm install` on first launch.
 4. Add generator, executor, and validator scripts under `scripts/`.
 5. Add lock handling to both the skill workflow and the app server.
 6. Add `config.example.json` with placeholders only; keep real accounts, tokens, URLs, and personal identities out of the skill. Avoid YAML runtime config in default App-in-Skill projects.
