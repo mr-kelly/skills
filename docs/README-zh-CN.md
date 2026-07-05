@@ -31,6 +31,8 @@ Claude Code：
 | `app-in-skill-creator` | 记录和脚手架化 App-in-Skill 模式：skill 内置本地 review UI、handoff 文件、锁、脚本和安全边界。 | 构建带浏览器 review queue、approval desk、dashboard 或本地 workflow 的 skill 时使用。 | [Open README](../skills/app-in-skill-creator/README.md) |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [Open README](../skills/kelly-email/README.md) |
 | `kelly-money` | 聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。 | 查看余额、付款、payout、手续费、退款、转账、provider sync 状态、发票和流水匹配时使用。 | [Open README](../skills/kelly-money/README.md) |
+| `kelly-invest-webull` | 通过 Webull OpenAPI 把个人券商账户聚合成本地只读投资组合 dashboard：持仓、成本、市值、未实现盈亏、当日涨跌和按资产类别的配置。只读——绝不下单或撤单。 | 查看个人投资、持仓、组合市值、未实现盈亏、现金或资产配置时使用。 | [Open README](../skills/kelly-invest-webull/README.md) |
+| `kelly-family-office` | 通过 CSV 导入和手工录入，把多个主体/成员的持仓合并成家族办公室 dashboard：以基准货币计的总资产管理规模（AUM），按主体、资产类别、机构的配置和业绩汇总。只读——绝不动钱。 | 汇总个人、信托、公司等多主体的家族办公室，查看合并 AUM、资产配置、机构敞口或未实现业绩时使用。 | [Open README](../skills/kelly-family-office/README.md) |
 | `kelly-crm` | 个人 CRM：联系人、公司、交易和互动记录，带 pipeline dashboard 和 agent 起草的跟进审批队列。 | 跟踪交易和人脉、查看 pipeline 健康度、批准/编辑跟进草稿（由 agent 经其他渠道发出）时使用。 | [Open README](../skills/kelly-crm/README.md) |
 | `kelly-messenger` | 把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。 | 在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。 | [Open README](../skills/kelly-messenger/README.md) |
 | `kelly-social` | 把 Twitter/X、Facebook、Instagram 聚合成一个本地 dashboard：统一时间线、账号数据、粉丝趋势和互动指标，采集由 agent 侧完成（浏览器自动化、导出或 API）。 | 不依赖官方 API，跨平台查看账号、时间线、帖子表现、粉丝增长和流量时使用。 | [Open README](../skills/kelly-social/README.md) |
@@ -105,6 +107,60 @@ Kelly Money 是本地财务 dashboard，用来查看 Mercury、Stripe、Airwalle
   </tr>
   <tr>
     <td><strong>异常详情</strong><br>发票异常页，显示金额/日期差异、匹配规则、容差、候选交易和审计轨迹。</td>
+    <td></td>
+  </tr>
+</table>
+
+### `kelly-invest-webull`
+
+Kelly Invest（Webull）是本地只读投资组合 dashboard，通过 Webull OpenAPI（App Key/Secret，region `us`）连接个人券商账户，并有严格的"绝不交易"边界。Demo 在不暴露真实凭证的前提下展示操作界面：组合市值、未实现盈亏、资产配置、持仓，以及按账户和按标的的详情。
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-invest-webull-ui-zh-CN.png" alt="Kelly Invest 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-invest-webull-positions-zh-CN.png" alt="Kelly Invest 持仓"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>投资组合操作台，显示市值、未实现盈亏、当日涨跌、现金、按资产类别的环形配置图和当日涨跌榜。</td>
+    <td><strong>持仓</strong><br>可排序的持仓表，含标的、资产类别、数量、平均成本、现价、市值、未实现盈亏和组合权重。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-invest-webull-accounts-zh-CN.png" alt="Kelly Invest 账户"></td>
+    <td><img src="screenshots/kelly-invest-webull-detail-zh-CN.png" alt="Kelly Invest 标的详情"></td>
+  </tr>
+  <tr>
+    <td><strong>账户</strong><br>按账户（现金/融资）显示净清算价值、现金、购买力，以及每个账户下的持仓。</td>
+    <td><strong>标的详情</strong><br>单个标的视图，显示成本、市值、未实现盈亏及百分比、当日涨跌、权重和所属账户。</td>
+  </tr>
+</table>
+
+### `kelly-family-office`
+
+Kelly Family Office 通过 CSV 导入和手工录入，把个人、信托、公司等多个主体和成员的持仓合并成一个只读 dashboard，并换算成基准货币。Demo 在不使用真实账户数据的前提下展示操作界面：总 AUM 和未实现盈亏，以及按主体、资产类别、机构和业绩的汇总。
+
+<table>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-family-office-ui-zh-CN.png" alt="Kelly Family Office 总览"></td>
+    <td width="50%"><img src="screenshots/kelly-family-office-entities-zh-CN.png" alt="Kelly Family Office 按主体"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>合并操作台，显示以基准货币计的总 AUM、未实现盈亏、主体和账户数量，以及总体配置。</td>
+    <td><strong>按主体/成员</strong><br>每个家族主体（个人、信托、公司）及其合并 AUM、组合权重和未实现盈亏。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-family-office-assets-zh-CN.png" alt="Kelly Family Office 按资产类别"></td>
+    <td><img src="screenshots/kelly-family-office-institutions-zh-CN.png" alt="Kelly Family Office 按机构"></td>
+  </tr>
+  <tr>
+    <td><strong>按资产类别</strong><br>股票、债券、现金、加密、房地产、私募股权和另类资产的配置，含环形图、权重条和数值表。</td>
+    <td><strong>按账户/机构</strong><br>按托管机构和券商合并，查看资产存放位置以及在各银行和券商之间的集中度。</td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/kelly-family-office-performance-zh-CN.png" alt="Kelly Family Office 业绩"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><strong>业绩</strong><br>以基准货币计的成本与市值对比及未实现盈亏，按主体和整个家族办公室汇总。</td>
     <td></td>
   </tr>
 </table>

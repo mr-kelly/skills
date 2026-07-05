@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "allowJs": true,
     "checkJs": true,
     "strict": false,
@@ -14,7 +15,7 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
-  "// scope": "Typecheck Node-side code (.mjs: servers, scripts, lib) where imports resolve and checks are high-signal. Browser client files (app/*.js) are un-annotated vanilla DOM code and are linted by Biome, not typechecked.",
-  "include": ["skills/**/*.mjs", "scripts/**/*.mjs"],
+  "// scope": "Typecheck Node-side code (.ts/.mjs: servers, scripts, lib) run directly via Node >=23.6 native type-stripping or bun. Browser client files (app/*.js, app/i18n/*.js) are un-annotated vanilla DOM code and are linted by Biome, not typechecked.",
+  "include": ["skills/**/*.ts", "skills/**/*.mjs", "scripts/**/*.mjs"],
   "exclude": ["**/node_modules", "**/.data", "**/.cache", "**/dist", "**/exports", "docs"]
 }

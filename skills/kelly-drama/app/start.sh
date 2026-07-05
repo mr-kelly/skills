@@ -10,4 +10,4 @@ if [ ! -d "$SKILL_DIR/node_modules/hono" ] || [ ! -d "$SKILL_DIR/node_modules/@h
   (cd "$SKILL_DIR" && npm install)
 fi
 
-exec node "$APP_DIR/server/launcher.mjs"
+exec node "$APP_DIR/server/launcher.ts"

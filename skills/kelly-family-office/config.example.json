@@ -1,0 +1,46 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "locale": "auto",
+  "fx_rates": {
+    "USD": 1,
+    "HKD": 0.128,
+    "CNY": 0.139
+  },
+  "target_allocation": {
+    "EQUITY": 45,
+    "BOND": 20,
+    "REAL_ESTATE": 15,
+    "PRIVATE_EQUITY": 8,
+    "CRYPTO": 5,
+    "CASH": 5,
+    "ALTERNATIVE": 2
+  },
+  "entities": [
+    {
+      "entity_id": "individual-principal",
+      "name": "Principal (Individual)",
+      "type": "INDIVIDUAL",
+      "member": "Principal"
+    },
+    {
+      "entity_id": "family-trust",
+      "name": "Family Trust",
+      "type": "TRUST",
+      "member": "Family"
+    },
+    {
+      "entity_id": "offshore-holdco",
+      "name": "Offshore Holding Co",
+      "type": "COMPANY",
+      "member": "Family"
+    }
+  ],
+  "institutions": ["Interactive Brokers", "HSBC", "UBS", "Coinbase Custody"],
+  "import": {
+    "holdings_csv": "app/.data/holdings.csv"
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

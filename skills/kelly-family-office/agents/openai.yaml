@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Family Office"
+  short_description: "Consolidated investment dashboard for a family office"
+  default_prompt: "Use $kelly-family-office to open my consolidated family office dashboard and review total AUM."
