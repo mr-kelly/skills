@@ -64,10 +64,7 @@ export const CORE_METHODS = [
 ] as const satisfies readonly (keyof DataProvider)[];
 
 /** Members a provider MAY implement; validated only when present. */
-export const OPTIONAL_METHODS = [
-  "createItem",
-  "verifyConnection",
-] as const satisfies readonly (keyof DataProvider)[];
+export const OPTIONAL_METHODS = ["createItem", "verifyConnection"] as const satisfies readonly (keyof DataProvider)[];
 
 /**
  * Assert `provider` conforms to {@link DataProvider}; throw one actionable error
@@ -90,9 +87,7 @@ export function assertProvider(name: string, provider: unknown): DataProvider {
     }
   }
   if (problems.length) {
-    throw new Error(
-      `Data provider "${name}" does not satisfy DataProvider — missing/invalid: ${problems.join(", ")}.`,
-    );
+    throw new Error(`Data provider "${name}" does not satisfy DataProvider — missing/invalid: ${problems.join(", ")}.`);
   }
   return provider as DataProvider;
 }
