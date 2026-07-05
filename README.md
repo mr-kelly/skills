@@ -33,6 +33,8 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `app-in-skill-creator` | Documents and scaffolds the App-in-Skill pattern: a skill bundled with a small local review UI, local handoff files, locks, scripts, and safe approval boundaries. | Use it when building a skill that needs a browser-based review queue, approval desk, dashboard, or lightweight local workflow. | [Open README](skills/app-in-skill-creator/README.md) |
 | `kelly-email` | Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution. | Use it when processing unread email, drafting support replies, archiving or marking messages read after approval, or managing email through an App-in-Skill UI. | [Open README](skills/kelly-email/README.md) |
 | `kelly-money` | Aggregates Mercury, Stripe, Airwallex, and Creem into a local money ledger dashboard with total cashflow, account health, and account detail views. | Use it when reviewing balances, payments, payouts, fees, refunds, transfers, provider sync status, or total money movement across configured accounts. | [Open README](skills/kelly-money/README.md) |
+| `kelly-invest-webull` | Aggregates a personal Webull brokerage account into a local read-only portfolio dashboard: holdings, cost basis, market value, unrealized P/L, day change, and allocation by asset type. Read-only — it never places or cancels orders. | Use it when reviewing personal investments, positions, portfolio value, unrealized gains, cash, or asset allocation synced from Webull OpenAPI. | [Open README](skills/kelly-invest-webull/README.md) |
+| `kelly-family-office` | Consolidates multiple entities' and members' holdings from CSV import and manual entry into one family-office dashboard: total AUM in a base currency, plus roll-ups by entity, asset class, and institution, and performance. Read-only — it never moves money. | Use it when rolling up a family office across individuals, trusts, and companies; reviewing consolidated AUM, asset allocation, custodian exposure, or unrealized performance. | [Open README](skills/kelly-family-office/README.md) |
 | `kelly-crm` | Runs a personal CRM over contacts, companies, deals, and interactions with a pipeline dashboard and an agent-drafted follow-up review queue. | Use it when tracking deals and relationships, reviewing pipeline health, or approving and editing follow-up drafts before the agent sends them through other channels. | [Open README](skills/kelly-crm/README.md) |
 | `kelly-messenger` | Aggregates WhatsApp, Discord, Slack, and Telegram into one unified local inbox with full conversation transcripts and an approval-gated reply outbox. | Use it when reading messages across chat platforms in one place, drafting replies in a single composer, and approving queued outbound messages that the agent then sends via platform connectors. | [Open README](skills/kelly-messenger/README.md) |
 | `kelly-social` | Aggregates Twitter/X, Facebook, and Instagram into one local dashboard: unified timeline, account stats, follower trends, and engagement metrics, collected agent-side via browser automation, analytics exports, or APIs. | Use it when reviewing social accounts, timelines, post performance, follower growth, or traffic across platforms without depending on official APIs. | [Open README](skills/kelly-social/README.md) |
@@ -107,6 +109,60 @@ Kelly Money is a local finance dashboard for seeing money movement across Mercur
   </tr>
   <tr>
     <td><strong>Exception detail</strong><br>Invoice exception view with amount/date deltas, matching rule, explicit tolerance, candidate transaction, and audit trail.</td>
+    <td></td>
+  </tr>
+</table>
+
+### `kelly-invest-webull`
+
+Kelly Invest (Webull) is a local read-only portfolio dashboard over a personal Webull brokerage account, connected through the Webull OpenAPI (App Key/Secret, region `us`) with a strict no-trading boundary. Demo mode shows the operating surface without exposing live credentials: portfolio value, unrealized P/L, allocation, positions, and per-account and per-position detail.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-invest-webull-ui.png" alt="Kelly Invest overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-invest-webull-positions.png" alt="Kelly Invest positions"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Portfolio command desk with market value, unrealized P/L, day change, cash, an allocation-by-asset-type donut, and top day movers.</td>
+    <td><strong>Positions</strong><br>Sortable holdings table across symbol, asset type, quantity, average cost, last price, market value, unrealized P/L, and portfolio weight.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-invest-webull-accounts.png" alt="Kelly Invest accounts"></td>
+    <td><img src="docs/screenshots/kelly-invest-webull-detail.png" alt="Kelly Invest position detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Accounts</strong><br>Per-account view (cash and margin) with net liquidation, total cash, buying power, and the positions held in each account.</td>
+    <td><strong>Position detail</strong><br>Single-symbol view with cost basis, market value, unrealized P/L and percentage, day change, weight, and holding account.</td>
+  </tr>
+</table>
+
+### `kelly-family-office`
+
+Kelly Family Office consolidates the holdings of multiple entities and members — individuals, trusts, and companies — from CSV import and manual entry into one read-only dashboard, converted to a base currency. Demo mode shows the intended operating surface with no live account data: total AUM and unrealized P/L, with roll-ups by entity, asset class, institution, and performance.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-family-office-ui.png" alt="Kelly Family Office overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-family-office-entities.png" alt="Kelly Family Office by entity"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Consolidated command desk with total AUM in the base currency, unrealized P/L, entity and account counts, and headline allocation.</td>
+    <td><strong>By entity / member</strong><br>Each family entity (individual, trust, company) with its consolidated AUM, portfolio weight, and unrealized P/L.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-family-office-assets.png" alt="Kelly Family Office by asset class"></td>
+    <td><img src="docs/screenshots/kelly-family-office-institutions.png" alt="Kelly Family Office by institution"></td>
+  </tr>
+  <tr>
+    <td><strong>By asset class</strong><br>Allocation across equity, bond, cash, crypto, real estate, private equity, and alternatives, with a donut, weighted bars, and a value table.</td>
+    <td><strong>By account / institution</strong><br>Consolidation by custodian and institution to see where assets are held and concentration across banks and brokers.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-family-office-performance.png" alt="Kelly Family Office performance"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><strong>Performance</strong><br>Cost basis versus market value and unrealized P/L, per entity and for the whole family office, in the base currency.</td>
     <td></td>
   </tr>
 </table>
