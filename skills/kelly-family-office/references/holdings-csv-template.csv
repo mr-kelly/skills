@@ -1,0 +1,7 @@
+entity_id,entity_name,entity_type,member,account_id,institution,account_type,account_currency,holding_id,symbol,name,asset_class,quantity,cost_basis,market_value,currency,as_of
+individual-principal,Principal (Individual),INDIVIDUAL,Principal,ibkr-individual,Interactive Brokers,Brokerage,USD,h-aapl,AAPL,Apple Inc,EQUITY,600,96000,138600,USD,2026-06-30
+individual-principal,Principal (Individual),INDIVIDUAL,Principal,ibkr-individual,Interactive Brokers,Brokerage,USD,h-ind-cash,USD,USD Cash,CASH,45000,45000,45000,USD,2026-06-30
+family-trust,Family Trust,TRUST,Family,hsbc-trust,HSBC,Investment,HKD,h-hkbond,HKBOND,iShares HK Bond ETF,BOND,120000,2400000,2352000,HKD,2026-06-30
+family-trust,Family Trust,TRUST,Family,ubs-trust,UBS,Wealth Management,USD,h-growth-lp,GROWTHLP,Growth Fund LP Stake,PRIVATE_EQUITY,1,750000,1080000,USD,2026-06-30
+offshore-holdco,Offshore Holding Co,COMPANY,Family,coinbase-holdco,Coinbase Custody,Crypto Custody,USD,h-btc,BTC,Bitcoin,CRYPTO,12,540000,792000,USD,2026-06-30
+offshore-holdco,Offshore Holding Co,COMPANY,Family,hsbc-holdco,HSBC,Corporate Cash,CNY,h-cny-cash,CNY,CNY Cash,CASH,3600000,3600000,3600000,CNY,2026-06-30
