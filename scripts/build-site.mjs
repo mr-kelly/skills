@@ -13,6 +13,12 @@ const REPO_URL = "https://github.com/mr-kelly/skills";
 const GROUPS = [
   { id: "finance", en: "Finance & Back Office", zh: "经营台账", skills: ["kelly-money", "kelly-audit", "kelly-crm"] },
   {
+    id: "invest",
+    en: "Investing & Wealth",
+    zh: "投资与财富",
+    skills: ["kelly-invest-webull", "kelly-family-office"],
+  },
+  {
     id: "ecommerce",
     en: "Cross-Border E-commerce",
     zh: "跨境电商",

@@ -1,0 +1,22 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "locale": "auto",
+  "webull": {
+    "region": "us",
+    "base_url": "https://us-openapi.webullbroker.com",
+    "app_key_env": "KELLY_INVEST_WEBULL_APP_KEY",
+    "app_secret_env": "KELLY_INVEST_WEBULL_APP_SECRET",
+    "account_allowlist": []
+  },
+  "target_allocation_note": "Percent targets per asset_type used only to flag read-only allocation-drift observations on the Overview. Not advice; the app never rebalances or trades.",
+  "target_allocation": {
+    "STOCK": 45,
+    "ETF": 35,
+    "CRYPTO": 10,
+    "CASH": 10
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

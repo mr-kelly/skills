@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Invest (Webull)"
+  short_description: "Local read-only Webull portfolio dashboard"
+  default_prompt: "Use $kelly-invest-webull to open my Webull portfolio app and review my holdings."

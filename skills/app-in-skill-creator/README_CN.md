@@ -122,8 +122,8 @@ skill-name/
 │   ├── start.sh
 │   └── server/
 ├── lib/
-│   ├── paths.mjs
-│   ├── common.mjs
+│   ├── paths.ts
+│   ├── common.ts
 │   └── data-provider/
 ├── scripts/
 ├── references/
