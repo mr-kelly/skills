@@ -57,7 +57,7 @@ Ask only for non-secret setup details: entity names/types, members, institutions
 
 ## CSV Format
 
-Import holdings with `scripts/import_csv.mjs`. The documented template is `references/holdings-csv-template.csv`. Columns:
+Import holdings with `scripts/import_csv.ts`. The documented template is `references/holdings-csv-template.csv`. Columns:
 
 - `entity_id`, `entity_name`, `entity_type` (INDIVIDUAL|TRUST|COMPANY|FUND|FOUNDATION), `member`
 - `account_id`, `institution`, `account_type`, `account_currency`
@@ -67,7 +67,7 @@ Import holdings with `scripts/import_csv.mjs`. The documented template is `refer
 Run:
 
 ```bash
-node scripts/import_csv.mjs path/to/holdings.csv
+node scripts/import_csv.ts path/to/holdings.csv
 ```
 
 It normalizes rows into `app/.data/snapshot.json`, converts each holding to the base currency via config `fx_rates`, computes the `totals` and the `by_entity` / `by_asset_class` / `by_institution` rollups, and writes `app/.data/import_report.json`. Manual entry is the same file — maintain the CSV (or a holdings JSON matching `references/portfolio-schema.md`) and re-run the importer.
@@ -113,7 +113,7 @@ Primary local files:
 - `app/.data/import_report.json`: latest CSV import result.
 - `config.local.json`: private entities/institutions/FX config, ignored by git.
 
-Use `node scripts/validate_ui_schema.mjs app/.data/snapshot.json` before relying on a snapshot in the UI. It checks entity/account/holding references, enum values, that `aum_base` equals the sum of holdings' base market values, and that each rollup's weights sum to ~100%. The app shows an empty "Needs holdings import" state when no snapshot exists.
+Use `node scripts/validate_ui_schema.ts app/.data/snapshot.json` before relying on a snapshot in the UI. It checks entity/account/holding references, enum values, that `aum_base` equals the sum of holdings' base market values, and that each rollup's weights sum to ~100%. The app shows an empty "Needs holdings import" state when no snapshot exists.
 
 ## Safety Defaults
 

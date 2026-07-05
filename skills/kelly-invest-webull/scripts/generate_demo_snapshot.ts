@@ -2,13 +2,20 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type { Account, AllocationSlice, Position, Totals } from "../app/server/types.ts";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const out = path.join(skillDir, "app", ".data", "snapshot.json");
 const now = new Date().toISOString();
 
 const rawAccounts = [
-  { account_id: "webull-cash", account_type: "CASH", display_name: "Webull Cash", currency: "USD", total_cash: 9840.35 },
+  {
+    account_id: "webull-cash",
+    account_type: "CASH",
+    display_name: "Webull Cash",
+    currency: "USD",
+    total_cash: 9840.35,
+  },
   {
     account_id: "webull-margin",
     account_type: "MARGIN",
@@ -54,7 +61,7 @@ const accounts = rawAccounts.map((account) => {
   };
 });
 
-const totals = computeTotals(positions, accounts);
+const totals = computeTotals(positions, accounts as Account[]);
 const allocation = computeAllocation(positions, totals.market_value);
 
 await fs.mkdir(path.dirname(out), { recursive: true });
@@ -80,7 +87,16 @@ await fs.writeFile(
 
 console.log(`Wrote ${out}`);
 
-function position(symbol, name, asset_type, account_id, quantity, avg_cost, last_price, prev_close) {
+function position(
+  symbol: string,
+  name: string,
+  asset_type: Position["asset_type"],
+  account_id: string,
+  quantity: number,
+  avg_cost: number,
+  last_price: number,
+  prev_close: number,
+): Position {
   const market_value = round2(quantity * last_price);
   const cost_basis = round2(quantity * avg_cost);
   const unrealized_pnl = round2(market_value - cost_basis);
@@ -107,7 +123,7 @@ function position(symbol, name, asset_type, account_id, quantity, avg_cost, last
   };
 }
 
-function computeTotals(positions, accounts) {
+function computeTotals(positions: Position[], accounts: Account[]): Totals {
   const market_value = round2(positions.reduce((sum, p) => sum + p.market_value, 0));
   const cost_basis = round2(positions.reduce((sum, p) => sum + p.cost_basis, 0));
   const unrealized_pnl = round2(market_value - cost_basis);
@@ -127,8 +143,8 @@ function computeTotals(positions, accounts) {
   };
 }
 
-function computeAllocation(positions, marketValueTotal) {
-  const byType = new Map();
+function computeAllocation(positions: Position[], marketValueTotal: number): AllocationSlice[] {
+  const byType = new Map<string, number>();
   for (const p of positions) {
     byType.set(p.asset_type, round2((byType.get(p.asset_type) || 0) + p.market_value));
   }
@@ -141,6 +157,6 @@ function computeAllocation(positions, marketValueTotal) {
     .sort((a, b) => b.market_value - a.market_value);
 }
 
-function round2(value) {
+function round2(value: unknown): number {
   return Math.round(Number(value || 0) * 100) / 100;
 }

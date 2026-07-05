@@ -4,16 +4,16 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import http from "node:http";
 import net from "node:net";
-import { CACHE_DIR, DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, PREFERRED_PORT_MAX, SERVER_DIR } from "./paths.mjs";
+import { CACHE_DIR, DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, PREFERRED_PORT_MAX, SERVER_DIR } from "./paths.ts";
 
 const host = process.env.KELLY_INVEST_WEBULL_UI_HOST || DEFAULT_HOST;
 const explicitPort = process.env.KELLY_INVEST_WEBULL_UI_PORT || "";
 
-function stateUrlFor(port) {
+function stateUrlFor(port: string | number): string {
   return `http://${host}:${port}/api/state`;
 }
 
-function isReady(port) {
+function isReady(port: string | number): Promise<boolean> {
   return new Promise((resolve) => {
     const req = http.get(stateUrlFor(port), { timeout: 500 }, (res) => {
       let body = "";
@@ -38,18 +38,18 @@ function isReady(port) {
   });
 }
 
-function canListen(port) {
+function canListen(port: string | number): Promise<boolean> {
   return new Promise((resolve) => {
     const server = net.createServer();
     server.once("error", () => resolve(false));
     server.once("listening", () => {
       server.close(() => resolve(true));
     });
-    server.listen(Number.parseInt(port, 10), host);
+    server.listen(Number.parseInt(String(port), 10), host);
   });
 }
 
-async function findPort() {
+async function findPort(): Promise<string> {
   if (explicitPort) return explicitPort;
   for (let candidate = DEFAULT_PORT; candidate <= PREFERRED_PORT_MAX; candidate += 1) {
     const port = String(candidate);
@@ -59,7 +59,7 @@ async function findPort() {
   return String(DEFAULT_PORT);
 }
 
-async function main() {
+async function main(): Promise<void> {
   await fsp.mkdir(CACHE_DIR, { recursive: true });
   const port = await findPort();
   if (await isReady(port)) {
@@ -68,7 +68,7 @@ async function main() {
   }
 
   const log = fs.openSync(LOG_PATH, "a");
-  const child = spawn(process.execPath, ["index.mjs"], {
+  const child = spawn(process.execPath, ["index.ts"], {
     cwd: SERVER_DIR,
     detached: true,
     stdio: ["ignore", log, log],

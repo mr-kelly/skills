@@ -4,7 +4,7 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import http from "node:http";
 import net from "node:net";
-import { CACHE_DIR, DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, PREFERRED_PORT_MAX, SERVER_DIR } from "./paths.mjs";
+import { CACHE_DIR, DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, PREFERRED_PORT_MAX, SERVER_DIR } from "./paths.ts";
 
 const host = process.env.KELLY_FAMILY_OFFICE_UI_HOST || DEFAULT_HOST;
 const explicitPort = process.env.KELLY_FAMILY_OFFICE_UI_PORT || "";
@@ -68,7 +68,7 @@ async function main() {
   }
 
   const log = fs.openSync(LOG_PATH, "a");
-  const child = spawn(process.execPath, ["index.mjs"], {
+  const child = spawn(process.execPath, ["index.ts"], {
     cwd: SERVER_DIR,
     detached: true,
     stdio: ["ignore", log, log],

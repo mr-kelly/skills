@@ -9,7 +9,9 @@
 //
 // Each insight: { id, code, severity: "info"|"watch"|"high", category, params }.
 
-const DEFAULT_TARGET_ALLOCATION = {
+import type { ConsolidatedSnapshot, Insight, Severity, TargetAllocation } from "./types.ts";
+
+const DEFAULT_TARGET_ALLOCATION: TargetAllocation = {
   EQUITY: 45,
   BOND: 20,
   REAL_ESTATE: 15,
@@ -19,19 +21,19 @@ const DEFAULT_TARGET_ALLOCATION = {
   ALTERNATIVE: 2,
 };
 
-const SEVERITY_RANK = { high: 3, watch: 2, info: 1 };
+const SEVERITY_RANK: Record<Severity, number> = { high: 3, watch: 2, info: 1 };
 
-function round1(value) {
+function round1(value: unknown): number {
   return Math.round((Number(value) || 0) * 10) / 10;
 }
 
-export function computeInsights(snapshot, targetAllocation) {
+export function computeInsights(snapshot: ConsolidatedSnapshot, targetAllocation?: TargetAllocation): Insight[] {
   if (!snapshot || typeof snapshot !== "object") return [];
   const byAsset = Array.isArray(snapshot.by_asset_class) ? snapshot.by_asset_class : [];
   const byInstitution = Array.isArray(snapshot.by_institution) ? snapshot.by_institution : [];
   const byEntity = Array.isArray(snapshot.by_entity) ? snapshot.by_entity : [];
   const holdings = Array.isArray(snapshot.holdings) ? snapshot.holdings : [];
-  const totals = snapshot.totals || {};
+  const totals = snapshot.totals || ({} as ConsolidatedSnapshot["totals"]);
   const aumBase = Number(totals.aum_base) || 0;
   const baseCurrency = snapshot.base_currency || "USD";
   const target =
@@ -39,7 +41,7 @@ export function computeInsights(snapshot, targetAllocation) {
 
   if (!holdings.length || aumBase <= 0) return [];
 
-  const insights = [];
+  const insights: Insight[] = [];
 
   // 1. asset_class_concentration — largest asset class weight (>=40 high, >=30 watch)
   const topAsset = [...byAsset].sort((a, b) => (b.weight_pct || 0) - (a.weight_pct || 0))[0];
@@ -110,7 +112,7 @@ export function computeInsights(snapshot, targetAllocation) {
   }
 
   // 5. currency_exposure — non-base currency share of AUM >= 25 (info)
-  const byCurrency = new Map();
+  const byCurrency = new Map<string, number>();
   for (const holding of holdings) {
     const currency = holding.currency || baseCurrency;
     byCurrency.set(currency, (byCurrency.get(currency) || 0) + (Number(holding.market_value_base) || 0));
@@ -150,8 +152,8 @@ export function computeInsights(snapshot, targetAllocation) {
     });
   }
 
-  const magnitude = (insight) => {
-    const p = insight.params || {};
+  const magnitude = (insight: Insight): number => {
+    const p = (insight.params || {}) as { pct?: unknown; delta?: unknown };
     return Math.abs(Number(p.pct ?? p.delta ?? 0)) || 0;
   };
   insights.sort((a, b) => {

@@ -4,38 +4,28 @@ import fs from "node:fs/promises";
 const target = process.argv[2] || new URL("../app/.data/snapshot.json", import.meta.url).pathname;
 
 const ENTITY_TYPES = new Set(["INDIVIDUAL", "TRUST", "COMPANY", "FUND", "FOUNDATION"]);
-const ASSET_CLASSES = new Set([
-  "EQUITY",
-  "BOND",
-  "CASH",
-  "CRYPTO",
-  "REAL_ESTATE",
-  "PRIVATE_EQUITY",
-  "ALTERNATIVE",
-]);
+const ASSET_CLASSES = new Set(["EQUITY", "BOND", "CASH", "CRYPTO", "REAL_ESTATE", "PRIVATE_EQUITY", "ALTERNATIVE"]);
 
-/**
- * @param {string} message
- * @returns {never}
- */
-function fail(message) {
+function fail(message: string): never {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
 }
 
-function isObject(value) {
-  return value && typeof value === "object" && !Array.isArray(value);
+function isObject(value: unknown): value is Record<string, any> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function requireString(obj, key, path) {
-  if (typeof obj[key] !== "string" || obj[key].length === 0) fail(`${path}.${key} must be a non-empty string`);
+function requireString(obj: Record<string, unknown>, key: string, path: string): void {
+  const value = obj[key];
+  if (typeof value !== "string" || value.length === 0) fail(`${path}.${key} must be a non-empty string`);
 }
 
-function requireNumber(obj, key, path) {
-  if (typeof obj[key] !== "number" || Number.isNaN(obj[key])) fail(`${path}.${key} must be a number`);
+function requireNumber(obj: Record<string, unknown>, key: string, path: string): void {
+  const value = obj[key];
+  if (typeof value !== "number" || Number.isNaN(value)) fail(`${path}.${key} must be a number`);
 }
 
-function approxEqual(a, b, tolerance = 1) {
+function approxEqual(a: unknown, b: unknown, tolerance = 1): boolean {
   return Math.abs(Number(a) - Number(b)) <= tolerance;
 }
 
@@ -43,7 +33,7 @@ const raw = await fs.readFile(target, "utf8").catch((error) => {
   fail(`cannot read ${target}: ${error.message}`);
 });
 
-let snapshot;
+let snapshot: any;
 try {
   snapshot = JSON.parse(raw);
 } catch (error) {
@@ -98,7 +88,14 @@ snapshot.holdings.forEach((holding, index) => {
     requireString(holding, key, path);
   }
   if (!ASSET_CLASSES.has(holding.asset_class)) fail(`${path}.asset_class invalid: ${holding.asset_class}`);
-  for (const key of ["quantity", "market_value", "cost_basis", "market_value_base", "cost_basis_base", "unrealized_pnl_base"]) {
+  for (const key of [
+    "quantity",
+    "market_value",
+    "cost_basis",
+    "market_value_base",
+    "cost_basis_base",
+    "unrealized_pnl_base",
+  ]) {
     requireNumber(holding, key, path);
   }
   if (holdingIds.has(holding.holding_id)) fail(`${path}.holding_id duplicates ${holding.holding_id}`);
@@ -110,10 +107,14 @@ snapshot.holdings.forEach((holding, index) => {
 });
 
 if (snapshot.holdings.length && !approxEqual(sumMarketBase, snapshot.totals.aum_base, 1)) {
-  fail(`root.totals.aum_base (${snapshot.totals.aum_base}) does not equal sum of holdings market_value_base (${sumMarketBase.toFixed(2)})`);
+  fail(
+    `root.totals.aum_base (${snapshot.totals.aum_base}) does not equal sum of holdings market_value_base (${sumMarketBase.toFixed(2)})`,
+  );
 }
 if (snapshot.holdings.length && !approxEqual(sumCostBase, snapshot.totals.cost_basis_base, 1)) {
-  fail(`root.totals.cost_basis_base (${snapshot.totals.cost_basis_base}) does not equal sum of holdings cost_basis_base (${sumCostBase.toFixed(2)})`);
+  fail(
+    `root.totals.cost_basis_base (${snapshot.totals.cost_basis_base}) does not equal sum of holdings cost_basis_base (${sumCostBase.toFixed(2)})`,
+  );
 }
 
 snapshot.by_entity.forEach((row, index) => {
@@ -142,7 +143,8 @@ for (const [name, rows] of [
 ]) {
   if (!rows.length) continue;
   const weightSum = rows.reduce((sum, row) => sum + (row.weight_pct || 0), 0);
-  if (!approxEqual(weightSum, 100, 1.5)) fail(`root.${name} weights should sum to ~100% but sum to ${weightSum.toFixed(2)}`);
+  if (!approxEqual(weightSum, 100, 1.5))
+    fail(`root.${name} weights should sum to ~100% but sum to ${weightSum.toFixed(2)}`);
 }
 
 console.log(`OK: ${target}`);

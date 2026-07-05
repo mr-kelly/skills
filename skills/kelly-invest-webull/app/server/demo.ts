@@ -1,12 +1,18 @@
-import { computeInsights, DEFAULT_TARGET_ALLOCATION } from "./insights.mjs";
+import { DEFAULT_TARGET_ALLOCATION, computeInsights } from "./insights.ts";
+import type { Account, AllocationSlice, PortfolioSnapshot, Position, Totals } from "./types.ts";
+
+interface DemoQuery {
+  demo?: string | boolean;
+  lang?: string;
+}
 
 const now = "2026-06-30T20:00:00.000Z";
 
-export function isDemoQuery(query = {}) {
+export function isDemoQuery(query: DemoQuery = {}): boolean {
   return Boolean(query.demo);
 }
 
-export function demoStatePayload(query = {}) {
+export function demoStatePayload(query: DemoQuery = {}): Record<string, unknown> {
   const scenario = String(query.demo || "overview");
   const zh = String(query.lang || "")
     .toLowerCase()
@@ -35,8 +41,8 @@ export function demoStatePayload(query = {}) {
   };
 }
 
-function localizeSnapshotZh(snapshot) {
-  const accountNames = {
+function localizeSnapshotZh(snapshot: PortfolioSnapshot): PortfolioSnapshot {
+  const accountNames: Record<string, string> = {
     "webull-cash": "Webull 现金账户",
     "webull-margin": "Webull 保证金账户",
   };
@@ -44,7 +50,7 @@ function localizeSnapshotZh(snapshot) {
     ...account,
     display_name: accountNames[account.account_id] || account.display_name,
   }));
-  const posNames = {
+  const posNames: Record<string, string> = {
     AAPL: "苹果公司",
     NVDA: "英伟达",
     MSFT: "微软",
@@ -68,9 +74,15 @@ function localizeSnapshotZh(snapshot) {
   return snapshot;
 }
 
-function demoSnapshot(scenario) {
+function demoSnapshot(scenario: string): PortfolioSnapshot {
   const rawAccounts = [
-    { account_id: "webull-cash", account_type: "CASH", display_name: "Webull Cash", currency: "USD", total_cash: 9840.35 },
+    {
+      account_id: "webull-cash",
+      account_type: "CASH",
+      display_name: "Webull Cash",
+      currency: "USD",
+      total_cash: 9840.35,
+    },
     {
       account_id: "webull-margin",
       account_type: "MARGIN",
@@ -117,16 +129,16 @@ function demoSnapshot(scenario) {
     };
   });
 
-  const totals = computeTotals(positions, accounts);
+  const totals = computeTotals(positions, accounts as Account[]);
   const allocation = computeAllocation(positions, totals.market_value);
 
-  const snapshot = {
+  const snapshot: PortfolioSnapshot = {
     schema_version: "1",
     snapshot_id: "demo-2026-06-30",
     generated_at: now,
     source: "kelly-invest-webull-demo",
     base_currency: "USD",
-    accounts,
+    accounts: accounts as Account[],
     positions,
     totals,
     allocation,
@@ -147,7 +159,16 @@ function demoSnapshot(scenario) {
   return snapshot;
 }
 
-function position(symbol, name, asset_type, account_id, quantity, avg_cost, last_price, prev_close) {
+function position(
+  symbol: string,
+  name: string,
+  asset_type: Position["asset_type"],
+  account_id: string,
+  quantity: number,
+  avg_cost: number,
+  last_price: number,
+  prev_close: number,
+): Position {
   const market_value = round2(quantity * last_price);
   const cost_basis = round2(quantity * avg_cost);
   const unrealized_pnl = round2(market_value - cost_basis);
@@ -174,7 +195,7 @@ function position(symbol, name, asset_type, account_id, quantity, avg_cost, last
   };
 }
 
-function computeTotals(positions, accounts) {
+function computeTotals(positions: Position[], accounts: Account[]): Totals {
   const market_value = round2(positions.reduce((sum, p) => sum + p.market_value, 0));
   const cost_basis = round2(positions.reduce((sum, p) => sum + p.cost_basis, 0));
   const unrealized_pnl = round2(market_value - cost_basis);
@@ -194,8 +215,8 @@ function computeTotals(positions, accounts) {
   };
 }
 
-function computeAllocation(positions, marketValueTotal) {
-  const byType = new Map();
+function computeAllocation(positions: Position[], marketValueTotal: number): AllocationSlice[] {
+  const byType = new Map<string, number>();
   for (const p of positions) {
     byType.set(p.asset_type, round2((byType.get(p.asset_type) || 0) + p.market_value));
   }
@@ -208,6 +229,6 @@ function computeAllocation(positions, marketValueTotal) {
     .sort((a, b) => b.market_value - a.market_value);
 }
 
-function round2(value) {
+function round2(value: unknown): number {
   return Math.round(Number(value || 0) * 100) / 100;
 }

@@ -5,8 +5,11 @@
   "version": "0.1.0",
   "description": "Kelly Family Office App-in-Skill — consolidated investment dashboard (Hono server, zero-build vanilla frontend).",
   "scripts": {
-    "start": "node app/server/launcher.mjs",
-    "serve": "node app/server/index.mjs"
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts"
+  },
+  "engines": {
+    "node": ">=23.6"
   },
   "dependencies": {
     "hono": "^4.6.14",

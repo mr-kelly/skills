@@ -7,32 +7,34 @@
 //
 // Pure module: no fs, no network, no side effects.
 
-export const DEFAULT_TARGET_ALLOCATION = { STOCK: 45, ETF: 35, CRYPTO: 10, CASH: 10 };
+import type { Insight, PortfolioSnapshot, Position, TargetAllocation } from "./types.ts";
 
-const SEVERITY_ORDER = { high: 3, watch: 2, info: 1 };
+export const DEFAULT_TARGET_ALLOCATION: TargetAllocation = { STOCK: 45, ETF: 35, CRYPTO: 10, CASH: 10 };
 
-function round2(value) {
+const SEVERITY_ORDER: Record<string, number> = { high: 3, watch: 2, info: 1 };
+
+function round2(value: unknown): number {
   return Math.round(Number(value || 0) * 100) / 100;
 }
 
 /**
  * Compute read-only observations from a portfolio snapshot.
- * @param {object} snapshot normalized snapshot (positions, totals, allocation)
- * @param {Record<string, number>} [targetAllocation] asset_type -> target %
- * @returns {Array<{id: string, code: string, severity: string, category: string, params: object}>}
  */
-export function computeInsights(snapshot, targetAllocation = DEFAULT_TARGET_ALLOCATION) {
+export function computeInsights(
+  snapshot: PortfolioSnapshot,
+  targetAllocation: TargetAllocation = DEFAULT_TARGET_ALLOCATION,
+): Insight[] {
   if (!snapshot || !Array.isArray(snapshot.positions) || snapshot.positions.length === 0) {
     return [];
   }
   const positions = snapshot.positions;
-  const totals = snapshot.totals || {};
+  const totals = snapshot.totals || ({} as PortfolioSnapshot["totals"]);
   const allocation = Array.isArray(snapshot.allocation) ? snapshot.allocation : [];
   const targets = targetAllocation || DEFAULT_TARGET_ALLOCATION;
-  const insights = [];
+  const insights: Insight[] = [];
 
   // 1. single_position_concentration — largest position by weight.
-  const largest = positions.reduce(
+  const largest = positions.reduce<Position | null>(
     (best, p) => (Number(p.weight_pct || 0) > Number(best?.weight_pct || 0) ? p : best),
     null,
   );
@@ -65,13 +67,12 @@ export function computeInsights(snapshot, targetAllocation = DEFAULT_TARGET_ALLO
   }
 
   // 3. allocation_drift — one insight per asset class drifting >= 10pp.
-  const actualByType = new Map();
+  const actualByType = new Map<string, number>();
   for (const slice of allocation) {
     actualByType.set(slice.asset_type, round2(Number(slice.weight_pct || 0)));
   }
   const marketValue = Number(totals.market_value || 0);
-  const cashPctForDrift =
-    marketValue > 0 ? round2((Number(totals.total_cash || 0) / marketValue) * 100) : 0;
+  const cashPctForDrift = marketValue > 0 ? round2((Number(totals.total_cash || 0) / marketValue) * 100) : 0;
   if (targets.CASH != null) actualByType.set("CASH", cashPctForDrift);
   for (const assetType of Object.keys(targets)) {
     const target = Number(targets[assetType] || 0);
@@ -114,8 +115,9 @@ export function computeInsights(snapshot, targetAllocation = DEFAULT_TARGET_ALLO
   }
 
   // 6. top_gainer — position with highest positive unrealized P/L %.
-  const gainer = positions.reduce(
-    (best, p) => (Number(p.unrealized_pnl_pct || 0) > Number(best?.unrealized_pnl_pct ?? -Infinity) ? p : best),
+  const gainer = positions.reduce<Position | null>(
+    (best, p) =>
+      Number(p.unrealized_pnl_pct || 0) > Number(best?.unrealized_pnl_pct ?? Number.NEGATIVE_INFINITY) ? p : best,
     null,
   );
   if (gainer && Number(gainer.unrealized_pnl_pct || 0) > 0) {
@@ -129,8 +131,9 @@ export function computeInsights(snapshot, targetAllocation = DEFAULT_TARGET_ALLO
   }
 
   // 7. top_laggard — position with lowest negative unrealized P/L %.
-  const laggard = positions.reduce(
-    (worst, p) => (Number(p.unrealized_pnl_pct || 0) < Number(worst?.unrealized_pnl_pct ?? Infinity) ? p : worst),
+  const laggard = positions.reduce<Position | null>(
+    (worst, p) =>
+      Number(p.unrealized_pnl_pct || 0) < Number(worst?.unrealized_pnl_pct ?? Number.POSITIVE_INFINITY) ? p : worst,
     null,
   );
   if (laggard && Number(laggard.unrealized_pnl_pct || 0) < 0) {
@@ -144,8 +147,8 @@ export function computeInsights(snapshot, targetAllocation = DEFAULT_TARGET_ALLO
   }
 
   // Order by severity desc, then by magnitude of the primary param. Cap at 6.
-  const magnitude = (insight) => {
-    const p = insight.params || {};
+  const magnitude = (insight: Insight): number => {
+    const p = (insight.params || {}) as Record<string, unknown>;
     return Math.abs(Number(p.pct ?? p.delta ?? p.amount ?? 0));
   };
   insights.sort((a, b) => {

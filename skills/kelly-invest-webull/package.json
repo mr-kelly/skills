@@ -4,9 +4,12 @@
   "type": "module",
   "version": "0.1.0",
   "description": "Kelly Invest (Webull) App-in-Skill — local read-only portfolio dashboard (Hono server, zero-build vanilla frontend).",
+  "engines": {
+    "node": ">=23.6"
+  },
   "scripts": {
-    "start": "node app/server/launcher.mjs",
-    "serve": "node app/server/index.mjs"
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts"
   },
   "dependencies": {
     "hono": "^4.6.14",

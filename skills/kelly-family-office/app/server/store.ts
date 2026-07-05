@@ -1,33 +1,34 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { DATA_DIR, LOCK_PATH, ONBOARDING_PATH, SKILL_DIR, SNAPSHOT_PATH } from "./paths.mjs";
+import { DATA_DIR, LOCK_PATH, ONBOARDING_PATH, SKILL_DIR, SNAPSHOT_PATH } from "./paths.ts";
+import type { Config, ConfigResult, ConfigSummary, ConsolidatedSnapshot } from "./types.ts";
 
 export async function ensureDirs() {
   await fs.mkdir(DATA_DIR, { recursive: true });
 }
 
-export async function readJson(file, fallback = null) {
+export async function readJson<T = unknown>(file: string, fallback: T): Promise<T> {
   try {
-    return JSON.parse(await fs.readFile(file, "utf8"));
+    return JSON.parse(await fs.readFile(file, "utf8")) as T;
   } catch (error) {
-    if (error.code === "ENOENT") return fallback;
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return fallback;
     throw error;
   }
 }
 
-export async function readSnapshot() {
+export async function readSnapshot(): Promise<ConsolidatedSnapshot> {
   return readJson(SNAPSHOT_PATH, emptySnapshot());
 }
 
-export async function readOnboarding() {
+export async function readOnboarding(): Promise<Record<string, unknown>> {
   return readJson(ONBOARDING_PATH, { completed: false });
 }
 
-export async function readLock() {
+export async function readLock(): Promise<Record<string, unknown> | null> {
   return readJson(LOCK_PATH, null);
 }
 
-export function emptySnapshot() {
+export function emptySnapshot(): ConsolidatedSnapshot {
   return {
     schema_version: "1",
     snapshot_id: "empty",
@@ -52,13 +53,14 @@ export function emptySnapshot() {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No holdings snapshot exists yet. Define entities, then import a holdings CSV or maintain holdings manually.",
+        message:
+          "No holdings snapshot exists yet. Define entities, then import a holdings CSV or maintain holdings manually.",
       },
     ],
   };
 }
 
-export async function loadDotenvFiles(files) {
+export async function loadDotenvFiles(files: string[]): Promise<void> {
   for (const file of files) {
     try {
       const raw = await fs.readFile(file, "utf8");
@@ -74,12 +76,12 @@ export async function loadDotenvFiles(files) {
         if (key && process.env[key] === undefined) process.env[key] = value;
       }
     } catch (error) {
-      if (error.code !== "ENOENT") throw error;
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     }
   }
 }
 
-export function configSearchPaths() {
+export function configSearchPaths(): string[] {
   const paths = [];
   if (process.env.KELLY_FAMILY_OFFICE_CONFIG) paths.push(process.env.KELLY_FAMILY_OFFICE_CONFIG);
   paths.push(path.join(SKILL_DIR, "config.local.json"));
@@ -88,7 +90,7 @@ export function configSearchPaths() {
   return paths;
 }
 
-export function envSearchPaths() {
+export function envSearchPaths(): string[] {
   const paths = [];
   if (process.env.KELLY_FAMILY_OFFICE_ENV_FILE) paths.push(process.env.KELLY_FAMILY_OFFICE_ENV_FILE);
   paths.push(path.resolve(SKILL_DIR, "..", "..", ".env"));
@@ -97,15 +99,15 @@ export function envSearchPaths() {
   return paths;
 }
 
-export async function readConfig() {
+export async function readConfig(): Promise<ConfigResult> {
   for (const file of configSearchPaths()) {
-    const config = await readJson(file, null);
+    const config = await readJson<Config | null>(file, null);
     if (config) return { config, path: file, is_example: file.endsWith("config.example.json") };
   }
   return { config: { entities: [], institutions: [] }, path: "", is_example: false };
 }
 
-export function summarizeConfig(configResult) {
+export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
   const config = configResult.config || {};
   const entities = Array.isArray(config.entities) ? config.entities : [];
   const institutions = Array.isArray(config.institutions) ? config.institutions : [];

@@ -26,12 +26,27 @@
 // (webull.app_key_env / webull.app_secret_env) and read the values from the
 // environment at call time.
 
+import type {
+  Account,
+  AllocationSlice,
+  AssetType,
+  Config,
+  PortfolioSnapshot,
+  Position,
+} from "../../app/server/types.ts";
+
+export interface WebullCredentials {
+  appKey: string;
+  appSecret: string;
+  region: string;
+  baseUrl: string;
+  allowlist: string[];
+}
+
 /**
  * Resolve Webull App Key / App Secret from config-referenced env var names.
- * @param {object} config parsed config (config.local.json / example)
- * @returns {{ appKey: string, appSecret: string, region: string, baseUrl: string, allowlist: string[] }}
  */
-export function resolveWebullCredentials(config = {}) {
+export function resolveWebullCredentials(config: Config = {}): WebullCredentials {
   const webull = config.webull || {};
   const appKeyEnv = webull.app_key_env || "KELLY_INVEST_WEBULL_APP_KEY";
   const appSecretEnv = webull.app_secret_env || "KELLY_INVEST_WEBULL_APP_SECRET";
@@ -44,7 +59,7 @@ export function resolveWebullCredentials(config = {}) {
   };
 }
 
-const ASSET_TYPE_MAP = {
+const ASSET_TYPE_MAP: Record<string, AssetType> = {
   STOCK: "STOCK",
   EQUITY: "STOCK",
   ETF: "ETF",
@@ -56,14 +71,12 @@ const ASSET_TYPE_MAP = {
 
 /**
  * Normalize a Webull instrument/category label to our asset_type enum.
- * @param {string} raw
- * @returns {"STOCK"|"ETF"|"OPTION"|"CRYPTO"|"OTHER"}
  */
-export function normalizeAssetType(raw) {
+export function normalizeAssetType(raw: unknown): AssetType {
   return ASSET_TYPE_MAP[String(raw || "").toUpperCase()] || "OTHER";
 }
 
-const round2 = (value) => Math.round(Number(value || 0) * 100) / 100;
+const round2 = (value: unknown): number => Math.round(Number(value || 0) * 100) / 100;
 
 /**
  * Map a Webull position record (from get_account_positions) to our schema.
@@ -73,14 +86,16 @@ const round2 = (value) => Math.round(Number(value || 0) * 100) / 100;
  * @param {string} accountId our local account id
  * @returns {object} normalized position (weight_pct filled in later)
  */
-export function mapPosition(raw = {}, accountId = "") {
+export function mapPosition(raw: Record<string, unknown> = {}, accountId = ""): Position {
   const quantity = Number(raw.quantity ?? raw.position ?? 0);
   const avg_cost = Number(raw.costPrice ?? raw.avgCost ?? 0);
   const last_price = Number(raw.lastPrice ?? raw.marketPrice ?? 0);
   const prev_close = Number(raw.prevClose ?? raw.lastPrice ?? last_price);
   const market_value = round2(raw.marketValue != null ? Number(raw.marketValue) : quantity * last_price);
   const cost_basis = round2(quantity * avg_cost);
-  const unrealized_pnl = round2(raw.unrealizedProfitLoss != null ? Number(raw.unrealizedProfitLoss) : market_value - cost_basis);
+  const unrealized_pnl = round2(
+    raw.unrealizedProfitLoss != null ? Number(raw.unrealizedProfitLoss) : market_value - cost_basis,
+  );
   const unrealized_pnl_pct = cost_basis ? round2((unrealized_pnl / cost_basis) * 100) : 0;
   const day_change = round2(quantity * (last_price - prev_close));
   const prev_value = quantity * prev_close;
@@ -110,7 +125,7 @@ export function mapPosition(raw = {}, accountId = "") {
  * @param {object} raw Webull account
  * @returns {object} normalized account
  */
-export function mapAccount(raw = {}) {
+export function mapAccount(raw: Record<string, unknown> = {}): Account {
   return {
     account_id: String(raw.accountId ?? raw.account_id ?? ""),
     account_type: String(raw.accountType ?? "").toUpperCase() === "MARGIN" ? "MARGIN" : "CASH",
@@ -125,12 +140,12 @@ export function mapAccount(raw = {}) {
 /**
  * Assemble a normalized snapshot from mapped accounts + positions. Fills
  * weight_pct, totals, and allocation so the output is internally consistent and
- * passes scripts/validate_ui_schema.mjs.
+ * passes scripts/validate_ui_schema.ts.
  * @param {object[]} accounts normalized accounts
  * @param {object[]} positions normalized positions (weight_pct may be 0)
  * @returns {object} snapshot per references/portfolio-schema.md
  */
-export function assembleSnapshot(accounts, positions) {
+export function assembleSnapshot(accounts: Account[], positions: Position[]): PortfolioSnapshot {
   const marketValueTotal = positions.reduce((sum, p) => sum + Number(p.market_value || 0), 0);
   const withWeights = positions.map((p) => ({
     ...p,
@@ -141,11 +156,11 @@ export function assembleSnapshot(accounts, positions) {
   const day_change = round2(withWeights.reduce((sum, p) => sum + Number(p.day_change || 0), 0));
   const prev_value = withWeights.reduce((sum, p) => sum + (Number(p.market_value || 0) - Number(p.day_change || 0)), 0);
   const total_cash = round2(accounts.reduce((sum, a) => sum + Number(a.total_cash || 0), 0));
-  const byType = new Map();
+  const byType = new Map<string, number>();
   for (const p of withWeights) {
     byType.set(p.asset_type, round2((byType.get(p.asset_type) || 0) + Number(p.market_value || 0)));
   }
-  const allocation = [...byType.entries()]
+  const allocation: AllocationSlice[] = [...byType.entries()]
     .map(([asset_type, market_value]) => ({
       asset_type,
       market_value: round2(market_value),

@@ -7,8 +7,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildSnapshot } from "../app/server/portfolio.mjs";
-import { readConfig } from "../app/server/store.mjs";
+import { buildSnapshot } from "../app/server/portfolio.ts";
+import { readConfig } from "../app/server/store.ts";
+import type { AccountRef, Entity, HoldingInput } from "../app/server/types.ts";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const input = process.argv[2] || path.join(skillDir, "references", "holdings-csv-template.csv");
@@ -30,16 +31,16 @@ const REQUIRED_COLUMNS = [
   "currency",
 ];
 
-function fail(message) {
+function fail(message: string): never {
   console.error(`CSV import failed: ${message}`);
   process.exit(1);
 }
 
 // Minimal RFC-4180-ish CSV parser (handles quoted fields and embedded commas).
-function parseCsv(text) {
-  const rows = [];
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
   let field = "";
-  let row = [];
+  let row: string[] = [];
   let inQuotes = false;
   for (let i = 0; i < text.length; i += 1) {
     const char = text[i];
@@ -84,8 +85,8 @@ for (const column of REQUIRED_COLUMNS) {
   if (!header.includes(column)) fail(`missing required column: ${column}`);
 }
 
-const records = rows.slice(1).map((cells) => {
-  const record = {};
+const records: Record<string, string>[] = rows.slice(1).map((cells) => {
+  const record: Record<string, string> = {};
   header.forEach((key, index) => {
     record[key] = (cells[index] ?? "").trim();
   });
@@ -97,9 +98,9 @@ const config = configResult.config || {};
 const base_currency = config.base_currency || "USD";
 const fx_rates = config.fx_rates || { USD: 1 };
 
-const entityMap = new Map();
-const accountMap = new Map();
-const holdings = [];
+const entityMap = new Map<string, Entity>();
+const accountMap = new Map<string, AccountRef>();
+const holdings: HoldingInput[] = [];
 
 for (const [index, record] of records.entries()) {
   const line = index + 2;

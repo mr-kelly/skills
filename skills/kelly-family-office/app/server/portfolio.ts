@@ -5,19 +5,31 @@
 // demo-snapshot generator, and the CSV importer so every rollup is internally
 // consistent (weights ~100%, base totals = sum of holdings' base values).
 
-function round2(value) {
+import type {
+  AccountRef,
+  AssetClassRollup,
+  BuildSnapshotInput,
+  ConsolidatedSnapshot,
+  EntityRollup,
+  FxRates,
+  Holding,
+  HoldingInput,
+  InstitutionRollup,
+} from "./types.ts";
+
+function round2(value: unknown): number {
   return Math.round((Number(value) || 0) * 100) / 100;
 }
 
-export function fxRate(fxRates, currency) {
+export function fxRate(fxRates: FxRates | undefined, currency: string): number {
   const rate = fxRates?.[currency];
   return typeof rate === "number" && rate > 0 ? rate : 1;
 }
 
-export function normalizeHoldings(holdings, accounts, fxRates) {
+export function normalizeHoldings(holdings: HoldingInput[], accounts: AccountRef[], fxRates: FxRates): Holding[] {
   const accountById = new Map(accounts.map((account) => [account.account_id, account]));
   return holdings.map((holding) => {
-    const account = accountById.get(holding.account_id) || {};
+    const account = (accountById.get(holding.account_id) || {}) as Partial<AccountRef>;
     const currency = holding.currency || account.currency || "USD";
     const entity_id = holding.entity_id || account.entity_id || "";
     const rate = fxRate(fxRates, currency);
@@ -49,7 +61,7 @@ export function buildSnapshot({
   holdings = [],
   source = "kelly-family-office",
   warnings = [],
-}) {
+}: BuildSnapshotInput): ConsolidatedSnapshot {
   const normalized = normalizeHoldings(holdings, accounts, fx_rates);
 
   const aum_base = round2(normalized.reduce((sum, h) => sum + h.market_value_base, 0));
@@ -62,9 +74,9 @@ export function buildSnapshot({
   const entityMeta = new Map(entities.map((entity) => [entity.entity_id, entity]));
   const accountMeta = new Map(accounts.map((account) => [account.account_id, account]));
 
-  const entityAgg = new Map();
-  const assetAgg = new Map();
-  const instAgg = new Map();
+  const entityAgg = new Map<string, { aum_base: number; unrealized_pnl_base: number }>();
+  const assetAgg = new Map<string, { aum_base: number }>();
+  const instAgg = new Map<string, { aum_base: number }>();
 
   for (const h of normalized) {
     const entity = entityAgg.get(h.entity_id) || { aum_base: 0, unrealized_pnl_base: 0 };
@@ -82,7 +94,7 @@ export function buildSnapshot({
     instAgg.set(institution, inst);
   }
 
-  const by_entity = [...entityAgg.entries()]
+  const by_entity: EntityRollup[] = [...entityAgg.entries()]
     .map(([entity_id, agg]) => ({
       entity_id,
       name: entityMeta.get(entity_id)?.name || entity_id,
@@ -92,7 +104,7 @@ export function buildSnapshot({
     }))
     .sort((a, b) => b.aum_base - a.aum_base);
 
-  const by_asset_class = [...assetAgg.entries()]
+  const by_asset_class: AssetClassRollup[] = [...assetAgg.entries()]
     .map(([asset_class, agg]) => ({
       asset_class,
       aum_base: round2(agg.aum_base),
@@ -100,7 +112,7 @@ export function buildSnapshot({
     }))
     .sort((a, b) => b.aum_base - a.aum_base);
 
-  const by_institution = [...instAgg.entries()]
+  const by_institution: InstitutionRollup[] = [...instAgg.entries()]
     .map(([institution, agg]) => ({
       institution,
       aum_base: round2(agg.aum_base),

@@ -40,7 +40,7 @@ Copy `config.example.json` to `config.local.json` or `~/.config/kelly-family-off
 Fill in `references/holdings-csv-template.csv` (or a copy) and run:
 
 ```bash
-node scripts/import_csv.mjs path/to/holdings.csv
+node scripts/import_csv.ts path/to/holdings.csv
 ```
 
 It normalizes rows into `app/.data/snapshot.json`, converting each holding to the base currency via config `fx_rates`.

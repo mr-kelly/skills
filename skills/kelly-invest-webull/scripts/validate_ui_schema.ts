@@ -3,40 +3,38 @@ import fs from "node:fs/promises";
 
 const target = process.argv[2] || new URL("../app/.data/snapshot.json", import.meta.url).pathname;
 
-/**
- * @param {string} message
- * @returns {never}
- */
-function fail(message) {
+function fail(message: string): never {
   console.error(`Schema validation failed: ${message}`);
   process.exit(1);
 }
 
-function isObject(value) {
-  return value && typeof value === "object" && !Array.isArray(value);
+type JsonObject = Record<string, any>;
+
+function isObject(value: unknown): value is JsonObject {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function requireString(obj, key, path) {
+function requireString(obj: JsonObject, key: string, path: string): void {
   if (typeof obj[key] !== "string" || obj[key].length === 0) fail(`${path}.${key} must be a non-empty string`);
 }
 
-function requireNumber(obj, key, path) {
+function requireNumber(obj: JsonObject, key: string, path: string): void {
   if (typeof obj[key] !== "number" || Number.isNaN(obj[key])) fail(`${path}.${key} must be a number`);
 }
 
-function requireEnum(obj, key, path, allowed) {
+function requireEnum(obj: JsonObject, key: string, path: string, allowed: string[]): void {
   if (!allowed.includes(obj[key])) fail(`${path}.${key} must be one of ${allowed.join("|")}, got ${obj[key]}`);
 }
 
-const raw = await fs.readFile(target, "utf8").catch((error) => {
+const raw = await fs.readFile(target, "utf8").catch((error: Error) => {
   fail(`cannot read ${target}: ${error.message}`);
 });
 
-let snapshot;
+let snapshot: JsonObject;
 try {
   snapshot = JSON.parse(raw);
 } catch (error) {
-  fail(`invalid JSON: ${error.message}`);
+  fail(`invalid JSON: ${(error as Error).message}`);
 }
 
 if (!isObject(snapshot)) fail("root must be an object");

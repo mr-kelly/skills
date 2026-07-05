@@ -214,9 +214,7 @@ function renderShell() {
   const entityCount = entities().length;
   const accountCount = accounts().length;
   const aum = totals().aum_base || 0;
-  els.syncStatus.textContent = hasData()
-    ? `${holdings().length} ${t("holdingCount")}`
-    : t("needsImport");
+  els.syncStatus.textContent = hasData() ? `${holdings().length} ${t("holdingCount")}` : t("needsImport");
   if (els.aumCount) els.aumCount.textContent = money(aum);
   if (els.entityCount) els.entityCount.textContent = entityCount;
   if (els.accountCount) els.accountCount.textContent = accountCount;
@@ -270,7 +268,7 @@ function allocBars(rows, labelFn) {
           (row) => `
         <div class="alloc-row">
           <span class="alloc-label">${escapeHtml(labelFn(row))}</span>
-          <span class="alloc-track"><span class="alloc-fill" style="width:${Math.max((row.weight_pct || 0) / max * 100, 2)}%"></span></span>
+          <span class="alloc-track"><span class="alloc-fill" style="width:${Math.max(((row.weight_pct || 0) / max) * 100, 2)}%"></span></span>
           <span class="alloc-value">${money(row.aum_base)} · ${pct(row.weight_pct)}</span>
         </div>
       `,
@@ -511,7 +509,8 @@ function renderEntityDetail() {
         <dl>
           ${entityAccounts
             .map(
-              (account) => `<dt>${escapeHtml(account.institution)}</dt><dd>${escapeHtml(account.account_type || "")} · ${escapeHtml(account.currency)}</dd>`,
+              (account) =>
+                `<dt>${escapeHtml(account.institution)}</dt><dd>${escapeHtml(account.account_type || "")} · ${escapeHtml(account.currency)}</dd>`,
             )
             .join("")}
         </dl>
@@ -541,7 +540,8 @@ function renderAssets() {
         <tbody>
           ${rows
             .map(
-              (row) => `<tr><td class="strong">${escapeHtml(enumLabel(row.asset_class, "asset"))}</td><td class="num">${money(row.aum_base)}</td><td class="num">${pct(row.weight_pct)}</td></tr>`,
+              (row) =>
+                `<tr><td class="strong">${escapeHtml(enumLabel(row.asset_class, "asset"))}</td><td class="num">${money(row.aum_base)}</td><td class="num">${pct(row.weight_pct)}</td></tr>`,
             )
             .join("")}
         </tbody>
@@ -571,7 +571,8 @@ function renderInstitutions() {
         <tbody>
           ${rows
             .map(
-              (row) => `<tr><td class="strong">${escapeHtml(row.institution)}</td><td class="num">${money(row.aum_base)}</td><td class="num">${pct(row.weight_pct)}</td></tr>`,
+              (row) =>
+                `<tr><td class="strong">${escapeHtml(row.institution)}</td><td class="num">${money(row.aum_base)}</td><td class="num">${pct(row.weight_pct)}</td></tr>`,
             )
             .join("")}
         </tbody>
@@ -642,7 +643,11 @@ function renderSettings() {
           <dt>${t("baseCurrency")}</dt><dd>${escapeHtml(summary.base_currency || "USD")}</dd>
           <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
           <dt>${t("onboarding")}</dt><dd>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</dd>
-          <dt>${t("fxRates")}</dt><dd>${escapeHtml(Object.entries(fx).map(([k, v]) => `${k}=${v}`).join(", "))}</dd>
+          <dt>${t("fxRates")}</dt><dd>${escapeHtml(
+            Object.entries(fx)
+              .map(([k, v]) => `${k}=${v}`)
+              .join(", "),
+          )}</dd>
         </dl>
       </section>
       <section>

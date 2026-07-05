@@ -36,12 +36,7 @@
       "member": "Family"
     }
   ],
-  "institutions": [
-    "Interactive Brokers",
-    "HSBC",
-    "UBS",
-    "Coinbase Custody"
-  ],
+  "institutions": ["Interactive Brokers", "HSBC", "UBS", "Coinbase Custody"],
   "import": {
     "holdings_csv": "app/.data/holdings.csv"
   },

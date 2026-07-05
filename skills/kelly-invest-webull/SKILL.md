@@ -104,7 +104,7 @@ The skill reads Webull; the app only ever reads the normalized snapshot.
 
 - Provider selector env: `KELLY_INVEST_WEBULL_DATA_PROVIDER=local` (default).
   Reserve `webull` as the live provider name. Config `data_provider` mirrors this.
-- Webull field-mapping lives in `lib/data-provider/webull.mjs` (the adapter). It
+- Webull field-mapping lives in `lib/data-provider/webull.ts` (the adapter). It
   reads Webull via the official `webull-openapi-python-sdk`-style client
   (`get_account_list()`, `get_account_balance()`, `get_account_positions()`) and
   writes a normalized snapshot. Rate limit is ~10 requests / 30 seconds per App ID;
@@ -121,8 +121,8 @@ adapter. Primary local files:
 - `app/.data/agent.lock`: temporary lock while the skill is syncing.
 - `config.local.json`: private Webull configuration, ignored by git.
 
-Use `scripts/validate_ui_schema.mjs app/.data/snapshot.json` before relying on a
-snapshot in the UI. `scripts/generate_demo_snapshot.mjs` writes a consistent demo
+Use `scripts/validate_ui_schema.ts app/.data/snapshot.json` before relying on a
+snapshot in the UI. `scripts/generate_demo_snapshot.ts` writes a consistent demo
 snapshot to `app/.data/snapshot.json`.
 
 ## Views

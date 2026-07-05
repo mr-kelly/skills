@@ -203,7 +203,10 @@ function renderShell() {
       ? `${t("generated")} ${new Date(snapshot.generated_at).toLocaleString()}`
       : t("synced")
     : t("needsConnection");
-  if (els.summaryPnl) els.summaryPnl.textContent = connected ? `${signedMoney(totals.unrealized_pnl)} (${pct(totals.unrealized_pnl_pct)})` : "—";
+  if (els.summaryPnl)
+    els.summaryPnl.textContent = connected
+      ? `${signedMoney(totals.unrealized_pnl)} (${pct(totals.unrealized_pnl_pct)})`
+      : "—";
   if (els.summaryPnl) els.summaryPnl.className = `human-work-figure ${pnlClass(totals.unrealized_pnl)}`;
   if (els.pnlArrow) {
     els.pnlArrow.textContent = Number(totals.unrealized_pnl || 0) < 0 ? "↓" : "↑";
@@ -278,8 +281,7 @@ function allocationPanel() {
 
 function insightLabel(code, params) {
   const lang = activeLang();
-  const template =
-    messages[lang]?.insightTemplate?.[code] || messages.en.insightTemplate?.[code] || "";
+  const template = messages[lang]?.insightTemplate?.[code] || messages.en.insightTemplate?.[code] || "";
   if (!template) return "";
   return template.replace(/\{(\w+)\}/g, (_, key) => insightParam(code, key, params?.[key]));
 }

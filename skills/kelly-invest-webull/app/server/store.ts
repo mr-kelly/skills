@@ -1,34 +1,35 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { computeInsights, DEFAULT_TARGET_ALLOCATION } from "./insights.mjs";
-import { DATA_DIR, LOCK_PATH, ONBOARDING_PATH, SKILL_DIR, SNAPSHOT_PATH } from "./paths.mjs";
+import { DEFAULT_TARGET_ALLOCATION, computeInsights } from "./insights.ts";
+import { DATA_DIR, LOCK_PATH, ONBOARDING_PATH, SKILL_DIR, SNAPSHOT_PATH } from "./paths.ts";
+import type { Config, ConfigResult, ConfigSummary, Onboarding, PortfolioSnapshot, TargetAllocation } from "./types.ts";
 
-export async function ensureDirs() {
+export async function ensureDirs(): Promise<void> {
   await fs.mkdir(DATA_DIR, { recursive: true });
 }
 
-export async function readJson(file, fallback = null) {
+export async function readJson<T = unknown>(file: string, fallback: T | null = null): Promise<T | null> {
   try {
-    return JSON.parse(await fs.readFile(file, "utf8"));
+    return JSON.parse(await fs.readFile(file, "utf8")) as T;
   } catch (error) {
-    if (error.code === "ENOENT") return fallback;
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return fallback;
     throw error;
   }
 }
 
-export async function readSnapshot() {
-  return readJson(SNAPSHOT_PATH, emptySnapshot());
+export async function readSnapshot(): Promise<PortfolioSnapshot> {
+  return (await readJson<PortfolioSnapshot>(SNAPSHOT_PATH, emptySnapshot())) as PortfolioSnapshot;
 }
 
-export async function readOnboarding() {
-  return readJson(ONBOARDING_PATH, { completed: false });
+export async function readOnboarding(): Promise<Onboarding> {
+  return (await readJson<Onboarding>(ONBOARDING_PATH, { completed: false })) as Onboarding;
 }
 
-export async function readLock() {
+export async function readLock(): Promise<unknown> {
   return readJson(LOCK_PATH, null);
 }
 
-export function emptySnapshot() {
+export function emptySnapshot(): PortfolioSnapshot {
   return {
     schema_version: "1",
     snapshot_id: "",
@@ -57,7 +58,7 @@ export function emptySnapshot() {
   };
 }
 
-export async function loadDotenvFiles(files) {
+export async function loadDotenvFiles(files: string[]): Promise<void> {
   for (const file of files) {
     try {
       const raw = await fs.readFile(file, "utf8");
@@ -73,13 +74,13 @@ export async function loadDotenvFiles(files) {
         if (key && process.env[key] === undefined) process.env[key] = value;
       }
     } catch (error) {
-      if (error.code !== "ENOENT") throw error;
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     }
   }
 }
 
-export function configSearchPaths() {
-  const paths = [];
+export function configSearchPaths(): string[] {
+  const paths: string[] = [];
   if (process.env.KELLY_INVEST_WEBULL_CONFIG) paths.push(process.env.KELLY_INVEST_WEBULL_CONFIG);
   paths.push(path.join(SKILL_DIR, "config.local.json"));
   paths.push(path.join(process.env.HOME || "", ".config", "kelly-invest-webull", "config.json"));
@@ -87,8 +88,8 @@ export function configSearchPaths() {
   return paths;
 }
 
-export function envSearchPaths() {
-  const paths = [];
+export function envSearchPaths(): string[] {
+  const paths: string[] = [];
   if (process.env.KELLY_INVEST_WEBULL_ENV_FILE) paths.push(process.env.KELLY_INVEST_WEBULL_ENV_FILE);
   paths.push(path.resolve(SKILL_DIR, "..", "..", ".env"));
   paths.push(path.join(SKILL_DIR, ".env.local"));
@@ -96,28 +97,28 @@ export function envSearchPaths() {
   return paths;
 }
 
-export async function readConfig() {
+export async function readConfig(): Promise<ConfigResult> {
   for (const file of configSearchPaths()) {
-    const config = await readJson(file, null);
+    const config = await readJson<Config>(file, null);
     if (config) return { config, path: file, is_example: file.endsWith("config.example.json") };
   }
   return { config: {}, path: "", is_example: false };
 }
 
-export function targetAllocationFromConfig(configResult) {
+export function targetAllocationFromConfig(configResult: ConfigResult | undefined): TargetAllocation {
   const target = configResult?.config?.target_allocation;
   return target && typeof target === "object" && !Array.isArray(target) ? target : DEFAULT_TARGET_ALLOCATION;
 }
 
 // Attach deterministic, read-only insights to a snapshot for the state payload.
 // Pure with respect to storage: it only computes from the snapshot + config.
-export function attachInsights(snapshot, configResult) {
+export function attachInsights(snapshot: PortfolioSnapshot, configResult: ConfigResult): PortfolioSnapshot {
   if (!snapshot) return snapshot;
   snapshot.insights = computeInsights(snapshot, targetAllocationFromConfig(configResult));
   return snapshot;
 }
 
-export function summarizeConfig(configResult) {
+export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
   const config = configResult.config || {};
   const webull = config.webull || {};
   const secretEnvs = ["app_key_env", "app_secret_env"].map((key) => webull[key]).filter(Boolean);
