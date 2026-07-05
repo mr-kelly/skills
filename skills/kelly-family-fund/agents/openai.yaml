@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Family Fund"
+  short_description: "Pooled-pension elder-care fund ledger with a fairness dashboard"
+  default_prompt: "Use $kelly-family-fund to open our household 家庭统筹基金 dashboard and review the fund balance and each family's fairness."
