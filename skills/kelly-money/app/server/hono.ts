@@ -5,17 +5,21 @@ import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
 
+// Storage is reached only through the data-provider (local-file default, or a
+// remote Busabase base). The provider is selected once at startup from
+// KELLY_MONEY_DATA_PROVIDER; the same fetch(Request)->Response app runs under
+// @hono/node-server locally and on Cloudflare Workers once cloud-backed.
+const provider = await createProvider();
+console.log(`Kelly Money data provider: ${provider.kind}`);
+
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through the data-provider, so the same app
-// runs under @hono/node-server locally and — once the data layer moves to a
-// cloud provider like Busabase — on Cloudflare Workers.
+// contract and reaches storage only through the logic modules (data-provider
+// backed), so the same app runs under @hono/node-server locally and — once the
+// data layer moves to a cloud provider like Busabase — on Cloudflare Workers.
 //
 // The frontend is the original zero-build vanilla app (index.html + app.js +
 // styles.css + i18n). Hono only serves those static files and the JSON API; it
 // does not render or bundle anything.
-
-const provider = await createProvider();
-console.log(`Kelly Money data provider: ${provider.kind}`);
 
 const types: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -24,12 +28,24 @@ const types: Record<string, string> = {
   ".json": "application/json; charset=utf-8",
 };
 
+async function state() {
+  const providerState = await provider.getState();
+  return {
+    app: "kelly-money",
+    data_provider: provider.kind,
+    onboarding: providerState.onboarding,
+    lock: providerState.lock,
+    config_summary: providerState.config_summary,
+    snapshot: providerState.snapshot,
+  };
+}
+
 export const app = new Hono();
 
 // ---- API ----
 app.get("/api/state", async (c) => {
   const query = c.req.query();
-  const body = isDemoQuery(query) ? demoStatePayload(query) : await provider.getState();
+  const body = isDemoQuery(query) ? demoStatePayload(query) : await state();
   return c.body(JSON.stringify(body), 200, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",

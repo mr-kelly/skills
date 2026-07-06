@@ -1,43 +1,52 @@
-// The data-provider interface + runtime consistency guard for kelly-money.
+// The data-provider contract for kelly-money + its runtime guard.
 //
-// kelly-money is a read-mostly financial DASHBOARD: the UI polls one aggregate
-// endpoint (GET /api/state) and never writes back. So the provider surface
-// mirrors the ORIGINAL app/server/store.ts reads — a getState() aggregate plus
-// its constituent parts (snapshot / onboarding / lock / config summary) — rather
-// than a review-queue shape kelly-money does not have.
+// kelly-money is a READ-MOSTLY ledger dashboard: a read-only sync (or a demo
+// script) writes one authoritative ledger snapshot, and the UI reads it back
+// with config, onboarding, and lock context. There is no review queue or
+// outbox — so this interface mirrors that store surface, not a change-request
+// model:
 //
-// Every provider (local-file, busabase, future cloud backends) implements the
-// same DataProvider shape, so the Hono server and scripts get one from
-// createProvider() and use it without knowing the backend. `implements
-// DataProvider` is the author-time check; assertProvider() is the runtime guard
-// that makes a non-conforming provider fail loudly at registration instead of
-// deep in a request with `provider.getState is not a function`.
+//   getState()          -> { onboarding, lock, config_summary, snapshot }  (for /api/state)
+//   readSnapshot()      -> the normalized ledger snapshot
+//   writeSnapshot(s)    -> persist a snapshot (used by the sync/demo scripts)
+//   readConfig()        -> the loaded config + its source path
+//   summarizeConfig(r)  -> sanitized config for the UI (never secrets)
+//   readOnboarding()    -> onboarding completion marker
+//   readLock()          -> write-lock status (null when unlocked)
+//   configSummary()     -> sanitized provider info echoed in /api/state
 //
-// Runs on Node ≥23.6 via native type-stripping — erasable TypeScript only
-// (no enum/namespace), NO build step. lib/package.json `{"type":"module"}` makes
-// Node treat these `.ts` files as ESM.
+// Every provider (local-file default, Busabase remote) implements this same
+// shape, so the Hono server and scripts get one from createProvider() and use it
+// without knowing the backend. `assertProvider()` is the runtime backstop that
+// makes a non-conforming provider fail loudly at registration instead of deep in
+// a request with `provider.getX is not a function`.
+//
+// Runs on Node >=23.6 via native type-stripping — erasable TypeScript only
+// (no enum/namespace), NO build step.
 
-import type { AppState, ConfigSummary, LedgerSnapshot, Onboarding } from "../types.ts";
+import type { ConfigResult, ConfigSummary, LedgerSnapshot, MoneyState } from "../types.ts";
 
-/**
- * The polymorphic contract shared by every kelly-money provider. Core members
- * are required; providers may add backend-specific extensions.
- */
 export interface DataProvider {
-  /** Stable provider id, e.g. `"local"`. Echoed in `/api/state` as data_provider. */
+  /** Stable provider id, e.g. "local". Echoed in /api/state. */
   readonly kind: string;
 
   // ── core (required) ────────────────────────────────────────────────────────
-  /** Aggregate payload for `GET /api/state`. */
-  getState(): Promise<AppState>;
-  /** Normalized ledger snapshot (accounts / transactions / invoices / matches). */
-  getSnapshot(): Promise<LedgerSnapshot>;
+  /** Aggregate read-mostly payload for GET /api/state. */
+  getState(): Promise<MoneyState>;
+  /** The normalized ledger snapshot. */
+  readSnapshot(): Promise<LedgerSnapshot>;
+  /** Persist a snapshot (sync / generate_demo_snapshot scripts). */
+  writeSnapshot(snapshot: LedgerSnapshot): Promise<{ ok: boolean; path?: string | null }>;
+  /** The loaded config plus its source path and example flag. */
+  readConfig(): Promise<ConfigResult>;
+  /** Sanitized config summary for the UI (never secrets). */
+  summarizeConfig(configResult: ConfigResult): ConfigSummary;
   /** Onboarding completion marker. */
-  getOnboarding(): Promise<Onboarding>;
-  /** Lock status guarding the data files while the agent is writing. */
-  getLock(): Promise<unknown>;
-  /** Sanitized config summary for the UI (never raw secrets). */
-  getConfigSummary(): Promise<ConfigSummary>;
+  readOnboarding(): Promise<Record<string, unknown>>;
+  /** Write-lock status guarding writes (null when unlocked). */
+  readLock(): Promise<Record<string, unknown> | null>;
+  /** Sanitized provider info echoed in /api/state (never secrets). */
+  configSummary(): Record<string, unknown>;
 
   // ── optional extensions (provider-specific) ────────────────────────────────
   /** Probe connectivity (remote providers). */
@@ -47,10 +56,13 @@ export interface DataProvider {
 /** Members every provider MUST implement (kept in sync with the interface). */
 export const CORE_METHODS = [
   "getState",
-  "getSnapshot",
-  "getOnboarding",
-  "getLock",
-  "getConfigSummary",
+  "readSnapshot",
+  "writeSnapshot",
+  "readConfig",
+  "summarizeConfig",
+  "readOnboarding",
+  "readLock",
+  "configSummary",
 ] as const satisfies readonly (keyof DataProvider)[];
 
 /** Members a provider MAY implement; validated only when present. */
@@ -58,12 +70,12 @@ export const OPTIONAL_METHODS = ["verifyConnection"] as const satisfies readonly
 
 /**
  * Assert `provider` conforms to {@link DataProvider}; throw one actionable error
- * listing everything missing. Called at registration in createProvider() — the
- * runtime backstop to the compile-time `implements` check.
+ * listing everything missing. Call at registration (in createProvider()) — the
+ * runtime backstop to the compile-time `implements`/shape check.
  */
-export function assertProvider(kind: string, provider: unknown): DataProvider {
+export function assertProvider(name: string, provider: unknown): DataProvider {
   if (!provider || (typeof provider !== "object" && typeof provider !== "function")) {
-    throw new Error(`Data provider "${kind}" is not an object.`);
+    throw new Error(`Data provider "${name}" is not an object.`);
   }
   const candidate = provider as Record<string, unknown>;
   const problems: string[] = [];
@@ -77,7 +89,7 @@ export function assertProvider(kind: string, provider: unknown): DataProvider {
     }
   }
   if (problems.length) {
-    throw new Error(`Data provider "${kind}" does not satisfy DataProvider — missing/invalid: ${problems.join(", ")}.`);
+    throw new Error(`Data provider "${name}" does not satisfy DataProvider — missing/invalid: ${problems.join(", ")}.`);
   }
   return provider as DataProvider;
 }

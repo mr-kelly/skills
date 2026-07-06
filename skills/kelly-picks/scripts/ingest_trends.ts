@@ -231,7 +231,7 @@ try {
 
   await provider.writeSnapshot(snapshot);
   console.log(
-    `OK: ${trendsAdded} trend items added, ${trendsUpdated} updated, ${trendsSkipped} skipped; ${candidatesAdded} candidates added, ${candidatesUpdated} updated → picks_snapshot.json`,
+    `OK: ${trendsAdded} trend items added, ${trendsUpdated} updated, ${trendsSkipped} skipped; ${candidatesAdded} candidates added, ${candidatesUpdated} updated → ${provider.kind} provider`,
   );
 } finally {
   await provider.releaseLock();

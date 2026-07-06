@@ -2,7 +2,7 @@
   "data_provider": "local",
   "busabase": {
     "base_url": "http://127.0.0.1:3000",
-    "base_id": "kelly-money",
+    "base_id": "your-busabase-base-id",
     "api_key_env": "KELLY_MONEY_BUSABASE_API_KEY"
   },
   "base_currency": "USD",

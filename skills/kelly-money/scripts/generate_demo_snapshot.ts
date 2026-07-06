@@ -1,10 +1,9 @@
 #!/usr/bin/env node
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { ledgerPath } from "../lib/paths.ts";
+import type { LedgerSnapshot } from "../lib/types.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const out = path.join(skillDir, "app", ".data", "ledger_snapshot.json");
+const out = ledgerPath;
 const now = new Date().toISOString();
 
 const accounts = [
@@ -158,28 +157,22 @@ const metrics = accounts.reduce(
   },
 );
 
-await fs.mkdir(path.dirname(out), { recursive: true });
-await fs.writeFile(
-  out,
-  JSON.stringify(
-    {
-      schema_version: "1",
-      generated_at: now,
-      source: "kelly-money-demo",
-      base_currency: "USD",
-      range: { start: "2026-06-01", end: "2026-06-30" },
-      metrics,
-      accounts,
-      transactions,
-      invoices,
-      invoice_matches,
-      warnings: [],
-    },
-    null,
-    2,
-  ),
-);
+const snapshot: LedgerSnapshot = {
+  schema_version: "1",
+  generated_at: now,
+  source: "kelly-money-demo",
+  base_currency: "USD",
+  range: { start: "2026-06-01", end: "2026-06-30" },
+  metrics,
+  accounts,
+  transactions,
+  invoices,
+  invoice_matches,
+  warnings: [],
+};
 
+const provider = await createProvider();
+await provider.writeSnapshot(snapshot);
 console.log(`Wrote ${out}`);
 
 function account(account_id, provider, display_name, currency, available, pending) {
