@@ -2,7 +2,17 @@
 // Persona: Featherlog, an indie SaaS for changelogs and release notes, with a
 // marketing site and a docs subdomain, both verified in Google Search Console.
 
-import type { DemoQuery, Opportunity, PageRow, QueryRow, SeoSnapshot } from "./types.ts";
+import { evaluateGeoGate } from "../../lib/geo-qa.ts";
+import type {
+  AiVisibility,
+  DemoQuery,
+  EntityReadiness,
+  GeoOpportunity,
+  Opportunity,
+  PageRow,
+  QueryRow,
+  SeoSnapshot,
+} from "./types.ts";
 
 const NOW = "2026-07-01T08:00:00.000Z";
 const RANGE = {
@@ -470,6 +480,350 @@ export function buildDemoSnapshot(): SeoSnapshot {
     pages,
     opportunities,
     warnings: [],
+    ai_visibility: demoAiVisibility(),
+    geo_opportunities: demoGeoOpportunities(),
+    entity_signals: demoEntitySignals(),
+  };
+}
+
+const GEO_ENGINES = ["chatgpt", "perplexity", "gemini", "claude", "copilot"] as const;
+
+// AI-visibility matrix: 5 tracked prompts across 5 engines, with per-engine
+// mention/position/sentiment and a per-prompt visibility trend. Deterministic.
+function demoAiVisibility(): AiVisibility {
+  const prompts = [
+    {
+      prompt_id: "geo-best-changelog-tool",
+      prompt: "What's the best changelog tool for a SaaS product?",
+      intent: "comparison",
+      cell: {
+        chatgpt: [true, 2, "positive", "https://featherlog.app/"],
+        perplexity: [true, 1, "positive", "https://featherlog.app/blog/release-notes-examples"],
+        gemini: [true, 4, "neutral", "https://featherlog.app/"],
+        claude: [true, 3, "positive", "https://featherlog.app/compare/headway-alternative"],
+        copilot: [false, null, null, ""],
+      },
+      base: 0.62,
+    },
+    {
+      prompt_id: "geo-release-notes-vs-changelog",
+      prompt: "What's the difference between release notes and a changelog?",
+      intent: "definition",
+      cell: {
+        chatgpt: [true, 3, "neutral", "https://featherlog.app/blog/release-notes-vs-changelog"],
+        perplexity: [true, 2, "positive", "https://featherlog.app/blog/release-notes-vs-changelog"],
+        gemini: [false, null, null, ""],
+        claude: [true, 4, "neutral", "https://featherlog.app/blog/release-notes-vs-changelog"],
+        copilot: [false, null, null, ""],
+      },
+      base: 0.4,
+    },
+    {
+      prompt_id: "geo-headway-alternative",
+      prompt: "What is a good Headway alternative for release notes?",
+      intent: "alternative",
+      cell: {
+        chatgpt: [true, 1, "positive", "https://featherlog.app/compare/headway-alternative"],
+        perplexity: [true, 2, "positive", "https://featherlog.app/compare/headway-alternative"],
+        gemini: [true, 2, "positive", "https://featherlog.app/compare/headway-alternative"],
+        claude: [true, 1, "positive", "https://featherlog.app/compare/headway-alternative"],
+        copilot: [true, 3, "neutral", "https://featherlog.app/compare/headway-alternative"],
+      },
+      base: 0.8,
+    },
+    {
+      prompt_id: "geo-embed-changelog-widget",
+      prompt: "How do I embed a changelog widget on my website?",
+      intent: "how-to",
+      cell: {
+        chatgpt: [false, null, null, ""],
+        perplexity: [true, 3, "neutral", "https://docs.featherlog.app/widgets/embed"],
+        gemini: [false, null, null, ""],
+        claude: [true, 5, "neutral", "https://docs.featherlog.app/widgets/embed"],
+        copilot: [false, null, null, ""],
+      },
+      base: 0.28,
+    },
+    {
+      prompt_id: "geo-write-release-notes",
+      prompt: "How should I write release notes users actually read?",
+      intent: "how-to",
+      cell: {
+        chatgpt: [true, 4, "neutral", "https://featherlog.app/blog/how-to-write-release-notes"],
+        perplexity: [true, 3, "positive", "https://featherlog.app/blog/how-to-write-release-notes"],
+        gemini: [true, 5, "neutral", "https://featherlog.app/blog/how-to-write-release-notes"],
+        claude: [false, null, null, ""],
+        copilot: [false, null, null, ""],
+      },
+      base: 0.5,
+    },
+  ];
+
+  const built = prompts.map((entry) => {
+    const mentions = GEO_ENGINES.map((engine) => {
+      const [mentioned, position, sentiment, cited] = entry.cell[engine];
+      return {
+        engine,
+        mentioned: Boolean(mentioned),
+        position: (position as number | null) ?? null,
+        sentiment: (sentiment as "positive" | "neutral" | "negative" | null) ?? null,
+        cited_url: String(cited || ""),
+        note: "",
+      };
+    });
+    return {
+      prompt_id: entry.prompt_id,
+      prompt: entry.prompt,
+      intent: entry.intent,
+      mentions,
+      trend: geoTrend(entry.prompt_id, entry.base),
+    };
+  });
+
+  const cellCount = built.length * GEO_ENGINES.length;
+  const hits = built.reduce((sum, prompt) => sum + prompt.mentions.filter((m) => m.mentioned).length, 0);
+  const score = Math.round((hits / cellCount) * 100);
+  return {
+    brand: "Featherlog",
+    engines: [...GEO_ENGINES],
+    score,
+    prev_score: Math.max(0, score - 9),
+    prompts: built,
+  };
+}
+
+function geoTrend(seedKey, base) {
+  const dates = dateRange(RANGE.current.start, RANGE.current.end).filter((_, index) => index % 4 === 0);
+  const rand = seededRandom(`geo:${seedKey}`);
+  let value = Math.max(0.05, base - 0.18);
+  return dates.map((date) => {
+    value = Math.max(0, Math.min(1, value + (rand() - 0.35) * 0.14));
+    return { date, visibility: round1(value) };
+  });
+}
+
+// Six agent-proposed GEO content optimizations reviewed with the five-state
+// model, each scored by geo-qa. One is BLOCKed for a fabricated stat.
+function demoGeoOpportunities(): GeoOpportunity[] {
+  const raw = [
+    {
+      id: "geo-opp-qa-changelog-tool",
+      ref: 1,
+      type: "qa_block" as const,
+      title: "Add a self-contained Q&A block to the changelog-tool comparison",
+      target_page: "https://featherlog.app/",
+      target_prompt: "What's the best changelog tool for a SaaS product?",
+      reason:
+        "Perplexity and ChatGPT already cite the homepage, but the page has no lift-ready Q&A. A direct question/answer block gives engines a clean passage to quote for this prompt.",
+      expected_impact:
+        "Adds a citable answer for the top comparison prompt; likely lifts Copilot from no-mention to cited.",
+      draft:
+        "## Is Featherlog a good changelog tool for SaaS?\n\nFeatherlog is a changelog and release-notes tool built for SaaS teams. You write updates in Markdown, publish a hosted changelog page, and embed a widget in your app. It supports a public changelog, an in-app 'what's new' widget, and an RSS feed from one source.\n\n**Q: Does it work for both a public changelog and in-app announcements?**\nYes — one entry publishes to the hosted page, the embeddable widget, and the RSS feed at the same time.",
+      grounding: [
+        "Product surface: Markdown editor, hosted changelog page, embeddable widget (see /features/changelog-widget).",
+        "RSS feed documented at docs.featherlog.app/widgets/embed.",
+      ],
+      gateInput: { has_qa_block: true, has_schema: true, claims: [] },
+      status: "needs_review",
+      agent_notes: "Kept entirely qualitative — no numbers to ground. Pairs with the FAQ schema opportunity #4.",
+      decision: null,
+    },
+    {
+      id: "geo-opp-quotable-stats-headway",
+      ref: 2,
+      type: "quotable_stats" as const,
+      title: "BLOCKED: quotable migration stats on the Headway alternative page",
+      target_page: "https://featherlog.app/compare/headway-alternative",
+      target_prompt: "What is a good Headway alternative for release notes?",
+      reason:
+        "The comparison page is cited by every engine but has no crisp, quotable numbers. A stat line would make the citation more concrete.",
+      expected_impact:
+        "A quotable migration stat would strengthen the already-strong citation across all five engines.",
+      draft:
+        "Teams switch from Headway to Featherlog in under 10 minutes, and 94% of migrations complete on the first import with zero data loss.",
+      grounding: [],
+      gateInput: {
+        has_qa_block: false,
+        has_schema: false,
+        claims: [{ text: "94% of migrations complete on the first import", source: "" }],
+      },
+      status: "needs_review",
+      agent_notes:
+        "The 94% figure is not backed by any measured source. geo-qa should BLOCK this — do not ship an invented stat that AI engines would quote verbatim.",
+      decision: null,
+    },
+    {
+      id: "geo-opp-citable-rewrite-rn-vs-changelog",
+      ref: 3,
+      type: "citable_rewrite" as const,
+      title: "Rewrite the release-notes-vs-changelog intro into a citable definition",
+      target_page: "https://featherlog.app/blog/release-notes-vs-changelog",
+      target_prompt: "What's the difference between release notes and a changelog?",
+      reason:
+        "Gemini and Copilot never cite us for this prompt. The intro buries the definition; engines lift the first clear, self-contained answer.",
+      expected_impact:
+        "A lead definition sentence is what engines quote; targets Gemini/Copilot pickup for this prompt.",
+      draft:
+        "Release notes and a changelog answer two different questions. A changelog is a running, version-by-version list of every change, written for anyone tracking the product. Release notes are a curated, human summary of what matters in a specific release, written for the people affected by it. Most teams publish both from one source.",
+      grounding: ["Definitional framing consistent with the existing article body; no new quantitative claims."],
+      gateInput: { has_qa_block: false, has_schema: true, claims: [] },
+      status: "needs_review",
+      agent_notes: "No stats introduced. Missing a Q&A block, so geo-qa will FIX not SHIP.",
+      decision: null,
+    },
+    {
+      id: "geo-opp-schema-faq-changelog-tool",
+      ref: 4,
+      type: "schema_markup" as const,
+      title: "Add FAQPage schema to the changelog-tool comparison",
+      target_page: "https://featherlog.app/",
+      target_prompt: "What's the best changelog tool for a SaaS product?",
+      reason:
+        "The homepage has no structured data. FAQPage JSON-LD helps engines resolve the entity and pick up the Q&A block from opportunity #1.",
+      expected_impact: "Structured FAQ markup improves entity resolution and Q&A pickup across engines.",
+      draft:
+        '{\n  "@context": "https://schema.org",\n  "@type": "FAQPage",\n  "mainEntity": [{\n    "@type": "Question",\n    "name": "Is Featherlog a good changelog tool for SaaS?",\n    "acceptedAnswer": { "@type": "Answer", "text": "Featherlog is a changelog and release-notes tool for SaaS teams with a hosted page, an embeddable widget, and RSS." }\n  }]\n}',
+      grounding: ["Schema mirrors the approved Q&A copy; no external claims."],
+      gateInput: { has_qa_block: true, has_schema: true, claims: [] },
+      status: "approved",
+      agent_notes: "",
+      decision: {
+        action: "approve",
+        note: "Ship with the next content deploy alongside the Q&A block.",
+        draft: null,
+        decided_at: NOW,
+      },
+    },
+    {
+      id: "geo-opp-qa-embed-widget",
+      ref: 5,
+      type: "qa_block" as const,
+      title: "Add a how-to Q&A block to the embed-widget docs",
+      target_page: "https://docs.featherlog.app/widgets/embed",
+      target_prompt: "How do I embed a changelog widget on my website?",
+      reason:
+        "Only Perplexity and Claude cite us for the embed prompt. The docs page is reference-style; a direct how-to Q&A gives engines a lift-ready answer.",
+      expected_impact: "A step-by-step Q&A targets ChatGPT/Gemini/Copilot pickup for the embed how-to prompt.",
+      draft:
+        "## How do I embed the Featherlog changelog widget?\n\n1. Copy your widget snippet from Settings → Widget.\n2. Paste the `<script>` tag before `</body>` on your site.\n3. Add a trigger element with `data-featherlog-trigger`.\n\nThat's it — the widget loads your latest entries and shows an unread badge.",
+      grounding: ["Steps match the embed guide at docs.featherlog.app/widgets/embed."],
+      gateInput: { has_qa_block: true, has_schema: false, claims: [] },
+      status: "changes_requested",
+      agent_notes: "",
+      decision: {
+        action: "request_changes",
+        note: "Add the React-specific snippet too — the 'embed changelog widget react' query is a real source of traffic.",
+        draft: null,
+        decided_at: NOW,
+      },
+    },
+    {
+      id: "geo-opp-citable-write-release-notes",
+      ref: 6,
+      type: "citable_rewrite" as const,
+      title: "Lead the how-to-write-release-notes post with a citable checklist",
+      target_page: "https://featherlog.app/blog/how-to-write-release-notes",
+      target_prompt: "How should I write release notes users actually read?",
+      reason:
+        "Three engines cite the post but none quote a clean summary. A lead checklist is the most liftable structure for a how-to prompt.",
+      expected_impact: "Executed with the June content pass; the post is now cited by ChatGPT, Perplexity, and Gemini.",
+      draft:
+        "Write release notes users actually read:\n1. Lead with the benefit, not the ticket number.\n2. Group by what changed for the user, not by system.\n3. Keep each entry to one or two sentences.\n4. Link to docs for anything that needs setup.\n5. Publish on a predictable cadence.",
+      grounding: ["Checklist distilled from the existing article; no new claims."],
+      gateInput: { has_qa_block: false, has_schema: true, claims: [] },
+      status: "done",
+      agent_notes: "",
+      decision: {
+        action: "approve",
+        note: "Approved in the June batch.",
+        draft: null,
+        decided_at: "2026-06-06T10:00:00.000Z",
+      },
+    },
+  ];
+
+  return raw.map((entry) => {
+    const { gateInput, decision, ...rest } = entry;
+    const gate = evaluateGeoGate({ draft: entry.draft, ...gateInput });
+    return {
+      ...rest,
+      grounding: entry.grounding,
+      gate,
+      created_at: entry.id === "geo-opp-citable-write-release-notes" ? "2026-06-05T09:00:00.000Z" : NOW,
+      decision: decision ?? null,
+      execution:
+        entry.status === "done"
+          ? {
+              status: "executed",
+              operation: "publish_geo_change",
+              target: entry.target_page,
+              detail: "Published the citable checklist to the post and redeployed (commit 9c1b2ad).",
+              executed_at: "2026-06-06T12:00:00.000Z",
+            }
+          : null,
+    };
+  }) as GeoOpportunity[];
+}
+
+// Entity / knowledge-panel readiness checklist with a few gaps.
+function demoEntitySignals(): EntityReadiness {
+  const signals = [
+    {
+      id: "ent-wikidata",
+      label: "Wikidata entity",
+      category: "knowledge-graph",
+      status: "missing" as const,
+      detail: "No Wikidata item for Featherlog. Engines have no canonical entity to resolve the brand to.",
+      fix: "Create a Wikidata item (instance of: software) with official website, inception, and industry statements.",
+    },
+    {
+      id: "ent-wikipedia",
+      label: "Wikipedia / notable coverage",
+      category: "knowledge-graph",
+      status: "missing" as const,
+      detail: "No Wikipedia article and thin third-party coverage. Notability is not yet established.",
+      fix: "Earn independent coverage first; a Wikipedia article without sourcing will be removed.",
+    },
+    {
+      id: "ent-schema-org",
+      label: "schema.org Organization",
+      category: "schema",
+      status: "present" as const,
+      detail: "Organization JSON-LD is present on the homepage with name, url, and logo.",
+      fix: "",
+    },
+    {
+      id: "ent-sameas",
+      label: "sameAs social links",
+      category: "schema",
+      status: "partial" as const,
+      detail: "Organization schema links X and GitHub but is missing LinkedIn and Crunchbase sameAs entries.",
+      fix: "Add LinkedIn and Crunchbase URLs to the Organization sameAs array to strengthen entity links.",
+    },
+    {
+      id: "ent-nap",
+      label: "Consistent name / brand (NAP)",
+      category: "consistency",
+      status: "partial" as const,
+      detail:
+        "Some directory listings use 'Featherlog App' while the site uses 'Featherlog'. Inconsistent name confuses entity matching.",
+      fix: "Standardize on 'Featherlog' across the site footer, social profiles, and directory listings.",
+    },
+    {
+      id: "ent-founder",
+      label: "Founder / person entity",
+      category: "knowledge-graph",
+      status: "present" as const,
+      detail: "The about page links a founder Person schema with sameAs to a personal site and X profile.",
+      fix: "",
+    },
+  ];
+  const weight = { present: 1, partial: 0.5, missing: 0 };
+  const total = signals.reduce((sum, signal) => sum + weight[signal.status], 0);
+  return {
+    brand: "Featherlog",
+    score: Math.round((total / signals.length) * 100),
+    signals,
   };
 }
 
@@ -732,7 +1086,136 @@ function localizeSnapshotZh(snapshot) {
         : null,
     };
   });
+  localizeGeoZh(snapshot);
   return snapshot;
+}
+
+// Localize the GEO half of the snapshot (prompts, geo opportunities, entity
+// signals). geo-qa verdicts/checks stay in English acronyms (SHIP/FIX/BLOCK).
+function localizeGeoZh(snapshot) {
+  const promptZh = {
+    "geo-best-changelog-tool": "SaaS 产品最好的 changelog 工具是什么？",
+    "geo-release-notes-vs-changelog": "release notes 和 changelog 有什么区别？",
+    "geo-headway-alternative": "有什么好用的 Headway 替代品来做 release notes？",
+    "geo-embed-changelog-widget": "怎么在网站上嵌入 changelog 挂件？",
+    "geo-write-release-notes": "怎么写用户真正会读的 release notes？",
+  };
+  const intentZh = {
+    comparison: "对比",
+    definition: "定义",
+    alternative: "替代品",
+    "how-to": "操作指南",
+  };
+  const geoOppZh = {
+    "geo-opp-qa-changelog-tool": {
+      title: "在 changelog 工具对比页加入自成一体的问答块",
+      reason:
+        "Perplexity 和 ChatGPT 已引用首页，但页面没有可直接摘录的问答。一个直接的问答块能给引擎一段干净可引用的内容。",
+      expected_impact: "为头部对比提问补上可引用答案；有望让 Copilot 从未提及变为被引用。",
+      agent_notes: "全部保持定性描述——没有需要溯源的数字。与 FAQ schema 优化项 #4 搭配。",
+    },
+    "geo-opp-quotable-stats-headway": {
+      title: "已拦截：Headway 替代品页的可引用迁移数据",
+      reason: "对比页被所有引擎引用，但缺乏简洁可引用的数字。一句数据能让引用更具体。",
+      expected_impact: "一句可引用的迁移数据能强化本已强劲的五引擎引用。",
+      agent_notes: "94% 这个数字没有任何实测来源支撑。geo-qa 应拦截——不要发布 AI 引擎会逐字引用的编造数据。",
+    },
+    "geo-opp-citable-rewrite-rn-vs-changelog": {
+      title: "把 release notes vs changelog 开头改写成可引用的定义",
+      reason: "Gemini 和 Copilot 从不为该提问引用我们。开头把定义埋没了；引擎会摘取第一段清晰、自成一体的答案。",
+      expected_impact: "引擎引用的是首句定义；目标是让 Gemini/Copilot 为该提问引用我们。",
+      agent_notes: "未引入数据。缺少问答块，所以 geo-qa 会给 FIX 而非 SHIP。",
+    },
+    "geo-opp-schema-faq-changelog-tool": {
+      title: "为 changelog 工具对比页添加 FAQPage schema",
+      reason: "首页没有结构化数据。FAQPage JSON-LD 有助引擎解析实体，并摘取优化项 #1 的问答块。",
+      expected_impact: "结构化 FAQ 标记改善实体解析和跨引擎的问答摘取。",
+      agent_notes: "",
+    },
+    "geo-opp-qa-embed-widget": {
+      title: "在嵌入挂件文档加入操作指南问答块",
+      reason: "只有 Perplexity 和 Claude 为嵌入提问引用我们。文档页偏参考手册；直接的操作问答能给引擎可摘录答案。",
+      expected_impact: "分步问答面向 ChatGPT/Gemini/Copilot 对嵌入操作提问的引用。",
+      agent_notes: "",
+    },
+    "geo-opp-citable-write-release-notes": {
+      title: "让 how-to-write-release-notes 文章以可引用清单开头",
+      reason: "三个引擎引用该文，但都没引用清晰摘要。对操作类提问，开头清单是最易摘取的结构。",
+      expected_impact: "已随 6 月内容更新执行；该文现被 ChatGPT、Perplexity 和 Gemini 引用。",
+      agent_notes: "",
+    },
+  };
+  const geoDecisionZh = {
+    "geo-opp-schema-faq-changelog-tool": "随下次内容发布与问答块一起上线。",
+    "geo-opp-qa-embed-widget": "把 React 专用代码片段也加上——“embed changelog widget react”是真实流量来源。",
+    "geo-opp-citable-write-release-notes": "在 6 月批次中已批准。",
+  };
+  const entityZh = {
+    "ent-wikidata": {
+      detail: "Featherlog 没有 Wikidata 条目。引擎没有可解析品牌的规范实体。",
+      fix: "创建 Wikidata 条目（instance of：软件），补充官网、成立时间和行业等声明。",
+    },
+    "ent-wikipedia": {
+      detail: "没有维基百科词条，第三方报道很少，尚未建立知名度。",
+      fix: "先获得独立报道；没有可靠来源的维基百科词条会被删除。",
+    },
+    "ent-schema-org": {
+      detail: "首页存在 Organization JSON-LD，含 name、url 和 logo。",
+      fix: "",
+    },
+    "ent-sameas": {
+      detail: "Organization schema 链接了 X 和 GitHub，但缺少 LinkedIn 和 Crunchbase 的 sameAs。",
+      fix: "在 Organization 的 sameAs 数组中加入 LinkedIn 和 Crunchbase 链接，强化实体关联。",
+    },
+    "ent-nap": {
+      detail: "部分目录写作 “Featherlog App”，而站点用 “Featherlog”。名称不一致会干扰实体匹配。",
+      fix: "在站点页脚、社媒资料和目录中统一使用 “Featherlog”。",
+    },
+    "ent-founder": {
+      detail: "关于页链接了创始人 Person schema，并通过 sameAs 指向个人网站和 X 资料。",
+      fix: "",
+    },
+  };
+
+  if (snapshot.ai_visibility) {
+    snapshot.ai_visibility = {
+      ...snapshot.ai_visibility,
+      prompts: snapshot.ai_visibility.prompts.map((prompt) => ({
+        ...prompt,
+        prompt: promptZh[prompt.prompt_id] || prompt.prompt,
+        intent: intentZh[prompt.intent] || prompt.intent,
+      })),
+    };
+  }
+  if (Array.isArray(snapshot.geo_opportunities)) {
+    snapshot.geo_opportunities = snapshot.geo_opportunities.map((opportunity) => {
+      const zh = geoOppZh[opportunity.id];
+      if (!zh) return opportunity;
+      return {
+        ...opportunity,
+        title: zh.title,
+        reason: zh.reason,
+        expected_impact: zh.expected_impact,
+        agent_notes: zh.agent_notes,
+        decision: opportunity.decision
+          ? { ...opportunity.decision, note: geoDecisionZh[opportunity.id] || opportunity.decision.note }
+          : null,
+        execution: opportunity.execution
+          ? { ...opportunity.execution, detail: "已把可引用清单发布到文章并重新部署（commit 9c1b2ad）。" }
+          : null,
+      };
+    });
+  }
+  if (snapshot.entity_signals) {
+    snapshot.entity_signals = {
+      ...snapshot.entity_signals,
+      signals: snapshot.entity_signals.signals.map((signal) => {
+        const zh = entityZh[signal.id];
+        if (!zh) return signal;
+        return { ...signal, detail: zh.detail, fix: zh.fix };
+      }),
+    };
+  }
 }
 
 function queryEntry(siteId, query, clicks, impressions, position, prevClicks, prevImpressions, prevPosition, pages) {

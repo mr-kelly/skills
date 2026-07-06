@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { serve } from "@hono/node-server";
+import { ensureDirs, envSearchPaths, loadDotenvFiles } from "../../lib/data-provider/index.ts";
 import { app } from "./hono.ts";
 import { DEFAULT_HOST, DEFAULT_PORT } from "./paths.ts";
-import { ensureDirs, envSearchPaths, loadDotenvFiles } from "./store.ts";
 
 // Local runtime: run the platform-neutral Hono app on Node. The same app.fetch
 // deploys to Cloudflare Workers unchanged once the data layer is cloud-backed.

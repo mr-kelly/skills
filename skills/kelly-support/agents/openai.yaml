@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Support"
+  short_description: "Customer-support desk with KB-grounded drafts, a quality gate, SLA and CSAT tracking"
+  default_prompt: "Use $kelly-support to open my support desk and review the tickets that need a reply or approval."

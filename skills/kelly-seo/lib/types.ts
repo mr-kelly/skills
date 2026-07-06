@@ -7,14 +7,28 @@
 import type { Decision } from "../app/server/types.ts";
 
 export type {
+  AiEngine,
+  AiVisibility,
   Decision,
   DecisionAction,
+  EngineMention,
+  EntityReadiness,
+  EntitySignal,
+  EntitySignalStatus,
   Execution,
+  GeoGate,
+  GeoGateCheck,
+  GeoGateVerdict,
+  GeoOpportunity,
+  GeoOpportunityStatus,
+  GeoOpportunityType,
+  MentionSentiment,
   Opportunity,
   OpportunityStatus,
   OpportunityType,
   SeoSnapshot,
   SnapshotMetrics,
+  TrackedPrompt,
   Warning,
 } from "../app/server/types.ts";
 
@@ -75,6 +89,13 @@ export interface DecisionResult {
   ok: boolean;
   status?: number;
   error?: string;
+}
+
+// Payload for updating one entity-readiness signal.
+export interface EntitySignalInput {
+  id?: string;
+  status?: string; // present | partial | missing
+  note?: string;
 }
 
 // Stored map of decisions keyed by opportunity id.

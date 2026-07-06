@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { computeInsights } from "./insights.ts";
 import { APP_DIR } from "./paths.ts";
-import { readConfig, readLock, readOnboarding, readSnapshot, summarizeConfig } from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic modules (data-provider
@@ -23,22 +23,21 @@ const types: Record<string, string> = {
   ".json": "application/json; charset=utf-8",
 };
 
+const provider = await createProvider();
+console.log(`Kelly Family Fund data provider: ${provider.kind}`);
+
 async function state() {
-  const [snapshot, onboarding, lock, configResult] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
-    readConfig(),
-  ]);
+  const [providerState, configResult] = await Promise.all([provider.getState(), provider.getConfig()]);
+  const snapshot = providerState.snapshot;
   // Attach read-only, rule-based insights at read time so CSV-sourced and
   // script-generated snapshots (which do not persist insights) both surface them.
   snapshot.insights = computeInsights(snapshot, configResult.config?.fairness?.deviation_threshold_pct);
   return {
     app: "kelly-family-fund",
-    data_provider: process.env.KELLY_FAMILY_FUND_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    config_summary: summarizeConfig(configResult),
+    data_provider: providerState.data_provider,
+    onboarding: providerState.onboarding,
+    lock: providerState.lock,
+    config_summary: providerState.config_summary,
     snapshot,
   };
 }

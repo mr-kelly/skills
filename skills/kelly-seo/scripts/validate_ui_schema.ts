@@ -150,4 +150,112 @@ snapshot.warnings.forEach((warning, index) => {
   for (const key of ["id", "severity", "message"]) requireString(warning, key, path);
 });
 
+// ── GEO / AI-search (optional; validated when present) ────────────────────────
+
+const AI_ENGINES = new Set(["chatgpt", "perplexity", "gemini", "claude", "copilot"]);
+const SENTIMENTS = new Set(["positive", "neutral", "negative"]);
+const GEO_TYPES = new Set(["citable_rewrite", "quotable_stats", "qa_block", "schema_markup"]);
+const GATE_VERDICTS = new Set(["SHIP", "FIX", "BLOCK"]);
+const CHECK_RESULTS = new Set(["pass", "warn", "fail"]);
+const ENTITY_STATUSES = new Set(["present", "partial", "missing"]);
+
+if (snapshot.ai_visibility !== null && snapshot.ai_visibility !== undefined) {
+  const vis = snapshot.ai_visibility;
+  const base = "root.ai_visibility";
+  if (!isObject(vis)) fail(`${base} must be an object or null`);
+  requireString(vis, "brand", base);
+  requireNumber(vis, "score", base);
+  requireNumber(vis, "prev_score", base);
+  if (!Array.isArray(vis.engines) || !vis.engines.length) fail(`${base}.engines must be a non-empty array`);
+  vis.engines.forEach((engine, index) => {
+    if (!AI_ENGINES.has(engine)) fail(`${base}.engines[${index}] is unknown: ${engine}`);
+  });
+  if (!Array.isArray(vis.prompts)) fail(`${base}.prompts must be an array`);
+  const promptIds = new Set();
+  vis.prompts.forEach((prompt, index) => {
+    const path = `${base}.prompts[${index}]`;
+    if (!isObject(prompt)) fail(`${path} must be an object`);
+    for (const key of ["prompt_id", "prompt", "intent"]) requireString(prompt, key, path);
+    if (promptIds.has(prompt.prompt_id)) fail(`${path}.prompt_id duplicates ${prompt.prompt_id}`);
+    promptIds.add(prompt.prompt_id);
+    if (!Array.isArray(prompt.mentions)) fail(`${path}.mentions must be an array`);
+    prompt.mentions.forEach((mention, mIndex) => {
+      const mPath = `${path}.mentions[${mIndex}]`;
+      if (!isObject(mention)) fail(`${mPath} must be an object`);
+      if (!AI_ENGINES.has(mention.engine)) fail(`${mPath}.engine is unknown: ${mention.engine}`);
+      if (typeof mention.mentioned !== "boolean") fail(`${mPath}.mentioned must be a boolean`);
+      if (mention.mentioned) {
+        if (mention.position !== null && typeof mention.position !== "number") {
+          fail(`${mPath}.position must be a number or null`);
+        }
+        if (mention.sentiment !== null && !SENTIMENTS.has(mention.sentiment)) {
+          fail(`${mPath}.sentiment is unknown: ${mention.sentiment}`);
+        }
+      }
+    });
+    if (!Array.isArray(prompt.trend)) fail(`${path}.trend must be an array`);
+  });
+}
+
+function validateGate(gate, path) {
+  if (!isObject(gate)) fail(`${path} must be an object`);
+  if (!GATE_VERDICTS.has(gate.verdict)) fail(`${path}.verdict is unknown: ${gate.verdict}`);
+  requireNumber(gate, "score", path);
+  if (!Array.isArray(gate.checks)) fail(`${path}.checks must be an array`);
+  gate.checks.forEach((check, index) => {
+    const cPath = `${path}.checks[${index}]`;
+    if (!isObject(check)) fail(`${cPath} must be an object`);
+    for (const key of ["id", "label"]) requireString(check, key, cPath);
+    if (!CHECK_RESULTS.has(check.result)) fail(`${cPath}.result is unknown: ${check.result}`);
+  });
+}
+
+if (snapshot.geo_opportunities !== undefined) {
+  if (!Array.isArray(snapshot.geo_opportunities)) fail("root.geo_opportunities must be an array");
+  const geoIds = new Set();
+  const geoRefs = new Set();
+  snapshot.geo_opportunities.forEach((opportunity, index) => {
+    const path = `root.geo_opportunities[${index}]`;
+    if (!isObject(opportunity)) fail(`${path} must be an object`);
+    for (const key of ["id", "type", "title", "target_prompt", "reason", "expected_impact", "status", "created_at"]) {
+      requireString(opportunity, key, path);
+    }
+    requireNumber(opportunity, "ref", path);
+    if (typeof opportunity.draft !== "string") fail(`${path}.draft must be a string`);
+    if (!OPPORTUNITY_STATUSES.has(opportunity.status)) {
+      fail(`${path}.status is not a workflow state: ${opportunity.status}`);
+    }
+    if (!GEO_TYPES.has(opportunity.type)) fail(`${path}.type is unknown: ${opportunity.type}`);
+    if (!Array.isArray(opportunity.grounding)) fail(`${path}.grounding must be an array`);
+    validateGate(opportunity.gate, `${path}.gate`);
+    // Hard-gate invariant: a BLOCKed change must never be approved/done.
+    if (opportunity.gate.verdict === "BLOCK" && (opportunity.status === "approved" || opportunity.status === "done")) {
+      fail(`${path} is geo-qa BLOCK but status is ${opportunity.status}`);
+    }
+    if (geoIds.has(opportunity.id)) fail(`${path}.id duplicates ${opportunity.id}`);
+    geoIds.add(opportunity.id);
+    if (geoRefs.has(opportunity.ref)) fail(`${path}.ref duplicates #${opportunity.ref}`);
+    geoRefs.add(opportunity.ref);
+  });
+}
+
+if (snapshot.entity_signals !== null && snapshot.entity_signals !== undefined) {
+  const readiness = snapshot.entity_signals;
+  const base = "root.entity_signals";
+  if (!isObject(readiness)) fail(`${base} must be an object or null`);
+  requireString(readiness, "brand", base);
+  requireNumber(readiness, "score", base);
+  if (!Array.isArray(readiness.signals)) fail(`${base}.signals must be an array`);
+  const signalIds = new Set();
+  readiness.signals.forEach((signal, index) => {
+    const path = `${base}.signals[${index}]`;
+    if (!isObject(signal)) fail(`${path} must be an object`);
+    for (const key of ["id", "label", "category", "detail"]) requireString(signal, key, path);
+    if (!ENTITY_STATUSES.has(signal.status)) fail(`${path}.status is unknown: ${signal.status}`);
+    if (typeof signal.fix !== "string") fail(`${path}.fix must be a string`);
+    if (signalIds.has(signal.id)) fail(`${path}.id duplicates ${signal.id}`);
+    signalIds.add(signal.id);
+  });
+}
+
 console.log(`OK: ${target}`);

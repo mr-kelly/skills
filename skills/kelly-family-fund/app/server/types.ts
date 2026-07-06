@@ -116,6 +116,13 @@ export interface FairnessConfig {
   deviation_threshold_pct?: number;
 }
 
+/** Busabase connection block (config.busabase); env vars override these. */
+export interface BusabaseConfig {
+  base_url?: string;
+  base_id?: string;
+  api_key_env?: string;
+}
+
 export interface Config {
   data_provider?: string;
   base_currency?: string;
@@ -123,6 +130,7 @@ export interface Config {
   beneficiaries?: Beneficiary[];
   families?: Family[];
   fairness?: FairnessConfig;
+  busabase?: BusabaseConfig;
   [key: string]: unknown;
 }
 

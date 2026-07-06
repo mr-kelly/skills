@@ -1,28 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import {
-  applyDecision,
-  readAgentTasks,
-  readConfig,
-  readDecisions,
-  readExecutionReport,
-  readLock,
-  readOnboarding,
-  readSnapshot,
-  summarizeConfig,
-} from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through store.ts (data-provider backed), so
-// the same app runs under @hono/node-server locally and — once the data layer
-// moves to a cloud provider — on Cloudflare Workers.
+// contract and reaches storage only through the data-provider (lib/data-provider),
+// so the same app runs under @hono/node-server locally and — with the data layer
+// pointed at a cloud provider (busabase) — on other fetch-based runtimes.
 //
 // The frontend is the zero-build vanilla app (index.html + app.js + styles.css +
 // i18n). Hono only serves those static files and the JSON API; it does not render
 // or bundle anything.
+
+const provider = await createProvider();
+console.log(`Kelly Campaigns data provider: ${provider.name}`);
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -31,39 +24,17 @@ const types = {
   ".json": "application/json; charset=utf-8",
 };
 
-async function state() {
-  const [snapshot, decisions, agentTasks, executionReport, onboarding, lock, configResult] = await Promise.all([
-    readSnapshot(),
-    readDecisions(),
-    readAgentTasks(),
-    readExecutionReport(),
-    readOnboarding(),
-    readLock(),
-    readConfig(),
-  ]);
-  return {
-    app: "kelly-campaigns",
-    data_provider: process.env.KELLY_CAMPAIGNS_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    config_summary: summarizeConfig(configResult),
-    decisions,
-    agent_tasks: agentTasks,
-    execution_report: executionReport,
-    snapshot,
-  };
-}
-
 export const app = new Hono();
 
 // ---- API ----
 app.get("/api/state", async (c) => {
   const query = c.req.query();
-  return c.json(isDemoQuery(query) ? demoStatePayload(query) : await state(), 200, { "cache-control": "no-store" });
+  const state = isDemoQuery(query) ? demoStatePayload(query) : await provider.getState();
+  return c.json(state, 200, { "cache-control": "no-store" });
 });
 
 app.post("/api/decision", async (c) => {
-  const lock = await readLock();
+  const lock = await provider.getLock();
   if (lock) {
     return c.json({ error: "Agent lock is active; the queue is read-only right now.", lock }, 423, {
       "cache-control": "no-store",
@@ -77,7 +48,7 @@ app.post("/api/decision", async (c) => {
     return c.json({ error: "Invalid JSON body" }, 400, { "cache-control": "no-store" });
   }
   try {
-    const decisions = await applyDecision(payload as Parameters<typeof applyDecision>[0]);
+    const decisions = await provider.applyDecision(payload as Parameters<typeof provider.applyDecision>[0]);
     return c.json({ ok: true, decisions }, 200, { "cache-control": "no-store" });
   } catch (error) {
     return c.json({ error: error.message }, 400, { "cache-control": "no-store" });

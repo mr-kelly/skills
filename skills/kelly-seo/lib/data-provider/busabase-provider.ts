@@ -246,6 +246,24 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
       return { ok: true };
     },
 
+    async getGeoDecisions() {
+      // GEO opportunities are not modeled in Busabase yet; verdicts are folded in
+      // by the change-request status, so there are no separate GEO decisions.
+      return { updated_at: "", decisions: {} };
+    },
+
+    async saveGeoDecision() {
+      return { ok: false, status: 501, error: "GEO review is local-only; run KELLY_SEO_DATA_PROVIDER=local." };
+    },
+
+    async getEntitySignalOverrides() {
+      return { updated_at: "", signals: {} };
+    },
+
+    async updateEntitySignal() {
+      return { ok: false, status: 501, error: "Entity readiness is local-only; run KELLY_SEO_DATA_PROVIDER=local." };
+    },
+
     async writeSnapshot(snapshot: SeoSnapshot) {
       // Publish agent-proposed opportunities as change requests. Analytics data is
       // read-only and not persisted to Busabase.

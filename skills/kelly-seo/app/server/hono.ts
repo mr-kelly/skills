@@ -72,6 +72,56 @@ app.post("/api/decision", async (c) => {
   return jsonResponse(c, 200, await state());
 });
 
+// A human verdict on one GEO content-optimization opportunity. geo-qa BLOCKs are
+// rejected by the provider (422) before they can be approved.
+app.post("/api/geo-decision", async (c) => {
+  const lock = await provider.getLock();
+  if (lock) {
+    return jsonResponse(c, 409, { error: "Agent lock present; decisions are read-only right now.", lock });
+  }
+  const raw = await c.req.text();
+  let payload: any;
+  try {
+    payload = JSON.parse(raw || "{}");
+  } catch {
+    return jsonResponse(c, 400, { error: "Invalid JSON body" });
+  }
+  const result = await provider.saveGeoDecision({
+    id: String(payload.id || ""),
+    action: String(payload.action || ""),
+    note: payload.note,
+    draft: payload.draft,
+  });
+  if (!result.ok) {
+    return jsonResponse(c, result.status || 400, { error: result.error });
+  }
+  return jsonResponse(c, 200, await state());
+});
+
+// Update one entity-readiness signal's status/note.
+app.post("/api/entity-signal", async (c) => {
+  const lock = await provider.getLock();
+  if (lock) {
+    return jsonResponse(c, 409, { error: "Agent lock present; decisions are read-only right now.", lock });
+  }
+  const raw = await c.req.text();
+  let payload: any;
+  try {
+    payload = JSON.parse(raw || "{}");
+  } catch {
+    return jsonResponse(c, 400, { error: "Invalid JSON body" });
+  }
+  const result = await provider.updateEntitySignal({
+    id: String(payload.id || ""),
+    status: String(payload.status || ""),
+    note: payload.note,
+  });
+  if (!result.ok) {
+    return jsonResponse(c, result.status || 400, { error: result.error });
+  }
+  return jsonResponse(c, 200, await state());
+});
+
 // ---- Static (vanilla frontend) ----
 async function serveStatic(c) {
   const pathname = decodeURIComponent(c.req.path === "/" ? "/index.html" : c.req.path);

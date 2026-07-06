@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
@@ -38,6 +39,31 @@ app.get("/api/state", async (c) => {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
   });
+});
+
+// ECHO publishing desk: apply one review decision / publish / reply / crisis
+// toggle. Local writes only — the skill performs the real platform action out
+// of band after approval. Demo mode never mutates real state; it just echoes
+// back a synthetic ok so the UI can show the optimistic transition.
+app.post("/api/operation", async (c) => {
+  const query = c.req.query();
+  const op = await c.req.json().catch(() => null);
+  if (!op || typeof op !== "object" || typeof op.operation !== "string") {
+    return c.json({ error: "Body must be a JSON object with an 'operation' field." }, 400);
+  }
+  if (isDemoQuery(query)) {
+    return c.json({ ok: true, demo: true, operation: op.operation }, 200);
+  }
+  try {
+    const snapshot = await provider.applyOperation(op);
+    return c.body(JSON.stringify({ ok: true, operation: op.operation, snapshot }), 200, {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    });
+  } catch (error) {
+    const status = ((error as { statusCode?: number }).statusCode || 500) as ContentfulStatusCode;
+    return c.json({ error: (error as Error).message }, status);
+  }
 });
 
 // ---- Static (vanilla frontend) ----

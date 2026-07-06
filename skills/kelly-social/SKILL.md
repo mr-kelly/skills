@@ -1,23 +1,26 @@
 ---
 name: kelly-social
 license: MIT
-description: Personal App-in-Skill social media aggregator for Kelly's Twitter/X, Facebook, and Instagram accounts (extensible to LinkedIn, YouTube, Threads, TikTok, Xiaohongshu) with a local dashboard. Use when the user invokes $kelly-social or /kelly-social, wants social media aggregation, unified cross-platform timelines, account stats, follower counts, follower growth, engagement rates, impressions, social traffic metrics, post performance, top posts, or agent-driven collection of their own social accounts.
+description: Personal App-in-Skill social media command desk for Kelly's Twitter/X, Facebook, and Instagram accounts (extensible to LinkedIn, YouTube, Threads, TikTok, Xiaohongshu) — monitoring AND publishing on the ECHO discipline (Explore / Craft / Host / Observe). Use when the user invokes $kelly-social or /kelly-social, wants social media aggregation, unified cross-platform timelines, account stats, follower counts, follower growth, engagement rates, impressions, social traffic metrics, post performance, top posts, agent-driven collection of their own accounts, OR the publishing side: a content calendar, agent-drafted post/short-video review and approval, an engagement (mentions/comments) reply inbox, a crisis playbook, share-of-voice, or a pre-publish quality gate.
 ---
 
 # Kelly Social
 
 ## Overview
 
-Use this skill as Kelly's local social media command desk. It aggregates her Twitter/X, Facebook, and Instagram accounts (and later LinkedIn, YouTube, Threads, TikTok, Xiaohongshu) into one file-backed App-in-Skill dashboard with per-platform KPI cards, a unified cross-platform timeline, account detail pages with follower trends, and per-post engagement metrics.
+Use this skill as Kelly's local social media command desk. It does two jobs on the **ECHO** discipline — **E**xplore, **C**raft, **H**ost, **O**bserve:
 
-Collection is agent-driven, not API-first: most of these platforms have hostile or expensive APIs, so the agent gathers the data through the method configured per account and normalizes it into a local snapshot. The app only renders that local snapshot; it never touches any network beyond `127.0.0.1`.
+- **Monitor** (Observe): aggregate her Twitter/X, Facebook, and Instagram accounts (and later LinkedIn, YouTube, Threads, TikTok, Xiaohongshu) into one file-backed dashboard — per-platform KPI cards, a unified cross-platform timeline, account detail pages with follower trends, per-post engagement metrics, and share-of-voice vs competitors.
+- **Publish** (Explore / Craft / Host): a review-and-approval workflow where the **agent drafts → the human approves → the skill publishes**. A content calendar, a post composer / draft queue, a short-video scripter, and an engagement (mentions/comments) reply inbox — all gated by a five-state review model and a pre-publish quality gate.
+
+Collection is agent-driven, not API-first: most of these platforms have hostile or expensive APIs, so the agent gathers the data through the method configured per account and normalizes it into a local snapshot. The app only renders and mutates local files; it never touches any network beyond `127.0.0.1`. **Real publishing and replying is skill-executed out of band, only after a human approves** — the app records intent, it does not post.
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local social snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 
 ## Boundary
 
-- The skill (agent side) may read the user's own social accounts and their public metrics, parse analytics exports the user downloaded, call an official API when the user configured one, normalize the data, validate schemas, and write local handoff files through `scripts/ingest_snapshot.mjs`.
-- The app reads and writes local files only. It must not initiate platform requests, post, like, follow, delete, or mutate any remote system.
+- The skill (agent side) may read the user's own social accounts and their public metrics, parse analytics exports the user downloaded, call an official API when the user configured one, normalize the data, validate schemas, draft posts/short-video scripts/replies for human review, and write local handoff files through `scripts/ingest_snapshot.mjs` (monitoring snapshot) and `POST /api/operation` (publishing-desk state).
+- The app reads and writes local files only. It must not initiate platform requests, post, like, follow, delete, or mutate any remote system. Publishing and replying happen **only after a human approves in the review queue**, and the real platform action is performed by the skill out of band — never by the app, and never automatically.
 - Collect only the user's own accounts plus the public metrics attached to their own posts. Never scrape other people's private data, DMs, or non-public profiles.
 - Respect login sessions the user owns: reuse an existing authenticated browser session; never ask for, capture, or store passwords, cookies, or session tokens anywhere (not in config, snapshots, sync logs, or chat).
 - Respect platform terms of service: prefer official analytics exports and user-owned sessions, throttle politely (small page counts, pauses between navigations, stop on rate-limit signals), and never bypass anti-bot walls.
@@ -65,21 +68,33 @@ skills/kelly-social/app/start.sh
 
 The app uses local HTTP on `127.0.0.1`, preferring port `3000` through `4000`, or `KELLY_SOCIAL_UI_PORT` when set. `/api/state` reports `app: "kelly-social"` so the launcher can reuse a matching server and skip past ports held by other apps.
 
-Required app views:
+Required app views — monitoring (Observe):
 
-- `#/overview`: social command desk. Per-platform KPI cards (followers, following, posts, impressions, engagement rate, profile visits) with 7d/28d deltas and platform badges, a cross-platform followers trend summary with inline SVG sparklines, top posts this week, and collection freshness per account (last sync + method).
+- `#/overview`: social command desk. Per-platform KPI cards (followers, following, posts, impressions, engagement rate, profile visits) with 7d/28d deltas and platform badges, a cross-platform followers trend summary with inline SVG sparklines, top posts this week, **share-of-voice vs competitors**, and collection freshness per account (last sync + method).
 - `#/timeline`: unified reverse-chronological timeline across all platforms. Each row shows platform badge, account, timestamp, text preview, media indicator, and per-post metrics (likes, replies/comments, reposts/shares, views/impressions). Platform badge chips filter the list.
 - `#/timeline/<post_id>`: Post Detail. Full text, metrics breakdown, engagement rate, permalink, and agent notes.
 - `#/accounts`: account inventory. Handle, platform, display name, followers, growth deltas, engagement rate, last sync, and collection method.
 - `#/accounts/<account_id>`: Account Detail. Profile summary, follower trend rendered as an inline SVG sparkline (no chart library), top posts, traffic sources when available, and sync history with warnings.
 - `#/settings`: sanitized setup summary. Account handles, platforms, collection methods, configured env var readiness booleans, data provider name, and onboarding state. Never expose secret values.
 
+Required app views — publishing desk (Explore / Craft / Host):
+
+- `#/calendar`: content calendar. Scheduled posts across channels with theme pillars, dates, publish status, and links to the linked draft when one exists.
+- `#/compose`: post composer / draft approval queue. Agent-drafted posts (hook + body + hashtags + CTA + target channels) as review items, each carrying its social-qa gate result. Human edits/approves/blocks. Workflow chips filter by the five review states (`needs_review | changes_requested | approved | done | blocked`). An approved, gate-passing draft exposes a **Publish** action.
+- `#/shorts`: short-video scripter for Reels / Shorts / TikTok / Douyin. Shot lists (visual + voiceover + duration + on-screen text) plus caption and hashtags, reviewed on the same five-state model.
+- `#/engagement`: engagement inbox. Incoming mentions/comments with agent-drafted replies (approval-gated). Approve to expose a **Send reply** action.
+- `#/crisis`: crisis playbook. A small incident-response checklist (triage, spokesperson, pause-publishing, holding statement, review) plus a live incident-status toggle (calm / watch / active) and a publishing-pause switch.
+
+The quality gate (⛩ `social-qa`, in `lib/social-qa.ts`): every draft is scored 0–100 (SQS) across brand voice, disclosure, and banned claims, producing a **SHIP / FIX / BLOCK** verdict. A BLOCK forces the draft to `blocked` and disables approve/publish until it is revised.
+
+Writes go through one endpoint, `POST /api/operation`, carrying one `PublishingOperation`: `review_draft`, `review_short`, `review_engagement`, `publish_post` (`{ draft_id, channel?, scheduled_for? }`), `send_reply` (`{ item_id, channel? }`), or `crisis_toggle`. The app writes local files only; the skill performs the real platform action post-approval.
+
 Demo mode:
 
 - `?demo=1` opens a deterministic mock dashboard for documentation and screenshots.
-- `?demo=overview`, `?demo=timeline`, `?demo=accounts`, and `?demo=detail` select named mock scenes.
+- `?demo=overview`, `?demo=timeline`, `?demo=accounts`, `?demo=detail`, `?demo=calendar`, `?demo=compose`, `?demo=shorts`, `?demo=engagement`, and `?demo=crisis` select named mock scenes.
 - `lang=en` or `lang=zh` forces UI chrome language for screenshots.
-- Demo API responses must never read or write live platform data or local private snapshot files.
+- Demo API responses must never read or write live platform data or local private snapshot files. `POST /api/operation?demo=1` echoes a synthetic ok and never mutates real state.
 
 UI language: support English and Chinese chrome with `Auto` default. Keep handles, post text, and imported data in their original language.
 
@@ -89,7 +104,7 @@ Read `references/social-schema.md` before editing the app, scripts, or any gener
 
 Primary local files:
 
-- `app/.data/social_snapshot.json`: canonical dashboard snapshot — accounts with metric series, posts, metrics rollups, and `sync_log[]`. Written only by `scripts/ingest_snapshot.mjs`.
+- `app/.data/social_snapshot.json`: canonical snapshot. The **monitoring** sections (accounts with metric series, posts, metrics rollups, `sync_log[]`, `warnings[]`) are written only by `scripts/ingest_snapshot.mjs`. The **publishing** sections (`calendar[]`, `drafts[]`, `shorts[]`, `engagement[]`, `crisis`, `share_of_voice`) are read by the app and mutated in place through `POST /api/operation`; `ingest_snapshot.mjs` preserves them untouched on every merge.
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill is collecting or rewriting files. This is a dashboard-type App-in-Skill: there is no `decisions.json`, but the lock must still be honored as a read-only indicator by the app and by `ingest_snapshot.mjs`.
 - `config.local.json`: private account configuration, ignored by git.

@@ -1,19 +1,14 @@
 #!/usr/bin/env node
 // Dry-run-by-default executor. Reads adopted (approved) narrative assets and
-// resolved drift decisions, re-checks the agent lock, and records concrete
-// operations in execution_report.json. It performs NO external side effects:
-// promotion to the canonical narrative registry and channel export are the
-// skill's responsibility post-approval, per SKILL.md.
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "brand_snapshot.json");
-const decisionsPath = path.join(dataDir, "decisions.json");
-const lockPath = path.join(dataDir, "agent.lock");
-const reportPath = path.join(dataDir, "execution_report.json");
+// resolved drift decisions through the data provider, re-checks the agent lock,
+// and records concrete operations in the execution report. It performs NO
+// external side effects: promotion to the canonical narrative registry and
+// channel export are the skill's responsibility post-approval, per SKILL.md.
+//
+// Storage is reached only through the data provider, so this script honours
+// KELLY_BRAND_DATA_PROVIDER=local|busabase just like the server.
+import { createProvider } from "../lib/data-provider/index.ts";
+import { executionReportPath } from "../lib/paths.ts";
 
 const apply = process.argv.includes("--apply");
 
@@ -66,33 +61,22 @@ interface ExecutionReport {
   results?: ExecutionResultItem[];
 }
 
-interface DecisionsFile {
-  decisions?: Record<string, Decision>;
-}
+const provider = await createProvider();
 
-async function readJson<T = unknown>(file: string, fallback: T | null = null): Promise<T | null> {
-  try {
-    return JSON.parse(await fs.readFile(file, "utf8")) as T;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return fallback;
-    throw error;
-  }
-}
-
-const lock = await readJson<Lock>(lockPath);
+const lock = (await provider.getLock()) as Lock | null;
 if (lock) {
   console.error(`Refusing to execute: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
 }
 
-const snapshot = await readJson<Snapshot>(snapshotPath);
-if (!snapshot) {
-  console.error(`No snapshot at ${snapshotPath}. Nothing to execute.`);
+const snapshot = (await provider.getSnapshot()) as Snapshot | null;
+if (!snapshot || !Array.isArray(snapshot.items)) {
+  console.error("No snapshot available from the data provider. Nothing to execute.");
   process.exit(1);
 }
 
-const decisions = (await readJson<DecisionsFile>(decisionsPath, { decisions: {} }))?.decisions || {};
-const previousReport = await readJson<ExecutionReport>(reportPath);
+const decisions = ((await provider.getDecisions())?.decisions || {}) as Record<string, Decision>;
+const previousReport = (await provider.getExecutionReport()) as ExecutionReport | null;
 const alreadyDone = new Set(
   (previousReport?.results || [])
     .filter((item) => item.status === "promoted" || item.status === "resolved")
@@ -167,7 +151,7 @@ for (const result of results) {
 }
 
 if (!apply) {
-  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write ${reportPath}.`);
+  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write ${executionReportPath}.`);
   process.exit(0);
 }
 
@@ -188,6 +172,7 @@ const report = {
     ...results.filter((item) => !(item.status === "skipped" && carriedIds.has(item.item_id))),
   ],
 };
-await fs.mkdir(dataDir, { recursive: true });
-await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
-console.log(`Wrote ${reportPath}. Canonical promotion and channel export are performed by the skill per SKILL.md.`);
+await provider.writeExecutionReport(report);
+console.log(
+  `Wrote ${executionReportPath}. Canonical promotion and channel export are performed by the skill per SKILL.md.`,
+);

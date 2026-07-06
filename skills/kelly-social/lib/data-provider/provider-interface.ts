@@ -18,7 +18,7 @@
 // (no enum/namespace), NO build step. lib/package.json `{"type":"module"}`
 // makes Node treat the `.ts` files as ESM.
 
-import type { ConfigSummary, Lock, Onboarding, SocialSnapshot, SocialState } from "../types.ts";
+import type { ConfigSummary, Lock, Onboarding, PublishingOperation, SocialSnapshot, SocialState } from "../types.ts";
 
 export interface DataProvider {
   /** Stable provider id, e.g. `"local"`. Echoed in `/api/state` as data_provider. */
@@ -35,6 +35,13 @@ export interface DataProvider {
   getLock(): Promise<Lock | null>;
   /** Sanitized setup summary (handles, platforms, env readiness — never secrets). */
   getConfigSummary(): Promise<ConfigSummary>;
+  /**
+   * Apply one ECHO publishing-desk operation (review decision, crisis toggle,
+   * publish_post / send_reply intent). Local writes only — the skill performs
+   * the real platform publish out of band after human approval. Returns the
+   * updated snapshot so the caller can echo fresh state.
+   */
+  applyOperation(op: PublishingOperation): Promise<SocialSnapshot>;
 
   // ── optional extensions (provider-specific) ─────────────────────────────────
   /** Probe connectivity (remote providers). */
@@ -48,6 +55,7 @@ export const CORE_METHODS = [
   "getOnboarding",
   "getLock",
   "getConfigSummary",
+  "applyOperation",
 ] as const satisfies readonly (keyof DataProvider)[];
 
 /** Members a provider MAY implement; validated only when present. */

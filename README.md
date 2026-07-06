@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-31 App-in-Skill workflows — each an agent operating procedure paired with a calm local browser UI for review, approval, and dashboards.
+32 App-in-Skill workflows — each an agent operating procedure paired with a calm local browser UI for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-31-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-32-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -92,8 +92,9 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-family-fund` | Pools elderly parents' pensions into one steward-managed fund and books the monthly care cost and shared-family spending in a base currency, so every sibling family can see the split is fair. Read-only — it never moves money. | Use it when a family jointly supports elderly parents from a pooled pension: tracking the nursing-home cost and splitting the surplus (transport, meals, birthday gifts, gifts of obligation) transparently across sibling families. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-family-fund.html) |
 | `kelly-crm` | Runs a personal CRM over contacts, companies, deals, and interactions with a pipeline dashboard and an agent-drafted follow-up review queue. | Use it when tracking deals and relationships, reviewing pipeline health, or approving and editing follow-up drafts before the agent sends them through other channels. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-crm.html) |
 | `kelly-messenger` | Aggregates WhatsApp, Discord, Slack, and Telegram into one unified local inbox with full conversation transcripts and an approval-gated reply outbox. | Use it when reading messages across chat platforms in one place, drafting replies in a single composer, and approving queued outbound messages that the agent then sends via platform connectors. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html) |
-| `kelly-social` | Aggregates Twitter/X, Facebook, and Instagram into one local dashboard: unified timeline, account stats, follower trends, and engagement metrics, collected agent-side via browser automation, analytics exports, or APIs. | Use it when reviewing social accounts, timelines, post performance, follower growth, or traffic across platforms without depending on official APIs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-social.html) |
-| `kelly-seo` | Connects Google Search Console into a local SEO desk: clicks, impressions, CTR, and position by query and page, with trends and an agent-proposed SEO opportunities review queue. | Use it when analyzing search performance, spotting striking-distance queries, or approving title rewrites, internal links, and content briefs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-seo.html) |
+| `kelly-social` | Social command desk that both monitors and publishes (Aaron's ECHO): unified timeline, account stats, follower trends, and share-of-voice on the monitoring side, plus a content calendar, an agent-drafted post composer, short-video scripts, an approval-gated engagement inbox, and a crisis playbook — every draft passes a social-qa SHIP/FIX/BLOCK gate. | Use it when reviewing social performance and share-of-voice, planning a content calendar, approving posts and short-video scripts, or triaging mentions and replies across platforms. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-social.html) |
+| `kelly-support` | Customer-support desk: the agent triages tickets from email, WhatsApp, web chat, forms, and WeChat, drafts replies grounded in a knowledge base, and proposes actions; you review, edit, and approve in a local UI before anything is sent, with an SLA board, CSAT tracking, and a support-qa gate that blocks refunds or commitments made without approval. | Use it when running a support inbox across channels, drafting KB-grounded replies, tracking SLA and CSAT, or approving sensitive actions like refunds and escalations. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-support.html) |
+| `kelly-seo` | Search desk covering SEO + GEO: Google Search Console analytics (clicks/impressions/CTR/position, opportunities) plus a generative-engine-optimization side — an AI-visibility tracker across ChatGPT/Perplexity/Gemini/Claude/Copilot, a citability-optimization queue, and brand-entity / knowledge-panel readiness, gated by geo-qa. | Use it when analyzing search performance, tracking and improving how AI engines cite your brand, approving GEO content changes, or fixing knowledge-graph and entity signals. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-seo.html) |
 | `kelly-feedback` | Aggregates user feedback from every channel, clusters it into weighted feature requests, and runs a roadmap decision queue with drafted replies and changelog notes. | Use it when triaging user feedback, prioritizing feature requests, or making evidence-backed roadmap promote/decline decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-feedback.html) |
 | `kelly-radar` | Market-intelligence desk merging competitor signal monitoring (pricing, changelog, launch, review diffs), a research question workbench with brief approval and cited reports, and keyword/topic trend tracking. | Use it when watching competitors, commissioning deep research reports, or turning rising search and community trends into opportunity cards. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-radar.html) |
 | `kelly-devops` | Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval. | Use it when checking service health, catching expiring domains and certificates, reviewing cloud spend spikes, or approving renewal and rotation actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html) |
@@ -400,12 +401,35 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
     <td><strong>Unified timeline</strong><br>Posts across all platforms in one stream with per-post likes, replies, reposts, and view counts.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-social-accounts.png" alt="Kelly Social accounts"></td>
-    <td><img src="docs/screenshots/kelly-social-detail.png" alt="Kelly Social account detail"></td>
+    <td><img src="docs/screenshots/kelly-social-compose.png" alt="Kelly Social post composer"></td>
+    <td><img src="docs/screenshots/kelly-social-calendar.png" alt="Kelly Social content calendar"></td>
   </tr>
   <tr>
-    <td><strong>Accounts</strong><br>Account inventory with follower counts, engagement rates, collection method, and sync freshness.</td>
-    <td><strong>Account detail</strong><br>Per-account profile with follower trend sparkline, top posts, and sync history.</td>
+    <td><strong>Compose (publishing)</strong><br>Agent-drafted posts in a review queue with hooks, hashtags, and CTAs, behind a social-qa SHIP/FIX/BLOCK gate — one draft blocked for a banned claim.</td>
+    <td><strong>Content calendar</strong><br>Scheduled posts across channels by theme pillar and date, with status and approvals.</td>
+  </tr>
+</table>
+
+### `kelly-support`
+
+Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support-qa gate. The visitor chat widget is a documented future extension.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-support-ui.png" alt="Kelly Support overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-support-tickets.png" alt="Kelly Support ticket queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Queue health — open, breaching-SLA, and awaiting-approval counts, CSAT trend, and volume by channel and category.</td>
+    <td><strong>Tickets</strong><br>Approval queue with the KB-grounded draft reply and the support-qa gate — a refund draft blocked pending human approval.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-support-knowledge.png" alt="Kelly Support knowledge base"></td>
+    <td><img src="docs/screenshots/kelly-support-sla.png" alt="Kelly Support SLA board"></td>
+  </tr>
+  <tr>
+    <td><strong>Knowledge base</strong><br>Articles and canned macros the agent cites when drafting replies.</td>
+    <td><strong>SLA &amp; CSAT</strong><br>SLA board of due and breached tickets, plus CSAT scores on resolved tickets.</td>
   </tr>
 </table>
 
@@ -421,12 +445,12 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
     <td><strong>Queries</strong><br>Top queries with clicks, impressions, CTR, position, period deltas, and opportunity badges.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-seo-pages.png" alt="Kelly SEO pages"></td>
-    <td><img src="docs/screenshots/kelly-seo-opportunities.png" alt="Kelly SEO opportunities"></td>
+    <td><img src="docs/screenshots/kelly-seo-geo.png" alt="Kelly SEO AI visibility"></td>
+    <td><img src="docs/screenshots/kelly-seo-optimize.png" alt="Kelly SEO GEO optimizer"></td>
   </tr>
   <tr>
-    <td><strong>Pages</strong><br>Top pages with search performance deltas and indexing warnings.</td>
-    <td><strong>Opportunities</strong><br>Agent-proposed SEO actions — title rewrites, internal links, content briefs — with editable drafts and approvals.</td>
+    <td><strong>AI visibility (GEO)</strong><br>An engines×prompts matrix of where the brand is cited across ChatGPT, Perplexity, Gemini, Claude, and Copilot, with an overall visibility score and trend.</td>
+    <td><strong>GEO optimizer</strong><br>Agent-proposed rewrites that make pages more citable by AI engines, gated by geo-qa — one blocked for a fabricated stat.</td>
   </tr>
 </table>
 
