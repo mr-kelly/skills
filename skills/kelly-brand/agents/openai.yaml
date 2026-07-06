@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Brand"
+  short_description: "Brand-narrative single source of truth (TALE) with a local review desk"
+  default_prompt: "Use $kelly-brand to open my brand narrative workbench and review the message house, story bank, and drift alerts."

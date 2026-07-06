@@ -1,0 +1,56 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "operator": {
+    "name": "Example Operator",
+    "role": "Creator Marketing Lead",
+    "company": "Example Brand",
+    "timezone": "UTC"
+  },
+  "program": {
+    "base_currency": "USD",
+    "budget_total": 50000,
+    "target_niches": ["beauty", "fitness", "tech", "lifestyle"]
+  },
+  "brands": [
+    {
+      "brand_id": "example-brand",
+      "display_name": "Example Brand",
+      "positioning": "One-line product positioning for outreach and briefs."
+    }
+  ],
+  "platforms": [
+    {
+      "platform_id": "instagram",
+      "type": "instagram",
+      "display_name": "Instagram",
+      "handoff_skill": "instagram-outreach",
+      "token_env": "KELLY_CREATORS_INSTAGRAM_TOKEN"
+    },
+    {
+      "platform_id": "tiktok",
+      "type": "tiktok",
+      "display_name": "TikTok",
+      "handoff_skill": "tiktok-outreach",
+      "token_env": "KELLY_CREATORS_TIKTOK_TOKEN"
+    },
+    {
+      "platform_id": "email",
+      "type": "email",
+      "display_name": "Outreach Email",
+      "handoff_skill": "kelly-email",
+      "token_env": "KELLY_CREATORS_EMAIL_TOKEN"
+    }
+  ],
+  "risk_policy": {
+    "review_keywords": {
+      "money": ["rate", "fee", "budget", "invoice", "payment", "报价", "费用"],
+      "contract": ["contract", "agreement", "exclusivity", "usage rights", "合同", "独家"]
+    }
+  },
+  "style": {
+    "tone": "friendly, specific, on-brand",
+    "signature": "Example Operator",
+    "language": "auto"
+  }
+}

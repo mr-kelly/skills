@@ -1,0 +1,72 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "operator": {
+    "name": "Example Operator",
+    "role": "Marketing Lead",
+    "company": "Example Company",
+    "timezone": "UTC"
+  },
+  "brand": {
+    "name": "Example Brand",
+    "homepage": "https://example.com",
+    "unsubscribe_url": "https://example.com/unsubscribe"
+  },
+  "esp": {
+    "provider": "example-esp",
+    "display_name": "Example ESP",
+    "api_key_env": "KELLY_CAMPAIGNS_ESP_API_KEY"
+  },
+  "from_identities": [
+    {
+      "identity_id": "brand-main",
+      "from_name": "Example Brand",
+      "from_email": "hello@example.com",
+      "reply_to": "replies@example.com",
+      "use_when": ["campaign", "newsletter"]
+    },
+    {
+      "identity_id": "lifecycle",
+      "from_name": "Example Brand Team",
+      "from_email": "team@example.com",
+      "reply_to": "team@example.com",
+      "use_when": ["sequence_step"]
+    }
+  ],
+  "segments": [
+    {
+      "segment_id": "all-subscribers",
+      "name": "All subscribers",
+      "description": "Everyone opted in to marketing email."
+    },
+    {
+      "segment_id": "new-signups-30d",
+      "name": "New signups (30d)",
+      "description": "Accounts created in the last 30 days."
+    },
+    {
+      "segment_id": "lapsed-90d",
+      "name": "Lapsed (90d)",
+      "description": "No open or click in the last 90 days."
+    }
+  ],
+  "sending_policy": {
+    "approval_required": true,
+    "daily_send_cap": 50000,
+    "hourly_send_cap": 8000,
+    "min_inbox_readiness": 0.7,
+    "max_spam_score": 4
+  },
+  "risk_policy": {
+    "review_keywords": {
+      "money": ["free", "guarantee", "cash", "$$$", "act now"],
+      "spam": ["click here", "winner", "urgent", "limited time"],
+      "compliance": ["unsubscribe", "gdpr", "can-spam"]
+    }
+  },
+  "style": {
+    "tone": "clear, friendly, on-brand",
+    "signature": "The Example Brand Team",
+    "language": "auto"
+  }
+}

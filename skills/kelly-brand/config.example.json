@@ -1,0 +1,56 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "brand": {
+    "name": "Example Brand",
+    "category": "Example category",
+    "audience": "Who the brand serves",
+    "mission": "Short mission statement",
+    "framework": "TALE"
+  },
+  "positioning_inputs": {
+    "for_whom": "the target customer",
+    "who_need": "the core need",
+    "our_brand_is": "the category we play in",
+    "that": "the key benefit",
+    "unlike": "the main alternative",
+    "because": "the reason to believe"
+  },
+  "channels": [
+    {
+      "channel_id": "website",
+      "type": "web",
+      "display_name": "Marketing Website",
+      "monitored": true,
+      "source_url_env": "KELLY_BRAND_WEBSITE_URL"
+    },
+    {
+      "channel_id": "social-linkedin",
+      "type": "social",
+      "display_name": "LinkedIn",
+      "monitored": true,
+      "source_url_env": "KELLY_BRAND_LINKEDIN_URL"
+    },
+    {
+      "channel_id": "sales-deck",
+      "type": "document",
+      "display_name": "Sales Deck",
+      "monitored": false,
+      "source_url_env": "KELLY_BRAND_DECK_URL"
+    }
+  ],
+  "style": {
+    "tone": "confident, plain-spoken, warm",
+    "reading_level": "grade 8",
+    "language": "auto"
+  },
+  "official_urls": {
+    "homepage": "https://example.com",
+    "about": "https://example.com/about",
+    "brand_guidelines": "https://example.com/brand"
+  },
+  "risk_policy": {
+    "banned_phrases": ["revolutionary", "world-class", "cutting-edge"],
+    "regulated_claims": ["guaranteed", "#1", "certified"]
+  }
+}
