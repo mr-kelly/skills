@@ -16,6 +16,27 @@ UI language: the local app supports multilingual interface chrome. Default langu
 
 First-run behavior: if no private config exists or required secret env vars are missing, enter onboarding mode before any mailbox scan. Greet the user, explain that this skill needs local config, show the recommended config/env paths, and tell them to store secrets only in local env files. Onboarding should also invite the user to configure their role, brands/products, official URLs, reply style, and knowledge sources so drafts match their business context. Do not ask the user to paste passwords, tokens, app passwords, or OAuth secrets into chat.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Email overview"></td>
+    <td width="50%"><img src="assets/screenshots/inbox-approval.png" alt="Kelly Email inbox approval desk"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Inbox-zero command desk with account context, queue metrics, and review workflow controls.</td>
+    <td><strong>Inbox approval desk</strong><br>Mock inbox queue with approvals, sender context, reply drafts, and status filters.</td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/needs-review.png" alt="Kelly Email needs review"></td>
+    <td><img src="assets/screenshots/blocked-security.png" alt="Kelly Email blocked security request"></td>
+  </tr>
+  <tr>
+    <td><strong>Needs review</strong><br>Human-in-the-loop review scene for a partnership reply that needs tone and timing judgment.</td>
+    <td><strong>Blocked security request</strong><br>Risk-heavy email scenario where the assistant blocks a suspicious request instead of drafting a reply.</td>
+  </tr>
+</table>
+
 ## Operating Rules
 
 - Prefer IMAP mailbox access when the local Kelly Email config provides IMAP settings. Use Spark only when the user explicitly asks for Spark or when IMAP is unavailable and Spark is already authorized.

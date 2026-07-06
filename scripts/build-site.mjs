@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Builds the GitHub Pages site in docs/ from README.md + docs/README-zh-CN.md + docs/screenshots/.
+// Builds the GitHub Pages site in docs/ from README.md + docs/README-zh-CN.md + bundled screenshots.
 // Zero dependencies. Re-run after changing READMEs or screenshots: node scripts/build-site.mjs
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -9,6 +9,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS = path.join(ROOT, "docs");
 const PAGES_DIR = path.join(DOCS, "s");
 const REPO_URL = "https://github.com/mr-kelly/skills";
+const RAW_REPO_URL = "https://raw.githubusercontent.com/mr-kelly/skills/main";
 
 const GROUPS = [
   {
@@ -85,6 +86,16 @@ function parseTable(md) {
   return rows;
 }
 
+function normalizeShotPath(src, imgPrefix) {
+  let out = src.replace(imgPrefix, "");
+  while (out.startsWith("../")) out = out.slice(3);
+  return out;
+}
+
+function siteShotPath(src, rel = "") {
+  return src.startsWith("skills/") ? `${RAW_REPO_URL}/${src}` : `${rel}${src}`;
+}
+
 function parseShotSections(md, imgPrefix) {
   // Returns { sectionName: { imgs: [...], caps: [{title, text}] } }
   const sections = {};
@@ -92,7 +103,7 @@ function parseShotSections(md, imgPrefix) {
   for (let i = 1; i < parts.length; i += 2) {
     const name = parts[i];
     const body = parts[i + 1] || "";
-    const imgs = [...body.matchAll(/<img src="([^"]+)"/g)].map((x) => x[1].replace(imgPrefix, ""));
+    const imgs = [...body.matchAll(/<img src="([^"]+)"/g)].map((x) => normalizeShotPath(x[1], imgPrefix));
     const caps = [...body.matchAll(/<strong>(.*?)<\/strong><br>(.*?)<\/td>/g)].map((x) => ({
       title: x[1],
       text: x[2],
@@ -382,7 +393,7 @@ ${groupsHtml}`;
   function cardHtml(s) {
     const thumb = s.shots[0];
     const thumbHtml = thumb
-      ? `<div class="thumb"><img data-shot-en="${esc(thumb.en)}" data-shot-zh="${esc(thumb.zh)}" src="${esc(thumb.en)}" alt="${esc(s.name)} UI" loading="lazy"></div>`
+      ? `<div class="thumb"><img data-shot-en="${esc(siteShotPath(thumb.en))}" data-shot-zh="${esc(siteShotPath(thumb.zh))}" src="${esc(siteShotPath(thumb.en))}" alt="${esc(s.name)} UI" loading="lazy"></div>`
       : `<div class="thumb empty">⚙️</div>`;
     const href = s.hasApp || s.descEn ? `s/${s.name}.html` : `${REPO_URL}/tree/main/skills/${s.folder}`;
     return `<a class="card" href="${href}">
@@ -405,7 +416,7 @@ ${groupsHtml}`;
     const shotsHtml = s.shots
       .map(
         (sh) => `<figure class="shot">
-  <img data-shot-en="../${esc(sh.en)}" data-shot-zh="../${esc(sh.zh)}" src="../${esc(sh.en)}" alt="${esc(sh.capEn.title || s.name)}" loading="lazy">
+  <img data-shot-en="${esc(siteShotPath(sh.en, "../"))}" data-shot-zh="${esc(siteShotPath(sh.zh, "../"))}" src="${esc(siteShotPath(sh.en, "../"))}" alt="${esc(sh.capEn.title || s.name)}" loading="lazy">
   <figcaption class="cap">
     ${bilingual(`<strong>${esc(sh.capEn.title)}</strong><span>${esc(sh.capEn.text)}</span>`, `<strong>${esc(sh.capZh.title)}</strong><span>${esc(sh.capZh.text)}</span>`, "div")}
   </figcaption>

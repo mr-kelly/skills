@@ -22,7 +22,7 @@
   </tr>
   <tr>
     <td width="50%"><img src="docs/screenshots/kelly-drama-ui.png" alt="kelly-drama — short-drama workbench"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-email-ui.png" alt="kelly-email — inbox approval desk"></td>
+    <td width="50%"><img src="skills/kelly-email/assets/screenshots/overview.png" alt="kelly-email — inbox approval desk"></td>
   </tr>
 </table>
 
@@ -131,16 +131,16 @@ The common pattern is a local command desk: demo-safe data, status filters, deta
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-email-ui.png" alt="Kelly Email overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-email-all.png" alt="Kelly Email inbox approval desk"></td>
+    <td width="50%"><img src="skills/kelly-email/assets/screenshots/overview.png" alt="Kelly Email overview"></td>
+    <td width="50%"><img src="skills/kelly-email/assets/screenshots/inbox-approval.png" alt="Kelly Email inbox approval desk"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Inbox-zero command desk with account context, queue metrics, and review workflow controls.</td>
     <td><strong>Inbox approval desk</strong><br>Mock inbox queue with approvals, sender context, reply drafts, and status filters.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-email-review.png" alt="Kelly Email needs review"></td>
-    <td><img src="docs/screenshots/kelly-email-blocked.png" alt="Kelly Email blocked security request"></td>
+    <td><img src="skills/kelly-email/assets/screenshots/needs-review.png" alt="Kelly Email needs review"></td>
+    <td><img src="skills/kelly-email/assets/screenshots/blocked-security.png" alt="Kelly Email blocked security request"></td>
   </tr>
   <tr>
     <td><strong>Needs review</strong><br>Human-in-the-loop review scene for a partnership reply that needs tone and timing judgment.</td>
