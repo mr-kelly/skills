@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Finance"
+  short_description: "Build and check finance three-statement models."
+  default_prompt: "Use $kelly-finance to build a clean three-statement financial model from my assumptions."

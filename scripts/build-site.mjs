@@ -11,7 +11,12 @@ const PAGES_DIR = path.join(DOCS, "s");
 const REPO_URL = "https://github.com/mr-kelly/skills";
 
 const GROUPS = [
-  { id: "finance", en: "Finance & Back Office", zh: "经营台账", skills: ["kelly-money", "kelly-audit", "kelly-crm"] },
+  {
+    id: "finance",
+    en: "Finance & Back Office",
+    zh: "经营台账",
+    skills: ["kelly-finance", "kelly-money", "kelly-audit", "kelly-crm"],
+  },
   {
     id: "invest",
     en: "Investing & Wealth",
@@ -106,6 +111,24 @@ async function frontmatterDescription(dir) {
     return sentence;
   } catch {
     return "";
+  }
+}
+
+async function hasAppDirectory(dir) {
+  try {
+    const stat = await fs.stat(path.join(ROOT, "skills", dir, "app"));
+    return stat.isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+async function fileExists(...parts) {
+  try {
+    await fs.access(path.join(...parts));
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -330,7 +353,8 @@ async function main() {
       whenEn: en.when || "",
       whenZh: zh.when || en.when || "",
       shots,
-      hasApp: shots.length > 0,
+      hasApp: await hasAppDirectory(folder),
+      hasReadme: await fileExists(ROOT, "skills", folder, "README.md"),
     };
   }
 
@@ -377,7 +401,7 @@ ${groupsHtml}`;
   function cardHtml(s) {
     const thumb = s.shots[0];
     const thumbHtml = thumb
-      ? `<div class="thumb"><img data-shot-en="${esc(thumb.en)}" data-shot-zh="${esc(thumb.zh)}" src="${esc(thumb.en)}" alt="${esc(s.name)} UI" loading="lazy"></div>`
+      ? `<div class="thumb"><img data-shot-en="${esc(thumb.en)}" data-shot-zh="${esc(thumb.zh)}" src="${esc(thumb.en)}" alt="${esc(s.name)} screenshot" loading="lazy"></div>`
       : `<div class="thumb empty">⚙️</div>`;
     const href = s.hasApp || s.descEn ? `s/${s.name}.html` : `${REPO_URL}/tree/main/skills/${s.folder}`;
     return `<a class="card" href="${href}">
@@ -416,7 +440,7 @@ ${groupsHtml}`;
   <div class="skill-links">
     <a href="${REPO_URL}/tree/main/skills/${s.folder}" target="_blank" rel="noopener">${bilingual("Source", "源码")} ↗</a>
     <a href="${REPO_URL}/blob/main/skills/${s.folder}/SKILL.md" target="_blank" rel="noopener">SKILL.md ↗</a>
-    <a href="${REPO_URL}/blob/main/skills/${s.folder}/README.md" target="_blank" rel="noopener">README ↗</a>
+    ${s.hasReadme ? `<a href="${REPO_URL}/blob/main/skills/${s.folder}/README.md" target="_blank" rel="noopener">README ↗</a>` : ""}
   </div>
 </section>
 ${s.whenEn ? `<div class="panel"><h3>${bilingual("When to use it", "什么时候用")}</h3><p>${bilingual(esc(s.whenEn), esc(s.whenZh))}</p></div>` : ""}
