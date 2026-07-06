@@ -1,12 +1,9 @@
 import { spawn } from "node:child_process";
-import fs from "node:fs/promises";
 import path from "node:path";
-import { DATA_DIR, GENERATED_DIR } from "./paths.ts";
+import { SKILL_DIR } from "./paths.ts";
 import { loadProject, saveProject } from "./project-store.ts";
-import { pathExists, readJson, slug } from "./utils.ts";
-
-const VIDEO_DIR = path.join(GENERATED_DIR, "videos");
-const VIDEO_CONFIG_PATH = path.join(DATA_DIR, "video_config.json");
+import { provider } from "./provider.ts";
+import { pathExists, slug } from "./utils.ts";
 
 // Draft: local LTX (Apple Silicon). Prod: Seedance 2.0 — see stub below.
 const DEFAULT_VIDEO_CONFIG = {
@@ -21,17 +18,13 @@ const DEFAULT_VIDEO_CONFIG = {
 };
 
 async function loadVideoConfig() {
-  const disk = (await pathExists(VIDEO_CONFIG_PATH)) ? await readJson(VIDEO_CONFIG_PATH, {}) : {};
+  const disk = await provider.readVideoConfig();
   return { ...DEFAULT_VIDEO_CONFIG, ...disk };
 }
 
 function framesForDuration(seconds, cfg) {
   const target = Math.round(((Number(seconds) || 4) * cfg.fps) / 8) * 8 + 1; // (8k+1)
   return Math.max(25, Math.min(target, cfg.max_frames));
-}
-
-function absFromPublic(p) {
-  return path.join(GENERATED_DIR, String(p).replace(/^\/generated\//, ""));
 }
 
 function draftPrompt(shot) {
@@ -53,13 +46,18 @@ export async function generateShotVideoDraft(shotId) {
   if (!shot.image_asset?.startsWith("/generated/")) {
     throw new Error("该分镜还没有分镜图，请先生成分镜图（草稿视频基于关键帧做图生视频）。");
   }
-  const imageAbs = absFromPublic(shot.image_asset);
+  // Local LTX draft generation runs a child-process wrapper that reads/writes
+  // files on disk, so it needs absolute paths. This path is Node-only until a
+  // remote provider serves media; resolveGeneratedAbsPath returns null there.
+  const imageAbs = provider.resolveGeneratedAbsPath(shot.image_asset);
+  if (!imageAbs) throw new Error("本地草稿视频生成需要本地文件存储（KELLY_MV_DATA_PROVIDER=local）。");
   if (!(await pathExists(imageAbs))) throw new Error(`分镜图文件不存在: ${imageAbs}`);
 
-  await fs.mkdir(VIDEO_DIR, { recursive: true });
   const frames = framesForDuration(shot.duration_seconds, cfg);
   const filename = `${slug(shot.id)}-draft-${Date.now()}.mp4`;
-  const outAbs = path.join(VIDEO_DIR, filename);
+  await provider.ensureGeneratedDir("videos");
+  const outAbs = provider.resolveGeneratedAbsPath(`/generated/videos/${filename}`);
+  if (!outAbs) throw new Error("本地草稿视频生成需要本地文件存储（KELLY_MV_DATA_PROVIDER=local）。");
   const args = {
     backend: cfg.draft_backend,
     image: imageAbs,
@@ -71,7 +69,7 @@ export async function generateShotVideoDraft(shotId) {
     output: outAbs,
   };
 
-  const wrapperAbs = path.resolve(path.join(DATA_DIR, "..", ".."), cfg.draft_wrapper);
+  const wrapperAbs = path.resolve(SKILL_DIR, cfg.draft_wrapper);
   const outPath = await runWrapper(wrapperAbs, args);
   if (!(await pathExists(outPath))) throw new Error("视频生成未产出文件，见日志。");
 

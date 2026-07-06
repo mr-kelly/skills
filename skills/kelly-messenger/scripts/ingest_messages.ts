@@ -10,18 +10,10 @@
 //   "conversations": [ { conversation_id?, title, kind?, channel?, participants?, messages: [...] } ]
 // }
 import fs from "node:fs/promises";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  ensureDirs,
-  envSearchPaths,
-  loadDotenvFiles,
-  mergeConversations,
-  readConfig,
-  readLock,
-  readSnapshot,
-  recomputeMetrics,
-  writeJson,
-} from "../app/server/store.ts";
+import { envSearchPaths, loadDotenvFiles } from "../lib/data-provider/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+
+const provider = await createProvider();
 
 function fail(message) {
   console.error(`Ingest failed: ${message}`);
@@ -31,7 +23,7 @@ function fail(message) {
 const file = process.argv[2];
 if (!file) fail("pass a payload JSON file, e.g. node scripts/ingest_messages.mjs collected.json");
 
-await ensureDirs();
+await provider.ensureReady();
 await loadDotenvFiles(envSearchPaths());
 
 // Parsed off disk and validated field-by-field below, so `any` is intentional here.
@@ -47,7 +39,7 @@ if (!payload.account_id || typeof payload.account_id !== "string") fail("payload
 if (!Array.isArray(payload.conversations) || !payload.conversations.length)
   fail("payload.conversations must be a non-empty array");
 
-const { config } = await readConfig();
+const { config } = await provider.readConfig();
 const account = (config.accounts || []).find((item) => item.account_id === payload.account_id);
 if (!account) fail(`payload.account_id "${payload.account_id}" is not in the config accounts[]`);
 
@@ -106,20 +98,20 @@ const conversations = payload.conversations.map((conversation, index) => {
   };
 });
 
-const lock = await readLock();
+const lock = await provider.readLock();
 if (lock) {
   console.error(`Ingest refused: agent lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
 }
 
-await writeJson(LOCK_PATH, { owner: "kelly-messenger", message: `Ingesting ${file}`, started_at: nowIso });
+await provider.writeLock({ owner: "kelly-messenger", message: `Ingesting ${file}`, started_at: nowIso });
 try {
-  const snapshot = await readSnapshot();
+  const snapshot = await provider.readSnapshot();
   snapshot.source = "kelly-messenger";
   snapshot.accounts = Array.isArray(snapshot.accounts) ? snapshot.accounts : [];
   snapshot.sync_log = Array.isArray(snapshot.sync_log) ? snapshot.sync_log : [];
   snapshot.warnings = (snapshot.warnings || []).filter((warning) => warning.id !== "no-snapshot");
-  const added = mergeConversations(snapshot, conversations);
+  const added = provider.mergeConversations(snapshot, conversations);
   const owned = snapshot.conversations.filter((item) => item.account_id === account.account_id);
   const existing = snapshot.accounts.find((item) => item.account_id === account.account_id);
   const patch = {
@@ -146,9 +138,9 @@ try {
   });
   snapshot.sync_log = snapshot.sync_log.slice(-100);
   snapshot.generated_at = nowIso;
-  recomputeMetrics(snapshot);
-  await writeJson(SNAPSHOT_PATH, snapshot);
-  console.log(`Ingested ${conversations.length} conversations (${added} new messages) into ${SNAPSHOT_PATH}`);
+  provider.recomputeMetrics(snapshot);
+  await provider.writeSnapshot(snapshot);
+  console.log(`Ingested ${conversations.length} conversations (${added} new messages).`);
 } finally {
-  await fs.rm(LOCK_PATH, { force: true });
+  await provider.clearLock();
 }

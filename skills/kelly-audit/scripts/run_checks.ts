@@ -10,7 +10,6 @@
 //
 // Usage: node scripts/run_checks.mjs
 
-import fs from "node:fs/promises";
 import {
   DEFAULT_RULES,
   agingBucketKey,
@@ -19,17 +18,9 @@ import {
   isCreditNote,
   round2,
 } from "../app/server/compute.ts";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  ensureDirs,
-  envSearchPaths,
-  loadDotenvFiles,
-  readConfig,
-  readJson,
-  readLock,
-  writeJson,
-} from "../app/server/store.ts";
 import type { Anomaly, AuditSnapshot, Invoice, Order, Rules } from "../app/server/types.ts";
+import { envSearchPaths, loadDotenvFiles, readConfig } from "../lib/audit-core.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 function fail(message: string): never {
   console.error(`kelly-audit checks: ${message}`);
@@ -390,23 +381,26 @@ function detectAnomalies(snapshot: AuditSnapshot, rules: Rules, now: string): An
 }
 
 async function main() {
-  await ensureDirs();
+  const provider = await createProvider();
+  await provider.ensureReady();
   await loadDotenvFiles(envSearchPaths());
-  const existingLock = (await readLock()) as { owner?: string; started_at?: string } | null;
+  const existingLock = (await provider.readLock()) as { owner?: string; started_at?: string } | null;
   if (existingLock) {
     fail(
       `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
     );
   }
 
-  const snapshot = await readJson<AuditSnapshot>(SNAPSHOT_PATH, null);
-  if (!snapshot) fail(`no snapshot at ${SNAPSHOT_PATH}. Run scripts/import_tables.mjs first.`);
+  const snapshot = await provider.readSnapshot();
+  if ((snapshot.warnings || []).some((warning) => warning.id === "no-snapshot")) {
+    fail("no audit snapshot found. Run scripts/import_tables.mjs first.");
+  }
 
   const configResult = await readConfig();
   const rules = { ...DEFAULT_RULES, ...(configResult.config?.rules || {}) };
   const now = new Date().toISOString();
 
-  await writeJson(LOCK_PATH, {
+  await provider.acquireLock({
     owner: "kelly-audit",
     message: "Running deterministic anomaly checks",
     started_at: now,
@@ -476,9 +470,9 @@ async function main() {
     deriveSnapshot(snapshot, rules, now);
     snapshot.generated_at = now;
     snapshot.source = "kelly-audit";
-    await writeJson(SNAPSHOT_PATH, snapshot);
+    await provider.writeSnapshot(snapshot);
 
-    console.log(`Wrote ${SNAPSHOT_PATH}`);
+    console.log(`Wrote the ${provider.name} audit snapshot`);
     console.log(
       `  anomalies: +${addedCount} new, ${updatedCount} refreshed, ${resolvedCount} auto-resolved (total ${next.length})`,
     );
@@ -486,7 +480,7 @@ async function main() {
       console.log(`  Anomaly #${anomaly.ref} [${anomaly.rule}] ${anomaly.title}`);
     }
   } finally {
-    await fs.rm(LOCK_PATH, { force: true });
+    await provider.releaseLock();
   }
 }
 

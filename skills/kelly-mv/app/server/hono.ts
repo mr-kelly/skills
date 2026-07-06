@@ -18,8 +18,9 @@ import {
   storyboardPromptPreview,
 } from "./image-service.ts";
 import { assertUnlocked } from "./lock.ts";
-import { APP_DIR, GENERATED_DIR } from "./paths.ts";
+import { APP_DIR } from "./paths.ts";
 import { loadProject, saveProject, upsertById } from "./project-store.ts";
+import { provider } from "./provider.ts";
 import { generateSongDraft, importSong, songConfigPayload, updateSong, uploadSong } from "./song-service.ts";
 import { setActiveProject, statePayload } from "./state.ts";
 import { uploadShotAsset } from "./upload-service.ts";
@@ -74,7 +75,8 @@ async function updateCollection(kind, item) {
   await assertUnlocked();
   const project = await loadProject();
   const nextItem = { ...item, id: idFor(kind, item) };
-  project[kind] = upsertById(project[kind] || [], nextItem);
+  const collections = project as unknown as Record<string, { id?: unknown }[]>;
+  collections[kind] = upsertById(collections[kind] || [], nextItem);
   await saveProject(project);
   return statePayload();
 }
@@ -104,7 +106,8 @@ async function setShotActive(shotId, kind, assetPath) {
 async function deleteCollectionItem(kind, id) {
   await assertUnlocked();
   const project = await loadProject();
-  project[kind] = (project[kind] || []).filter((item) => String(item.id) !== String(id));
+  const collections = project as unknown as Record<string, { id?: unknown }[]>;
+  collections[kind] = (collections[kind] || []).filter((item) => String(item.id) !== String(id));
   await saveProject(project);
   return statePayload();
 }
@@ -272,17 +275,22 @@ app.get("/generated/demo/*", (c) => {
   return c.text("Not Found", 404);
 });
 
-// Generated media lives on disk under .data/generated, served read-only with a
-// path-traversal guard. This route only reads; it never writes .data.
-app.get("/generated/*", (c) => {
+// Generated media is served read-only THROUGH the provider (local files today,
+// a remote store tomorrow), with a path-traversal guard on the public path. This
+// route only reads; it never writes.
+app.get("/generated/*", async (c) => {
   const decodedPath = decodeURIComponent(new URL(c.req.url).pathname);
   const rel = decodedPath.replace(/^\/generated\//, "");
-  const resolved = path.resolve(GENERATED_DIR, rel);
-  const root = path.resolve(GENERATED_DIR);
-  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
-    return c.text("Forbidden", 403);
-  }
-  return sendFile(c, resolved);
+  // Reject traversal (../) before handing the public path to the provider.
+  if (rel.split("/").some((seg) => seg === "..")) return c.text("Forbidden", 403);
+  const publicPath = `/generated/${rel}`;
+  const body = await provider.readGenerated(publicPath);
+  if (!body) return c.text("Not Found", 404);
+  return c.body(body as unknown as ArrayBuffer, 200, {
+    "Content-Type": CONTENT_TYPES[path.extname(publicPath)] || "application/octet-stream",
+    "Content-Length": String(body.length),
+    "Cache-Control": "no-store",
+  });
 });
 
 // Unmatched routes. The original returned 404 "Not Found" for GET/POST that

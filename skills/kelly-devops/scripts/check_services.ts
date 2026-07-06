@@ -5,18 +5,15 @@
 import tls from "node:tls";
 import { SNAPSHOT_PATH } from "../app/server/paths.ts";
 import {
-  acquireLock,
   ensureDirs,
   envSearchPaths,
   loadDotenvFiles,
   pushEvent,
   readConfig,
-  readSnapshot,
   recomputeMetrics,
-  releaseLock,
-  writeJson,
 } from "../app/server/store.ts";
 import type { SslCert } from "../app/server/types.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const OWNER = "kelly-devops-check-services";
 const HISTORY_CAP = 30;
@@ -222,8 +219,9 @@ async function main() {
   const degradedLatencyMs = Number(thresholds.degraded_latency_ms || 1500);
   const warningDays = Number(thresholds.expiry_warning_days || 30);
 
+  const provider = await createProvider();
   try {
-    await acquireLock(OWNER, "Checking service health and TLS certificates");
+    await provider.acquireLock(OWNER, "Checking service health and TLS certificates");
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -231,7 +229,7 @@ async function main() {
   }
 
   try {
-    const snapshot = await readSnapshot();
+    const snapshot = await provider.getSnapshot();
     snapshot.services = Array.isArray(snapshot.services) ? snapshot.services : [];
     snapshot.expiries = Array.isArray(snapshot.expiries) ? snapshot.expiries : [];
     const now = new Date().toISOString();
@@ -277,10 +275,10 @@ async function main() {
     snapshot.checks = { ...(snapshot.checks || {}), services_checked_at: now };
     snapshot.warnings = (snapshot.warnings || []).filter((warning) => warning.id !== "no-snapshot");
     recomputeMetrics(snapshot, thresholds);
-    await writeJson(SNAPSHOT_PATH, snapshot);
+    await provider.saveSnapshot(snapshot);
     console.log(`Wrote ${SNAPSHOT_PATH}`);
   } finally {
-    await releaseLock();
+    await provider.releaseLock();
   }
 }
 

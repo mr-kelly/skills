@@ -3,10 +3,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { DATA_DIR, GENERATED_DIR, SKILL_DIR } from "./paths.ts";
 import { loadProject, saveProject } from "./project-store.ts";
-import { pathExists, readJson, slug } from "./utils.ts";
+import { getProvider } from "./provider.ts";
+import { pathExists, slug } from "./utils.ts";
 
 const VOICE_DIR = path.join(GENERATED_DIR, "voices");
-const TTS_CONFIG_PATH = path.join(DATA_DIR, "tts_config.json");
 
 const DEFAULT_TTS_CONFIG = {
   backend: "qwen3-tts-mlx",
@@ -16,7 +16,7 @@ const DEFAULT_TTS_CONFIG = {
 };
 
 async function loadTtsConfig() {
-  const disk = (await pathExists(TTS_CONFIG_PATH)) ? await readJson(TTS_CONFIG_PATH, {}) : {};
+  const disk = await (await getProvider()).loadConfigBlob("tts");
   return { ...DEFAULT_TTS_CONFIG, ...disk };
 }
 
@@ -32,6 +32,10 @@ function voiceScript(character) {
   return character.voice_profile?.sample_script || character.character_card?.voice || `我是${character.name}。`;
 }
 
+// Voice generation is local-only: it spawns the Qwen3-TTS Python wrapper, which
+// writes the .wav as a real file on disk under .data/generated. Config loads
+// through the provider; the audio write is intentional local fs (a subprocess
+// cannot use the provider seam).
 export async function generateCharacterVoice(characterId) {
   const cfg = await loadTtsConfig();
   const project = await loadProject();

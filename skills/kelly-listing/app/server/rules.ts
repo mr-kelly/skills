@@ -3,6 +3,7 @@
 // results always come from the actual field content, never from hand-typed
 // verdicts. Character caps count code points; byte caps use Buffer.byteLength.
 
+import type { ClaimRule, ClaimsRegistry } from "../../lib/types.ts";
 import type { Check, Config, DraftFields, Lang, RuleResult } from "./types.ts";
 
 export const PLATFORMS = ["amazon", "shopify", "tiktok_shop", "ebay"];
@@ -45,6 +46,7 @@ const RULE_DEFS = [
   { rule_id: "all_caps_words", severity: "warning", platforms: PLATFORMS },
   { rule_id: "keyword_stuffing", severity: "warning", platforms: PLATFORMS },
   { rule_id: "image_checklist", severity: "warning", platforms: PLATFORMS },
+  { rule_id: "claims_registry", severity: "error", platforms: PLATFORMS },
 ];
 
 const RULE_NAMES = {
@@ -60,6 +62,7 @@ const RULE_NAMES = {
     all_caps_words: "No shouting all-caps words",
     keyword_stuffing: "No keyword stuffing",
     image_checklist: "Image checklist complete",
+    claims_registry: "Claims cleared by the compliance registry",
   },
   zh: {
     required_fields: "必填字段完整",
@@ -73,6 +76,7 @@ const RULE_NAMES = {
     all_caps_words: "不含全大写喊话词",
     keyword_stuffing: "无关键词堆砌",
     image_checklist: "图片清单齐备",
+    claims_registry: "宣称已通过合规登记表审核",
   },
 };
 
@@ -103,6 +107,9 @@ const EVIDENCE = {
     images_ok: (n) => `All ${n} checklist images are ready.`,
     images_missing: (names) => `Image checklist incomplete: ${names.join(", ")}.`,
     images_none: () => "No image checklist defined for this product.",
+    claims_ok: () => "No unapproved or restricted claims found in the copy.",
+    claims_none: () => "Claims registry is empty — no approved claims or rules to check against.",
+    claims_found: (hits) => `Claims registry issue(s): ${hits.join("; ")}.`,
   },
   zh: {
     fields_ok: (fields) => `必填字段齐全：${fields.join("、")}。`,
@@ -130,6 +137,9 @@ const EVIDENCE = {
     images_ok: (n) => `${n} 张清单图片全部就绪。`,
     images_missing: (names) => `图片清单未完成：${names.join("、")}。`,
     images_none: () => "该产品还没有图片清单。",
+    claims_ok: () => "文案中未发现未获批或受限的宣称。",
+    claims_none: () => "合规登记表为空——没有可比对的已批准宣称或规则。",
+    claims_found: (hits) => `合规登记表问题：${hits.join("；")}。`,
   },
 };
 
@@ -203,8 +213,17 @@ function fieldPresent(fields, key) {
 }
 
 // Returns [{ rule_id, severity, result, evidence }] for every rule that
-// applies to the draft's platform.
-export function evaluateDraft(draft, product, config: Config = {}, lang: Lang | string = "en"): RuleResult[] {
+// applies to the draft's platform. `claims` is the compliance registry
+// (approved marketing claims + banned/restricted-phrase rules); when supplied,
+// the claims_registry rule flags copy that trips a rule or leans on a claim
+// that is not approved.
+export function evaluateDraft(
+  draft,
+  product,
+  config: Config = {},
+  lang: Lang | string = "en",
+  claims: ClaimsRegistry | null = null,
+): RuleResult[] {
   const say = (EVIDENCE as Record<string, Record<string, (...args: any[]) => string>>)[lang] || EVIDENCE.en;
   const platform = draft.platform;
   const fields = draft.fields || {};
@@ -213,9 +232,9 @@ export function evaluateDraft(draft, product, config: Config = {}, lang: Lang | 
   const corpus = textCorpus(fields);
   const results: RuleResult[] = [];
 
-  const push = (rule_id, result, evidence) => {
+  const push = (rule_id, result, evidence, refs?) => {
     const def = RULE_DEFS.find((rule) => rule.rule_id === rule_id);
-    results.push({ rule_id, severity: def?.severity || "warning", result, evidence });
+    results.push({ rule_id, severity: def?.severity || "warning", result, evidence, ...(refs ? { refs } : {}) });
   };
 
   for (const def of RULE_DEFS) {
@@ -355,6 +374,40 @@ export function evaluateDraft(draft, product, config: Config = {}, lang: Lang | 
               : say.images_ok(images.length),
           );
         }
+        break;
+      }
+      case "claims_registry": {
+        const registryClaims = claims?.claims || [];
+        const registryRules = claims?.rules || [];
+        if (!registryClaims.length && !registryRules.length) {
+          push("claims_registry", "pass", say.claims_none());
+          break;
+        }
+        const messages: string[] = [];
+        const refs: { rules: string[]; claims: string[] } = { rules: [], claims: [] };
+        // 1) Banned-word / restricted-phrase rules matched in the copy.
+        for (const rule of registryRules) {
+          if (!rule?.phrase) continue;
+          if (containsTerm(corpus, rule.phrase)) {
+            refs.rules.push(rule.rule_id);
+            const label = rule.type === "banned_word" ? "banned word" : "restricted phrase";
+            messages.push(`${label} "${rule.phrase}"${rule.alternative ? ` (use "${rule.alternative}")` : ""}`);
+          }
+        }
+        // 2) Non-approved claims (pending / rejected) leaned on in the copy.
+        for (const claim of registryClaims) {
+          if (!claim?.text || claim.status === "approved") continue;
+          if (containsTerm(corpus, claim.text)) {
+            refs.claims.push(claim.claim_id);
+            messages.push(`unapproved claim "${claim.text}" (status: ${claim.status})`);
+          }
+        }
+        push(
+          "claims_registry",
+          messages.length ? "fail" : "pass",
+          messages.length ? say.claims_found(messages) : say.claims_ok(),
+          messages.length ? refs : undefined,
+        );
         break;
       }
       default:

@@ -1,9 +1,16 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import { readConfig, readLock, readOnboarding, readSnapshot, summarizeConfig } from "./store.ts";
+
+// Storage is reached only through the data-provider (local-file default, or a
+// remote Busabase base). The provider is selected once at startup from
+// KELLY_MONEY_DATA_PROVIDER; the same fetch(Request)->Response app runs under
+// @hono/node-server locally and on Cloudflare Workers once cloud-backed.
+const provider = await createProvider();
+console.log(`Kelly Money data provider: ${provider.kind}`);
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic modules (data-provider
@@ -22,19 +29,14 @@ const types: Record<string, string> = {
 };
 
 async function state() {
-  const [snapshot, onboarding, lock, configResult] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
-    readConfig(),
-  ]);
+  const providerState = await provider.getState();
   return {
     app: "kelly-money",
-    data_provider: process.env.KELLY_MONEY_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    config_summary: summarizeConfig(configResult),
-    snapshot,
+    data_provider: provider.kind,
+    onboarding: providerState.onboarding,
+    lock: providerState.lock,
+    config_summary: providerState.config_summary,
+    snapshot: providerState.snapshot,
   };
 }
 

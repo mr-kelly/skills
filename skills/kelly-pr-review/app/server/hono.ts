@@ -1,21 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
-import { updateDetail, updateItems } from "./decisions.ts";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
-import { lockPayload } from "./lock.ts";
 import { APP_DIR, TEST_EVIDENCE_DIR } from "./paths.ts";
-import { statePayload } from "./state.ts";
-import { setTested } from "./tested-cache.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through the logic modules (data-provider
-// backed), so the same app runs under @hono/node-server locally and — once the
-// data layer moves to a cloud provider — on Cloudflare Workers.
+// contract and reaches storage only through the data-provider (createProvider()
+// -> local | busabase), so the same app runs under @hono/node-server locally and
+// — once the data layer moves to a cloud provider — on Cloudflare Workers.
 //
 // The frontend is the original zero-build vanilla app (index.html + app.js +
 // styles.css + i18n). Hono only serves those static files and the JSON API; it
 // does not render or bundle anything.
+
+const provider = await createProvider();
+console.log(`Kelly PR Review data provider: ${provider.kind}`);
 
 const CONTENT_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -52,38 +52,38 @@ for (const p of ["/", "/app.js", "/styles.css", "/api/state", "/api/lock"]) {
 // ---- API ----
 app.get("/api/state", async (c) => {
   const query = c.req.query();
-  return c.json(isDemoQuery(query) ? demoStatePayload(query) : await statePayload(query));
+  return c.json(isDemoQuery(query) ? demoStatePayload(query) : await provider.getState(query));
 });
 
 app.get("/api/lock", async (c) => {
   const query = c.req.query();
-  return c.json({ lock: isDemoQuery(query) ? { locked: false } : await lockPayload() });
+  return c.json({ lock: isDemoQuery(query) ? { locked: false } : await provider.getLock() });
 });
 
 app.post("/api/decision", async (c) => {
   const query = c.req.query();
   const body = await c.req.json().catch(() => ({}));
   if (isDemoQuery(query)) return c.json(demoDecisionResponse(body));
-  return c.json(await updateItems(body));
+  return c.json(await provider.saveDecision(body));
 });
 
 app.post("/api/detail", async (c) => {
   const query = c.req.query();
   const body = await c.req.json().catch(() => ({}));
   if (isDemoQuery(query)) return c.json(demoDecisionResponse(body));
-  return c.json(await updateDetail(body));
+  return c.json(await provider.saveDetail(body));
 });
 
 app.post("/api/tested", async (c) => {
   const query = c.req.query();
   const body = await c.req.json().catch(() => ({}));
   if (isDemoQuery(query)) return c.json(demoDecisionResponse(body));
-  return c.json(await setTested(body.id, body.tested, { note: body.note, evidence: body.evidence }));
+  return c.json(await provider.setTested(body.id, body.tested, { note: body.note, evidence: body.evidence }));
 });
 
 app.post("/api/reload", async (c) => {
   const query = c.req.query();
-  return c.json(isDemoQuery(query) ? demoStatePayload(query) : await statePayload({}));
+  return c.json(isDemoQuery(query) ? demoStatePayload(query) : await provider.getState({}));
 });
 
 // ---- Static (vanilla frontend) ----

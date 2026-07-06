@@ -8,19 +8,19 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
-const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
 const args = process.argv.slice(2);
 const strict = args.includes("--strict");
 const positional = args.filter((a) => !a.startsWith("--"));
-const PROJECT = positional[0] ? path.resolve(positional[0]) : path.join(SKILL_DIR, "app", ".data", "project.json");
+// With an explicit path, read that file directly; otherwise load from the provider.
+const SOURCE = positional[0] ? path.resolve(positional[0]) : null;
+const project = SOURCE ? JSON.parse(await fs.readFile(SOURCE, "utf8")) : await (await createProvider()).loadProject();
+const LABEL = SOURCE || `${project.project_id} (provider store)`;
 
 const ALLOWED_DURATIONS = [4, 5, 6, 8, 10, 12];
 const str = (v) => (typeof v === "string" ? v.trim() : v ? String(v) : "");
 
-const project = JSON.parse(await fs.readFile(PROJECT, "utf8"));
 const shots = project.shots || [];
 const charById = new Map<string, any>((project.characters || []).map((c) => [c.id, c]));
 const errors = [];
@@ -48,7 +48,7 @@ for (const shot of shots) {
   if (errors.length === before) ready += 1;
 }
 
-console.log(`分镜就绪校验：${PROJECT}`);
+console.log(`分镜就绪校验：${LABEL}`);
 console.log(`就绪 ${ready}/${shots.length}  | 错误 ${errors.length}  | 警告 ${warnings.length}\n`);
 if (errors.length) console.log(`❌ 错误：\n${errors.map((e) => `  - ${e}`).join("\n")}\n`);
 if (warnings.length) console.log(`⚠️  警告：\n${warnings.map((w) => `  - ${w}`).join("\n")}\n`);

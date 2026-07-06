@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { snapshotPath } from "../lib/paths.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const out = path.join(skillDir, "app", ".data", "social_snapshot.json");
+const out = snapshotPath;
 const now = new Date().toISOString();
 
 const accounts = [

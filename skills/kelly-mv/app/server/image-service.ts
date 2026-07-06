@@ -1,9 +1,8 @@
-import fs from "node:fs/promises";
 import path from "node:path";
-import { GENERATED_DIR, IMAGE_CONFIG_PATH, REFERENCE_IMAGE_DIR, STORYBOARD_IMAGE_DIR } from "./paths.ts";
 import { loadProject, saveProject } from "./project-store.ts";
+import { provider } from "./provider.ts";
 import type { ImageConfig } from "./types.ts";
-import { pathExists, readJson, slug, writeJson } from "./utils.ts";
+import { slug } from "./utils.ts";
 
 const DEFAULT_CONFIG: ImageConfig = {
   base_url: "https://moonrouter.dev/v1",
@@ -33,7 +32,7 @@ function publicConfig(config) {
 }
 
 export async function loadImageConfig() {
-  const disk = (await pathExists(IMAGE_CONFIG_PATH)) ? await readJson(IMAGE_CONFIG_PATH, {}) : {};
+  const disk = await provider.readImageConfig();
   return {
     ...DEFAULT_CONFIG,
     ...disk,
@@ -53,7 +52,7 @@ export async function saveImageConfig(input: ImageConfig = {}) {
     model: String(input.model || current.model || DEFAULT_CONFIG.model),
     size: String(input.size || current.size || DEFAULT_CONFIG.size),
   };
-  await writeJson(IMAGE_CONFIG_PATH, next);
+  await provider.writeImageConfig(next);
   return publicConfig(next);
 }
 
@@ -99,10 +98,6 @@ export function storyboardPrompt(project, shot) {
 
 const MAX_SHOT_REFERENCES = 4;
 
-function referenceAbsPath(publicPath) {
-  return path.join(GENERATED_DIR, String(publicPath).replace(/^\/generated\//, ""));
-}
-
 function collectShotReferences(project, shot) {
   const refs = [];
   for (const character of shotCharacters(project, shot)) {
@@ -131,9 +126,9 @@ async function callImageEdits(prompt, references, config) {
   form.append("size", config.size || DEFAULT_CONFIG.size);
   form.append("n", "1");
   for (const ref of references) {
-    const abs = referenceAbsPath(ref.path);
-    const buf = await fs.readFile(abs);
-    form.append("image[]", new Blob([buf], { type: "image/png" }), path.basename(abs));
+    const buf = await provider.readGeneratedBytes(ref.path);
+    if (!buf) throw new Error(`Reference image not found: ${ref.path}`);
+    form.append("image[]", new Blob([Buffer.from(buf)], { type: "image/png" }), path.basename(ref.path));
   }
   const response = await fetch(endpoint, {
     method: "POST",
@@ -242,11 +237,8 @@ export async function generateStoryboardImage(shotId) {
     payload = { ...payload, mode: "text-to-image" };
   }
 
-  await fs.mkdir(STORYBOARD_IMAGE_DIR, { recursive: true });
   const filename = `${slug(shot.id)}-${Date.now()}.png`;
-  const diskPath = path.join(STORYBOARD_IMAGE_DIR, filename);
-  await fs.writeFile(diskPath, bytes);
-  const publicPath = `/generated/storyboards/${filename}`;
+  const { publicPath } = await provider.writeGenerated({ subdir: "storyboards", filename, bytes });
 
   const generation = {
     provider: "openai-compatible",
@@ -314,11 +306,8 @@ export async function generateVisualBackground() {
   if (!config.api_key) throw new Error("Image API Key is not configured.");
   const project = await loadProject();
   const { bytes, payload } = await callImageApi(visualBackgroundPrompt(project), config);
-  await fs.mkdir(REFERENCE_IMAGE_DIR, { recursive: true });
   const filename = `visual-background-${Date.now()}.png`;
-  const diskPath = path.join(REFERENCE_IMAGE_DIR, filename);
-  await fs.writeFile(diskPath, bytes);
-  const publicPath = `/generated/references/${filename}`;
+  const { publicPath } = await provider.writeGenerated({ subdir: "references", filename, bytes });
   project.treatment = {
     ...(project.treatment || {}),
     background_reference_assets: [
@@ -344,11 +333,8 @@ export async function generateCharacterCard(characterId) {
   const character = (project.characters || []).find((item) => item.id === characterId);
   if (!character) throw new Error(`Unknown character: ${characterId}`);
   const { bytes, payload } = await callImageApi(characterCardPrompt(character, project), config);
-  await fs.mkdir(REFERENCE_IMAGE_DIR, { recursive: true });
   const filename = `${slug(character.id)}-reference-card-${Date.now()}.png`;
-  const diskPath = path.join(REFERENCE_IMAGE_DIR, filename);
-  await fs.writeFile(diskPath, bytes);
-  const publicPath = `/generated/references/${filename}`;
+  const { publicPath } = await provider.writeGenerated({ subdir: "references", filename, bytes });
   project.characters = (project.characters || []).map((item) =>
     item.id === character.id
       ? {

@@ -1,4 +1,15 @@
 #!/usr/bin/env node
+import { SNAPSHOT_PATH } from "../app/server/paths.ts";
+import {
+  ensureDirs,
+  envSearchPaths,
+  loadDotenvFiles,
+  pushEvent,
+  readConfig,
+  readJson,
+  recomputeMetrics,
+  round2,
+} from "../app/server/store.ts";
 // Single write-path for cloud billing data. The agent gathers a payload JSON
 // (from billing skills/exports), this script validates it, merges it into
 // app/.data/ops_snapshot.json, and flags anomalies.
@@ -15,21 +26,7 @@
 //     { "product_id": "relayapi", "product": "RelayAPI", "mtd": 1244.48, "last_month": 987.87 }
 //   ]
 // }
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  acquireLock,
-  ensureDirs,
-  envSearchPaths,
-  loadDotenvFiles,
-  pushEvent,
-  readConfig,
-  readJson,
-  readSnapshot,
-  recomputeMetrics,
-  releaseLock,
-  round2,
-  writeJson,
-} from "../app/server/store.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const OWNER = "kelly-devops-ingest-spend";
 
@@ -70,8 +67,9 @@ async function main() {
   const config = configResult.config || {};
   const anomalyPct = Number(config.thresholds?.spend_anomaly_pct || 40);
 
+  const provider = await createProvider();
   try {
-    await acquireLock(OWNER, "Ingesting cloud spend payload");
+    await provider.acquireLock(OWNER, "Ingesting cloud spend payload");
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -79,7 +77,7 @@ async function main() {
   }
 
   try {
-    const snapshot = await readSnapshot();
+    const snapshot = await provider.getSnapshot();
     snapshot.actions = Array.isArray(snapshot.actions) ? snapshot.actions : [];
     const now = new Date().toISOString();
     const currency = payload.currency || snapshot.spend?.currency || config.currency || "USD";
@@ -175,11 +173,11 @@ async function main() {
     snapshot.checks = { ...(snapshot.checks || {}), spend_ingested_at: now };
     snapshot.warnings = (snapshot.warnings || []).filter((warning) => warning.id !== "no-snapshot");
     recomputeMetrics(snapshot, config.thresholds || {});
-    await writeJson(SNAPSHOT_PATH, snapshot);
+    await provider.saveSnapshot(snapshot);
     console.log(`Ingested ${providers.length} provider(s), flagged ${anomalies.length} anomaly(ies).`);
     console.log(`Wrote ${SNAPSHOT_PATH}`);
   } finally {
-    await releaseLock();
+    await provider.releaseLock();
   }
 }
 

@@ -8,18 +8,11 @@
 // after explicit user approval, and the real result is recorded back here.
 // Usage: node scripts/execute_decisions.mjs [--apply]
 
-import fs from "node:fs/promises";
-import { EXECUTION_REPORT_PATH, LOCK_PATH } from "../app/server/paths.ts";
-import {
-  ensureDirs,
-  mergeAnomalies,
-  readDecisions,
-  readExecutionReport,
-  readLock,
-  readSnapshot,
-  writeJson,
-} from "../app/server/store.ts";
 import type { Evidence } from "../app/server/types.ts";
+import { mergeAnomalies } from "../lib/audit-core.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+
+const provider = await createProvider();
 
 const OPERATION_BY_RULE: Record<string, string> = {
   overdue_receivable: "chase_receivable",
@@ -38,9 +31,9 @@ function fail(message: string): never {
   process.exit(1);
 }
 
-await ensureDirs();
+await provider.ensureReady();
 
-const existingLock = (await readLock()) as { owner?: string; started_at?: string } | null;
+const existingLock = (await provider.readLock()) as { owner?: string; started_at?: string } | null;
 if (existingLock) {
   fail(
     `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
@@ -48,9 +41,9 @@ if (existingLock) {
 }
 
 const [snapshot, decisions, previousReport] = await Promise.all([
-  readSnapshot(),
-  readDecisions(),
-  readExecutionReport(),
+  provider.readSnapshot(),
+  provider.readDecisions(),
+  provider.readExecutionReport(),
 ]);
 const merged = mergeAnomalies(snapshot, decisions, previousReport);
 const approved = merged.anomalies.filter((anomaly) => anomaly.status === "approved");
@@ -60,7 +53,7 @@ if (!approved.length) {
   process.exit(0);
 }
 
-await writeJson(LOCK_PATH, {
+await provider.acquireLock({
   owner: "kelly-audit",
   message: dryRun ? "Dry-run: planning approved anomalies" : "Preparing approved anomalies for the agent",
   started_at: new Date().toISOString(),
@@ -106,12 +99,12 @@ try {
     source: "kelly-audit",
     results,
   };
-  await writeJson(EXECUTION_REPORT_PATH, report);
-  console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote ${EXECUTION_REPORT_PATH}`);
+  await provider.writeExecutionReport(report);
+  console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote the ${provider.name} execution report`);
   for (const result of results) {
     console.log(`  Anomaly #${result.ref} -> ${result.operation} (${result.status}) target=${result.target || "-"}`);
   }
   if (dryRun) console.log("Re-run with --apply to mark items ready_for_agent. No external side effects either way.");
 } finally {
-  await fs.rm(LOCK_PATH, { force: true });
+  await provider.releaseLock();
 }

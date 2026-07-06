@@ -1,18 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import { applyDecision, readConfig, readLock, readOnboarding, readSnapshot, summarizeConfig } from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through store.mjs (data-provider backed), so
-// the same app runs under @hono/node-server locally and — once the data layer
-// moves to a cloud provider — on Cloudflare Workers.
+// contract and reaches storage only through the data-provider, so the same app
+// runs under @hono/node-server locally and — once the data layer moves to a
+// cloud provider — on other fetch-based runtimes.
 //
 // The frontend is the original zero-build vanilla app (index.html + app.js +
 // styles.css + i18n). Hono only serves those static files and the JSON API; it
 // does not render or bundle anything.
+
+const provider = await createProvider();
+console.log(`Kelly Ads data provider: ${provider.name}`);
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -21,29 +24,12 @@ const types = {
   ".json": "application/json; charset=utf-8",
 };
 
-async function state() {
-  const [snapshot, onboarding, lock, configResult] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
-    readConfig(),
-  ]);
-  return {
-    app: "kelly-ads",
-    data_provider: process.env.KELLY_ADS_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    config_summary: summarizeConfig(configResult),
-    snapshot,
-  };
-}
-
 export const app = new Hono();
 
 // ---- API ----
 app.get("/api/state", async (c) => {
   const query = c.req.query();
-  const body = isDemoQuery(query) ? demoStatePayload(query) : await state();
+  const body = isDemoQuery(query) ? demoStatePayload(query) : await provider.getState();
   return c.json(body, 200, { "cache-control": "no-store" });
 });
 
@@ -62,7 +48,7 @@ app.post("/api/decision", async (c) => {
     return c.json({ error: "Invalid JSON body" }, 400, { "cache-control": "no-store" });
   }
   try {
-    const result = await applyDecision(payload);
+    const result = await provider.applyDecision(payload);
     return c.json({ saved: true, adjustment: result.adjustment, decision: result.decision }, 200, {
       "cache-control": "no-store",
     });

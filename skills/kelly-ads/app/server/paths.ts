@@ -1,20 +1,40 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+// Path constants now live in the data-provider layer at lib/paths.ts so the
+// providers and scripts share them. This module re-exports them under the
+// UPPER_CASE names the existing app/server/* and scripts/* imports use.
+import {
+  agentTasksPath,
+  appDir,
+  dataDir,
+  decisionsPath,
+  defaultHost,
+  defaultPort,
+  executionReportPath,
+  lockPath,
+  logPath,
+  onboardingPath,
+  pidPath,
+  preferredPortMax,
+  preferredPortMin,
+  runtimeCacheDir,
+  serverDir,
+  skillDir,
+  snapshotPath,
+} from "../../lib/paths.ts";
 
-export const SERVER_DIR = path.dirname(fileURLToPath(import.meta.url));
-export const APP_DIR = path.resolve(SERVER_DIR, "..");
-export const SKILL_DIR = path.resolve(APP_DIR, "..");
-export const DATA_DIR = path.join(APP_DIR, ".data");
-export const CACHE_DIR = path.join(APP_DIR, ".cache");
-export const SNAPSHOT_PATH = path.join(DATA_DIR, "ads_snapshot.json");
-export const DECISIONS_PATH = path.join(DATA_DIR, "decisions.json");
-export const AGENT_TASKS_PATH = path.join(DATA_DIR, "agent_tasks.json");
-export const EXECUTION_REPORT_PATH = path.join(DATA_DIR, "execution_report.json");
-export const ONBOARDING_PATH = path.join(DATA_DIR, "onboarding.json");
-export const LOCK_PATH = path.join(DATA_DIR, "agent.lock");
-export const LOG_PATH = path.join(CACHE_DIR, "server.log");
-export const PID_PATH = path.join(CACHE_DIR, "server.pid");
-export const DEFAULT_HOST = "127.0.0.1";
-export const DEFAULT_PORT = 3000;
-export const PREFERRED_PORT_MIN = 3000;
-export const PREFERRED_PORT_MAX = 4000;
+export const SERVER_DIR = serverDir;
+export const APP_DIR = appDir;
+export const SKILL_DIR = skillDir;
+export const DATA_DIR = dataDir;
+export const CACHE_DIR = runtimeCacheDir;
+export const SNAPSHOT_PATH = snapshotPath;
+export const DECISIONS_PATH = decisionsPath;
+export const AGENT_TASKS_PATH = agentTasksPath;
+export const EXECUTION_REPORT_PATH = executionReportPath;
+export const ONBOARDING_PATH = onboardingPath;
+export const LOCK_PATH = lockPath;
+export const LOG_PATH = logPath;
+export const PID_PATH = pidPath;
+export const DEFAULT_HOST = defaultHost;
+export const DEFAULT_PORT = defaultPort;
+export const PREFERRED_PORT_MIN = preferredPortMin;
+export const PREFERRED_PORT_MAX = preferredPortMax;

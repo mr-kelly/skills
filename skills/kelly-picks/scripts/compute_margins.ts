@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Deterministic margin recompute across all candidates from the config fee tables.
-// Usage: node scripts/compute_margins.mjs
+// Usage: node scripts/compute_margins.ts
 // - Platform fee comes from config platforms[] (referral_fee_pct + fulfillment_flat).
 // - Freight uses an agent-quoted margin_card.freight when present (freight_quoted: true),
 //   otherwise the config freight rule for the candidate's category, otherwise the default.
@@ -8,17 +8,9 @@
 //   price * ad_cost_default_pct.
 // - Flags candidates whose margin_pct falls below seller_profile.margin_floor_pct.
 // Idempotent: re-running with the same config and snapshot changes nothing.
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  acquireLock,
-  computeMetrics,
-  emptySnapshot,
-  readConfig,
-  readJson,
-  releaseLock,
-  writeJson,
-} from "../app/server/store.ts";
-import type { MarginCard, PicksSnapshot, Platform } from "../app/server/types.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { computeMetrics } from "../lib/picks-core.ts";
+import type { MarginCard, Platform } from "../lib/types.ts";
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
@@ -28,7 +20,10 @@ function round1(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
-const { config, path: configPath } = await readConfig();
+const provider = await createProvider();
+await provider.ensureReady();
+
+const { config, path: configPath } = await provider.readConfig();
 const platforms = new Map<string, Platform>(
   (Array.isArray(config.platforms) ? config.platforms : []).map((platform) => [platform.platform_id || "", platform]),
 );
@@ -43,9 +38,9 @@ const adDefaultPct = Number(config.ad_cost_default_pct) || 0;
 const marginFloor = Number(config.seller_profile?.margin_floor_pct) || 0;
 
 const now = new Date().toISOString();
-await acquireLock("kelly-picks/compute_margins", "Recomputing margin cards from fee tables");
+await provider.acquireLock("kelly-picks/compute_margins", "Recomputing margin cards from fee tables");
 try {
-  const snapshot: PicksSnapshot = (await readJson<PicksSnapshot>(SNAPSHOT_PATH, null)) || emptySnapshot();
+  const snapshot = await provider.readSnapshot();
   let changed = 0;
   let flagged = 0;
 
@@ -110,10 +105,10 @@ try {
       detail: `${changed} margin cards recomputed from ${configPath || "defaults"}; ${flagged} candidates below the ${marginFloor}% margin floor.`,
     });
     snapshot.sync_log = snapshot.sync_log.slice(0, 50);
-    await writeJson(SNAPSHOT_PATH, snapshot);
+    await provider.writeSnapshot(snapshot);
   }
-  console.log(`OK: ${changed} margin cards changed, ${flagged} below the ${marginFloor}% floor → ${SNAPSHOT_PATH}`);
+  console.log(`OK: ${changed} margin cards changed, ${flagged} below the ${marginFloor}% floor.`);
   if (changed === 0) console.log("No changes — snapshot already consistent with the fee tables (idempotent).");
 } finally {
-  await releaseLock();
+  await provider.releaseLock();
 }
