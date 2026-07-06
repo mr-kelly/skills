@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-33 App-in-Skill workflows — each an agent operating procedure paired with a calm local browser UI for review, approval, and dashboards.
+34 skills, including 31 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-33-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-34-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -18,6 +18,10 @@
 <table>
   <tr>
     <td width="50%"><img src="skills/kelly-money/assets/screenshots/overview.png" alt="kelly-money — money ledger dashboard"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="kelly-finance — three-statement model builder"></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="kelly-finance — model audit checks"></td>
     <td width="50%"><img src="skills/kelly-crm/assets/screenshots/overview.png" alt="kelly-crm — pipeline command desk"></td>
   </tr>
   <tr>
@@ -26,7 +30,7 @@
   </tr>
 </table>
 
-<sub>Not prompts — real local apps. Every skill ships a browser review desk.</sub>
+<sub>Not prompts — practical skills with local apps, model builders, and review workflows where the task needs them.</sub>
 
 </div>
 
@@ -86,6 +90,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `app-in-skill-creator` | Documents and scaffolds the App-in-Skill pattern: local review UI, handoff files, locks, scripts, safe approval boundaries, and optional skill-local screenshots under `assets/screenshots/` only when screenshots are requested or already exist. | Use it when building a skill that needs a browser-based review queue, approval desk, dashboard, or lightweight local workflow. | [View ↗](https://mr-kelly.github.io/skills/s/app-in-skill-creator.html) |
 | `publish-skills` | Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with `gh skill`, cuts a release, wires the Claude `/plugin` and Codex marketplaces, and preps the MCP Registry and curated stores. | Use it when publishing, releasing, or listing skills, plugins, or MCP servers to skills.sh, Claude Code, Codex, or the MCP Registry. | [View ↗](https://mr-kelly.github.io/skills/s/publish-skills.html) |
 | `kelly-email` | Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution. | Use it when processing unread email, drafting support replies, archiving or marking messages read after approval, or managing email through an App-in-Skill UI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-email.html) |
+| `kelly-finance` | Builds and audits finance three-statement models, operating forecasts, budgets, cash runway models, SaaS/unit-economics packs, and Excel-ready finance outputs. | Use it when making 财务三表, investor projections, board finance packs, scenario cases, balance-sheet checks, working-capital schedules, capex/debt schedules, or repairing broken model links. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html) |
 | `kelly-money` | Aggregates Mercury, Stripe, Airwallex, and Creem into a local money ledger dashboard with total cashflow, account health, and account detail views. | Use it when reviewing balances, payments, payouts, fees, refunds, transfers, provider sync status, or total money movement across configured accounts. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-money.html) |
 | `kelly-invest-webull` | Aggregates a personal Webull brokerage account into a local read-only portfolio dashboard: holdings, cost basis, market value, unrealized P/L, day change, and allocation by asset type. Read-only — it never places or cancels orders. | Use it when reviewing personal investments, positions, portfolio value, unrealized gains, cash, or asset allocation synced from Webull OpenAPI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html) |
 | `kelly-family-office` | Consolidates multiple entities' and members' holdings from CSV import and manual entry into one family-office dashboard: total AUM in a base currency, plus roll-ups by entity, asset class, and institution, and performance. Read-only — it never moves money. | Use it when rolling up a family office across individuals, trusts, and companies; reviewing consolidated AUM, asset allocation, custodian exposure, or unrealized performance. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-family-office.html) |
@@ -176,6 +181,21 @@ Kelly Money is a local finance dashboard for seeing money movement across Mercur
   <tr>
     <td><strong>Exception detail</strong><br>Invoice exception view with amount/date deltas, matching rule, explicit tolerance, candidate transaction, and audit trail.</td>
     <td></td>
+  </tr>
+</table>
+
+### `kelly-finance`
+
+Kelly Finance is a local finance-model review desk. It creates and audits three-statement workbooks, keeps assumptions separate from formulas, and gives Kelly a browser UI for model KPIs, check queues, review notes, approval decisions, and agent handoff reports.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="Kelly Finance model builder"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="Kelly Finance model checks"></td>
+  </tr>
+  <tr>
+    <td><strong>Three-statement builder</strong><br>Workbook preview with assumptions, income statement, balance sheet, cash flow, and model checks for a clean forecast.</td>
+    <td><strong>Model audit checks</strong><br>Audit checklist for statement ties, hardcodes, formula direction, and debt/working-capital linkage before delivery.</td>
   </tr>
 </table>
 

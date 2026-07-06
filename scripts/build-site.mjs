@@ -19,7 +19,7 @@ const GROUPS = [
     id: "finance",
     en: "Finance & Back Office",
     zh: "经营台账",
-    skills: ["kelly-money", "kelly-audit", "kelly-crm", "kelly-legal-contracts"],
+    skills: ["kelly-finance", "kelly-money", "kelly-audit", "kelly-crm", "kelly-legal-contracts"],
   },
   {
     id: "invest",
@@ -125,6 +125,24 @@ async function frontmatterDescription(dir) {
     return sentence;
   } catch {
     return "";
+  }
+}
+
+async function hasAppDirectory(dir) {
+  try {
+    const stat = await fs.stat(path.join(ROOT, "skills", dir, "app"));
+    return stat.isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+async function fileExists(...parts) {
+  try {
+    await fs.access(path.join(...parts));
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -661,7 +679,8 @@ async function main() {
       whenEn: en.when || "",
       whenZh: zh.when || en.when || "",
       shots,
-      hasApp: shots.length > 0,
+      hasApp: await hasAppDirectory(folder),
+      hasReadme: await fileExists(ROOT, "skills", folder, "README.md"),
     };
   }
 
@@ -747,6 +766,10 @@ async function main() {
 </figure>`,
       )
       .join("\n");
+    const whenHtml = s.whenEn
+      ? `    <div class="panel"><h3>${bilingual("When to use it", "什么时候用")}</h3><p>${bilingual(esc(s.whenEn), esc(s.whenZh))}</p></div>\n`
+      : "";
+    const shotsSectionHtml = shotsHtml ? `    <div class="shots">${shotsHtml}</div>\n` : "";
 
     const body = `
 <div class="skill-layout">
@@ -757,8 +780,7 @@ async function main() {
       <p>${bilingual(esc(s.descEn), esc(s.descZh))}</p>
       ${skillMobileInstallStrip(s)}
     </section>
-    ${s.whenEn ? `<div class="panel"><h3>${bilingual("When to use it", "什么时候用")}</h3><p>${bilingual(esc(s.whenEn), esc(s.whenZh))}</p></div>` : ""}
-    ${shotsHtml ? `<div class="shots">${shotsHtml}</div>` : ""}
+${whenHtml}${shotsSectionHtml}
   </main>
   ${skillSidebar(s)}
 </div>`;

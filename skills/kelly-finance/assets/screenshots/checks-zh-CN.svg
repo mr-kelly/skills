@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960">
+  <rect width="1440" height="960" fill="#f6f8fb"/>
+  <rect x="64" y="56" width="1312" height="848" rx="18" fill="#ffffff" stroke="#d9dee8"/>
+  <text x="104" y="122" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#172033">模型勾稽检查</text>
+  <text x="104" y="158" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#667085">三表联动、公式完整性和审计检查</text>
+  <rect x="104" y="202" width="388" height="600" rx="14" fill="#f8fafc" stroke="#d9dee8"/>
+  <text x="134" y="246" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#172033">必要检查项</text>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="17">
+    <circle cx="136" cy="300" r="12" fill="#10b981"/><text x="132" y="306" fill="#ffffff" font-size="15" font-weight="700">✓</text><text x="164" y="306" fill="#172033">资产负债表平衡</text>
+    <circle cx="136" cy="356" r="12" fill="#10b981"/><text x="132" y="362" fill="#ffffff" font-size="15" font-weight="700">✓</text><text x="164" y="362" fill="#172033">现金 roll-forward 勾稽</text>
+    <circle cx="136" cy="412" r="12" fill="#10b981"/><text x="132" y="418" fill="#ffffff" font-size="15" font-weight="700">✓</text><text x="164" y="418" fill="#172033">净利润流入现金流量表</text>
+    <circle cx="136" cy="468" r="12" fill="#10b981"/><text x="132" y="474" fill="#ffffff" font-size="15" font-weight="700">✓</text><text x="164" y="474" fill="#172033">固定资产和折旧勾稽</text>
+    <circle cx="136" cy="524" r="12" fill="#f59e0b"/><text x="132" y="530" fill="#ffffff" font-size="15" font-weight="700">!</text><text x="164" y="530" fill="#172033">债务 schedule 已 review</text>
+    <circle cx="136" cy="580" r="12" fill="#10b981"/><text x="132" y="586" fill="#ffffff" font-size="15" font-weight="700">✓</text><text x="164" y="586" fill="#172033">营运资本变动勾稽</text>
+    <circle cx="136" cy="636" r="12" fill="#10b981"/><text x="132" y="642" fill="#ffffff" font-size="15" font-weight="700">✓</text><text x="164" y="642" fill="#172033">公式方向一致</text>
+  </g>
+  <rect x="528" y="202" width="784" height="600" rx="14" fill="#ffffff" stroke="#d9dee8"/>
+  <rect x="528" y="202" width="784" height="56" rx="14" fill="#172033"/>
+  <text x="560" y="238" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#ffffff">审计报告</text>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="16">
+    <text x="560" y="300" fill="#667085">检查项</text><text x="888" y="300" fill="#667085">结果</text><text x="1040" y="300" fill="#667085">动作</text>
+    <line x1="560" y1="320" x2="1268" y2="320" stroke="#e4e7ec"/>
+    <text x="560" y="360" fill="#172033">资产负债表</text><text x="888" y="360" fill="#047857">$0 差异</text><text x="1040" y="360" fill="#667085">无需修改</text>
+    <text x="560" y="412" fill="#172033">现金勾稽</text><text x="888" y="412" fill="#047857">通过</text><text x="1040" y="412" fill="#667085">无需修改</text>
+    <text x="560" y="464" fill="#172033">净利润勾稽</text><text x="888" y="464" fill="#047857">通过</text><text x="1040" y="464" fill="#667085">无需修改</text>
+    <text x="560" y="516" fill="#172033">利息债务基数</text><text x="888" y="516" fill="#b45309">复核</text><text x="1040" y="516" fill="#667085">引用上一期债务行</text>
+    <text x="560" y="568" fill="#172033">营运资本</text><text x="888" y="568" fill="#047857">通过</text><text x="1040" y="568" fill="#667085">无需修改</text>
+    <text x="560" y="620" fill="#172033">隐藏 hardcode</text><text x="888" y="620" fill="#047857">无</text><text x="1040" y="620" fill="#667085">无需修改</text>
+    <text x="560" y="672" fill="#172033">情景驱动项</text><text x="888" y="672" fill="#047857">在 Assumptions</text><text x="1040" y="672" fill="#667085">已记录</text>
+  </g>
+  <rect x="104" y="838" width="1208" height="34" rx="17" fill="#ecfdf5"/>
+  <text x="132" y="861" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#047857">输出：干净 workbook + 简明问题清单，不做静默 plug。</text>
+</svg>

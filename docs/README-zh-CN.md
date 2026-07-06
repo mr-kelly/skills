@@ -4,11 +4,11 @@
 
 **Kelly 的个人 AI skills 工作区，用来处理日常业务里的重复工作。**
 
-33 个 App-in-Skill 工作流 —— 每个都是一份 agent 操作手册，配一个本地浏览器 UI 用于 review、审批和看板。
+34 个 skills，其中 31 个是 App-in-Skill 工作流，配本地浏览器 UI 用于 review、审批和看板。
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-33-D97757)](https://mr-kelly.github.io/skills/?lang=zh)
+[![Skills](https://img.shields.io/badge/skills-34-D97757)](https://mr-kelly.github.io/skills/?lang=zh)
 [![License](https://img.shields.io/badge/license-MIT-green)](../LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#安装)
@@ -18,6 +18,10 @@
 <table>
   <tr>
     <td width="50%"><img src="../skills/kelly-money/assets/screenshots/overview-zh-CN.png" alt="kelly-money — 资金台账 dashboard"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.svg" alt="kelly-finance — 财务三表模型"></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.svg" alt="kelly-finance — 模型勾稽检查"></td>
     <td width="50%"><img src="../skills/kelly-crm/assets/screenshots/overview-zh-CN.png" alt="kelly-crm — 客户管道操作台"></td>
   </tr>
   <tr>
@@ -26,7 +30,7 @@
   </tr>
 </table>
 
-<sub>不是 prompt，是真·本地应用 —— 每个 skill 都带一个浏览器审阅台。</sub>
+<sub>不是 prompt，而是能干活的 skills：需要 UI 的有本地应用，需要模型的有生成器和检查流程。</sub>
 
 </div>
 
@@ -86,6 +90,7 @@
 | `app-in-skill-creator` | 记录和脚手架化 App-in-Skill 模式：本地 review UI、handoff 文件、锁、脚本、安全边界，以及可选截图规范——只有明确需要或已有截图时，才放进 skill 内部的 `assets/screenshots/`。 | 构建带浏览器 review queue、approval desk、dashboard 或本地 workflow 的 skill 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/app-in-skill-creator.html?lang=zh) |
 | `publish-skills` | 把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 `gh skill` 校验、切版本、接 Claude `/plugin` 和 Codex marketplace，并准备 MCP Registry 和精选商店。 | 发布、上架、分发 skills、plugins 或 MCP servers 到 skills.sh、Claude Code、Codex 或 MCP Registry 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/publish-skills.html?lang=zh) |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
+| `kelly-finance` | 构建和审计财务三表模型、经营预测、预算、现金 runway、SaaS/unit economics 包，以及可交付的 Excel 财务输出。 | 做财务三表、融资预测、董事会财务包、情景分析、资产负债表检查、营运资本/资本开支/债务 schedule，或修三表勾稽错误时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html?lang=zh) |
 | `kelly-money` | 聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。 | 查看余额、付款、payout、手续费、退款、转账、provider sync 状态、发票和流水匹配时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-money.html?lang=zh) |
 | `kelly-invest-webull` | 通过 Webull OpenAPI 把个人券商账户聚合成本地只读投资组合 dashboard：持仓、成本、市值、未实现盈亏、当日涨跌和按资产类别的配置。只读——绝不下单或撤单。 | 查看个人投资、持仓、组合市值、未实现盈亏、现金或资产配置时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html?lang=zh) |
 | `kelly-family-office` | 通过 CSV 导入和手工录入，把多个主体/成员的持仓合并成家族办公室 dashboard：以基准货币计的总资产管理规模（AUM），按主体、资产类别、机构的配置和业绩汇总。只读——绝不动钱。 | 汇总个人、信托、公司等多主体的家族办公室，查看合并 AUM、资产配置、机构敞口或未实现业绩时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-family-office.html?lang=zh) |
@@ -176,6 +181,21 @@ Kelly Money 是本地财务 dashboard，用来查看 Mercury、Stripe、Airwalle
   <tr>
     <td><strong>异常详情</strong><br>发票异常页，显示金额/日期差异、匹配规则、容差、候选交易和审计轨迹。</td>
     <td></td>
+  </tr>
+</table>
+
+### `kelly-finance`
+
+Kelly Finance 是本地财务模型审阅台。它用于生成和审计三表 workbook，把假设和公式分开，并给 Kelly 一个浏览器 UI，用来看模型指标、检查队列、review note、审批决定和 agent handoff report。
+
+<table>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.svg" alt="Kelly Finance 三表模型"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.svg" alt="Kelly Finance 模型检查"></td>
+  </tr>
+  <tr>
+    <td><strong>三表生成器</strong><br>展示 Assumptions、利润表、资产负债表、现金流量表和 Checks 的 workbook 预览。</td>
+    <td><strong>模型勾稽检查</strong><br>交付前检查三表联动、hardcode、公式方向、债务和营运资本勾稽。</td>
   </tr>
 </table>
 
