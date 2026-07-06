@@ -20,13 +20,7 @@
 // (no enum/namespace), NO build step. `lib/package.json` `{"type":"module"}`
 // makes Node treat these `.ts` files as ESM.
 
-import type {
-  AgentTasks,
-  Decisions,
-  FeedbackSnapshot,
-  Lock,
-  Onboarding,
-} from "../types.ts";
+import type { AgentTasks, Decisions, FeedbackSnapshot, Lock, Onboarding } from "../types.ts";
 
 // Workflow proposal statuses, shared across providers. Busabase maps its
 // change-request status onto these so the UI renders identically in either mode.

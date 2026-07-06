@@ -15,7 +15,7 @@ import { readConfig } from "../config.ts";
 import type { Config } from "../types.ts";
 import { createBusabaseProvider } from "./busabase-provider.ts";
 import { createLocalFileProvider } from "./local-file-provider.ts";
-import { assertProvider, type DataProvider } from "./provider-interface.ts";
+import { type DataProvider, assertProvider } from "./provider-interface.ts";
 
 export function resolveProviderKind(config: Config = {}): string {
   return String(process.env.KELLY_PICKS_DATA_PROVIDER || config.data_provider || "local").toLowerCase();

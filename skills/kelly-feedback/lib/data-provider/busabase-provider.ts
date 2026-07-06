@@ -18,15 +18,7 @@
 // required by `apps/busabase-cloud`.
 
 import { emptyDecisions, emptySnapshot } from "../common.ts";
-import type {
-  AgentTasks,
-  Decisions,
-  FeedbackSnapshot,
-  HttpError,
-  Lock,
-  Proposal,
-  ProviderMeta,
-} from "../types.ts";
+import type { AgentTasks, Decisions, FeedbackSnapshot, HttpError, Lock, Proposal, ProviderMeta } from "../types.ts";
 import type { ReviewProvider, ReviewState } from "./provider-interface.ts";
 
 // Busabase change-request status -> kelly-feedback proposal status.
@@ -150,9 +142,7 @@ export function createBusabaseProvider(meta: ProviderMeta = {}): ReviewProvider 
         const crs = await api("GET", "/api/v1/change-requests");
         const list = Array.isArray(crs) ? crs : crs?.items || [];
         snapshot.proposals = list.map((cr: any, index: number) => crToProposal(cr, index));
-        snapshot.metrics.proposals_needs_review = snapshot.proposals.filter(
-          (p) => p.status === "needs_review",
-        ).length;
+        snapshot.metrics.proposals_needs_review = snapshot.proposals.filter((p) => p.status === "needs_review").length;
       } catch (error) {
         summary.error = (error as Error).message;
       }
@@ -212,7 +202,11 @@ export function createBusabaseProvider(meta: ProviderMeta = {}): ReviewProvider 
 
       const decisions = emptyDecisions();
       decisions.updated_at = new Date().toISOString();
-      decisions.proposals[id] = { action, review_note: String(body.review_note || ""), decided_at: decisions.updated_at };
+      decisions.proposals[id] = {
+        action,
+        review_note: String(body.review_note || ""),
+        decided_at: decisions.updated_at,
+      };
       return decisions;
     },
 

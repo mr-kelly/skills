@@ -3,15 +3,7 @@
 // drop decision model, metric math, and config summarization stay identical
 // regardless of which backend holds the bytes.
 
-import type {
-  Candidate,
-  Config,
-  ConfigResult,
-  Decision,
-  PicksSnapshot,
-  Platform,
-  SnapshotMetrics,
-} from "./types.ts";
+import type { Candidate, Config, ConfigResult, Decision, PicksSnapshot, Platform, SnapshotMetrics } from "./types.ts";
 
 // ── Decision vocabulary (the product-research radar verbs) ────────────────────
 export const DECISION_KINDS = ["candidate", "proposal", "trend"];

@@ -17,14 +17,7 @@ import {
   ONBOARDING_PATH,
   SNAPSHOT_PATH,
 } from "../paths.ts";
-import type {
-  AgentTasks,
-  Decisions,
-  FeedbackSnapshot,
-  Lock,
-  Onboarding,
-  ProviderMeta,
-} from "../types.ts";
+import type { AgentTasks, Decisions, FeedbackSnapshot, Lock, Onboarding, ProviderMeta } from "../types.ts";
 import type { ReviewProvider, ReviewState } from "./provider-interface.ts";
 
 const PROPOSAL_ACTIONS = ["approve", "request_changes", "block", "revise"];

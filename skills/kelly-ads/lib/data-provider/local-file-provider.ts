@@ -8,14 +8,7 @@
 // UI or the ingest / checks / execute scripts.
 
 import fs from "node:fs/promises";
-import {
-  emptySnapshot,
-  ensureDirs,
-  readConfig,
-  readJson,
-  summarizeConfig,
-  writeJson,
-} from "../common.ts";
+import { emptySnapshot, ensureDirs, readConfig, readJson, summarizeConfig, writeJson } from "../common.ts";
 import { agentTasksPath, decisionsPath, lockPath, onboardingPath, snapshotPath } from "../paths.ts";
 import type {
   Adjustment,

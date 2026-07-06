@@ -10,6 +10,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { readConfig } from "../config.ts";
 import {
   AGENT_TASKS_PATH,
   DATA_DIR,
@@ -20,17 +21,16 @@ import {
   SNAPSHOT_PATH,
 } from "../paths.ts";
 import {
-  applyDecisions,
   CANDIDATE_ACTIONS,
   DECISION_KINDS,
-  emptySnapshot,
   PROPOSAL_ACTIONS,
+  TREND_ACTIONS,
+  applyDecisions,
+  emptySnapshot,
   stageForCandidateAction,
   statusForProposalAction,
   summarizeConfig,
-  TREND_ACTIONS,
 } from "../picks-core.ts";
-import { readConfig } from "../config.ts";
 import type {
   AgentTask,
   AgentTasksFile,

@@ -236,7 +236,7 @@ export function createBusabaseProvider(meta: ProviderMeta = {}): DataProvider {
           reason: note || "Closed by reviewer",
         });
       } else if (verdict !== "note") {
-        const error: HttpError = new Error(`verdict must be one of: approve, request_changes, block, note`);
+        const error: HttpError = new Error("verdict must be one of: approve, request_changes, block, note");
         error.statusCode = 400;
         throw error;
       }

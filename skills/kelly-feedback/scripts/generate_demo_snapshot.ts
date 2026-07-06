@@ -132,5 +132,6 @@ const snapshot = {
 };
 
 recomputeDerived(snapshot as unknown as FeedbackSnapshot);
-await writeJson(SNAPSHOT_PATH, snapshot);
-console.log(`Wrote ${SNAPSHOT_PATH}`);
+const provider = await createProvider();
+await provider.writeSnapshot(snapshot as unknown as FeedbackSnapshot);
+console.log(`Wrote feedback sample snapshot via "${provider.kind}" provider.`);

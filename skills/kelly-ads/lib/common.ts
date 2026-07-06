@@ -133,9 +133,13 @@ export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
     targets: config.targets || {},
     thresholds: config.thresholds || {},
     platforms: platforms.map((platform) => {
-      const secretKeys = ["token_env", "client_id_env", "client_secret_env", "api_key_env", "developer_token_env"].filter(
-        (key) => platform[key],
-      );
+      const secretKeys = [
+        "token_env",
+        "client_id_env",
+        "client_secret_env",
+        "api_key_env",
+        "developer_token_env",
+      ].filter((key) => platform[key]);
       return {
         platform_id: platform.platform_id || "",
         name: platform.name || platform.platform_id || "",
@@ -275,7 +279,8 @@ export function recomputeDerived(snapshot: AdsSnapshot, config: Config = {}): Ad
     campaigns_total: campaigns.length,
     campaigns_active: campaigns.filter((campaign) => campaign.status === "active").length,
     anomalies_open: anomalies.filter((anomaly) => anomaly.state === "open").length,
-    anomalies_critical: anomalies.filter((anomaly) => anomaly.state === "open" && anomaly.severity === "critical").length,
+    anomalies_critical: anomalies.filter((anomaly) => anomaly.state === "open" && anomaly.severity === "critical")
+      .length,
     adjustments_needing_review: adjustments.filter((item) => item.status === "needs_review").length,
     budget_at_risk_today: campaigns.filter(
       (campaign) => campaign.status === "active" && Number(campaign.budget_spent_today_pct || 0) >= budgetRiskPct,
