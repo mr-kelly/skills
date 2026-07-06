@@ -1,0 +1,73 @@
+{
+  "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "your-busabase-base-id",
+    "api_key_env": "KELLY_LEGAL_CONTRACTS_BUSABASE_API_KEY"
+  },
+  "ui": {
+    "language": "auto"
+  },
+  "seller": {
+    "brand": "Example Legal Ops",
+    "entity": "Example Company, Inc.",
+    "tone": "Practical, risk-ranked, business-friendly"
+  },
+  "locales": ["US", "UK", "EU"],
+  "banned_words": ["uncapped liability", "perpetual data retention", "exclusive remedy", "sole discretion"],
+  "banned_words_file": "",
+  "competitor_brands": ["customer standard paper", "vendor standard paper"],
+  "keyword_stuffing": { "max_repeats": 4 },
+  "allowed_all_caps": ["NDA", "MSA", "DPA", "SOW", "SLA", "IP", "GDPR", "CCPA", "SOC"],
+  "platforms": [
+    {
+      "platform": "nda",
+      "enabled": true,
+      "locales": ["US", "UK"],
+      "rules": {
+        "title_max_chars": 160,
+        "bullets_exact": 5,
+        "search_terms_max_bytes": 600,
+        "required_fields": ["title", "bullets", "description"]
+      }
+    },
+    {
+      "platform": "msa",
+      "enabled": true,
+      "locales": ["US"],
+      "rules": {
+        "title_max_chars": 120,
+        "seo_title_max_chars": 80,
+        "seo_description_max_chars": 240,
+        "required_fields": ["title", "description"]
+      }
+    },
+    {
+      "platform": "dpa",
+      "enabled": true,
+      "locales": ["EU", "UK"],
+      "rules": {
+        "title_max_chars": 140,
+        "min_selling_points": 3,
+        "required_fields": ["title", "selling_points"]
+      }
+    },
+    {
+      "platform": "sow",
+      "enabled": true,
+      "locales": ["US"],
+      "rules": {
+        "title_max_chars": 120,
+        "required_fields": ["title", "description"]
+      }
+    }
+  ],
+  "export": {
+    "format": "markdown+docx-ready",
+    "out_dir": "exports"
+  },
+  "publish": {
+    "handoff_to_agent": true,
+    "requires_approval": true
+  }
+}

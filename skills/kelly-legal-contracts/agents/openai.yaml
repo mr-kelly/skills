@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Legal Contracts"
+  short_description: "Legal contract review desk"
+  default_prompt: "Use $kelly-legal-contracts to open my contract review desk and review clause issues."
