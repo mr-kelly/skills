@@ -30,6 +30,11 @@
   "fairness": {
     "deviation_threshold_pct": 20
   },
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "kelly-family-fund",
+    "api_key_env": "KELLY_FAMILY_FUND_BUSABASE_API_KEY"
+  },
   "import": {
     "ledger_csv": "app/.data/ledger.csv"
   },

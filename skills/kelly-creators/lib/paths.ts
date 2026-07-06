@@ -1,9 +1,13 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const SERVER_DIR = path.dirname(fileURLToPath(import.meta.url));
-export const APP_DIR = path.resolve(SERVER_DIR, "..");
-export const SKILL_DIR = path.resolve(APP_DIR, "..");
+// lib/ sits directly under the skill root. The handoff state stays exactly where
+// the original store.ts kept it — app/.data/*.json — so a provider swap never
+// moves a byte on disk and the local `/api/state` payload is unchanged.
+export const LIB_DIR = path.dirname(fileURLToPath(import.meta.url));
+export const SKILL_DIR = path.resolve(LIB_DIR, "..");
+export const APP_DIR = path.join(SKILL_DIR, "app");
+export const SERVER_DIR = path.join(APP_DIR, "server");
 export const DATA_DIR = path.join(APP_DIR, ".data");
 export const CACHE_DIR = path.join(APP_DIR, ".cache");
 export const SNAPSHOT_PATH = path.join(DATA_DIR, "creator_snapshot.json");

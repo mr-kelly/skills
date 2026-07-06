@@ -1,26 +1,12 @@
 #!/usr/bin/env node
 // Dry-run-by-default executor stub. Reads approved launch items, re-checks the
-// agent lock and decisions, and records concrete operations in
-// execution_report.json. It performs NO external side effects: real submissions,
-// pitches, and sends are delegated to other skills (for example kelly-email or
-// product-launch-video) per SKILL.md.
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "launch_snapshot.json");
-const decisionsPath = path.join(dataDir, "decisions.json");
-const lockPath = path.join(dataDir, "agent.lock");
-const reportPath = path.join(dataDir, "execution_report.json");
+// agent lock and decisions via the data-provider, and records concrete
+// operations in the execution report. It performs NO external side effects:
+// real submissions, pitches, and sends are delegated to other skills (for
+// example kelly-email or product-launch-video) per SKILL.md.
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const apply = process.argv.includes("--apply");
-
-interface Lock {
-  owner?: string;
-  message?: string;
-}
 
 interface Decision {
   action?: string;
@@ -41,11 +27,6 @@ interface Item {
   format?: string;
 }
 
-interface Snapshot {
-  launch?: { target_date?: string };
-  items?: Item[];
-}
-
 interface ExecutionResultItem {
   item_id: string;
   ref?: number;
@@ -62,37 +43,22 @@ interface ExecutionResultItem {
   executed_at: string;
 }
 
-interface ExecutionReport {
-  results?: ExecutionResultItem[];
-}
+const provider = await createProvider();
 
-interface DecisionsFile {
-  decisions?: Record<string, Decision>;
-}
-
-async function readJson<T = unknown>(file: string, fallback: T | null = null): Promise<T | null> {
-  try {
-    return JSON.parse(await fs.readFile(file, "utf8")) as T;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return fallback;
-    throw error;
-  }
-}
-
-const lock = await readJson<Lock>(lockPath);
+const lock = await provider.readLock();
 if (lock) {
-  console.error(`Refusing to execute: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
+  console.error(`Refusing to execute: agent lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
 }
 
-const snapshot = await readJson<Snapshot>(snapshotPath);
-if (!snapshot) {
-  console.error(`No snapshot at ${snapshotPath}. Nothing to execute.`);
+const snapshot = (await provider.readSnapshot()) as { launch?: { target_date?: string }; items?: Item[] };
+if (!snapshot || !Array.isArray(snapshot.items)) {
+  console.error("No snapshot items to execute.");
   process.exit(1);
 }
 
-const decisions = (await readJson<DecisionsFile>(decisionsPath, { decisions: {} }))?.decisions || {};
-const previousReport = await readJson<ExecutionReport>(reportPath);
+const decisions = ((await provider.readDecisions()) as { decisions?: Record<string, Decision> }).decisions || {};
+const previousReport = (await provider.readExecutionReport()) as { results?: ExecutionResultItem[] } | null;
 const alreadyDone = new Set(
   (previousReport?.results || [])
     .filter((item) => item.status === "published" || item.status === "submitted" || item.status === "handed_off")
@@ -174,8 +140,13 @@ for (const result of results) {
 }
 
 if (!apply) {
-  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write ${reportPath}.`);
+  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write the execution report.`);
   process.exit(0);
+}
+
+if (!provider.writeExecutionReport) {
+  console.error(`Provider "${provider.kind}" cannot persist an execution report; run with the local provider.`);
+  process.exit(1);
 }
 
 // Preserve completed history so repeated --apply runs stay idempotent.
@@ -193,6 +164,5 @@ const report = {
     ...results.filter((item) => !(item.status === "skipped" && carriedIds.has(item.item_id))),
   ],
 };
-await fs.mkdir(dataDir, { recursive: true });
-await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
-console.log(`Wrote ${reportPath}. Real submissions/sends must be performed by the delegated skill per SKILL.md.`);
+await provider.writeExecutionReport(report);
+console.log("Wrote execution report. Real submissions/sends must be performed by the delegated skill per SKILL.md.");

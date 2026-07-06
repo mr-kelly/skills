@@ -211,6 +211,20 @@ function sendById(sendId) {
   return sends().find((item) => item.send_id === sendId) || null;
 }
 
+function suppressionEntries() {
+  return state.settings?.suppression?.entries || [];
+}
+
+// A send carries a precomputed `suppression` summary (from the provider's
+// pre-send check) in demo/agent-prepared snapshots; render it read-only.
+function suppressionNote(send) {
+  const info = send?.suppression;
+  if (!info || !info.suppressed_count) return "";
+  const cls = info.blocked ? "suppression-note blocked" : "suppression-note";
+  const label = info.blocked ? t("suppressionBlocked") : `${info.suppressed_count} ${t("suppressionExcluded")}`;
+  return `<div class="${cls}">${escapeHtml(label)}</div>`;
+}
+
 function reviewCount() {
   return sends().filter((item) => effectiveStatus(item) === "needs_review").length;
 }
@@ -422,7 +436,36 @@ function renderOverview() {
           <a href="#/performance"><strong>${sends().filter((item) => effectiveStatus(item) === "done").length}</strong><span>${t("done")}</span></a>
         </div>
       </div>
+      ${suppressionPanel()}
     </section>
+  `;
+}
+
+// Read-only consent/suppression panel: recipients & segments removed by
+// unsubscribe, hard bounce, or complaint. This is the human-visible side of the
+// pre-send guard that excludes/blocks suppressed recipients.
+function suppressionPanel() {
+  const entries = suppressionEntries();
+  return `
+    <div class="overview-panel">
+      <h2>${t("suppression")} <small class="muted">${entries.length}</small></h2>
+      ${
+        entries.length
+          ? `<ul class="suppression-list">${entries
+              .map((entry) => {
+                const scope = entry.address
+                  ? escapeHtml(entry.address)
+                  : `${t("segment")}: ${escapeHtml(segmentName(entry.segment_id))}`;
+                return `<li>
+                  <span class="suppression-scope">${scope}</span>
+                  <span class="risk-badge">${escapeHtml(enumLabel(entry.reason, "suppressionReason"))}</span>
+                  <small class="muted">${dateTime(entry.suppressed_at)}</small>
+                </li>`;
+              })
+              .join("")}</ul>`
+          : `<div class="empty-inline">${t("suppressionEmpty")}</div>`
+      }
+    </div>
   `;
 }
 
@@ -529,6 +572,7 @@ function renderCampaigns() {
             <div class="queue-subject strong">${escapeHtml(item.subject)}</div>
             <div class="queue-preview muted">${escapeHtml(item.preview_text || "")}</div>
             <p class="queue-reason"><span class="muted">${t("reason")}:</span> ${escapeHtml(item.reason || "")}</p>
+            ${suppressionNote(item)}
             ${variantPicker(item, disabled)}
             <label class="queue-label">${t("body")}</label>
             <textarea class="queue-draft" data-field="body" rows="8" ${disabled}>${escapeHtml(body)}</textarea>
@@ -567,6 +611,7 @@ function renderCampaignDetail() {
           ${statusBadge(status)} ${typeBadge(item.type)} ${phaseBadge(item.phase)} ${item.quality_gate ? verdictBadge(item.quality_gate.verdict) : ""} ${riskBadges(item.risk)}
         </div>
         ${qualityGatePanel(item.quality_gate)}
+        ${suppressionNote(item)}
         <div class="overview-panel">
           <h2>${t("body")}</h2>
           <pre class="body-preview">${escapeHtml(item.body || "")}</pre>
@@ -630,8 +675,28 @@ function renderDeliverability() {
   els.title.textContent = t("deliverability");
   const items = sends().filter(matchesQuery);
   els.subtitle.textContent = `${atRiskCount()} ${t("atRisk")}`;
+  const suppressed = suppressionEntries();
   els.content.innerHTML = `
     ${warnings()}
+    <section class="suppression-facet">
+      <h2>${t("suppression")} <small class="muted">${suppressed.length}</small></h2>
+      ${
+        suppressed.length
+          ? `<div class="table-wrap"><table>
+              <thead><tr><th>${t("scope")}</th><th>${t("suppressionReason")}</th><th>${t("suppressedAt")}</th></tr></thead>
+              <tbody>${suppressed
+                .map(
+                  (entry) => `<tr>
+                    <td class="strong">${entry.address ? escapeHtml(entry.address) : `${escapeHtml(segmentName(entry.segment_id))} <span class="muted">(${t("segment")})</span>`}</td>
+                    <td><span class="risk-badge">${escapeHtml(enumLabel(entry.reason, "suppressionReason"))}</span></td>
+                    <td class="muted">${dateTime(entry.suppressed_at)}</td>
+                  </tr>`,
+                )
+                .join("")}</tbody>
+            </table></div>`
+          : `<div class="empty-inline">${t("suppressionEmpty")}</div>`
+      }
+    </section>
     <div class="table-wrap">
       <table>
         <thead>
