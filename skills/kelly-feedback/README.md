@@ -10,6 +10,27 @@ Kelly Feedback is a local App-in-Skill voice-of-customer desk. It aggregates raw
 - Roadmap: the decision queue — agent-proposed changes (promote to Now/Next/Later, decline with a drafted reply, merge duplicates) with reason, evidence, editable drafts, review notes, and Approve / Request changes / Block buttons — plus the current roadmap lanes read-only.
 - Help & Settings: sanitized config summary (products, sources, scoring weights, env readiness) and the sync log.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Feedback overview"></td>
+    <td width="50%"><img src="assets/screenshots/inbox.png" alt="Kelly Feedback inbox"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Voice-of-customer desk with weekly inflow by channel, sentiment split, top clusters, and source freshness.</td>
+    <td><strong>Inbox</strong><br>Raw feedback stream across email, Discord, Slack, X, and app-store reviews with triage controls.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/requests.png" alt="Kelly Feedback requests"></td>
+    <td width="50%"><img src="assets/screenshots/roadmap.png" alt="Kelly Feedback roadmap decisions"></td>
+  </tr>
+  <tr>
+    <td><strong>Requests</strong><br>Clustered feature requests with frequency, weighted scores, trend, and representative quotes.</td>
+    <td><strong>Roadmap decisions</strong><br>Agent-proposed promote/decline/merge proposals with drafted changelog notes and user replies for approval.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:

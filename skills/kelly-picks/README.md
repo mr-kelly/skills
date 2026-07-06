@@ -17,6 +17,27 @@ Kelly Picks is a local App-in-Skill product-research (选品) desk for a cross-b
 3. Kelly verdicts candidates and reviews proposals in the app. Decisions land in `app/.data/decisions.json`; revision requests queue in `app/.data/agent_tasks.json`. `POST /api/decision` returns HTTP 423 while the agent lock exists.
 4. `scripts/execute_decisions.mjs` (dry-run by default) turns approved proposals into concrete operations in `app/.data/execution_report.json`: `create_sourcing_brief` (export path), `handoff_listing_brief` (→ kelly-listing), `add_watch` (re-check criteria). The agent performs the handoffs, then re-runs with `--apply`.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Picks overview"></td>
+    <td width="50%"><img src="assets/screenshots/candidates.png" alt="Kelly Picks candidates"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Product-research desk with weekly candidates by source, top movers, and per-source sweep freshness.</td>
+    <td><strong>Candidates</strong><br>Candidate table with momentum, estimated margin, competition grade, and develop/watch/drop stages.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/decisions.png" alt="Kelly Picks decision queue"></td>
+    <td width="50%"><img src="assets/screenshots/detail.png" alt="Kelly Picks margin card"></td>
+  </tr>
+  <tr>
+    <td><strong>Decision queue</strong><br>Agent-proposed develop/watch/drop verdicts with sourcing and listing briefs for approval.</td>
+    <td><strong>Margin card</strong><br>Live-editable margin math — price, landed cost, freight, fees, ad cost → margin % and breakeven ACOS — plus a top-10 review-count competition read.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene (a home/kitchen gadget seller, "Nimbus Home"):

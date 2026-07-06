@@ -12,6 +12,27 @@ Use this skill as a local legal-contract review desk. The agent can ingest contr
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or ingest the contract review snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present numbered issues (`Issue #1`) and take verdicts in conversation.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Legal Contracts overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly Legal Contracts review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Legal command desk with contract × workstream status, risk pass rate, review queue preview, and recent activity.</td>
+    <td><strong>Review queue</strong><br>Approval-gated legal issue queue with approve / request changes / block decisions and audit notes.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/checks.png" alt="Kelly Legal Contracts risk checks"></td>
+    <td width="50%"><img src="assets/screenshots/issues.png" alt="Kelly Legal Contracts issue workbench"></td>
+  </tr>
+  <tr>
+    <td><strong>Risk checks</strong><br>Per-rule pass/warn/fail results across clause issues, including hard-stop terms and playbook violations.</td>
+    <td><strong>Clause issues</strong><br>Editable issue detail with fallback language, memo fields, reviewer rationale, and risk-check evidence.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - This skill assists legal operations and contract review; it does not provide final legal advice and does not replace licensed counsel or an authorized legal reviewer.

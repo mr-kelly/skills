@@ -39,6 +39,27 @@ The App-in-Skill pattern pairs an agent skill with a small local companion UI: t
 
 The boundary is the point: a launch is a burst of irreversible public actions, so the human's clicks are reserved for judgment (approve the gate, approve public submissions and press) while the agent absorbs the drafting and bookkeeping.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Launch overview"></td>
+    <td width="50%"><img src="assets/screenshots/assets.png" alt="Kelly Launch assets queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Launch countdown, the RAMP readiness gate with its LQS score, phase progress, and channel status.</td>
+    <td><strong>Assets</strong><br>Approval queue for launch assets, Product Hunt / Hacker News submissions, and press pitches.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/checklist.png" alt="Kelly Launch checklist"></td>
+    <td width="50%"><img src="assets/screenshots/launchday.png" alt="Kelly Launch launch-day runbook"></td>
+  </tr>
+  <tr>
+    <td><strong>Checklist</strong><br>Launch tasks grouped by RAMP phase — Research, Assemble, Mobilize, Prove.</td>
+    <td><strong>Launch day</strong><br>An ordered launch-day runbook with war-room notes.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The skill may read sources Kelly provides, assemble the checklist, draft assets/submissions/pitches, score readiness, validate schemas, and write local handoff files.

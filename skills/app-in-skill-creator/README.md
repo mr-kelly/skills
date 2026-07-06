@@ -115,6 +115,8 @@ Use Node.js for the local server and scripts unless the skill has a strong reaso
 skill-name/
 ├── SKILL.md
 ├── agents/openai.yaml
+├── assets/          # optional; include only when the skill has bundled assets
+│   └── screenshots/ # optional UI screenshots, when explicitly captured/provided
 ├── app/
 │   ├── index.html
 │   ├── app.js
@@ -131,6 +133,8 @@ skill-name/
 ```
 
 Keep shared code in `lib/`. Keep `scripts/` as thin entrypoints. Keep real config, secrets, handoff data files (`app/.data/`), and generated local state out of git. Use JSON for runtime config in zero-dependency skills; convert old YAML notes to JSON before runtime instead of adding a YAML parser.
+
+Screenshots are optional. Do not create screenshot assets by default; add them only when the user asks for screenshots or when screenshot files already exist for the skill. When they do exist, keep them inside that skill at `assets/screenshots/`, reference them from the skill's own `README.md` and `SKILL.md`, and point any repo README or website gallery at those same skill-local files.
 
 ## UI Pattern
 

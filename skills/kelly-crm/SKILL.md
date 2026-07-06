@@ -12,6 +12,27 @@ Use this skill as Kelly's personal CRM operator. It keeps a file-backed App-in-S
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or regenerate the local CRM snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present numbered follow-ups (`Follow-up #1`) and take verdicts in the conversation.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly CRM overview"></td>
+    <td width="50%"><img src="assets/screenshots/deals.png" alt="Kelly CRM deal pipeline"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>CRM command desk with pipeline totals by stage, follow-ups due, recent activity, and network counts.</td>
+    <td><strong>Deals</strong><br>Pipeline table across stages with amounts, probability, next steps, and a per-deal interaction timeline.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/contacts.png" alt="Kelly CRM contacts"></td>
+    <td width="50%"><img src="assets/screenshots/followups.png" alt="Kelly CRM follow-up queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Contacts</strong><br>Contact list with relationship strength, last touch, and per-contact interaction history and open deals.</td>
+    <td><strong>Follow-up queue</strong><br>Agent-drafted follow-up messages with editable drafts, risk badges, and approve/request-changes/block decisions.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The skill may read sources Kelly provides, normalize CRM data, draft follow-up messages, validate schemas, and write local handoff files.

@@ -10,6 +10,27 @@ Kelly Audit is a local App-in-Skill finance anomaly review desk: import orders, 
 - Anomalies: the review queue — rule and severity badges, evidence rows with the computed delta, an editable agent draft (e.g. a receivable-chasing email), review notes, and approve / request changes / block / dismiss decisions with stable refs like `Anomaly #1`.
 - Settings: sanitized company profile, tolerance rules, import column mappings, env readiness, and onboarding state.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Audit overview"></td>
+    <td width="50%"><img src="assets/screenshots/anomalies.png" alt="Kelly Audit anomaly queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Finance audit desk with amount at risk, receivable aging bar, anomaly queue preview, and import history.</td>
+    <td><strong>Anomaly queue</strong><br>Rule-flagged anomalies with the order-invoice-payment evidence chain and a drafted chasing email for approval.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/invoices.png" alt="Kelly Audit invoices"></td>
+    <td width="50%"><img src="assets/screenshots/orders.png" alt="Kelly Audit orders"></td>
+  </tr>
+  <tr>
+    <td><strong>Invoices</strong><br>Invoice ledger with due dates, paid amounts, days overdue, and match status.</td>
+    <td><strong>Orders</strong><br>Normalized orders with invoice and payment status badges and linked anomaly indicators.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:

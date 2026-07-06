@@ -12,6 +12,27 @@ This is outbound marketing to a subscriber list — distinct from `kelly-email`,
 - Performance: open / click / unsub / bounce by sent campaign.
 - The app never sends anything. Approved sends are scheduled by the skill through the configured ESP only after explicit approval, and a BLOCK verdict is a hard stop.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Campaigns overview"></td>
+    <td width="50%"><img src="assets/screenshots/campaigns.png" alt="Kelly Campaigns queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Send calendar plus list health — subscribers, bounce, churn, and complaint rates.</td>
+    <td><strong>Campaigns</strong><br>Draft and approval queue across campaigns, newsletters, and sequence steps.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/deliverability.png" alt="Kelly Campaigns deliverability QA"></td>
+    <td width="50%"><img src="assets/screenshots/performance.png" alt="Kelly Campaigns performance"></td>
+  </tr>
+  <tr>
+    <td><strong>Deliverability</strong><br>Pre-send QA — SPF/DKIM/DMARC, spam score, and the EQS SHIP/FIX/BLOCK gate.</td>
+    <td><strong>Performance</strong><br>Open, click, and unsubscribe rates by campaign.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:
