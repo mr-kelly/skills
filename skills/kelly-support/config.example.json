@@ -1,0 +1,84 @@
+{
+  "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_SUPPORT_BUSABASE_API_KEY",
+    "_note": "Used only when data_provider is \"busabase\" (or KELLY_SUPPORT_DATA_PROVIDER=busabase). Each ticket's agent-drafted reply/proposed action maps to a Busabase change-request: queueReply->change request, approve->review verdict, request_changes->rejected review, send/execute->merge. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud reads KELLY_SUPPORT_BUSABASE_API_KEY."
+  },
+  "locale": "auto",
+  "owner": "Kelly",
+  "accounts": [
+    {
+      "account_id": "email-support",
+      "channel": "email",
+      "connector": "email_agent",
+      "display_name": "Support Mailbox",
+      "handle": "help@example.com",
+      "handoff_skill": "kelly-email"
+    },
+    {
+      "account_id": "webchat",
+      "channel": "webchat",
+      "connector": "webchat_widget",
+      "display_name": "In-app Web Chat",
+      "handle": "app.example.com",
+      "webhook_secret_env": "KELLY_SUPPORT_WEBCHAT_WEBHOOK_SECRET"
+    },
+    {
+      "account_id": "whatsapp-support",
+      "channel": "whatsapp",
+      "connector": "whatsapp_cloud",
+      "display_name": "WhatsApp Support",
+      "handle": "+00 000 0000 0000",
+      "access_token_env": "KELLY_SUPPORT_WHATSAPP_ACCESS_TOKEN",
+      "phone_number_id_env": "KELLY_SUPPORT_WHATSAPP_PHONE_NUMBER_ID"
+    },
+    {
+      "account_id": "form-intake",
+      "channel": "form",
+      "connector": "form_intake",
+      "display_name": "Contact Form"
+    },
+    {
+      "account_id": "wechat-support",
+      "channel": "wechat",
+      "connector": "wechat_work",
+      "display_name": "WeChat Work",
+      "handle": "ExampleSupportCN",
+      "corp_secret_env": "KELLY_SUPPORT_WECHAT_CORP_SECRET"
+    }
+  ],
+  "knowledge_base": {
+    "source_path": "/absolute/path/to/knowledge_base.json",
+    "refresh_with": "scripts/sync_knowledge.ts"
+  },
+  "sla_policy": {
+    "first_response_hours": {
+      "urgent": 2,
+      "high": 4,
+      "normal": 8,
+      "low": 24
+    },
+    "business_hours": "24/5"
+  },
+  "risk_policy": {
+    "refund_requires_approval": true,
+    "max_auto_refund": 0,
+    "block_ungrounded_replies": true,
+    "block_commitments_without_approval": true
+  },
+  "reply_style": {
+    "tone": "warm, concise, solution-first",
+    "language": "match the customer",
+    "signature": "",
+    "avoid": [
+      "promising refunds or credits without approval",
+      "citing KB articles that do not exist",
+      "disabling 2FA on an unverified request"
+    ]
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

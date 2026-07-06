@@ -13,7 +13,7 @@
 // (no enum/namespace), NO build step. lib/package.json's {"type":"module"} makes
 // Node treat these .ts files as ESM.
 
-import type { DecisionInput, DecisionResult, DecisionsFile, SeoSnapshot } from "../types.ts";
+import type { DecisionInput, DecisionResult, DecisionsFile, EntitySignalInput, SeoSnapshot } from "../types.ts";
 
 /**
  * The polymorphic contract shared by every kelly-seo provider. Members mirror the
@@ -47,6 +47,16 @@ export interface SeoDataProvider {
   /** Onboarding completion marker. */
   getOnboarding(): Promise<Record<string, unknown>>;
 
+  // ── GEO (AI-search) review + entity readiness ──────────────────────────────
+  /** Stored GEO-optimization decision map (geo_decisions.json). */
+  getGeoDecisions(): Promise<DecisionsFile>;
+  /** Apply a human verdict to one GEO content-optimization opportunity. */
+  saveGeoDecision(payload: DecisionInput): Promise<DecisionResult>;
+  /** Persisted overrides for entity-readiness signals (status/detail edits). */
+  getEntitySignalOverrides(): Promise<Record<string, unknown>>;
+  /** Update one entity-readiness signal's status/note. */
+  updateEntitySignal(payload: EntitySignalInput): Promise<DecisionResult>;
+
   // ── writes + lock (used by sync / execute scripts) ─────────────────────────
   /** Persist a freshly synced GSC snapshot. */
   writeSnapshot(snapshot: SeoSnapshot): Promise<void>;
@@ -69,6 +79,10 @@ export const CORE_METHODS = [
   "getLock",
   "getAgentTasks",
   "getOnboarding",
+  "getGeoDecisions",
+  "saveGeoDecision",
+  "getEntitySignalOverrides",
+  "updateEntitySignal",
   "writeSnapshot",
   "writeExecutionReport",
   "acquireLock",

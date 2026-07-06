@@ -15,9 +15,11 @@ import type {
   Lock,
   Onboarding,
   ProviderMeta,
+  PublishingOperation,
   SocialSnapshot,
   SocialState,
 } from "../types.ts";
+import { applyPublishingOperation } from "./publishing-ops.ts";
 
 async function readJson<T>(file: string, fallback: T): Promise<T> {
   try {
@@ -56,6 +58,17 @@ export function emptySnapshot(): SocialSnapshot {
         message: "No social snapshot exists yet. Configure accounts, then ask the agent to collect a snapshot.",
       },
     ],
+    // ECHO publishing side — empty until the agent drafts a plan.
+    calendar: [],
+    drafts: [],
+    shorts: [],
+    engagement: [],
+    crisis: {
+      status: "calm",
+      publishing_paused: false,
+      steps: [],
+    },
+    share_of_voice: { window: "7d", total_mentions: 0, entries: [] },
   };
 }
 
@@ -69,6 +82,26 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
 
     async getSnapshot(): Promise<SocialSnapshot> {
       return readJson(snapshotPath, emptySnapshot());
+    },
+
+    // Apply one ECHO publishing-desk operation and persist it. Local files only:
+    // a publish_post / send_reply here records the human's approval + intent in
+    // the snapshot; the skill performs the real platform action out of band. We
+    // read-modify-write only the ECHO sections, leaving the monitoring snapshot
+    // (accounts/posts/sync_log/warnings) byte-untouched.
+    async applyOperation(op: PublishingOperation): Promise<SocialSnapshot> {
+      const existingLock = await readJson<Lock | null>(lockPath, null);
+      if (existingLock) {
+        const error = new Error(
+          `Publishing desk is locked by "${existingLock.owner || "unknown"}" (${existingLock.message || "no message"}).`,
+        );
+        (error as { statusCode?: number }).statusCode = 409;
+        throw error;
+      }
+      const snapshot = (await readJson<SocialSnapshot | null>(snapshotPath, null)) || emptySnapshot();
+      const next = applyPublishingOperation(snapshot, op);
+      await fs.writeFile(snapshotPath, JSON.stringify(next, null, 2));
+      return next;
     },
 
     async getOnboarding(): Promise<Onboarding> {

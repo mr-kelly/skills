@@ -7,13 +7,19 @@ import { demoStatePayload } from "../app/server/demo.ts";
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dataDir = path.join(skillDir, "app", ".data");
 const out = path.join(dataDir, "campaigns_snapshot.json");
+const suppressionOut = path.join(dataDir, "suppression.json");
 const now = new Date().toISOString();
 
-const snapshot = demoStatePayload({ demo: "overview" }).snapshot as Record<string, unknown>;
+const demo = demoStatePayload({ demo: "overview" });
+const snapshot = demo.snapshot as Record<string, unknown>;
 snapshot.generated_at = now;
 snapshot.source = "kelly-campaigns-demo";
 
 await fs.mkdir(dataDir, { recursive: true });
 await fs.writeFile(out, `${JSON.stringify(snapshot, null, 2)}\n`);
-
 console.log(`Wrote ${out}`);
+
+// Seed the consent/suppression list so the pre-send guard has data to act on in
+// real (non-demo) mode too.
+await fs.writeFile(suppressionOut, `${JSON.stringify(demo.suppression, null, 2)}\n`);
+console.log(`Wrote ${suppressionOut}`);

@@ -26,11 +26,19 @@ Use this schema for `app/.data/social_snapshot.json`. Keep the shape stable so t
   "accounts": [],
   "posts": [],
   "sync_log": [],
-  "warnings": []
+  "warnings": [],
+  "calendar": [],
+  "drafts": [],
+  "shorts": [],
+  "engagement": [],
+  "crisis": { "status": "calm", "publishing_paused": false, "steps": [] },
+  "share_of_voice": { "window": "7d", "total_mentions": 0, "entries": [] }
 }
 ```
 
 `metrics` is a rollup across accounts and is recomputed by `ingest_snapshot.mjs` on every merge; do not hand-edit it.
+
+The snapshot has two halves. The **monitoring** half (`accounts`, `posts`, `sync_log`, `warnings`, `metrics`, `range`) is written only by `ingest_snapshot.mjs`. The **publishing** half (`calendar`, `drafts`, `shorts`, `engagement`, `crisis`, `share_of_voice`) is optional, read by the app, and mutated in place through `POST /api/operation`; the ingest script preserves these keys untouched. All publishing fields may be absent on legacy snapshots.
 
 ## Account
 
@@ -133,6 +141,127 @@ Normalize per-platform vocabulary into these fields: X replies/reposts, Facebook
 
 Use warnings for stale exports, missing tokens, partial collections, rate-limit backoffs, or metric fields a platform stopped exposing.
 
+## Publishing Desk (ECHO)
+
+These sections drive the publishing half. They travel through the same data provider and are mutated by `POST /api/operation` (one `PublishingOperation` per call); the app writes local files only, and real publishing/replying is skill-executed after human approval. The five-state review model is `needs_review | changes_requested | approved | done | blocked`.
+
+### Calendar Entry
+
+```json
+{
+  "entry_id": "stable id",
+  "date": "YYYY-MM-DD",
+  "channel": "x|facebook|instagram|linkedin|youtube|threads|tiktok|xiaohongshu|manual",
+  "pillar": "theme pillar, e.g. build-in-public",
+  "title": "short slot title",
+  "status": "planned|drafting|scheduled|published|skipped",
+  "draft_id": "optional link to a composer draft",
+  "scheduled_for": "optional ISO timestamp",
+  "notes": "optional"
+}
+```
+
+### Post Draft
+
+```json
+{
+  "draft_id": "stable id",
+  "channels": ["x", "linkedin"],
+  "pillar": "theme pillar",
+  "hook": "first-line hook",
+  "body": "post body",
+  "hashtags": ["#tag"],
+  "cta": "call to action",
+  "status": "needs_review|changes_requested|approved|done|blocked",
+  "scheduled_for": "optional ISO timestamp",
+  "gate": {
+    "verdict": "SHIP|FIX|BLOCK",
+    "score": 0,
+    "checks": [{ "id": "banned-claims", "label": "Banned claims", "result": "pass|warn|fail", "note": "optional" }],
+    "summary": "optional"
+  },
+  "agent_notes": "optional",
+  "review_note": "optional human note",
+  "created_at": "ISO timestamp",
+  "updated_at": "ISO timestamp"
+}
+```
+
+The `gate` is the pre-publish `social-qa` result (see `lib/social-qa.ts`). A `BLOCK` verdict forces `status: "blocked"` and the app refuses to approve or publish the draft.
+
+### Short Script
+
+```json
+{
+  "short_id": "stable id",
+  "channels": ["instagram", "tiktok"],
+  "pillar": "theme pillar",
+  "title": "script title",
+  "hook": "opening hook",
+  "status": "needs_review|changes_requested|approved|done|blocked",
+  "duration_s": 30,
+  "shots": [
+    { "shot_no": 1, "visual": "what's on screen", "voiceover": "VO line", "duration_s": 5, "on_screen_text": "optional" }
+  ],
+  "caption": "optional",
+  "hashtags": ["optional"],
+  "agent_notes": "optional",
+  "review_note": "optional",
+  "created_at": "ISO timestamp",
+  "updated_at": "ISO timestamp"
+}
+```
+
+### Engagement Item
+
+```json
+{
+  "item_id": "stable id",
+  "platform": "x|facebook|instagram|linkedin|youtube|threads|tiktok|xiaohongshu|manual",
+  "account_id": "optional local account id",
+  "kind": "mention|comment|dm|reply",
+  "author_handle": "@someone",
+  "incoming_text": "the incoming message",
+  "received_at": "ISO timestamp",
+  "sentiment": "positive|neutral|negative|question",
+  "priority": "low|normal|high",
+  "draft_reply": "agent-drafted reply",
+  "status": "needs_review|changes_requested|approved|done|blocked",
+  "review_note": "optional",
+  "permalink": "optional"
+}
+```
+
+### Crisis Playbook
+
+```json
+{
+  "status": "calm|watch|active",
+  "publishing_paused": false,
+  "spokesperson": "optional",
+  "updated_at": "optional ISO timestamp",
+  "steps": [
+    { "step_id": "cr-1", "label": "Triage the signal", "detail": "what to do", "owner": "optional", "done": false }
+  ]
+}
+```
+
+### Share of Voice
+
+```json
+{
+  "window": "7d",
+  "total_mentions": 0,
+  "entries": [{ "name": "You", "is_self": true, "mentions_7d": 0, "share": 0.0 }]
+}
+```
+
+`share` is a 0-1 fraction. Project this from monitoring data; exactly one entry should have `is_self: true`.
+
+### Operations
+
+`POST /api/operation` accepts one of: `review_draft` / `review_short` / `review_engagement` (`{ id, status, review_note? }`), `publish_post` (`{ draft_id, channel?, scheduled_for? }`), `send_reply` (`{ item_id, channel? }`), or `crisis_toggle` (`{ status?, publishing_paused?, step_id?, done? }`). It refuses to approve or publish a gate-`BLOCK`ed draft.
+
 ## Validation
 
-Run `node scripts/validate_ui_schema.mjs [path]` before relying on a snapshot in the UI. The validator enforces required fields, platform/collection/media enums, unique ids, and account references for posts and sync entries.
+Run `node scripts/validate_ui_schema.mjs [path]` before relying on a snapshot in the UI. The validator enforces required fields, platform/collection/media enums, unique ids, and account references for posts and sync entries. The publishing sections (`calendar`, `drafts`, `shorts`, `engagement`, `crisis`, `share_of_voice`) are validated only when present, including review-state and gate-verdict enums.

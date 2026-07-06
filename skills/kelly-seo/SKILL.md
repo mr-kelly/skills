@@ -1,14 +1,16 @@
 ---
 name: kelly-seo
 license: MIT
-description: Personal App-in-Skill SEO desk wired to Google Search Console for a local dashboard over search analytics and an agent-prepared SEO opportunities review queue. Use when the user invokes $kelly-seo or /kelly-seo, mentions SEO, Google Search Console, GSC, search analytics, search performance, queries, keywords, rankings, positions, impressions, clicks, CTR, striking-distance queries, title/meta rewrites, content briefs, internal links, or SEO opportunities review.
+description: Personal App-in-Skill desk covering SEO + GEO (AI-search) + brand entity — wired to Google Search Console for a local dashboard over search analytics and an agent-prepared SEO opportunities review queue, plus an AI-visibility tracker (are we cited in ChatGPT / Perplexity / Gemini / Claude / Copilot answers), a GEO content-optimization queue gated by geo-qa, and an entity / knowledge-panel readiness checklist. Use when the user invokes $kelly-seo or /kelly-seo, mentions SEO, Google Search Console, GSC, search analytics, search performance, queries, keywords, rankings, positions, impressions, clicks, CTR, striking-distance queries, title/meta rewrites, content briefs, internal links, SEO opportunities review, GEO, generative engine optimization, AI search, AI visibility, being cited by AI answer engines, ChatGPT/Perplexity/Gemini/Claude/Copilot citations, brand entity, knowledge panel, Wikidata, schema.org, or entity readiness.
 ---
 
 # Kelly SEO
 
 ## Overview
 
-Use this skill as Kelly's local SEO desk. It pulls Google Search Console search analytics (clicks, impressions, CTR, position for queries and pages across configured site properties) into one file-backed App-in-Skill dashboard, and runs an agent-prepared SEO opportunities review queue: title/meta rewrites, internal-link suggestions, new-content briefs, and page-issue fixes that the user approves, edits, or blocks.
+Use this skill as Kelly's local SEO + GEO desk. It pulls Google Search Console search analytics (clicks, impressions, CTR, position for queries and pages across configured site properties) into one file-backed App-in-Skill dashboard, and runs an agent-prepared SEO opportunities review queue: title/meta rewrites, internal-link suggestions, new-content briefs, and page-issue fixes that the user approves, edits, or blocks.
+
+It also covers the AI-search side (GEO — Generative Engine Optimization): an AI-visibility tracker showing whether AI answer engines (ChatGPT / Perplexity / Gemini / Claude / Copilot) cite the brand for a set of tracked prompts, a GEO content-optimization review queue (agent-drafted rewrites that make a page more citable, each scored by the `geo-qa` quality gate), and a brand-entity / knowledge-panel readiness checklist (Wikidata, schema.org Organization/Person, consistent NAP, sameAs links). GEO opportunities and entity signals flow through the same data-provider layer and the same five-state review model as SEO opportunities.
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local SEO snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 
@@ -17,7 +19,8 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 - The skill may read the Google Search Console API (read-only scope), normalize search analytics, prepare opportunity drafts, validate schemas, and write local handoff files.
 - GSC access is read-only. The skill never mutates Search Console properties, submits sitemaps, or requests indexing without an explicit, separately approved user request.
 - The app reads and writes local files only. It must not call the GSC API, edit site content, or mutate remote systems.
-- Site-content edits happen only through approved opportunities, executed by the agent OUTSIDE the app (editing the site's repo/CMS), and reported back to `app/.data/execution_report.json`.
+- Site-content edits happen only through approved opportunities, executed by the agent OUTSIDE the app (editing the site's repo/CMS), and reported back to `app/.data/execution_report.json`. GEO content changes follow the same rule: approved in `#/optimize`, published by the agent outside the app.
+- AI-visibility data is observational: the agent gathers whether engines cite the brand and records it into the snapshot. Never fabricate a citation, an answer position, or a stat — the `geo-qa` gate BLOCKs ungrounded claims for exactly this reason.
 - Do not commit `config.local.json`, env files, service-account keys, access tokens, or anything under `app/.data/`.
 
 ## First Run And Onboarding
@@ -72,13 +75,16 @@ Required app views:
 - `#/queries`: top queries table with clicks, impressions, CTR, position, deltas vs the previous period, and opportunity badges such as "position 8-15" or "CTR below expected". Selecting a row opens `#/queries/<id>` with a per-query trend, top pages for the query, and agent notes.
 - `#/pages`: top pages table with URL, clicks, impressions, CTR, position, deltas, and indexing/canonical warnings when present. Detail at `#/pages/<id>` shows the per-page trend and top queries for the page.
 - `#/opportunities`: review queue with workflow states `needs_review`, `changes_requested`, `approved`, `done`, and `blocked`. Each agent-proposed action (title/meta rewrite with draft, internal-link suggestion, new-content brief, fix-page issue) carries a reason, expected impact, an editable draft, decision buttons (approve / request changes / block), a `Review note` textarea, and a stable reference such as `Opportunity #1`.
+- `#/geo`: AI-visibility tracker. An engines × prompts matrix showing, for each tracked prompt, which AI answer engines (ChatGPT / Perplexity / Gemini / Claude / Copilot) cite the brand, at what answer position, with what sentiment and cited page, plus an overall AI-visibility score and a visibility-over-time trend.
+- `#/optimize`: GEO content-optimization review queue with the same `needs_review / changes_requested / approved / done / blocked` states. Each agent-proposed change (citable rewrite, quotable stats, Q&A block, schema markup) carries a target prompt, reason, expected impact, an editable draft, kb-style grounding lines, and a `geo-qa` gate verdict (SHIP / FIX / BLOCK). A change the gate BLOCKs (for example a fabricated stat) cannot be approved until the failing checks are resolved.
+- `#/entity`: entity / knowledge-panel readiness checklist of brand-entity signals (Wikidata entity, Wikipedia/notability, schema.org Organization, sameAs links, consistent NAP, founder/person entity) with a present / partial / missing status, an agent-proposed fix for each gap, and an overall readiness score.
 - `#/sites`: configured properties with property URL, verification type, last sync, and 28d totals per site. The site switcher filters overview/queries/pages.
 - `#/settings`: sanitized config only: sites, auth method plus env readiness booleans (never key contents), data provider, and onboarding state.
 
 Demo mode:
 
 - `?demo=1` opens a deterministic mock SEO desk for documentation and screenshots.
-- `?demo=overview`, `?demo=queries`, `?demo=pages`, `?demo=opportunities`, and `?demo=detail` select named mock scenes.
+- `?demo=overview`, `?demo=queries`, `?demo=pages`, `?demo=opportunities`, `?demo=geo`, `?demo=optimize`, `?demo=entity`, and `?demo=detail` select named mock scenes.
 - `lang=en` or `lang=zh` forces UI chrome language for screenshots.
 - Demo API responses must never read or write live GSC data or files under `app/.data/`. Demo decisions stay in the browser only.
 
@@ -92,6 +98,8 @@ Primary local files:
 
 - `app/.data/seo_snapshot.json`: canonical dashboard snapshot (sites, daily series, queries, pages, opportunities, metrics) generated by the skill/scripts.
 - `app/.data/decisions.json`: user verdicts and notes keyed by opportunity id.
+- `app/.data/geo_decisions.json`: user verdicts on GEO content-optimization opportunities, keyed by GEO opportunity id.
+- `app/.data/entity_signals.json`: user overrides for entity-readiness signals (status + note), keyed by signal id.
 - `app/.data/agent_tasks.json`: queued agent work — opportunities in `changes_requested` with the user's revision note.
 - `app/.data/execution_report.json`: latest execution results for approved opportunities.
 - `app/.data/onboarding.json`: onboarding completion marker.
@@ -118,6 +126,14 @@ Use `scripts/validate_ui_schema.mjs app/.data/seo_snapshot.json` before relying 
 3. Poll `app/.data/agent_tasks.json` for `changes_requested` items, revise the draft per the note, and return the item to `needs_review`.
 4. On explicit user request to execute, run `scripts/execute_decisions.mjs` (dry-run by default). It re-checks the lock and decisions and writes `execution_report.json` entries with concrete operations (`rewrite_title`, `add_internal_links`, `create_content_brief`, `fix_page_issue`) and target page/query — no external side effects.
 5. The agent then performs the approved edits in the site's repo/CMS outside the app, records real results in `execution_report.json`, and marks executed opportunities `done` in the snapshot.
+
+## GEO (AI-search) Workflow
+
+1. GEO state lives in the same `seo_snapshot.json` under `ai_visibility` (tracked prompts × engines with position + sentiment + trend), `geo_opportunities` (agent-proposed citable rewrites), and `entity_signals` (the readiness checklist). Route all reads/writes through the data-provider layer — never bypass it with raw `node:fs`.
+2. For each agent-proposed GEO change, run the `geo-qa` gate (`lib/geo-qa.ts`) over the draft. It returns SHIP / FIX / BLOCK with a GEO Quality Score and per-check notes. The primary failure is an ungrounded/fabricated stat — a number in the copy with no cited source. A BLOCK is a hard gate: the app rejects an approve (HTTP 422) until the change is fixed.
+3. Send the user to `#/optimize` to review. Approvals are written to `app/.data/geo_decisions.json`; the app writes local files only. Execution semantics: `operation: publish_geo_change, page, draft_id` — the agent publishes the approved citable content in the site's repo/CMS OUTSIDE the app, then records the real result and marks the item `done`.
+4. Entity-readiness edits from `#/entity` are written to `app/.data/entity_signals.json` with `operation: update_entity_signal`. The agent then earns the real signal (create the Wikidata item, add the sameAs links, standardize the brand name) outside the app.
+5. Never invent an AI-visibility number, a citation, or a stat. If a claim in a GEO draft is not grounded in a real source, the gate must BLOCK it — do not ship content that an AI engine would then quote verbatim.
 
 ## Safety Defaults
 

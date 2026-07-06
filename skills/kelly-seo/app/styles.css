@@ -1327,3 +1327,271 @@ code {
     min-height: 40px;
   }
 }
+
+/* GEO / AI-search */
+
+.metric-unit {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 2px;
+}
+
+/* AI-visibility matrix */
+.geo-matrix th.geo-engine-col {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.geo-matrix td.geo-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.geo-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: default;
+}
+
+.geo-dot-positive {
+  background: #ecfdf3;
+  color: var(--good);
+  border-color: #d3f3e0;
+}
+
+.geo-dot-neutral {
+  background: #eef4ff;
+  color: #3538cd;
+  border-color: #e0e7ff;
+}
+
+.geo-dot-negative {
+  background: #fff1f0;
+  color: var(--bad);
+  border-color: #fde0dd;
+}
+
+.geo-dot-absent {
+  background: var(--panel-subtle);
+  color: var(--muted-soft);
+  min-width: 24px;
+}
+
+.geo-bar-label {
+  fill: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* geo-qa quality gate */
+.gate-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.gate-SHIP {
+  background: #ecfdf3;
+  color: var(--good);
+  border-color: #d3f3e0;
+}
+
+.gate-FIX {
+  background: #fff8db;
+  color: var(--warn);
+  border-color: #f5ecc7;
+}
+
+.gate-BLOCK {
+  background: #fff1f0;
+  color: var(--bad);
+  border-color: #fde0dd;
+}
+
+.gate-panel {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: 10px;
+  background: var(--panel-subtle);
+}
+
+.gate-panel-SHIP {
+  border-left-color: var(--good);
+}
+
+.gate-panel-FIX {
+  border-left-color: var(--warn);
+}
+
+.gate-panel-BLOCK {
+  border-left-color: var(--bad);
+}
+
+.gate-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.gate-summary {
+  margin: 6px 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.gate-checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.gate-check {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.gate-check-mark {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.gate-check-pass .gate-check-mark {
+  background: #ecfdf3;
+  color: var(--good);
+}
+
+.gate-check-warn .gate-check-mark {
+  background: #fff8db;
+  color: var(--warn);
+}
+
+.gate-check-fail .gate-check-mark {
+  background: #fff1f0;
+  color: var(--bad);
+}
+
+.geo-grounding {
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.geo-grounding ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+.geo-grounding li {
+  margin: 2px 0;
+}
+
+.geo-card .opp-head {
+  flex-wrap: wrap;
+}
+
+/* Entity readiness */
+.entity-list {
+  display: grid;
+  gap: 12px;
+}
+
+.entity-card {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.entity-present {
+  border-left-color: var(--good);
+}
+
+.entity-partial {
+  border-left-color: var(--warn);
+}
+
+.entity-missing {
+  border-left-color: var(--bad);
+}
+
+.entity-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.entity-head strong {
+  font-size: 15px;
+}
+
+.entity-status {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.entity-status-present {
+  background: #ecfdf3;
+  color: var(--good);
+}
+
+.entity-status-partial {
+  background: #fff8db;
+  color: var(--warn);
+}
+
+.entity-status-missing {
+  background: #fff1f0;
+  color: var(--bad);
+}
+
+.entity-detail {
+  margin: 8px 0 4px;
+}
+
+.entity-fix {
+  margin: 4px 0 10px;
+  font-size: 13px;
+}
+
+.entity-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

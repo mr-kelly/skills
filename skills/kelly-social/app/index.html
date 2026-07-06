@@ -23,13 +23,21 @@
         <section class="human-work" aria-labelledby="humanWorkTitle">
           <div class="human-work-eyebrow" data-i18n="attention">Need attention</div>
           <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">What needs your attention</div>
-          <a class="human-work-primary" href="#/accounts" data-route="accounts">
+          <a class="human-work-primary" href="#/compose" data-route="compose">
             <span>
-              <strong id="count-stale">0</strong>
-              <span data-i18n="needCollection">need fresh collection</span>
+              <strong id="count-review">0</strong>
+              <span data-i18n="needsReviewCount">need review</span>
             </span>
           </a>
           <div class="human-work-secondary">
+            <a href="#/accounts" data-route="accounts">
+              <strong id="count-stale">0</strong>
+              <span data-i18n="needCollection">need fresh collection</span>
+            </a>
+            <a href="#/engagement" data-route="engagement">
+              <strong id="count-engagement">0</strong>
+              <span data-i18n="engagement">Engagement</span>
+            </a>
             <a href="#/timeline" data-route="timeline">
               <strong id="count-posts">0</strong>
               <span data-i18n="postsTracked">posts tracked</span>
@@ -42,6 +50,13 @@
         </section>
         <div class="sidebar-separator"></div>
         <nav class="filters" aria-label="Main">
+          <div class="nav-group-label" data-i18n="publishingDesk">Publishing desk</div>
+          <a href="#/calendar" data-route="calendar" data-i18n="calendar">Calendar</a>
+          <a href="#/compose" data-route="compose" data-i18n="compose">Compose</a>
+          <a href="#/shorts" data-route="shorts" data-i18n="shorts">Shorts</a>
+          <a href="#/engagement" data-route="engagement" data-i18n="engagement">Engagement</a>
+          <a href="#/crisis" data-route="crisis" data-i18n="crisis">Crisis</a>
+          <div class="nav-group-label" data-i18n="attention">Need attention</div>
           <a href="#/overview" data-route="overview" data-i18n="overview">Overview</a>
           <a href="#/timeline" data-route="timeline" data-i18n="timeline">Timeline</a>
           <a href="#/accounts" data-route="accounts" data-i18n="accounts">Accounts</a>

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const snapshotPath = process.argv[2] || path.join(skillDir, "app", ".data", "launch_snapshot.json");
-const decisionsPath = process.argv[3] || path.join(skillDir, "app", ".data", "decisions.json");
+// When run with explicit file arguments this validates those files directly;
+// otherwise it validates whatever the configured data-provider currently serves.
+const snapshotArg = process.argv[2] || "";
+const decisionsArg = process.argv[3] || "";
 
 const PHASES = new Set(["research", "assemble", "mobilize", "prove"]);
 const STATUSES = new Set(["needs_review", "changes_requested", "approved", "done", "blocked"]);
@@ -43,7 +43,11 @@ async function readJson(file: string) {
   }
 }
 
-const snapshot = await readJson(snapshotPath);
+const provider = snapshotArg && decisionsArg ? null : await createProvider();
+const snapshotLabel = snapshotArg || `${provider?.kind} provider snapshot`;
+const decisionsLabel = decisionsArg || `${provider?.kind} provider decisions`;
+
+const snapshot = snapshotArg ? await readJson(snapshotArg) : ((await provider?.readSnapshot()) ?? null);
 
 if (!isObject(snapshot)) fail("root must be an object");
 requireString(snapshot, "schema_version", "root");
@@ -102,14 +106,17 @@ snapshot.runbook.forEach((step, index) => {
   stepIds.add(step.step_id);
 });
 
-console.log(`OK: ${snapshotPath}`);
+console.log(`OK: ${snapshotLabel}`);
 
-const decisionsExists = await fs.access(decisionsPath).then(
-  () => true,
-  () => false,
-);
-if (decisionsExists) {
-  const decisions = await readJson(decisionsPath);
+const decisions = decisionsArg
+  ? (await fs.access(decisionsArg).then(
+      () => true,
+      () => false,
+    ))
+    ? await readJson(decisionsArg)
+    : null
+  : await provider?.readDecisions();
+if (decisions) {
   if (!isObject(decisions)) fail("decisions root must be an object");
   const decisionMap = (decisions as Record<string, unknown>).decisions;
   if (!isObject(decisionMap)) fail("decisions.decisions must be an object");
@@ -124,5 +131,5 @@ if (decisionsExists) {
       console.warn(`Warning: ${at} does not match an item in the snapshot`);
     }
   }
-  console.log(`OK: ${decisionsPath}`);
+  console.log(`OK: ${decisionsLabel}`);
 }
