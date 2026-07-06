@@ -18,6 +18,27 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 Collection is agent-driven: browser automation skills in the agent session, web search, or manual payloads. The app itself only renders local snapshot files and never touches any network beyond `127.0.0.1`.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Radar overview"></td>
+    <td width="50%"><img src="assets/screenshots/research.png" alt="Kelly Radar research desk"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Market-intelligence desk with signals to triage, watchlist freshness, top trend movers, and the research pipeline.</td>
+    <td><strong>Research desk</strong><br>Research questions moving through brief approval, deep research, and cited report review.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/signals.png" alt="Kelly Radar competitor signals"></td>
+    <td width="50%"><img src="assets/screenshots/trends.png" alt="Kelly Radar trends"></td>
+  </tr>
+  <tr>
+    <td><strong>Signals</strong><br>Competitor pricing, changelog, launch, review, and hiring signals with severity badges and Act/Watch/Ignore triage.</td>
+    <td><strong>Trends</strong><br>Rising keywords and community topics with momentum sparklines and opportunity cards for content or roadmap handoff.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - Collection is read-only over public pages and Kelly's own analytics. Respect robots.txt and site terms of service, throttle politely, and never scrape private, gated, or personal data.

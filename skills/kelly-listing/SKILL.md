@@ -12,6 +12,27 @@ Use this skill as the cross-border seller's listing operator (上架工作台). 
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or ingest the listing snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present numbered drafts (`Draft #1`) and take verdicts in conversation.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Listing overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly Listing review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Listing command desk with product × platform status matrix, compliance pass rate, and export readiness.</td>
+    <td><strong>Review queue</strong><br>Draft submissions with compliance summaries and keyword-strategy notes for approval before export or publish.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/checks.png" alt="Kelly Listing compliance checks"></td>
+    <td width="50%"><img src="assets/screenshots/drafts.png" alt="Kelly Listing draft workbench"></td>
+  </tr>
+  <tr>
+    <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results — banned words, character caps, bullet counts — across all drafts.</td>
+    <td><strong>Draft workbench</strong><br>Amazon draft with live title character count, five bullets, backend search terms byte counter, A+ outline, and locale tabs.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The skill may read product source material and kelly-picks briefs, draft listing copy, run deterministic checks, and write local handoff files. Drafting and checking are entirely local.

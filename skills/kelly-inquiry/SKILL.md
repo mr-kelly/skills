@@ -12,6 +12,27 @@ Use this skill as Kelly's inbound-inquiry reception desk for foreign-trade sales
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local inquiry snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Inquiry overview"></td>
+    <td width="50%"><img src="assets/screenshots/approvals.png" alt="Kelly Inquiry approvals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Inquiry command desk with reply SLA counters, weekly channel mix, pipeline funnel, and stale-deal alerts.</td>
+    <td><strong>Approvals</strong><br>Approval-gated outbox for replies and quotes — nothing is sent until reviewed.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/inquiries.png" alt="Kelly Inquiry pipeline"></td>
+    <td width="50%"><img src="assets/screenshots/quotes.png" alt="Kelly Inquiry quotes"></td>
+  </tr>
+  <tr>
+    <td><strong>Pipeline</strong><br>Inquiries across WhatsApp, Instagram, and email with country, stage, value estimate, and next follow-up.</td>
+    <td><strong>Quotes</strong><br>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The app reads and writes local files only and never touches any network beyond `127.0.0.1`. It cannot send anything: the composer queues drafts, the approvals view records verdicts.

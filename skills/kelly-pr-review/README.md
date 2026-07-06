@@ -11,6 +11,36 @@ It uses the GitHub CLI for real GitHub access, but the browser UI is file-only:
 
 Live execution is intentionally separate from UI clicks. The default `npm run execute` is dry-run; use `npm run execute:live` only after reviewing the report.
 
+
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly PR Review overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly PR Review needs review"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Pull request review desk with repository filters, status counts, and reviewer configuration.</td>
+    <td><strong>Needs review</strong><br>Mock pull request review with findings, confidence signals, test notes, and suggested actions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/ready.png" alt="Kelly PR Review ready to approve"></td>
+    <td width="50%"><img src="assets/screenshots/blocked-security.png" alt="Kelly PR Review blocked review"></td>
+  </tr>
+  <tr>
+    <td><strong>Ready to approve</strong><br>Approval-focused review where checks pass and the final recommendation is ready to send.</td>
+    <td><strong>Blocked review</strong><br>Security-sensitive PR scenario with unresolved risk, blocking rationale, and reviewer handoff details.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/needs-test.png" alt="Kelly PR Review merged PR needs test"></td>
+    <td width="50%"><img src="assets/screenshots/tested.png" alt="Kelly PR Review tested verification"></td>
+  </tr>
+  <tr>
+    <td><strong>Needs test</strong><br>Merged pull request waiting for human verification with a required test note or screenshot evidence.</td>
+    <td><strong>Tested</strong><br>Post-merge verification record showing the local test note that proves a human checked the change.</td>
+  </tr>
+</table>
+
 ## Setup
 
 ```bash

@@ -11,6 +11,27 @@ Kelly Standup is a local App-in-Skill standup board for team leads: see at a gla
 - History: recent days with inline-SVG participation bars and digest one-liners; selecting a date shows that day's full board.
 - Help & Settings: sanitized team profile, members with contact-env readiness, standup questions, and workdays.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Standup today board"></td>
+    <td width="50%"><img src="assets/screenshots/blockers.png" alt="Kelly Standup blockers"></td>
+  </tr>
+  <tr>
+    <td><strong>Today board</strong><br>Daily standup at a glance: team digest, participation count, and per-member yesterday/today/blockers cards with source badges.</td>
+    <td><strong>Blockers</strong><br>All blockers across the team with severity, age, and agent-suggested next actions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/members.png" alt="Kelly Standup members"></td>
+    <td width="50%"><img src="assets/screenshots/reminders.png" alt="Kelly Standup reminders"></td>
+  </tr>
+  <tr>
+    <td><strong>Members</strong><br>Team roster with check-in streaks, 30-day participation, open blockers, and per-member update timelines.</td>
+    <td><strong>Reminders</strong><br>Approval-gated nudges for missing check-ins — drafted by the agent, sent only after review.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene ("Nimbus team", an 8-person product team with 10 workdays of history):

@@ -6,6 +6,27 @@ description: Repurpose source content into channel-ready drafts with a local rev
 
 # Kelly Content
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Writer todo queue"></td>
+    <td width="50%"><img src="assets/screenshots/topics.png" alt="Kelly Writer topic discovery"></td>
+  </tr>
+  <tr>
+    <td><strong>Todo queue</strong><br>Confirmed content directions queued for AI writing, with ownership, status, and next-step controls.</td>
+    <td><strong>Topic discovery</strong><br>Mock editorial planning with keyword clusters, audience fit, and topic opportunities.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/main.png" alt="Kelly Writer main draft"></td>
+    <td width="50%"><img src="assets/screenshots/distribution.png" alt="Kelly Writer distribution review"></td>
+  </tr>
+  <tr>
+    <td><strong>Main draft</strong><br>Long-form writing workspace with outline, draft sections, source notes, and approval status.</td>
+    <td><strong>Distribution review</strong><br>Channel handoff view for publishing, social snippets, newsletter framing, and final checks.</td>
+  </tr>
+</table>
+
 ## Overview
 
 Use this skill to turn one source idea, blog post, transcript, outline, or product announcement into an editable multi-channel content batch. Default to a local App-in-Skill review UI for batches; use chat-only mode when the user says "chat only", "no UI", "纯聊天", "不要打开 UI", or similar.

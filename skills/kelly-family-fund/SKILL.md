@@ -12,6 +12,27 @@ Use this skill as a family's local pooled-pension / elder-care fund ledger (家�
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local ledger snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Family Fund overview"></td>
+    <td width="50%"><img src="assets/screenshots/ledger.png" alt="Kelly Family Fund ledger"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Fund balance, this-month income / expense / net, care and family totals, an expense-by-category donut, running-balance trend, and read-only insights.</td>
+    <td><strong>Ledger</strong><br>Unified income and expense timeline by month, each entry tagged with its category and the sibling family it benefits.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/category.png" alt="Kelly Family Fund by category"></td>
+    <td width="50%"><img src="assets/screenshots/family.png" alt="Kelly Family Fund fairness by family"></td>
+  </tr>
+  <tr>
+    <td><strong>By category</strong><br>Spending across care, transport, meals, gifts, and gifts of obligation, with the care-versus-family split.</td>
+    <td><strong>By family (fairness)</strong><br>Each sibling family's cumulative benefit, share, and deviation from the average — care excluded, shared costs split equally — so anyone can confirm it is balanced.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The skill may read a ledger CSV, normalize it, validate schemas, and write local snapshot files.

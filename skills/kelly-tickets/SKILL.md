@@ -12,6 +12,27 @@ Use this skill as Kelly's complaint triage-and-dispatch desk. Complaints and req
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or ingest the local snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; then present numbered proposals (`Dispatch #1`) directly in the conversation.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Tickets overview"></td>
+    <td width="50%"><img src="assets/screenshots/board.png" alt="Kelly Tickets board"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Dispatch command desk with SLA risk, weekly intake by channel, category distribution, and crew load.</td>
+    <td><strong>Board</strong><br>Tickets tracked across open, assigned, in-progress, waiting, and resolved with SLA indicators and history timelines.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/dispatch.png" alt="Kelly Tickets dispatch queue"></td>
+    <td width="50%"><img src="assets/screenshots/intake.png" alt="Kelly Tickets intake"></td>
+  </tr>
+  <tr>
+    <td><strong>Dispatch queue</strong><br>Agent-proposed crew assignments with priority, SLA target, reasoning, and an editable note to the crew.</td>
+    <td><strong>Intake</strong><br>Raw complaints from WeChat, phone, forms, and email with classification fields and convert-to-ticket controls.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The skill may parse channel exports locally, classify complaints, compute SLA targets, write local handoff files, and prepare crew notification drafts.
