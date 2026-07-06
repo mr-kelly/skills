@@ -10,6 +10,27 @@ Kelly Creators is a local App-in-Skill command desk for influencer / creator mar
 - ROI: per-creator spend, estimated value, CPM, and ROI.
 - The app never sends anything. Approved outreach, briefs, and contracts are executed by the skill through other channels (for example instagram-outreach or kelly-email) only after explicit approval.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Creators overview"></td>
+    <td width="50%"><img src="assets/screenshots/creators.png" alt="Kelly Creators candidates"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Pipeline funnel across the four phases, budget allocation, total reach, and the top fit-scored candidates.</td>
+    <td><strong>Creators</strong><br>Sortable candidate cards with C³ ACE fit scores, platform, niche, and audience size.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/outreach.png" alt="Kelly Creators outreach queue"></td>
+    <td width="50%"><img src="assets/screenshots/roi.png" alt="Kelly Creators ROI board"></td>
+  </tr>
+  <tr>
+    <td><strong>Outreach</strong><br>Needs-review approval queue with editable outreach drafts and the FTC/claim disclosure gate.</td>
+    <td><strong>ROI</strong><br>Per-creator spend, estimated value, CPM, and return once a partnership goes live.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:

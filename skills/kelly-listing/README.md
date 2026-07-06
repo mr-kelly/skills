@@ -11,6 +11,27 @@ Kelly Listing is a local App-in-Skill listing factory (上架工作台) for a cr
 - Review: the queue with approve / request changes / block decisions, compliance summaries, the agent's keyword-strategy notes, and stable refs (`Draft #1`).
 - Settings: sanitized seller profile, platform rule sets, locales, banned-word counts, and export preferences.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Listing overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly Listing review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Listing command desk with product × platform status matrix, compliance pass rate, and export readiness.</td>
+    <td><strong>Review queue</strong><br>Draft submissions with compliance summaries and keyword-strategy notes for approval before export or publish.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/checks.png" alt="Kelly Listing compliance checks"></td>
+    <td width="50%"><img src="assets/screenshots/drafts.png" alt="Kelly Listing draft workbench"></td>
+  </tr>
+  <tr>
+    <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results — banned words, character caps, bullet counts — across all drafts.</td>
+    <td><strong>Draft workbench</strong><br>Amazon draft with live title character count, five bullets, backend search terms byte counter, A+ outline, and locale tabs.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:

@@ -14,6 +14,27 @@ There is deliberately **no scheduling or cron inside this skill**. It is invoked
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, collect and ingest the latest updates, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; then present the board as text and reminders as numbered items (`Reminder #1`) directly in the conversation.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Standup today board"></td>
+    <td width="50%"><img src="assets/screenshots/blockers.png" alt="Kelly Standup blockers"></td>
+  </tr>
+  <tr>
+    <td><strong>Today board</strong><br>Daily standup at a glance: team digest, participation count, and per-member yesterday/today/blockers cards with source badges.</td>
+    <td><strong>Blockers</strong><br>All blockers across the team with severity, age, and agent-suggested next actions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/members.png" alt="Kelly Standup members"></td>
+    <td width="50%"><img src="assets/screenshots/reminders.png" alt="Kelly Standup reminders"></td>
+  </tr>
+  <tr>
+    <td><strong>Members</strong><br>Team roster with check-in streaks, 30-day participation, open blockers, and per-member update timelines.</td>
+    <td><strong>Reminders</strong><br>Approval-gated nudges for missing check-ins — drafted by the agent, sent only after review.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The skill may read team-consented channels only (kelly-messenger snapshots, chat exports the user provides, shared docs, pasted text), parse them locally, write local handoff files, and draft digests and reminders.

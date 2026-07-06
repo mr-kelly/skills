@@ -14,6 +14,27 @@ This is different from kelly-money, which watches Kelly's own provider accounts:
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local audit snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Audit overview"></td>
+    <td width="50%"><img src="assets/screenshots/anomalies.png" alt="Kelly Audit anomaly queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Finance audit desk with amount at risk, receivable aging bar, anomaly queue preview, and import history.</td>
+    <td><strong>Anomaly queue</strong><br>Rule-flagged anomalies with the order-invoice-payment evidence chain and a drafted chasing email for approval.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/invoices.png" alt="Kelly Audit invoices"></td>
+    <td width="50%"><img src="assets/screenshots/orders.png" alt="Kelly Audit orders"></td>
+  </tr>
+  <tr>
+    <td><strong>Invoices</strong><br>Invoice ledger with due dates, paid amounts, days overdue, and match status.</td>
+    <td><strong>Orders</strong><br>Normalized orders with invoice and payment status badges and linked anomaly indicators.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - Imports are local files only: the skill reads CSV/JSON exports the user provides, normalizes them, runs checks, and writes local handoff files. It never fetches business documents from remote systems on its own.

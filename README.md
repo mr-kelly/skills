@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-33 skills, including 30 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+34 skills, including 31 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-33-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-34-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -17,16 +17,16 @@
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-money-ui.png" alt="kelly-money — money ledger dashboard"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-finance-ui.svg" alt="kelly-finance — three-statement model builder"></td>
+    <td width="50%"><img src="skills/kelly-money/assets/screenshots/overview.png" alt="kelly-money — money ledger dashboard"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="kelly-finance — three-statement model builder"></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-finance-checks.svg" alt="kelly-finance — model audit checks"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-crm-ui.png" alt="kelly-crm — pipeline command desk"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="kelly-finance — model audit checks"></td>
+    <td width="50%"><img src="skills/kelly-crm/assets/screenshots/overview.png" alt="kelly-crm — pipeline command desk"></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-drama-ui.png" alt="kelly-drama — short-drama workbench"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-email-ui.png" alt="kelly-email — inbox approval desk"></td>
+    <td width="50%"><img src="skills/kelly-drama/assets/screenshots/overview.png" alt="kelly-drama — short-drama workbench"></td>
+    <td width="50%"><img src="skills/kelly-email/assets/screenshots/overview.png" alt="kelly-email — inbox approval desk"></td>
   </tr>
 </table>
 
@@ -87,7 +87,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | Skill | What It Does | When To Use It | Details |
 | --- | --- | --- | --- |
 | `agent-rules` | Keeps rules and skills for Codex, Claude Code, Copilot, Kiro, Cursor, and Gemini aligned from one source of truth. It creates and verifies symlinks so agents share `AGENTS.md` and `.agents/skills/`. | Use it when setting up a repo for multiple coding agents, checking agent rule drift, or fixing broken skill/rule symlinks. | [View ↗](https://mr-kelly.github.io/skills/s/agent-rules.html) |
-| `app-in-skill-creator` | Documents and scaffolds the App-in-Skill pattern: a skill bundled with a small local review UI, local handoff files, locks, scripts, and safe approval boundaries. | Use it when building a skill that needs a browser-based review queue, approval desk, dashboard, or lightweight local workflow. | [View ↗](https://mr-kelly.github.io/skills/s/app-in-skill-creator.html) |
+| `app-in-skill-creator` | Documents and scaffolds the App-in-Skill pattern: local review UI, handoff files, locks, scripts, safe approval boundaries, and optional skill-local screenshots under `assets/screenshots/` only when screenshots are requested or already exist. | Use it when building a skill that needs a browser-based review queue, approval desk, dashboard, or lightweight local workflow. | [View ↗](https://mr-kelly.github.io/skills/s/app-in-skill-creator.html) |
 | `publish-skills` | Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with `gh skill`, cuts a release, wires the Claude `/plugin` and Codex marketplaces, and preps the MCP Registry and curated stores. | Use it when publishing, releasing, or listing skills, plugins, or MCP servers to skills.sh, Claude Code, Codex, or the MCP Registry. | [View ↗](https://mr-kelly.github.io/skills/s/publish-skills.html) |
 | `kelly-email` | Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution. | Use it when processing unread email, drafting support replies, archiving or marking messages read after approval, or managing email through an App-in-Skill UI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-email.html) |
 | `kelly-finance` | Builds and audits finance three-statement models, operating forecasts, budgets, cash runway models, SaaS/unit-economics packs, and Excel-ready finance outputs. | Use it when making 财务三表, investor projections, board finance packs, scenario cases, balance-sheet checks, working-capital schedules, capex/debt schedules, or repairing broken model links. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html) |
@@ -109,6 +109,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html) |
 | `kelly-picks` | Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read. | Use it when hunting products to sell, pressure-testing margins before committing, or running develop/watch/drop decisions with sourcing and listing briefs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-picks.html) |
 | `kelly-listing` | Listing factory: drafts platform-specific listings (Amazon title/bullets/description/backend terms/A+, Shopify, TikTok Shop, eBay) with locale variants, runs per-platform compliance checks, and exports approved copy. | Use it when writing or localizing marketplace listings, enforcing banned-word and character-limit rules, or batch-reviewing listing drafts before upload. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-listing.html) |
+| `kelly-legal-contracts` | Legal-contract review desk for NDAs, MSAs, DPAs, and SOWs: the agent prepares clause issues, fallback language, playbook checks, and issue-list exports; legal reviews and approves in a local UI. | Use it when reviewing contracts, triaging clause risk, maintaining fallback playbooks, approving redline positions, or exporting legal issue lists without sending anything automatically. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-legal-contracts.html) |
 | `kelly-ads` | Ad-campaign command desk aggregating Amazon, Meta, TikTok, and Google ads into one board with ACOS/ROAS tracking, deterministic anomaly detection, and approval-gated adjustment cards (negative keywords, bids, budgets). | Use it when reviewing ad spend across platforms, catching zero-conversion spend and budget burnouts, or approving bid and keyword adjustments with evidence. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ads.html) |
 | `kelly-standup` | Team standup board: the agent collects members' daily check-ins from chat channels on demand, structures them into yesterday/today/blockers cards with a team digest, and drafts approval-gated nudges for missing check-ins. | Use it when running daily standups asynchronously, seeing what everyone is working on at a glance, or tracking blockers and participation across the team. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html) |
 | `kelly-writer` | Repurposes one source idea, article, transcript, outline, or announcement into channel-ready drafts for platforms like Xiaohongshu, WeChat, newsletters, LinkedIn, X/Twitter, short video, and SEO snippets. | Use it when turning long-form source material into a multi-platform content pack with local review, edits, approvals, and export. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-writer.html) |
@@ -135,16 +136,16 @@ The common pattern is a local command desk: demo-safe data, status filters, deta
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-email-ui.png" alt="Kelly Email overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-email-all.png" alt="Kelly Email inbox approval desk"></td>
+    <td width="50%"><img src="skills/kelly-email/assets/screenshots/overview.png" alt="Kelly Email overview"></td>
+    <td width="50%"><img src="skills/kelly-email/assets/screenshots/inbox-approval.png" alt="Kelly Email inbox approval desk"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Inbox-zero command desk with account context, queue metrics, and review workflow controls.</td>
     <td><strong>Inbox approval desk</strong><br>Mock inbox queue with approvals, sender context, reply drafts, and status filters.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-email-review.png" alt="Kelly Email needs review"></td>
-    <td><img src="docs/screenshots/kelly-email-blocked.png" alt="Kelly Email blocked security request"></td>
+    <td width="50%"><img src="skills/kelly-email/assets/screenshots/needs-review.png" alt="Kelly Email needs review"></td>
+    <td width="50%"><img src="skills/kelly-email/assets/screenshots/blocked-security.png" alt="Kelly Email blocked security request"></td>
   </tr>
   <tr>
     <td><strong>Needs review</strong><br>Human-in-the-loop review scene for a partnership reply that needs tone and timing judgment.</td>
@@ -158,23 +159,23 @@ Kelly Money is a local finance dashboard for seeing money movement across Mercur
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-money-ui.png" alt="Kelly Money overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-money-ledger.png" alt="Kelly Money total ledger"></td>
+    <td width="50%"><img src="skills/kelly-money/assets/screenshots/overview.png" alt="Kelly Money overview"></td>
+    <td width="50%"><img src="skills/kelly-money/assets/screenshots/ledger.png" alt="Kelly Money total ledger"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Money command desk with account health, recent movement, and top-level inflow, outflow, fees, and net totals.</td>
     <td><strong>Total ledger</strong><br>Normalized cashflow table across providers, accounts, transaction types, fees, statuses, and signed net movement.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-money-accounts.png" alt="Kelly Money accounts"></td>
-    <td><img src="docs/screenshots/kelly-money-invoices.png" alt="Kelly Money invoice matching"></td>
+    <td><img src="skills/kelly-money/assets/screenshots/accounts.png" alt="Kelly Money accounts"></td>
+    <td><img src="skills/kelly-money/assets/screenshots/invoices.png" alt="Kelly Money invoice matching"></td>
   </tr>
   <tr>
     <td><strong>Accounts</strong><br>Provider account inventory with balances, currency, sync status, inflow, fees, and net movement per account.</td>
     <td><strong>Invoice matching</strong><br>Invoice-to-transaction reconciliation with matched items, missing invoices, amount mismatches, and review status.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-money-detail.png" alt="Kelly Money invoice exception detail"></td>
+    <td><img src="skills/kelly-money/assets/screenshots/detail.png" alt="Kelly Money invoice exception detail"></td>
     <td></td>
   </tr>
   <tr>
@@ -189,8 +190,8 @@ Kelly Finance is a local finance-model review desk. It creates and audits three-
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-finance-ui.svg" alt="Kelly Finance model builder"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-finance-checks.svg" alt="Kelly Finance model checks"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="Kelly Finance model builder"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="Kelly Finance model checks"></td>
   </tr>
   <tr>
     <td><strong>Three-statement builder</strong><br>Workbook preview with assumptions, income statement, balance sheet, cash flow, and model checks for a clean forecast.</td>
@@ -204,16 +205,16 @@ Kelly Invest (Webull) is a local read-only portfolio dashboard over a personal W
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-invest-webull-ui.png" alt="Kelly Invest overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-invest-webull-positions.png" alt="Kelly Invest positions"></td>
+    <td width="50%"><img src="skills/kelly-invest-webull/assets/screenshots/overview.png" alt="Kelly Invest overview"></td>
+    <td width="50%"><img src="skills/kelly-invest-webull/assets/screenshots/positions.png" alt="Kelly Invest positions"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Portfolio command desk with market value, unrealized P/L, day change, cash, an allocation-by-asset-type donut, and top day movers.</td>
     <td><strong>Positions</strong><br>Sortable holdings table across symbol, asset type, quantity, average cost, last price, market value, unrealized P/L, and portfolio weight.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-invest-webull-accounts.png" alt="Kelly Invest accounts"></td>
-    <td><img src="docs/screenshots/kelly-invest-webull-detail.png" alt="Kelly Invest position detail"></td>
+    <td><img src="skills/kelly-invest-webull/assets/screenshots/accounts.png" alt="Kelly Invest accounts"></td>
+    <td><img src="skills/kelly-invest-webull/assets/screenshots/detail.png" alt="Kelly Invest position detail"></td>
   </tr>
   <tr>
     <td><strong>Accounts</strong><br>Per-account view (cash and margin) with net liquidation, total cash, buying power, and the positions held in each account.</td>
@@ -227,23 +228,23 @@ Kelly Family Office consolidates the holdings of multiple entities and members �
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-family-office-ui.png" alt="Kelly Family Office overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-family-office-entities.png" alt="Kelly Family Office by entity"></td>
+    <td width="50%"><img src="skills/kelly-family-office/assets/screenshots/overview.png" alt="Kelly Family Office overview"></td>
+    <td width="50%"><img src="skills/kelly-family-office/assets/screenshots/entities.png" alt="Kelly Family Office by entity"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Consolidated command desk with total AUM in the base currency, unrealized P/L, entity and account counts, and headline allocation.</td>
     <td><strong>By entity / member</strong><br>Each family entity (individual, trust, company) with its consolidated AUM, portfolio weight, and unrealized P/L.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-family-office-assets.png" alt="Kelly Family Office by asset class"></td>
-    <td><img src="docs/screenshots/kelly-family-office-institutions.png" alt="Kelly Family Office by institution"></td>
+    <td><img src="skills/kelly-family-office/assets/screenshots/assets.png" alt="Kelly Family Office by asset class"></td>
+    <td><img src="skills/kelly-family-office/assets/screenshots/institutions.png" alt="Kelly Family Office by institution"></td>
   </tr>
   <tr>
     <td><strong>By asset class</strong><br>Allocation across equity, bond, cash, crypto, real estate, private equity, and alternatives, with a donut, weighted bars, and a value table.</td>
     <td><strong>By account / institution</strong><br>Consolidation by custodian and institution to see where assets are held and concentration across banks and brokers.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-family-office-performance.png" alt="Kelly Family Office performance"></td>
+    <td><img src="skills/kelly-family-office/assets/screenshots/performance.png" alt="Kelly Family Office performance"></td>
     <td></td>
   </tr>
   <tr>
@@ -258,16 +259,16 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-family-fund-ui.png" alt="Kelly Family Fund overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-family-fund-ledger.png" alt="Kelly Family Fund ledger"></td>
+    <td width="50%"><img src="skills/kelly-family-fund/assets/screenshots/overview.png" alt="Kelly Family Fund overview"></td>
+    <td width="50%"><img src="skills/kelly-family-fund/assets/screenshots/ledger.png" alt="Kelly Family Fund ledger"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Fund balance, this-month income / expense / net, care and family totals, an expense-by-category donut, running-balance trend, and read-only insights.</td>
     <td><strong>Ledger</strong><br>Unified income and expense timeline by month, each entry tagged with its category and the sibling family it benefits.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-family-fund-family.png" alt="Kelly Family Fund fairness by family"></td>
-    <td><img src="docs/screenshots/kelly-family-fund-category.png" alt="Kelly Family Fund by category"></td>
+    <td><img src="skills/kelly-family-fund/assets/screenshots/family.png" alt="Kelly Family Fund fairness by family"></td>
+    <td><img src="skills/kelly-family-fund/assets/screenshots/category.png" alt="Kelly Family Fund by category"></td>
   </tr>
   <tr>
     <td><strong>By family (fairness)</strong><br>Each sibling family's cumulative benefit, share, and deviation from the average — care excluded, shared costs split equally — so anyone can confirm it is balanced.</td>
@@ -279,16 +280,16 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-content-ui.png" alt="Kelly Writer todo queue"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-content-topics.png" alt="Kelly Writer topic discovery"></td>
+    <td width="50%"><img src="skills/kelly-content/assets/screenshots/overview.png" alt="Kelly Writer todo queue"></td>
+    <td width="50%"><img src="skills/kelly-content/assets/screenshots/topics.png" alt="Kelly Writer topic discovery"></td>
   </tr>
   <tr>
     <td><strong>Todo queue</strong><br>Confirmed content directions queued for AI writing, with ownership, status, and next-step controls.</td>
     <td><strong>Topic discovery</strong><br>Mock editorial planning with keyword clusters, audience fit, and topic opportunities.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-content-main.png" alt="Kelly Writer main draft"></td>
-    <td><img src="docs/screenshots/kelly-content-distribution.png" alt="Kelly Writer distribution review"></td>
+    <td width="50%"><img src="skills/kelly-content/assets/screenshots/main.png" alt="Kelly Writer main draft"></td>
+    <td width="50%"><img src="skills/kelly-content/assets/screenshots/distribution.png" alt="Kelly Writer distribution review"></td>
   </tr>
   <tr>
     <td><strong>Main draft</strong><br>Long-form writing workspace with outline, draft sections, source notes, and approval status.</td>
@@ -300,24 +301,24 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-pr-review-ui.png" alt="Kelly PR Review overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-pr-review-review.png" alt="Kelly PR Review needs review"></td>
+    <td width="50%"><img src="skills/kelly-pr-review/assets/screenshots/overview.png" alt="Kelly PR Review overview"></td>
+    <td width="50%"><img src="skills/kelly-pr-review/assets/screenshots/needs-review.png" alt="Kelly PR Review needs review"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Pull request review desk with repository filters, status counts, and reviewer configuration.</td>
     <td><strong>Needs review</strong><br>Mock pull request review with findings, confidence signals, test notes, and suggested actions.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-pr-review-ready.png" alt="Kelly PR Review ready to approve"></td>
-    <td><img src="docs/screenshots/kelly-pr-review-blocked.png" alt="Kelly PR Review blocked review"></td>
+    <td width="50%"><img src="skills/kelly-pr-review/assets/screenshots/ready.png" alt="Kelly PR Review ready to approve"></td>
+    <td width="50%"><img src="skills/kelly-pr-review/assets/screenshots/blocked-security.png" alt="Kelly PR Review blocked review"></td>
   </tr>
   <tr>
     <td><strong>Ready to approve</strong><br>Approval-focused review where checks pass and the final recommendation is ready to send.</td>
     <td><strong>Blocked review</strong><br>Security-sensitive PR scenario with unresolved risk, blocking rationale, and reviewer handoff details.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-pr-review-needs-test.png" alt="Kelly PR Review merged PR needs test"></td>
-    <td><img src="docs/screenshots/kelly-pr-review-tested.png" alt="Kelly PR Review tested verification"></td>
+    <td width="50%"><img src="skills/kelly-pr-review/assets/screenshots/needs-test.png" alt="Kelly PR Review merged PR needs test"></td>
+    <td width="50%"><img src="skills/kelly-pr-review/assets/screenshots/tested.png" alt="Kelly PR Review tested verification"></td>
   </tr>
   <tr>
     <td><strong>Needs test</strong><br>Merged pull request waiting for human verification with a required test note or screenshot evidence.</td>
@@ -329,16 +330,16 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-drama-ui.png" alt="Kelly Drama overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-drama-episodes.png" alt="Kelly Drama episode table"></td>
+    <td width="50%"><img src="skills/kelly-drama/assets/screenshots/overview.png" alt="Kelly Drama overview"></td>
+    <td width="50%"><img src="skills/kelly-drama/assets/screenshots/episodes.png" alt="Kelly Drama episode table"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Series workbench with health dashboard, execution timeline, stats, and settings for series parameters.</td>
     <td><strong>Episode table</strong><br>Episode list with script and storyboard status, shot readiness indicators, and per-episode detail pane.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-drama-characters.png" alt="Kelly Drama character library"></td>
-    <td><img src="docs/screenshots/kelly-drama-relationships.png" alt="Kelly Drama relationship map"></td>
+    <td width="50%"><img src="skills/kelly-drama/assets/screenshots/characters.png" alt="Kelly Drama character library"></td>
+    <td width="50%"><img src="skills/kelly-drama/assets/screenshots/relationships.png" alt="Kelly Drama relationship map"></td>
   </tr>
   <tr>
     <td><strong>Character library</strong><br>Character list with three-view image status, actor settings, wardrobe, and voice preview controls.</td>
@@ -350,16 +351,16 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-mv-ui.png" alt="Kelly MV concept view"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-mv-storyboard.png" alt="Kelly MV storyboard"></td>
+    <td width="50%"><img src="skills/kelly-mv/assets/screenshots/overview.png" alt="Kelly MV concept view"></td>
+    <td width="50%"><img src="skills/kelly-mv/assets/screenshots/storyboard.png" alt="Kelly MV storyboard"></td>
   </tr>
   <tr>
     <td><strong>Concept</strong><br>MV concept workbench with project checklist, next-step guidance, concept form, and how-to walkthrough.</td>
     <td><strong>Storyboard</strong><br>Shot list with duration, image status, and a detail pane for description, image generation, and video upload.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-mv-cast.png" alt="Kelly MV cast"></td>
-    <td><img src="docs/screenshots/kelly-mv-song.png" alt="Kelly MV song"></td>
+    <td width="50%"><img src="skills/kelly-mv/assets/screenshots/cast.png" alt="Kelly MV cast"></td>
+    <td width="50%"><img src="skills/kelly-mv/assets/screenshots/song.png" alt="Kelly MV song"></td>
   </tr>
   <tr>
     <td><strong>Cast</strong><br>Character list with reference card status and a detail form for visual description, wardrobe, and consistency anchors.</td>
@@ -371,16 +372,16 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-crm-ui.png" alt="Kelly CRM overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-crm-deals.png" alt="Kelly CRM deal pipeline"></td>
+    <td width="50%"><img src="skills/kelly-crm/assets/screenshots/overview.png" alt="Kelly CRM overview"></td>
+    <td width="50%"><img src="skills/kelly-crm/assets/screenshots/deals.png" alt="Kelly CRM deal pipeline"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>CRM command desk with pipeline totals by stage, follow-ups due, recent activity, and network counts.</td>
     <td><strong>Deals</strong><br>Pipeline table across stages with amounts, probability, next steps, and a per-deal interaction timeline.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-crm-contacts.png" alt="Kelly CRM contacts"></td>
-    <td><img src="docs/screenshots/kelly-crm-followups.png" alt="Kelly CRM follow-up queue"></td>
+    <td width="50%"><img src="skills/kelly-crm/assets/screenshots/contacts.png" alt="Kelly CRM contacts"></td>
+    <td width="50%"><img src="skills/kelly-crm/assets/screenshots/followups.png" alt="Kelly CRM follow-up queue"></td>
   </tr>
   <tr>
     <td><strong>Contacts</strong><br>Contact list with relationship strength, last touch, and per-contact interaction history and open deals.</td>
@@ -392,19 +393,19 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-messenger-ui.png" alt="Kelly Messenger overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-messenger-inbox.png" alt="Kelly Messenger unified inbox"></td>
+    <td width="50%"><img src="skills/kelly-messenger/assets/screenshots/overview.png" alt="Kelly Messenger overview"></td>
+    <td width="50%"><img src="skills/kelly-messenger/assets/screenshots/chat.png" alt="Kelly Messenger conversation"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Messaging command desk with reply-decision counts, per-platform sync status, and oldest-waiting indicator.</td>
-    <td><strong>Unified inbox</strong><br>Conversations across WhatsApp, Slack, Discord, and Telegram sorted by latest activity with waiting-time badges.</td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/kelly-messenger-chat.png" alt="Kelly Messenger conversation"></td>
-    <td><img src="docs/screenshots/kelly-messenger-outbox.png" alt="Kelly Messenger reply outbox"></td>
-  </tr>
-  <tr>
     <td><strong>Conversation</strong><br>Chat transcript with an agent-suggested reply prefilled in the composer, ready to edit and queue.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-messenger/assets/screenshots/inbox.png" alt="Kelly Messenger unified inbox"></td>
+    <td width="50%"><img src="skills/kelly-messenger/assets/screenshots/outbox.png" alt="Kelly Messenger reply outbox"></td>
+  </tr>
+  <tr>
+    <td><strong>Unified inbox</strong><br>Conversations across WhatsApp, Slack, Discord, and Telegram sorted by latest activity with waiting-time badges.</td>
     <td><strong>Reply outbox</strong><br>Approval queue for outgoing replies: every message is reviewed before the agent sends it via platform connectors.</td>
   </tr>
 </table>
@@ -413,20 +414,34 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-social-ui.png" alt="Kelly Social overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-social-timeline.png" alt="Kelly Social unified timeline"></td>
+    <td width="50%"><img src="skills/kelly-social/assets/screenshots/overview.png" alt="Kelly Social overview"></td>
+    <td width="50%"><img src="skills/kelly-social/assets/screenshots/timeline.png" alt="Kelly Social unified timeline"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Cross-platform KPI cards for X, Instagram, and Facebook with follower trends and top posts of the week.</td>
     <td><strong>Unified timeline</strong><br>Posts across all platforms in one stream with per-post likes, replies, reposts, and view counts.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-social-compose.png" alt="Kelly Social post composer"></td>
-    <td><img src="docs/screenshots/kelly-social-calendar.png" alt="Kelly Social content calendar"></td>
+    <td width="50%"><img src="skills/kelly-social/assets/screenshots/detail.png" alt="Kelly social detail"></td>
+    <td width="50%"><img src="skills/kelly-social/assets/screenshots/accounts.png" alt="Kelly social accounts"></td>
   </tr>
   <tr>
-    <td><strong>Compose (publishing)</strong><br>Agent-drafted posts in a review queue with hooks, hashtags, and CTAs, behind a social-qa SHIP/FIX/BLOCK gate — one draft blocked for a banned claim.</td>
+    <td><strong>Detail</strong><br>Single-post performance view with platform metrics, comments, reply drafts, and approval status.</td>
+    <td><strong>Accounts</strong><br>Connected-account health board with platform status, audience totals, content cadence, and sync freshness.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-social/assets/screenshots/calendar.png" alt="Kelly Social content calendar"></td>
+    <td width="50%"><img src="skills/kelly-social/assets/screenshots/compose.png" alt="Kelly Social post composer"></td>
+  </tr>
+  <tr>
     <td><strong>Content calendar</strong><br>Scheduled posts across channels by theme pillar and date, with status and approvals.</td>
+    <td><strong>Compose (publishing)</strong><br>Agent-drafted posts in a review queue with hooks, hashtags, and CTAs, behind a social-qa SHIP/FIX/BLOCK gate — one draft blocked for a banned claim.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-social/assets/screenshots/engagement.png" alt="Kelly social engagement"></td>
+  </tr>
+  <tr>
+    <td><strong>Engagement</strong><br>Mentions and comments inbox grouped by urgency, sentiment, owner, and reply-approval state.</td>
   </tr>
 </table>
 
@@ -436,16 +451,16 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-support-ui.png" alt="Kelly Support overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-support-tickets.png" alt="Kelly Support ticket queue"></td>
+    <td width="50%"><img src="skills/kelly-support/assets/screenshots/overview.png" alt="Kelly Support overview"></td>
+    <td width="50%"><img src="skills/kelly-support/assets/screenshots/tickets.png" alt="Kelly Support ticket queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Queue health — open, breaching-SLA, and awaiting-approval counts, CSAT trend, and volume by channel and category.</td>
     <td><strong>Tickets</strong><br>Approval queue with the KB-grounded draft reply and the support-qa gate — a refund draft blocked pending human approval.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-support-knowledge.png" alt="Kelly Support knowledge base"></td>
-    <td><img src="docs/screenshots/kelly-support-sla.png" alt="Kelly Support SLA board"></td>
+    <td><img src="skills/kelly-support/assets/screenshots/knowledge.png" alt="Kelly Support knowledge base"></td>
+    <td><img src="skills/kelly-support/assets/screenshots/sla.png" alt="Kelly Support SLA board"></td>
   </tr>
   <tr>
     <td><strong>Knowledge base</strong><br>Articles and canned macros the agent cites when drafting replies.</td>
@@ -457,20 +472,34 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-seo-ui.png" alt="Kelly SEO overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-seo-queries.png" alt="Kelly SEO queries"></td>
+    <td width="50%"><img src="skills/kelly-seo/assets/screenshots/overview.png" alt="Kelly SEO overview"></td>
+    <td width="50%"><img src="skills/kelly-seo/assets/screenshots/queries.png" alt="Kelly SEO queries"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Search Console KPI cards with daily clicks/impressions chart, top movers, and per-site freshness.</td>
     <td><strong>Queries</strong><br>Top queries with clicks, impressions, CTR, position, period deltas, and opportunity badges.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-seo-geo.png" alt="Kelly SEO AI visibility"></td>
-    <td><img src="docs/screenshots/kelly-seo-optimize.png" alt="Kelly SEO GEO optimizer"></td>
+    <td width="50%"><img src="skills/kelly-seo/assets/screenshots/pages.png" alt="Kelly seo pages"></td>
+    <td width="50%"><img src="skills/kelly-seo/assets/screenshots/opportunities.png" alt="Kelly seo opportunities"></td>
+  </tr>
+  <tr>
+    <td><strong>Pages</strong><br>Page-level click and impression table with top growth and decline movers for prioritizing content updates.</td>
+    <td><strong>Opportunities</strong><br>Ranked SEO opportunity queue with impact, effort, evidence, and recommended next actions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-seo/assets/screenshots/geo.png" alt="Kelly SEO AI visibility"></td>
+    <td width="50%"><img src="skills/kelly-seo/assets/screenshots/optimize.png" alt="Kelly SEO GEO optimizer"></td>
   </tr>
   <tr>
     <td><strong>AI visibility (GEO)</strong><br>An engines×prompts matrix of where the brand is cited across ChatGPT, Perplexity, Gemini, Claude, and Copilot, with an overall visibility score and trend.</td>
     <td><strong>GEO optimizer</strong><br>Agent-proposed rewrites that make pages more citable by AI engines, gated by geo-qa — one blocked for a fabricated stat.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-seo/assets/screenshots/entity.png" alt="Kelly seo entity readiness"></td>
+  </tr>
+  <tr>
+    <td><strong>Entity readiness</strong><br>Entity readiness checklist showing schema coverage, citation signals, and blocked/ready status for AI answer engines.</td>
   </tr>
 </table>
 
@@ -478,16 +507,16 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-feedback-ui.png" alt="Kelly Feedback overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-feedback-inbox.png" alt="Kelly Feedback inbox"></td>
+    <td width="50%"><img src="skills/kelly-feedback/assets/screenshots/overview.png" alt="Kelly Feedback overview"></td>
+    <td width="50%"><img src="skills/kelly-feedback/assets/screenshots/inbox.png" alt="Kelly Feedback inbox"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Voice-of-customer desk with weekly inflow by channel, sentiment split, top clusters, and source freshness.</td>
     <td><strong>Inbox</strong><br>Raw feedback stream across email, Discord, Slack, X, and app-store reviews with triage controls.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-feedback-requests.png" alt="Kelly Feedback requests"></td>
-    <td><img src="docs/screenshots/kelly-feedback-roadmap.png" alt="Kelly Feedback roadmap decisions"></td>
+    <td width="50%"><img src="skills/kelly-feedback/assets/screenshots/requests.png" alt="Kelly Feedback requests"></td>
+    <td width="50%"><img src="skills/kelly-feedback/assets/screenshots/roadmap.png" alt="Kelly Feedback roadmap decisions"></td>
   </tr>
   <tr>
     <td><strong>Requests</strong><br>Clustered feature requests with frequency, weighted scores, trend, and representative quotes.</td>
@@ -499,19 +528,19 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-radar-ui.png" alt="Kelly Radar overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-radar-signals.png" alt="Kelly Radar competitor signals"></td>
+    <td width="50%"><img src="skills/kelly-radar/assets/screenshots/overview.png" alt="Kelly Radar overview"></td>
+    <td width="50%"><img src="skills/kelly-radar/assets/screenshots/research.png" alt="Kelly Radar research desk"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Market-intelligence desk with signals to triage, watchlist freshness, top trend movers, and the research pipeline.</td>
-    <td><strong>Signals</strong><br>Competitor pricing, changelog, launch, review, and hiring signals with severity badges and Act/Watch/Ignore triage.</td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/kelly-radar-research.png" alt="Kelly Radar research desk"></td>
-    <td><img src="docs/screenshots/kelly-radar-trends.png" alt="Kelly Radar trends"></td>
-  </tr>
-  <tr>
     <td><strong>Research desk</strong><br>Research questions moving through brief approval, deep research, and cited report review.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-radar/assets/screenshots/signals.png" alt="Kelly Radar competitor signals"></td>
+    <td width="50%"><img src="skills/kelly-radar/assets/screenshots/trends.png" alt="Kelly Radar trends"></td>
+  </tr>
+  <tr>
+    <td><strong>Signals</strong><br>Competitor pricing, changelog, launch, review, and hiring signals with severity badges and Act/Watch/Ignore triage.</td>
     <td><strong>Trends</strong><br>Rising keywords and community topics with momentum sparklines and opportunity cards for content or roadmap handoff.</td>
   </tr>
 </table>
@@ -520,20 +549,20 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-devops-ui.png" alt="Kelly DevOps overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-devops-services.png" alt="Kelly DevOps services"></td>
+    <td width="50%"><img src="skills/kelly-devops/assets/screenshots/overview.png" alt="Kelly DevOps overview"></td>
+    <td width="50%"><img src="skills/kelly-devops/assets/screenshots/actions.png" alt="Kelly DevOps action queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Fleet health desk with service, certificate, domain, and spend summaries plus a recent events feed.</td>
-    <td><strong>Services</strong><br>Monitored endpoints with uptime, latency sparklines, TLS certificate status, and check history.</td>
+    <td><strong>Action queue</strong><br>Agent-proposed renew/rotate/investigate action cards with evidence and approval controls.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-devops-expiries.png" alt="Kelly DevOps expiry ledger"></td>
-    <td><img src="docs/screenshots/kelly-devops-actions.png" alt="Kelly DevOps action queue"></td>
+    <td width="50%"><img src="skills/kelly-devops/assets/screenshots/expiries.png" alt="Kelly DevOps expiry ledger"></td>
+    <td width="50%"><img src="skills/kelly-devops/assets/screenshots/services.png" alt="Kelly DevOps services"></td>
   </tr>
   <tr>
     <td><strong>Expiry ledger</strong><br>Domains, SSL certificates, key rotations, and plan renewals in one table with color-coded days-left.</td>
-    <td><strong>Action queue</strong><br>Agent-proposed renew/rotate/investigate action cards with evidence and approval controls.</td>
+    <td><strong>Services</strong><br>Monitored endpoints with uptime, latency sparklines, TLS certificate status, and check history.</td>
   </tr>
 </table>
 
@@ -541,20 +570,20 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-audit-ui.png" alt="Kelly Audit overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-audit-orders.png" alt="Kelly Audit orders"></td>
+    <td width="50%"><img src="skills/kelly-audit/assets/screenshots/overview.png" alt="Kelly Audit overview"></td>
+    <td width="50%"><img src="skills/kelly-audit/assets/screenshots/anomalies.png" alt="Kelly Audit anomaly queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Finance audit desk with amount at risk, receivable aging bar, anomaly queue preview, and import history.</td>
-    <td><strong>Orders</strong><br>Normalized orders with invoice and payment status badges and linked anomaly indicators.</td>
+    <td><strong>Anomaly queue</strong><br>Rule-flagged anomalies with the order-invoice-payment evidence chain and a drafted chasing email for approval.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-audit-invoices.png" alt="Kelly Audit invoices"></td>
-    <td><img src="docs/screenshots/kelly-audit-anomalies.png" alt="Kelly Audit anomaly queue"></td>
+    <td width="50%"><img src="skills/kelly-audit/assets/screenshots/invoices.png" alt="Kelly Audit invoices"></td>
+    <td width="50%"><img src="skills/kelly-audit/assets/screenshots/orders.png" alt="Kelly Audit orders"></td>
   </tr>
   <tr>
     <td><strong>Invoices</strong><br>Invoice ledger with due dates, paid amounts, days overdue, and match status.</td>
-    <td><strong>Anomaly queue</strong><br>Rule-flagged anomalies with the order-invoice-payment evidence chain and a drafted chasing email for approval.</td>
+    <td><strong>Orders</strong><br>Normalized orders with invoice and payment status badges and linked anomaly indicators.</td>
   </tr>
 </table>
 
@@ -562,20 +591,20 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-tickets-ui.png" alt="Kelly Tickets overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-tickets-intake.png" alt="Kelly Tickets intake"></td>
+    <td width="50%"><img src="skills/kelly-tickets/assets/screenshots/overview.png" alt="Kelly Tickets overview"></td>
+    <td width="50%"><img src="skills/kelly-tickets/assets/screenshots/board.png" alt="Kelly Tickets board"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Dispatch command desk with SLA risk, weekly intake by channel, category distribution, and crew load.</td>
-    <td><strong>Intake</strong><br>Raw complaints from WeChat, phone, forms, and email with classification fields and convert-to-ticket controls.</td>
+    <td><strong>Board</strong><br>Tickets tracked across open, assigned, in-progress, waiting, and resolved with SLA indicators and history timelines.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-tickets-dispatch.png" alt="Kelly Tickets dispatch queue"></td>
-    <td><img src="docs/screenshots/kelly-tickets-board.png" alt="Kelly Tickets board"></td>
+    <td width="50%"><img src="skills/kelly-tickets/assets/screenshots/dispatch.png" alt="Kelly Tickets dispatch queue"></td>
+    <td width="50%"><img src="skills/kelly-tickets/assets/screenshots/intake.png" alt="Kelly Tickets intake"></td>
   </tr>
   <tr>
     <td><strong>Dispatch queue</strong><br>Agent-proposed crew assignments with priority, SLA target, reasoning, and an editable note to the crew.</td>
-    <td><strong>Board</strong><br>Tickets tracked across open, assigned, in-progress, waiting, and resolved with SLA indicators and history timelines.</td>
+    <td><strong>Intake</strong><br>Raw complaints from WeChat, phone, forms, and email with classification fields and convert-to-ticket controls.</td>
   </tr>
 </table>
 
@@ -583,20 +612,20 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-lesson-ui.png" alt="Kelly Lesson overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-lesson-plans.png" alt="Kelly Lesson plan library"></td>
+    <td width="50%"><img src="skills/kelly-lesson/assets/screenshots/overview.png" alt="Kelly Lesson overview"></td>
+    <td width="50%"><img src="skills/kelly-lesson/assets/screenshots/needs-review.png" alt="Kelly Lesson review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Teaching-quality desk with compliance pass rate, grade-by-subject coverage, per-teacher status, and the review queue.</td>
-    <td><strong>Plan library</strong><br>Lesson plans by subject, grade, and teacher with source badges, compliance scores, and structured plan detail.</td>
+    <td><strong>Review queue</strong><br>Plan submissions with compliance summaries, agent revision suggestions, and drafted teacher feedback for approval.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-lesson-checks.png" alt="Kelly Lesson compliance checks"></td>
-    <td><img src="docs/screenshots/kelly-lesson-review.png" alt="Kelly Lesson review queue"></td>
+    <td width="50%"><img src="skills/kelly-lesson/assets/screenshots/checks.png" alt="Kelly Lesson compliance checks"></td>
+    <td width="50%"><img src="skills/kelly-lesson/assets/screenshots/plans.png" alt="Kelly Lesson plan library"></td>
   </tr>
   <tr>
     <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results with evidence snippets, filterable by rule and teacher.</td>
-    <td><strong>Review queue</strong><br>Plan submissions with compliance summaries, agent revision suggestions, and drafted teacher feedback for approval.</td>
+    <td><strong>Plan library</strong><br>Lesson plans by subject, grade, and teacher with source badges, compliance scores, and structured plan detail.</td>
   </tr>
 </table>
 
@@ -604,20 +633,20 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-inquiry-ui.png" alt="Kelly Inquiry overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-inquiry-inquiries.png" alt="Kelly Inquiry pipeline"></td>
+    <td width="50%"><img src="skills/kelly-inquiry/assets/screenshots/overview.png" alt="Kelly Inquiry overview"></td>
+    <td width="50%"><img src="skills/kelly-inquiry/assets/screenshots/approvals.png" alt="Kelly Inquiry approvals"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Inquiry command desk with reply SLA counters, weekly channel mix, pipeline funnel, and stale-deal alerts.</td>
-    <td><strong>Pipeline</strong><br>Inquiries across WhatsApp, Instagram, and email with country, stage, value estimate, and next follow-up.</td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/kelly-inquiry-quotes.png" alt="Kelly Inquiry quotes"></td>
-    <td><img src="docs/screenshots/kelly-inquiry-approvals.png" alt="Kelly Inquiry approvals"></td>
-  </tr>
-  <tr>
-    <td><strong>Quotes</strong><br>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</td>
     <td><strong>Approvals</strong><br>Approval-gated outbox for replies and quotes — nothing is sent until reviewed.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-inquiry/assets/screenshots/inquiries.png" alt="Kelly Inquiry pipeline"></td>
+    <td width="50%"><img src="skills/kelly-inquiry/assets/screenshots/quotes.png" alt="Kelly Inquiry quotes"></td>
+  </tr>
+  <tr>
+    <td><strong>Pipeline</strong><br>Inquiries across WhatsApp, Instagram, and email with country, stage, value estimate, and next follow-up.</td>
+    <td><strong>Quotes</strong><br>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</td>
   </tr>
 </table>
 
@@ -625,20 +654,20 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-picks-ui.png" alt="Kelly Picks overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-picks-candidates.png" alt="Kelly Picks candidates"></td>
+    <td width="50%"><img src="skills/kelly-picks/assets/screenshots/overview.png" alt="Kelly Picks overview"></td>
+    <td width="50%"><img src="skills/kelly-picks/assets/screenshots/candidates.png" alt="Kelly Picks candidates"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Product-research desk with weekly candidates by source, top movers, and per-source sweep freshness.</td>
     <td><strong>Candidates</strong><br>Candidate table with momentum, estimated margin, competition grade, and develop/watch/drop stages.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-picks-detail.png" alt="Kelly Picks margin card"></td>
-    <td><img src="docs/screenshots/kelly-picks-decisions.png" alt="Kelly Picks decision queue"></td>
+    <td width="50%"><img src="skills/kelly-picks/assets/screenshots/decisions.png" alt="Kelly Picks decision queue"></td>
+    <td width="50%"><img src="skills/kelly-picks/assets/screenshots/detail.png" alt="Kelly Picks margin card"></td>
   </tr>
   <tr>
-    <td><strong>Margin card</strong><br>Live-editable margin math — price, landed cost, freight, fees, ad cost → margin % and breakeven ACOS — plus a top-10 review-count competition read.</td>
     <td><strong>Decision queue</strong><br>Agent-proposed develop/watch/drop verdicts with sourcing and listing briefs for approval.</td>
+    <td><strong>Margin card</strong><br>Live-editable margin math — price, landed cost, freight, fees, ad cost → margin % and breakeven ACOS — plus a top-10 review-count competition read.</td>
   </tr>
 </table>
 
@@ -646,20 +675,41 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-listing-ui.png" alt="Kelly Listing overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-listing-drafts.png" alt="Kelly Listing draft workbench"></td>
+    <td width="50%"><img src="skills/kelly-listing/assets/screenshots/overview.png" alt="Kelly Listing overview"></td>
+    <td width="50%"><img src="skills/kelly-listing/assets/screenshots/needs-review.png" alt="Kelly Listing review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Listing command desk with product × platform status matrix, compliance pass rate, and export readiness.</td>
-    <td><strong>Draft workbench</strong><br>Amazon draft with live title character count, five bullets, backend search terms byte counter, A+ outline, and locale tabs.</td>
+    <td><strong>Review queue</strong><br>Draft submissions with compliance summaries and keyword-strategy notes for approval before export or publish.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-listing-checks.png" alt="Kelly Listing compliance checks"></td>
-    <td><img src="docs/screenshots/kelly-listing-review.png" alt="Kelly Listing review queue"></td>
+    <td width="50%"><img src="skills/kelly-listing/assets/screenshots/checks.png" alt="Kelly Listing compliance checks"></td>
+    <td width="50%"><img src="skills/kelly-listing/assets/screenshots/drafts.png" alt="Kelly Listing draft workbench"></td>
   </tr>
   <tr>
     <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results — banned words, character caps, bullet counts — across all drafts.</td>
-    <td><strong>Review queue</strong><br>Draft submissions with compliance summaries and keyword-strategy notes for approval before export or publish.</td>
+    <td><strong>Draft workbench</strong><br>Amazon draft with live title character count, five bullets, backend search terms byte counter, A+ outline, and locale tabs.</td>
+  </tr>
+</table>
+
+### `kelly-legal-contracts`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-contracts/assets/screenshots/overview.png" alt="Kelly Legal Contracts overview"></td>
+    <td width="50%"><img src="skills/kelly-legal-contracts/assets/screenshots/needs-review.png" alt="Kelly Legal Contracts review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Legal command desk with contract × workstream status, risk pass rate, review queue preview, and recent activity.</td>
+    <td><strong>Review queue</strong><br>Approval-gated legal issue queue with approve / request changes / block decisions and audit notes.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-contracts/assets/screenshots/checks.png" alt="Kelly Legal Contracts risk checks"></td>
+    <td width="50%"><img src="skills/kelly-legal-contracts/assets/screenshots/issues.png" alt="Kelly Legal Contracts issue workbench"></td>
+  </tr>
+  <tr>
+    <td><strong>Risk checks</strong><br>Per-rule pass/warn/fail results across clause issues, including hard-stop terms and playbook violations.</td>
+    <td><strong>Clause issues</strong><br>Editable issue detail with fallback language, memo fields, reviewer rationale, and risk-check evidence.</td>
   </tr>
 </table>
 
@@ -667,20 +717,20 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-ads-ui.png" alt="Kelly Ads overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-ads-campaigns.png" alt="Kelly Ads campaigns"></td>
+    <td width="50%"><img src="skills/kelly-ads/assets/screenshots/overview.png" alt="Kelly Ads overview"></td>
+    <td width="50%"><img src="skills/kelly-ads/assets/screenshots/campaigns.png" alt="Kelly Ads campaigns"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Cross-platform ads board: blended ROAS/ACOS vs target, per-platform cards, spend vs revenue bars, and worst offenders.</td>
     <td><strong>Campaigns</strong><br>Campaign table with budget pace, spend, ROAS, and color-coded ACOS vs target across Amazon, Meta, TikTok, and Google.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-ads-alerts.png" alt="Kelly Ads anomaly alerts"></td>
-    <td><img src="docs/screenshots/kelly-ads-adjustments.png" alt="Kelly Ads adjustment queue"></td>
+    <td width="50%"><img src="skills/kelly-ads/assets/screenshots/adjustments.png" alt="Kelly Ads adjustment queue"></td>
+    <td width="50%"><img src="skills/kelly-ads/assets/screenshots/alerts.png" alt="Kelly Ads anomaly alerts"></td>
   </tr>
   <tr>
-    <td><strong>Alerts</strong><br>Deterministic anomaly feed: ACOS breaches, budget burnouts, zero-conversion spend, CPC spikes, rejected ads.</td>
     <td><strong>Adjustment queue</strong><br>Agent-proposed bid, budget, and negative-keyword changes with evidence and expected impact, gated on approval.</td>
+    <td><strong>Alerts</strong><br>Deterministic anomaly feed: ACOS breaches, budget burnouts, zero-conversion spend, CPC spikes, rejected ads.</td>
   </tr>
 </table>
 
@@ -688,19 +738,19 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-standup-ui.png" alt="Kelly Standup today board"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-standup-members.png" alt="Kelly Standup members"></td>
+    <td width="50%"><img src="skills/kelly-standup/assets/screenshots/overview.png" alt="Kelly Standup today board"></td>
+    <td width="50%"><img src="skills/kelly-standup/assets/screenshots/blockers.png" alt="Kelly Standup blockers"></td>
   </tr>
   <tr>
     <td><strong>Today board</strong><br>Daily standup at a glance: team digest, participation count, and per-member yesterday/today/blockers cards with source badges.</td>
-    <td><strong>Members</strong><br>Team roster with check-in streaks, 30-day participation, open blockers, and per-member update timelines.</td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/kelly-standup-blockers.png" alt="Kelly Standup blockers"></td>
-    <td><img src="docs/screenshots/kelly-standup-reminders.png" alt="Kelly Standup reminders"></td>
-  </tr>
-  <tr>
     <td><strong>Blockers</strong><br>All blockers across the team with severity, age, and agent-suggested next actions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-standup/assets/screenshots/members.png" alt="Kelly Standup members"></td>
+    <td width="50%"><img src="skills/kelly-standup/assets/screenshots/reminders.png" alt="Kelly Standup reminders"></td>
+  </tr>
+  <tr>
+    <td><strong>Members</strong><br>Team roster with check-in streaks, 30-day participation, open blockers, and per-member update timelines.</td>
     <td><strong>Reminders</strong><br>Approval-gated nudges for missing check-ins — drafted by the agent, sent only after review.</td>
   </tr>
 </table>
@@ -711,16 +761,16 @@ Influencer/creator-marketing desk on Aaron's Discover→Plan→Activate→Measur
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-creators-ui.png" alt="Kelly Creators overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-creators-creators.png" alt="Kelly Creators candidates"></td>
+    <td width="50%"><img src="skills/kelly-creators/assets/screenshots/overview.png" alt="Kelly Creators overview"></td>
+    <td width="50%"><img src="skills/kelly-creators/assets/screenshots/creators.png" alt="Kelly Creators candidates"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Pipeline funnel across the four phases, budget allocation, total reach, and the top fit-scored candidates.</td>
     <td><strong>Creators</strong><br>Sortable candidate cards with C³ ACE fit scores, platform, niche, and audience size.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-creators-outreach.png" alt="Kelly Creators outreach queue"></td>
-    <td><img src="docs/screenshots/kelly-creators-roi.png" alt="Kelly Creators ROI board"></td>
+    <td><img src="skills/kelly-creators/assets/screenshots/outreach.png" alt="Kelly Creators outreach queue"></td>
+    <td><img src="skills/kelly-creators/assets/screenshots/roi.png" alt="Kelly Creators ROI board"></td>
   </tr>
   <tr>
     <td><strong>Outreach</strong><br>Needs-review approval queue with editable outreach drafts and the FTC/claim disclosure gate.</td>
@@ -734,16 +784,16 @@ Outbound email-marketing desk on the SEND lifecycle (Setup→Engage→Nurture→
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-campaigns-ui.png" alt="Kelly Campaigns overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-campaigns-campaigns.png" alt="Kelly Campaigns queue"></td>
+    <td width="50%"><img src="skills/kelly-campaigns/assets/screenshots/overview.png" alt="Kelly Campaigns overview"></td>
+    <td width="50%"><img src="skills/kelly-campaigns/assets/screenshots/campaigns.png" alt="Kelly Campaigns queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Send calendar plus list health — subscribers, bounce, churn, and complaint rates.</td>
     <td><strong>Campaigns</strong><br>Draft and approval queue across campaigns, newsletters, and sequence steps.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-campaigns-deliverability.png" alt="Kelly Campaigns deliverability QA"></td>
-    <td><img src="docs/screenshots/kelly-campaigns-performance.png" alt="Kelly Campaigns performance"></td>
+    <td><img src="skills/kelly-campaigns/assets/screenshots/deliverability.png" alt="Kelly Campaigns deliverability QA"></td>
+    <td><img src="skills/kelly-campaigns/assets/screenshots/performance.png" alt="Kelly Campaigns performance"></td>
   </tr>
   <tr>
     <td><strong>Deliverability</strong><br>Pre-send QA — SPF/DKIM/DMARC, spam score, and the EQS SHIP/FIX/BLOCK gate.</td>
@@ -757,16 +807,16 @@ Product-launch command desk on the RAMP framework (Research→Assemble→Mobiliz
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-launch-ui.png" alt="Kelly Launch overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-launch-checklist.png" alt="Kelly Launch checklist"></td>
+    <td width="50%"><img src="skills/kelly-launch/assets/screenshots/overview.png" alt="Kelly Launch overview"></td>
+    <td width="50%"><img src="skills/kelly-launch/assets/screenshots/checklist.png" alt="Kelly Launch checklist"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Launch countdown, the RAMP readiness gate with its LQS score, phase progress, and channel status.</td>
     <td><strong>Checklist</strong><br>Launch tasks grouped by RAMP phase — Research, Assemble, Mobilize, Prove.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-launch-assets.png" alt="Kelly Launch assets queue"></td>
-    <td><img src="docs/screenshots/kelly-launch-launchday.png" alt="Kelly Launch launch-day runbook"></td>
+    <td><img src="skills/kelly-launch/assets/screenshots/assets.png" alt="Kelly Launch assets queue"></td>
+    <td><img src="skills/kelly-launch/assets/screenshots/launchday.png" alt="Kelly Launch launch-day runbook"></td>
   </tr>
   <tr>
     <td><strong>Assets</strong><br>Approval queue for launch assets, Product Hunt / Hacker News submissions, and press pitches.</td>
@@ -780,16 +830,16 @@ Brand-narrative single source of truth on the TALE framework (Trace→Architect�
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-brand-ui.png" alt="Kelly Brand message house"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-brand-narrative.png" alt="Kelly Brand narrative"></td>
+    <td width="50%"><img src="skills/kelly-brand/assets/screenshots/overview.png" alt="Kelly Brand message house"></td>
+    <td width="50%"><img src="skills/kelly-brand/assets/screenshots/narrative.png" alt="Kelly Brand narrative"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>The message house — positioning, value pillars, overall NQS, and the drift-alert count.</td>
     <td><strong>Narrative</strong><br>Message pillars and vocabulary guardrails, canonical versus draft.</td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/kelly-brand-stories.png" alt="Kelly Brand story bank"></td>
-    <td><img src="docs/screenshots/kelly-brand-drift.png" alt="Kelly Brand drift alerts"></td>
+    <td><img src="skills/kelly-brand/assets/screenshots/stories.png" alt="Kelly Brand story bank"></td>
+    <td><img src="skills/kelly-brand/assets/screenshots/drift.png" alt="Kelly Brand drift alerts"></td>
   </tr>
   <tr>
     <td><strong>Story bank</strong><br>Customer stories and evidence-backed proof points.</td>

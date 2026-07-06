@@ -12,6 +12,27 @@ Use this skill as Kelly's ad-campaign command desk. It aggregates spend and perf
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh the ads snapshot with the ingest/check scripts, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; then present numbered adjustment cards (`Adjustment #1`) and take verdicts in chat.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Ads overview"></td>
+    <td width="50%"><img src="assets/screenshots/campaigns.png" alt="Kelly Ads campaigns"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Cross-platform ads board: blended ROAS/ACOS vs target, per-platform cards, spend vs revenue bars, and worst offenders.</td>
+    <td><strong>Campaigns</strong><br>Campaign table with budget pace, spend, ROAS, and color-coded ACOS vs target across Amazon, Meta, TikTok, and Google.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/adjustments.png" alt="Kelly Ads adjustment queue"></td>
+    <td width="50%"><img src="assets/screenshots/alerts.png" alt="Kelly Ads anomaly alerts"></td>
+  </tr>
+  <tr>
+    <td><strong>Adjustment queue</strong><br>Agent-proposed bid, budget, and negative-keyword changes with evidence and expected impact, gated on approval.</td>
+    <td><strong>Alerts</strong><br>Deterministic anomaly feed: ACOS breaches, budget burnouts, zero-conversion spend, CPC spikes, rejected ads.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - Report ingestion is read-only: the agent pulls platform reports (API pulls, report exports, or pasted CSVs) outside the app and feeds them to `scripts/ingest_reports.mjs`. Nothing in this skill mutates a platform on its own.

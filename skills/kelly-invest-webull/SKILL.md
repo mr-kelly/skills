@@ -23,6 +23,27 @@ similar.
 This is a monitoring dashboard: there is no approval lifecycle and no
 `decisions.json`.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Invest overview"></td>
+    <td width="50%"><img src="assets/screenshots/positions.png" alt="Kelly Invest positions"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Portfolio command desk with market value, unrealized P/L, day change, cash, an allocation-by-asset-type donut, and top day movers.</td>
+    <td><strong>Positions</strong><br>Sortable holdings table across symbol, asset type, quantity, average cost, last price, market value, unrealized P/L, and portfolio weight.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/accounts.png" alt="Kelly Invest accounts"></td>
+    <td width="50%"><img src="assets/screenshots/detail.png" alt="Kelly Invest position detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Accounts</strong><br>Per-account view (cash and margin) with net liquidation, total cash, buying power, and the positions held in each account.</td>
+    <td><strong>Position detail</strong><br>Single-symbol view with cost basis, market value, unrealized P/L and percentage, day change, weight, and holding account.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - Read-only aggregation only. The skill may read Webull account/balance/position
