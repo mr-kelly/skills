@@ -1,26 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { createProvider } from "../../lib/data-provider/index.ts";
+import { APP_DIR } from "../../lib/paths.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
-import { APP_DIR } from "./paths.ts";
-import {
-  readConfig,
-  readDecisions,
-  readLock,
-  readOnboarding,
-  readSnapshot,
-  recordDecision,
-  summarizeConfig,
-} from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through the logic modules (data-provider
-// backed), so the same app runs under @hono/node-server locally and — once the
-// data layer moves to a cloud provider — on other fetch-based runtimes.
+// contract and reaches storage only through the data-provider, so the same app
+// runs under @hono/node-server locally and — with KELLY_FEEDBACK_DATA_PROVIDER=
+// busabase — against a Busabase base on other fetch-based runtimes.
 //
 // The frontend is the original zero-build vanilla app (index.html + app.js +
 // styles.css + i18n). Hono only serves those static files and the JSON API; it
 // does not render or bundle anything.
+
+const provider = await createProvider();
+console.log(`Kelly Feedback data provider: ${provider.kind}`);
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -30,21 +25,11 @@ const types = {
 };
 
 async function state() {
-  const [snapshot, onboarding, lock, decisions, configResult] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
-    readDecisions(),
-    readConfig(),
-  ]);
+  const review = await provider.getState();
   return {
     app: "kelly-feedback",
-    data_provider: process.env.KELLY_FEEDBACK_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    decisions,
-    config_summary: summarizeConfig(configResult),
-    snapshot,
+    data_provider: provider.kind,
+    ...review,
   };
 }
 
@@ -69,7 +54,7 @@ app.get("/api/state", async (c) => {
 });
 
 app.post("/api/decisions", async (c) => {
-  const lock = await readLock();
+  const lock = await provider.readLock();
   if (lock) {
     return c.json({ error: "agent lock is active; try again after the agent finishes", lock }, 423, {
       "cache-control": "no-store",
@@ -77,7 +62,7 @@ app.post("/api/decisions", async (c) => {
   }
   try {
     const body = await c.req.json().catch(() => ({}));
-    const decisions = await recordDecision(body);
+    const decisions = await provider.saveDecision(body);
     return c.json({ ok: true, decisions }, 200, { "cache-control": "no-store" });
   } catch (error) {
     return c.json({ error: error.message }, 400, { "cache-control": "no-store" });

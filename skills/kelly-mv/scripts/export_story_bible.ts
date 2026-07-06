@@ -2,14 +2,14 @@
 // Export a readable MV concept + shotlist as markdown for handoff/pitch.
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { exportsDir } from "../lib/paths.ts";
 
-const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
-const PROJECT = process.argv[2] ? path.resolve(process.argv[2]) : path.join(SKILL_DIR, "app", ".data", "project.json");
-const EXPORT_DIR = path.join(SKILL_DIR, "exports");
-
-const project = JSON.parse(await fs.readFile(PROJECT, "utf8"));
+const EXPORT_DIR = exportsDir;
+// With an explicit path, read that file directly; otherwise load from the provider.
+const project = process.argv[2]
+  ? JSON.parse(await fs.readFile(path.resolve(process.argv[2]), "utf8"))
+  : await (await createProvider()).loadProject();
 const song = project.song || {};
 const treatment = project.treatment || {};
 

@@ -1,9 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import { applyDecision, readConfig, readLock, readOnboarding, readSnapshot, summarizeConfig } from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic modules (data-provider
@@ -29,20 +29,8 @@ function json(c, status, body) {
 }
 
 async function state() {
-  const [snapshot, onboarding, lock, configResult] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
-    readConfig(),
-  ]);
-  return {
-    app: "kelly-devops",
-    data_provider: process.env.KELLY_DEVOPS_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    config_summary: summarizeConfig(configResult),
-    snapshot,
-  };
+  const provider = await createProvider();
+  return provider.getState();
 }
 
 async function serveStatic(c) {
@@ -80,10 +68,12 @@ app.post("/api/decision", async (c) => {
     return json(c, 400, { error: "Invalid JSON body" });
   }
   try {
-    const result = await applyDecision(body);
+    const provider = await createProvider();
+    const result = await provider.applyDecision(body);
     return json(c, 200, { saved: true, action: result.action, decision: result.decision });
   } catch (error) {
-    return json(c, error.code === "LOCKED" ? 423 : 400, { error: error.message });
+    const err = error as NodeJS.ErrnoException;
+    return json(c, err.code === "LOCKED" ? 423 : 400, { error: err.message });
   }
 });
 

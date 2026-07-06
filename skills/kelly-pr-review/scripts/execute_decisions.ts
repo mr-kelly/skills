@@ -4,9 +4,11 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import { pathExists, readJson, utcNow, withLock, writeJson } from "../lib/common.ts";
-import { CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH } from "../lib/paths.ts";
+import { utcNow, withLock } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { EXECUTION_REPORT_PATH } from "../lib/paths.ts";
 
+const provider = await createProvider();
 const execFile = promisify(execFileCallback);
 const LIVE = process.argv.includes("--live") && !process.argv.includes("--dry-run");
 const REVIEW_ACTIONS = new Set(["approve", "comment", "request_changes", "no_action"]);
@@ -51,7 +53,8 @@ async function submitReview(decision) {
 }
 
 async function main() {
-  if (!(await pathExists(DECISIONS_PATH))) {
+  const decisionsPayload = await provider.readDecisions(null);
+  if (!decisionsPayload) {
     const report = {
       generated_at: utcNow(),
       live: LIVE,
@@ -62,13 +65,12 @@ async function main() {
       results: [],
       note: "No decisions file found. Review PRs in the UI first.",
     };
-    await writeJson(EXECUTION_REPORT_PATH, report);
+    await provider.writeExecutionReport(report);
     console.log("No approved decisions yet. Review PRs in the UI first.");
     console.log(`Report: ${EXECUTION_REPORT_PATH}`);
     return;
   }
-  const decisionsPayload = await readJson(DECISIONS_PATH);
-  const batch = await readJson(CURRENT_BATCH_PATH, { items: [] });
+  const batch = await provider.loadBatch();
   const approved = (decisionsPayload.decisions || []).filter((decision) => {
     const action = decision.decision?.action;
     return REVIEW_ACTIONS.has(action) && decision.decision?.approved_for_execution;
@@ -100,8 +102,8 @@ async function main() {
     skipped_count: results.filter((result) => result.status === "skipped").length,
     results,
   };
-  await writeJson(EXECUTION_REPORT_PATH, report);
-  await writeJson(CURRENT_BATCH_PATH, batch);
+  await provider.writeExecutionReport(report);
+  await provider.saveBatch(batch);
   console.log(`${LIVE ? "Live execution" : "Dry run"} complete: ${results.length} approved decision(s).`);
   console.log(`Report: ${EXECUTION_REPORT_PATH}`);
 }

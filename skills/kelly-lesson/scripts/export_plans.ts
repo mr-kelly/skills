@@ -5,35 +5,26 @@
 // DOCX or PDF conversion is delegated to the agent's document skills per
 // SKILL.md — this script produces Markdown only and has no external effects.
 //
-// Usage: node scripts/export_plans.mjs [--out /path/to/dir]
+// Usage: node scripts/export_plans.ts [--out /path/to/dir]
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "lesson_snapshot.json");
-const decisionsPath = path.join(dataDir, "decisions.json");
 
 const args = process.argv.slice(2);
 const outFlag = args.indexOf("--out");
 const outDir = outFlag !== -1 && args[outFlag + 1] ? path.resolve(args[outFlag + 1]) : path.join(skillDir, "exports");
 
-async function readJson(file, fallback = null) {
-  try {
-    return JSON.parse(await fs.readFile(file, "utf8"));
-  } catch (error) {
-    if (error.code === "ENOENT") return fallback;
-    throw error;
-  }
-}
+const provider = await createProvider();
 
-const snapshot = await readJson(snapshotPath);
-if (!snapshot) {
-  console.error(`No snapshot at ${snapshotPath}. Nothing to export.`);
+const snapshot = await provider.readSnapshot();
+if (!snapshot || !(snapshot.plans || []).length) {
+  console.error("No snapshot plans found. Nothing to export.");
   process.exit(1);
 }
-const decisions = (await readJson(decisionsPath, { decisions: {} })).decisions || {};
+const decisions = (await provider.readDecisions()).decisions || {};
 
 function effectiveStatus(plan) {
   const item = (snapshot.review_items || []).find((entry) => entry.plan_id === plan.plan_id);

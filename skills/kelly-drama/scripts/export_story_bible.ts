@@ -1,14 +1,19 @@
 #!/usr/bin/env node
+// Export the story bible as Markdown. With no argument the project loads through
+// the selected data provider (local or busabase); pass a path to export a
+// specific project.json file instead.
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
-const PROJECT = process.argv[2] ? path.resolve(process.argv[2]) : path.join(SKILL_DIR, "app", ".data", "project.json");
 const EXPORT_DIR = path.join(SKILL_DIR, "exports");
 
-const project = JSON.parse(await fs.readFile(PROJECT, "utf8"));
+const project = process.argv[2]
+  ? JSON.parse(await fs.readFile(path.resolve(process.argv[2]), "utf8"))
+  : await (await createProvider()).loadProject();
 const series = project.series || {};
 
 function lines(items) {

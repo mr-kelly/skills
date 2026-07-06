@@ -1,6 +1,7 @@
-// Core domain types shared across the kelly-pr-review server, provider, and
-// scripts. These model the ACTUAL shapes produced by demo.ts / batch-store.ts /
-// tested-cache.ts / generate_review_batch.ts and the local-file-reader config.
+// Core domain types shared across the kelly-pr-review server, data-provider,
+// and scripts. These model the ACTUAL shapes produced by demo.ts, the
+// data-provider layer (lib/data-provider/*.ts), generate_review_batch.ts, and
+// the local-file-reader config. lib/types.ts re-exports these to the providers.
 
 export type WorkflowStatus = "needs_review" | "to_approve" | "approved" | "done" | "blocked" | "merged";
 export type VerificationStatus = "needs_test" | "tested" | "";

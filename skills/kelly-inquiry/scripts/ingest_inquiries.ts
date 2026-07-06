@@ -10,7 +10,7 @@
 //   "inquiries": [ { inquiry_id?, customer{...}, product_interest?, stage?, messages: [...] } ]
 // }
 import fs from "node:fs/promises";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 import {
   CONNECTORS,
   STAGES,
@@ -19,11 +19,12 @@ import {
   loadDotenvFiles,
   mergeInquiries,
   readConfig,
-  readLock,
-  readSnapshot,
   recomputeMetrics,
   writeJson,
-} from "../app/server/store.ts";
+} from "../lib/data-provider/store-core.ts";
+import { DATA_DIR, LOCK_PATH, SNAPSHOT_PATH } from "../lib/paths.ts";
+
+const provider = await createProvider();
 
 function fail(message) {
   console.error(`Ingest failed: ${message}`);
@@ -33,7 +34,7 @@ function fail(message) {
 const file = process.argv[2];
 if (!file) fail("pass a payload JSON file, e.g. node scripts/ingest_inquiries.mjs collected.json");
 
-await ensureDirs();
+await ensureDirs(DATA_DIR);
 await loadDotenvFiles(envSearchPaths());
 
 let payload: any;
@@ -113,7 +114,7 @@ const inquiries = payload.inquiries.map((entry, index) => {
   };
 });
 
-const lock = await readLock();
+const lock = await provider.readLock();
 if (lock) {
   console.error(`Ingest refused: agent lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
@@ -121,7 +122,7 @@ if (lock) {
 
 await writeJson(LOCK_PATH, { owner: "kelly-inquiry", message: `Ingesting ${file}`, started_at: nowIso });
 try {
-  const snapshot = await readSnapshot();
+  const snapshot = await provider.readSnapshot();
   snapshot.source = "kelly-inquiry";
   snapshot.accounts = Array.isArray(snapshot.accounts) ? snapshot.accounts : [];
   snapshot.quotes = Array.isArray(snapshot.quotes) ? snapshot.quotes : [];
@@ -157,7 +158,7 @@ try {
   snapshot.sync_log = snapshot.sync_log.slice(-100);
   snapshot.generated_at = nowIso;
   recomputeMetrics(snapshot);
-  await writeJson(SNAPSHOT_PATH, snapshot);
+  await provider.writeSnapshot(snapshot);
   console.log(`Ingested ${inquiries.length} inquiries (${added} new messages) into ${SNAPSHOT_PATH}`);
 } finally {
   await fs.rm(LOCK_PATH, { force: true });

@@ -5,13 +5,15 @@
 // Usage: node scripts/generate_demo_snapshot.mjs [--zh]
 
 import { buildDemoSnapshot } from "../app/server/demo.ts";
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { ensureDirs, writeJson } from "../app/server/store.ts";
+import { ensureDirs } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { SNAPSHOT_PATH } from "../lib/paths.ts";
 
 const zh = process.argv.includes("--zh");
 const snapshot = buildDemoSnapshot(zh, "today");
 snapshot.source = "kelly-standup-sample";
 
+const provider = await createProvider();
 await ensureDirs();
-await writeJson(SNAPSHOT_PATH, snapshot);
+await provider.putSnapshot(snapshot);
 console.log(`Wrote ${SNAPSHOT_PATH}`);

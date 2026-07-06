@@ -1,31 +1,87 @@
 #!/usr/bin/env node
-// Writes a small generic sample snapshot into app/.data/listing_snapshot.json
-// for local development and validator testing. Checks and scores are computed
-// by the shared engine so the sample is always schema- and rule-consistent.
-// (Documentation screenshots use the richer in-memory demo scenes instead:
-// /?demo=<scene> never touches app/.data/.)
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+// Writes a small generic sample snapshot (and a seeded claims registry) into
+// app/.data/ through the data-provider layer, for local development and
+// validator testing. Checks and scores are computed by the shared engine so
+// the sample is always schema- and rule-consistent, and the claims_registry
+// rule has a real registry to check against. (Documentation screenshots use the
+// richer in-memory demo scenes instead: /?demo=<scene> never touches app/.data/.)
 import { computeMetrics, evaluateDraft, ruleCatalog, scoreChecks } from "../app/server/rules.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import type { ClaimsRegistry } from "../lib/types.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const out = path.join(skillDir, "app", ".data", "listing_snapshot.json");
+const provider = await createProvider();
+const { config } = await provider.readConfig();
 const now = new Date().toISOString();
 
-async function readJson(file, fallback = null) {
-  try {
-    return JSON.parse(await fs.readFile(file, "utf8"));
-  } catch (error) {
-    if (error.code === "ENOENT") return fallback;
-    throw error;
-  }
-}
-
-const config =
-  (await readJson(path.join(skillDir, "config.local.json"))) ||
-  (await readJson(path.join(skillDir, "config.example.json"))) ||
-  {};
+// Seed the claims/compliance registry: two approved (substantiated) claims,
+// and banned-word / restricted-phrase rules. The failing sample draft below
+// leans on the non-approved claim and a restricted phrase, so run_checks flags
+// it against this registry.
+const claims: ClaimsRegistry = {
+  updated_at: now,
+  claims: [
+    {
+      claim_id: "claim-24h-cold",
+      text: "Keeps drinks cold 24 hours",
+      status: "approved",
+      category: "performance",
+      substantiation: "Lab ice-retention test, 22C ambient, full 750ml fill.",
+      evidence: ["test-reports/ice-retention-2026.pdf"],
+      approved_by: "compliance",
+      approved_at: now,
+      notes: "",
+      created_at: now,
+      updated_at: now,
+    },
+    {
+      claim_id: "claim-bpa-free",
+      text: "BPA-free",
+      status: "approved",
+      category: "safety",
+      substantiation: "Material spec sheet + third-party migration test.",
+      evidence: ["specs/material-cert.pdf"],
+      approved_by: "compliance",
+      approved_at: now,
+      notes: "",
+      created_at: now,
+      updated_at: now,
+    },
+    {
+      claim_id: "claim-kills-bacteria",
+      text: "kills 99.9% of bacteria",
+      status: "rejected",
+      category: "health",
+      substantiation: "",
+      evidence: [],
+      approved_by: "",
+      approved_at: "",
+      notes: "No antimicrobial testing on file; do not use.",
+      created_at: now,
+      updated_at: now,
+    },
+  ],
+  rules: [
+    {
+      rule_id: "claimrule-fda-approved",
+      phrase: "FDA approved",
+      type: "banned_word",
+      severity: "error",
+      reason: "Product is not an FDA-registered device; the phrase is unsubstantiated.",
+      alternative: "food-contact safe",
+      created_at: now,
+    },
+    {
+      rule_id: "claimrule-guaranteed",
+      phrase: "guaranteed",
+      type: "restricted_phrase",
+      severity: "error",
+      reason: "Absolute performance guarantees need legal sign-off.",
+      alternative: "designed to",
+      created_at: now,
+    },
+  ],
+};
+await provider.writeClaims(claims);
 
 const products = [
   {
@@ -109,12 +165,13 @@ const drafts = [
     variant_group: "example-mat-amazon",
     status: "needs_review",
     compliance_score: 0,
-    keyword_strategy: "Sample failing draft: banned word, 4 bullets, image checklist incomplete.",
+    keyword_strategy:
+      "Sample failing draft: trips the claims registry (restricted 'guaranteed' + rejected antibacterial claim), 4 bullets, image checklist incomplete.",
     fields: {
       title: "Example Brand Dish Drying Mat, Absorbent Microfiber Kitchen Counter Mat, Machine Washable, 45x30cm, Grey",
       bullets: [
         "Absorbs a full rack of drips in one go, guaranteed to keep counters dry.",
-        "Microfiber dries fast and resists odors between washes.",
+        "Microfiber dries fast and kills 99.9% of bacteria between washes.",
         "Machine washable — toss it in with the towels.",
         "Rolls up to store in any drawer.",
       ],
@@ -150,7 +207,7 @@ const drafts = [
 const productsById = new Map(products.map((product) => [product.product_id, product]));
 const checks = [];
 for (const draft of drafts) {
-  for (const result of evaluateDraft(draft, productsById.get(draft.product_id), config, "en")) {
+  for (const result of evaluateDraft(draft, productsById.get(draft.product_id), config, "en", claims)) {
     checks.push({
       check_id: `chk-${draft.draft_id.replace(/^d-/, "")}-${result.rule_id}`,
       draft_id: draft.draft_id,
@@ -158,6 +215,7 @@ for (const draft of drafts) {
       severity: result.severity,
       result: result.result,
       evidence: result.evidence,
+      ...(result.refs ? { refs: result.refs } : {}),
       checked_at: now,
     });
   }
@@ -195,6 +253,5 @@ const snapshot = {
 };
 snapshot.metrics = computeMetrics(snapshot);
 
-await fs.mkdir(path.dirname(out), { recursive: true });
-await fs.writeFile(out, `${JSON.stringify(snapshot, null, 2)}\n`);
-console.log(`Wrote ${out}`);
+await provider.writeSnapshot(snapshot);
+console.log("Wrote sample listing snapshot and seeded claims registry via the data provider.");

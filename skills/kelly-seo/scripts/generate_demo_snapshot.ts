@@ -4,8 +4,8 @@
 // builder as the in-memory demo scenes.
 
 import { buildDemoSnapshot } from "../app/server/demo.ts";
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { ensureDirs, writeJson } from "../app/server/store.ts";
+import { ensureDirs, writeJson } from "../lib/common.ts";
+import { SNAPSHOT_PATH } from "../lib/paths.ts";
 
 await ensureDirs();
 const snapshot = buildDemoSnapshot();

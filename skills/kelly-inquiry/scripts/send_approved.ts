@@ -7,16 +7,11 @@
 // global fetch with tokens referenced by env-var name; email_agent, browser_agent
 // and manual connectors become handoff_to_agent operations for the agent.
 import fs from "node:fs/promises";
-import { EXECUTION_REPORT_PATH, LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  ensureDirs,
-  envSearchPaths,
-  loadDotenvFiles,
-  readConfig,
-  readLock,
-  readSnapshot,
-  writeJson,
-} from "../app/server/store.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { ensureDirs, envSearchPaths, loadDotenvFiles, readConfig, writeJson } from "../lib/data-provider/store-core.ts";
+import { DATA_DIR, EXECUTION_REPORT_PATH, LOCK_PATH } from "../lib/paths.ts";
+
+const provider = await createProvider();
 
 const send = process.argv.includes("--send");
 const API_CONNECTORS = new Set(["whatsapp_cloud", "instagram_graph", "messenger_graph"]);
@@ -30,9 +25,9 @@ function truncate(text, max = 80) {
 }
 
 async function main() {
-  await ensureDirs();
+  await ensureDirs(DATA_DIR);
   await loadDotenvFiles(envSearchPaths());
-  const [snapshot, configResult] = await Promise.all([readSnapshot(), readConfig()]);
+  const [snapshot, configResult] = await Promise.all([provider.readSnapshot(), readConfig()]);
   const approved = (snapshot.approvals || []).filter((item) => item.status === "approved");
 
   if (!approved.length) {
@@ -56,7 +51,7 @@ async function main() {
     return;
   }
 
-  const lock = await readLock();
+  const lock = await provider.readLock();
   if (lock) {
     console.error(`Send refused: agent lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
     process.exitCode = 1;
@@ -71,7 +66,7 @@ async function main() {
   const results = [];
   try {
     // Re-read immediately before sending: approvals may have changed.
-    const fresh = await readSnapshot();
+    const fresh = await provider.readSnapshot();
     for (const plan of plans) {
       const item = (fresh.approvals || []).find((entry) => entry.item_id === plan.item.item_id);
       if (!item || item.status !== "approved") {
@@ -118,7 +113,7 @@ async function main() {
       }
     }
     fresh.generated_at = nowIso();
-    await writeJson(SNAPSHOT_PATH, fresh);
+    await provider.writeSnapshot(fresh);
   } finally {
     await fs.rm(LOCK_PATH, { force: true });
   }

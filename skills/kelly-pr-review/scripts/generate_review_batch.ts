@@ -2,9 +2,12 @@
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
 import type { ReviewConfig, ReviewPolicyConfig } from "../app/server/types.ts";
-import { pathExists, readJson, truncateText, utcNow, withLock, writeJson } from "../lib/common.ts";
+import { truncateText, utcNow, withLock } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 import { loadConfigWithMeta } from "../lib/data-reader/index.ts";
-import { BATCH_DIR, CURRENT_BATCH_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH } from "../lib/paths.ts";
+import { CURRENT_BATCH_PATH } from "../lib/paths.ts";
+
+const provider = await createProvider();
 
 interface GhOptions {
   maxBuffer?: number;
@@ -26,10 +29,11 @@ function compactTimestamp() {
 
 async function cachedBatch() {
   if (SAMPLE_FLAG || REFRESH_FLAG || CACHE_TTL_MS <= 0) return null;
-  if (!(await pathExists(CURRENT_BATCH_PATH))) return null;
-  const batch = await readJson(CURRENT_BATCH_PATH, null);
-  if (!batch || batch.source !== "kelly-pr-review" || !batch.generated_at) return null;
-  const generatedAt = new Date(batch.generated_at).getTime();
+  const batch = await provider.loadBatch();
+  // loadBatch() returns a synthetic empty batch when nothing is cached; only a
+  // real, fresh gh-sourced batch counts as a cache hit.
+  if (!batch || batch.batch_id === "empty" || batch.source !== "kelly-pr-review" || !batch.generated_at) return null;
+  const generatedAt = new Date(batch.generated_at as string).getTime();
   if (!Number.isFinite(generatedAt)) return null;
   if (Date.now() - generatedAt > CACHE_TTL_MS) return null;
   return batch;
@@ -278,7 +282,7 @@ function dedupeItems(items) {
   return Array.from(byId.values());
 }
 
-async function buildBatch() {
+async function buildBatch(): Promise<any> {
   const cached = await cachedBatch();
   if (cached) return { ...cached, reused_cache: true };
   const meta = await loadConfigWithMeta();
@@ -347,14 +351,11 @@ async function buildBatch() {
     metrics: metrics(items),
     items,
   };
-  await writeJson(CURRENT_BATCH_PATH, batch);
-  await writeJson(`${BATCH_DIR}/${batch.batch_id}.json`, batch);
-  await writeJson(DECISIONS_PATH, {
-    batch_id: batch.batch_id,
-    updated_at: utcNow(),
-    decisions: [],
-  });
-  await writeJson(EXECUTION_REPORT_PATH, {
+  // saveBatch writes current_batch.json + the per-batch snapshot; then reset the
+  // decisions and execution-report handoffs for the fresh batch.
+  await provider.saveBatch(batch);
+  await provider.writeDecisions({ ...batch, items: [] });
+  await provider.writeExecutionReport({
     generated_at: utcNow(),
     batch_id: batch.batch_id,
     live: false,

@@ -3,10 +3,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { DATA_DIR, GENERATED_DIR } from "./paths.ts";
 import { loadProject, saveProject } from "./project-store.ts";
-import { pathExists, readJson, slug } from "./utils.ts";
+import { getProvider } from "./provider.ts";
+import { pathExists, slug } from "./utils.ts";
 
 const VIDEO_DIR = path.join(GENERATED_DIR, "videos");
-const VIDEO_CONFIG_PATH = path.join(DATA_DIR, "video_config.json");
 
 // Draft: local LTX (Apple Silicon). Prod: Seedance 2.0 — see stub below.
 const DEFAULT_VIDEO_CONFIG = {
@@ -29,7 +29,7 @@ const DEFAULT_VIDEO_CONFIG = {
 };
 
 async function loadVideoConfig() {
-  const disk = (await pathExists(VIDEO_CONFIG_PATH)) ? await readJson(VIDEO_CONFIG_PATH, {}) : {};
+  const disk = await (await getProvider()).loadConfigBlob("video");
   return { ...DEFAULT_VIDEO_CONFIG, ...disk };
 }
 
@@ -62,15 +62,17 @@ export async function generateShotVideoProd(shotId) {
   const base = String(cfg.ark_base_url).replace(/\/+$/, "");
   const duration = Math.max(4, Math.min(Number(shot.duration_seconds) || 5, 15));
   const headers = { Authorization: `Bearer ${cfg.ark_api_key}`, "Content-Type": "application/json" };
+  const provider = await getProvider();
   const textPart = { type: "text", text: prodPrompt(shot) };
-  const hasImage = shot.image_asset?.startsWith("/generated/") && (await pathExists(absFromPublic(shot.image_asset)));
+  const hasImage =
+    shot.image_asset?.startsWith("/generated/") && (await provider.generatedAssetExists(shot.image_asset));
   const i2vContent = hasImage
     ? [
         textPart,
         {
           type: "image_url",
           image_url: {
-            url: `data:image/png;base64,${(await fs.readFile(absFromPublic(shot.image_asset))).toString("base64")}`,
+            url: `data:image/png;base64,${(await provider.readGeneratedAsset(shot.image_asset)).toString("base64")}`,
           },
         },
       ]
@@ -135,10 +137,9 @@ export async function generateShotVideoProd(shotId) {
   const resp = await fetch(videoUrl);
   if (!resp.ok) throw new Error(`下载成片失败: ${resp.status}`);
   const bytes = Buffer.from(await resp.arrayBuffer());
-  await fs.mkdir(VIDEO_DIR, { recursive: true });
   const filename = `${slug(shot.id)}-prod-${Date.now()}.mp4`;
-  await fs.writeFile(path.join(VIDEO_DIR, filename), bytes);
   const publicPath = `/generated/videos/${filename}`;
+  await provider.writeGeneratedAsset(publicPath, bytes);
   const generatedAt = new Date().toISOString();
   const generation = {
     mode: "prod",
@@ -177,6 +178,10 @@ export async function generateShotVideoProd(shotId) {
   return { path: publicPath, state: await import("./state.ts").then((m) => m.statePayload()) };
 }
 
+// Draft mode is local-only: it spawns the LTX-Video Python wrapper, which reads
+// the keyframe and writes the mp4 as real files on disk under .data/generated.
+// Absolute-path fs is intentional here (a subprocess cannot use the provider
+// seam); config still loads through the provider.
 export async function generateShotVideoDraft(shotId) {
   const cfg = await loadVideoConfig();
   const project = await loadProject();

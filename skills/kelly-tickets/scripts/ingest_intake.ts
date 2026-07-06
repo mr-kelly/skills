@@ -7,19 +7,10 @@
 // Usage: node scripts/ingest_intake.mjs <payload.json> [more-payloads.json...]
 
 import crypto from "node:crypto";
-import fs from "node:fs/promises";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  computeMetrics,
-  emptySnapshot,
-  ensureDirs,
-  maskContact,
-  readConfig,
-  readJson,
-  readLock,
-  readSnapshot,
-  writeJson,
-} from "../app/server/store.ts";
+import { computeMetrics, emptySnapshot, maskContact, readJson } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+
+const provider = await createProvider();
 
 const CHANNELS = new Set(["wechat", "phone", "form", "email", "walk_in"]);
 const URGENCIES = new Set(["urgent", "high", "normal", "low"]);
@@ -33,9 +24,9 @@ function fail(message) {
 
 if (!payloadFiles.length) fail("usage: node scripts/ingest_intake.mjs <payload.json> [...]");
 
-await ensureDirs();
+await provider.ensureStore();
 
-const existingLock = await readLock();
+const existingLock = await provider.readLock();
 if (existingLock) {
   fail(
     `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
@@ -51,16 +42,16 @@ function dedupeKey(item) {
   return `${item.channel}:${item.external_id || hash}`;
 }
 
-await writeJson(LOCK_PATH, {
+await provider.writeLock({
   owner: "kelly-tickets",
   message: "Ingesting intake payloads",
   started_at: new Date().toISOString(),
 });
 
 try {
-  const snapshot = await readSnapshot();
+  const snapshot = await provider.readSnapshot();
   const base = snapshot.schema_version ? snapshot : emptySnapshot();
-  const configResult = await readConfig();
+  const configResult = await provider.readConfig();
   if (!base.property?.name && configResult.config.property?.name) {
     base.property = {
       name: configResult.config.property.name,
@@ -126,8 +117,8 @@ try {
   base.source = "kelly-tickets";
   base.metrics = computeMetrics(base);
   base.warnings = (base.warnings || []).filter((warning) => warning.id !== "no-snapshot");
-  await writeJson(SNAPSHOT_PATH, base);
-  console.log(`Ingested ${added} new intake items (${skipped} duplicates skipped) into ${SNAPSHOT_PATH}`);
+  await provider.writeSnapshot(base);
+  console.log(`Ingested ${added} new intake items (${skipped} duplicates skipped) via "${provider.kind}" provider.`);
 } finally {
-  await fs.rm(LOCK_PATH, { force: true });
+  await provider.clearLock();
 }

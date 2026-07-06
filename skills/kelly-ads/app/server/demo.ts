@@ -2,7 +2,7 @@
 // Persona: "Nimbus Home", a cross-border home & kitchen gadget seller running
 // Amazon Ads US, Meta (IG), TikTok Ads, and Google Ads.
 // Demo mode never reads or writes files under app/.data/.
-import { recomputeDerived, round1, round2 } from "./store.ts";
+import { recomputeDerived, round1, round2 } from "../../lib/common.ts";
 import type { AdsSnapshot } from "./types.ts";
 
 interface DemoQuery {
