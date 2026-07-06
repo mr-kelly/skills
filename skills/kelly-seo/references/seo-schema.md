@@ -32,11 +32,16 @@ Use this schema for `app/.data/seo_snapshot.json` and the handoff files around i
   "queries": [],
   "pages": [],
   "opportunities": [],
-  "warnings": []
+  "warnings": [],
+  "ai_visibility": null,
+  "geo_opportunities": [],
+  "entity_signals": null
 }
 ```
 
 `ctr` is a fraction (0-1). `position` is the impression-weighted average position; lower is better. `prev_*` metrics cover the previous window of the same length.
+
+The `ai_visibility`, `geo_opportunities`, and `entity_signals` fields are the GEO (Generative Engine Optimization / AI-search) half of the snapshot. They are optional so pre-GEO snapshots still validate; the validator checks their shape only when present.
 
 ## Site
 
@@ -157,9 +162,99 @@ Agent-proposed SEO actions reviewed in `#/opportunities`. Workflow states follow
 }
 ```
 
+## AI Visibility (GEO)
+
+Renders the `#/geo` engines × prompts matrix and the visibility trend. `null` when no GEO scan has run.
+
+```json
+{
+  "brand": "invented brand name",
+  "engines": ["chatgpt", "perplexity", "gemini", "claude", "copilot"],
+  "score": 68,
+  "prev_score": 59,
+  "prompts": [
+    {
+      "prompt_id": "geo-<slug>",
+      "prompt": "a question a user might ask an AI engine",
+      "intent": "comparison|definition|how-to|alternative|...",
+      "mentions": [
+        {
+          "engine": "chatgpt",
+          "mentioned": true,
+          "position": 2,
+          "sentiment": "positive|neutral|negative",
+          "cited_url": "https://... or empty",
+          "note": ""
+        }
+      ],
+      "trend": [{ "date": "YYYY-MM-DD", "visibility": 0.6 }]
+    }
+  ]
+}
+```
+
+`score` (0-100) is the overall share of engine × prompt cells that cite the brand. Each prompt's `mentions` has one entry per engine; `position`/`sentiment` are `null` when `mentioned` is false. `trend.visibility` is a 0-1 share of engines mentioning us on that date.
+
+## GEO Opportunity
+
+Agent-proposed GEO content optimizations reviewed in `#/optimize`, gated by `geo-qa`. Same five-state workflow as SEO opportunities.
+
+```json
+{
+  "id": "geo-opp-<stable-id>",
+  "ref": 1,
+  "type": "citable_rewrite|quotable_stats|qa_block|schema_markup",
+  "title": "short human-readable action title",
+  "target_page": "https://...",
+  "target_prompt": "the AI-engine question this change is meant to win",
+  "reason": "why this makes the page more citable, with evidence",
+  "expected_impact": "estimated effect on AI-engine citations",
+  "draft": "the proposed citable content / additions",
+  "grounding": ["kb-style source line backing any claim in the draft"],
+  "gate": {
+    "verdict": "SHIP|FIX|BLOCK",
+    "score": 90,
+    "checks": [{ "id": "factual-grounding", "label": "Factual grounding", "result": "pass|warn|fail", "note": "..." }],
+    "summary": "one-line gate summary"
+  },
+  "status": "needs_review|changes_requested|approved|done|blocked",
+  "agent_notes": "optional supporting analysis",
+  "created_at": "ISO timestamp",
+  "decision": { "action": "approve|request_changes|revise|block", "note": "...", "draft": "... or null", "decided_at": "ISO" },
+  "execution": { "status": "executed", "operation": "publish_geo_change", "target": "page URL", "detail": "...", "executed_at": "ISO" }
+}
+```
+
+`geo-qa` (`lib/geo-qa.ts`) is a hard gate: a `BLOCK` verdict (an ungrounded/fabricated stat) forces `status: blocked` and the app rejects an approve with HTTP 422. `decision` and `execution` are `null` until they exist.
+
+## Entity Signals (GEO)
+
+Renders the `#/entity` readiness checklist. `null` when no entity audit has run.
+
+```json
+{
+  "brand": "invented brand name",
+  "score": 50,
+  "signals": [
+    {
+      "id": "ent-<slug>",
+      "label": "Wikidata entity",
+      "category": "knowledge-graph|schema|consistency",
+      "status": "present|partial|missing",
+      "detail": "what was found",
+      "fix": "agent-proposed fix when partial/missing, else empty"
+    }
+  ]
+}
+```
+
+`score` (0-100) weights `present`=1, `partial`=0.5, `missing`=0 across the signals; it is recomputed when the user overrides a signal's status.
+
 ## Handoff Files
 
 - `app/.data/decisions.json`: `{ "updated_at": "ISO", "decisions": { "<opportunity id>": { "action", "note", "draft", "decided_at" } } }`
+- `app/.data/geo_decisions.json`: `{ "updated_at": "ISO", "decisions": { "<geo opportunity id>": { "action", "note", "draft", "decided_at" } } }` — merged onto `geo_opportunities` for `/api/state` (a `geo-qa` BLOCK still wins over an approve).
+- `app/.data/entity_signals.json`: `{ "updated_at": "ISO", "signals": { "<signal id>": { "status", "note", "updated_at" } } }` — overrides folded onto `entity_signals` and the score recomputed.
 - `app/.data/agent_tasks.json`: `{ "updated_at": "ISO", "tasks": [ { "id", "ref", "title", "type": "revise_opportunity", "note", "requested_at" } ] }`
 - `app/.data/execution_report.json`: `{ "generated_at": "ISO", "dry_run": true, "source": "kelly-seo", "results": [ { "id", "ref", "title", "operation", "target_page", "target_query", "site_id", "status", "detail" } ] }`
 - `app/.data/onboarding.json`: `{ "completed": true, "completed_at": "ISO", "config_version": "1" }`

@@ -124,4 +124,111 @@ snapshot.warnings.forEach((warning, index) => {
   for (const key of ["id", "severity", "message"]) requireString(warning, key, path);
 });
 
+// ── ECHO publishing side (all optional; validated only when present) ────────
+const REVIEW_STATES = ["needs_review", "changes_requested", "approved", "done", "blocked"];
+const GATE_VERDICTS = ["SHIP", "FIX", "BLOCK"];
+const CAL_STATES = ["planned", "drafting", "scheduled", "published", "skipped"];
+
+if (snapshot.calendar !== undefined) {
+  if (!Array.isArray(snapshot.calendar)) fail("root.calendar must be an array when present");
+  const calIds = new Set();
+  snapshot.calendar.forEach((entry, index) => {
+    const path = `root.calendar[${index}]`;
+    if (!isObject(entry)) fail(`${path} must be an object`);
+    for (const key of ["entry_id", "date", "channel", "pillar", "title", "status"]) requireString(entry, key, path);
+    requireEnum(entry, "channel", PLATFORMS, path);
+    requireEnum(entry, "status", CAL_STATES, path);
+    if (calIds.has(entry.entry_id)) fail(`${path}.entry_id duplicates ${entry.entry_id}`);
+    calIds.add(entry.entry_id);
+  });
+}
+
+if (snapshot.drafts !== undefined) {
+  if (!Array.isArray(snapshot.drafts)) fail("root.drafts must be an array when present");
+  const draftIds = new Set();
+  snapshot.drafts.forEach((draft, index) => {
+    const path = `root.drafts[${index}]`;
+    if (!isObject(draft)) fail(`${path} must be an object`);
+    for (const key of ["draft_id", "pillar", "hook", "body", "status"]) requireString(draft, key, path);
+    requireEnum(draft, "status", REVIEW_STATES, path);
+    if (!Array.isArray(draft.channels) || draft.channels.length === 0)
+      fail(`${path}.channels must be a non-empty array`);
+    draft.channels.forEach((channel) => {
+      if (!PLATFORMS.includes(channel)) fail(`${path}.channels contains invalid platform: ${channel}`);
+    });
+    if (draftIds.has(draft.draft_id)) fail(`${path}.draft_id duplicates ${draft.draft_id}`);
+    draftIds.add(draft.draft_id);
+    if (!isObject(draft.gate)) fail(`${path}.gate must be an object`);
+    requireEnum(draft.gate, "verdict", GATE_VERDICTS, `${path}.gate`);
+    requireNumber(draft.gate, "score", `${path}.gate`);
+    if (!Array.isArray(draft.gate.checks)) fail(`${path}.gate.checks must be an array`);
+  });
+}
+
+if (snapshot.shorts !== undefined) {
+  if (!Array.isArray(snapshot.shorts)) fail("root.shorts must be an array when present");
+  const shortIds = new Set();
+  snapshot.shorts.forEach((short, index) => {
+    const path = `root.shorts[${index}]`;
+    if (!isObject(short)) fail(`${path} must be an object`);
+    for (const key of ["short_id", "pillar", "title", "hook", "status"]) requireString(short, key, path);
+    requireEnum(short, "status", REVIEW_STATES, path);
+    if (shortIds.has(short.short_id)) fail(`${path}.short_id duplicates ${short.short_id}`);
+    shortIds.add(short.short_id);
+    if (!Array.isArray(short.shots)) fail(`${path}.shots must be an array`);
+    short.shots.forEach((shot, shotIndex) => {
+      const shotPath = `${path}.shots[${shotIndex}]`;
+      if (!isObject(shot)) fail(`${shotPath} must be an object`);
+      requireNumber(shot, "shot_no", shotPath);
+      requireString(shot, "visual", shotPath);
+      requireString(shot, "voiceover", shotPath);
+      requireNumber(shot, "duration_s", shotPath);
+    });
+  });
+}
+
+if (snapshot.engagement !== undefined) {
+  if (!Array.isArray(snapshot.engagement)) fail("root.engagement must be an array when present");
+  const engIds = new Set();
+  snapshot.engagement.forEach((item, index) => {
+    const path = `root.engagement[${index}]`;
+    if (!isObject(item)) fail(`${path} must be an object`);
+    for (const key of ["item_id", "platform", "kind", "author_handle", "incoming_text", "draft_reply", "status"])
+      requireString(item, key, path);
+    requireEnum(item, "platform", PLATFORMS, path);
+    requireEnum(item, "status", REVIEW_STATES, path);
+    if (engIds.has(item.item_id)) fail(`${path}.item_id duplicates ${item.item_id}`);
+    engIds.add(item.item_id);
+  });
+}
+
+if (snapshot.crisis !== undefined) {
+  const path = "root.crisis";
+  if (!isObject(snapshot.crisis)) fail(`${path} must be an object when present`);
+  requireEnum(snapshot.crisis, "status", ["calm", "watch", "active"], path);
+  if (typeof snapshot.crisis.publishing_paused !== "boolean") fail(`${path}.publishing_paused must be a boolean`);
+  if (!Array.isArray(snapshot.crisis.steps)) fail(`${path}.steps must be an array`);
+  snapshot.crisis.steps.forEach((step, index) => {
+    const stepPath = `${path}.steps[${index}]`;
+    if (!isObject(step)) fail(`${stepPath} must be an object`);
+    for (const key of ["step_id", "label", "detail"]) requireString(step, key, stepPath);
+    if (typeof step.done !== "boolean") fail(`${stepPath}.done must be a boolean`);
+  });
+}
+
+if (snapshot.share_of_voice !== undefined) {
+  const path = "root.share_of_voice";
+  if (!isObject(snapshot.share_of_voice)) fail(`${path} must be an object when present`);
+  requireString(snapshot.share_of_voice, "window", path);
+  requireNumber(snapshot.share_of_voice, "total_mentions", path);
+  if (!Array.isArray(snapshot.share_of_voice.entries)) fail(`${path}.entries must be an array`);
+  snapshot.share_of_voice.entries.forEach((entry, index) => {
+    const entryPath = `${path}.entries[${index}]`;
+    if (!isObject(entry)) fail(`${entryPath} must be an object`);
+    requireString(entry, "name", entryPath);
+    requireNumber(entry, "share", entryPath);
+    if (typeof entry.is_self !== "boolean") fail(`${entryPath}.is_self must be a boolean`);
+  });
+}
+
 console.log(`OK: ${target}`);

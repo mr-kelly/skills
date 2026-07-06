@@ -64,6 +64,9 @@ export function emptySnapshot(): SeoSnapshot {
         message: "No SEO snapshot exists yet. Configure site properties, then run a read-only GSC sync.",
       },
     ],
+    ai_visibility: null,
+    geo_opportunities: [],
+    entity_signals: null,
   };
 }
 
@@ -101,6 +104,31 @@ export function mergeOpportunities(snapshot, decisions, executionReport) {
     };
   });
   return { ...snapshot, opportunities };
+}
+
+// Fold GEO decisions (geo_decisions.json) back onto the snapshot's
+// geo_opportunities the same way mergeOpportunities does for SEO. A GEO change
+// that geo-qa BLOCKs can never be approved, so approve degrades to blocked.
+export function mergeGeoOpportunities(snapshot, geoDecisions) {
+  const verdicts = geoDecisions?.decisions || {};
+  const geoOpportunities = (snapshot.geo_opportunities || []).map((opportunity) => {
+    const decision = verdicts[opportunity.id] || opportunity.decision || null;
+    let status = opportunity.status;
+    if (decision?.action === "approve") status = "approved";
+    if (decision?.action === "request_changes") status = "changes_requested";
+    if (decision?.action === "block") status = "blocked";
+    // A shipped GEO change (executed) stays done regardless of its decision.
+    if (opportunity.execution?.status === "executed") status = "done";
+    // geo-qa is a hard gate: a BLOCK verdict overrides everything but done.
+    if (opportunity.gate?.verdict === "BLOCK" && status !== "done") status = "blocked";
+    return {
+      ...opportunity,
+      status,
+      decision,
+      draft: decision?.draft ?? opportunity.draft,
+    };
+  });
+  return { ...snapshot, geo_opportunities: geoOpportunities };
 }
 
 export async function loadDotenvFiles(files) {

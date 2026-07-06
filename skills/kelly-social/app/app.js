@@ -6,11 +6,15 @@ const state = {
   route: parseRoute(),
   query: "",
   platformFilter: "",
+  workflowFilter: "",
   lang: normalizeLang(
     new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-social-language") || "auto",
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
+  busy: false,
 };
+
+const REVIEW_STATES = ["needs_review", "changes_requested", "approved", "done", "blocked"];
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-social.sidebarCollapsed";
 const STALE_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
@@ -29,6 +33,8 @@ const els = {
   mobileViewMeta: document.querySelector("#mobileViewMeta"),
   syncStatus: document.querySelector("#sync-status"),
   staleCount: document.querySelector("#count-stale"),
+  reviewCount: document.querySelector("#count-review"),
+  engagementCount: document.querySelector("#count-engagement"),
   postCount: document.querySelector("#count-posts"),
   accountCount: document.querySelector("#count-accounts"),
   language: document.querySelector("#language"),
@@ -158,14 +164,17 @@ async function loadState() {
 function applyDemoRoute() {
   if (!state.settings?.demo || location.hash) return;
   const scenario = state.settings.demo_scenario || "overview";
-  const route =
-    scenario === "accounts"
-      ? "#/accounts"
-      : scenario === "detail"
-        ? "#/accounts/x-kelly"
-        : scenario === "timeline"
-          ? "#/timeline"
-          : "#/overview";
+  const scenarioRoutes = {
+    accounts: "#/accounts",
+    detail: "#/accounts/x-kelly",
+    timeline: "#/timeline",
+    calendar: "#/calendar",
+    compose: "#/compose",
+    shorts: "#/shorts",
+    engagement: "#/engagement",
+    crisis: "#/crisis",
+  };
+  const route = scenarioRoutes[scenario] || "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }
@@ -197,6 +206,72 @@ function syncLog() {
   return state.snapshot?.sync_log || [];
 }
 
+function calendar() {
+  return state.snapshot?.calendar || [];
+}
+
+function drafts() {
+  return state.snapshot?.drafts || [];
+}
+
+function shorts() {
+  return state.snapshot?.shorts || [];
+}
+
+function engagement() {
+  return state.snapshot?.engagement || [];
+}
+
+function crisis() {
+  return state.snapshot?.crisis || null;
+}
+
+function shareOfVoice() {
+  return state.snapshot?.share_of_voice || null;
+}
+
+// Items still waiting on a human decision (drives the attention counters).
+function openReview(list) {
+  return list.filter((item) => item.status === "needs_review" || item.status === "changes_requested");
+}
+
+// POST one ECHO operation, then reload state so the optimistic transition
+// reflects the persisted snapshot. Demo mode short-circuits to a local reload.
+async function applyOperation(op) {
+  if (state.busy) return;
+  state.busy = true;
+  render();
+  try {
+    const params = new URLSearchParams();
+    if (state.demo) params.set("demo", state.demo);
+    const res = await fetch(`/api/operation?${params}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(op),
+    });
+    if (!res.ok) {
+      const detail = await res.json().catch(() => ({}));
+      throw new Error(detail.error || `${t("opFailed")}: ${res.status}`);
+    }
+    const data = await res.json();
+    if (data.snapshot) {
+      // Real provider echoes the updated snapshot — adopt it directly.
+      state.snapshot = data.snapshot;
+      state.settings = { ...state.settings, snapshot: data.snapshot };
+      state.busy = false;
+      render();
+    } else {
+      // Demo mode: no server-side write, so reload the deterministic scene.
+      state.busy = false;
+      await loadState();
+    }
+  } catch (error) {
+    state.busy = false;
+    window.alert(`${t("opFailed")}: ${error.message}`);
+    render();
+  }
+}
+
 function isStaleAccount(account) {
   if (account.status && account.status !== "ok") return true;
   if (!account.last_sync_at) return true;
@@ -211,8 +286,14 @@ function renderShell() {
   const staleCount = accounts().filter(isStaleAccount).length;
   const configuredCount = state.settings?.config_summary?.accounts?.length || 0;
   const postCount = posts().length;
-  els.syncStatus.textContent = snapshot ? `${postCount} ${t("posts")}` : t("empty");
+  const reviewCount =
+    openReview(drafts()).length +
+    shorts().filter((s) => s.status === "needs_review" || s.status === "changes_requested").length;
+  const engagementReview = openReview(engagement()).length;
+  els.syncStatus.textContent = snapshot ? `${reviewCount} ${t("needsReviewCount")}` : t("empty");
   if (els.staleCount) els.staleCount.textContent = staleCount + warningCount;
+  if (els.reviewCount) els.reviewCount.textContent = reviewCount;
+  if (els.engagementCount) els.engagementCount.textContent = engagementReview;
   if (els.postCount) els.postCount.textContent = postCount;
   if (els.accountCount) els.accountCount.textContent = configuredCount;
   if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
@@ -232,6 +313,11 @@ function viewLabel(view) {
   if (view === "timeline") return t("timeline");
   if (view === "accounts") return t("accounts");
   if (view === "settings") return t("settings");
+  if (view === "calendar") return t("contentCalendar");
+  if (view === "compose") return t("composerQueue");
+  if (view === "shorts") return t("shortScripts");
+  if (view === "engagement") return t("engagementInbox");
+  if (view === "crisis") return t("crisisPlaybook");
   return t("overview");
 }
 
@@ -421,6 +507,7 @@ function renderOverview() {
             .join("") || `<div class="empty">${t("empty")}</div>`
         }
       </div>
+      ${shareOfVoicePanel()}
       <div class="overview-panel wide">
         <h2>${t("collectionFreshness")}</h2>
         ${list
@@ -438,6 +525,356 @@ function renderOverview() {
       </div>
     </section>
   `;
+}
+
+// ─── ECHO publishing side: shared UI helpers ────────────────────────────────
+
+function reviewBadge(status) {
+  return `<span class="badge review-${escapeHtml(status)}">${escapeHtml(enumLabel(status, "review"))}</span>`;
+}
+
+function gateBadge(gate) {
+  if (!gate) return "";
+  const verdict = gate.verdict || "SHIP";
+  return `<span class="gate gate-${escapeHtml(verdict)}" title="${t("gateScore")} ${escapeHtml(String(gate.score))}">⛩ ${escapeHtml(enumLabel(verdict, "verdict"))} · ${escapeHtml(String(gate.score))}</span>`;
+}
+
+function gatePanel(gate) {
+  if (!gate) return "";
+  return `
+    <div class="gate-panel gate-${escapeHtml(gate.verdict)}">
+      <div class="row between">
+        <strong>${t("qualityGate")}</strong>
+        ${gateBadge(gate)}
+      </div>
+      ${gate.summary ? `<div class="muted">${escapeHtml(gate.summary)}</div>` : ""}
+      <ul class="gate-checks">
+        ${(gate.checks || [])
+          .map(
+            (check) => `
+          <li class="gate-check ${escapeHtml(check.result)}">
+            <span class="gate-dot" aria-hidden="true"></span>
+            <span><strong>${escapeHtml(check.label)}</strong>${check.note ? `<small>${escapeHtml(check.note)}</small>` : ""}</span>
+          </li>
+        `,
+          )
+          .join("")}
+      </ul>
+    </div>
+  `;
+}
+
+function channelBadges(channels) {
+  return (channels || []).map((channel) => platformBadge(channel)).join(" ");
+}
+
+// Reusable workflow (review-status) filter chips for the publishing queues.
+function workflowChips(list) {
+  const counts = REVIEW_STATES.map((status) => ({
+    status,
+    n: list.filter((item) => item.status === status).length,
+  })).filter((entry) => entry.n > 0);
+  return `
+    <div class="chips" role="group" aria-label="${t("workflow")}">
+      <button type="button" class="chip ${state.workflowFilter === "" ? "active" : ""}" data-workflow="">${t("allItems")} ${list.length}</button>
+      ${counts
+        .map(
+          (entry) => `
+        <button type="button" class="chip ${state.workflowFilter === entry.status ? "active" : ""}" data-workflow="${escapeHtml(entry.status)}">${escapeHtml(enumLabel(entry.status, "review"))} ${entry.n}</button>
+      `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function byWorkflow(list) {
+  if (!state.workflowFilter) return list;
+  return list.filter((item) => item.status === state.workflowFilter);
+}
+
+function bindWorkflowChips() {
+  els.content.querySelectorAll(".chip[data-workflow]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      state.workflowFilter = chip.dataset.workflow || "";
+      render();
+    });
+  });
+}
+
+// Review actions shared by drafts / shorts / engagement. `kind` picks the op.
+function reviewActions(kind, id, item) {
+  const disabled = state.busy ? "disabled" : "";
+  const blocked = item.gate?.verdict === "BLOCK";
+  const opFor = { draft: "review_draft", short: "review_short", engagement: "review_engagement" }[kind];
+  const idKey = { draft: "draft_id", short: "short_id", engagement: "item_id" }[kind];
+  const buttons = [];
+  if (!blocked) {
+    buttons.push(
+      `<button type="button" class="btn-approve" data-op="${opFor}" data-idkey="${idKey}" data-id="${escapeHtml(id)}" data-status="approved" ${disabled}>${t("approve")}</button>`,
+    );
+  }
+  buttons.push(
+    `<button type="button" data-op="${opFor}" data-idkey="${idKey}" data-id="${escapeHtml(id)}" data-status="changes_requested" ${disabled}>${t("requestChanges")}</button>`,
+  );
+  buttons.push(
+    `<button type="button" class="btn-danger" data-op="${opFor}" data-idkey="${idKey}" data-id="${escapeHtml(id)}" data-status="blocked" ${disabled}>${t("block")}</button>`,
+  );
+  return `<div class="actions">${buttons.join("")}</div>`;
+}
+
+// Wire every data-op button in the current scene to applyOperation().
+function bindOps() {
+  els.content.querySelectorAll("[data-op]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const op = { operation: button.dataset.op };
+      if (button.dataset.idkey) op[button.dataset.idkey] = button.dataset.id;
+      if (button.dataset.status) op.status = button.dataset.status;
+      if (button.dataset.channel) op.channel = button.dataset.channel;
+      if (button.dataset.scheduledFor) op.scheduled_for = button.dataset.scheduledFor;
+      if (button.dataset.stepId) op.step_id = button.dataset.stepId;
+      if (button.dataset.paused) op.publishing_paused = button.dataset.paused === "true";
+      if (button.dataset.incident) op.status = button.dataset.incident;
+      applyOperation(op);
+    });
+  });
+}
+
+function shareOfVoicePanel() {
+  const sov = shareOfVoice();
+  if (!sov || !(sov.entries || []).length) return "";
+  const max = Math.max(...sov.entries.map((entry) => entry.share || 0)) || 1;
+  return `
+    <div class="overview-panel">
+      <h2>${t("shareOfVoice")}</h2>
+      <div class="muted">${t("youVsCompetitors")} · ${num(sov.total_mentions)} ${t("mentions7d")}</div>
+      ${sov.entries
+        .map(
+          (entry) => `
+        <div class="sov-row ${entry.is_self ? "self" : ""}">
+          <span class="sov-name">${escapeHtml(entry.name)}</span>
+          <span class="traffic-bar"><span style="width:${Math.round((Number(entry.share || 0) / max) * 100)}%"></span></span>
+          <span class="num">${pct(entry.share)}</span>
+        </div>
+      `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function renderCalendar() {
+  els.title.textContent = t("contentCalendar");
+  const list = [...calendar()].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  els.subtitle.textContent = `${list.length} ${t("upcoming")}`;
+  els.content.innerHTML = list.length
+    ? `
+    <div class="table-wrap">
+      <table class="calendar-table">
+        <thead>
+          <tr><th>${t("date")}</th><th>${t("channel")}</th><th>${t("pillar")}</th><th>${t("post")}</th><th>${t("status")}</th></tr>
+        </thead>
+        <tbody>
+          ${list
+            .map(
+              (entry) => `
+            <tr>
+              <td><strong>${date(entry.date)}</strong>${entry.scheduled_for ? `<div class="muted">${dateTime(entry.scheduled_for)}</div>` : ""}</td>
+              <td>${platformBadge(entry.channel)}</td>
+              <td><span class="badge pillar">${escapeHtml(entry.pillar)}</span></td>
+              <td class="post-cell">${
+                entry.draft_id
+                  ? `<a class="post-link" href="#/compose">${escapeHtml(entry.title)}</a>`
+                  : `<span class="strong">${escapeHtml(entry.title)}</span>`
+              }${entry.notes ? `<div class="muted">${escapeHtml(entry.notes)}</div>` : ""}</td>
+              <td><span class="status cal-${escapeHtml(entry.status)}">${escapeHtml(enumLabel(entry.status, "calstatus"))}</span></td>
+            </tr>
+          `,
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+  `
+    : `<div class="empty">${t("noItems")}</div>`;
+}
+
+function renderCompose() {
+  els.title.textContent = t("composerQueue");
+  const all = drafts();
+  const list = byWorkflow(all);
+  els.subtitle.textContent = `${openReview(all).length} ${t("needsReviewCount")}`;
+  els.content.innerHTML = `
+    ${workflowChips(all)}
+    ${
+      list.length
+        ? `<div class="desk-list">${list.map(draftCard).join("")}</div>`
+        : `<div class="empty">${t("noItems")}</div>`
+    }
+  `;
+  bindWorkflowChips();
+  bindOps();
+}
+
+function draftCard(draft) {
+  const disabled = state.busy ? "disabled" : "";
+  const canPublish = draft.status === "approved" && draft.gate?.verdict !== "BLOCK";
+  return `
+    <article class="desk-card">
+      <div class="desk-head">
+        <div class="row wrap">${channelBadges(draft.channels)}<span class="badge pillar">${escapeHtml(draft.pillar)}</span></div>
+        <div class="row wrap">${gateBadge(draft.gate)}${reviewBadge(draft.status)}</div>
+      </div>
+      <p class="desk-hook">${escapeHtml(draft.hook)}</p>
+      <p class="desk-body">${escapeHtml(draft.body)}</p>
+      <div class="desk-meta">
+        ${(draft.hashtags || []).length ? `<div class="tags">${draft.hashtags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>` : ""}
+        ${draft.cta ? `<div class="muted"><strong>${t("cta")}:</strong> ${escapeHtml(draft.cta)}</div>` : ""}
+        ${draft.scheduled_for ? `<div class="muted"><strong>${t("scheduledFor")}:</strong> ${dateTime(draft.scheduled_for)}</div>` : ""}
+      </div>
+      ${draft.agent_notes ? `<div class="warnings info"><div><strong>${t("agentNotes")}</strong><span>${escapeHtml(draft.agent_notes)}</span></div></div>` : ""}
+      ${draft.review_note ? `<div class="muted review-note"><strong>${t("reviewNote")}:</strong> ${escapeHtml(draft.review_note)}</div>` : ""}
+      ${gatePanel(draft.gate)}
+      ${draft.gate?.verdict === "BLOCK" ? `<div class="gate-block-note">${t("gateBlockedNote")}</div>` : ""}
+      ${reviewActions("draft", draft.draft_id, draft)}
+      ${
+        canPublish
+          ? `<div class="actions publish-row"><button type="button" class="btn-approve" data-op="publish_post" data-idkey="draft_id" data-id="${escapeHtml(draft.draft_id)}" ${disabled}>${t("publish")}</button></div>`
+          : ""
+      }
+    </article>
+  `;
+}
+
+function renderShorts() {
+  els.title.textContent = t("shortScripts");
+  const all = shorts();
+  const list = byWorkflow(all);
+  els.subtitle.textContent = `${all.length} ${t("shorts")}`;
+  els.content.innerHTML = `
+    ${workflowChips(all)}
+    ${list.length ? `<div class="desk-list">${list.map(shortCard).join("")}</div>` : `<div class="empty">${t("noItems")}</div>`}
+  `;
+  bindWorkflowChips();
+  bindOps();
+}
+
+function shortCard(short) {
+  return `
+    <article class="desk-card">
+      <div class="desk-head">
+        <div class="row wrap">${channelBadges(short.channels)}<span class="badge pillar">${escapeHtml(short.pillar)}</span></div>
+        <div class="row wrap"><span class="badge method">${escapeHtml(short.duration_s)}s</span>${reviewBadge(short.status)}</div>
+      </div>
+      <h3 class="desk-title">${escapeHtml(short.title)}</h3>
+      <p class="desk-hook">${escapeHtml(short.hook)}</p>
+      <div class="shotlist">
+        <div class="shotlist-head">${t("shotList")}</div>
+        ${(short.shots || [])
+          .map(
+            (shot) => `
+          <div class="shot-row">
+            <span class="shot-no">${escapeHtml(String(shot.shot_no))}</span>
+            <span class="shot-visual"><strong>${escapeHtml(shot.visual)}</strong>${shot.on_screen_text ? `<small>${t("onScreen")}: ${escapeHtml(shot.on_screen_text)}</small>` : ""}</span>
+            <span class="shot-vo"><small>${t("voiceover")}</small>${escapeHtml(shot.voiceover)}</span>
+            <span class="shot-dur num">${escapeHtml(String(shot.duration_s))}s</span>
+          </div>
+        `,
+          )
+          .join("")}
+      </div>
+      ${short.caption ? `<div class="muted"><strong>${t("caption")}:</strong> ${escapeHtml(short.caption)}</div>` : ""}
+      ${(short.hashtags || []).length ? `<div class="tags">${short.hashtags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>` : ""}
+      ${short.agent_notes ? `<div class="warnings info"><div><strong>${t("agentNotes")}</strong><span>${escapeHtml(short.agent_notes)}</span></div></div>` : ""}
+      ${short.review_note ? `<div class="muted review-note"><strong>${t("reviewNote")}:</strong> ${escapeHtml(short.review_note)}</div>` : ""}
+      ${reviewActions("short", short.short_id, short)}
+    </article>
+  `;
+}
+
+function renderEngagement() {
+  els.title.textContent = t("engagementInbox");
+  const all = engagement();
+  const list = byWorkflow(all);
+  els.subtitle.textContent = `${openReview(all).length} ${t("needsReviewCount")}`;
+  els.content.innerHTML = `
+    ${workflowChips(all)}
+    ${list.length ? `<div class="desk-list">${list.map(engagementCard).join("")}</div>` : `<div class="empty">${t("noItems")}</div>`}
+  `;
+  bindWorkflowChips();
+  bindOps();
+}
+
+function engagementCard(item) {
+  const disabled = state.busy ? "disabled" : "";
+  const canSend = item.status === "approved";
+  return `
+    <article class="desk-card">
+      <div class="desk-head">
+        <div class="row wrap">${platformBadge(item.platform)}<span class="badge kind">${escapeHtml(enumLabel(item.kind, "kind"))}</span><span class="badge sentiment-${escapeHtml(item.sentiment)}">${escapeHtml(enumLabel(item.sentiment, "sentiment"))}</span>${item.priority === "high" ? `<span class="badge prio-high">${escapeHtml(enumLabel(item.priority, "priority"))}</span>` : ""}</div>
+        <div class="row wrap">${reviewBadge(item.status)}</div>
+      </div>
+      <div class="incoming-msg">
+        <div class="muted">${t("from")} <strong>${escapeHtml(item.author_handle)}</strong> · ${dateTime(item.received_at)}</div>
+        <p>${escapeHtml(item.incoming_text)}</p>
+      </div>
+      <div class="reply-msg">
+        <div class="muted"><strong>${t("draftReply")}</strong></div>
+        <p>${escapeHtml(item.draft_reply)}</p>
+      </div>
+      ${item.review_note ? `<div class="muted review-note"><strong>${t("reviewNote")}:</strong> ${escapeHtml(item.review_note)}</div>` : ""}
+      ${reviewActions("engagement", item.item_id, item)}
+      ${
+        canSend
+          ? `<div class="actions publish-row"><button type="button" class="btn-approve" data-op="send_reply" data-idkey="item_id" data-id="${escapeHtml(item.item_id)}" data-channel="${escapeHtml(item.platform)}" ${disabled}>${t("sendReply")}</button></div>`
+          : ""
+      }
+    </article>
+  `;
+}
+
+function renderCrisis() {
+  els.title.textContent = t("crisisPlaybook");
+  const plan = crisis();
+  if (!plan) {
+    els.content.innerHTML = `<div class="empty">${t("noItems")}</div>`;
+    return;
+  }
+  const disabled = state.busy ? "disabled" : "";
+  els.subtitle.textContent = `${t("incidentStatus")}: ${enumLabel(plan.status, "incident")}`;
+  els.content.innerHTML = `
+    <section class="crisis">
+      <div class="crisis-status crisis-${escapeHtml(plan.status)}">
+        <div>
+          <div class="crisis-eyebrow">${t("incidentStatus")}</div>
+          <div class="crisis-state">${escapeHtml(enumLabel(plan.status, "incident"))}</div>
+          ${plan.spokesperson ? `<div class="muted">${t("spokesperson")}: ${escapeHtml(plan.spokesperson)}</div>` : ""}
+        </div>
+        <div class="crisis-controls">
+          <div class="pub-flag ${plan.publishing_paused ? "paused" : "live"}">${plan.publishing_paused ? t("publishingPaused") : t("publishingLive")}</div>
+          <button type="button" data-op="crisis_toggle" data-paused="${plan.publishing_paused ? "false" : "true"}" ${disabled}>${plan.publishing_paused ? t("resumePublishing") : t("pausePublishing")}</button>
+        </div>
+      </div>
+      <div class="crisis-severity">
+        <button type="button" class="${plan.status === "calm" ? "active" : ""}" data-op="crisis_toggle" data-incident="calm" ${disabled}>${t("setCalm")}</button>
+        <button type="button" class="${plan.status === "watch" ? "active" : ""}" data-op="crisis_toggle" data-incident="watch" ${disabled}>${t("setWatch")}</button>
+        <button type="button" class="btn-danger ${plan.status === "active" ? "active" : ""}" data-op="crisis_toggle" data-incident="active" ${disabled}>${t("setActive")}</button>
+      </div>
+      <div class="crisis-steps">
+        ${(plan.steps || [])
+          .map(
+            (step) => `
+          <label class="crisis-step ${step.done ? "done" : ""}">
+            <input type="checkbox" data-op="crisis_toggle" data-step-id="${escapeHtml(step.step_id)}" ${step.done ? "checked" : ""} ${disabled}>
+            <span><strong>${escapeHtml(step.label)}</strong><small>${escapeHtml(step.detail)}</small>${step.owner ? `<small class="crisis-owner">${escapeHtml(step.owner)}</small>` : ""}</span>
+          </label>
+        `,
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+  bindOps();
 }
 
 function renderTimeline() {
@@ -687,6 +1124,11 @@ function render() {
   else if (state.route.view === "timeline" && state.route.id) renderPostDetail();
   else if (state.route.view === "timeline") renderTimeline();
   else if (state.route.view === "settings") renderSettings();
+  else if (state.route.view === "calendar") renderCalendar();
+  else if (state.route.view === "compose") renderCompose();
+  else if (state.route.view === "shorts") renderShorts();
+  else if (state.route.view === "engagement") renderEngagement();
+  else if (state.route.view === "crisis") renderCrisis();
   else renderOverview();
 }
 
