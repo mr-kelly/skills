@@ -1,0 +1,21 @@
+{
+  "company": {
+    "name": "ExampleCo",
+    "base_currency": "USD",
+    "display_unit": "units",
+    "fiscal_year_start": "2026"
+  },
+  "model_defaults": {
+    "horizon_years": 5,
+    "base_revenue": 1000000,
+    "revenue_growth": 0.2,
+    "gross_margin": 0.7,
+    "opex_percent_revenue": 0.45,
+    "capex_percent_revenue": 0.06
+  },
+  "review_policy": {
+    "require_approval_for_export": true,
+    "require_approval_for_model_repairs": true,
+    "allow_external_mutations": false
+  }
+}
