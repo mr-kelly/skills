@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-32 App-in-Skill workflows — each an agent operating procedure paired with a calm local browser UI for review, approval, and dashboards.
+33 skills, including 29 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-32-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-33-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -18,6 +18,10 @@
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/kelly-money-ui.png" alt="kelly-money — money ledger dashboard"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-finance-ui.svg" alt="kelly-finance — three-statement model builder"></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-finance-checks.svg" alt="kelly-finance — model audit checks"></td>
     <td width="50%"><img src="docs/screenshots/kelly-crm-ui.png" alt="kelly-crm — pipeline command desk"></td>
   </tr>
   <tr>
@@ -26,7 +30,7 @@
   </tr>
 </table>
 
-<sub>Not prompts — real local apps. Every skill ships a browser review desk.</sub>
+<sub>Not prompts — practical skills with local apps, model builders, and review workflows where the task needs them.</sub>
 
 </div>
 

@@ -4,11 +4,11 @@
 
 **Kelly 的个人 AI skills 工作区，用来处理日常业务里的重复工作。**
 
-32 个 App-in-Skill 工作流 —— 每个都是一份 agent 操作手册，配一个本地浏览器 UI 用于 review、审批和看板。
+33 个 skills，其中 29 个是 App-in-Skill 工作流，配本地浏览器 UI 用于 review、审批和看板。
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-32-D97757)](https://mr-kelly.github.io/skills/?lang=zh)
+[![Skills](https://img.shields.io/badge/skills-33-D97757)](https://mr-kelly.github.io/skills/?lang=zh)
 [![License](https://img.shields.io/badge/license-MIT-green)](../LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#安装)
@@ -18,6 +18,10 @@
 <table>
   <tr>
     <td width="50%"><img src="screenshots/kelly-money-ui-zh-CN.png" alt="kelly-money — 资金台账 dashboard"></td>
+    <td width="50%"><img src="screenshots/kelly-finance-ui-zh-CN.svg" alt="kelly-finance — 财务三表模型"></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="screenshots/kelly-finance-checks-zh-CN.svg" alt="kelly-finance — 模型勾稽检查"></td>
     <td width="50%"><img src="screenshots/kelly-crm-ui-zh-CN.png" alt="kelly-crm — 客户管道操作台"></td>
   </tr>
   <tr>
@@ -26,7 +30,7 @@
   </tr>
 </table>
 
-<sub>不是 prompt，是真·本地应用 —— 每个 skill 都带一个浏览器审阅台。</sub>
+<sub>不是 prompt，而是能干活的 skills：需要 UI 的有本地应用，需要模型的有生成器和检查流程。</sub>
 
 </div>
 
