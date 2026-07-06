@@ -6,6 +6,27 @@ description: Short-drama and product-video development skill for planning drama 
 
 # Kelly Drama
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Drama overview"></td>
+    <td width="50%"><img src="assets/screenshots/episodes.png" alt="Kelly Drama episode table"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Series workbench with health dashboard, execution timeline, stats, and settings for series parameters.</td>
+    <td><strong>Episode table</strong><br>Episode list with script and storyboard status, shot readiness indicators, and per-episode detail pane.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/characters.png" alt="Kelly Drama character library"></td>
+    <td width="50%"><img src="assets/screenshots/relationships.png" alt="Kelly Drama relationship map"></td>
+  </tr>
+  <tr>
+    <td><strong>Character library</strong><br>Character list with three-view image status, actor settings, wardrobe, and voice preview controls.</td>
+    <td><strong>Relationship map</strong><br>Character relationship view with power dynamics, evidence links, and relationship detail pane.</td>
+  </tr>
+</table>
+
 ## Core Idea
 
 Use this skill as a short-drama and product-video planning workspace. Keep the app as the human editing surface and planning system of record: the skill reasons, drafts, validates, exports, and prepares AI-generation prompts; the app only reads and writes local project files.

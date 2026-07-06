@@ -18,6 +18,27 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 Collection is agent-driven: browser automation skills in the agent session, exports, or pasted research fed through the ingest script. The app itself only renders local snapshot files and never touches any network beyond `127.0.0.1`.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Picks overview"></td>
+    <td width="50%"><img src="assets/screenshots/candidates.png" alt="Kelly Picks candidates"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Product-research desk with weekly candidates by source, top movers, and per-source sweep freshness.</td>
+    <td><strong>Candidates</strong><br>Candidate table with momentum, estimated margin, competition grade, and develop/watch/drop stages.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/decisions.png" alt="Kelly Picks decision queue"></td>
+    <td width="50%"><img src="assets/screenshots/detail.png" alt="Kelly Picks margin card"></td>
+  </tr>
+  <tr>
+    <td><strong>Decision queue</strong><br>Agent-proposed develop/watch/drop verdicts with sourcing and listing briefs for approval.</td>
+    <td><strong>Margin card</strong><br>Live-editable margin math — price, landed cost, freight, fees, ad cost → margin % and breakeven ACOS — plus a top-10 review-count competition read.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - Collection is read-only over public data (rankings, public videos, public listings, public trends). Respect robots.txt and each platform's terms of service, throttle politely, and never scrape private, gated, or personal data.

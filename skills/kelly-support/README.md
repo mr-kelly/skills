@@ -10,6 +10,27 @@ Kelly Support is a local App-in-Skill customer-support desk (help desk) for post
 - SLA & CSAT: the SLA board (due / breached) plus the CSAT trend and rated tickets with scores and comments.
 - Help & Settings: sanitized config (channels, connectors, env readiness, SLA policy, risk policy, KB source), sync log, and the last execution report. Never secrets.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Support overview"></td>
+    <td width="50%"><img src="assets/screenshots/knowledge.png" alt="Kelly Support knowledge base"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Queue health — open, breaching-SLA, and awaiting-approval counts, CSAT trend, and volume by channel and category.</td>
+    <td><strong>Knowledge base</strong><br>Articles and canned macros the agent cites when drafting replies.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/sla.png" alt="Kelly Support SLA board"></td>
+    <td width="50%"><img src="assets/screenshots/tickets.png" alt="Kelly Support ticket queue"></td>
+  </tr>
+  <tr>
+    <td><strong>SLA &amp; CSAT</strong><br>SLA board of due and breached tickets, plus CSAT scores on resolved tickets.</td>
+    <td><strong>Tickets</strong><br>Approval queue with the KB-grounded draft reply and the support-qa gate — a refund draft blocked pending human approval.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene (an invented note-taking SaaS, "Nimbus Notes"):

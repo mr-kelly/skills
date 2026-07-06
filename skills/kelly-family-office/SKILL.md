@@ -12,6 +12,33 @@ Use this skill as Kelly's local family-office aggregation desk. It consolidates 
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local holdings snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Family Office overview"></td>
+    <td width="50%"><img src="assets/screenshots/entities.png" alt="Kelly Family Office by entity"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Consolidated command desk with total AUM in the base currency, unrealized P/L, entity and account counts, and headline allocation.</td>
+    <td><strong>By entity / member</strong><br>Each family entity (individual, trust, company) with its consolidated AUM, portfolio weight, and unrealized P/L.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/assets.png" alt="Kelly Family Office by asset class"></td>
+    <td width="50%"><img src="assets/screenshots/institutions.png" alt="Kelly Family Office by institution"></td>
+  </tr>
+  <tr>
+    <td><strong>By asset class</strong><br>Allocation across equity, bond, cash, crypto, real estate, private equity, and alternatives, with a donut, weighted bars, and a value table.</td>
+    <td><strong>By account / institution</strong><br>Consolidation by custodian and institution to see where assets are held and concentration across banks and brokers.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/performance.png" alt="Kelly Family Office performance"></td>
+  </tr>
+  <tr>
+    <td><strong>Performance</strong><br>Cost basis versus market value and unrealized P/L, per entity and for the whole family office, in the base currency.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The skill may read holdings CSV exports, normalize them, validate schemas, and write local snapshot files.
