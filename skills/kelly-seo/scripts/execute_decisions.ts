@@ -5,17 +5,10 @@
 // the agent applies approved changes in the site's repo/CMS outside the app.
 // Usage: node scripts/execute_decisions.mjs [--apply]
 
-import fs from "node:fs/promises";
-import { EXECUTION_REPORT_PATH, LOCK_PATH } from "../app/server/paths.ts";
-import {
-  ensureDirs,
-  mergeOpportunities,
-  readDecisions,
-  readExecutionReport,
-  readLock,
-  readSnapshot,
-  writeJson,
-} from "../app/server/store.ts";
+import { ensureDirs, mergeOpportunities } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+
+const provider = await createProvider();
 
 const OPERATION_BY_TYPE = {
   title_meta_rewrite: "rewrite_title",
@@ -34,7 +27,7 @@ function fail(message) {
 
 await ensureDirs();
 
-const existingLock = await readLock();
+const existingLock = await provider.getLock();
 if (existingLock) {
   fail(
     `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
@@ -42,9 +35,9 @@ if (existingLock) {
 }
 
 const [snapshot, decisions, previousReport] = await Promise.all([
-  readSnapshot(),
-  readDecisions(),
-  readExecutionReport(),
+  provider.getSnapshot(),
+  provider.getDecisions(),
+  provider.getExecutionReport(),
 ]);
 const merged = mergeOpportunities(snapshot, decisions, previousReport);
 const approved = merged.opportunities.filter((opportunity) => opportunity.status === "approved");
@@ -54,11 +47,9 @@ if (!approved.length) {
   process.exit(0);
 }
 
-await writeJson(LOCK_PATH, {
-  owner: "kelly-seo",
-  message: dryRun ? "Dry-run: planning approved opportunities" : "Preparing approved opportunities for the agent",
-  started_at: new Date().toISOString(),
-});
+await provider.acquireLock(
+  dryRun ? "Dry-run: planning approved opportunities" : "Preparing approved opportunities for the agent",
+);
 
 try {
   const results = approved.map((opportunity) => {
@@ -99,8 +90,8 @@ try {
     source: "kelly-seo",
     results,
   };
-  await writeJson(EXECUTION_REPORT_PATH, report);
-  console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote ${EXECUTION_REPORT_PATH}`);
+  await provider.writeExecutionReport(report);
+  console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote the execution report`);
   for (const result of results) {
     console.log(
       `  Opportunity #${result.ref} -> ${result.operation} (${result.status}) ${result.target_page || result.target_query}`,
@@ -108,5 +99,5 @@ try {
   }
   if (dryRun) console.log("Re-run with --apply to mark items ready_for_agent. No external side effects either way.");
 } finally {
-  await fs.rm(LOCK_PATH, { force: true });
+  await provider.releaseLock();
 }

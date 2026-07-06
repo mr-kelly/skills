@@ -1,5 +1,5 @@
 // Core domain types shared across the kelly-seo server, demo scenes, and scripts.
-// These model the ACTUAL shapes produced by demo.ts / store.ts and the snapshot
+// These model the ACTUAL shapes produced by demo.ts / the data-provider layer and the snapshot
 // consumed by scripts/validate_ui_schema.ts.
 
 export type OpportunityStatus = "needs_review" | "changes_requested" | "approved" | "done" | "blocked";

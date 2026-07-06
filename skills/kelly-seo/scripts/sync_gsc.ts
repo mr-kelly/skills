@@ -7,16 +7,10 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import { badgesFor } from "../app/server/demo.ts";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  ensureDirs,
-  envSearchPaths,
-  loadDotenvFiles,
-  readConfig,
-  readJson,
-  readLock,
-  writeJson,
-} from "../app/server/store.ts";
+import { ensureDirs, envSearchPaths, loadDotenvFiles, readConfig } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+
+const provider = await createProvider();
 
 const GSC_BASE = "https://www.googleapis.com/webmasters/v3";
 const SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
@@ -327,17 +321,13 @@ async function main() {
     fail("none of the configured properties are visible to this credential. Fix property access first.");
   }
 
-  const existingLock = await readLock();
+  const existingLock = await provider.getLock();
   if (existingLock) {
     fail(
       `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Another run is in progress; remove the lock only if you are sure it is stale.`,
     );
   }
-  await writeJson(LOCK_PATH, {
-    owner: "kelly-seo",
-    message: "Syncing Google Search Console search analytics",
-    started_at: new Date().toISOString(),
-  });
+  await provider.acquireLock("Syncing Google Search Console search analytics");
 
   try {
     const results = [];
@@ -347,7 +337,7 @@ async function main() {
       );
       results.push(await syncSite(token, site, windows, rowLimit, warnings));
     }
-    const previousSnapshot = await readJson(SNAPSHOT_PATH, null);
+    const previousSnapshot = await provider.getSnapshot();
     const opportunities = previousSnapshot?.opportunities || [];
     const siteEntries = results.map((result) => result.site);
     const totals = rowTotals(
@@ -382,8 +372,8 @@ async function main() {
       opportunities,
       warnings,
     };
-    await writeJson(SNAPSHOT_PATH, snapshot);
-    console.log(`Wrote ${SNAPSHOT_PATH}`);
+    await provider.writeSnapshot(snapshot);
+    console.log("Wrote SEO snapshot");
     console.log(
       `Sites: ${snapshot.metrics.site_count}, queries: ${snapshot.metrics.query_count}, pages: ${snapshot.metrics.page_count}, clicks 28d: ${snapshot.metrics.clicks}`,
     );
@@ -391,10 +381,10 @@ async function main() {
       console.log(`Warnings: ${warnings.map((warning) => warning.message).join(" | ")}`);
     }
   } catch (error) {
-    await fs.rm(LOCK_PATH, { force: true });
+    await provider.releaseLock();
     fail(`sync failed: ${error.message}`);
   }
-  await fs.rm(LOCK_PATH, { force: true });
+  await provider.releaseLock();
 }
 
 await main();

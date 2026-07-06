@@ -2,20 +2,10 @@
 // Read-only sync for API connectors: slack, discord, telegram, whatsapp_cloud.
 // Uses only node builtins + global fetch. Browser-collected platforms go
 // through scripts/ingest_messages.mjs instead.
-import fs from "node:fs/promises";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  SECRET_ENV_KEYS,
-  ensureDirs,
-  envSearchPaths,
-  loadDotenvFiles,
-  mergeConversations,
-  readConfig,
-  readLock,
-  readSnapshot,
-  recomputeMetrics,
-  writeJson,
-} from "../app/server/store.ts";
+import { SECRET_ENV_KEYS, envSearchPaths, loadDotenvFiles } from "../lib/data-provider/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+
+const provider = await createProvider();
 
 const API_CONNECTORS = new Set(["slack", "discord", "telegram", "whatsapp_cloud"]);
 
@@ -30,9 +20,9 @@ function missingEnvs(account) {
 }
 
 async function main() {
-  await ensureDirs();
+  await provider.ensureReady();
   await loadDotenvFiles(envSearchPaths());
-  const { config, path: configPath, is_example } = await readConfig();
+  const { config, path: configPath, is_example } = await provider.readConfig();
   const accounts = (config.accounts || []).filter((account) => API_CONNECTORS.has(account.connector));
 
   if (!accounts.length || is_example || !configPath) {
@@ -62,7 +52,7 @@ async function main() {
     return;
   }
 
-  const lock = await readLock();
+  const lock = await provider.readLock();
   if (lock) {
     console.error(
       `Kelly Messenger sync: agent lock is active (${lock.owner || "unknown"}: ${lock.message || ""}). Try again later.`,
@@ -71,13 +61,13 @@ async function main() {
     return;
   }
 
-  await writeJson(LOCK_PATH, {
+  await provider.writeLock({
     owner: "kelly-messenger",
     message: "Syncing messages from API connectors",
     started_at: nowIso(),
   });
   try {
-    const snapshot = await readSnapshot();
+    const snapshot = await provider.readSnapshot();
     snapshot.source = "kelly-messenger";
     snapshot.accounts = Array.isArray(snapshot.accounts) ? snapshot.accounts : [];
     snapshot.sync_log = Array.isArray(snapshot.sync_log) ? snapshot.sync_log : [];
@@ -87,7 +77,7 @@ async function main() {
       const startedAt = nowIso();
       try {
         const result = await syncAccount(account);
-        const added = mergeConversations(snapshot, result.conversations);
+        const added = provider.mergeConversations(snapshot, result.conversations);
         upsertAccount(snapshot, account, added, startedAt, "ok");
         snapshot.sync_log.push({
           sync_id: `sync-${account.account_id}-${Date.now()}`,
@@ -118,11 +108,11 @@ async function main() {
 
     snapshot.sync_log = snapshot.sync_log.slice(-100);
     snapshot.generated_at = nowIso();
-    recomputeMetrics(snapshot);
-    await writeJson(SNAPSHOT_PATH, snapshot);
-    console.log(`Wrote ${SNAPSHOT_PATH}`);
+    provider.recomputeMetrics(snapshot);
+    await provider.writeSnapshot(snapshot);
+    console.log("Wrote message snapshot.");
   } finally {
-    await fs.rm(LOCK_PATH, { force: true });
+    await provider.clearLock();
   }
 }
 

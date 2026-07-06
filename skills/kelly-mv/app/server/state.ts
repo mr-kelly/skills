@@ -1,8 +1,8 @@
 import { lockPayload } from "./lock.ts";
-import { ACTIVE_PROJECT_PATH, PROJECT_PATH, REPORT_PATH, TASKS_PATH } from "./paths.ts";
+import { PROJECT_PATH, REPORT_PATH, TASKS_PATH } from "./paths.ts";
 import { loadProject } from "./project-store.ts";
+import { provider } from "./provider.ts";
 import type { ActiveProjectState } from "./types.ts";
-import { pathExists, readJson, writeJson } from "./utils.ts";
 
 function countBy(items, field = "status") {
   const counts = {};
@@ -115,16 +115,13 @@ export async function setActiveProject(activeProjectId) {
       .filter(Boolean),
   );
   if (!known.has(activeProjectId)) throw new Error(`Unknown project: ${activeProjectId}`);
-  await writeJson(ACTIVE_PROJECT_PATH, {
-    active_project_id: activeProjectId,
-    updated_at: new Date().toISOString(),
-  });
+  await provider.setActiveProjectState({ active_project_id: activeProjectId });
   return statePayload();
 }
 
 export async function statePayload() {
   const rootProject = await loadProject();
-  const activeState = (await pathExists(ACTIVE_PROJECT_PATH)) ? await readJson(ACTIVE_PROJECT_PATH, {}) : {};
+  const activeState = await provider.getActiveProjectState();
   const activeProjectId = activeProjectIdFor(rootProject, activeState);
   const project = viewForProject(rootProject, activeProjectId);
   return {
@@ -151,5 +148,7 @@ export async function statePayload() {
     attention: attention(project),
     next_step: nextStep(project),
     lock: await lockPayload(),
+    // Sanitized backend info (provider name + config source); never secrets.
+    data_provider: provider.configSummary(),
   };
 }

@@ -8,29 +8,13 @@
 //                       executed by the agent outside the app, after approval.
 // - request_changes  -> "request_revision" (ensures an agent_tasks entry).
 //
-// Usage: node scripts/execute_decisions.mjs [--apply]
-import fs from "node:fs/promises";
+// Usage: node scripts/execute_decisions.ts [--apply]
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "listing_snapshot.json");
-const decisionsPath = path.join(dataDir, "decisions.json");
-const agentTasksPath = path.join(dataDir, "agent_tasks.json");
-const lockPath = path.join(dataDir, "agent.lock");
-const reportPath = path.join(dataDir, "execution_report.json");
+const provider = await createProvider();
 
 const apply = process.argv.includes("--apply");
-
-async function readJson(file, fallback = null) {
-  try {
-    return JSON.parse(await fs.readFile(file, "utf8"));
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return fallback;
-    throw error;
-  }
-}
 
 function slugify(value) {
   return (
@@ -42,20 +26,20 @@ function slugify(value) {
   );
 }
 
-const lock = await readJson(lockPath);
+const lock = await provider.readLock();
 if (lock) {
   console.error(`Refusing to execute: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
 }
 
-const snapshot = await readJson(snapshotPath);
-if (!snapshot) {
-  console.error(`No snapshot at ${snapshotPath}. Nothing to execute.`);
+const snapshot = await provider.readSnapshot();
+if (!snapshot || !Array.isArray(snapshot.drafts)) {
+  console.error("No snapshot found. Nothing to execute.");
   process.exit(1);
 }
 
-const decisions = (await readJson(decisionsPath, { decisions: {} })).decisions || {};
-const previousReport = await readJson(reportPath);
+const decisions = (await provider.readDecisions()).decisions || {};
+const previousReport = await provider.readExecutionReport();
 const alreadyExecuted = new Set(
   (previousReport?.results || [])
     .filter((item) => item.status === "executed")
@@ -143,7 +127,7 @@ for (const result of results) {
 }
 
 if (!apply) {
-  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write ${reportPath}.`);
+  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write the execution report.`);
   process.exit(0);
 }
 
@@ -164,19 +148,18 @@ const report = {
     ...results.filter((item) => !(item.status === "skipped" && carriedKeys.has(`${item.review_id}:${item.operation}`))),
   ],
 };
-await fs.mkdir(dataDir, { recursive: true });
-await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+await provider.writeExecutionReport(report);
 
 if (revisionTasks.length) {
-  const tasks = await readJson(agentTasksPath, { updated_at: "", tasks: [] });
+  const tasks = await provider.readAgentTasks();
   for (const task of revisionTasks) {
     tasks.tasks = (tasks.tasks || []).filter((entry) => entry.review_id !== task.review_id);
     tasks.tasks.push(task);
   }
   tasks.updated_at = now;
-  await fs.writeFile(agentTasksPath, `${JSON.stringify(tasks, null, 2)}\n`);
-  console.log(`Queued ${revisionTasks.length} revision task(s) in ${agentTasksPath}.`);
+  await provider.writeAgentTasks(tasks);
+  console.log(`Queued ${revisionTasks.length} revision task(s) in agent tasks.`);
 }
 console.log(
-  `Wrote ${reportPath}. Exporting is done by scripts/export_listings.mjs; publishing is delegated to the agent per SKILL.md.`,
+  "Wrote the execution report via the data provider. Exporting is done by scripts/export_listings.ts; publishing is delegated to the agent per SKILL.md.",
 );

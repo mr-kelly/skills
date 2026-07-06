@@ -2,9 +2,9 @@
 // Writes a small deterministic sample snapshot to app/.data/ so the app has
 // something to render before real feedback is ingested. This is NOT the demo
 // mode dataset (that lives in app/server/demo.mjs and never touches .data).
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { recomputeDerived, writeJson } from "../app/server/store.ts";
-import type { FeedbackSnapshot } from "../app/server/types.ts";
+import { recomputeDerived } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import type { FeedbackSnapshot } from "../lib/types.ts";
 
 const now = new Date().toISOString();
 
@@ -132,5 +132,6 @@ const snapshot = {
 };
 
 recomputeDerived(snapshot as unknown as FeedbackSnapshot);
-await writeJson(SNAPSHOT_PATH, snapshot);
-console.log(`Wrote ${SNAPSHOT_PATH}`);
+const provider = await createProvider();
+await provider.writeSnapshot(snapshot as unknown as FeedbackSnapshot);
+console.log(`Wrote feedback sample snapshot via "${provider.kind}" provider.`);

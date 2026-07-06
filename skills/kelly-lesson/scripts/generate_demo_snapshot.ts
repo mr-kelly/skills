@@ -2,12 +2,9 @@
 // Writes a small sample lesson snapshot into app/.data/ so the UI, checks,
 // export, and executor scripts can be exercised locally. This is generic
 // example data, not the ?demo=<scene> mock (which never touches .data).
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const out = path.join(skillDir, "app", ".data", "lesson_snapshot.json");
+const provider = await createProvider();
 const now = new Date().toISOString();
 
 const teachers = [
@@ -157,6 +154,5 @@ const snapshot = {
   warnings: [],
 };
 
-await fs.mkdir(path.dirname(out), { recursive: true });
-await fs.writeFile(out, `${JSON.stringify(snapshot, null, 2)}\n`);
-console.log(`Wrote ${out}`);
+await provider.writeSnapshot(snapshot);
+console.log("Wrote lesson_snapshot.json");

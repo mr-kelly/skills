@@ -1,47 +1,24 @@
-import fs from "node:fs/promises";
-import { DATA_DIR, PROJECT_PATH, STARTER_PROJECT_PATH } from "./paths.ts";
-import { pathExists, readJson, utcNow, writeJson } from "./utils.ts";
+// Project-document store facade. The fs logic now lives in the data-provider
+// (lib/data-provider); this module keeps the historical function API the
+// services and scripts call, delegating to the selected provider.
 
-export async function ensureDirs() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-}
+import { normalizeProject as providerNormalize } from "../../lib/data-provider/local-file-provider.ts";
+import { getProvider } from "./provider.ts";
 
 export async function ensureProject() {
-  await ensureDirs();
-  if (await pathExists(PROJECT_PATH)) return;
-  const starter = await readJson(STARTER_PROJECT_PATH);
-  starter.updated_at = utcNow();
-  await writeJson(PROJECT_PATH, starter);
+  await (await getProvider()).ensureProject();
 }
 
 export async function loadProject() {
-  await ensureProject();
-  return normalizeProject(await readJson(PROJECT_PATH));
+  return (await getProvider()).loadProject();
 }
 
 export async function saveProject(project) {
-  await ensureDirs();
-  const normalized = normalizeProject(project);
-  normalized.updated_at = utcNow();
-  await writeJson(PROJECT_PATH, normalized);
-  return normalized;
+  return (await getProvider()).saveProject(project);
 }
 
-export function normalizeProject(project) {
-  const safe = project && typeof project === "object" ? project : {};
-  return {
-    project_id: String(safe.project_id || "kelly-drama-project"),
-    updated_at: safe.updated_at || utcNow(),
-    projects: Array.isArray(safe.projects) ? safe.projects : [],
-    library: safe.library && typeof safe.library === "object" ? safe.library : {},
-    series: safe.series && typeof safe.series === "object" ? safe.series : {},
-    characters: Array.isArray(safe.characters) ? safe.characters : [],
-    relationships: Array.isArray(safe.relationships) ? safe.relationships : [],
-    episodes: Array.isArray(safe.episodes) ? safe.episodes : [],
-    shots: Array.isArray(safe.shots) ? safe.shots : [],
-    tasks: Array.isArray(safe.tasks) ? safe.tasks : [],
-  };
-}
+// Pure helper — provider-agnostic normalization, re-exported for callers/scripts.
+export const normalizeProject = providerNormalize;
 
 export function upsertById(items, item) {
   const id = String(item.id || "");

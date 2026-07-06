@@ -8,15 +8,8 @@
 // Usage:
 //   node scripts/execute_decisions.mjs           # dry run, report only
 //   node scripts/execute_decisions.mjs --apply   # also apply local roadmap/status changes
-import { AGENT_TASKS_PATH, DECISIONS_PATH, EXECUTION_REPORT_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  acquireLock,
-  emptyDecisions,
-  readJson,
-  recomputeDerived,
-  releaseLock,
-  writeJson,
-} from "../app/server/store.ts";
+import { emptyDecisions, recomputeDerived } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const apply = process.argv.includes("--apply");
 
@@ -87,13 +80,14 @@ function operationsFor(proposal, decision) {
 
 const LOCAL_OPERATIONS = new Set(["update_roadmap", "merge_requests"]);
 
-await acquireLock(apply ? "Executing approved roadmap decisions" : "Dry-run of roadmap decisions").catch((error) =>
-  fail(error.message),
-);
+const provider = await createProvider();
+await provider
+  .acquireLock(apply ? "Executing approved roadmap decisions" : "Dry-run of roadmap decisions")
+  .catch((error) => fail(error.message));
 try {
-  const snapshot = await readJson(SNAPSHOT_PATH, null);
-  if (!snapshot) fail(`no snapshot at ${SNAPSHOT_PATH}`);
-  const decisions = (await readJson(DECISIONS_PATH, null)) || emptyDecisions();
+  const snapshot = await provider.readSnapshot();
+  if (!snapshot) fail("no snapshot found");
+  const decisions = (await provider.readDecisions()) || emptyDecisions();
   const now = new Date().toISOString();
   const report = {
     schema_version: "1",
@@ -103,7 +97,7 @@ try {
     operations: [],
     summary: { approved: 0, executed: 0, handoff_ready: 0, skipped: 0 },
   };
-  const agentTasks = (await readJson(AGENT_TASKS_PATH, null)) || { schema_version: "1", updated_at: "", tasks: [] };
+  const agentTasks = (await provider.readAgentTasks()) || { schema_version: "1", updated_at: "", tasks: [] };
 
   for (const proposal of snapshot.proposals || []) {
     const { status, decision } = effectiveStatus(proposal, decisions);
@@ -190,17 +184,17 @@ try {
       count: report.summary.executed + report.summary.handoff_ready,
     });
     recomputeDerived(snapshot);
-    await writeJson(SNAPSHOT_PATH, snapshot);
+    await provider.writeSnapshot(snapshot);
     agentTasks.updated_at = now;
-    await writeJson(AGENT_TASKS_PATH, agentTasks);
+    await provider.writeAgentTasks(agentTasks);
   }
-  await writeJson(EXECUTION_REPORT_PATH, report);
+  await provider.writeExecutionReport(report);
   console.log(
     `${apply ? "Applied" : "Dry run:"} ${report.summary.approved} approved proposal(s), ${report.operations.length} operation(s).`,
   );
-  console.log(`Wrote ${EXECUTION_REPORT_PATH}`);
+  console.log(`Wrote execution report via "${provider.kind}" provider.`);
 } finally {
-  await releaseLock();
+  await provider.releaseLock();
 }
 
 function applyLocalOperation(snapshot, proposal, op, now) {

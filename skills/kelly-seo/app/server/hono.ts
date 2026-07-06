@@ -1,29 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import {
-  applyDecision,
-  mergeOpportunities,
-  readAgentTasks,
-  readConfig,
-  readDecisions,
-  readExecutionReport,
-  readLock,
-  readOnboarding,
-  readSnapshot,
-  summarizeConfig,
-} from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through the logic modules (store.mjs), so the
-// same app runs under @hono/node-server locally and — once the data layer moves to
-// a cloud provider — on Cloudflare Workers.
+// contract and reaches storage only through the data-provider layer (lib/data-
+// provider), so the same app runs under @hono/node-server locally and — once the
+// data layer moves to a cloud provider — on Cloudflare Workers.
 //
 // The frontend is the original zero-build vanilla app (index.html + app.js +
 // styles.css + i18n). Hono only serves those static files and the JSON API; it
 // does not render or bundle anything.
+
+const provider = await createProvider();
+console.log(`Kelly SEO data provider: ${provider.kind}`);
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -41,24 +33,10 @@ function jsonResponse(c, status, body) {
 }
 
 async function state() {
-  const [snapshot, onboarding, lock, configResult, decisions, agentTasks, executionReport] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
-    readConfig(),
-    readDecisions(),
-    readAgentTasks(),
-    readExecutionReport(),
-  ]);
   return {
     app: "kelly-seo",
-    data_provider: process.env.KELLY_SEO_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    config_summary: summarizeConfig(configResult),
-    agent_tasks: agentTasks,
-    execution_report: executionReport,
-    snapshot: mergeOpportunities(snapshot, decisions, executionReport),
+    data_provider: provider.kind,
+    ...(await provider.getState()),
   };
 }
 
@@ -71,7 +49,7 @@ app.get("/api/state", async (c) => {
 });
 
 app.post("/api/decision", async (c) => {
-  const lock = await readLock();
+  const lock = await provider.getLock();
   if (lock) {
     return jsonResponse(c, 409, { error: "Agent lock present; decisions are read-only right now.", lock });
   }
@@ -82,7 +60,7 @@ app.post("/api/decision", async (c) => {
   } catch {
     return jsonResponse(c, 400, { error: "Invalid JSON body" });
   }
-  const result = await applyDecision({
+  const result = await provider.saveDecision({
     id: String(payload.id || ""),
     action: String(payload.action || ""),
     note: payload.note,

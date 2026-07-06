@@ -1,11 +1,15 @@
 #!/usr/bin/env node
+// Validate the project document against the UI schema. With no argument the
+// project loads through the selected data provider (local or busabase); pass a
+// path to validate a specific project.json file instead.
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
-const PROJECT = process.argv[2] ? path.resolve(process.argv[2]) : path.join(SKILL_DIR, "app", ".data", "project.json");
+const _SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
+const SOURCE = process.argv[2] ? path.resolve(process.argv[2]) : "(data provider)";
 
 function fail(errors) {
   console.error(errors.map((error) => `- ${error}`).join("\n"));
@@ -16,7 +20,9 @@ function requireString(errors, obj, field, label) {
   if (!String(obj?.[field] || "").trim()) errors.push(`${label}.${field} is required`);
 }
 
-const project = JSON.parse(await fs.readFile(PROJECT, "utf8"));
+const project = process.argv[2]
+  ? JSON.parse(await fs.readFile(path.resolve(process.argv[2]), "utf8"))
+  : await (await createProvider()).loadProject();
 const errors = [];
 
 for (const field of ["project_id", "series"]) {
@@ -70,4 +76,4 @@ for (const shot of project.shots || []) {
 }
 
 if (errors.length) fail(errors);
-console.log(`Schema OK: ${PROJECT}`);
+console.log(`Schema OK: ${SOURCE}`);

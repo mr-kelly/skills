@@ -1,5 +1,11 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_LESSON_BUSABASE_API_KEY",
+    "_note": "Only used when data_provider is \"busabase\" (or KELLY_LESSON_DATA_PROVIDER=busabase). A lesson plan's fields (title, subject, grade, sections, ...) map to a Busabase record commit's fields; drafts become change requests; approve->review, edits->operation revisions, publish->merge. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud does."
+  },
   "ui": {
     "language": "auto"
   },

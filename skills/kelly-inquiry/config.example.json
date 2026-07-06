@@ -1,5 +1,11 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_INQUIRY_BUSABASE_API_KEY",
+    "_note": "Used only when data_provider is \"busabase\" (or KELLY_INQUIRY_DATA_PROVIDER=busabase). Each approval item (an agent-suggested reply/quote) maps to a Busabase record commit's fields; queueReply->change request, approve->review verdict, request_changes->rejected review, publish->merge. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud reads KELLY_INQUIRY_BUSABASE_API_KEY."
+  },
   "locale": "auto",
   "owner": "Kelly",
   "accounts": [

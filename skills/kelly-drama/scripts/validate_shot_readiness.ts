@@ -11,16 +11,19 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
+const _SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
 
 const args = process.argv.slice(2);
 const strict = args.includes("--strict");
 const epFlagIdx = args.indexOf("--episode");
 const episodeFilter = epFlagIdx >= 0 ? args[epFlagIdx + 1] : null;
 const positional = args.filter((a, i) => !a.startsWith("--") && !(epFlagIdx >= 0 && i === epFlagIdx + 1));
-const PROJECT = positional[0] ? path.resolve(positional[0]) : path.join(SKILL_DIR, "app", ".data", "project.json");
+// With no positional path, load through the selected data provider (local or
+// busabase); pass a path to validate a specific project.json file instead.
+const PROJECT = positional[0] ? path.resolve(positional[0]) : "(data provider)";
 
 const ALLOWED_DURATIONS = [4, 5, 6, 8, 10, 12];
 const MAX_CPS = 8; // Chinese chars per second ceiling for natural delivery
@@ -78,7 +81,9 @@ function dialogueChars(shot) {
     .replace(/\s/g, "").length;
 }
 
-const project = JSON.parse(await fs.readFile(PROJECT, "utf8"));
+const project = positional[0]
+  ? JSON.parse(await fs.readFile(path.resolve(positional[0]), "utf8"))
+  : await (await createProvider()).loadProject();
 let shots = project.shots || [];
 if (episodeFilter) shots = shots.filter((s) => s.episode_id === episodeFilter);
 

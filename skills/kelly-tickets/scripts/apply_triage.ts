@@ -7,19 +7,10 @@
 // Usage: node scripts/apply_triage.mjs <payload.json>
 
 import crypto from "node:crypto";
-import fs from "node:fs/promises";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  computeMetrics,
-  computeSlaState,
-  ensureDirs,
-  readConfig,
-  readJson,
-  readLock,
-  readSnapshot,
-  slaHoursFor,
-  writeJson,
-} from "../app/server/store.ts";
+import { computeMetrics, computeSlaState, readJson, slaHoursFor } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+
+const provider = await createProvider();
 
 const URGENCIES = new Set(["urgent", "high", "normal", "low"]);
 const TICKET_STATUSES = new Set(["open", "assigned", "in_progress", "waiting", "resolved"]);
@@ -34,9 +25,9 @@ function fail(message) {
 
 if (!payloadFile) fail("usage: node scripts/apply_triage.mjs <payload.json>");
 
-await ensureDirs();
+await provider.ensureStore();
 
-const existingLock = await readLock();
+const existingLock = await provider.readLock();
 if (existingLock) {
   fail(
     `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
@@ -49,15 +40,15 @@ const classifications = Array.isArray(payload.classifications) ? payload.classif
 const proposals = Array.isArray(payload.proposals) ? payload.proposals : [];
 const ticketUpdates = Array.isArray(payload.ticket_updates) ? payload.ticket_updates : [];
 
-await writeJson(LOCK_PATH, {
+await provider.writeLock({
   owner: "kelly-tickets",
   message: "Applying triage results",
   started_at: new Date().toISOString(),
 });
 
 try {
-  const snapshot = await readSnapshot();
-  const configResult = await readConfig();
+  const snapshot = await provider.readSnapshot();
+  const configResult = await provider.readConfig();
   const config = configResult.config || {};
   const now = new Date().toISOString();
   const crewIds = new Set((snapshot.crews || []).map((crew) => crew.crew_id));
@@ -231,10 +222,10 @@ try {
     detail: `Classified ${classifications.length} intake items (${ticketsCreated} tickets created, ${ignored} ignored), proposed ${proposalsCreated} dispatches, applied ${updates} ticket updates.`,
     count: classifications.length,
   });
-  await writeJson(SNAPSHOT_PATH, snapshot);
+  await provider.writeSnapshot(snapshot);
   console.log(
-    `Triage merged into ${SNAPSHOT_PATH}: ${ticketsCreated} tickets, ${proposalsCreated} proposals, ${updates} updates.`,
+    `Triage merged via "${provider.kind}" provider: ${ticketsCreated} tickets, ${proposalsCreated} proposals, ${updates} updates.`,
   );
 } finally {
-  await fs.rm(LOCK_PATH, { force: true });
+  await provider.clearLock();
 }

@@ -1,24 +1,13 @@
-import fs from "node:fs/promises";
-import { LOCK_PATH } from "./paths.ts";
-import { pathExists, readJson } from "./utils.ts";
+// Agent write-lock — now delegated to the data provider. The local provider
+// backs it with app/.data/agent.lock; remote providers serialize server-side.
 
-export async function lockPayload() {
-  if (!(await pathExists(LOCK_PATH))) return { locked: false };
-  try {
-    return { locked: true, ...(await readJson(LOCK_PATH)) };
-  } catch {
-    return { locked: true, message: "Local project files are locked." };
-  }
+import type { LockState } from "../../lib/types.ts";
+import { provider } from "./provider.ts";
+
+export async function lockPayload(): Promise<LockState> {
+  return provider.getLock();
 }
 
-export async function assertUnlocked() {
-  if (await pathExists(LOCK_PATH)) throw new Error("Project files are locked by the agent.");
-}
-
-export async function clearLock() {
-  try {
-    await fs.unlink(LOCK_PATH);
-  } catch (error) {
-    if (error.code !== "ENOENT") throw error;
-  }
+export async function assertUnlocked(): Promise<void> {
+  await provider.assertUnlocked();
 }

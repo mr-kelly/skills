@@ -3,11 +3,10 @@
 // and referential integrity (shot -> character).
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
-const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
-const PROJECT = process.argv[2] ? path.resolve(process.argv[2]) : path.join(SKILL_DIR, "app", ".data", "project.json");
+// With an explicit path, read that file directly; otherwise load from the provider.
+const SOURCE = process.argv[2] ? path.resolve(process.argv[2]) : null;
 
 function fail(errors) {
   console.error(errors.map((error) => `- ${error}`).join("\n"));
@@ -18,7 +17,8 @@ function requireString(errors, obj, field, label) {
   if (!String(obj?.[field] || "").trim()) errors.push(`${label}.${field} is required`);
 }
 
-const project = JSON.parse(await fs.readFile(PROJECT, "utf8"));
+const project = SOURCE ? JSON.parse(await fs.readFile(SOURCE, "utf8")) : await (await createProvider()).loadProject();
+const LABEL = SOURCE || `${project.project_id} (provider store)`;
 const errors = [];
 
 if (!project.project_id) errors.push("top-level project_id is required");
@@ -49,4 +49,4 @@ for (const shot of project.shots || []) {
 }
 
 if (errors.length) fail(errors);
-console.log(`Schema OK: ${PROJECT}`);
+console.log(`Schema OK: ${LABEL}`);

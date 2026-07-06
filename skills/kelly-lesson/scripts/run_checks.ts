@@ -8,55 +8,26 @@
 // pass/warn/fail result (delivered via an ingest payload) is preserved;
 // otherwise the check is marked "agent_review" (or "warn" when the plan has
 // no curriculum refs to judge against).
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import type { Check } from "../app/server/types.ts";
+//
+// Reaches lesson state only through the data-provider (local default / Busabase).
+import { createProvider } from "../lib/data-provider/index.ts";
+import type { Check } from "../lib/types.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "lesson_snapshot.json");
-const lockPath = path.join(dataDir, "agent.lock");
+const provider = await createProvider();
 
-async function readJson(file, fallback = null) {
-  try {
-    return JSON.parse(await fs.readFile(file, "utf8"));
-  } catch (error) {
-    if (error.code === "ENOENT") return fallback;
-    throw error;
-  }
-}
-
-function configSearchPaths() {
-  const paths = [];
-  if (process.env.KELLY_LESSON_CONFIG) paths.push(process.env.KELLY_LESSON_CONFIG);
-  paths.push(path.join(skillDir, "config.local.json"));
-  paths.push(path.join(process.env.HOME || "", ".config", "kelly-lesson", "config.json"));
-  paths.push(path.join(skillDir, "config.example.json"));
-  return paths;
-}
-
-async function readConfig() {
-  for (const file of configSearchPaths()) {
-    const config = await readJson(file, null);
-    if (config) return config;
-  }
-  return {};
-}
-
-const lock = await readJson(lockPath);
+const lock = await provider.readLock();
 if (lock) {
   console.error(`Refusing to run checks: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
 }
 
-const snapshot = await readJson(snapshotPath);
-if (!snapshot) {
-  console.error(`No snapshot at ${snapshotPath}. Ingest a plan first.`);
+const snapshot = await provider.readSnapshot();
+if (!snapshot || !(snapshot.plans || []).length) {
+  console.error("No snapshot plans found. Ingest a plan first.");
   process.exit(1);
 }
 
-const config = await readConfig();
+const config = (await provider.readConfig()).config;
 const configRules = Array.isArray(config.compliance_rules) ? config.compliance_rules : [];
 if (!configRules.length) {
   console.error("No compliance_rules found in config. Add them to config.local.json.");
@@ -273,11 +244,11 @@ snapshot.metrics = {
 };
 snapshot.generated_at = now;
 
-await fs.writeFile(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
+await provider.writeSnapshot(snapshot);
 const failCount = snapshot.metrics.checks_failed;
 const warnCount = checks.filter((check) => check.result === "warn").length;
 const pending = checks.filter((check) => check.result === "agent_review").length;
 console.log(
   `Checked ${(snapshot.plans || []).length} plan(s) against ${configRules.length} rule(s): ${failCount} fail, ${warnCount} warn, ${pending} awaiting agent review.`,
 );
-console.log(`Wrote ${snapshotPath}`);
+console.log("Wrote lesson_snapshot.json");

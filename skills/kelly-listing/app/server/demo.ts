@@ -24,7 +24,8 @@ export function demoStatePayload(query: DemoQuery = {}) {
     .toLowerCase()
     .startsWith("zh");
   const lang = zh ? "zh" : "en";
-  const snapshot = demoSnapshot(scenario, zh, lang);
+  const claims = demoClaims(zh);
+  const snapshot = demoSnapshot(scenario, zh, lang, claims);
   return {
     demo: true,
     demo_scenario: scenario,
@@ -36,7 +37,90 @@ export function demoStatePayload(query: DemoQuery = {}) {
     decisions: demoDecisions(zh),
     agent_tasks: demoAgentTasks(zh),
     execution_report: demoExecutionReport(zh),
+    claims,
     snapshot,
+  };
+}
+
+// Seed the claims/compliance registry for the demo: approved (substantiated)
+// marketing claims, plus banned-word / restricted-phrase rules. The failing
+// spice-rack draft leans on "FDA approved" (a banned-word rule) and the
+// non-approved antibacterial claim, so its claims_registry check really fails.
+function demoClaims(zh) {
+  const l = L(zh);
+  const now = "2026-06-28T00:00:00.000Z";
+  return {
+    updated_at: now,
+    claims: [
+      {
+        claim_id: "claim-leakproof",
+        text: "leakproof",
+        status: "approved",
+        category: l("performance", "性能"),
+        substantiation: l(
+          "Colored-water tilt + drop test, lid closed, 3 orientations.",
+          "彩色水倾斜 + 跌落测试，闭盖，3 个方向。",
+        ),
+        evidence: ["test-reports/leak-test-2026.pdf"],
+        approved_by: "compliance",
+        approved_at: now,
+        notes: "",
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        claim_id: "claim-bpa-free",
+        text: "BPA-free",
+        status: "approved",
+        category: l("safety", "安全"),
+        substantiation: l("Material spec + third-party migration test.", "材质规格 + 第三方迁移测试。"),
+        evidence: ["specs/pp-frame-cert.pdf"],
+        approved_by: "compliance",
+        approved_at: now,
+        notes: "",
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        claim_id: "claim-antibacterial",
+        text: "antibacterial",
+        status: "rejected",
+        category: l("health", "健康"),
+        substantiation: "",
+        evidence: [],
+        approved_by: "",
+        approved_at: "",
+        notes: l("No antimicrobial testing on file — do not use.", "没有抗菌测试记录——禁止使用。"),
+        created_at: now,
+        updated_at: now,
+      },
+    ],
+    rules: [
+      {
+        rule_id: "claimrule-fda-approved",
+        phrase: "FDA approved",
+        type: "banned_word",
+        severity: "error",
+        reason: l(
+          "Product is not an FDA-registered device; the phrase is unsubstantiated.",
+          "产品不是 FDA 注册器械；该表述无依据。",
+        ),
+        alternative: l("food-contact safe", "食品接触安全"),
+        created_at: now,
+      },
+      {
+        rule_id: "claimrule-medical-grade",
+        phrase: "medical grade",
+        type: "restricted_phrase",
+        severity: "error",
+        reason: l(
+          "'Medical grade' implies a regulatory class the product does not hold.",
+          "“医用级”暗示产品不具备的监管类别。",
+        ),
+        alternative: l("food-grade", "食品级"),
+        created_at: now,
+      },
+    ],
   };
 }
 
@@ -767,7 +851,7 @@ function demoActivity(zh) {
   ];
 }
 
-function demoSnapshot(scenario, zh, lang) {
+function demoSnapshot(scenario, zh, lang, claims = null) {
   const l = L(zh);
   const config = demoConfig();
   const products = demoProducts(zh);
@@ -776,7 +860,7 @@ function demoSnapshot(scenario, zh, lang) {
   const checks: Check[] = [];
   for (const draft of drafts) {
     const product = productsById.get(draft.product_id);
-    for (const result of evaluateDraft(draft, product, config, lang)) {
+    for (const result of evaluateDraft(draft, product, config, lang, claims)) {
       checks.push({
         check_id: `chk-${draft.draft_id.replace(/^d-/, "")}-${result.rule_id}`,
         draft_id: draft.draft_id,
@@ -784,6 +868,7 @@ function demoSnapshot(scenario, zh, lang) {
         severity: result.severity,
         result: result.result,
         evidence: result.evidence,
+        ...(result.refs ? { refs: result.refs } : {}),
         checked_at: "2026-07-02T09:45:00.000Z",
       });
     }

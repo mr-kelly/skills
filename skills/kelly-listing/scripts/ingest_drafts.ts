@@ -9,20 +9,16 @@
 // "kelly_picks". Run scripts/run_checks.mjs after ingesting to refresh
 // compliance results and scores.
 //
-// Usage: node scripts/ingest_drafts.mjs payload.json
+// Usage: node scripts/ingest_drafts.ts payload.json
 import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { PLATFORMS, PLATFORM_FIELD_SHAPES } from "../app/server/rules.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "listing_snapshot.json");
-const lockPath = path.join(dataDir, "agent.lock");
+const provider = await createProvider();
 
 const payloadPath = process.argv[2];
 if (!payloadPath) {
-  console.error("Usage: node scripts/ingest_drafts.mjs <payload.json>");
+  console.error("Usage: node scripts/ingest_drafts.ts <payload.json>");
   process.exit(1);
 }
 
@@ -35,24 +31,7 @@ async function readJson(file, fallback = null) {
   }
 }
 
-function configSearchPaths() {
-  const paths = [];
-  if (process.env.KELLY_LISTING_CONFIG) paths.push(process.env.KELLY_LISTING_CONFIG);
-  paths.push(path.join(skillDir, "config.local.json"));
-  paths.push(path.join(process.env.HOME || "", ".config", "kelly-listing", "config.json"));
-  paths.push(path.join(skillDir, "config.example.json"));
-  return paths;
-}
-
-async function readConfig() {
-  for (const file of configSearchPaths()) {
-    const config = await readJson(file, null);
-    if (config) return config;
-  }
-  return {};
-}
-
-const lock = await readJson(lockPath);
+const lock = await provider.readLock();
 if (lock) {
   console.error(`Refusing to ingest: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
@@ -68,7 +47,7 @@ const payload =
 const incomingProducts = payload.products || [];
 const incomingDrafts = payload.drafts || [];
 
-const config = await readConfig();
+const { config } = await provider.readConfig();
 const now = new Date().toISOString();
 
 const SOURCES = new Set(["manual", "kelly_picks"]);
@@ -218,7 +197,8 @@ const emptySnapshot = {
   activity_log: [],
   warnings: [],
 };
-const snapshot = (await readJson(snapshotPath)) || emptySnapshot;
+const existingSnapshot = await provider.readSnapshot();
+const snapshot = existingSnapshot && Array.isArray(existingSnapshot.drafts) ? existingSnapshot : emptySnapshot;
 snapshot.products = snapshot.products || [];
 snapshot.drafts = snapshot.drafts || [];
 snapshot.checks = snapshot.checks || [];
@@ -374,8 +354,7 @@ snapshot.metrics = {
 };
 snapshot.generated_at = now;
 
-await fs.mkdir(dataDir, { recursive: true });
-await fs.writeFile(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
+await provider.writeSnapshot(snapshot);
 for (const { product, created } of mergedProducts) {
   console.log(`${created ? "Created" : "Updated"} ${product.product_id} — ${product.name} (${product.sku})`);
 }
@@ -384,4 +363,4 @@ for (const { draft, created } of mergedDrafts) {
     `${created ? "Created" : "Updated"} ${draft.draft_id} (Draft #${draft.ref}) — ${draft.platform} ${draft.locale}`,
   );
 }
-console.log(`Wrote ${snapshotPath}. Run scripts/run_checks.mjs to refresh compliance results.`);
+console.log("Wrote listing snapshot via the data provider. Run scripts/run_checks.ts to refresh compliance results.");

@@ -9,17 +9,18 @@
 //   specs cell:  "Power=40W|CRI=>80"          (key=value pairs joined by |)
 //   faq cell:    "Q1?=>A1|Q2?=>A2"            (q=>a pairs joined by |)
 import fs from "node:fs/promises";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 import {
   ensureDirs,
   envSearchPaths,
   loadDotenvFiles,
   readConfig,
-  readLock,
-  readSnapshot,
   recomputeMetrics,
   writeJson,
-} from "../app/server/store.ts";
+} from "../lib/data-provider/store-core.ts";
+import { DATA_DIR, LOCK_PATH, SNAPSHOT_PATH } from "../lib/paths.ts";
+
+const provider = await createProvider();
 
 function fail(message: string): never {
   console.error(`Product sync failed: ${message}`);
@@ -29,7 +30,7 @@ function fail(message: string): never {
 const file = process.argv[2];
 if (!file) fail("pass a products JSON or CSV file, e.g. node scripts/sync_products.mjs products.csv");
 
-await ensureDirs();
+await ensureDirs(DATA_DIR);
 await loadDotenvFiles(envSearchPaths());
 
 let raw: string;
@@ -194,7 +195,7 @@ if (guard?.enabled) {
   }
 }
 
-const lock = await readLock();
+const lock = await provider.readLock();
 if (lock) {
   console.error(`Product sync refused: agent lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
@@ -203,7 +204,7 @@ if (lock) {
 const nowIso = new Date().toISOString();
 await writeJson(LOCK_PATH, { owner: "kelly-inquiry", message: `Syncing product KB from ${file}`, started_at: nowIso });
 try {
-  const snapshot = await readSnapshot();
+  const snapshot = await provider.readSnapshot();
   snapshot.source = "kelly-inquiry";
   snapshot.warnings = (snapshot.warnings || []).filter((warning) => warning.id !== "no-snapshot");
   const byId = new Map((snapshot.products || []).map((product) => [product.product_id, product]));
@@ -237,7 +238,7 @@ try {
   snapshot.sync_log = snapshot.sync_log.slice(-100);
   snapshot.generated_at = nowIso;
   recomputeMetrics(snapshot);
-  await writeJson(SNAPSHOT_PATH, snapshot);
+  await provider.writeSnapshot(snapshot);
   console.log(
     `Product KB synced: ${created} added, ${updated} updated (${snapshot.products.length} total) -> ${SNAPSHOT_PATH}`,
   );

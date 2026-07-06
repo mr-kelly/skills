@@ -2,37 +2,21 @@
 // Dry-run-by-default executor stub. Re-checks the agent lock, re-reads
 // decisions immediately before acting, and records concrete operations in
 // execution_report.json. It performs NO external side effects:
-// - approve      -> "publish_plan" (target: export path for export_plans.mjs)
+// - approve      -> "publish_plan" (target: export path for export_plans.ts)
 //                   plus "send_feedback" when a drafted note exists (real
 //                   sending is delegated to other skills per SKILL.md)
 // - request_changes -> "request_revision" (ensures an agent_tasks entry)
 //
-// Usage: node scripts/execute_decisions.mjs [--apply]
-import fs from "node:fs/promises";
+// Reaches state only through the data-provider (local default / Busabase).
+//
+// Usage: node scripts/execute_decisions.ts [--apply]
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import type { Plan, Teacher } from "../app/server/types.ts";
-
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "lesson_snapshot.json");
-const decisionsPath = path.join(dataDir, "decisions.json");
-const agentTasksPath = path.join(dataDir, "agent_tasks.json");
-const lockPath = path.join(dataDir, "agent.lock");
-const reportPath = path.join(dataDir, "execution_report.json");
+import { createProvider } from "../lib/data-provider/index.ts";
+import type { ExecutionResult, Plan, Teacher } from "../lib/types.ts";
 
 const apply = process.argv.includes("--apply");
 
-async function readJson(file, fallback = null) {
-  try {
-    return JSON.parse(await fs.readFile(file, "utf8"));
-  } catch (error) {
-    if (error.code === "ENOENT") return fallback;
-    throw error;
-  }
-}
-
-function slugify(value) {
+function slugify(value: unknown): string {
   return (
     String(value)
       .toLowerCase()
@@ -42,35 +26,43 @@ function slugify(value) {
   );
 }
 
-const lock = await readJson(lockPath);
+const provider = await createProvider();
+
+const lock = await provider.readLock();
 if (lock) {
   console.error(`Refusing to execute: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
 }
 
-const snapshot = await readJson(snapshotPath);
-if (!snapshot) {
-  console.error(`No snapshot at ${snapshotPath}. Nothing to execute.`);
+const snapshot = await provider.readSnapshot();
+if (!snapshot || !(snapshot.plans || []).length) {
+  console.error("No snapshot plans found. Nothing to execute.");
   process.exit(1);
 }
 
-const decisions = (await readJson(decisionsPath, { decisions: {} })).decisions || {};
-const previousReport = await readJson(reportPath);
+const decisions = (await provider.readDecisions()).decisions || {};
+const previousReport = await provider.readExecutionReport();
 const alreadyExecuted = new Set(
   (previousReport?.results || [])
     .filter((item) => item.status === "executed")
     .map((item) => `${item.review_id}:${item.operation}`),
 );
 
-const plansById = new Map<string, Plan>(((snapshot.plans || []) as Plan[]).map((plan) => [plan.plan_id, plan]));
+const plansById = new Map<string, Plan>((snapshot.plans || []).map((plan) => [plan.plan_id, plan]));
 const teachersById = new Map<string, Teacher>(
-  ((snapshot.teachers || []) as Teacher[]).map((teacher) => [teacher.teacher_id, teacher]),
+  (snapshot.teachers || []).map((teacher) => [teacher.teacher_id, teacher]),
 );
 const now = new Date().toISOString();
-const results = [];
+const results: ExecutionResult[] = [];
 const revisionTasks = [];
 
-function pushResult(item, plan, operation, target, extra = {}) {
+function pushResult(
+  item: { review_id: string; plan_id: string; ref: number },
+  _plan: Plan,
+  operation: string,
+  target: string,
+  extra: Record<string, unknown> = {},
+) {
   const key = `${item.review_id}:${operation}`;
   if (alreadyExecuted.has(key)) {
     results.push({
@@ -106,7 +98,7 @@ for (const item of snapshot.review_items || []) {
   if (decision.action === "approve") {
     const exportTarget = path.join("exports", `${slugify(`${plan.grade}-${plan.subject}-${plan.title}`)}.md`);
     pushResult(item, plan, "publish_plan", exportTarget, {
-      detail: "Run scripts/export_plans.mjs to write the Markdown document.",
+      detail: "Run scripts/export_plans.ts to write the Markdown document.",
     });
     const feedback = decision.draft ?? item.feedback_draft ?? "";
     if (feedback.trim()) {
@@ -147,7 +139,7 @@ for (const result of results) {
 }
 
 if (!apply) {
-  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write ${reportPath}.`);
+  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write execution_report.json.`);
   process.exit(0);
 }
 
@@ -168,17 +160,16 @@ const report = {
     ...results.filter((item) => !(item.status === "skipped" && carriedKeys.has(`${item.review_id}:${item.operation}`))),
   ],
 };
-await fs.mkdir(dataDir, { recursive: true });
-await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+await provider.writeExecutionReport(report);
 
 if (revisionTasks.length) {
-  const tasks = await readJson(agentTasksPath, { updated_at: "", tasks: [] });
+  const tasks = await provider.readAgentTasks();
   for (const task of revisionTasks) {
     tasks.tasks = (tasks.tasks || []).filter((entry) => entry.review_id !== task.review_id);
     tasks.tasks.push(task);
   }
   tasks.updated_at = now;
-  await fs.writeFile(agentTasksPath, `${JSON.stringify(tasks, null, 2)}\n`);
-  console.log(`Queued ${revisionTasks.length} revision task(s) in ${agentTasksPath}.`);
+  await provider.writeAgentTasks(tasks);
+  console.log(`Queued ${revisionTasks.length} revision task(s) in agent_tasks.json.`);
 }
-console.log(`Wrote ${reportPath}. Publishing and feedback sending are delegated per SKILL.md.`);
+console.log("Wrote execution_report.json. Publishing and feedback sending are delegated per SKILL.md.");

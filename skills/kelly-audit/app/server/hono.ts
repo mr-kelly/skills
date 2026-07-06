@@ -1,20 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { mergeAnomalies, readConfig, summarizeConfig } from "../../lib/audit-core.ts";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import {
-  applyDecision,
-  mergeAnomalies,
-  readAgentTasks,
-  readConfig,
-  readDecisions,
-  readExecutionReport,
-  readLock,
-  readOnboarding,
-  readSnapshot,
-  summarizeConfig,
-} from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic modules (data-provider
@@ -35,19 +25,22 @@ const types = {
 
 const MAX_BODY = 1_000_000;
 
+const provider = await createProvider();
+console.log(`Kelly Audit data provider: ${provider.name}`);
+
 async function state() {
   const [snapshot, onboarding, lock, configResult, decisions, agentTasks, executionReport] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
+    provider.readSnapshot(),
+    provider.readOnboarding(),
+    provider.readLock(),
     readConfig(),
-    readDecisions(),
-    readAgentTasks(),
-    readExecutionReport(),
+    provider.readDecisions(),
+    provider.readAgentTasks(),
+    provider.readExecutionReport(),
   ]);
   return {
     app: "kelly-audit",
-    data_provider: process.env.KELLY_AUDIT_DATA_PROVIDER || configResult.config.data_provider || "local",
+    data_provider: provider.name,
     onboarding,
     lock,
     config_summary: summarizeConfig(configResult),
@@ -71,7 +64,7 @@ async function readBodyText(c) {
 }
 
 async function handleDecision(c) {
-  const lock = await readLock();
+  const lock = await provider.readLock();
   if (lock) {
     return json(c, 423, { error: "Agent lock present; the anomaly queue is read-only right now.", lock });
   }
@@ -81,7 +74,7 @@ async function handleDecision(c) {
   } catch {
     return json(c, 400, { error: "Invalid JSON body" });
   }
-  const result = await applyDecision({
+  const result = await provider.applyDecision({
     id: String(payload.id || ""),
     action: String(payload.action || ""),
     note: payload.note,
