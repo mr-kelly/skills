@@ -4,7 +4,7 @@
 
 **Kelly 的个人 AI skills 工作区，用来处理日常业务里的重复工作。**
 
-33 个 skills，其中 29 个是 App-in-Skill 工作流，配本地浏览器 UI 用于 review、审批和看板。
+33 个 skills，其中 30 个是 App-in-Skill 工作流，配本地浏览器 UI 用于 review、审批和看板。
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
@@ -185,7 +185,7 @@ Kelly Money 是本地财务 dashboard，用来查看 Mercury、Stripe、Airwalle
 
 ### `kelly-finance`
 
-Kelly Finance 是财务建模 skill，不是实时 App UI。它用于生成和审计三表 workbook，把假设和公式分开，并给 agent 一套可重复执行的检查清单：资产负债表、现金流、净利润、固定资产、债务和营运资本都要勾稽。
+Kelly Finance 是本地财务模型审阅台。它用于生成和审计三表 workbook，把假设和公式分开，并给 Kelly 一个浏览器 UI，用来看模型指标、检查队列、review note、审批决定和 agent handoff report。
 
 <table>
   <tr>

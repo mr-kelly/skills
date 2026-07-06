@@ -4,7 +4,7 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-33 skills, including 29 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+33 skills, including 30 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
@@ -185,7 +185,7 @@ Kelly Money is a local finance dashboard for seeing money movement across Mercur
 
 ### `kelly-finance`
 
-Kelly Finance is a finance-modeling skill rather than a live App UI. It creates and audits three-statement workbooks, keeps assumptions separate from formulas, and gives the agent a repeatable checklist for balance-sheet, cash-flow, net-income, PP&E, debt, and working-capital ties.
+Kelly Finance is a local finance-model review desk. It creates and audits three-statement workbooks, keeps assumptions separate from formulas, and gives Kelly a browser UI for model KPIs, check queues, review notes, approval decisions, and agent handoff reports.
 
 <table>
   <tr>

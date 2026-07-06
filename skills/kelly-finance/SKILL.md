@@ -11,6 +11,54 @@ Use this skill as a practical FP&A and corporate-finance modeling desk. It build
 
 For spreadsheet file creation or editing, also use the local spreadsheet/xlsx tooling if available. This skill owns the finance logic, modeling structure, checks, and presentation standard.
 
+Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, generate or load the local model snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
+
+## Boundary
+
+- The skill may build local workbooks, inspect local workbook/export files, normalize assumptions, write local model snapshots, and draft model-review recommendations.
+- The app reads and writes local files only. It must not connect to banks/accounting systems, send files, mutate ERP records, move money, or change external systems.
+- Treat financial models and assumptions as sensitive. Do not commit `config.local.json`, env files, `app/.data/`, private workbook exports, statements, customer/vendor data, or execution reports.
+- Any external action, such as sending a model to investors or changing source-of-truth books, is approval-required and executed outside the app by the agent after human review.
+
+## Local App
+
+Start the model review desk with:
+
+```bash
+skills/kelly-finance/app/start.sh
+```
+
+The app uses local HTTP on `127.0.0.1`, preferring ports `3000` through `4000`, or `KELLY_FINANCE_UI_PORT` when set.
+
+Views:
+
+- `#/overview`: model KPI dashboard, forecast table, and top model checks.
+- `#/checks` and `#/checks/<id>`: review queue for formula ties, model quality issues, and delivery notes. Users can approve, request changes, block, or dismiss each check.
+- `#/workbook`: generated workbook path and tab contract.
+- `#/settings`: sanitized config summary, onboarding marker, lock, and data provider.
+
+Demo mode:
+
+- `?demo=1` opens a deterministic offline model for screenshots and review.
+- `lang=en` or `lang=zh` forces UI chrome language.
+- Demo responses never read or write files under `app/.data/`; demo decisions stay in the browser.
+
+## File Contract
+
+Read `references/finance-ui-schema.md` before editing the app, scripts, or generated model snapshots.
+
+Primary local files:
+
+- `app/.data/model_snapshot.json`: canonical model dashboard and check queue.
+- `app/.data/decisions.json`: user verdicts and notes keyed by check id.
+- `app/.data/agent_tasks.json`: queued agent work for `changes_requested` checks.
+- `app/.data/execution_report.json`: dry-run/apply handoff report for approved checks.
+- `app/.data/onboarding.json`: onboarding completion marker.
+- `app/.data/agent.lock`: temporary lock while the skill generates or executes.
+- `config.local.json`: private company/model defaults, ignored by git.
+
+Use `node scripts/validate_ui_schema.ts app/.data/model_snapshot.json` before relying on a snapshot in the UI.
+
 ## Default Workflow
 
 1. Clarify the model purpose only when needed: fundraising, board reporting, budget, acquisition, cash runway, lender package, or operating plan.
@@ -20,6 +68,7 @@ For spreadsheet file creation or editing, also use the local spreadsheet/xlsx to
 5. Keep formulas auditable: drivers on assumptions tabs, calculations in schedules/statements, no hardcoded constants hidden inside formulas.
 6. Add checks before presenting: balance sheet balances, cash roll-forward ties, net income flows to retained earnings, depreciation ties to PP&E, debt schedule ties to interest/debt balances, and working capital changes tie to balance-sheet movements.
 7. Summarize key outputs: revenue, gross margin, EBITDA, net income, ending cash, cash runway, debt, free cash flow, and any broken checks.
+8. Start/reuse the App UI and route the user to `#/checks` for human review unless the user asked for chat-only.
 
 ## Create A Three-Statement Template
 
