@@ -16,6 +16,27 @@ The app is only an approval desk. It reads and writes local files; it does not s
 
 Kelly Email is zero-dependency by default: the local app, config checks, batch files, decisions, reports, and validator all run on built-in Node.js only. IMAP/SMTP scanning and execution are not bundled as npm dependencies; use an external connector or agent step to supply email items and apply approved mailbox actions.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Email overview"></td>
+    <td width="50%"><img src="assets/screenshots/inbox-approval.png" alt="Kelly Email inbox approval desk"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Inbox-zero command desk with account context, queue metrics, and review workflow controls.</td>
+    <td><strong>Inbox approval desk</strong><br>Mock inbox queue with approvals, sender context, reply drafts, and status filters.</td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/needs-review.png" alt="Kelly Email needs review"></td>
+    <td><img src="assets/screenshots/blocked-security.png" alt="Kelly Email blocked security request"></td>
+  </tr>
+  <tr>
+    <td><strong>Needs review</strong><br>Human-in-the-loop review scene for a partnership reply that needs tone and timing judgment.</td>
+    <td><strong>Blocked security request</strong><br>Risk-heavy email scenario where the assistant blocks a suspicious request instead of drafting a reply.</td>
+  </tr>
+</table>
+
 ## First Run Setup
 
 If Kelly Email is not configured yet, it starts in onboarding mode and will not scan mail.

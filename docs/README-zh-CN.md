@@ -22,7 +22,7 @@
   </tr>
   <tr>
     <td width="50%"><img src="screenshots/kelly-drama-ui-zh-CN.png" alt="kelly-drama — 短剧工作台"></td>
-    <td width="50%"><img src="screenshots/kelly-email-ui-zh-CN.png" alt="kelly-email — 邮件审批台"></td>
+    <td width="50%"><img src="../skills/kelly-email/assets/screenshots/overview-zh-CN.png" alt="kelly-email — 邮件审批台"></td>
   </tr>
 </table>
 
@@ -131,16 +131,16 @@
 
 <table>
   <tr>
-    <td width="50%"><img src="screenshots/kelly-email-ui-zh-CN.png" alt="Kelly Email 总览"></td>
-    <td width="50%"><img src="screenshots/kelly-email-all-zh-CN.png" alt="Kelly Email 邮件处理台"></td>
+    <td width="50%"><img src="../skills/kelly-email/assets/screenshots/overview-zh-CN.png" alt="Kelly Email 总览"></td>
+    <td width="50%"><img src="../skills/kelly-email/assets/screenshots/inbox-approval-zh-CN.png" alt="Kelly Email 邮件处理台"></td>
   </tr>
   <tr>
     <td><strong>总览</strong><br>Inbox-zero 操作台，显示账户上下文、队列指标和 review workflow 控件。</td>
     <td><strong>邮件审批台</strong><br>Mock 邮件队列，带批准动作、发件人上下文、回复草稿和状态筛选。</td>
   </tr>
   <tr>
-    <td><img src="screenshots/kelly-email-review-zh-CN.png" alt="Kelly Email 需要 review"></td>
-    <td><img src="screenshots/kelly-email-blocked-zh-CN.png" alt="Kelly Email 阻止高风险请求"></td>
+    <td><img src="../skills/kelly-email/assets/screenshots/needs-review-zh-CN.png" alt="Kelly Email 需要 review"></td>
+    <td><img src="../skills/kelly-email/assets/screenshots/blocked-security-zh-CN.png" alt="Kelly Email 阻止高风险请求"></td>
   </tr>
   <tr>
     <td><strong>需要 review</strong><br>需要人工判断语气、时机或下一步的邮件 review 场景。</td>
