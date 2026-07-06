@@ -182,7 +182,7 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
       if (action === "request_changes") {
         const tasks = (await readJson(agentTasksPath, { updated_at: "", tasks: [] })) as {
           updated_at: string;
-          tasks: { send_id?: string }[];
+          tasks: Array<{ send_id?: string; [key: string]: unknown }>;
         };
         tasks.tasks = tasks.tasks.filter((task) => task.send_id !== sendId);
         tasks.tasks.push({
