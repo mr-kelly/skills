@@ -16,18 +16,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { DEFAULT_RULES, dateOnly, deriveSnapshot } from "../app/server/compute.ts";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import {
-  emptySnapshot,
-  ensureDirs,
-  envSearchPaths,
-  loadDotenvFiles,
-  readConfig,
-  readJson,
-  readLock,
-  writeJson,
-} from "../app/server/store.ts";
 import type { AuditSnapshot, Invoice, Order, Payment } from "../app/server/types.ts";
+import { emptySnapshot, envSearchPaths, loadDotenvFiles, readConfig } from "../lib/audit-core.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 type TableName = "orders" | "invoices" | "payments";
 
@@ -288,9 +279,10 @@ async function main() {
     process.exit(args.help ? 0 : 1);
   }
 
-  await ensureDirs();
+  const provider = await createProvider();
+  await provider.ensureReady();
   await loadDotenvFiles(envSearchPaths());
-  const existingLock = (await readLock()) as { owner?: string; started_at?: string } | null;
+  const existingLock = (await provider.readLock()) as { owner?: string; started_at?: string } | null;
   if (existingLock) {
     fail(
       `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
@@ -303,14 +295,14 @@ async function main() {
   const baseCurrency = config.base_currency || "USD";
   const importCfg: Record<string, { columns?: Record<string, string> } | undefined> = config.import || {};
 
-  await writeJson(LOCK_PATH, {
+  await provider.acquireLock({
     owner: "kelly-audit",
     message: "Importing orders/invoices/payments tables",
     started_at: new Date().toISOString(),
   });
 
   try {
-    const snapshot: AuditSnapshot = (await readJson<AuditSnapshot>(SNAPSHOT_PATH, null)) || emptySnapshot();
+    const snapshot: AuditSnapshot = (await provider.readSnapshot()) || emptySnapshot();
     snapshot.base_currency = baseCurrency;
     snapshot.fx_rates = (config.fx_rates as Record<string, number>) || snapshot.fx_rates || {};
     snapshot.company = { name: config.company?.name || snapshot.company?.name || "" };
@@ -408,8 +400,8 @@ async function main() {
     });
     snapshot.import_log = snapshot.import_log.slice(0, 20);
 
-    await writeJson(SNAPSHOT_PATH, snapshot);
-    console.log(`Wrote ${SNAPSHOT_PATH}`);
+    await provider.writeSnapshot(snapshot);
+    console.log(`Wrote the ${provider.name} audit snapshot`);
     console.log(`  orders: +${added.orders} added, ${updated.orders} updated (total ${snapshot.orders.length})`);
     console.log(
       `  invoices: +${added.invoices} added, ${updated.invoices} updated (total ${snapshot.invoices.length})`,
@@ -420,7 +412,7 @@ async function main() {
     for (const warning of warnings) console.log(`  warning: ${warning}`);
     console.log("Next: node scripts/run_checks.mjs to refresh the anomaly queue.");
   } finally {
-    await fs.rm(LOCK_PATH, { force: true });
+    await provider.releaseLock();
   }
 }
 

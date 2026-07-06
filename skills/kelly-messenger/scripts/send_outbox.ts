@@ -3,18 +3,10 @@
 // Re-checks the agent lock and each reply's approval immediately before sending.
 // API connectors (slack/discord/telegram/whatsapp_cloud) send via global fetch;
 // browser_agent and manual connectors become handoff_to_agent operations.
-import fs from "node:fs/promises";
-import { EXECUTION_REPORT_PATH, LOCK_PATH, OUTBOX_PATH } from "../app/server/paths.ts";
-import {
-  ensureDirs,
-  envSearchPaths,
-  loadDotenvFiles,
-  readConfig,
-  readLock,
-  readOutbox,
-  readSnapshot,
-  writeJson,
-} from "../app/server/store.ts";
+import { envSearchPaths, loadDotenvFiles } from "../lib/data-provider/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+
+const provider = await createProvider();
 
 const send = process.argv.includes("--send");
 const API_CONNECTORS = new Set(["slack", "discord", "telegram", "whatsapp_cloud"]);
@@ -28,9 +20,13 @@ function truncate(text, max = 80) {
 }
 
 async function main() {
-  await ensureDirs();
+  await provider.ensureReady();
   await loadDotenvFiles(envSearchPaths());
-  const [outbox, snapshot, configResult] = await Promise.all([readOutbox(), readSnapshot(), readConfig()]);
+  const [outbox, snapshot, configResult] = await Promise.all([
+    provider.readOutbox(),
+    provider.readSnapshot(),
+    provider.readConfig(),
+  ]);
   const approved = (outbox.replies || []).filter((reply) => reply.status === "approved");
 
   if (!approved.length) {
@@ -54,14 +50,14 @@ async function main() {
     return;
   }
 
-  const lock = await readLock();
+  const lock = await provider.readLock();
   if (lock) {
     console.error(`Send refused: agent lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
     process.exitCode = 1;
     return;
   }
 
-  await writeJson(LOCK_PATH, {
+  await provider.writeLock({
     owner: "kelly-messenger",
     message: "Sending approved outbox replies",
     started_at: nowIso(),
@@ -69,7 +65,7 @@ async function main() {
   const results = [];
   try {
     // Re-read immediately before sending: approvals may have changed.
-    const freshOutbox = await readOutbox();
+    const freshOutbox = await provider.readOutbox();
     for (const plan of plans) {
       const reply = (freshOutbox.replies || []).find((item) => item.reply_id === plan.reply.reply_id);
       if (!reply || reply.status !== "approved") {
@@ -116,9 +112,9 @@ async function main() {
       }
     }
     freshOutbox.updated_at = nowIso();
-    await writeJson(OUTBOX_PATH, freshOutbox);
+    await provider.writeOutbox(freshOutbox);
   } finally {
-    await fs.rm(LOCK_PATH, { force: true });
+    await provider.clearLock();
   }
 
   const report = {
@@ -129,8 +125,8 @@ async function main() {
     executed_at: nowIso(),
     results,
   };
-  await writeJson(EXECUTION_REPORT_PATH, report);
-  console.log(`Wrote ${EXECUTION_REPORT_PATH}`);
+  await provider.writeExecutionReport(report);
+  console.log("Wrote execution report.");
 }
 
 function planFor(reply, snapshot, config) {

@@ -5,9 +5,8 @@
 //
 // Usage: node scripts/apply_clusters.mjs assignments.json
 // Payload shape: see references/feedback-schema.md (Cluster Assignment Payload).
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { acquireLock, readJson, recomputeDerived, releaseLock, writeJson } from "../app/server/store.ts";
-import type { FeedbackSnapshot } from "../app/server/types.ts";
+import { readJson, recomputeDerived } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const REQUEST_STATUSES = ["candidate", "roadmap", "declined", "needs_info"];
 const TRENDS = ["up", "flat", "down"];
@@ -42,10 +41,11 @@ for (const [index, assignment] of assignments.entries()) {
     fail(`assignments[${index}].request_id must be a string ("" to unassign)`);
 }
 
-await acquireLock("Applying cluster assignments").catch((error) => fail(error.message));
+const provider = await createProvider();
+await provider.acquireLock("Applying cluster assignments").catch((error) => fail(error.message));
 try {
-  const snapshot = (await readJson<FeedbackSnapshot>(SNAPSHOT_PATH, null)) as FeedbackSnapshot;
-  if (!snapshot) fail(`no snapshot at ${SNAPSHOT_PATH}; run ingest_feedback.mjs first`);
+  const snapshot = await provider.readSnapshot();
+  if (!snapshot) fail("no snapshot found; run ingest_feedback.mjs first");
   const now = new Date().toISOString();
   const requestsById = new Map(snapshot.requests.map((item) => [item.request_id, item]));
   let upserted = 0;
@@ -120,9 +120,9 @@ try {
     count: assigned,
   });
   recomputeDerived(snapshot);
-  await writeJson(SNAPSHOT_PATH, snapshot);
+  await provider.writeSnapshot(snapshot);
   console.log(`Upserted ${upserted} request(s); assigned ${assigned} feedback item(s).`);
-  console.log(`Wrote ${SNAPSHOT_PATH}`);
+  console.log(`Wrote feedback snapshot via "${provider.kind}" provider.`);
 } finally {
-  await releaseLock();
+  await provider.releaseLock();
 }

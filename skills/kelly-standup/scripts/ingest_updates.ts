@@ -11,8 +11,6 @@
 // Usage: node scripts/ingest_updates.mjs <payload.json> [more-payloads.json...]
 
 import crypto from "node:crypto";
-import fs from "node:fs/promises";
-import { LOCK_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
 import {
   BLOCKER_STATUSES,
   MOODS,
@@ -25,12 +23,12 @@ import {
   ensureDirs,
   readConfig,
   readJson,
-  readLock,
-  readSnapshot,
   recomputeDerived,
-  writeJson,
-} from "../app/server/store.ts";
+} from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { SNAPSHOT_PATH } from "../lib/paths.ts";
 
+const provider = await createProvider();
 const payloadFiles = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
 
 function fail(message) {
@@ -42,7 +40,7 @@ if (!payloadFiles.length) fail("usage: node scripts/ingest_updates.mjs <payload.
 
 await ensureDirs();
 
-const existingLock = await readLock();
+const existingLock = await provider.getLock();
 if (existingLock) {
   fail(
     `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
@@ -69,14 +67,8 @@ function stringList(value, path) {
   return value.map((item) => item.trim()).filter(Boolean);
 }
 
-await writeJson(LOCK_PATH, {
-  owner: "kelly-standup",
-  message: "Ingesting standup update payloads",
-  started_at: new Date().toISOString(),
-});
-
-try {
-  const snapshot = await readSnapshot();
+await provider.withLock("Ingesting standup update payloads", async () => {
+  const snapshot = await provider.getSnapshot();
   const base = snapshot.schema_version ? snapshot : emptySnapshot();
   const configResult = await readConfig();
   const config = configResult.config || {};
@@ -280,8 +272,6 @@ try {
   base.today = base.days.reduce((max, day) => (day.date > max ? day.date : max), base.today || "");
   base.warnings = (base.warnings || []).filter((warning) => warning.id !== "no-snapshot");
   recomputeDerived(base);
-  await writeJson(SNAPSHOT_PATH, base);
+  await provider.putSnapshot(base);
   console.log(`Upserted ${updatesUpserted} updates and ${remindersUpserted} reminders into ${SNAPSHOT_PATH}`);
-} finally {
-  await fs.rm(LOCK_PATH, { force: true });
-}
+});

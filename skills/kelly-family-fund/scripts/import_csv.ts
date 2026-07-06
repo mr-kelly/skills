@@ -9,12 +9,16 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildSnapshot } from "../app/server/portfolio.ts";
-import { readConfig } from "../app/server/store.ts";
 import type { Beneficiary, ExpenseInput, Family, IncomeInput } from "../app/server/types.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const input = process.argv[2] || path.join(skillDir, "references", "ledger-csv-template.csv");
-const output = process.argv[3] || path.join(skillDir, "app", ".data", "snapshot.json");
+// Optional 3rd arg overrides the output snapshot path (local files only). When
+// omitted, the snapshot is persisted through the configured data provider.
+const outputOverride = process.argv[3] || "";
+
+const provider = await createProvider();
 
 const REQUIRED_COLUMNS = ["type", "month", "category", "amount"];
 
@@ -84,7 +88,7 @@ const records: Record<string, string>[] = rows.slice(1).map((cells) => {
   return record;
 });
 
-const configResult = await readConfig();
+const configResult = await provider.getConfig();
 const config = configResult.config || {};
 const base_currency = config.base_currency || "CNY";
 const fund = {
@@ -172,9 +176,6 @@ const snapshot = buildSnapshot({
   source: "kelly-family-fund-csv",
 });
 
-await fs.mkdir(path.dirname(output), { recursive: true });
-await fs.writeFile(output, JSON.stringify(snapshot, null, 2));
-
 const report = {
   imported_at: snapshot.generated_at,
   source_csv: input,
@@ -185,8 +186,22 @@ const report = {
   balance: snapshot.totals.balance,
   base_currency,
 };
-await fs.writeFile(path.join(path.dirname(output), "import_report.json"), JSON.stringify(report, null, 2));
+
+let destination: string;
+if (outputOverride) {
+  // Explicit path override: write the local files directly, byte-identical to
+  // the original importer (no trailing newline).
+  await fs.mkdir(path.dirname(outputOverride), { recursive: true });
+  await fs.writeFile(outputOverride, JSON.stringify(snapshot, null, 2));
+  await fs.writeFile(path.join(path.dirname(outputOverride), "import_report.json"), JSON.stringify(report, null, 2));
+  destination = outputOverride;
+} else {
+  await provider.putSnapshot(snapshot);
+  await provider.putImportReport?.(report);
+  destination =
+    provider.kind === "local" ? path.join(skillDir, "app", ".data", "snapshot.json") : `${provider.kind} provider`;
+}
 
 console.log(`Imported ${snapshot.income.length} income and ${snapshot.expenses.length} expense rows.`);
 console.log(`Balance (${base_currency}): ${snapshot.totals.balance}`);
-console.log(`Wrote ${output}`);
+console.log(`Wrote ${destination}`);

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { serve } from "@hono/node-server";
+import { envSearchPaths, loadDotenvFiles } from "../../lib/common.ts";
+import { ensureDirs } from "../../lib/data-provider/local-file-provider.ts";
+import { DEFAULT_HOST, DEFAULT_PORT } from "../../lib/paths.ts";
 import { app } from "./hono.ts";
-import { DEFAULT_HOST, DEFAULT_PORT } from "./paths.ts";
-import { ensureDirs, envSearchPaths, loadDotenvFiles } from "./store.ts";
 
 // Local runtime: run the platform-neutral Hono app on Node. The same app.fetch
 // deploys to other fetch-based runtimes unchanged once the data layer is cloud-backed.

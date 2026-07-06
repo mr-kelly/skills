@@ -1,5 +1,11 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_STANDUP_BUSABASE_API_KEY",
+    "_note": "Only used when data_provider is \"busabase\". Each approval-gated nudge (reminder) maps to a Busabase record commit whose fields hold type/member_id/channel/title/reason/draft. Approve->review(approved), request_changes->review(rejected), block->close, human edits->operation revision. Snapshot ingestion + the dry-run execution planner stay local-only. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud does. Env overrides: KELLY_STANDUP_BUSABASE_URL / KELLY_STANDUP_BUSABASE_BASE_ID / KELLY_STANDUP_BUSABASE_API_KEY."
+  },
   "locale": "auto",
   "team": {
     "name": "Example Team",

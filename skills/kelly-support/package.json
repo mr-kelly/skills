@@ -1,0 +1,18 @@
+{
+  "name": "kelly-support",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Kelly Support App-in-Skill — local customer-support review desk (Hono server, zero-build vanilla frontend).",
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts"
+  },
+  "dependencies": {
+    "hono": "^4.6.14",
+    "@hono/node-server": "^1.13.7"
+  },
+  "engines": {
+    "node": ">=23.6"
+  }
+}

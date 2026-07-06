@@ -1,15 +1,12 @@
 #!/usr/bin/env node
+// Seed the workspace with the starter MV project via the data provider, so the
+// same command works against local files or a remote backend.
 import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { starterProjectPath } from "../lib/paths.ts";
+import type { Project } from "../lib/types.ts";
 
-const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const SKILL_DIR = path.resolve(SCRIPT_DIR, "..");
-const STARTER = path.join(SKILL_DIR, "assets", "starter-project.json");
-const PROJECT = path.join(SKILL_DIR, "app", ".data", "project.json");
-
-const project = JSON.parse(await fs.readFile(STARTER, "utf8"));
-project.updated_at = new Date().toISOString();
-await fs.mkdir(path.dirname(PROJECT), { recursive: true });
-await fs.writeFile(PROJECT, `${JSON.stringify(project, null, 2)}\n`, "utf8");
-console.log(`Created sample project: ${PROJECT}`);
+const provider = await createProvider();
+const starter = JSON.parse(await fs.readFile(starterProjectPath, "utf8")) as Project;
+const saved = await provider.saveProject(starter);
+console.log(`Created sample project via ${provider.name} provider: ${saved.project_id}`);

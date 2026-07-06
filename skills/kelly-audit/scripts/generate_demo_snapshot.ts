@@ -7,16 +7,16 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildDemoSnapshot } from "../app/server/demo.ts";
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { ensureDirs, writeJson } from "../app/server/store.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-await ensureDirs();
+const provider = await createProvider();
+await provider.ensureReady();
 const snapshot = buildDemoSnapshot();
 snapshot.source = "kelly-audit-demo";
-await writeJson(SNAPSHOT_PATH, snapshot);
-console.log(`Wrote ${SNAPSHOT_PATH}`);
+await provider.writeSnapshot(snapshot);
+console.log(`Wrote the ${provider.name} demo audit snapshot`);
 console.log(
   `  orders=${snapshot.orders.length} invoices=${snapshot.invoices.length} payments=${snapshot.payments.length} anomalies=${snapshot.anomalies.length}`,
 );

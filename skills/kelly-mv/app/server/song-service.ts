@@ -1,10 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { SONG_CONFIG_PATH, SONG_DIR } from "./paths.ts";
 import { loadProject, saveProject } from "./project-store.ts";
+import { provider } from "./provider.ts";
 import { statePayload } from "./state.ts";
 import type { Song, SongConfig } from "./types.ts";
-import { pathExists, readJson, slug, writeJson } from "./utils.ts";
+import { pathExists, slug } from "./utils.ts";
 
 interface SongPatch {
   title?: string;
@@ -39,7 +39,7 @@ const DEFAULT_SONG_CONFIG: SongConfig = {
 const AUDIO_EXT = new Set([".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg"]);
 
 async function loadSongConfig() {
-  const disk = (await pathExists(SONG_CONFIG_PATH)) ? await readJson(SONG_CONFIG_PATH, {}) : {};
+  const disk = await provider.readSongConfig();
   return { ...DEFAULT_SONG_CONFIG, ...disk };
 }
 
@@ -119,12 +119,11 @@ export async function importSong(input: SongPatch = {}) {
   if (!AUDIO_EXT.has(ext)) throw new Error(`不支持的音频格式: ${ext}`);
 
   const project = await loadProject();
-  await fs.mkdir(SONG_DIR, { recursive: true });
   const base = slug(input.title || path.basename(abs, ext) || "song");
   const filename = `${base}-${Date.now()}${ext}`;
-  const destAbs = path.join(SONG_DIR, filename);
-  await fs.copyFile(abs, destAbs);
-  const publicPath = `/generated/songs/${filename}`;
+  // The source is a user-supplied external path (not the generated store), so we
+  // read it directly, then hand the bytes to the provider to persist.
+  const { publicPath } = await provider.writeGenerated({ subdir: "songs", filename, bytes: await fs.readFile(abs) });
 
   const song = mergeSong(project.song || {}, {
     title: input.title || project.song?.title || path.basename(abs, ext),
@@ -160,11 +159,9 @@ export async function uploadSong(input: SongPatch = {}) {
   if (!buf.length) throw new Error("音频数据为空。");
 
   const project = await loadProject();
-  await fs.mkdir(SONG_DIR, { recursive: true });
   const baseName = path.basename(String(input.filename || "song"), ext);
   const filename = `${slug(input.title || baseName || "song")}-${Date.now()}${ext}`;
-  await fs.writeFile(path.join(SONG_DIR, filename), buf);
-  const publicPath = `/generated/songs/${filename}`;
+  const { publicPath } = await provider.writeGenerated({ subdir: "songs", filename, bytes: buf });
 
   project.song = {
     ...(project.song || {}),

@@ -7,19 +7,11 @@
 // plan is reviewed.
 // Usage: node scripts/execute_decisions.mjs [--apply]
 
-import fs from "node:fs/promises";
-import { EXECUTION_REPORT_PATH, LOCK_PATH } from "../app/server/paths.ts";
-import {
-  ensureDirs,
-  mergeSnapshot,
-  readConfig,
-  readDecisions,
-  readExecutionReport,
-  readLock,
-  readSnapshot,
-  writeJson,
-} from "../app/server/store.ts";
-import type { Crew } from "../app/server/types.ts";
+import { mergeSnapshot } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import type { Crew } from "../lib/types.ts";
+
+const provider = await createProvider();
 
 const apply = process.argv.includes("--apply");
 const dryRun = !apply;
@@ -29,9 +21,9 @@ function fail(message) {
   process.exit(1);
 }
 
-await ensureDirs();
+await provider.ensureStore();
 
-const existingLock = await readLock();
+const existingLock = await provider.readLock();
 if (existingLock) {
   fail(
     `agent.lock exists (owner: ${existingLock.owner}, started ${existingLock.started_at}). Wait for the other run to finish.`,
@@ -39,10 +31,10 @@ if (existingLock) {
 }
 
 const [snapshot, decisions, previousReport, configResult] = await Promise.all([
-  readSnapshot(),
-  readDecisions(),
-  readExecutionReport(),
-  readConfig(),
+  provider.readSnapshot(),
+  provider.readDecisions(),
+  provider.readExecutionReport(),
+  provider.readConfig(),
 ]);
 const merged = mergeSnapshot(snapshot, decisions, previousReport);
 const approved = merged.dispatch_proposals.filter((proposal) => proposal.status === "approved");
@@ -52,7 +44,7 @@ if (!approved.length) {
   process.exit(0);
 }
 
-await writeJson(LOCK_PATH, {
+await provider.writeLock({
   owner: "kelly-tickets",
   message: dryRun ? "Dry-run: planning approved dispatches" : "Preparing approved dispatches for the agent",
   started_at: new Date().toISOString(),
@@ -123,8 +115,8 @@ try {
     config_path: configResult.path,
     results,
   };
-  await writeJson(EXECUTION_REPORT_PATH, report);
-  console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote ${EXECUTION_REPORT_PATH}`);
+  await provider.writeExecutionReport(report);
+  console.log(`${dryRun ? "Dry run" : "Execution plan"} written via "${provider.kind}" provider.`);
   for (const result of results) {
     console.log(
       `  Dispatch #${result.ref} -> ${result.operations.map((op) => op.operation).join(" + ") || "blocked"} (${result.status}) ${result.ticket_id}`,
@@ -132,5 +124,5 @@ try {
   }
   if (dryRun) console.log("Re-run with --apply to mark items ready_for_agent. No external side effects either way.");
 } finally {
-  await fs.rm(LOCK_PATH, { force: true });
+  await provider.clearLock();
 }

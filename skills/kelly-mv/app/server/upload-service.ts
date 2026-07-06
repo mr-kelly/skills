@@ -1,11 +1,9 @@
-import fs from "node:fs/promises";
 import path from "node:path";
-import { GENERATED_DIR, STORYBOARD_IMAGE_DIR } from "./paths.ts";
 import { loadProject, saveProject } from "./project-store.ts";
+import { provider } from "./provider.ts";
 import { statePayload } from "./state.ts";
 import { slug } from "./utils.ts";
 
-const VIDEO_DIR = path.join(GENERATED_DIR, "videos");
 const IMAGE_EXT = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
 const VIDEO_EXT = new Set([".mp4", ".mov", ".webm", ".m4v"]);
 
@@ -37,12 +35,9 @@ export async function uploadShotAsset(input: ShotAssetUpload = {}) {
   const allowed = isVideo ? VIDEO_EXT : IMAGE_EXT;
   if (!allowed.has(ext)) throw new Error(`不支持的${isVideo ? "视频" : "图片"}格式: ${ext}`);
 
-  const dir = isVideo ? VIDEO_DIR : STORYBOARD_IMAGE_DIR;
   const sub = isVideo ? "videos" : "storyboards";
-  await fs.mkdir(dir, { recursive: true });
   const filename = `${slug(shotId)}-upload-${Date.now()}${ext}`;
-  await fs.writeFile(path.join(dir, filename), buf);
-  const publicPath = `/generated/${sub}/${filename}`;
+  const { publicPath } = await provider.writeGenerated({ subdir: sub, filename, bytes: buf });
   const generatedAt = new Date().toISOString();
   const generation = { mode: "upload", source: String(input.filename || "") };
   const candidate = { path: publicPath, generated_at: generatedAt, generation };

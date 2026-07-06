@@ -28,7 +28,7 @@ const GROUPS = [
     id: "comms",
     en: "Comms & Service",
     zh: "沟通与协作",
-    skills: ["kelly-email", "kelly-messenger", "kelly-tickets", "kelly-standup"],
+    skills: ["kelly-email", "kelly-messenger", "kelly-support", "kelly-tickets", "kelly-standup"],
   },
   {
     id: "growth",

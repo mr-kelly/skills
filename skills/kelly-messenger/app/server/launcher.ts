@@ -4,7 +4,15 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import http from "node:http";
 import net from "node:net";
-import { CACHE_DIR, DEFAULT_HOST, DEFAULT_PORT, LOG_PATH, PID_PATH, PREFERRED_PORT_MAX, SERVER_DIR } from "./paths.ts";
+import {
+  CACHE_DIR,
+  DEFAULT_HOST,
+  DEFAULT_PORT,
+  LOG_PATH,
+  PID_PATH,
+  PREFERRED_PORT_MAX,
+  SERVER_DIR,
+} from "../../lib/paths.ts";
 
 const host = process.env.KELLY_MESSENGER_UI_HOST || DEFAULT_HOST;
 const explicitPort = process.env.KELLY_MESSENGER_UI_PORT || "";

@@ -75,11 +75,18 @@ export interface Product {
   [key: string]: unknown;
 }
 
+// Links from a check back into the claims registry (offending rule / claim ids).
+export interface CheckRefs {
+  rules?: string[];
+  claims?: string[];
+}
+
 export interface RuleResult {
   rule_id: string;
   severity: string;
   result: CheckResult | string;
   evidence: string;
+  refs?: CheckRefs;
 }
 
 export interface Check {
@@ -89,6 +96,7 @@ export interface Check {
   severity: string;
   result: CheckResult | string;
   evidence: string;
+  refs?: CheckRefs;
   checked_at?: string;
 }
 

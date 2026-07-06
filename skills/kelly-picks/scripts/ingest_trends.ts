@@ -6,9 +6,22 @@
 // dedupes candidates by candidate_id or name+source, merges, refreshes metrics + sync_log,
 // and honors app/.data/agent.lock.
 import crypto from "node:crypto";
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { acquireLock, computeMetrics, emptySnapshot, readJson, releaseLock, writeJson } from "../app/server/store.ts";
-import type { Candidate, PicksSnapshot, TrendItem } from "../app/server/types.ts";
+import fs from "node:fs/promises";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { computeMetrics } from "../lib/picks-core.ts";
+import type { Candidate, PicksSnapshot, TrendItem } from "../lib/types.ts";
+
+async function readJsonFile<T = unknown>(file: string): Promise<T | null> {
+  try {
+    return JSON.parse(await fs.readFile(file, "utf8")) as T;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+const provider = await createProvider();
+await provider.ensureReady();
 
 const SOURCE_KINDS = ["amazon_bsr", "tiktok", "temu", "aliexpress", "trends", "competitor"];
 const STAGES = ["new", "reviewing", "develop", "watch", "dropped"];
@@ -37,7 +50,7 @@ function contentHash(item: Partial<TrendItem>): string {
 const payloadPath = process.argv[2];
 if (!payloadPath) fail("usage: node scripts/ingest_trends.mjs <payload.json>");
 
-const payload = (await readJson(payloadPath, null)) as {
+const payload = (await readJsonFile(payloadPath)) as {
   trend_items?: TrendItem[];
   candidates?: Candidate[];
   source_sweeps?: Array<Record<string, unknown>>;
@@ -62,9 +75,9 @@ incomingCandidates.forEach((item, index) => {
 });
 
 const now = new Date().toISOString();
-await acquireLock("kelly-picks/ingest_trends", `Ingesting trend payload from ${payloadPath}`);
+await provider.acquireLock("kelly-picks/ingest_trends", `Ingesting trend payload from ${payloadPath}`);
 try {
-  const snapshot: PicksSnapshot = (await readJson<PicksSnapshot>(SNAPSHOT_PATH, null)) || emptySnapshot();
+  const snapshot: PicksSnapshot = await provider.readSnapshot();
   snapshot.trend_items = snapshot.trend_items || [];
   snapshot.candidates = snapshot.candidates || [];
   snapshot.sources = snapshot.sources || [];
@@ -216,10 +229,10 @@ try {
   });
   snapshot.sync_log = snapshot.sync_log.slice(0, 50);
 
-  await writeJson(SNAPSHOT_PATH, snapshot);
+  await provider.writeSnapshot(snapshot);
   console.log(
-    `OK: ${trendsAdded} trend items added, ${trendsUpdated} updated, ${trendsSkipped} skipped; ${candidatesAdded} candidates added, ${candidatesUpdated} updated → ${SNAPSHOT_PATH}`,
+    `OK: ${trendsAdded} trend items added, ${trendsUpdated} updated, ${trendsSkipped} skipped; ${candidatesAdded} candidates added, ${candidatesUpdated} updated → picks_snapshot.json`,
   );
 } finally {
-  await releaseLock();
+  await provider.releaseLock();
 }

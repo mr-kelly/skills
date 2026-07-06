@@ -2,27 +2,21 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
 import type { Context } from "hono";
-import { applyDecisions, saveDecision, saveFollowup } from "./decisions.ts";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import {
-  readAgentTasks,
-  readConfig,
-  readDecisions,
-  readLock,
-  readOnboarding,
-  readSnapshot,
-  summarizeConfig,
-} from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through the logic modules (data-provider
-// backed), so the same app runs under @hono/node-server locally and — once the
-// data layer moves to a cloud provider like Busabase — on Cloudflare Workers.
+// contract and reaches storage only through the data-provider (lib/data-provider),
+// so the same app runs under @hono/node-server locally and — with the data layer
+// on a cloud provider like Busabase — on Cloudflare Workers.
 //
 // The frontend is the original zero-build vanilla app (index.html + app.js +
 // styles.css + i18n). Hono only serves those static files and the JSON API; it
 // does not render or bundle anything.
+
+const provider = await createProvider();
+console.log(`Kelly Radar data provider: ${provider.name}`);
 
 const types: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -31,26 +25,6 @@ const types: Record<string, string> = {
   ".json": "application/json; charset=utf-8",
   ".svg": "image/svg+xml",
 };
-
-async function state() {
-  const [snapshot, onboarding, lock, decisions, agentTasks, configResult] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
-    readDecisions(),
-    readAgentTasks(),
-    readConfig(),
-  ]);
-  return {
-    app: "kelly-radar",
-    data_provider: process.env.KELLY_RADAR_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    agent_tasks: agentTasks,
-    config_summary: summarizeConfig(configResult),
-    snapshot: applyDecisions(snapshot, decisions),
-  };
-}
 
 async function serveStatic(c: Context) {
   const url = new URL(c.req.url);
@@ -79,7 +53,9 @@ export const app = new Hono();
 // ---- API ----
 app.get("/api/state", async (c) => {
   const query = c.req.query();
-  return c.json(isDemoQuery(query) ? demoStatePayload(query) : await state(), 200, { "cache-control": "no-store" });
+  return c.json(isDemoQuery(query) ? demoStatePayload(query) : await provider.getState(), 200, {
+    "cache-control": "no-store",
+  });
 });
 
 app.post("/api/decision", async (c) => {
@@ -88,7 +64,7 @@ app.post("/api/decision", async (c) => {
   if (isDemoQuery(query) || body.demo) {
     return c.json(demoDecisionResponse(body), 200, { "cache-control": "no-store" });
   }
-  const result = await saveDecision(body);
+  const result = await provider.saveDecision(body);
   return c.json(result, (result.ok ? 200 : result.status || 400) as any, { "cache-control": "no-store" });
 });
 
@@ -111,7 +87,7 @@ app.post("/api/task", async (c) => {
       { "cache-control": "no-store" },
     );
   }
-  const result = await saveFollowup(body);
+  const result = await provider.saveFollowup(body);
   return c.json(result, (result.ok ? 200 : result.status || 400) as any, { "cache-control": "no-store" });
 });
 

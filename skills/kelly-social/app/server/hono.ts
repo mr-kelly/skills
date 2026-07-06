@@ -1,18 +1,22 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import { readConfig, readLock, readOnboarding, readSnapshot, summarizeConfig } from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through the logic modules (data-provider
-// backed), so the same app runs under @hono/node-server locally and — once the
-// data layer moves to a cloud provider like Busabase — on Cloudflare Workers.
+// contract and reaches storage only through the data-provider, so the same app
+// runs under @hono/node-server locally and — once the data layer moves to a
+// cloud provider like Busabase — on Cloudflare Workers.
 //
 // The frontend is the original zero-build vanilla app (index.html + app.js +
 // styles.css + i18n). Hono only serves those static files and the JSON API; it
 // does not render or bundle anything.
+
+const provider = await createProvider();
+console.log(`Kelly Social data provider: ${provider.kind}`);
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -22,20 +26,7 @@ const types = {
 };
 
 async function state() {
-  const [snapshot, onboarding, lock, configResult] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
-    readConfig(),
-  ]);
-  return {
-    app: "kelly-social",
-    data_provider: process.env.KELLY_SOCIAL_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    config_summary: summarizeConfig(configResult),
-    snapshot,
-  };
+  return { app: "kelly-social", ...(await provider.getState()) };
 }
 
 export const app = new Hono();
@@ -48,6 +39,31 @@ app.get("/api/state", async (c) => {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
   });
+});
+
+// ECHO publishing desk: apply one review decision / publish / reply / crisis
+// toggle. Local writes only — the skill performs the real platform action out
+// of band after approval. Demo mode never mutates real state; it just echoes
+// back a synthetic ok so the UI can show the optimistic transition.
+app.post("/api/operation", async (c) => {
+  const query = c.req.query();
+  const op = await c.req.json().catch(() => null);
+  if (!op || typeof op !== "object" || typeof op.operation !== "string") {
+    return c.json({ error: "Body must be a JSON object with an 'operation' field." }, 400);
+  }
+  if (isDemoQuery(query)) {
+    return c.json({ ok: true, demo: true, operation: op.operation }, 200);
+  }
+  try {
+    const snapshot = await provider.applyOperation(op);
+    return c.body(JSON.stringify({ ok: true, operation: op.operation, snapshot }), 200, {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    });
+  } catch (error) {
+    const status = ((error as { statusCode?: number }).statusCode || 500) as ContentfulStatusCode;
+    return c.json({ error: (error as Error).message }, status);
+  }
 });
 
 // ---- Static (vanilla frontend) ----

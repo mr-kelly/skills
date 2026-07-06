@@ -70,7 +70,48 @@ export function demoStatePayload(query: DemoQuery = {}): Record<string, unknown>
     decisions: demoDecisions(),
     agent_tasks: demoAgentTasks(),
     execution_report: demoExecutionReport(),
+    suppression: demoSuppression(),
     snapshot,
+  };
+}
+
+// Consent/suppression list: recipients or whole segments removed by unsubscribe,
+// hard bounce, or complaint. Segment-level entries exclude recipients (a soft
+// pre-send note); an explicitly-targeted suppressed ADDRESS hard-blocks a send.
+export function demoSuppression() {
+  return {
+    updated_at: "2026-07-01T12:00:00.000Z",
+    entries: [
+      {
+        address: "unsub-1@example.com",
+        reason: "unsubscribe",
+        note: "Clicked unsubscribe on the June dispatch.",
+        suppressed_at: "2026-06-27T10:12:00.000Z",
+        source: "esp-webhook",
+      },
+      {
+        address: "bounced-1@example.com",
+        reason: "hard_bounce",
+        note: "Mailbox does not exist (550).",
+        suppressed_at: "2026-06-28T04:30:00.000Z",
+        source: "esp-webhook",
+      },
+      {
+        address: "complaint-1@example.com",
+        reason: "complaint",
+        note: "Marked a campaign as spam.",
+        suppressed_at: "2026-06-29T22:05:00.000Z",
+        source: "esp-webhook",
+      },
+      {
+        // Whole segment suppressed while its consent is re-confirmed.
+        segment_id: "lapsed-90d",
+        reason: "complaint",
+        note: "Elevated complaint rate; hold the lapsed segment until re-permission.",
+        suppressed_at: "2026-06-30T09:00:00.000Z",
+        source: "operator",
+      },
+    ],
   };
 }
 
@@ -515,6 +556,28 @@ function demoSnapshot(scenario) {
       ),
     ),
   ];
+
+  // Consent/suppression demo wiring: the win-back send explicitly targets a
+  // suppressed (complaint) address, so the pre-send guard hard-blocks it; the
+  // flash sale to the full list overlaps the suppression list and shows the
+  // "N suppressed recipients excluded" soft note.
+  const winback = sends.find((item) => item.send_id === "send-winback-promo") as Record<string, unknown> | undefined;
+  if (winback) {
+    winback.target_addresses = ["complaint-1@example.com"];
+    winback.suppression = {
+      suppressed_count: 5,
+      blocked: true,
+      note: "Blocked: a suppressed (complaint) address is explicitly targeted, and the lapsed-90d segment is suppressed.",
+    };
+  }
+  const flashSale = sends.find((item) => item.send_id === "send-flash-sale") as Record<string, unknown> | undefined;
+  if (flashSale) {
+    flashSale.suppression = {
+      suppressed_count: 3,
+      blocked: false,
+      note: "3 suppressed recipients excluded (unsubscribe / hard bounce / complaint).",
+    };
+  }
 
   const listHealth = {
     subscriber_count: 48210,

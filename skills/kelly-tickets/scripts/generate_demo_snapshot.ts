@@ -2,16 +2,16 @@
 // Writes a deterministic sample snapshot into app/.data/ for local development.
 // It reuses the demo scene builder so the sample always matches the UI schema.
 // Demo mode itself (?demo=<scene>) never reads this file.
-// Usage: node scripts/generate_demo_snapshot.mjs [--zh]
+// Usage: node scripts/generate_demo_snapshot.ts [--zh]
 
 import { buildDemoSnapshot } from "../app/server/demo.ts";
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { ensureDirs, writeJson } from "../app/server/store.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const zh = process.argv.includes("--zh");
 const snapshot = buildDemoSnapshot(zh, "overview");
 snapshot.source = "kelly-tickets-sample";
 
-await ensureDirs();
-await writeJson(SNAPSHOT_PATH, snapshot);
-console.log(`Wrote ${SNAPSHOT_PATH}`);
+const provider = await createProvider();
+await provider.ensureStore();
+await provider.writeSnapshot(snapshot);
+console.log(`Wrote sample snapshot via "${provider.kind}" provider.`);

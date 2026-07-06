@@ -195,6 +195,10 @@ function reviewItems() {
   return state.snapshot?.review_items || [];
 }
 
+function claimsRegistry() {
+  return state.settings?.claims || { claims: [], rules: [] };
+}
+
 function productById(productId) {
   return products().find((item) => item.product_id === productId) || null;
 }
@@ -276,9 +280,33 @@ function viewLabel(view) {
   if (view === "products") return t("products");
   if (view === "drafts") return t("drafts");
   if (view === "checks") return t("checks");
+  if (view === "claims") return t("claims");
   if (view === "review") return t("review");
   if (view === "settings") return t("settings");
   return t("overview");
+}
+
+function claimStatusBadge(status) {
+  return `<span class="status-badge ${escapeHtml(status)}">${escapeHtml(enumLabel(status, "claim"))}</span>`;
+}
+
+// Links a claims_registry check back to the offending rule / claim in the
+// Claims view (deep-links to the anchored row).
+function claimRefLinks(refs) {
+  if (!refs) return "";
+  const registry = claimsRegistry();
+  const parts = [];
+  for (const ruleId of refs.rules || []) {
+    const rule = (registry.rules || []).find((entry) => entry.rule_id === ruleId);
+    parts.push(
+      `<a class="tag" href="#/claims" title="${escapeHtml(rule?.reason || "")}">${escapeHtml(rule?.phrase || ruleId)}</a>`,
+    );
+  }
+  for (const claimId of refs.claims || []) {
+    const claim = (registry.claims || []).find((entry) => entry.claim_id === claimId);
+    parts.push(`<a class="tag" href="#/claims">${escapeHtml(claim?.text || claimId)}</a>`);
+  }
+  return parts.length ? `<span class="claim-refs">${parts.join(" ")}</span>` : "";
 }
 
 function statusBadge(status) {
@@ -810,6 +838,7 @@ function renderDraftDetail() {
               <span>
                 <strong>${escapeHtml(ruleById(item.rule_id)?.name || item.rule_id)}</strong>
                 <small>${escapeHtml(item.evidence || "")}</small>
+                ${claimRefLinks(item.refs)}
               </span>
             </div>
           `,
@@ -1110,6 +1139,80 @@ async function submitDecision(reviewId, action, { comment = "", fields } = {}) {
   await loadState();
 }
 
+function renderClaims() {
+  els.title.textContent = t("claimsRegistry");
+  const registry = claimsRegistry();
+  const query = state.query.trim().toLowerCase();
+  const matches = (haystack) =>
+    !query ||
+    String(haystack || "")
+      .toLowerCase()
+      .includes(query);
+  const claims = (registry.claims || []).filter(
+    (claim) => matches(claim.text) || matches(claim.substantiation) || matches(claim.category),
+  );
+  const claimRules = (registry.rules || []).filter(
+    (rule) => matches(rule.phrase) || matches(rule.reason) || matches(rule.alternative),
+  );
+  const approvedCount = (registry.claims || []).filter((claim) => claim.status === "approved").length;
+  els.subtitle.textContent = `${approvedCount} ${t("approved")} · ${(registry.rules || []).length} ${t("bannedPhrases")}`;
+  els.content.innerHTML = `
+    ${warnings()}
+    <div class="warnings"><div class="info"><strong>${t("claimsIntro")}</strong></div></div>
+    <div class="section-block">
+      <h2>${t("approvedClaims")}</h2>
+      ${
+        claims.length
+          ? `<div class="table-wrap"><table>
+        <thead><tr>
+          <th>${t("claimText")}</th><th>${t("claimStatus")}</th><th>${t("category")}</th><th>${t("substantiation")}</th><th>${t("claimEvidence")}</th>
+        </tr></thead>
+        <tbody>
+          ${claims
+            .map(
+              (claim) => `
+            <tr id="claim-${escapeHtml(claim.claim_id)}">
+              <td class="strong">${escapeHtml(claim.text)}</td>
+              <td>${claimStatusBadge(claim.status)}</td>
+              <td>${escapeHtml(claim.category || "")}</td>
+              <td>${escapeHtml(claim.substantiation || "")}</td>
+              <td>${(claim.evidence || []).map((entry) => `<span class="tag">${escapeHtml(entry)}</span>`).join(" ")}</td>
+            </tr>
+          `,
+            )
+            .join("")}
+        </tbody></table></div>`
+          : `<div class="empty-inline">${t("noClaims")}</div>`
+      }
+    </div>
+    <div class="section-block">
+      <h2>${t("bannedPhrases")}</h2>
+      ${
+        claimRules.length
+          ? `<div class="table-wrap"><table>
+        <thead><tr>
+          <th>${t("phrase")}</th><th>${t("severity")}</th><th>${t("reason")}</th><th>${t("alternative")}</th>
+        </tr></thead>
+        <tbody>
+          ${claimRules
+            .map(
+              (rule) => `
+            <tr id="claimrule-${escapeHtml(rule.rule_id)}">
+              <td class="strong">${escapeHtml(rule.phrase)}</td>
+              <td>${severityBadge(rule.severity || "error")} <span class="tag">${escapeHtml(enumLabel(rule.type, "claim"))}</span></td>
+              <td>${escapeHtml(rule.reason || "")}</td>
+              <td>${rule.alternative ? `<span class="tag">${escapeHtml(rule.alternative)}</span>` : ""}</td>
+            </tr>
+          `,
+            )
+            .join("")}
+        </tbody></table></div>`
+          : `<div class="empty-inline">${t("noClaimRules")}</div>`
+      }
+    </div>
+  `;
+}
+
 function renderSettings() {
   els.title.textContent = t("settings");
   els.subtitle.textContent = t("localFilesOnly");
@@ -1203,6 +1306,7 @@ function render() {
   else if (state.route.view === "drafts" && state.route.id) renderDraftDetail();
   else if (state.route.view === "drafts") renderDrafts();
   else if (state.route.view === "checks") renderChecks();
+  else if (state.route.view === "claims") renderClaims();
   else if (state.route.view === "review") renderReview();
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();

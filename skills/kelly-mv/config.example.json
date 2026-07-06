@@ -1,5 +1,11 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_MV_BUSABASE_API_KEY",
+    "_note": "Set data_provider to \"busabase\" to back the MV workspace with a Busabase base instead of local files. The whole project snapshot (song, treatment, characters, shots, tasks) plus image/song/video config live in one record's commit fields; generated/uploaded media are stored as attachments and proxied back through /generated/*. Env overrides win: KELLY_MV_BUSABASE_URL / KELLY_MV_BUSABASE_BASE_ID / KELLY_MV_BUSABASE_API_KEY. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud does."
+  },
   "project_defaults": {
     "language": "auto",
     "image_style": "16:9 photoreal cinematic music video",

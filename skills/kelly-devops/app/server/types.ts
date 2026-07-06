@@ -222,8 +222,15 @@ export interface ConfigBillingSource {
   [key: string]: unknown;
 }
 
+export interface BusabaseConfig {
+  base_url?: string;
+  base_id?: string;
+  api_key_env?: string;
+}
+
 export interface Config {
   data_provider?: string;
+  busabase?: BusabaseConfig;
   currency?: string;
   thresholds?: Thresholds;
   products?: ConfigProduct[];

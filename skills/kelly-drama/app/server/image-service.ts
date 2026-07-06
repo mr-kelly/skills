@@ -1,8 +1,7 @@
-import fs from "node:fs/promises";
 import path from "node:path";
-import { GENERATED_DIR, IMAGE_CONFIG_PATH, REFERENCE_IMAGE_DIR, STORYBOARD_IMAGE_DIR } from "./paths.ts";
 import { loadProject, saveProject } from "./project-store.ts";
-import { pathExists, readJson, slug, writeJson } from "./utils.ts";
+import { getProvider } from "./provider.ts";
+import { slug } from "./utils.ts";
 
 interface ImageServiceConfig {
   base_url: string;
@@ -39,7 +38,7 @@ function publicConfig(config) {
 }
 
 export async function loadImageConfig() {
-  const disk = (await pathExists(IMAGE_CONFIG_PATH)) ? await readJson(IMAGE_CONFIG_PATH, {}) : {};
+  const disk = await (await getProvider()).loadConfigBlob("image");
   return {
     ...DEFAULT_CONFIG,
     ...disk,
@@ -61,7 +60,7 @@ export async function saveImageConfig(
     model: String(input.model || current.model || DEFAULT_CONFIG.model),
     size: String(input.size || current.size || DEFAULT_CONFIG.size),
   };
-  await writeJson(IMAGE_CONFIG_PATH, next);
+  await (await getProvider()).saveConfigBlob("image", next);
   return publicConfig(next);
 }
 
@@ -103,10 +102,6 @@ export function storyboardPrompt(project, shot) {
 
 const MAX_SHOT_REFERENCES = 4;
 
-function referenceAbsPath(publicPath) {
-  return path.join(GENERATED_DIR, String(publicPath).replace(/^\/generated\//, ""));
-}
-
 function collectShotReferences(project, shot) {
   const refs = [];
   for (const character of shotCharacters(project, shot)) {
@@ -137,10 +132,10 @@ async function callImageEdits(prompt, references, config) {
   form.append("prompt", prompt);
   form.append("size", config.size || DEFAULT_CONFIG.size);
   form.append("n", "1");
+  const provider = await getProvider();
   for (const ref of references) {
-    const abs = referenceAbsPath(ref.path);
-    const buf = await fs.readFile(abs);
-    form.append("image[]", new Blob([buf], { type: "image/png" }), path.basename(abs));
+    const buf = await provider.readGeneratedAsset(ref.path);
+    form.append("image[]", new Blob([new Uint8Array(buf)], { type: "image/png" }), path.basename(ref.path));
   }
   const response = await fetch(endpoint, {
     method: "POST",
@@ -252,11 +247,9 @@ export async function generateStoryboardImage(shotId) {
     payload = { ...payload, mode: "text-to-image" };
   }
 
-  await fs.mkdir(STORYBOARD_IMAGE_DIR, { recursive: true });
   const filename = `${slug(shot.id)}-${Date.now()}.png`;
-  const diskPath = path.join(STORYBOARD_IMAGE_DIR, filename);
-  await fs.writeFile(diskPath, bytes);
   const publicPath = `/generated/storyboards/${filename}`;
+  await (await getProvider()).writeGeneratedAsset(publicPath, bytes);
 
   const generation = {
     provider: "openai-compatible",
@@ -324,11 +317,9 @@ export async function generateVisualBackground() {
   if (!config.api_key) throw new Error("Image API Key is not configured.");
   const project = await loadProject();
   const { bytes, payload } = await callImageApi(visualBackgroundPrompt(project), config);
-  await fs.mkdir(REFERENCE_IMAGE_DIR, { recursive: true });
   const filename = `visual-background-${Date.now()}.png`;
-  const diskPath = path.join(REFERENCE_IMAGE_DIR, filename);
-  await fs.writeFile(diskPath, bytes);
   const publicPath = `/generated/references/${filename}`;
+  await (await getProvider()).writeGeneratedAsset(publicPath, bytes);
   project.series = {
     ...project.series,
     visual_bible: {
@@ -357,11 +348,9 @@ export async function generateCharacterCard(characterId) {
   const character = (project.characters || []).find((item) => item.id === characterId);
   if (!character) throw new Error(`Unknown character: ${characterId}`);
   const { bytes, payload } = await callImageApi(characterCardPrompt(character, project), config);
-  await fs.mkdir(REFERENCE_IMAGE_DIR, { recursive: true });
   const filename = `${slug(character.id)}-reference-card-${Date.now()}.png`;
-  const diskPath = path.join(REFERENCE_IMAGE_DIR, filename);
-  await fs.writeFile(diskPath, bytes);
   const publicPath = `/generated/references/${filename}`;
+  await (await getProvider()).writeGeneratedAsset(publicPath, bytes);
   project.characters = (project.characters || []).map((item) =>
     item.id === character.id
       ? {

@@ -1,40 +1,26 @@
 #!/usr/bin/env node
-// Dry-run-by-default executor stub. Reads approved sends, re-checks the agent
-// lock and decisions, and records concrete ESP handoff operations in
-// execution_report.json. It performs NO external side effects: real scheduling
-// and sending is delegated to the configured ESP by the skill, post-approval,
-// per SKILL.md.
+// Dry-run-by-default executor stub. Reads approved sends and decisions THROUGH the
+// data provider, re-checks the agent lock, the SEND quality gate, deliverability
+// risk, and the consent/suppression list, then records concrete ESP handoff
+// operations in execution_report.json. It performs NO external side effects: real
+// scheduling and sending is delegated to the configured ESP by the skill,
+// post-approval, per SKILL.md.
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "campaigns_snapshot.json");
-const decisionsPath = path.join(dataDir, "decisions.json");
-const lockPath = path.join(dataDir, "agent.lock");
 const reportPath = path.join(dataDir, "execution_report.json");
 
 const apply = process.argv.includes("--apply");
-
-interface Lock {
-  owner?: string;
-  message?: string;
-}
 
 interface Decision {
   action?: string;
   comment?: string;
   body?: string;
   chosen_variant?: string;
-}
-
-interface Deliverability {
-  risk?: string;
-}
-
-interface QualityGate {
-  verdict?: string;
 }
 
 interface Send {
@@ -47,13 +33,8 @@ interface Send {
   send_at?: string;
   reason?: string;
   body?: string;
-  deliverability?: Deliverability;
-  quality_gate?: QualityGate | null;
-}
-
-interface Snapshot {
-  source?: string;
-  sends?: Send[];
+  deliverability?: { risk?: string };
+  quality_gate?: { verdict?: string } | null;
 }
 
 interface ExecutionResultItem {
@@ -66,16 +47,13 @@ interface ExecutionResultItem {
   send_at?: string;
   variants?: number;
   chosen_variant?: string;
+  suppressed_excluded?: number;
   reason?: string;
   executed_at: string;
 }
 
 interface ExecutionReport {
   results?: ExecutionResultItem[];
-}
-
-interface DecisionsFile {
-  decisions?: Record<string, Decision>;
 }
 
 async function readJson<T = unknown>(file: string, fallback: T | null = null): Promise<T | null> {
@@ -89,19 +67,27 @@ async function readJson<T = unknown>(file: string, fallback: T | null = null): P
 
 const esp = process.env.KELLY_CAMPAIGNS_ESP || "configured-esp";
 
-const lock = await readJson<Lock>(lockPath);
+const provider = await createProvider();
+
+const lock = await provider.getLock();
 if (lock) {
-  console.error(`Refusing to execute: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
+  const owner = (lock as Record<string, unknown>).owner || "unknown";
+  const message = (lock as Record<string, unknown>).message || "";
+  console.error(`Refusing to execute: agent.lock is active (${owner}: ${message}).`);
   process.exit(1);
 }
 
-const snapshot = await readJson<Snapshot>(snapshotPath);
+const state = await provider.getState();
+const snapshot = state.snapshot as { sends?: Send[] } | null;
 if (!snapshot) {
-  console.error(`No snapshot at ${snapshotPath}. Nothing to execute.`);
+  console.error("No snapshot available from the data provider. Nothing to execute.");
   process.exit(1);
 }
 
-const decisions = (await readJson<DecisionsFile>(decisionsPath, { decisions: {} }))?.decisions || {};
+const decisions = ((state.decisions as { decisions?: Record<string, Decision> })?.decisions || {}) as Record<
+  string,
+  Decision
+>;
 const previousReport = await readJson<ExecutionReport>(reportPath);
 const alreadyScheduled = new Set(
   (previousReport?.results || []).filter((item) => item.status === "scheduled").map((item) => item.send_id),
@@ -123,6 +109,22 @@ for (const send of snapshot.sends || []) {
       status: "blocked",
       operation: "none",
       reason: "Quality gate BLOCK or high deliverability risk; refusing to schedule.",
+      executed_at: now,
+    });
+    continue;
+  }
+
+  // Consent/suppression gate: block if an explicitly-targeted suppressed address
+  // is present; otherwise carry the excluded count forward as a note.
+  const suppression = await provider.evaluateSuppression(send as unknown as Record<string, unknown>);
+  if (suppression.blocked) {
+    results.push({
+      send_id: send.send_id,
+      ref: send.ref,
+      status: "blocked",
+      operation: "none",
+      suppressed_excluded: suppression.suppressed_count,
+      reason: suppression.note || "A suppressed address is explicitly targeted; refusing to schedule.",
       executed_at: now,
     });
     continue;
@@ -151,6 +153,7 @@ for (const send of snapshot.sends || []) {
     send_at: send.send_at || "",
     variants: isAbTest ? 2 : undefined,
     chosen_variant: decision.chosen_variant || undefined,
+    suppressed_excluded: suppression.suppressed_count || undefined,
     reason: send.reason || "",
     executed_at: now,
   });
@@ -162,8 +165,9 @@ if (!results.length) {
 }
 
 for (const result of results) {
+  const suffix = result.suppressed_excluded ? ` (${result.suppressed_excluded} suppressed excluded)` : "";
   console.log(
-    `#${result.ref} ${result.send_id}: ${result.status} ${result.operation}${result.segment_id ? ` -> ${result.segment_id}` : ""}`,
+    `#${result.ref} ${result.send_id}: ${result.status} ${result.operation}${result.segment_id ? ` -> ${result.segment_id}` : ""}${suffix}`,
   );
 }
 

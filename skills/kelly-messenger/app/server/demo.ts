@@ -1,4 +1,12 @@
-import type { Conversation, Message, MessagesSnapshot, Outbox, Reply, SnapshotAccount, SyncLogEntry } from "./types.ts";
+import type {
+  Conversation,
+  Message,
+  MessagesSnapshot,
+  Outbox,
+  Reply,
+  SnapshotAccount,
+  SyncLogEntry,
+} from "../../lib/types.ts";
 
 interface DemoQuery {
   demo?: string | boolean;
