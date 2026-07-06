@@ -37,6 +37,12 @@ const GROUPS = [
     skills: ["kelly-social", "kelly-seo", "kelly-feedback", "kelly-radar", "kelly-writer"],
   },
   {
+    id: "marketing",
+    en: "Brand & Marketing",
+    zh: "品牌与营销",
+    skills: ["kelly-brand", "kelly-creators", "kelly-campaigns", "kelly-launch"],
+  },
+  {
     id: "production",
     en: "Production & Teaching",
     zh: "制作与教学",
@@ -68,7 +74,7 @@ function stripMd(s) {
 
 function parseTable(md) {
   const rows = {};
-  const re = /^\| `([a-z0-9-]+)` \| (.+?) \| (.+?) \| \[Open README\]\(([^)]+)\) \|$/gm;
+  const re = /^\| `([a-z0-9-]+)` \| (.+?) \| (.+?) \| \[[^\]]+\]\(([^)]+)\) \|$/gm;
   let m;
   while ((m = re.exec(md))) rows[m[1]] = { desc: stripMd(m[2]), when: stripMd(m[3]), doc: m[4] };
   return rows;

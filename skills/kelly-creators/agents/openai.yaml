@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Creators"
+  short_description: "Local creator-marketing desk for candidates, outreach, and campaign ROI"
+  default_prompt: "Use $kelly-creators to open my creator-marketing app and review the outreach queue and campaign ROI."

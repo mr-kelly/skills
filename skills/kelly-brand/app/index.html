@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly Brand</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">BN</div>
+          <div class="brand-copy">
+            <div class="brand-title">Kelly Brand</div>
+            <div id="sync-status" class="brand-subtitle">Loading</div>
+          </div>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+        </div>
+        <div class="search sidebar-search">
+          <input id="search" type="search" placeholder="Search" aria-label="Search">
+        </div>
+        <section class="human-work" aria-labelledby="humanWorkTitle">
+          <div class="human-work-eyebrow" data-i18n="attention">Need attention</div>
+          <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">What needs your attention</div>
+          <a class="human-work-primary" href="#/narrative" data-route="narrative" title="Review drafts awaiting adoption">
+            <span>
+              <strong id="count-review">0</strong>
+              <span data-i18n="needReview">assets need review</span>
+            </span>
+          </a>
+          <div class="human-work-secondary">
+            <a href="#/drift" data-route="drift" title="Open drift alerts">
+              <strong id="count-drift">0</strong>
+              <span data-i18n="driftOpen">open drift alerts</span>
+            </a>
+            <a href="#/narrative" data-route="narrative" title="Canonical assets">
+              <strong id="count-canonical">0</strong>
+              <span data-i18n="canonical">Canonical</span>
+            </a>
+          </div>
+        </section>
+        <div class="sidebar-separator"></div>
+        <nav class="filters" aria-label="Views">
+          <a href="#/overview" data-route="overview" data-i18n="overview" title="The message house">Overview</a>
+          <a href="#/narrative" data-route="narrative" data-i18n="narrative" title="Message pillars, vocabulary and guardrails">Narrative</a>
+          <a href="#/stories" data-route="stories" data-i18n="stories" title="Story bank and proof points">Stories</a>
+          <a href="#/drift" data-route="drift" data-i18n="drift" title="Off-brand usage alerts">Drift</a>
+        </nav>
+        <div class="sidebar-separator"></div>
+        <nav class="status-filters" id="statusFilters" aria-label="Workflow">
+          <button type="button" class="status-filter" data-status="all" data-i18n="all" title="All narrative assets">All</button>
+          <button type="button" class="status-filter" data-status="needs_review" title="Drafts awaiting a verdict">Needs Review</button>
+          <button type="button" class="status-filter" data-status="approved" data-i18n="canonical" title="Adopted canonical narrative">Canonical</button>
+          <button type="button" class="status-filter" data-status="done" title="Completed / merged">Done</button>
+          <button type="button" class="status-filter" data-status="blocked" title="Cannot proceed">Blocked</button>
+        </nav>
+        <div class="sidebar-footer">
+          <a href="#/settings" data-route="settings" class="settings-link" data-i18n="settings">Help & Settings</a>
+          <label for="language" data-i18n="language">Language</label>
+          <select id="language">
+            <option value="auto">Auto</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+          <div class="mobile-topbar-copy">
+            <div id="mobileViewTitle" class="mobile-view-title">Kelly Brand</div>
+            <div id="mobileViewMeta" class="mobile-view-meta">Loading</div>
+          </div>
+          <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
+        </div>
+        <header class="topbar">
+          <div>
+            <h1 id="page-title">Overview</h1>
+            <p id="page-subtitle" class="muted"></p>
+          </div>
+          <div class="topbar-actions">
+            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+          </div>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
