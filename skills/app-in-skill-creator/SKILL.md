@@ -36,6 +36,8 @@ skill-name/
 ├── package.json  # hono + @hono/node-server (base deps); "type":"module" + "engines":{"node":">=23.6"}
 ├── agents/
 │   └── openai.yaml
+├── assets/          # optional; include only when the skill has bundled assets
+│   └── screenshots/ # optional UI screenshots, when explicitly captured/provided
 ├── app/
 │   # ── frontend: plain vanilla .js, served to the browser (NO .ts here) ──────
 │   ├── index.html   # zero-build vanilla frontend (no bundler, no client framework)
@@ -100,6 +102,8 @@ Prefer JSON for runtime config and handoff files: `config.example.json`, `config
 Keep shared runtime code in `lib/`: path constants in `lib/paths.ts`, JSON/lock/batch helpers in `lib/common.ts`, and configurable data access in `lib/data-provider/`. Keep `scripts/` as thin CLI entrypoints that import from `lib/`; do not create a parallel `scripts/lib/` tree.
 
 Keep `config.local.json`, legacy `config.local.yml`, `*.local.json`, legacy `*.local.yml`, `.env.local`, `.env`, and `app/.data/` ignored by git. Note that `.data/` is not a name most default `.gitignore` templates exclude (unlike `.cache/`), so it must be added to `.gitignore` explicitly — the handoff files contain user decisions and execution history and must never be committed.
+
+UI screenshots are optional documentation assets, not a default scaffold requirement. Do not create screenshots, screenshot folders, or screenshot galleries unless the user explicitly asks for screenshots or existing screenshot files are already part of the skill work. When screenshots do exist, bundle them inside the skill at `assets/screenshots/` (for example `overview.png` and, when available, `overview-zh-CN.png`), not in a shared repo-level screenshots folder. Reference those skill-local paths from the skill's own `README.md` and `SKILL.md`; if the repository README or website shows the screenshots, point those galleries at the same skill-local files.
 
 ## Private Configuration
 
@@ -430,7 +434,8 @@ When creating or updating an App-in-Skill:
 11. Add a zero-dependency hash router for the app's meaningful state and verify deep links, refresh restore, and browser back/forward behavior. At minimum, sidebar views and selected item/detail routes should have stable hashes.
 12. Add the mobile responsive shell: drawer sidebar, mobile top bar, single-pane list/detail navigation, touch-sized action controls, scroll-contained panels, and overflow-safe text. Use `references/mobile-shell-layout.md` as the checklist/patch template for the Linear-style desktop shell, phone shell, sidebar icon, scrim behavior, Help & Settings modal, and verification checks.
 13. Start the app with `app/start.sh` and verify the onboarding and main workflow in a browser when available, including at least one phone viewport and one desktop viewport.
-14. Run the validator and a dry-run execution before enabling real side effects.
+14. If the user explicitly asks for screenshots, or screenshots already exist for this skill, place them under `assets/screenshots/` and show them from the skill's `README.md` and `SKILL.md`. Otherwise skip screenshot capture and do not create placeholder screenshot assets.
+15. Run the validator and a dry-run execution before enabling real side effects.
 
 ## Safety Defaults
 
