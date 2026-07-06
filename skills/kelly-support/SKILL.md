@@ -12,6 +12,27 @@ Use this skill as Kelly's post-sales customer-support desk. Support tickets arri
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local support snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Support overview"></td>
+    <td width="50%"><img src="assets/screenshots/knowledge.png" alt="Kelly Support knowledge base"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Queue health — open, breaching-SLA, and awaiting-approval counts, CSAT trend, and volume by channel and category.</td>
+    <td><strong>Knowledge base</strong><br>Articles and canned macros the agent cites when drafting replies.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/sla.png" alt="Kelly Support SLA board"></td>
+    <td width="50%"><img src="assets/screenshots/tickets.png" alt="Kelly Support ticket queue"></td>
+  </tr>
+  <tr>
+    <td><strong>SLA &amp; CSAT</strong><br>SLA board of due and breached tickets, plus CSAT scores on resolved tickets.</td>
+    <td><strong>Tickets</strong><br>Approval queue with the KB-grounded draft reply and the support-qa gate — a refund draft blocked pending human approval.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The app reads and writes local files only and never touches any network beyond `127.0.0.1`. It cannot send anything: the composer stores drafts, the decision buttons record verdicts, and `scripts/execute_decisions.ts` only writes an execution report. Real sends, escalations, and refunds are skill-executed post-approval via the configured channel connectors.

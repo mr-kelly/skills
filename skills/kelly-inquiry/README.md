@@ -11,6 +11,27 @@ Kelly Inquiry is a local App-in-Skill inbound-inquiry desk for cross-border / fo
 - Products: the product KB — SKU, MOQ, price range (incl. the guard floor), lead time, specs, and the FAQ entries the agent drafts from.
 - Help & Settings: sanitized config summary (channels, connector methods, env readiness, quote defaults, follow-up SLA), sync log, and the last execution report. Never secrets.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Inquiry overview"></td>
+    <td width="50%"><img src="assets/screenshots/approvals.png" alt="Kelly Inquiry approvals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Inquiry command desk with reply SLA counters, weekly channel mix, pipeline funnel, and stale-deal alerts.</td>
+    <td><strong>Approvals</strong><br>Approval-gated outbox for replies and quotes — nothing is sent until reviewed.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/inquiries.png" alt="Kelly Inquiry pipeline"></td>
+    <td width="50%"><img src="assets/screenshots/quotes.png" alt="Kelly Inquiry quotes"></td>
+  </tr>
+  <tr>
+    <td><strong>Pipeline</strong><br>Inquiries across WhatsApp, Instagram, and email with country, stage, value estimate, and next follow-up.</td>
+    <td><strong>Quotes</strong><br>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene (a foreign-trade LED-lighting supplier, "Lumina Lighting Co."):

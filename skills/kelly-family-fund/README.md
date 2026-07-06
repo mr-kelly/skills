@@ -9,6 +9,27 @@ Kelly Family Fund (家庭统筹基金) is a local App-in-Skill dashboard for a f
 - By Family: each sibling family's cumulative benefit, share %, and fairness bar (deviation from average); drill into a family's directed and shared-share expenses.
 - By Category: expense donut, care-vs-family split, and a per-category totals table.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Family Fund overview"></td>
+    <td width="50%"><img src="assets/screenshots/ledger.png" alt="Kelly Family Fund ledger"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Fund balance, this-month income / expense / net, care and family totals, an expense-by-category donut, running-balance trend, and read-only insights.</td>
+    <td><strong>Ledger</strong><br>Unified income and expense timeline by month, each entry tagged with its category and the sibling family it benefits.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/category.png" alt="Kelly Family Fund by category"></td>
+    <td width="50%"><img src="assets/screenshots/family.png" alt="Kelly Family Fund fairness by family"></td>
+  </tr>
+  <tr>
+    <td><strong>By category</strong><br>Spending across care, transport, meals, gifts, and gifts of obligation, with the care-versus-family split.</td>
+    <td><strong>By family (fairness)</strong><br>Each sibling family's cumulative benefit, share, and deviation from the average — care excluded, shared costs split equally — so anyone can confirm it is balanced.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:

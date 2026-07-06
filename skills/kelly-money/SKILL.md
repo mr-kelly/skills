@@ -12,6 +12,33 @@ Use this skill as Kelly's local money ledger operator. It aggregates Mercury, St
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local ledger snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Money overview"></td>
+    <td width="50%"><img src="assets/screenshots/ledger.png" alt="Kelly Money total ledger"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Money command desk with account health, recent movement, and top-level inflow, outflow, fees, and net totals.</td>
+    <td><strong>Total ledger</strong><br>Normalized cashflow table across providers, accounts, transaction types, fees, statuses, and signed net movement.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/accounts.png" alt="Kelly Money accounts"></td>
+    <td width="50%"><img src="assets/screenshots/invoices.png" alt="Kelly Money invoice matching"></td>
+  </tr>
+  <tr>
+    <td><strong>Accounts</strong><br>Provider account inventory with balances, currency, sync status, inflow, fees, and net movement per account.</td>
+    <td><strong>Invoice matching</strong><br>Invoice-to-transaction reconciliation with matched items, missing invoices, amount mismatches, and review status.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/detail.png" alt="Kelly Money invoice exception detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Exception detail</strong><br>Invoice exception view with amount/date deltas, matching rule, explicit tolerance, candidate transaction, and audit trail.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The skill may read provider APIs, import exports, normalize transactions, validate schemas, and write local handoff files.

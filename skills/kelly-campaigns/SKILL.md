@@ -45,6 +45,27 @@ Before any send can be scheduled, it passes the **SEND** framework, which produc
 
 Verdicts: **SHIP** (ready to schedule), **FIX** (deliverable but revise first), **BLOCK** (hard stop — e.g. failing DKIM or a spam score above policy). The gate never sends; a human still approves. A `block` verdict or `deliverability.risk === "high"` refuses scheduling even if a stale approve decision exists.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Campaigns overview"></td>
+    <td width="50%"><img src="assets/screenshots/campaigns.png" alt="Kelly Campaigns queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Send calendar plus list health — subscribers, bounce, churn, and complaint rates.</td>
+    <td><strong>Campaigns</strong><br>Draft and approval queue across campaigns, newsletters, and sequence steps.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/deliverability.png" alt="Kelly Campaigns deliverability QA"></td>
+    <td width="50%"><img src="assets/screenshots/performance.png" alt="Kelly Campaigns performance"></td>
+  </tr>
+  <tr>
+    <td><strong>Deliverability</strong><br>Pre-send QA — SPF/DKIM/DMARC, spam score, and the EQS SHIP/FIX/BLOCK gate.</td>
+    <td><strong>Performance</strong><br>Open, click, and unsubscribe rates by campaign.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The skill may build segments, draft sends, run deliverability/quality checks, validate schemas, and write local handoff files.

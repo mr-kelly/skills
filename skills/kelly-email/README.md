@@ -28,8 +28,8 @@ Kelly Email is zero-dependency by default: the local app, config checks, batch f
     <td><strong>Inbox approval desk</strong><br>Mock inbox queue with approvals, sender context, reply drafts, and status filters.</td>
   </tr>
   <tr>
-    <td><img src="assets/screenshots/needs-review.png" alt="Kelly Email needs review"></td>
-    <td><img src="assets/screenshots/blocked-security.png" alt="Kelly Email blocked security request"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly Email needs review"></td>
+    <td width="50%"><img src="assets/screenshots/blocked-security.png" alt="Kelly Email blocked security request"></td>
   </tr>
   <tr>
     <td><strong>Needs review</strong><br>Human-in-the-loop review scene for a partnership reply that needs tone and timing judgment.</td>

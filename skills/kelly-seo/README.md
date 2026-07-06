@@ -13,6 +13,41 @@ Kelly SEO is a local App-in-Skill desk covering **SEO + GEO (AI-search) + brand 
 - Entity readiness: a brand-entity / knowledge-panel checklist (Wikidata, Wikipedia/notability, schema.org Organization, sameAs, consistent NAP, founder entity) with present / partial / missing status and an agent-proposed fix per gap.
 - Sites: configured properties with verification type, last sync, and 28d totals.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly SEO overview"></td>
+    <td width="50%"><img src="assets/screenshots/queries.png" alt="Kelly SEO queries"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Search Console KPI cards with daily clicks/impressions chart, top movers, and per-site freshness.</td>
+    <td><strong>Queries</strong><br>Top queries with clicks, impressions, CTR, position, period deltas, and opportunity badges.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/pages.png" alt="Kelly seo pages"></td>
+    <td width="50%"><img src="assets/screenshots/opportunities.png" alt="Kelly seo opportunities"></td>
+  </tr>
+  <tr>
+    <td><strong>Pages</strong><br>Page-level click and impression table with top growth and decline movers for prioritizing content updates.</td>
+    <td><strong>Opportunities</strong><br>Ranked SEO opportunity queue with impact, effort, evidence, and recommended next actions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/geo.png" alt="Kelly SEO AI visibility"></td>
+    <td width="50%"><img src="assets/screenshots/optimize.png" alt="Kelly SEO GEO optimizer"></td>
+  </tr>
+  <tr>
+    <td><strong>AI visibility (GEO)</strong><br>An engines×prompts matrix of where the brand is cited across ChatGPT, Perplexity, Gemini, Claude, and Copilot, with an overall visibility score and trend.</td>
+    <td><strong>GEO optimizer</strong><br>Agent-proposed rewrites that make pages more citable by AI engines, gated by geo-qa — one blocked for a fabricated stat.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/entity.png" alt="Kelly seo entity readiness"></td>
+  </tr>
+  <tr>
+    <td><strong>Entity readiness</strong><br>Entity readiness checklist showing schema coverage, citation signals, and blocked/ready status for AI answer engines.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:

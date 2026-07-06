@@ -17,6 +17,27 @@ Kelly Radar is a local App-in-Skill market-intelligence desk. One app merges com
 2. Kelly triages signals, approves research briefs, rates report confidence, and approves opportunity cards in the app. Decisions land in `app/.data/decisions.json`; revision requests and follow-ups queue in `app/.data/agent_tasks.json`.
 3. `scripts/execute_decisions.mjs` (dry-run by default) turns approved items into concrete handoff operations in `app/.data/execution_report.json`; the agent then performs them.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Radar overview"></td>
+    <td width="50%"><img src="assets/screenshots/research.png" alt="Kelly Radar research desk"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Market-intelligence desk with signals to triage, watchlist freshness, top trend movers, and the research pipeline.</td>
+    <td><strong>Research desk</strong><br>Research questions moving through brief approval, deep research, and cited report review.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/signals.png" alt="Kelly Radar competitor signals"></td>
+    <td width="50%"><img src="assets/screenshots/trends.png" alt="Kelly Radar trends"></td>
+  </tr>
+  <tr>
+    <td><strong>Signals</strong><br>Competitor pricing, changelog, launch, review, and hiring signals with severity badges and Act/Watch/Ignore triage.</td>
+    <td><strong>Trends</strong><br>Rising keywords and community topics with momentum sparklines and opportunity cards for content or roadmap handoff.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:

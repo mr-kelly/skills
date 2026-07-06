@@ -12,6 +12,27 @@ Use this skill as Kelly's product-fleet operations desk. It watches the health a
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh the ops snapshot with the check scripts, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; then present numbered action cards (`Action #1`) and take verdicts in chat.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly DevOps overview"></td>
+    <td width="50%"><img src="assets/screenshots/actions.png" alt="Kelly DevOps action queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Fleet health desk with service, certificate, domain, and spend summaries plus a recent events feed.</td>
+    <td><strong>Action queue</strong><br>Agent-proposed renew/rotate/investigate action cards with evidence and approval controls.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/expiries.png" alt="Kelly DevOps expiry ledger"></td>
+    <td width="50%"><img src="assets/screenshots/services.png" alt="Kelly DevOps services"></td>
+  </tr>
+  <tr>
+    <td><strong>Expiry ledger</strong><br>Domains, SSL certificates, key rotations, and plan renewals in one table with color-coded days-left.</td>
+    <td><strong>Services</strong><br>Monitored endpoints with uptime, latency sparklines, TLS certificate status, and check history.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - Checks are read-only network probes of Kelly's own endpoints and domains: HTTP GET for status/latency, a TLS handshake for certificate expiry, and public RDAP lookups for domain expiry. Nothing else is contacted.

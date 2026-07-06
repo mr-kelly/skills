@@ -9,6 +9,27 @@ Kelly Ads is a local App-in-Skill ad-campaign command desk (投放指挥台) for
 - Alerts: the anomaly feed (ACOS breach, budget exhausted, zero-conversion spend, CPC spike, rejected) with one-line evidence and links to adjustment cards.
 - Adjustments: agent-proposed cards (negative keyword, bid down/up, pause target, budget shift, creative refresh) with current → proposed value, evidence, expected impact, notes, and approve / request changes / block buttons.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Ads overview"></td>
+    <td width="50%"><img src="assets/screenshots/campaigns.png" alt="Kelly Ads campaigns"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Cross-platform ads board: blended ROAS/ACOS vs target, per-platform cards, spend vs revenue bars, and worst offenders.</td>
+    <td><strong>Campaigns</strong><br>Campaign table with budget pace, spend, ROAS, and color-coded ACOS vs target across Amazon, Meta, TikTok, and Google.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/adjustments.png" alt="Kelly Ads adjustment queue"></td>
+    <td width="50%"><img src="assets/screenshots/alerts.png" alt="Kelly Ads anomaly alerts"></td>
+  </tr>
+  <tr>
+    <td><strong>Adjustment queue</strong><br>Agent-proposed bid, budget, and negative-keyword changes with evidence and expected impact, gated on approval.</td>
+    <td><strong>Alerts</strong><br>Deterministic anomaly feed: ACOS breaches, budget burnouts, zero-conversion spend, CPC spikes, rejected ads.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:
