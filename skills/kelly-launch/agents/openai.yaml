@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Launch"
+  short_description: "Product-launch command desk (RAMP): checklist, launch assets, channel submissions, launch-day runbook"
+  default_prompt: "Use $kelly-launch to open my launch command desk and review the RAMP checklist, drafted launch assets, and channel submissions."

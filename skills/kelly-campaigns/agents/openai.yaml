@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Campaigns"
+  short_description: "Outbound email-marketing desk for campaigns, newsletters, and sequences"
+  default_prompt: "Use $kelly-campaigns to open my email-marketing app and review the send queue and deliverability checks."

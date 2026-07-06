@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-27 App-in-Skill workflows — each an agent operating procedure paired with a calm local browser UI for review, approval, and dashboards.
+31 App-in-Skill workflows — each an agent operating procedure paired with a calm local browser UI for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-27-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-31-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -56,6 +56,8 @@ Most skill libraries are just prompts. **Kelly's skills are App-in-Skill workflo
 
 The result is agent speed with a human in the loop — not a black box.
 
+This is not ad-hoc: the pattern follows the **[App-in-Skill specification](https://mr-kelly.github.io/research/app-in-skill-specification-for-pairing-agent-skills-with-a-local-companion-ui.pdf)** — a research spec for pairing an agent skill with a local companion UI (the file handoff, the five-state review model, the data-provider seam, onboarding, and safety gates). Every skill here is an implementation of that spec.
+
 ---
 
 ## Quick Start
@@ -76,12 +78,13 @@ The result is agent speed with a human in the loop — not a black box.
 
 ## Skills
 
-The `kelly-*` skills are the everyday business tools. Helper skills such as `agent-rules` and `app-in-skill-creator` support the workspace itself.
+The `kelly-*` skills are the everyday business tools. Helper skills such as `agent-rules`, `app-in-skill-creator`, and `publish-skills` support the workspace itself.
 
 | Skill | What It Does | When To Use It | Details |
 | --- | --- | --- | --- |
 | `agent-rules` | Keeps rules and skills for Codex, Claude Code, Copilot, Kiro, Cursor, and Gemini aligned from one source of truth. It creates and verifies symlinks so agents share `AGENTS.md` and `.agents/skills/`. | Use it when setting up a repo for multiple coding agents, checking agent rule drift, or fixing broken skill/rule symlinks. | [View ↗](https://mr-kelly.github.io/skills/s/agent-rules.html) |
 | `app-in-skill-creator` | Documents and scaffolds the App-in-Skill pattern: a skill bundled with a small local review UI, local handoff files, locks, scripts, and safe approval boundaries. | Use it when building a skill that needs a browser-based review queue, approval desk, dashboard, or lightweight local workflow. | [View ↗](https://mr-kelly.github.io/skills/s/app-in-skill-creator.html) |
+| `publish-skills` | Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with `gh skill`, cuts a release, wires the Claude `/plugin` and Codex marketplaces, and preps the MCP Registry and curated stores. | Use it when publishing, releasing, or listing skills, plugins, or MCP servers to skills.sh, Claude Code, Codex, or the MCP Registry. | [View ↗](https://mr-kelly.github.io/skills/s/publish-skills.html) |
 | `kelly-email` | Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution. | Use it when processing unread email, drafting support replies, archiving or marking messages read after approval, or managing email through an App-in-Skill UI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-email.html) |
 | `kelly-money` | Aggregates Mercury, Stripe, Airwallex, and Creem into a local money ledger dashboard with total cashflow, account health, and account detail views. | Use it when reviewing balances, payments, payouts, fees, refunds, transfers, provider sync status, or total money movement across configured accounts. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-money.html) |
 | `kelly-invest-webull` | Aggregates a personal Webull brokerage account into a local read-only portfolio dashboard: holdings, cost basis, market value, unrealized P/L, day change, and allocation by asset type. Read-only — it never places or cancels orders. | Use it when reviewing personal investments, positions, portfolio value, unrealized gains, cash, or asset allocation synced from Webull OpenAPI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html) |
@@ -106,6 +109,10 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-pr-review` | Runs a GitHub PR review desk through `gh` CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved `gh pr review` actions. | Use it when reviewing GitHub pull requests, approving/commenting/requesting changes from a local queue, or batching PR review decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html) |
 | `kelly-drama` | Produces short-drama series with a local workbench for series overview, character library, relationship map, episode table, and shot sheets. Generates storyboard images with character reference cards and coordinates AI and human tasks. | Use it when planning and producing a short-drama series end-to-end: writing episode scripts, building character sheets, managing storyboard shots, and reviewing AI-generated images before use. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-drama.html) |
 | `kelly-mv` | Builds a pure-visual music video workbench: upload an MP3, write the MV concept, build a cast of on-screen characters with reference cards, and create a shot-by-shot storyboard with generated or uploaded images and draft videos. | Use it when producing a pure-visual music video — no narration or subtitles — by generating or uploading shot images and videos and assembling them over the song. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-mv.html) |
+| `kelly-creators` | Influencer/creator-marketing command desk built on the Discover→Plan→Activate→Measure pipeline: the agent sweeps and fit-scores creator candidates (C³ ACE), drafts outreach, briefs, and contracts, and a pre-publish gate (SHIP/FIX/BLOCK) checks FTC disclosure and claim authenticity, all reviewed in a local UI with a ROI board. | Use it when discovering and vetting creators, approving outreach and briefs, running a creator-campaign pipeline, or tracking influencer ROI and budget. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-creators.html) |
+| `kelly-campaigns` | Outbound email-marketing desk on the SEND lifecycle (Setup→Engage→Nurture→Deliver): the agent builds segments, drafts campaigns, newsletters, and sequences, and runs pre-send deliverability + subject-line QA behind an EQS quality gate (SHIP/FIX/BLOCK) before anything is scheduled or sent. | Use it when planning email campaigns, newsletters, or lifecycle sequences, checking deliverability and A/B subjects, or approving sends — distinct from `kelly-email` inbox triage. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-campaigns.html) |
+| `kelly-launch` | Product-launch command desk on the RAMP framework (Research→Assemble→Mobilize→Prove): the agent assembles the launch checklist, drafts assets, Product Hunt / Hacker News submissions, press pitches, and the launch-day runbook, with a readiness gate scoring launch quality (LQS → SHIP/FIX/BLOCK). | Use it when planning and running a product launch: building the checklist, approving assets and channel submissions, gating launch readiness, or conducting launch day. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-launch.html) |
+| `kelly-brand` | Brand-narrative single source of truth on the TALE framework (Trace→Architect→Land→Evaluate): the agent drafts positioning, the message house, story bank, evidence-backed proof points, and vocabulary guardrails, scores narrative quality (NQS → SHIP/FIX/BLOCK), and flags cross-channel drift; you curate which drafts become canonical. | Use it when defining or auditing brand positioning and messaging, curating the canonical narrative and story bank, or catching off-brand drift across channels. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-brand.html) |
 
 ---
 
@@ -651,6 +658,98 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
   <tr>
     <td><strong>Blockers</strong><br>All blockers across the team with severity, age, and agent-suggested next actions.</td>
     <td><strong>Reminders</strong><br>Approval-gated nudges for missing check-ins — drafted by the agent, sent only after review.</td>
+  </tr>
+</table>
+
+### `kelly-creators`
+
+Influencer/creator-marketing desk on Aaron's Discover→Plan→Activate→Measure pipeline, with C³ ACE fit scores and a SHIP/FIX/BLOCK disclosure gate.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-creators-ui.png" alt="Kelly Creators overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-creators-creators.png" alt="Kelly Creators candidates"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Pipeline funnel across the four phases, budget allocation, total reach, and the top fit-scored candidates.</td>
+    <td><strong>Creators</strong><br>Sortable candidate cards with C³ ACE fit scores, platform, niche, and audience size.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-creators-outreach.png" alt="Kelly Creators outreach queue"></td>
+    <td><img src="docs/screenshots/kelly-creators-roi.png" alt="Kelly Creators ROI board"></td>
+  </tr>
+  <tr>
+    <td><strong>Outreach</strong><br>Needs-review approval queue with editable outreach drafts and the FTC/claim disclosure gate.</td>
+    <td><strong>ROI</strong><br>Per-creator spend, estimated value, CPM, and return once a partnership goes live.</td>
+  </tr>
+</table>
+
+### `kelly-campaigns`
+
+Outbound email-marketing desk on the SEND lifecycle (Setup→Engage→Nurture→Deliver), with an EQS pre-send quality gate.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-campaigns-ui.png" alt="Kelly Campaigns overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-campaigns-campaigns.png" alt="Kelly Campaigns queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Send calendar plus list health — subscribers, bounce, churn, and complaint rates.</td>
+    <td><strong>Campaigns</strong><br>Draft and approval queue across campaigns, newsletters, and sequence steps.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-campaigns-deliverability.png" alt="Kelly Campaigns deliverability QA"></td>
+    <td><img src="docs/screenshots/kelly-campaigns-performance.png" alt="Kelly Campaigns performance"></td>
+  </tr>
+  <tr>
+    <td><strong>Deliverability</strong><br>Pre-send QA — SPF/DKIM/DMARC, spam score, and the EQS SHIP/FIX/BLOCK gate.</td>
+    <td><strong>Performance</strong><br>Open, click, and unsubscribe rates by campaign.</td>
+  </tr>
+</table>
+
+### `kelly-launch`
+
+Product-launch command desk on the RAMP framework (Research→Assemble→Mobilize→Prove), gated by a launch-readiness LQS score.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-launch-ui.png" alt="Kelly Launch overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-launch-checklist.png" alt="Kelly Launch checklist"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Launch countdown, the RAMP readiness gate with its LQS score, phase progress, and channel status.</td>
+    <td><strong>Checklist</strong><br>Launch tasks grouped by RAMP phase — Research, Assemble, Mobilize, Prove.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-launch-assets.png" alt="Kelly Launch assets queue"></td>
+    <td><img src="docs/screenshots/kelly-launch-launchday.png" alt="Kelly Launch launch-day runbook"></td>
+  </tr>
+  <tr>
+    <td><strong>Assets</strong><br>Approval queue for launch assets, Product Hunt / Hacker News submissions, and press pitches.</td>
+    <td><strong>Launch day</strong><br>An ordered launch-day runbook with war-room notes.</td>
+  </tr>
+</table>
+
+### `kelly-brand`
+
+Brand-narrative single source of truth on the TALE framework (Trace→Architect→Land→Evaluate), scored by NQS with a drift monitor.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-brand-ui.png" alt="Kelly Brand message house"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-brand-narrative.png" alt="Kelly Brand narrative"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>The message house — positioning, value pillars, overall NQS, and the drift-alert count.</td>
+    <td><strong>Narrative</strong><br>Message pillars and vocabulary guardrails, canonical versus draft.</td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/kelly-brand-stories.png" alt="Kelly Brand story bank"></td>
+    <td><img src="docs/screenshots/kelly-brand-drift.png" alt="Kelly Brand drift alerts"></td>
+  </tr>
+  <tr>
+    <td><strong>Story bank</strong><br>Customer stories and evidence-backed proof points.</td>
+    <td><strong>Drift</strong><br>Cross-channel off-brand alerts — offending usage versus the canonical guardrail.</td>
   </tr>
 </table>
 
