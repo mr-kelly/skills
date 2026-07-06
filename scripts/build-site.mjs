@@ -11,7 +11,12 @@ const PAGES_DIR = path.join(DOCS, "s");
 const REPO_URL = "https://github.com/mr-kelly/skills";
 
 const GROUPS = [
-  { id: "finance", en: "Finance & Back Office", zh: "经营台账", skills: ["kelly-money", "kelly-audit", "kelly-crm"] },
+  {
+    id: "finance",
+    en: "Finance & Back Office",
+    zh: "经营台账",
+    skills: ["kelly-money", "kelly-audit", "kelly-crm", "kelly-legal-contracts"],
+  },
   {
     id: "invest",
     en: "Investing & Wealth",
