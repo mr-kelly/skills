@@ -1,5 +1,11 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_CREATORS_BUSABASE_API_KEY",
+    "_note": "Creator-engagement fields (handle, name, platform, niche, channel, stage, status, reason, proposed_action, suggested_reply, est_rate, ref, risk) map to a Busabase record commit's fields. Agent-prepared engagements become change requests; approve->review, edits->operation revisions, hand-off/send->merge. Env overrides: KELLY_CREATORS_BUSABASE_URL / KELLY_CREATORS_BUSABASE_BASE_ID / KELLY_CREATORS_BUSABASE_API_KEY. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud does."
+  },
   "locale": "auto",
   "operator": {
     "name": "Example Operator",

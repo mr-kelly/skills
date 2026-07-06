@@ -1,5 +1,11 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_BRAND_BUSABASE_API_KEY",
+    "_note": "Narrative asset fields (type, phase, sub_skill, title, draft, status, ref, risk) map to a Busabase record commit's fields. Agent-drafted narrative assets become change requests; approve (adopt-as-canonical)->review, edits->operation revisions, promote-to-canonical->merge. Env overrides: KELLY_BRAND_BUSABASE_URL / KELLY_BRAND_BUSABASE_BASE_ID / KELLY_BRAND_BUSABASE_API_KEY. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud does."
+  },
   "locale": "auto",
   "brand": {
     "name": "Example Brand",

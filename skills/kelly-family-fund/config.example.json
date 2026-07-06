@@ -1,5 +1,10 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "your-busabase-base-id",
+    "api_key_env": "KELLY_FAMILY_FUND_BUSABASE_API_KEY"
+  },
   "base_currency": "CNY",
   "locale": "auto",
   "fund": {

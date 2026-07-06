@@ -1,5 +1,11 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_LAUNCH_BUSABASE_API_KEY",
+    "_note": "Launch-item fields (phase, title, channel_id, readiness, proposed_action, status, draft, format, reason, ref, risk) map to a Busabase record commit's fields. Agent-prepared items become change requests; approve->review, edits->operation revisions, ship (submit/pitch/publish)->merge. Env overrides: KELLY_LAUNCH_BUSABASE_URL / KELLY_LAUNCH_BUSABASE_BASE_ID / KELLY_LAUNCH_BUSABASE_API_KEY. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud does."
+  },
   "locale": "auto",
   "product": {
     "name": "Example Product",

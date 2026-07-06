@@ -4,17 +4,12 @@
 // execution_report.json. It performs NO external side effects: real submissions,
 // pitches, and sends are delegated to other skills (for example kelly-email or
 // product-launch-video) per SKILL.md.
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+//
+// Storage is reached only through the data-provider layer (lib/), so this runs
+// against local files (default) or Busabase via KELLY_LAUNCH_DATA_PROVIDER.
+import { createProvider } from "../lib/data-provider/index.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "launch_snapshot.json");
-const decisionsPath = path.join(dataDir, "decisions.json");
-const lockPath = path.join(dataDir, "agent.lock");
-const reportPath = path.join(dataDir, "execution_report.json");
-
+const provider = await createProvider();
 const apply = process.argv.includes("--apply");
 
 interface Lock {
@@ -70,29 +65,20 @@ interface DecisionsFile {
   decisions?: Record<string, Decision>;
 }
 
-async function readJson<T = unknown>(file: string, fallback: T | null = null): Promise<T | null> {
-  try {
-    return JSON.parse(await fs.readFile(file, "utf8")) as T;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return fallback;
-    throw error;
-  }
-}
-
-const lock = await readJson<Lock>(lockPath);
+const lock = (await provider.readLock()) as Lock | null;
 if (lock) {
   console.error(`Refusing to execute: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
 }
 
-const snapshot = await readJson<Snapshot>(snapshotPath);
-if (!snapshot) {
-  console.error(`No snapshot at ${snapshotPath}. Nothing to execute.`);
+const snapshot = (await provider.readSnapshot()) as Snapshot | null;
+if (!snapshot || !snapshot.items) {
+  console.error("No snapshot available. Nothing to execute.");
   process.exit(1);
 }
 
-const decisions = (await readJson<DecisionsFile>(decisionsPath, { decisions: {} }))?.decisions || {};
-const previousReport = await readJson<ExecutionReport>(reportPath);
+const decisions = ((await provider.readDecisions()) as DecisionsFile)?.decisions || {};
+const previousReport = (await provider.readExecutionReport()) as ExecutionReport | null;
 const alreadyDone = new Set(
   (previousReport?.results || [])
     .filter((item) => item.status === "published" || item.status === "submitted" || item.status === "handed_off")
@@ -174,7 +160,7 @@ for (const result of results) {
 }
 
 if (!apply) {
-  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write ${reportPath}.`);
+  console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to write the execution report.`);
   process.exit(0);
 }
 
@@ -193,6 +179,7 @@ const report = {
     ...results.filter((item) => !(item.status === "skipped" && carriedIds.has(item.item_id))),
   ],
 };
-await fs.mkdir(dataDir, { recursive: true });
-await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
-console.log(`Wrote ${reportPath}. Real submissions/sends must be performed by the delegated skill per SKILL.md.`);
+const written = await provider.writeExecutionReport(report);
+console.log(
+  `Wrote ${written.path || "execution report"}. Real submissions/sends must be performed by the delegated skill per SKILL.md.`,
+);

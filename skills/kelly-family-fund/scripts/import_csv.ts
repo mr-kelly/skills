@@ -9,8 +9,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildSnapshot } from "../app/server/portfolio.ts";
-import { readConfig } from "../app/server/store.ts";
 import type { Beneficiary, ExpenseInput, Family, IncomeInput } from "../app/server/types.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { snapshotPath } from "../lib/paths.ts";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const input = process.argv[2] || path.join(skillDir, "references", "ledger-csv-template.csv");
@@ -84,7 +85,8 @@ const records: Record<string, string>[] = rows.slice(1).map((cells) => {
   return record;
 });
 
-const configResult = await readConfig();
+const provider = await createProvider();
+const configResult = await provider.readConfig();
 const config = configResult.config || {};
 const base_currency = config.base_currency || "CNY";
 const fund = {
@@ -172,8 +174,14 @@ const snapshot = buildSnapshot({
   source: "kelly-family-fund-csv",
 });
 
-await fs.mkdir(path.dirname(output), { recursive: true });
-await fs.writeFile(output, JSON.stringify(snapshot, null, 2));
+// Persist through the data provider when writing to the standard snapshot path;
+// honor an explicit custom output path with a direct write.
+if (path.resolve(output) === path.resolve(snapshotPath)) {
+  await provider.writeSnapshot(snapshot);
+} else {
+  await fs.mkdir(path.dirname(output), { recursive: true });
+  await fs.writeFile(output, JSON.stringify(snapshot, null, 2));
+}
 
 const report = {
   imported_at: snapshot.generated_at,

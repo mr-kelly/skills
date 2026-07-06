@@ -1,5 +1,11 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "api_key_env": "KELLY_CAMPAIGNS_BUSABASE_API_KEY",
+    "_note": "Send fields (type, phase, from_identity_id, subject, preview_text, segment_id, audience_size, status, proposed_action, reason, body, ref, risk, send_at) map to a Busabase record commit's fields. Agent-prepared sends become change requests; approve->review, edits->operation revisions, schedule/send->merge. Env overrides: KELLY_CAMPAIGNS_BUSABASE_URL / KELLY_CAMPAIGNS_BUSABASE_BASE_ID / KELLY_CAMPAIGNS_BUSABASE_API_KEY. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud does."
+  },
   "locale": "auto",
   "operator": {
     "name": "Example Operator",
