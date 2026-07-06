@@ -10,6 +10,27 @@ Kelly CRM is a local App-in-Skill dashboard and review queue over contacts, comp
 - Follow-ups: review queue of agent-drafted messages with editable drafts, risk badges, review notes, and Approve / Request changes / Block decisions.
 - The app never sends anything. Approved follow-ups are executed by the skill through other channels (for example kelly-email) only after explicit approval.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly CRM overview"></td>
+    <td width="50%"><img src="assets/screenshots/deals.png" alt="Kelly CRM deal pipeline"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>CRM command desk with pipeline totals by stage, follow-ups due, recent activity, and network counts.</td>
+    <td><strong>Deals</strong><br>Pipeline table across stages with amounts, probability, next steps, and a per-deal interaction timeline.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/contacts.png" alt="Kelly CRM contacts"></td>
+    <td width="50%"><img src="assets/screenshots/followups.png" alt="Kelly CRM follow-up queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Contacts</strong><br>Contact list with relationship strength, last touch, and per-contact interaction history and open deals.</td>
+    <td><strong>Follow-up queue</strong><br>Agent-drafted follow-up messages with editable drafts, risk badges, and approve/request-changes/block decisions.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:

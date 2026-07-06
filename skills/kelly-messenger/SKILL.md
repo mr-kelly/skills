@@ -12,6 +12,27 @@ Use this skill as Kelly's unified chat inbox operator. It aggregates messages fr
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local message snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Messenger overview"></td>
+    <td width="50%"><img src="assets/screenshots/chat.png" alt="Kelly Messenger conversation"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Messaging command desk with reply-decision counts, per-platform sync status, and oldest-waiting indicator.</td>
+    <td><strong>Conversation</strong><br>Chat transcript with an agent-suggested reply prefilled in the composer, ready to edit and queue.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/inbox.png" alt="Kelly Messenger unified inbox"></td>
+    <td width="50%"><img src="assets/screenshots/outbox.png" alt="Kelly Messenger reply outbox"></td>
+  </tr>
+  <tr>
+    <td><strong>Unified inbox</strong><br>Conversations across WhatsApp, Slack, Discord, and Telegram sorted by latest activity with waiting-time badges.</td>
+    <td><strong>Reply outbox</strong><br>Approval queue for outgoing replies: every message is reviewed before the agent sends it via platform connectors.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - The app reads and writes local files only and never touches any network beyond `127.0.0.1`. It cannot send messages: the composer only queues drafts into the local outbox.

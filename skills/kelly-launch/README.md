@@ -12,6 +12,27 @@ This is launch **operations** — the checklist, assets, submissions, and runboo
 - **Launch Day**: an ordered launch-day runbook (`T-60m … T+8h`) with an owner and a war-room note per step.
 - The app never submits or sends anything. Approved submissions and pitches are executed by the skill through other channels (for example `kelly-email`) only after explicit approval.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Launch overview"></td>
+    <td width="50%"><img src="assets/screenshots/assets.png" alt="Kelly Launch assets queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Launch countdown, the RAMP readiness gate with its LQS score, phase progress, and channel status.</td>
+    <td><strong>Assets</strong><br>Approval queue for launch assets, Product Hunt / Hacker News submissions, and press pitches.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/checklist.png" alt="Kelly Launch checklist"></td>
+    <td width="50%"><img src="assets/screenshots/launchday.png" alt="Kelly Launch launch-day runbook"></td>
+  </tr>
+  <tr>
+    <td><strong>Checklist</strong><br>Launch tasks grouped by RAMP phase — Research, Assemble, Mobilize, Prove.</td>
+    <td><strong>Launch day</strong><br>An ordered launch-day runbook with war-room notes.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene for an invented product ("Trailhead") launching ~10 days out:

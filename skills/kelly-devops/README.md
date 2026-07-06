@@ -10,6 +10,27 @@ Kelly DevOps is a local App-in-Skill ops desk for a multi-product SaaS fleet: se
 - Spend: per-provider month-to-date vs last month with anomaly flags, plus per-product allocation.
 - Actions: agent-proposed action cards (renew domain, rotate key, investigate spend, restart service, ack incident) with evidence, a concrete plan, notes, and approve / request changes / block buttons.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly DevOps overview"></td>
+    <td width="50%"><img src="assets/screenshots/actions.png" alt="Kelly DevOps action queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Fleet health desk with service, certificate, domain, and spend summaries plus a recent events feed.</td>
+    <td><strong>Action queue</strong><br>Agent-proposed renew/rotate/investigate action cards with evidence and approval controls.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/expiries.png" alt="Kelly DevOps expiry ledger"></td>
+    <td width="50%"><img src="assets/screenshots/services.png" alt="Kelly DevOps services"></td>
+  </tr>
+  <tr>
+    <td><strong>Expiry ledger</strong><br>Domains, SSL certificates, key rotations, and plan renewals in one table with color-coded days-left.</td>
+    <td><strong>Services</strong><br>Monitored endpoints with uptime, latency sparklines, TLS certificate status, and check history.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene:

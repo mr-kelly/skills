@@ -21,6 +21,27 @@ Every narrative asset carries a TALE phase and names the sub-skill that produced
 - **Land** — narrative-cascade-planner, pitch-narrative-builder, narrative-enablement-kit, proof-point-packager.
 - **Evaluate** — message-test-designer, narrative-resonance-monitor, narrative-drift-monitor, and the gate: **narrative-quality-auditor ⛩** (NQS → SHIP / FIX / BLOCK).
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Brand message house"></td>
+    <td width="50%"><img src="assets/screenshots/drift.png" alt="Kelly Brand drift alerts"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>The message house — positioning, value pillars, overall NQS, and the drift-alert count.</td>
+    <td><strong>Drift</strong><br>Cross-channel off-brand alerts — offending usage versus the canonical guardrail.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/narrative.png" alt="Kelly Brand narrative"></td>
+    <td width="50%"><img src="assets/screenshots/stories.png" alt="Kelly Brand story bank"></td>
+  </tr>
+  <tr>
+    <td><strong>Narrative</strong><br>Message pillars and vocabulary guardrails, canonical versus draft.</td>
+    <td><strong>Story bank</strong><br>Customer stories and evidence-backed proof points.</td>
+  </tr>
+</table>
+
 ## Demo Mode
 
 Run the app and open a safe mock-data scene for the invented brand "Fernpath":

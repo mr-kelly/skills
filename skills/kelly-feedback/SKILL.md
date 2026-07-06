@@ -14,6 +14,27 @@ Division of labor: the skill (scripts + agent) collects, clusters, and drafts; t
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local feedback snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present proposals as numbered items (`Proposal #1`, `#2`, ...) and record verdicts in `decisions.json`.
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Feedback overview"></td>
+    <td width="50%"><img src="assets/screenshots/inbox.png" alt="Kelly Feedback inbox"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Voice-of-customer desk with weekly inflow by channel, sentiment split, top clusters, and source freshness.</td>
+    <td><strong>Inbox</strong><br>Raw feedback stream across email, Discord, Slack, X, and app-store reviews with triage controls.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/requests.png" alt="Kelly Feedback requests"></td>
+    <td width="50%"><img src="assets/screenshots/roadmap.png" alt="Kelly Feedback roadmap decisions"></td>
+  </tr>
+  <tr>
+    <td><strong>Requests</strong><br>Clustered feature requests with frequency, weighted scores, trend, and representative quotes.</td>
+    <td><strong>Roadmap decisions</strong><br>Agent-proposed promote/decline/merge proposals with drafted changelog notes and user replies for approval.</td>
+  </tr>
+</table>
+
 ## Boundary
 
 - Aggregation is local. The skill may read exports/handoff payloads, normalize feedback, cluster it, validate schemas, and write local handoff files.

@@ -6,6 +6,27 @@ description: "Music-video production skill for turning an existing MP3 into a pu
 
 # Kelly MV
 
+## App UI Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly MV concept view"></td>
+    <td width="50%"><img src="assets/screenshots/storyboard.png" alt="Kelly MV storyboard"></td>
+  </tr>
+  <tr>
+    <td><strong>Concept</strong><br>MV concept workbench with project checklist, next-step guidance, concept form, and how-to walkthrough.</td>
+    <td><strong>Storyboard</strong><br>Shot list with duration, image status, and a detail pane for description, image generation, and video upload.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/cast.png" alt="Kelly MV cast"></td>
+    <td width="50%"><img src="assets/screenshots/song.png" alt="Kelly MV song"></td>
+  </tr>
+  <tr>
+    <td><strong>Cast</strong><br>Character list with reference card status and a detail form for visual description, wardrobe, and consistency anchors.</td>
+    <td><strong>Song</strong><br>MP3 upload and song metadata form with auto-detected duration and song-gen backend status.</td>
+  </tr>
+</table>
+
 ## Core Idea
 
 Use this skill as a music-video creative workspace. The app is the human editing surface; the skill is the creative producer: it reasons, drafts, validates, exports, and prepares AI-generation prompts. The app only reads and writes local project files.
