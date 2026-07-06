@@ -5,9 +5,8 @@
 //
 // Usage: node scripts/ingest_feedback.mjs payload.json [more.json ...]
 // Payload shape: see references/feedback-schema.md (Ingest Payload).
-import fs from "node:fs/promises";
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { acquireLock, emptySnapshot, readJson, recomputeDerived, releaseLock, writeJson } from "../app/server/store.ts";
+import { emptySnapshot, readJson, recomputeDerived } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const CHANNELS = ["email", "discord", "slack", "x", "appstore", "survey", "interview"];
 const SENTIMENTS = ["positive", "neutral", "negative"];
@@ -79,9 +78,10 @@ for (const file of files) {
   payloads.push(payload);
 }
 
-await acquireLock("Ingesting feedback payloads").catch((error) => fail(error.message));
+const provider = await createProvider();
+await provider.acquireLock("Ingesting feedback payloads").catch((error) => fail(error.message));
 try {
-  const snapshot = (await readJson(SNAPSHOT_PATH, null)) || emptySnapshot();
+  const snapshot = (await provider.readSnapshot()) || emptySnapshot();
   const existingIds = new Set(snapshot.feedback.map((item) => item.feedback_id));
   const now = new Date().toISOString();
   let added = 0;
@@ -131,9 +131,9 @@ try {
     count: added,
   });
   recomputeDerived(snapshot);
-  await writeJson(SNAPSHOT_PATH, snapshot);
+  await provider.writeSnapshot(snapshot);
   console.log(`Ingested ${added} item(s), skipped ${skipped} duplicate(s).`);
-  console.log(`Wrote ${SNAPSHOT_PATH}`);
+  console.log(`Wrote feedback snapshot via "${provider.kind}" provider.`);
 } finally {
-  await releaseLock();
+  await provider.releaseLock();
 }

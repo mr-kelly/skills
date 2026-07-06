@@ -14,6 +14,7 @@ import {
 import { assertUnlocked } from "./lock.ts";
 import { APP_DIR, GENERATED_DIR } from "./paths.ts";
 import { loadProject, saveProject, upsertById } from "./project-store.ts";
+import { getProvider } from "./provider.ts";
 import { setActiveProject, statePayload } from "./state.ts";
 import { slug } from "./utils.ts";
 import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.ts";
@@ -243,15 +244,27 @@ app.get("/generated/demo/*", (c) => {
   return c.text("Not Found", 404);
 });
 
-// Generated media (storyboards, references, videos, voices) live under
-// app/.data/generated and are served through a path-traversal guard. No other
-// path under .data/ is ever exposed.
-app.get("/generated/*", (c) => {
+// Generated media (storyboards, references, videos, voices) are served through
+// the data-provider so the same route works for local disk and remote backends.
+// A path-traversal guard still runs against the local .data/generated root so a
+// crafted "/generated/../.." path can never escape; no other .data path is
+// exposed. The provider reads the bytes by the "/generated/..." public path.
+app.get("/generated/*", async (c) => {
   const rel = decodeURIComponent(c.req.path.replace(/^\/generated\//, ""));
   const base = path.resolve(GENERATED_DIR);
   const resolved = path.resolve(base, rel);
   if (resolved !== base && !resolved.startsWith(base + path.sep)) return c.text("Forbidden", 403);
-  return sendFile(c, resolved);
+  const publicPath = `/generated/${rel}`;
+  let body: Buffer;
+  try {
+    body = await (await getProvider()).readGeneratedAsset(publicPath);
+  } catch {
+    return c.text("Not Found", 404);
+  }
+  return c.body(body as unknown as ArrayBuffer, 200, {
+    "Content-Type": CONTENT_TYPES[path.extname(resolved)] || "application/octet-stream",
+    "Cache-Control": "no-store",
+  });
 });
 
 app.onError((err, c) => c.json({ error: err.message, trace: err.stack }, 500));

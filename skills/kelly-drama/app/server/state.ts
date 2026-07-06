@@ -1,7 +1,7 @@
 import { lockPayload } from "./lock.ts";
-import { ACTIVE_PROJECT_PATH, PROJECT_PATH, REPORT_PATH, TASKS_PATH } from "./paths.ts";
+import { PROJECT_PATH, REPORT_PATH, TASKS_PATH } from "./paths.ts";
 import { loadProject } from "./project-store.ts";
-import { pathExists, readJson, writeJson } from "./utils.ts";
+import { getProvider } from "./provider.ts";
 
 // Persisted `.data/active_project.json` shape (read via readJson with a `{}` fallback).
 interface ActiveProjectState {
@@ -98,7 +98,7 @@ export async function setActiveProject(activeProjectId) {
       .filter(Boolean),
   );
   if (!known.has(activeProjectId)) throw new Error(`Unknown project: ${activeProjectId}`);
-  await writeJson(ACTIVE_PROJECT_PATH, {
+  await (await getProvider()).saveActiveProject({
     active_project_id: activeProjectId,
     updated_at: new Date().toISOString(),
   });
@@ -106,12 +106,14 @@ export async function setActiveProject(activeProjectId) {
 }
 
 export async function statePayload() {
+  const provider = await getProvider();
   const rootProject = await loadProject();
-  const activeState = (await pathExists(ACTIVE_PROJECT_PATH)) ? await readJson(ACTIVE_PROJECT_PATH, {}) : {};
+  const activeState = await provider.loadActiveProject();
   const activeProjectId = activeProjectIdFor(rootProject, activeState);
   const project = viewForProject(rootProject, activeProjectId);
   return {
     app: "kelly-drama",
+    provider: provider.kind,
     project,
     projects: projectOptions(rootProject),
     active_project_id: activeProjectId,

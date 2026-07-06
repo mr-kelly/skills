@@ -18,13 +18,10 @@
 // }
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import type { Post } from "../app/server/types.ts";
+import { emptySnapshot } from "../lib/data-provider/local-file-provider.ts";
+import { dataDir, lockPath, snapshotPath } from "../lib/paths.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "social_snapshot.json");
-const lockPath = path.join(dataDir, "agent.lock");
 const now = new Date().toISOString();
 
 const PLATFORMS = ["x", "facebook", "instagram", "linkedin", "youtube", "threads", "tiktok", "xiaohongshu", "manual"];
@@ -47,29 +44,6 @@ async function readJson(file, fallback = null) {
     if (error.code === "ENOENT") return fallback;
     throw error;
   }
-}
-
-function emptySnapshot() {
-  return {
-    schema_version: "1",
-    generated_at: now,
-    source: "kelly-social",
-    range: { start: "", end: "" },
-    metrics: {
-      account_count: 0,
-      post_count: 0,
-      total_followers: 0,
-      followers_delta_7d: 0,
-      followers_delta_28d: 0,
-      impressions_7d: 0,
-      engagements_7d: 0,
-      engagement_rate_7d: 0,
-    },
-    accounts: [],
-    posts: [],
-    sync_log: [],
-    warnings: [],
-  };
 }
 
 function validatePayload(payload) {

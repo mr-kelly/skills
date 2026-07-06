@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+import { EXECUTION_REPORT_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
+import { ensureDirs, writeJson } from "../app/server/store.ts";
 // Dry-run-by-default execution stub. Reads approved actions from the snapshot
 // and decisions file, writes concrete planned operations to
 // app/.data/execution_report.json, and performs NO external side effects.
 // The agent executes the planned operations outside the app after review.
-import { EXECUTION_REPORT_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { acquireLock, ensureDirs, readDecisions, readSnapshot, releaseLock, writeJson } from "../app/server/store.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const OWNER = "kelly-devops-execute";
 
@@ -48,18 +49,19 @@ function operationFor(action) {
 
 async function main() {
   await ensureDirs();
+  const provider = await createProvider();
   try {
-    await acquireLock(OWNER, "Preparing execution report from approved actions");
+    await provider.acquireLock(OWNER, "Preparing execution report from approved actions");
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
     return;
   }
   try {
-    const [snapshot, decisions] = await Promise.all([readSnapshot(), readDecisions()]);
+    const snapshot = await provider.getSnapshot();
     const now = new Date().toISOString();
     const approved = (snapshot.actions || []).filter((action) => {
-      const decision = decisions.decisions?.[action.action_id] || action.decision;
+      const decision = action.decision;
       return action.status === "approved" && (!decision || decision.verdict !== "block");
     });
     const entries = approved.map((action) => {
@@ -95,7 +97,7 @@ async function main() {
     console.log(`Wrote ${EXECUTION_REPORT_PATH}`);
     console.log(`Snapshot source: ${SNAPSHOT_PATH}`);
   } finally {
-    await releaseLock();
+    await provider.releaseLock();
   }
 }
 

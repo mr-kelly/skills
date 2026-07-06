@@ -7,43 +7,30 @@
 // execution_report.json, and marks exported drafts/review items "done".
 // Actual publishing via platform APIs is the agent's job outside the app.
 //
-// Usage: node scripts/export_listings.mjs [--out /path/to/dir]
+// Usage: node scripts/export_listings.ts [--out /path/to/dir]
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { createProvider } from "../lib/data-provider/index.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "listing_snapshot.json");
-const decisionsPath = path.join(dataDir, "decisions.json");
-const reportPath = path.join(dataDir, "execution_report.json");
-const lockPath = path.join(dataDir, "agent.lock");
+const provider = await createProvider();
+const skillDir = path.resolve(import.meta.dirname, "..");
 
 const args = process.argv.slice(2);
 const outFlag = args.indexOf("--out");
 const outDir = outFlag !== -1 && args[outFlag + 1] ? path.resolve(args[outFlag + 1]) : path.join(skillDir, "exports");
 
-async function readJson(file, fallback = null) {
-  try {
-    return JSON.parse(await fs.readFile(file, "utf8"));
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return fallback;
-    throw error;
-  }
-}
-
-const lock = await readJson(lockPath);
+const lock = await provider.readLock();
 if (lock) {
   console.error(`Refusing to export: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
 }
 
-const snapshot = await readJson(snapshotPath);
-if (!snapshot) {
-  console.error(`No snapshot at ${snapshotPath}. Nothing to export.`);
+const snapshot = await provider.readSnapshot();
+if (!snapshot || !Array.isArray(snapshot.drafts)) {
+  console.error("No snapshot found. Nothing to export.");
   process.exit(1);
 }
-const decisions = (await readJson(decisionsPath, { decisions: {} })).decisions || {};
+const decisions = (await provider.readDecisions()).decisions || {};
 
 function reviewFor(draft) {
   return (snapshot.review_items || []).find((item) => item.draft_id === draft.draft_id) || null;
@@ -189,7 +176,7 @@ console.log(`Wrote ${csvPath}`);
 
 // Merge export results into the execution report, idempotently by
 // draft_id:operation, preserving unrelated history.
-const previousReport = await readJson(reportPath);
+const previousReport = await provider.readExecutionReport();
 const kept = (previousReport?.results || []).filter(
   (entry) => !results.some((result) => result.draft_id === entry.draft_id && result.operation === entry.operation),
 );
@@ -199,13 +186,13 @@ const report = {
   source: "kelly-listing",
   results: [...kept, ...results],
 };
-await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+await provider.writeExecutionReport(report);
 
 snapshot.metrics = {
   ...snapshot.metrics,
   drafts_approved: (snapshot.drafts || []).filter((draft) => ["approved", "done"].includes(draft.status)).length,
   exported_this_week: (snapshot.drafts || []).filter(
-    (draft) => draft.status === "done" && Date.parse(draft.updated_at || 0) >= Date.now() - 7 * 24 * 3600 * 1000,
+    (draft) => draft.status === "done" && Date.parse(draft.updated_at || "") >= Date.now() - 7 * 24 * 3600 * 1000,
   ).length,
 };
 snapshot.generated_at = now;
@@ -218,7 +205,7 @@ snapshot.activity_log = [
   },
   ...(snapshot.activity_log || []),
 ].slice(0, 50);
-await fs.writeFile(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
+await provider.writeSnapshot(snapshot);
 
 console.log(
   `Done: ${exportable.length} listing(s) exported to ${outDir}. Publishing via platform APIs is handed off to the agent.`,

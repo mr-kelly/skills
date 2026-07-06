@@ -9,20 +9,17 @@
 // to "agent_draft" or "teacher_import". check_results carry agent judgements
 // for rules typed "agent_review" (they are preserved by run_checks.mjs).
 //
-// Usage: node scripts/ingest_plan.mjs payload.json
+// Reaches lesson state only through the data-provider (local default /
+// Busabase); still reads the raw payload file directly from disk.
+//
+// Usage: node scripts/ingest_plan.ts payload.json
 import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import type { PlanSections } from "../app/server/types.ts";
-
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dataDir = path.join(skillDir, "app", ".data");
-const snapshotPath = path.join(dataDir, "lesson_snapshot.json");
-const lockPath = path.join(dataDir, "agent.lock");
+import { createProvider } from "../lib/data-provider/index.ts";
+import type { PlanSections } from "../lib/types.ts";
 
 const payloadPath = process.argv[2];
 if (!payloadPath) {
-  console.error("Usage: node scripts/ingest_plan.mjs <payload.json>");
+  console.error("Usage: node scripts/ingest_plan.ts <payload.json>");
   process.exit(1);
 }
 
@@ -35,24 +32,9 @@ async function readJson(file, fallback = null) {
   }
 }
 
-function configSearchPaths() {
-  const paths = [];
-  if (process.env.KELLY_LESSON_CONFIG) paths.push(process.env.KELLY_LESSON_CONFIG);
-  paths.push(path.join(skillDir, "config.local.json"));
-  paths.push(path.join(process.env.HOME || "", ".config", "kelly-lesson", "config.json"));
-  paths.push(path.join(skillDir, "config.example.json"));
-  return paths;
-}
+const provider = await createProvider();
 
-async function readConfig() {
-  for (const file of configSearchPaths()) {
-    const config = await readJson(file, null);
-    if (config) return config;
-  }
-  return {};
-}
-
-const lock = await readJson(lockPath);
+const lock = await provider.readLock();
 if (lock) {
   console.error(`Refusing to ingest: agent.lock is active (${lock.owner || "unknown"}: ${lock.message || ""}).`);
   process.exit(1);
@@ -68,7 +50,7 @@ const payload =
 const incomingPlans = payload.plans || [];
 const incomingCheckResults = payload.check_results || [];
 
-const config = await readConfig();
+const config = (await provider.readConfig()).config;
 const templateSections = Array.isArray(config.template_sections) ? config.template_sections : [];
 const classLength = config.school?.class_length_minutes ?? 45;
 const now = new Date().toISOString();
@@ -188,7 +170,16 @@ const emptySnapshot = {
   activity_log: [],
   warnings: [],
 };
-const snapshot = (await readJson(snapshotPath)) || emptySnapshot;
+// The provider returns an empty-with-warning sentinel when no snapshot file
+// exists; start from this script's own empty snapshot in that case so the
+// written file stays identical to the pre-provider behaviour.
+const existingSnapshot = await provider.readSnapshot();
+const hasSnapshot =
+  (existingSnapshot.plans || []).length > 0 ||
+  !(existingSnapshot.warnings || []).some((warning) => warning.id === "no-snapshot");
+const snapshot: Record<string, any> = hasSnapshot
+  ? (existingSnapshot as unknown as Record<string, any>)
+  : emptySnapshot;
 snapshot.teachers = snapshot.teachers || [];
 snapshot.plans = snapshot.plans || [];
 snapshot.checks = snapshot.checks || [];
@@ -328,10 +319,9 @@ snapshot.metrics = {
 };
 snapshot.generated_at = now;
 
-await fs.mkdir(dataDir, { recursive: true });
-await fs.writeFile(snapshotPath, `${JSON.stringify(snapshot, null, 2)}\n`);
+await provider.writeSnapshot(snapshot as unknown as Parameters<typeof provider.writeSnapshot>[0]);
 for (const { plan, created } of merged) {
   console.log(`${created ? "Created" : "Updated"} ${plan.plan_id} (Plan #${plan.ref}) — ${plan.title}`);
 }
 if (incomingCheckResults.length) console.log(`Merged ${incomingCheckResults.length} agent check result(s).`);
-console.log(`Wrote ${snapshotPath}. Run scripts/run_checks.mjs to refresh compliance results.`);
+console.log("Wrote lesson_snapshot.json. Run scripts/run_checks.ts to refresh compliance results.");

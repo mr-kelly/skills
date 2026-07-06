@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
+import { snapshotPath } from "../lib/paths.ts";
 
-const target = process.argv[2] || new URL("../app/.data/social_snapshot.json", import.meta.url).pathname;
+const target = process.argv[2] || snapshotPath;
 
 const PLATFORMS = ["x", "facebook", "instagram", "linkedin", "youtube", "threads", "tiktok", "xiaohongshu", "manual"];
 const COLLECTION_METHODS = ["browser_agent", "api", "manual_export"];

@@ -28,23 +28,20 @@
 //
 // CSV mode maps columns via config.csv_mappings[<platform>].
 import fs from "node:fs/promises";
-import { SNAPSHOT_PATH } from "../app/server/paths.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 import {
-  acquireLock,
   ensureDirs,
   envSearchPaths,
   loadDotenvFiles,
   pushSyncLog,
   readConfig,
   readJson,
-  readSnapshot,
   recomputeDerived,
-  releaseLock,
   round1,
   round2,
-  writeJson,
-} from "../app/server/store.ts";
-import type { Campaign } from "../app/server/types.ts";
+} from "../lib/data-provider/index.ts";
+import { snapshotPath } from "../lib/paths.ts";
+import type { Campaign } from "../lib/types.ts";
 
 const OWNER = "kelly-ads-ingest";
 const PLATFORMS = new Set(["amazon", "meta", "tiktok", "google"]);
@@ -294,6 +291,7 @@ async function main() {
   }
   await ensureDirs();
   await loadDotenvFiles(envSearchPaths());
+  const provider = await createProvider();
   const configResult = await readConfig();
   const config = configResult.config || {};
 
@@ -316,7 +314,7 @@ async function main() {
   const { rate, known } = currencyRate(config, from, base);
 
   try {
-    await acquireLock(OWNER, `Ingesting ${payload.platform} performance report`);
+    await provider.acquireLock(OWNER, `Ingesting ${payload.platform} performance report`);
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -324,7 +322,7 @@ async function main() {
   }
 
   try {
-    const snapshot = await readSnapshot();
+    const snapshot = await provider.readSnapshot();
     const now = new Date().toISOString();
     snapshot.campaigns = Array.isArray(snapshot.campaigns) ? snapshot.campaigns : [];
     snapshot.platforms = Array.isArray(snapshot.platforms) ? snapshot.platforms : [];
@@ -382,11 +380,11 @@ async function main() {
       rows: days,
     });
     recomputeDerived(snapshot, config);
-    await writeJson(SNAPSHOT_PATH, snapshot);
+    await provider.writeSnapshot(snapshot);
     console.log(`Ingested ${merged} campaign(s) (${days} daily rows) for ${payload.platform}.`);
-    console.log(`Wrote ${SNAPSHOT_PATH}`);
+    console.log(`Wrote ${snapshotPath}`);
   } finally {
-    await releaseLock();
+    await provider.releaseLock();
   }
 }
 

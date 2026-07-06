@@ -1,20 +1,17 @@
 #!/usr/bin/env node
-// Domain expiry sync via RDAP (https://rdap.org/domain/<name>).
-// Merges domain expiries into app/.data/ops_snapshot.json.
-// Fails gracefully per domain. Zero npm dependencies.
 import { SNAPSHOT_PATH } from "../app/server/paths.ts";
 import {
-  acquireLock,
   ensureDirs,
   envSearchPaths,
   loadDotenvFiles,
   pushEvent,
   readConfig,
-  readSnapshot,
   recomputeMetrics,
-  releaseLock,
-  writeJson,
 } from "../app/server/store.ts";
+// Domain expiry sync via RDAP (https://rdap.org/domain/<name>).
+// Merges domain expiries into app/.data/ops_snapshot.json.
+// Fails gracefully per domain. Zero npm dependencies.
+import { createProvider } from "../lib/data-provider/index.ts";
 
 const OWNER = "kelly-devops-sync-domains";
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -60,8 +57,9 @@ async function main() {
     return;
   }
 
+  const provider = await createProvider();
   try {
-    await acquireLock(OWNER, "Syncing domain expiry dates via RDAP");
+    await provider.acquireLock(OWNER, "Syncing domain expiry dates via RDAP");
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;
@@ -69,7 +67,7 @@ async function main() {
   }
 
   try {
-    const snapshot = await readSnapshot();
+    const snapshot = await provider.getSnapshot();
     snapshot.expiries = Array.isArray(snapshot.expiries) ? snapshot.expiries : [];
     const now = new Date().toISOString();
     let failures = 0;
@@ -139,10 +137,10 @@ async function main() {
     snapshot.checks = { ...(snapshot.checks || {}), domains_checked_at: now };
     snapshot.warnings = (snapshot.warnings || []).filter((warning) => warning.id !== "no-snapshot");
     recomputeMetrics(snapshot, config.thresholds || {});
-    await writeJson(SNAPSHOT_PATH, snapshot);
+    await provider.saveSnapshot(snapshot);
     console.log(`Wrote ${SNAPSHOT_PATH}`);
   } finally {
-    await releaseLock();
+    await provider.releaseLock();
   }
 }
 

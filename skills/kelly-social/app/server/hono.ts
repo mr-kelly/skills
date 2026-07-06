@@ -1,18 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import { readConfig, readLock, readOnboarding, readSnapshot, summarizeConfig } from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through the logic modules (data-provider
-// backed), so the same app runs under @hono/node-server locally and — once the
-// data layer moves to a cloud provider like Busabase — on Cloudflare Workers.
+// contract and reaches storage only through the data-provider, so the same app
+// runs under @hono/node-server locally and — once the data layer moves to a
+// cloud provider like Busabase — on Cloudflare Workers.
 //
 // The frontend is the original zero-build vanilla app (index.html + app.js +
 // styles.css + i18n). Hono only serves those static files and the JSON API; it
 // does not render or bundle anything.
+
+const provider = await createProvider();
+console.log(`Kelly Social data provider: ${provider.kind}`);
 
 const types = {
   ".html": "text/html; charset=utf-8",
@@ -22,20 +25,7 @@ const types = {
 };
 
 async function state() {
-  const [snapshot, onboarding, lock, configResult] = await Promise.all([
-    readSnapshot(),
-    readOnboarding(),
-    readLock(),
-    readConfig(),
-  ]);
-  return {
-    app: "kelly-social",
-    data_provider: process.env.KELLY_SOCIAL_DATA_PROVIDER || configResult.config.data_provider || "local",
-    onboarding,
-    lock,
-    config_summary: summarizeConfig(configResult),
-    snapshot,
-  };
+  return { app: "kelly-social", ...(await provider.getState()) };
 }
 
 export const app = new Hono();

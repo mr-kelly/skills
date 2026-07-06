@@ -1,6 +1,7 @@
 // Core domain types shared across the kelly-money server, provider, and scripts.
-// These model the ACTUAL shapes produced by demo.ts / store.ts and the normalized
-// ledger snapshot validated by scripts/validate_ui_schema.ts.
+// These model the ACTUAL shapes produced by demo.ts / the data-provider layer and
+// the normalized ledger snapshot validated by scripts/validate_ui_schema.ts.
+// lib/types.ts re-exports these domain shapes for the provider layer and scripts.
 
 export type Direction = "in" | "out";
 export type InvoiceDirection = "incoming" | "outgoing";
@@ -130,7 +131,7 @@ export interface LedgerSnapshot {
   warnings: Warning[];
 }
 
-// ---- Config (as it appears in store.ts) ----
+// ---- Config (as resolved by the data-provider layer) ----
 
 export interface ConfigAccount {
   account_id?: string;

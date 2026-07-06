@@ -1,5 +1,10 @@
 {
   "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:3000",
+    "base_id": "your-busabase-base-id",
+    "api_key_env": "KELLY_DRAMA_BUSABASE_API_KEY"
+  },
   "project_defaults": {
     "language": "zh-CN",
     "image_style": "16:9 live-action historical cinema realism",

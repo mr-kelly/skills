@@ -1,12 +1,10 @@
 #!/usr/bin/env node
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { buildSnapshot } from "../app/server/portfolio.ts";
 import type { AccountRef, FxRates, HoldingInput } from "../app/server/types.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { snapshotPath } from "../lib/paths.ts";
 
-const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const out = path.join(skillDir, "app", ".data", "snapshot.json");
+const out = snapshotPath;
 const now = new Date().toISOString();
 
 const FX_RATES: FxRates = { USD: 1, HKD: 0.128, CNY: 0.139 };
@@ -156,8 +154,8 @@ const snapshot = buildSnapshot({
   warnings: [],
 });
 
-await fs.mkdir(path.dirname(out), { recursive: true });
-await fs.writeFile(out, JSON.stringify(snapshot, null, 2));
+const provider = await createProvider();
+await provider.writeSnapshot(snapshot);
 console.log(`Wrote ${out}`);
 
 function account(
