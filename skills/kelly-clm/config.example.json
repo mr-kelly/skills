@@ -1,0 +1,19 @@
+{
+  "data_provider": "demo",
+  "ui": {
+    "language": "auto"
+  },
+  "profile": {
+    "company": "Example Company",
+    "default_owner": "Legal Ops",
+    "review_style": "Short, operational, deadline-first"
+  },
+  "alerts": {
+    "renewal_notice_days": 90,
+    "obligation_warning_days": 30
+  },
+  "handoff": {
+    "requires_approval": true,
+    "external_actions": "manual"
+  }
+}

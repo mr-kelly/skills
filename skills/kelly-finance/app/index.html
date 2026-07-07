@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly Finance</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">KF</div>
+          <div class="brand-copy">
+            <div class="brand-title">Kelly Finance</div>
+            <div class="brand-subtitle" data-i18n="subtitle">Model review desk</div>
+          </div>
+          <button id="sidebarToggle" class="icon-button" type="button" aria-label="Toggle sidebar">
+            <span class="panel-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+        <section class="attention">
+          <div class="eyebrow" data-i18n="human_attention">Needs attention</div>
+          <div class="attention-main" id="attentionMain">0</div>
+          <div class="attention-meta" id="attentionMeta">0 approved · 0 blocked</div>
+        </section>
+        <nav class="nav" aria-label="Views">
+          <a href="#/overview" data-view="overview" data-i18n="overview">Overview</a>
+          <a href="#/checks" data-view="checks" data-i18n="checks">Checks</a>
+          <a href="#/workbook" data-view="workbook" data-i18n="workbook">Workbook</a>
+          <a href="#/settings" data-view="settings" data-i18n="settings">Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          <select id="language" aria-label="Language">
+            <option value="auto">Auto</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+          <button id="refresh" type="button" data-i18n="refresh">Refresh</button>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="icon-button" type="button" aria-label="Open sidebar">
+            <span class="panel-icon" aria-hidden="true"></span>
+          </button>
+          <div>
+            <div id="mobileTitle">Kelly Finance</div>
+            <div id="mobileMeta" class="muted">0 checks</div>
+          </div>
+          <button id="mobileRefresh" class="small-button" type="button">↻</button>
+        </div>
+        <header class="topbar">
+          <div>
+            <h1 id="pageTitle">Kelly Finance</h1>
+            <p id="pageSubtitle">Financial model control desk</p>
+          </div>
+          <div class="status-pill" id="syncStatus">Loading</div>
+        </header>
+        <section class="content" id="content"></section>
+      </main>
+    </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
