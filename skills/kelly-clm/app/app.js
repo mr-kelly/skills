@@ -1,112 +1,14 @@
+import { messages } from "./i18n/messages.js";
+
 const qs = new URLSearchParams(location.search);
 const state = {
   data: null,
   route: parseRoute(),
   query: "",
-  lang: normalizeLang(qs.get("lang") || localStorage.getItem("kelly-clm-lang") || "auto"),
+  lang: normalizeLang(qs.get("lang") || localStorage.getItem("kelly-clm-language") || "auto"),
 };
 
-const labels = {
-  en: {
-    overview: "Overview",
-    contracts: "Contracts",
-    obligations: "Obligations",
-    renewals: "Renewals",
-    approvals: "Approvals",
-    settings: "Settings",
-    generated: "Generated",
-    lifecycle: "Lifecycle Pipeline",
-    upcoming: "Upcoming Renewals",
-    atRisk: "At-risk Obligations",
-    owner: "Owner",
-    businessOwner: "Business owner",
-    contract: "Contract",
-    counterparty: "Counterparty",
-    type: "Type",
-    stage: "Stage",
-    value: "Value",
-    start: "Start",
-    end: "End",
-    renewal: "Renewal",
-    notice: "Notice deadline",
-    next: "Next action",
-    due: "Due",
-    status: "Status",
-    evidence: "Evidence",
-    approve: "Approve",
-    changes: "Request changes",
-    block: "Block",
-    demoDecision: "Demo mode: local handoff only.",
-    search: "Search",
-    refresh: "Refresh",
-    auto: "Auto",
-  },
-  zh: {
-    overview: "总览",
-    contracts: "合同库",
-    obligations: "义务",
-    renewals: "续约",
-    approvals: "审批",
-    settings: "设置",
-    generated: "生成于",
-    lifecycle: "生命周期管道",
-    upcoming: "即将续约",
-    atRisk: "高风险义务",
-    owner: "负责人",
-    businessOwner: "业务负责人",
-    contract: "合同",
-    counterparty: "相对方",
-    type: "类型",
-    stage: "阶段",
-    value: "金额/事项",
-    start: "开始",
-    end: "结束",
-    renewal: "续约",
-    notice: "通知截止",
-    next: "下一步",
-    due: "到期",
-    status: "状态",
-    evidence: "证据",
-    approve: "批准",
-    changes: "要求修改",
-    block: "拦截",
-    demoDecision: "演示模式：仅写本地交接。",
-    search: "搜索",
-    refresh: "刷新",
-    auto: "自动",
-  },
-};
-
-const enumLabels = {
-  en: {
-    intake: "intake",
-    review: "review",
-    negotiation: "negotiation",
-    approval: "approval",
-    signature_ready: "signature-ready",
-    active: "active",
-    renewal: "renewal",
-    closed: "closed",
-    open: "open",
-    at_risk: "at risk",
-    blocked: "blocked",
-    needs_review: "needs review",
-  },
-  zh: {
-    intake: "需求接入",
-    review: "审阅",
-    negotiation: "谈判",
-    approval: "审批",
-    signature_ready: "待签署",
-    active: "生效中",
-    renewal: "续约",
-    closed: "已关闭",
-    open: "未完成",
-    at_risk: "有风险",
-    blocked: "已阻塞",
-    needs_review: "待审核",
-  },
-};
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-clm.sidebarCollapsed";
 
 const els = {
   title: document.querySelector("#title"),
@@ -115,30 +17,103 @@ const els = {
   sync: document.querySelector("#sync"),
   search: document.querySelector("#search"),
   refresh: document.querySelector("#refresh"),
+  mobileRefresh: document.querySelector("#mobileRefresh"),
+  sidebarToggle: document.querySelector("#sidebarToggle"),
+  mobileSidebarToggle: document.querySelector("#mobileSidebarToggle"),
+  sidebarScrim: document.querySelector("#sidebarScrim"),
+  mobileViewTitle: document.querySelector("#mobileViewTitle"),
+  mobileViewMeta: document.querySelector("#mobileViewMeta"),
+  approvalsCount: document.querySelector("#count-approvals"),
+  renewalsCount: document.querySelector("#count-renewals"),
+  riskCount: document.querySelector("#count-risk"),
   language: document.querySelector("#language"),
 };
 
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 720px)").matches;
+}
+
+function syncSidebarState() {
+  const collapsed = document.body.classList.contains("sidebar-collapsed");
+  els.sidebarToggle?.setAttribute("aria-expanded", String(!collapsed));
+}
+
+function setSidebarCollapsed(collapsed, { persist = true } = {}) {
+  document.body.classList.toggle("sidebar-collapsed", Boolean(collapsed));
+  syncSidebarState();
+  if (persist) localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
+}
+
+function setMobileSidebarOpen(open) {
+  document.body.classList.toggle("sidebar-open", Boolean(open));
+  if (els.sidebarScrim) els.sidebarScrim.hidden = !open;
+}
+
+function toggleSidebar() {
+  if (isMobileLayout()) {
+    setMobileSidebarOpen(!document.body.classList.contains("sidebar-open"));
+    return;
+  }
+  setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+}
+
+function syncResponsiveShell() {
+  if (isMobileLayout()) {
+    document.body.classList.remove("sidebar-collapsed");
+    syncSidebarState();
+    setMobileSidebarOpen(false);
+    return;
+  }
+  setMobileSidebarOpen(false);
+  setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "1", { persist: false });
+}
+
 function normalizeLang(lang) {
-  if (String(lang).toLowerCase().startsWith("zh")) return "zh";
-  if (lang === "en") return "en";
+  const value = String(lang || "auto").toLowerCase();
+  if (value.startsWith("zh")) return "zh";
+  if (value === "en") return "en";
   return "auto";
 }
 
 function activeLang() {
   if (state.lang !== "auto") return state.lang;
-  return navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en";
+  return navigator.languages?.some((lang) => lang.toLowerCase().startsWith("zh")) ? "zh" : "en";
 }
 
 function t(key) {
-  return labels[activeLang()][key] || key;
+  return messages[activeLang()]?.[key] || messages.en[key] || key;
 }
 
-function applyShellLabels() {
+function enumLabel(value) {
+  if (!value) return "";
+  const key = String(value);
+  return messages[activeLang()]?.enum?.[key] || messages.en.enum?.[key] || key.replaceAll("_", " ");
+}
+
+function applyI18n() {
   document.documentElement.lang = activeLang() === "zh" ? "zh-CN" : "en";
-  document.querySelectorAll("[data-label]").forEach((node) => {
-    node.textContent = t(node.dataset.label);
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.dataset.i18n);
   });
+  const languageLabels =
+    activeLang() === "zh" ? { auto: "自动", en: "English", zh: "中文" } : { auto: "Auto", en: "English", zh: "中文" };
+  for (const option of els.language.options) {
+    option.textContent = languageLabels[option.value] || option.textContent;
+  }
   els.search.placeholder = t("search");
+  els.search.setAttribute("aria-label", t("search"));
+  els.refresh.textContent = t("refresh");
+  els.refresh.title = t("refresh");
+  els.sidebarToggle.title = t("toggleSidebar");
+  els.sidebarToggle.setAttribute("aria-label", t("toggleSidebar"));
+  if (els.mobileSidebarToggle) {
+    els.mobileSidebarToggle.title = t("openSidebar");
+    els.mobileSidebarToggle.setAttribute("aria-label", t("openSidebar"));
+  }
+  if (els.mobileRefresh) {
+    els.mobileRefresh.title = t("refresh");
+    els.mobileRefresh.setAttribute("aria-label", t("refresh"));
+  }
 }
 
 function e(value) {
@@ -146,10 +121,6 @@ function e(value) {
     /[&<>"']/g,
     (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch],
   );
-}
-
-function label(value) {
-  return enumLabels[activeLang()][value] || String(value || "");
 }
 
 function parseRoute() {
@@ -162,6 +133,7 @@ async function load() {
   params.set("demo", qs.get("demo") || "overview");
   params.set("lang", state.lang);
   const res = await fetch(`/api/state?${params}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`State request failed: ${res.status}`);
   state.data = await res.json();
   render();
 }
@@ -187,8 +159,20 @@ function obligations() {
   }));
 }
 
+function approvalsNeedingReview() {
+  return (state.data?.approvals || []).filter((item) => item.status === "needs_review").length;
+}
+
+function renewalWatchCount() {
+  return (state.data?.contracts || []).filter((item) => item.notice_deadline || item.renewal_date).length;
+}
+
+function atRiskCount() {
+  return obligations().filter((item) => item.status === "at_risk" || item.status === "blocked").length;
+}
+
 function badge(value) {
-  return `<span class="badge ${e(value)}">${e(label(value))}</span>`;
+  return `<span class="badge ${e(value)}">${e(enumLabel(value))}</span>`;
 }
 
 function date(value) {
@@ -197,6 +181,17 @@ function date(value) {
     year: "numeric",
     month: "short",
     day: "2-digit",
+  }).format(new Date(value));
+}
+
+function datetime(value) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat(activeLang() === "zh" ? "zh-CN" : "en-US", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date(value));
 }
 
@@ -210,6 +205,10 @@ function metrics() {
   </div>`;
 }
 
+function compactItem({ href, title, meta, status }) {
+  return `<a class="item-row" href="${href}"><span><strong>${e(title)}</strong>${meta ? `<small>${e(meta)}</small>` : ""}</span>${status ? badge(status) : ""}</a>`;
+}
+
 function renderOverview() {
   const stages = ["intake", "review", "negotiation", "approval", "signature_ready", "active", "renewal", "closed"];
   const stageRows = stages
@@ -221,19 +220,27 @@ function renderOverview() {
     .join("");
   const renewalRows = state.data.contracts
     .filter((item) => item.notice_deadline)
-    .map(
-      (item) =>
-        `<a class="list-row" href="#/contracts/${item.id}"><strong>${e(item.name)}</strong><span>${t("notice")}: ${date(item.notice_deadline)}</span>${badge(item.stage)}</a>`,
+    .map((item) =>
+      compactItem({
+        href: `#/contracts/${item.id}`,
+        title: item.name,
+        meta: `${t("notice")}: ${date(item.notice_deadline)}`,
+        status: item.stage,
+      }),
     )
     .join("");
   const riskRows = obligations()
     .filter((item) => item.status === "at_risk" || item.status === "blocked")
-    .map(
-      (item) =>
-        `<a class="list-row" href="#/contracts/${item.contract_id}"><strong>${e(item.title)}</strong><span>${e(item.contract?.name || "")} · ${date(item.due_date)}</span>${badge(item.status)}</a>`,
+    .map((item) =>
+      compactItem({
+        href: `#/contracts/${item.contract_id}`,
+        title: item.title,
+        meta: `${item.contract?.name || ""} · ${date(item.due_date)}`,
+        status: item.status,
+      }),
     )
     .join("");
-  els.content.innerHTML = `${metrics()}<div class="grid"><section class="panel wide"><h2>${t("lifecycle")}</h2><div class="pipeline">${stageRows}</div></section><section class="panel"><h2>${t("upcoming")}</h2>${renewalRows}</section><section class="panel"><h2>${t("atRisk")}</h2>${riskRows}</section></div>`;
+  els.content.innerHTML = `${metrics()}<div class="overview-grid"><section class="panel wide"><h2>${t("lifecycle")}</h2><div class="pipeline">${stageRows}</div></section><section class="panel"><h2>${t("upcoming")}</h2><div class="stack-list">${renewalRows || `<div class="empty-inline">${t("empty")}</div>`}</div></section><section class="panel"><h2>${t("atRisk")}</h2><div class="stack-list">${riskRows || `<div class="empty-inline">${t("empty")}</div>`}</div></section></div>`;
 }
 
 function contractTable(rows) {
@@ -255,7 +262,8 @@ function renderContractDetail(id) {
   if (!item) return renderContracts();
   const ownObligations = obligations().filter((row) => row.contract_id === id);
   els.title.textContent = item.name;
-  els.subtitle.textContent = `${item.counterparty} · ${badge(item.stage)}`;
+  els.subtitle.textContent = `${item.counterparty} · ${enumLabel(item.stage)}`;
+  if (els.mobileViewTitle) els.mobileViewTitle.textContent = item.name;
   els.content.innerHTML = `<section class="panel"><h2>${t("next")}</h2><p>${e(item.next_action)}</p></section>${contractTable([item])}<section class="panel"><h2>${t("obligations")}</h2>${obligationTable(ownObligations)}</section>`;
 }
 
@@ -279,10 +287,10 @@ function renderRenewals() {
 }
 
 function renderApprovals() {
-  els.content.innerHTML = `<div class="grid">${state.data.approvals
+  els.content.innerHTML = `<div class="card-grid">${state.data.approvals
     .map(
       (item) =>
-        `<article class="card panel"><h2>${e(item.title)}</h2><p class="muted">${e(item.summary)}</p><p>${badge(item.status)}</p><div class="actions"><button data-action="approve" data-id="${item.id}">${t("approve")}</button><button data-action="changes" data-id="${item.id}">${t("changes")}</button><button data-action="block" data-id="${item.id}">${t("block")}</button></div></article>`,
+        `<article class="card panel"><h2>${e(item.title)}</h2><p class="muted">${e(item.summary)}</p><p>${badge(item.status)}</p><div class="actions"><button type="button" data-action="approve" data-id="${item.id}" title="${t("approve")}">${t("approve")}</button><button type="button" data-action="changes" data-id="${item.id}" title="${t("changes")}">${t("changes")}</button><button type="button" data-action="block" data-id="${item.id}" title="${t("block")}">${t("block")}</button></div></article>`,
     )
     .join("")}</div>`;
   els.content.querySelectorAll("button[data-action]").forEach((button) => {
@@ -298,19 +306,44 @@ function renderApprovals() {
 }
 
 function renderSettings() {
-  els.content.innerHTML = `<section class="panel"><h2>Kelly CLM</h2><p>${e(state.data.profile.boundary)}</p><p class="muted">${t("generated")} ${new Date(state.data.generated_at).toLocaleString()}</p></section>`;
+  els.content.innerHTML = `<section class="settings panel"><h2>${t("profile")}</h2><dl><dt>${t("appName")}</dt><dd>Kelly CLM</dd><dt>${t("source")}</dt><dd>${e(state.data.profile.company)}</dd><dt>${t("dataProvider")}</dt><dd>${t("localOnly")}</dd><dt>${t("status")}</dt><dd>${state.data.demo ? t("demoMode") : t("localOnly")}</dd></dl><p>${e(state.data.profile.boundary)}</p><p class="muted">${t("generated")} ${datetime(state.data.generated_at)}</p></section>`;
+}
+
+function viewLabel(view) {
+  if (view === "contracts") return t("contracts");
+  if (view === "obligations") return t("obligations");
+  if (view === "renewals") return t("renewals");
+  if (view === "approvals") return t("approvals");
+  if (view === "settings") return t("settings");
+  return t("overview");
+}
+
+function renderShell() {
+  applyI18n();
+  const approvals = approvalsNeedingReview();
+  const renewals = renewalWatchCount();
+  const risks = atRiskCount();
+  els.sync.textContent = `${approvals} ${t("approvals")}`;
+  if (els.approvalsCount) els.approvalsCount.textContent = approvals;
+  if (els.renewalsCount) els.renewalsCount.textContent = renewals;
+  if (els.riskCount) els.riskCount.textContent = risks;
+  if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
+  if (els.mobileViewMeta) {
+    els.mobileViewMeta.textContent = approvals ? `${approvals} ${t("needApproval")}` : `${risks} ${t("riskCount")}`;
+  }
+  document.querySelectorAll("[data-route]").forEach((link) => {
+    link.classList.toggle("active", link.dataset.route === state.route.view);
+  });
 }
 
 function render() {
   if (!state.data) return;
   const view = state.route.view;
+  renderShell();
   if (view !== "contracts" || !state.route.id) {
-    els.title.textContent = t(view) || t("overview");
-    els.subtitle.textContent = `${state.data.profile.company} · ${t("generated")} ${new Date(state.data.generated_at).toLocaleString()}`;
+    els.title.textContent = viewLabel(view);
+    els.subtitle.textContent = `${state.data.profile.company} · ${t("generated")} ${datetime(state.data.generated_at)}`;
   }
-  els.sync.textContent = `${state.data.metrics.approvals} ${t("approvals")}`;
-  applyShellLabels();
-  document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", a.dataset.route === view));
   if (view === "contracts") renderContracts();
   else if (view === "obligations") renderObligations();
   else if (view === "renewals") renderRenewals();
@@ -322,16 +355,29 @@ function render() {
 window.addEventListener("hashchange", () => {
   state.route = parseRoute();
   render();
+  if (isMobileLayout()) setMobileSidebarOpen(false);
 });
+
+window.addEventListener("resize", syncResponsiveShell);
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") setMobileSidebarOpen(false);
+});
+
 els.search.addEventListener("input", () => {
   state.query = els.search.value;
   render();
 });
 els.refresh.addEventListener("click", load);
+els.mobileRefresh?.addEventListener("click", load);
+els.sidebarToggle?.addEventListener("click", toggleSidebar);
+els.mobileSidebarToggle?.addEventListener("click", toggleSidebar);
+els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.language.value = state.lang;
 els.language.addEventListener("change", () => {
   state.lang = normalizeLang(els.language.value);
-  localStorage.setItem("kelly-clm-lang", state.lang);
+  localStorage.setItem("kelly-clm-language", state.lang);
   load();
 });
+
+syncResponsiveShell();
 load();

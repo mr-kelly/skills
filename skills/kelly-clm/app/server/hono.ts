@@ -38,4 +38,5 @@ async function fileResponse(path, fallback = false) {
 app.get("/", () => fileResponse("index.html"));
 app.get("/app.js", () => fileResponse("app.js"));
 app.get("/styles.css", () => fileResponse("styles.css"));
+app.get("/i18n/messages.js", () => fileResponse("i18n/messages.js"));
 app.get("*", () => fileResponse("index.html", true));
