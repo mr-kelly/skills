@@ -186,7 +186,6 @@ function desktopFrameSvg({ imageBase64, width, height, title, accent }) {
   const winH = bar + frameHeight;
   const outHeight = winH + margin * 2;
   const shotY = margin + bar;
-  const accentLine = Math.max(2, Math.round(bar * 0.055));
 
   const dotEls = DESKTOP_TOKENS.dots
     .map((color, i) => `<circle cx="${dotX0 + i * dotGap}" cy="${dotY}" r="${dotR}" fill="${color}"/>`)
@@ -209,8 +208,7 @@ function desktopFrameSvg({ imageBase64, width, height, title, accent }) {
   </g>
   <g clip-path="url(#win)">
     <rect x="${margin}" y="${margin}" width="${frameWidth}" height="${bar}" fill="${DESKTOP_TOKENS.barFill}"/>
-    <rect x="${margin}" y="${margin + bar - accentLine}" width="${frameWidth}" height="${accentLine}" fill="${xmlEscape(accent)}"/>
-    <rect x="${margin}" y="${margin + bar - 1}" width="${frameWidth}" height="1" fill="${DESKTOP_TOKENS.barEdge}" opacity="0.55"/>
+    <rect x="${margin}" y="${margin + bar - 1}" width="${frameWidth}" height="1" fill="${DESKTOP_TOKENS.barEdge}" opacity="0.72"/>
     ${dotEls}
     <text x="${margin + frameWidth / 2}" y="${margin + bar / 2}" text-anchor="middle" dominant-baseline="central" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="${Math.round(bar * 0.38)}" font-weight="600" fill="${DESKTOP_TOKENS.titleInk}">${xmlEscape(title)}</text>
     <image x="${margin}" y="${shotY}" width="${frameWidth}" height="${frameHeight}" preserveAspectRatio="xMidYMid meet" href="data:image/png;base64,${imageBase64}"/>
