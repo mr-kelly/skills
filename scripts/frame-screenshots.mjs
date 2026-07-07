@@ -11,7 +11,7 @@
 //   node scripts/frame-screenshots.mjs
 //   node scripts/frame-screenshots.mjs --skill kelly-legal-casebase-ingest --force
 //   node scripts/frame-screenshots.mjs --path skills/foo/assets/screenshots/overview.png
-import { readdir, writeFile } from "node:fs/promises";
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -20,19 +20,21 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MARKER = "kelly-skills-framed-v1";
 const DEFAULT_WIDTH = 1440;
 const MAX_OUTPUT_WIDTH = 1800;
+const DEFAULT_ACCENT = "#334155";
 
 const DESKTOP_TOKENS = {
-  page: "#f3f1ec",
-  barFill: "#edeae3",
-  barEdge: "#dcd6ca",
-  border: "#d2ccbe",
-  titleInk: "#8a8175",
+  page: "#f8fafc",
+  barFill: "#ffffff",
+  barEdge: "#e2e8f0",
+  border: "#d8dee8",
+  titleInk: "#334155",
+  shadow: "#0f172a",
   dots: ["#ff5f57", "#febc2e", "#28c840"],
 };
 
 const PHONE_TOKENS = {
-  bezel: "#15130f",
-  ring: "#37322b",
+  bezel: "#111827",
+  ring: "#334155",
 };
 
 function parseArgs(argv) {
@@ -123,6 +125,31 @@ function skillNameFor(file) {
   return parts[0] === "skills" ? parts[1] : "";
 }
 
+function normalizeHexColor(value) {
+  const match = String(value ?? "")
+    .trim()
+    .match(/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);
+  if (!match) return "";
+  const hex = match[1];
+  if (hex.length === 3) {
+    return `#${hex
+      .split("")
+      .map((char) => `${char}${char}`)
+      .join("")}`.toLowerCase();
+  }
+  return `#${hex.slice(0, 6)}`.toLowerCase();
+}
+
+async function skillAccentFor(file) {
+  const skill = skillNameFor(file);
+  if (!skill) return DEFAULT_ACCENT;
+
+  const cssPath = path.join(ROOT, "skills", skill, "app", "styles.css");
+  const css = await readFile(cssPath, "utf8").catch(() => "");
+  const accent = css.match(/--accent:\s*(#[0-9a-f]{3,8})\s*;/i)?.[1];
+  return normalizeHexColor(accent) || DEFAULT_ACCENT;
+}
+
 function titleFor(file) {
   const skill = skillNameFor(file).replace(/^kelly-/, "");
   const base = path.basename(file, ".png").replace(/-zh-CN$/, "");
@@ -144,7 +171,7 @@ async function normalizeInput(file) {
   };
 }
 
-function desktopFrameSvg({ imageBase64, width, height, title }) {
+function desktopFrameSvg({ imageBase64, width, height, title, accent }) {
   const outWidth = Math.min(MAX_OUTPUT_WIDTH, Math.round(width * 1.06));
   const margin = Math.max(22, Math.round(outWidth * 0.025));
   const frameWidth = outWidth - margin * 2;
@@ -159,6 +186,7 @@ function desktopFrameSvg({ imageBase64, width, height, title }) {
   const winH = bar + frameHeight;
   const outHeight = winH + margin * 2;
   const shotY = margin + bar;
+  const accentLine = Math.max(2, Math.round(bar * 0.055));
 
   const dotEls = DESKTOP_TOKENS.dots
     .map((color, i) => `<circle cx="${dotX0 + i * dotGap}" cy="${dotY}" r="${dotR}" fill="${color}"/>`)
@@ -171,7 +199,7 @@ function desktopFrameSvg({ imageBase64, width, height, title }) {
     <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="${Math.round(frameWidth * 0.012)}"/>
       <feOffset dy="${Math.round(frameWidth * 0.008)}" result="off"/>
-      <feFlood flood-color="#1a1714" flood-opacity="0.2"/>
+      <feFlood flood-color="${DESKTOP_TOKENS.shadow}" flood-opacity="0.16"/>
       <feComposite in2="off" operator="in"/>
       <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
@@ -181,7 +209,8 @@ function desktopFrameSvg({ imageBase64, width, height, title }) {
   </g>
   <g clip-path="url(#win)">
     <rect x="${margin}" y="${margin}" width="${frameWidth}" height="${bar}" fill="${DESKTOP_TOKENS.barFill}"/>
-    <rect x="${margin}" y="${margin + bar - 1}" width="${frameWidth}" height="1" fill="${DESKTOP_TOKENS.barEdge}"/>
+    <rect x="${margin}" y="${margin + bar - accentLine}" width="${frameWidth}" height="${accentLine}" fill="${xmlEscape(accent)}"/>
+    <rect x="${margin}" y="${margin + bar - 1}" width="${frameWidth}" height="1" fill="${DESKTOP_TOKENS.barEdge}" opacity="0.55"/>
     ${dotEls}
     <text x="${margin + frameWidth / 2}" y="${margin + bar / 2}" text-anchor="middle" dominant-baseline="central" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif" font-size="${Math.round(bar * 0.38)}" font-weight="600" fill="${DESKTOP_TOKENS.titleInk}">${xmlEscape(title)}</text>
     <image x="${margin}" y="${shotY}" width="${frameWidth}" height="${frameHeight}" preserveAspectRatio="xMidYMid meet" href="data:image/png;base64,${imageBase64}"/>
@@ -190,7 +219,7 @@ function desktopFrameSvg({ imageBase64, width, height, title }) {
 </svg>`;
 }
 
-function phoneFrameSvg({ imageBase64, width, height }) {
+function phoneFrameSvg({ imageBase64, width, height, accent }) {
   const outWidth = Math.min(1080, Math.max(640, width + 96));
   const pad = Math.round(outWidth * 0.04);
   const screenWidth = outWidth - pad * 2;
@@ -209,13 +238,14 @@ function phoneFrameSvg({ imageBase64, width, height }) {
     <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur in="SourceAlpha" stdDeviation="${Math.round(outWidth * 0.018)}"/>
       <feOffset dy="${Math.round(outWidth * 0.012)}" result="off"/>
-      <feFlood flood-color="#1a1714" flood-opacity="0.22"/>
+      <feFlood flood-color="${DESKTOP_TOKENS.shadow}" flood-opacity="0.2"/>
       <feComposite in2="off" operator="in"/>
       <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
   <rect width="${outWidth}" height="${outHeight}" fill="${DESKTOP_TOKENS.page}"/>
   <rect x="1" y="1" width="${outWidth - 2}" height="${outHeight - 2}" rx="${rOuter}" ry="${rOuter}" fill="${PHONE_TOKENS.bezel}" stroke="${PHONE_TOKENS.ring}" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="3" y="3" width="${outWidth - 6}" height="${outHeight - 6}" rx="${rOuter - 2}" ry="${rOuter - 2}" fill="none" stroke="${xmlEscape(accent)}" stroke-width="3" opacity="0.42"/>
   <image x="${pad}" y="${pad}" width="${screenWidth}" height="${screenHeight}" clip-path="url(#screen)" preserveAspectRatio="xMidYMid slice" href="data:image/png;base64,${imageBase64}"/>
   <rect x="${islandX}" y="${islandY}" width="${islandWidth}" height="${islandHeight}" rx="${islandHeight / 2}" ry="${islandHeight / 2}" fill="#000"/>
 </svg>`;
@@ -228,10 +258,11 @@ async function frameOne(file, args) {
   }
 
   const input = await normalizeInput(file);
+  const accent = await skillAccentFor(file);
   const isPhone = input.height / input.width > 1.35;
   const svg = isPhone
-    ? phoneFrameSvg({ imageBase64: input.buffer.toString("base64"), ...input })
-    : desktopFrameSvg({ imageBase64: input.buffer.toString("base64"), ...input, title: titleFor(file) });
+    ? phoneFrameSvg({ imageBase64: input.buffer.toString("base64"), ...input, accent })
+    : desktopFrameSvg({ imageBase64: input.buffer.toString("base64"), ...input, title: titleFor(file), accent });
 
   if (!args.dryRun) {
     const framed = await sharp(Buffer.from(svg), { density: 96 })
