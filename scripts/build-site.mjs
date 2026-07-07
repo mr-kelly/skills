@@ -19,7 +19,7 @@ const GROUPS = [
     id: "finance",
     en: "Finance & Back Office",
     zh: "经营台账",
-    skills: ["kelly-finance", "kelly-money", "kelly-audit", "kelly-crm", "kelly-legal-contracts"],
+    skills: ["kelly-finance", "kelly-money", "kelly-audit", "kelly-crm", "kelly-clm", "kelly-legal-contracts"],
   },
   {
     id: "invest",

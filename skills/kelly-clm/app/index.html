@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly CLM</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">CL</div>
+          <div class="brand-copy">
+            <div class="brand-title">Kelly CLM</div>
+            <div id="sync" class="brand-subtitle">Loading</div>
+          </div>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar">
+            <span class="sidebar-toggle-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="search sidebar-search">
+          <input id="search" type="search" placeholder="Search" aria-label="Search">
+        </div>
+        <section class="human-work" aria-labelledby="humanWorkTitle">
+          <div class="human-work-eyebrow" data-i18n="attention">Need attention</div>
+          <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">What needs your decision</div>
+          <a class="human-work-primary" href="#/approvals" data-route="approvals" title="Open approvals">
+            <span>
+              <strong id="count-approvals">0</strong>
+              <span data-i18n="needApproval">approvals need review</span>
+            </span>
+          </a>
+          <div class="human-work-secondary">
+            <a href="#/renewals" data-route="renewals" title="Open renewals">
+              <strong id="count-renewals">0</strong>
+              <span data-i18n="renewalCount">renewal watch</span>
+            </a>
+            <a href="#/obligations" data-route="obligations" title="Open obligations">
+              <strong id="count-risk">0</strong>
+              <span data-i18n="riskCount">at-risk obligations</span>
+            </a>
+          </div>
+        </section>
+        <div class="sidebar-separator"></div>
+        <nav class="filters" aria-label="Main">
+          <a href="#/overview" data-route="overview" data-i18n="overview" title="Overview">Overview</a>
+          <a href="#/contracts" data-route="contracts" data-i18n="contracts" title="Contracts">Contracts</a>
+          <a href="#/obligations" data-route="obligations" data-i18n="obligations" title="Obligations">Obligations</a>
+          <a href="#/renewals" data-route="renewals" data-i18n="renewals" title="Renewals">Renewals</a>
+          <a href="#/approvals" data-route="approvals" data-i18n="approvals" title="Approvals">Approvals</a>
+          <a href="#/settings" data-route="settings" data-i18n="settings" title="Help & Settings">Help & Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          <label for="language" data-i18n="language">Language</label>
+          <select id="language">
+            <option value="auto">Auto</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar">
+            <span class="sidebar-toggle-icon" aria-hidden="true"></span>
+          </button>
+          <div class="mobile-topbar-copy">
+            <div id="mobileViewTitle" class="mobile-view-title">Kelly CLM</div>
+            <div id="mobileViewMeta" class="mobile-view-meta">Loading</div>
+          </div>
+          <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
+        </div>
+        <header class="topbar">
+          <div>
+            <h1 id="title">Overview</h1>
+            <p id="subtitle"></p>
+          </div>
+          <div class="topbar-actions">
+            <button id="refresh" type="button" data-i18n="refresh" title="Refresh">Refresh</button>
+          </div>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
