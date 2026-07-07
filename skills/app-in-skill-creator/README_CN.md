@@ -142,6 +142,8 @@ skill-name/
 
 默认使用安静、简约的视觉语言：中性底色、轻边框、少阴影、克制的强调色、透明 icon 按钮。避免黑色浮动手机按钮、汉堡符号、很响的选中行底色、厚重卡片阴影、装饰性渐变，以及把每个 hover 都做成主按钮的效果。
 
+除非 app 真的是只读页面或强品牌视觉，否则要支持类似 Apple/macOS 的系统强调色。它应该是 system accent，不是整套皮肤：选中行、active tab、焦点环、链接、主要 workflow 按钮、badge 和“人类提醒区”高亮走 CSS 变量，整体界面仍保持中性。token 要区分展示色、可访问按钮色、浅 tint、边框、焦点环、文本色和对比色，例如 `--accent`、`--accent-strong`、`--accent-soft`、`--accent-wash`、`--accent-line`、`--accent-focus`、`--accent-text`、`--accent-contrast`。色板从 Apple 风格的蓝、紫、粉、红、橙、黄、绿、石墨开始；按钮和文字 token 需要按对比度加深，确保白字主按钮至少达到 4.5:1。把紧凑圆形色点和选中环/勾放在 `Help & Settings` 里，用 `localStorage` 保存选择，并用 `accent-color` 让 checkbox/radio 跟随主题色；手机宽度下要能自然换行且没有横向溢出。
+
 零依赖单页 app 默认使用浏览器原生 hash 路由。重要状态应该有可复制的网址，例如 `#/items`、`#/items/<id>`、`#/settings`，不要为了 URL 变化额外引入 router 包。侧边栏视图、选中行、详情 tab、Help/Settings 面板等值得分享或恢复的状态，都应该通过一个很薄的 hash router 统一管理，这样刷新能回到同一页，浏览器前进/后退也能正常工作。键盘方向键选择、自动修正无效链接这类高频或非显式跳转，用 `history.replaceState`，避免把历史记录塞满。
 
 手机自适应是默认契约的一部分。手机宽度下要收成单列，用带遮罩的侧边栏抽屉，顶部放紧凑栏显示当前视图和数量，列表/详情要作为两个全高页面切换，并在详情页提供 sticky 返回按钮。主操作保持 sticky，次要操作放进紧凑菜单，批量操作只在多选后作为横向工具条出现。交付前至少验证一个手机视口和一个桌面视口，并确认页面没有横向溢出。
