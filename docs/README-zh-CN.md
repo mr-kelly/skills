@@ -18,10 +18,10 @@
 <table>
   <tr>
     <td width="50%"><img src="../skills/kelly-money/assets/screenshots/overview-zh-CN.png" alt="kelly-money — 资金台账 dashboard"></td>
-    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.svg" alt="kelly-finance — 财务三表模型"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.png" alt="kelly-finance — 财务三表模型"></td>
   </tr>
   <tr>
-    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.svg" alt="kelly-finance — 模型勾稽检查"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.png" alt="kelly-finance — 模型勾稽检查"></td>
     <td width="50%"><img src="../skills/kelly-crm/assets/screenshots/overview-zh-CN.png" alt="kelly-crm — 客户管道操作台"></td>
   </tr>
   <tr>
@@ -197,8 +197,8 @@ Kelly Finance 是本地财务模型审阅台。它用于生成和审计三表 wo
 
 <table>
   <tr>
-    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.svg" alt="Kelly Finance 三表模型"></td>
-    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.svg" alt="Kelly Finance 模型检查"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.png" alt="Kelly Finance 三表模型"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.png" alt="Kelly Finance 模型检查"></td>
   </tr>
   <tr>
     <td><strong>三表生成器</strong><br>展示 Assumptions、利润表、资产负债表、现金流量表和 Checks 的 workbook 预览。</td>

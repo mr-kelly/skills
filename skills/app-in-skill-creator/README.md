@@ -103,56 +103,41 @@ App-in-Skill projects should keep public code generic and private context local.
 - `~/.config/<skill-name>/.env`
 - `<skill-name>/config.local.json`
 
-The code should read config through a data-provider layer, not by hardcoding local files everywhere. The default provider should load JSON and env files using only built-in Node.js modules, so a new App-in-Skill starts with zero npm dependencies. Later it can load from Busabase, PostgreSQL, AITable.ai, Notion, or a product cloud without rewriting the UI. We recommend Busabase as the cloud provider: it gives AI-generated articles, assets, and records a review Inbox before they become canonical records — the App-in-Skill loop as a shared system of record.
+The code should read config through a data-provider layer, not by hardcoding local files everywhere. The default provider should load JSON and env files using built-in Node.js modules, while the local app keeps only the small Hono server dependencies. Later it can load from Busabase, PostgreSQL, AITable.ai, Notion, or a product cloud without rewriting the UI. We recommend Busabase as the cloud provider: it gives AI-generated articles, assets, and records a review Inbox before they become canonical records — the App-in-Skill loop as a shared system of record.
 
 For users, this means the app can show a safe summary of what is connected: which accounts, identities, config source, batch file, and decision file are active. For developers, it means local-file mode and database-backed mode can share the same UI and execution scripts.
 
 ## Default Shape
 
-Use Node.js for the local server and scripts unless the skill has a strong reason to do otherwise. The default scaffold should have no npm dependencies: no `package.json`, no `npm install`, and no framework requirement. Use built-in Node modules for HTTP, files, paths, locking, launching, JSON parsing, and validation. Add dependencies only for real integrations such as IMAP/SMTP, MIME parsing, OAuth/API clients, document parsing, browser automation, or database drivers, and keep those dependencies out of the base local app.
+The current scaffold uses a small Hono server, Node >=23.6 native TypeScript for server/scripts/lib, and a zero-build vanilla browser frontend. Runtime config and handoff files are JSON, and data access goes through a provider layer so local files can later graduate to Busabase, PostgreSQL, AITable.ai, Notion, or another backend.
 
-```text
-skill-name/
-├── SKILL.md
-├── agents/openai.yaml
-├── assets/          # optional; include only when the skill has bundled assets
-│   └── screenshots/ # optional UI screenshots, when explicitly captured/provided
-├── app/
-│   ├── index.html
-│   ├── app.js
-│   ├── styles.css
-│   ├── start.sh
-│   └── server/
-├── lib/
-│   ├── paths.ts
-│   ├── common.ts
-│   └── data-provider/
-├── scripts/
-├── references/
-└── config.example.json
-```
+The main skill file is intentionally a router. Detailed implementation rules live in references:
 
-Keep shared code in `lib/`. Keep `scripts/` as thin entrypoints. Keep real config, secrets, handoff data files (`app/.data/`), and generated local state out of git. Use JSON for runtime config in zero-dependency skills; convert old YAML notes to JSON before runtime instead of adding a YAML parser.
+| Topic | Reference |
+| --- | --- |
+| Runtime, structure, Hono, TypeScript, frontend stack, dependency and asset policy | `references/runtime-architecture.md` |
+| Private config, env files, providers, Busabase, sanitized summaries | `references/private-config-and-providers.md` |
+| Handoff files, workflow states, review model, batch schema, execution reports | `references/file-contract-review-model.md` |
+| First-run onboarding, reconfiguration, locks, concurrent write safety | `references/onboarding-and-locking.md` |
+| Human-attention panel, workflow navigation, notes/drafts, hash routing, i18n | `references/ui-workflow-patterns.md` |
+| Desktop/mobile shell and responsive layout checklist | `references/mobile-shell-layout.md` |
+| Demo walkthrough recordings | `references/demo-recording.md` |
 
-Screenshots are optional. Do not create screenshot assets by default; add them only when the user asks for screenshots or when screenshot files already exist for the skill. When they do exist, keep them inside that skill at `assets/screenshots/`, reference them from the skill's own `README.md` and `SKILL.md`, and point any repo README or website gallery at those same skill-local files.
+Visual assets are optional. Do not create screenshots or demo recordings by default; add them only when requested or when visual files already exist for the skill. Screenshots live under `assets/screenshots/`. Walkthrough videos may live under `assets/demo-recordings/` when they are intentionally part of the skill package, but MP4 files must be tracked by Git LFS; otherwise keep only the external path, recording recipe, or short summary in repo docs.
 
 ## UI Pattern
 
-Put a small human-attention panel at the top-left of the app, above the normal sidebar filters. It should answer "what do I need to do?" immediately: one primary task such as `Need a note or decision`, plus secondary counts such as `Ready for agent next` and `Blocked`. Add a divider below it before the ordinary views.
+Put a small human-attention panel at the top-left of the app, above normal sidebar filters. It should answer "what do I need to do?" immediately: one primary task such as `Need a note or decision`, plus secondary counts such as `Ready for agent next` and `Blocked`.
 
-Use a quiet, minimal visual language by default: neutral surfaces, soft borders, sparse shadows, restrained accent color, and transparent icon buttons. Avoid black floating mobile buttons, hamburger glyphs, loud selected-row fills, heavy card shadows, decorative gradients, and hover states that make every control feel primary.
+Use workflow navigation as the primary sidebar: `All`, `Needs Review`, `Approved`/`Ready for agent next`, `Done`, and `Blocked`. Categories and risks are badges, not primary navigation.
 
 Support an Apple/macOS-like accent color system for operator apps unless the app is truly read-only or visually branded. Keep it as a system accent, not a full skin: selected rows, active tabs, focus rings, links, primary workflow buttons, badges, and human-attention highlights should read from CSS variables while the app stays neutral. Use separate tokens for display color, accessible button color, soft tints, borders, focus rings, text, and contrast, for example `--accent`, `--accent-strong`, `--accent-soft`, `--accent-wash`, `--accent-line`, `--accent-focus`, `--accent-text`, and `--accent-contrast`. Start from Apple-style Blue, Purple, Pink, Red, Orange, Yellow, Green, and Graphite; deepen button/text tokens as needed for at least 4.5:1 contrast. Put compact circular swatches with a selected ring/check in `Help & Settings`, persist the selected accent in `localStorage`, keep native checkboxes/radios aligned with `accent-color`, and verify the picker wraps cleanly on phone widths without horizontal overflow.
 
 For zero-dependency single-page apps, use native hash routing by default. Meaningful states should have copyable URLs such as `#/items`, `#/items/<id>`, or `#/settings`, without adding a router package. Route sidebar views, selected rows, detail tabs, and settings/help panels through one small hash router so refresh restores the same view and browser back/forward works. Use `history.replaceState` for keyboard selection or automatic cleanup so rapid navigation does not fill the history stack.
 
-Mobile responsiveness is part of the default contract. At phone widths, collapse to one column, use an off-canvas sidebar drawer with a scrim, add a compact top bar with the current view and count, and show list/detail as separate full-height panes with a sticky back control. Keep primary actions sticky, secondary actions in a compact menu, and bulk actions as a selection-only horizontal toolbar. Verify at a phone viewport and a desktop viewport, including no horizontal page overflow.
+Mobile responsiveness is part of the default contract: drawer sidebar, compact top bar, list/detail as separate panes, sticky back control, sticky primary detail action, and no horizontal overflow.
 
-See `references/mobile-shell-layout.md` for the reusable checklist and patch template for the mobile shell, sidebar icon, scrim behavior, modal layout, and Linear-style desktop shell.
-
-Avoid extra approval layers. If an item already has a safe, concrete next step, show it as approved/ready for the agent rather than making the human click through a `To approve` holding state. Save human clicks for judgment, edits, exceptions, and irreversible actions.
-
-Execution reports should describe the real operation and target, not only a generic action label. If a connector needs a folder, channel, path, account id, or other target and it is missing, block and ask for configuration instead of guessing.
+Avoid extra approval layers. Save human clicks for judgment, edits, exceptions, and irreversible or sensitive actions. Execution reports should describe the real operation and target, not only a generic action label.
 
 ## The Taste
 
