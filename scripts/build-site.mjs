@@ -66,7 +66,7 @@ const GROUPS = [
     id: "production",
     en: "Production & Teaching",
     zh: "制作与教学",
-    skills: ["kelly-drama", "kelly-mv", "kelly-lesson"],
+    skills: ["kelly-drama", "kelly-mv", "kelly-lesson", "kelly-scale-pptx"],
   },
   { id: "eng", en: "Engineering & Ops", zh: "工程与运维", skills: ["kelly-devops", "kelly-pr-review"] },
   {
