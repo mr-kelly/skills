@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-42 skills, including 39 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+43 skills, including 40 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-42-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-43-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -18,10 +18,10 @@
 <table>
   <tr>
     <td width="50%"><img src="skills/kelly-money/assets/screenshots/overview.png" alt="kelly-money — money ledger dashboard"></td>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="kelly-finance — three-statement model builder"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.png" alt="kelly-finance — three-statement model builder"></td>
   </tr>
   <tr>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="kelly-finance — model audit checks"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.png" alt="kelly-finance — model audit checks"></td>
     <td width="50%"><img src="skills/kelly-crm/assets/screenshots/overview.png" alt="kelly-crm — pipeline command desk"></td>
   </tr>
   <tr>
@@ -92,6 +92,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-email` | Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution. | Use it when processing unread email, drafting support replies, archiving or marking messages read after approval, or managing email through an App-in-Skill UI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-email.html) |
 | `kelly-finance` | Builds and audits finance three-statement models, operating forecasts, budgets, cash runway models, SaaS/unit-economics packs, and Excel-ready finance outputs. | Use it when making 财务三表, investor projections, board finance packs, scenario cases, balance-sheet checks, working-capital schedules, capex/debt schedules, or repairing broken model links. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html) |
 | `kelly-money` | Aggregates Mercury, Stripe, Airwallex, and Creem into a local money ledger dashboard with total cashflow, account health, and account detail views. | Use it when reviewing balances, payments, payouts, fees, refunds, transfers, provider sync status, or total money movement across configured accounts. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-money.html) |
+| `kelly-invoice-sheet` | Extracts invoices, receipts, credit notes, and statements into a spreadsheet-style local review table with field confidence, line items, approval decisions, and CSV/JSON export. | Use it for Invoice转表格, invoice OCR, receipt-to-spreadsheet, bookkeeping import prep, or a Lido-style Extract Data workflow. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-invoice-sheet.html) |
 | `kelly-invest-webull` | Aggregates a personal Webull brokerage account into a local read-only portfolio dashboard: holdings, cost basis, market value, unrealized P/L, day change, and allocation by asset type. Read-only — it never places or cancels orders. | Use it when reviewing personal investments, positions, portfolio value, unrealized gains, cash, or asset allocation synced from Webull OpenAPI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html) |
 | `kelly-family-office` | Consolidates multiple entities' and members' holdings from CSV import and manual entry into one family-office dashboard: total AUM in a base currency, plus roll-ups by entity, asset class, and institution, and performance. Read-only — it never moves money. | Use it when rolling up a family office across individuals, trusts, and companies; reviewing consolidated AUM, asset allocation, custodian exposure, or unrealized performance. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-family-office.html) |
 | `kelly-family-fund` | Pools elderly parents' pensions into one steward-managed fund and books the monthly care cost and shared-family spending in a base currency, so every sibling family can see the split is fair. Read-only — it never moves money. | Use it when a family jointly supports elderly parents from a pooled pension: tracking the nursing-home cost and splitting the surplus (transport, meals, birthday gifts, gifts of obligation) transparently across sibling families. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-family-fund.html) |
@@ -198,8 +199,8 @@ Kelly Finance is a local finance-model review desk. It creates and audits three-
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="Kelly Finance model builder"></td>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="Kelly Finance model checks"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.png" alt="Kelly Finance model builder"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.png" alt="Kelly Finance model checks"></td>
   </tr>
   <tr>
     <td><strong>Three-statement builder</strong><br>Workbook preview with assumptions, income statement, balance sheet, cash flow, and model checks for a clean forecast.</td>
@@ -227,6 +228,23 @@ Kelly Invest (Webull) is a local read-only portfolio dashboard over a personal W
   <tr>
     <td><strong>Accounts</strong><br>Per-account view (cash and margin) with net liquidation, total cash, buying power, and the positions held in each account.</td>
     <td><strong>Position detail</strong><br>Single-symbol view with cost basis, market value, unrealized P/L and percentage, day change, weight, and holding account.</td>
+  </tr>
+</table>
+
+### `kelly-invoice-sheet`
+
+Kelly Invoice Sheet turns invoices, receipts, credit notes, and statements into a local spreadsheet-style review table. The UI is inspired by Lido's Extract Data flow: a sheet-like grid by default, an upload/extraction modal on demand, confidence warnings, editable invoice fields, line items, and approval-gated CSV/JSON export.
+
+<table>
+  <tr>
+    <td width="33%"><img src="skills/kelly-invoice-sheet/assets/screenshots/overview.png" alt="Kelly Invoice Sheet spreadsheet extraction desk"></td>
+    <td width="33%"><img src="skills/kelly-invoice-sheet/assets/screenshots/detail.png" alt="Kelly Invoice Sheet invoice detail review"></td>
+    <td width="33%"><img src="skills/kelly-invoice-sheet/assets/screenshots/extract-data.png" alt="Kelly Invoice Sheet Extract Data upload modal"></td>
+  </tr>
+  <tr>
+    <td><strong>Spreadsheet extraction desk</strong><br>Sheet-like invoice table with extracted rows, status filters, confidence flags, and human-attention counts.</td>
+    <td><strong>Invoice detail review</strong><br>Editable invoice fields, line items, confidence notes, and approve/request-changes/block controls.</td>
+    <td><strong>Extract Data upload</strong><br>Lido-style upload modal with local file, Google Drive, OneDrive, and email source options.</td>
   </tr>
 </table>
 

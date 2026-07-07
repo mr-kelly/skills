@@ -4,11 +4,11 @@
 
 **Kelly 的个人 AI skills 工作区，用来处理日常业务里的重复工作。**
 
-42 个 skills，其中 39 个是 App-in-Skill 工作流，配本地浏览器 UI 用于 review、审批和看板。
+43 个 skills，其中 40 个是 App-in-Skill 工作流，配本地浏览器 UI 用于 review、审批和看板。
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-42-D97757)](https://mr-kelly.github.io/skills/?lang=zh)
+[![Skills](https://img.shields.io/badge/skills-43-D97757)](https://mr-kelly.github.io/skills/?lang=zh)
 [![License](https://img.shields.io/badge/license-MIT-green)](../LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#安装)
@@ -18,10 +18,10 @@
 <table>
   <tr>
     <td width="50%"><img src="../skills/kelly-money/assets/screenshots/overview-zh-CN.png" alt="kelly-money — 资金台账 dashboard"></td>
-    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.svg" alt="kelly-finance — 财务三表模型"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.png" alt="kelly-finance — 财务三表模型"></td>
   </tr>
   <tr>
-    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.svg" alt="kelly-finance — 模型勾稽检查"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.png" alt="kelly-finance — 模型勾稽检查"></td>
     <td width="50%"><img src="../skills/kelly-crm/assets/screenshots/overview-zh-CN.png" alt="kelly-crm — 客户管道操作台"></td>
   </tr>
   <tr>
@@ -92,6 +92,7 @@
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
 | `kelly-finance` | 构建和审计财务三表模型、经营预测、预算、现金 runway、SaaS/unit economics 包，以及可交付的 Excel 财务输出。 | 做财务三表、融资预测、董事会财务包、情景分析、资产负债表检查、营运资本/资本开支/债务 schedule，或修三表勾稽错误时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html?lang=zh) |
 | `kelly-money` | 聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。 | 查看余额、付款、payout、手续费、退款、转账、provider sync 状态、发票和流水匹配时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-money.html?lang=zh) |
+| `kelly-invoice-sheet` | 把发票、收据、红字/贷项通知单和 statement 抽取成类似 spreadsheet 的本地审阅表，带字段置信度、明细行、审批决定和 CSV/JSON 导出。 | 做 Invoice转表格、发票 OCR、收据转表格、记账导入准备，或需要类似 Lido Extract Data 的本地 App-in-Skill workflow 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invoice-sheet.html?lang=zh) |
 | `kelly-invest-webull` | 通过 Webull OpenAPI 把个人券商账户聚合成本地只读投资组合 dashboard：持仓、成本、市值、未实现盈亏、当日涨跌和按资产类别的配置。只读——绝不下单或撤单。 | 查看个人投资、持仓、组合市值、未实现盈亏、现金或资产配置时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html?lang=zh) |
 | `kelly-family-office` | 通过 CSV 导入和手工录入，把多个主体/成员的持仓合并成家族办公室 dashboard：以基准货币计的总资产管理规模（AUM），按主体、资产类别、机构的配置和业绩汇总。只读——绝不动钱。 | 汇总个人、信托、公司等多主体的家族办公室，查看合并 AUM、资产配置、机构敞口或未实现业绩时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-family-office.html?lang=zh) |
 | `kelly-family-fund` | 把两位老人的退休金汇入一个由管理人统一记账的统筹基金，按月记录养老院固定支出和大家庭共享开销（折算基准货币），让每个兄弟姐妹家庭都能看到分摊是公平的。只读——绝不动钱。 | 一家人共同赡养老人、统一管理退休金时使用：记录养老院费用，并把结余（交通、聚餐、生日礼物、人情）透明地分摊到各兄弟姐妹家庭。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-family-fund.html?lang=zh) |
@@ -198,8 +199,8 @@ Kelly Finance 是本地财务模型审阅台。它用于生成和审计三表 wo
 
 <table>
   <tr>
-    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.svg" alt="Kelly Finance 三表模型"></td>
-    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.svg" alt="Kelly Finance 模型检查"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/overview-zh-CN.png" alt="Kelly Finance 三表模型"></td>
+    <td width="50%"><img src="../skills/kelly-finance/assets/screenshots/checks-zh-CN.png" alt="Kelly Finance 模型检查"></td>
   </tr>
   <tr>
     <td><strong>三表生成器</strong><br>展示 Assumptions、利润表、资产负债表、现金流量表和 Checks 的 workbook 预览。</td>
@@ -227,6 +228,23 @@ Kelly Invest（Webull）是本地只读投资组合 dashboard，通过 Webull Op
   <tr>
     <td><strong>账户</strong><br>按账户（现金/融资）显示净清算价值、现金、购买力，以及每个账户下的持仓。</td>
     <td><strong>标的详情</strong><br>单个标的视图，显示成本、市值、未实现盈亏及百分比、当日涨跌、权重和所属账户。</td>
+  </tr>
+</table>
+
+### `kelly-invoice-sheet`
+
+Kelly Invoice Sheet 把发票、收据、红字/贷项通知单和 statement 变成本地 spreadsheet 风格审阅表。界面参考 Lido 的 Extract Data 流程：默认先显示可审阅表格，需要时再打开上传/抽取弹窗；右侧可编辑发票字段、明细行、置信度提示，并通过审批后导出 CSV/JSON。
+
+<table>
+  <tr>
+    <td width="33%"><img src="../skills/kelly-invoice-sheet/assets/screenshots/overview-zh-CN.png" alt="Kelly Invoice Sheet 发票抽取表格"></td>
+    <td width="33%"><img src="../skills/kelly-invoice-sheet/assets/screenshots/detail-zh-CN.png" alt="Kelly Invoice Sheet 发票详情审核"></td>
+    <td width="33%"><img src="../skills/kelly-invoice-sheet/assets/screenshots/extract-data-zh-CN.png" alt="Kelly Invoice Sheet Extract Data 上传弹窗"></td>
+  </tr>
+  <tr>
+    <td><strong>表格抽取台</strong><br>sheet 风格发票表直接展示抽取结果、状态筛选、置信度标记和人工关注计数。</td>
+    <td><strong>发票详情审核</strong><br>可编辑发票字段、明细行、置信度备注，以及批准/要求修改/阻塞控件。</td>
+    <td><strong>Extract Data 上传</strong><br>类似 Lido 的上传弹窗，提供本地文件、Google Drive、OneDrive 和 Email 来源入口。</td>
   </tr>
 </table>
 

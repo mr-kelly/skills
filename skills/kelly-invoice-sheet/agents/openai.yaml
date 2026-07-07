@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Invoice Sheet"
+  short_description: "Turn invoices into reviewable export tables"
+  default_prompt: "Use $kelly-invoice-sheet to extract invoice files into a clean review table and export CSV or JSON."
