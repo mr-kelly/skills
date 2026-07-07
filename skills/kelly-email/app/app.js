@@ -10,12 +10,12 @@ const ACCENT_THEME_STORAGE_KEY = "kelly-email.accentTheme";
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-email.sidebarCollapsed";
 const ACCENT_THEMES = [
   { id: "blue", color: "#0a84ff" },
-  { id: "purple", color: "#af52de" },
+  { id: "purple", color: "#bf5af2" },
   { id: "pink", color: "#ff2d55" },
   { id: "red", color: "#ff3b30" },
   { id: "orange", color: "#ff9500" },
-  { id: "yellow", color: "#ffcc00" },
-  { id: "green", color: "#34c759" },
+  { id: "yellow", color: "#ffcc00", check: "#1d1d1f" },
+  { id: "green", color: "#30d158" },
   { id: "graphite", color: "#6e6e73" },
 ];
 const params = new URLSearchParams(window.location.search);
@@ -69,7 +69,7 @@ function renderThemeOptions() {
   if (!node) return;
   node.innerHTML = ACCENT_THEMES.map(
     (theme) => `
-      <label class="theme-option" style="--swatch: ${theme.color}">
+      <label class="theme-option" style="--swatch: ${theme.color}; --swatch-check: ${theme.check || "#ffffff"}">
         <input type="radio" name="accentTheme" value="${theme.id}" ${theme.id === accentTheme ? "checked" : ""} />
         <span class="theme-swatch" aria-hidden="true"></span>
         <span>${escapeHtml(accentThemeLabel(theme.id))}</span>

@@ -83,8 +83,7 @@ export const I18N = {
     "language.unknown": "Unknown language",
     "language.saved": "Language updated",
     "theme.title": "Accent Color",
-    "theme.summary":
-      "{theme} is selected. This changes highlights, focus rings, selected rows, and primary workflow controls.",
+    "theme.summary": "Current accent: {theme}.",
     "theme.saved": "Accent color updated to {theme}",
     "theme.blue": "Blue",
     "theme.purple": "Purple",
@@ -355,7 +354,7 @@ export const I18N = {
     "language.unknown": "未知语言",
     "language.saved": "语言已更新",
     "theme.title": "主题色",
-    "theme.summary": "当前选择：{theme}。会影响高亮、焦点环、选中行和主要工作流按钮。",
+    "theme.summary": "当前主题色：{theme}。",
     "theme.saved": "主题色已更新为：{theme}",
     "theme.blue": "蓝色",
     "theme.purple": "紫色",
