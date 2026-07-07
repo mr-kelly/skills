@@ -38,6 +38,8 @@ const labels = {
     block: "Block",
     demoDecision: "Demo mode: local handoff only.",
     search: "Search",
+    refresh: "Refresh",
+    auto: "Auto",
   },
   zh: {
     overview: "总览",
@@ -70,6 +72,8 @@ const labels = {
     block: "拦截",
     demoDecision: "演示模式：仅写本地交接。",
     search: "搜索",
+    refresh: "刷新",
+    auto: "自动",
   },
 };
 
@@ -127,6 +131,14 @@ function activeLang() {
 
 function t(key) {
   return labels[activeLang()][key] || key;
+}
+
+function applyShellLabels() {
+  document.documentElement.lang = activeLang() === "zh" ? "zh-CN" : "en";
+  document.querySelectorAll("[data-label]").forEach((node) => {
+    node.textContent = t(node.dataset.label);
+  });
+  els.search.placeholder = t("search");
 }
 
 function e(value) {
@@ -297,7 +309,7 @@ function render() {
     els.subtitle.textContent = `${state.data.profile.company} · ${t("generated")} ${new Date(state.data.generated_at).toLocaleString()}`;
   }
   els.sync.textContent = `${state.data.metrics.approvals} ${t("approvals")}`;
-  els.search.placeholder = t("search");
+  applyShellLabels();
   document.querySelectorAll("nav a").forEach((a) => a.classList.toggle("active", a.dataset.route === view));
   if (view === "contracts") renderContracts();
   else if (view === "obligations") renderObligations();

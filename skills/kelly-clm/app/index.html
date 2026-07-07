@@ -17,15 +17,15 @@
       </div>
       <input id="search" type="search" placeholder="Search">
       <nav>
-        <a href="#/overview" data-route="overview">Overview</a>
-        <a href="#/contracts" data-route="contracts">Contracts</a>
-        <a href="#/obligations" data-route="obligations">Obligations</a>
-        <a href="#/renewals" data-route="renewals">Renewals</a>
-        <a href="#/approvals" data-route="approvals">Approvals</a>
-        <a href="#/settings" data-route="settings">Settings</a>
+        <a href="#/overview" data-route="overview" data-label="overview">Overview</a>
+        <a href="#/contracts" data-route="contracts" data-label="contracts">Contracts</a>
+        <a href="#/obligations" data-route="obligations" data-label="obligations">Obligations</a>
+        <a href="#/renewals" data-route="renewals" data-label="renewals">Renewals</a>
+        <a href="#/approvals" data-route="approvals" data-label="approvals">Approvals</a>
+        <a href="#/settings" data-route="settings" data-label="settings">Settings</a>
       </nav>
       <select id="language">
-        <option value="auto">Auto</option>
+        <option value="auto" data-label="auto">Auto</option>
         <option value="en">English</option>
         <option value="zh">中文</option>
       </select>
@@ -36,7 +36,7 @@
           <h1 id="title">Overview</h1>
           <p id="subtitle"></p>
         </div>
-        <button id="refresh" type="button">Refresh</button>
+        <button id="refresh" type="button" data-label="refresh">Refresh</button>
       </header>
       <section id="content"></section>
     </main>

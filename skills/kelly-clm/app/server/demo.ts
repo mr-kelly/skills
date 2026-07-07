@@ -4,7 +4,7 @@ function L(zh) {
   return (en, zhText) => (zh ? zhText : en);
 }
 
-export function demoState(query = {}) {
+export function demoState(query: Record<string, string> = {}) {
   const zh = String(query.lang || "")
     .toLowerCase()
     .startsWith("zh");
