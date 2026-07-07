@@ -1,0 +1,55 @@
+{
+  "seller": {
+    "brand": "Nimbus Home",
+    "entity": "Nimbus Home Trading Co., Ltd.",
+    "base_currency": "USD"
+  },
+  "platforms": [
+    {
+      "platform": "amazon",
+      "enabled": true,
+      "store_name": "Nimbus Home US",
+      "token_env": "AMAZON_SELLER_TOKEN"
+    },
+    {
+      "platform": "shopify",
+      "enabled": true,
+      "store_name": "Nimbus Home DTC",
+      "token_env": "SHOPIFY_ADMIN_TOKEN"
+    },
+    {
+      "platform": "tiktok_shop",
+      "enabled": true,
+      "store_name": "Nimbus Home Studio",
+      "token_env": "TIKTOK_SHOP_TOKEN"
+    },
+    {
+      "platform": "ebay",
+      "enabled": true,
+      "store_name": "Nimbus Outlet",
+      "token_env": "EBAY_SELLER_TOKEN"
+    }
+  ],
+  "warehouses": [
+    {
+      "warehouse_id": "wh-sz",
+      "name": "Shenzhen 3PL",
+      "region": "CN-SZ"
+    },
+    {
+      "warehouse_id": "wh-la",
+      "name": "Los Angeles 3PL",
+      "region": "US-CA"
+    }
+  ],
+  "review_policy": {
+    "price_change_threshold_pct": 8,
+    "margin_floor_pct": 32,
+    "low_stock_days": 18,
+    "channel_publish_requires_approval": true
+  },
+  "sync": {
+    "sources": ["amazon", "shopify", "tiktok_shop", "ebay", "inventory_csv", "kelly-listing"],
+    "external_publish_requires_approval": true
+  }
+}
