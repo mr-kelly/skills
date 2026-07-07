@@ -221,6 +221,8 @@ app.post("/api/:kind{characters|relationships|episodes|shots|tasks}/:id?", async
 app.get("/", (c) => sendFile(c, path.join(APP_DIR, "index.html")));
 app.get("/app.js", (c) => sendFile(c, path.join(APP_DIR, "app.js")));
 app.get("/styles.css", (c) => sendFile(c, path.join(APP_DIR, "styles.css")));
+app.get("/accent-theme.js", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.js")));
+app.get("/accent-theme.css", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.css")));
 
 app.get("/i18n/*", (c) => {
   const rel = decodeURIComponent(c.req.path.replace(/^\/i18n\//, ""));
