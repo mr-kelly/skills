@@ -18,10 +18,10 @@
 <table>
   <tr>
     <td width="50%"><img src="skills/kelly-money/assets/screenshots/overview.png" alt="kelly-money — money ledger dashboard"></td>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="kelly-finance — three-statement model builder"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.png" alt="kelly-finance — three-statement model builder"></td>
   </tr>
   <tr>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="kelly-finance — model audit checks"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.png" alt="kelly-finance — model audit checks"></td>
     <td width="50%"><img src="skills/kelly-crm/assets/screenshots/overview.png" alt="kelly-crm — pipeline command desk"></td>
   </tr>
   <tr>
@@ -196,8 +196,8 @@ Kelly Finance is a local finance-model review desk. It creates and audits three-
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="Kelly Finance model builder"></td>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="Kelly Finance model checks"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.png" alt="Kelly Finance model builder"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.png" alt="Kelly Finance model checks"></td>
   </tr>
   <tr>
     <td><strong>Three-statement builder</strong><br>Workbook preview with assumptions, income statement, balance sheet, cash flow, and model checks for a clean forecast.</td>
