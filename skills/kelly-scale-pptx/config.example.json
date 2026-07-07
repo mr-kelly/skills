@@ -1,0 +1,38 @@
+{
+  "data_provider": "local",
+  "default_brand_id": "client-nanzhi",
+  "brand_profiles": [
+    {
+      "client_id": "client-nanzhi",
+      "name": "Nanzhi Chinese",
+      "audience": "Young Chinese learners and overseas families",
+      "language_mode": "zh+pinyin+light_en",
+      "style_system_id": "style-nanzhi-soft-classroom"
+    }
+  ],
+  "style_systems": [
+    {
+      "style_system_id": "style-nanzhi-soft-classroom",
+      "name": "Nanzhi Soft Classroom",
+      "palette": ["#F7A66A", "#FFF6E8", "#2F4F46", "#5A9D8C", "#C94F4F"],
+      "fonts": { "heading": "Arial Rounded MT Bold", "body": "Aptos", "chinese": "PingFang SC" },
+      "visual_rules": [
+        "Friendly illustrated children or bright inspectable photos on every teaching slide.",
+        "Chinese prompts stay large; pinyin and English support never compete with the main text.",
+        "Warm orange is the dominant teaching color; deep green is the stable navigation color."
+      ],
+      "layout_rules": [
+        "One teaching objective per slide card.",
+        "Use recurring slide families so a 30-deck batch still feels like one system.",
+        "Split dense dialogue or bilingual copy instead of shrinking text."
+      ],
+      "component_library": ["warm title band", "image plus question panel", "vocabulary chip row", "teacher note strip"]
+    }
+  ],
+  "export": {
+    "out_dir": "exports",
+    "render_dir": "exports/rendered",
+    "pptx_template": "",
+    "require_render_qa": true
+  }
+}

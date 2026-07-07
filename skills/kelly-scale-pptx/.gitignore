@@ -1,0 +1,8 @@
+node_modules/
+app/.data/
+app/.cache/
+exports/
+config.local.json
+*.local.json
+.env
+.env.local
