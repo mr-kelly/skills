@@ -6,12 +6,24 @@ const checked = new Set();
 let refreshTimer = null;
 let lockTimer = null;
 const LANGUAGE_STORAGE_KEY = "kelly-email.uiLanguage";
+const ACCENT_THEME_STORAGE_KEY = "kelly-email.accentTheme";
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-email.sidebarCollapsed";
+const ACCENT_THEMES = [
+  { id: "blue", color: "#0a84ff" },
+  { id: "purple", color: "#bf5af2" },
+  { id: "pink", color: "#ff2d55" },
+  { id: "red", color: "#ff3b30" },
+  { id: "orange", color: "#ff9500" },
+  { id: "yellow", color: "#ffcc00", check: "#1d1d1f" },
+  { id: "green", color: "#30d158" },
+  { id: "graphite", color: "#6e6e73" },
+];
 const params = new URLSearchParams(window.location.search);
 const demoScenario = params.get("demo") || "";
 let mode = modeForDemo(demoScenario);
 const queryLanguage = params.get("lang");
 let languageMode = queryLanguage || localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto";
+let accentTheme = resolveAccentTheme(localStorage.getItem(ACCENT_THEME_STORAGE_KEY) || "blue");
 let uiLanguage = "en";
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
@@ -36,6 +48,53 @@ function browserLanguage() {
 function resolveLanguage() {
   if (!["auto", "en", "zh-CN"].includes(languageMode)) languageMode = "auto";
   return languageMode === "auto" ? browserLanguage() : languageMode;
+}
+
+function resolveAccentTheme(value) {
+  return ACCENT_THEMES.some((theme) => theme.id === value) ? value : "blue";
+}
+
+function accentThemeLabel(id = accentTheme) {
+  return t(`theme.${resolveAccentTheme(id)}`);
+}
+
+function renderThemeSummary() {
+  const node = $("themeSummary");
+  if (!node) return;
+  node.textContent = t("theme.summary", { theme: accentThemeLabel() });
+}
+
+function renderThemeOptions() {
+  const node = $("themeOptions");
+  if (!node) return;
+  node.innerHTML = ACCENT_THEMES.map(
+    (theme) => `
+      <label class="theme-option" style="--swatch: ${theme.color}; --swatch-check: ${theme.check || "#ffffff"}">
+        <input type="radio" name="accentTheme" value="${theme.id}" ${theme.id === accentTheme ? "checked" : ""} />
+        <span class="theme-swatch" aria-hidden="true"></span>
+        <span>${escapeHtml(accentThemeLabel(theme.id))}</span>
+      </label>
+    `,
+  ).join("");
+  node.querySelectorAll('input[name="accentTheme"]').forEach((input) => {
+    input.onchange = () => setAccentTheme(input.value);
+  });
+}
+
+function applyAccentTheme() {
+  accentTheme = resolveAccentTheme(accentTheme);
+  document.documentElement.dataset.accentTheme = accentTheme;
+  document.querySelectorAll('input[name="accentTheme"]').forEach((input) => {
+    input.checked = input.value === accentTheme;
+  });
+  renderThemeSummary();
+}
+
+function setAccentTheme(value) {
+  accentTheme = resolveAccentTheme(value);
+  localStorage.setItem(ACCENT_THEME_STORAGE_KEY, accentTheme);
+  applyAccentTheme();
+  toast(t("theme.saved", { theme: accentThemeLabel() }));
 }
 
 function applyTranslations() {
@@ -64,7 +123,9 @@ function applyTranslations() {
   document.querySelectorAll('input[name="uiLanguage"]').forEach((input) => {
     input.checked = input.value === languageMode;
   });
+  renderThemeOptions();
   renderLanguageSummary();
+  applyAccentTheme();
 }
 
 function renderLanguageSummary() {
@@ -184,7 +245,7 @@ function routeModes() {
 }
 
 function helpTabs() {
-  return ["guide", "files", "accounts", "profile", "style", "knowledge", "language", "config"];
+  return ["guide", "files", "accounts", "profile", "style", "knowledge", "appearance", "config"];
 }
 
 function encodeRoutePart(value) {
@@ -213,8 +274,9 @@ function parseHashRoute() {
   const raw = (window.location.hash || "").replace(/^#\/?/, "");
   const parts = raw.split("/").filter(Boolean).map(decodeRoutePart);
   if (parts[0] === "settings") {
+    const requestedTab = parts[1] === "language" ? "appearance" : parts[1];
     return {
-      settingsTab: helpTabs().includes(parts[1]) ? parts[1] : "guide",
+      settingsTab: helpTabs().includes(requestedTab) ? requestedTab : "guide",
       mode,
       selectedId,
     };
@@ -805,6 +867,8 @@ function openHelp(tab = "guide") {
   $("helpStyle").innerHTML = styleSettingsHtml();
   $("helpKnowledge").innerHTML = knowledgeSettingsHtml();
   renderLanguageSummary();
+  renderThemeOptions();
+  applyAccentTheme();
   setHelpTab(tab);
   modal.classList.remove("is-hidden");
   modal.setAttribute("aria-hidden", "false");

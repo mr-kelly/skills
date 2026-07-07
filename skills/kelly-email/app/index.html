@@ -199,7 +199,7 @@
           <button data-help-tab="profile" data-i18n="tab.profile">Profile</button>
           <button data-help-tab="style" data-i18n="tab.style">Style</button>
           <button data-help-tab="knowledge" data-i18n="tab.knowledge">Knowledge</button>
-          <button data-help-tab="language" data-i18n="tab.language">Language</button>
+          <button data-help-tab="appearance" data-i18n="tab.appearance">Appearance</button>
           <button data-help-tab="config" data-i18n="tab.config">Config</button>
         </nav>
         <div class="modal-body">
@@ -242,7 +242,7 @@
             <h2 data-i18n="knowledge.title">Knowledge Base</h2>
             <div id="helpKnowledge" class="settings-grid" data-i18n="knowledge.none">No knowledge base loaded</div>
           </section>
-          <section class="help-tab-panel" data-help-panel="language">
+          <section class="help-tab-panel" data-help-panel="appearance">
             <h2 data-i18n="language.title">Language</h2>
             <p id="languageSummary">Auto follows your browser language.</p>
             <div class="language-options" role="radiogroup" aria-label="Language">
@@ -250,6 +250,9 @@
               <label><input type="radio" name="uiLanguage" value="en" /> <span data-i18n="language.english">English</span></label>
               <label><input type="radio" name="uiLanguage" value="zh-CN" /> <span data-i18n="language.chinese">中文</span></label>
             </div>
+            <h2 data-i18n="theme.title">Accent Color</h2>
+            <p id="themeSummary">Blue is selected.</p>
+            <div id="themeOptions" class="theme-options" role="radiogroup" aria-label="Accent color"></div>
           </section>
           <section class="help-tab-panel" data-help-panel="config">
             <h2 data-i18n="config.title">Configuration</h2>
