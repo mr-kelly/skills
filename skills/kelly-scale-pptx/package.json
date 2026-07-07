@@ -1,0 +1,22 @@
+{
+  "name": "kelly-scale-pptx",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Kelly Scale PPTX App-in-Skill — project-based PPTX courseware factory (Hono server, zero-build vanilla frontend).",
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "demo": "node scripts/generate_demo_snapshot.ts",
+    "validate": "node scripts/validate_ui_schema.ts",
+    "generate:pptx": "node scripts/generate_pptx.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14",
+    "pptxgenjs": "^3.12.0"
+  },
+  "engines": {
+    "node": ">=23.6"
+  }
+}
