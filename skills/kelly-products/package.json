@@ -1,0 +1,24 @@
+{
+  "name": "kelly-products",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Kelly Products App-in-Skill — local product management desk for e-commerce catalog, inventory, channels, and approvals.",
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "generate-demo-assets": "node scripts/generate_demo_assets.mjs",
+    "generate-demo-snapshot": "node scripts/generate_demo_snapshot.ts",
+    "validate-ui-schema": "node scripts/validate_ui_schema.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.3"
+  },
+  "engines": {
+    "node": ">=23.6"
+  }
+}
