@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-35 skills, including 32 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+39 skills, including 36 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-35-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-39-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -109,6 +109,10 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html) |
 | `kelly-picks` | Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read. | Use it when hunting products to sell, pressure-testing margins before committing, or running develop/watch/drop decisions with sourcing and listing briefs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-picks.html) |
 | `kelly-listing` | Listing factory: drafts platform-specific listings (Amazon title/bullets/description/backend terms/A+, Shopify, TikTok Shop, eBay) with locale variants, runs per-platform compliance checks, and exports approved copy. | Use it when writing or localizing marketplace listings, enforcing banned-word and character-limit rules, or batch-reviewing listing drafts before upload. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-listing.html) |
+| `kelly-legal-casebase-ingest` | Legal casebase intake and anonymization QA desk: the agent extracts archived judgments and awards into structured, redacted case records; reviewers approve, revise, or block before canonical ingest. | Use it when building an internal intelligent case database, processing judgment documents, reviewing anonymization, classifying/tagging cases, or running casebase quality acceptance. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-legal-casebase-ingest.html) |
+| `kelly-legal-precedent-desk` | Internal precedent research desk: the agent searches approved casebase records, prepares similar-case packs, local court-pattern notes, citations, and AI Q&A answers for reviewer approval. | Use it when lawyers need internal casebase search, similar-case matching, local court tendencies, precedent packs, or approved research exports grounded in the firm's own matters. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-legal-precedent-desk.html) |
+| `kelly-legal-matter-strategy` | Matter-strategy desk: the agent turns new matter facts and internal precedents into issue trees, evidence maps, risk posture, negotiation options, and pleading or memo outlines for partner review. | Use it when preparing litigation, arbitration, advisory, evidence, or drafting strategy that must be reviewed by the responsible lawyer before client-facing use. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-legal-matter-strategy.html) |
+| `kelly-legal-firm-radar` | Law-firm analytics and lawyer-profile radar over anonymized casebase metadata: practice mix, case-quality indicators, talent signals, brand proof points, and approval-gated management reports. | Use it when partners need business-layout analysis, case quality review, lawyer capability profiles, talent planning, or brand proof points from internal casebase data. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-legal-firm-radar.html) |
 | `kelly-clm` | Lightweight contract lifecycle desk for contract inventory, lifecycle stages, owners, obligations, renewal notices, and simple approval reminders. | Use it when managing a simple contract repository, tracking renewals or notice deadlines, assigning contract owners, or following up on obligations without doing detailed legal redlines. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-clm.html) |
 | `kelly-legal-contracts` | Legal-contract review desk for NDAs, MSAs, DPAs, and SOWs: the agent prepares clause issues, fallback language, playbook checks, and issue-list exports; legal reviews and approves in a local UI. | Use it when reviewing contracts, triaging clause risk, maintaining fallback playbooks, approving redline positions, or exporting legal issue lists without sending anything automatically. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-legal-contracts.html) |
 | `kelly-ads` | Ad-campaign command desk aggregating Amazon, Meta, TikTok, and Google ads into one board with ACOS/ROAS tracking, deterministic anomaly detection, and approval-gated adjustment cards (negative keywords, bids, budgets). | Use it when reviewing ad spend across platforms, catching zero-conversion spend and budget burnouts, or approving bid and keyword adjustments with evidence. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ads.html) |
@@ -711,6 +715,90 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Risk checks</strong><br>Per-rule pass/warn/fail results across clause issues, including hard-stop terms and playbook violations.</td>
     <td><strong>Clause issues</strong><br>Editable issue detail with fallback language, memo fields, reviewer rationale, and risk-check evidence.</td>
+  </tr>
+</table>
+
+### `kelly-legal-casebase-ingest`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-casebase-ingest/assets/screenshots/overview.png" alt="Kelly Legal Casebase Ingest overview"></td>
+    <td width="50%"><img src="skills/kelly-legal-casebase-ingest/assets/screenshots/needs-review.png" alt="Kelly Legal Casebase Ingest review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Casebase command desk with intake progress, anonymization risk, review load, and recent activity.</td>
+    <td><strong>Review queue</strong><br>Approval-gated case records with stable refs, anonymization evidence, review notes, and decision controls.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-casebase-ingest/assets/screenshots/checks.png" alt="Kelly Legal Casebase Ingest checks"></td>
+    <td width="50%"><img src="skills/kelly-legal-casebase-ingest/assets/screenshots/workbench.png" alt="Kelly Legal Casebase Ingest workbench"></td>
+  </tr>
+  <tr>
+    <td><strong>Checks</strong><br>Deterministic QA checks for PII leakage, taxonomy completeness, source coverage, and tag confidence.</td>
+    <td><strong>Workbench</strong><br>Detail pane for facts, reasoning, legal basis, tags, editable draft, and reviewer note before ingest.</td>
+  </tr>
+</table>
+
+### `kelly-legal-precedent-desk`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-precedent-desk/assets/screenshots/overview.png" alt="Kelly Legal Precedent Desk overview"></td>
+    <td width="50%"><img src="skills/kelly-legal-precedent-desk/assets/screenshots/needs-review.png" alt="Kelly Legal Precedent Desk review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Precedent command desk with packs awaiting review, high-match cases, approved packs, and recent activity.</td>
+    <td><strong>Review queue</strong><br>Similar-case packs with local court-pattern notes, citations, evidence, and approval controls.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-precedent-desk/assets/screenshots/checks.png" alt="Kelly Legal Precedent Desk checks"></td>
+    <td width="50%"><img src="skills/kelly-legal-precedent-desk/assets/screenshots/workbench.png" alt="Kelly Legal Precedent Desk workbench"></td>
+  </tr>
+  <tr>
+    <td><strong>Checks</strong><br>Quality checks for citation traceability, similarity rationale, jurisdiction fit, and confidentiality limits.</td>
+    <td><strong>Workbench</strong><br>Detail view for precedent reasoning, decisive facts, internal citations, draft memo, and review note.</td>
+  </tr>
+</table>
+
+### `kelly-legal-matter-strategy`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-matter-strategy/assets/screenshots/overview.png" alt="Kelly Legal Matter Strategy overview"></td>
+    <td width="50%"><img src="skills/kelly-legal-matter-strategy/assets/screenshots/needs-review.png" alt="Kelly Legal Matter Strategy review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Matter-strategy command desk with partner review load, ready-to-draft strategies, blocked items, and activity.</td>
+    <td><strong>Review queue</strong><br>Issue-tree and evidence-map recommendations with responsible-lawyer approval controls.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-matter-strategy/assets/screenshots/checks.png" alt="Kelly Legal Matter Strategy checks"></td>
+    <td width="50%"><img src="skills/kelly-legal-matter-strategy/assets/screenshots/workbench.png" alt="Kelly Legal Matter Strategy workbench"></td>
+  </tr>
+  <tr>
+    <td><strong>Checks</strong><br>Strategy QA for missing facts, evidence gaps, deadline caveats, precedent grounding, and risk warnings.</td>
+    <td><strong>Workbench</strong><br>Detail pane for issue tree, evidence map, risk posture, negotiation options, and draft outline.</td>
+  </tr>
+</table>
+
+### `kelly-legal-firm-radar`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-firm-radar/assets/screenshots/overview.png" alt="Kelly Legal Firm Radar overview"></td>
+    <td width="50%"><img src="skills/kelly-legal-firm-radar/assets/screenshots/needs-review.png" alt="Kelly Legal Firm Radar review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Firm radar command desk with partner review load, approved reports, blocked insights, and management activity.</td>
+    <td><strong>Review queue</strong><br>Approval-gated management insights for practice mix, lawyer profiles, and brand proof points.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-firm-radar/assets/screenshots/checks.png" alt="Kelly Legal Firm Radar checks"></td>
+    <td width="50%"><img src="skills/kelly-legal-firm-radar/assets/screenshots/workbench.png" alt="Kelly Legal Firm Radar workbench"></td>
+  </tr>
+  <tr>
+    <td><strong>Checks</strong><br>Analytics QA for anonymization, sample size, attribution, bias caveats, and external-use restrictions.</td>
+    <td><strong>Workbench</strong><br>Detail pane for practice analytics, talent signals, quality indicators, and approved management report text.</td>
   </tr>
 </table>
 

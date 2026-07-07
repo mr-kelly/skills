@@ -1,0 +1,5 @@
+interface:
+  display_name: "Legal Firm Radar"
+  short_description: "Firm analytics, practice mix, and lawyer profiles"
+  brand_color: "#7c3aed"
+  default_prompt: "Use $kelly-legal-firm-radar to open the local legal firm radar desk."

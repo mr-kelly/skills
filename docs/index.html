@@ -233,8 +233,8 @@ h2.group {
         <span class="en">Agent skills for daily business operations. Each App-in-Skill pairs an operating procedure for the agent with a local browser UI where a human reviews, approves, edits, and hands work back — dashboards for money, CRM, chat, SEO, market intel, ops, and more.</span><span class="zh">服务日常业务的 agent skills。每个 App-in-Skill 都由两部分组成：给 agent 的操作规程 + 一个本地浏览器操作台，供人 review、批准、编辑并把任务交还给 agent —— 覆盖资金、CRM、聊天聚合、SEO、市场情报、运维等场景。</span>
       </p>
       <div class="stats">
-        <span><strong>35</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
-        <span><strong>32</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
+        <span><strong>39</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
+        <span><strong>36</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
         <span><strong>0</strong><span class="en">npm dependencies</span><span class="zh">npm 依赖</span></span>
       </div>
       <div class="home-mobile-controls">
@@ -267,6 +267,7 @@ After installation, list the available skills and help me choose the right one f
 </section>
   <nav class="category-chips" aria-label="Categories"><button class="category-chip active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All</span><span class="zh">全部</span></button>
 <button class="category-chip" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">经营台账</span></button>
+<button class="category-chip" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal Knowledge</span><span class="zh">法律知识库</span></button>
 <button class="category-chip" type="button" data-category-filter="invest" onclick="mkSetCategory('invest')"><span class="en">Investing &amp; Wealth</span><span class="zh">投资与财富</span></button>
 <button class="category-chip" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span></button>
 <button class="category-chip" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Service</span><span class="zh">沟通与协作</span></button>
@@ -320,6 +321,39 @@ After installation, list the available skills and help me choose the right one f
   <div class="body">
     <span class="name">kelly-legal-contracts<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Legal-contract review desk for NDAs, MSAs, DPAs, and SOWs: the agent prepares clause issues, fallback language, playbook checks, and issue-list exports; legal reviews and approves in a local UI.</span><span class="zh">法务合同审阅台：覆盖 NDA、MSA、DPA、SOW，agent 准备条款风险项、fallback language、条款库检查和 issue list 导出，法务在本地 UI 审核批准。</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="legal">
+<h2 class="group" id="legal"><span class="en">Legal Knowledge</span><span class="zh">法律知识库</span></h2>
+<div class="grid">
+<a class="card" href="s/kelly-legal-casebase-ingest.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/overview.png" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/overview-zh-CN.png" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/overview.png" alt="kelly-legal-casebase-ingest UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-legal-casebase-ingest<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Legal casebase intake and anonymization QA desk: the agent extracts archived judgments and awards into structured, redacted case records; reviewers approve, revise, or block before canonical ingest.</span><span class="zh">法律案例库入库与脱敏质检台：agent 把归档判决书、裁定书、仲裁裁决提取成结构化、脱敏案例记录，审核人批准/修改/拦截后才进入 canonical 案例库。</span></span>
+  </div>
+</a>
+<a class="card" href="s/kelly-legal-precedent-desk.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-precedent-desk/assets/screenshots/overview.png" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-precedent-desk/assets/screenshots/overview-zh-CN.png" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-precedent-desk/assets/screenshots/overview.png" alt="kelly-legal-precedent-desk UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-legal-precedent-desk<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Internal precedent research desk: the agent searches approved casebase records, prepares similar-case packs, local court-pattern notes, citations, and AI Q&amp;A answers for reviewer approval.</span><span class="zh">内部类案检索与裁判尺度台：agent 检索已批准案例库，准备类案包、本地裁判尺度、引用片段和 AI 问答答案，律师复核后复用。</span></span>
+  </div>
+</a>
+<a class="card" href="s/kelly-legal-matter-strategy.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-matter-strategy/assets/screenshots/overview.png" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-matter-strategy/assets/screenshots/overview-zh-CN.png" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-matter-strategy/assets/screenshots/overview.png" alt="kelly-legal-matter-strategy UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-legal-matter-strategy<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Matter-strategy desk: the agent turns new matter facts and internal precedents into issue trees, evidence maps, risk posture, negotiation options, and pleading or memo outlines for partner review.</span><span class="zh">案件策略与文书辅助台：agent 基于新案事实和内部类案生成争议焦点树、证据地图、风险判断、谈判选项和文书大纲，交由主办律师/合伙人审核。</span></span>
+  </div>
+</a>
+<a class="card" href="s/kelly-legal-firm-radar.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/overview.png" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/overview-zh-CN.png" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/overview.png" alt="kelly-legal-firm-radar UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-legal-firm-radar<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Law-firm analytics and lawyer-profile radar over anonymized casebase metadata: practice mix, case-quality indicators, talent signals, brand proof points, and approval-gated management reports.</span><span class="zh">律所经营画像台：基于脱敏案例库元数据做业务结构、案件质量、律师能力画像、人才信号、品牌 proof point 和管理报告审批。</span></span>
   </div>
 </a>
 </div>
@@ -599,8 +633,9 @@ After installation, list the available skills and help me choose the right one f
 </section>
   <section class="side-card">
     <h3><span class="en">Categories</span><span class="zh">分类</span></h3>
-    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">35</span></button>
+    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">39</span></button>
 <button class="category-button" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">经营台账</span><span class="count">6</span></button>
+<button class="category-button" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal Knowledge</span><span class="zh">法律知识库</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="invest" onclick="mkSetCategory('invest')"><span class="en">Investing &amp; Wealth</span><span class="zh">投资与财富</span><span class="count">3</span></button>
 <button class="category-button" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Service</span><span class="zh">沟通与协作</span><span class="count">5</span></button>
