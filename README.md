@@ -232,16 +232,18 @@ Kelly Invest (Webull) is a local read-only portfolio dashboard over a personal W
 
 ### `kelly-invoice-sheet`
 
-Kelly Invoice Sheet turns invoices, receipts, credit notes, and statements into a local spreadsheet-style review table. The UI is inspired by Lido's Extract Data flow: an upload/extraction modal over a sheet-like grid, with confidence warnings, editable invoice fields, line items, and approval-gated CSV/JSON export.
+Kelly Invoice Sheet turns invoices, receipts, credit notes, and statements into a local spreadsheet-style review table. The UI is inspired by Lido's Extract Data flow: a sheet-like grid by default, an upload/extraction modal on demand, confidence warnings, editable invoice fields, line items, and approval-gated CSV/JSON export.
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-invoice-sheet/assets/screenshots/overview.png" alt="Kelly Invoice Sheet spreadsheet extraction desk"></td>
-    <td width="50%"><img src="skills/kelly-invoice-sheet/assets/screenshots/detail.png" alt="Kelly Invoice Sheet invoice detail review"></td>
+    <td width="33%"><img src="skills/kelly-invoice-sheet/assets/screenshots/overview.png" alt="Kelly Invoice Sheet spreadsheet extraction desk"></td>
+    <td width="33%"><img src="skills/kelly-invoice-sheet/assets/screenshots/detail.png" alt="Kelly Invoice Sheet invoice detail review"></td>
+    <td width="33%"><img src="skills/kelly-invoice-sheet/assets/screenshots/extract-data.png" alt="Kelly Invoice Sheet Extract Data upload modal"></td>
   </tr>
   <tr>
-    <td><strong>Spreadsheet extraction desk</strong><br>Lido-style Extract Data modal over a sheet-like invoice table, with upload sources, usage indicator, and review rows.</td>
+    <td><strong>Spreadsheet extraction desk</strong><br>Sheet-like invoice table with extracted rows, status filters, confidence flags, and human-attention counts.</td>
     <td><strong>Invoice detail review</strong><br>Editable invoice fields, line items, confidence notes, and approve/request-changes/block controls.</td>
+    <td><strong>Extract Data upload</strong><br>Lido-style upload modal with local file, Google Drive, OneDrive, and email source options.</td>
   </tr>
 </table>
 

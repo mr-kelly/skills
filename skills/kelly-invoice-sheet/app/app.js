@@ -7,7 +7,7 @@ const state = {
   settingsOpen: false,
   sidebarOpen: false,
   mobileDetailOpen: false,
-  uploadOpen: true,
+  uploadOpen: false,
   lang: localStorage.getItem("kelly-invoice-sheet-lang") || "auto",
   accent: localStorage.getItem("kelly-invoice-sheet-accent") || "green",
 };

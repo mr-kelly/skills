@@ -15,12 +15,14 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Invoice Sheet spreadsheet extraction desk"></td>
-    <td width="50%"><img src="assets/screenshots/detail.png" alt="Kelly Invoice Sheet invoice detail review"></td>
+    <td width="33%"><img src="assets/screenshots/overview.png" alt="Kelly Invoice Sheet spreadsheet extraction desk"></td>
+    <td width="33%"><img src="assets/screenshots/detail.png" alt="Kelly Invoice Sheet invoice detail review"></td>
+    <td width="33%"><img src="assets/screenshots/extract-data.png" alt="Kelly Invoice Sheet Extract Data upload modal"></td>
   </tr>
   <tr>
-    <td><strong>Spreadsheet extraction desk</strong><br>Lido-style Extract Data modal over a sheet-like invoice table, with upload sources, usage indicator, and review rows.</td>
+    <td><strong>Spreadsheet extraction desk</strong><br>Sheet-like invoice table with extracted rows, status filters, confidence flags, and human-attention counts.</td>
     <td><strong>Invoice detail review</strong><br>Editable invoice fields, line items, confidence notes, and approve/request-changes/block controls.</td>
+    <td><strong>Extract Data upload</strong><br>Lido-style upload modal with local file, Google Drive, OneDrive, and email source options.</td>
   </tr>
 </table>
 

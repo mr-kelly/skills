@@ -232,16 +232,18 @@ Kelly Invest（Webull）是本地只读投资组合 dashboard，通过 Webull Op
 
 ### `kelly-invoice-sheet`
 
-Kelly Invoice Sheet 把发票、收据、红字/贷项通知单和 statement 变成本地 spreadsheet 风格审阅表。界面参考 Lido 的 Extract Data 流程：表格上方有上传/抽取弹窗，表格里显示抽取结果，右侧可编辑发票字段、明细行、置信度提示，并通过审批后导出 CSV/JSON。
+Kelly Invoice Sheet 把发票、收据、红字/贷项通知单和 statement 变成本地 spreadsheet 风格审阅表。界面参考 Lido 的 Extract Data 流程：默认先显示可审阅表格，需要时再打开上传/抽取弹窗；右侧可编辑发票字段、明细行、置信度提示，并通过审批后导出 CSV/JSON。
 
 <table>
   <tr>
-    <td width="50%"><img src="../skills/kelly-invoice-sheet/assets/screenshots/overview-zh-CN.png" alt="Kelly Invoice Sheet 发票抽取表格"></td>
-    <td width="50%"><img src="../skills/kelly-invoice-sheet/assets/screenshots/detail-zh-CN.png" alt="Kelly Invoice Sheet 发票详情审核"></td>
+    <td width="33%"><img src="../skills/kelly-invoice-sheet/assets/screenshots/overview-zh-CN.png" alt="Kelly Invoice Sheet 发票抽取表格"></td>
+    <td width="33%"><img src="../skills/kelly-invoice-sheet/assets/screenshots/detail-zh-CN.png" alt="Kelly Invoice Sheet 发票详情审核"></td>
+    <td width="33%"><img src="../skills/kelly-invoice-sheet/assets/screenshots/extract-data-zh-CN.png" alt="Kelly Invoice Sheet Extract Data 上传弹窗"></td>
   </tr>
   <tr>
-    <td><strong>表格抽取台</strong><br>类似 Lido 的 Extract Data 弹窗叠在 sheet 风格发票表上，包含上传来源、页数用量和待审行。</td>
+    <td><strong>表格抽取台</strong><br>sheet 风格发票表直接展示抽取结果、状态筛选、置信度标记和人工关注计数。</td>
     <td><strong>发票详情审核</strong><br>可编辑发票字段、明细行、置信度备注，以及批准/要求修改/阻塞控件。</td>
+    <td><strong>Extract Data 上传</strong><br>类似 Lido 的上传弹窗，提供本地文件、Google Drive、OneDrive 和 Email 来源入口。</td>
   </tr>
 </table>
 
