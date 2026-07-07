@@ -1,0 +1,187 @@
+export function isDemoQuery(query: URLSearchParams): boolean {
+  const value = query.get("demo");
+  return value === "" || value === "1" || ["overview", "studio", "vendors", "qa"].includes(value || "");
+}
+
+export function demoState(query = new URLSearchParams()) {
+  const now = "2026-07-07T09:30:00.000Z";
+  const scene = query.get("demo") || "overview";
+
+  return {
+    snapshot: {
+      schema_version: "1",
+      generated_at: now,
+      source: "kelly-digital-human-demo",
+      scene,
+      project: {
+        name: "Kelly AI Product Host",
+        target_scene: "product_demo",
+        recommended_path: "2d_fast",
+        secondary_path: "3d_custom",
+        readiness_score: 82,
+        verdict: "FIX",
+        launch_goal: "Ship a polished web demo in days, then decide whether a 3D brand character is worth the build.",
+      },
+      metrics: {
+        target_latency_ms: 850,
+        current_latency_ms: 620,
+        lip_sync_score: 92,
+        stream_stability: 98,
+        qa_passed: 6,
+        qa_total: 8,
+      },
+      personas: [
+        {
+          id: "kelly-host-cn",
+          name: "Kelly AI Host",
+          path: "2d_fast",
+          language: "zh-CN",
+          voice: "warm product narrator",
+          look: "photoreal business presenter, calm studio lighting, product-demo wardrobe",
+          disclosure: "我是 AI 数字人助理，会为你演示产品流程。",
+        },
+        {
+          id: "brand-ip-3d",
+          name: "Brand IP 3D Host",
+          path: "3d_custom",
+          language: "zh-CN / en-US",
+          voice: "confident bilingual host",
+          look: "custom 3D brand character with reusable wardrobe and stage motions",
+          disclosure: "This is a branded AI avatar experience.",
+        },
+      ],
+      pipelines: [
+        {
+          id: "fast-2d-stream",
+          path: "2d_fast",
+          label: "2D service stream",
+          provider: "Silicon Intelligence / Tencent Zhiying / ZEGO-style adapter",
+          input: "text or voice stream",
+          output: "lip-synced video stream",
+          latency_ms: 620,
+          status: "ready_for_demo",
+          stages: ["text", "tts", "vendor avatar", "RTC/video stream", "web player"],
+        },
+        {
+          id: "custom-3d-engine",
+          path: "3d_custom",
+          label: "UE/Unity render path",
+          provider: "engine project + face/body driver",
+          input: "voice, intent, motion cues",
+          output: "interactive rendered avatar",
+          latency_ms: 1400,
+          status: "prototype_needed",
+          stages: ["voice", "viseme solve", "face rig", "body animation", "engine render"],
+        },
+      ],
+      vendors: [
+        {
+          id: "silicon-intelligence",
+          label: "Silicon Intelligence-style 2D service",
+          path: "2d_fast",
+          integration: "API/SDK: send text or audio stream, receive generated avatar video stream",
+          speed: "fast",
+          control: "medium",
+          cost: "low to medium",
+          risk: "avatar licensing, voice licensing, provider lock-in",
+        },
+        {
+          id: "tencent-zhiying",
+          label: "Tencent Zhiying-style 2D service",
+          path: "2d_fast",
+          integration: "template presenter + clip/stream workflow for marketing and explainers",
+          speed: "fast",
+          control: "medium",
+          cost: "low to medium",
+          risk: "template limits and export workflow constraints",
+        },
+        {
+          id: "zego-realtime",
+          label: "ZEGO-style real-time stream",
+          path: "2d_fast",
+          integration: "RTC-first avatar route for conversational customer-service demos",
+          speed: "medium",
+          control: "medium",
+          cost: "medium",
+          risk: "network jitter, concurrent stream cost, device fallback",
+        },
+        {
+          id: "ue-unity",
+          label: "UE/Unity custom digital human",
+          path: "3d_custom",
+          integration: "engine scene, rigged character, face/body driver, streaming or packaged app",
+          speed: "slow",
+          control: "high",
+          cost: "high",
+          risk: "asset production, rig quality, real-time render performance",
+        },
+      ],
+      qa_checks: [
+        {
+          id: "lip-sync",
+          label: "Lip sync quality",
+          status: "pass",
+          owner: "product",
+          evidence: "Mandarin demo line tracks mouth shapes with no obvious lag.",
+        },
+        {
+          id: "latency",
+          label: "End-to-end latency",
+          status: "pass",
+          owner: "engineering",
+          evidence: "Simulated route is 620ms against an 850ms demo target.",
+        },
+        {
+          id: "ai-disclosure",
+          label: "AI disclosure",
+          status: "pass",
+          owner: "legal",
+          evidence: "Presenter opening line discloses AI avatar status.",
+        },
+        {
+          id: "voice-consent",
+          label: "Voice and likeness consent",
+          status: "fix",
+          owner: "ops",
+          evidence: "Need signed permission before using a real person reference.",
+        },
+        {
+          id: "script-safety",
+          label: "Script safety and claims",
+          status: "pass",
+          owner: "marketing",
+          evidence: "No medical, financial, or unverifiable performance claims.",
+        },
+        {
+          id: "fallback",
+          label: "Network fallback",
+          status: "fix",
+          owner: "engineering",
+          evidence: "Need static host card if avatar stream disconnects.",
+        },
+        {
+          id: "privacy",
+          label: "Private audio handling",
+          status: "pass",
+          owner: "security",
+          evidence: "Demo uses generated text and no live microphone capture.",
+        },
+        {
+          id: "mobile",
+          label: "Mobile layout",
+          status: "pass",
+          owner: "design",
+          evidence: "Studio controls and video stage fit small screens.",
+        },
+      ],
+      events: [
+        { at: "T+0.0s", kind: "text", label: "script chunk queued" },
+        { at: "T+0.2s", kind: "voice", label: "voice stream accepted" },
+        { at: "T+0.4s", kind: "avatar", label: "viseme frames generated" },
+        { at: "T+0.6s", kind: "stream", label: "video stream ready" },
+        { at: "T+0.8s", kind: "qa", label: "latency target passed" },
+      ],
+    },
+    decisions: { decisions: {} },
+  };
+}
