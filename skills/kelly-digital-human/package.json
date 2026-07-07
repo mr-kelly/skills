@@ -1,0 +1,19 @@
+{
+  "name": "kelly-digital-human",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Kelly Digital Human App-in-Skill demo desk.",
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "validate": "node scripts/validate_ui_schema.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14"
+  },
+  "engines": {
+    "node": ">=23.6"
+  }
+}

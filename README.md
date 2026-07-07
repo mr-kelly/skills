@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-40 skills, including 37 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+41 skills, including 38 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-40-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-41-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -122,6 +122,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-pr-review` | Runs a GitHub PR review desk through `gh` CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved `gh pr review` actions. | Use it when reviewing GitHub pull requests, approving/commenting/requesting changes from a local queue, or batching PR review decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html) |
 | `kelly-drama` | Produces short-drama series with a local workbench for series overview, character library, relationship map, episode table, and shot sheets. Generates storyboard images with character reference cards and coordinates AI and human tasks. | Use it when planning and producing a short-drama series end-to-end: writing episode scripts, building character sheets, managing storyboard shots, and reviewing AI-generated images before use. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-drama.html) |
 | `kelly-mv` | Builds a pure-visual music video workbench: upload an MP3, write the MV concept, build a cast of on-screen characters with reference cards, and create a shot-by-shot storyboard with generated or uploaded images and draft videos. | Use it when producing a pure-visual music video — no narration or subtitles — by generating or uploading shot images and videos and assembling them over the song. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-mv.html) |
+| `kelly-digital-human` | Digital-human solution desk and multimodal demo for choosing between low-cost 2D photoreal avatar services and high-control UE/Unity 3D custom digital humans, with a local studio showing voice/text input, lip-sync video stream, vendor route latency, and launch QA. | Use it when planning an AI host, customer-service avatar, product explainer, livestream assistant, or digital-human demo; comparing services such as Silicon Intelligence, Tencent Zhiying, or ZEGO-style real-time providers; or designing a 3D UE/Unity avatar pipeline. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-digital-human.html) |
 | `kelly-creators` | Influencer/creator-marketing command desk built on the Discover→Plan→Activate→Measure pipeline: the agent sweeps and fit-scores creator candidates (C³ ACE), drafts outreach, briefs, and contracts, and a pre-publish gate (SHIP/FIX/BLOCK) checks FTC disclosure and claim authenticity, all reviewed in a local UI with a ROI board. | Use it when discovering and vetting creators, approving outreach and briefs, running a creator-campaign pipeline, or tracking influencer ROI and budget. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-creators.html) |
 | `kelly-campaigns` | Outbound email-marketing desk on the SEND lifecycle (Setup→Engage→Nurture→Deliver): the agent builds segments, drafts campaigns, newsletters, and sequences, and runs pre-send deliverability + subject-line QA behind an EQS quality gate (SHIP/FIX/BLOCK) before anything is scheduled or sent. | Use it when planning email campaigns, newsletters, or lifecycle sequences, checking deliverability and A/B subjects, or approving sends — distinct from `kelly-email` inbox triage. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-campaigns.html) |
 | `kelly-launch` | Product-launch command desk on the RAMP framework (Research→Assemble→Mobilize→Prove): the agent assembles the launch checklist, drafts assets, Product Hunt / Hacker News submissions, press pitches, and the launch-day runbook, with a readiness gate scoring launch quality (LQS → SHIP/FIX/BLOCK). | Use it when planning and running a product launch: building the checklist, approving assets and channel submissions, gating launch readiness, or conducting launch day. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-launch.html) |
@@ -371,6 +372,29 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
   <tr>
     <td><strong>Cast</strong><br>Character list with reference card status and a detail form for visual description, wardrobe, and consistency anchors.</td>
     <td><strong>Song</strong><br>MP3 upload and song metadata form with auto-detected duration and song-gen backend status.</td>
+  </tr>
+</table>
+
+### `kelly-digital-human`
+
+Digital-human implementation and demo desk for choosing between a fast 2D service integration and a high-control 3D UE/Unity build.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-digital-human/assets/screenshots/overview.png" alt="Kelly Digital Human overview"></td>
+    <td width="50%"><img src="skills/kelly-digital-human/assets/screenshots/studio.png" alt="Kelly Digital Human live studio"></td>
+  </tr>
+  <tr>
+    <td><strong>Solution overview</strong><br>Side-by-side 2D fast-launch and 3D custom-build paths, with readiness score, latency targets, and launch blockers.</td>
+    <td><strong>Multimodal studio</strong><br>Animated avatar stream with lip motion, waveform, transcript, provider mode, route latency, and stream events.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-digital-human/assets/screenshots/vendors.png" alt="Kelly Digital Human vendor architecture"></td>
+    <td width="50%"><img src="skills/kelly-digital-human/assets/screenshots/qa.png" alt="Kelly Digital Human QA gate"></td>
+  </tr>
+  <tr>
+    <td><strong>Vendor and architecture desk</strong><br>Compares 2D service integration, real-time RTC rendering, and UE/Unity 3D architecture with cost, speed, and control tradeoffs.</td>
+    <td><strong>Launch QA gate</strong><br>Checks lip sync, stream latency, consent, script safety, fallback behavior, and production handoff state before launch.</td>
   </tr>
 </table>
 
