@@ -1,0 +1,16 @@
+{
+  "data_provider": "local",
+  "default_currency": "USD",
+  "extraction": {
+    "preferred_ocr": "agent-provided",
+    "low_confidence_threshold": 0.82
+  },
+  "review_policy": {
+    "auto_approve_min_confidence": null,
+    "block_missing_fields": ["vendor_name", "invoice_number", "invoice_date", "total"]
+  },
+  "export": {
+    "directory": "exports/<batch-id>",
+    "include_line_items": true
+  }
+}
