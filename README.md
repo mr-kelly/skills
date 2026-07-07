@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-34 skills, including 31 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+35 skills, including 32 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-34-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-35-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -109,6 +109,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html) |
 | `kelly-picks` | Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read. | Use it when hunting products to sell, pressure-testing margins before committing, or running develop/watch/drop decisions with sourcing and listing briefs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-picks.html) |
 | `kelly-listing` | Listing factory: drafts platform-specific listings (Amazon title/bullets/description/backend terms/A+, Shopify, TikTok Shop, eBay) with locale variants, runs per-platform compliance checks, and exports approved copy. | Use it when writing or localizing marketplace listings, enforcing banned-word and character-limit rules, or batch-reviewing listing drafts before upload. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-listing.html) |
+| `kelly-clm` | Lightweight contract lifecycle desk for contract inventory, lifecycle stages, owners, obligations, renewal notices, and simple approval reminders. | Use it when managing a simple contract repository, tracking renewals or notice deadlines, assigning contract owners, or following up on obligations without doing detailed legal redlines. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-clm.html) |
 | `kelly-legal-contracts` | Legal-contract review desk for NDAs, MSAs, DPAs, and SOWs: the agent prepares clause issues, fallback language, playbook checks, and issue-list exports; legal reviews and approves in a local UI. | Use it when reviewing contracts, triaging clause risk, maintaining fallback playbooks, approving redline positions, or exporting legal issue lists without sending anything automatically. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-legal-contracts.html) |
 | `kelly-ads` | Ad-campaign command desk aggregating Amazon, Meta, TikTok, and Google ads into one board with ACOS/ROAS tracking, deterministic anomaly detection, and approval-gated adjustment cards (negative keywords, bids, budgets). | Use it when reviewing ad spend across platforms, catching zero-conversion spend and budget burnouts, or approving bid and keyword adjustments with evidence. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ads.html) |
 | `kelly-standup` | Team standup board: the agent collects members' daily check-ins from chat channels on demand, structures them into yesterday/today/blockers cards with a team digest, and drafts approval-gated nudges for missing check-ins. | Use it when running daily standups asynchronously, seeing what everyone is working on at a glance, or tracking blockers and participation across the team. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html) |
@@ -710,6 +711,29 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Risk checks</strong><br>Per-rule pass/warn/fail results across clause issues, including hard-stop terms and playbook violations.</td>
     <td><strong>Clause issues</strong><br>Editable issue detail with fallback language, memo fields, reviewer rationale, and risk-check evidence.</td>
+  </tr>
+</table>
+
+### `kelly-clm`
+
+Kelly CLM is a deliberately lightweight contract lifecycle desk for contract inventory, owners, obligations, renewal notices, and simple approval reminders. It stays separate from `kelly-legal-contracts`, which remains the detailed legal review desk.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-clm/assets/screenshots/overview.png" alt="Kelly CLM overview"></td>
+    <td width="50%"><img src="skills/kelly-clm/assets/screenshots/contracts.png" alt="Kelly CLM contracts"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Lifecycle dashboard with stage pipeline, upcoming renewals, and at-risk obligations.</td>
+    <td><strong>Contracts</strong><br>Simple contract inventory with owner, counterparty, stage, value, and dates.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-clm/assets/screenshots/obligations.png" alt="Kelly CLM obligations"></td>
+    <td width="50%"><img src="skills/kelly-clm/assets/screenshots/renewals.png" alt="Kelly CLM renewals"></td>
+  </tr>
+  <tr>
+    <td><strong>Obligations</strong><br>Owner-assigned obligation tracker with due dates and status.</td>
+    <td><strong>Renewals</strong><br>Renewal board with notice deadlines and simple follow-up actions.</td>
   </tr>
 </table>
 

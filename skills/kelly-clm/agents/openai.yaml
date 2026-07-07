@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly CLM"
+  short_description: "Lightweight contract lifecycle desk"
+  default_prompt: "Use $kelly-clm to open my lightweight contract lifecycle desk."
