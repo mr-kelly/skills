@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly CLM</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="mark">CL</span>
+        <div>
+          <strong>Kelly CLM</strong>
+          <small id="sync">Loading</small>
+        </div>
+      </div>
+      <input id="search" type="search" placeholder="Search">
+      <nav>
+        <a href="#/overview" data-route="overview">Overview</a>
+        <a href="#/contracts" data-route="contracts">Contracts</a>
+        <a href="#/obligations" data-route="obligations">Obligations</a>
+        <a href="#/renewals" data-route="renewals">Renewals</a>
+        <a href="#/approvals" data-route="approvals">Approvals</a>
+        <a href="#/settings" data-route="settings">Settings</a>
+      </nav>
+      <select id="language">
+        <option value="auto">Auto</option>
+        <option value="en">English</option>
+        <option value="zh">中文</option>
+      </select>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <h1 id="title">Overview</h1>
+          <p id="subtitle"></p>
+        </div>
+        <button id="refresh" type="button">Refresh</button>
+      </header>
+      <section id="content"></section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
