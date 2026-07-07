@@ -574,7 +574,11 @@ async function main() {
   if (args.frame) {
     console.log("\nFraming screenshots...");
     const frameArgs = ["scripts/frame-screenshots.mjs", "--force"];
-    for (const skill of bySkill.keys()) frameArgs.push("--skill", skill);
+    if (args.paths.length) {
+      for (const file of files) frameArgs.push("--path", relPath(file).replace(/\.svg$/i, ".png"));
+    } else {
+      for (const skill of bySkill.keys()) frameArgs.push("--skill", skill);
+    }
     await runCommand(process.execPath, frameArgs);
   }
 }
