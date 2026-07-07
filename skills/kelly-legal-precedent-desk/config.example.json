@@ -1,0 +1,23 @@
+{
+  "data_provider": "local",
+  "firm_profile": {
+    "firm_name": "Example Shenzhen Law Office",
+    "branch": "Shenzhen",
+    "default_jurisdictions": ["Guangdong", "Shenzhen"],
+    "reviewer_role": "responsible lawyer"
+  },
+  "casebase": {
+    "provider": "local",
+    "approved_records_path": "../kelly-legal-casebase-ingest/app/.data/casebase_snapshot.json"
+  },
+  "search_policy": {
+    "default_jurisdiction": "Shenzhen",
+    "minimum_similarity_score": 0.72,
+    "require_source_case_ids": true,
+    "quote_limit_words": 120
+  },
+  "export": {
+    "format": "markdown+json",
+    "out_dir": "exports/research-packs"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "data_provider": "local",
+  "firm_profile": {
+    "firm_name": "Example Shenzhen Law Office",
+    "branch": "Shenzhen",
+    "default_jurisdictions": ["Guangdong", "Shenzhen"],
+    "reviewer_role": "responsible partner"
+  },
+  "strategy_policy": {
+    "require_precedent_links": true,
+    "require_evidence_map": true,
+    "default_risk_scale": ["low", "medium", "high", "critical"],
+    "approval_required_for_client_facing": true
+  },
+  "templates": {
+    "enabled": ["litigation_claim", "defense", "arbitration", "legal_opinion"]
+  },
+  "export": {
+    "format": "markdown+json",
+    "out_dir": "exports/strategy-packs"
+  }
+}

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Legal Matter Strategy"
+  short_description: "Matter strategy plans from internal precedents"
+  brand_color: "#4f46e5"
+  default_prompt: "Use $kelly-legal-matter-strategy to open the local legal matter strategy desk."

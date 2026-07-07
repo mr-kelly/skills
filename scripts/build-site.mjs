@@ -22,6 +22,17 @@ const GROUPS = [
     skills: ["kelly-money", "kelly-audit", "kelly-crm", "kelly-legal-contracts"],
   },
   {
+    id: "legal",
+    en: "Legal Knowledge",
+    zh: "法律知识库",
+    skills: [
+      "kelly-legal-casebase-ingest",
+      "kelly-legal-precedent-desk",
+      "kelly-legal-matter-strategy",
+      "kelly-legal-firm-radar",
+    ],
+  },
+  {
     id: "invest",
     en: "Investing & Wealth",
     zh: "投资与财富",

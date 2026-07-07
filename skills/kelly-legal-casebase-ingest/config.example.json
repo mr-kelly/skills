@@ -1,0 +1,27 @@
+{
+  "data_provider": "local",
+  "firm_profile": {
+    "firm_name": "Example Shenzhen Law Office",
+    "branch": "Shenzhen",
+    "default_jurisdictions": ["Guangdong", "Shenzhen"],
+    "reviewer_role": "casebase working group"
+  },
+  "ingestion": {
+    "allowed_document_types": ["judgment", "ruling_with_substantive_reasoning", "arbitral_award"],
+    "source_paths": ["./app/.data/inbox"],
+    "monthly_auto_extract": true
+  },
+  "anonymization": {
+    "standard": "people-court-casebase-aligned",
+    "require_party_redaction": true,
+    "require_business_secret_review": true,
+    "sample_rate": 0.2
+  },
+  "taxonomy": {
+    "required_fields": ["cause", "court", "procedure", "lawyers", "outcome", "issues", "holding"]
+  },
+  "export": {
+    "format": "json+markdown+csv",
+    "out_dir": "exports/case-records"
+  }
+}
