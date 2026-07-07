@@ -1,0 +1,22 @@
+{
+  "data_provider": "local",
+  "firm_profile": {
+    "firm_name": "Example Shenzhen Law Office",
+    "branch": "Shenzhen",
+    "default_jurisdictions": ["Guangdong", "Shenzhen"],
+    "reviewer_role": "management committee"
+  },
+  "analytics_policy": {
+    "require_anonymized_metadata": true,
+    "minimum_sample_size_for_claim": 5,
+    "external_brand_claims_require_approval": true,
+    "allowed_views": ["management", "practice", "lawyer_profile", "brand_proof"]
+  },
+  "taxonomy": {
+    "practice_areas": ["民商事", "公司争议", "劳动", "知识产权", "刑事", "行政"]
+  },
+  "export": {
+    "format": "markdown+csv",
+    "out_dir": "exports/management-reports"
+  }
+}

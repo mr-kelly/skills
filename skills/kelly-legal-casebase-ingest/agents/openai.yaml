@@ -1,0 +1,5 @@
+interface:
+  display_name: "Legal Casebase Ingest"
+  short_description: "Case intake, anonymization, tagging, and QA"
+  brand_color: "#475569"
+  default_prompt: "Use $kelly-legal-casebase-ingest to open the local legal casebase ingest desk."

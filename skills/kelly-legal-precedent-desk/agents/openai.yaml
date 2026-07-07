@@ -1,0 +1,5 @@
+interface:
+  display_name: "Legal Precedent Desk"
+  short_description: "Internal precedent search and court-pattern packs"
+  brand_color: "#0f766e"
+  default_prompt: "Use $kelly-legal-precedent-desk to open the local legal precedent desk."

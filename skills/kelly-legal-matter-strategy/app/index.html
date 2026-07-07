@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Legal Matter Strategy</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">L</div>
+          <div class="brand-copy">
+            <div class="brand-title" data-i18n="appTitle">Legal Matter Strategy</div>
+            <div class="brand-subtitle" data-i18n="appSubtitle">Strategy, evidence, and drafting plans</div>
+          </div>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar">
+            <span class="sidebar-toggle-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+        <section class="human-work">
+          <div class="human-label" data-i18n="humanAttention">Human attention</div>
+          <div class="human-primary">
+            <span data-i18n="humanTask">Need partner judgment</span>
+            <strong id="count-needs">0</strong>
+          </div>
+          <div class="human-secondary">
+            <span><b id="count-ready">0</b> <span data-i18n="readyLabel">Ready to draft</span></span>
+            <span><b id="count-blocked">0</b> <span data-i18n="blockedLabel">Blocked strategies</span></span>
+          </div>
+        </section>
+        <div class="sidebar-separator"></div>
+        <div class="nav-label" data-i18n="workflow">Workflow</div>
+        <nav class="filters" aria-label="Workflow">
+          <a href="#/items" data-route="items" data-i18n="allItems" data-i18n-title="allItems" title="All items">All items</a>
+          <a href="#/review" data-route="review" data-i18n="needsReview" data-i18n-title="needsReview" title="Needs review">Needs Review</a>
+          <a href="#/approved" data-route="approved" data-i18n="approved" data-i18n-title="approved" title="Approved">Approved</a>
+          <a href="#/done" data-route="done" data-i18n="done" data-i18n-title="done" title="Done">Done</a>
+          <a href="#/blocked" data-route="blocked" data-i18n="blocked" data-i18n-title="blocked" title="Blocked">Blocked</a>
+        </nav>
+        <div class="search"><input id="search" type="search" placeholder="Search" /></div>
+        <div class="nav-label" data-i18n="views">Views</div>
+        <nav class="filters secondary-nav" aria-label="Views">
+          <a href="#/overview" data-route="overview" data-i18n="overview" data-i18n-title="overview" title="Overview">Overview</a>
+          <a href="#/checks" data-route="checks" data-i18n="checks" data-i18n-title="checks" title="Checks">Checks</a>
+          <a href="#/entities" data-route="entities" data-i18n="entities" data-i18n-title="entities" title="Library">Library</a>
+          <a href="#/settings" data-route="settings" data-i18n="settings" data-i18n-title="settings" title="Settings">Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          <select id="language" aria-label="Language">
+            <option value="auto">Auto</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+          <button id="refresh" type="button" data-i18n="refresh">Refresh</button>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" title="Open sidebar">
+            <span class="sidebar-toggle-icon" aria-hidden="true"></span>
+          </button>
+          <div class="mobile-title">
+            <strong id="mobileViewTitle">Overview</strong>
+            <span id="mobileViewMeta">0 items</span>
+          </div>
+          <button id="mobileRefresh" class="icon-button" type="button" title="Refresh">↻</button>
+        </div>
+        <header class="topbar">
+          <div>
+            <h1 id="page-title">Legal Matter Strategy</h1>
+            <p id="page-subtitle">Builds reviewer-gated matter strategy packs from facts and internal precedents: issue tree, evidence map, risk posture, negotiation options, and pleading or memo outlines.</p>
+          </div>
+          <span id="sync-status" class="sync-status"></span>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

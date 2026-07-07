@@ -1,0 +1,20 @@
+{
+  "name": "kelly-legal-casebase-ingest",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Legal Casebase Ingest App-in-Skill local desk.",
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "demo": "node scripts/generate_demo_snapshot.ts",
+    "validate": "node scripts/validate_ui_schema.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14"
+  },
+  "engines": {
+    "node": ">=23.6"
+  }
+}
