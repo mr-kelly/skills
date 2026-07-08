@@ -43,16 +43,16 @@ The boundary is the point: a launch is a burst of irreversible public actions, s
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Launch overview"></td>
-    <td width="50%"><img src="assets/screenshots/assets.png" alt="Kelly Launch assets queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Launch overview"></td>
+    <td width="50%"><img src="assets/screenshots/assets.webp" alt="Kelly Launch assets queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Launch countdown, the RAMP readiness gate with its LQS score, phase progress, and channel status.</td>
     <td><strong>Assets</strong><br>Approval queue for launch assets, Product Hunt / Hacker News submissions, and press pitches.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/checklist.png" alt="Kelly Launch checklist"></td>
-    <td width="50%"><img src="assets/screenshots/launchday.png" alt="Kelly Launch launch-day runbook"></td>
+    <td width="50%"><img src="assets/screenshots/checklist.webp" alt="Kelly Launch checklist"></td>
+    <td width="50%"><img src="assets/screenshots/launchday.webp" alt="Kelly Launch launch-day runbook"></td>
   </tr>
   <tr>
     <td><strong>Checklist</strong><br>Launch tasks grouped by RAMP phase — Research, Assemble, Mobilize, Prove.</td>

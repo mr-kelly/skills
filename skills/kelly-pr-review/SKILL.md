@@ -10,24 +10,24 @@ description: GitHub pull request review desk using gh CLI, local App-in-Skill UI
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly PR Review overview"></td>
-    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly PR Review needs review"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly PR Review overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.webp" alt="Kelly PR Review needs review"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Pull request review desk with repository filters, status counts, and reviewer configuration.</td>
     <td><strong>Needs review</strong><br>Mock pull request review with findings, confidence signals, test notes, and suggested actions.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/ready.png" alt="Kelly PR Review ready to approve"></td>
-    <td width="50%"><img src="assets/screenshots/blocked-security.png" alt="Kelly PR Review blocked review"></td>
+    <td width="50%"><img src="assets/screenshots/ready.webp" alt="Kelly PR Review ready to approve"></td>
+    <td width="50%"><img src="assets/screenshots/blocked-security.webp" alt="Kelly PR Review blocked review"></td>
   </tr>
   <tr>
     <td><strong>Ready to approve</strong><br>Approval-focused review where checks pass and the final recommendation is ready to send.</td>
     <td><strong>Blocked review</strong><br>Security-sensitive PR scenario with unresolved risk, blocking rationale, and reviewer handoff details.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/needs-test.png" alt="Kelly PR Review merged PR needs test"></td>
-    <td width="50%"><img src="assets/screenshots/tested.png" alt="Kelly PR Review tested verification"></td>
+    <td width="50%"><img src="assets/screenshots/needs-test.webp" alt="Kelly PR Review merged PR needs test"></td>
+    <td width="50%"><img src="assets/screenshots/tested.webp" alt="Kelly PR Review tested verification"></td>
   </tr>
   <tr>
     <td><strong>Needs test</strong><br>Merged pull request waiting for human verification with a required test note or screenshot evidence.</td>

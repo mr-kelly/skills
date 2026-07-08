@@ -18,16 +18,16 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Standup today board"></td>
-    <td width="50%"><img src="assets/screenshots/blockers.png" alt="Kelly Standup blockers"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Standup today board"></td>
+    <td width="50%"><img src="assets/screenshots/blockers.webp" alt="Kelly Standup blockers"></td>
   </tr>
   <tr>
     <td><strong>Today board</strong><br>Daily standup at a glance: team digest, participation count, and per-member yesterday/today/blockers cards with source badges.</td>
     <td><strong>Blockers</strong><br>All blockers across the team with severity, age, and agent-suggested next actions.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/members.png" alt="Kelly Standup members"></td>
-    <td width="50%"><img src="assets/screenshots/reminders.png" alt="Kelly Standup reminders"></td>
+    <td width="50%"><img src="assets/screenshots/members.webp" alt="Kelly Standup members"></td>
+    <td width="50%"><img src="assets/screenshots/reminders.webp" alt="Kelly Standup reminders"></td>
   </tr>
   <tr>
     <td><strong>Members</strong><br>Team roster with check-in streaks, 30-day participation, open blockers, and per-member update timelines.</td>

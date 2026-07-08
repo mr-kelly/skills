@@ -16,16 +16,16 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Messenger overview"></td>
-    <td width="50%"><img src="assets/screenshots/chat.png" alt="Kelly Messenger conversation"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Messenger overview"></td>
+    <td width="50%"><img src="assets/screenshots/chat.webp" alt="Kelly Messenger conversation"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Messaging command desk with reply-decision counts, per-platform sync status, and oldest-waiting indicator.</td>
     <td><strong>Conversation</strong><br>Chat transcript with an agent-suggested reply prefilled in the composer, ready to edit and queue.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/inbox.png" alt="Kelly Messenger unified inbox"></td>
-    <td width="50%"><img src="assets/screenshots/outbox.png" alt="Kelly Messenger reply outbox"></td>
+    <td width="50%"><img src="assets/screenshots/inbox.webp" alt="Kelly Messenger unified inbox"></td>
+    <td width="50%"><img src="assets/screenshots/outbox.webp" alt="Kelly Messenger reply outbox"></td>
   </tr>
   <tr>
     <td><strong>Unified inbox</strong><br>Conversations across WhatsApp, Slack, Discord, and Telegram sorted by latest activity with waiting-time badges.</td>

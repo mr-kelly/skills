@@ -8,16 +8,16 @@ It is designed for work like 南枝中文: a reusable PPT style system, many chi
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Scale PPTX overview"></td>
-    <td width="50%"><img src="assets/screenshots/review.png" alt="Kelly Scale PPTX review queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Scale PPTX overview"></td>
+    <td width="50%"><img src="assets/screenshots/review.webp" alt="Kelly Scale PPTX review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Courseware factory dashboard with project, deck, slide-card, QA, and style-score counters.</td>
     <td><strong>Review queue</strong><br>Slide-card and deck approvals before the agent generates or revises PPTX output.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/slides.png" alt="Kelly Scale PPTX slide cards"></td>
-    <td width="50%"><img src="assets/screenshots/exports.png" alt="Kelly Scale PPTX exports"></td>
+    <td width="50%"><img src="assets/screenshots/slides.webp" alt="Kelly Scale PPTX slide cards"></td>
+    <td width="50%"><img src="assets/screenshots/exports.webp" alt="Kelly Scale PPTX exports"></td>
   </tr>
   <tr>
     <td><strong>Slide cards</strong><br>Storyboard-style page specs: objective, layout, copy, visual brief, interaction, style checks, and QA flags.</td>

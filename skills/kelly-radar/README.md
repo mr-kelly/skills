@@ -21,16 +21,16 @@ Kelly Radar is a local App-in-Skill market-intelligence desk. One app merges com
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Radar overview"></td>
-    <td width="50%"><img src="assets/screenshots/research.png" alt="Kelly Radar research desk"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Radar overview"></td>
+    <td width="50%"><img src="assets/screenshots/research.webp" alt="Kelly Radar research desk"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Market-intelligence desk with signals to triage, watchlist freshness, top trend movers, and the research pipeline.</td>
     <td><strong>Research desk</strong><br>Research questions moving through brief approval, deep research, and cited report review.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/signals.png" alt="Kelly Radar competitor signals"></td>
-    <td width="50%"><img src="assets/screenshots/trends.png" alt="Kelly Radar trends"></td>
+    <td width="50%"><img src="assets/screenshots/signals.webp" alt="Kelly Radar competitor signals"></td>
+    <td width="50%"><img src="assets/screenshots/trends.webp" alt="Kelly Radar trends"></td>
   </tr>
   <tr>
     <td><strong>Signals</strong><br>Competitor pricing, changelog, launch, review, and hiring signals with severity badges and Act/Watch/Ignore triage.</td>

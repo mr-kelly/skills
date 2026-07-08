@@ -6,23 +6,23 @@ Turns archived judgments and arbitral awards into reviewed internal case records
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Legal Casebase Ingest overview"></td>
-    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Legal Casebase Ingest review queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Legal Casebase Ingest overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.webp" alt="Legal Casebase Ingest review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Casebase command desk with intake progress, anonymization risk, review load, and recent activity.</td>
     <td><strong>Review queue</strong><br>Approval-gated case records with stable refs, anonymization evidence, review notes, and decision controls.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/checks.png" alt="Legal Casebase Ingest checks"></td>
-    <td width="50%"><img src="assets/screenshots/workbench.png" alt="Legal Casebase Ingest workbench"></td>
+    <td width="50%"><img src="assets/screenshots/checks.webp" alt="Legal Casebase Ingest checks"></td>
+    <td width="50%"><img src="assets/screenshots/workbench.webp" alt="Legal Casebase Ingest workbench"></td>
   </tr>
   <tr>
     <td><strong>Checks</strong><br>Deterministic QA checks for PII leakage, taxonomy completeness, source coverage, and tag confidence.</td>
     <td><strong>Workbench</strong><br>Detail pane for facts, reasoning, legal basis, tags, editable draft, and reviewer note before ingest.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/mobile-detail-zh-CN.png" alt="Legal Casebase Ingest mobile detail"></td>
+    <td width="50%"><img src="assets/screenshots/mobile-detail-zh-CN.webp" alt="Legal Casebase Ingest mobile detail"></td>
     <td></td>
   </tr>
   <tr>

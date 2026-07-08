@@ -10,7 +10,7 @@
 //   node scripts/frame-screenshots.mjs --dry-run
 //   node scripts/frame-screenshots.mjs
 //   node scripts/frame-screenshots.mjs --skill kelly-legal-casebase-ingest --force
-//   node scripts/frame-screenshots.mjs --path skills/foo/assets/screenshots/overview.png
+//   node scripts/frame-screenshots.mjs --path skills/foo/assets/screenshots/overview.webp
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,6 +21,7 @@ const MARKER = "kelly-skills-framed-v1";
 const DEFAULT_WIDTH = 1440;
 const MAX_OUTPUT_WIDTH = 1800;
 const DEFAULT_ACCENT = "#334155";
+const WEBP_QUALITY = 85;
 
 const DESKTOP_TOKENS = {
   page: "#f8fafc",
@@ -66,7 +67,7 @@ function printHelp() {
   console.log(`Usage:
   node scripts/frame-screenshots.mjs [--dry-run] [--force]
   node scripts/frame-screenshots.mjs --skill kelly-legal-casebase-ingest
-  node scripts/frame-screenshots.mjs --path skills/foo/assets/screenshots/overview.png
+  node scripts/frame-screenshots.mjs --path skills/foo/assets/screenshots/overview.webp
 
 Options:
   --dry-run   Show which files would be framed without writing.
@@ -89,7 +90,7 @@ async function walk(dir) {
 
 async function screenshotPaths(args) {
   if (args.paths.length) {
-    return args.paths.map((p) => path.resolve(ROOT, p)).filter((p) => p.toLowerCase().endsWith(".png"));
+    return args.paths.map((p) => path.resolve(ROOT, p)).filter((p) => /\.(png|webp)$/i.test(p));
   }
 
   const skillDirs = args.skills.length
@@ -98,8 +99,9 @@ async function screenshotPaths(args) {
   const files = [];
   for (const dir of skillDirs) files.push(...(await walk(dir)));
   return files
-    .filter((file) => /\/assets\/screenshots\/[^/]+\.png$/i.test(file))
+    .filter((file) => /\/assets\/screenshots\/[^/]+\.(png|webp)$/i.test(file))
     .filter((file) => !/\.original\./i.test(file))
+    .filter((file) => !/\/thumbs\//i.test(file))
     .sort();
 }
 
@@ -152,7 +154,10 @@ async function skillAccentFor(file) {
 
 function titleFor(file) {
   const skill = skillNameFor(file).replace(/^kelly-/, "");
-  const base = path.basename(file, ".png").replace(/-zh-CN$/, "");
+  const base = path
+    .basename(file)
+    .replace(/\.(png|webp)$/i, "")
+    .replace(/-zh-CN$/, "");
   const title = `${skill} — ${base}`.replace(/-/g, " ");
   return title.replace(/\b\w/g, (m) => m.toUpperCase());
 }
@@ -251,6 +256,7 @@ function phoneFrameSvg({ imageBase64, width, height, accent }) {
 
 async function frameOne(file, args) {
   const rel = path.relative(ROOT, file);
+  const outputFile = file.replace(/\.png$/i, ".webp");
   if (!args.force && (await alreadyFramed(file))) {
     return { rel, status: "skip", reason: "already framed" };
   }
@@ -264,10 +270,10 @@ async function frameOne(file, args) {
 
   if (!args.dryRun) {
     const framed = await sharp(Buffer.from(svg), { density: 96 })
-      .png({ compressionLevel: 9, adaptiveFiltering: true })
+      .webp({ quality: WEBP_QUALITY, effort: 4 })
       .withMetadata({ exif: { IFD0: { ImageDescription: MARKER } } })
       .toBuffer();
-    await writeFile(file, framed);
+    await writeFile(outputFile, framed);
   }
 
   return {

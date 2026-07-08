@@ -14,16 +14,16 @@ Kelly Tickets is a local App-in-Skill triage-and-dispatch desk for complaints an
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Tickets overview"></td>
-    <td width="50%"><img src="assets/screenshots/board.png" alt="Kelly Tickets board"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Tickets overview"></td>
+    <td width="50%"><img src="assets/screenshots/board.webp" alt="Kelly Tickets board"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Dispatch command desk with SLA risk, weekly intake by channel, category distribution, and crew load.</td>
     <td><strong>Board</strong><br>Tickets tracked across open, assigned, in-progress, waiting, and resolved with SLA indicators and history timelines.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/dispatch.png" alt="Kelly Tickets dispatch queue"></td>
-    <td width="50%"><img src="assets/screenshots/intake.png" alt="Kelly Tickets intake"></td>
+    <td width="50%"><img src="assets/screenshots/dispatch.webp" alt="Kelly Tickets dispatch queue"></td>
+    <td width="50%"><img src="assets/screenshots/intake.webp" alt="Kelly Tickets intake"></td>
   </tr>
   <tr>
     <td><strong>Dispatch queue</strong><br>Agent-proposed crew assignments with priority, SLA target, reasoning, and an editable note to the crew.</td>

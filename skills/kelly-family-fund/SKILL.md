@@ -16,16 +16,16 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Family Fund overview"></td>
-    <td width="50%"><img src="assets/screenshots/ledger.png" alt="Kelly Family Fund ledger"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Family Fund overview"></td>
+    <td width="50%"><img src="assets/screenshots/ledger.webp" alt="Kelly Family Fund ledger"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Fund balance, this-month income / expense / net, care and family totals, an expense-by-category donut, running-balance trend, and read-only insights.</td>
     <td><strong>Ledger</strong><br>Unified income and expense timeline by month, each entry tagged with its category and the sibling family it benefits.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/category.png" alt="Kelly Family Fund by category"></td>
-    <td width="50%"><img src="assets/screenshots/family.png" alt="Kelly Family Fund fairness by family"></td>
+    <td width="50%"><img src="assets/screenshots/category.webp" alt="Kelly Family Fund by category"></td>
+    <td width="50%"><img src="assets/screenshots/family.webp" alt="Kelly Family Fund fairness by family"></td>
   </tr>
   <tr>
     <td><strong>By category</strong><br>Spending across care, transport, meals, gifts, and gifts of obligation, with the care-versus-family split.</td>

@@ -16,16 +16,16 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Legal Matter Strategy overview"></td>
-    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Legal Matter Strategy review queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Legal Matter Strategy overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.webp" alt="Legal Matter Strategy review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Matter-strategy command desk with partner review load, ready-to-draft strategies, blocked items, and activity.</td>
     <td><strong>Review queue</strong><br>Issue-tree and evidence-map recommendations with responsible-lawyer approval controls.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/checks.png" alt="Legal Matter Strategy checks"></td>
-    <td width="50%"><img src="assets/screenshots/workbench.png" alt="Legal Matter Strategy workbench"></td>
+    <td width="50%"><img src="assets/screenshots/checks.webp" alt="Legal Matter Strategy checks"></td>
+    <td width="50%"><img src="assets/screenshots/workbench.webp" alt="Legal Matter Strategy workbench"></td>
   </tr>
   <tr>
     <td><strong>Checks</strong><br>Strategy QA for missing facts, evidence gaps, deadline caveats, precedent grounding, and risk warnings.</td>

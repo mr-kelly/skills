@@ -25,16 +25,16 @@ Every narrative asset carries a TALE phase and names the sub-skill that produced
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Brand message house"></td>
-    <td width="50%"><img src="assets/screenshots/drift.png" alt="Kelly Brand drift alerts"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Brand message house"></td>
+    <td width="50%"><img src="assets/screenshots/drift.webp" alt="Kelly Brand drift alerts"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>The message house — positioning, value pillars, overall NQS, and the drift-alert count.</td>
     <td><strong>Drift</strong><br>Cross-channel off-brand alerts — offending usage versus the canonical guardrail.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/narrative.png" alt="Kelly Brand narrative"></td>
-    <td width="50%"><img src="assets/screenshots/stories.png" alt="Kelly Brand story bank"></td>
+    <td width="50%"><img src="assets/screenshots/narrative.webp" alt="Kelly Brand narrative"></td>
+    <td width="50%"><img src="assets/screenshots/stories.webp" alt="Kelly Brand story bank"></td>
   </tr>
   <tr>
     <td><strong>Narrative</strong><br>Message pillars and vocabulary guardrails, canonical versus draft.</td>

@@ -13,16 +13,16 @@ Kelly MV is a local App-in-Skill workbench for turning an existing MP3 into a pu
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly MV concept view"></td>
-    <td width="50%"><img src="assets/screenshots/storyboard.png" alt="Kelly MV storyboard"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly MV concept view"></td>
+    <td width="50%"><img src="assets/screenshots/storyboard.webp" alt="Kelly MV storyboard"></td>
   </tr>
   <tr>
     <td><strong>Concept</strong><br>MV concept workbench with project checklist, next-step guidance, concept form, and how-to walkthrough.</td>
     <td><strong>Storyboard</strong><br>Shot list with duration, image status, and a detail pane for description, image generation, and video upload.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/cast.png" alt="Kelly MV cast"></td>
-    <td width="50%"><img src="assets/screenshots/song.png" alt="Kelly MV song"></td>
+    <td width="50%"><img src="assets/screenshots/cast.webp" alt="Kelly MV cast"></td>
+    <td width="50%"><img src="assets/screenshots/song.webp" alt="Kelly MV song"></td>
   </tr>
   <tr>
     <td><strong>Cast</strong><br>Character list with reference card status and a detail form for visual description, wardrobe, and consistency anchors.</td>

@@ -10,16 +10,16 @@ description: Short-drama and product-video development skill for planning drama 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Drama overview"></td>
-    <td width="50%"><img src="assets/screenshots/episodes.png" alt="Kelly Drama episode table"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Drama overview"></td>
+    <td width="50%"><img src="assets/screenshots/episodes.webp" alt="Kelly Drama episode table"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Series workbench with health dashboard, execution timeline, stats, and settings for series parameters.</td>
     <td><strong>Episode table</strong><br>Episode list with script and storyboard status, shot readiness indicators, and per-episode detail pane.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/characters.png" alt="Kelly Drama character library"></td>
-    <td width="50%"><img src="assets/screenshots/relationships.png" alt="Kelly Drama relationship map"></td>
+    <td width="50%"><img src="assets/screenshots/characters.webp" alt="Kelly Drama character library"></td>
+    <td width="50%"><img src="assets/screenshots/relationships.webp" alt="Kelly Drama relationship map"></td>
   </tr>
   <tr>
     <td><strong>Character library</strong><br>Character list with three-view image status, actor settings, wardrobe, and voice preview controls.</td>
