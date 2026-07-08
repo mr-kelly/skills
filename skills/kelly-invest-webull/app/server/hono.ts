@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
 import { attachInsights, readConfig, readLock, readOnboarding, readSnapshot, summarizeConfig } from "./store.ts";
@@ -40,6 +41,7 @@ async function state(): Promise<Record<string, unknown>> {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

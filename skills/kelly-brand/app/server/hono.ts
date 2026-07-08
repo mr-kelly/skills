@@ -3,6 +3,7 @@ import path from "node:path";
 import { Hono } from "hono";
 import { createProvider } from "../../lib/data-provider/index.ts";
 import { appDir } from "../../lib/paths.ts";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
@@ -29,6 +30,7 @@ async function state() {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

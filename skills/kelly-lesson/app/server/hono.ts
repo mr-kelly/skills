@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { type Context, Hono } from "hono";
 import { createProvider } from "../../lib/data-provider/index.ts";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
 
@@ -30,6 +31,7 @@ function jsonResponse(c: Context, status: number, body: unknown) {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

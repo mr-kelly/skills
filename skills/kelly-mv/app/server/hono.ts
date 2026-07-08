@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import {
   demoAsset,
   demoImageConfigPayload,
@@ -113,6 +114,7 @@ async function deleteCollectionItem(kind, id) {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- HEAD (readiness probes) ----
 // Mirror the original hand-rolled handler: 200 with empty body for these paths.

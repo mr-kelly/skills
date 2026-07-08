@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { type Context, Hono } from "hono";
 import { updateDetail, updateItems } from "./decisions.ts";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { lockPayload } from "./lock.ts";
 import { APP_DIR, ATTACHMENTS_DIR } from "./paths.ts";
@@ -47,6 +48,7 @@ async function sendFile(c: Context, absPath: string, { store = false }: { store?
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- API ----
 app.get("/api/state", async (c) => {
