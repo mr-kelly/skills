@@ -21,7 +21,11 @@ This schema describes `app/.data/firm_radar_snapshot.json`, the local handoff fi
     "done": 0,
     "blocked": 0,
     "changes_requested": 0,
-    "checks_failed": 0
+    "checks_failed": 0,
+    "case_samples": 0,
+    "practice_groups": 0,
+    "lawyers_profiled": 0,
+    "public_citable": 0
   },
   "entities": [],
   "items": [],
@@ -48,6 +52,33 @@ Each item is one agent-prepared change request awaiting human judgment.
 | `risk` | no | Array of risk badges such as `legal`, `privacy`, `management`. |
 | `evidence` | no | Array of short evidence strings or approved source ids. |
 | `fields` | no | Domain-specific structured fields. |
+
+## Domain Fields
+
+Use `fields` to carry management-analytics details that partners can verify.
+
+| Field | Notes |
+| --- | --- |
+| `sample_size` | Number of cases, matters, or records behind the insight. |
+| `period` | Reporting period and date basis. |
+| `visibility` | `internal`, `partner_only`, `public_candidate`, or stricter local label. |
+| `lawyer_count` | Lawyers or teams represented in the sample. |
+| `public_citable` | Count/status of proof points cleared for possible external use. |
+| `quality_indicators` | Array or summary of timeliness, outcome quality, reuse value, or documentation signals. |
+
+## Entities
+
+Use `entities` for practice groups, lawyer capability profiles, court/outcome cohorts, or brand-proof collections. Useful entity metrics include:
+
+- `case_count`: anonymized case samples represented.
+- `lawyer_count`: lawyers or teams represented.
+- `public_citable`: proof points that may be externally cited after partner approval.
+
+## Business Gates
+
+- Block export when anonymization is weak, raw client data is present, sample size is misleading, methodology is missing, or lawyer attribution is unfair.
+- Request changes when external brand language lacks public-citable proof, caveats are absent, or internal management conclusions exceed the data.
+- Mark approved/done reports with explicit visibility. Internal management outputs and external brand claims must remain separate unless partners approve external use.
 
 ## Decisions
 

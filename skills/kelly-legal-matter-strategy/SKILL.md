@@ -12,6 +12,10 @@ Use this skill as a local App-in-Skill desk. It builds reviewer-gated matter str
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or generate the local snapshot, start or reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present stable refs such as `Strategy #1` and record verdicts in local decision files.
 
+## Business Role
+
+Use this as the responsible-lawyer strategy gate for an active matter. It consumes client facts, deadlines, evidence inventories, and approved precedent packs, then produces issue trees, evidence maps, risk posture, negotiation options, and drafting outlines for review. Do not use it as a casebase ingestion tool, standalone legal research desk, or management analytics dashboard.
+
 ## App UI Screenshots
 
 <table>
@@ -129,6 +133,12 @@ Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 3. Write or merge strategy items through scripts/create_strategy_batch.ts, then validate with scripts/validate_ui_schema.ts.
 4. Send the responsible lawyer or partner to #/review to approve, edit, request changes, or block the strategy.
 5. Run scripts/execute_decisions.ts and export approved packs with scripts/export_strategy_pack.ts for downstream drafting. No filing, sending, or client advice occurs from the app.
+
+## Review Gates
+
+- Block or request changes when the client objective, procedural posture, deadline, jurisdiction, evidence inventory, or assumptions are missing.
+- Do not approve strategy that hides evidence gaps, relies on unapproved precedent, treats assumptions as facts, or phrases draft text as client advice before lawyer review.
+- Export only approved or done packs with issue tree, evidence map, risk posture, options, deadline caveats, and use limits for downstream drafting.
 
 ## Scripts
 

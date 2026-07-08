@@ -12,6 +12,10 @@ Use this skill as a local App-in-Skill desk. It uses anonymized internal casebas
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or generate the local snapshot, start or reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present stable refs such as `Insight #1` and record verdicts in local decision files.
 
+## Business Role
+
+Use this as the partner review gate for firm-level analytics. It consumes anonymized casebase metadata and approved summaries to prepare practice mix, lawyer capability, quality, staffing, and brand proof insights with methodology notes. Do not use it for matter strategy, legal advice, raw document review, compensation decisions, or external marketing claims without separate approval.
+
 ## App UI Screenshots
 
 <table>
@@ -129,6 +133,12 @@ Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 3. Write or merge insight cards through scripts/import_metrics.ts, then validate with scripts/validate_ui_schema.ts.
 4. Send partners to #/review to approve, revise, request more data, or block insights before any report export.
 5. Run scripts/execute_decisions.ts and export approved reports with scripts/export_management_report.ts. External brand use needs separate explicit approval.
+
+## Review Gates
+
+- Block or request changes when sample size is too small, anonymization is weak, methodology is unclear, lawyer attribution is unfair, or an external brand claim lacks public-citable proof.
+- Approve only when the report states period, sample size, taxonomy, caveats, visibility, and whether each proof point is internal-only or public-citable.
+- Export only approved or done reports. Keep internal management reports separate from external brand material unless partners explicitly approve the external use.
 
 ## Scripts
 

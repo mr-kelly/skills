@@ -21,7 +21,10 @@ This schema describes `app/.data/strategy_snapshot.json`, the local handoff file
     "done": 0,
     "blocked": 0,
     "changes_requested": 0,
-    "checks_failed": 0
+    "checks_failed": 0,
+    "evidence_gaps": 0,
+    "deadlines_soon": 0,
+    "draft_ready": 0
   },
   "entities": [],
   "items": [],
@@ -48,6 +51,36 @@ Each item is one agent-prepared change request awaiting human judgment.
 | `risk` | no | Array of risk badges such as `legal`, `privacy`, `management`. |
 | `evidence` | no | Array of short evidence strings or approved source ids. |
 | `fields` | no | Domain-specific structured fields. |
+
+## Domain Fields
+
+Use `fields` to carry strategy details that a responsible lawyer can approve or correct.
+
+| Field | Notes |
+| --- | --- |
+| `matter_stage` | Procedural stage such as pre-suit, first instance, arbitration, enforcement, or appeal. |
+| `evidence_gaps` | Count of unresolved evidence gaps. |
+| `evidence_gap_count` | Numeric alias for evidence-gap count when imports use explicit naming. |
+| `evidence_gaps_list` | Specific missing documents, witness points, preservation tasks, or proof problems. |
+| `issue_tree` | Main claims, defenses, burden points, and sub-issues. |
+| `negotiation_options` | Settlement, mediation, injunction, preservation, or litigation-path options. |
+| `posture` | Risk posture such as assertive, balanced, defensive, or information-needed. |
+| `pleading_outline` | Drafting sections or memo outline to hand off after approval. |
+| `deadline` | Critical date, time window, or caveat; never infer without a source. |
+
+## Entities
+
+Use `entities` for matter families, issue clusters, or strategy lanes. Useful entity metrics include:
+
+- `evidence_gaps`: unresolved proof gaps in the group.
+- `issue_count`: issues or sub-issues in the strategy tree.
+- `option_count`: live procedural or negotiation options.
+
+## Business Gates
+
+- Block export when client objective, posture, jurisdiction, deadline, facts, assumptions, or evidence inventory is missing.
+- Request changes when strategy hides evidence gaps, relies on unapproved precedent, converts assumptions into facts, or lacks use limits.
+- Mark approved/done packs as internal drafting inputs only. Filing, sending, settlement authority, and client advice stay outside this app.
 
 ## Decisions
 

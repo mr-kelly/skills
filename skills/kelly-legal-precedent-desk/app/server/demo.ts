@@ -32,6 +32,9 @@ const snapshot = {
     done: 0,
     blocked: 0,
     checks_failed: 0,
+    query_count: 2,
+    high_matches: 7,
+    local_patterns: 3,
   },
   entities: [
     {
@@ -42,6 +45,7 @@ const snapshot = {
       owner: "房地产争议组",
       summary: "类案显示：催告、欠租持续时间和实际损失证明是解除与违约金支持幅度的关键。",
       tags: ["租赁", "违约金", "深圳法院"],
+      metrics: { case_count: 4, avg_similarity: 0.81, citation_count: 9 },
     },
     {
       id: "prec-repurchase",
@@ -51,6 +55,7 @@ const snapshot = {
       owner: "公司争议组",
       summary: "类案区分股东回购责任与目标公司回购责任，关注减资程序与履行可能性。",
       tags: ["对赌", "股权回购", "公司法"],
+      metrics: { case_count: 3, avg_similarity: 0.78, citation_count: 7 },
     },
   ],
   items: [
@@ -73,6 +78,11 @@ const snapshot = {
         query: "疫情影响下商业租赁欠租能否解除",
         jurisdiction: "深圳",
         match_count: 4,
+        high_match_count: 3,
+        top_similarity: 0.86,
+        avg_similarity: 0.81,
+        court_pattern: "深圳法院更重视催告、欠租持续性、减免协商记录与损失证明。",
+        citation_count: 9,
       },
     },
     {
@@ -93,6 +103,11 @@ const snapshot = {
         query: "对赌回购条款履行",
         jurisdiction: "广东",
         match_count: 3,
+        high_match_count: 2,
+        top_similarity: 0.88,
+        avg_similarity: 0.78,
+        court_pattern: "广东地区裁判会先区分回购主体，再审查减资程序和触发条件是否具体。",
+        citation_count: 7,
       },
     },
   ],

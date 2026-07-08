@@ -31,7 +31,7 @@
 
   function isDemoPage() {
     const params = new URLSearchParams(window.location.search);
-    return params.has("demo") || params.has("demo_visuals");
+    return params.has("demo_visuals");
   }
 
   function mountPoint() {

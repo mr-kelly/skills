@@ -32,6 +32,9 @@ const snapshot = {
     done: 0,
     blocked: 0,
     checks_failed: 0,
+    evidence_gaps: 2,
+    deadlines_soon: 1,
+    draft_ready: 1,
   },
   entities: [
     {
@@ -42,6 +45,7 @@ const snapshot = {
       owner: "王律师",
       summary: "客户希望快速解除并追收服务费，需要权衡证据完整性和违约金可支持幅度。",
       tags: ["合同纠纷", "证据补强", "诉前策略"],
+      metrics: { evidence_gaps: 2, issue_count: 3, option_count: 3 },
     },
     {
       id: "matter-shareholder-exit",
@@ -51,6 +55,7 @@ const snapshot = {
       owner: "林律师",
       summary: "已形成仲裁请求、证据目录和谈判底线。",
       tags: ["股东退出", "仲裁", "回购"],
+      metrics: { evidence_gaps: 0, issue_count: 2, option_count: 2 },
     },
   ],
   items: [
@@ -72,6 +77,12 @@ const snapshot = {
       fields: {
         matter_stage: "诉前",
         evidence_gaps: 2,
+        evidence_gap_count: 2,
+        evidence_gaps_list: ["服务验收节点缺少客户确认", "催告送达凭证需要补强"],
+        issue_tree: ["服务是否完成交付", "欠费是否构成根本违约", "违约金是否过高"],
+        negotiation_options: ["先发律师函固定解除权", "本金全额+部分违约金和解", "诉讼请求保留调减预案"],
+        posture: "证据补强后再启动正式函件，避免过早承诺违约金支持比例。",
+        pleading_outline: "请求解除合同、支付服务费、承担违约金；备选请求按实际损失调整。",
         deadline: "2026-07-20",
       },
     },
@@ -92,6 +103,12 @@ const snapshot = {
       fields: {
         matter_stage: "仲裁准备",
         evidence_gaps: 0,
+        evidence_gap_count: 0,
+        evidence_gaps_list: [],
+        issue_tree: ["回购条件是否触发", "信息披露违约是否成立"],
+        negotiation_options: ["以回购义务为主张", "备选损害赔偿", "调解底线为本金加资金成本"],
+        posture: "证据较完整，可进入仲裁申请书大纲。",
+        pleading_outline: "仲裁请求围绕回购义务、违约责任和备选赔偿展开。",
         deadline: "2026-08-05",
       },
     },

@@ -12,6 +12,10 @@ Use this skill as a local App-in-Skill desk. It finds and packages internal prec
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or generate the local snapshot, start or reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present stable refs such as `Pack #1` and record verdicts in local decision files.
 
+## Business Role
+
+Use this as the research gate between the approved internal casebase and matter work. It turns a focused legal question into reviewed similar-case packs with match rationale, local court pattern notes, citations, and use limits. Do not use it to ingest raw documents, decide case strategy by itself, or publish external citations without lawyer approval.
+
 ## App UI Screenshots
 
 <table>
@@ -129,6 +133,12 @@ Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 3. Write or merge packs through scripts/create_research_batch.ts, then validate with scripts/validate_ui_schema.ts.
 4. Send the lawyer to #/review to approve, revise, request more cases, or block unsafe findings.
 5. Run scripts/execute_decisions.ts and export approved packs with scripts/export_research_pack.ts. Do not cite or send unapproved findings externally.
+
+## Review Gates
+
+- Block or request changes when similar-case support is too thin, citation traceability is missing, jurisdiction or court level does not fit, confidentiality labels are absent, or the pack overstates an outcome.
+- Approve only when each finding has a similarity rationale, source-backed citations, local court-pattern caveats, and a clear internal-use or external-use limit.
+- Export only approved or done packs. Matter strategy may consume approved packs; client advice, filings, and public citations require separate lawyer approval outside this app.
 
 ## Scripts
 
