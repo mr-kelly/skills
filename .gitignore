@@ -15,6 +15,7 @@ skills/*/.env.local
 
 # Runtime logs
 *.log
+.tmp/
 
 # Installed third-party skills (do not republish)
 .agents/skills/

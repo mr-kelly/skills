@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-40 skills, including 37 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+43 skills, including 40 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-40-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-43-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -18,10 +18,10 @@
 <table>
   <tr>
     <td width="50%"><img src="skills/kelly-money/assets/screenshots/overview.png" alt="kelly-money — money ledger dashboard"></td>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="kelly-finance — three-statement model builder"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.png" alt="kelly-finance — three-statement model builder"></td>
   </tr>
   <tr>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="kelly-finance — model audit checks"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.png" alt="kelly-finance — model audit checks"></td>
     <td width="50%"><img src="skills/kelly-crm/assets/screenshots/overview.png" alt="kelly-crm — pipeline command desk"></td>
   </tr>
   <tr>
@@ -92,6 +92,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-email` | Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution. | Use it when processing unread email, drafting support replies, archiving or marking messages read after approval, or managing email through an App-in-Skill UI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-email.html) |
 | `kelly-finance` | Builds and audits finance three-statement models, operating forecasts, budgets, cash runway models, SaaS/unit-economics packs, and Excel-ready finance outputs. | Use it when making 财务三表, investor projections, board finance packs, scenario cases, balance-sheet checks, working-capital schedules, capex/debt schedules, or repairing broken model links. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html) |
 | `kelly-money` | Aggregates Mercury, Stripe, Airwallex, and Creem into a local money ledger dashboard with total cashflow, account health, and account detail views. | Use it when reviewing balances, payments, payouts, fees, refunds, transfers, provider sync status, or total money movement across configured accounts. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-money.html) |
+| `kelly-invoice-sheet` | Extracts invoices, receipts, credit notes, and statements into a spreadsheet-style local review table with field confidence, line items, approval decisions, and CSV/JSON export. | Use it for Invoice转表格, invoice OCR, receipt-to-spreadsheet, bookkeeping import prep, or a Lido-style Extract Data workflow. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-invoice-sheet.html) |
 | `kelly-invest-webull` | Aggregates a personal Webull brokerage account into a local read-only portfolio dashboard: holdings, cost basis, market value, unrealized P/L, day change, and allocation by asset type. Read-only — it never places or cancels orders. | Use it when reviewing personal investments, positions, portfolio value, unrealized gains, cash, or asset allocation synced from Webull OpenAPI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html) |
 | `kelly-family-office` | Consolidates multiple entities' and members' holdings from CSV import and manual entry into one family-office dashboard: total AUM in a base currency, plus roll-ups by entity, asset class, and institution, and performance. Read-only — it never moves money. | Use it when rolling up a family office across individuals, trusts, and companies; reviewing consolidated AUM, asset allocation, custodian exposure, or unrealized performance. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-family-office.html) |
 | `kelly-family-fund` | Pools elderly parents' pensions into one steward-managed fund and books the monthly care cost and shared-family spending in a base currency, so every sibling family can see the split is fair. Read-only — it never moves money. | Use it when a family jointly supports elderly parents from a pooled pension: tracking the nursing-home cost and splitting the surplus (transport, meals, birthday gifts, gifts of obligation) transparently across sibling families. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-family-fund.html) |
@@ -109,6 +110,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-scale-pptx` | Project-based PPTX courseware factory: turns client style samples and lesson content into reviewed slide cards, generates style-consistent PowerPoint decks, and tracks render QA and exports. | Use it when producing many teaching PPTX decks, building a reusable courseware style system, approving slide-card storyboards, or batch-generating client-ready PPTX files. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-scale-pptx.html) |
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html) |
 | `kelly-picks` | Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read. | Use it when hunting products to sell, pressure-testing margins before committing, or running develop/watch/drop decisions with sourcing and listing briefs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-picks.html) |
+| `kelly-products` | E-commerce product management desk: visual SKU catalog, pricing, inventory cover, channel status, content assets, compliance notes, lifecycle state, and approval-gated product operations. | Use it when managing product master data, inventory/reorder risks, marketplace channel status, price changes, quality holds, SKU archive decisions, or publish approvals. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-products.html) |
 | `kelly-listing` | Listing factory: drafts platform-specific listings (Amazon title/bullets/description/backend terms/A+, Shopify, TikTok Shop, eBay) with locale variants, runs per-platform compliance checks, and exports approved copy. | Use it when writing or localizing marketplace listings, enforcing banned-word and character-limit rules, or batch-reviewing listing drafts before upload. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-listing.html) |
 | `kelly-legal-casebase-ingest` | Legal casebase intake and anonymization QA desk: the agent extracts archived judgments and awards into structured, redacted case records; reviewers approve, revise, or block before canonical ingest. | Use it when building an internal intelligent case database, processing judgment documents, reviewing anonymization, classifying/tagging cases, or running casebase quality acceptance. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-legal-casebase-ingest.html) |
 | `kelly-legal-precedent-desk` | Internal precedent research desk: the agent searches approved casebase records, prepares similar-case packs, local court-pattern notes, citations, and AI Q&A answers for reviewer approval. | Use it when lawyers need internal casebase search, similar-case matching, local court tendencies, precedent packs, or approved research exports grounded in the firm's own matters. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-legal-precedent-desk.html) |
@@ -122,6 +124,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-pr-review` | Runs a GitHub PR review desk through `gh` CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved `gh pr review` actions. | Use it when reviewing GitHub pull requests, approving/commenting/requesting changes from a local queue, or batching PR review decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html) |
 | `kelly-drama` | Produces short-drama series with a local workbench for series overview, character library, relationship map, episode table, and shot sheets. Generates storyboard images with character reference cards and coordinates AI and human tasks. | Use it when planning and producing a short-drama series end-to-end: writing episode scripts, building character sheets, managing storyboard shots, and reviewing AI-generated images before use. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-drama.html) |
 | `kelly-mv` | Builds a pure-visual music video workbench: upload an MP3, write the MV concept, build a cast of on-screen characters with reference cards, and create a shot-by-shot storyboard with generated or uploaded images and draft videos. | Use it when producing a pure-visual music video — no narration or subtitles — by generating or uploading shot images and videos and assembling them over the song. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-mv.html) |
+| `kelly-digital-human` | Digital-human solution desk and multimodal demo for choosing between low-cost 2D photoreal avatar services and high-control UE/Unity 3D custom digital humans, with a local studio showing voice/text input, lip-sync video stream, vendor route latency, and launch QA. | Use it when planning an AI host, customer-service avatar, product explainer, livestream assistant, or digital-human demo; comparing services such as Silicon Intelligence, Tencent Zhiying, or ZEGO-style real-time providers; or designing a 3D UE/Unity avatar pipeline. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-digital-human.html) |
 | `kelly-creators` | Influencer/creator-marketing command desk built on the Discover→Plan→Activate→Measure pipeline: the agent sweeps and fit-scores creator candidates (C³ ACE), drafts outreach, briefs, and contracts, and a pre-publish gate (SHIP/FIX/BLOCK) checks FTC disclosure and claim authenticity, all reviewed in a local UI with a ROI board. | Use it when discovering and vetting creators, approving outreach and briefs, running a creator-campaign pipeline, or tracking influencer ROI and budget. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-creators.html) |
 | `kelly-campaigns` | Outbound email-marketing desk on the SEND lifecycle (Setup→Engage→Nurture→Deliver): the agent builds segments, drafts campaigns, newsletters, and sequences, and runs pre-send deliverability + subject-line QA behind an EQS quality gate (SHIP/FIX/BLOCK) before anything is scheduled or sent. | Use it when planning email campaigns, newsletters, or lifecycle sequences, checking deliverability and A/B subjects, or approving sends — distinct from `kelly-email` inbox triage. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-campaigns.html) |
 | `kelly-launch` | Product-launch command desk on the RAMP framework (Research→Assemble→Mobilize→Prove): the agent assembles the launch checklist, drafts assets, Product Hunt / Hacker News submissions, press pitches, and the launch-day runbook, with a readiness gate scoring launch quality (LQS → SHIP/FIX/BLOCK). | Use it when planning and running a product launch: building the checklist, approving assets and channel submissions, gating launch readiness, or conducting launch day. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-launch.html) |
@@ -196,8 +199,8 @@ Kelly Finance is a local finance-model review desk. It creates and audits three-
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.svg" alt="Kelly Finance model builder"></td>
-    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.svg" alt="Kelly Finance model checks"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/overview.png" alt="Kelly Finance model builder"></td>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/checks.png" alt="Kelly Finance model checks"></td>
   </tr>
   <tr>
     <td><strong>Three-statement builder</strong><br>Workbook preview with assumptions, income statement, balance sheet, cash flow, and model checks for a clean forecast.</td>
@@ -225,6 +228,23 @@ Kelly Invest (Webull) is a local read-only portfolio dashboard over a personal W
   <tr>
     <td><strong>Accounts</strong><br>Per-account view (cash and margin) with net liquidation, total cash, buying power, and the positions held in each account.</td>
     <td><strong>Position detail</strong><br>Single-symbol view with cost basis, market value, unrealized P/L and percentage, day change, weight, and holding account.</td>
+  </tr>
+</table>
+
+### `kelly-invoice-sheet`
+
+Kelly Invoice Sheet turns invoices, receipts, credit notes, and statements into a local spreadsheet-style review table. The UI is inspired by Lido's Extract Data flow: a sheet-like grid by default, an upload/extraction modal on demand, confidence warnings, editable invoice fields, line items, and approval-gated CSV/JSON export.
+
+<table>
+  <tr>
+    <td width="33%"><img src="skills/kelly-invoice-sheet/assets/screenshots/overview.png" alt="Kelly Invoice Sheet spreadsheet extraction desk"></td>
+    <td width="33%"><img src="skills/kelly-invoice-sheet/assets/screenshots/detail.png" alt="Kelly Invoice Sheet invoice detail review"></td>
+    <td width="33%"><img src="skills/kelly-invoice-sheet/assets/screenshots/extract-data.png" alt="Kelly Invoice Sheet Extract Data upload modal"></td>
+  </tr>
+  <tr>
+    <td><strong>Spreadsheet extraction desk</strong><br>Sheet-like invoice table with extracted rows, status filters, confidence flags, and human-attention counts.</td>
+    <td><strong>Invoice detail review</strong><br>Editable invoice fields, line items, confidence notes, and approve/request-changes/block controls.</td>
+    <td><strong>Extract Data upload</strong><br>Lido-style upload modal with local file, Google Drive, OneDrive, and email source options.</td>
   </tr>
 </table>
 
@@ -371,6 +391,29 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
   <tr>
     <td><strong>Cast</strong><br>Character list with reference card status and a detail form for visual description, wardrobe, and consistency anchors.</td>
     <td><strong>Song</strong><br>MP3 upload and song metadata form with auto-detected duration and song-gen backend status.</td>
+  </tr>
+</table>
+
+### `kelly-digital-human`
+
+Digital-human implementation and demo desk for choosing between a fast 2D service integration and a high-control 3D UE/Unity build.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-digital-human/assets/screenshots/overview.png" alt="Kelly Digital Human overview"></td>
+    <td width="50%"><img src="skills/kelly-digital-human/assets/screenshots/studio.png" alt="Kelly Digital Human live studio"></td>
+  </tr>
+  <tr>
+    <td><strong>Solution overview</strong><br>Side-by-side 2D fast-launch and 3D custom-build paths, with readiness score, latency targets, and launch blockers.</td>
+    <td><strong>Multimodal studio</strong><br>Animated avatar stream with lip motion, waveform, transcript, provider mode, route latency, and stream events.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-digital-human/assets/screenshots/vendors.png" alt="Kelly Digital Human vendor architecture"></td>
+    <td width="50%"><img src="skills/kelly-digital-human/assets/screenshots/qa.png" alt="Kelly Digital Human QA gate"></td>
+  </tr>
+  <tr>
+    <td><strong>Vendor and architecture desk</strong><br>Compares 2D service integration, real-time RTC rendering, and UE/Unity 3D architecture with cost, speed, and control tradeoffs.</td>
+    <td><strong>Launch QA gate</strong><br>Checks lip sync, stream latency, consent, script safety, fallback behavior, and production handoff state before launch.</td>
   </tr>
 </table>
 
@@ -695,6 +738,27 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Decision queue</strong><br>Agent-proposed develop/watch/drop verdicts with sourcing and listing briefs for approval.</td>
     <td><strong>Margin card</strong><br>Live-editable margin math — price, landed cost, freight, fees, ad cost → margin % and breakeven ACOS — plus a top-10 review-count competition read.</td>
+  </tr>
+</table>
+
+### `kelly-products`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-products/assets/screenshots/overview.png" alt="Kelly Products overview"></td>
+    <td width="50%"><img src="skills/kelly-products/assets/screenshots/products.png" alt="Kelly Products catalog"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Product command desk with visual product cards, margin, inventory value, activity, and approval queue.</td>
+    <td><strong>Catalog</strong><br>Image-rich product library with SKU, lifecycle, owner, margin, inventory cover, and status badges.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-products/assets/screenshots/detail.png" alt="Kelly Products detail"></td>
+    <td width="50%"><img src="skills/kelly-products/assets/screenshots/review.png" alt="Kelly Products review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Product detail</strong><br>Gallery, pricing, inventory, content readiness, compliance notes, channel matrix, and related review cards.</td>
+    <td><strong>Review queue</strong><br>Approval-gated publish, price, quality-hold, and lifecycle recommendations with evidence.</td>
   </tr>
 </table>
 

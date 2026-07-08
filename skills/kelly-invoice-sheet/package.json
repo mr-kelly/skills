@@ -1,0 +1,18 @@
+{
+  "name": "kelly-invoice-sheet",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "start": "node app/server/index.ts",
+    "demo": "node scripts/generate_demo_batch.ts",
+    "validate": "node scripts/validate_ui_schema.ts",
+    "export": "node scripts/export_decisions.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.8",
+    "hono": "^4.12.28"
+  }
+}

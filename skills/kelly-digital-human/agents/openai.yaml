@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Digital Human"
+  short_description: "Digital-human demo and vendor implementation desk"
+  default_prompt: "Use $kelly-digital-human to choose a 2D or 3D digital-human path and open the multimodal demo desk."

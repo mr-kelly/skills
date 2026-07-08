@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import {
   demoAsset,
   demoImageConfigPayload,
@@ -113,6 +114,7 @@ async function deleteCollectionItem(kind, id) {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- HEAD (readiness probes) ----
 // Mirror the original hand-rolled handler: 200 with empty body for these paths.
@@ -247,6 +249,8 @@ app.post("/api/:kind{characters|shots|tasks}/:id?", async (c) => {
 app.get("/", (c) => sendFile(c, path.join(APP_DIR, "index.html")));
 app.get("/app.js", (c) => sendFile(c, path.join(APP_DIR, "app.js")));
 app.get("/styles.css", (c) => sendFile(c, path.join(APP_DIR, "styles.css")));
+app.get("/accent-theme.js", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.js")));
+app.get("/accent-theme.css", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.css")));
 
 // i18n locale modules. Decode percent-encoding so non-ASCII filenames resolve,
 // and guard against path traversal outside the i18n directory.
