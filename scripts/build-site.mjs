@@ -118,6 +118,12 @@ function siteShotPath(src, rel = "") {
   return src.startsWith("skills/") ? `${RAW_REPO_URL}/${src}` : `${rel}${src}`;
 }
 
+function siteThumbPath(src) {
+  return siteShotPath(
+    src.replace(/\/assets\/screenshots\/([^/]+)\.(png|webp)$/i, "/assets/screenshots/thumbs/$1.webp"),
+  );
+}
+
 function parseShotSections(md, imgPrefix) {
   // Returns { sectionName: { imgs: [...], caps: [{title, text}] } }
   const sections = {};
@@ -755,7 +761,7 @@ async function main() {
   function cardHtml(s) {
     const thumb = s.shots[0];
     const thumbHtml = thumb
-      ? `<div class="thumb"><img data-shot-en="${esc(siteShotPath(thumb.en))}" data-shot-zh="${esc(siteShotPath(thumb.zh))}" src="${esc(siteShotPath(thumb.en))}" alt="${esc(s.name)} UI" loading="lazy"></div>`
+      ? `<div class="thumb"><img data-shot-en="${esc(siteThumbPath(thumb.en))}" data-shot-zh="${esc(siteThumbPath(thumb.zh))}" src="${esc(siteThumbPath(thumb.en))}" alt="${esc(s.name)} UI" loading="lazy"></div>`
       : `<div class="thumb empty">⚙️</div>`;
     const href = s.hasApp || s.descEn ? `s/${s.name}.html` : `${REPO_URL}/tree/main/skills/${s.folder}`;
     return `<a class="card" href="${href}">

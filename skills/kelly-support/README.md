@@ -14,16 +14,16 @@ Kelly Support is a local App-in-Skill customer-support desk (help desk) for post
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Support overview"></td>
-    <td width="50%"><img src="assets/screenshots/knowledge.png" alt="Kelly Support knowledge base"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Support overview"></td>
+    <td width="50%"><img src="assets/screenshots/knowledge.webp" alt="Kelly Support knowledge base"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Queue health — open, breaching-SLA, and awaiting-approval counts, CSAT trend, and volume by channel and category.</td>
     <td><strong>Knowledge base</strong><br>Articles and canned macros the agent cites when drafting replies.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/sla.png" alt="Kelly Support SLA board"></td>
-    <td width="50%"><img src="assets/screenshots/tickets.png" alt="Kelly Support ticket queue"></td>
+    <td width="50%"><img src="assets/screenshots/sla.webp" alt="Kelly Support SLA board"></td>
+    <td width="50%"><img src="assets/screenshots/tickets.webp" alt="Kelly Support ticket queue"></td>
   </tr>
   <tr>
     <td><strong>SLA &amp; CSAT</strong><br>SLA board of due and breached tickets, plus CSAT scores on resolved tickets.</td>

@@ -16,16 +16,16 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Legal Casebase Ingest overview"></td>
-    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Legal Casebase Ingest review queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Legal Casebase Ingest overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.webp" alt="Legal Casebase Ingest review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Casebase command desk with intake progress, anonymization risk, review load, and recent activity.</td>
     <td><strong>Review queue</strong><br>Approval-gated case records with stable refs, anonymization evidence, review notes, and decision controls.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/checks.png" alt="Legal Casebase Ingest checks"></td>
-    <td width="50%"><img src="assets/screenshots/workbench.png" alt="Legal Casebase Ingest workbench"></td>
+    <td width="50%"><img src="assets/screenshots/checks.webp" alt="Legal Casebase Ingest checks"></td>
+    <td width="50%"><img src="assets/screenshots/workbench.webp" alt="Legal Casebase Ingest workbench"></td>
   </tr>
   <tr>
     <td><strong>Checks</strong><br>Deterministic QA checks for PII leakage, taxonomy completeness, source coverage, and tag confidence.</td>

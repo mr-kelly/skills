@@ -20,16 +20,16 @@ First-run behavior: if no private config exists or required secret env vars are 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Email overview"></td>
-    <td width="50%"><img src="assets/screenshots/inbox-approval.png" alt="Kelly Email inbox approval desk"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Email overview"></td>
+    <td width="50%"><img src="assets/screenshots/inbox-approval.webp" alt="Kelly Email inbox approval desk"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Inbox-zero command desk with account context, queue metrics, and review workflow controls.</td>
     <td><strong>Inbox approval desk</strong><br>Mock inbox queue with approvals, sender context, reply drafts, and status filters.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly Email needs review"></td>
-    <td width="50%"><img src="assets/screenshots/blocked-security.png" alt="Kelly Email blocked security request"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.webp" alt="Kelly Email needs review"></td>
+    <td width="50%"><img src="assets/screenshots/blocked-security.webp" alt="Kelly Email blocked security request"></td>
   </tr>
   <tr>
     <td><strong>Needs review</strong><br>Human-in-the-loop review scene for a partnership reply that needs tone and timing judgment.</td>

@@ -16,16 +16,16 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly DevOps overview"></td>
-    <td width="50%"><img src="assets/screenshots/actions.png" alt="Kelly DevOps action queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly DevOps overview"></td>
+    <td width="50%"><img src="assets/screenshots/actions.webp" alt="Kelly DevOps action queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Fleet health desk with service, certificate, domain, and spend summaries plus a recent events feed.</td>
     <td><strong>Action queue</strong><br>Agent-proposed renew/rotate/investigate action cards with evidence and approval controls.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/expiries.png" alt="Kelly DevOps expiry ledger"></td>
-    <td width="50%"><img src="assets/screenshots/services.png" alt="Kelly DevOps services"></td>
+    <td width="50%"><img src="assets/screenshots/expiries.webp" alt="Kelly DevOps expiry ledger"></td>
+    <td width="50%"><img src="assets/screenshots/services.webp" alt="Kelly DevOps services"></td>
   </tr>
   <tr>
     <td><strong>Expiry ledger</strong><br>Domains, SSL certificates, key rotations, and plan renewals in one table with color-coded days-left.</td>

@@ -15,16 +15,16 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Products overview"></td>
-    <td width="50%"><img src="assets/screenshots/products.png" alt="Kelly Products catalog"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Products overview"></td>
+    <td width="50%"><img src="assets/screenshots/products.webp" alt="Kelly Products catalog"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Product command desk with visual product cards, margin, inventory value, activity, and approval queue.</td>
     <td><strong>Catalog</strong><br>Image-rich product library with SKU, lifecycle, owner, margin, inventory cover, and status badges.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/detail.png" alt="Kelly Products detail"></td>
-    <td width="50%"><img src="assets/screenshots/review.png" alt="Kelly Products review queue"></td>
+    <td width="50%"><img src="assets/screenshots/detail.webp" alt="Kelly Products detail"></td>
+    <td width="50%"><img src="assets/screenshots/review.webp" alt="Kelly Products review queue"></td>
   </tr>
   <tr>
     <td><strong>Product detail</strong><br>Gallery, pricing, inventory, content readiness, compliance notes, channel matrix, and related review cards.</td>

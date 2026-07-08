@@ -12,6 +12,7 @@ import http from "node:http";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CHROME_PATH = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -19,6 +20,7 @@ const HOST = "127.0.0.1";
 const DESKTOP_VIEWPORT = { width: 1440, height: 900 };
 const PHONE_VIEWPORT = { width: 390, height: 844 };
 const BASE_PORT = 33100;
+const SCREENSHOT_WEBP_QUALITY = 85;
 
 const ROUTE_OVERRIDES = {
   "kelly-email": {
@@ -175,10 +177,10 @@ function printHelp() {
   console.log(`Usage:
   node scripts/capture-app-screenshots.mjs --all --frame
   node scripts/capture-app-screenshots.mjs --skill kelly-email --frame
-  node scripts/capture-app-screenshots.mjs --path skills/foo/assets/screenshots/overview.png
+  node scripts/capture-app-screenshots.mjs --path skills/foo/assets/screenshots/overview.webp
 
 Options:
-  --all       Capture all tracked App-in-Skill screenshot PNG/SVG paths.
+  --all       Capture all tracked App-in-Skill screenshot paths as WebP.
   --skill     Limit to one skill folder under skills/. May be repeated.
   --path      Limit to one screenshot path. May be repeated.
   --frame     Run scripts/frame-screenshots.mjs --force after capture.
@@ -210,12 +212,12 @@ function skillNameFor(file) {
 function screenshotStem(file) {
   return path
     .basename(file)
-    .replace(/\.(png|svg)$/i, "")
+    .replace(/\.(png|svg|webp)$/i, "")
     .replace(/-zh-CN$/, "");
 }
 
 function languageFor(file) {
-  return /-zh-CN\.(png|svg)$/i.test(file) ? "zh-CN" : "en";
+  return /-zh-CN\.(png|svg|webp)$/i.test(file) ? "zh-CN" : "en";
 }
 
 function isMobile(file) {
@@ -236,13 +238,17 @@ async function screenshotFiles(args) {
 
   const filtered = [];
   for (const file of files) {
-    if (!/\/assets\/screenshots\/[^/]+\.(png|svg)$/i.test(relPath(file))) continue;
+    if (!/\/assets\/screenshots\/[^/]+\.(png|svg|webp)$/i.test(relPath(file))) continue;
     if (/\.original\./i.test(file)) continue;
     try {
       if ((await stat(file)).isFile()) filtered.push(file);
     } catch {}
   }
   return filtered.sort();
+}
+
+function screenshotOutputPath(file) {
+  return file.replace(/\.(png|svg)$/i, ".webp");
 }
 
 function envPrefixFor(skill) {
@@ -508,7 +514,12 @@ async function captureOne(tab, file, serverPort) {
     fromSurface: true,
     captureBeyondViewport: false,
   });
-  await writeFile(file.replace(/\.svg$/i, ".png"), Buffer.from(png.data, "base64"));
+  const pngBuffer = Buffer.from(png.data, "base64");
+  const output =
+    path.extname(file).toLowerCase() === ".webp"
+      ? await sharp(pngBuffer).webp({ quality: SCREENSHOT_WEBP_QUALITY, effort: 4 }).toBuffer()
+      : pngBuffer;
+  await writeFile(file, output);
   return { url, viewport };
 }
 
@@ -554,7 +565,7 @@ async function main() {
       const tab = await newTab(chrome.port);
       try {
         for (const file of skillFiles) {
-          const target = file.replace(/\.svg$/i, ".png");
+          const target = screenshotOutputPath(file);
           const { viewport } = await captureOne(tab, target, port);
           console.log(`captured ${relPath(target)} ${viewport.width}x${viewport.height}`);
         }
@@ -575,7 +586,7 @@ async function main() {
     console.log("\nFraming screenshots...");
     const frameArgs = ["scripts/frame-screenshots.mjs", "--force"];
     if (args.paths.length) {
-      for (const file of files) frameArgs.push("--path", relPath(file).replace(/\.svg$/i, ".png"));
+      for (const file of files) frameArgs.push("--path", relPath(screenshotOutputPath(file)));
     } else {
       for (const skill of bySkill.keys()) frameArgs.push("--skill", skill);
     }

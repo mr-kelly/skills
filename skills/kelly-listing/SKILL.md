@@ -16,16 +16,16 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Listing overview"></td>
-    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly Listing review queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Listing overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.webp" alt="Kelly Listing review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Listing command desk with product × platform status matrix, compliance pass rate, and export readiness.</td>
     <td><strong>Review queue</strong><br>Draft submissions with compliance summaries and keyword-strategy notes for approval before export or publish.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/checks.png" alt="Kelly Listing compliance checks"></td>
-    <td width="50%"><img src="assets/screenshots/drafts.png" alt="Kelly Listing draft workbench"></td>
+    <td width="50%"><img src="assets/screenshots/checks.webp" alt="Kelly Listing compliance checks"></td>
+    <td width="50%"><img src="assets/screenshots/drafts.webp" alt="Kelly Listing draft workbench"></td>
   </tr>
   <tr>
     <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results — banned words, character caps, bullet counts — across all drafts.</td>

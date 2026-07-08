@@ -22,16 +22,16 @@ Collection is agent-driven: browser automation skills in the agent session, expo
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Picks overview"></td>
-    <td width="50%"><img src="assets/screenshots/candidates.png" alt="Kelly Picks candidates"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Picks overview"></td>
+    <td width="50%"><img src="assets/screenshots/candidates.webp" alt="Kelly Picks candidates"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Product-research desk with weekly candidates by source, top movers, and per-source sweep freshness.</td>
     <td><strong>Candidates</strong><br>Candidate table with momentum, estimated margin, competition grade, and develop/watch/drop stages.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/decisions.png" alt="Kelly Picks decision queue"></td>
-    <td width="50%"><img src="assets/screenshots/detail.png" alt="Kelly Picks margin card"></td>
+    <td width="50%"><img src="assets/screenshots/decisions.webp" alt="Kelly Picks decision queue"></td>
+    <td width="50%"><img src="assets/screenshots/detail.webp" alt="Kelly Picks margin card"></td>
   </tr>
   <tr>
     <td><strong>Decision queue</strong><br>Agent-proposed develop/watch/drop verdicts with sourcing and listing briefs for approval.</td>

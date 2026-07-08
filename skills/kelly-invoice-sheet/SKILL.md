@@ -15,9 +15,9 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="33%"><img src="assets/screenshots/overview.png" alt="Kelly Invoice Sheet spreadsheet extraction desk"></td>
-    <td width="33%"><img src="assets/screenshots/detail.png" alt="Kelly Invoice Sheet invoice detail review"></td>
-    <td width="33%"><img src="assets/screenshots/extract-data.png" alt="Kelly Invoice Sheet Extract Data upload modal"></td>
+    <td width="33%"><img src="assets/screenshots/overview.webp" alt="Kelly Invoice Sheet spreadsheet extraction desk"></td>
+    <td width="33%"><img src="assets/screenshots/detail.webp" alt="Kelly Invoice Sheet invoice detail review"></td>
+    <td width="33%"><img src="assets/screenshots/extract-data.webp" alt="Kelly Invoice Sheet Extract Data upload modal"></td>
   </tr>
   <tr>
     <td><strong>Spreadsheet extraction desk</strong><br>Sheet-like invoice table with extracted rows, status filters, confidence flags, and human-attention counts.</td>

@@ -16,16 +16,16 @@ Kelly Legal Contracts is a local App-in-Skill contract review desk for NDAs, MSA
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Legal Contracts overview"></td>
-    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly Legal Contracts review queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Legal Contracts overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.webp" alt="Kelly Legal Contracts review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Legal command desk with contract × workstream status, risk pass rate, review queue preview, and recent activity.</td>
     <td><strong>Review queue</strong><br>Approval-gated legal issue queue with approve / request changes / block decisions and audit notes.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/checks.png" alt="Kelly Legal Contracts risk checks"></td>
-    <td width="50%"><img src="assets/screenshots/issues.png" alt="Kelly Legal Contracts issue workbench"></td>
+    <td width="50%"><img src="assets/screenshots/checks.webp" alt="Kelly Legal Contracts risk checks"></td>
+    <td width="50%"><img src="assets/screenshots/issues.webp" alt="Kelly Legal Contracts issue workbench"></td>
   </tr>
   <tr>
     <td><strong>Risk checks</strong><br>Per-rule pass/warn/fail results across clause issues, including hard-stop terms and playbook violations.</td>

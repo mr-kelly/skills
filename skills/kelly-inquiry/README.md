@@ -15,16 +15,16 @@ Kelly Inquiry is a local App-in-Skill inbound-inquiry desk for cross-border / fo
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Inquiry overview"></td>
-    <td width="50%"><img src="assets/screenshots/approvals.png" alt="Kelly Inquiry approvals"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Inquiry overview"></td>
+    <td width="50%"><img src="assets/screenshots/approvals.webp" alt="Kelly Inquiry approvals"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Inquiry command desk with reply SLA counters, weekly channel mix, pipeline funnel, and stale-deal alerts.</td>
     <td><strong>Approvals</strong><br>Approval-gated outbox for replies and quotes — nothing is sent until reviewed.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/inquiries.png" alt="Kelly Inquiry pipeline"></td>
-    <td width="50%"><img src="assets/screenshots/quotes.png" alt="Kelly Inquiry quotes"></td>
+    <td width="50%"><img src="assets/screenshots/inquiries.webp" alt="Kelly Inquiry pipeline"></td>
+    <td width="50%"><img src="assets/screenshots/quotes.webp" alt="Kelly Inquiry quotes"></td>
   </tr>
   <tr>
     <td><strong>Pipeline</strong><br>Inquiries across WhatsApp, Instagram, and email with country, stage, value estimate, and next follow-up.</td>
