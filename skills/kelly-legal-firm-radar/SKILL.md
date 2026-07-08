@@ -16,16 +16,16 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Legal Firm Radar overview"></td>
-    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Legal Firm Radar review queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Legal Firm Radar overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.webp" alt="Legal Firm Radar review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Firm radar command desk with partner review load, approved reports, blocked insights, and management activity.</td>
     <td><strong>Review queue</strong><br>Approval-gated management insights for practice mix, lawyer profiles, and brand proof points.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/checks.png" alt="Legal Firm Radar checks"></td>
-    <td width="50%"><img src="assets/screenshots/workbench.png" alt="Legal Firm Radar workbench"></td>
+    <td width="50%"><img src="assets/screenshots/checks.webp" alt="Legal Firm Radar checks"></td>
+    <td width="50%"><img src="assets/screenshots/workbench.webp" alt="Legal Firm Radar workbench"></td>
   </tr>
   <tr>
     <td><strong>Checks</strong><br>Analytics QA for anonymization, sample size, attribution, bias caveats, and external-use restrictions.</td>

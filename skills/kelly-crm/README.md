@@ -14,16 +14,16 @@ Kelly CRM is a local App-in-Skill dashboard and review queue over contacts, comp
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly CRM overview"></td>
-    <td width="50%"><img src="assets/screenshots/deals.png" alt="Kelly CRM deal pipeline"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly CRM overview"></td>
+    <td width="50%"><img src="assets/screenshots/deals.webp" alt="Kelly CRM deal pipeline"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>CRM command desk with pipeline totals by stage, follow-ups due, recent activity, and network counts.</td>
     <td><strong>Deals</strong><br>Pipeline table across stages with amounts, probability, next steps, and a per-deal interaction timeline.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/contacts.png" alt="Kelly CRM contacts"></td>
-    <td width="50%"><img src="assets/screenshots/followups.png" alt="Kelly CRM follow-up queue"></td>
+    <td width="50%"><img src="assets/screenshots/contacts.webp" alt="Kelly CRM contacts"></td>
+    <td width="50%"><img src="assets/screenshots/followups.webp" alt="Kelly CRM follow-up queue"></td>
   </tr>
   <tr>
     <td><strong>Contacts</strong><br>Contact list with relationship strength, last touch, and per-contact interaction history and open deals.</td>

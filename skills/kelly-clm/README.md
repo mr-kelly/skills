@@ -32,16 +32,16 @@ Open the printed URL, then use:
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly CLM overview"></td>
-    <td width="50%"><img src="assets/screenshots/contracts.png" alt="Kelly CLM contract inventory"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly CLM overview"></td>
+    <td width="50%"><img src="assets/screenshots/contracts.webp" alt="Kelly CLM contract inventory"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Lifecycle dashboard with stage pipeline, upcoming renewals, and at-risk obligations.</td>
     <td><strong>Contracts</strong><br>Simple contract inventory with owner, counterparty, stage, value, and dates.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/obligations.png" alt="Kelly CLM obligations"></td>
-    <td width="50%"><img src="assets/screenshots/renewals.png" alt="Kelly CLM renewals"></td>
+    <td width="50%"><img src="assets/screenshots/obligations.webp" alt="Kelly CLM obligations"></td>
+    <td width="50%"><img src="assets/screenshots/renewals.webp" alt="Kelly CLM renewals"></td>
   </tr>
   <tr>
     <td><strong>Obligations</strong><br>Owner-assigned obligation tracker with due dates and status.</td>

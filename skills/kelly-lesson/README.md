@@ -14,16 +14,16 @@ Kelly Lesson is a local App-in-Skill desk for a dean of studies (教导主任) o
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Lesson overview"></td>
-    <td width="50%"><img src="assets/screenshots/needs-review.png" alt="Kelly Lesson review queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Lesson overview"></td>
+    <td width="50%"><img src="assets/screenshots/needs-review.webp" alt="Kelly Lesson review queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Teaching-quality desk with compliance pass rate, grade-by-subject coverage, per-teacher status, and the review queue.</td>
     <td><strong>Review queue</strong><br>Plan submissions with compliance summaries, agent revision suggestions, and drafted teacher feedback for approval.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/checks.png" alt="Kelly Lesson compliance checks"></td>
-    <td width="50%"><img src="assets/screenshots/plans.png" alt="Kelly Lesson plan library"></td>
+    <td width="50%"><img src="assets/screenshots/checks.webp" alt="Kelly Lesson compliance checks"></td>
+    <td width="50%"><img src="assets/screenshots/plans.webp" alt="Kelly Lesson plan library"></td>
   </tr>
   <tr>
     <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results with evidence snippets, filterable by rule and teacher.</td>

@@ -41,16 +41,16 @@ Before a live creator's post publishes, the agent runs a `content-reviewer` gate
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Creators overview"></td>
-    <td width="50%"><img src="assets/screenshots/creators.png" alt="Kelly Creators candidates"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Creators overview"></td>
+    <td width="50%"><img src="assets/screenshots/creators.webp" alt="Kelly Creators candidates"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Pipeline funnel across the four phases, budget allocation, total reach, and the top fit-scored candidates.</td>
     <td><strong>Creators</strong><br>Sortable candidate cards with C³ ACE fit scores, platform, niche, and audience size.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/outreach.png" alt="Kelly Creators outreach queue"></td>
-    <td width="50%"><img src="assets/screenshots/roi.png" alt="Kelly Creators ROI board"></td>
+    <td width="50%"><img src="assets/screenshots/outreach.webp" alt="Kelly Creators outreach queue"></td>
+    <td width="50%"><img src="assets/screenshots/roi.webp" alt="Kelly Creators ROI board"></td>
   </tr>
   <tr>
     <td><strong>Outreach</strong><br>Needs-review approval queue with editable outreach drafts and the FTC/claim disclosure gate.</td>

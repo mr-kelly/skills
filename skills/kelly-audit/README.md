@@ -14,16 +14,16 @@ Kelly Audit is a local App-in-Skill finance anomaly review desk: import orders, 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Audit overview"></td>
-    <td width="50%"><img src="assets/screenshots/anomalies.png" alt="Kelly Audit anomaly queue"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Audit overview"></td>
+    <td width="50%"><img src="assets/screenshots/anomalies.webp" alt="Kelly Audit anomaly queue"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Finance audit desk with amount at risk, receivable aging bar, anomaly queue preview, and import history.</td>
     <td><strong>Anomaly queue</strong><br>Rule-flagged anomalies with the order-invoice-payment evidence chain and a drafted chasing email for approval.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/invoices.png" alt="Kelly Audit invoices"></td>
-    <td width="50%"><img src="assets/screenshots/orders.png" alt="Kelly Audit orders"></td>
+    <td width="50%"><img src="assets/screenshots/invoices.webp" alt="Kelly Audit invoices"></td>
+    <td width="50%"><img src="assets/screenshots/orders.webp" alt="Kelly Audit orders"></td>
   </tr>
   <tr>
     <td><strong>Invoices</strong><br>Invoice ledger with due dates, paid amounts, days overdue, and match status.</td>

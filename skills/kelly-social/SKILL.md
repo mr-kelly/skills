@@ -21,31 +21,31 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Kelly Social overview"></td>
-    <td width="50%"><img src="assets/screenshots/timeline.png" alt="Kelly Social unified timeline"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Social overview"></td>
+    <td width="50%"><img src="assets/screenshots/timeline.webp" alt="Kelly Social unified timeline"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Cross-platform KPI cards for X, Instagram, and Facebook with follower trends and top posts of the week.</td>
     <td><strong>Unified timeline</strong><br>Posts across all platforms in one stream with per-post likes, replies, reposts, and view counts.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/detail.png" alt="Kelly social detail"></td>
-    <td width="50%"><img src="assets/screenshots/accounts.png" alt="Kelly social accounts"></td>
+    <td width="50%"><img src="assets/screenshots/detail.webp" alt="Kelly social detail"></td>
+    <td width="50%"><img src="assets/screenshots/accounts.webp" alt="Kelly social accounts"></td>
   </tr>
   <tr>
     <td><strong>Detail</strong><br>Single-post performance view with platform metrics, comments, reply drafts, and approval status.</td>
     <td><strong>Accounts</strong><br>Connected-account health board with platform status, audience totals, content cadence, and sync freshness.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/calendar.png" alt="Kelly Social content calendar"></td>
-    <td width="50%"><img src="assets/screenshots/compose.png" alt="Kelly Social post composer"></td>
+    <td width="50%"><img src="assets/screenshots/calendar.webp" alt="Kelly Social content calendar"></td>
+    <td width="50%"><img src="assets/screenshots/compose.webp" alt="Kelly Social post composer"></td>
   </tr>
   <tr>
     <td><strong>Content calendar</strong><br>Scheduled posts across channels by theme pillar and date, with status and approvals.</td>
     <td><strong>Compose (publishing)</strong><br>Agent-drafted posts in a review queue with hooks, hashtags, and CTAs, behind a social-qa SHIP/FIX/BLOCK gate — one draft blocked for a banned claim.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/engagement.png" alt="Kelly social engagement"></td>
+    <td width="50%"><img src="assets/screenshots/engagement.webp" alt="Kelly social engagement"></td>
   </tr>
   <tr>
     <td><strong>Engagement</strong><br>Mentions and comments inbox grouped by urgency, sentiment, owner, and reply-approval state.</td>
