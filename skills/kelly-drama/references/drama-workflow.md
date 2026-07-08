@@ -95,7 +95,7 @@ Write prompts as production instructions, not literary prose. Keep one shot to o
 
 ## Shot Definition of Done (video-ready)
 
-A shot that only describes a still frame is image-ready, not video-ready. Generating video from thin shot data wastes generations. Before generating a shot's image or video, complete the full production sheet and run `scripts/validate_shot_readiness.mjs`:
+A shot that only describes a still frame is image-ready, not video-ready. Generating video from thin shot data wastes generations. Before generating a shot's image or video, complete the full production sheet and run `scripts/validate_shot_readiness.ts`:
 
 1. Timing: float `duration_seconds` to information density (4-6s reactions/close-ups, 8-12s establishing/ceremony/action); never exceed 12s. Set `emotion`.
 2. Camera spec: structured `shot_size`, `camera_angle`, `camera_movement`, `lens` in addition to freeform `camera`/`composition`/`setting`/`lighting`.

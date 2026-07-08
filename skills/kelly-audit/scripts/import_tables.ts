@@ -6,7 +6,7 @@
 // and metrics, and appends an import_log entry. Honors app/.data/agent.lock.
 //
 // Usage:
-//   node scripts/import_tables.mjs --orders orders.csv --invoices invoices.csv --payments payments.csv
+//   node scripts/import_tables.ts --orders orders.csv --invoices invoices.csv --payments payments.csv
 //
 // Any subset of the three tables may be given. CSV needs a header row; JSON
 // must be an array of objects. Column mapping (canonical -> source header)
@@ -274,7 +274,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help || (!args.orders && !args.invoices && !args.payments)) {
     console.log(
-      "Usage: node scripts/import_tables.mjs [--orders file.csv|.json] [--invoices file.csv|.json] [--payments file.csv|.json]",
+      "Usage: node scripts/import_tables.ts [--orders file.csv|.json] [--invoices file.csv|.json] [--payments file.csv|.json]",
     );
     process.exit(args.help ? 0 : 1);
   }
@@ -410,7 +410,7 @@ async function main() {
       `  payments: +${added.payments} added, ${updated.payments} updated (total ${snapshot.payments.length})`,
     );
     for (const warning of warnings) console.log(`  warning: ${warning}`);
-    console.log("Next: node scripts/run_checks.mjs to refresh the anomaly queue.");
+    console.log("Next: node scripts/run_checks.ts to refresh the anomaly queue.");
   } finally {
     await provider.releaseLock();
   }

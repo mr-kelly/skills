@@ -18,7 +18,7 @@ const args = parseArgs(process.argv.slice(2));
 const source = await readSource(args.source || args._[0] || "");
 if (!source.trim()) {
   console.error(
-    "Usage: generate_batch.mjs --source <path-or-text> [--channels official_blog,xiaohongshu,wechat,newsletter,linkedin,x] [--audience text] [--cta text]",
+    "Usage: generate_batch.ts --source <path-or-text> [--channels official_blog,xiaohongshu,wechat,newsletter,linkedin,x] [--audience text] [--cta text]",
   );
   process.exit(1);
 }

@@ -59,7 +59,7 @@ export function emptySnapshot(): InquirySnapshot {
         id: "no-snapshot",
         severity: "info",
         message:
-          "No inquiry snapshot exists yet. Configure channels, then ingest collected inquiries with scripts/ingest_inquiries.mjs.",
+          "No inquiry snapshot exists yet. Configure channels, then ingest collected inquiries with scripts/ingest_inquiries.ts.",
       },
     ],
   };

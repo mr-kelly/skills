@@ -142,7 +142,7 @@ Validate with `node scripts/validate_ui_schema.ts` before relying on a snapshot 
 
 ## Approval And Send Workflow
 
-`scripts/send_approved.ts` is the executor — there is no separate `execute_decisions.mjs`.
+`scripts/send_approved.ts` is the executor — there is no separate `execute_decisions.ts`.
 
 1. Queue: the user writes or edits a reply in the composer (optionally starting from the agent's `suggested_reply`) and clicks `Queue reply`; the app appends it to `snapshot.approvals[]` as `needs_review`. The agent queues its own reply/quote drafts the same way.
 2. Review: in `#/approvals` the user approves, edits (`Save edit`), requests changes, or blocks each item. Decisions are mirrored into `decisions.json`; `request_changes` enqueues a `revise_reply`/`revise_quote` task in `agent_tasks.json`.

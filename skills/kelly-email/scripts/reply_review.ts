@@ -5,12 +5,12 @@
 // the reply-draft edit-to-canonical slice.
 //
 // Usage:
-//   reply_review.mjs open --email-id <id> --to <addr> --subject <s> --draft <text|-> [--thread-id <t>]
-//   reply_review.mjs list
-//   reply_review.mjs review <reply_id> --verdict approve|request_changes|revise|block [--edits <text|->] [--comment <c>]
-//   reply_review.mjs approved <reply_id>      # prints the approved reply JSON (for the skill to send), or nothing
-//   reply_review.mjs sent <reply_id>          # mark as sent (merge/close); call AFTER the skill sends
-//   reply_review.mjs tasks                    # reply drafts in changes_requested (agent should revise)
+//   reply_review.ts open --email-id <id> --to <addr> --subject <s> --draft <text|-> [--thread-id <t>]
+//   reply_review.ts list
+//   reply_review.ts review <reply_id> --verdict approve|request_changes|revise|block [--edits <text|->] [--comment <c>]
+//   reply_review.ts approved <reply_id>      # prints the approved reply JSON (for the skill to send), or nothing
+//   reply_review.ts sent <reply_id>          # mark as sent (merge/close); call AFTER the skill sends
+//   reply_review.ts tasks                    # reply drafts in changes_requested (agent should revise)
 //
 // "--draft -" / "--edits -" reads that value from stdin (for long bodies).
 
@@ -86,7 +86,7 @@ try {
   } else if (command === "tasks") {
     out(await store.listAgentTasks());
   } else {
-    process.stderr.write("Usage: reply_review.mjs open|list|review|approved|sent|tasks ... (see file header)\n");
+    process.stderr.write("Usage: reply_review.ts open|list|review|approved|sent|tasks ... (see file header)\n");
     process.exit(1);
   }
   out(`# provider: ${store.kind}`);

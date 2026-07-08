@@ -1,6 +1,6 @@
 # Kelly Standup Schema
 
-Use this schema for `app/.data/standup_snapshot.json` and the ingest payload consumed by `scripts/ingest_updates.mjs`. Keep the shape stable so the local app, scripts, and future connectors can evolve independently. Validate with `node scripts/validate_ui_schema.mjs app/.data/standup_snapshot.json`.
+Use this schema for `app/.data/standup_snapshot.json` and the ingest payload consumed by `scripts/ingest_updates.ts`. Keep the shape stable so the local app, scripts, and future connectors can evolve independently. Validate with `node scripts/validate_ui_schema.ts app/.data/standup_snapshot.json`.
 
 ## Snapshot
 
@@ -36,7 +36,7 @@ Use this schema for `app/.data/standup_snapshot.json` and the ingest payload con
 }
 ```
 
-`today` is the most recent recorded date. `metrics` and all per-member derived fields (streak, participation, blocker counts, day participation) are recomputed by `recomputeDerived` in `app/server/store.mjs` — never hand-edit them.
+`today` is the most recent recorded date. `metrics` and all per-member derived fields (streak, participation, blocker counts, day participation) are recomputed by `recomputeDerived` in `app/server/store.ts` — never hand-edit them.
 
 ## Member
 
@@ -127,9 +127,9 @@ The top-level registry deduplicates blockers across days by content hash. When a
 }
 ```
 
-Reminders follow the standard review model. Decisions land in `decisions.json` via `POST /api/decision` (`approve` / `request_changes` / `revise` / `block`); `request_changes` enqueues a `revise_reminder` task in `agent_tasks.json`. `scripts/execute_decisions.mjs` turns approved reminders into `send_reminder` operations in `execution_report.json` — the app and scripts never send anything.
+Reminders follow the standard review model. Decisions land in `decisions.json` via `POST /api/decision` (`approve` / `request_changes` / `revise` / `block`); `request_changes` enqueues a `revise_reminder` task in `agent_tasks.json`. `scripts/execute_decisions.ts` turns approved reminders into `send_reminder` operations in `execution_report.json` — the app and scripts never send anything.
 
-## Ingest payload (`scripts/ingest_updates.mjs`)
+## Ingest payload (`scripts/ingest_updates.ts`)
 
 ```json
 {

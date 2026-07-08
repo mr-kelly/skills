@@ -2,7 +2,7 @@
 // Dry-run-by-default execution stub: turns approved proposals into concrete operations
 // in execution_report.json. No external side effects — the agent performs the handoffs
 // (kelly-listing brief, sourcing brief export, watch entries) after reading the report.
-// Usage: node scripts/execute_decisions.mjs [--apply]
+// Usage: node scripts/execute_decisions.ts [--apply]
 import path from "node:path";
 import { applyDecisions } from "../app/server/decisions.ts";
 import { EXECUTION_REPORT_PATH, SKILL_DIR, SNAPSHOT_PATH } from "../app/server/paths.ts";

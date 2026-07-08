@@ -108,7 +108,7 @@ Primary local files:
 - `app/.data/ads_snapshot.json`: canonical snapshot (platforms, campaigns with daily series and targets, anomalies, adjustments, metrics, sync_log).
 - `app/.data/decisions.json`: user verdicts keyed by adjustment id.
 - `app/.data/agent_tasks.json`: queued agent work from `request_changes` verdicts. Poll this to pick up revisions.
-- `app/.data/execution_report.json`: planned operations from `execute_decisions.mjs` (dry-run, handoff to agent).
+- `app/.data/execution_report.json`: planned operations from `execute_decisions.ts` (dry-run, handoff to agent).
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill ingests/checks/rewrites files; the adjustments queue honors it (HTTP 423 on POST while locked).
 - `config.local.json`: private platform configuration, ignored by git.

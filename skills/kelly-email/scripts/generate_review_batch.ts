@@ -38,7 +38,7 @@ function parseArgs(argv: string[]): BatchArgs {
 }
 
 function printHelp() {
-  console.log(`Usage: node scripts/generate_review_batch.mjs [--review-quota 5] [--max-scan-per-mailbox 120] [--dry-run]
+  console.log(`Usage: node scripts/generate_review_batch.ts [--review-quota 5] [--max-scan-per-mailbox 120] [--dry-run]
 
 Validate local Kelly Email config and prepare the local App-in-Skill batch files.
 

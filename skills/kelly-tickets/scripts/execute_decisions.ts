@@ -5,7 +5,7 @@
 // update_board ticket transitions). It performs NO external side effects:
 // the agent sends the actual crew notifications outside the app after this
 // plan is reviewed.
-// Usage: node scripts/execute_decisions.mjs [--apply]
+// Usage: node scripts/execute_decisions.ts [--apply]
 
 import { mergeSnapshot } from "../lib/common.ts";
 import { createProvider } from "../lib/data-provider/index.ts";

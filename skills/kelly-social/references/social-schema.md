@@ -1,6 +1,6 @@
 # Kelly Social Snapshot Schema
 
-Use this schema for `app/.data/social_snapshot.json`. Keep the shape stable so the local app, the ingest script, and future collectors can evolve independently. All writes must go through `scripts/ingest_snapshot.mjs`.
+Use this schema for `app/.data/social_snapshot.json`. Keep the shape stable so the local app, the ingest script, and future collectors can evolve independently. All writes must go through `scripts/ingest_snapshot.ts`.
 
 ## Snapshot
 
@@ -36,9 +36,9 @@ Use this schema for `app/.data/social_snapshot.json`. Keep the shape stable so t
 }
 ```
 
-`metrics` is a rollup across accounts and is recomputed by `ingest_snapshot.mjs` on every merge; do not hand-edit it.
+`metrics` is a rollup across accounts and is recomputed by `ingest_snapshot.ts` on every merge; do not hand-edit it.
 
-The snapshot has two halves. The **monitoring** half (`accounts`, `posts`, `sync_log`, `warnings`, `metrics`, `range`) is written only by `ingest_snapshot.mjs`. The **publishing** half (`calendar`, `drafts`, `shorts`, `engagement`, `crisis`, `share_of_voice`) is optional, read by the app, and mutated in place through `POST /api/operation`; the ingest script preserves these keys untouched. All publishing fields may be absent on legacy snapshots.
+The snapshot has two halves. The **monitoring** half (`accounts`, `posts`, `sync_log`, `warnings`, `metrics`, `range`) is written only by `ingest_snapshot.ts`. The **publishing** half (`calendar`, `drafts`, `shorts`, `engagement`, `crisis`, `share_of_voice`) is optional, read by the app, and mutated in place through `POST /api/operation`; the ingest script preserves these keys untouched. All publishing fields may be absent on legacy snapshots.
 
 ## Account
 
@@ -75,7 +75,7 @@ The snapshot has two halves. The **monitoring** half (`accounts`, `posts`, `sync
 ```
 
 - `collection` declares how the agent gathers this account's data; it mirrors the account entry in private config.
-- `follower_series` powers the inline SVG sparklines. Keep one point per collection date; `ingest_snapshot.mjs` merges series points by `date` (newest payload wins).
+- `follower_series` powers the inline SVG sparklines. Keep one point per collection date; `ingest_snapshot.ts` merges series points by `date` (newest payload wins).
 - `traffic_sources` is optional; include it only when the platform's analytics expose it. `share` is a 0-1 fraction.
 - Rates (`engagement_rate_7d`) are 0-1 fractions, not percentages.
 
@@ -125,7 +125,7 @@ Normalize per-platform vocabulary into these fields: X replies/reposts, Facebook
 }
 ```
 
-`ingest_snapshot.mjs` appends one entry per payload account on every merge and keeps the newest 200 entries. Never store credentials, cookies, or session tokens in messages.
+`ingest_snapshot.ts` appends one entry per payload account on every merge and keeps the newest 200 entries. Never store credentials, cookies, or session tokens in messages.
 
 ## Warnings
 
@@ -264,4 +264,4 @@ The `gate` is the pre-publish `social-qa` result (see `lib/social-qa.ts`). A `BL
 
 ## Validation
 
-Run `node scripts/validate_ui_schema.mjs [path]` before relying on a snapshot in the UI. The validator enforces required fields, platform/collection/media enums, unique ids, and account references for posts and sync entries. The publishing sections (`calendar`, `drafts`, `shorts`, `engagement`, `crisis`, `share_of_voice`) are validated only when present, including review-state and gate-verdict enums.
+Run `node scripts/validate_ui_schema.ts [path]` before relying on a snapshot in the UI. The validator enforces required fields, platform/collection/media enums, unique ids, and account references for posts and sync entries. The publishing sections (`calendar`, `drafts`, `shorts`, `engagement`, `crisis`, `share_of_voice`) are validated only when present, including review-state and gate-verdict enums.

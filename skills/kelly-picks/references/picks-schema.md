@@ -1,6 +1,6 @@
 # Kelly Picks Snapshot Schema
 
-Use this schema for `app/.data/picks_snapshot.json`. Keep the shape stable so the local app, scripts, and future providers can evolve independently. Validate with `node scripts/validate_ui_schema.mjs [path]` before relying on a snapshot.
+Use this schema for `app/.data/picks_snapshot.json`. Keep the shape stable so the local app, scripts, and future providers can evolve independently. Validate with `node scripts/validate_ui_schema.ts [path]` before relying on a snapshot.
 
 ## Snapshot
 
@@ -115,7 +115,7 @@ A product under research. `stage` is the candidate lifecycle; workflow states li
 }
 ```
 
-Margin math (see `scripts/compute_margins.mjs`, all amounts in the candidate currency):
+Margin math (see `scripts/compute_margins.ts`, all amounts in the candidate currency):
 
 - `platform_fee = price * referral_fee_pct/100 + fulfillment_flat` (from the config platform row; stored back as an effective `platform_fee_pct`)
 - `margin = price − cogs − freight − platform_fee − ad_cost`
@@ -143,7 +143,7 @@ A candidate verdict proposal from the agent, reviewed in `#/decisions`. Standard
 }
 ```
 
-Approved proposals become concrete operations in `execution_report.json` via `scripts/execute_decisions.mjs`:
+Approved proposals become concrete operations in `execution_report.json` via `scripts/execute_decisions.ts`:
 
 - `develop` → `create_sourcing_brief` (export path under `exports/`) + `handoff_listing_brief` (target `kelly-listing`)
 - `watch` → `add_watch` (target candidate id, summary carries the re-check criteria)
@@ -153,7 +153,7 @@ Approved proposals become concrete operations in `execution_report.json` via `sc
 
 - `app/.data/decisions.json`: `{ "updated_at": "...", "decisions": { "<id>": { "kind": "candidate|proposal|trend", "action": "...", "comment": "...", "brief": "optional edited brief", "stage|status": "...", "decided_at": "..." } } }`. Candidate actions: `develop|watch|drop`. Proposal actions: `approve|request_changes|revise|block`. Trend action: `promote`.
 - `app/.data/agent_tasks.json`: `{ "updated_at": "...", "tasks": [ { "task_id", "kind": "revise_proposal|unblock_proposal|draft_development_proposal|promote_to_candidate", "ref_id", "note", "status", "created_at" } ] }`.
-- `app/.data/execution_report.json`: output of `execute_decisions.mjs` (`generated_at`, `dry_run`, `operations[]`).
+- `app/.data/execution_report.json`: output of `execute_decisions.ts` (`generated_at`, `dry_run`, `operations[]`).
 - `app/.data/onboarding.json`: `{ "completed": true, "completed_at": "...", "config_version": "..." }`.
 - `app/.data/agent.lock`: `{ "owner", "message", "started_at" }`. While it exists, `POST /api/decision` returns HTTP 423 and all scripts refuse to run.
 

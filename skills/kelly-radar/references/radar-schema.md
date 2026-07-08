@@ -1,6 +1,6 @@
 # Kelly Radar Snapshot Schema
 
-Use this schema for `app/.data/radar_snapshot.json`. Keep the shape stable so the local app, scripts, and future connectors can evolve independently. Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Use this schema for `app/.data/radar_snapshot.json`. Keep the shape stable so the local app, scripts, and future connectors can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Snapshot
 
@@ -84,7 +84,7 @@ Use `stale` when `last_check_at` is older than the configured cadence. `paused` 
 }
 ```
 
-`handoff` and `diff` are optional. `content_hash` is the dedupe key: `scripts/ingest_signals.mjs` skips payload signals whose hash already exists.
+`handoff` and `diff` are optional. `content_hash` is the dedupe key: `scripts/ingest_signals.ts` skips payload signals whose hash already exists.
 
 Triage maps onto the standard review verbs: **Act** = `approve` (queues the handoff), **Watch** = leave in `needs_review` with a note, **Ignore** = `done`, **Needs info** = `blocked` (also enqueues an agent task to collect more).
 
@@ -147,7 +147,7 @@ The agent drafts the brief first; research starts only after Kelly approves it. 
 }
 ```
 
-Citation rule enforced by `scripts/file_report.mjs`: every `sections[].source_ids` entry must resolve to a `sources[].source_id`, and every source needs a non-empty `title` and `url`. `confidence` is Kelly's 0-5 rating, set through the app.
+Citation rule enforced by `scripts/file_report.ts`: every `sections[].source_ids` entry must resolve to a `sources[].source_id`, and every source needs a non-empty `title` and `url`. `confidence` is Kelly's 0-5 rating, set through the app.
 
 ## Trend Mover
 
@@ -165,7 +165,7 @@ Citation rule enforced by `scripts/file_report.mjs`: every `sections[].source_id
 }
 ```
 
-`volume_proxy` is a relative measure (search volume estimate, upvotes, mentions), not an absolute truth. `momentum` is a small series for the sparkline, oldest first. Dedupe key for `scripts/ingest_trends.mjs` is `keyword` + `source`.
+`volume_proxy` is a relative measure (search volume estimate, upvotes, mentions), not an absolute truth. `momentum` is a small series for the sparkline, oldest first. Dedupe key for `scripts/ingest_trends.ts` is `keyword` + `source`.
 
 ## Opportunity
 
@@ -189,7 +189,7 @@ Citation rule enforced by `scripts/file_report.mjs`: every `sections[].source_id
 
 - `app/.data/decisions.json`: `{ "updated_at": "ISO", "decisions": { "<item_id>": { "kind": "signal|brief|opportunity|report", "action": "approve|watch|ignore|block|request_changes", "status": "derived workflow status", "comment": "", "confidence": 4, "decided_at": "ISO" } } }`
 - `app/.data/agent_tasks.json`: `{ "updated_at": "ISO", "tasks": [{ "task_id": "", "kind": "revise_brief|collect_more_evidence|research_followup|…", "ref_id": "item id", "note": "", "created_at": "ISO", "status": "queued|in_progress|done" }] }`
-- `app/.data/execution_report.json`: written by `scripts/execute_decisions.mjs`; one entry per approved item with `operation`, `target`, `dry_run`, and `status`.
+- `app/.data/execution_report.json`: written by `scripts/execute_decisions.ts`; one entry per approved item with `operation`, `target`, `dry_run`, and `status`.
 - `app/.data/onboarding.json`: `{ "completed": true, "completed_at": "ISO", "config_version": "1" }`
 - `app/.data/agent.lock`: `{ "owner": "kelly-radar", "message": "…", "started_at": "ISO" }` — the app rejects decision writes and the ingest scripts refuse to run while it exists.
 

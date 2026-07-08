@@ -86,7 +86,7 @@ export function emptySnapshot(): StandupSnapshot {
       {
         id: "no-snapshot",
         severity: "info",
-        message: "No standup snapshot exists yet. Collect updates, then run ingest_updates.mjs.",
+        message: "No standup snapshot exists yet. Collect updates, then run ingest_updates.ts.",
       },
     ],
   };

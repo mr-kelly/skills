@@ -139,9 +139,9 @@ Read `references/social-schema.md` before editing the app, scripts, or any gener
 
 Primary local files:
 
-- `app/.data/social_snapshot.json`: canonical snapshot. The **monitoring** sections (accounts with metric series, posts, metrics rollups, `sync_log[]`, `warnings[]`) are written only by `scripts/ingest_snapshot.ts`. The **publishing** sections (`calendar[]`, `drafts[]`, `shorts[]`, `engagement[]`, `crisis`, `share_of_voice`) are read by the app and mutated in place through `POST /api/operation`; `ingest_snapshot.mjs` preserves them untouched on every merge.
+- `app/.data/social_snapshot.json`: canonical snapshot. The **monitoring** sections (accounts with metric series, posts, metrics rollups, `sync_log[]`, `warnings[]`) are written only by `scripts/ingest_snapshot.ts`. The **publishing** sections (`calendar[]`, `drafts[]`, `shorts[]`, `engagement[]`, `crisis`, `share_of_voice`) are read by the app and mutated in place through `POST /api/operation`; `ingest_snapshot.ts` preserves them untouched on every merge.
 - `app/.data/onboarding.json`: onboarding completion marker.
-- `app/.data/agent.lock`: temporary lock while the skill is collecting or rewriting files. This is a dashboard-type App-in-Skill: there is no `decisions.json`, but the lock must still be honored as a read-only indicator by the app and by `ingest_snapshot.mjs`.
+- `app/.data/agent.lock`: temporary lock while the skill is collecting or rewriting files. This is a dashboard-type App-in-Skill: there is no `decisions.json`, but the lock must still be honored as a read-only indicator by the app and by `ingest_snapshot.ts`.
 - `config.local.json`: private account configuration, ignored by git.
 
 Use `scripts/validate_ui_schema.ts app/.data/social_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists. Demo mode never reads `app/.data/`.

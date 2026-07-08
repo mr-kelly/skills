@@ -56,10 +56,10 @@ Demo mode never reads or writes local snapshot files; demo decisions are in-memo
 Kelly Feedback sits downstream of the other kelly skills. kelly-email (support threads), kelly-messenger (Discord/Slack posts), and kelly-social (X replies) hand payload JSON files to the single write path:
 
 ```bash
-node skills/kelly-feedback/scripts/ingest_feedback.mjs payload.json
+node skills/kelly-feedback/scripts/ingest_feedback.ts payload.json
 ```
 
-The agent then clusters new items (`scripts/apply_clusters.mjs`), drafts roadmap proposals, and — only after Kelly approves in the app — executes decisions (`scripts/execute_decisions.mjs`, dry-run by default). Outbound replies and changelog posts are handed back to the messaging/email skills; the app itself never touches remote systems.
+The agent then clusters new items (`scripts/apply_clusters.ts`), drafts roadmap proposals, and — only after Kelly approves in the app — executes decisions (`scripts/execute_decisions.ts`, dry-run by default). Outbound replies and changelog posts are handed back to the messaging/email skills; the app itself never touches remote systems.
 
 ## Private Config
 

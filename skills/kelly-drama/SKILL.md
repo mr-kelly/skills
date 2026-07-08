@@ -163,6 +163,6 @@ node skills/kelly-drama/scripts/validate_shot_readiness.ts --episode ep-001
 node skills/kelly-drama/scripts/export_story_bible.ts
 ```
 
-Run `validate_shot_readiness.mjs` (optionally `--strict` to fail on warnings) before any image/video generation pass to confirm shots meet the video-ready Definition of Done.
+Run `validate_shot_readiness.ts` (optionally `--strict` to fail on warnings) before any image/video generation pass to confirm shots meet the video-ready Definition of Done.
 
 Use paths relative to the skills repository root, or run the scripts from inside `skills/kelly-drama`.

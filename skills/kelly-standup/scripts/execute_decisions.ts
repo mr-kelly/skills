@@ -4,7 +4,7 @@
 // concrete operations (send_reminder message-draft handoffs). It performs NO
 // external side effects: the agent sends the actual nudges outside the app —
 // via kelly-messenger / kelly-email — after this plan is reviewed.
-// Usage: node scripts/execute_decisions.mjs [--apply]
+// Usage: node scripts/execute_decisions.ts [--apply]
 
 import { ensureDirs, mergeSnapshot, readConfig } from "../lib/common.ts";
 import { createProvider } from "../lib/data-provider/index.ts";

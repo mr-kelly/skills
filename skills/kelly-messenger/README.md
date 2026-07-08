@@ -58,16 +58,16 @@ Each account in the config declares a `connector` and references tokens by env v
 - Discord: create a bot, invite it to your server with read/send permissions, list the channel ids to watch in `channels`, set `bot_token_env`.
 - Telegram: create a bot with @BotFather, add it to the groups it should read (it must share the chats), set `bot_token_env`.
 - WhatsApp Business Cloud API: set `access_token_env` and `phone_number_id_env`. Inbound history is webhook-based, so reading uses ingest payloads; sending uses the Cloud API.
-- WhatsApp Web / anything else: use `browser_agent` (the agent reads your own logged-in session and imports via `scripts/ingest_messages.mjs`) or `manual`. No passwords or QR secrets are ever stored.
+- WhatsApp Web / anything else: use `browser_agent` (the agent reads your own logged-in session and imports via `scripts/ingest_messages.ts`) or `manual`. No passwords or QR secrets are ever stored.
 
 Scripts:
 
 ```bash
-node skills/kelly-messenger/scripts/sync_messages.mjs      # read-only API sync (friendly no-op without tokens)
-node skills/kelly-messenger/scripts/ingest_messages.mjs payload.json
-node skills/kelly-messenger/scripts/send_outbox.mjs        # dry-run; add --send to execute approved replies
-node skills/kelly-messenger/scripts/generate_demo_snapshot.mjs
-node skills/kelly-messenger/scripts/validate_ui_schema.mjs
+node skills/kelly-messenger/scripts/sync_messages.ts      # read-only API sync (friendly no-op without tokens)
+node skills/kelly-messenger/scripts/ingest_messages.ts payload.json
+node skills/kelly-messenger/scripts/send_outbox.ts        # dry-run; add --send to execute approved replies
+node skills/kelly-messenger/scripts/generate_demo_snapshot.ts
+node skills/kelly-messenger/scripts/validate_ui_schema.ts
 ```
 
 ## Private Config

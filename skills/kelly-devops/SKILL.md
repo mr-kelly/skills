@@ -109,7 +109,7 @@ Primary local files:
 - `app/.data/ops_snapshot.json`: canonical snapshot (services, expiries, spend, actions, events, metrics).
 - `app/.data/decisions.json`: user verdicts keyed by action id.
 - `app/.data/agent_tasks.json`: queued agent work from `request_changes` verdicts. Poll this to pick up revisions.
-- `app/.data/execution_report.json`: planned operations from `execute_decisions.mjs` (dry-run).
+- `app/.data/execution_report.json`: planned operations from `execute_decisions.ts` (dry-run).
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill checks or rewrites files; the actions queue honors it.
 - `config.local.json`: private fleet configuration, ignored by git.

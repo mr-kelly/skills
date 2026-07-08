@@ -118,7 +118,7 @@ Read `references/picks-schema.md` before editing the app, scripts, or any genera
 - `app/.data/picks_snapshot.json`: canonical snapshot — `sources[]`, `trend_items[]`, `candidates[]` (with `margin_card` + `competition`), `proposals[]`, `metrics`, `sync_log[]`.
 - `app/.data/decisions.json`: Kelly's verdicts keyed by item id (candidate verdicts, proposal reviews, trend promotions).
 - `app/.data/agent_tasks.json`: queued agent work — revise-proposal requests, draft-development-proposal requests, promote-to-candidate requests.
-- `app/.data/execution_report.json`: latest `execute_decisions.mjs` output.
+- `app/.data/execution_report.json`: latest `execute_decisions.ts` output.
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill writes files. The decisions queue rejects `POST /api/decision` with HTTP 423 while it exists, and all scripts refuse to run.
 
@@ -139,11 +139,11 @@ Sweeps run on demand — when Kelly asks for a sweep or invokes the skill for fr
 1. After ingest (or when fee tables change), run `node scripts/compute_margins.ts`. It deterministically recomputes every candidate's margin card from the config fee tables: platform referral fee % + flat fulfillment fee, freight rules by category (agent-quoted freight with `freight_quoted: true` is preserved), and the ad-cost default % when no estimate exists.
 2. The script flags candidates below `seller_profile.margin_floor_pct` (`below_floor: true`, surfaced in the UI) and is idempotent — re-running without input changes changes nothing.
 3. The margin card in `#/candidates/<id>` is a what-if surface: edits recompute live in the browser only. The snapshot on disk is only changed by scripts, so the app and the agent never fight over numbers.
-4. When Kelly gets a real freight quote or supplier price, ingest it as a candidate update (`margin_card.freight` + `freight_quoted: true`, or new `cogs`) and re-run `compute_margins.mjs`.
+4. When Kelly gets a real freight quote or supplier price, ingest it as a candidate update (`margin_card.freight` + `freight_quoted: true`, or new `cogs`) and re-run `compute_margins.ts`.
 
 ## Decision Workflow
 
-1. The agent proposes verdicts as `proposals[]` in the snapshot (via `ingest_trends.mjs` payloads): `develop` with a drafted sourcing + listing brief, `drop` with the reason, `watch` with re-check criteria.
+1. The agent proposes verdicts as `proposals[]` in the snapshot (via `ingest_trends.ts` payloads): `develop` with a drafted sourcing + listing brief, `drop` with the reason, `watch` with re-check criteria.
 2. Kelly reviews in `#/decisions` (or `#/candidates/<id>` for direct verdicts). The app writes to `decisions.json` and queues work into `agent_tasks.json` (request changes → `revise_proposal`; candidate Develop verdict → `draft_development_proposal`; trend Promote → `promote_to_candidate`). Poll `agent_tasks.json` when the skill is invoked and work the queue.
 3. Before executing anything, re-read decisions and run `node scripts/execute_decisions.ts` (dry-run). It converts approved proposals into concrete operations in `execution_report.json`: `create_sourcing_brief` → export path under `exports/`, `handoff_listing_brief` → kelly-listing, `add_watch` → candidate id with re-check criteria. No external side effects.
 4. After Kelly confirms the dry-run, perform the handoffs (write the sourcing brief export, invoke kelly-listing with the listing brief), then run `node scripts/execute_decisions.ts --apply` to mark proposals done, update candidate stages, and log the run.

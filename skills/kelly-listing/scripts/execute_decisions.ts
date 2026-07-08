@@ -2,7 +2,7 @@
 // Dry-run-by-default executor stub. Re-checks the agent lock, re-reads
 // decisions immediately before acting, and records concrete operations in
 // execution_report.json. It performs NO external side effects:
-// - approve          -> "export_listing" (target: the path export_listings.mjs
+// - approve          -> "export_listing" (target: the path export_listings.ts
 //                       will write) plus "publish_via_api" marked
 //                       handoff_to_agent: publishing on the marketplace is
 //                       executed by the agent outside the app, after approval.
@@ -91,7 +91,7 @@ for (const item of snapshot.review_items || []) {
       `${slugify(`${snapshot.seller?.brand || ""}-${product?.name || draft.product_id}-${draft.platform}-${draft.locale}`)}.md`,
     );
     pushResult(item, "export_listing", exportTarget, {
-      detail: "Run scripts/export_listings.mjs to write the Markdown document and CSV row.",
+      detail: "Run scripts/export_listings.ts to write the Markdown document and CSV row.",
     });
     pushResult(item, "publish_via_api", `${draft.platform}:${draft.locale || ""}`, {
       handoff_to_agent: true,

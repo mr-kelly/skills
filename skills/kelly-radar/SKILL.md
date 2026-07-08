@@ -118,7 +118,7 @@ Read `references/radar-schema.md` before editing the app, scripts, or any genera
 - `app/.data/radar_snapshot.json`: canonical snapshot — `watchlist[]`, `signals[]`, `research { questions[], briefs[], reports[] }`, `trends { movers[], opportunities[] }`, `metrics`, `sync_log[]`.
 - `app/.data/decisions.json`: Kelly's verdicts keyed by item id (signal triage, brief approvals, opportunity approvals, report confidence).
 - `app/.data/agent_tasks.json`: queued agent work — revise-brief requests, collect-more-evidence requests, research follow-ups.
-- `app/.data/execution_report.json`: latest `execute_decisions.mjs` output.
+- `app/.data/execution_report.json`: latest `execute_decisions.ts` output.
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill writes files. Signal triage, brief approvals, and opportunity approvals in the app are rejected while it exists, and all ingest scripts refuse to run.
 
@@ -144,7 +144,7 @@ Validate with `node scripts/validate_ui_schema.ts app/.data/radar_snapshot.json`
 
 1. Cadence from config (`cadence.trends`, default weekly). Collect keyword/topic movers from the configured trend sources: rising search queries, community topic volume, category interest.
 2. Optionally cross-read a kelly-seo snapshot (read-only): `node scripts/ingest_trends.ts <payload.json> /path/to/kelly-seo/app/.data/<snapshot>.json` imports rising queries when present and degrades gracefully when absent.
-3. `ingest_trends.mjs` dedupes movers by keyword+source, updates volume/delta/momentum for existing movers, and can add opportunity cards.
+3. `ingest_trends.ts` dedupes movers by keyword+source, updates volume/delta/momentum for existing movers, and can add opportunity cards.
 4. Turn sustained movers into opportunity cards with a `proposed_next_step` (content brief → kelly-writer, roadmap candidate → kelly-feedback). Kelly approves or ignores each card in `#/trends`.
 
 ## Decisions And Agent Tasks Loop

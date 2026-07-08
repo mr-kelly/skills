@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 // Draft video wrapper: image-to-video via the local official LTX-Video repo (MPS).
-// Invoked by server/video-service.mjs with a JSON arg; prints the final .mp4 path
+// Invoked by server/video-service.ts with a JSON arg; prints the final .mp4 path
 // as the LAST stdout line. All LTX logs go to stderr.
 //
 // args JSON: { image, prompt, width, height, fps, frames, output, seed? }

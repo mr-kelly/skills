@@ -42,7 +42,7 @@ export function emptySnapshot(): MessagesSnapshot {
         id: "no-snapshot",
         severity: "info",
         message:
-          "No message snapshot exists yet. Configure accounts, then run scripts/sync_messages.mjs or ingest a collected payload.",
+          "No message snapshot exists yet. Configure accounts, then run scripts/sync_messages.ts or ingest a collected payload.",
       },
     ],
   };

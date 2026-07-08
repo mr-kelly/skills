@@ -53,7 +53,7 @@ function parseArgs(argv: string[]): ExecArgs {
 }
 
 function printHelp() {
-  console.log(`Usage: node scripts/execute_ui_decisions.mjs [--dry-run] [--allow-risk-approved]
+  console.log(`Usage: node scripts/execute_ui_decisions.ts [--dry-run] [--allow-risk-approved]
 
 Validate explicit App-in-Skill UI decisions from current_batch.json and decisions.json.
 

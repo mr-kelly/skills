@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Validates a feedback snapshot against references/feedback-schema.md.
-// Usage: node scripts/validate_ui_schema.mjs [path/to/feedback_snapshot.json]
+// Usage: node scripts/validate_ui_schema.ts [path/to/feedback_snapshot.json]
 import fs from "node:fs/promises";
 
 const target = process.argv[2] || new URL("../app/.data/feedback_snapshot.json", import.meta.url).pathname;

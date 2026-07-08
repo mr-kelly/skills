@@ -14,7 +14,7 @@ import {
 // (from billing skills/exports), this script validates it, merges it into
 // app/.data/ops_snapshot.json, and flags anomalies.
 //
-// Usage: node scripts/ingest_spend.mjs /path/to/spend_payload.json
+// Usage: node scripts/ingest_spend.ts /path/to/spend_payload.json
 //
 // Payload shape:
 // {
@@ -42,7 +42,7 @@ function requireNumber(obj, key, path) {
 async function main() {
   const payloadPath = process.argv[2];
   if (!payloadPath) {
-    console.log("Usage: node scripts/ingest_spend.mjs /path/to/spend_payload.json");
+    console.log("Usage: node scripts/ingest_spend.ts /path/to/spend_payload.json");
     console.log("The payload is billing data the agent gathered from cloud billing tools or exports.");
     return;
   }

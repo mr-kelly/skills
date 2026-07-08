@@ -116,7 +116,7 @@ Primary local files:
 - `app/.data/feedback_snapshot.json`: canonical snapshot — sources, raw feedback, clustered requests, roadmap lanes, proposals, derived metrics, sync log.
 - `app/.data/decisions.json`: Kelly's verdicts from the UI (proposal approve/request_changes/block with review notes and edited drafts; feedback triage; effort estimates).
 - `app/.data/agent_tasks.json`: queued agent work — proposals in `changes_requested` land here for revision.
-- `app/.data/execution_report.json`: latest `execute_decisions.mjs` output with concrete operations.
+- `app/.data/execution_report.json`: latest `execute_decisions.ts` output with concrete operations.
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while scripts rewrite files; the app rejects decision writes and disables editing while it exists.
 - `config.local.json`: private products/sources/scoring configuration, ignored by git.

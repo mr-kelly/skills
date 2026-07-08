@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node app/server/launcher.ts",
     "serve": "node app/server/index.ts",
-    "generate-demo-assets": "node scripts/generate_demo_assets.mjs",
+    "generate-demo-assets": "node scripts/generate_demo_assets.ts",
     "generate-demo-snapshot": "node scripts/generate_demo_snapshot.ts",
     "validate-ui-schema": "node scripts/validate_ui_schema.ts"
   },

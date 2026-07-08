@@ -7,7 +7,7 @@
 // Plans can be agent-drafted (from curriculum materials + the school
 // template) or parsed from a teacher's document by the agent — set "source"
 // to "agent_draft" or "teacher_import". check_results carry agent judgements
-// for rules typed "agent_review" (they are preserved by run_checks.mjs).
+// for rules typed "agent_review" (they are preserved by run_checks.ts).
 //
 // Reaches lesson state only through the data-provider (local default /
 // Busabase); still reads the raw payload file directly from disk.
@@ -265,7 +265,7 @@ for (const input of incomingPlans) {
       ref: nextReviewRef++,
       plan_id: plan.plan_id,
       status: plan.status,
-      compliance_summary: "Checks pending — run scripts/run_checks.mjs.",
+      compliance_summary: "Checks pending — run scripts/run_checks.ts.",
       suggestions: [],
       feedback_draft: "",
       created_at: now,

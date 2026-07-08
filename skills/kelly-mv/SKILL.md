@@ -99,4 +99,4 @@ node skills/kelly-mv/scripts/validate_shot_readiness.ts
 node skills/kelly-mv/scripts/export_story_bible.ts
 ```
 
-Run `validate_shot_readiness.mjs` (optionally `--strict`) before an image/video generation pass. Use paths relative to the skills repository root, or run the scripts from inside `skills/kelly-mv`.
+Run `validate_shot_readiness.ts` (optionally `--strict`) before an image/video generation pass. Use paths relative to the skills repository root, or run the scripts from inside `skills/kelly-mv`.

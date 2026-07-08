@@ -25,7 +25,7 @@ interface SongPatch {
 }
 
 // Song generation is a documented future capability. Draft = local MLX model on Apple
-// Silicon (mirrors the local-LTX draft path in video-service.mjs); prod = cloud. Wiring it
+// Silicon (mirrors the local-LTX draft path in video-service.ts); prod = cloud. Wiring it
 // is out of scope for this pass — see generateSongDraft() and scripts/gen_song.py.
 const DEFAULT_SONG_CONFIG: SongConfig = {
   // Primary local-MLX recommendation; same family as the Qwen3-TTS(mlx-audio) path drama uses.

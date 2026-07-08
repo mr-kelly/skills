@@ -126,8 +126,7 @@ function localizeSnapshotZh(snapshot) {
     "deal-fernwood-workshop": "暂停跟进，等待基金新方向",
   };
   const notes = {
-    "deal-beacon-api":
-      "Sofia 是内部推动者，但法务对分成层级有顾虑；报价沟通仍以她为主，条款敲定后再拉 Ken 进来。",
+    "deal-beacon-api": "Sofia 是内部推动者，但法务对分成层级有顾虑；报价沟通仍以她为主，条款敲定后再拉 Ken 进来。",
     "deal-brightpath-pilot": "安全评审顺利，已批准 3 个月试点预算；能否成交取决于 SSO 上线时间表。",
     "deal-vantage-pilot": "合规敏感客户——所有对外措辞发送前必须通过 HIPAA 合规确认。",
   };

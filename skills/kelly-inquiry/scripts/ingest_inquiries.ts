@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Single write-path for agent-collected or manual inquiry payloads.
-// Usage: node scripts/ingest_inquiries.mjs /path/to/payload.json
+// Usage: node scripts/ingest_inquiries.ts /path/to/payload.json
 //
 // Payload shape (see references/inquiry-schema.md):
 // {
@@ -32,7 +32,7 @@ function fail(message) {
 }
 
 const file = process.argv[2];
-if (!file) fail("pass a payload JSON file, e.g. node scripts/ingest_inquiries.mjs collected.json");
+if (!file) fail("pass a payload JSON file, e.g. node scripts/ingest_inquiries.ts collected.json");
 
 await ensureDirs(DATA_DIR);
 await loadDotenvFiles(envSearchPaths());
