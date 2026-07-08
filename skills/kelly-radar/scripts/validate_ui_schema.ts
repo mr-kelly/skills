@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Validates a radar snapshot against references/radar-schema.md.
-// Usage: node scripts/validate_ui_schema.mjs [snapshot.json]
+// Usage: node scripts/validate_ui_schema.ts [snapshot.json]
 import fs from "node:fs/promises";
 
 const target = process.argv[2] || new URL("../app/.data/radar_snapshot.json", import.meta.url).pathname;

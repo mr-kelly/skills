@@ -14,7 +14,7 @@ http://127.0.0.1:3000/
 
 The app is only an approval desk. It reads and writes local files; mailbox scanning and approved actions are performed by the CLI scripts.
 
-Kelly Email bundles IMAP/SMTP connector scripts for local operation: `scripts/generate_review_batch.mjs` scans unread IMAP mail into the local batch, and `scripts/execute_ui_decisions.mjs` applies explicit UI-approved archive/mark-read/send actions. The UI itself still never scans mailboxes, sends replies, archives mail, or marks mail read directly.
+Kelly Email bundles IMAP/SMTP connector scripts for local operation: `scripts/generate_review_batch.ts` scans unread IMAP mail into the local batch, and `scripts/execute_ui_decisions.ts` applies explicit UI-approved archive/mark-read/send actions. The UI itself still never scans mailboxes, sends replies, archives mail, or marks mail read directly.
 
 ## App UI Screenshots
 

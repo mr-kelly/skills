@@ -125,9 +125,15 @@ function localizeSnapshotZh(snapshot) {
     "deal-orbit-license": "已签约，安排上手培训",
     "deal-fernwood-workshop": "暂停跟进，等待基金新方向",
   };
+  const notes = {
+    "deal-beacon-api": "Sofia 是内部推动者，但法务对分成层级有顾虑；报价沟通仍以她为主，条款敲定后再拉 Ken 进来。",
+    "deal-brightpath-pilot": "安全评审顺利，已批准 3 个月试点预算；能否成交取决于 SSO 上线时间表。",
+    "deal-vantage-pilot": "合规敏感客户——所有对外措辞发送前必须通过 HIPAA 合规确认。",
+  };
   snapshot.deals = snapshot.deals.map((deal) => ({
     ...deal,
     next_step: nextSteps[deal.deal_id] || deal.next_step,
+    notes: notes[deal.deal_id] || deal.notes,
   }));
   const reasons = {
     "fu-brightpath-recap": "周二的安全评审电话需要书面纪要，趁热确认时间表。",
@@ -742,6 +748,14 @@ const EXTRA_DEAL_CONTACTS = {
   "deal-beacon-api": ["ct-ken"],
 };
 
+const DEAL_NOTES = {
+  "deal-beacon-api":
+    "Sofia champions the deal but legal flagged the revenue-share tiers; keep pricing talks with her, loop Ken in only after terms firm up.",
+  "deal-brightpath-pilot":
+    "Security review went well. Budget approved for a 3-month pilot; decision hinges on the SSO timeline.",
+  "deal-vantage-pilot": "Compliance-sensitive account — all messaging must clear HIPAA wording before it goes out.",
+};
+
 function deal(
   deal_id,
   name,
@@ -776,7 +790,7 @@ function deal(
     last_activity_at,
     status,
     agent_next_action,
-    notes: "",
+    notes: DEAL_NOTES[deal_id] || "",
   };
 }
 

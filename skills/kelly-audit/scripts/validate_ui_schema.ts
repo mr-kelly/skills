@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Validates an audit snapshot against the schema in references/audit-schema.md.
-// Usage: node scripts/validate_ui_schema.mjs [path/to/audit_snapshot.json]
+// Usage: node scripts/validate_ui_schema.ts [path/to/audit_snapshot.json]
 
 import fs from "node:fs/promises";
 

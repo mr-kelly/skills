@@ -507,6 +507,16 @@ function renderDealDetail() {
           <h2>${t("agentNextAction")}</h2>
           <p>${escapeHtml(item.agent_next_action || item.next_step || "")}</p>
         </div>
+        ${
+          item.notes
+            ? `
+        <div class="overview-panel">
+          <h2>${t("notes")}</h2>
+          <p>${escapeHtml(item.notes)}</p>
+        </div>
+        `
+            : ""
+        }
         <div class="overview-panel">
           <h2>${t("timeline")}</h2>
           ${

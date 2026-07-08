@@ -13,9 +13,9 @@ Kelly Radar is a local App-in-Skill market-intelligence desk. One app merges com
 
 ## How It Flows
 
-1. The agent collects (browser automation, web search, or manual payloads) and files everything through `scripts/ingest_signals.mjs`, `scripts/ingest_trends.mjs`, and `scripts/file_report.mjs`. The app itself never touches the network beyond `127.0.0.1`.
+1. The agent collects (browser automation, web search, or manual payloads) and files everything through `scripts/ingest_signals.ts`, `scripts/ingest_trends.ts`, and `scripts/file_report.ts`. The app itself never touches the network beyond `127.0.0.1`.
 2. Kelly triages signals, approves research briefs, rates report confidence, and approves opportunity cards in the app. Decisions land in `app/.data/decisions.json`; revision requests and follow-ups queue in `app/.data/agent_tasks.json`.
-3. `scripts/execute_decisions.mjs` (dry-run by default) turns approved items into concrete handoff operations in `app/.data/execution_report.json`; the agent then performs them.
+3. `scripts/execute_decisions.ts` (dry-run by default) turns approved items into concrete handoff operations in `app/.data/execution_report.json`; the agent then performs them.
 
 ## App UI Screenshots
 

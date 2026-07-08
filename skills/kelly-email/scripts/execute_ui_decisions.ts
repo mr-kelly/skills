@@ -66,8 +66,8 @@ function configuredKeywords(config: Config, riskName: string): string[] {
 }
 
 function hasConfiguredRisk(config: Config, riskName: string, text: string) {
-  return configuredKeywords(config, riskName).some((keyword) =>
-    keyword && text.toLowerCase().includes(String(keyword).toLowerCase()),
+  return configuredKeywords(config, riskName).some(
+    (keyword) => keyword && text.toLowerCase().includes(String(keyword).toLowerCase()),
   );
 }
 
@@ -158,7 +158,9 @@ function parseAddresses(value: string) {
 }
 
 function normalizeEmail(value: unknown) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .trim()
+    .toLowerCase();
 }
 
 function resolveIdentity(item: ReviewItem, config: Config) {
@@ -186,7 +188,8 @@ function resolveIdentity(item: ReviewItem, config: Config) {
 
 function imapClient(mailbox: Mailbox) {
   const imap = mailbox.imap;
-  if (!imap?.host || !imap.username || !imap.password_env) throw new Error(`missing IMAP config for ${mailbox.mailbox_id}`);
+  if (!imap?.host || !imap.username || !imap.password_env)
+    throw new Error(`missing IMAP config for ${mailbox.mailbox_id}`);
   const password = process.env[imap.password_env];
   if (!password) throw new Error(`Missing environment variable: ${imap.password_env}`);
   return new ImapFlow({
@@ -200,7 +203,8 @@ function imapClient(mailbox: Mailbox) {
 
 function smtpTransport(mailbox: Mailbox) {
   const smtp = mailbox.smtp;
-  if (!smtp?.host || !smtp.username || !smtp.password_env) throw new Error(`missing SMTP config for ${mailbox.mailbox_id}`);
+  if (!smtp?.host || !smtp.username || !smtp.password_env)
+    throw new Error(`missing SMTP config for ${mailbox.mailbox_id}`);
   const password = process.env[smtp.password_env];
   if (!password) throw new Error(`Missing environment variable: ${smtp.password_env}`);
   return nodemailer.createTransport({
@@ -225,7 +229,11 @@ function replySubject(subject = "") {
 function quoteBlock(item: ReviewItem) {
   const preview = String(item.quote_preview || item.summary || "").trim();
   if (!preview) return "";
-  const lines = preview.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).slice(0, 8);
+  const lines = preview
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 8);
   return `\n\nOn ${item.date || ""}, ${item.from || "the sender"} wrote:\n${lines.map((line) => `> ${line}`).join("\n")}`;
 }
 
@@ -234,7 +242,8 @@ function executionPlan(entry: ExecEntry): ExecResult {
     ...entry,
     mark_read: ["archive", "mark_read", "send_reply"].includes(entry.action),
   };
-  if (entry.action === "archive") return { ...base, mailbox_operation: "move_to_folder", target_folder: entry.target_folder };
+  if (entry.action === "archive")
+    return { ...base, mailbox_operation: "move_to_folder", target_folder: entry.target_folder };
   if (entry.action === "mark_read") return { ...base, mailbox_operation: "mark_read" };
   if (entry.action === "send_reply") return { ...base, mailbox_operation: "send_reply" };
   return base;
@@ -260,10 +269,18 @@ async function executeMailboxGroup(mailbox: Mailbox, entries: ExecEntry[], dryRu
           await client.messageFlagsAdd(uid, ["\\Seen"], { uid: true });
           results.push({ ...executionPlan(entry), status: "executed" });
         } else {
-          results.push({ ...executionPlan(entry), status: "skipped", skip_reason: `unsupported action ${entry.action}` });
+          results.push({
+            ...executionPlan(entry),
+            status: "skipped",
+            skip_reason: `unsupported action ${entry.action}`,
+          });
         }
       } catch (error) {
-        results.push({ ...executionPlan(entry), status: "error", error: error instanceof Error ? error.message : String(error) });
+        results.push({
+          ...executionPlan(entry),
+          status: "error",
+          error: error instanceof Error ? error.message : String(error),
+        });
       } finally {
         if (lock) lock.release();
       }
@@ -276,7 +293,12 @@ async function executeMailboxGroup(mailbox: Mailbox, entries: ExecEntry[], dryRu
 
 async function sendReply(item: ReviewItem, config: Config, dryRun: boolean): Promise<ExecResult> {
   const { identity, mailbox } = resolveIdentity(item, config);
-  const plan: ExecEntry = { item, action: "send_reply", identity: identity.identity_id, send_as: identity.send_as_email };
+  const plan: ExecEntry = {
+    item,
+    action: "send_reply",
+    identity: identity.identity_id,
+    send_as: identity.send_as_email,
+  };
   if (dryRun) return { ...executionPlan(plan), status: "dry_run" };
   const [recipient] = parseAddresses(item.from || "");
   if (!recipient?.address) throw new Error("cannot determine reply recipient");
@@ -337,7 +359,10 @@ async function writeReport(
     results: results.map(compactResult),
     blocked: blocked.map(compactResult),
   };
-  const stamp = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
+  const stamp = new Date()
+    .toISOString()
+    .replace(/[-:T.Z]/g, "")
+    .slice(0, 14);
   const path = `${REPORTS_DIR}/${batch.batch_id}-${stamp}.json`;
   await writeJson(path, report);
   return path;
@@ -475,7 +500,11 @@ async function main() {
     try {
       results.push(await sendReply(entry.item, config, args.dryRun));
     } catch (error) {
-      results.push({ ...executionPlan(entry), status: "error", error: error instanceof Error ? error.message : String(error) });
+      results.push({
+        ...executionPlan(entry),
+        status: "error",
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

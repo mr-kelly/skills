@@ -1,6 +1,6 @@
 # Kelly Ads Snapshot Schema
 
-Use this schema for `app/.data/ads_snapshot.json`. Keep the shape stable so the local app, scripts, and future connectors can evolve independently. Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Use this schema for `app/.data/ads_snapshot.json`. Keep the shape stable so the local app, scripts, and future connectors can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Snapshot
 
@@ -22,11 +22,11 @@ Use this schema for `app/.data/ads_snapshot.json`. Keep the shape stable so the 
 }
 ```
 
-All money amounts are decimal numbers in the snapshot base `currency`; `scripts/ingest_reports.mjs` normalizes other currencies via `config.currency_rates` at ingest time.
+All money amounts are decimal numbers in the snapshot base `currency`; `scripts/ingest_reports.ts` normalizes other currencies via `config.currency_rates` at ingest time.
 
 ## Metrics
 
-Recomputed by `recomputeDerived()` in `app/server/store.mjs` (shared by all write-path scripts). Do not hand-edit except `spend_last_month`, which comes from the ingest payload.
+Recomputed by `recomputeDerived()` in `app/server/store.ts` (shared by all write-path scripts). Do not hand-edit except `spend_last_month`, which comes from the ingest payload.
 
 ```json
 {
@@ -131,7 +131,7 @@ Rollup fields (`campaign_count` and below) are recomputed from campaigns.
 }
 ```
 
-Anomaly ids are stable so `run_checks.mjs` can upsert: re-detection updates `evidence`/`detected_at`, a cleared condition flips `open|actioned` to `resolved`, and `dismissed` stays dismissed.
+Anomaly ids are stable so `run_checks.ts` can upsert: re-detection updates `evidence`/`detected_at`, a cleared condition flips `open|actioned` to `resolved`, and `dismissed` stays dismissed.
 
 ## Adjustment
 
@@ -189,6 +189,6 @@ Anomaly ids are stable so `run_checks.mjs` can upsert: re-detection updates `evi
 
 - `app/.data/decisions.json`: `{ "updated_at": "...", "decisions": { "<adjustment_id>": { "verdict": "...", "note": "...", "decided_at": "..." } } }`
 - `app/.data/agent_tasks.json`: `{ "updated_at": "...", "tasks": [ { "task_id": "...", "adjustment_id": "...", "type": "...", "title": "...", "request": "...", "status": "queued", "created_at": "..." } ] }` — written on `request_changes`; the agent polls it, revises the card, sets it back to `needs_review`, and clears the task.
-- `app/.data/execution_report.json`: dry-run plan from `scripts/execute_decisions.mjs`; every entry carries `dry_run: true` and `handoff_to_agent: true`.
+- `app/.data/execution_report.json`: dry-run plan from `scripts/execute_decisions.ts`; every entry carries `dry_run: true` and `handoff_to_agent: true`.
 - `app/.data/onboarding.json`: `{ "completed": true, "completed_at": "...", "config_version": "..." }`.
 - `app/.data/agent.lock`: `{ "owner": "...", "message": "...", "started_at": "..." }` — write endpoints return HTTP 423 while it exists.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Single write path for agent-collected trend/candidate payloads.
-// Usage: node scripts/ingest_trends.mjs <payload.json>
+// Usage: node scripts/ingest_trends.ts <payload.json>
 // Payload: { "trend_items": [ ... ], "candidates": [ ... ], "source_sweeps": [ { source_id, swept_at } ] }
 // Validates, dedupes trend items by source + external_id (falling back to a content hash),
 // dedupes candidates by candidate_id or name+source, merges, refreshes metrics + sync_log,
@@ -48,7 +48,7 @@ function contentHash(item: Partial<TrendItem>): string {
 }
 
 const payloadPath = process.argv[2];
-if (!payloadPath) fail("usage: node scripts/ingest_trends.mjs <payload.json>");
+if (!payloadPath) fail("usage: node scripts/ingest_trends.ts <payload.json>");
 
 const payload = (await readJsonFile(payloadPath)) as {
   trend_items?: TrendItem[];

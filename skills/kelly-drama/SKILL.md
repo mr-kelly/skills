@@ -38,7 +38,7 @@ Default to the local app for ongoing creative work. Use chat-only mode only when
 ## Default Flow
 
 1. Start or reuse the local app with `app/start.sh`.
-2. Check `app/.data/project.json`. If missing, create a starter project with `scripts/create_sample_project.mjs`. The bundled starter is a short-drama adaptation of `异世来客：王爷揽砚入王府`.
+2. Check `app/.data/project.json`. If missing, create a starter project with `scripts/create_sample_project.ts`. The bundled starter is a short-drama adaptation of `异世来客：王爷揽砚入王府`.
 3. Use the app to maintain:
    - Series bible: logline, genre, platform, target audience, episode format, hook rules, world rules.
    - HyperFrame project link: `series.hyperframe_project_path` is the absolute path to the matching HyperFrame project. Do not guess it when the user has provided a path; store the explicit path.
@@ -50,8 +50,8 @@ Default to the local app for ongoing creative work. Use chat-only mode only when
    - Relationship map: relationship type, power direction, emotional temperature, conflict, evidence episodes.
    - Episode ladder: episodes, acts, beats, turning points, cliffhangers, emotional payload.
    - Storyboard bench: shots, image prompts, negative prompts, continuity anchors, production status.
-4. After major edits, run `scripts/validate_ui_schema.mjs` before exporting or using generated prompts.
-5. Export a readable bible with `scripts/export_story_bible.mjs` when the user wants a handoff, pitch note, or production brief.
+4. After major edits, run `scripts/validate_ui_schema.ts` before exporting or using generated prompts.
+5. Export a readable bible with `scripts/export_story_bible.ts` when the user wants a handoff, pitch note, or production brief.
 
 ## Kelly Drama ↔ HyperFrame Contract
 
@@ -76,7 +76,7 @@ When importing an existing HyperFrame episode into Kelly Drama:
 3. Create/update the Kelly Drama episode beats and storyboard shots to mirror the composition scenes.
 4. Extract or copy scene reference frames and rendered video into `app/.data/generated/hyperframes/<project-episode>/`.
 5. Store the original source path and time ranges on the episode/shots so future syncs are traceable.
-6. Run `scripts/validate_ui_schema.mjs` and `scripts/validate_shot_readiness.mjs`.
+6. Run `scripts/validate_ui_schema.ts` and `scripts/validate_shot_readiness.ts`.
 
 When planning a new episode first in Kelly Drama:
 
@@ -97,7 +97,7 @@ When planning a new episode first in Kelly Drama:
 - Storyboard images can be generated through an OpenAI-compatible Images API. Default model is `gpt-image-2`; default `BASE_URL` is `https://moonrouter.dev/v1`; the local UI stores the API key in `app/.data/image_config.json`, which must remain local-only.
 - Use real image-to-image conditioning for character consistency: storyboard generation feeds the existing character reference-card images (and the visual background reference) to the `/images/edits` endpoint as actual input images, not just as text. Text mentions of a reference path do nothing — the model must receive the pixels. If a character lacks a generated reference card, that shot falls back to text-to-image and consistency will drift, so generate the card first.
 - Generate in dependency order: visual bible/background reference images first, then character reference-card images, then episode storyboard images, then video generation units. If character or background references are missing, create those before generating storyboard/video assets to avoid consistency drift and wasted generations.
-- Finish the text before spending on pixels: a shot must reach the video-ready Definition of Done (below) and pass `scripts/validate_shot_readiness.mjs` before you generate its image or video. Thin shot data (missing motion, audio, transitions, timed dialogue) produces wasted image and video generations.
+- Finish the text before spending on pixels: a shot must reach the video-ready Definition of Done (below) and pass `scripts/validate_shot_readiness.ts` before you generate its image or video. Thin shot data (missing motion, audio, transitions, timed dialogue) produces wasted image and video generations.
 - For realism-oriented dramas, prompts should explicitly request live-action cinema stills, natural lensing, physical costumes, period-accurate sets, and "almost impossible to tell it is AI generated"; also forbid UI overlays, captions, watermarks, readable fake text, modern items, fantasy glow, and plastic-looking skin.
 - Use "forbidden drift" on character cards for details the image or script generator must not change.
 - Make relationship changes explicit. If two characters reconcile, betray, divorce, reveal kinship, or shift power, update the relationship map and evidence episode.
@@ -117,7 +117,7 @@ A storyboard shot is "image-ready" once it describes a still frame, but final sh
 - Editorial: `transition_in`, `transition_out`.
 - Continuity: `continuity` = `{ wardrobe, props:[], carries_from_prev, anchors:[] }` (anchors are forbidden-drift traits that must stay consistent).
 
-The app's shot detail panel renders this whole sheet and shows a per-shot readiness chip; `scripts/validate_shot_readiness.mjs` enforces it (and flags overdense dialogue and characters missing reference cards). Treat any shot below this bar as not ready to generate.
+The app's shot detail panel renders this whole sheet and shows a per-shot readiness chip; `scripts/validate_shot_readiness.ts` enforces it (and flags overdense dialogue and characters missing reference cards). Treat any shot below this bar as not ready to generate.
 
 ## Video, Audio & Episode Assembly
 
@@ -157,12 +157,12 @@ The app must not call external image models, publish files, send messages, or mu
 
 ```bash
 skills/kelly-drama/app/start.sh
-node skills/kelly-drama/scripts/create_sample_project.mjs
-node skills/kelly-drama/scripts/validate_ui_schema.mjs
-node skills/kelly-drama/scripts/validate_shot_readiness.mjs --episode ep-001
-node skills/kelly-drama/scripts/export_story_bible.mjs
+node skills/kelly-drama/scripts/create_sample_project.ts
+node skills/kelly-drama/scripts/validate_ui_schema.ts
+node skills/kelly-drama/scripts/validate_shot_readiness.ts --episode ep-001
+node skills/kelly-drama/scripts/export_story_bible.ts
 ```
 
-Run `validate_shot_readiness.mjs` (optionally `--strict` to fail on warnings) before any image/video generation pass to confirm shots meet the video-ready Definition of Done.
+Run `validate_shot_readiness.ts` (optionally `--strict` to fail on warnings) before any image/video generation pass to confirm shots meet the video-ready Definition of Done.
 
 Use paths relative to the skills repository root, or run the scripts from inside `skills/kelly-drama`.

@@ -53,7 +53,7 @@ Use `lang=zh` for Chinese screenshots — the demo school, teachers, plan conten
 
 ## Plan Payload Format
 
-`scripts/ingest_plan.mjs` accepts a single plan object or `{ "plans": [...], "check_results": [...] }`:
+`scripts/ingest_plan.ts` accepts a single plan object or `{ "plans": [...], "check_results": [...] }`:
 
 ```json
 {
@@ -78,7 +78,7 @@ Use `lang=zh` for Chinese screenshots — the demo school, teachers, plan conten
 }
 ```
 
-After ingesting, run `node scripts/run_checks.mjs` to refresh compliance results, and `node scripts/export_plans.mjs --out <dir>` to export approved plans as Markdown. See `references/lesson-schema.md` for the full contract.
+After ingesting, run `node scripts/run_checks.ts` to refresh compliance results, and `node scripts/export_plans.ts --out <dir>` to export approved plans as Markdown. See `references/lesson-schema.md` for the full contract.
 
 ## Private Config
 

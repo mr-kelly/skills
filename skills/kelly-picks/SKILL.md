@@ -45,7 +45,7 @@ Collection is agent-driven: browser automation skills in the agent session, expo
 - The skill may read public sources, normalize trend items and candidates, recompute margins, and write local handoff files.
 - The app reads and writes local files only. It must not fetch remote pages, place orders, message suppliers, or mutate remote systems.
 - Margin data, supplier quotes, and fee tables are Kelly's business data: they stay local. Do not commit `config.local.json`, env files, `app/.data/`, or `exports/`.
-- Handoffs (listing brief → kelly-listing, sourcing brief exports) are approval-required: Kelly approves the proposal in the UI, then `scripts/execute_decisions.mjs` records the concrete operation for the agent to carry out.
+- Handoffs (listing brief → kelly-listing, sourcing brief exports) are approval-required: Kelly approves the proposal in the UI, then `scripts/execute_decisions.ts` records the concrete operation for the agent to carry out.
 
 ## First Run And Onboarding
 
@@ -118,11 +118,11 @@ Read `references/picks-schema.md` before editing the app, scripts, or any genera
 - `app/.data/picks_snapshot.json`: canonical snapshot — `sources[]`, `trend_items[]`, `candidates[]` (with `margin_card` + `competition`), `proposals[]`, `metrics`, `sync_log[]`.
 - `app/.data/decisions.json`: Kelly's verdicts keyed by item id (candidate verdicts, proposal reviews, trend promotions).
 - `app/.data/agent_tasks.json`: queued agent work — revise-proposal requests, draft-development-proposal requests, promote-to-candidate requests.
-- `app/.data/execution_report.json`: latest `execute_decisions.mjs` output.
+- `app/.data/execution_report.json`: latest `execute_decisions.ts` output.
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill writes files. The decisions queue rejects `POST /api/decision` with HTTP 423 while it exists, and all scripts refuse to run.
 
-Validate with `node scripts/validate_ui_schema.mjs app/.data/picks_snapshot.json` before relying on a snapshot.
+Validate with `node scripts/validate_ui_schema.ts app/.data/picks_snapshot.json` before relying on a snapshot.
 
 ## Sweep Workflow
 
@@ -131,22 +131,22 @@ Sweeps run on demand — when Kelly asks for a sweep or invokes the skill for fr
 1. Iterate the configured sources with method `browser_agent` using browser skills or web search in the agent session; `manual` sources are supplied by Kelly as pasted research or export files.
 2. For each finding, build a normalized trend item: source kind, one-line title, 1-3 sentence summary, evidence URL, a metric (`metric_label` + `metric_value`), `delta_pct`, and a short `momentum` series. Give it a stable `external_id` when the source has one.
 3. When a signal is strong enough, file a candidate in the same payload: name, category, target platform, est. price, best-known margin inputs, a competition read (top-10 review counts, head share, entrant velocity), evidence links, and a `why_it_matters` note that states demand, wedge, margin, and window.
-4. Write through the single write path: save the payload JSON, then run `node scripts/ingest_trends.mjs <payload.json>`. The script validates, dedupes trend items by source + external id (content hash fallback) and candidates by id or name+source, merges, refreshes source freshness and metrics, appends `sync_log`, and honors the lock.
+4. Write through the single write path: save the payload JSON, then run `node scripts/ingest_trends.ts <payload.json>`. The script validates, dedupes trend items by source + external id (content hash fallback) and candidates by id or name+source, merges, refreshes source freshness and metrics, appends `sync_log`, and honors the lock.
 5. Dedupe rules: a re-observed trend with unchanged numbers is skipped; changed numbers update the existing row. One row per signal, not per crawl.
 
 ## Margin Workflow
 
-1. After ingest (or when fee tables change), run `node scripts/compute_margins.mjs`. It deterministically recomputes every candidate's margin card from the config fee tables: platform referral fee % + flat fulfillment fee, freight rules by category (agent-quoted freight with `freight_quoted: true` is preserved), and the ad-cost default % when no estimate exists.
+1. After ingest (or when fee tables change), run `node scripts/compute_margins.ts`. It deterministically recomputes every candidate's margin card from the config fee tables: platform referral fee % + flat fulfillment fee, freight rules by category (agent-quoted freight with `freight_quoted: true` is preserved), and the ad-cost default % when no estimate exists.
 2. The script flags candidates below `seller_profile.margin_floor_pct` (`below_floor: true`, surfaced in the UI) and is idempotent — re-running without input changes changes nothing.
 3. The margin card in `#/candidates/<id>` is a what-if surface: edits recompute live in the browser only. The snapshot on disk is only changed by scripts, so the app and the agent never fight over numbers.
-4. When Kelly gets a real freight quote or supplier price, ingest it as a candidate update (`margin_card.freight` + `freight_quoted: true`, or new `cogs`) and re-run `compute_margins.mjs`.
+4. When Kelly gets a real freight quote or supplier price, ingest it as a candidate update (`margin_card.freight` + `freight_quoted: true`, or new `cogs`) and re-run `compute_margins.ts`.
 
 ## Decision Workflow
 
-1. The agent proposes verdicts as `proposals[]` in the snapshot (via `ingest_trends.mjs` payloads): `develop` with a drafted sourcing + listing brief, `drop` with the reason, `watch` with re-check criteria.
+1. The agent proposes verdicts as `proposals[]` in the snapshot (via `ingest_trends.ts` payloads): `develop` with a drafted sourcing + listing brief, `drop` with the reason, `watch` with re-check criteria.
 2. Kelly reviews in `#/decisions` (or `#/candidates/<id>` for direct verdicts). The app writes to `decisions.json` and queues work into `agent_tasks.json` (request changes → `revise_proposal`; candidate Develop verdict → `draft_development_proposal`; trend Promote → `promote_to_candidate`). Poll `agent_tasks.json` when the skill is invoked and work the queue.
-3. Before executing anything, re-read decisions and run `node scripts/execute_decisions.mjs` (dry-run). It converts approved proposals into concrete operations in `execution_report.json`: `create_sourcing_brief` → export path under `exports/`, `handoff_listing_brief` → kelly-listing, `add_watch` → candidate id with re-check criteria. No external side effects.
-4. After Kelly confirms the dry-run, perform the handoffs (write the sourcing brief export, invoke kelly-listing with the listing brief), then run `node scripts/execute_decisions.mjs --apply` to mark proposals done, update candidate stages, and log the run.
+3. Before executing anything, re-read decisions and run `node scripts/execute_decisions.ts` (dry-run). It converts approved proposals into concrete operations in `execution_report.json`: `create_sourcing_brief` → export path under `exports/`, `handoff_listing_brief` → kelly-listing, `add_watch` → candidate id with re-check criteria. No external side effects.
+4. After Kelly confirms the dry-run, perform the handoffs (write the sourcing brief export, invoke kelly-listing with the listing brief), then run `node scripts/execute_decisions.ts --apply` to mark proposals done, update candidate stages, and log the run.
 5. Acquire `app/.data/agent.lock` before the skill rewrites snapshot/decision files and remove it in a `finally` step. The scripts do this automatically.
 
 ## Safety Defaults

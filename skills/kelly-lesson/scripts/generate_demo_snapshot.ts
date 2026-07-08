@@ -105,7 +105,7 @@ const review_items = [
     ref: 1,
     plan_id: "plan-example-fractions",
     status: "needs_review",
-    compliance_summary: "Checks pending — run scripts/run_checks.mjs.",
+    compliance_summary: "Checks pending — run scripts/run_checks.ts.",
     suggestions: [],
     feedback_draft: "Hi, the fractions plan is drafted from the Unit 2 materials and is ready for your review.",
     created_at: now,
@@ -115,7 +115,7 @@ const review_items = [
     ref: 2,
     plan_id: "plan-example-density",
     status: "needs_review",
-    compliance_summary: "Checks pending — run scripts/run_checks.mjs.",
+    compliance_summary: "Checks pending — run scripts/run_checks.ts.",
     suggestions: ["Add a safety note for the lab stage.", "Time every stage and add board plan plus homework."],
     feedback_draft:
       "Hi, the density lab plan is missing several template sections; please complete them before resubmitting.",

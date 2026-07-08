@@ -6,8 +6,8 @@
 // executes them via kelly-messenger / kelly-email / docs edits after approval.
 //
 // Usage:
-//   node scripts/execute_decisions.mjs           # dry run, report only
-//   node scripts/execute_decisions.mjs --apply   # also apply local roadmap/status changes
+//   node scripts/execute_decisions.ts           # dry run, report only
+//   node scripts/execute_decisions.ts --apply   # also apply local roadmap/status changes
 import { emptyDecisions, recomputeDerived } from "../lib/common.ts";
 import { createProvider } from "../lib/data-provider/index.ts";
 

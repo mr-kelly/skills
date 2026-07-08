@@ -1,6 +1,6 @@
 # Kelly Tickets Schema
 
-Use this schema for `app/.data/tickets_snapshot.json` and the ingest/triage payloads. Keep the shape stable so the local app, scripts, and future providers can evolve independently. Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot in the UI.
+Use this schema for `app/.data/tickets_snapshot.json` and the ingest/triage payloads. Keep the shape stable so the local app, scripts, and future providers can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot in the UI.
 
 ## Snapshot
 
@@ -32,7 +32,7 @@ Use this schema for `app/.data/tickets_snapshot.json` and the ingest/triage payl
 }
 ```
 
-Metrics are recomputed by `computeMetrics()` in `app/server/store.mjs`; scripts must call it after every merge instead of hand-editing counts.
+Metrics are recomputed by `computeMetrics()` in `app/server/store.ts`; scripts must call it after every merge instead of hand-editing counts.
 
 ## Intake Item
 
@@ -59,7 +59,7 @@ One raw complaint/request as it arrived on a channel, before or after triage.
 }
 ```
 
-Dedupe key: `channel + external_id` when `external_id` exists, otherwise `channel + content_hash`. PII rule: `contact_masked` must already be masked before it reaches the snapshot; `scripts/ingest_intake.mjs` re-masks long digit runs defensively. Never store raw exports in the snapshot.
+Dedupe key: `channel + external_id` when `external_id` exists, otherwise `channel + content_hash`. PII rule: `contact_masked` must already be masked before it reaches the snapshot; `scripts/ingest_intake.ts` re-masks long digit runs defensively. Never store raw exports in the snapshot.
 
 ## Ticket
 
@@ -172,7 +172,7 @@ Contacts are env var references only — never store phone numbers or webhook UR
 }
 ```
 
-## Ingest Payload (`scripts/ingest_intake.mjs <payload.json>`)
+## Ingest Payload (`scripts/ingest_intake.ts <payload.json>`)
 
 The agent parses WeChat group exports, call logs, front-desk forms, and mailbox items into this shape; the script is the only write path into `intake[]`.
 
@@ -197,7 +197,7 @@ The agent parses WeChat group exports, call logs, front-desk forms, and mailbox 
 }
 ```
 
-## Triage Payload (`scripts/apply_triage.mjs <payload.json>`)
+## Triage Payload (`scripts/apply_triage.ts <payload.json>`)
 
 Classification and dispatch proposals are LLM work; this script is the deterministic merge and computes `sla_due_at` from config `sla_rules`.
 
@@ -235,6 +235,6 @@ Classification and dispatch proposals are LLM work; this script is the determini
 
 - `app/.data/decisions.json`: `{ "updated_at": "...", "decisions": { "<id>": { "action", "note", "draft", "fields", "decided_at" } } }` — ids may be dispatch proposals (`approve|request_changes|revise|block`), intake items (`convert_to_ticket|ignore`), or tickets (`revise` = resolution note).
 - `app/.data/agent_tasks.json`: `{ "updated_at": "...", "tasks": [ { "id", "type": "revise_dispatch|convert_intake", "note", "fields", "requested_at" } ] }`.
-- `app/.data/execution_report.json`: written by `scripts/execute_decisions.mjs`; `results[]` keyed by proposal id with `operations[]` (`notify_crew`, `update_board`).
+- `app/.data/execution_report.json`: written by `scripts/execute_decisions.ts`; `results[]` keyed by proposal id with `operations[]` (`notify_crew`, `update_board`).
 - `app/.data/onboarding.json`: `{ "completed": true, "completed_at": "...", "config_version": "..." }`.
 - `app/.data/agent.lock`: `{ "owner": "kelly-tickets", "message": "...", "started_at": "..." }` — the app rejects `POST /api/decision` with HTTP 423 while it exists.

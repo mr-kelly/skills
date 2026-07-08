@@ -54,10 +54,10 @@ With `lang=zh` the demo content itself is localized (customer names like 明华�
 
 ## Import Format
 
-`scripts/import_tables.mjs` accepts CSV (header row, quoted fields supported) or JSON arrays for any subset of the three tables:
+`scripts/import_tables.ts` accepts CSV (header row, quoted fields supported) or JSON arrays for any subset of the three tables:
 
 ```bash
-node skills/kelly-audit/scripts/import_tables.mjs \
+node skills/kelly-audit/scripts/import_tables.ts \
   --orders orders.csv --invoices invoices.csv --payments payments.csv
 ```
 
@@ -78,7 +78,7 @@ Column mappings live in config (`import.<table>.columns`, canonical → export h
 
 Canonical fields: orders `order_no, customer, order_date, amount, currency`; invoices `invoice_no, order_no, customer, issue_date, due_date, amount, currency, kind`; payments `payment_ref, invoice_no, order_no, payer, paid_date, amount, currency, method`. Re-imports upsert by natural key, so running the same file twice never duplicates rows.
 
-Then run `node skills/kelly-audit/scripts/run_checks.mjs` to refresh the anomaly queue (stable ids; re-runs upsert and auto-resolve cleared anomalies), and `node skills/kelly-audit/scripts/execute_decisions.mjs` for a dry-run execution plan of approved items.
+Then run `node skills/kelly-audit/scripts/run_checks.ts` to refresh the anomaly queue (stable ids; re-runs upsert and auto-resolve cleared anomalies), and `node skills/kelly-audit/scripts/execute_decisions.ts` for a dry-run execution plan of approved items.
 
 ## Private Config
 

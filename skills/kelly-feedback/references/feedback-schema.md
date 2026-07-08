@@ -1,6 +1,6 @@
 # Kelly Feedback Snapshot Schema
 
-Use this schema for `app/.data/feedback_snapshot.json`. Keep the shape stable so the local app, scripts, and sibling-skill handoffs can evolve independently. Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Use this schema for `app/.data/feedback_snapshot.json`. Keep the shape stable so the local app, scripts, and sibling-skill handoffs can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Snapshot
 
@@ -28,7 +28,7 @@ Use this schema for `app/.data/feedback_snapshot.json`. Keep the shape stable so
 }
 ```
 
-`metrics`, request `frequency`, and request `weighted_score` are derived from the raw feedback stream by `recomputeDerived` in `app/server/store.mjs`; every script that mutates the snapshot must call it before writing.
+`metrics`, request `frequency`, and request `weighted_score` are derived from the raw feedback stream by `recomputeDerived` in `app/server/store.ts`; every script that mutates the snapshot must call it before writing.
 
 ## Product
 
@@ -116,7 +116,7 @@ Triage states: `new` (untriaged), `clustered` (linked to a request), `ignored` (
 }
 ```
 
-The roadmap object has three lanes: `now`, `next`, `later`. The app renders them read-only; lanes change only through approved proposals executed by `scripts/execute_decisions.mjs`.
+The roadmap object has three lanes: `now`, `next`, `later`. The app renders them read-only; lanes change only through approved proposals executed by `scripts/execute_decisions.ts`.
 
 ## Proposal (Decision Queue Item)
 
@@ -158,11 +158,11 @@ The roadmap object has three lanes: `now`, `next`, `later`. The app renders them
 
 - `app/.data/decisions.json` — UI-written verdicts keyed by id: `proposals{}` (`approve|request_changes|block` + `review_note` + edited `draft`), `feedback{}` (`assign|ignore|insight` + `request_id`), `requests{}` (`effort_estimate`).
 - `app/.data/agent_tasks.json` — queued agent work (`revise_proposal` etc.), appended when a proposal gets `request_changes`.
-- `app/.data/execution_report.json` — output of `scripts/execute_decisions.mjs` with concrete operations (`update_roadmap`, `publish_changelog_note`, `send_decline_reply`, `merge_requests`).
+- `app/.data/execution_report.json` — output of `scripts/execute_decisions.ts` with concrete operations (`update_roadmap`, `publish_changelog_note`, `send_decline_reply`, `merge_requests`).
 - `app/.data/onboarding.json` — onboarding completion marker.
 - `app/.data/agent.lock` — write lock; the UI rejects decision writes and disables editing while it exists.
 
-## Ingest Payload (input to `scripts/ingest_feedback.mjs`)
+## Ingest Payload (input to `scripts/ingest_feedback.ts`)
 
 ```json
 {
@@ -189,7 +189,7 @@ The roadmap object has three lanes: `now`, `next`, `later`. The app renders them
 
 Feedback ids are derived as `fb-<source_id>-<external_id>`; re-ingesting the same payload is idempotent.
 
-## Cluster Assignment Payload (input to `scripts/apply_clusters.mjs`)
+## Cluster Assignment Payload (input to `scripts/apply_clusters.ts`)
 
 ```json
 {

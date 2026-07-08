@@ -1,6 +1,6 @@
 # Kelly Listing Snapshot Schema
 
-Use this schema for `app/.data/listing_snapshot.json`. Keep the shape stable so the local app, scripts, and the agent's drafting workflow can evolve independently. Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Use this schema for `app/.data/listing_snapshot.json`. Keep the shape stable so the local app, scripts, and the agent's drafting workflow can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Snapshot
 
@@ -96,7 +96,7 @@ Use this schema for `app/.data/listing_snapshot.json`. Keep the shape stable so 
 }
 ```
 
-Rule parameters (caps, banned words, required fields) live in private config under `platforms[].rules` and the top-level `banned_words` / `competitor_brands` / `keyword_stuffing` / `allowed_all_caps` keys; `scripts/run_checks.mjs` copies the sanitized catalog into the snapshot for display. Built-in rule ids: `required_fields`, `title_length`, `banned_words`, `competitor_brands`, `bullet_count`, `search_terms_bytes`, `selling_points_count`, `seo_meta_length`, `all_caps_words`, `keyword_stuffing`, `image_checklist`.
+Rule parameters (caps, banned words, required fields) live in private config under `platforms[].rules` and the top-level `banned_words` / `competitor_brands` / `keyword_stuffing` / `allowed_all_caps` keys; `scripts/run_checks.ts` copies the sanitized catalog into the snapshot for display. Built-in rule ids: `required_fields`, `title_length`, `banned_words`, `competitor_brands`, `bullet_count`, `search_terms_bytes`, `selling_points_count`, `seo_meta_length`, `all_caps_words`, `keyword_stuffing`, `image_checklist`.
 
 ## Check
 
@@ -172,7 +172,7 @@ Character caps count code points; byte caps (backend search terms ≤ 249) use `
 
 ## Ingest Payload
 
-`scripts/ingest_drafts.mjs` accepts a single draft object or:
+`scripts/ingest_drafts.ts` accepts a single draft object or:
 
 ```json
 {
@@ -212,6 +212,6 @@ Character caps count code points; byte caps (backend search terms ≤ 249) use `
 
 - `app/.data/decisions.json` — seller verdicts (shape above).
 - `app/.data/agent_tasks.json` — `{ "updated_at": "…", "tasks": [{ "task_id", "type": "revise_listing", "review_id", "draft_id", "ref", "comment", "requested_at", "status" }] }`.
-- `app/.data/execution_report.json` — written by `scripts/execute_decisions.mjs --apply` and `scripts/export_listings.mjs`; operations are `export_listing`, `publish_via_api` (`handoff_to_agent: true`), `request_revision`.
+- `app/.data/execution_report.json` — written by `scripts/execute_decisions.ts --apply` and `scripts/export_listings.ts`; operations are `export_listing`, `publish_via_api` (`handoff_to_agent: true`), `request_revision`.
 - `app/.data/onboarding.json` — `{ "completed": true, "completed_at": "…", "config_version": "…" }`.
 - `app/.data/agent.lock` — `{ "owner", "message", "started_at" }`; write endpoints return HTTP 423 while it exists.

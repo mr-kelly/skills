@@ -1,6 +1,6 @@
 # Kelly Inquiry Schema
 
-Use these shapes for the files under `app/.data/`. Keep them stable so the local app, scripts, and future connectors can evolve independently. `scripts/validate_ui_schema.mjs` enforces the required fields and cross-references.
+Use these shapes for the files under `app/.data/`. Keep them stable so the local app, scripts, and future connectors can evolve independently. `scripts/validate_ui_schema.ts` enforces the required fields and cross-references.
 
 ## Snapshot (`app/.data/inquiry_snapshot.json`)
 
@@ -32,7 +32,7 @@ Use these shapes for the files under `app/.data/`. Keep them stable so the local
 }
 ```
 
-Written only by `scripts/ingest_inquiries.mjs`, `scripts/sync_products.mjs`, `scripts/send_approved.mjs`, and the app server's queue/decision/follow-up/quote endpoints. Demo mode never reads or writes it.
+Written only by `scripts/ingest_inquiries.ts`, `scripts/sync_products.ts`, `scripts/send_approved.ts`, and the app server's queue/decision/follow-up/quote endpoints. Demo mode never reads or writes it.
 
 ## Account
 
@@ -194,7 +194,7 @@ The review batch: every outgoing reply AND quote waits here for a human verdict.
 }
 ```
 
-Workflow states: `needs_review` (human verdict needed) → `approved` (ready for `scripts/send_approved.mjs`) → `done` (sent; execution recorded from the execution report). `request_changes` moves an item to `changes_requested` and enqueues an agent task; the agent revises and returns it to `needs_review`. `blocked` must not be sent without new information. `ref` is the stable human-facing number (`Reply #1` / `Quote #2`) used in chat.
+Workflow states: `needs_review` (human verdict needed) → `approved` (ready for `scripts/send_approved.ts`) → `done` (sent; execution recorded from the execution report). `request_changes` moves an item to `changes_requested` and enqueues an agent task; the agent revises and returns it to `needs_review`. `blocked` must not be sent without new information. `ref` is the stable human-facing number (`Reply #1` / `Quote #2`) used in chat.
 
 ## Decisions (`app/.data/decisions.json`)
 
@@ -263,7 +263,7 @@ User decisions and notes keyed by item id — the review record mirrored from th
 }
 ```
 
-## Ingest Payload (input to `scripts/ingest_inquiries.mjs`)
+## Ingest Payload (input to `scripts/ingest_inquiries.ts`)
 
 ```json
 {

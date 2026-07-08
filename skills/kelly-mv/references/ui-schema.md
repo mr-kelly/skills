@@ -50,7 +50,7 @@ CRUD: `POST /api/characters[/{id}]` (`{ delete: true }` to remove).
 
 ## shot
 
-An ordered list (array order). Structural fields checked by `validate_ui_schema.mjs`: `id`, `title`, `characters` reference real ids.
+An ordered list (array order). Structural fields checked by `validate_ui_schema.ts`: `id`, `title`, `characters` reference real ids.
 
 - `id`, `title`.
 - `description`: 画面描述 — what this shot shows / what moves. This is the main field and doubles as the image prompt.

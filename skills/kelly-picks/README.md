@@ -12,10 +12,10 @@ Kelly Picks is a local App-in-Skill product-research (选品) desk for a cross-b
 
 ## How It Flows
 
-1. The agent sweeps sources (browser skills, exports, pasted research) and files everything through `scripts/ingest_trends.mjs` — the single write path, which validates, dedupes (source + external id, content-hash fallback), merges, and honors `app/.data/agent.lock`. The app itself never touches the network beyond `127.0.0.1`.
-2. `scripts/compute_margins.mjs` deterministically recomputes every margin card from the config fee tables and flags candidates below the margin floor. It is idempotent.
+1. The agent sweeps sources (browser skills, exports, pasted research) and files everything through `scripts/ingest_trends.ts` — the single write path, which validates, dedupes (source + external id, content-hash fallback), merges, and honors `app/.data/agent.lock`. The app itself never touches the network beyond `127.0.0.1`.
+2. `scripts/compute_margins.ts` deterministically recomputes every margin card from the config fee tables and flags candidates below the margin floor. It is idempotent.
 3. Kelly verdicts candidates and reviews proposals in the app. Decisions land in `app/.data/decisions.json`; revision requests queue in `app/.data/agent_tasks.json`. `POST /api/decision` returns HTTP 423 while the agent lock exists.
-4. `scripts/execute_decisions.mjs` (dry-run by default) turns approved proposals into concrete operations in `app/.data/execution_report.json`: `create_sourcing_brief` (export path), `handoff_listing_brief` (→ kelly-listing), `add_watch` (re-check criteria). The agent performs the handoffs, then re-runs with `--apply`.
+4. `scripts/execute_decisions.ts` (dry-run by default) turns approved proposals into concrete operations in `app/.data/execution_report.json`: `create_sourcing_brief` (export path), `handoff_listing_brief` (→ kelly-listing), `add_watch` (re-check criteria). The agent performs the handoffs, then re-runs with `--apply`.
 
 ## App UI Screenshots
 
@@ -66,7 +66,7 @@ With `lang=zh`, demo content (product names like 可折叠硅胶饭盒, reasons,
 
 ## Payload Format
 
-`scripts/ingest_trends.mjs <payload.json>` accepts:
+`scripts/ingest_trends.ts <payload.json>` accepts:
 
 ```json
 {
@@ -105,7 +105,7 @@ Source kinds: `amazon_bsr | tiktok | temu | aliexpress | trends | competitor`. F
 
 ## Fee-Table Config
 
-`config.example.json` shows the shape: `seller_profile` (categories, target platforms, `margin_floor_pct`, `max_cogs`), `platforms[]` (per-platform `referral_fee_pct` + `fulfillment_flat`), `freight` (`default_per_unit` + per-category `rules`), and `ad_cost_default_pct`. `compute_margins.mjs` reads these to recompute every margin card; the margin floor drives the `below_floor` flags in the UI.
+`config.example.json` shows the shape: `seller_profile` (categories, target platforms, `margin_floor_pct`, `max_cogs`), `platforms[]` (per-platform `referral_fee_pct` + `fulfillment_flat`), `freight` (`default_per_unit` + per-category `rules`), and `ad_cost_default_pct`. `compute_margins.ts` reads these to recompute every margin card; the margin floor drives the `below_floor` flags in the UI.
 
 ## Private Config
 
@@ -113,4 +113,4 @@ Copy `config.example.json` to `config.local.json` or `~/.config/kelly-picks/conf
 
 ## Boundary
 
-Collection is read-only over public data — respect each platform's terms of service and robots.txt, throttle politely, and never scrape private or personal data. Margin data stays local. Handoffs (sourcing brief exports, listing briefs → kelly-listing) require Kelly's approval in the app first; `execute_decisions.mjs` is dry-run by default.
+Collection is read-only over public data — respect each platform's terms of service and robots.txt, throttle politely, and never scrape private or personal data. Margin data stays local. Handoffs (sourcing brief exports, listing briefs → kelly-listing) require Kelly's approval in the app first; `execute_decisions.ts` is dry-run by default.

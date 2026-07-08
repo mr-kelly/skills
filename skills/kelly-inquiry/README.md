@@ -59,21 +59,21 @@ Each account in the config declares a `connector` and references tokens by env v
 - WhatsApp Business Cloud API (`whatsapp_cloud`): set `access_token_env` and `phone_number_id_env`. Inbound history is webhook-based, so reading uses ingest payloads; sending uses the Cloud API.
 - Instagram / Messenger (`instagram_graph` / `messenger_graph`): Meta Graph API with `access_token_env` plus `ig_user_id_env` / `page_id_env`.
 - Email (`email_agent`): collection and sending are handed off to the kelly-email skill; no mail credentials live in this skill.
-- WhatsApp Web / anything else (`browser_agent` / `manual`): the agent reads your own logged-in session and imports via `scripts/ingest_inquiries.mjs`. No passwords or QR secrets are ever stored.
+- WhatsApp Web / anything else (`browser_agent` / `manual`): the agent reads your own logged-in session and imports via `scripts/ingest_inquiries.ts`. No passwords or QR secrets are ever stored.
 
 Scripts:
 
 ```bash
-node skills/kelly-inquiry/scripts/ingest_inquiries.mjs payload.json   # single write path for collected inquiries
-node skills/kelly-inquiry/scripts/sync_products.mjs products.csv      # import/refresh the product KB (JSON or CSV)
-node skills/kelly-inquiry/scripts/send_approved.mjs                   # dry-run; add --send to execute approved items
-node skills/kelly-inquiry/scripts/generate_demo_snapshot.mjs
-node skills/kelly-inquiry/scripts/validate_ui_schema.mjs
+node skills/kelly-inquiry/scripts/ingest_inquiries.ts payload.json   # single write path for collected inquiries
+node skills/kelly-inquiry/scripts/sync_products.ts products.csv      # import/refresh the product KB (JSON or CSV)
+node skills/kelly-inquiry/scripts/send_approved.ts                   # dry-run; add --send to execute approved items
+node skills/kelly-inquiry/scripts/generate_demo_snapshot.ts
+node skills/kelly-inquiry/scripts/validate_ui_schema.ts
 ```
 
 ## Product KB Format
 
-`sync_products.mjs` accepts JSON (`{ "products": [...] }` or a bare array with `product_id`, `sku`, `name`, `category`, `moq`, `price_min`, `price_max`, `currency`, `lead_time_days`, `specs{}`, `faq[]`) or CSV with the same columns, where `specs` is `Key=Value|Key=Value` and `faq` is `Question?=>Answer|Question?=>Answer`. Quoted CSV fields (with commas or `""` escapes) are supported. `price_min` is the margin-guard floor: quote lines below it raise alerts, and with `quote_defaults.min_price_guard.block_below_price_min` they must not be sent without an explicit human decision.
+`sync_products.ts` accepts JSON (`{ "products": [...] }` or a bare array with `product_id`, `sku`, `name`, `category`, `moq`, `price_min`, `price_max`, `currency`, `lead_time_days`, `specs{}`, `faq[]`) or CSV with the same columns, where `specs` is `Key=Value|Key=Value` and `faq` is `Question?=>Answer|Question?=>Answer`. Quoted CSV fields (with commas or `""` escapes) are supported. `price_min` is the margin-guard floor: quote lines below it raise alerts, and with `quote_defaults.min_price_guard.block_below_price_min` they must not be sent without an explicit human decision.
 
 ## Private Config
 

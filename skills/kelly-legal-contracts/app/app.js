@@ -153,11 +153,13 @@ function applyDemoRoute() {
         ? "#/drafts"
         : scenario === "checks"
           ? "#/checks"
-          : scenario === "review"
-            ? "#/review"
-            : scenario === "detail"
-              ? `#/drafts/${FEATURED_DEMO_DRAFT}`
-              : "#/overview";
+          : scenario === "claims"
+            ? "#/claims"
+            : scenario === "review"
+              ? "#/review"
+              : scenario === "detail"
+                ? `#/drafts/${FEATURED_DEMO_DRAFT}`
+                : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
 }

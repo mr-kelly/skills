@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Single write-path for agent-browsed or manual message payloads.
-// Usage: node scripts/ingest_messages.mjs /path/to/payload.json
+// Usage: node scripts/ingest_messages.ts /path/to/payload.json
 //
 // Payload shape (see references/messenger-schema.md):
 // {
@@ -21,7 +21,7 @@ function fail(message) {
 }
 
 const file = process.argv[2];
-if (!file) fail("pass a payload JSON file, e.g. node scripts/ingest_messages.mjs collected.json");
+if (!file) fail("pass a payload JSON file, e.g. node scripts/ingest_messages.ts collected.json");
 
 await provider.ensureReady();
 await loadDotenvFiles(envSearchPaths());

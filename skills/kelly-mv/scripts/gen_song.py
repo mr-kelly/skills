@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Local song-generation wrapper (STUB).
 
-Invoked by app/server/song-service.mjs with a single JSON arg on argv[1]:
+Invoked by app/server/song-service.ts with a single JSON arg on argv[1]:
 
     {
       "model": "mlx-community/SongGeneration-v2-large",

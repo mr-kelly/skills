@@ -1,6 +1,6 @@
 # Kelly DevOps Ops Schema
 
-Use this schema for `app/.data/ops_snapshot.json`. Keep the shape stable so the local app, scripts, and future providers can evolve independently. Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Use this schema for `app/.data/ops_snapshot.json`. Keep the shape stable so the local app, scripts, and future providers can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Snapshot
 
@@ -73,7 +73,7 @@ Use this schema for `app/.data/ops_snapshot.json`. Keep the shape stable so the 
 }
 ```
 
-Status rules used by `check_services.mjs`: 2xx/3xx within the latency threshold is `up`; a response slower than `thresholds.degraded_latency_ms` or a 4xx is `degraded`; a 5xx or network/timeout failure is `down`. `ssl` may be null for plain-HTTP endpoints or when the TLS probe fails. Cap `history` at the most recent 30 checks.
+Status rules used by `check_services.ts`: 2xx/3xx within the latency threshold is `up`; a response slower than `thresholds.degraded_latency_ms` or a 4xx is `degraded`; a 5xx or network/timeout failure is `down`. `ssl` may be null for plain-HTTP endpoints or when the TLS probe fails. Cap `history` at the most recent 30 checks.
 
 ## Expiry
 
@@ -93,7 +93,7 @@ Status rules used by `check_services.mjs`: 2xx/3xx within the latency threshold 
 }
 ```
 
-`days_left` may be negative for overdue key rotations. UI severity: `< 7` days is critical (red), `< 30` days is warning (amber). Domain rows come from `sync_domains.mjs` (RDAP), cert rows from `check_services.mjs` (TLS), key-rotation and plan rows from private config.
+`days_left` may be negative for overdue key rotations. UI severity: `< 7` days is critical (red), `< 30` days is warning (amber). Domain rows come from `sync_domains.ts` (RDAP), cert rows from `check_services.ts` (TLS), key-rotation and plan rows from private config.
 
 ## Spend
 
@@ -126,7 +126,7 @@ Status rules used by `check_services.mjs`: 2xx/3xx within the latency threshold 
 }
 ```
 
-`ingest_spend.mjs` flags `anomaly: true` when `mtd > last_month * (1 + thresholds.spend_anomaly_pct / 100)` and last month is non-zero.
+`ingest_spend.ts` flags `anomaly: true` when `mtd > last_month * (1 + thresholds.spend_anomaly_pct / 100)` and last month is non-zero.
 
 ## Action
 
@@ -156,7 +156,7 @@ Status rules used by `check_services.mjs`: 2xx/3xx within the latency threshold 
 }
 ```
 
-`ref` is a stable per-snapshot integer so chat can say "approve Action #2". Workflow states follow the App-in-Skill review model: `needs_review` waits on a human verdict; `request_changes` moves the item to `changes_requested` and enqueues an agent task; `approve` marks it `approved` (eligible for `execute_decisions.mjs`); `block` parks it; the agent marks it `done` after executing.
+`ref` is a stable per-snapshot integer so chat can say "approve Action #2". Workflow states follow the App-in-Skill review model: `needs_review` waits on a human verdict; `request_changes` moves the item to `changes_requested` and enqueues an agent task; `approve` marks it `approved` (eligible for `execute_decisions.ts`); `block` parks it; the agent marks it `done` after executing.
 
 ## Event
 

@@ -57,7 +57,7 @@ Use `lang=zh` for Chinese screenshots — the demo content itself (中文姓名�
 On each invocation the agent parses raw updates (kelly-messenger snapshot, chat exports, shared docs, pasted text) into a payload and runs the single write path:
 
 ```bash
-node skills/kelly-standup/scripts/ingest_updates.mjs payload.json
+node skills/kelly-standup/scripts/ingest_updates.ts payload.json
 ```
 
 ```json
@@ -90,7 +90,7 @@ node skills/kelly-standup/scripts/ingest_updates.mjs payload.json
 }
 ```
 
-Updates are upserted by member + date (re-ingesting is idempotent), blockers are deduped by content hash with open → resolved transitions, participation and streaks are recomputed, and reminders get stable refs. Approved reminders become a concrete `send_reminder` plan via `scripts/execute_decisions.mjs` (dry-run by default). See `references/standup-schema.md`.
+Updates are upserted by member + date (re-ingesting is idempotent), blockers are deduped by content hash with open → resolved transitions, participation and streaks are recomputed, and reminders get stable refs. Approved reminders become a concrete `send_reminder` plan via `scripts/execute_decisions.ts` (dry-run by default). See `references/standup-schema.md`.
 
 ## Private Config
 

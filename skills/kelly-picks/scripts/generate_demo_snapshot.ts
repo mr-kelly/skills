@@ -2,7 +2,7 @@
 import { demoSnapshot } from "../app/server/demo.ts";
 // Writes the deterministic demo snapshot into app/.data/picks_snapshot.json so the
 // real-mode UI and the scripts can be exercised locally without live data.
-// Usage: node scripts/generate_demo_snapshot.mjs
+// Usage: node scripts/generate_demo_snapshot.ts
 import { SNAPSHOT_PATH } from "../app/server/paths.ts";
 import { writeJson } from "../app/server/store.ts";
 

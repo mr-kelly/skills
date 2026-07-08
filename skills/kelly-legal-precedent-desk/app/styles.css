@@ -1334,3 +1334,93 @@ pre {
     grid-template-columns: 1fr;
   }
 }
+
+/* Grouped entity library, hierarchical issue tree, and outcome-trends chart */
+.entity-group {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.entity-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
+.entity-facts div {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.entity-facts dt {
+  color: var(--muted);
+}
+
+.entity-facts dd {
+  margin: 0;
+  color: var(--text);
+}
+
+.issue-tree ul.tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.issue-tree ul.tree > li > .tree-node {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel-subtle);
+  padding: 6px 8px;
+  font-weight: 600;
+}
+
+.issue-tree ul.tree ul {
+  list-style: none;
+  margin: 6px 0 0 14px;
+  padding-left: 10px;
+  border-left: 2px solid var(--line);
+  display: grid;
+  gap: 4px;
+}
+
+.issue-tree ul.tree ul li {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.trends-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.trend-chart {
+  width: 100%;
+  height: auto;
+  color: var(--accent);
+}
+
+.trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 12px;
+}
+
+.trend-legend span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  color: var(--muted);
+}
+
+.trend-legend b {
+  color: var(--text);
+}

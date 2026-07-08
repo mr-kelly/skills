@@ -57,7 +57,7 @@ Use `lang=zh` for Chinese screenshots — the desk chrome and agent meta content
 
 ## Payload Format
 
-`scripts/ingest_drafts.mjs` accepts a single draft object or `{ "products": [...], "drafts": [...] }`:
+`scripts/ingest_drafts.ts` accepts a single draft object or `{ "products": [...], "drafts": [...] }`:
 
 ```json
 {
@@ -92,7 +92,7 @@ Use `lang=zh` for Chinese screenshots — the desk chrome and agent meta content
 }
 ```
 
-After ingesting, run `node scripts/run_checks.mjs` to refresh compliance results, and `node scripts/export_listings.mjs --out <dir>` to export approved drafts as Markdown plus a flat-file-ready `listings.csv`. `scripts/execute_decisions.mjs` is dry-run by default. See `references/listing-schema.md` for the full contract.
+After ingesting, run `node scripts/run_checks.ts` to refresh compliance results, and `node scripts/export_listings.ts --out <dir>` to export approved drafts as Markdown plus a flat-file-ready `listings.csv`. `scripts/execute_decisions.ts` is dry-run by default. See `references/listing-schema.md` for the full contract.
 
 ## Rule-Set Config
 

@@ -37,8 +37,8 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 - The skill may parse channel exports locally, classify complaints, compute SLA targets, write local handoff files, and prepare crew notification drafts.
 - The app reads and writes local files only. It never sends messages, calls crews, replies to residents, or mutates remote systems.
-- Intake parsing is local: raw WeChat exports, call logs, and mailbox dumps stay on disk outside git. Resident PII stays local and is masked in the UI (`contact_masked`); `scripts/ingest_intake.mjs` re-masks long digit runs defensively and the validator rejects unmasked contacts.
-- Any outbound crew notification or resident reply is approval-required and executed by the agent via other skills (messenger/email/WeChat) after `scripts/execute_decisions.mjs` produces the plan. Crew contacts live only in env vars referenced by `contact_env`.
+- Intake parsing is local: raw WeChat exports, call logs, and mailbox dumps stay on disk outside git. Resident PII stays local and is masked in the UI (`contact_masked`); `scripts/ingest_intake.ts` re-masks long digit runs defensively and the validator rejects unmasked contacts.
+- Any outbound crew notification or resident reply is approval-required and executed by the agent via other skills (messenger/email/WeChat) after `scripts/execute_decisions.ts` produces the plan. Crew contacts live only in env vars referenced by `contact_env`.
 - Do not commit `config.local.json`, env files, `app/.data/`, raw exports, or resident contact details.
 
 ## First Run And Onboarding
@@ -108,11 +108,11 @@ Primary local files (all under `app/.data/`, gitignored):
 - `tickets_snapshot.json`: canonical snapshot — `intake[]`, `tickets[]`, `dispatch_proposals[]`, `crews[]`, `metrics`, `sync_log[]`, `warnings[]`.
 - `decisions.json`: user verdicts keyed by item id (proposals, intake items, ticket notes).
 - `agent_tasks.json`: queued agent work — `revise_dispatch` (changes requested) and `convert_intake` (human-classified intake to turn into tickets). Poll this to pick up revisions.
-- `execution_report.json`: latest dry-run/apply plan from `scripts/execute_decisions.mjs`.
+- `execution_report.json`: latest dry-run/apply plan from `scripts/execute_decisions.ts`.
 - `onboarding.json`: onboarding completion marker.
 - `agent.lock`: temporary lock while the skill is ingesting, triaging, or executing. While it exists the app disables editing and `POST /api/decision` returns HTTP 423.
 
-Use `node scripts/validate_ui_schema.mjs app/.data/tickets_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
+Use `node scripts/validate_ui_schema.ts app/.data/tickets_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
 
 ## Intake Workflow
 
@@ -120,16 +120,16 @@ The agent parses each channel into the ingest payload shape (see `references/tic
 
 1. Ask the user for the export/log location (WeChat group export, call log CSV/notes, front-desk forms, mailbox). Raw files stay outside git.
 2. Split the raw material into one item per complaint: channel, channel-native `external_id` when available, reporter, contact (will be masked), unit/location, verbatim text, received time, plus first-pass `category_guess`/`urgency_guess`.
-3. Write the payload JSON to a temp path and run `node scripts/ingest_intake.mjs <payload.json>`. The script validates, dedupes by `channel + external_id` (falling back to a content hash), masks contacts, merges into the snapshot, and appends `sync_log`. It refuses to run while `agent.lock` exists and takes the lock while writing.
+3. Write the payload JSON to a temp path and run `node scripts/ingest_intake.ts <payload.json>`. The script validates, dedupes by `channel + external_id` (falling back to a content hash), masks contacts, merges into the snapshot, and appends `sync_log`. It refuses to run while `agent.lock` exists and takes the lock while writing.
 4. Re-ingesting the same export is safe: duplicates are skipped and reported.
 
 ## Triage And Dispatch Workflow
 
 1. Classification is LLM work: read `intake[]` items in `new`/`classified` state, decide category, urgency, unit/location, and a ticket title; decide which crew fits and why (use crew skills, prior tickets for the same unit, and SLA pressure in the `reason`).
-2. Merge deterministically with `node scripts/apply_triage.mjs <payload.json>`: creates tickets (`T-1001`-style ids), computes `sla_due_at` from config `sla_rules` (category+urgency, `*` wildcard, `sla_default_hours` fallback), assigns stable proposal refs, appends ticket history, and recomputes metrics. `ticket_updates[]` in the same payload records crew progress, status transitions, and resolutions.
+2. Merge deterministically with `node scripts/apply_triage.ts <payload.json>`: creates tickets (`T-1001`-style ids), computes `sla_due_at` from config `sla_rules` (category+urgency, `*` wildcard, `sla_default_hours` fallback), assigns stable proposal refs, appends ticket history, and recomputes metrics. `ticket_updates[]` in the same payload records crew progress, status transitions, and resolutions.
 3. Send the user to `#/dispatch` to review. Decisions persist via `POST /api/decision` into `decisions.json`; `request_changes` and `convert_to_ticket` also enqueue `agent_tasks.json` entries.
 4. Poll `agent_tasks.json`: for `revise_dispatch`, redraft the proposal per the note and re-run `apply_triage` (item returns to `needs_review`); for `convert_intake`, classify using the human-provided fields and create the ticket.
-5. After approvals, run `node scripts/execute_decisions.mjs` (dry-run) and show the plan; with user confirmation run `--apply`, then perform the real crew notifications via other skills (messenger/email), record outcomes back through `ticket_updates`, and keep the board honest.
+5. After approvals, run `node scripts/execute_decisions.ts` (dry-run) and show the plan; with user confirmation run `--apply`, then perform the real crew notifications via other skills (messenger/email), record outcomes back through `ticket_updates`, and keep the board honest.
 6. Re-read `decisions.json` immediately before executing, and never execute items without an `approved` status.
 
 ## Board Semantics

@@ -6,7 +6,7 @@
 //
 // Drafts are agent-written listing copy — from product source material or a
 // kelly-picks handoff brief. Set product "source" to "manual" or
-// "kelly_picks". Run scripts/run_checks.mjs after ingesting to refresh
+// "kelly_picks". Run scripts/run_checks.ts after ingesting to refresh
 // compliance results and scores.
 //
 // Usage: node scripts/ingest_drafts.ts payload.json
@@ -317,7 +317,7 @@ for (const input of incomingDrafts) {
       ref: draft.ref,
       draft_id: draft.draft_id,
       status: draft.status,
-      compliance_summary: "Checks pending — run scripts/run_checks.mjs.",
+      compliance_summary: "Checks pending — run scripts/run_checks.ts.",
       suggestions: [],
       created_at: now,
     };

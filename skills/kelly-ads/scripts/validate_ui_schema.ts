@@ -2,7 +2,7 @@
 // Validates an ads snapshot against references/ads-schema.md before the UI
 // or execution scripts rely on it.
 //
-// Usage: node scripts/validate_ui_schema.mjs [path/to/ads_snapshot.json]
+// Usage: node scripts/validate_ui_schema.ts [path/to/ads_snapshot.json]
 import fs from "node:fs/promises";
 
 const target = process.argv[2] || new URL("../app/.data/ads_snapshot.json", import.meta.url).pathname;

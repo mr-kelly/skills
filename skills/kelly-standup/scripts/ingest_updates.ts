@@ -8,7 +8,7 @@
 // agent-drafted reminders, recomputes participation / streaks / metrics, and
 // appends sync_log. It refuses to run while agent.lock exists and takes the
 // lock while writing.
-// Usage: node scripts/ingest_updates.mjs <payload.json> [more-payloads.json...]
+// Usage: node scripts/ingest_updates.ts <payload.json> [more-payloads.json...]
 
 import crypto from "node:crypto";
 import {
@@ -36,7 +36,7 @@ function fail(message) {
   process.exit(1);
 }
 
-if (!payloadFiles.length) fail("usage: node scripts/ingest_updates.mjs <payload.json> [...]");
+if (!payloadFiles.length) fail("usage: node scripts/ingest_updates.ts <payload.json> [...]");
 
 await ensureDirs();
 

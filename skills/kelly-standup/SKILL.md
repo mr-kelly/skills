@@ -111,11 +111,11 @@ Primary local files (all under `app/.data/`, gitignored):
 - `standup_snapshot.json`: canonical snapshot — `team{}`, `members[]`, `days[]` (each with `date`, `digest`, `updates[]`, participation), `blockers[]`, `reminders[]`, `metrics`, `sync_log[]`, `warnings[]`.
 - `decisions.json`: user verdicts on reminders keyed by id.
 - `agent_tasks.json`: queued agent work — `revise_reminder` entries created by `request_changes`. Poll this to pick up revisions, re-draft, and re-ingest so the item returns to `needs_review`.
-- `execution_report.json`: latest dry-run/apply plan from `scripts/execute_decisions.mjs`.
+- `execution_report.json`: latest dry-run/apply plan from `scripts/execute_decisions.ts`.
 - `onboarding.json`: onboarding completion marker.
 - `agent.lock`: temporary lock while the skill is ingesting or executing. While it exists the app disables editing and `POST /api/decision` returns HTTP 423.
 
-Use `node scripts/validate_ui_schema.mjs app/.data/standup_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
+Use `node scripts/validate_ui_schema.ts app/.data/standup_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
 
 ## Collection Workflow
 
@@ -125,14 +125,14 @@ Invoked on demand — there is NO cron and NO scheduler in this skill. Each run:
 2. Parsing is LLM work: split the raw material into one update per member, mapped to the configured `member_id`s — `yesterday[]`, `today[]`, `blockers[]` (each with severity, and `status: "resolved"` when a member says a previous blocker is cleared), optional `mood`, `submitted_at`, `source`, and a short `raw_excerpt`. Note members on leave in `on_leave[]`.
 3. Write the digest: a short agent-written paragraph summarizing the day (what shipped, what is blocked, who is missing), included as `digest` in the payload.
 4. Draft reminders for missing check-ins or aging high blockers as `reminders[]` payload items (`needs_review`). Drafting is agent work; sending is not — see the reminder workflow.
-5. Merge deterministically with `node scripts/ingest_updates.mjs <payload.json>`. The script validates against config, upserts by member + date (re-ingesting is idempotent), dedupes blockers by content hash and applies resolve transitions, upserts reminders with stable refs, recomputes participation/streaks/metrics, and appends `sync_log`. It refuses to run while `agent.lock` exists and takes the lock while writing.
+5. Merge deterministically with `node scripts/ingest_updates.ts <payload.json>`. The script validates against config, upserts by member + date (re-ingesting is idempotent), dedupes blockers by content hash and applies resolve transitions, upserts reminders with stable refs, recomputes participation/streaks/metrics, and appends `sync_log`. It refuses to run while `agent.lock` exists and takes the lock while writing.
 6. Validate, then start/reuse the app and send the user to `#/today` with the actual URL.
 
 ## Reminder Workflow
 
 1. The user reviews drafted reminders in `#/reminders` and decides via `POST /api/decision` (`approve` / `request_changes` / `revise` / `block`), persisted in `decisions.json`.
 2. Poll `agent_tasks.json`: for `revise_reminder`, re-draft the message per the review note and re-ingest so the item returns to `needs_review`.
-3. After approvals, run `node scripts/execute_decisions.mjs` (dry-run) and show the plan; with user confirmation run `--apply`, then send the actual messages via kelly-messenger / kelly-email using the `contact_env` referenced contacts, and record outcomes back into the report. The app and scripts themselves never send anything.
+3. After approvals, run `node scripts/execute_decisions.ts` (dry-run) and show the plan; with user confirmation run `--apply`, then send the actual messages via kelly-messenger / kelly-email using the `contact_env` referenced contacts, and record outcomes back into the report. The app and scripts themselves never send anything.
 4. Re-read `decisions.json` immediately before executing, and never send reminders that are not `approved`.
 
 ## Safety Defaults

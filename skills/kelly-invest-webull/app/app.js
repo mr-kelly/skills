@@ -468,6 +468,7 @@ function renderAccounts() {
           <div class="row stats">
             <span>${t("marketValue")} ${money(marketValue, account.currency)}</span>
             <span>${t("cash")} ${money(account.total_cash, account.currency)}</span>
+            <span>${t("buyingPower")} ${money(account.buying_power, account.currency)}</span>
           </div>
           <div class="muted">${owned.length} ${t("positions")}</div>
         </a>

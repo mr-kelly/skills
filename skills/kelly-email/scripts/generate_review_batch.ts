@@ -74,7 +74,8 @@ function mailboxFolders(mailbox: Mailbox) {
 
 function imapClient(mailbox: Mailbox) {
   const imap = mailbox.imap;
-  if (!imap?.host || !imap.username || !imap.password_env) throw new Error(`missing IMAP config for ${mailbox.mailbox_id}`);
+  if (!imap?.host || !imap.username || !imap.password_env)
+    throw new Error(`missing IMAP config for ${mailbox.mailbox_id}`);
   const password = process.env[imap.password_env];
   if (!password) throw new Error(`Missing environment variable: ${imap.password_env}`);
   return new ImapFlow({
@@ -120,7 +121,11 @@ function stableDedupeKey(mailbox: Mailbox, parsed: any, sender: string, subject:
 }
 
 async function fetchOne(client: any, uid: unknown) {
-  return client.fetchOne(uid, { uid: true, source: true, flags: true, envelope: true, internalDate: true }, { uid: true });
+  return client.fetchOne(
+    uid,
+    { uid: true, source: true, flags: true, envelope: true, internalDate: true },
+    { uid: true },
+  );
 }
 
 async function folderUnseenUids(client: any) {
@@ -128,7 +133,12 @@ async function folderUnseenUids(client: any) {
   return [...uids].sort((a, b) => Number(b) - Number(a));
 }
 
-async function fetchMailbox(mailbox: Mailbox, reviewQuota: number, maxScan: number, config: Config): Promise<ReviewItem[]> {
+async function fetchMailbox(
+  mailbox: Mailbox,
+  reviewQuota: number,
+  maxScan: number,
+  config: Config,
+): Promise<ReviewItem[]> {
   const client = imapClient(mailbox);
   await client.connect();
   const items: ReviewItem[] = [];

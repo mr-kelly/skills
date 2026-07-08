@@ -2,7 +2,7 @@
 // Writes a deterministic sample snapshot into app/.data/ for local development.
 // It reuses the demo scene builder so the sample always matches the UI schema.
 // Demo mode itself (?demo=<scene>) never reads this file.
-// Usage: node scripts/generate_demo_snapshot.mjs [--zh]
+// Usage: node scripts/generate_demo_snapshot.ts [--zh]
 
 import { buildDemoSnapshot } from "../app/server/demo.ts";
 import { ensureDirs } from "../lib/common.ts";

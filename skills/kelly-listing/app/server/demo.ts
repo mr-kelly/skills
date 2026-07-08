@@ -762,8 +762,8 @@ function demoExecutionReport(zh) {
         operation: "export_listing",
         target: "exports/nimbus-home-foldable-laundry-basket-amazon-us.md",
         detail: l(
-          "Markdown and CSV row written by scripts/export_listings.mjs.",
-          "已由 scripts/export_listings.mjs 写出 Markdown 与 CSV 行。",
+          "Markdown and CSV row written by scripts/export_listings.ts.",
+          "已由 scripts/export_listings.ts 写出 Markdown 与 CSV 行。",
         ),
         executed_at: "2026-07-01T10:00:00.000Z",
       },

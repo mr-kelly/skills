@@ -3,7 +3,7 @@
 // Re-checks the agent lock and decisions, then writes execution_report.json
 // entries with concrete operations. It performs NO external side effects:
 // the agent applies approved changes in the site's repo/CMS outside the app.
-// Usage: node scripts/execute_decisions.mjs [--apply]
+// Usage: node scripts/execute_decisions.ts [--apply]
 
 import { ensureDirs, mergeOpportunities } from "../lib/common.ts";
 import { createProvider } from "../lib/data-provider/index.ts";
