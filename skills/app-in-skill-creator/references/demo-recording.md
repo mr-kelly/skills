@@ -120,18 +120,18 @@ Recording helpers are build/documentation tooling. Keep them out of the app runt
 Recommended output location:
 
 ```text
-skill-name/assets/demo-recordings/<skill-name>-demo-<lang>.mp4
+docs/demo-recordings/<skill-name>/<skill-name>-demo-<lang>.mp4
 ```
 
-Final MP4 walkthroughs committed to the repo must be tracked by Git LFS. Add or verify an attribute such as:
+Final MP4 walkthroughs committed to the repo should live outside individual skill packages and must be tracked by Git LFS. Add or verify an attribute such as:
 
 ```text
-skills/*/assets/demo-recordings/*.mp4 filter=lfs diff=lfs merge=lfs -text
+docs/demo-recordings/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
 ```
 
 If Git LFS is unavailable, or the clip is only a temporary review artifact, keep the MP4 outside the repo and commit only the external path, recording recipe, or summary.
 
-Generated raw frames, temporary browser profiles, and scratch scripts should usually be deleted before handoff unless the user asked for a reusable recording harness. If a harness is intentionally kept, put it under `scripts/` or `assets/demo-recordings/` with a clear name and make sure it never stores private data.
+Generated raw frames, temporary browser profiles, and scratch scripts should usually be deleted before handoff unless the user asked for a reusable recording harness. If a harness is intentionally kept, put it under repo-level `scripts/` or `docs/demo-recordings/<skill-name>/` with a clear name and make sure it never stores private data.
 
 A robust automation script should:
 

@@ -14,7 +14,6 @@ skill-name/
 │   └── openai.yaml
 ├── assets/          # optional; include only when the skill has bundled assets
 │   ├── screenshots/ # optional UI screenshots
-│   └── demo-recordings/ # optional walkthrough clips; video must use Git LFS
 ├── app/
 │   # frontend: plain vanilla .js, served directly by the browser
 │   ├── index.html
@@ -178,4 +177,4 @@ Use deterministic app screenshots:
 - Capture raw app UI first, then frame README/gallery PNGs with the repo framing tool. Do not screenshot an already framed image.
 - Keep SVG screenshots only for intentionally hand-authored static diagrams; App UI screenshots should be PNG captures.
 
-When walkthrough clips are intentionally part of the skill package, put final clips in `assets/demo-recordings/` and ensure MP4 files are tracked by Git LFS before staging. If LFS is unavailable or the clip is only a temporary review artifact, keep the video outside the repo and commit only lightweight docs such as the external artifact path, recording recipe, or a short summary. Clean raw frames, temporary browser profiles, and scratch scripts unless the user asked to keep a reusable recording harness.
+When walkthrough clips are committed to this repo, keep them outside individual skill packages under repo-level `docs/demo-recordings/<skill-name>/` and ensure MP4 files are tracked by Git LFS before staging. If LFS is unavailable or the clip is only a temporary review artifact, keep the video outside the repo and commit only lightweight docs such as the external artifact path, recording recipe, or a short summary. Clean raw frames, temporary browser profiles, and scratch scripts unless the user asked to keep a reusable recording harness.
