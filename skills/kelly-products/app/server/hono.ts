@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR, ASSETS_DIR } from "./paths.ts";
 import { applyDecision, getState, readLock } from "./store.ts";
@@ -18,6 +19,7 @@ const types: Record<string, string> = {
 };
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 app.get("/api/state", async (c) => {
   const query = c.req.query();
