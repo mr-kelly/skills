@@ -50,7 +50,7 @@ const GROUPS = [
     id: "ecommerce",
     en: "Cross-Border E-commerce",
     zh: "跨境电商",
-    skills: ["kelly-picks", "kelly-listing", "kelly-ads", "kelly-inquiry"],
+    skills: ["kelly-picks", "kelly-products", "kelly-listing", "kelly-ads", "kelly-inquiry"],
   },
   {
     id: "comms",

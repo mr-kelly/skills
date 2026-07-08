@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Products"
+  short_description: "Local product-management desk for e-commerce catalogs"
+  default_prompt: "Use $kelly-products to open my e-commerce product management desk and review catalog, inventory, channel, and approval issues."
