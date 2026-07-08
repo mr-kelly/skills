@@ -32,6 +32,9 @@ const snapshot = {
     done: 0,
     blocked: 0,
     checks_failed: 0,
+    source_docs: 8,
+    pii_warnings: 1,
+    duplicate_candidates: 1,
   },
   entities: [
     {
@@ -42,6 +45,7 @@ const snapshot = {
       owner: "张律师",
       summary: "承租方逾期支付租金并主张疫情影响，法院支持解除合同及违约金调减。",
       tags: ["租赁合同", "违约金调减", "深圳裁判尺度"],
+      metrics: { case_count: 18, pii_flags: 1, source_refs: 14 },
     },
     {
       id: "case-equity-repurchase",
@@ -51,6 +55,7 @@ const snapshot = {
       owner: "林律师",
       summary: "投资人要求创始人履行回购义务，法院围绕履行条件和减资程序作出区分。",
       tags: ["股权回购", "对赌", "公司法"],
+      metrics: { case_count: 9, pii_flags: 0, source_refs: 11 },
     },
   ],
   items: [
@@ -72,7 +77,15 @@ const snapshot = {
       fields: {
         cause: "租赁合同纠纷",
         court: "深圳市中级人民法院",
+        procedure: "二审",
         outcome: "部分支持出租方",
+        paragraphs: ["事实 3", "本院认为 2", "判项 1"],
+        extraction_confidence: 0.91,
+        duplicate_score: 0.22,
+        ingest_bucket: "商业租赁专题",
+        pii_cleared: true,
+        parties_redacted: true,
+        contacts_redacted: true,
       },
     },
     {
@@ -92,7 +105,15 @@ const snapshot = {
       fields: {
         cause: "股权转让纠纷",
         court: "广东省高级人民法院",
+        procedure: "再审审查",
         outcome: "驳回再审申请",
+        paragraphs: ["争议焦点 1", "裁判理由 4"],
+        extraction_confidence: 0.96,
+        duplicate_score: 0.08,
+        ingest_bucket: "公司争议专题",
+        pii_cleared: true,
+        parties_redacted: true,
+        contacts_redacted: true,
       },
     },
   ],

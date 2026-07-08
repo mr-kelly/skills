@@ -12,6 +12,10 @@ Use this skill as a local App-in-Skill desk. It turns archived judgments and arb
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or generate the local snapshot, start or reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present stable refs such as `Intake #1` and record verdicts in local decision files.
 
+## Business Role
+
+Use this as the upstream quality gate for the legal knowledge system. It converts source documents into anonymized, source-backed case records that can feed precedent research and firm analytics after approval. Do not use it to answer a new legal question, build matter strategy, or prepare management conclusions; route those to the downstream legal skills after the case record is approved.
+
 ## App UI Screenshots
 
 <table>
@@ -129,6 +133,12 @@ Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 3. Write or merge records through scripts/ingest_documents.ts, then validate with scripts/validate_ui_schema.ts.
 4. Send reviewers to #/review. Approve, request changes, revise, or block records; every decision is written to decisions.json.
 5. Run scripts/execute_decisions.ts as a dry run, then with --apply to mark approved records done and write an execution report. Export approved records with scripts/export_case_records.ts.
+
+## Review Gates
+
+- Block or request changes when PII evidence is missing, anonymization checks fail, duplicate risk is unresolved, required taxonomy is incomplete, source coverage is thin, or extraction confidence is low.
+- Approve only when the record has enough facts, reasoning, legal basis, tags, and source pointers for downstream reuse without exposing raw client names or privileged source text.
+- Export only approved or done records, and keep downstream visibility explicit: precedent desk and firm radar may consume sanitized records; client advice and filings remain outside this app.
 
 ## Scripts
 
