@@ -6,6 +6,8 @@
   "scripts": {
     "lint": "biome check .",
     "format": "biome check --write .",
+    "screenshots": "node scripts/capture-screenshots.mjs",
+    "screenshots:frame": "node scripts/frame-screenshots.mjs",
     "typecheck": "tsc -p tsconfig.json"
   },
   "devDependencies": {
@@ -13,6 +15,7 @@
     "@hono/node-server": "^2.0.8",
     "@types/node": "^22.10.2",
     "hono": "^4.12.28",
+    "pptxgenjs": "^3.12.0",
     "sharp": "^0.35.3",
     "typescript": "^5.7.2"
   }
