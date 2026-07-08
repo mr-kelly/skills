@@ -60,6 +60,9 @@ export const messages = {
     vendor: "Vendor",
     viewProduct: "View product",
     warehouses: "Warehouses",
+    onboarding: "Onboarding",
+    completed: "Completed",
+    incomplete: "Incomplete",
     enum: {
       lifecycle: {
         launch: "launch",
@@ -165,6 +168,9 @@ export const messages = {
     vendor: "供应商",
     viewProduct: "查看商品",
     warehouses: "仓库",
+    onboarding: "初始化设置",
+    completed: "已完成",
+    incomplete: "未完成",
     enum: {
       lifecycle: {
         launch: "首发",

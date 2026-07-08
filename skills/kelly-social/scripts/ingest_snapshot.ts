@@ -5,7 +5,7 @@
 // per-account sync_log entries. It refuses to run while another owner holds
 // app/.data/agent.lock.
 //
-// Usage: node scripts/ingest_snapshot.mjs /path/to/payload.json
+// Usage: node scripts/ingest_snapshot.ts /path/to/payload.json
 //
 // Payload shape:
 // {
@@ -166,7 +166,7 @@ function rollup(snapshot) {
 
 async function main() {
   const payloadPath = process.argv[2];
-  if (!payloadPath) fail("usage: node scripts/ingest_snapshot.mjs /path/to/payload.json");
+  if (!payloadPath) fail("usage: node scripts/ingest_snapshot.ts /path/to/payload.json");
 
   const payload = await readJson(path.resolve(payloadPath), null);
   if (!payload) fail(`cannot read payload file: ${payloadPath}`);
@@ -247,7 +247,7 @@ async function main() {
 
     await fs.writeFile(snapshotPath, JSON.stringify(snapshot, null, 2));
     console.log(`Merged ${payload.accounts.length} accounts and ${payload.posts.length} posts into ${snapshotPath}`);
-    console.log("Run: node scripts/validate_ui_schema.mjs to verify the merged snapshot.");
+    console.log("Run: node scripts/validate_ui_schema.ts to verify the merged snapshot.");
   } finally {
     await fs.rm(lockPath, { force: true });
   }

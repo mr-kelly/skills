@@ -4,7 +4,7 @@
 // the payload shape documented in references/tickets-schema.md; this script
 // validates, dedupes (channel+external_id, falling back to a content hash),
 // masks contacts defensively, merges into the snapshot, and appends sync_log.
-// Usage: node scripts/ingest_intake.mjs <payload.json> [more-payloads.json...]
+// Usage: node scripts/ingest_intake.ts <payload.json> [more-payloads.json...]
 
 import crypto from "node:crypto";
 import { computeMetrics, emptySnapshot, maskContact, readJson } from "../lib/common.ts";
@@ -22,7 +22,7 @@ function fail(message) {
   process.exit(1);
 }
 
-if (!payloadFiles.length) fail("usage: node scripts/ingest_intake.mjs <payload.json> [...]");
+if (!payloadFiles.length) fail("usage: node scripts/ingest_intake.ts <payload.json> [...]");
 
 await provider.ensureStore();
 

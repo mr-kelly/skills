@@ -109,21 +109,21 @@ Primary local files:
 - `app/.data/ops_snapshot.json`: canonical snapshot (services, expiries, spend, actions, events, metrics).
 - `app/.data/decisions.json`: user verdicts keyed by action id.
 - `app/.data/agent_tasks.json`: queued agent work from `request_changes` verdicts. Poll this to pick up revisions.
-- `app/.data/execution_report.json`: planned operations from `execute_decisions.mjs` (dry-run).
+- `app/.data/execution_report.json`: planned operations from `execute_decisions.ts` (dry-run).
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill checks or rewrites files; the actions queue honors it.
 - `config.local.json`: private fleet configuration, ignored by git.
 
-Use `scripts/validate_ui_schema.mjs app/.data/ops_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
+Use `scripts/validate_ui_schema.ts app/.data/ops_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
 
 ## Check Workflow
 
 1. Detect mode. Default to App UI.
 2. Load private config through the store helpers. If only `config.example.json` exists, enter onboarding.
 3. Run checks on a sensible cadence (or when the user asks):
-   - `node scripts/check_services.mjs` — HTTP status/latency per endpoint plus TLS certificate expiry via `node:tls`; merges service health, cert expiries, key-rotation reminders, and events. Run every visit or every few hours.
-   - `node scripts/sync_domains.mjs` — domain expiry via RDAP (`https://rdap.org/domain/<name>`); per-domain failures degrade gracefully. Run daily or on demand.
-   - `node scripts/ingest_spend.mjs <payload.json>` — the single write-path for billing data. The agent gathers the payload from cloud billing tools/exports (for example the aws-billing/google-cloud-billing skills), then this script validates, merges, and flags anomalies (MTD above the configured % of last month) and proposes `investigate_spend` action cards.
+   - `node scripts/check_services.ts` — HTTP status/latency per endpoint plus TLS certificate expiry via `node:tls`; merges service health, cert expiries, key-rotation reminders, and events. Run every visit or every few hours.
+   - `node scripts/sync_domains.ts` — domain expiry via RDAP (`https://rdap.org/domain/<name>`); per-domain failures degrade gracefully. Run daily or on demand.
+   - `node scripts/ingest_spend.ts <payload.json>` — the single write-path for billing data. The agent gathers the payload from cloud billing tools/exports (for example the aws-billing/google-cloud-billing skills), then this script validates, merges, and flags anomalies (MTD above the configured % of last month) and proposes `investigate_spend` action cards.
 4. Every script acquires `app/.data/agent.lock` before writing and releases it after; scripts refuse to run over a foreign lock.
 5. Validate the snapshot, start/reuse the UI, and report the URL plus what needs a decision.
 6. Propose action cards for anything that needs a human call (renew_domain, rotate_key, investigate_spend, restart_service, ack_incident) with reason, evidence, and a concrete plan.
@@ -132,7 +132,7 @@ Use `scripts/validate_ui_schema.mjs app/.data/ops_snapshot.json` before relying 
 
 1. The user reviews action cards in `#/actions` (or by ref in chat) and gives verdicts: approve, request changes (with a note), or block. Notes save to `decisions.json` and the snapshot.
 2. `request_changes` enqueues the card in `app/.data/agent_tasks.json`. Poll it, revise the card (new evidence/plan), set it back to `needs_review`, and clear the task.
-3. For approved cards, run `node scripts/execute_decisions.mjs` to write `execution_report.json` with concrete planned operations (`renew_domain` → registrar + domain, `rotate_key` → env var name, `investigate_spend` → provider, `restart_service` → service id, `ack_incident` → event id). The script is a dry-run stub with no external side effects.
+3. For approved cards, run `node scripts/execute_decisions.ts` to write `execution_report.json` with concrete planned operations (`renew_domain` → registrar + domain, `rotate_key` → env var name, `investigate_spend` → provider, `restart_service` → service id, `ack_incident` → event id). The script is a dry-run stub with no external side effects.
 4. Re-read decisions immediately before executing. Execute approved operations outside the app with the user's tools, then mark cards `done` in the snapshot and append an event.
 5. If a target is missing (no registrar, no env var name), block and ask for configuration instead of guessing.
 

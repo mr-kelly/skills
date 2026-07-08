@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Imports or refreshes the product knowledge base from a JSON or CSV file.
 // Usage:
-//   node scripts/sync_products.mjs /path/to/products.json
-//   node scripts/sync_products.mjs /path/to/products.csv
+//   node scripts/sync_products.ts /path/to/products.json
+//   node scripts/sync_products.ts /path/to/products.csv
 //
 // JSON: { "products": [ { product_id, sku, name, ... , specs{}, faq[] } ] } or a bare array.
 // CSV columns: product_id,sku,name,category,moq,price_min,price_max,currency,lead_time_days,specs,faq
@@ -28,7 +28,7 @@ function fail(message: string): never {
 }
 
 const file = process.argv[2];
-if (!file) fail("pass a products JSON or CSV file, e.g. node scripts/sync_products.mjs products.csv");
+if (!file) fail("pass a products JSON or CSV file, e.g. node scripts/sync_products.ts products.csv");
 
 await ensureDirs(DATA_DIR);
 await loadDotenvFiles(envSearchPaths());

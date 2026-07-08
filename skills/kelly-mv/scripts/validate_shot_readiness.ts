@@ -4,7 +4,7 @@
 // when an on-screen character has no reference card (image-to-image consistency).
 //
 // Usage:
-//   node scripts/validate_shot_readiness.mjs [project.json] [--strict]
+//   node scripts/validate_shot_readiness.ts [project.json] [--strict]
 
 import fs from "node:fs/promises";
 import path from "node:path";

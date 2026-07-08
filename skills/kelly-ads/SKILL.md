@@ -35,9 +35,9 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 ## Boundary
 
-- Report ingestion is read-only: the agent pulls platform reports (API pulls, report exports, or pasted CSVs) outside the app and feeds them to `scripts/ingest_reports.mjs`. Nothing in this skill mutates a platform on its own.
+- Report ingestion is read-only: the agent pulls platform reports (API pulls, report exports, or pasted CSVs) outside the app and feeds them to `scripts/ingest_reports.ts`. Nothing in this skill mutates a platform on its own.
 - The app reads and writes local files only. It must not call platform APIs, change bids, budgets, keywords, or creatives, or touch any network beyond `127.0.0.1`.
-- Every bid/budget/keyword/creative mutation is approval-required and executed by the agent outside the app, only after the matching adjustment card is `approved`. `scripts/execute_decisions.mjs` is a dry-run planner, never an executor.
+- Every bid/budget/keyword/creative mutation is approval-required and executed by the agent outside the app, only after the matching adjustment card is `approved`. `scripts/execute_decisions.ts` is a dry-run planner, never an executor.
 - Ad account credentials live only in local env files referenced by name from private config (`*_env` keys). Never store tokens in the repo or paste them into chat.
 - Do not commit `config.local.json`, env files, `app/.data/`, report exports, or raw platform responses.
 
@@ -108,12 +108,12 @@ Primary local files:
 - `app/.data/ads_snapshot.json`: canonical snapshot (platforms, campaigns with daily series and targets, anomalies, adjustments, metrics, sync_log).
 - `app/.data/decisions.json`: user verdicts keyed by adjustment id.
 - `app/.data/agent_tasks.json`: queued agent work from `request_changes` verdicts. Poll this to pick up revisions.
-- `app/.data/execution_report.json`: planned operations from `execute_decisions.mjs` (dry-run, handoff to agent).
+- `app/.data/execution_report.json`: planned operations from `execute_decisions.ts` (dry-run, handoff to agent).
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill ingests/checks/rewrites files; the adjustments queue honors it (HTTP 423 on POST while locked).
 - `config.local.json`: private platform configuration, ignored by git.
 
-Use `scripts/validate_ui_schema.mjs app/.data/ads_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
+Use `scripts/validate_ui_schema.ts app/.data/ads_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
 
 ## Sync Workflow
 
@@ -123,15 +123,15 @@ Data collection is agent-driven on invocation — there is NO cron and the app n
 2. Load private config through the store helpers. If only `config.example.json` exists, enter onboarding.
 3. When the user asks for fresh numbers (or the snapshot is stale), gather report data per platform outside the app: pull via the platform reporting APIs with the configured credentials, download report exports, or accept a CSV the user pasted/dropped.
 4. Feed everything through the single write path:
-   - `node scripts/ingest_reports.mjs payload.json` — normalized JSON performance payload (shape documented in the script header).
-   - `node scripts/ingest_reports.mjs --csv report.csv --platform amazon [--campaign <id>]` — raw platform CSV export, columns mapped via `config.csv_mappings.<platform>`; the built-in parser handles quoted fields with embedded commas.
+   - `node scripts/ingest_reports.ts payload.json` — normalized JSON performance payload (shape documented in the script header).
+   - `node scripts/ingest_reports.ts --csv report.csv --platform amazon [--campaign <id>]` — raw platform CSV export, columns mapped via `config.csv_mappings.<platform>`; the built-in parser handles quoted fields with embedded commas.
    - The script validates, converts currencies via `config.currency_rates`, merges daily series by campaign+date (idempotent re-ingest), updates platform freshness, and appends the sync log.
 5. Every script acquires `app/.data/agent.lock` before writing and releases it after; scripts refuse to run over a foreign lock.
 6. Validate the snapshot, start/reuse the UI, and report the URL plus what needs a decision.
 
 ## Check Workflow
 
-1. After ingest, run `node scripts/run_checks.mjs`. It reads thresholds from config and detects, deterministically:
+1. After ingest, run `node scripts/run_checks.ts`. It reads thresholds from config and detects, deterministically:
    - `acos_breach`: campaign ACOS above target for N consecutive spend days (`thresholds.acos_breach_days`).
    - `budget_exhausted`: daily budget spent to `thresholds.budget_exhausted_pct` before day end.
    - `zero_conversion_spend`: an enabled target at or above `thresholds.zero_conversion_spend_floor` in 14-day spend with 0 conversions.
@@ -144,7 +144,7 @@ Data collection is agent-driven on invocation — there is NO cron and the app n
 
 1. The user reviews adjustment cards in `#/adjustments` (or by `Adjustment #N` in chat) and gives verdicts: approve, request changes (with a note), or block. Notes save to `decisions.json` and the snapshot.
 2. `request_changes` enqueues the card in `app/.data/agent_tasks.json`. Poll it, revise the card (new evidence, resized proposal), set it back to `needs_review`, and clear the task.
-3. For approved cards, run `node scripts/execute_decisions.mjs` to write `execution_report.json` with concrete planned operations (`add_negative_keyword` with term + campaign id, `set_bid` current → new, `pause_target`, `shift_budget` from → to, `refresh_creative`) — all `dry_run: true` and `handoff_to_agent: true`, no external side effects.
+3. For approved cards, run `node scripts/execute_decisions.ts` to write `execution_report.json` with concrete planned operations (`add_negative_keyword` with term + campaign id, `set_bid` current → new, `pause_target`, `shift_budget` from → to, `refresh_creative`) — all `dry_run: true` and `handoff_to_agent: true`, no external side effects.
 4. Re-read decisions immediately before executing. Execute approved operations outside the app via the platform APIs with the user's credentials, then mark the card `done` in the snapshot with an `execution` record and append a sync-log entry.
 5. If a target is missing (no account id, no term text, no destination campaign), block and ask for configuration instead of guessing.
 

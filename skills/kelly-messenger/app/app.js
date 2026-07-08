@@ -298,17 +298,27 @@ function matchesQuery(values) {
   return values.filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
 }
 
-function filteredConversations() {
-  return conversations().filter((item) =>
-    matchesQuery([
-      item.title,
-      item.channel,
-      item.workspace,
-      item.platform,
-      ...(item.participants || []),
-      ...(item.messages || []).slice(-6).map((message) => message.text),
-    ]),
+function conversationActivityAt(item) {
+  const fromMessages = (item.messages || []).reduce(
+    (latest, message) => (String(message.sent_at) > latest ? String(message.sent_at) : latest),
+    "",
   );
+  return item.last_message_at || fromMessages || "";
+}
+
+function filteredConversations() {
+  return conversations()
+    .filter((item) =>
+      matchesQuery([
+        item.title,
+        item.channel,
+        item.workspace,
+        item.platform,
+        ...(item.participants || []),
+        ...(item.messages || []).slice(-6).map((message) => message.text),
+      ]),
+    )
+    .sort((a, b) => conversationActivityAt(b).localeCompare(conversationActivityAt(a)));
 }
 
 function warningsHtml() {

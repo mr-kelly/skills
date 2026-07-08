@@ -340,6 +340,7 @@ function renderShell() {
 }
 
 function viewLabel(view) {
+  if (view === "qa") return t("qa");
   if (view === "review") return t("review");
   if (view === "studio") return t("studio");
   if (view === "vendors") return t("vendors");
@@ -352,6 +353,7 @@ function render() {
   renderShell();
   const views = {
     overview: renderOverview,
+    qa: renderReview,
     review: renderReview,
     studio: renderStudio,
     vendors: renderVendors,
@@ -397,7 +399,7 @@ function renderOverview() {
         ${metric(t("latency"), `${snapshot.metrics.current_latency_ms}ms / ${snapshot.metrics.target_latency_ms}ms`, 72)}
         ${metric(t("lipSync"), `${snapshot.metrics.lip_sync_score}%`, snapshot.metrics.lip_sync_score)}
         ${metric(t("stability"), `${snapshot.metrics.stream_stability}%`, snapshot.metrics.stream_stability)}
-        <a class="metric metric-link" href="#/review"><span>${t("qa")}</span><strong>${snapshot.metrics.qa_passed}/${snapshot.metrics.qa_total}</strong><em class="status-badge ${statusClass(snapshot.project.verdict)}">${snapshot.project.verdict}</em></a>
+        <a class="metric metric-link" href="#/qa"><span>${t("qa")}</span><strong>${snapshot.metrics.qa_passed}/${snapshot.metrics.qa_total}</strong><em class="status-badge ${statusClass(snapshot.project.verdict)}">${snapshot.project.verdict}</em></a>
       </section>
       <section class="path-grid">
         ${pathPanel(t("fastPath"), fast, "fast", "Ship a polished web demo in days through an existing 2D digital-human service.")}
@@ -586,6 +588,19 @@ function renderStudio() {
           <h2>${t("routeLatency")}</h2>
           ${pipeline.stages.map((stage, index) => `<div class="event-row"><span>${index + 1}. ${esc(stage)}</span><strong>${Math.round((pipeline.latency_ms / pipeline.stages.length) * (0.82 + index * 0.05))}ms</strong></div>`).join("")}
         </section>
+        ${
+          (snapshot.events || []).length
+            ? `<section class="panel">
+          <h2>${t("streamEvents")}</h2>
+          ${(snapshot.events || [])
+            .map(
+              (event) =>
+                `<div class="event-row"><span><span class="hud-chip">${esc(event.kind)}</span> ${esc(event.label)}</span><strong>${esc(event.at)}</strong></div>`,
+            )
+            .join("")}
+        </section>`
+            : ""
+        }
       </aside>
     </div>
   `;
@@ -818,12 +833,12 @@ els.refresh.addEventListener("click", loadState);
 els.mobileRefresh.addEventListener("click", loadState);
 els.search.addEventListener("input", () => {
   state.query = els.search.value;
-  if (state.route.view === "review") renderReview();
+  if (state.route.view === "review" || state.route.view === "qa") renderReview();
 });
 els.statusFilters.querySelectorAll("[data-status]").forEach((button) => {
   button.addEventListener("click", () => {
     state.statusFilter = button.dataset.status;
-    if (state.route.view !== "review") location.hash = "#/review";
+    if (state.route.view !== "review" && state.route.view !== "qa") location.hash = "#/qa";
     else render();
   });
 });

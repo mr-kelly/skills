@@ -1,6 +1,6 @@
 # Kelly Messenger Schema
 
-Use these shapes for the files under `app/.data/`. Keep them stable so the local app, scripts, and future connectors can evolve independently. `scripts/validate_ui_schema.mjs` enforces the required fields.
+Use these shapes for the files under `app/.data/`. Keep them stable so the local app, scripts, and future connectors can evolve independently. `scripts/validate_ui_schema.ts` enforces the required fields.
 
 ## Snapshot (`app/.data/messages_snapshot.json`)
 
@@ -145,7 +145,7 @@ The outbox is this skill's decisions file: every outgoing message lives here unt
 }
 ```
 
-Workflow states: `needs_review` (human verdict needed) → `approved` (ready for `scripts/send_outbox.mjs`) → `done` (sent, execution recorded). `request_changes` moves a reply to `changes_requested` and enqueues an agent task; the agent revises and returns it to `needs_review`. `blocked` means it must not be sent without new information. `ref` is the stable human-facing number (`Reply #1`) used in chat.
+Workflow states: `needs_review` (human verdict needed) → `approved` (ready for `scripts/send_outbox.ts`) → `done` (sent, execution recorded). `request_changes` moves a reply to `changes_requested` and enqueues an agent task; the agent revises and returns it to `needs_review`. `blocked` means it must not be sent without new information. `ref` is the stable human-facing number (`Reply #1`) used in chat.
 
 ## Agent Tasks (`app/.data/agent_tasks.json`)
 
@@ -190,7 +190,7 @@ Workflow states: `needs_review` (human verdict needed) → `approved` (ready for
 }
 ```
 
-## Ingest Payload (input to `scripts/ingest_messages.mjs`)
+## Ingest Payload (input to `scripts/ingest_messages.ts`)
 
 ```json
 {

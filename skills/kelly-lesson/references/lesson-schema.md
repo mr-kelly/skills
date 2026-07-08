@@ -1,6 +1,6 @@
 # Kelly Lesson Snapshot Schema
 
-Use this schema for `app/.data/lesson_snapshot.json`. Keep the shape stable so the local app, scripts, and the agent's drafting workflow can evolve independently. Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Use this schema for `app/.data/lesson_snapshot.json`. Keep the shape stable so the local app, scripts, and the agent's drafting workflow can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Snapshot
 
@@ -96,7 +96,7 @@ Use this schema for `app/.data/lesson_snapshot.json`. Keep the shape stable so t
 }
 ```
 
-Rules live in private config (`compliance_rules`, with optional `params`); `scripts/run_checks.mjs` copies the sanitized list into the snapshot for display.
+Rules live in private config (`compliance_rules`, with optional `params`); `scripts/run_checks.ts` copies the sanitized list into the snapshot for display.
 
 ## Check
 
@@ -113,7 +113,7 @@ Rules live in private config (`compliance_rules`, with optional `params`); `scri
 }
 ```
 
-`agent_review` means the rule needs the agent's judgement; the agent delivers the verdict through an ingest payload's `check_results`, and `run_checks.mjs` preserves agent-judged results (`judged_by: "agent"`) on re-runs.
+`agent_review` means the rule needs the agent's judgement; the agent delivers the verdict through an ingest payload's `check_results`, and `run_checks.ts` preserves agent-judged results (`judged_by: "agent"`) on re-runs.
 
 ## Review Item
 
@@ -174,7 +174,7 @@ Decisions are stored separately in `app/.data/decisions.json` keyed by `review_i
 
 ## Ingest Payload
 
-`scripts/ingest_plan.mjs` accepts a single plan object or:
+`scripts/ingest_plan.ts` accepts a single plan object or:
 
 ```json
 {
@@ -204,6 +204,6 @@ Decisions are stored separately in `app/.data/decisions.json` keyed by `review_i
 
 - `app/.data/decisions.json` — dean verdicts (shape above).
 - `app/.data/agent_tasks.json` — `{ "updated_at": "…", "tasks": [{ "task_id", "type": "revise_plan", "review_id", "plan_id", "ref", "comment", "requested_at", "status" }] }`.
-- `app/.data/execution_report.json` — written by `scripts/execute_decisions.mjs --apply`; operations are `publish_plan`, `send_feedback`, `request_revision`.
+- `app/.data/execution_report.json` — written by `scripts/execute_decisions.ts --apply`; operations are `publish_plan`, `send_feedback`, `request_revision`.
 - `app/.data/onboarding.json` — `{ "completed": true, "completed_at": "…", "config_version": "…" }`.
 - `app/.data/agent.lock` — `{ "owner", "message", "started_at" }`; write endpoints return HTTP 423 while it exists.

@@ -4,7 +4,7 @@
 // shot video without wasting generations. Run before image/video generation.
 //
 // Usage:
-//   node scripts/validate_shot_readiness.mjs [project.json] [--episode ep-001] [--strict]
+//   node scripts/validate_shot_readiness.ts [project.json] [--episode ep-001] [--strict]
 //
 // Exit code 1 if any shot fails a hard rule (use --strict to also fail on warnings).
 

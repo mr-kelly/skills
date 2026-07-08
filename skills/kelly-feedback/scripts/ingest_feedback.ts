@@ -3,7 +3,7 @@
 // (from sibling skills' agents, exports, or manual notes), validates them,
 // dedupes by source id, and merges into app/.data/feedback_snapshot.json.
 //
-// Usage: node scripts/ingest_feedback.mjs payload.json [more.json ...]
+// Usage: node scripts/ingest_feedback.ts payload.json [more.json ...]
 // Payload shape: see references/feedback-schema.md (Ingest Payload).
 import { emptySnapshot, readJson, recomputeDerived } from "../lib/common.ts";
 import { createProvider } from "../lib/data-provider/index.ts";
@@ -13,7 +13,7 @@ const SENTIMENTS = ["positive", "neutral", "negative"];
 
 const files = process.argv.slice(2);
 if (!files.length) {
-  console.error("Usage: node scripts/ingest_feedback.mjs <payload.json> [more.json ...]");
+  console.error("Usage: node scripts/ingest_feedback.ts <payload.json> [more.json ...]");
   process.exit(1);
 }
 

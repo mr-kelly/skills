@@ -1,5 +1,5 @@
-// Deterministic listing compliance engine. Shared by scripts/run_checks.mjs,
-// scripts/generate_demo_snapshot.mjs, and the demo scenes so the pass/warn/fail
+// Deterministic listing compliance engine. Shared by scripts/run_checks.ts,
+// scripts/generate_demo_snapshot.ts, and the demo scenes so the pass/warn/fail
 // results always come from the actual field content, never from hand-typed
 // verdicts. Character caps count code points; byte caps use Buffer.byteLength.
 

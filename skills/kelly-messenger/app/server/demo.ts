@@ -143,7 +143,7 @@ function demoSnapshot() {
         severity: "info",
         account_id: "wa-biz",
         message: "WhatsApp Cloud API only delivers new inbound messages via webhook.",
-        detail: "For older history, collect via the browser skill and scripts/ingest_messages.mjs.",
+        detail: "For older history, collect via the browser skill and scripts/ingest_messages.ts.",
       },
     ],
   };
@@ -936,7 +936,7 @@ function localizeSnapshotZh(snapshot) {
   snapshot.warnings = snapshot.warnings.map((warning) => ({
     ...warning,
     message: "WhatsApp Cloud API 只通过 webhook 推送新的入站消息。",
-    detail: "更早的历史消息请用浏览器技能采集，再用 scripts/ingest_messages.mjs 导入。",
+    detail: "更早的历史消息请用浏览器技能采集，再用 scripts/ingest_messages.ts 导入。",
   }));
   return snapshot;
 }

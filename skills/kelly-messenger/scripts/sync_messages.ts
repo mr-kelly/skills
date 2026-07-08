@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Read-only sync for API connectors: slack, discord, telegram, whatsapp_cloud.
 // Uses only node builtins + global fetch. Browser-collected platforms go
-// through scripts/ingest_messages.mjs instead.
+// through scripts/ingest_messages.ts instead.
 import { SECRET_ENV_KEYS, envSearchPaths, loadDotenvFiles } from "../lib/data-provider/common.ts";
 import { createProvider } from "../lib/data-provider/index.ts";
 
@@ -29,9 +29,7 @@ async function main() {
     console.log("Kelly Messenger sync: no API-connector accounts configured yet.");
     console.log("Copy config.example.json to config.local.json (or ~/.config/kelly-messenger/config.json),");
     console.log("declare accounts with connector slack/discord/telegram/whatsapp_cloud, and put tokens in env files.");
-    console.log(
-      "Browser-collected platforms (WhatsApp Web, WeChat, iMessage) use scripts/ingest_messages.mjs instead.",
-    );
+    console.log("Browser-collected platforms (WhatsApp Web, WeChat, iMessage) use scripts/ingest_messages.ts instead.");
     return;
   }
 
@@ -285,7 +283,7 @@ async function syncWhatsappCloud(account) {
   });
   return {
     conversations: [],
-    note: "Credentials verified. WhatsApp Cloud API is webhook-based: ingest collected payloads via scripts/ingest_messages.mjs.",
+    note: "Credentials verified. WhatsApp Cloud API is webhook-based: ingest collected payloads via scripts/ingest_messages.ts.",
   };
 }
 

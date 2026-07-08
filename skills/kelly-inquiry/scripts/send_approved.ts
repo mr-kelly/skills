@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Executes APPROVED approval items (replies and quotes). This script is the
-// single executor for kelly-inquiry — there is no separate execute_decisions.mjs.
+// single executor for kelly-inquiry — there is no separate execute_decisions.ts.
 // Dry-run by default; pass --send for real sends.
 // Re-checks the agent lock and each item's approval immediately before sending.
 // API connectors (whatsapp_cloud / instagram_graph / messenger_graph) send via

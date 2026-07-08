@@ -1,6 +1,6 @@
 # Kelly Audit Snapshot Schema
 
-Use this schema for `app/.data/audit_snapshot.json`. Keep the shape stable so the local app, the deterministic scripts, and future data providers can evolve independently. Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Use this schema for `app/.data/audit_snapshot.json`. Keep the shape stable so the local app, the deterministic scripts, and future data providers can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Snapshot
 
@@ -74,7 +74,7 @@ Use this schema for `app/.data/audit_snapshot.json`. Keep the shape stable so th
 }
 ```
 
-`order_id` is the slug of `order_no` (stable across re-imports). `invoice_status`, `payment_status`, and the link arrays are derived — never hand-edit them; re-run `scripts/run_checks.mjs`.
+`order_id` is the slug of `order_no` (stable across re-imports). `invoice_status`, `payment_status`, and the link arrays are derived — never hand-edit them; re-run `scripts/run_checks.ts`.
 
 ## Invoice
 
@@ -140,7 +140,7 @@ Derived join rows written by `deriveSnapshot` for every payment matched to an in
 
 ## Anomaly
 
-The review-queue item. Stable id `anom-<rule>-<primary key>` so `scripts/run_checks.mjs` re-runs upsert instead of duplicating.
+The review-queue item. Stable id `anom-<rule>-<primary key>` so `scripts/run_checks.ts` re-runs upsert instead of duplicating.
 
 ```json
 {
@@ -200,7 +200,7 @@ The review-queue item. Stable id `anom-<rule>-<primary key>` so `scripts/run_che
 
 - `needs_review`: the human must approve, request changes, block, or dismiss.
 - `changes_requested`: the agent must revise (queued in `agent_tasks.json`), then return the item to `needs_review`.
-- `approved`: ready for `scripts/execute_decisions.mjs` and the agent.
+- `approved`: ready for `scripts/execute_decisions.ts` and the agent.
 - `done`: executed, dismissed, or auto-resolved (condition cleared on a re-run).
 - `blocked`: cannot proceed without new information (e.g. a missing contract).
 

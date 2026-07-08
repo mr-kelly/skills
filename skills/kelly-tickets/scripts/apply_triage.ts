@@ -4,7 +4,7 @@
 // script is the deterministic merge: it creates tickets from classified
 // intake, computes SLA targets from config sla_rules, assigns stable refs to
 // dispatch proposals, appends ticket history, and recomputes metrics.
-// Usage: node scripts/apply_triage.mjs <payload.json>
+// Usage: node scripts/apply_triage.ts <payload.json>
 
 import crypto from "node:crypto";
 import { computeMetrics, computeSlaState, readJson, slaHoursFor } from "../lib/common.ts";
@@ -23,7 +23,7 @@ function fail(message) {
   process.exit(1);
 }
 
-if (!payloadFile) fail("usage: node scripts/apply_triage.mjs <payload.json>");
+if (!payloadFile) fail("usage: node scripts/apply_triage.ts <payload.json>");
 
 await provider.ensureStore();
 

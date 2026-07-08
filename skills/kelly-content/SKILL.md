@@ -38,10 +38,10 @@ The skill prepares and exports content. It does not publish to external platform
 1. Clarify or infer the source, target audience, desired channels, language, and offer/CTA.
 2. If private config exists, use brand voice, channel defaults, official URLs, and taboo/risk terms from it. Otherwise use `config.example.json` only as a template, not as live context.
 3. Extract the source's core idea, proof points, examples, keywords, reusable quotes, and action the reader should take.
-4. Generate a batch with one item per channel/content unit using `scripts/generate_batch.mjs`.
-5. Validate the batch with `scripts/validate_batch.mjs`.
+4. Generate a batch with one item per channel/content unit using `scripts/generate_batch.ts`.
+5. Validate the batch with `scripts/validate_batch.ts`.
 6. Launch or reuse the local UI with `app/start.sh` and send the user to the actual started URL, preferring `http://127.0.0.1:3000/` and the `3000-4000` port range unless an env override is set.
-7. After the user approves or edits items in the UI, run `scripts/export_decisions.mjs` to export approved drafts to Markdown and JSON.
+7. After the user approves or edits items in the UI, run `scripts/export_decisions.ts` to export approved drafts to Markdown and JSON.
 8. If the user requested chat-only mode, present numbered drafts in chat and ask for approval there.
 
 ## App UI Contract
@@ -120,11 +120,11 @@ Use `config.example.json` as the starting template only. Store non-secret settin
 
 ## Scripts
 
-- `scripts/generate_batch.mjs --source path-or-text --channels official_blog,xiaohongshu,wechat,newsletter,linkedin,x --audience "..." --cta "..."`
+- `scripts/generate_batch.ts --source path-or-text --channels official_blog,xiaohongshu,wechat,newsletter,linkedin,x --audience "..." --cta "..."`
   Persists the batch via the active provider (local: `app/.data/current_batch.json`; busabase: one change request per item). The generator uses deterministic heuristics and is meant as a first pass; Codex should improve drafts with judgment before handing them to the user.
-- `scripts/validate_batch.mjs [batch-path]`
+- `scripts/validate_batch.ts [batch-path]`
   Validates the required batch shape and status values (local batch files).
-- `scripts/export_decisions.mjs`
+- `scripts/export_decisions.ts`
   Publishes approved/edited content via the active provider (local: Markdown + JSON under `exports/<batch-id>/`; busabase: merge approved change requests into canonical records).
 
 Run the validator after creating or editing any batch file. Run export only after the user has approved items in the UI or in chat.

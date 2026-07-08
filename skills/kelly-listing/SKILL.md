@@ -108,7 +108,7 @@ Read `references/listing-schema.md` before editing the app, scripts, or any gene
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill writes; the review queue rejects `POST /api/decision` with HTTP 423 while it exists.
 
-Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Drafting Workflow
 
@@ -116,11 +116,11 @@ Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
 2. Draft each platform's listing as a structured ingest payload in the marketplace language of the target locale — Amazon needs exactly 5 benefit-led bullets and backend search terms under 249 bytes; keep the tone from the seller profile; never invent certifications or use words from the banned list.
 3. For locale variants, localize for the market (keyword habits, units, register), don't translate word-for-word; variants share a `variant_group` so the workbench shows locale tabs.
 4. Record the reasoning in each draft's `keyword_strategy` so the reviewer sees why the title reads the way it does.
-5. Acquire `app/.data/agent.lock`, run `node scripts/ingest_drafts.mjs payload.json` (it validates products and per-platform field shapes, merges, and creates review items), release the lock.
+5. Acquire `app/.data/agent.lock`, run `node scripts/ingest_drafts.ts payload.json` (it validates products and per-platform field shapes, merges, and creates review items), release the lock.
 
 ## Check Workflow
 
-1. Run `node scripts/run_checks.mjs`. Rules come from config per platform: title length caps (200 Amazon / 70 Shopify / 255 TikTok Shop / 80 eBay), exactly 5 bullets, backend search terms ≤ 249 bytes (`Buffer.byteLength`), banned words and competitor brands (word-boundary matching for ASCII), required fields, Shopify SEO meta lengths, no all-caps shouting words, a keyword-stuffing heuristic, and the product image checklist.
+1. Run `node scripts/run_checks.ts`. Rules come from config per platform: title length caps (200 Amazon / 70 Shopify / 255 TikTok Shop / 80 eBay), exactly 5 bullets, backend search terms ≤ 249 bytes (`Buffer.byteLength`), banned words and competitor brands (word-boundary matching for ASCII), required fields, Shopify SEO meta lengths, no all-caps shouting words, a keyword-stuffing heuristic, and the product image checklist.
 2. Checks, per-draft compliance scores, and metrics are recomputed idempotently on every run; re-running never duplicates results.
 3. Summarize failures for the seller in the review items (`compliance_summary`, `suggestions`) before sending them to `#/review`.
 
@@ -128,11 +128,11 @@ Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
 
 1. Send the seller to `#/review`. Verdicts persist through `POST /api/decision` into `decisions.json` (HTTP 423 under lock). Field edits saved in the workbench arrive as `revise` decisions carrying the edited `fields`.
 2. Poll `app/.data/agent_tasks.json` for `revise_listing` tasks created by `request_changes`. Redraft the listing per the comment (and any `revise` field edits), re-ingest, re-run checks; the item returns to `needs_review`.
-3. Before executing anything, re-read decisions and run `node scripts/execute_decisions.mjs` (dry-run). With `--apply` it records `export_listing`, `publish_via_api` (`handoff_to_agent: true`), and `request_revision` operations in `execution_report.json` — no external side effects.
+3. Before executing anything, re-read decisions and run `node scripts/execute_decisions.ts` (dry-run). With `--apply` it records `export_listing`, `publish_via_api` (`handoff_to_agent: true`), and `request_revision` operations in `execution_report.json` — no external side effects.
 
 ## Export And Publish Workflow
 
-1. `node scripts/export_listings.mjs --out <dir>` writes approved drafts as clean files (default `exports/`, gitignored): one Markdown document per listing plus `listings.csv` (flat-file-ready: sku, platform, locale, title, bullets joined, description, search terms). It records `export_listing` entries in the execution report and marks the drafts `done`.
+1. `node scripts/export_listings.ts --out <dir>` writes approved drafts as clean files (default `exports/`, gitignored): one Markdown document per listing plus `listings.csv` (flat-file-ready: sku, platform, locale, title, bullets joined, description, search terms). It records `export_listing` entries in the execution report and marks the drafts `done`.
 2. Publishing to the marketplace (Amazon flat file upload, Shopify admin, TikTok Shop, eBay) happens after approval and outside the app: do it yourself via the platform APIs/skills the user has configured, and report concrete results back into the conversation.
 3. Keep exports out of git and report the exact file paths.
 

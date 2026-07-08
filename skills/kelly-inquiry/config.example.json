@@ -53,7 +53,7 @@
   ],
   "product_kb": {
     "source_path": "/absolute/path/to/products.json",
-    "refresh_with": "scripts/sync_products.mjs"
+    "refresh_with": "scripts/sync_products.ts"
   },
   "quote_defaults": {
     "currency": "USD",

@@ -36,7 +36,7 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 ## Boundary
 
 - The app reads and writes local files only and never touches any network beyond `127.0.0.1`. It cannot send messages: the composer only queues drafts into the local outbox.
-- Every outgoing message is approval-required. The skill executes only replies whose outbox status is `approved`, via `scripts/send_outbox.mjs` (dry-run by default) or, for `browser_agent`/`manual` connectors, by the agent performing the handoff after `--send` marks them `handoff_to_agent`.
+- Every outgoing message is approval-required. The skill executes only replies whose outbox status is `approved`, via `scripts/send_outbox.ts` (dry-run by default) or, for `browser_agent`/`manual` connectors, by the agent performing the handoff after `--send` marks them `handoff_to_agent`.
 - Own accounts only: read and send exclusively through accounts the user owns and has configured. Respect each platform's terms of service and rate limits; prefer official APIs; keep sync read-only.
 - Never store passwords, QR-login payloads, or session tokens. For `browser_agent` collection the agent drives the user's own already-authenticated web session and stores only message text needed for review.
 - Treat all chat content as sensitive. Do not commit `config.local.json`, env files, `app/.data/`, exports, tokens, or customer PII.
@@ -68,7 +68,7 @@ Connector reality per platform (declare as `"connector"` on each account):
 - `discord` — official REST API with a bot token from env (`bot_token_env`); the bot must be in the servers/channels it should read.
 - `telegram` — Telegram Bot API (`getUpdates` to read, `sendMessage` to send) with a bot token from env (`bot_token_env`); the bot must share the chats.
 - `whatsapp_cloud` — WhatsApp Business Cloud API with `access_token_env` + `phone_number_id_env`. Inbound messages arrive via webhook only, so history is collected via ingest; sends use the Cloud API.
-- `browser_agent` — the agent drives the user's own web session (e.g. WhatsApp Web) with the browser skill, then writes a payload through `scripts/ingest_messages.mjs`. No passwords or QR secrets are ever stored.
+- `browser_agent` — the agent drives the user's own web session (e.g. WhatsApp Web) with the browser skill, then writes a payload through `scripts/ingest_messages.ts`. No passwords or QR secrets are ever stored.
 - `manual` — the user or agent prepares an ingest payload by hand. Use for anything else (WeChat, iMessage, LINE, Messenger).
 
 When setup is complete and the user confirms, write `app/.data/onboarding.json`:
@@ -111,21 +111,21 @@ UI language: English and Chinese chrome with `Auto` default following the browse
 
 Read `references/messenger-schema.md` before editing the app, scripts, or any generated JSON.
 
-- `app/.data/messages_snapshot.json`: accounts, conversations with transcripts, metrics, sync log. Written only by `scripts/sync_messages.mjs` and `scripts/ingest_messages.mjs`.
+- `app/.data/messages_snapshot.json`: accounts, conversations with transcripts, metrics, sync log. Written only by `scripts/sync_messages.ts` and `scripts/ingest_messages.ts`.
 - `app/.data/outbox.json`: the decisions file — queued/decided outgoing replies keyed by reply id with conversation ref, text, status, decision, timestamps.
 - `app/.data/agent_tasks.json`: queued agent work; `request_changes` decisions land here as `revise_reply` tasks.
 - `app/.data/execution_report.json`: latest send run results.
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill syncs, ingests, or sends. While it exists the app rejects writes and renders the composer and outbox read-only.
 
-Validate with `node scripts/validate_ui_schema.mjs` before relying on a snapshot in the UI.
+Validate with `node scripts/validate_ui_schema.ts` before relying on a snapshot in the UI.
 
 ## Sync Workflow
 
 1. Detect mode. Default to App UI.
 2. Load private config. If only `config.example.json` exists, enter onboarding.
-3. For API connectors (`slack`, `discord`, `telegram`, `whatsapp_cloud`), run `node scripts/sync_messages.mjs`. It uses global fetch only, prints a clear friendly message when tokens are missing, refuses to run under an active lock, acquires the lock itself, merges into the snapshot by stable message ids, appends `sync_log` entries, and releases the lock.
-4. For `browser_agent` platforms, use the browser skill on the user's own session to read conversations, build an ingest payload (see the schema), and run `node scripts/ingest_messages.mjs payload.json` — the single write-path for collected messages. Same for `manual`.
+3. For API connectors (`slack`, `discord`, `telegram`, `whatsapp_cloud`), run `node scripts/sync_messages.ts`. It uses global fetch only, prints a clear friendly message when tokens are missing, refuses to run under an active lock, acquires the lock itself, merges into the snapshot by stable message ids, appends `sync_log` entries, and releases the lock.
+4. For `browser_agent` platforms, use the browser skill on the user's own session to read conversations, build an ingest payload (see the schema), and run `node scripts/ingest_messages.ts payload.json` — the single write-path for collected messages. Same for `manual`.
 5. Start/reuse the UI and report the URL. Surface connector problems as snapshot warnings, not silent failures.
 
 ## Reply And Outbox Workflow
@@ -133,7 +133,7 @@ Validate with `node scripts/validate_ui_schema.mjs` before relying on a snapshot
 1. Queue: the user writes or edits a reply in the composer (optionally starting from the agent's `suggested_reply`) and clicks `Queue reply`; the app writes it to `outbox.json` as `needs_review`. The agent may also queue drafts (`suggested_by: "agent"`) with a `reason`.
 2. Review: in `#/outbox` the user approves, edits (`Save edit`), requests changes, or blocks each reply. `request_changes` enqueues a `revise_reply` task in `agent_tasks.json`.
 3. Agent revision loop: poll `agent_tasks.json`, redraft the reply text honoring the comment and the config `reply_style`, set the reply back to `needs_review`, and mark the task done.
-4. Send: only after the user asks to send, run `node scripts/send_outbox.mjs` (dry-run) and show the plan. With explicit approval, run `node scripts/send_outbox.mjs --send`: it re-checks the lock and each reply's approval immediately before sending, sends API-connector replies via the official APIs, marks `browser_agent`/`manual` replies as `handoff_to_agent` for the agent to deliver through the user's session, sets sent replies to `done`, and writes `execution_report.json`.
+4. Send: only after the user asks to send, run `node scripts/send_outbox.ts` (dry-run) and show the plan. With explicit approval, run `node scripts/send_outbox.ts --send`: it re-checks the lock and each reply's approval immediately before sending, sends API-connector replies via the official APIs, marks `browser_agent`/`manual` replies as `handoff_to_agent` for the agent to deliver through the user's session, sets sent replies to `done`, and writes `execution_report.json`.
 5. Report per-reply results back to the user with the stable `Reply #N` refs.
 
 ## Safety Defaults

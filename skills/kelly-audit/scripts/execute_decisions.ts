@@ -6,7 +6,7 @@
 // It performs NO external side effects: any outbound chasing email or ERP
 // change is executed by the agent OUTSIDE the app (e.g. via kelly-email)
 // after explicit user approval, and the real result is recorded back here.
-// Usage: node scripts/execute_decisions.mjs [--apply]
+// Usage: node scripts/execute_decisions.ts [--apply]
 
 import type { Evidence } from "../app/server/types.ts";
 import { mergeAnomalies } from "../lib/audit-core.ts";

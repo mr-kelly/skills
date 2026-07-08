@@ -84,7 +84,7 @@ Service account (recommended):
 Plain access token (quick manual runs):
 
 1. Obtain a short-lived OAuth access token with the read-only webmasters scope (for example via `gcloud auth print-access-token` on an authorized account, or the OAuth playground).
-2. Set `KELLY_SEO_GSC_ACCESS_TOKEN=<token>` and run `node skills/kelly-seo/scripts/sync_gsc.mjs`.
+2. Set `KELLY_SEO_GSC_ACCESS_TOKEN=<token>` and run `node skills/kelly-seo/scripts/sync_gsc.ts`.
 
 ## Private Config
 

@@ -8,7 +8,7 @@
 // to `done`. Existing statuses, refs, decisions, and executions are preserved.
 // Honors app/.data/agent.lock. No network access.
 //
-// Usage: node scripts/run_checks.mjs
+// Usage: node scripts/run_checks.ts
 
 import {
   DEFAULT_RULES,
@@ -393,7 +393,7 @@ async function main() {
 
   const snapshot = await provider.readSnapshot();
   if ((snapshot.warnings || []).some((warning) => warning.id === "no-snapshot")) {
-    fail("no audit snapshot found. Run scripts/import_tables.mjs first.");
+    fail("no audit snapshot found. Run scripts/import_tables.ts first.");
   }
 
   const configResult = await readConfig();

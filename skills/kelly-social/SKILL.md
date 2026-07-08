@@ -54,7 +54,7 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 ## Boundary
 
-- The skill (agent side) may read the user's own social accounts and their public metrics, parse analytics exports the user downloaded, call an official API when the user configured one, normalize the data, validate schemas, draft posts/short-video scripts/replies for human review, and write local handoff files through `scripts/ingest_snapshot.mjs` (monitoring snapshot) and `POST /api/operation` (publishing-desk state).
+- The skill (agent side) may read the user's own social accounts and their public metrics, parse analytics exports the user downloaded, call an official API when the user configured one, normalize the data, validate schemas, draft posts/short-video scripts/replies for human review, and write local handoff files through `scripts/ingest_snapshot.ts` (monitoring snapshot) and `POST /api/operation` (publishing-desk state).
 - The app reads and writes local files only. It must not initiate platform requests, post, like, follow, delete, or mutate any remote system. Publishing and replying happen **only after a human approves in the review queue**, and the real platform action is performed by the skill out of band — never by the app, and never automatically.
 - Collect only the user's own accounts plus the public metrics attached to their own posts. Never scrape other people's private data, DMs, or non-public profiles.
 - Respect login sessions the user owns: reuse an existing authenticated browser session; never ask for, capture, or store passwords, cookies, or session tokens anywhere (not in config, snapshots, sync logs, or chat).
@@ -139,12 +139,12 @@ Read `references/social-schema.md` before editing the app, scripts, or any gener
 
 Primary local files:
 
-- `app/.data/social_snapshot.json`: canonical snapshot. The **monitoring** sections (accounts with metric series, posts, metrics rollups, `sync_log[]`, `warnings[]`) are written only by `scripts/ingest_snapshot.mjs`. The **publishing** sections (`calendar[]`, `drafts[]`, `shorts[]`, `engagement[]`, `crisis`, `share_of_voice`) are read by the app and mutated in place through `POST /api/operation`; `ingest_snapshot.mjs` preserves them untouched on every merge.
+- `app/.data/social_snapshot.json`: canonical snapshot. The **monitoring** sections (accounts with metric series, posts, metrics rollups, `sync_log[]`, `warnings[]`) are written only by `scripts/ingest_snapshot.ts`. The **publishing** sections (`calendar[]`, `drafts[]`, `shorts[]`, `engagement[]`, `crisis`, `share_of_voice`) are read by the app and mutated in place through `POST /api/operation`; `ingest_snapshot.ts` preserves them untouched on every merge.
 - `app/.data/onboarding.json`: onboarding completion marker.
-- `app/.data/agent.lock`: temporary lock while the skill is collecting or rewriting files. This is a dashboard-type App-in-Skill: there is no `decisions.json`, but the lock must still be honored as a read-only indicator by the app and by `ingest_snapshot.mjs`.
+- `app/.data/agent.lock`: temporary lock while the skill is collecting or rewriting files. This is a dashboard-type App-in-Skill: there is no `decisions.json`, but the lock must still be honored as a read-only indicator by the app and by `ingest_snapshot.ts`.
 - `config.local.json`: private account configuration, ignored by git.
 
-Use `scripts/validate_ui_schema.mjs app/.data/social_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists. Demo mode never reads `app/.data/`.
+Use `scripts/validate_ui_schema.ts app/.data/social_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists. Demo mode never reads `app/.data/`.
 
 ## Collection Workflow
 
@@ -156,8 +156,8 @@ Use `scripts/validate_ui_schema.mjs app/.data/social_snapshot.json` before relyi
    - `browser_agent`: use a browser automation skill available in the session (for example a Stagehand/Playwright `browser` skill) with the user's own logged-in session. Read the user's profile page and their own posts' public/analytics metrics. Throttle politely: few pages, pauses between navigations, stop and report on rate-limit or captcha signals. Never enter credentials, never store cookies.
    - `manual_export`: ask the user for the platform's analytics export (e.g. Meta Business Suite CSV, X analytics CSV, TikTok/YouTube studio export), parse it locally, and note the export date. Warn when an export is older than 7 days.
    - `api`: call the official API with the token from the configured env var, read-only scopes only.
-6. Normalize the collected data into the payload shape documented in `references/social-schema.md` and `scripts/ingest_snapshot.mjs`, write it to a temp file, then run `node scripts/ingest_snapshot.mjs <payload.json>`. This is the single write path: it validates, merges by stable ids, appends per-account `sync_log` entries, and recomputes rollups. Do not write `social_snapshot.json` directly.
-7. Validate with `scripts/validate_ui_schema.mjs`, start/reuse the UI, and report the URL.
+6. Normalize the collected data into the payload shape documented in `references/social-schema.md` and `scripts/ingest_snapshot.ts`, write it to a temp file, then run `node scripts/ingest_snapshot.ts <payload.json>`. This is the single write path: it validates, merges by stable ids, appends per-account `sync_log` entries, and recomputes rollups. Do not write `social_snapshot.json` directly.
+7. Validate with `scripts/validate_ui_schema.ts`, start/reuse the UI, and report the URL.
 8. Surface collection problems (stale exports, missing metrics, rate limits) as snapshot `warnings[]` rather than guessing numbers.
 
 Platform vocabulary normalization: map replies/comments onto `replies`, reposts/shares onto `reposts`, and views/impressions/plays onto `views`. Preserve provenance: `platform`, `provider_post_id`, `permalink`, and original handles. Deduplicate by stable ids (`post_id`, `account_id`) so repeated collections are idempotent.

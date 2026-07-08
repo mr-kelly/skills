@@ -141,25 +141,25 @@ Primary local files:
 - `app/.data/agent.lock`: temporary lock while the skill is syncing, regenerating opportunities, or executing. The app rejects decision writes while the lock exists.
 - `config.local.json`: private site/auth configuration, ignored by git.
 
-Use `scripts/validate_ui_schema.mjs app/.data/seo_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists.
+Use `scripts/validate_ui_schema.ts app/.data/seo_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists.
 
 ## Sync Workflow
 
 1. Detect mode. Default to App UI.
 2. Load private config. If only `config.example.json` exists, enter onboarding.
 3. If the user asks to sync, confirm the scope: which properties and the date window (default last 28 days plus the previous 28 days for deltas).
-4. Acquire `app/.data/agent.lock`, run `scripts/sync_gsc.mjs`, and release the lock. The script pulls Search Analytics dimensioned by query, by page, and by date for both windows, normalizes into the snapshot, computes deltas and opportunity badges, and preserves the existing `opportunities[]` batch.
-5. Validate with `scripts/validate_ui_schema.mjs`, start/reuse the UI, and report the URL.
+4. Acquire `app/.data/agent.lock`, run `scripts/sync_gsc.ts`, and release the lock. The script pulls Search Analytics dimensioned by query, by page, and by date for both windows, normalizes into the snapshot, computes deltas and opportunity badges, and preserves the existing `opportunities[]` batch.
+5. Validate with `scripts/validate_ui_schema.ts`, start/reuse the UI, and report the URL.
 6. GSC data lags about two days; the sync window ends two days before today. Surface API errors and missing-property warnings in the snapshot `warnings[]`, never as silent failures.
 
-`scripts/sync_gsc.mjs` fails gracefully with setup guidance when neither `KELLY_SEO_GSC_SERVICE_ACCOUNT_FILE` nor `KELLY_SEO_GSC_ACCESS_TOKEN` is usable. It is never required for demo mode or app startup.
+`scripts/sync_gsc.ts` fails gracefully with setup guidance when neither `KELLY_SEO_GSC_SERVICE_ACCOUNT_FILE` nor `KELLY_SEO_GSC_ACCESS_TOKEN` is usable. It is never required for demo mode or app startup.
 
 ## Opportunities Workflow
 
 1. After a sync, analyze the snapshot for striking-distance queries (position 8-15), CTR below the expected curve for the position, pages losing clicks, internal-link gaps, and page issues. Write proposed actions into `seo_snapshot.json` `opportunities[]` with stable ids, sequential `ref` numbers, a reason, an expected impact, and an editable draft.
 2. Send the user to `#/opportunities` to review. The user approves, edits drafts, requests changes with a note, or blocks.
 3. Poll `app/.data/agent_tasks.json` for `changes_requested` items, revise the draft per the note, and return the item to `needs_review`.
-4. On explicit user request to execute, run `scripts/execute_decisions.mjs` (dry-run by default). It re-checks the lock and decisions and writes `execution_report.json` entries with concrete operations (`rewrite_title`, `add_internal_links`, `create_content_brief`, `fix_page_issue`) and target page/query — no external side effects.
+4. On explicit user request to execute, run `scripts/execute_decisions.ts` (dry-run by default). It re-checks the lock and decisions and writes `execution_report.json` entries with concrete operations (`rewrite_title`, `add_internal_links`, `create_content_brief`, `fix_page_issue`) and target page/query — no external side effects.
 5. The agent then performs the approved edits in the site's repo/CMS outside the app, records real results in `execution_report.json`, and marks executed opportunities `done` in the snapshot.
 
 ## GEO (AI-search) Workflow

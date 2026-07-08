@@ -3,7 +3,7 @@
 // itself is LLM work done by the agent (see SKILL.md); this script only
 // validates and merges cluster assignments and request drafts.
 //
-// Usage: node scripts/apply_clusters.mjs assignments.json
+// Usage: node scripts/apply_clusters.ts assignments.json
 // Payload shape: see references/feedback-schema.md (Cluster Assignment Payload).
 import { readJson, recomputeDerived } from "../lib/common.ts";
 import { createProvider } from "../lib/data-provider/index.ts";
@@ -13,7 +13,7 @@ const TRENDS = ["up", "flat", "down"];
 
 const file = process.argv[2];
 if (!file) {
-  console.error("Usage: node scripts/apply_clusters.mjs <assignments.json>");
+  console.error("Usage: node scripts/apply_clusters.ts <assignments.json>");
   process.exit(1);
 }
 
@@ -45,7 +45,7 @@ const provider = await createProvider();
 await provider.acquireLock("Applying cluster assignments").catch((error) => fail(error.message));
 try {
   const snapshot = await provider.readSnapshot();
-  if (!snapshot) fail("no snapshot found; run ingest_feedback.mjs first");
+  if (!snapshot) fail("no snapshot found; run ingest_feedback.ts first");
   const now = new Date().toISOString();
   const requestsById = new Map(snapshot.requests.map((item) => [item.request_id, item]));
   let upserted = 0;

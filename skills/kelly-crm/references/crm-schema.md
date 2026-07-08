@@ -1,6 +1,6 @@
 # Kelly CRM Schema
 
-Use this schema for the handoff files under `app/.data/`. Keep the shapes stable so the local app, scripts, and the skill can evolve independently. Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Use this schema for the handoff files under `app/.data/`. Keep the shapes stable so the local app, scripts, and the skill can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Snapshot (`crm_snapshot.json`)
 
@@ -134,7 +134,7 @@ Follow-ups are the review-queue items. `status` uses the standard workflow state
 
 ## Decisions (`decisions.json`)
 
-Written by the app; read by the skill and `scripts/execute_decisions.mjs`.
+Written by the app; read by the skill and `scripts/execute_decisions.ts`.
 
 ```json
 {
@@ -174,7 +174,7 @@ Queued agent work. The skill polls this to pick up revisions.
 
 ## Execution Report (`execution_report.json`)
 
-Written by `scripts/execute_decisions.mjs`. Records concrete handoff operations only; no external side effects happen here.
+Written by `scripts/execute_decisions.ts`. Records concrete handoff operations only; no external side effects happen here.
 
 ```json
 {

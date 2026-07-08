@@ -52,11 +52,11 @@ Use the URL printed by the launcher, then add one of these demo paths:
 
 ## Report Ingestion
 
-`scripts/ingest_reports.mjs` is the single write path for performance data. The agent gathers the data (platform API pulls, report exports, or a CSV you paste) and runs one of:
+`scripts/ingest_reports.ts` is the single write path for performance data. The agent gathers the data (platform API pulls, report exports, or a CSV you paste) and runs one of:
 
 ```bash
-node skills/kelly-ads/scripts/ingest_reports.mjs payload.json
-node skills/kelly-ads/scripts/ingest_reports.mjs --csv report.csv --platform amazon
+node skills/kelly-ads/scripts/ingest_reports.ts payload.json
+node skills/kelly-ads/scripts/ingest_reports.ts --csv report.csv --platform amazon
 ```
 
 JSON payload shape (see the script header for the full example):
@@ -82,9 +82,9 @@ CSV mode maps columns via `config.csv_mappings.<platform>` (campaign, date, spen
 
 ## Checks And Adjustments
 
-- `node skills/kelly-ads/scripts/run_checks.mjs` detects anomalies from config thresholds (`acos_breach_days`, `budget_exhausted_pct`, `zero_conversion_spend_floor`, `cpc_spike_pct`), upserts them with stable ids, auto-resolves cleared ones, and drafts skeleton adjustment cards for new critical anomalies.
-- `node skills/kelly-ads/scripts/execute_decisions.mjs` turns approved adjustment cards into a dry-run `execution_report.json` (`add_negative_keyword`, `set_bid`, `pause_target`, `shift_budget`, `refresh_creative`), all marked `handoff_to_agent`; the agent executes them via platform APIs outside the app.
-- `node skills/kelly-ads/scripts/validate_ui_schema.mjs` validates the snapshot; `node skills/kelly-ads/scripts/generate_demo_snapshot.mjs` writes a small example snapshot.
+- `node skills/kelly-ads/scripts/run_checks.ts` detects anomalies from config thresholds (`acos_breach_days`, `budget_exhausted_pct`, `zero_conversion_spend_floor`, `cpc_spike_pct`), upserts them with stable ids, auto-resolves cleared ones, and drafts skeleton adjustment cards for new critical anomalies.
+- `node skills/kelly-ads/scripts/execute_decisions.ts` turns approved adjustment cards into a dry-run `execution_report.json` (`add_negative_keyword`, `set_bid`, `pause_target`, `shift_budget`, `refresh_creative`), all marked `handoff_to_agent`; the agent executes them via platform APIs outside the app.
+- `node skills/kelly-ads/scripts/validate_ui_schema.ts` validates the snapshot; `node skills/kelly-ads/scripts/generate_demo_snapshot.ts` writes a small example snapshot.
 
 ## Private Config
 

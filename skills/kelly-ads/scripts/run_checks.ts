@@ -6,7 +6,7 @@
 // and evidence via a follow-up ingest). Idempotent: re-running without data
 // changes produces the same anomalies and no duplicate cards.
 //
-// Usage: node scripts/run_checks.mjs
+// Usage: node scripts/run_checks.ts
 import { SNAPSHOT_PATH } from "../app/server/paths.ts";
 import {
   acquireLock,

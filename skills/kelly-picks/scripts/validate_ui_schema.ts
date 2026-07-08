@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Validates a picks snapshot against references/picks-schema.md.
-// Usage: node scripts/validate_ui_schema.mjs [path/to/picks_snapshot.json]
+// Usage: node scripts/validate_ui_schema.ts [path/to/picks_snapshot.json]
 import fs from "node:fs/promises";
 
 const target = process.argv[2] || new URL("../app/.data/picks_snapshot.json", import.meta.url).pathname;

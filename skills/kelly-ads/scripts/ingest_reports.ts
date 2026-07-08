@@ -5,8 +5,8 @@
 // series by campaign+date (idempotent re-ingest), and appends the sync log.
 //
 // Usage:
-//   node scripts/ingest_reports.mjs /path/to/performance_payload.json
-//   node scripts/ingest_reports.mjs --csv /path/to/report.csv --platform amazon [--campaign <campaign_id>]
+//   node scripts/ingest_reports.ts /path/to/performance_payload.json
+//   node scripts/ingest_reports.ts --csv /path/to/report.csv --platform amazon [--campaign <campaign_id>]
 //
 // JSON payload shape:
 // {
@@ -282,9 +282,9 @@ function mergeCampaign(existing: Campaign | null | undefined, incoming: Record<s
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.payload && !args.csv) {
-    console.log("Usage: node scripts/ingest_reports.mjs /path/to/performance_payload.json");
+    console.log("Usage: node scripts/ingest_reports.ts /path/to/performance_payload.json");
     console.log(
-      "       node scripts/ingest_reports.mjs --csv /path/to/report.csv --platform amazon [--campaign <campaign_id>]",
+      "       node scripts/ingest_reports.ts --csv /path/to/report.csv --platform amazon [--campaign <campaign_id>]",
     );
     console.log("The payload is performance data the agent pulled from platform APIs or report exports.");
     return;

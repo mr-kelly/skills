@@ -53,10 +53,10 @@ Demo mode never probes real endpoints, never reads files under `app/.data/`, and
 
 ## Check Setup
 
-- `node skills/kelly-devops/scripts/check_services.mjs` probes configured endpoints (HTTP status + latency) and reads TLS certificate expiry.
-- `node skills/kelly-devops/scripts/sync_domains.mjs` fetches domain expiry dates via public RDAP.
-- `node skills/kelly-devops/scripts/ingest_spend.mjs payload.json` merges billing data the agent gathered and flags spend anomalies.
-- `node skills/kelly-devops/scripts/execute_decisions.mjs` turns approved action cards into a dry-run execution report; the agent executes approved operations outside the app.
+- `node skills/kelly-devops/scripts/check_services.ts` probes configured endpoints (HTTP status + latency) and reads TLS certificate expiry.
+- `node skills/kelly-devops/scripts/sync_domains.ts` fetches domain expiry dates via public RDAP.
+- `node skills/kelly-devops/scripts/ingest_spend.ts payload.json` merges billing data the agent gathered and flags spend anomalies.
+- `node skills/kelly-devops/scripts/execute_decisions.ts` turns approved action cards into a dry-run execution report; the agent executes approved operations outside the app.
 
 ## Private Config
 

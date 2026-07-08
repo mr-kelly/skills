@@ -65,7 +65,7 @@ Each beat should include `id`, `label`, `hook`, `conflict`, `turn`, `emotion`, `
 
 ## Shot
 
-Structural required fields (checked by `validate_ui_schema.mjs`): `id`, `episode_id`, `beat_id`, `title`, `characters`, `composition`, `camera`, `setting`, `lighting`, `prompt`, `negative_prompt`, `status`.
+Structural required fields (checked by `validate_ui_schema.ts`): `id`, `episode_id`, `beat_id`, `title`, `characters`, `composition`, `camera`, `setting`, `lighting`, `prompt`, `negative_prompt`, `status`.
 
 `episode_id` references an episode. `beat_id` should reference a beat in that episode. `characters` should reference character ids.
 
@@ -85,7 +85,7 @@ Imported HyperFrame shots may additionally carry a `source` object such as:
 
 ### Video-ready fields (Definition of Done)
 
-For a shot to be ready for image/video generation it should also carry (checked by `validate_shot_readiness.mjs`):
+For a shot to be ready for image/video generation it should also carry (checked by `validate_shot_readiness.ts`):
 
 - `duration_seconds` (one of 4/5/6/8/10/12), `duration_preset` (e.g. `"8s"`), `aspect_ratio` (e.g. `"16:9"`), `emotion`.
 - Camera spec: `shot_size`, `camera_angle`, `camera_movement`, `lens` (in addition to freeform `camera`).
