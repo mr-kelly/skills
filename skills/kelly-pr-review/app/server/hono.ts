@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
 import { createProvider } from "../../lib/data-provider/index.ts";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR, TEST_EVIDENCE_DIR } from "./paths.ts";
 
@@ -43,9 +44,10 @@ async function sendFile(c, absPath) {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- HEAD (readiness probes) ----
-for (const p of ["/", "/app.js", "/styles.css", "/api/state", "/api/lock"]) {
+for (const p of ["/", "/app.js", "/styles.css", "/accent-theme.js", "/accent-theme.css", "/api/state", "/api/lock"]) {
   app.on("HEAD", p, (c) => c.body(null, 200));
 }
 
@@ -90,6 +92,8 @@ app.post("/api/reload", async (c) => {
 app.get("/", (c) => sendFile(c, path.join(APP_DIR, "index.html")));
 app.get("/app.js", (c) => sendFile(c, path.join(APP_DIR, "app.js")));
 app.get("/styles.css", (c) => sendFile(c, path.join(APP_DIR, "styles.css")));
+app.get("/accent-theme.js", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.js")));
+app.get("/accent-theme.css", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.css")));
 
 app.get("/i18n/*", (c) => {
   const relative = decodeURIComponent(c.req.path.replace(/^\/i18n\//, ""));

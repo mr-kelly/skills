@@ -3,6 +3,7 @@ import path from "node:path";
 import { Hono } from "hono";
 import type { Context } from "hono";
 import { createProvider } from "../../lib/data-provider/index.ts";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
 
@@ -49,6 +50,7 @@ async function serveStatic(c: Context) {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

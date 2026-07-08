@@ -19,7 +19,15 @@ const GROUPS = [
     id: "finance",
     en: "Finance & Back Office",
     zh: "经营台账",
-    skills: ["kelly-finance", "kelly-money", "kelly-audit", "kelly-crm", "kelly-clm", "kelly-legal-contracts"],
+    skills: [
+      "kelly-finance",
+      "kelly-money",
+      "kelly-invoice-sheet",
+      "kelly-audit",
+      "kelly-crm",
+      "kelly-clm",
+      "kelly-legal-contracts",
+    ],
   },
   {
     id: "legal",
@@ -42,7 +50,7 @@ const GROUPS = [
     id: "ecommerce",
     en: "Cross-Border E-commerce",
     zh: "跨境电商",
-    skills: ["kelly-picks", "kelly-listing", "kelly-ads", "kelly-inquiry"],
+    skills: ["kelly-picks", "kelly-products", "kelly-listing", "kelly-ads", "kelly-inquiry"],
   },
   {
     id: "comms",
@@ -66,7 +74,7 @@ const GROUPS = [
     id: "production",
     en: "Production & Teaching",
     zh: "制作与教学",
-    skills: ["kelly-drama", "kelly-mv", "kelly-lesson", "kelly-scale-pptx"],
+    skills: ["kelly-drama", "kelly-mv", "kelly-digital-human", "kelly-lesson", "kelly-scale-pptx"],
   },
   { id: "eng", en: "Engineering & Ops", zh: "工程与运维", skills: ["kelly-devops", "kelly-pr-review"] },
   {

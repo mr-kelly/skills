@@ -2,11 +2,13 @@ import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoState } from "./demo.ts";
 
 const appDir = dirname(dirname(fileURLToPath(import.meta.url)));
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 app.get("/api/state", (c) => c.json(demoState(Object.fromEntries(new URL(c.req.url).searchParams))));
 app.post("/api/decision", async (c) => {
@@ -38,5 +40,7 @@ async function fileResponse(path, fallback = false) {
 app.get("/", () => fileResponse("index.html"));
 app.get("/app.js", () => fileResponse("app.js"));
 app.get("/styles.css", () => fileResponse("styles.css"));
+app.get("/accent-theme.js", () => fileResponse("accent-theme.js"));
+app.get("/accent-theme.css", () => fileResponse("accent-theme.css"));
 app.get("/i18n/messages.js", () => fileResponse("i18n/messages.js"));
 app.get("*", () => fileResponse("index.html", true));
