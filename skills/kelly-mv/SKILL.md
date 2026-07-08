@@ -40,14 +40,14 @@ Default to the local app for ongoing creative work. Use chat-only mode only when
 ## Default Flow
 
 1. Start or reuse the local app with `app/start.sh` (defaults to `127.0.0.1:3041`; honors `KELLY_MV_UI_PORT`).
-2. Check `app/.data/project.json`. If missing, the server seeds the bundled starter (a 静夜思 sample MV). You can also reseed with `scripts/create_sample_project.mjs`.
+2. Check `app/.data/project.json`. If missing, the server seeds the bundled starter (a 静夜思 sample MV). You can also reseed with `scripts/create_sample_project.ts`.
 3. Use the app, following the sidebar **下一步 (next step)**:
    - **概括 (Concept)**: one-line summary of what the MV is and its tonality, a one-line visual `look`, and aspect ratio. That's it.
    - **Song**: upload an MP3. Duration is read automatically. Optional title/artist. Nothing else.
    - **角色 (Cast)**: the people on screen. Stable id, role, three-view visual notes, wardrobe, anchors, forbidden drift, and a **character reference card** image. Generate reference cards before storyboard work when consistency matters. No voice profiles (pure-visual MV). Same model as kelly-drama.
    - **分镜 (Storyboard)**: an ordered list of shots. Each shot has a **画面描述 (scene description)**, on-screen characters, a duration, and an **image + a video**. Image and video can each be **AI-generated** (image-to-image from the character cards; draft video via local LTX) **or uploaded** by the user.
-4. After edits, run `scripts/validate_ui_schema.mjs` (structure) and `scripts/validate_shot_readiness.mjs` (each shot has a title, description, and sane duration) before generating.
-5. Export a readable concept + shotlist with `scripts/export_story_bible.mjs` for handoff.
+4. After edits, run `scripts/validate_ui_schema.ts` (structure) and `scripts/validate_shot_readiness.ts` (each shot has a title, description, and sane duration) before generating.
+5. Export a readable concept + shotlist with `scripts/export_story_bible.ts` for handoff.
 
 ## Creative Operating Rules
 
@@ -93,10 +93,10 @@ The app must not call external models for free, publish files, send messages, or
 
 ```bash
 skills/kelly-mv/app/start.sh
-node skills/kelly-mv/scripts/create_sample_project.mjs
-node skills/kelly-mv/scripts/validate_ui_schema.mjs
-node skills/kelly-mv/scripts/validate_shot_readiness.mjs
-node skills/kelly-mv/scripts/export_story_bible.mjs
+node skills/kelly-mv/scripts/create_sample_project.ts
+node skills/kelly-mv/scripts/validate_ui_schema.ts
+node skills/kelly-mv/scripts/validate_shot_readiness.ts
+node skills/kelly-mv/scripts/export_story_bible.ts
 ```
 
 Run `validate_shot_readiness.mjs` (optionally `--strict`) before an image/video generation pass. Use paths relative to the skills repository root, or run the scripts from inside `skills/kelly-mv`.

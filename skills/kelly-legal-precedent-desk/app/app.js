@@ -462,7 +462,7 @@ function matterOverviewHtml(review) {
     <section class="panel strategy-panel wide">
       <div class="panel-head"><h2>${activeLang() === "zh" ? "案件策略地图" : "Matter strategy map"}</h2><a href="#/items">${escapeHtml(t("allItems"))}</a></div>
       <div class="issue-board">
-        ${issueColumn(activeLang() === "zh" ? "争点" : "Issues", listValue(field(selected, "issue_tree", ["delivery", "breach", "damages"])))}
+        ${issueTree(activeLang() === "zh" ? "争点" : "Issues", field(selected, "issue_tree", ["delivery", "breach", "damages"]))}
         ${issueColumn(activeLang() === "zh" ? "证据" : "Evidence", selected?.evidence || [])}
         ${issueColumn(activeLang() === "zh" ? "路径" : "Options", listValue(field(selected, "negotiation_options", ["demand letter", "filing outline"])))}
       </div>
@@ -496,6 +496,7 @@ function firmOverviewHtml(review) {
         )
         .join("")}</div>
     </section>
+    ${outcomeTrendsPanel()}
     <section class="panel talent-panel">
       <h2>${activeLang() === "zh" ? "律师能力信号" : "Lawyer capability signals"}</h2>
       ${cards
@@ -510,6 +511,40 @@ function firmOverviewHtml(review) {
       <div class="list compact">${review.map(rowHtml).join("") || emptyText()}</div>
     </section>
   </div>`;
+}
+
+// Outcome trends: a small time-series of win/partial-win rate over recent periods.
+// Only firm-radar seeds metrics.outcome_trends; the panel is empty (hidden) otherwise.
+function outcomeTrendsPanel() {
+  const trends = state.snapshot?.metrics?.outcome_trends || [];
+  if (!trends.length) return "";
+  return `<section class="panel trends-panel">
+    <h2>${activeLang() === "zh" ? "结果趋势" : "Outcome trends"}</h2>
+    ${trendChart(trends)}
+    <div class="trend-legend">${trends
+      .map((point) => `<span><b>${escapeHtml(point.period)}</b>${escapeHtml(percentText(point.win_rate))}</span>`)
+      .join("")}</div>
+  </section>`;
+}
+
+function trendChart(points) {
+  const values = points.map((point) => {
+    const value = Number(point.win_rate) || 0;
+    return value > 1 ? value / 100 : value;
+  });
+  const width = 280;
+  const height = 96;
+  const step = points.length > 1 ? width / (points.length - 1) : width;
+  const coords = values.map((value, index) => `${Math.round(index * step)},${Math.round(height - value * height)}`);
+  return `<svg class="trend-chart" viewBox="0 0 ${width} ${height}" role="img" aria-label="outcome trend">
+    <polyline fill="none" stroke="currentColor" stroke-width="2" points="${coords.join(" ")}" />
+    ${values
+      .map(
+        (value, index) =>
+          `<circle cx="${Math.round(index * step)}" cy="${Math.round(height - value * height)}" r="3" fill="currentColor" />`,
+      )
+      .join("")}
+  </svg>`;
 }
 
 function renderReview() {
@@ -595,7 +630,7 @@ function businessDetailHtml(profile, item) {
     return `<section class="business-detail matter-detail">
       <h3>${activeLang() === "zh" ? "争议策略结构" : "Strategy structure"}</h3>
       <div class="issue-board detail-board">
-        ${issueColumn(activeLang() === "zh" ? "争点树" : "Issue tree", listValue(field(item, "issue_tree", [item.category])))}
+        ${issueTree(activeLang() === "zh" ? "争点树" : "Issue tree", field(item, "issue_tree", [item.category]))}
         ${issueColumn(activeLang() === "zh" ? "证据缺口" : "Evidence gaps", listValue(field(item, "evidence_gaps_list", field(item, "evidence_gaps"))))}
         ${issueColumn(activeLang() === "zh" ? "谈判选项" : "Negotiation options", listValue(field(item, "negotiation_options", [])))}
       </div>
@@ -645,34 +680,57 @@ function renderChecks() {
   }</section>`;
 }
 
+function entityCard(entity) {
+  return `<article class="entity business-entity">
+    <div class="entity-meta">${escapeHtml(entity.meta || "")}</div>
+    <h2>${escapeHtml(entity.title)}</h2>
+    <p>${escapeHtml(entity.summary || "")}</p>
+    <dl class="entity-facts">
+      ${entity.owner ? `<div><dt>${escapeHtml(t("owner"))}</dt><dd>${escapeHtml(entity.owner)}</dd></div>` : ""}
+      <div><dt>${escapeHtml(t("status"))}</dt><dd><span class="status ${escapeHtml(entity.status || "")}">${escapeHtml(statusLabel(entity.status))}</span></dd></div>
+    </dl>
+    ${
+      entity.metrics
+        ? `<div class="mini-metrics">${Object.entries(entity.metrics)
+            .slice(0, 3)
+            .map(([key, value]) => `<span><b>${escapeHtml(value)}</b>${escapeHtml(key.replaceAll("_", " "))}</span>`)
+            .join("")}</div>`
+        : ""
+    }
+    <div class="badges">${(entity.tags || []).map(badge).join("")}</div>
+  </article>`;
+}
+
 function renderEntities() {
   const profile = currentProfile();
   els.title.textContent = t("entities");
   els.subtitle.textContent = state.snapshot.workspace?.subtitle || "";
-  els.content.innerHTML = `<section class="entity-grid ${escapeAttr(profile.id)}-entities">${
-    entities()
-      .map(
-        (entity) =>
-          `<article class="entity business-entity">
-            <div class="entity-meta">${escapeHtml(entity.meta || "")}</div>
-            <h2>${escapeHtml(entity.title)}</h2>
-            <p>${escapeHtml(entity.summary || "")}</p>
-            ${
-              entity.metrics
-                ? `<div class="mini-metrics">${Object.entries(entity.metrics)
-                    .slice(0, 3)
-                    .map(
-                      ([key, value]) =>
-                        `<span><b>${escapeHtml(value)}</b>${escapeHtml(key.replaceAll("_", " "))}</span>`,
-                    )
-                    .join("")}</div>`
-                : ""
-            }
-            <div class="badges">${(entity.tags || []).map(badge).join("")}</div>
-          </article>`,
-      )
-      .join("") || emptyText()
-  }</section>`;
+  const list = entities();
+  if (!list.length) {
+    els.content.innerHTML = emptyText();
+    return;
+  }
+  // Firm radar presents lawyer/practice-area profile cards; the other desks group their library.
+  if (profile.id === "firm") {
+    els.content.innerHTML = `<section class="entity-grid ${escapeAttr(profile.id)}-entities">${list.map(entityCard).join("")}</section>`;
+    return;
+  }
+  const order = ["needs_review", "changes_requested", "approved", "done", "blocked"];
+  const groups = new Map();
+  for (const entity of list) {
+    const key = entity.status || "other";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(entity);
+  }
+  const keys = [...groups.keys()].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  els.content.innerHTML = keys
+    .map(
+      (key) => `<section class="entity-group">
+      <div class="panel-head"><h2>${escapeHtml(statusLabel(key))}</h2><span>${groups.get(key).length}</span></div>
+      <div class="entity-grid ${escapeAttr(profile.id)}-entities">${groups.get(key).map(entityCard).join("")}</div>
+    </section>`,
+    )
+    .join("");
 }
 
 function renderSettings() {
@@ -760,6 +818,26 @@ function issueColumn(title, values) {
     .slice(0, 5)
     .map((value) => `<span>${escapeHtml(value)}</span>`)
     .join("")}</div>`;
+}
+
+// Renders an issue tree: nested {label, children} nodes become an indented hierarchy;
+// a flat string array falls back to a simple list.
+function issueTree(title, values) {
+  const raw = Array.isArray(values) ? values : listValue(values);
+  const nodes = raw.length ? raw : ["—"];
+  return `<div class="issue-column issue-tree"><h3>${escapeHtml(title)}</h3><ul class="tree">${nodes
+    .slice(0, 6)
+    .map((node) => {
+      if (node && typeof node === "object") {
+        const label = node.label || node.issue || node.title || "";
+        const children = listValue(node.children || node.subs || node.sub_issues);
+        return `<li><span class="tree-node">${escapeHtml(label)}</span>${
+          children.length ? `<ul>${children.map((child) => `<li>${escapeHtml(child)}</li>`).join("")}</ul>` : ""
+        }</li>`;
+      }
+      return `<li><span class="tree-node">${escapeHtml(node)}</span></li>`;
+    })
+    .join("")}</ul></div>`;
 }
 
 function practiceBarHtml(entity) {

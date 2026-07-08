@@ -141,11 +141,21 @@ function applyI18n() {
   els.langSelect.value = localStorage.getItem("kelly-scale-pptx-language") || "auto";
 }
 
+function applyDemoRoute() {
+  if (location.hash) return;
+  const demo = new URLSearchParams(location.search).get("demo");
+  if (!demo) return;
+  const scenes = new Set(["overview", "projects", "decks", "slides", "review", "style", "exports", "settings"]);
+  const view = scenes.has(demo) ? demo : "overview";
+  history.replaceState(null, "", `${location.pathname}${location.search}#/${view}`);
+}
+
 async function loadState() {
   state.lang = pickLang();
   applyI18n();
   const res = await fetch(`/api/state${location.search}`);
   state.data = await res.json();
+  applyDemoRoute();
   updateAttention();
   render();
 }
@@ -310,7 +320,7 @@ function renderDeckDetail(item) {
   const deckChecks = checks().filter((check) => check.target_id === item.deck_id);
   return detailShell(
     item.title,
-    `<dl class="facts"><dt>${t("projects")}</dt><dd>${projectById(item.project_id)?.title || item.project_id}</dd><dt>${t("status")}</dt><dd>${statusBadge(effectiveStatus(item))}</dd><dt>${t("slides")}</dt><dd>${item.generated_slide_count}/${item.target_slide_count} ${t("generated")}</dd><dt>${t("avgStyleScore")}</dt><dd>${item.style_score}</dd><dt>PPTX</dt><dd>${escapeHtml(item.pptx_path || "")}</dd></dl><h3>${t("slideCards")}</h3><div class="mini-list">${deckSlides.map((slide) => `<a href="#/slides/${slide.slide_id}">${escapeHtml(slide.title)} ${statusBadge(effectiveStatus(slide))}</a>`).join("")}</div><h3>${t("checks")}</h3>${renderChecks(deckChecks)}`,
+    `<dl class="facts"><dt>${t("projects")}</dt><dd>${projectById(item.project_id)?.title || item.project_id}</dd><dt>${t("status")}</dt><dd>${statusBadge(effectiveStatus(item))}</dd><dt>${t("slides")}</dt><dd>${item.generated_slide_count}/${item.target_slide_count} ${t("generated")}</dd><dt>${t("avgStyleScore")}</dt><dd>${item.style_score}</dd><dt>PPTX</dt><dd>${escapeHtml(item.pptx_path || "")}</dd><dt>${t("renderPath")}</dt><dd>${escapeHtml(item.render_path || "")}</dd></dl><h3>${t("slideCards")}</h3><div class="mini-list">${deckSlides.map((slide) => `<a href="#/slides/${slide.slide_id}">${escapeHtml(slide.title)} ${statusBadge(effectiveStatus(slide))}</a>`).join("")}</div><h3>${t("checks")}</h3>${renderChecks(deckChecks)}`,
   );
 }
 
@@ -350,7 +360,7 @@ function renderExportDetail(item) {
   if (!item) return detailShell(t("noSelection"), "");
   return detailShell(
     deckById(item.deck_id)?.title || item.deck_id,
-    `<dl class="facts"><dt>${t("export")}</dt><dd>${item.format.toUpperCase()}</dd><dt>${t("status")}</dt><dd>${statusBadge(item.status)}</dd><dt>Path</dt><dd>${escapeHtml(item.path)}</dd><dt>${t("generatedAt")}</dt><dd>${date(item.generated_at)}</dd><dt>QA</dt><dd>${escapeHtml(item.qa_summary || "")}</dd></dl>${renderChecks(checks().filter((check) => check.target_id === item.deck_id || check.target_id === item.export_id))}`,
+    `<dl class="facts"><dt>${t("export")}</dt><dd>${item.format.toUpperCase()}</dd><dt>${t("status")}</dt><dd>${statusBadge(item.status)}</dd><dt>PPTX</dt><dd>${escapeHtml(item.path)}</dd><dt>${t("renderPath")}</dt><dd>${escapeHtml(item.render_path || deckById(item.deck_id)?.render_path || "")}</dd><dt>${t("generatedAt")}</dt><dd>${date(item.generated_at)}</dd><dt>QA</dt><dd>${escapeHtml(item.qa_summary || "")}</dd></dl>${renderChecks(checks().filter((check) => check.target_id === item.deck_id || check.target_id === item.export_id))}`,
   );
 }
 
@@ -366,12 +376,25 @@ function listSection(title, items = []) {
   return `<h3>${escapeHtml(title)}</h3><ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
 }
 
-function renderSettings() {
+function settingsHtml() {
   const summary = state.data?.config_summary || {};
-  els.settingsContent.innerHTML = `<h2>${t("settings")}</h2><dl class="facts"><dt>${t("dataProvider")}</dt><dd>${state.data?.data_provider || ""}</dd><dt>${t("onboarding")}</dt><dd>${state.data?.onboarding?.completed ? "complete" : "pending"}</dd><dt>${t("outDir")}</dt><dd>${escapeHtml(summary.export?.out_dir || "")}</dd><dt>${t("renderDir")}</dt><dd>${escapeHtml(summary.export?.render_dir || "")}</dd><dt>${t("requireRenderQa")}</dt><dd>${String(summary.export?.require_render_qa ?? "")}</dd></dl>${listSection(
+  return `<h2>${t("settings")}</h2><dl class="facts"><dt>${t("dataProvider")}</dt><dd>${state.data?.data_provider || ""}</dd><dt>${t("onboarding")}</dt><dd>${state.data?.onboarding?.completed ? "complete" : "pending"}</dd><dt>${t("outDir")}</dt><dd>${escapeHtml(summary.export?.out_dir || "")}</dd><dt>${t("renderDir")}</dt><dd>${escapeHtml(summary.export?.render_dir || "")}</dd><dt>${t("requireRenderQa")}</dt><dd>${String(summary.export?.require_render_qa ?? "")}</dd></dl>${listSection(
     t("brand"),
     (summary.brand_profiles || []).map((item) => `${item.name} · ${item.audience}`),
+  )}${listSection(
+    t("styleSystem"),
+    styleSystems().map((item) => item.name),
   )}`;
+}
+
+function renderSettings() {
+  els.settingsContent.innerHTML = settingsHtml();
+}
+
+function renderSettingsView() {
+  setTitle(t("settings"));
+  els.list.innerHTML = `<section class="panel settings-panel">${settingsHtml()}</section>`;
+  els.detail.innerHTML = "";
 }
 
 function render() {
@@ -386,6 +409,7 @@ function render() {
   else if (state.route.view === "review") renderReview();
   else if (state.route.view === "style") renderStyle();
   else if (state.route.view === "exports") renderExports();
+  else if (state.route.view === "settings") renderSettingsView();
   else renderOverview();
   if (state.route.id) document.body.classList.add("mobile-detail-open");
   document

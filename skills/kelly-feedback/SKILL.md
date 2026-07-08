@@ -121,31 +121,31 @@ Primary local files:
 - `app/.data/agent.lock`: temporary lock while scripts rewrite files; the app rejects decision writes and disables editing while it exists.
 - `config.local.json`: private products/sources/scoring configuration, ignored by git.
 
-Use `scripts/validate_ui_schema.mjs app/.data/feedback_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
+Use `scripts/validate_ui_schema.ts app/.data/feedback_snapshot.json` before relying on a snapshot in the UI. The app shows an empty setup state when no snapshot exists.
 
 ## Ingestion Workflow
 
-`scripts/ingest_feedback.mjs` is the single write path for raw feedback. Anyone with a payload — sibling skills' agents, platform exports, or manual notes — hands feedback to Kelly Feedback the same way:
+`scripts/ingest_feedback.ts` is the single write path for raw feedback. Anyone with a payload — sibling skills' agents, platform exports, or manual notes — hands feedback to Kelly Feedback the same way:
 
 1. Write a payload JSON file (shape in `references/feedback-schema.md`): a `source` block (`source_id`, `channel`, `name`, `collection`) plus `items[]` with stable `external_id`s, text, user context, and timestamps. Suggested drop location: `app/.data/inbox/*.json` or any temp path.
-2. Run `node skills/kelly-feedback/scripts/ingest_feedback.mjs <payload.json> [more.json ...]`.
+2. Run `node skills/kelly-feedback/scripts/ingest_feedback.ts <payload.json> [more.json ...]`.
 3. The script validates, dedupes by `fb-<source_id>-<external_id>` (idempotent re-ingest), merges into the snapshot, updates source freshness and derived metrics, and appends a `sync_log` entry — all under `agent.lock`.
 
 Typical handoffs: kelly-email exports support threads mentioning features; kelly-messenger exports Discord/Slack community posts; kelly-social exports X replies. Those skills' agents build the payload from their own data; this skill never reads their private files directly. New items land with `triage: "new"` and appear in the Inbox and the human-attention panel.
 
 ## Clustering Workflow
 
-Clustering is LLM work done by the agent; `scripts/apply_clusters.mjs` is the deterministic write path.
+Clustering is LLM work done by the agent; `scripts/apply_clusters.ts` is the deterministic write path.
 
 1. Read the snapshot and pick out `triage: "new"` items (and any requests needing re-scoring).
 2. As the agent, dedupe and cluster: group items expressing the same underlying need, draft or update request records (title, problem statement, proposed spec summary, representative feedback ids, trend), and decide non-request items (`ignored` for spam, `insight` for bugs/patterns worth routing elsewhere).
-3. Write a cluster-assignment payload (shape in `references/feedback-schema.md`) and run `node skills/kelly-feedback/scripts/apply_clusters.mjs <assignments.json>`. The script validates ids, upserts request drafts, links feedback, recomputes frequency and weighted score from the raw stream, and logs the run — under `agent.lock`.
+3. Write a cluster-assignment payload (shape in `references/feedback-schema.md`) and run `node skills/kelly-feedback/scripts/apply_clusters.ts <assignments.json>`. The script validates ids, upserts request drafts, links feedback, recomputes frequency and weighted score from the raw stream, and logs the run — under `agent.lock`.
 4. When clusters warrant action, draft proposals into the snapshot's `proposals[]` (promote/decline/merge/changelog) with reason, evidence, and an editable public draft, then send Kelly to `#/roadmap`. Items with `request_changes` verdicts return to the agent via `agent_tasks.json`; after revision set them back to `needs_review`.
 
 ## Roadmap Decision Workflow
 
 1. Kelly reviews `#/roadmap`: edits drafts, writes review notes, and clicks Approve / Request changes / Block. The app records verdicts in `decisions.json` (never mutating the snapshot) and enqueues `agent_tasks.json` entries for change requests.
-2. Before executing, re-read `decisions.json` and run `node skills/kelly-feedback/scripts/execute_decisions.mjs` (dry-run) to produce `execution_report.json` with concrete operations: `update_roadmap` (target lane), `publish_changelog_note` (draft id), `send_decline_reply` (handoff to kelly-messenger/kelly-email), `merge_requests`.
+2. Before executing, re-read `decisions.json` and run `node skills/kelly-feedback/scripts/execute_decisions.ts` (dry-run) to produce `execution_report.json` with concrete operations: `update_roadmap` (target lane), `publish_changelog_note` (draft id), `send_decline_reply` (handoff to kelly-messenger/kelly-email), `merge_requests`.
 3. Show Kelly the dry-run summary. After confirmation, run with `--apply`: local operations (roadmap lanes, merges, request/proposal statuses) are applied to the snapshot; outbound operations are marked `handoff_ready` only.
 4. Execute `handoff_ready` operations as the agent via the appropriate skill (send the decline reply through kelly-messenger/kelly-email, update the changelog/roadmap document), then record the outcome back into the snapshot's sync log.
 5. Poll `agent_tasks.json` for `revise_proposal` tasks; revise drafts per the review note and return proposals to `needs_review`.

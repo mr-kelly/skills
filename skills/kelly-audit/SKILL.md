@@ -118,7 +118,7 @@ Primary local files:
 - `app/.data/agent.lock`: temporary lock while the skill is importing, checking, or executing. The app answers `POST /api/decision` with HTTP 423 while the lock exists.
 - `config.local.json`: private company/mapping/rules configuration, ignored by git.
 
-Use `scripts/validate_ui_schema.mjs app/.data/audit_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists.
+Use `scripts/validate_ui_schema.ts app/.data/audit_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists.
 
 ## Import Workflow
 
@@ -128,7 +128,7 @@ Use `scripts/validate_ui_schema.mjs app/.data/audit_snapshot.json` before relyin
 4. Run the write path:
 
 ```bash
-node skills/kelly-audit/scripts/import_tables.mjs \
+node skills/kelly-audit/scripts/import_tables.ts \
   --orders /path/orders.csv --invoices /path/invoices.csv --payments /path/payments.csv
 ```
 
@@ -141,20 +141,20 @@ The script parses CSV (quoted fields included) or JSON arrays, applies the colum
 1. After every import (or on request), run the deterministic rule set:
 
 ```bash
-node skills/kelly-audit/scripts/run_checks.mjs
+node skills/kelly-audit/scripts/run_checks.ts
 ```
 
 Rules, driven by config tolerances: `missing_invoice` (order without invoice after `days_to_invoice` days), `amount_mismatch` (invoice total vs order amount beyond `amount_tolerance_pct`), `overdue_receivable` (unpaid past due date, with 30/60/90+ aging buckets), `duplicate` (duplicate payment within `duplicate_window_days`, duplicate invoice number), `unmatched_payment` (payment matching no invoice), `irregular_entry` (credit note without an original, negative payments).
 
 2. Anomaly ids are stable (`anom-<rule>-<key>`), so re-runs upsert instead of duplicating; existing statuses, refs, decisions, and user-edited drafts are preserved; anomalies whose condition cleared are auto-resolved to `done`.
 3. The agent may then improve on the deterministic output: sharpen titles/reasons, localize, and refine the drafted follow-up (chasing email, billing request, accountant note) — keeping ids and evidence intact.
-4. Validate with `scripts/validate_ui_schema.mjs`, start/reuse the UI, and send the user to `#/anomalies`.
+4. Validate with `scripts/validate_ui_schema.ts`, start/reuse the UI, and send the user to `#/anomalies`.
 
 ## Decisions And Agent Tasks Loop
 
 1. The user reviews at `#/anomalies`: approve, request changes (with a note), save an edited draft, block, or dismiss. Decisions persist through `POST /api/decision` into `decisions.json` (423 while locked).
 2. Poll `app/.data/agent_tasks.json` for `changes_requested` items, revise the anomaly draft per the note, and return the item to `needs_review`.
-3. On explicit user request to execute, run `scripts/execute_decisions.mjs` (dry-run by default; `--apply` marks items `ready_for_agent`). It re-checks the lock and decisions and writes `execution_report.json` entries with concrete operations — `chase_receivable` (with the drafted email handoff), `reissue_invoice`, `flag_to_accountant` — and target document ids. No external side effects either way.
+3. On explicit user request to execute, run `scripts/execute_decisions.ts` (dry-run by default; `--apply` marks items `ready_for_agent`). It re-checks the lock and decisions and writes `execution_report.json` entries with concrete operations — `chase_receivable` (with the drafted email handoff), `reissue_invoice`, `flag_to_accountant` — and target document ids. No external side effects either way.
 4. The agent then performs the approved follow-ups outside the app (send the chasing email via the email skill, open the billing/accountant task), records real results in `execution_report.json`, and executed anomalies show as `done`.
 
 ## Safety Defaults

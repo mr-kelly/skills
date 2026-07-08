@@ -142,7 +142,7 @@ function applyDemoRoute() {
     scenario === "accounts"
       ? "#/accounts"
       : scenario === "detail"
-        ? "#/accounts/stripe-main"
+        ? "#/invoices/inv-render-20260625"
         : scenario === "ledger"
           ? "#/ledger"
           : scenario === "invoices"
@@ -239,7 +239,7 @@ function ledgerTable(transactions) {
       <table>
         <thead>
           <tr>
-            <th>${t("date")}</th><th>${t("description")}</th><th>${t("provider")}</th><th>${t("account")}</th><th>${t("type")}</th><th>${t("status")}</th><th>${t("invoice")}</th><th>${t("gross")}</th><th>${t("fee")}</th><th>${t("net")}</th>
+            <th>${t("date")}</th><th>${t("description")}</th><th>${t("provider")}</th><th>${t("account")}</th><th>${t("type")}</th><th>${t("status")}</th><th>${t("invoice")}</th><th>${t("currency")}</th><th>${t("gross")}</th><th>${t("fee")}</th><th>${t("net")}</th>
           </tr>
         </thead>
         <tbody>
@@ -254,6 +254,7 @@ function ledgerTable(transactions) {
               <td>${escapeHtml(enumLabel(tx.type, "type"))}</td>
               <td>${escapeHtml(enumLabel(tx.status))}</td>
               <td>${invoiceBadgeForTransaction(tx.transaction_id)}</td>
+              <td>${escapeHtml(tx.currency || "")}</td>
               <td class="num">${money(tx.gross, tx.currency)}</td>
               <td class="num">${money(tx.fee, tx.currency)}</td>
               <td class="num ${Number(tx.net) < 0 ? "negative" : "positive"}">${money(tx.net, tx.currency)}</td>
@@ -343,8 +344,10 @@ function renderAccounts() {
           <div class="balance">${money(account.balance?.current, account.currency)}</div>
           <div class="row stats">
             <span>${t("grossIn")} ${money(account.totals?.gross_inflow, account.currency)}</span>
+            <span>${t("grossOut")} ${money(account.totals?.gross_outflow, account.currency)}</span>
             <span>${t("net")} ${money(account.totals?.net, account.currency)}</span>
           </div>
+          <div class="muted account-sync">${t("lastSync")} · ${date(account.last_sync_at)}</div>
           <div class="status ${account.status}">${escapeHtml(enumLabel(account.status))}</div>
         </a>
       `,

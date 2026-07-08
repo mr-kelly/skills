@@ -44,7 +44,7 @@ Collection is agent-driven: browser automation skills in the agent session, web 
 - Collection is read-only over public pages and Kelly's own analytics. Respect robots.txt and site terms of service, throttle politely, and never scrape private, gated, or personal data.
 - The skill may read public sources, normalize signals/trends, run approved research, and write local handoff files.
 - The app reads and writes local files only. It must not fetch remote pages, post anywhere, or mutate remote systems.
-- Handoffs to sibling skills (kelly-writer content briefs, kelly-feedback roadmap candidates) and any outbound artifacts are approval-required: Kelly approves in the UI, then `scripts/execute_decisions.mjs` records the concrete operation for the agent to carry out.
+- Handoffs to sibling skills (kelly-writer content briefs, kelly-feedback roadmap candidates) and any outbound artifacts are approval-required: Kelly approves in the UI, then `scripts/execute_decisions.ts` records the concrete operation for the agent to carry out.
 - Do not commit `config.local.json`, env files, `app/.data/`, exports, or raw crawled content.
 
 ## First Run And Onboarding
@@ -122,36 +122,36 @@ Read `references/radar-schema.md` before editing the app, scripts, or any genera
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill writes files. Signal triage, brief approvals, and opportunity approvals in the app are rejected while it exists, and all ingest scripts refuse to run.
 
-Validate with `node scripts/validate_ui_schema.mjs app/.data/radar_snapshot.json` before relying on a snapshot.
+Validate with `node scripts/validate_ui_schema.ts app/.data/radar_snapshot.json` before relying on a snapshot.
 
 ## Monitoring Workflow
 
 1. Cadence comes from config (`cadence.monitor`, default daily). On a monitoring run, iterate the configured watchlist sources with method `browser_agent` (browser automation or web search in the agent session; `manual` sources are supplied by the user as payloads).
 2. For each changed source, build a normalized signal: headline, 1-3 sentence change summary, `why_it_matters`, severity, evidence links, and — for page changes — a before→after `diff.lines` block. Propose a triage (`act|watch|ignore|needs_info`) and, when acting is obvious, a concrete `handoff`.
-3. Write signals through the single write path: save the payload JSON, then run `node scripts/ingest_signals.mjs <payload.json>`. The script validates, dedupes by target+source+content hash, merges, refreshes watchlist freshness and metrics, appends `sync_log`, and honors the lock.
+3. Write signals through the single write path: save the payload JSON, then run `node scripts/ingest_signals.ts <payload.json>`. The script validates, dedupes by target+source+content hash, merges, refreshes watchlist freshness and metrics, appends `sync_log`, and honors the lock.
 4. Dedupe rules: a signal whose `content_hash` already exists is skipped; re-detections of the same change must not create new rows. Prefer one signal per change, not per crawl.
 5. Kelly triages in the app: Act = approve (queues the handoff), Watch = leave in review with a note, Ignore = done, Needs info = blocked (enqueues a collect-more-evidence agent task).
 
 ## Research Workflow
 
-1. Kelly asks a question (in chat or as a follow-up in the app). File it with a drafted brief: `node scripts/file_report.mjs <payload.json>` with a `brief` block — scope, planned sources, depth, expected deliverable. The question enters `brief_needs_review`.
+1. Kelly asks a question (in chat or as a follow-up in the app). File it with a drafted brief: `node scripts/file_report.ts <payload.json>` with a `brief` block — scope, planned sources, depth, expected deliverable. The question enters `brief_needs_review`.
 2. Kelly reviews the brief in `#/research/<id>`: approve (question moves to `researching`), request changes (agent task; revise and re-file), or block.
 3. After approval, run the deep multi-source research within the brief's scope and source policy. Every claim that matters must carry a citation.
-4. File the report with `node scripts/file_report.mjs <payload.json>` with a `report` block. The script validates the citation shape (every section's `source_ids` resolve; every source has title+url), links the report to its question, and flips the question to `report_ready`.
+4. File the report with `node scripts/file_report.ts <payload.json>` with a `report` block. The script validates the citation shape (every section's `source_ids` resolve; every source has title+url), links the report to its question, and flips the question to `report_ready`.
 5. Kelly reads, annotates, rates confidence (0-5), and asks follow-ups in the app; follow-ups land in `agent_tasks.json` for another research round.
 
 ## Trends Workflow
 
 1. Cadence from config (`cadence.trends`, default weekly). Collect keyword/topic movers from the configured trend sources: rising search queries, community topic volume, category interest.
-2. Optionally cross-read a kelly-seo snapshot (read-only): `node scripts/ingest_trends.mjs <payload.json> /path/to/kelly-seo/app/.data/<snapshot>.json` imports rising queries when present and degrades gracefully when absent.
+2. Optionally cross-read a kelly-seo snapshot (read-only): `node scripts/ingest_trends.ts <payload.json> /path/to/kelly-seo/app/.data/<snapshot>.json` imports rising queries when present and degrades gracefully when absent.
 3. `ingest_trends.mjs` dedupes movers by keyword+source, updates volume/delta/momentum for existing movers, and can add opportunity cards.
 4. Turn sustained movers into opportunity cards with a `proposed_next_step` (content brief → kelly-writer, roadmap candidate → kelly-feedback). Kelly approves or ignores each card in `#/trends`.
 
 ## Decisions And Agent Tasks Loop
 
 1. The app writes verdicts to `decisions.json` and queues work into `agent_tasks.json` (revise brief, collect more evidence, research follow-ups). Poll `agent_tasks.json` when the skill is invoked and work the queue.
-2. Before executing anything, re-read decisions and run `node scripts/execute_decisions.mjs` (dry-run). It converts approved items into concrete operations in `execution_report.json`: `handoff_content_brief` → kelly-writer, `handoff_roadmap_candidate` → kelly-feedback, `add_watch_source` → watchlist target id, `start_research` → question id. No external side effects.
-3. After Kelly confirms the dry-run, perform the handoffs (invoke the sibling skill or update config), then run `node scripts/execute_decisions.mjs --apply` to mark items done and log the run.
+2. Before executing anything, re-read decisions and run `node scripts/execute_decisions.ts` (dry-run). It converts approved items into concrete operations in `execution_report.json`: `handoff_content_brief` → kelly-writer, `handoff_roadmap_candidate` → kelly-feedback, `add_watch_source` → watchlist target id, `start_research` → question id. No external side effects.
+3. After Kelly confirms the dry-run, perform the handoffs (invoke the sibling skill or update config), then run `node scripts/execute_decisions.ts --apply` to mark items done and log the run.
 4. Acquire `app/.data/agent.lock` before the skill rewrites snapshot/decision files, and remove it in a `finally` step. The ingest scripts do this automatically.
 
 ## Safety Defaults

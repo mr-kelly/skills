@@ -84,6 +84,9 @@ const ROUTE_OVERRIDES = {
   "kelly-standup": {
     overview: "/today",
   },
+  "kelly-money": {
+    detail: "/invoices/inv-render-20260625",
+  },
 };
 
 const GENERIC_ROUTE_MAP = {

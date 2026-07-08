@@ -106,11 +106,11 @@ Never merge, close, push, edit branches, rerun workflows, or dismiss reviews fro
 ## Useful Commands
 
 ```bash
-node skills/kelly-pr-review/scripts/generate_review_batch.mjs
+node skills/kelly-pr-review/scripts/generate_review_batch.ts
 skills/kelly-pr-review/app/start.sh
-node skills/kelly-pr-review/scripts/validate_ui_schema.mjs
-node skills/kelly-pr-review/scripts/execute_decisions.mjs --dry-run
-node skills/kelly-pr-review/scripts/execute_decisions.mjs --live
+node skills/kelly-pr-review/scripts/validate_ui_schema.ts
+node skills/kelly-pr-review/scripts/execute_decisions.ts --dry-run
+node skills/kelly-pr-review/scripts/execute_decisions.ts --live
 ```
 
 In normal use, invoke `/kelly-pr-review` and let the skill generate the batch and start the UI.

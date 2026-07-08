@@ -869,6 +869,24 @@ function renderSettings() {
           <dt>Block commitments</dt><dd>${risk.block_commitments_without_approval === false ? "no" : "yes"}</dd>
         </dl>
       </section>
+      ${
+        summary.sla_policy
+          ? `
+      <section>
+        <h2>${t("slaPolicy")}</h2>
+        <dl>
+          ${Object.entries(summary.sla_policy.first_response_hours || {})
+            .map(
+              ([severity, hours]) =>
+                `<dt>${escapeHtml(enumLabel(severity, "severity"))}</dt><dd>${t("firstResponse")}: ${escapeHtml(hours)}h</dd>`,
+            )
+            .join("")}
+          ${summary.sla_policy.business_hours ? `<dt>Business hours</dt><dd>${escapeHtml(summary.sla_policy.business_hours)}</dd>` : ""}
+        </dl>
+      </section>
+      `
+          : ""
+      }
       <section>
         <h2>${t("accounts")}</h2>
         ${

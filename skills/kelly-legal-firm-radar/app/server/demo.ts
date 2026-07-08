@@ -36,6 +36,12 @@ const snapshot = {
     practice_groups: 4,
     lawyers_profiled: 12,
     public_citable: 6,
+    outcome_trends: [
+      { period: "2025 Q3", win_rate: 0.58 },
+      { period: "2025 Q4", win_rate: 0.62 },
+      { period: "2026 Q1", win_rate: 0.67 },
+      { period: "2026 Q2", win_rate: 0.71 },
+    ],
   },
   entities: [
     {

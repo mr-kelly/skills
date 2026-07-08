@@ -119,7 +119,7 @@ Primary local files:
 - `app/.data/agent.lock`: temporary lock while the skill is syncing or rewriting files.
 - `config.local.json`: private account configuration, ignored by git.
 
-Use `scripts/validate_ui_schema.mjs app/.data/ledger_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists.
+Use `scripts/validate_ui_schema.ts app/.data/ledger_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists.
 
 Invoice matching lives inside Kelly Money rather than a separate skill until it becomes a full invoice-generation or tax-export workflow. Write imported invoice metadata into `invoices[]` and matching decisions into `invoice_matches[]`; do not store private invoice PDFs in git.
 

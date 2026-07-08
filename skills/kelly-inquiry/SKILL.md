@@ -36,7 +36,7 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 ## Boundary
 
 - The app reads and writes local files only and never touches any network beyond `127.0.0.1`. It cannot send anything: the composer queues drafts, the approvals view records verdicts.
-- Every outbound reply AND quote is approval-required. The skill executes only items whose approvals status is `approved`, via `scripts/send_approved.mjs` (dry-run by default), and never bypasses the dry-run → `--send` sequence.
+- Every outbound reply AND quote is approval-required. The skill executes only items whose approvals status is `approved`, via `scripts/send_approved.ts` (dry-run by default), and never bypasses the dry-run → `--send` sequence.
 - Own accounts only: read and send exclusively through accounts the user owns and has configured. Respect each platform's terms of service and rate limits; prefer official APIs; keep collection read-only.
 - Never store passwords, QR-login payloads, or session tokens. For `browser_agent` collection the agent drives the user's own already-authenticated web session and stores only inquiry text needed for review.
 - Product and pricing data stays local. Treat customer contacts, conversation excerpts, price floors, and quotes as sensitive: do not commit `config.local.json`, env files, `app/.data/`, exports, tokens, or customer PII.
@@ -63,7 +63,7 @@ Env priority:
 Onboarding asks, turn by turn:
 
 1. Which channels receive inquiries (WhatsApp / Instagram / Messenger / email) and which connector method per account (see Collection Workflow). Ask for non-secret details only: channel, display name, handle, and which env var names hold the tokens. Never ask the user to paste secret values into chat; secrets belong only in local env files.
-2. Product KB import: a JSON or CSV file of products (SKU, MOQ, price range incl. `price_min` floors, lead time, specs, FAQ), imported via `scripts/sync_products.mjs`.
+2. Product KB import: a JSON or CSV file of products (SKU, MOQ, price range incl. `price_min` floors, lead time, specs, FAQ), imported via `scripts/sync_products.ts`.
 3. Quote defaults: currency, validity days, incoterm/payment terms, and whether the min-price guard is enabled.
 4. Follow-up SLA days per stage (defaults: new 1, replied 2, quoted 3, negotiating 5).
 5. Reply style: tone, language policy, signature, and "do not say" guardrails.
@@ -116,7 +116,7 @@ Read `references/inquiry-schema.md` before editing the app, scripts, or any gene
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill ingests, syncs, or sends. While it exists the app rejects writes (423) and renders the composer, approvals, follow-up field, and quote editor read-only.
 
-Validate with `node scripts/validate_ui_schema.mjs` before relying on a snapshot in the UI.
+Validate with `node scripts/validate_ui_schema.ts` before relying on a snapshot in the UI.
 
 ## Collection Workflow
 
@@ -128,13 +128,13 @@ Validate with `node scripts/validate_ui_schema.mjs` before relying on a snapshot
    - `email_agent` — hand off to the kelly-email skill: it collects inquiry emails, the agent normalizes them into an ingest payload; sends go back through kelly-email drafts.
    - `browser_agent` — the agent drives the user's own already-authenticated web session (e.g. WhatsApp Web, Instagram web) with the browser skill, then writes a payload. No passwords or QR secrets are ever stored.
    - `manual` — the user or agent prepares an ingest payload by hand.
-4. All collected data enters through one write path: `node scripts/ingest_inquiries.mjs payload.json`. It validates the payload, dedupes by stable inquiry/message ids, merges into the snapshot, applies the stage heuristic (an outgoing reply promotes `new` → `replied`), updates the account card and sync log, honors the agent lock, and recomputes metrics.
+4. All collected data enters through one write path: `node scripts/ingest_inquiries.ts payload.json`. It validates the payload, dedupes by stable inquiry/message ids, merges into the snapshot, applies the stage heuristic (an outgoing reply promotes `new` → `replied`), updates the account card and sync log, honors the agent lock, and recomputes metrics.
 5. While drafting, the agent may attach a `suggested_reply` per inquiry (prefilled in the composer) and queue reply/quote drafts into `snapshot.approvals[]` with `suggested_by: "agent"` and a clear `reason` — always grounded in the product KB and reply style, never below `price_min`.
 6. Start/reuse the UI and report the URL. Surface connector problems as snapshot warnings, not silent failures.
 
 ## Quoting Workflow
 
-1. Ground every quote in the product KB: SKU, MOQ, tier pricing inside `price_min`–`price_max`, lead time, and FAQ facts (certificates, OEM options, dimming, packaging). Import/refresh the KB with `node scripts/sync_products.mjs products.json|products.csv` (zero-dependency CSV parser with quoted-field support).
+1. Ground every quote in the product KB: SKU, MOQ, tier pricing inside `price_min`–`price_max`, lead time, and FAQ facts (certificates, OEM options, dimming, packaging). Import/refresh the KB with `node scripts/sync_products.ts products.json|products.csv` (zero-dependency CSV parser with quoted-field support).
 2. Min-price guard: config `quote_defaults.min_price_guard` plus per-product `price_min` floors. Any line priced below its floor raises a `pricing_alerts` entry; with `block_below_price_min` the agent must not queue such a quote for sending — block it and ask the user instead.
 3. Build the quote as a `draft` in `snapshot.quotes[]` (quote no, line items, currency, validity from `validity_days`, terms from quote defaults, pricing notes explaining the tier used and the guard result) and queue a matching `kind: "quote"` approval item referencing it.
 4. The user edits draft line items in `#/quotes/<id>` (the server recomputes totals and re-runs the guard) and gives the verdict in `#/approvals`.
@@ -142,12 +142,12 @@ Validate with `node scripts/validate_ui_schema.mjs` before relying on a snapshot
 
 ## Approval And Send Workflow
 
-`scripts/send_approved.mjs` is the executor — there is no separate `execute_decisions.mjs`.
+`scripts/send_approved.ts` is the executor — there is no separate `execute_decisions.mjs`.
 
 1. Queue: the user writes or edits a reply in the composer (optionally starting from the agent's `suggested_reply`) and clicks `Queue reply`; the app appends it to `snapshot.approvals[]` as `needs_review`. The agent queues its own reply/quote drafts the same way.
 2. Review: in `#/approvals` the user approves, edits (`Save edit`), requests changes, or blocks each item. Decisions are mirrored into `decisions.json`; `request_changes` enqueues a `revise_reply`/`revise_quote` task in `agent_tasks.json`.
 3. Agent revision loop: poll `agent_tasks.json`, redraft the text honoring the comment, the config `reply_style`, and the KB (re-check the min-price guard for quotes), set the item back to `needs_review`, and mark the task done.
-4. Send: only after the user asks to send, run `node scripts/send_approved.mjs` (dry-run) and show the plan — planned sends, targets, and missing-token blockers. With explicit approval, run `node scripts/send_approved.mjs --send`: it re-checks the lock and each item's approval immediately before sending, sends API-connector items via the official APIs (WhatsApp Cloud, Instagram/Messenger Graph), marks `email_agent`/`browser_agent`/`manual` items as `handoff_to_agent` for the agent to deliver (kelly-email drafts, or the user's own web session), sets sent items to `done`, and writes `execution_report.json`.
+4. Send: only after the user asks to send, run `node scripts/send_approved.ts` (dry-run) and show the plan — planned sends, targets, and missing-token blockers. With explicit approval, run `node scripts/send_approved.ts --send`: it re-checks the lock and each item's approval immediately before sending, sends API-connector items via the official APIs (WhatsApp Cloud, Instagram/Messenger Graph), marks `email_agent`/`browser_agent`/`manual` items as `handoff_to_agent` for the agent to deliver (kelly-email drafts, or the user's own web session), sets sent items to `done`, and writes `execution_report.json`.
 5. Report per-item results back to the user with the stable `Reply #N` / `Quote #N` refs.
 
 ## Follow-Up Reminders

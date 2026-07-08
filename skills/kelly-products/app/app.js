@@ -424,7 +424,7 @@ function renderProductDetail(productId) {
     </section>
     <section class="panel">
       <div class="panel-head"><h2>${t("channels")}</h2><a href="#/channels">${t("channels")}</a></div>
-      ${channelTable(channelRows)}
+      ${channelTable(channelRows, { showProduct: false })}
     </section>
     ${
       reviewRows.length
@@ -435,13 +435,14 @@ function renderProductDetail(productId) {
     }`;
 }
 
-function channelTable(rows) {
+function channelTable(rows, { showProduct = true } = {}) {
   return `<div class="table-wrap"><table>
-    <thead><tr><th>${t("platform")}</th><th>${t("status")}</th><th>${t("price")}</th><th>Score</th><th>${t("channelIssue")}</th></tr></thead>
+    <thead><tr>${showProduct ? `<th>${t("product")}</th>` : ""}<th>${t("platform")}</th><th>${t("status")}</th><th>${t("price")}</th><th>Score</th><th>${t("channelIssue")}</th></tr></thead>
     <tbody>
       ${rows
         .map(
           (item) => `<tr>
+            ${showProduct ? `<td><a href="#/products/${encodeURIComponent(item.product_id)}">${esc(productById(item.product_id)?.name || item.product_id)}</a></td>` : ""}
             <td>${enumLabel(item.platform, "platform")}<div class="muted">${esc(item.listing_id)}</div></td>
             <td>${badge(item.status)}</td>
             <td>${money2(item.price, state.snapshot?.seller?.base_currency || "USD")}</td>
@@ -547,6 +548,11 @@ function renderSettings() {
     <h2>${t("warehouses")}</h2>
     <div class="settings-list">
       ${(summary.warehouses || []).map((warehouse) => `<div><strong>${esc(warehouse.name)}</strong><span>${esc(warehouse.region)}</span></div>`).join("")}
+    </div>
+    <h2>${t("onboarding")}</h2>
+    <div class="data-grid wide">
+      <div><span>${t("onboarding")}</span><strong>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</strong></div>
+      ${state.settings?.onboarding?.completed_at ? `<div><span>${t("completed")}</span><strong>${esc(state.settings.onboarding.completed_at)}</strong></div>` : ""}
     </div>
   </section>`;
 }

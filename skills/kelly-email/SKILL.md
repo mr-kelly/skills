@@ -315,7 +315,7 @@ When `/kelly-email` is generating, drafting, or executing a batch, create `.agen
 
 Before or after generating a local review batch, ensure the UI is running by invoking `.agents/skills/kelly-email/app/start.sh` from the repository root. Prefer the `3000-4000` port range; if the service is already running on the selected port, reuse it. Tell the user to open or refresh the actual URL printed by the launcher.
 
-For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.mjs` from the repository root. In the zero-dependency core, this validates config and prepares local batch/decision files, but does not read IMAP mail. Email items must be supplied by an external connector, Spark when explicitly requested and available, or an agent-authored batch before review.
+For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.ts` from the repository root. In the zero-dependency core, this validates config and prepares local batch/decision files, but does not read IMAP mail. Email items must be supplied by an external connector, Spark when explicitly requested and available, or an agent-authored batch before review.
 
 Treat the script output as a rule-based prefilter, not as the final support classification. The support agent must perform an Agent Semantic Classification Pass before telling the user the batch is ready:
 
@@ -350,7 +350,7 @@ After the user reviews in the UI, read `.agents/skills/kelly-email/app/.data/dec
 
 For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. When archiving after send, use the same configured category/risk target folder and mark the message read; never hardcode `Archive`. In the zero-dependency core, this is prepared and reported but not sent; an external SMTP connector must apply the approved send.
 
-For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.mjs`. It reads `current_batch.json` and `decisions.json`, validates explicit UI-approved actions, blocks real mailbox side effects because IMAP/SMTP execution is not bundled, and writes a JSON report under `.agents/skills/kelly-email/app/.data/execution_reports/`. Use `--dry-run` for validation when unsure.
+For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.ts`. It reads `current_batch.json` and `decisions.json`, validates explicit UI-approved actions, blocks real mailbox side effects because IMAP/SMTP execution is not bundled, and writes a JSON report under `.agents/skills/kelly-email/app/.data/execution_reports/`. Use `--dry-run` for validation when unsure.
 
 Treat the UI approval as the user's final approval for `archive` and `mark_read` by default, including messages that were originally classified as money, billing, account/security, technical alerts, attachments, or unclear real-person intent. Do not add another default safety block for those cleanup actions after the user approves them in the UI; the zero-dependency executor will still report them as connector-blocked until an external mailbox connector applies them.
 
@@ -436,15 +436,15 @@ Both expose the same interface and review verbs: `openReplyDraft` → `reviewRep
 
 This stays a **single-machine skill** — no standing service. Going team-wide just means pointing the reply store (and, when the triage handoff itself moves, the whole handoff including `agent.lock`) at a shared Busabase base instead of local files; the shared lock serializes the team's writes, so no per-item claim or optimistic concurrency is needed.
 
-Drive this loop with `scripts/reply_review.mjs` (it selects the provider from `KELLY_EMAIL_REPLY_PROVIDER`):
+Drive this loop with `scripts/reply_review.ts` (it selects the provider from `KELLY_EMAIL_REPLY_PROVIDER`):
 
 ```
-node scripts/reply_review.mjs open --email-id <id> --to <addr> --subject <s> --draft -   # creates a reply draft for review
-node scripts/reply_review.mjs list                                                       # see all reply drafts + status
-node scripts/reply_review.mjs tasks                                                       # drafts the reviewer sent back (changes_requested) — revise these
-node scripts/reply_review.mjs review <reply_id> --verdict approve                         # (usually done by the human in the UI)
-node scripts/reply_review.mjs approved <reply_id>                                         # the skill reads the approved reply, then SENDS it
-node scripts/reply_review.mjs sent <reply_id>                                             # after sending, mark merged/done
+node scripts/reply_review.ts open --email-id <id> --to <addr> --subject <s> --draft -   # creates a reply draft for review
+node scripts/reply_review.ts list                                                       # see all reply drafts + status
+node scripts/reply_review.ts tasks                                                       # drafts the reviewer sent back (changes_requested) — revise these
+node scripts/reply_review.ts review <reply_id> --verdict approve                         # (usually done by the human in the UI)
+node scripts/reply_review.ts approved <reply_id>                                         # the skill reads the approved reply, then SENDS it
+node scripts/reply_review.ts sent <reply_id>                                             # after sending, mark merged/done
 ```
 
 When you propose a reply, `open` it as a draft instead of only inlining `suggested_reply`; poll `tasks` to pick up requested revisions; and only `send` what `approved` returns.

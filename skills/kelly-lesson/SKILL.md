@@ -108,18 +108,18 @@ Read `references/lesson-schema.md` before editing the app, scripts, or any gener
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill writes; the review queue rejects `POST /api/decision` with HTTP 423 while it exists.
 
-Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
+Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 
 ## Drafting Workflow
 
 1. Collect inputs: curriculum materials (textbook unit, standards excerpts, prior plans) and the configured template sections.
 2. Draft the plan as a structured ingest payload — every required template section filled, at least 3 lesson-flow stages whose minutes sum to the class length, measurable objectives, homework, and a safety note when the lesson is a lab.
-3. Acquire `app/.data/agent.lock`, run `node scripts/ingest_plan.mjs payload.json` (it validates against template sections and merges), release the lock.
+3. Acquire `app/.data/agent.lock`, run `node scripts/ingest_plan.ts payload.json` (it validates against template sections and merges), release the lock.
 4. For a teacher's document, parse it into the same payload with `"source": "teacher_import"` — do not silently fix deficiencies; let the checks surface them.
 
 ## Check Workflow
 
-1. Run `node scripts/run_checks.mjs`. Deterministic rules (section presence, stage count and timing, duration sums, homework, measurable-verb heuristics, lab safety) are computed from config; per-plan compliance scores and metrics are recomputed idempotently.
+1. Run `node scripts/run_checks.ts`. Deterministic rules (section presence, stage count and timing, duration sums, homework, measurable-verb heuristics, lab safety) are computed from config; per-plan compliance scores and metrics are recomputed idempotently.
 2. Rules typed `agent_review` (for example curriculum alignment) are left as `agent_review`. Judge them yourself by comparing objectives with the cited curriculum refs, then deliver verdicts via an ingest payload's `check_results`; re-running the checker preserves agent-judged results.
 3. Summarize failures for the dean in the review items (`compliance_summary`, `suggestions`, `feedback_draft`).
 
@@ -127,11 +127,11 @@ Validate with `scripts/validate_ui_schema.mjs` before relying on a snapshot.
 
 1. Send the dean to `#/review`. Verdicts persist through `POST /api/decision` into `decisions.json` (423 under lock).
 2. Poll `app/.data/agent_tasks.json` for `revise_plan` tasks created by `request_changes`. Redraft the plan per the comment, re-ingest, re-run checks, and the item returns to `needs_review`.
-3. Before executing anything, re-read decisions and run `node scripts/execute_decisions.mjs` (dry-run). With `--apply` it records `publish_plan`, `send_feedback`, and `request_revision` operations in `execution_report.json` — no external side effects.
+3. Before executing anything, re-read decisions and run `node scripts/execute_decisions.ts` (dry-run). With `--apply` it records `publish_plan`, `send_feedback`, and `request_revision` operations in `execution_report.json` — no external side effects.
 
 ## Export Workflow
 
-1. `node scripts/export_plans.mjs --out <dir>` writes approved plans as clean Markdown (default `exports/`, gitignored).
+1. `node scripts/export_plans.ts --out <dir>` writes approved plans as clean Markdown (default `exports/`, gitignored).
 2. When the user wants Word/PDF documents, convert the exported Markdown with your document skills (docx/pdf); this skill never bundles converters.
 3. Keep exports out of git and report the concrete file paths.
 
