@@ -307,7 +307,7 @@ Only execute the numbered actions the user approves. If the user says "approve a
 
 When the user wants to review mail through the local UI, use a file handoff instead of asking for approval item by item in chat.
 
-The kelly-email skill owns the approval workflow and local file contract. The zero-dependency core does not bundle IMAP/SMTP readers or senders; mailbox reads and writes must come from an external connector, Spark when explicitly requested and available, or an agent-provided batch. The local UI is only an approval surface over files. The UI must not scan mailboxes, send replies, archive, mark read, delete, or label mail directly.
+The kelly-email skill owns the approval workflow, local file contract, and CLI mailbox connector. `scripts/generate_review_batch.ts` reads IMAP mail into local batch files, and `scripts/execute_ui_decisions.ts` applies explicit UI-approved IMAP/SMTP actions. The local UI is only an approval surface over files. The UI must not scan mailboxes, send replies, archive, mark read, delete, or label mail directly.
 
 Use this Local Review UI Workflow by default. If the user did not request chat-only handling, assume they want App UI mode. After the batch is generated and agent-reviewed, say clearly that the batch is ready in the UI and ask them to review/approve there. Do not continue with long chat item-by-item review unless the user asks to stay in chat.
 
@@ -315,7 +315,7 @@ When `/kelly-email` is generating, drafting, or executing a batch, create `.agen
 
 Before or after generating a local review batch, ensure the UI is running by invoking `.agents/skills/kelly-email/app/start.sh` from the repository root. Prefer the `3000-4000` port range; if the service is already running on the selected port, reuse it. Tell the user to open or refresh the actual URL printed by the launcher.
 
-For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.ts` from the repository root. In the zero-dependency core, this validates config and prepares local batch/decision files, but does not read IMAP mail. Email items must be supplied by an external connector, Spark when explicitly requested and available, or an agent-authored batch before review.
+For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.ts` from the repository root. It validates config, scans unread IMAP mail from the approved scope, persists attachments under the app data directory, and writes local batch/decision files for the UI.
 
 Treat the script output as a rule-based prefilter, not as the final support classification. The support agent must perform an Agent Semantic Classification Pass before telling the user the batch is ready:
 
@@ -348,11 +348,11 @@ Generate a batch file at `.agents/skills/kelly-email/app/.data/current_batch.jso
 
 After the user reviews in the UI, read `.agents/skills/kelly-email/app/.data/decisions.json`. Treat it as the user's approval/comment layer, but still execute only decisions that are explicit (`archive`, `mark_read`, `send_reply`, `draft_reply`, `keep_unread`, `no_action`, `needs_review`, `revise`; see `references/batch-schema.md`):
 
-For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. When archiving after send, use the same configured category/risk target folder and mark the message read; never hardcode `Archive`. In the zero-dependency core, this is prepared and reported but not sent; an external SMTP connector must apply the approved send.
+For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. When archiving after send, use the same configured category/risk target folder and mark the message read; never hardcode `Archive`.
 
-For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.ts`. It reads `current_batch.json` and `decisions.json`, validates explicit UI-approved actions, blocks real mailbox side effects because IMAP/SMTP execution is not bundled, and writes a JSON report under `.agents/skills/kelly-email/app/.data/execution_reports/`. Use `--dry-run` for validation when unsure.
+For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.ts`. It reads `current_batch.json` and `decisions.json`, validates explicit UI-approved actions, applies approved IMAP/SMTP side effects, and writes a JSON report under `.agents/skills/kelly-email/app/.data/execution_reports/`. Use `--dry-run` for validation when unsure.
 
-Treat the UI approval as the user's final approval for `archive` and `mark_read` by default, including messages that were originally classified as money, billing, account/security, technical alerts, attachments, or unclear real-person intent. Do not add another default safety block for those cleanup actions after the user approves them in the UI; the zero-dependency executor will still report them as connector-blocked until an external mailbox connector applies them.
+Treat the UI approval as the user's final approval for `archive` and `mark_read` by default, including messages that were originally classified as money, billing, account/security, technical alerts, attachments, or unclear real-person intent. Do not add another default safety block for those cleanup actions after the user approves them in the UI.
 
 Allow users to opt back into cleanup blocking through private config: `risk_policy.block_by_default` may include `archive` or `mark_read`, and the configured `risk_policy.review_keywords` categories such as `money`, `security`, `attachments`, or `course_feedback` should then block matching approved cleanup actions until the user overrides them.
 
@@ -361,10 +361,10 @@ For `send_reply`, keep a stricter final safety check: require an explicit UI-app
 Typical user flow:
 
 1. User asks `/kelly-email` to generate the next approval batch.
-2. Kelly Email skill or an external connector prepares `.agents/skills/kelly-email/app/.data/current_batch.json`, then starts the UI.
+2. Kelly Email scans approved IMAP mail into `.agents/skills/kelly-email/app/.data/current_batch.json`, then starts the UI.
 3. User reviews locally in the UI. The UI writes `.agents/skills/kelly-email/app/.data/decisions.json`.
 4. User asks `/kelly-email` to execute UI-approved decisions.
-5. Kelly Email validates only explicit decisions and writes an execution report; an external connector is required for real mailbox mutations or sends.
+5. Kelly Email validates only explicit decisions, applies approved IMAP/SMTP actions, and writes an execution report.
 
 ## Chat Message Mode
 
