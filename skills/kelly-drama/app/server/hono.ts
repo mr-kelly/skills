@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoAsset, demoImageConfigPayload, demoNotice, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { hyperframeProjectStatus } from "./hyperframe-service.ts";
 import {
@@ -99,6 +100,7 @@ async function deleteCollectionItem(kind, id) {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- HEAD (health probes for a small set of paths) ----
 app.on("HEAD", ["/", "/app.js", "/styles.css", "/api/state"], (c) => c.body(null, 200));
