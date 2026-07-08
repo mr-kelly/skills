@@ -99,7 +99,7 @@ When creating or updating an App-in-Skill:
 10. Add the human-attention panel, workflow filters, stable item refs, hash routes, Help & Settings, and i18n when appropriate.
 11. Add the mobile shell and verify one desktop viewport plus a 390px-wide phone viewport.
 12. Start the app with `app/start.sh`, verify onboarding/main workflow in a browser, and report the actual URL.
-13. If the user explicitly asks for screenshots, place them under `assets/screenshots/`. If the user explicitly asks for a demo recording, follow `references/demo-recording.md` and place final clips under `assets/demo-recordings/` only when Git LFS tracks the video format. Otherwise keep videos outside the repo and record only the external path or summary when useful.
+13. If the user explicitly asks for screenshots, place them under `assets/screenshots/`. If the user explicitly asks for a demo recording, follow `references/demo-recording.md` and place final clips outside the skill package, under repo-level `docs/demo-recordings/<skill-name>/`, with Git LFS tracking for MP4 files. Otherwise keep videos outside the repo and record only the external path or summary when useful.
 14. Run the schema validator and dry-run execution before enabling real side effects.
 
 ## Required Behaviors
