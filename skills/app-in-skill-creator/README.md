@@ -123,7 +123,7 @@ The main skill file is intentionally a router. Detailed implementation rules liv
 | Desktop/mobile shell and responsive layout checklist | `references/mobile-shell-layout.md` |
 | Demo walkthrough recordings | `references/demo-recording.md` |
 
-Visual assets are optional. Do not create screenshots or demo recordings by default; add them only when requested or when visual files already exist for the skill. Screenshots live under `assets/screenshots/`. Walkthrough videos may live under `assets/demo-recordings/` when they are intentionally part of the skill package, but MP4 files must be tracked by Git LFS; otherwise keep only the external path, recording recipe, or short summary in repo docs.
+Visual assets are optional. Do not create screenshots or demo recordings by default; add them only when requested or when visual files already exist for the skill. Screenshots live under `assets/screenshots/`. Walkthrough videos should stay outside individual skill packages; if committed to this repo, place them under repo-level `docs/demo-recordings/<skill-name>/` and track MP4 files with Git LFS.
 
 ## UI Pattern
 

@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
 import { createProvider } from "../../lib/data-provider/index.ts";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR, TEST_EVIDENCE_DIR } from "./paths.ts";
 
@@ -43,6 +44,7 @@ async function sendFile(c, absPath) {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 // ---- HEAD (readiness probes) ----
 for (const p of ["/", "/app.js", "/styles.css", "/accent-theme.js", "/accent-theme.css", "/api/state", "/api/lock"]) {
