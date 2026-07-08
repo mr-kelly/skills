@@ -7,6 +7,7 @@
 //   node scripts/capture-app-screenshots.mjs --all --frame
 
 import { spawn } from "node:child_process";
+import { statSync } from "node:fs";
 import { mkdir, readdir, rm, stat, writeFile } from "node:fs/promises";
 import http from "node:http";
 import net from "node:net";
@@ -15,7 +16,14 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CHROME_PATH = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME_CANDIDATES = [
+  process.env.CHROME_PATH,
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/usr/bin/google-chrome",
+  "/usr/bin/google-chrome-stable",
+  "/usr/bin/chromium",
+  "/usr/bin/chromium-browser",
+].filter(Boolean);
 const HOST = "127.0.0.1";
 const DESKTOP_VIEWPORT = { width: 1440, height: 900 };
 const PHONE_VIEWPORT = { width: 390, height: 844 };
@@ -36,6 +44,24 @@ const ROUTE_OVERRIDES = {
     "blocked-security": "/blocked",
     "needs-test": "/needs-test",
     tested: "/tested",
+  },
+  "kelly-legal-casebase-ingest": {
+    detail: "/items/ingest-lease-arrears",
+    "needs-review": "/review",
+    workbench: "/items/ingest-lease-arrears",
+    "mobile-detail": "/items/ingest-lease-arrears",
+  },
+  "kelly-legal-firm-radar": {
+    "needs-review": "/review",
+    workbench: "/items/insight-real-estate-growth",
+  },
+  "kelly-legal-matter-strategy": {
+    "needs-review": "/review",
+    workbench: "/items/strategy-saas-arrears",
+  },
+  "kelly-legal-precedent-desk": {
+    "needs-review": "/review",
+    workbench: "/items/pack-lease-break",
   },
   "kelly-content": {
     overview: "/overview",
@@ -391,12 +417,21 @@ function stopServer(child) {
 }
 
 async function launchChrome() {
+  const chromePath = CHROME_CANDIDATES.find((candidate) => {
+    try {
+      return candidate && statSync(candidate).isFile();
+    } catch {
+      return false;
+    }
+  });
+  if (!chromePath)
+    throw new Error(`Chrome not found. Set CHROME_PATH or install one of: ${CHROME_CANDIDATES.join(", ")}`);
   const userDataDir = path.join(ROOT, ".tmp", "capture-app-screenshots-chrome");
   await rm(userDataDir, { recursive: true, force: true });
   await mkdir(userDataDir, { recursive: true });
   const port = await nextPort(34100);
   const child = spawn(
-    CHROME_PATH,
+    chromePath,
     [
       "--headless=new",
       `--remote-debugging-port=${port}`,

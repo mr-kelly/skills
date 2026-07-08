@@ -32,6 +32,10 @@ const snapshot = {
     done: 0,
     blocked: 0,
     checks_failed: 0,
+    case_samples: 73,
+    practice_groups: 4,
+    lawyers_profiled: 12,
+    public_citable: 6,
   },
   entities: [
     {
@@ -42,6 +46,7 @@ const snapshot = {
       owner: "管理团队",
       summary: "近 12 个月案例量增长，胜诉/部分支持集中在商业租赁和建设工程付款争议。",
       tags: ["业务布局", "增长领域", "深圳"],
+      metrics: { case_count: 42, lawyer_count: 5, public_citable: 2 },
     },
     {
       id: "profile-company-disputes",
@@ -51,6 +56,7 @@ const snapshot = {
       owner: "战略委",
       summary: "股权回购、控制权争议和投后退出有稳定案例积累，可形成市场展示 proof point。",
       tags: ["律师画像", "品牌证明", "公司法"],
+      metrics: { case_count: 31, lawyer_count: 6, public_citable: 3 },
     },
   ],
   items: [
@@ -73,6 +79,9 @@ const snapshot = {
         sample_size: 18,
         period: "last_12_months",
         visibility: "internal_management",
+        lawyer_count: 4,
+        public_citable: 1,
+        quality_indicators: ["深圳基层法院样本集中", "商业租赁证据清单可复用", "胜率表达不能外用"],
       },
     },
     {
@@ -93,6 +102,9 @@ const snapshot = {
         sample_size: 31,
         period: "all_time",
         visibility: "internal_then_external_review",
+        lawyer_count: 6,
+        public_citable: 3,
+        quality_indicators: ["股权回购案例积累稳定", "控制权争议有主办律师画像", "外部版本仅用公开可查案例"],
       },
     },
   ],

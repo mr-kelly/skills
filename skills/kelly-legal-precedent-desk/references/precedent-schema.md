@@ -21,7 +21,10 @@ This schema describes `app/.data/precedent_snapshot.json`, the local handoff fil
     "done": 0,
     "blocked": 0,
     "changes_requested": 0,
-    "checks_failed": 0
+    "checks_failed": 0,
+    "query_count": 0,
+    "high_matches": 0,
+    "local_patterns": 0
   },
   "entities": [],
   "items": [],
@@ -48,6 +51,35 @@ Each item is one agent-prepared change request awaiting human judgment.
 | `risk` | no | Array of risk badges such as `legal`, `privacy`, `management`. |
 | `evidence` | no | Array of short evidence strings or approved source ids. |
 | `fields` | no | Domain-specific structured fields. |
+
+## Domain Fields
+
+Use `fields` to carry precedent-research details that let a lawyer verify the pack.
+
+| Field | Notes |
+| --- | --- |
+| `query` | Focused legal question or fact pattern being researched. |
+| `jurisdiction` | Target jurisdiction, court level, and any excluded forum. |
+| `match_count` | Total similar cases considered in the pack. |
+| `high_match_count` | Cases above the configured similarity or reviewer threshold. |
+| `top_similarity` | Highest similarity score or labeled match strength. |
+| `avg_similarity` | Average similarity score for the included pack. |
+| `court_pattern` | Local court tendency, dissenting pattern, or "insufficient data" note. |
+| `citation_count` | Traceable internal citations or approved public citations included. |
+
+## Entities
+
+Use `entities` for issue clusters, court-pattern groups, or precedent collections. Useful entity metrics include:
+
+- `case_count`: cases included in the cluster.
+- `avg_similarity`: average similarity for the cluster.
+- `citation_count`: verified citations attached to the cluster.
+
+## Business Gates
+
+- Block export when citation traceability is missing, the jurisdiction fit is wrong, confidential facts leak, or findings imply a guaranteed result.
+- Request changes when the similarity rationale is conclusory, local court-pattern caveats are missing, or the pack has too few comparable cases.
+- Mark approved/done packs as inputs for matter strategy only; external citation, client advice, and filing language require separate lawyer approval.
 
 ## Decisions
 

@@ -21,7 +21,10 @@ This schema describes `app/.data/casebase_snapshot.json`, the local handoff file
     "done": 0,
     "blocked": 0,
     "changes_requested": 0,
-    "checks_failed": 0
+    "checks_failed": 0,
+    "source_docs": 0,
+    "pii_warnings": 0,
+    "duplicate_candidates": 0
   },
   "entities": [],
   "items": [],
@@ -48,6 +51,38 @@ Each item is one agent-prepared change request awaiting human judgment.
 | `risk` | no | Array of risk badges such as `legal`, `privacy`, `management`. |
 | `evidence` | no | Array of short evidence strings or approved source ids. |
 | `fields` | no | Domain-specific structured fields. |
+
+## Domain Fields
+
+Use `fields` to carry case-ingest facts that reviewers need before a record becomes reusable knowledge.
+
+| Field | Notes |
+| --- | --- |
+| `cause` | Cause of action or dispute category. |
+| `court` | Court, arbitral body, or issuing authority. |
+| `procedure` | Procedural stage or document type, such as first-instance judgment or award. |
+| `outcome` | Normalized result, including partial win/loss, settlement, dismissal, or remand. |
+| `paragraphs` | Count or list of source paragraph anchors covered by the extraction. |
+| `extraction_confidence` | Numeric or labeled extraction confidence. Low confidence should route to review. |
+| `duplicate_score` | Similarity score against existing case records. High score should route to duplicate review. |
+| `ingest_bucket` | Intake lane such as anonymization QA, taxonomy review, or ready to ingest. |
+| `pii_cleared` | Boolean or status label showing whether anonymization review is complete. |
+| `parties_redacted` | Count/list/status for party names removed or generalized. |
+| `contacts_redacted` | Count/list/status for phone, address, ID, email, and other contact data removed. |
+
+## Entities
+
+Use `entities` for canonical case-library groupings, not for raw source documents. Useful entity metrics include:
+
+- `case_count`: approved or candidate records in the group.
+- `pii_flags`: unresolved anonymization warnings.
+- `source_refs`: source paragraphs, exhibit refs, or approved document anchors.
+
+## Business Gates
+
+- Block ingestion when PII checks fail, source text is not traceable, taxonomy fields are missing, or duplicate risk is unresolved.
+- Request changes when facts, holding, legal basis, or reasoning snippets are too thin for downstream precedent use.
+- Mark approved/done records as sanitized inputs for precedent desk and firm radar only; do not export raw privileged text as reusable knowledge.
 
 ## Decisions
 
