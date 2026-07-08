@@ -12,9 +12,9 @@ By default, `/kelly-email` opens the local App-in-Skill UI:
 http://127.0.0.1:3000/
 ```
 
-The app is only an approval desk. It reads and writes local files; it does not scan mailboxes, send replies, archive mail, or mark mail read by itself.
+The app is only an approval desk. It reads and writes local files; mailbox scanning and approved actions are performed by the CLI scripts.
 
-Kelly Email is zero-dependency by default: the local app, config checks, batch files, decisions, reports, and validator all run on built-in Node.js only. IMAP/SMTP scanning and execution are not bundled as npm dependencies; use an external connector or agent step to supply email items and apply approved mailbox actions.
+Kelly Email bundles IMAP/SMTP connector scripts for local operation: `scripts/generate_review_batch.mjs` scans unread IMAP mail into the local batch, and `scripts/execute_ui_decisions.mjs` applies explicit UI-approved archive/mark-read/send actions. The UI itself still never scans mailboxes, sends replies, archives mail, or marks mail read directly.
 
 ## App UI Screenshots
 
@@ -73,9 +73,9 @@ The useful non-secret config blocks are:
 4. Approve archive, mark read, draft reply, or send actions.
 5. Return to chat and ask `/kelly-email` to execute approved decisions.
 
-The skill then reads the local decisions file and writes an execution report. In this zero-dependency build, real mailbox actions are blocked unless an external connector applies them.
+The skill then reads the local decisions file, applies approved mailbox actions through the bundled IMAP/SMTP connector, and writes an execution report.
 
-For approved archive actions, execution should move the message to the configured category folder for that mailbox and mark it read. It should not assume one universal `Archive` folder.
+For approved archive actions, execution moves the message to the configured category/risk folder for that mailbox and marks it read. It does not assume one universal `Archive` folder.
 
 ## Chat-Only Mode
 
