@@ -3,6 +3,7 @@ import path from "node:path";
 import { Hono } from "hono";
 import { createProvider } from "../../lib/data-provider/index.ts";
 import { APP_DIR } from "../../lib/paths.ts";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 
 const provider = await createProvider();
@@ -17,6 +18,7 @@ const types: Record<string, string> = {
 };
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 app.get("/api/state", async (c) => {
   const query = c.req.query();

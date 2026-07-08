@@ -3,6 +3,7 @@ import path from "node:path";
 import { Hono } from "hono";
 import { mergeAnomalies, readConfig, summarizeConfig } from "../../lib/audit-core.ts";
 import { createProvider } from "../../lib/data-provider/index.ts";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
 
@@ -102,6 +103,7 @@ async function serveStatic(c) {
 }
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 app.get("/api/state", async (c) => {
   const query = c.req.query();

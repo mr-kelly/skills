@@ -2,11 +2,13 @@ import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
+import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoState } from "./demo.ts";
 
 const appDir = dirname(dirname(fileURLToPath(import.meta.url)));
 
 export const app = new Hono();
+app.use("/api/state", attachDemoVisuals);
 
 app.get("/api/state", (c) => c.json(demoState(Object.fromEntries(new URL(c.req.url).searchParams))));
 app.post("/api/decision", async (c) => {
