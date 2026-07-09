@@ -4,11 +4,13 @@
   "busabase": {
     "base_url": "http://127.0.0.1:15419",
     "base_id": "kelly-email",
+    "base_slug": "kelly-email",
+    "folder_slug": "kelly-email-workspace",
+    "drive_slug": "kelly-email-workspace-files",
     "drive_id": "kelly-email-files",
     "secrets_namespace": "kelly-email",
     "api_key_env": "KELLY_EMAIL_BUSABASE_API_KEY",
-    "auto_initialize": false,
-    "_note": "Optional. Set KELLY_EMAIL_DATA_PROVIDER=busabase to store App-in-Skill state in Busabase: Base for structured review state, Drive-compatible records for loose files, and this secrets_namespace for secret refs. Run `npm run busabase:init -- --apply` after confirming the target Base. Sending and mailbox mutation still stay in the kelly-email skill after approval."
+    "_note": "Optional bootstrap only. Set KELLY_EMAIL_DATA_PROVIDER=busabase to store Kelly Email provider state in Busabase. In Busabase mode, account config belongs in Drive at config/config.json and IMAP/SMTP secret values belong in Busabase Vault. The Base stores review rows and execution reports; the Drive stores config/schema/current_batch/decisions/locks/scan_state/batches/attachments. npm run busabase:init remains available as a diagnostic/repair command. Sending and mailbox mutation still stay in the kelly-email skill after approval."
   },
   "mailboxes": [
     {
@@ -22,14 +24,14 @@
         "port": 993,
         "security": "ssl",
         "username": "support@example.com",
-        "password_env": "KELLY_EMAIL_IMAP_PASSWORD_PRIMARY"
+        "vault_ref": "KELLY_EMAIL_IMAP_PASSWORD_PRIMARY"
       },
       "smtp": {
         "host": "smtp.example.com",
         "port": 465,
         "security": "ssl",
         "username": "support@example.com",
-        "password_env": "KELLY_EMAIL_SMTP_PASSWORD_PRIMARY"
+        "vault_ref": "KELLY_EMAIL_SMTP_PASSWORD_PRIMARY"
       },
       "support_folders_or_labels": ["Inbox", "Support"],
       "archive_routing": {
@@ -56,7 +58,7 @@
         "unread_only": true,
         "process_until_done": true
       },
-      "notes": "Replace hosts/usernames with your provider settings. Keep passwords in .env only."
+      "notes": "Replace hosts/usernames with your provider settings. In Busabase mode, put secret values in Busabase Vault and reference them with vault_ref."
     },
     {
       "mailbox_id": "founder-inbox",
@@ -69,14 +71,14 @@
         "port": 993,
         "security": "ssl",
         "username": "founder@example.com",
-        "password_env": "KELLY_EMAIL_IMAP_PASSWORD_FOUNDER"
+        "vault_ref": "KELLY_EMAIL_IMAP_PASSWORD_FOUNDER"
       },
       "smtp": {
         "host": "smtp.example.com",
         "port": 465,
         "security": "ssl",
         "username": "founder@example.com",
-        "password_env": "KELLY_EMAIL_SMTP_PASSWORD_FOUNDER"
+        "vault_ref": "KELLY_EMAIL_SMTP_PASSWORD_FOUNDER"
       },
       "support_folders_or_labels": ["Inbox", "Support"],
       "archive_routing": {

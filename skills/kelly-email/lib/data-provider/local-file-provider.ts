@@ -354,5 +354,24 @@ export function createLocalFileProvider() {
       }
       return { html, attachments: saved };
     },
+
+    async providerStatus() {
+      return {
+        ok: true,
+        provider: "local",
+        mode: "local",
+        message: "Kelly Email is using local file storage.",
+      };
+    },
+
+    async init() {
+      await ensureDataDirs();
+      return {
+        ok: true,
+        provider: "local",
+        mode: "local",
+        message: "Kelly Email local file storage is ready.",
+      };
+    },
   };
 }

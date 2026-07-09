@@ -123,9 +123,8 @@
         </div>
         <div id="lockBanner" class="lock-banner is-hidden">
           <strong data-i18n="lock.title">Locked</strong>
-          <span id="lockMessage" data-i18n="lock.default">The local files are locked for a moment.</span>
+          <span id="lockMessage" data-i18n="lock.default">The provider state is locked for a moment.</span>
         </div>
-
         <section class="content">
           <div class="list-panel">
             <div class="list-head">
@@ -206,7 +205,7 @@
         <div class="modal-body">
           <section class="help-tab-panel active" data-help-panel="guide">
             <h2 data-i18n="guide.how_title">How It Works</h2>
-            <p data-i18n-html="guide.how_body"><code>/kelly-email</code> reads mail and writes a local batch. This app only edits local review files. After you approve items here, ask <code>/kelly-email</code> to execute approved decisions.</p>
+            <p data-i18n-html="guide.how_body"><code>/kelly-email</code> reads mail and writes review state through the selected data provider. After you approve items here, ask <code>/kelly-email</code> to execute approved decisions.</p>
             <h2 data-i18n="guide.workflow_title">Workflow</h2>
             <ol>
               <li data-i18n-html="guide.step1">Ask <code>/kelly-email</code> to generate a review batch.</li>
@@ -215,10 +214,20 @@
             </ol>
           </section>
           <section class="help-tab-panel" data-help-panel="files">
-            <h2 data-i18n="files.title">Local Files</h2>
+            <h2 data-i18n="files.title">Data Provider Files</h2>
             <dl class="help-paths">
               <dt data-i18n="files.data_reader">Data reader</dt>
               <dd><code id="helpDataReader">Not loaded</code></dd>
+              <dt data-i18n="files.data_provider">Data provider</dt>
+              <dd><code id="helpDataProvider">Not loaded</code></dd>
+              <dt data-i18n="files.provider_status">Provider status</dt>
+              <dd id="helpProviderStatus">Not loaded</dd>
+              <dt data-i18n="files.folder_node">Folder node</dt>
+              <dd><code id="helpProviderFolder">Not loaded</code></dd>
+              <dt data-i18n="files.base_node">Base node</dt>
+              <dd><code id="helpProviderBase">Not loaded</code></dd>
+              <dt data-i18n="files.drive_node">Drive node</dt>
+              <dd><code id="helpProviderDrive">Not loaded</code></dd>
               <dt data-i18n="files.batch_file">Batch file</dt>
               <dd><code id="helpBatchPath">Not loaded</code></dd>
               <dt data-i18n="files.decision_file">Decision file</dt>
@@ -257,16 +266,33 @@
           </section>
           <section class="help-tab-panel" data-help-panel="config">
             <h2 data-i18n="config.title">Configuration</h2>
-            <p data-i18n="config.recommended">Recommended user-wide files:</p>
-            <pre><code>~/.config/kelly-email/config.json
-~/.config/kelly-email/.env</code></pre>
-            <p data-i18n="config.alternative">Alternative local files:</p>
+            <p data-i18n="config.recommended">Busabase provider storage:</p>
+            <pre><code>busabase:drive/config/config.json
+busabase:vault/kelly-email</code></pre>
+            <p data-i18n="config.alternative">Local provider files:</p>
             <pre><code>.agents/skills/kelly-email/config.local.json
 .agents/skills/kelly-email/.env.local</code></pre>
-            <p data-i18n="config.reader">The data reader is currently local config. Later it can be swapped for Supabase, Postgres, or pusa-cloud without changing the approval UI contract.</p>
-            <p data-i18n="config.json">JSON stores accounts, aliases, identities, user profile, brands, official URLs, knowledge sources, style, CTA URLs, and risk keywords. Secrets stay in env files and are referenced by variable name.</p>
+            <p data-i18n="config.reader">Kelly Email reads configuration and review state through the selected data provider. Local mode uses app files; Busabase mode lazily initializes a workspace Folder, structured Base, and app-state Drive before review actions are enabled.</p>
+            <p data-i18n="config.json">JSON stores accounts, aliases, identities, user profile, brands, official URLs, knowledge sources, style, CTA URLs, and risk keywords. Busabase mode stores secret values in Busabase Vault and references them by vault_ref.</p>
           </section>
         </div>
+      </section>
+    </div>
+    <div id="providerGate" class="provider-gate is-hidden" role="alert" aria-live="assertive">
+      <section class="provider-gate-panel" aria-labelledby="providerGateTitle">
+        <div class="provider-gate-kicker">Kelly Email</div>
+        <h1 id="providerGateTitle" data-i18n="provider.gate.title">Provider not ready!!!</h1>
+        <p id="providerGateMessage">Kelly Email cannot write review state yet.</p>
+        <dl class="provider-gate-meta">
+          <dt data-i18n="provider.mode">Mode</dt>
+          <dd id="providerGateMode">Not loaded</dd>
+          <dt data-i18n="provider.base_url">Base URL</dt>
+          <dd id="providerGateBaseUrl">Not loaded</dd>
+          <dt data-i18n="provider.base_id">Base ID</dt>
+          <dd id="providerGateBaseId">Not loaded</dd>
+        </dl>
+        <p id="providerGateAction" class="provider-gate-action"></p>
+        <button id="providerGateHelpButton" type="button" data-i18n="provider.banner.action">Open Settings</button>
       </section>
     </div>
     <script src="./demo-visuals.js"></script>

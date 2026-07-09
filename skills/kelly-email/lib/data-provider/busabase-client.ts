@@ -8,9 +8,58 @@ export interface BusabaseClientOptions {
 export interface BusabaseClientMeta {
   baseUrl: string;
   baseId: string;
+  baseSlug: string;
+  folderSlug: string;
+  driveSlug: string;
   driveId: string;
   secretsNamespace: string;
   apiKey: string;
+  spaceId: string;
+  folderPrefix: string;
+  parentNodeId: string;
+}
+
+interface BaseRecord {
+  id: string;
+  nodeId?: string;
+  slug?: string;
+  fields?: Array<{ slug?: string; [key: string]: unknown }>;
+  [key: string]: unknown;
+}
+
+interface NodeRecord {
+  id: string;
+  parentId?: string | null;
+  type?: string;
+  slug?: string;
+  name?: string;
+  children?: NodeRecord[];
+  [key: string]: unknown;
+}
+
+interface DriveRecord {
+  node: NodeRecord;
+  files?: Array<{ path?: string; [key: string]: unknown }>;
+  [key: string]: unknown;
+}
+
+interface RecordVO {
+  id: string;
+  baseId?: string;
+  updatedAt?: string;
+  headCommit?: { fields?: Record<string, unknown> };
+  fields?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface VaultItem {
+  key?: string;
+  value?: string;
+  kind?: string;
+  scopeType?: string;
+  scopeId?: string | null;
+  access?: { runtime?: boolean; [key: string]: unknown };
+  [key: string]: unknown;
 }
 
 function cleanUrl(value: unknown) {
@@ -22,22 +71,72 @@ function configValue(config: Config | undefined, key: string) {
   return busa[key];
 }
 
+function cleanOptional(value: unknown) {
+  return String(value || "").trim();
+}
+
+function slugify(value: unknown, fallback = "kelly-email") {
+  const slug = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+  return slug || fallback;
+}
+
 export function busabaseMeta({ envPrefix, config = {} }: BusabaseClientOptions): BusabaseClientMeta {
   const env = (name: string) => process.env[`${envPrefix}_${name}`] || "";
   const apiKeyEnv = String(configValue(config, "api_key_env") || `${envPrefix}_BUSABASE_API_KEY`);
+  const baseId = String(env("BUSABASE_BASE_ID") || configValue(config, "base_id") || "kelly-email");
+  const configuredBaseSlug = cleanOptional(env("BUSABASE_BASE_SLUG") || configValue(config, "base_slug"));
+  const baseSlug = configuredBaseSlug ? slugify(configuredBaseSlug) : /^[a-z0-9-]+$/.test(baseId) ? baseId : "";
+  const defaultFolderSlug = `${baseSlug || slugify(baseId)}-workspace`;
+  const folderSlug = slugify(env("BUSABASE_FOLDER_SLUG") || configValue(config, "folder_slug") || defaultFolderSlug);
+  const driveSlug = slugify(env("BUSABASE_DRIVE_SLUG") || configValue(config, "drive_slug") || `${folderSlug}-files`);
   return {
     baseUrl: cleanUrl(env("BUSABASE_URL") || configValue(config, "base_url") || "http://127.0.0.1:15419"),
-    baseId: String(env("BUSABASE_BASE_ID") || configValue(config, "base_id") || "kelly-email"),
+    baseId,
+    baseSlug,
+    folderSlug,
+    driveSlug,
     driveId: String(env("BUSABASE_DRIVE_ID") || configValue(config, "drive_id") || "kelly-email-files"),
     secretsNamespace: String(
       env("BUSABASE_SECRETS_NAMESPACE") || configValue(config, "secrets_namespace") || "kelly-email",
     ),
     apiKey: process.env[apiKeyEnv] || env("BUSABASE_API_KEY") || "",
+    spaceId: cleanOptional(env("BUSABASE_SPACE_ID") || configValue(config, "space_id") || process.env.BUSABASE_SPACE_ID),
+    folderPrefix: cleanOptional(env("BUSABASE_FOLDER_PREFIX") || configValue(config, "folder_prefix")),
+    parentNodeId: cleanOptional(env("BUSABASE_PARENT_NODE_ID") || configValue(config, "parent_node_id")),
   };
 }
 
+const BASE_FIELDS = [
+  { slug: "record_id", name: "Record ID", type: "text", required: true },
+  { slug: "kind", name: "Kind", type: "text" },
+  { slug: "batch_id", name: "Batch ID", type: "text" },
+  { slug: "item", name: "Item", type: "json" },
+  { slug: "item_id", name: "Item ID", type: "text" },
+  { slug: "status", name: "Status", type: "text" },
+  { slug: "proposed_action", name: "Proposed Action", type: "text" },
+  { slug: "updated_at", name: "Updated At", type: "date" },
+  { slug: "created_at", name: "Created At", type: "date" },
+  { slug: "cleared_at", name: "Cleared At", type: "date" },
+  { slug: "report", name: "Report", type: "json" },
+  { slug: "latest_record_id", name: "Latest Record ID", type: "text" },
+] as const;
+
+const JSON_FIELD_SLUGS = new Set(
+  BASE_FIELDS.filter((field) => field.type === "json").map((field) => field.slug),
+);
+
 export function createBusabaseClient(options: BusabaseClientOptions) {
   const meta = busabaseMeta(options);
+  let folderPromise: Promise<NodeRecord> | null = null;
+  let basePromise: Promise<BaseRecord> | null = null;
+  let drivePromise: Promise<DriveRecord> | null = null;
+  let vaultPromise: Promise<Record<string, string>> | null = null;
+  const recordCache = new Map<string, RecordVO>();
 
   function requireConfig() {
     if (!meta.baseUrl || !meta.baseId) {
@@ -52,6 +151,7 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
       headers: {
         "content-type": "application/json",
         ...(meta.apiKey ? { authorization: `Bearer ${meta.apiKey}` } : {}),
+        ...(meta.spaceId ? { "x-busabase-space": meta.spaceId } : {}),
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
@@ -63,67 +163,400 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     return text ? JSON.parse(text) : null;
   }
 
-  function recordPath(recordId: string) {
-    return `/api/v1/bases/${encodeURIComponent(meta.baseId)}/records/${encodeURIComponent(recordId)}`;
+  async function listNodes(): Promise<NodeRecord[]> {
+    const nodes = await api("GET", "/api/v1/nodes");
+    return Array.isArray(nodes) ? nodes : [];
+  }
+
+  async function listBases(): Promise<BaseRecord[]> {
+    const bases = await api("GET", "/api/v1/bases");
+    return Array.isArray(bases) ? bases : [];
+  }
+
+  async function listDrives(): Promise<DriveRecord[]> {
+    const drives = await api("GET", "/api/v1/drives");
+    return Array.isArray(drives) ? drives : [];
+  }
+
+  function flattenNodes(nodes: NodeRecord[]): NodeRecord[] {
+    const all: NodeRecord[] = [];
+    const visit = (node: NodeRecord) => {
+      all.push(node);
+      for (const child of Array.isArray(node.children) ? node.children : []) visit(child);
+    };
+    for (const node of nodes) visit(node);
+    return all;
+  }
+
+  function findNodeBySlug(nodes: NodeRecord[], slug: string, type?: string) {
+    return flattenNodes(nodes).find((node) => node.slug === slug && (!type || node.type === type)) || null;
+  }
+
+  function findConfiguredBase(bases: BaseRecord[]) {
+    return bases.find((base) => base.id === meta.baseId || base.slug === meta.baseId || base.slug === meta.baseSlug);
+  }
+
+  function findDriveBySlug(drives: DriveRecord[], slug: string) {
+    return drives.find((drive) => drive.node?.slug === slug || drive.node?.id === slug) || null;
+  }
+
+  async function moveNodeToFolder(node: NodeRecord, folder: NodeRecord, message: string) {
+    if (!node.id || !folder.id || node.parentId === folder.id) return;
+    const changeRequest = await api("POST", "/api/v1/nodes/change-requests", {
+      message,
+      submittedBy: "kelly-email",
+      autoMerge: true,
+      operations: [{ kind: "move", nodeId: node.id, parentNodeId: folder.id }],
+    });
+    if (changeRequest.status !== "merged") await approveAndMerge(String(changeRequest.id));
   }
 
   function recordFields(record: unknown): Record<string, unknown> {
     const rec = (record || {}) as Record<string, unknown>;
     const head = (rec.headCommit || {}) as Record<string, unknown>;
-    return (head.fields as Record<string, unknown>) || (rec.fields as Record<string, unknown>) || {};
+    return deserializeFields((head.fields as Record<string, unknown>) || (rec.fields as Record<string, unknown>) || {});
   }
 
-  async function getRecordFields(recordId: string): Promise<Record<string, unknown>> {
-    return recordFields(await api("GET", recordPath(recordId)));
+  function serializeFields(fields: Record<string, unknown>) {
+    const next: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(fields)) {
+      if (value === undefined) continue;
+      next[key] = JSON_FIELD_SLUGS.has(key) && typeof value !== "string" ? JSON.stringify(value) : value;
+    }
+    return next;
   }
 
-  async function commitRecord(recordId: string, fields: Record<string, unknown>, message: string) {
-    return api("POST", `${recordPath(recordId)}/commits`, {
-      payload: { fields, message, author: "kelly-email" },
+  function deserializeFields(fields: Record<string, unknown>) {
+    const next: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(fields || {})) {
+      if (!JSON_FIELD_SLUGS.has(key) || typeof value !== "string" || !value.trim()) {
+        next[key] = value;
+        continue;
+      }
+      try {
+        next[key] = JSON.parse(value);
+      } catch {
+        next[key] = value;
+      }
+    }
+    return next;
+  }
+
+  async function approveAndMerge(changeRequestId: string) {
+    await api("POST", `/api/v1/change-requests/${encodeURIComponent(changeRequestId)}/reviews`, {
+      verdict: "approved",
+      reason: "Kelly Email app-owned state",
     });
+    return api("POST", `/api/v1/change-requests/${encodeURIComponent(changeRequestId)}/merge`, {});
+  }
+
+  async function ensureFolder(): Promise<NodeRecord> {
+    if (folderPromise) return folderPromise;
+    folderPromise = (async () => {
+      const existing = findNodeBySlug(await listNodes(), meta.folderSlug, "folder");
+      if (existing) return existing;
+      const changeRequest = await api("POST", "/api/v1/nodes/change-requests", {
+        message: "Initialize Kelly Email workspace folder",
+        submittedBy: "kelly-email",
+        autoMerge: true,
+        operations: [
+          {
+            kind: "create",
+            nodeType: "folder",
+            slug: meta.folderSlug,
+            name: "Kelly Email",
+            description: "Kelly Email App-in-Skill storage: review Base plus app-state Drive.",
+            ...(meta.parentNodeId ? { parentNodeId: meta.parentNodeId } : {}),
+          },
+        ],
+      });
+      if (changeRequest.status !== "merged") await approveAndMerge(String(changeRequest.id));
+      const created = findNodeBySlug(await listNodes(), meta.folderSlug, "folder");
+      if (!created) throw new Error(`Busabase folder was not created: ${meta.folderSlug}`);
+      return created;
+    })().catch((error) => {
+      folderPromise = null;
+      throw error;
+    });
+    return folderPromise;
+  }
+
+  async function ensureBase(): Promise<BaseRecord> {
+    if (basePromise) return basePromise;
+    basePromise = (async () => {
+      const bases = await listBases();
+      const existing = findConfiguredBase(bases);
+      const folder = await ensureFolder();
+      if (existing) {
+        const node = findNodeBySlug(await listNodes(), existing.slug || meta.baseSlug, "base");
+        if (node) await moveNodeToFolder(node, folder, "Move Kelly Email Base under workspace folder");
+        return ensureBaseFields(existing);
+      }
+      if (!meta.baseSlug) {
+        throw new Error(
+          `Busabase base "${meta.baseId}" does not exist. Set KELLY_EMAIL_BUSABASE_BASE_SLUG or config.busabase.base_slug to create it lazily.`,
+        );
+      }
+      return api("POST", "/api/v1/bases", {
+        parentNodeId: folder.id,
+        slug: meta.baseSlug,
+        name: "Kelly Email",
+        description: "Structured Kelly Email review rows and execution reports.",
+        fields: BASE_FIELDS,
+      });
+    })().catch((error) => {
+      basePromise = null;
+      throw error;
+    });
+    return basePromise;
+  }
+
+  async function ensureBaseFields(base: BaseRecord): Promise<BaseRecord> {
+    const slugs = new Set((Array.isArray(base.fields) ? base.fields : []).map((field) => String(field.slug || "")));
+    const missing = BASE_FIELDS.filter((field) => !slugs.has(field.slug));
+    for (const field of missing) {
+      const changeRequest = await api("POST", `/api/v1/bases/${encodeURIComponent(base.id)}/fields/change-requests`, {
+        slug: field.slug,
+        name: field.name,
+        type: field.type,
+        required: Boolean("required" in field && field.required),
+        message: `Add Kelly Email Base field ${field.slug}`,
+        submittedBy: "kelly-email",
+      });
+      if (changeRequest.status !== "merged") await approveAndMerge(String(changeRequest.id));
+    }
+    if (!missing.length) return base;
+    return findConfiguredBase(await listBases()) || base;
+  }
+
+  async function ensureDrive(): Promise<DriveRecord> {
+    if (drivePromise) return drivePromise;
+    drivePromise = (async () => {
+      const existing = findDriveBySlug(await listDrives(), meta.driveSlug);
+      const folder = await ensureFolder();
+      if (existing) {
+        await moveNodeToFolder(existing.node, folder, "Move Kelly Email Drive under workspace folder");
+        return findDriveBySlug(await listDrives(), meta.driveSlug) || existing;
+      }
+      return api("POST", "/api/v1/drives", {
+        parentNodeId: folder.id,
+        slug: meta.driveSlug,
+        name: "Kelly Email Files",
+        description: "Kelly Email schema, current batch, decisions, locks, config snapshots, and attachments.",
+        visibility: "private",
+        version: "1",
+        files: [
+          {
+            path: "README.md",
+            content:
+              "# Kelly Email Files\n\nApp-state Drive for Kelly Email. Blob snapshots live here; structured review rows live in the Kelly Email Base.\n",
+            mimeType: "text/markdown",
+          },
+        ],
+      });
+    })().catch((error) => {
+      drivePromise = null;
+      throw error;
+    });
+    return drivePromise;
+  }
+
+  async function listRecords(baseId: string): Promise<RecordVO[]> {
+    const all: RecordVO[] = [];
+    let cursor = "";
+    do {
+      const query = new URLSearchParams({ limit: "100", baseId });
+      if (cursor) query.set("cursor", cursor);
+      const page = await api("GET", `/api/v1/records/paged?${query.toString()}`);
+      const records = Array.isArray(page?.records) ? page.records : Array.isArray(page) ? page : [];
+      all.push(...(records as RecordVO[]));
+      cursor = String(page?.nextCursor || "");
+    } while (cursor);
+    return all;
+  }
+
+  async function configuredBaseReadOnly(): Promise<BaseRecord | null> {
+    return findConfiguredBase(await listBases()) || null;
+  }
+
+  async function configuredDriveReadOnly(): Promise<DriveRecord | null> {
+    return findDriveBySlug(await listDrives(), meta.driveSlug);
+  }
+
+  async function findRecordByAppId(recordId: string, options: { createBase?: boolean } = {}): Promise<RecordVO | null> {
+    const cached = recordCache.get(recordId);
+    if (cached) return cached;
+    const base = options.createBase === false ? await configuredBaseReadOnly() : await ensureBase();
+    if (!base) return null;
+    const records = await listRecords(base.id);
+    const matches = records
+      .filter((record) => String(recordFields(record).record_id || "") === recordId)
+      .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
+    const record = matches[0] || null;
+    if (record) recordCache.set(recordId, record);
+    return record;
+  }
+
+  async function getRecordFields(
+    recordId: string,
+    options: { createBase?: boolean } = {},
+  ): Promise<Record<string, unknown>> {
+    const record = await findRecordByAppId(recordId, options);
+    if (!record) throw new Error(`Busabase record not found: ${recordId}`);
+    return recordFields(record);
+  }
+
+  async function upsertRecord(recordId: string, fields: Record<string, unknown>, message: string) {
+    const base = await ensureBase();
+    const existing = await findRecordByAppId(recordId);
+    const nextFields = serializeFields({ record_id: recordId, ...fields });
+    const changeRequest = existing
+      ? await api("PUT", `/api/v1/records/${encodeURIComponent(existing.id)}/change-requests`, {
+          fields: nextFields,
+          message,
+          author: "kelly-email",
+        })
+      : await api("POST", `/api/v1/bases/${encodeURIComponent(base.id)}/change-requests`, {
+          fields: nextFields,
+          message,
+          submittedBy: "kelly-email",
+        });
+    const merged = await approveAndMerge(String(changeRequest.id));
+    const record = (merged?.record || null) as RecordVO | null;
+    if (record) recordCache.set(recordId, record);
+    else recordCache.delete(recordId);
+    return merged;
+  }
+
+  function driveFilePath(pathname: string) {
+    return pathname
+      .split("/")
+      .filter(Boolean)
+      .map(encodeURIComponent)
+      .join("/");
+  }
+
+  async function vaultRuntimeEnv(): Promise<Record<string, string>> {
+    if (vaultPromise) return vaultPromise;
+    vaultPromise = (async () => {
+      const settings = await api("GET", "/api/v1/vault");
+      const items = Array.isArray(settings?.items) ? (settings.items as VaultItem[]) : [];
+      return Object.fromEntries(
+        items
+          .filter((item) => item?.access?.runtime !== false)
+          .filter((item) => !meta.secretsNamespace || !item.scopeId || item.scopeId === meta.secretsNamespace)
+          .map((item) => [String(item.key || "").trim(), String(item.value || "")])
+          .filter(([key, value]) => key && value),
+      );
+    })().catch((error) => {
+      vaultPromise = null;
+      throw error;
+    });
+    return vaultPromise;
+  }
+
+  async function getSecret(name: string) {
+    const key = String(name || "").trim();
+    if (!key) return "";
+    const runtimeEnv = await vaultRuntimeEnv();
+    return runtimeEnv[key] || "";
+  }
+
+  async function readDriveText(pathname: string, options: { createDrive?: boolean } = {}): Promise<string> {
+    const drive = options.createDrive === false ? await configuredDriveReadOnly() : await ensureDrive();
+    if (!drive) throw new Error(`Busabase drive not found: ${meta.driveSlug}`);
+    const file = await api("GET", `/api/v1/drives/${encodeURIComponent(drive.node.id)}/files/${driveFilePath(pathname)}`);
+    return String(file?.content || "");
+  }
+
+  async function readDriveJson(
+    pathname: string,
+    options: { createDrive?: boolean } = {},
+  ): Promise<Record<string, unknown>> {
+    const text = await readDriveText(pathname, options);
+    return text ? JSON.parse(text) : {};
+  }
+
+  async function writeDriveText(pathname: string, content: string, message: string, mimeType = "application/json") {
+    const drive = await ensureDrive();
+    const exists = (drive.files || []).some((file) => file.path === pathname);
+    const changeRequest = await api("POST", `/api/v1/drives/${encodeURIComponent(drive.node.id)}/change-requests`, {
+      message,
+      submittedBy: "kelly-email",
+      operations: [
+        {
+          kind: exists ? "update" : "create",
+          path: pathname,
+          content,
+          mimeType,
+        },
+      ],
+    });
+    const merged = await approveAndMerge(String(changeRequest.id));
+    drivePromise = null;
+    return merged;
+  }
+
+  async function writeDriveJson(pathname: string, value: unknown, message: string) {
+    return writeDriveText(pathname, `${JSON.stringify(value, null, 2)}\n`, message, "application/json");
   }
 
   async function putDriveFile(pathname: string, data: unknown, metaFields: Record<string, unknown> = {}) {
-    // Busabase Drive APIs are still evolving. Until the public SDK surface is
-    // stable, store a durable file pointer record in the Base. The field shape is
-    // Drive-compatible and can be migrated to native Drive objects later.
-    const recordId = `file-${pathname.replace(/[^A-Za-z0-9_.-]+/g, "-").replace(/^-+|-+$/g, "")}`;
-    await commitRecord(
-      recordId,
-      {
-        kind: "drive_file",
-        drive_id: meta.driveId,
-        path: pathname,
-        data,
-        meta: metaFields,
-        updated_at: new Date().toISOString(),
-      },
-      `Drive file ${pathname}`,
-    );
-    return { record_id: recordId, drive_id: meta.driveId, path: pathname };
+    const payload = { data, meta: metaFields, updated_at: new Date().toISOString() };
+    await writeDriveJson(pathname, payload, `Drive file ${pathname}`);
+    return { drive_id: meta.driveId, drive_slug: meta.driveSlug, path: pathname };
   }
 
   async function getDriveFile(pathname: string) {
-    const recordId = `file-${pathname.replace(/[^A-Za-z0-9_.-]+/g, "-").replace(/^-+|-+$/g, "")}`;
-    return getRecordFields(recordId);
+    return readDriveJson(pathname);
   }
 
   return {
     meta,
     api,
+    listNodes,
+    listBases,
+    listDrives,
+    configuredBaseReadOnly,
+    configuredDriveReadOnly,
+    ensureFolder,
+    ensureBase,
+    ensureDrive,
     getRecordFields,
-    commitRecord,
+    upsertRecord,
+    commitRecord: upsertRecord,
+    readDriveText,
+    readDriveJson,
+    writeDriveText,
+    writeDriveJson,
     putDriveFile,
     getDriveFile,
+    getSecret,
+    vaultRuntimeEnv,
     async verifyConnection() {
-      await api("GET", `/api/v1/bases/${encodeURIComponent(meta.baseId)}`);
+      const [nodes, bases, drives] = await Promise.all([listNodes(), listBases(), listDrives()]);
+      const folder = findNodeBySlug(nodes, meta.folderSlug, "folder");
+      const base = findConfiguredBase(bases);
+      const drive = findDriveBySlug(drives, meta.driveSlug);
       return {
         ok: true,
+        folder_exists: Boolean(folder),
+        base_exists: Boolean(base),
+        drive_exists: Boolean(drive),
         base_url: meta.baseUrl,
         base_id: meta.baseId,
+        base_slug: base?.slug || meta.baseSlug,
+        resolved_base_id: base?.id || "",
+        folder_slug: meta.folderSlug,
+        folder_node_id: folder?.id || "",
+        drive_slug: meta.driveSlug,
+        drive_node_id: drive?.node?.id || "",
         drive_id: meta.driveId,
         secrets_namespace: meta.secretsNamespace,
         api_key: meta.apiKey ? "configured" : "none",
+        space_id: meta.spaceId || "",
+        folder_prefix: meta.folderPrefix || "",
+        parent_node_id: meta.parentNodeId || "",
       };
     },
   };

@@ -3,6 +3,7 @@ import { loadBatch, normalizeItem } from "./batch-store.ts";
 import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./config.ts";
 import { lockPayload } from "./lock.ts";
 import { CURRENT_BATCH_PATH, DECISIONS_PATH } from "./paths.ts";
+import { providerStatus } from "./provider-status.ts";
 import type { ReviewItem, StateQuery, StatusCounts } from "./types.ts";
 import { normalizeQueryValue } from "./utils.ts";
 import { approvedPriority, isApprovedForExecution, isBlocked, isDone, isNeedsReview } from "./workflow.ts";
@@ -31,10 +32,20 @@ function withReviewNumbers(items: ReviewItem[]): ReviewItem[] {
 
 export async function statePayload(query: StateQuery = {}) {
   const provider = createProvider();
-  const batch = await loadBatch();
-  const configMeta = await loadConfigWithMeta();
+  const providerState = await providerStatus();
+  const providerUnavailable = providerState.ok === false;
+  const batch = providerUnavailable ? { items: [] } : await loadBatch();
+  const configMeta = providerUnavailable ? { config: {}, source: "" } : await loadConfigWithMeta();
   const { config, source } = configMeta;
-  const onboarding = onboardingStatus(config, configMeta);
+  const onboarding = providerUnavailable
+    ? {
+        configured: false,
+        state: "provider_not_ready",
+        reader: provider.kind,
+        message: providerState.message || "Kelly Email data provider is not ready.",
+        missing_env: [],
+      }
+    : onboardingStatus(config, configMeta);
   const allItems = withReviewNumbers((batch.items || []).map(normalizeItem));
   let items = allItems;
   const mode = normalizeQueryValue(query.mode, "all");
@@ -76,9 +87,10 @@ export async function statePayload(query: StateQuery = {}) {
     counts,
     items,
     total_cached: allItems.length,
-    batch_path: provider.kind === "busabase" ? "busabase:current_batch" : CURRENT_BATCH_PATH,
-    decisions_path: provider.kind === "busabase" ? "busabase:decisions" : DECISIONS_PATH,
+    batch_path: provider.kind === "busabase" ? "busabase:drive/state/current_batch.json" : CURRENT_BATCH_PATH,
+    decisions_path: provider.kind === "busabase" ? "busabase:drive/state/decisions.json" : DECISIONS_PATH,
+    provider_status: providerState,
     email_accounts: publicAccounts(config, source, onboarding, configMeta),
-    lock: await lockPayload(),
+    lock: providerUnavailable ? { locked: false, provider: provider.kind } : await lockPayload(),
   };
 }

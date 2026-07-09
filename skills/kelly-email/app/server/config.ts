@@ -115,8 +115,10 @@ export function publicAccounts(
     style: publicStyle(config),
     knowledge_base: publicKnowledgeBase(config),
     accounts: (config.mailboxes || []).map((mailbox) => {
-      const imapEnv = mailbox.imap?.password_env || "";
-      const smtpEnv = mailbox.smtp?.password_env || "";
+      const imapRef =
+        mailbox.imap?.vault_ref || mailbox.imap?.password_vault_ref || mailbox.imap?.secret_ref || mailbox.imap?.password_env || "";
+      const smtpRef =
+        mailbox.smtp?.vault_ref || mailbox.smtp?.password_vault_ref || mailbox.smtp?.secret_ref || mailbox.smtp?.password_env || "";
       return {
         mailbox_id: mailbox.mailbox_id || "",
         display_name: mailbox.display_name || mailbox.primary_email || mailbox.mailbox_id || "",
@@ -129,10 +131,10 @@ export function publicAccounts(
         imap_username: mailbox.imap?.username || "",
         smtp_host: mailbox.smtp?.host || "",
         smtp_username: mailbox.smtp?.username || "",
-        imap_password_env: imapEnv,
-        smtp_password_env: smtpEnv,
-        imap_env_configured: Boolean(imapEnv && process.env[imapEnv]),
-        smtp_env_configured: Boolean(smtpEnv && process.env[smtpEnv]),
+        imap_password_env: imapRef,
+        smtp_password_env: smtpRef,
+        imap_env_configured: Boolean(imapRef),
+        smtp_env_configured: Boolean(smtpRef),
         identities: identitiesByMailbox.get(mailbox.mailbox_id) || [],
       };
     }),

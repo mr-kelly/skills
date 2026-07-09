@@ -14,7 +14,7 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 UI language: the local app supports multilingual interface chrome. Default language mode is `Auto`, following the browser language; the user can also set English or Chinese explicitly in `Help & Settings`. Internal suggestions, explanations, and "recommended next step" copy should be shown in the user's preferred language when known, especially Chinese for Chinese-speaking operators. Keep inbound email bodies, customer names, configured account data, and domain content in their original language; for cross-language mail, preserve the original text and add a separate translation/summary for the operator instead of replacing the original. Draft customer replies in the customer's language when clear unless the user asks otherwise.
 
-First-run behavior: if no private config exists or required secret env vars are missing, enter onboarding mode before any mailbox scan. Greet the user, explain that this skill needs local config, show the recommended config/env paths, and tell them to store secrets only in local env files. Onboarding should also invite the user to configure their role, brands/products, official URLs, reply style, and knowledge sources so drafts match their business context. Do not ask the user to paste passwords, tokens, app passwords, or OAuth secrets into chat.
+First-run behavior: if no provider config exists or required secret refs are missing, enter onboarding mode before any mailbox scan. In local provider mode, point to local JSON/env files. In Busabase provider mode, point to `busabase:drive/config/config.json` for account config and `busabase:vault/kelly-email` for secret values. Onboarding should also invite the user to configure their role, brands/products, official URLs, reply style, and knowledge sources so drafts match their business context. Do not ask the user to paste passwords, tokens, app passwords, or OAuth secrets into chat.
 
 ## App UI Screenshots
 
@@ -58,14 +58,14 @@ First-run behavior: if no private config exists or required secret env vars are 
 
 Keep the skill generic. Do not hardcode personal accounts, aliases, product names, passwords, risk keywords, or reply style in the skill code. Read them from private config files that are ignored by git.
 
-Config file priority:
+Local provider config file priority:
 
 1. `KELLY_EMAIL_CONFIG=/absolute/path/to/config.json`
 2. `.agents/skills/kelly-email/config.local.json`
 3. `~/.config/kelly-email/config.json`
 4. `.agents/skills/kelly-email/config.example.json`
 
-Env file priority:
+Local provider env file priority:
 
 1. Existing system environment variables
 2. `KELLY_EMAIL_ENV_FILE=/absolute/path/to/.env`
@@ -83,11 +83,11 @@ KELLY_EMAIL_DATA_PROVIDER=busabase
 Configuration and App-in-Skill handoff state are read through `lib/data-provider/` (selector `KELLY_EMAIL_DATA_PROVIDER`, default `local`; the old `KELLY_EMAIL_DATA_READER` is still honored). The supported providers are:
 
 - `local`: JSON/env config plus local `app/.data/` handoff files.
-- `busabase`: Busabase as the whole skill storage provider. Base stores structured review state, decisions, locks, onboarding, schema metadata, and execution reports; Drive-compatible records store loose files such as attachments; Secrets/Vault/EnvVars provide secret refs. The app and scripts still use the provider interface, not Busabase directly.
+- `busabase`: Busabase as the whole skill storage provider. A dedicated Folder node groups the skill-owned Base and Drive. The Base stores structured review rows, reply drafts, and execution reports. The Drive stores account config plus app-state files such as schema, current batch, decisions, locks, scan state, batch archives, attachments, imports, and exports. Busabase Vault stores IMAP/SMTP secret values. The app and scripts still use the provider interface, not Busabase directly.
 
-For Busabase mode, configure `config.busabase.{base_url,base_id,drive_id,secrets_namespace,api_key_env}` or env overrides (`KELLY_EMAIL_BUSABASE_URL`, `KELLY_EMAIL_BUSABASE_BASE_ID`, `KELLY_EMAIL_BUSABASE_DRIVE_ID`, `KELLY_EMAIL_BUSABASE_SECRETS_NAMESPACE`, `KELLY_EMAIL_BUSABASE_API_KEY`). Check schema with `KELLY_EMAIL_DATA_PROVIDER=busabase npm run busabase:init`; initialize only after confirming the target Base with `KELLY_EMAIL_DATA_PROVIDER=busabase npm run busabase:init -- --apply`. Startup checks schema every time, but does not mutate Busabase unless `--apply` or `config.busabase.auto_initialize=true` is explicitly used.
+For Busabase mode, only bootstrap connection settings come from env overrides (`KELLY_EMAIL_BUSABASE_URL`, `KELLY_EMAIL_BUSABASE_BASE_ID`, `KELLY_EMAIL_BUSABASE_BASE_SLUG`, `KELLY_EMAIL_BUSABASE_FOLDER_SLUG`, `KELLY_EMAIL_BUSABASE_DRIVE_SLUG`, `KELLY_EMAIL_BUSABASE_DRIVE_ID`, `KELLY_EMAIL_BUSABASE_SECRETS_NAMESPACE`, `KELLY_EMAIL_BUSABASE_SPACE_ID`, `KELLY_EMAIL_BUSABASE_API_KEY`). Mailbox accounts and non-secret skill config live in Drive at `config/config.json`; secret values live in Busabase Vault and are referenced from config with `vault_ref` / `password_vault_ref` / `secret_ref`. The provider lazily initializes the workspace Folder, Base, Drive, and Drive-backed schema file when it connects. `KELLY_EMAIL_DATA_PROVIDER=busabase npm run busabase:init` remains available for diagnostics or repair, but normal startup should not require a manual schema command.
 
-The config file defines mailbox accounts, aliases, outbound identities, user profile, brands/products, official URLs, knowledge sources, reply style, CTA URLs, approval policy, and user-editable risk keywords. The env file stores secret values referenced by `password_env`; never store secret values in JSON.
+The config file defines mailbox accounts, aliases, outbound identities, user profile, brands/products, official URLs, knowledge sources, reply style, CTA URLs, approval policy, and user-editable risk keywords. Never store secret values in JSON.
 
 Treat `.agents/skills/kelly-email/config.example.json` as a template only. It must not count as a configured mailbox. If only the example config is present, stop and show onboarding instructions.
 
@@ -95,16 +95,16 @@ For each real email account, add one `mailboxes` entry with IMAP/SMTP settings. 
 
 For archive/cleanup actions, configure `archive_routing` per mailbox. Do not assume a universal `Archive` folder. Approved archive means: move the message to the configured target folder for its category/risk and mark it read. If no target folder is configured, block execution and ask for the folder mapping instead of guessing.
 
-When the user asks to add or change an email account, update the private JSON config or explain the exact JSON/env changes needed. Ask for non-secret details only: mailbox email, IMAP/SMTP host/port/security, username, folders, aliases, outbound identities, display names, and routing rules. Never ask for the actual password or app token in chat; create or name the `password_env` variables and tell the user to put the secret values in the private env file. After config changes, offer to test readiness and report missing env vars.
+When the user asks to add or change an email account, update the active provider config or explain the exact JSON/Vault changes needed. Ask for non-secret details only: mailbox email, IMAP/SMTP host/port/security, username, folders, aliases, outbound identities, display names, and routing rules. Never ask for the actual password or app token in chat; create or name the `vault_ref` keys for Busabase mode, or `password_env` variables for local mode. After config changes, offer to test readiness and report missing secret refs.
 
 Good user prompts to support:
 
 ```text
-/kelly-email 帮我增加一个 email account：邮箱是 name@example.com，IMAP/SMTP 是 example.com，alias 有 support@example.com，用 Support 身份回复。请更新本地 config，但不要让我在聊天里贴密码。
+/kelly-email 帮我增加一个 email account：邮箱是 name@example.com，IMAP/SMTP 是 example.com，alias 有 support@example.com，用 Support 身份回复。请更新当前 provider config，但不要让我在聊天里贴密码。
 
 /kelly-email 给 main 账号增加 alias：hello@example.com，并新增一个 outbound identity：display name 是 Founder，send_as 是 founder@example.com。
 
-/kelly-email 测试当前 email account 配置，告诉我缺哪些 env secret。
+/kelly-email 测试当前 email account 配置，告诉我缺哪些 secret ref 或 Vault secret。
 ```
 
 Example setup:
@@ -116,8 +116,8 @@ Example setup:
       "mailbox_id": "main",
       "primary_email": "me@example.com",
       "aliases": ["founder@example.com", "support@example.com"],
-      "imap": { "host": "imap.example.com", "port": 993, "security": "ssl", "username": "me@example.com", "password_env": "KELLY_EMAIL_IMAP_PASSWORD_MAIN" },
-      "smtp": { "host": "smtp.example.com", "port": 465, "security": "ssl", "username": "me@example.com", "password_env": "KELLY_EMAIL_SMTP_PASSWORD_MAIN" },
+      "imap": { "host": "imap.example.com", "port": 993, "security": "ssl", "username": "me@example.com", "vault_ref": "KELLY_EMAIL_IMAP_PASSWORD_MAIN" },
+      "smtp": { "host": "smtp.example.com", "port": 465, "security": "ssl", "username": "me@example.com", "vault_ref": "KELLY_EMAIL_SMTP_PASSWORD_MAIN" },
       "archive_routing": { "default_folder": "Processed", "by_category": { "money": "Finance" }, "by_risk": { "security": "Security" } },
       "mailbox_group_id": "main-account",
       "send_identities": ["support"]
@@ -154,12 +154,12 @@ Treat private config as the user's local operating context, not only an account 
 
 Use configured knowledge before inventing product, pricing, compliance, roadmap, or support facts. If the relevant fact is not present in config, current email context, or approved docs, ask the user or leave the item in `Needs Review`.
 
-The App UI may display these settings in `Help & Settings`, but only as a sanitized summary. Never expose env secret values, tokens, cookies, private file contents, or raw knowledge-base documents through `/api/state`, screenshots, reports, or batch files.
+The App UI may display these settings in `Help & Settings`, but only as a sanitized summary. Never expose secret values, tokens, cookies, private file contents, or raw knowledge-base documents through `/api/state`, screenshots, reports, or batch files.
 
 ## Default Workflow
 
 1. Detect interaction mode. Default to App UI mode. Use chat message mode only when the user explicitly asks for pure chat/no UI handling.
-2. Check onboarding state before proposing or running mailbox scans. If no private config exists, or if required env vars are missing, stop and guide setup instead of reading mail.
+2. Check onboarding state before proposing or running mailbox scans. If no provider config exists, or if required secret refs/Vault entries are missing, stop and guide setup instead of reading mail.
 3. Propose a batch plan before reading or processing mail: accounts, labels/folders, unread-only scope, time window, query, review quota, cleanup policy, and whether the batch will only triage, draft replies, or prepare send-ready actions.
 4. Wait for explicit user approval, such as "同意", "approve", "go", or a direct instruction that clearly confirms the proposed batch.
 5. Search inboxes only within the approved scope. If account inventory, aliases, or reply identity rules are needed, read `references/inbox-accounts.md` and the local/private config if present.
@@ -169,7 +169,7 @@ The App UI may display these settings in `Help & Settings`, but only as a saniti
 9. Select the reply identity from the original recipient address, product/domain, thread history, and customer language. If the identity is ambiguous, ask the user.
 10. Draft replies or next actions. Separate customer-visible text from internal notes.
 11. Localize operator-facing batch fields before handing off to the app: `review_brief.i18n`, `reason`/recommendations, and internal suggestions should match the user's preferred language when known. Preserve `body_original` exactly; if the email language differs from the user's language, add `body_translation` in the user's language as a helper while keeping the original visible.
-12. In App UI mode, write the local batch, start/reuse the UI, tell the user to review it there, then wait for them to ask you to execute approved decisions. In chat message mode, present numbered actions/drafts directly in chat and ask for approval there.
+12. In App UI mode, write the provider batch, start/reuse the UI, tell the user to review it there, then wait for them to ask you to execute approved decisions. In chat message mode, present numbered actions/drafts directly in chat and ask for approval there.
 13. Continue scanning and auto-cleaning low-risk notifications until the review quota is reached or the account/group has no unprocessed unread in-scope support threads.
 
 ## Onboarding Mode
@@ -178,16 +178,16 @@ Use onboarding mode when Kelly Email is invoked before setup is complete.
 
 Onboarding checks:
 
-- No private config found at `KELLY_EMAIL_CONFIG`, `.agents/skills/kelly-email/config.local.json`, or `~/.config/kelly-email/config.json`.
+- No active provider config found. In Busabase mode this means `busabase:drive/config/config.json`; in local mode this means `KELLY_EMAIL_CONFIG`, `.agents/skills/kelly-email/config.local.json`, or `~/.config/kelly-email/config.json`.
 - Only `config.example.json` exists.
-- A private config exists, but required IMAP/SMTP env vars are missing.
+- A provider config exists, but required IMAP/SMTP secret refs are missing.
 
 Onboarding response:
 
-1. Greet the user briefly and say Kelly Email needs local mailbox configuration before it can scan mail.
-2. Point them to `~/.config/kelly-email/config.json` for non-secret account settings.
-3. Point them to `~/.config/kelly-email/.env` for app passwords or tokens.
-4. Explain that JSON should contain `password_env` names only, never secret values.
+1. Greet the user briefly and say Kelly Email needs mailbox configuration before it can scan mail.
+2. In Busabase mode, point them to `busabase:drive/config/config.json` for non-secret account settings.
+3. In Busabase mode, point them to `busabase:vault/kelly-email` for app passwords or tokens.
+4. Explain that JSON should contain `vault_ref` names only, never secret values.
 5. Suggest copying `.agents/skills/kelly-email/config.example.json` as the starting template.
 6. Tell them to fill in mailboxes/identities plus `user_profile`, `brands`, `official_urls`, `style`, and `knowledge_base` so the Agent can draft in the right role and voice.
 7. After they configure files, offer to test configuration and then generate the first App UI batch.
@@ -313,15 +313,15 @@ Only execute the numbered actions the user approves. If the user says "approve a
 
 When the user wants to review mail through the local UI, use a file handoff instead of asking for approval item by item in chat.
 
-The kelly-email skill owns the approval workflow, local file contract, and CLI mailbox connector. `scripts/generate_review_batch.ts` reads IMAP mail into local batch files, and `scripts/execute_ui_decisions.ts` applies explicit UI-approved IMAP/SMTP actions. The local UI is only an approval surface over files. The UI must not scan mailboxes, send replies, archive, mark read, delete, or label mail directly.
+The kelly-email skill owns the approval workflow, provider handoff contract, and CLI mailbox connector. `scripts/generate_review_batch.ts` reads IMAP mail into provider batch state, and `scripts/execute_ui_decisions.ts` applies explicit UI-approved IMAP/SMTP actions. The local UI is only an approval surface over provider state. The UI must not scan mailboxes, send replies, archive, mark read, delete, or label mail directly.
 
 Use this Local Review UI Workflow by default. If the user did not request chat-only handling, assume they want App UI mode. After the batch is generated and agent-reviewed, say clearly that the batch is ready in the UI and ask them to review/approve there. Do not continue with long chat item-by-item review unless the user asks to stay in chat.
 
-When `/kelly-email` is generating, drafting, or executing a batch, create `.agents/skills/kelly-email/app/.data/agent.lock` before writing batch/decision files and remove it in a `finally` step. The lock file should contain JSON with `owner`, `message`, and `started_at`. The UI polls this lock, disables editing while it exists, and the server rejects decision/detail writes during the lock to prevent concurrent file edits.
+When `/kelly-email` is generating, drafting, or executing a batch, write the provider lock before writing batch/decision state and clear it in a `finally` step. Local mode uses `.agents/skills/kelly-email/app/.data/agent.lock`; Busabase mode uses Drive `state/lock.json`. The lock payload contains `owner`, `message`, and `started_at`. The UI polls this lock, disables editing while it exists, and the server rejects decision/detail writes during the lock to prevent concurrent edits.
 
-Before or after generating a local review batch, ensure the UI is running by invoking `.agents/skills/kelly-email/app/start.sh` from the repository root. Prefer the `3000-4000` port range; if the service is already running on the selected port, reuse it. Tell the user to open or refresh the actual URL printed by the launcher.
+Before or after generating a provider review batch, ensure the UI is running by invoking `.agents/skills/kelly-email/app/start.sh` from the repository root. Prefer the `3000-4000` port range; if the service is already running on the selected port, reuse it. Tell the user to open or refresh the actual URL printed by the launcher.
 
-For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.ts` from the repository root. It validates config, scans unread IMAP mail from the approved scope, persists attachments under the app data directory, and writes local batch/decision files for the UI.
+For App-in-Skill batch generation, prefer running `.agents/skills/kelly-email/scripts/generate_review_batch.ts` from the repository root. It validates provider config, scans unread IMAP mail from the approved scope, persists attachments through the active provider, and writes provider batch/decision files for the UI.
 
 Treat the script output as a rule-based prefilter, not as the final support classification. The support agent must perform an Agent Semantic Classification Pass before telling the user the batch is ready:
 
@@ -342,21 +342,21 @@ Number the current `Needs Review` queue for conversational edits. The UI should 
 
 The review UI should keep human input lightweight. Prefer a single `Review note` field for the user's instruction to `/kelly-email`; show an editable reply draft only when an actual draft exists or the user is approving a send action. Treat the note as the user's natural-language decision context, for example "ask Casper", "ok to archive", "draft a short reply", or "paid invoice; leave unread". Provide a `Draft reply` decision for messages where the user wants `/kelly-email` to compose a reply from the review note without sending it. Treat `draft_reply` as an approved next support action and show it under `Approved` only until the agent creates the draft; it is not a mailbox mutation and must not send email. After the draft is created, set the item to `status=drafted` and return it to `Needs Review` so the user can inspect the final wording before choosing `Approve send`.
 
-The review UI should auto-refresh local batch files on a timer and should not need a manual refresh button. Do not redraw the batch while the user is actively editing a textarea or non-search input; in that case poll only the lock state so the user's draft/note is not interrupted.
+The review UI should auto-refresh the active provider batch state on a timer and should not need a manual refresh button. Do not redraw the batch while the user is actively editing a textarea or non-search input; in that case poll only the lock state so the user's draft/note is not interrupted.
 
 Keep the UI sidebar focused on workflow state, not message category. Put a prominent "what needs the human" summary at the top of the sidebar, before the view filters, and separate it from the filters with a divider. Use the workflow filters `All`, `Needs Review`, `Approved`, `Done`, and `Blocked`, and give each sidebar filter a hover explanation. Do not put category filters such as `Money` or `Course` in the primary sidebar; show categories as badges on each message instead.
 
-Keep setup/tutorial details out of the always-visible sidebar. Provide a small `Help & Settings` button that opens a modal with tabs such as `Guide`, `Files`, `Accounts`, `Profile`, `Style`, `Knowledge`, and `Config`. Put usage notes, batch file path, decisions file path, config source, recommended config/env locations, configured email-account summaries, and sanitized profile/style/knowledge summaries inside that modal. The sidebar should stay focused on workflow filters and should not show long paths, account setup details, or how-to text.
+Keep setup/tutorial details out of the always-visible sidebar. Provide a small `Help & Settings` button that opens a modal with tabs such as `Guide`, `Files`, `Accounts`, `Profile`, `Style`, `Knowledge`, and `Config`. Put usage notes, batch file path, decisions file path, config source, recommended config/secret locations, configured email-account summaries, and sanitized profile/style/knowledge summaries inside that modal. The sidebar should stay focused on workflow filters and should not show long paths, account setup details, or how-to text.
 
-If onboarding is required, the UI should show a setup card in the list/detail area and in `Help & Settings`, with recommended config/env paths and missing env vars. Disable any implication that mail can be scanned until setup is complete.
+If onboarding is required, the UI should show one full-screen provider-not-ready gate with recommended config/secret paths and missing secret refs. Disable any implication that mail can be scanned until setup is complete.
 
-Generate a batch file at `.agents/skills/kelly-email/app/.data/current_batch.json`, one row per thread. See `references/batch-schema.md` for the full batch-file and decisions-file schema — per-item fields, the classification pipeline stages, and how UI workflow state (`All`/`Needs Review`/`Approved`/`Done`/`Blocked`) is derived.
+Generate a batch through the active provider: local mode writes `.agents/skills/kelly-email/app/.data/current_batch.json`; Busabase mode writes Drive `state/current_batch.json` and `batches/<batch_id>.json`. See `references/batch-schema.md` for the full batch-file and decisions-file schema — per-item fields, the classification pipeline stages, and how UI workflow state (`All`/`Needs Review`/`Approved`/`Done`/`Blocked`) is derived.
 
-After the user reviews in the UI, read `.agents/skills/kelly-email/app/.data/decisions.json`. Treat it as the user's approval/comment layer, but still execute only decisions that are explicit (`archive`, `mark_read`, `send_reply`, `draft_reply`, `keep_unread`, `no_action`, `needs_review`, `revise`; see `references/batch-schema.md`):
+After the user reviews in the UI, read decisions through the active provider: local mode reads `.agents/skills/kelly-email/app/.data/decisions.json`; Busabase mode reads Drive `state/decisions.json`. Treat it as the user's approval/comment layer, but still execute only decisions that are explicit (`archive`, `mark_read`, `send_reply`, `draft_reply`, `keep_unread`, `no_action`, `needs_review`, `revise`; see `references/batch-schema.md`):
 
 For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. When archiving after send, use the same configured category/risk target folder and mark the message read; never hardcode `Archive`.
 
-For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.ts`. It reads `current_batch.json` and `decisions.json`, validates explicit UI-approved actions, applies approved IMAP/SMTP side effects, and writes a JSON report under `.agents/skills/kelly-email/app/.data/execution_reports/`. Use `--dry-run` for validation when unsure.
+For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.ts`. It reads provider `current_batch` and `decisions`, validates explicit UI-approved actions, applies approved IMAP/SMTP side effects, and writes an execution report through the active provider. Use `--dry-run` for validation when unsure.
 
 Treat the UI approval as the user's final approval for `archive` and `mark_read` by default, including messages that were originally classified as money, billing, account/security, technical alerts, attachments, or unclear real-person intent. Do not add another default safety block for those cleanup actions after the user approves them in the UI.
 
@@ -367,8 +367,8 @@ For `send_reply`, keep a stricter final safety check: require an explicit UI-app
 Typical user flow:
 
 1. User asks `/kelly-email` to generate the next approval batch.
-2. Kelly Email scans approved IMAP mail into `.agents/skills/kelly-email/app/.data/current_batch.json`, then starts the UI.
-3. User reviews locally in the UI. The UI writes `.agents/skills/kelly-email/app/.data/decisions.json`.
+2. Kelly Email scans approved IMAP mail into provider `current_batch`, then starts the UI.
+3. User reviews in the UI. The UI writes provider `decisions`.
 4. User asks `/kelly-email` to execute UI-approved decisions.
 5. Kelly Email validates only explicit decisions, applies approved IMAP/SMTP actions, and writes an execution report.
 
@@ -441,7 +441,7 @@ Preferred team mode is the full provider:
 KELLY_EMAIL_DATA_PROVIDER=busabase
 ```
 
-In this mode, current batch, review items, decisions, lock, schema metadata, attachment references, and execution reports live in the configured Busabase Base/Drive namespace. The local UI still runs as the operator surface; it reads/writes through `lib/data-provider/` and never calls Busabase directly.
+In this mode, the configured Busabase Folder node is the aggregation point. Current batch, decisions, lock, schema metadata, attachment references, imports, and exports live in the Drive under that folder. Review items, reply drafts, scan state, and execution reports live as structured rows in the Base under that folder. The local UI still runs as the operator surface; it reads/writes through `lib/data-provider/` and never calls Busabase directly.
 
 The **reply draft** is the most canonical review slice: a reply is written, reviewed, revised ("make it warmer"), and approved before sending. The legacy reply-only store remains available through `lib/reply-review/`, selected by `KELLY_EMAIL_REPLY_PROVIDER`:
 
@@ -529,4 +529,4 @@ Escalate or ask before drafting a definitive answer when a thread involves:
 
 - Read `references/inbox-accounts.md` when account routing, aliases, labels, or per-account handling rules matter.
 - Read `references/support-taxonomy.md` when classifying messages, deciding priority, or writing reusable support notes.
-- Use `config.example.json` as the template for a private `config.local.json` or `~/.config/kelly-email/config.json` file. Never commit private config or env files.
+- Use `config.example.json` as the template for local provider config or Busabase Drive `config/config.json`. Never commit private local config or env files.

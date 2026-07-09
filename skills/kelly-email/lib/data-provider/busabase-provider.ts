@@ -1,12 +1,7 @@
 import type { Batch, Config, ConfigWithMeta, DecisionsPayload } from "../types.ts";
 import { createBusabaseClient } from "./busabase-client.ts";
-import { BUSABASE_SCHEMA, schemaFingerprint } from "./busabase-schema.ts";
-import {
-  configFileCandidates,
-  loadConfigWithMeta as loadLocalConfigWithMeta,
-  loadDotenv as loadLocalDotenv,
-  onboardingStatus as localOnboardingStatus,
-} from "./local-file-provider.ts";
+import { BUSABASE_LEGACY_RECORDS, BUSABASE_SCHEMA, schemaFingerprint } from "./busabase-schema.ts";
+import { CONFIG_EXAMPLE_PATH } from "./local-file-provider.ts";
 import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
 import {
   applyDetailUpdate,
@@ -18,47 +13,117 @@ import {
 } from "./provider-utils.ts";
 
 const ENV_PREFIX = "KELLY_EMAIL";
-const RECORDS = BUSABASE_SCHEMA.records;
+const LEGACY_RECORDS = BUSABASE_LEGACY_RECORDS;
+const DRIVE_FILES = {
+  config: "config/config.json",
+  schema: "state/schema.json",
+  currentBatch: "state/current_batch.json",
+  decisions: "state/decisions.json",
+  lock: "state/lock.json",
+  scanState: "state/scan_state.json",
+} as const;
 const DEFAULT_LOCK_MESSAGE = "/kelly-email is processing this batch.";
 
 function asObject(value: unknown): Record<string, any> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, any>) : {};
 }
 
-function autoInitialize(config: Config) {
-  return (
-    process.env.KELLY_EMAIL_BUSABASE_AUTO_INITIALIZE === "1" ||
-    process.env.KELLY_EMAIL_BUSABASE_AUTO_INITIALIZE === "true" ||
-    config.busabase?.auto_initialize === true
-  );
-}
-
 function emptyDecisions(batchId = ""): DecisionsPayload {
   return { batch_id: batchId, updated_at: "", decisions: [] };
 }
 
+function secretRef(endpoint: unknown) {
+  const data = asObject(endpoint);
+  return String(data.vault_ref || data.password_vault_ref || data.secret_ref || data.password_env || "").trim();
+}
+
 export function createBusabaseProvider() {
   let configMetaPromise: Promise<ConfigWithMeta> | null = null;
+  let clientPromise: ReturnType<typeof createBusabaseClient> | null = null;
 
-  async function configMeta() {
-    if (!configMetaPromise) {
-      configMetaPromise = loadLocalConfigWithMeta().then((meta) => ({
-        ...meta,
-        reader: "busabase",
-        provider: "busabase",
-      }));
-    }
-    return configMetaPromise;
+  function bootstrapConfig(): Config {
+    return {
+      busabase: {
+        base_url: process.env.KELLY_EMAIL_BUSABASE_URL || "http://127.0.0.1:15419",
+        base_id: process.env.KELLY_EMAIL_BUSABASE_BASE_ID || "kelly-email",
+        base_slug: process.env.KELLY_EMAIL_BUSABASE_BASE_SLUG || "kelly-email",
+        folder_slug: process.env.KELLY_EMAIL_BUSABASE_FOLDER_SLUG || "kelly-email-workspace",
+        drive_slug: process.env.KELLY_EMAIL_BUSABASE_DRIVE_SLUG || "kelly-email-workspace-files",
+        drive_id: process.env.KELLY_EMAIL_BUSABASE_DRIVE_ID || "kelly-email-files",
+        secrets_namespace: process.env.KELLY_EMAIL_BUSABASE_SECRETS_NAMESPACE || "kelly-email",
+        api_key_env: "KELLY_EMAIL_BUSABASE_API_KEY",
+        space_id: process.env.KELLY_EMAIL_BUSABASE_SPACE_ID || process.env.BUSABASE_SPACE_ID || "",
+      },
+    };
   }
 
   async function client() {
-    const meta = await configMeta();
-    return createBusabaseClient({ envPrefix: ENV_PREFIX, config: meta.config });
+    if (!clientPromise) clientPromise = createBusabaseClient({ envPrefix: ENV_PREFIX, config: bootstrapConfig() });
+    return clientPromise;
+  }
+
+  function normalizeConfig(value: unknown): Config {
+    const object = asObject(value);
+    const config = asObject(object.data).mailboxes || asObject(object.data).identities ? (object.data as Config) : (object as Config);
+    if (!Array.isArray(config.mailboxes)) config.mailboxes = [];
+    if (!Array.isArray(config.identities)) config.identities = [];
+    return config;
+  }
+
+  function configSecretRefs(config: Config) {
+    const refs = [];
+    for (const mailbox of config.mailboxes || []) {
+      for (const endpoint of [mailbox.imap, mailbox.smtp]) {
+        const ref = secretRef(endpoint);
+        if (ref) refs.push(ref);
+      }
+    }
+    return [...new Set(refs)];
+  }
+
+  async function driveConfigMeta(): Promise<ConfigWithMeta> {
+    const busa = await client();
+    try {
+      const config = normalizeConfig(await busa.readDriveJson(DRIVE_FILES.config, { createDrive: false }));
+      const vaultRefs = configSecretRefs(config);
+      const runtimeEnv = await busa.vaultRuntimeEnv().catch(() => ({}));
+      const missingVaultRefs = vaultRefs.filter((ref) => !runtimeEnv[ref]);
+      return {
+        config,
+        source: `busabase:drive/${DRIVE_FILES.config}`,
+        reader: "busabase",
+        provider: "busabase",
+        is_example: false,
+        has_private_config: true,
+        vault_refs: vaultRefs,
+        missing_vault_refs: missingVaultRefs,
+        recommended_config: `busabase:drive/${DRIVE_FILES.config}`,
+        recommended_env: `busabase:vault/${busa.meta.secretsNamespace}`,
+        example_config: CONFIG_EXAMPLE_PATH,
+      };
+    } catch {
+      return {
+        config: { mailboxes: [], identities: [] },
+        source: "",
+        reader: "busabase",
+        provider: "busabase",
+        is_example: false,
+        has_private_config: false,
+        recommended_config: `busabase:drive/${DRIVE_FILES.config}`,
+        recommended_env: `busabase:vault/${busa.meta.secretsNamespace}`,
+        example_config: CONFIG_EXAMPLE_PATH,
+      };
+    }
+  }
+
+  async function configMeta() {
+    if (!configMetaPromise) configMetaPromise = driveConfigMeta();
+    return configMetaPromise;
   }
 
   async function commit(recordId: string, fields: Record<string, unknown>, message: string) {
     const busa = await client();
-    return busa.commitRecord(recordId, fields, message);
+    return busa.upsertRecord(recordId, fields, message);
   }
 
   async function readFields(recordId: string): Promise<Record<string, any>> {
@@ -66,11 +131,21 @@ export function createBusabaseProvider() {
     return busa.getRecordFields(recordId);
   }
 
-  async function schemaStatus() {
+  async function readDriveJson(pathname: string): Promise<Record<string, any>> {
+    const busa = await client();
+    return busa.readDriveJson(pathname) as Promise<Record<string, any>>;
+  }
+
+  async function writeDriveJson(pathname: string, value: unknown, message: string) {
+    const busa = await client();
+    return busa.writeDriveJson(pathname, value, message);
+  }
+
+  async function schemaStatus(options: { createBase?: boolean } = {}) {
     const busa = await client();
     const expected = schemaFingerprint();
     try {
-      const fields = await busa.getRecordFields(RECORDS.schema_meta);
+      const fields = await busa.readDriveJson(DRIVE_FILES.schema, { createDrive: options.createBase !== false });
       const current = String(fields.fingerprint || "");
       return {
         ok:
@@ -84,6 +159,8 @@ export function createBusabaseProvider() {
         schema_version: BUSABASE_SCHEMA.schema_version,
         base_id: busa.meta.baseId,
         drive_id: busa.meta.driveId,
+        drive_slug: busa.meta.driveSlug,
+        folder_slug: busa.meta.folderSlug,
         secrets_namespace: busa.meta.secretsNamespace,
         record_kinds: BUSABASE_SCHEMA.base.record_kinds,
       };
@@ -97,6 +174,8 @@ export function createBusabaseProvider() {
         schema_version: BUSABASE_SCHEMA.schema_version,
         base_id: busa.meta.baseId,
         drive_id: busa.meta.driveId,
+        drive_slug: busa.meta.driveSlug,
+        folder_slug: busa.meta.folderSlug,
         secrets_namespace: busa.meta.secretsNamespace,
         record_kinds: BUSABASE_SCHEMA.base.record_kinds,
       };
@@ -104,19 +183,14 @@ export function createBusabaseProvider() {
   }
 
   async function ensureInitialized() {
-    const meta = await configMeta();
-    const status = await schemaStatus();
-    if (status.ok) return status;
-    if (!autoInitialize(meta.config)) return status;
-    return provider.ensureSchema?.({ apply: true }) || status;
+    return provider.init();
   }
 
   async function requireWritableSchema() {
     const status = await ensureInitialized();
     if (!status.ok) {
-      throw new Error(
-        "Kelly Email Busabase schema is not initialized. Run `KELLY_EMAIL_DATA_PROVIDER=busabase node scripts/init_busabase_schema.ts --apply` or set config.busabase.auto_initialize=true after confirming the target Base.",
-      );
+      const action = typeof status.action === "string" ? ` ${status.action}` : "";
+      throw new Error(`Kelly Email Busabase provider is not ready.${action}`);
     }
     return status;
   }
@@ -125,7 +199,7 @@ export function createBusabaseProvider() {
     kind: "busabase",
 
     async loadDotenv() {
-      return loadLocalDotenv();
+      return [];
     },
 
     async loadConfigWithMeta() {
@@ -138,15 +212,42 @@ export function createBusabaseProvider() {
     },
 
     onboardingStatus(config: Config, meta: ConfigWithMeta = {} as ConfigWithMeta) {
-      const base = localOnboardingStatus(config, { ...meta, reader: "busabase", provider: "busabase" });
+      const mailboxes = config.mailboxes || [];
+      const missingSecrets = [];
+      for (const mailbox of mailboxes) {
+        for (const endpoint of [mailbox.imap, mailbox.smtp]) {
+          const ref = secretRef(endpoint);
+          if (!ref) missingSecrets.push(`${mailbox.mailbox_id || "mailbox"}:${endpoint === mailbox.imap ? "imap" : "smtp"}`);
+        }
+      }
+      const missingVaultRefs = Array.isArray(meta.missing_vault_refs) ? meta.missing_vault_refs.map(String) : [];
+      const configured = Boolean(meta.has_private_config && mailboxes.length && missingSecrets.length === 0);
+      const ready = configured && missingVaultRefs.length === 0;
       return {
-        ...base,
+        configured: ready,
+        state:
+          !meta.has_private_config || !mailboxes.length
+            ? "needs_config"
+            : missingSecrets.length || missingVaultRefs.length
+              ? "missing_secrets"
+              : "ready",
+        message:
+          !meta.has_private_config || !mailboxes.length
+            ? `No Kelly Email Busabase config found. Create ${meta.recommended_config || `busabase:drive/${DRIVE_FILES.config}`} and store IMAP/SMTP secret values in ${meta.recommended_env || "busabase:vault"}.`
+            : missingSecrets.length || missingVaultRefs.length
+              ? "Kelly Email Busabase config is present, but one or more Busabase Vault secrets are missing or not referenced."
+              : "Kelly Email Busabase config is ready.",
+        missing_env: [...missingSecrets, ...missingVaultRefs],
         reader: "busabase",
         data_provider: "busabase",
+        recommended_config: meta.recommended_config || `busabase:drive/${DRIVE_FILES.config}`,
+        recommended_env: meta.recommended_env || "busabase:vault/kelly-email",
+        example_config: meta.example_config || CONFIG_EXAMPLE_PATH,
         busabase: {
           schema_id: BUSABASE_SCHEMA.schema_id,
           schema_version: BUSABASE_SCHEMA.schema_version,
-          config_candidates: configFileCandidates(),
+          config_path: DRIVE_FILES.config,
+          secrets_namespace: String(meta.recommended_env || "").replace(/^busabase:vault\//, ""),
         },
       };
     },
@@ -154,28 +255,26 @@ export function createBusabaseProvider() {
     async getBatch(): Promise<Batch> {
       await ensureInitialized();
       try {
-        const fields = await readFields(RECORDS.current_batch);
-        const batch = (fields.batch || fields) as Batch;
+        const batch = (await readDriveJson(DRIVE_FILES.currentBatch)) as Batch;
         if (!batch || !Array.isArray(batch.items)) return emptyBatch();
         return normalizeBatch(batch);
       } catch {
-        return emptyBatch();
+        try {
+          const fields = await readFields(LEGACY_RECORDS.current_batch);
+          const batch = (fields.batch || fields) as Batch;
+          if (!batch || !Array.isArray(batch.items)) return emptyBatch();
+          return normalizeBatch(batch);
+        } catch {
+          return emptyBatch();
+        }
       }
     },
 
     async saveBatch(batch: Batch) {
       await requireWritableSchema();
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
-      await commit(
-        RECORDS.current_batch,
-        {
-          kind: "batch",
-          batch: next,
-          batch_id: next.batch_id,
-          updated_at: next.updated_at,
-        },
-        `Kelly Email batch ${next.batch_id || "current"}`,
-      );
+      await writeDriveJson(DRIVE_FILES.currentBatch, next, `Kelly Email batch ${next.batch_id || "current"}`);
+      if (next.batch_id) await writeDriveJson(`batches/${next.batch_id}.json`, next, `Kelly Email batch archive ${next.batch_id}`);
       for (const item of next.items || []) {
         await commit(
           `email-item-${item.id}`,
@@ -197,28 +296,28 @@ export function createBusabaseProvider() {
     async getDecisions() {
       await ensureInitialized();
       try {
-        const fields = await readFields(RECORDS.decisions);
-        return (fields.decisions_payload as DecisionsPayload) || emptyDecisions(String(fields.batch_id || ""));
+        return ((await readDriveJson(DRIVE_FILES.decisions)) as DecisionsPayload) || emptyDecisions();
       } catch {
-        const batch = await this.getBatch();
-        return emptyDecisions(batch.batch_id);
+        try {
+          const fields = await readFields(LEGACY_RECORDS.decisions);
+          return (fields.decisions_payload as DecisionsPayload) || emptyDecisions(String(fields.batch_id || ""));
+        } catch {
+          const batch = await this.getBatch();
+          return emptyDecisions(batch.batch_id);
+        }
       }
     },
 
     async writeDecisions(batch: Batch) {
       await requireWritableSchema();
       const payload = decisionsFromBatch(batch);
-      await commit(
-        RECORDS.decisions,
-        {
-          kind: "decision_set",
-          batch_id: payload.batch_id,
-          decisions_payload: payload,
-          updated_at: payload.updated_at,
-        },
-        `Kelly Email decisions ${payload.batch_id || "current"}`,
-      );
+      await writeDriveJson(DRIVE_FILES.decisions, payload, `Kelly Email decisions ${payload.batch_id || "current"}`);
       return payload;
+    },
+
+    async writeScanState(value: Record<string, unknown>) {
+      await requireWritableSchema();
+      await writeDriveJson(DRIVE_FILES.scanState, value, "Kelly Email scan state");
     },
 
     async updateItems(input: DecisionInput) {
@@ -242,8 +341,7 @@ export function createBusabaseProvider() {
     async getLock() {
       await ensureInitialized();
       try {
-        const fields = await readFields(RECORDS.lock);
-        const lock = asObject(fields.lock || fields);
+        const lock = asObject(await readDriveJson(DRIVE_FILES.lock));
         if (!lock.locked && !lock.started_at) return { locked: false, provider: "busabase" };
         return {
           locked: true,
@@ -264,16 +362,13 @@ export function createBusabaseProvider() {
 
     async writeLock(message: string) {
       await requireWritableSchema();
-      await commit(
-        RECORDS.lock,
+      await writeDriveJson(
+        DRIVE_FILES.lock,
         {
-          kind: "lock",
-          lock: {
-            locked: true,
-            owner: "kelly-email-agent",
-            message,
-            started_at: utcNow(),
-          },
+          locked: true,
+          owner: "kelly-email-agent",
+          message,
+          started_at: utcNow(),
         },
         "Kelly Email agent lock",
       );
@@ -281,14 +376,7 @@ export function createBusabaseProvider() {
 
     async clearLock() {
       await requireWritableSchema();
-      await commit(
-        RECORDS.lock,
-        {
-          kind: "lock",
-          lock: { locked: false, cleared_at: utcNow() },
-        },
-        "Clear Kelly Email agent lock",
-      );
+      await writeDriveJson(DRIVE_FILES.lock, { locked: false, cleared_at: utcNow() }, "Clear Kelly Email agent lock");
     },
 
     async writeExecutionReport(batch: Batch, report: Record<string, unknown>, stamp = "") {
@@ -326,14 +414,9 @@ export function createBusabaseProvider() {
 
     async clearBatchAttachments(batchId: string) {
       await requireWritableSchema();
-      await commit(
-        `attachments-${batchId}`,
-        {
-          kind: "drive_folder",
-          drive_id: (await client()).meta.driveId,
-          path: `attachments/${batchId}`,
-          cleared_at: utcNow(),
-        },
+      await writeDriveJson(
+        `attachments/${batchId}/.cleared.json`,
+        { path: `attachments/${batchId}`, cleared_at: utcNow() },
         `Clear attachments ${batchId}`,
       );
     },
@@ -390,25 +473,89 @@ export function createBusabaseProvider() {
       return fields || null;
     },
 
+    async putFile(pathname: string, data: unknown, meta: Record<string, unknown> = {}) {
+      await requireWritableSchema();
+      const busa = await client();
+      await busa.writeDriveJson(pathname, data, `Kelly Email Drive file ${pathname}`);
+      return { provider: "busabase", drive_id: busa.meta.driveId, drive_slug: busa.meta.driveSlug, path: pathname, meta };
+    },
+
+    async getSecret(name: string) {
+      const busa = await client();
+      return busa.getSecret(name);
+    },
+
+    async init() {
+      const busa = await client();
+      const base = {
+        provider: "busabase",
+        mode: "busabase",
+        base_url: busa.meta.baseUrl,
+        base_id: busa.meta.baseId,
+        base_slug: busa.meta.baseSlug,
+        drive_id: busa.meta.driveId,
+        drive_slug: busa.meta.driveSlug,
+        folder_slug: busa.meta.folderSlug,
+        secrets_namespace: busa.meta.secretsNamespace,
+        space_id: busa.meta.spaceId || "",
+        folder_prefix: busa.meta.folderPrefix || "",
+        parent_node_id: busa.meta.parentNodeId || "",
+      };
+      try {
+        const schema = await this.ensureSchema({ apply: true });
+        const connection = await busa.verifyConnection();
+        return {
+          ...base,
+          ok: Boolean(schema.ok),
+          connection_ok: true,
+          connection,
+          schema,
+          initialized: Boolean(schema.ok),
+          message: schema.ok
+            ? "Kelly Email is connected to Busabase."
+            : "Kelly Email connected to Busabase, but schema initialization did not complete.",
+          action: schema.ok ? "" : "Check Busabase permissions and the configured Base fields.",
+          error: schema.ok ? "" : String(schema.error || "schema initialization failed"),
+        };
+      } catch (error) {
+        return {
+          ...base,
+          ok: false,
+          connection_ok: false,
+          initialized: false,
+          message: "Kelly Email is set to Busabase mode, but the Busabase provider could not initialize.",
+          action:
+            "Start Busabase, then check KELLY_EMAIL_BUSABASE_URL, KELLY_EMAIL_BUSABASE_BASE_ID, KELLY_EMAIL_BUSABASE_SPACE_ID, and API key settings.",
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
+
     async checkSchema() {
-      return schemaStatus();
+      return schemaStatus({ createBase: false });
     },
 
     async ensureSchema(options: { apply?: boolean } = {}) {
       const busa = await client();
-      const status = await schemaStatus();
+      if (options.apply) {
+        await Promise.all([busa.ensureFolder(), busa.ensureBase(), busa.ensureDrive()]);
+      }
+      const status = await schemaStatus({ createBase: Boolean(options.apply) });
       if (status.ok || !options.apply) return { ...status, applied: false };
       const fingerprint = schemaFingerprint();
-      await busa.commitRecord(
-        RECORDS.schema_meta,
+      await busa.writeDriveJson(
+        DRIVE_FILES.schema,
         {
-          kind: "schema_meta",
+          kind: "storage_schema",
           schema: BUSABASE_SCHEMA,
           schema_id: BUSABASE_SCHEMA.schema_id,
           schema_version: BUSABASE_SCHEMA.schema_version,
           fingerprint,
           base_id: busa.meta.baseId,
           drive_id: busa.meta.driveId,
+          drive_slug: busa.meta.driveSlug,
+          folder_slug: busa.meta.folderSlug,
+          config_path: DRIVE_FILES.config,
           secrets_namespace: busa.meta.secretsNamespace,
           updated_at: utcNow(),
         },
@@ -420,6 +567,10 @@ export function createBusabaseProvider() {
     async verifyConnection() {
       const busa = await client();
       return busa.verifyConnection();
+    },
+
+    async providerStatus() {
+      return this.init();
     },
   };
 

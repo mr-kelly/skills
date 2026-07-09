@@ -6,7 +6,7 @@ Use this reference when an App-in-Skill connects to user accounts, APIs, mailbox
 
 Keep the skill code and committed templates generic. User-specific accounts, aliases, operator profile, brands/products, style, knowledge sources, policy, endpoints, and risk keywords belong in private config.
 
-Secrets never go in JSON, chat, screenshots, logs, batch files, or `/api/state`. JSON should reference secret env var names only, such as `password_env`, `api_key_env`, or `token_env`.
+Secrets never go in JSON, chat, screenshots, logs, batch files, or `/api/state`. JSON should reference secret identifiers only: local provider configs usually use env var names such as `password_env`, `api_key_env`, or `token_env`; Busabase provider configs should use Vault references such as `vault_ref`, `password_vault_ref`, or `secret_ref`.
 
 ## Config Priority
 
@@ -124,7 +124,7 @@ Safe to show:
 - official URLs,
 - style choices,
 - knowledge-source titles/paths/URLs,
-- whether each required env var is configured.
+- whether each required secret reference is configured.
 
 Never show:
 
@@ -135,7 +135,7 @@ Never show:
 - private config file contents beyond summaries,
 - credential values.
 
-Include the active provider name in `/api/state` or the config summary so the user can see whether the skill is using local files or a remote data source.
+Include the active provider name in `/api/state` or the config summary so the user can see whether the skill is using local files or a remote data source. In Busabase mode, also surface the Folder/Base/Drive identifiers and the Vault namespace, but never Vault values.
 
 ## Data Provider Layer
 
@@ -193,13 +193,16 @@ Prefer Busabase for App-in-Skills whose output should become trusted, shared, ca
 
 ## Busabase As Full Skill Storage
 
-Use Busabase as a whole skill storage provider, not just a reply-review queue or remote JSON file:
+Use Busabase as a whole skill storage provider, not just a reply-review queue or remote JSON file.
 
-- **Base** stores structured domain state: batches, review items, decisions, onboarding markers, locks, reports, canonical records, and schema metadata.
-- **Drive** stores loose files: attachments, raw imports, generated exports, screenshots, intermediate artifacts, and any blob-like content that should not be embedded in a Base record.
-- **EnvVars / Vault / Secrets** store secret values and secret references. Skill JSON config should contain secret names such as `password_env`, `api_key_env`, `token_env`, or Busabase secret refs, never secret values.
+- **Folder node** is the dedicated aggregation point for one skill or one configured workspace. Put the skill-owned Base and Drive under this folder. Do not use the Base node itself as the workspace container.
+- **Base node** stores structured, queryable, reviewable domain rows: review items, reply drafts, tasks, approvals, canonical records, scan rows, and execution report summaries.
+- **Drive node** stores file-tree/app-state blobs: `config/config.json`, `state/schema.json`, `state/current_batch.json`, `state/decisions.json`, `state/lock.json`, `state/scan_state.json`, batch archives, attachments, raw imports, generated exports, screenshots, and any blob-like content that should not be embedded in a Base record.
+- **Busabase Vault** stores secret values. Skill JSON config should contain secret references such as `vault_ref`, `password_vault_ref`, `secret_ref`, or compatibility `password_env`, never secret values.
 
 The App UI and scripts should still depend only on `lib/data-provider/`. Busabase SDK, OpenAPI client, REST routes, auth headers, and Drive/Secrets specifics belong in a Busabase adapter such as `lib/data-provider/busabase-client.ts`.
+
+Keep `config`, `schema`, `current_batch`, `decisions`, `scan_state`, and `lock` out of the Base unless they are legacy fallback records. Those are Drive files. New writes should use the Folder/Base/Drive split above. In Busabase provider mode, do not rely on local `app/.data`, `config.local.json`, or `.env` for runtime state; only bootstrap connection env such as Busabase URL/base/space/API key may come from the process environment.
 
 Recommended config:
 
@@ -209,10 +212,11 @@ Recommended config:
   "busabase": {
     "base_url": "http://127.0.0.1:15419",
     "base_id": "skill-name",
+    "base_slug": "skill-name",
+    "folder_slug": "skill-name-workspace",
+    "drive_slug": "skill-name-workspace-files",
     "drive_id": "skill-name-files",
-    "secrets_namespace": "skill-name",
-    "api_key_env": "SKILL_BUSABASE_API_KEY",
-    "auto_initialize": false
+    "secrets_namespace": "skill-name"
   }
 }
 ```
@@ -223,6 +227,9 @@ Use env overrides:
 <SKILL_ENV_PREFIX>_DATA_PROVIDER=busabase
 <SKILL_ENV_PREFIX>_BUSABASE_URL=http://127.0.0.1:15419
 <SKILL_ENV_PREFIX>_BUSABASE_BASE_ID=skill-name
+<SKILL_ENV_PREFIX>_BUSABASE_BASE_SLUG=skill-name
+<SKILL_ENV_PREFIX>_BUSABASE_FOLDER_SLUG=skill-name-workspace
+<SKILL_ENV_PREFIX>_BUSABASE_DRIVE_SLUG=skill-name-workspace-files
 <SKILL_ENV_PREFIX>_BUSABASE_DRIVE_ID=skill-name-files
 <SKILL_ENV_PREFIX>_BUSABASE_SECRETS_NAMESPACE=skill-name
 <SKILL_ENV_PREFIX>_BUSABASE_API_KEY=...
@@ -230,46 +237,58 @@ Use env overrides:
 
 ### Schema Manifest
 
-Every Busabase-backed skill should declare a machine-readable schema manifest in the skill package, for example `lib/data-provider/busabase-schema.ts`:
+Every Busabase-backed skill should declare a machine-readable storage manifest in the skill package, for example `lib/data-provider/busabase-schema.ts`:
 
 ```ts
 export const BUSABASE_SCHEMA = {
   provider: "busabase",
   schema_id: "skill-name.storage",
   schema_version: "1",
+  folder: {
+    default_slug: "skill-name-workspace",
+    children: ["base", "drive"]
+  },
   base: {
     id: "skill-name",
+    slug: "skill-name",
     name: "Skill Name",
-    record_kinds: ["schema_meta", "onboarding", "lock", "review_item", "execution_report"]
+    record_kinds: ["review_item", "task", "approval", "canonical_record", "execution_report"]
   },
   drive: {
     id: "skill-name-files",
-    roots: ["attachments", "imports", "exports"]
+    slug: "skill-name-workspace-files",
+    config_files: ["config/config.json"],
+    state_files: ["state/schema.json", "state/current_batch.json", "state/decisions.json", "state/lock.json", "state/scan_state.json"],
+    roots: ["config", "state", "batches", "attachments", "imports", "exports"]
   },
   secrets: {
     namespace: "skill-name",
+    provider: "busabase-vault",
     refs: ["IMAP_PASSWORD", "SMTP_PASSWORD", "API_KEY"]
   }
 } as const;
 ```
 
-The provider should compute a stable fingerprint from the manifest and persist it to a `kind=schema_meta` record in Busabase.
+The provider should compute a stable fingerprint from the manifest and persist it to `state/schema.json` in the Drive. The schema file describes the Folder/Base/Drive layout and the paths/record kinds the provider owns.
 
 ### Startup Lifecycle
 
 On every startup:
 
-1. Load local non-secret config and env overrides.
+1. Load Busabase bootstrap settings from env/flags: base URL, base id/slug, folder slug, drive slug, optional space/API key.
 2. Connect to Busabase.
-3. Check Base, Drive, and Secrets namespace readiness.
-4. Read the `schema_meta` record.
-5. Compare `schema_id`, `schema_version`, and fingerprint.
-6. If missing and `auto_initialize=false`, report onboarding/setup-needed; do not mutate Busabase silently.
-7. If missing and the user explicitly approved initialization, create or update the Base/Drive metadata and write `schema_meta`.
-8. If version is older, run only declared forward migrations.
-9. If fingerprint is incompatible, enter read-only setup-needed mode and ask for a migration decision.
+3. Ensure the workspace Folder exists, then ensure/move the configured Base and Drive under that folder.
+4. Read `state/schema.json` from the Drive.
+5. If the schema file is missing, write it lazily from the local manifest.
+6. Read non-secret runtime config from Drive `config/config.json`.
+7. Resolve secret refs from Busabase Vault at runtime; do not copy secret values into env files or JSON.
+8. Compare `schema_id`, `schema_version`, and fingerprint.
+9. If version is older, run only declared forward migrations.
+10. If fingerprint is incompatible, enter read-only setup-needed mode and ask for a migration decision.
 
-Check schema on every startup; mutate schema only during explicit initialization or migration.
+Check schema on every startup. Missing schema or missing app-state files are normal initialization work, not a user-facing "provider not ready" state. Reserve "Provider not ready" for connection/auth failures, missing required routing parameters such as a required `space_id`, unavailable parent/folder settings, or incompatible schema/migration cases that cannot be repaired safely.
+
+An explicit init script such as `npm run busabase:init -- --apply` can still exist, but it is a diagnostic/repair command. Normal app startup and `provider.init()` should be idempotent and should lazy-create/repair the provider-owned Folder/Base/Drive/schema when permissions allow.
 
 ### Change Request Mapping
 
@@ -289,11 +308,13 @@ Busabase records approval and canonical data. It should not directly send email,
 For Busabase-capable skills, add these optional methods to the provider contract:
 
 ```ts
+init?(): Promise<ProviderStatus | Record<string, unknown>>;
+providerStatus?(): Promise<ProviderStatus | Record<string, unknown>>;
 checkSchema(): Promise<Record<string, unknown>>;
 ensureSchema(options?: { apply?: boolean }): Promise<Record<string, unknown>>;
 getFile?(path: string): Promise<unknown>;
 putFile?(path: string, data: unknown, meta?: Record<string, unknown>): Promise<unknown>;
-getSecretRef?(name: string): Promise<Record<string, unknown>>;
+getSecret?(name: string): Promise<string>;
 ```
 
-The app can display schema/storage readiness in Help & Settings, but must never expose secret values.
+The app should call `providerStatus()` through the server and use one full-screen gate when `ok === false`. Help & Settings should show the active data provider mode and sanitized storage identifiers such as Folder slug, Base id/slug, Drive slug/id, and schema version. It must never expose secret values.
