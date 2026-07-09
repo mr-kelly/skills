@@ -95,7 +95,7 @@ Primary local files:
 ## Normal Workflow
 
 1. Load config via `lib/config.ts`.
-2. If provider is `busabase`, read through `busabase-sdk` (`Busabase` class): Drive files, QA Base records, and News Base records. Use `busabase-cli` for operator diagnostics, not as the primary runtime API.
+2. If provider is `busabase`, read through the skill's REST BusabaseProvider: Drive files, QA Base records, and News Base records. Use `busabase-cli` for operator diagnostics, not as the primary runtime API.
 3. Normalize into the UI schema: `files`, `qa_pairs`, `news_items`, `metrics`, and governance blocks with `completeness_pct` and `missing_fields`.
 4. Start/reuse the UI with `app/start.sh`.
 5. For data-entry requests, draft proposed new records or metadata cleanup as reviewable changes first. Do not silently mutate Busabase canonical records.
