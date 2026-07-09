@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-52 skills, including 49 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+53 skills, including 50 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-52-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-53-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -108,6 +108,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-education-intel` | Education and enrollment intelligence desk for exam dates, admissions changes, visa news, school notices, parent questions, competitor courses, and advisor scripts. | Use it when schools, tutoring centers, or admissions services need parent FAQs, enrollment actions, course-launch angles, webinars, or sourced education memos. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-education-intel.html) |
 | `kelly-beauty-intel` | Beauty, wellness, and medical-aesthetic intelligence desk for competitor offers, treatment trends, safety notices, review themes, seasonal demand, and safe consultation copy. | Use it when clinics or beauty teams need campaign angles, consultation scripts, review-recovery notes, or client education that stays inside safe-claim boundaries. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-beauty-intel.html) |
 | `kelly-insurance-intel` | Insurance advisor intelligence desk for regulator updates, insurer/product movement, premium and claims news, lifecycle events, and compliant client-review prompts. | Use it when brokers or agencies need sourced meeting agendas, renewal scripts, client education notes, or needs-review checklists without making suitability claims. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-insurance-intel.html) |
+| `kelly-insure-data` | Insurance data-entry and governance cockpit backed by Busabase: Drive-node file metadata, governed QA pairs, and insurance news Base records. | Use it when importing, reviewing, and cleaning insurance files, metadata completeness, QA pairs, or market/news records before they become trusted knowledge. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-insure-data.html) |
 | `kelly-retail-intel` | Retail operating intelligence desk for weather, events, competitor promotions, product trends, review themes, supplier movement, merchandising, and staff briefs. | Use it when stores or consumer brands need hero-SKU picks, signage copy, replenishment checks, store briefings, or local demand actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-retail-intel.html) |
 | `kelly-ecommerce-intel` | Ecommerce seller intelligence desk for marketplace policy, competitor price and listing movement, search trends, ads, review language, and SKU campaign actions. | Use it when marketplace or DTC sellers need listing edits, ad angles, bundle tests, review replies, campaign briefs, or policy-risk checks. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ecommerce-intel.html) |
 | `kelly-restaurant-intel` | Restaurant-group intelligence desk for weather, events, menus, delivery movement, booking signals, review themes, shift briefs, and daily promotion actions. | Use it when restaurants, cafes, or F&B groups need hero-menu picks, service-period briefs, delivery copy, booking scripts, or guest-recovery drafts. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-restaurant-intel.html) |
@@ -733,6 +734,27 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Actions</strong><br>Meeting agendas, renewal checklists, and education tasks with compliance-aware approval status.</td>
     <td><strong>Drafts</strong><br>Editable client education and advisor scripts that avoid suitability or return promises.</td>
+  </tr>
+</table>
+
+### `kelly-insure-data`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-insure-data/assets/screenshots/overview.webp" alt="Kelly Insure Data overview"></td>
+    <td width="50%"><img src="skills/kelly-insure-data/assets/screenshots/files.webp" alt="Kelly Insure Data file drive"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Insurance data-governance cockpit with record counts, quality score, metadata coverage, and cleanup targets.</td>
+    <td><strong>File Drive</strong><br>Busabase Drive-node file list with metadata completeness, missing fields, source, owner, jurisdiction, and review status.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-insure-data/assets/screenshots/qa.webp" alt="Kelly Insure Data QA base"></td>
+    <td width="50%"><img src="skills/kelly-insure-data/assets/screenshots/news.webp" alt="Kelly Insure Data news base"></td>
+  </tr>
+  <tr>
+    <td><strong>QA</strong><br>Canonical insurance question-answer records from a Busabase Base, with source traceability and governance warnings.</td>
+    <td><strong>News</strong><br>Insurance news and market-intelligence records with publisher, market, publish date, URL, and completeness checks.</td>
   </tr>
 </table>
 
