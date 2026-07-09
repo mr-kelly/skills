@@ -140,19 +140,40 @@ const BASE_FIELDS = [
   { slug: "summary", name: "Summary", type: "longtext" },
   { slug: "review_background", name: "Review Background", type: "longtext" },
   { slug: "review_recommendation", name: "Review Recommendation", type: "longtext" },
+  { slug: "review_why", name: "Review Why", type: "longtext" },
+  { slug: "body_text", name: "Body Text", type: "longtext" },
+  { slug: "body_original", name: "Body Original", type: "longtext" },
+  { slug: "body_translation", name: "Body Translation", type: "longtext" },
   { slug: "body_excerpt", name: "Body Excerpt", type: "longtext" },
+  { slug: "quote_preview", name: "Quote Preview", type: "longtext" },
+  { slug: "html_excerpt", name: "HTML Excerpt", type: "longtext" },
+  { slug: "draft_text", name: "Draft Text", type: "longtext" },
+  { slug: "suggested_reply", name: "Suggested Reply", type: "longtext" },
   { slug: "draft_excerpt", name: "Draft Excerpt", type: "longtext" },
   { slug: "user_comment", name: "User Comment", type: "longtext" },
+  { slug: "decision_action", name: "Decision Action", type: "text" },
+  { slug: "decided_at", name: "Decided At", type: "date" },
+  { slug: "execution_status", name: "Execution Status", type: "text" },
+  { slug: "mailbox_operation", name: "Mailbox Operation", type: "text" },
+  { slug: "target_folder", name: "Target Folder", type: "text" },
+  { slug: "executed_at", name: "Executed At", type: "date" },
+  { slug: "execution_reason", name: "Execution Reason", type: "longtext" },
+  { slug: "execution_error", name: "Execution Error", type: "longtext" },
   { slug: "has_html", name: "Has HTML", type: "checkbox" },
   { slug: "has_draft", name: "Has Draft", type: "checkbox" },
   { slug: "has_translation", name: "Has Translation", type: "checkbox" },
   { slug: "has_attachments", name: "Has Attachments", type: "checkbox" },
   { slug: "drive_path", name: "Drive Path", type: "text" },
+  { slug: "html_drive_path", name: "HTML Drive Path", type: "text" },
+  { slug: "attachments_drive_path", name: "Attachments Drive Path", type: "text" },
   { slug: "attachment_count", name: "Attachment Count", type: "number" },
   { slug: "attachment_names", name: "Attachment Names", type: "longtext" },
+  { slug: "attachment_refs", name: "Attachment Refs", type: "longtext" },
   { slug: "classification_method", name: "Classification Method", type: "text" },
   { slug: "user_language", name: "User Language", type: "text" },
   { slug: "source_language", name: "Source Language", type: "text" },
+  { slug: "body_original_language", name: "Original Language", type: "text" },
+  { slug: "body_translation_language", name: "Translation Language", type: "text" },
   { slug: "status", name: "Status", type: "text" },
   { slug: "proposed_action", name: "Proposed Action", type: "text" },
   { slug: "updated_at", name: "Updated At", type: "date" },
@@ -455,6 +476,12 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     return recordFields(record);
   }
 
+  async function listRecordFields(options: { createBase?: boolean } = {}): Promise<Record<string, unknown>[]> {
+    const base = options.createBase === false ? await configuredBaseReadOnly() : await ensureBase();
+    if (!base) return [];
+    return (await listRecords(base.id)).map(recordFields);
+  }
+
   async function upsertRecord(recordId: string, fields: Record<string, unknown>, message: string) {
     const base = await ensureBase();
     const existing = await findRecordByAppId(recordId);
@@ -571,6 +598,7 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     ensureBase,
     ensureDrive,
     getRecordFields,
+    listRecordFields,
     upsertRecord,
     commitRecord: upsertRecord,
     readDriveText,

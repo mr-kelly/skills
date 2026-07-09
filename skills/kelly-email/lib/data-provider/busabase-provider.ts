@@ -1,6 +1,7 @@
-import type { Batch, Config, ConfigWithMeta, DecisionsPayload } from "../types.ts";
+import type { Batch, Config, ConfigWithMeta } from "../types.ts";
 import { createBusabaseClient } from "./busabase-client.ts";
 import { BUSABASE_LEGACY_RECORDS, BUSABASE_SCHEMA, schemaFingerprint } from "./busabase-schema.ts";
+import { batchFromEmailRecords, emailRecordId, reviewItemToEmailRecordFields } from "./email-records.ts";
 import { CONFIG_EXAMPLE_PATH } from "./local-file-provider.ts";
 import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
 import {
@@ -28,91 +29,9 @@ function asObject(value: unknown): Record<string, any> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, any>) : {};
 }
 
-function emptyDecisions(batchId = ""): DecisionsPayload {
-  return { batch_id: batchId, updated_at: "", decisions: [] };
-}
-
 function secretRef(endpoint: unknown) {
   const data = asObject(endpoint);
   return String(data.vault_ref || data.password_vault_ref || data.secret_ref || data.password_env || "").trim();
-}
-
-function compactText(value: unknown, limit = 1200) {
-  const text = String(value || "")
-    .replace(/\s+/g, " ")
-    .trim();
-  return text.length > limit ? `${text.slice(0, limit).trimEnd()}...` : text;
-}
-
-function safeDate(value: unknown) {
-  const text = String(value || "").trim();
-  if (!text) return "";
-  const date = new Date(text);
-  return Number.isNaN(date.getTime()) ? "" : date.toISOString();
-}
-
-function itemAttachments(item: Record<string, any>) {
-  return Array.isArray(item.attachments)
-    ? item.attachments.map((attachment: Record<string, any>) => ({
-        filename: attachment.filename || "",
-        content_type: attachment.content_type || attachment.contentType || "",
-        size: attachment.size || 0,
-        url: attachment.url || "",
-        preview: Boolean(attachment.preview),
-      }))
-    : [];
-}
-
-function reviewBrief(item: Record<string, any>) {
-  return asObject(item.review_brief);
-}
-
-function baseRowFields(item: Record<string, any>, batchId: string) {
-  const attachments = itemAttachments(item);
-  const brief = reviewBrief(item);
-  return {
-    kind: "review_item",
-    batch_id: batchId,
-    item_id: item.id,
-    email_uid: compactText(item.uid, 80),
-    thread_id: compactText(item.thread_id, 240),
-    message_id: compactText(item.message_id, 240),
-    folder: compactText(item.folder, 120),
-    subject: compactText(item.subject, 240),
-    sender: compactText(item.from, 240),
-    recipients: compactText(item.to, 800),
-    cc: compactText(item.cc, 800),
-    source_account: compactText(item.account, 120),
-    email_date: safeDate(item.date),
-    category: compactText(item.category, 80),
-    risk: Array.isArray(item.risk) ? item.risk.join(",") : "",
-    reason: compactText(item.reason, 1200),
-    summary: compactText(item.summary, 1800),
-    review_background: compactText(brief.background, 1200),
-    review_recommendation: compactText(brief.recommendation, 1200),
-    body_excerpt: compactText(item.body || item.body_original, 1800),
-    draft_excerpt: compactText(item.draft || item.suggested_reply, 1200),
-    user_comment: compactText(item.user_comment, 1200),
-    has_html: Boolean(item.has_html || item.html),
-    has_draft: Boolean(String(item.draft || item.suggested_reply || "").trim()),
-    has_translation: Boolean(String(item.body_translation || "").trim()),
-    has_attachments: attachments.length > 0,
-    drive_path: batchId ? `batches/${batchId}.json` : DRIVE_FILES.currentBatch,
-    attachment_count: attachments.length,
-    attachment_names: compactText(
-      attachments
-        .map((attachment) => attachment.filename)
-        .filter(Boolean)
-        .join(", "),
-      1200,
-    ),
-    classification_method: compactText(item.classification_method, 120),
-    user_language: compactText(item.user_language, 40),
-    source_language: compactText(item.source_language || item.body_original_language, 40),
-    status: item.status,
-    proposed_action: item.proposed_action,
-    updated_at: item.updated_at,
-  };
 }
 
 export function createBusabaseProvider() {
@@ -212,6 +131,12 @@ export function createBusabaseProvider() {
     return busa.getRecordFields(recordId);
   }
 
+  async function readEmailRows(): Promise<Record<string, any>[]> {
+    const busa = await client();
+    const rows = await busa.listRecordFields();
+    return rows.filter((row) => String(row.kind || "") === "review_item");
+  }
+
   async function readDriveJson(pathname: string): Promise<Record<string, any>> {
     const busa = await client();
     return busa.readDriveJson(pathname) as Promise<Record<string, any>>;
@@ -229,13 +154,22 @@ export function createBusabaseProvider() {
     }
   }
 
+  async function currentBatchId() {
+    try {
+      const snapshot = await readDriveJson(DRIVE_FILES.currentBatch);
+      return String(snapshot.batch_id || "").trim();
+    } catch {
+      return "";
+    }
+  }
+
   async function writeBaseRows(batch: Batch, itemIds?: string[]) {
     const wanted = itemIds ? new Set(itemIds.map(String)) : null;
     for (const item of batch.items || []) {
       if (wanted && !wanted.has(String(item.id))) continue;
       await commit(
-        `email-item-${item.id}`,
-        baseRowFields(item as Record<string, any>, batch.batch_id || ""),
+        emailRecordId(item),
+        reviewItemToEmailRecordFields(item, batch.batch_id || ""),
         `Review item ${item.subject || item.id}`,
       );
     }
@@ -356,10 +290,14 @@ export function createBusabaseProvider() {
     async getBatch(): Promise<Batch> {
       await ensureInitialized();
       try {
-        const batch = (await readDriveJson(DRIVE_FILES.currentBatch)) as Batch;
-        if (!batch || !Array.isArray(batch.items)) return emptyBatch();
-        return normalizeBatch(batch);
+        return batchFromEmailRecords(await readEmailRows(), await currentBatchId());
       } catch {
+        try {
+          const batch = (await readDriveJson(DRIVE_FILES.currentBatch)) as Batch;
+          if (batch && Array.isArray(batch.items)) return normalizeBatch(batch);
+        } catch {
+          // Fall through to legacy records below. Base remains the normal source of truth.
+        }
         try {
           const fields = await readFields(LEGACY_RECORDS.current_batch);
           const batch = (fields.batch || fields) as Batch;
@@ -374,24 +312,14 @@ export function createBusabaseProvider() {
     async saveBatch(batch: Batch) {
       await requireWritableSchema();
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
-      await writeBatchSnapshot(next, { archive: true });
       await writeBaseRows(next);
+      await writeBatchSnapshot(next, { archive: true });
       return next;
     },
 
     async getDecisions() {
       await ensureInitialized();
-      try {
-        return ((await readDriveJson(DRIVE_FILES.decisions)) as DecisionsPayload) || emptyDecisions();
-      } catch {
-        try {
-          const fields = await readFields(LEGACY_RECORDS.decisions);
-          return (fields.decisions_payload as DecisionsPayload) || emptyDecisions(String(fields.batch_id || ""));
-        } catch {
-          const batch = await this.getBatch();
-          return emptyDecisions(batch.batch_id);
-        }
-      }
+      return decisionsFromBatch(await this.getBatch());
     },
 
     async writeDecisions(batch: Batch) {
@@ -411,8 +339,8 @@ export function createBusabaseProvider() {
       const batch = await this.getBatch();
       const changed = applyItemsDecision(batch, input);
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
-      await writeBatchSnapshot(next);
       await writeBaseRows(next, changed);
+      await writeBatchSnapshot(next);
       const decisions = await this.writeDecisions(next);
       return { changed, decisions: decisions.decisions?.length || 0 };
     },
@@ -422,8 +350,8 @@ export function createBusabaseProvider() {
       const batch = await this.getBatch();
       const item = applyDetailUpdate(batch, input);
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
-      await writeBatchSnapshot(next);
       await writeBaseRows(next, [item.id]);
+      await writeBatchSnapshot(next);
       const decisions = await this.writeDecisions(next);
       return { id: item.id, decisions: decisions.decisions?.length || 0 };
     },

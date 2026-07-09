@@ -4,9 +4,9 @@ Personal email assistant review desk for the `kelly-email` skill. `/kelly-email`
 
 The app is intentionally not an email client:
 
-- `/kelly-email` generates a provider batch file: local mode uses `.agents/skills/kelly-email/app/.data/current_batch.json`; Busabase mode uses Drive `state/current_batch.json`.
-- The UI reads that batch, shows summaries, original text, attachments, and drafts.
-- The UI only writes provider decisions: local mode uses `.agents/skills/kelly-email/app/.data/decisions.json`; Busabase mode uses Drive `state/decisions.json`.
+- `/kelly-email` generates provider email records: local mode uses `.agents/skills/kelly-email/app/.data/email_records.json`; Busabase mode uses Base `review_item` rows.
+- The UI reads provider batch state derived from those records, shows summaries, original text, attachments, and drafts.
+- The UI only writes provider decisions: local mode updates `email_records.json`; Busabase mode updates `review_item.decision_*` Base columns. Compatibility `current_batch.json` / `decisions.json` snapshots may also be refreshed.
 - `/kelly-email` later reads provider decisions and performs approved email actions.
 
 The UI has no IMAP/SMTP behavior, no scan button, and no direct archive/send action.

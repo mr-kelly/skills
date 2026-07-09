@@ -3,9 +3,18 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { ROOT_DIR, SKILL_DIR } from "../paths.ts";
-import { ATTACHMENTS_DIR, BATCH_DIR, CURRENT_BATCH_PATH, DECISIONS_PATH, LOCK_PATH, REPORTS_DIR } from "../paths.ts";
+import {
+  ATTACHMENTS_DIR,
+  BATCH_DIR,
+  CURRENT_BATCH_PATH,
+  DECISIONS_PATH,
+  EMAIL_RECORDS_PATH,
+  LOCK_PATH,
+  REPORTS_DIR,
+} from "../paths.ts";
 import type { Batch } from "../types.ts";
 import type { Config, ConfigWithMeta } from "../types.ts";
+import { batchFromEmailRecords, rowsFromBatch } from "./email-records.ts";
 import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
 import {
   applyDetailUpdate,
@@ -178,9 +187,24 @@ async function writeJson(pathname: string, value: unknown) {
 }
 
 async function ensureDataDirs() {
+  await fs.mkdir(path.dirname(EMAIL_RECORDS_PATH), { recursive: true });
   await fs.mkdir(path.dirname(CURRENT_BATCH_PATH), { recursive: true });
   await fs.mkdir(BATCH_DIR, { recursive: true });
   await fs.mkdir(REPORTS_DIR, { recursive: true });
+}
+
+async function readEmailRecords() {
+  const rows = await readJson(EMAIL_RECORDS_PATH, []);
+  return Array.isArray(rows) ? rows : [];
+}
+
+async function writeEmailRecords(batch: Batch) {
+  await writeJson(EMAIL_RECORDS_PATH, rowsFromBatch(batch));
+}
+
+async function readBatchFromRecords() {
+  const rows = await readEmailRecords();
+  return rows.length ? batchFromEmailRecords(rows) : null;
 }
 
 function safeFilename(value: unknown, fallback: string) {
@@ -213,6 +237,8 @@ export function createLocalFileProvider() {
 
     async getBatch(): Promise<Batch> {
       await ensureDataDirs();
+      const recordsBatch = await readBatchFromRecords();
+      if (recordsBatch) return recordsBatch;
       if (await pathExists(CURRENT_BATCH_PATH)) return normalizeBatch(await readJson(CURRENT_BATCH_PATH));
       return emptyBatch();
     },
@@ -220,13 +246,15 @@ export function createLocalFileProvider() {
     async saveBatch(batch: Batch) {
       await ensureDataDirs();
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
+      await writeEmailRecords(next);
       await writeJson(CURRENT_BATCH_PATH, next);
       await writeJson(path.join(BATCH_DIR, `${next.batch_id || "current"}.json`), next);
       return next;
     },
 
     async getDecisions() {
-      return readJson(DECISIONS_PATH, { batch_id: "", updated_at: "", decisions: [] });
+      const batch = await this.getBatch();
+      return decisionsFromBatch(batch);
     },
 
     async writeDecisions(batch: Batch) {

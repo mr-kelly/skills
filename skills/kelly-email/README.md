@@ -80,7 +80,7 @@ The useful non-secret config blocks are:
 4. Approve archive, mark read, draft reply, or send actions.
 5. Return to chat and ask `/kelly-email` to execute approved decisions.
 
-The skill then reads the provider decisions file, applies approved mailbox actions through the bundled IMAP/SMTP connector, and writes an execution report.
+The skill then reads provider decisions, applies approved mailbox actions through the bundled IMAP/SMTP connector, and writes an execution report.
 
 For approved archive actions, execution moves the message to the configured category/risk folder for that mailbox and marks it read. It does not assume one universal `Archive` folder.
 
@@ -101,19 +101,22 @@ In chat-only mode, `/kelly-email` shows numbered items, suggestions, and draft r
 Local provider files:
 
 ```text
-.agents/skills/kelly-email/app/.data/current_batch.json
-.agents/skills/kelly-email/app/.data/decisions.json
+.agents/skills/kelly-email/app/.data/email_records.json
 .agents/skills/kelly-email/app/.data/agent.lock
+.agents/skills/kelly-email/app/.data/current_batch.json     # compatibility snapshot
+.agents/skills/kelly-email/app/.data/decisions.json         # compatibility snapshot
 ```
 
 Busabase provider paths:
 
 ```text
+busabase:base/review_item
+busabase:base/execution_report
 busabase:drive/config/config.json
-busabase:drive/state/current_batch.json
-busabase:drive/state/decisions.json
 busabase:drive/state/lock.json
 busabase:drive/state/scan_state.json
+busabase:drive/state/current_batch.json     # compatibility snapshot
+busabase:drive/state/decisions.json         # compatibility snapshot
 busabase:drive/batches/<batch_id>.json
 busabase:drive/attachments/<batch_id>/...
 busabase:vault/kelly-email

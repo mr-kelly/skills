@@ -82,8 +82,8 @@ KELLY_EMAIL_DATA_PROVIDER=busabase
 
 Configuration and App-in-Skill handoff state are read through `lib/data-provider/` (selector `KELLY_EMAIL_DATA_PROVIDER`, default `local`; the old `KELLY_EMAIL_DATA_READER` is still honored). The supported providers are:
 
-- `local`: JSON/env config plus local `app/.data/` handoff files.
-- `busabase`: Busabase as the whole skill storage provider. A dedicated Folder node groups the skill-owned Base and Drive. The Base stores structured review rows, reply drafts, and execution reports. The Drive stores account config plus app-state files such as schema, current batch, decisions, locks, scan state, batch archives, attachments, imports, and exports. Busabase Vault stores IMAP/SMTP secret values. The app and scripts still use the provider interface, not Busabase directly.
+- `local`: JSON/env config plus local `app/.data/` storage. The local provider uses `email_records.json` as the human-readable email review table and writes `current_batch.json` / `decisions.json` only as compatibility snapshots.
+- `busabase`: Busabase as the whole skill storage provider. A dedicated Folder node groups the skill-owned Base and Drive. The Base is the human-readable source of truth for structured email rows, reply drafts, decisions, and execution summaries. The Drive stores account config plus non-tabular files such as schema, locks, scan state, compatibility snapshots, batch archives, attachments, imports, and exports. Busabase Vault stores IMAP/SMTP secret values. The app and scripts still use the provider interface, not Busabase directly.
 
 For Busabase mode, only bootstrap connection settings come from env overrides (`KELLY_EMAIL_BUSABASE_URL`, `KELLY_EMAIL_BUSABASE_BASE_ID`, `KELLY_EMAIL_BUSABASE_BASE_SLUG`, `KELLY_EMAIL_BUSABASE_FOLDER_SLUG`, `KELLY_EMAIL_BUSABASE_DRIVE_SLUG`, `KELLY_EMAIL_BUSABASE_DRIVE_ID`, `KELLY_EMAIL_BUSABASE_SECRETS_NAMESPACE`, `KELLY_EMAIL_BUSABASE_SPACE_ID`, `KELLY_EMAIL_BUSABASE_API_KEY`). Mailbox accounts and non-secret skill config live in Drive at `config/config.json`; secret values live in Busabase Vault and are referenced from config with `vault_ref` / `password_vault_ref` / `secret_ref`. The provider lazily initializes the workspace Folder, Base, Drive, and Drive-backed schema file when it connects. `KELLY_EMAIL_DATA_PROVIDER=busabase npm run busabase:init` remains available for diagnostics or repair, but normal startup should not require a manual schema command.
 
@@ -350,13 +350,13 @@ Keep setup/tutorial details out of the always-visible sidebar. Provide a small `
 
 If onboarding is required, the UI should show one full-screen provider-not-ready gate with recommended config/secret paths and missing secret refs. Disable any implication that mail can be scanned until setup is complete.
 
-Generate a batch through the active provider: local mode writes `.agents/skills/kelly-email/app/.data/current_batch.json`; Busabase mode writes Drive `state/current_batch.json` and `batches/<batch_id>.json`. See `references/batch-schema.md` for the full batch-file and decisions-file schema — per-item fields, the classification pipeline stages, and how UI workflow state (`All`/`Needs Review`/`Approved`/`Done`/`Blocked`) is derived.
+Generate a batch through the active provider: local mode writes `.agents/skills/kelly-email/app/.data/email_records.json`; Busabase mode writes one `review_item` Base row per email. Both modes may also write `current_batch.json` / `decisions.json` compatibility snapshots, but those snapshots are not the source of truth. See `references/batch-schema.md` for the provider-neutral batch and decision schema — per-item fields, the classification pipeline stages, and how UI workflow state (`All`/`Needs Review`/`Approved`/`Done`/`Blocked`) is derived.
 
-After the user reviews in the UI, read decisions through the active provider: local mode reads `.agents/skills/kelly-email/app/.data/decisions.json`; Busabase mode reads Drive `state/decisions.json`. Treat it as the user's approval/comment layer, but still execute only decisions that are explicit (`archive`, `mark_read`, `send_reply`, `draft_reply`, `keep_unread`, `no_action`, `needs_review`, `revise`; see `references/batch-schema.md`):
+After the user reviews in the UI, read decisions through the active provider. Local mode derives them from `email_records.json`; Busabase mode derives them from `review_item.decision_*` Base columns. Treat them as the user's approval/comment layer, but still execute only decisions that are explicit (`archive`, `mark_read`, `send_reply`, `draft_reply`, `keep_unread`, `no_action`, `needs_review`, `revise`; see `references/batch-schema.md`):
 
-For `send_reply`, use the edited draft from the decisions file or current batch file, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. When archiving after send, use the same configured category/risk target folder and mark the message read; never hardcode `Archive`.
+For `send_reply`, use the edited draft from the provider item/decision state, preserve threading headers, include a short quote, then archive only if the decision or batch item says so. When archiving after send, use the same configured category/risk target folder and mark the message read; never hardcode `Archive`.
 
-For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.ts`. It reads provider `current_batch` and `decisions`, validates explicit UI-approved actions, applies approved IMAP/SMTP side effects, and writes an execution report through the active provider. Use `--dry-run` for validation when unsure.
+For App-in-Skill decision execution, prefer `.agents/skills/kelly-email/scripts/execute_ui_decisions.ts`. It reads provider batch/decision state, validates explicit UI-approved actions, applies approved IMAP/SMTP side effects, and writes an execution report through the active provider. Use `--dry-run` for validation when unsure.
 
 Treat the UI approval as the user's final approval for `archive` and `mark_read` by default, including messages that were originally classified as money, billing, account/security, technical alerts, attachments, or unclear real-person intent. Do not add another default safety block for those cleanup actions after the user approves them in the UI.
 
@@ -367,8 +367,8 @@ For `send_reply`, keep a stricter final safety check: require an explicit UI-app
 Typical user flow:
 
 1. User asks `/kelly-email` to generate the next approval batch.
-2. Kelly Email scans approved IMAP mail into provider `current_batch`, then starts the UI.
-3. User reviews in the UI. The UI writes provider `decisions`.
+2. Kelly Email scans unread IMAP mail into provider email records, then starts the UI.
+3. User reviews in the UI. The UI writes provider decision columns/state.
 4. User asks `/kelly-email` to execute UI-approved decisions.
 5. Kelly Email validates only explicit decisions, applies approved IMAP/SMTP actions, and writes an execution report.
 
@@ -441,7 +441,7 @@ Preferred team mode is the full provider:
 KELLY_EMAIL_DATA_PROVIDER=busabase
 ```
 
-In this mode, the configured Busabase Folder node is the aggregation point. Current batch, decisions, lock, schema metadata, attachment references, imports, and exports live in the Drive under that folder. Review items, reply drafts, scan state, and execution reports live as structured rows in the Base under that folder. The local UI still runs as the operator surface; it reads/writes through `lib/data-provider/` and never calls Busabase directly.
+In this mode, the configured Busabase Folder node is the aggregation point. Review items are structured Base rows with human-visible columns for subject, sender, body, status, proposed action, decision, draft, and execution result. Drive under the same folder stores config, schema metadata, locks, scan state, compatibility snapshots, attachment blobs, imports, and exports. The local UI still runs as the operator surface; it reads/writes through `lib/data-provider/` and never calls Busabase directly.
 
 The **reply draft** is the most canonical review slice: a reply is written, reviewed, revised ("make it warmer"), and approved before sending. The legacy reply-only store remains available through `lib/reply-review/`, selected by `KELLY_EMAIL_REPLY_PROVIDER`:
 

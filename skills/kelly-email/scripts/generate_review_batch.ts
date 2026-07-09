@@ -59,8 +59,8 @@ function parseArgs(argv: string[]): BatchArgs {
 function printHelp() {
   console.log(`Usage: node scripts/generate_review_batch.ts [--review-quota 5] [--max-scan-per-mailbox 120] [--dry-run]
 
-Read unread IMAP mail, generate the local App-in-Skill review batch, and reset decisions.json.
---dry-run reads and classifies mail but does not write current_batch.json or decisions.json.`);
+Read unread IMAP mail, generate the provider email review table, and refresh compatibility snapshots.
+--dry-run reads and classifies mail but does not write provider records or snapshots.`);
 }
 
 function mailboxFolders(mailbox: Mailbox) {
@@ -359,7 +359,7 @@ async function main() {
           prepared: allItems.filter((item) => item.status === "prepared").length,
           needs_review: allItems.filter((item) => item.status === "needs_review").length,
           skill_dir: SKILL_DIR,
-          batch_path: busabase ? "busabase:drive/state/current_batch.json" : "app/.data/current_batch.json",
+          batch_path: busabase ? "busabase:base/review_item" : "app/.data/email_records.json",
           attachments_path: busabase
             ? "busabase:drive/attachments/<batch_id>/..."
             : "app/.data/attachments/<batch_id>/...",
@@ -380,8 +380,7 @@ async function main() {
         items: allItems.length,
         prepared: batch.metrics.prepared,
         needs_review: batch.metrics.needs_review,
-        batch_path:
-          provider.kind === "busabase" ? "busabase:drive/state/current_batch.json" : "app/.data/current_batch.json",
+        batch_path: provider.kind === "busabase" ? "busabase:base/review_item" : "app/.data/email_records.json",
       },
       null,
       2,

@@ -187,7 +187,7 @@ The same app should be able to graduate to a database or cloud service without r
 
 Busabase is the recommended cloud provider for shared review/canonical workflows.
 
-Local App-in-Skill handoff files keep "what the agent prepared" and "what the human approved" on disk. Busabase keeps the same pattern as Inbox records, reviews, canonical records, and audit trails. Backing an App-in-Skill with `busabase` turns a personal tool into a shared, multi-operator system of record for human-approved AI output.
+Local App-in-Skill handoff files may serialize "what the agent prepared" and "what the human approved" on disk, but a Busabase-backed skill should make the Base the human-readable system of record whenever the data is naturally tabular. Backing an App-in-Skill with `busabase` turns a personal tool into a shared, multi-operator system of record for human-approved AI output.
 
 Prefer Busabase for App-in-Skills whose output should become trusted, shared, canonical content.
 
@@ -196,14 +196,14 @@ Prefer Busabase for App-in-Skills whose output should become trusted, shared, ca
 Use Busabase as a whole skill storage provider, not just a reply-review queue or remote JSON file.
 
 - **Folder node** is the dedicated aggregation point for one skill or one configured workspace. Put the skill-owned Base and Drive under this folder. Do not use the Base node itself as the workspace container.
-- **Base node** stores structured, queryable, reviewable domain rows: review items, reply drafts, tasks, approvals, canonical records, scan rows, and execution report summaries. Keep Base rows compact. Store searchable fields, status, category, owner, timestamps, counters, and Drive/Doc refs; do not embed giant HTML, raw email bodies, PDFs, screenshots, logs, transcripts, or attachment bytes in Base JSON fields.
+- **Base node** stores structured, queryable, reviewable domain rows: review items, emails, reply drafts, tasks, approvals, canonical records, scan rows, and execution report summaries. Treat Base as the surface humans open to understand the workflow. Split important fields into columns: title/subject, sender/source, body text or excerpt when humans need to inspect it, status, category, proposed action, decision, owner, timestamps, counters, and Drive/Doc refs. Avoid one giant `item` JSON column that hides the object from Base views. Do not store attachment bytes, PDFs, screenshots, raw MIME, huge HTML, logs, or media blobs in Base.
 - **Doc node** stores long-form editable documents that need rich human review, comments, sections, or publishable narrative: generated articles, policy drafts, research memos, contracts, briefs, playbooks, and canonical long text. Use Docs when humans should read/edit the artifact as a document, not when the app only needs a blob path.
-- **Drive node** stores file-tree/app-state blobs: `config/config.json`, `state/schema.json`, `state/current_batch.json`, `state/decisions.json`, `state/lock.json`, `state/scan_state.json`, batch archives, attachments, raw imports, generated exports, screenshots, large HTML/email snapshots, PDFs, media, and any blob-like content that should not be embedded in a Base record.
+- **Drive node** stores file-tree blobs and non-tabular state: `config/config.json`, `state/schema.json`, `state/lock.json`, `state/scan_state.json`, compatibility snapshots, batch archives, attachments, raw imports, generated exports, screenshots, large HTML/email snapshots, PDFs, media, and any blob-like content that should not be embedded in a Base record.
 - **Busabase Vault** stores secret values. Skill JSON config should contain secret references such as `vault_ref`, `password_vault_ref`, `secret_ref`, or compatibility `password_env`, never secret values.
 
 The App UI and scripts should still depend only on `lib/data-provider/`. Busabase SDK, OpenAPI client, REST routes, auth headers, and Drive/Secrets specifics belong in a Busabase adapter such as `lib/data-provider/busabase-client.ts`.
 
-Keep `config`, `schema`, `current_batch`, `decisions`, `scan_state`, and `lock` out of the Base unless they are legacy fallback records. Those are Drive files. New writes should use the Folder/Base/Drive split above. In Busabase provider mode, do not rely on local `app/.data`, `config.local.json`, or `.env` for runtime state; only bootstrap connection env such as Busabase URL/base/space/API key may come from the process environment.
+Keep `config`, `schema`, `scan_state`, and `lock` out of the Base unless they are legacy fallback records. Those are Drive files. For review queues, `current_batch` and `decisions` should usually be projections derived from Base rows; write JSON snapshots only for backward compatibility or diagnostics. In Busabase provider mode, do not rely on local `app/.data`, `config.local.json`, or `.env` for runtime state; only bootstrap connection env such as Busabase URL/base/space/API key may come from the process environment.
 
 ### Storage Choice Rules
 
@@ -214,12 +214,13 @@ Use these rules when deciding where an App-in-Skill artifact belongs:
 | Secret values, app passwords, OAuth refresh tokens, private API keys | Vault | Runtime-only secret lookup; never expose through JSON/UI/state. |
 | Secret reference names | Drive config or Base row | Non-secret identifiers such as `vault_ref`; safe to summarize. |
 | Account config, routing rules, user profile, brand/style/knowledge config | Drive `config/config.json` | Non-secret runtime config owned by the skill workspace. |
-| Current batch, decisions, lock, scan cursor/state, schema manifest | Drive `state/*.json` | App handoff state; mutable blobs, not canonical rows. |
-| Batch archives, raw imports, exports, attachments, screenshots, PDFs, large HTML/text snapshots | Drive | Blob/file tree storage; can be linked from Base rows. |
-| Review queue rows, tasks, approvals, canonical entities, execution summaries | Base | Needs filtering, status views, audit, assignment, dedupe, and canonical query. |
+| Current batch projection, decisions projection, compatibility snapshots | Derived from Base; optional Drive snapshots | Helpful for legacy scripts/diagnostics, but not canonical in Busabase mode. |
+| Lock, scan cursor/state, schema manifest | Drive `state/*.json` | Non-tabular app control state owned by the skill workspace. |
+| Batch archives, raw imports, exports, attachments, screenshots, PDFs, large HTML/text snapshots | Drive | Blob/file tree storage; link from Base rows. |
+| Review queue rows, emails, tasks, approvals, canonical entities, execution summaries | Base | Needs filtering, status views, audit, assignment, dedupe, visual inspection, and canonical query. |
 | Long-form artifact humans edit as a document | Doc | Rich document semantics; keep a Base row pointing at the Doc when workflow/status is needed. |
 
-For review apps, write the full batch to Drive and a compact row per item to Base. The Base row should include a short human-readable primary field, status, proposed action, category/risk, sender/source/account, short summary/excerpt, attachment count, and a `drive_path` or `doc_node_id`. Keep the full body/HTML/attachment refs in Drive or Doc. This avoids large-field failures and keeps Base views fast.
+For review apps, write one canonical Base row per human-reviewable item. The Base row should be useful when opened directly by a person: include a human-readable primary field, status, proposed action, decision/verdict, category/risk, sender/source/account, summary, relevant body text or excerpt, editable draft/comment fields, execution status/result, attachment count/name columns, and Drive/Doc refs for blobs. Do not collapse the item into one JSON column. Store attachment bytes, raw MIME, huge HTML, screenshots, PDFs, and logs in Drive; store long-form editable narratives in Doc.
 
 Recommended config:
 
@@ -269,13 +270,15 @@ export const BUSABASE_SCHEMA = {
     id: "skill-name",
     slug: "skill-name",
     name: "Skill Name",
+    fields: ["record_id", "kind", "title", "source", "body_text", "status", "decision_action", "updated_at"],
     record_kinds: ["review_item", "task", "approval", "canonical_record", "execution_report"]
   },
   drive: {
     id: "skill-name-files",
     slug: "skill-name-workspace-files",
     config_files: ["config/config.json"],
-    state_files: ["state/schema.json", "state/current_batch.json", "state/decisions.json", "state/lock.json", "state/scan_state.json"],
+    state_files: ["state/schema.json", "state/lock.json", "state/scan_state.json"],
+    compat_files: ["state/current_batch.json", "state/decisions.json"],
     roots: ["config", "state", "batches", "attachments", "imports", "exports"]
   },
   docs: {

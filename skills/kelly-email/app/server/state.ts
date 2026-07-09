@@ -2,7 +2,7 @@ import { createProvider } from "../../lib/data-provider/index.ts";
 import { loadBatch, normalizeItem } from "./batch-store.ts";
 import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./config.ts";
 import { lockPayload } from "./lock.ts";
-import { CURRENT_BATCH_PATH, DECISIONS_PATH } from "./paths.ts";
+import { CURRENT_BATCH_PATH, DECISIONS_PATH, EMAIL_RECORDS_PATH } from "./paths.ts";
 import { providerStatus } from "./provider-status.ts";
 import type { ReviewItem, StateQuery, StatusCounts } from "./types.ts";
 import { normalizeQueryValue } from "./utils.ts";
@@ -87,8 +87,8 @@ export async function statePayload(query: StateQuery = {}) {
     counts,
     items,
     total_cached: allItems.length,
-    batch_path: provider.kind === "busabase" ? "busabase:drive/state/current_batch.json" : CURRENT_BATCH_PATH,
-    decisions_path: provider.kind === "busabase" ? "busabase:drive/state/decisions.json" : DECISIONS_PATH,
+    batch_path: provider.kind === "busabase" ? "busabase:base/review_item" : EMAIL_RECORDS_PATH,
+    decisions_path: provider.kind === "busabase" ? "busabase:base/review_item.decision_*" : DECISIONS_PATH,
     provider_status: providerState,
     email_accounts: publicAccounts(config, source, onboarding, configMeta),
     lock: providerUnavailable ? { locked: false, provider: provider.kind } : await lockPayload(),
