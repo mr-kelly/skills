@@ -1,0 +1,41 @@
+{
+  "skill": "kelly-retail-intel",
+  "brand": {
+    "name": "Example Business",
+    "geography": "Hong Kong",
+    "language": "auto",
+    "audience": "retail owners, brand operators, store managers, and merchandisers"
+  },
+  "offer": {
+    "summary": "daily retail intelligence that becomes promotion ideas, merchandising notes, and staff talking points",
+    "default_cta": "Reply to approve today's action plan.",
+    "forbidden_claims": ["unverified results", "guaranteed outcomes"]
+  },
+  "sources": [
+    {
+      "id": "news",
+      "label": "News sources",
+      "method": "browser_agent",
+      "examples": "weather, local events, competitor promotions, product trends, mall traffic signals, and customer reviews"
+    },
+    {
+      "id": "competitors",
+      "label": "Competitors",
+      "method": "browser_agent",
+      "examples": "Add public competitor URLs"
+    },
+    {
+      "id": "trends",
+      "label": "Trend signals",
+      "method": "browser_agent",
+      "keywords": ["retail promotion", "mall event", "weather sales", "customer review", "零售", "促销"]
+    }
+  ],
+  "channels": ["staff brief", "IG story", "store sign"],
+  "provider": {
+    "type": "local"
+  },
+  "ui": {
+    "accent": "orange"
+  }
+}

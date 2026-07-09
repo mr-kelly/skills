@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Insurance Intel"
+  short_description: "Market, policy, client-risk, and advisor follow-up intelligence"
+  default_prompt: "Use $kelly-insurance-intel to prepare today's insurance and wealth advisory intelligence batch and open the review cockpit."

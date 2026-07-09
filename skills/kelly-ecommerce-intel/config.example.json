@@ -1,0 +1,41 @@
+{
+  "skill": "kelly-ecommerce-intel",
+  "brand": {
+    "name": "Example Business",
+    "geography": "Hong Kong",
+    "language": "auto",
+    "audience": "e-commerce founders, marketplace operators, DTC marketers, and cross-border sellers"
+  },
+  "offer": {
+    "summary": "daily e-commerce intelligence that becomes listing edits, ad angles, and product-push recommendations",
+    "default_cta": "Reply to approve today's action plan.",
+    "forbidden_claims": ["unverified results", "guaranteed outcomes"]
+  },
+  "sources": [
+    {
+      "id": "news",
+      "label": "News sources",
+      "method": "browser_agent",
+      "examples": "marketplace pages, competitor pricing, platform policy notices, search trends, ads libraries, and reviews"
+    },
+    {
+      "id": "competitors",
+      "label": "Competitors",
+      "method": "browser_agent",
+      "examples": "Add public competitor URLs"
+    },
+    {
+      "id": "trends",
+      "label": "Trend signals",
+      "method": "browser_agent",
+      "keywords": ["Amazon listing", "Shopify", "TikTok Shop", "competitor price", "电商", "跨境"]
+    }
+  ],
+  "channels": ["listing copy", "ad angle", "customer reply"],
+  "provider": {
+    "type": "local"
+  },
+  "ui": {
+    "accent": "green"
+  }
+}

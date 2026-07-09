@@ -1,0 +1,41 @@
+{
+  "skill": "kelly-insurance-intel",
+  "brand": {
+    "name": "Example Business",
+    "geography": "Hong Kong",
+    "language": "auto",
+    "audience": "insurance advisors, agency managers, and independent financial consultants"
+  },
+  "offer": {
+    "summary": "daily advisor intelligence that becomes client reminders, meeting reasons, and compliant draft messages",
+    "default_cta": "Reply to approve today's action plan.",
+    "forbidden_claims": ["unverified results", "guaranteed outcomes"]
+  },
+  "sources": [
+    {
+      "id": "news",
+      "label": "News sources",
+      "method": "browser_agent",
+      "examples": "market news, insurer announcements, regulator updates, health/cost-of-living news, and client lifecycle events"
+    },
+    {
+      "id": "competitors",
+      "label": "Competitors",
+      "method": "browser_agent",
+      "examples": "Add public competitor URLs"
+    },
+    {
+      "id": "trends",
+      "label": "Trend signals",
+      "method": "browser_agent",
+      "keywords": ["insurance", "wealth planning", "retirement", "health cost", "保險", "理财"]
+    }
+  ],
+  "channels": ["client WhatsApp", "advisor email", "meeting agenda"],
+  "provider": {
+    "type": "local"
+  },
+  "ui": {
+    "accent": "blue"
+  }
+}

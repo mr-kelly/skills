@@ -1,0 +1,41 @@
+{
+  "skill": "kelly-financial-services-intel",
+  "brand": {
+    "name": "Example Business",
+    "geography": "Hong Kong",
+    "language": "auto",
+    "audience": "financial-service founders, family office operators, analysts, and client advisors"
+  },
+  "offer": {
+    "summary": "daily financial-services intelligence that becomes sourced internal briefs and review-first client drafts",
+    "default_cta": "Reply to approve today's action plan.",
+    "forbidden_claims": ["unverified results", "guaranteed outcomes"]
+  },
+  "sources": [
+    {
+      "id": "news",
+      "label": "News sources",
+      "method": "browser_agent",
+      "examples": "market news, regulatory updates, macro data, company announcements, portfolio themes, and client questions"
+    },
+    {
+      "id": "competitors",
+      "label": "Competitors",
+      "method": "browser_agent",
+      "examples": "Add public competitor URLs"
+    },
+    {
+      "id": "trends",
+      "label": "Trend signals",
+      "method": "browser_agent",
+      "keywords": ["market news", "portfolio risk", "family office", "investment advisory", "金融", "投顾"]
+    }
+  ],
+  "channels": ["client memo", "internal brief", "advisor script"],
+  "provider": {
+    "type": "local"
+  },
+  "ui": {
+    "accent": "graphite"
+  }
+}

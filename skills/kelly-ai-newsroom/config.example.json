@@ -1,0 +1,41 @@
+{
+  "skill": "kelly-ai-newsroom",
+  "brand": {
+    "name": "Example Business",
+    "geography": "Hong Kong",
+    "language": "auto",
+    "audience": "founders, operators, and product sellers who need to convert news and trend signals into daily sales scenes"
+  },
+  "offer": {
+    "summary": "daily news-source and buyer-intent intelligence that turns trend signals into approved sales actions",
+    "default_cta": "Reply to approve today's action plan.",
+    "forbidden_claims": ["unverified results", "guaranteed outcomes"]
+  },
+  "sources": [
+    {
+      "id": "news",
+      "label": "News sources",
+      "method": "browser_agent",
+      "examples": "OpenAI, Microsoft Copilot, Google AI Search, Perplexity, privacy regulators, and local business media"
+    },
+    {
+      "id": "competitors",
+      "label": "Competitors",
+      "method": "browser_agent",
+      "examples": "Add public competitor URLs"
+    },
+    {
+      "id": "trends",
+      "label": "Trend signals",
+      "method": "browser_agent",
+      "keywords": ["AI news", "OpenAI news", "Copilot Studio", "AI search", "media monitoring", "buyer intent"]
+    }
+  ],
+  "channels": ["sales opener", "LinkedIn post", "client memo"],
+  "provider": {
+    "type": "local"
+  },
+  "ui": {
+    "accent": "blue"
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly AI Newsroom"
+  short_description: "News-source intelligence desk for buyer-trigger AI scenes"
+  default_prompt: "Use $kelly-ai-newsroom to prepare today's AI/news-source intelligence intelligence batch and open the review cockpit."
