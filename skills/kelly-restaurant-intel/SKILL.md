@@ -33,6 +33,19 @@ Sales framing:
 
 Do not lead with "AI platform", "agent workspace", "database", or model names. Lead with the daily business scene.
 
+## Scene Logic
+
+Use this skill to turn local conditions into restaurant group operating and marketing actions. A signal is valuable when it affects reservations, delivery mix, menu focus, staffing, customer recovery, or group-level promotion timing.
+
+Prioritize signals in this order:
+
+1. weather, events, holidays, transport, tourism, and neighborhood activity that change meal-period demand;
+2. competitor menus, offers, delivery ranking, and review themes that alter the guest's choice frame;
+3. ingredient, supply, staffing, or operating notices that affect what should be promoted safely;
+4. recurring customer questions about wait time, allergens, group booking, delivery, or value.
+
+Actions should become shift briefs, hero-menu picks, delivery copy, review replies, booking scripts, or Buda/Busabase approval cards. Block allergen/food-safety claims unless sourced, price/menu promises without confirmation, and any health or nutrition advice beyond approved copy.
+
 ## Boundary
 
 - The skill may browse public/current sources, reason over buyer intent, draft actions/content, validate schemas, and write local handoff files.

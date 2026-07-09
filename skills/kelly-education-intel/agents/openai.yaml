@@ -1,4 +1,4 @@
 interface:
   display_name: "Kelly Education Intel"
   short_description: "Policy, exam, visa, parent FAQ, and enrollment intelligence"
-  default_prompt: "Use $kelly-education-intel to prepare today's education, training, tutoring, and admissions services intelligence batch and open the review cockpit."
+  default_prompt: "Use $kelly-education-intel to prepare today's education and enrollment intelligence batch and open the review cockpit."

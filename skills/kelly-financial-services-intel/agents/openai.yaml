@@ -1,4 +1,4 @@
 interface:
   display_name: "Kelly Financial Services Intel"
   short_description: "Market, client-explainer, risk, and opportunity intelligence"
-  default_prompt: "Use $kelly-financial-services-intel to prepare today's financial services, investment advisory, and family offices intelligence batch and open the review cockpit."
+  default_prompt: "Use $kelly-financial-services-intel to prepare today's financial-services client intelligence batch and open the review cockpit."

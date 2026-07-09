@@ -33,6 +33,19 @@ Sales framing:
 
 Do not lead with "AI platform", "agent workspace", "database", or model names. Lead with the daily business scene.
 
+## Scene Logic
+
+Use this skill to convert marketplace, ads, and competitor changes into ecommerce decisions. A signal is valuable when it affects search rank, conversion rate, margin, policy risk, creative testing, or customer objection handling.
+
+Prioritize signals in this order:
+
+1. platform policy, fee, logistics, ranking, or account-health changes that require action before sales are affected;
+2. competitor price, bundle, title, image, review, or ad movement that changes the offer comparison;
+3. search/trend and review-language changes that reveal new buyer intent or a listing-copy gap;
+4. fulfillment, seasonality, and campaign-calendar signals that affect which SKU gets pushed today.
+
+Actions should become listing edits, ad angles, bundle tests, review-response drafts, campaign briefs, or Busabase approval batches. Block platform-policy workarounds, fake review behavior, unsupported product claims, IP infringement, and price changes without explicit approval.
+
 ## Boundary
 
 - The skill may browse public/current sources, reason over buyer intent, draft actions/content, validate schemas, and write local handoff files.

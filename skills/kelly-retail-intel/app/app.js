@@ -2,8 +2,18 @@ import { messages } from "./i18n/messages.js";
 
 const params = new URLSearchParams(location.search);
 const langOverride = params.get("lang") || localStorage.getItem("lang") || "auto";
+const normalizeLang = (value) =>
+  String(value || "auto")
+    .toLowerCase()
+    .startsWith("zh")
+    ? "zh"
+    : String(value || "auto");
 const lang =
-  langOverride === "auto" ? ((navigator.language || "en").toLowerCase().startsWith("zh") ? "zh" : "en") : langOverride;
+  langOverride === "auto"
+    ? (navigator.language || "en").toLowerCase().startsWith("zh")
+      ? "zh"
+      : "en"
+    : normalizeLang(langOverride);
 const t = messages[lang] || messages.en;
 const state = { batch: null, decisions: {}, route: parseRoute(), selectedId: null };
 

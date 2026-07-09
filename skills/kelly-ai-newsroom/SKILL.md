@@ -33,6 +33,19 @@ Sales framing:
 
 Do not lead with "AI platform", "agent workspace", "database", or model names. Lead with the daily business scene.
 
+## Scene Logic
+
+Use the newsroom to separate **attention** from **purchase intent**. A model release, search update, enterprise admin change, pricing shift, source-ranking change, or regulator notice matters only when it changes what a founder, operator, agency, consultant, or B2B seller must buy, replace, explain, or defend.
+
+Prioritize signals in this order:
+
+1. buyer workflow disruption: a news-source, search, or AI platform change that alters how leads discover, compare, or evaluate vendors;
+2. budget trigger: a Microsoft, Meta, Google, OpenAI, Anthropic, Perplexity, or enterprise-software move that makes a concrete internal project newly urgent;
+3. proof pressure: a public case, regulation, outage, benchmark, or lawsuit that forces buyers to ask "are we exposed?";
+4. channel opportunity: a trend that can become a credible sales opener, client memo, landing-page angle, or Buda/Busabase demo script within 24 hours.
+
+Every batch must include one narrow buyer scene, one "why now" sentence, and one approved next action. If a signal is interesting but does not imply a business action, keep it as watch-only.
+
 ## Boundary
 
 - The skill may browse public/current sources, reason over buyer intent, draft actions/content, validate schemas, and write local handoff files.

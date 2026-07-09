@@ -1,4 +1,4 @@
 interface:
   display_name: "Kelly Restaurant Intel"
   short_description: "Local event, weather, menu, competitor, and daily offer intelligence"
-  default_prompt: "Use $kelly-restaurant-intel to prepare today's restaurants, cafes, and F&B groups intelligence batch and open the review cockpit."
+  default_prompt: "Use $kelly-restaurant-intel to prepare today's restaurant-group intelligence batch and open the review cockpit."

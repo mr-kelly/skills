@@ -33,6 +33,19 @@ Sales framing:
 
 Do not lead with "AI platform", "agent workspace", "database", or model names. Lead with the daily business scene.
 
+## Scene Logic
+
+Use this skill to convert education news into enrollment, parent-service, tutoring, or school-operator actions. A useful signal changes timing, trust, curriculum fit, admissions pressure, or parent anxiety.
+
+Prioritize signals in this order:
+
+1. exam, admissions, visa, scholarship, or school-calendar changes with hard dates;
+2. parent questions and complaint themes that reveal purchase anxiety or a missing FAQ;
+3. competitor course/offering changes that affect positioning, price packaging, or channel copy;
+4. policy, AI-in-education, safety, or credential news that demands a client memo.
+
+Actions should become parent FAQ answers, course launch angles, admissions checklists, webinar topics, advisor scripts, or Busabase review batches. Block admission guarantees, grade promises, immigration/legal advice, and claims about schools that lack a source.
+
 ## Boundary
 
 - The skill may browse public/current sources, reason over buyer intent, draft actions/content, validate schemas, and write local handoff files.

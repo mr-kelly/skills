@@ -33,6 +33,19 @@ Sales framing:
 
 Do not lead with "AI platform", "agent workspace", "database", or model names. Lead with the daily business scene.
 
+## Scene Logic
+
+Use this skill to turn beauty, wellness, and medical-aesthetic signals into safe conversion actions. A signal is valuable when it affects consultation demand, trust, seasonality, treatment positioning, repeat visits, or review risk.
+
+Prioritize signals in this order:
+
+1. safety, regulator, ingredient, device, or clinical-news items that require cautious client education;
+2. seasonal or event-driven demand that can become a timely consultation offer;
+3. competitor pricing, package, influencer, or review movement that changes offer positioning;
+4. recurring customer objections about pain, downtime, results, safety, or aftercare.
+
+Actions should become consultation scripts, non-diagnostic FAQs, campaign angles, staff talking points, review-recovery notes, or Buda/Busabase approval cards. Block medical diagnosis, treatment guarantees, before/after certainty, prescription guidance, and unsupported safety claims.
+
 ## Boundary
 
 - The skill may browse public/current sources, reason over buyer intent, draft actions/content, validate schemas, and write local handoff files.

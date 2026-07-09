@@ -33,6 +33,19 @@ Sales framing:
 
 Do not lead with "AI platform", "agent workspace", "database", or model names. Lead with the daily business scene.
 
+## Scene Logic
+
+Use this skill to turn financial-market, regulatory, and client-question signals into reviewable relationship-management actions. A signal is valuable when it changes client concern, advisor preparation, risk disclosure, product education, or internal briefing priorities.
+
+Prioritize signals in this order:
+
+1. regulator, exchange, central-bank, tax, product, or disclosure changes with client-facing implications;
+2. macro, market, company, and portfolio-theme movement that may trigger client questions;
+3. competitor commentary or campaign movement that changes expectations around service, tools, or education;
+4. recurring client objections that can become an evidence-backed memo or meeting agenda.
+
+Actions should become internal briefs, client education memos, advisor talking points, risk reminders, meeting agendas, or Busabase approval batches. Block personalized investment advice, suitability conclusions, performance promises, tax/legal advice, and any trade or money movement.
+
 ## Boundary
 
 - The skill may browse public/current sources, reason over buyer intent, draft actions/content, validate schemas, and write local handoff files.

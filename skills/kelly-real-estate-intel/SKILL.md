@@ -33,6 +33,19 @@ Sales framing:
 
 Do not lead with "AI platform", "agent workspace", "database", or model names. Lead with the daily business scene.
 
+## Scene Logic
+
+Use this skill to turn property-market movement into a usable brokerage or developer sales day. A real-estate signal is valuable when it changes one of four conversations: buyer urgency, seller pricing confidence, landlord vacancy risk, or project positioning.
+
+Prioritize signals in this order:
+
+1. transaction and mortgage changes that alter affordability, yield, or negotiation leverage;
+2. district, transport, school-zone, event, or policy updates that create a timely reason to contact owners or buyers;
+3. listing and competitor ad movement that reveals inventory pressure, discounting, or a winning angle;
+4. objections appearing in reviews, forums, or inbound questions that can be answered with source-backed scripts.
+
+Actions should become call scripts, owner update notes, listing-page angles, open-house talking points, or Buda/Busabase demo cards. Block unverified price claims, guaranteed appreciation, legal advice, and anything that implies agency without approval.
+
 ## Boundary
 
 - The skill may browse public/current sources, reason over buyer intent, draft actions/content, validate schemas, and write local handoff files.

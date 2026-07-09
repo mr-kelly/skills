@@ -33,6 +33,19 @@ Sales framing:
 
 Do not lead with "AI platform", "agent workspace", "database", or model names. Lead with the daily business scene.
 
+## Scene Logic
+
+Use this skill to convert insurance-market movement into compliant advisor, agency, or broker actions. A useful signal creates a timely reason to review cover, explain risk, update a client segment, or prepare a renewal conversation.
+
+Prioritize signals in this order:
+
+1. regulator, insurer, product, premium, claims, or benefit changes that affect a client's review checklist;
+2. health, travel, weather, business, or cost-of-living news that makes a protection gap newly visible;
+3. competitor education content or campaign movement that shifts the client's comparison frame;
+4. lifecycle events and recurring client questions that can become segmented follow-up tasks.
+
+Actions should become compliant meeting agendas, client education notes, renewal scripts, needs-review checklists, or Busabase approval batches. Block personalized financial advice, product suitability conclusions, return promises, policy interpretation beyond sourced text, and outbound claims without approval.
+
 ## Boundary
 
 - The skill may browse public/current sources, reason over buyer intent, draft actions/content, validate schemas, and write local handoff files.

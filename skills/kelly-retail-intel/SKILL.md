@@ -33,6 +33,19 @@ Sales framing:
 
 Do not lead with "AI platform", "agent workspace", "database", or model names. Lead with the daily business scene.
 
+## Scene Logic
+
+Use this skill to turn local demand, merchandising, and competitor movement into a retail operating day. A signal is valuable when it affects footfall, hero SKU selection, staff talking points, window/signage copy, or inventory risk.
+
+Prioritize signals in this order:
+
+1. weather, event, holiday, traffic, mall, or neighborhood signals that change today's demand;
+2. competitor promotion and product-display changes that affect price perception or assortment emphasis;
+3. review and social themes that reveal why customers buy, hesitate, or return items;
+4. supplier, inventory, or platform notices that affect availability or margin.
+
+Actions should become store briefing notes, hero-product picks, signage copy, staff scripts, replenishment checks, or Buda/Busabase review cards. Block inventory promises, discount commitments, supplier claims, or customer segmentation using private data unless explicitly configured.
+
 ## Boundary
 
 - The skill may browse public/current sources, reason over buyer intent, draft actions/content, validate schemas, and write local handoff files.
