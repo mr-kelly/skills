@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Real Estate Intel"
+  short_description: "Daily property, listing, competitor, and client-follow-up intelligence"
+  default_prompt: "Use $kelly-real-estate-intel to prepare today's property-agency intelligence batch and open the review cockpit."

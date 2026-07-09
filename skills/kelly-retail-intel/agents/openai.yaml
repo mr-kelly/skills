@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Retail Intel"
+  short_description: "Store, promotion, weather, event, and merchandising intelligence"
+  default_prompt: "Use $kelly-retail-intel to prepare today's retail merchandising intelligence batch and open the review cockpit."

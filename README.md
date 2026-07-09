@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-43 skills, including 40 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+52 skills, including 49 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-43-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-52-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -103,6 +103,15 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-seo` | Search desk covering SEO + GEO: Google Search Console analytics (clicks/impressions/CTR/position, opportunities) plus a generative-engine-optimization side — an AI-visibility tracker across ChatGPT/Perplexity/Gemini/Claude/Copilot, a citability-optimization queue, and brand-entity / knowledge-panel readiness, gated by geo-qa. | Use it when analyzing search performance, tracking and improving how AI engines cite your brand, approving GEO content changes, or fixing knowledge-graph and entity signals. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-seo.html) |
 | `kelly-feedback` | Aggregates user feedback from every channel, clusters it into weighted feature requests, and runs a roadmap decision queue with drafted replies and changelog notes. | Use it when triaging user feedback, prioritizing feature requests, or making evidence-backed roadmap promote/decline decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-feedback.html) |
 | `kelly-radar` | Market-intelligence desk merging competitor signal monitoring (pricing, changelog, launch, review diffs), a research question workbench with brief approval and cited reports, and keyword/topic trend tracking. | Use it when watching competitors, commissioning deep research reports, or turning rising search and community trends into opportunity cards. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-radar.html) |
+| `kelly-ai-newsroom` | AI/news-source intelligence cockpit that separates noisy attention from buyer-trigger signals and turns platform, search, regulator, and enterprise-software movement into approved sales actions. | Use it when tracking AI news, Microsoft/Meta/OpenAI/Google/Perplexity movement, news-source changes, or buyer-intent angles that can affect product purchases. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ai-newsroom.html) |
+| `kelly-real-estate-intel` | Property-agency intelligence desk for listings, transactions, mortgage movement, district updates, competitor ads, and buyer/seller follow-up scripts. | Use it when turning real-estate market movement into owner updates, buyer outreach, listing angles, open-house talking points, or agency review batches. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-real-estate-intel.html) |
+| `kelly-education-intel` | Education and enrollment intelligence desk for exam dates, admissions changes, visa news, school notices, parent questions, competitor courses, and advisor scripts. | Use it when schools, tutoring centers, or admissions services need parent FAQs, enrollment actions, course-launch angles, webinars, or sourced education memos. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-education-intel.html) |
+| `kelly-beauty-intel` | Beauty, wellness, and medical-aesthetic intelligence desk for competitor offers, treatment trends, safety notices, review themes, seasonal demand, and safe consultation copy. | Use it when clinics or beauty teams need campaign angles, consultation scripts, review-recovery notes, or client education that stays inside safe-claim boundaries. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-beauty-intel.html) |
+| `kelly-insurance-intel` | Insurance advisor intelligence desk for regulator updates, insurer/product movement, premium and claims news, lifecycle events, and compliant client-review prompts. | Use it when brokers or agencies need sourced meeting agendas, renewal scripts, client education notes, or needs-review checklists without making suitability claims. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-insurance-intel.html) |
+| `kelly-retail-intel` | Retail operating intelligence desk for weather, events, competitor promotions, product trends, review themes, supplier movement, merchandising, and staff briefs. | Use it when stores or consumer brands need hero-SKU picks, signage copy, replenishment checks, store briefings, or local demand actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-retail-intel.html) |
+| `kelly-ecommerce-intel` | Ecommerce seller intelligence desk for marketplace policy, competitor price and listing movement, search trends, ads, review language, and SKU campaign actions. | Use it when marketplace or DTC sellers need listing edits, ad angles, bundle tests, review replies, campaign briefs, or policy-risk checks. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ecommerce-intel.html) |
+| `kelly-restaurant-intel` | Restaurant-group intelligence desk for weather, events, menus, delivery movement, booking signals, review themes, shift briefs, and daily promotion actions. | Use it when restaurants, cafes, or F&B groups need hero-menu picks, service-period briefs, delivery copy, booking scripts, or guest-recovery drafts. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-restaurant-intel.html) |
+| `kelly-financial-services-intel` | Financial-services intelligence desk for regulatory, macro, market, portfolio-theme, competitor, and client-question signals with reviewable education drafts. | Use it when advisors, family offices, or financial-services teams need internal briefs, client education memos, meeting agendas, or risk reminders without personalized advice. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-financial-services-intel.html) |
 | `kelly-devops` | Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval. | Use it when checking service health, catching expiring domains and certificates, reviewing cloud spend spikes, or approving renewal and rotation actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html) |
 | `kelly-audit` | Imports orders, invoices, and payments from business exports and audits them against each other: missing invoices, amount mismatches, overdue receivables with aging, duplicates, and unmatched payments, each with an evidence chain and drafted follow-up. | Use it when reconciling the order-invoice-payment chain, chasing receivables, or reviewing finance anomalies before month-end. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-audit.html) |
 | `kelly-tickets` | Triages complaints and requests from WeChat exports, call logs, forms, and email into classified tickets, proposes crew dispatches with SLA targets for approval, and tracks everything on a resolution board. | Use it when managing property or facilities complaints, dispatching work orders to crews, or running any intake-classify-dispatch-track workflow. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-tickets.html) |
@@ -619,6 +628,195 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   </tr>
   <tr>
     <td><strong>Watchlist</strong><br>Tracked competitors with pricing and positioning change signals, review status, and last-monitored timestamps.</td>
+  </tr>
+</table>
+
+### `kelly-ai-newsroom`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-ai-newsroom/assets/screenshots/overview.webp" alt="Kelly AI Newsroom overview"></td>
+    <td width="50%"><img src="skills/kelly-ai-newsroom/assets/screenshots/signals.webp" alt="Kelly AI Newsroom signals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Daily buyer-trigger cockpit with top AI/source signals, approved actions, blocked claims, and source coverage.</td>
+    <td><strong>Signals</strong><br>Evidence-backed AI, search, and platform movement interpreted as purchase intent or watch-only noise.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-ai-newsroom/assets/screenshots/actions.webp" alt="Kelly AI Newsroom actions"></td>
+    <td width="50%"><img src="skills/kelly-ai-newsroom/assets/screenshots/drafts.webp" alt="Kelly AI Newsroom drafts"></td>
+  </tr>
+  <tr>
+    <td><strong>Actions</strong><br>Sales and operating moves with approval status, risk notes, and the next concrete handoff.</td>
+    <td><strong>Drafts</strong><br>Editable sales openers, LinkedIn posts, and client memos kept behind a review gate.</td>
+  </tr>
+</table>
+
+### `kelly-real-estate-intel`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-real-estate-intel/assets/screenshots/overview.webp" alt="Kelly Real Estate Intel overview"></td>
+    <td width="50%"><img src="skills/kelly-real-estate-intel/assets/screenshots/signals.webp" alt="Kelly Real Estate Intel signals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Property-agency desk showing today's market trigger, ready outreach, blocked claims, and coverage gaps.</td>
+    <td><strong>Signals</strong><br>Listings, transaction, mortgage, district, and competitor-ad movement tied to buyer or owner intent.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-real-estate-intel/assets/screenshots/actions.webp" alt="Kelly Real Estate Intel actions"></td>
+    <td width="50%"><img src="skills/kelly-real-estate-intel/assets/screenshots/drafts.webp" alt="Kelly Real Estate Intel drafts"></td>
+  </tr>
+  <tr>
+    <td><strong>Actions</strong><br>Call scripts, owner notes, listing angles, and open-house talking points queued for approval.</td>
+    <td><strong>Drafts</strong><br>Editable client follow-ups and property-market memos with evidence and approval controls.</td>
+  </tr>
+</table>
+
+### `kelly-education-intel`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-education-intel/assets/screenshots/overview.webp" alt="Kelly Education Intel overview"></td>
+    <td width="50%"><img src="skills/kelly-education-intel/assets/screenshots/signals.webp" alt="Kelly Education Intel signals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Education-intelligence desk with enrollment triggers, ready actions, blocked claims, and source freshness.</td>
+    <td><strong>Signals</strong><br>Exam, admissions, visa, school-calendar, and parent-question movement interpreted as purchase anxiety.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-education-intel/assets/screenshots/actions.webp" alt="Kelly Education Intel actions"></td>
+    <td width="50%"><img src="skills/kelly-education-intel/assets/screenshots/drafts.webp" alt="Kelly Education Intel drafts"></td>
+  </tr>
+  <tr>
+    <td><strong>Actions</strong><br>Parent FAQ, webinar, advisor, and course-launch actions with review status.</td>
+    <td><strong>Drafts</strong><br>Editable parent memos and enrollment copy that avoid guarantees and unsupported claims.</td>
+  </tr>
+</table>
+
+### `kelly-beauty-intel`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-beauty-intel/assets/screenshots/overview.webp" alt="Kelly Beauty Intel overview"></td>
+    <td width="50%"><img src="skills/kelly-beauty-intel/assets/screenshots/signals.webp" alt="Kelly Beauty Intel signals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Beauty and medical-aesthetic desk with demand triggers, reviewable actions, and blocked medical claims.</td>
+    <td><strong>Signals</strong><br>Competitor offers, treatment trends, reviews, safety notices, and seasonal demand with risk badges.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-beauty-intel/assets/screenshots/actions.webp" alt="Kelly Beauty Intel actions"></td>
+    <td width="50%"><img src="skills/kelly-beauty-intel/assets/screenshots/drafts.webp" alt="Kelly Beauty Intel drafts"></td>
+  </tr>
+  <tr>
+    <td><strong>Actions</strong><br>Consultation scripts, staff notes, campaign angles, and review-recovery actions queued for approval.</td>
+    <td><strong>Drafts</strong><br>Editable client education and promotion copy that stays within safe-claim boundaries.</td>
+  </tr>
+</table>
+
+### `kelly-insurance-intel`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-insurance-intel/assets/screenshots/overview.webp" alt="Kelly Insurance Intel overview"></td>
+    <td width="50%"><img src="skills/kelly-insurance-intel/assets/screenshots/signals.webp" alt="Kelly Insurance Intel signals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Insurance-advisor desk with protection-gap triggers, renewal actions, blocked advice, and source freshness.</td>
+    <td><strong>Signals</strong><br>Regulator, insurer, premium, benefit, health, travel, and lifecycle signals interpreted as review reasons.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-insurance-intel/assets/screenshots/actions.webp" alt="Kelly Insurance Intel actions"></td>
+    <td width="50%"><img src="skills/kelly-insurance-intel/assets/screenshots/drafts.webp" alt="Kelly Insurance Intel drafts"></td>
+  </tr>
+  <tr>
+    <td><strong>Actions</strong><br>Meeting agendas, renewal checklists, and education tasks with compliance-aware approval status.</td>
+    <td><strong>Drafts</strong><br>Editable client education and advisor scripts that avoid suitability or return promises.</td>
+  </tr>
+</table>
+
+### `kelly-retail-intel`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-retail-intel/assets/screenshots/overview.webp" alt="Kelly Retail Intel overview"></td>
+    <td width="50%"><img src="skills/kelly-retail-intel/assets/screenshots/signals.webp" alt="Kelly Retail Intel signals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Retail desk with local demand triggers, hero SKUs, ready store actions, and blocked promises.</td>
+    <td><strong>Signals</strong><br>Weather, events, competitor promotions, product trends, and review themes tied to merchandising decisions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-retail-intel/assets/screenshots/actions.webp" alt="Kelly Retail Intel actions"></td>
+    <td width="50%"><img src="skills/kelly-retail-intel/assets/screenshots/drafts.webp" alt="Kelly Retail Intel drafts"></td>
+  </tr>
+  <tr>
+    <td><strong>Actions</strong><br>Store briefs, signage, replenishment checks, and staff scripts queued for approval.</td>
+    <td><strong>Drafts</strong><br>Editable campaign, signage, and customer-message copy with local source context.</td>
+  </tr>
+</table>
+
+### `kelly-ecommerce-intel`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-ecommerce-intel/assets/screenshots/overview.webp" alt="Kelly Ecommerce Intel overview"></td>
+    <td width="50%"><img src="skills/kelly-ecommerce-intel/assets/screenshots/signals.webp" alt="Kelly Ecommerce Intel signals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Ecommerce seller desk with SKU triggers, platform risks, ready optimizations, and blocked claims.</td>
+    <td><strong>Signals</strong><br>Marketplace policy, competitor price, ranking, ad, review, and search-intent changes.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-ecommerce-intel/assets/screenshots/actions.webp" alt="Kelly Ecommerce Intel actions"></td>
+    <td width="50%"><img src="skills/kelly-ecommerce-intel/assets/screenshots/drafts.webp" alt="Kelly Ecommerce Intel drafts"></td>
+  </tr>
+  <tr>
+    <td><strong>Actions</strong><br>Listing edits, ad angles, bundle tests, and review-response tasks with approval status.</td>
+    <td><strong>Drafts</strong><br>Editable listing, ad, and customer-response copy held behind the review gate.</td>
+  </tr>
+</table>
+
+### `kelly-restaurant-intel`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-restaurant-intel/assets/screenshots/overview.webp" alt="Kelly Restaurant Intel overview"></td>
+    <td width="50%"><img src="skills/kelly-restaurant-intel/assets/screenshots/signals.webp" alt="Kelly Restaurant Intel signals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Restaurant-group desk with demand triggers, meal-period focus, ready actions, and blocked food-safety claims.</td>
+    <td><strong>Signals</strong><br>Weather, events, competitor menus, delivery movement, and review themes tied to operations.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-restaurant-intel/assets/screenshots/actions.webp" alt="Kelly Restaurant Intel actions"></td>
+    <td width="50%"><img src="skills/kelly-restaurant-intel/assets/screenshots/drafts.webp" alt="Kelly Restaurant Intel drafts"></td>
+  </tr>
+  <tr>
+    <td><strong>Actions</strong><br>Shift briefs, hero-menu picks, booking scripts, and delivery-copy actions ready for approval.</td>
+    <td><strong>Drafts</strong><br>Editable guest messages, review replies, and social copy with menu and safety boundaries.</td>
+  </tr>
+</table>
+
+### `kelly-financial-services-intel`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-financial-services-intel/assets/screenshots/overview.webp" alt="Kelly Financial Services Intel overview"></td>
+    <td width="50%"><img src="skills/kelly-financial-services-intel/assets/screenshots/signals.webp" alt="Kelly Financial Services Intel signals"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Financial-services desk with client-question triggers, advisor prep, blocked advice, and source freshness.</td>
+    <td><strong>Signals</strong><br>Regulatory, macro, market, portfolio-theme, and competitor movement interpreted as client concern.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-financial-services-intel/assets/screenshots/actions.webp" alt="Kelly Financial Services Intel actions"></td>
+    <td width="50%"><img src="skills/kelly-financial-services-intel/assets/screenshots/drafts.webp" alt="Kelly Financial Services Intel drafts"></td>
+  </tr>
+  <tr>
+    <td><strong>Actions</strong><br>Internal briefs, client education tasks, advisor scripts, and risk reminders queued for approval.</td>
+    <td><strong>Drafts</strong><br>Editable explainers and meeting notes that avoid personalized advice and performance promises.</td>
   </tr>
 </table>
 

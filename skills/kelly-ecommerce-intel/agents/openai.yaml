@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Ecommerce Intel"
+  short_description: "Product trend, competitor price, platform policy, and listing intelligence"
+  default_prompt: "Use $kelly-ecommerce-intel to prepare today's ecommerce seller intelligence batch and open the review cockpit."

@@ -65,6 +65,22 @@ const GROUPS = [
     skills: ["kelly-social", "kelly-seo", "kelly-feedback", "kelly-radar", "kelly-writer"],
   },
   {
+    id: "industry-intel",
+    en: "Industry Intelligence",
+    zh: "行业情报",
+    skills: [
+      "kelly-ai-newsroom",
+      "kelly-real-estate-intel",
+      "kelly-education-intel",
+      "kelly-beauty-intel",
+      "kelly-insurance-intel",
+      "kelly-retail-intel",
+      "kelly-ecommerce-intel",
+      "kelly-restaurant-intel",
+      "kelly-financial-services-intel",
+    ],
+  },
+  {
     id: "marketing",
     en: "Brand & Marketing",
     zh: "品牌与营销",
