@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Beauty Intel"
+  short_description: "Competitor offers, treatment trends, safety news, and content drafts"
+  default_prompt: "Use $kelly-beauty-intel to prepare today's beauty and medical-aesthetic intelligence batch and open the review cockpit."

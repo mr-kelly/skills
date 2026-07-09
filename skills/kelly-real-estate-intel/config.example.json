@@ -1,0 +1,41 @@
+{
+  "skill": "kelly-real-estate-intel",
+  "brand": {
+    "name": "Example Business",
+    "geography": "Hong Kong",
+    "language": "auto",
+    "audience": "property agency owners, team leads, and individual agents"
+  },
+  "offer": {
+    "summary": "daily property intelligence that becomes push-listing suggestions, WhatsApp follow-ups, and social posts",
+    "default_cta": "Reply to approve today's action plan.",
+    "forbidden_claims": ["unverified results", "guaranteed outcomes"]
+  },
+  "sources": [
+    {
+      "id": "news",
+      "label": "News sources",
+      "method": "browser_agent",
+      "examples": "property news, listing portals, transaction reports, competitor ads, mortgage/rate news, and local district events"
+    },
+    {
+      "id": "competitors",
+      "label": "Competitors",
+      "method": "browser_agent",
+      "examples": "Add public competitor URLs"
+    },
+    {
+      "id": "trends",
+      "label": "Trend signals",
+      "method": "browser_agent",
+      "keywords": ["property transaction", "mortgage", "new listing", "estate agency", "成交", "楼盘"]
+    }
+  ],
+  "channels": ["WhatsApp follow-up", "agent朋友圈", "listing pitch"],
+  "provider": {
+    "type": "local"
+  },
+  "ui": {
+    "accent": "green"
+  }
+}

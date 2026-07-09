@@ -1,0 +1,41 @@
+{
+  "skill": "kelly-restaurant-intel",
+  "brand": {
+    "name": "Example Business",
+    "geography": "Hong Kong",
+    "language": "auto",
+    "audience": "restaurant owners, cafe operators, F&B marketers, and group managers"
+  },
+  "offer": {
+    "summary": "daily restaurant intelligence that becomes menu pushes, staff notes, and social/offline offer copy",
+    "default_cta": "Reply to approve today's action plan.",
+    "forbidden_claims": ["unverified results", "guaranteed outcomes"]
+  },
+  "sources": [
+    {
+      "id": "news",
+      "label": "News sources",
+      "method": "browser_agent",
+      "examples": "local events, weather, competitor menus, review themes, booking demand, and delivery-platform activity"
+    },
+    {
+      "id": "competitors",
+      "label": "Competitors",
+      "method": "browser_agent",
+      "examples": "Add public competitor URLs"
+    },
+    {
+      "id": "trends",
+      "label": "Trend signals",
+      "method": "browser_agent",
+      "keywords": ["restaurant event", "menu promotion", "food delivery", "weather", "餐饮", "套餐"]
+    }
+  ],
+  "channels": ["staff brief", "IG post", "delivery blurb"],
+  "provider": {
+    "type": "local"
+  },
+  "ui": {
+    "accent": "red"
+  }
+}
