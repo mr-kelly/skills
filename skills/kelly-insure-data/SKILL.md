@@ -101,6 +101,27 @@ Primary local files:
 5. For data-entry requests, draft proposed new records or metadata cleanup as reviewable changes first. Do not silently mutate Busabase canonical records.
 6. Validate local snapshots with `scripts/validate_ui_schema.ts`.
 
+## Backup / Restore Workflow
+
+Use this when a Busabase space may be reset and the Kelly Insure Data workspace must be rebuilt from local files plus a manifest.
+
+1. Export a manifest before reset:
+
+```bash
+npm run busabase:export -- --output ./app/.data/busabase_restore_manifest.json
+```
+
+The manifest captures the folder, Drive, file paths, asset metadata, QA Base schema/records, and News Base schema/records. It does not embed binary PDF bytes.
+
+2. Restore after reset with a local file backup:
+
+```bash
+npm run busabase:restore -- --manifest ./app/.data/busabase_restore_manifest.json --files-root /path/to/local/file-backup --dry-run
+npm run busabase:restore -- --manifest ./app/.data/busabase_restore_manifest.json --files-root /path/to/local/file-backup --apply
+```
+
+The restore flow creates missing folder/Drive/Base structure, uploads local files back into the Drive, restores captured asset metadata, and restores QA/news records through reviewable Busabase change requests. PDF metadata inference is intentionally separate from restore; use a metadata backfill workflow when metadata must be regenerated from PDFs.
+
 ## Validation
 
 Use these before handing off meaningful changes:
