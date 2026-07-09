@@ -23,7 +23,7 @@ interface BaseRecord {
   id: string;
   nodeId?: string;
   slug?: string;
-  fields?: Array<{ slug?: string; [key: string]: unknown }>;
+  fields?: Array<{ id?: string; slug?: string; deletedAt?: string | null; deleted_at?: string | null; [key: string]: unknown }>;
   [key: string]: unknown;
 }
 
@@ -115,8 +115,36 @@ const BASE_FIELDS = [
   { slug: "record_id", name: "Record ID", type: "text", required: true },
   { slug: "kind", name: "Kind", type: "text" },
   { slug: "batch_id", name: "Batch ID", type: "text" },
-  { slug: "item", name: "Item", type: "json" },
   { slug: "item_id", name: "Item ID", type: "text" },
+  { slug: "email_uid", name: "Email UID", type: "text" },
+  { slug: "thread_id", name: "Thread ID", type: "text" },
+  { slug: "message_id", name: "Message ID", type: "text" },
+  { slug: "folder", name: "Folder", type: "text" },
+  { slug: "subject", name: "Subject", type: "text" },
+  { slug: "sender", name: "Sender", type: "text" },
+  { slug: "recipients", name: "Recipients", type: "longtext" },
+  { slug: "cc", name: "CC", type: "longtext" },
+  { slug: "source_account", name: "Source Account", type: "text" },
+  { slug: "email_date", name: "Email Date", type: "date" },
+  { slug: "category", name: "Category", type: "text" },
+  { slug: "risk", name: "Risk", type: "text" },
+  { slug: "reason", name: "Reason", type: "longtext" },
+  { slug: "summary", name: "Summary", type: "longtext" },
+  { slug: "review_background", name: "Review Background", type: "longtext" },
+  { slug: "review_recommendation", name: "Review Recommendation", type: "longtext" },
+  { slug: "body_excerpt", name: "Body Excerpt", type: "longtext" },
+  { slug: "draft_excerpt", name: "Draft Excerpt", type: "longtext" },
+  { slug: "user_comment", name: "User Comment", type: "longtext" },
+  { slug: "has_html", name: "Has HTML", type: "checkbox" },
+  { slug: "has_draft", name: "Has Draft", type: "checkbox" },
+  { slug: "has_translation", name: "Has Translation", type: "checkbox" },
+  { slug: "has_attachments", name: "Has Attachments", type: "checkbox" },
+  { slug: "drive_path", name: "Drive Path", type: "text" },
+  { slug: "attachment_count", name: "Attachment Count", type: "number" },
+  { slug: "attachment_names", name: "Attachment Names", type: "longtext" },
+  { slug: "classification_method", name: "Classification Method", type: "text" },
+  { slug: "user_language", name: "User Language", type: "text" },
+  { slug: "source_language", name: "Source Language", type: "text" },
   { slug: "status", name: "Status", type: "text" },
   { slug: "proposed_action", name: "Proposed Action", type: "text" },
   { slug: "updated_at", name: "Updated At", type: "date" },
@@ -125,6 +153,8 @@ const BASE_FIELDS = [
   { slug: "report", name: "Report", type: "json" },
   { slug: "latest_record_id", name: "Latest Record ID", type: "text" },
 ] as const;
+
+const RETIRED_BASE_FIELD_SLUGS = new Set(["item"]);
 
 const JSON_FIELD_SLUGS = new Set(
   BASE_FIELDS.filter((field) => field.type === "json").map((field) => field.slug),
@@ -312,7 +342,9 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
   }
 
   async function ensureBaseFields(base: BaseRecord): Promise<BaseRecord> {
-    const slugs = new Set((Array.isArray(base.fields) ? base.fields : []).map((field) => String(field.slug || "")));
+    const fields = Array.isArray(base.fields) ? base.fields : [];
+    const activeFields = fields.filter((field) => !field.deletedAt && !field.deleted_at);
+    const slugs = new Set(activeFields.map((field) => String(field.slug || "")));
     const missing = BASE_FIELDS.filter((field) => !slugs.has(field.slug));
     for (const field of missing) {
       const changeRequest = await api("POST", `/api/v1/bases/${encodeURIComponent(base.id)}/fields/change-requests`, {
@@ -325,7 +357,16 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
       });
       if (changeRequest.status !== "merged") await approveAndMerge(String(changeRequest.id));
     }
-    if (!missing.length) return base;
+    const retired = activeFields.filter((field) => RETIRED_BASE_FIELD_SLUGS.has(String(field.slug || "")) && field.id);
+    for (const field of retired) {
+      const changeRequest = await api("DELETE", `/api/v1/bases/${encodeURIComponent(base.id)}/fields/change-requests`, {
+        fieldId: String(field.id),
+        message: `Remove retired Kelly Email Base field ${field.slug}`,
+        submittedBy: "kelly-email",
+      });
+      if (changeRequest.status !== "merged") await approveAndMerge(String(changeRequest.id));
+    }
+    if (!missing.length && !retired.length) return base;
     return findConfiguredBase(await listBases()) || base;
   }
 

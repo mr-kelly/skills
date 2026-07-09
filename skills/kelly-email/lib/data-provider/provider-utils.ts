@@ -140,21 +140,26 @@ function updateItemStatus(item: ReviewItem, approvedAction: string) {
 export function applyItemsDecision(batch: Batch, input: DecisionInput) {
   const ids = (input.ids || []).map(String);
   const action = input.action || "";
-  const comment = input.comment || "";
+  const hasComment = Object.hasOwn(input, "comment");
+  const comment = String(input.comment || "");
+  const hasDraft = Object.hasOwn(input, "draft");
+  const hasSuggestedReply = Object.hasOwn(input, "suggested_reply");
   if (!ids.length) throw new Error("No items selected");
   if (!LOCAL_ACTIONS.has(action)) throw new Error(`Unsupported local decision: ${action}`);
   const changed: string[] = [];
   for (const itemId of ids) {
     const item = findItem(batch, itemId);
+    if (hasDraft) item.draft = String(input.draft || "");
+    if (hasSuggestedReply) item.suggested_reply = String(input.suggested_reply || "");
     const approvedAction = approvedActionFor(action, item);
     item.decision = {
       action: approvedAction,
       decided_at: utcNow(),
     };
     updateItemStatus(item, approvedAction);
-    if (comment) {
+    if (hasComment) {
       item.user_comment = comment;
-      item.decision.comment = comment;
+      if (comment) item.decision.comment = comment;
     }
     item.updated_at = utcNow();
     changed.push(item.id);

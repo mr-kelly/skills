@@ -196,13 +196,30 @@ Prefer Busabase for App-in-Skills whose output should become trusted, shared, ca
 Use Busabase as a whole skill storage provider, not just a reply-review queue or remote JSON file.
 
 - **Folder node** is the dedicated aggregation point for one skill or one configured workspace. Put the skill-owned Base and Drive under this folder. Do not use the Base node itself as the workspace container.
-- **Base node** stores structured, queryable, reviewable domain rows: review items, reply drafts, tasks, approvals, canonical records, scan rows, and execution report summaries.
-- **Drive node** stores file-tree/app-state blobs: `config/config.json`, `state/schema.json`, `state/current_batch.json`, `state/decisions.json`, `state/lock.json`, `state/scan_state.json`, batch archives, attachments, raw imports, generated exports, screenshots, and any blob-like content that should not be embedded in a Base record.
+- **Base node** stores structured, queryable, reviewable domain rows: review items, reply drafts, tasks, approvals, canonical records, scan rows, and execution report summaries. Keep Base rows compact. Store searchable fields, status, category, owner, timestamps, counters, and Drive/Doc refs; do not embed giant HTML, raw email bodies, PDFs, screenshots, logs, transcripts, or attachment bytes in Base JSON fields.
+- **Doc node** stores long-form editable documents that need rich human review, comments, sections, or publishable narrative: generated articles, policy drafts, research memos, contracts, briefs, playbooks, and canonical long text. Use Docs when humans should read/edit the artifact as a document, not when the app only needs a blob path.
+- **Drive node** stores file-tree/app-state blobs: `config/config.json`, `state/schema.json`, `state/current_batch.json`, `state/decisions.json`, `state/lock.json`, `state/scan_state.json`, batch archives, attachments, raw imports, generated exports, screenshots, large HTML/email snapshots, PDFs, media, and any blob-like content that should not be embedded in a Base record.
 - **Busabase Vault** stores secret values. Skill JSON config should contain secret references such as `vault_ref`, `password_vault_ref`, `secret_ref`, or compatibility `password_env`, never secret values.
 
 The App UI and scripts should still depend only on `lib/data-provider/`. Busabase SDK, OpenAPI client, REST routes, auth headers, and Drive/Secrets specifics belong in a Busabase adapter such as `lib/data-provider/busabase-client.ts`.
 
 Keep `config`, `schema`, `current_batch`, `decisions`, `scan_state`, and `lock` out of the Base unless they are legacy fallback records. Those are Drive files. New writes should use the Folder/Base/Drive split above. In Busabase provider mode, do not rely on local `app/.data`, `config.local.json`, or `.env` for runtime state; only bootstrap connection env such as Busabase URL/base/space/API key may come from the process environment.
+
+### Storage Choice Rules
+
+Use these rules when deciding where an App-in-Skill artifact belongs:
+
+| Artifact | Busabase home | Reason |
+| --- | --- | --- |
+| Secret values, app passwords, OAuth refresh tokens, private API keys | Vault | Runtime-only secret lookup; never expose through JSON/UI/state. |
+| Secret reference names | Drive config or Base row | Non-secret identifiers such as `vault_ref`; safe to summarize. |
+| Account config, routing rules, user profile, brand/style/knowledge config | Drive `config/config.json` | Non-secret runtime config owned by the skill workspace. |
+| Current batch, decisions, lock, scan cursor/state, schema manifest | Drive `state/*.json` | App handoff state; mutable blobs, not canonical rows. |
+| Batch archives, raw imports, exports, attachments, screenshots, PDFs, large HTML/text snapshots | Drive | Blob/file tree storage; can be linked from Base rows. |
+| Review queue rows, tasks, approvals, canonical entities, execution summaries | Base | Needs filtering, status views, audit, assignment, dedupe, and canonical query. |
+| Long-form artifact humans edit as a document | Doc | Rich document semantics; keep a Base row pointing at the Doc when workflow/status is needed. |
+
+For review apps, write the full batch to Drive and a compact row per item to Base. The Base row should include a short human-readable primary field, status, proposed action, category/risk, sender/source/account, short summary/excerpt, attachment count, and a `drive_path` or `doc_node_id`. Keep the full body/HTML/attachment refs in Drive or Doc. This avoids large-field failures and keeps Base views fast.
 
 Recommended config:
 
@@ -261,6 +278,10 @@ export const BUSABASE_SCHEMA = {
     state_files: ["state/schema.json", "state/current_batch.json", "state/decisions.json", "state/lock.json", "state/scan_state.json"],
     roots: ["config", "state", "batches", "attachments", "imports", "exports"]
   },
+  docs: {
+    roots: ["docs"],
+    use_for: ["long_form_drafts", "canonical_documents"]
+  },
   secrets: {
     namespace: "skill-name",
     provider: "busabase-vault",
@@ -290,6 +311,8 @@ Check schema on every startup. Missing schema or missing app-state files are nor
 
 An explicit init script such as `npm run busabase:init -- --apply` can still exist, but it is a diagnostic/repair command. Normal app startup and `provider.init()` should be idempotent and should lazy-create/repair the provider-owned Folder/Base/Drive/schema when permissions allow.
 
+Provider methods that generate batches should avoid local handoff files in Busabase mode. Do not write provider state, pid/log files, config snapshots, current batches, decisions, scan state, or attachments under `app/.data` as a fallback. If Busabase is not writable, show one provider-not-ready gate instead of silently falling back to local storage.
+
 ### Change Request Mapping
 
 Use Busabase Change Requests for AI-prepared or human-reviewed changes:
@@ -314,6 +337,8 @@ checkSchema(): Promise<Record<string, unknown>>;
 ensureSchema(options?: { apply?: boolean }): Promise<Record<string, unknown>>;
 getFile?(path: string): Promise<unknown>;
 putFile?(path: string, data: unknown, meta?: Record<string, unknown>): Promise<unknown>;
+getDoc?(idOrPath: string): Promise<unknown>;
+putDoc?(idOrPath: string, data: unknown, meta?: Record<string, unknown>): Promise<unknown>;
 getSecret?(name: string): Promise<string>;
 ```
 

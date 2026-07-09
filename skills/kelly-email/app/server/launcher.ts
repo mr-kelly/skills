@@ -17,7 +17,10 @@ import {
 
 const host = process.env.KELLY_EMAIL_UI_HOST || DEFAULT_HOST;
 const explicitPort = process.env.KELLY_EMAIL_UI_PORT || "";
-const busabaseMode = (process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER || "").toLowerCase() === "busabase";
+const providerMode = (process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER || "local")
+  .trim()
+  .toLowerCase();
+const busabaseMode = providerMode === "busabase";
 
 function stateUrlFor(port) {
   return `http://${host}:${port}/api/state`;
@@ -34,7 +37,18 @@ function isReady(port) {
       res.on("end", () => {
         try {
           const state = JSON.parse(body);
-          resolve(res.statusCode >= 200 && res.statusCode < 300 && state.app === "kelly-email");
+          const stateProvider =
+            state.provider_status?.provider ||
+            state.provider_status?.mode ||
+            state.email_accounts?.data_provider ||
+            state.email_accounts?.data_reader ||
+            "local";
+          resolve(
+            res.statusCode >= 200 &&
+              res.statusCode < 300 &&
+              state.app === "kelly-email" &&
+              String(stateProvider).toLowerCase() === providerMode,
+          );
         } catch {
           resolve(false);
         }

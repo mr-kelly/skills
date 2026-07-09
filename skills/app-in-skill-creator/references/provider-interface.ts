@@ -72,6 +72,9 @@ export interface DataProvider {
   /** File-tree storage for app-state blobs, attachments, imports, and exports. */
   getFile?(path: string): Promise<unknown>;
   putFile?(path: string, data: unknown, meta?: Record<string, unknown>): Promise<unknown>;
+  /** Long-form editable documents; use Drive for blobs and Base for compact workflow rows. */
+  getDoc?(idOrPath: string): Promise<unknown>;
+  putDoc?(idOrPath: string, data: unknown, meta?: Record<string, unknown>): Promise<unknown>;
   /** Runtime secret lookup from a provider vault; never expose values in UI state. */
   getSecret?(name: string): Promise<string>;
   /** Probe connectivity (remote providers). */
@@ -98,6 +101,8 @@ export const OPTIONAL_METHODS = [
   "ensureSchema",
   "getFile",
   "putFile",
+  "getDoc",
+  "putDoc",
   "getSecret",
   "verifyConnection",
 ] as const satisfies readonly (keyof DataProvider)[];

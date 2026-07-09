@@ -1372,15 +1372,13 @@ async function decide(action, ids = null) {
   if (!list.length) return toast(t("toast.select_one"));
   const item = isSingleDetailAction ? selectedItem() : null;
   const comment = item ? $("commentText")?.value || "" : "";
+  const payload = { ids: list, action };
   if (item) {
-    await api("/api/detail", {
-      id: item.id,
-      draft: $("draftText")?.value || item.draft || "",
-      suggested_reply: $("draftText")?.value || item.suggested_reply || "",
-      comment,
-    });
+    payload.comment = comment;
+    payload.draft = $("draftText")?.value || item.draft || "";
+    payload.suggested_reply = $("draftText")?.value || item.suggested_reply || "";
   }
-  const data = await api("/api/decision", { ids: list, action, comment });
+  const data = await api("/api/decision", payload);
   list.forEach((id) => checked.delete(id));
   toast(t("toast.saved_count", { count: data.changed.length }));
   await refresh({ preserveScroll: false });
