@@ -74,6 +74,7 @@ const GROUPS = [
       "kelly-education-intel",
       "kelly-beauty-intel",
       "kelly-insurance-intel",
+      "kelly-insure-data",
       "kelly-retail-intel",
       "kelly-ecommerce-intel",
       "kelly-restaurant-intel",
