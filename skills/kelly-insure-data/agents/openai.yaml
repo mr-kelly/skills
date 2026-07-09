@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Insure Data"
+  short_description: "Insurance files, QA, and news workspace"
+  default_prompt: "Use $kelly-insure-data to open my insurance data workspace."

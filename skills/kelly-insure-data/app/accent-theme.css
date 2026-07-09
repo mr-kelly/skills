@@ -1,0 +1,55 @@
+:root {
+  --accent: #0a84ff;
+  --accent-strong: #0066cc;
+  --accent-soft: rgba(10, 132, 255, 0.09);
+  --accent-wash: rgba(10, 132, 255, 0.045);
+  --accent-line: rgba(10, 132, 255, 0.28);
+  --accent-focus: rgba(10, 132, 255, 0.22);
+  --accent-text: #0057b8;
+  --accent-contrast: #ffffff;
+}
+
+html[data-accent-theme="green"] {
+  --accent: #30a46c;
+  --accent-strong: #18794e;
+  --accent-soft: rgba(48, 164, 108, 0.11);
+  --accent-wash: rgba(48, 164, 108, 0.055);
+  --accent-line: rgba(48, 164, 108, 0.3);
+  --accent-focus: rgba(48, 164, 108, 0.24);
+  --accent-text: #18794e;
+}
+
+html[data-accent-theme="graphite"] {
+  --accent: #6e6e73;
+  --accent-strong: #4b4b50;
+  --accent-soft: rgba(110, 110, 115, 0.1);
+  --accent-wash: rgba(110, 110, 115, 0.05);
+  --accent-line: rgba(110, 110, 115, 0.26);
+  --accent-focus: rgba(110, 110, 115, 0.2);
+  --accent-text: #4b4b50;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--accent-focus);
+  outline-offset: 2px;
+}
+
+.filters a.active,
+.item-row.active,
+.human-work-primary {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.human-work-primary strong,
+.filters a.active {
+  color: var(--accent-text);
+}

@@ -1,0 +1,37 @@
+{
+  "data_provider": "local",
+  "busabase": {
+    "base_url": "http://127.0.0.1:15419",
+    "space_id": "",
+    "api_key_env": "KELLY_INSURE_DATA_BUSABASE_API_KEY",
+    "drive_node_id": "your-busabase-drive-node-id",
+    "qa_base_id": "your-qa-base-id",
+    "news_base_id": "your-news-base-id",
+    "record_limit": 200
+  },
+  "locale": "auto",
+  "operator": {
+    "name": "Kelly",
+    "role": "Insurance data operator",
+    "timezone": "Asia/Hong_Kong"
+  },
+  "taxonomy": {
+    "file_metadata_fields": ["policy_type", "carrier", "region", "effective_date", "status", "tags"],
+    "qa_fields": {
+      "question": "question",
+      "answer": "answer",
+      "category": "category",
+      "source": "source",
+      "tags": "tags"
+    },
+    "news_fields": {
+      "title": "title",
+      "summary": "summary",
+      "url": "url",
+      "source": "source",
+      "published_at": "published_at",
+      "category": "category",
+      "tags": "tags"
+    }
+  }
+}

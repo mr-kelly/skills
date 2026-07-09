@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly Insure Data</title>
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./accent-theme.css">
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">ID</div>
+          <div class="brand-copy">
+            <div class="brand-title">Kelly Insure Data</div>
+            <div id="sync-status" class="brand-subtitle">Loading</div>
+          </div>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+        </div>
+        <div class="search sidebar-search">
+          <input id="search" type="search" placeholder="Search" aria-label="Search">
+        </div>
+        <section class="human-work" aria-labelledby="humanWorkTitle">
+          <div class="human-work-eyebrow" data-i18n="attention">需要治理</div>
+          <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">保险数据录入质量</div>
+          <a class="human-work-primary" href="#/overview" data-route="overview" title="Open data quality overview">
+            <span>
+              <strong id="quality-score">0</strong>
+              <span data-i18n="qualityScore">数据质量分</span>
+            </span>
+          </a>
+          <div class="human-work-secondary">
+            <a href="#/files" data-route="files" title="Files needing metadata">
+              <strong id="count-files">0</strong>
+              <span data-i18n="filesLower">文件</span>
+            </a>
+            <a href="#/qa" data-route="qa" title="QA records">
+              <strong id="count-qa">0</strong>
+              <span data-i18n="qaShort">问答</span>
+            </a>
+            <a href="#/news" data-route="news" title="News records">
+              <strong id="count-news">0</strong>
+              <span data-i18n="newsShort">资讯</span>
+            </a>
+          </div>
+        </section>
+        <div class="sidebar-separator"></div>
+        <nav class="filters" aria-label="Main">
+          <a href="#/overview" data-route="overview" data-i18n="overview">Overview</a>
+          <a href="#/files" data-route="files" data-i18n="files">文件盘</a>
+          <a href="#/qa" data-route="qa" data-i18n="qa">问答</a>
+          <a href="#/news" data-route="news" data-i18n="news">新闻资讯</a>
+          <a href="#/settings" data-route="settings" data-i18n="settings">Help & Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          <label for="language" data-i18n="language">Language</label>
+          <select id="language">
+            <option value="auto">Auto</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+          <div class="mobile-topbar-copy">
+            <div id="mobileViewTitle" class="mobile-view-title">Kelly Insure Data</div>
+            <div id="mobileViewMeta" class="mobile-view-meta">Loading</div>
+          </div>
+          <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
+        </div>
+        <header class="topbar">
+          <div>
+            <h1 id="page-title">Overview</h1>
+            <p id="page-subtitle" class="muted"></p>
+          </div>
+          <div class="topbar-actions">
+            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+          </div>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
+    <script type="module" src="./app.js"></script>
+    <script type="module" src="./accent-theme.js"></script>
+  </body>
+</html>

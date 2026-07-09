@@ -1,0 +1,26 @@
+{
+  "name": "kelly-insure-data",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Kelly Insure Data App-in-Skill - local insurance data workspace backed by Busabase.",
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "validate": "node scripts/validate_ui_schema.ts",
+    "demo:snapshot": "node scripts/generate_demo_snapshot.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.8",
+    "busabase-cli": "0.9.2",
+    "busabase-sdk": "0.9.2",
+    "hono": "^4.12.28"
+  },
+  "engines": {
+    "node": ">=24.18"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
