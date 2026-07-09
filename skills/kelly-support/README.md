@@ -69,7 +69,7 @@ node skills/kelly-support/scripts/validate_ui_schema.ts       # validate the sna
 node skills/kelly-support/scripts/execute_decisions.ts        # dry-run; add --apply to record approved operations
 ```
 
-`scripts/ingest_tickets.ts` and `scripts/sync_knowledge.ts` are the collection/KB-import write paths described in SKILL.md (single dedup-by-id merge, gate re-run).
+There is no `ingest_tickets.ts` / `sync_knowledge.ts` script yet: collection and KB-import (described in SKILL.md — single dedup-by-id merge, gate re-run) are done by the agent merging directly into `app/.data/support_snapshot.json` per `references/support-schema.md`, then validating with `scripts/validate_ui_schema.ts`.
 
 ## The Quality Gate — `support-qa`
 

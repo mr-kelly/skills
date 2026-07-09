@@ -22,6 +22,12 @@ Kelly Invoice Sheet turns invoices, receipts, credit notes, and statements into 
     <td><strong>Invoice detail review</strong><br>Editable invoice fields, line items, confidence notes, and approve/request-changes/block controls.</td>
     <td><strong>Extract Data upload</strong><br>Lido-style upload modal with local file, Google Drive, OneDrive, and email source options.</td>
   </tr>
+  <tr>
+    <td width="33%"><img src="assets/screenshots/overview-mobile.webp" alt="Kelly Invoice Sheet mobile shell"></td>
+  </tr>
+  <tr>
+    <td><strong>Mobile shell</strong><br>390px responsive layout for the invoice review table on a phone.</td>
+  </tr>
 </table>
 
 ## Demo

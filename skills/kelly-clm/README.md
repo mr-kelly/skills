@@ -47,6 +47,12 @@ Open the printed URL, then use:
     <td><strong>Obligations</strong><br>Owner-assigned obligation tracker with due dates and status.</td>
     <td><strong>Renewals</strong><br>Renewal board with notice deadlines and simple follow-up actions.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/approvals.webp" alt="Kelly CLM approvals"></td>
+  </tr>
+  <tr>
+    <td><strong>Approvals</strong><br>Approval queue for renewal notices and obligation owners, with approve / request-changes / block.</td>
+  </tr>
 </table>
 
 ## Boundary

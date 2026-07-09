@@ -29,6 +29,12 @@ Kelly DevOps is a local App-in-Skill ops desk for a multi-product SaaS fleet: se
     <td><strong>Expiry ledger</strong><br>Domains, SSL certificates, key rotations, and plan renewals in one table with color-coded days-left.</td>
     <td><strong>Services</strong><br>Monitored endpoints with uptime, latency sparklines, TLS certificate status, and check history.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/spend.webp" alt="Kelly DevOps spend"></td>
+  </tr>
+  <tr>
+    <td><strong>Spend</strong><br>Cloud spend across AWS, Google Cloud, and Cloudflare with month-to-date totals and per-product allocation.</td>
+  </tr>
 </table>
 
 ## Demo Mode

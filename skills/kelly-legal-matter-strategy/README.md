@@ -21,6 +21,12 @@ Builds reviewer-gated matter strategy packs from facts and internal precedents: 
     <td><strong>Checks</strong><br>Strategy QA for missing facts, evidence gaps, deadline caveats, precedent grounding, and risk warnings.</td>
     <td><strong>Workbench</strong><br>Detail pane for issue tree, evidence map, risk posture, negotiation options, and draft outline.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/entities.webp" alt="Legal Matter Strategy library"></td>
+  </tr>
+  <tr>
+    <td><strong>Library</strong><br>Matter-strategy library of evidence and drafting plans, bucketed by review state.</td>
+  </tr>
 </table>
 
 ## Local App

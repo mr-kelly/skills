@@ -30,6 +30,12 @@ Kelly Standup is a local App-in-Skill standup board for team leads: see at a gla
     <td><strong>Members</strong><br>Team roster with check-in streaks, 30-day participation, open blockers, and per-member update timelines.</td>
     <td><strong>Reminders</strong><br>Approval-gated nudges for missing check-ins — drafted by the agent, sent only after review.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/history.webp" alt="Kelly Standup history"></td>
+  </tr>
+  <tr>
+    <td><strong>History</strong><br>Chronological standup log of past check-ins, blockers raised, and daily notes.</td>
+  </tr>
 </table>
 
 ## Demo Mode

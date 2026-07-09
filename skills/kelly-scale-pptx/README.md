@@ -23,6 +23,20 @@ It is designed for work like 南枝中文: a reusable PPT style system, many chi
     <td><strong>Slide cards</strong><br>Storyboard-style page specs: objective, layout, copy, visual brief, interaction, style checks, and QA flags.</td>
     <td><strong>Exports</strong><br>PPTX outputs, render paths, generation status, and QA evidence for each deck.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/projects.webp" alt="Kelly Scale PPTX projects"></td>
+    <td width="50%"><img src="assets/screenshots/decks.webp" alt="Kelly Scale PPTX decks"></td>
+  </tr>
+  <tr>
+    <td><strong>Projects</strong><br>Deck project list with status and per-project detail — brand, dates, and slide brief.</td>
+    <td><strong>Decks</strong><br>Generated decks with approval status, slide counts, and output PPTX paths.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/style.webp" alt="Kelly Scale PPTX style system"></td>
+  </tr>
+  <tr>
+    <td><strong>Style system</strong><br>Reusable deck style system — palette, headings, layout rules, and components.</td>
+  </tr>
 </table>
 
 ## Workflow

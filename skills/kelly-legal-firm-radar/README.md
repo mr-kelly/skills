@@ -21,6 +21,12 @@ Uses anonymized internal casebase metadata to prepare management insights: pract
     <td><strong>Checks</strong><br>Analytics QA for anonymization, sample size, attribution, bias caveats, and external-use restrictions.</td>
     <td><strong>Workbench</strong><br>Detail pane for practice analytics, talent signals, quality indicators, and approved management report text.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/entities.webp" alt="Legal Firm Radar library"></td>
+  </tr>
+  <tr>
+    <td><strong>Library</strong><br>Firm and entity library with competitor analytics, bucketed by review state.</td>
+  </tr>
 </table>
 
 ## Local App

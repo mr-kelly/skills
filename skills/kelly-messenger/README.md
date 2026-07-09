@@ -29,6 +29,12 @@ Kelly Messenger is a local App-in-Skill unified chat inbox: WhatsApp, Discord, S
     <td><strong>Unified inbox</strong><br>Conversations across WhatsApp, Slack, Discord, and Telegram sorted by latest activity with waiting-time badges.</td>
     <td><strong>Reply outbox</strong><br>Approval queue for outgoing replies: every message is reviewed before the agent sends it via platform connectors.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/accounts.webp" alt="Kelly Messenger accounts"></td>
+  </tr>
+  <tr>
+    <td><strong>Accounts</strong><br>Connected messaging accounts across WhatsApp and Telegram with connector status and secret readiness.</td>
+  </tr>
 </table>
 
 ## Demo Mode
