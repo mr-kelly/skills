@@ -101,6 +101,30 @@ Primary local files:
 5. For data-entry requests, draft proposed new records or metadata cleanup as reviewable changes first. Do not silently mutate Busabase canonical records.
 6. Validate local snapshots with `scripts/validate_ui_schema.ts`.
 
+## PDF Metadata Backfill
+
+Use this when Drive PDFs exist locally and their Busabase asset metadata is missing or stale. The script reads the Drive file list, matches each PDF path under a local backup directory, extracts text from the first pages with Poppler (`pdftotext` / `pdfinfo`), infers insurance metadata, and writes it to `asset.metadata`.
+
+Preview first:
+
+```bash
+npm run busabase:backfill-pdf-metadata -- \
+  --drive-node-id nod_... \
+  --files-root /path/to/local/file-backup \
+  --limit 10
+```
+
+Apply after reviewing the preview:
+
+```bash
+npm run busabase:backfill-pdf-metadata -- \
+  --drive-node-id nod_... \
+  --files-root /path/to/local/file-backup \
+  --apply
+```
+
+Generated metadata is intentionally marked `governance.status = "needs_review"` because carrier/product/date inference is heuristic. Keep source attribution (`source_file.path`, `asset_id`, pages, mime type, size) intact.
+
 ## Validation
 
 Use these before handing off meaningful changes:
