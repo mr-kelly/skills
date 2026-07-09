@@ -2,17 +2,13 @@
 import { ImapFlow } from "imapflow";
 import nodemailer from "nodemailer";
 import {
-  CURRENT_BATCH_PATH,
-  DECISIONS_PATH,
-  REPORTS_DIR,
   clearAgentLock,
   loadConfig,
   loadDotenv,
-  readJson,
   utcNow,
   writeAgentLock,
-  writeJson,
 } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 import type { Batch, Config, DecisionsPayload, Mailbox, ReviewItem } from "../lib/types.ts";
 
 interface ExecEntry {
@@ -363,9 +359,11 @@ async function writeReport(
     .toISOString()
     .replace(/[-:T.Z]/g, "")
     .slice(0, 14);
-  const path = `${REPORTS_DIR}/${batch.batch_id}-${stamp}.json`;
-  await writeJson(path, report);
-  return path;
+  const provider = createProvider();
+  const result = provider.writeExecutionReport
+    ? await provider.writeExecutionReport(batch, report, stamp)
+    : { path: `${batch.batch_id}-${stamp}.json`, skipped: true };
+  return String(result.path || result.record_id || JSON.stringify(result));
 }
 
 async function updateBatchAfterExecution(batch: Batch, results: ExecResult[], blocked: ExecResult[]) {
@@ -413,7 +411,7 @@ async function updateBatchAfterExecution(batch: Batch, results: ExecResult[], bl
     item.status = "needs_review";
     item.proposed_action = "review";
   }
-  await writeJson(CURRENT_BATCH_PATH, batch);
+  await createProvider().saveBatch(batch);
 }
 
 async function main() {
@@ -423,10 +421,11 @@ async function main() {
     return 0;
   }
   await loadDotenv();
+  const provider = createProvider();
   const config = (await loadConfig()) as Config;
   const mailboxes = mailboxMap(config);
-  const batch = (await readJson(CURRENT_BATCH_PATH)) as Batch;
-  const decisionsPayload = (await readJson(DECISIONS_PATH)) as DecisionsPayload;
+  const batch = (await provider.getBatch()) as Batch;
+  const decisionsPayload = (await provider.getDecisions()) as DecisionsPayload;
   if (decisionsPayload.batch_id !== batch.batch_id)
     throw new Error("decisions.json batch_id does not match current_batch.json");
 

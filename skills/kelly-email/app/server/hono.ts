@@ -4,6 +4,7 @@ import { type Context, Hono } from "hono";
 import { updateDetail, updateItems } from "./decisions.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { lockPayload } from "./lock.ts";
 import { APP_DIR, ATTACHMENTS_DIR } from "./paths.ts";
 import { statePayload } from "./state.ts";
@@ -102,6 +103,21 @@ app.get("/attachments/*", (c) => {
     return c.text("Forbidden", 403);
   }
   return sendFile(c, resolved, { store: false });
+});
+
+app.get("/api/provider-file/*", async (c) => {
+  const pathname = decodeURIComponent(c.req.path.replace(/^\/api\/provider-file\//, ""));
+  const provider = createProvider();
+  if (!provider.getFile) return c.text("Not Found", 404);
+  const file = await provider.getFile(pathname).catch(() => null);
+  const data = file?.data;
+  if (typeof data !== "string") return c.text("Not Found", 404);
+  const meta = (file.meta && typeof file.meta === "object" ? file.meta : {}) as Record<string, unknown>;
+  const buffer = Buffer.from(data, meta.encoding === "base64" ? "base64" : "utf8");
+  return c.body(buffer as unknown as ArrayBuffer, 200, {
+    "Content-Type": String(meta.content_type || "application/octet-stream"),
+    "Cache-Control": "no-store",
+  });
 });
 
 app.onError((err, c) => c.json({ error: err.message, trace: err.stack }, 500));

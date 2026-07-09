@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, rm, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
 import {
   configFileCandidates,
+  createProvider,
   envFileCandidates,
   loadConfig,
   loadConfigWithMeta,
@@ -62,20 +63,11 @@ export async function ensureDirs() {
 }
 
 export async function writeAgentLock(message) {
-  await ensureDirs();
-  await writeJson(LOCK_PATH, {
-    owner: "kelly-email-agent",
-    message,
-    started_at: utcNow(),
-  });
+  await createProvider().writeLock(message);
 }
 
 export async function clearAgentLock() {
-  try {
-    await unlink(LOCK_PATH);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-  }
+  await createProvider().clearLock();
 }
 
 export async function readJson(path, fallback = undefined) {
@@ -371,10 +363,14 @@ export function safeFilename(value, fallback) {
 }
 
 export async function clearBatchAttachments(batchId) {
+  const provider = createProvider();
+  if (provider.clearBatchAttachments) return provider.clearBatchAttachments(batchId);
   await rm(join(ATTACHMENTS_DIR, batchId), { recursive: true, force: true });
 }
 
 export async function persistAttachments(batchId: string, itemId: string, htmlBody: string, attachments: Attachment[]) {
+  const provider = createProvider();
+  if (provider.persistAttachments) return provider.persistAttachments(batchId, itemId, htmlBody, attachments);
   const itemDir = join(ATTACHMENTS_DIR, batchId, itemId);
   await mkdir(itemDir, { recursive: true });
   const cidUrls = new Map();
