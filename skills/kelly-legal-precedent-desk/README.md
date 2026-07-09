@@ -21,6 +21,12 @@ Finds and packages internal precedents for a new legal question: similar facts, 
     <td><strong>Checks</strong><br>Quality checks for citation traceability, similarity rationale, jurisdiction fit, and confidentiality limits.</td>
     <td><strong>Workbench</strong><br>Detail view for precedent reasoning, decisive facts, internal citations, draft memo, and review note.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/entities.webp" alt="Legal Precedent Desk library"></td>
+  </tr>
+  <tr>
+    <td><strong>Library</strong><br>Internal precedent and trial-court pattern library, bucketed by review state.</td>
+  </tr>
 </table>
 
 ## Local App

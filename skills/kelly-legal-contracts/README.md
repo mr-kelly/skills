@@ -31,6 +31,14 @@ Kelly Legal Contracts is a local App-in-Skill contract review desk for NDAs, MSA
     <td><strong>Risk checks</strong><br>Per-rule pass/warn/fail results across clause issues, including hard-stop terms and playbook violations.</td>
     <td><strong>Clause issues</strong><br>Editable issue detail with fallback language, memo fields, reviewer rationale, and risk-check evidence.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/playbook.webp" alt="Kelly Legal Contracts clause playbook"></td>
+    <td width="50%"><img src="assets/screenshots/contracts.webp" alt="Kelly Legal Contracts contract register"></td>
+  </tr>
+  <tr>
+    <td><strong>Clause playbook</strong><br>Approved fallback clauses by position with status, matter type, and where each is safe to use.</td>
+    <td><strong>Contract register</strong><br>Contract table with counterparty, matter type, source, workstream, clause issues, and status.</td>
+  </tr>
 </table>
 
 ## Demo Mode

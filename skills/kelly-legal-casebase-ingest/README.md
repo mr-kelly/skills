@@ -22,6 +22,12 @@ Turns archived judgments and arbitral awards into reviewed internal case records
     <td><strong>Workbench</strong><br>Detail pane for facts, reasoning, legal basis, tags, editable draft, and reviewer note before ingest.</td>
   </tr>
   <tr>
+    <td width="50%"><img src="assets/screenshots/entities.webp" alt="Legal Casebase Ingest library"></td>
+  </tr>
+  <tr>
+    <td><strong>Library</strong><br>Ingested case library with needs-review and approved buckets and per-item counts.</td>
+  </tr>
+  <tr>
     <td width="50%"><img src="assets/screenshots/mobile-detail-zh-CN.webp" alt="Legal Casebase Ingest mobile detail"></td>
     <td></td>
   </tr>

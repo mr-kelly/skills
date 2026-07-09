@@ -73,6 +73,7 @@ export const messages = {
       status: {
         active: "active",
         needs_review: "needs review",
+        changes_requested: "changes requested",
         blocked: "blocked",
         retiring: "retiring",
         draft: "draft",
@@ -181,6 +182,7 @@ export const messages = {
       status: {
         active: "在售",
         needs_review: "待审批",
+        changes_requested: "已要求修改",
         blocked: "已阻止",
         retiring: "准备下架",
         draft: "草稿",

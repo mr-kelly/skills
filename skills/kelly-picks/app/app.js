@@ -779,7 +779,7 @@ function renderDecisions() {
                 <button type="button" class="action" data-action="block" data-kind="proposal" data-id="${escapeHtml(item.proposal_id)}" ${disabled}>${t("block")}</button>
               </div>
             `
-                : `${item.verdictNote ? `<p class="muted verdict-note">${escapeHtml(item.verdictNote)}</p>` : ""}`
+                : `${item.review?.comment || item.verdictNote ? `<p class="muted verdict-note">${escapeHtml(item.review?.comment || item.verdictNote)}</p>` : ""}`
             }
           </div>
         `;

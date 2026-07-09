@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+import type { HttpError } from "../../lib/types.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoAsset, demoImageConfigPayload, demoNotice, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { hyperframeProjectStatus } from "./hyperframe-service.ts";
@@ -271,4 +273,9 @@ app.get("/generated/*", async (c) => {
   });
 });
 
-app.onError((err, c) => c.json({ error: err.message, trace: err.stack }, 500));
+app.onError((err, c) => {
+  const statusCode = (err as HttpError).statusCode;
+  const status: ContentfulStatusCode =
+    statusCode && statusCode >= 400 && statusCode < 600 ? (statusCode as ContentfulStatusCode) : 500;
+  return c.json({ error: err.message, trace: err.stack }, status);
+});

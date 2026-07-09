@@ -131,6 +131,8 @@ export interface Opportunity {
   created_at: string;
   decision: Decision | null;
   execution: Execution | null;
+  /** Busabase change-request status, present only when this opportunity round-tripped through the busabase provider. */
+  busabase_status?: string;
 }
 
 export interface SnapshotMetrics {

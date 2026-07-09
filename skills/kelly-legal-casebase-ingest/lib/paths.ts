@@ -12,6 +12,7 @@ export const SNAPSHOT_PATH = path.join(DATA_DIR, SNAPSHOT_FILE);
 export const DECISIONS_PATH = path.join(DATA_DIR, "decisions.json");
 export const AGENT_TASKS_PATH = path.join(DATA_DIR, "agent_tasks.json");
 export const EXECUTION_REPORT_PATH = path.join(DATA_DIR, "execution_report.json");
+export const EXPORT_REPORT_PATH = path.join(DATA_DIR, "export_report.json");
 export const ONBOARDING_PATH = path.join(DATA_DIR, "onboarding.json");
 export const LOCK_PATH = path.join(DATA_DIR, "agent.lock");
 export const PID_PATH = path.join(CACHE_DIR, "server.pid");

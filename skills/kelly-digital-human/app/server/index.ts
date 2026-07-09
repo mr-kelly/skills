@@ -17,15 +17,24 @@ function queryFor(requestUrl: string): URLSearchParams {
   return new URL(requestUrl).searchParams;
 }
 
+// A lock older than this is treated as abandoned/stale so a crashed agent
+// can never permanently block human review.
+const LOCK_STALE_MS = 15 * 60 * 1000;
+
+async function isLocked(): Promise<boolean> {
+  try {
+    const stat = await fs.stat(lockPath);
+    return Date.now() - stat.mtimeMs <= LOCK_STALE_MS;
+  } catch {
+    return false;
+  }
+}
+
 async function localState() {
   const demo = demoState();
   const snapshot = (await readJson(snapshotPath, demo.snapshot)) || demo.snapshot;
   const decisions = (await readJson(decisionsPath, { decisions: {} })) || { decisions: {} };
-  let locked = false;
-  try {
-    await fs.access(lockPath);
-    locked = true;
-  } catch {}
+  const locked = await isLocked();
   return { snapshot, decisions, locked };
 }
 
@@ -38,6 +47,10 @@ app.get("/api/state", async (c) => {
 app.post("/api/decision", async (c) => {
   const query = queryFor(c.req.url);
   if (isDemoQuery(query)) return c.json({ ok: true, demo: true });
+
+  if (await isLocked()) {
+    return c.json({ ok: false, error: "agent.lock is active; try again after the agent finishes" }, 423);
+  }
 
   const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
   const checkId = String(body.check_id || "");

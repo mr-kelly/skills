@@ -93,11 +93,19 @@ try {
     };
   });
 
+  // Merge onto the previous report by id so already-executed (or otherwise
+  // resolved) entries survive a later run that only re-plans a different
+  // batch of newly-approved anomalies -- overwriting the whole file would
+  // drop their "executed" record and re-queue them (see SKILL.md's
+  // idempotency guarantee).
+  const mergedById = new Map((previousReport?.results || []).map((result) => [result.id, result]));
+  for (const result of results) mergedById.set(result.id, result);
+
   const report = {
     generated_at: new Date().toISOString(),
     dry_run: dryRun,
     source: "kelly-audit",
-    results,
+    results: [...mergedById.values()],
   };
   await provider.writeExecutionReport(report);
   console.log(`${dryRun ? "Dry run" : "Execution plan"} wrote the ${provider.name} execution report`);

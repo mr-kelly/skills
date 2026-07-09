@@ -36,7 +36,7 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 ## Boundary
 
 - Report ingestion is read-only: the agent pulls platform reports (API pulls, report exports, or pasted CSVs) outside the app and feeds them to `scripts/ingest_reports.ts`. Nothing in this skill mutates a platform on its own.
-- The app reads and writes local files only. It must not call platform APIs, change bids, budgets, keywords, or creatives, or touch any network beyond `127.0.0.1`.
+- The app reads and writes local files only. It must not call platform APIs, change bids, budgets, keywords, or creatives, or touch any network beyond `127.0.0.1` in the default `local` data provider. The optional, explicitly-configured `busabase` data provider (`KELLY_ADS_DATA_PROVIDER=busabase` / `config.busabase.base_url`) is the sole exception: it talks to a Busabase base the user has configured, using the same review-provider pattern documented across this repo's App-in-Skills. It is never enabled by onboarding or by default.
 - Every bid/budget/keyword/creative mutation is approval-required and executed by the agent outside the app, only after the matching adjustment card is `approved`. `scripts/execute_decisions.ts` is a dry-run planner, never an executor.
 - Ad account credentials live only in local env files referenced by name from private config (`*_env` keys). Never store tokens in the repo or paste them into chat.
 - Do not commit `config.local.json`, env files, `app/.data/`, report exports, or raw platform responses.

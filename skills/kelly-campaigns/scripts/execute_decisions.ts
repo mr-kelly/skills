@@ -21,6 +21,7 @@ interface Decision {
   comment?: string;
   body?: string;
   chosen_variant?: string;
+  decided_at?: string;
 }
 
 interface Send {
@@ -78,11 +79,12 @@ if (lock) {
 }
 
 const state = await provider.getState();
-const snapshot = state.snapshot as { sends?: Send[] } | null;
+const snapshot = state.snapshot as { sends?: Send[]; generated_at?: string } | null;
 if (!snapshot) {
   console.error("No snapshot available from the data provider. Nothing to execute.");
   process.exit(1);
 }
+const generatedAt = Date.parse(snapshot.generated_at || "") || 0;
 
 const decisions = ((state.decisions as { decisions?: Record<string, Decision> })?.decisions || {}) as Record<
   string,
@@ -99,6 +101,23 @@ const results: ExecutionResultItem[] = [];
 for (const send of snapshot.sends || []) {
   const decision = decisions[send.send_id];
   if (!decision || decision.action !== "approve") continue;
+
+  // Freshness gate: a decision decided before the current snapshot was
+  // generated refers to an earlier draft (e.g. a redraft after
+  // changes_requested) and must not be treated as authorizing the content
+  // now in the snapshot. Mirrors app.js's effectiveStatus() staleness check.
+  const decidedAt = Date.parse(decision.decided_at || "") || 0;
+  if (decidedAt < generatedAt) {
+    results.push({
+      send_id: send.send_id,
+      ref: send.ref,
+      status: "blocked",
+      operation: "none",
+      reason: "Approval decision predates the current snapshot (stale approve); refusing to schedule.",
+      executed_at: now,
+    });
+    continue;
+  }
 
   // Safety gate: never schedule a send the SEND audit blocked or with high
   // deliverability risk, even if a stale approve decision exists.

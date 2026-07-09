@@ -501,7 +501,7 @@ function demoSnapshot(scenario) {
   const blockers = items
     .filter((entry) => entry.readiness === "BLOCK" || (entry.readiness === "FIX" && entry.status === "blocked"))
     .map((entry) => ({ item_id: entry.item_id, ref: entry.ref, title: entry.title, phase: entry.phase }));
-  const readinessVerdict = blockers.length ? "FIX" : shipCounts.block ? "BLOCK" : "SHIP";
+  const readinessVerdict = shipCounts.block ? "BLOCK" : blockers.length ? "FIX" : "SHIP";
   // LQS (Launch Quality Score): SHIP items count full, FIX items half, BLOCK items zero.
   const lqs = items.length ? Math.round(((shipCounts.ship + shipCounts.fix * 0.5) / items.length) * 100) : 0;
 

@@ -60,8 +60,17 @@ export function createLocalFileProvider(_meta: ProviderMeta = {}) {
     return onboarding;
   }
 
+  // A lock older than this is treated as abandoned/stale so a crashed check
+  // script or agent run can never permanently block human review (mirrors the
+  // stale-lock threshold used by sibling App-in-Skill providers).
+  const LOCK_STALE_MS = 15 * 60 * 1000;
+
   async function getLock(): Promise<Lock | null> {
-    return readJson<Lock>(LOCK_PATH, null);
+    const lock = await readJson<Lock>(LOCK_PATH, null);
+    if (!lock) return null;
+    const startedAt = lock.started_at ? Date.parse(lock.started_at) : Number.NaN;
+    if (Number.isFinite(startedAt) && Date.now() - startedAt > LOCK_STALE_MS) return null;
+    return lock;
   }
 
   async function acquireLock(owner: string, message: string): Promise<void> {
@@ -142,6 +151,12 @@ export function createLocalFileProvider(_meta: ProviderMeta = {}) {
       const snapshot = await getSnapshot();
       const action = (snapshot.actions || []).find((item) => item.action_id === action_id);
       if (!action) throw new Error(`Unknown action: ${action_id}`);
+      // `done` is terminal: the agent already executed this action outside the
+      // app. Re-deciding it would flip it back to `approved` and let the next
+      // execute_decisions.ts run re-plan an operation that already happened.
+      if (action.status === "done") {
+        throw new Error(`Action ${action_id} is already done and cannot be re-decided`);
+      }
       const decidedAt = new Date().toISOString();
       const decision: Decision = {
         action_id,

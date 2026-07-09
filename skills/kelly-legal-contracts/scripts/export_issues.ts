@@ -32,6 +32,12 @@ if (!snapshot || !Array.isArray(snapshot.drafts)) {
   process.exit(1);
 }
 const decisions = (await provider.readDecisions()).decisions || {};
+const priorReport = await provider.readExecutionReport();
+const alreadyExported = new Set(
+  (priorReport?.results || [])
+    .filter((entry) => entry.operation === "export_issue_list")
+    .map((entry) => entry.draft_id),
+);
 
 function reviewFor(draft) {
   return (snapshot.review_items || []).find((item) => item.draft_id === draft.draft_id) || null;
@@ -43,6 +49,13 @@ function effectiveStatus(draft) {
   if (decision?.action === "approve") return "approved";
   if (decision?.action === "block") return "blocked";
   if (decision?.action === "request_changes") return "changes_requested";
+  // An agent can ingest a draft with status "approved" or "done" directly (no
+  // human decision recorded in decisions.json). Never treat that as an
+  // approval here -- only a real "approve" decision (above) or a draft this
+  // script itself already exported (recorded in execution_report.json)
+  // counts as exportable.
+  if (draft.status === "approved") return "needs_review";
+  if (draft.status === "done" && !alreadyExported.has(draft.draft_id)) return "needs_review";
   return draft.status;
 }
 

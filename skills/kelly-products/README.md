@@ -30,6 +30,14 @@ Kelly Products is a local App-in-Skill product-management desk (商品管理台)
     <td><strong>Product detail</strong><br>Gallery, pricing, inventory, content readiness, compliance notes, channel matrix, and related review cards.</td>
     <td><strong>Review queue</strong><br>Approval-gated publish, price, quality-hold, and lifecycle recommendations with evidence.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/channels.webp" alt="Kelly Products channels"></td>
+    <td width="50%"><img src="assets/screenshots/inventory.webp" alt="Kelly Products inventory"></td>
+  </tr>
+  <tr>
+    <td><strong>Channels</strong><br>Per-channel listing matrix across Amazon, Shopify, and TikTok Shop with status, price, score, and channel issues.</td>
+    <td><strong>Inventory</strong><br>Stock health across warehouses — on-hand, available, days of cover, and low-stock flags.</td>
+  </tr>
 </table>
 
 ## Demo Mode

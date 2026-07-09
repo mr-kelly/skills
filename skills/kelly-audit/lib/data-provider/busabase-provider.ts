@@ -248,7 +248,10 @@ export class BusabaseProvider implements DataProvider {
     }
   }
 
-  async writeExecutionReport(_report: ExecutionReport): Promise<void> {
+  async writeExecutionReport(report: ExecutionReport): Promise<void> {
+    // Dry-run-by-default: no external side effects, mirroring the local-file
+    // provider's plain (non-merging) preview write. Only --apply merges.
+    if (report.dry_run) return;
     // Executing an approved anomaly is a merge on Busabase.
     const crs = await this.#api("GET", "/api/v1/change-requests");
     const list = Array.isArray(crs) ? crs : crs?.items || [];

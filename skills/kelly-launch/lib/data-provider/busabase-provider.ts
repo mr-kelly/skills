@@ -127,7 +127,7 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
     const blockers = items
       .filter((entry) => entry.readiness === "BLOCK")
       .map((entry) => ({ item_id: entry.item_id, ref: entry.ref, title: entry.title, phase: entry.phase }));
-    const verdict = blockers.length ? "FIX" : ship.block ? "BLOCK" : "SHIP";
+    const verdict = ship.block ? "BLOCK" : blockers.length ? "FIX" : "SHIP";
     const lqs = items.length ? Math.round(((ship.ship + ship.fix * 0.5) / items.length) * 100) : 0;
     return {
       schema_version: "1",

@@ -242,12 +242,28 @@ export function createLocalFileProvider(_meta: ProviderMeta = {}) {
       if (!item) throw new Error(`Unknown review item: ${reviewId}`);
       const now = new Date().toISOString();
       const decisions = await this.readDecisions();
-      decisions.decisions[reviewId] = {
-        action,
-        comment: String(payload.comment || ""),
-        draft: payload.draft === undefined ? undefined : String(payload.draft),
-        decided_at: now,
-      };
+      const existing = decisions.decisions[reviewId];
+      // "revise" is save-human-edits-only (see provider-interface.ts): it must
+      // never clobber a prior approve/request_changes/block verdict the way a
+      // fresh write would. Mirrors the Busabase provider, where a revise call
+      // adds an operation revision without touching the change request's
+      // review verdict. Only fall back to a bare "revise" record (needs_review)
+      // when there is no prior verdict to preserve.
+      if (action === "revise" && existing && DECISION_ACTIONS.has(existing.action) && existing.action !== "revise") {
+        decisions.decisions[reviewId] = {
+          ...existing,
+          comment: payload.comment === undefined ? existing.comment || "" : String(payload.comment),
+          draft: payload.draft === undefined ? existing.draft : String(payload.draft),
+          decided_at: now,
+        };
+      } else {
+        decisions.decisions[reviewId] = {
+          action,
+          comment: String(payload.comment || ""),
+          draft: payload.draft === undefined ? undefined : String(payload.draft),
+          decided_at: now,
+        };
+      }
       decisions.updated_at = now;
       await this.writeDecisions(decisions);
       const tasks = await this.readAgentTasks();

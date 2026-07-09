@@ -339,6 +339,9 @@ async function main() {
     }
     const previousSnapshot = await provider.getSnapshot();
     const opportunities = previousSnapshot?.opportunities || [];
+    const aiVisibility = previousSnapshot?.ai_visibility ?? null;
+    const geoOpportunities = previousSnapshot?.geo_opportunities || [];
+    const entitySignals = previousSnapshot?.entity_signals ?? null;
     const siteEntries = results.map((result) => result.site);
     const totals = rowTotals(
       results.flatMap((result) => result.daily.filter((point) => point.date >= windows.current.start)),
@@ -370,6 +373,9 @@ async function main() {
       queries: results.flatMap((result) => result.queries),
       pages: results.flatMap((result) => result.pages),
       opportunities,
+      ai_visibility: aiVisibility,
+      geo_opportunities: geoOpportunities,
+      entity_signals: entitySignals,
       warnings,
     };
     await provider.writeSnapshot(snapshot);

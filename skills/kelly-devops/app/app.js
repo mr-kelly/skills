@@ -767,7 +767,17 @@ function renderActionDetail() {
           ${
             action.decision
               ? `
-            <dt>${t("decision")}</dt><dd>${escapeHtml(enumLabel(action.decision.verdict === "approve" ? "approved" : action.decision.verdict === "block" ? "blocked" : "changes_requested"))}</dd>
+            <dt>${t("decision")}</dt><dd>${escapeHtml(
+              enumLabel(
+                action.decision.verdict === "approve"
+                  ? "approved"
+                  : action.decision.verdict === "block"
+                    ? "blocked"
+                    : action.decision.verdict === "note"
+                      ? "note"
+                      : "changes_requested",
+              ),
+            )}</dd>
             <dt>${t("generated")}</dt><dd>${dateTime(action.decision.decided_at)}</dd>
           `
               : ""

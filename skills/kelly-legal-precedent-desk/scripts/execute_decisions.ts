@@ -30,7 +30,7 @@ try {
       operation: decision.action === "approve" ? EXECUTE_OPERATION : decision.action,
       dry_run: !apply,
       from_status: item.status,
-      to_status: decision.action === "approve" ? "done" : nextStatus,
+      to_status: nextStatus,
       comment: decision.comment || "",
     };
     results.push(result);
@@ -38,7 +38,7 @@ try {
       item.review_note = decision.comment || item.review_note;
       if (typeof decision.draft === "string") item.draft = decision.draft;
       if (decision.fields) item.fields = { ...(item.fields || {}), ...decision.fields };
-      item.status = decision.action === "approve" ? "done" : nextStatus;
+      item.status = nextStatus;
       item.decided_at = decision.decided_at;
     }
   }

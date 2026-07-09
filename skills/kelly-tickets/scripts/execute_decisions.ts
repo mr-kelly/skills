@@ -52,9 +52,20 @@ await provider.writeLock({
 
 try {
   const crewsById = new Map<string, Crew>((merged.crews || []).map((crew: Crew) => [crew.crew_id, crew]));
+  const previousById = new Map<string, Record<string, unknown>>();
+  for (const result of previousReport?.results || []) {
+    if (result && typeof result.id === "string") previousById.set(result.id, result);
+  }
   const results = approved.map((proposal) => {
     const ticket = (merged.tickets || []).find((candidate) => candidate.id === proposal.ticket_id);
     const crew = crewsById.get(proposal.proposed_crew_id);
+    // A proposal that was already handed to the agent ("ready_for_agent") in a
+    // prior --apply run is being re-selected only because nothing had marked
+    // it terminal yet. Treat this second --apply as the "record the real
+    // result here" step: finalize it as executed so it stops re-triggering
+    // notify_crew plans, and mergeSnapshot promotes it to "done".
+    const priorEntry = previousById.get(proposal.id);
+    const alreadyHandedOff = !dryRun && priorEntry?.status === "ready_for_agent";
     if (!ticket || !crew) {
       return {
         id: proposal.id,
@@ -78,42 +89,64 @@ try {
     ]
       .filter(Boolean)
       .join("\n");
+    const operations = Array.isArray(priorEntry?.operations)
+      ? priorEntry.operations
+      : [
+          {
+            operation: "notify_crew",
+            target: crew.crew_id,
+            contact_env: crew.contact_env || "",
+            contact_ready: contactReady,
+            message_draft: message,
+          },
+          {
+            operation: "update_board",
+            target: ticket.id,
+            from_status: ticket.status,
+            to_status: "assigned",
+            crew_id: crew.crew_id,
+            assignee: proposal.proposed_assignee || "",
+          },
+        ];
     return {
       id: proposal.id,
       ref: proposal.ref,
       title: proposal.title,
       ticket_id: ticket.id,
       crew_id: crew.crew_id,
-      operations: [
-        {
-          operation: "notify_crew",
-          target: crew.crew_id,
-          contact_env: crew.contact_env || "",
-          contact_ready: contactReady,
-          message_draft: message,
-        },
-        {
-          operation: "update_board",
-          target: ticket.id,
-          from_status: ticket.status,
-          to_status: "assigned",
-          crew_id: crew.crew_id,
-          assignee: proposal.proposed_assignee || "",
-        },
-      ],
-      status: dryRun ? "planned" : "ready_for_agent",
+      operations,
+      status: dryRun ? "planned" : alreadyHandedOff ? "executed" : "ready_for_agent",
+      executed_at: alreadyHandedOff ? new Date().toISOString() : "",
       detail: dryRun
         ? `Dry run: would hand the message draft to ${crew.name} and move ${ticket.id} to assigned.${contactReady ? "" : ` Contact env ${crew.contact_env || "(unset)"} is not configured.`}`
-        : `Approved: agent should notify ${crew.name}${contactReady ? "" : ` after configuring ${crew.contact_env || "a contact env"}`}, then record the real result here and update the board via apply_triage.`,
+        : alreadyHandedOff
+          ? `Executed: ${crew.name} was already handed this plan in a prior apply run; recorded as executed. Confirm the real outcome via apply_triage ticket_updates.`
+          : `Approved: agent should notify ${crew.name}${contactReady ? "" : ` after configuring ${crew.contact_env || "a contact env"}`}, then record the real result here and update the board via apply_triage.`,
     };
   });
+
+  // Merge into the previous report by id instead of overwriting it wholesale,
+  // so proposals that already reached a terminal state (e.g. "executed")
+  // in an earlier run stay recorded even though they are no longer in the
+  // "approved" selection above.
+  const resultsById = new Map<string, Record<string, unknown>>();
+  for (const result of previousReport?.results || []) {
+    if (result && typeof result.id === "string") resultsById.set(result.id, result);
+  }
+  for (const result of results) {
+    // A dry run is a preview only; never let it clobber a real "ready_for_agent"
+    // or "executed" record left by a prior --apply run.
+    const existing = resultsById.get(result.id);
+    if (dryRun && existing && existing.status !== "planned") continue;
+    resultsById.set(result.id, result);
+  }
 
   const report = {
     generated_at: new Date().toISOString(),
     dry_run: dryRun,
     source: "kelly-tickets",
     config_path: configResult.path,
-    results,
+    results: Array.from(resultsById.values()),
   };
   await provider.writeExecutionReport(report);
   console.log(`${dryRun ? "Dry run" : "Execution plan"} written via "${provider.kind}" provider.`);

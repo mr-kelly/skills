@@ -25,7 +25,10 @@ function withWriteQueue<T>(operation: () => Promise<T>): Promise<T> {
 function approvedActionFor(action: string, item: ReviewItem) {
   if (action === "approve_proposed") {
     const proposed = item.proposed_action || "review";
-    return ["review", "needs_review", "revise"].includes(proposed) ? "archive" : proposed;
+    // A "review" style proposal has no concrete action to approve; treat it as
+    // sending the item back for explicit human review instead of silently
+    // executing an unapproved action (e.g. archive).
+    return ["review", "needs_review", "revise"].includes(proposed) ? "needs_review" : proposed;
   }
   if (action === "approve_archive") return "archive";
   if (action === "approve_mark_read") return "mark_read";

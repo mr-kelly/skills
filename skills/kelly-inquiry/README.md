@@ -30,6 +30,12 @@ Kelly Inquiry is a local App-in-Skill inbound-inquiry desk for cross-border / fo
     <td><strong>Pipeline</strong><br>Inquiries across WhatsApp, Instagram, and email with country, stage, value estimate, and next follow-up.</td>
     <td><strong>Quotes</strong><br>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/products.webp" alt="Kelly Inquiry products"></td>
+  </tr>
+  <tr>
+    <td><strong>Products</strong><br>Product catalog behind quotes — specs, MOQ, price range, and lead time per SKU.</td>
+  </tr>
 </table>
 
 ## Demo Mode

@@ -59,6 +59,10 @@ const ROUTE_OVERRIDES = {
     "needs-review": "/review",
     workbench: "/items/strategy-saas-arrears",
   },
+  "kelly-legal-contracts": {
+    playbook: "/claims",
+    contracts: "/products",
+  },
   "kelly-legal-precedent-desk": {
     "needs-review": "/review",
     workbench: "/items/pack-lease-break",

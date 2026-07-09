@@ -134,7 +134,25 @@ export async function readExecutionReport(): Promise<ExecutionReport | null> {
 }
 
 export async function writeExecutionReport(report: ExecutionReport): Promise<void> {
-  await writeJson(EXECUTION_REPORT_PATH, report);
+  const existing = await readExecutionReport();
+  await writeJson(EXECUTION_REPORT_PATH, mergeExecutionReport(existing, report));
+}
+
+function executionResultKey(result: Record<string, unknown>): string {
+  if (typeof result.item_id === "string" && result.item_id) return `item:${result.item_id}`;
+  if (typeof result.path === "string" && result.path) return `path:${result.path}`;
+  return `raw:${JSON.stringify(result)}`;
+}
+
+// Scripts (execute_decisions.ts, export_strategy_pack.ts, ...) each produce their own execution
+// report; merge their results by a stable key instead of clobbering the shared audit file so one
+// script's run can't erase another's record.
+function mergeExecutionReport(existing: ExecutionReport | null, incoming: ExecutionReport): ExecutionReport {
+  const merged = new Map((existing?.results || []).map((result) => [executionResultKey(result), result]));
+  for (const result of incoming.results || []) {
+    merged.set(executionResultKey(result), result);
+  }
+  return { ...(existing || {}), ...incoming, results: [...merged.values()] };
 }
 
 export async function readOnboarding(): Promise<Record<string, unknown>> {

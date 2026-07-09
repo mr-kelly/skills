@@ -28,6 +28,16 @@ const STATUS_MAP: Record<string, string> = {
   abandoned: "blocked",
 };
 
+// Busabase change-request status -> the kelly-crm decision action that
+// produced it, so readDecisions() can reflect a review recorded remotely
+// (mirrors DECISION_STATUS in app/app.js, inverted).
+const CR_STATUS_TO_ACTION: Record<string, string> = {
+  approved: "approve",
+  changes_requested: "request_changes",
+  rejected: "block",
+  abandoned: "block",
+};
+
 const FOLLOWUP_FIELD_KEYS = [
   "contact_id",
   "deal_id",
@@ -183,7 +193,13 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
           execution_report: null,
           snapshot: {
             schema_version: "1",
-            generated_at: new Date().toISOString(),
+            // Busabase has no distinct "content last changed" signal separate from
+            // the review timestamp used for decided_at (see readDecisions below), so
+            // stamping "now" here would make every decided_at look stale and permanently
+            // block execution. Use the epoch instead: this snapshot is always a live
+            // fetch, so staleness detection is a local-file-provider concept that does
+            // not meaningfully apply here; never treat a busabase approval as stale.
+            generated_at: new Date(0).toISOString(),
             source: "busabase",
             base_currency: (summary.base_currency as string) || "USD",
             pipeline_stages: summary.pipeline_stages || [],
@@ -229,7 +245,23 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
     },
 
     async readDecisions() {
-      return { updated_at: "", decisions: {} };
+      try {
+        const crs = await api("GET", "/api/v1/change-requests");
+        const list = Array.isArray(crs) ? crs : crs?.items || [];
+        const decisions: Record<string, unknown> = {};
+        for (const cr of list) {
+          const followupId = String(cr.id ?? "");
+          const action = CR_STATUS_TO_ACTION[cr.status as string];
+          if (!followupId || !action) continue;
+          decisions[followupId] = {
+            action,
+            decided_at: (cr.updatedAt as string) || (cr.reviewedAt as string) || new Date().toISOString(),
+          };
+        }
+        return { updated_at: new Date().toISOString(), decisions };
+      } catch {
+        return { updated_at: "", decisions: {} };
+      }
     },
 
     async readAgentTasks() {

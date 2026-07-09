@@ -750,10 +750,19 @@ function bindRecordSelection(kind, onSelect) {
 
 async function confirmDirection(topicId, directionId) {
   if (!topicId || !directionId) return;
+  // The server only knows about batch.topics written by real automation. When
+  // that's empty, the UI is showing a temporary client-derived view (see
+  // normalizeTopics) that the server has never seen, so it can't resolve
+  // topicId/directionId on its own. Send that view along so the server can
+  // persist it before looking the ids up.
+  const payload = { topic_id: topicId, direction_id: directionId };
+  if (!Array.isArray(state.batch?.topics) || !state.batch.topics.length) {
+    payload.topics = buildRepository().topics;
+  }
   const response = await fetch(withContextParams("/api/confirm-direction"), {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ topic_id: topicId, direction_id: directionId }),
+    body: JSON.stringify(payload),
   });
   if (!response.ok) {
     alert(`Could not create todo: ${await response.text()}`);

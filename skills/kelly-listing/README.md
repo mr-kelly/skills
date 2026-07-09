@@ -30,6 +30,14 @@ Kelly Listing is a local App-in-Skill listing factory (上架工作台) for a cr
     <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results — banned words, character caps, bullet counts — across all drafts.</td>
     <td><strong>Draft workbench</strong><br>Amazon draft with live title character count, five bullets, backend search terms byte counter, A+ outline, and locale tabs.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/claims.webp" alt="Kelly Listing claims registry"></td>
+    <td width="50%"><img src="assets/screenshots/products.webp" alt="Kelly Listing products"></td>
+  </tr>
+  <tr>
+    <td><strong>Claims registry</strong><br>Approved marketing claims and banned or restricted phrases, each with evidence and compliance status.</td>
+    <td><strong>Products</strong><br>Product catalog with SKU, category, source, per-platform listing status, and last-updated.</td>
+  </tr>
 </table>
 
 ## Demo Mode
