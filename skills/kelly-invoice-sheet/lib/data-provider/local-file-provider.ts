@@ -1,7 +1,13 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { nowIso, readJson, writeJson } from "../common.ts";
-import { emptyBatch, mergeDecisions, normalizeInvoicePatch, recomputeMetrics } from "../invoice-schema.ts";
+import {
+  DEFAULT_LOW_CONFIDENCE_THRESHOLD,
+  emptyBatch,
+  mergeDecisions,
+  normalizeInvoicePatch,
+  recomputeMetrics,
+} from "../invoice-schema.ts";
 import {
   agentTasksPath,
   batchPath,
@@ -41,6 +47,11 @@ function httpError(message: string, statusCode: number): HttpError {
   return error;
 }
 
+function lowConfidenceThresholdFor(configResult: ConfigResult): number {
+  const threshold = configResult.config?.extraction?.low_confidence_threshold;
+  return typeof threshold === "number" && Number.isFinite(threshold) ? threshold : DEFAULT_LOW_CONFIDENCE_THRESHOLD;
+}
+
 function summarizeConfig(configResult: ConfigResult): Record<string, unknown> {
   const config = configResult.config || {};
   const extraction = config.extraction || {};
@@ -56,7 +67,7 @@ function summarizeConfig(configResult: ConfigResult): Record<string, unknown> {
     },
     extraction: {
       preferred_ocr: extraction.preferred_ocr || "agent-provided",
-      low_confidence_threshold: extraction.low_confidence_threshold ?? 0.82,
+      low_confidence_threshold: lowConfidenceThresholdFor(configResult),
     },
     review_policy: {
       auto_approve_min_confidence: reviewPolicy.auto_approve_min_confidence ?? null,
@@ -87,7 +98,11 @@ export function createLocalFileProvider(_meta: ProviderMeta = {}) {
         this.readLock(),
         this.readConfig(),
       ]);
-      const merged = mergeDecisions(batch as InvoiceBatch, decisions as DecisionsFile);
+      const merged = mergeDecisions(
+        batch as InvoiceBatch,
+        decisions as DecisionsFile,
+        lowConfidenceThresholdFor(configResult),
+      );
       return {
         data_provider: "local",
         onboarding,
@@ -101,13 +116,17 @@ export function createLocalFileProvider(_meta: ProviderMeta = {}) {
     },
 
     async readBatch(): Promise<InvoiceBatch> {
-      const batch = await readJson<InvoiceBatch>(batchPath, emptyBatch());
-      return recomputeMetrics(batch);
+      const [batch, configResult] = await Promise.all([
+        readJson<InvoiceBatch>(batchPath, emptyBatch()),
+        this.readConfig(),
+      ]);
+      return recomputeMetrics(batch, lowConfidenceThresholdFor(configResult));
     },
 
     async writeBatch(batch: InvoiceBatch): Promise<void> {
       await fs.mkdir(dataDir, { recursive: true });
-      await writeJson(batchPath, recomputeMetrics(batch));
+      const configResult = await this.readConfig();
+      await writeJson(batchPath, recomputeMetrics(batch, lowConfidenceThresholdFor(configResult)));
     },
 
     async readDecisions(): Promise<DecisionsFile> {

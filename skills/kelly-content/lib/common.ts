@@ -23,6 +23,25 @@ export async function writeJson(file, data) {
   await fs.writeFile(file, `${JSON.stringify(data, null, 2)}\n`);
 }
 
+// A lock left in place longer than this is assumed to be abandoned by a
+// crashed/killed process (writeJson happens before fn(), fs.rm only runs in
+// `finally`, so SIGKILL/OOM between the two leaves agent.lock behind forever)
+// rather than an agent still actively writing.
+const LOCK_STALE_MS = 5 * 60 * 1000;
+
+// Read agent.lock, treating a lock older than LOCK_STALE_MS as stale and
+// clearing it so review actions aren't blocked indefinitely by a crash.
+export async function readActiveLock() {
+  const lock = await readJson(lockPath, null);
+  if (!lock) return null;
+  const startedAt = Date.parse(lock.started_at || "");
+  if (Number.isFinite(startedAt) && Date.now() - startedAt > LOCK_STALE_MS) {
+    await fs.rm(lockPath, { force: true });
+    return null;
+  }
+  return lock;
+}
+
 export async function withLock(message, fn) {
   await ensureDirs();
   await writeJson(lockPath, {

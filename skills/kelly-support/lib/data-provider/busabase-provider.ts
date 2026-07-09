@@ -23,7 +23,7 @@ import type {
   SupportProvider,
   UpdateTicketInput,
 } from "./provider-interface.ts";
-import { emptyMetrics, summarizeConfig } from "./store-core.ts";
+import { emptyMetrics, runQualityGate, summarizeConfig } from "./store-core.ts";
 
 // Busabase change-request status -> kelly-support ticket status.
 const STATUS_MAP: Record<string, string> = {
@@ -233,6 +233,18 @@ export function createBusabaseProvider(meta: ProviderMeta): SupportProvider {
       const edited = typeof text === "string" && text.trim() && text !== current.suggested_reply;
 
       if (action === "approve") {
+        // Safety: never let an approve stick on a gate BLOCK, same guarantee the
+        // local provider enforces. Gate the effective (possibly just-edited) reply.
+        const candidate = crToTicket(cr);
+        if (typeof text === "string" && text.trim()) candidate.suggested_reply = text.trim();
+        const gate = runQualityGate(candidate, [], meta.configResult.config.risk_policy || {});
+        if (gate.verdict === "block") {
+          const error: HttpError = new Error(
+            "support-qa gate is BLOCK: this reply promises a refund/commitment without approval or is ungrounded. Fix the reply before approving.",
+          );
+          error.statusCode = 409;
+          throw error;
+        }
         if (edited && op) {
           await api("POST", `/api/v1/operations/${encodeURIComponent(op.id)}/revisions`, {
             payload: { fields: nextFields, message: "Edited before approval", author: "kelly-support" },

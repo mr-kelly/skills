@@ -162,11 +162,15 @@ function isNeedsReview(item) {
 function isToApprove(item) {
   return item.status === "to_approve";
 }
-function isApprovedForExecution(item) {
-  return item.status === "approved" || Boolean(item.decision?.approved_for_execution);
-}
 function isDone(item) {
   return item.status === "done" || item.execution?.status === "executed";
+}
+function isApprovedForExecution(item) {
+  // An item that has already been executed is terminal ("done"); it must not
+  // keep counting as "approved" just because decision.approved_for_execution
+  // was never cleared after execute_decisions.ts ran.
+  if (isDone(item)) return false;
+  return item.status === "approved" || Boolean(item.decision?.approved_for_execution);
 }
 function isBlocked(item) {
   return item.status === "blocked" || item.decision?.action === "block";

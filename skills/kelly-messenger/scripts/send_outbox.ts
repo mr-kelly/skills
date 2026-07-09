@@ -93,6 +93,7 @@ async function main() {
           plan.target,
           `Agent must deliver this reply via the ${reply.platform} ${plan.connector} flow.`,
         );
+        reply.status = "done";
         reply.updated_at = nowIso();
         results.push(result(reply, "handoff", "handoff_to_agent", plan.target, reply.execution.detail, plan.connector));
         continue;

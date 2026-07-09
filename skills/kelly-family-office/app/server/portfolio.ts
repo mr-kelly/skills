@@ -15,6 +15,7 @@ import type {
   Holding,
   HoldingInput,
   InstitutionRollup,
+  Warning,
 } from "./types.ts";
 
 function round2(value: unknown): number {
@@ -26,13 +27,28 @@ export function fxRate(fxRates: FxRates | undefined, currency: string): number {
   return typeof rate === "number" && rate > 0 ? rate : 1;
 }
 
-export function normalizeHoldings(holdings: HoldingInput[], accounts: AccountRef[], fxRates: FxRates): Holding[] {
+export function normalizeHoldings(
+  holdings: HoldingInput[],
+  accounts: AccountRef[],
+  fxRates: FxRates,
+): { holdings: Holding[]; warnings: Warning[] } {
   const accountById = new Map(accounts.map((account) => [account.account_id, account]));
-  return holdings.map((holding) => {
+  const warnings: Warning[] = [];
+  const normalized = holdings.map((holding) => {
     const account = (accountById.get(holding.account_id) || {}) as Partial<AccountRef>;
     const currency = holding.currency || account.currency || "USD";
     const entity_id = holding.entity_id || account.entity_id || "";
+    const configuredRate = fxRates?.[currency];
     const rate = fxRate(fxRates, currency);
+    if (!(typeof configuredRate === "number" && configuredRate > 0)) {
+      warnings.push({
+        id: `fx-missing-${holding.holding_id || currency}`,
+        severity: "warning",
+        entity_id,
+        message: `No FX rate configured for ${currency}; valued ${holding.holding_id || "holding"} at a 1:1 fallback rate.`,
+        detail: "Add this currency to fx_rates so base-currency totals are accurate.",
+      });
+    }
     const market_value = round2(holding.market_value);
     const cost_basis = round2(holding.cost_basis);
     const market_value_base = round2(market_value * rate);
@@ -49,6 +65,7 @@ export function normalizeHoldings(holdings: HoldingInput[], accounts: AccountRef
       unrealized_pnl_base: round2(market_value_base - cost_basis_base),
     };
   });
+  return { holdings: normalized, warnings };
 }
 
 export function buildSnapshot({
@@ -62,7 +79,7 @@ export function buildSnapshot({
   source = "kelly-family-office",
   warnings = [],
 }: BuildSnapshotInput): ConsolidatedSnapshot {
-  const normalized = normalizeHoldings(holdings, accounts, fx_rates);
+  const { holdings: normalized, warnings: fxWarnings } = normalizeHoldings(holdings, accounts, fx_rates);
 
   const aum_base = round2(normalized.reduce((sum, h) => sum + h.market_value_base, 0));
   const cost_basis_base = round2(normalized.reduce((sum, h) => sum + h.cost_basis_base, 0));
@@ -139,6 +156,6 @@ export function buildSnapshot({
     by_entity,
     by_asset_class,
     by_institution,
-    warnings,
+    warnings: [...warnings, ...fxWarnings],
   };
 }

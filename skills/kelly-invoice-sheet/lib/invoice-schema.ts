@@ -70,7 +70,12 @@ export function emptyBatch(): InvoiceBatch {
   });
 }
 
-export function recomputeMetrics(batch: InvoiceBatch): InvoiceBatch {
+export const DEFAULT_LOW_CONFIDENCE_THRESHOLD = 0.82;
+
+export function recomputeMetrics(
+  batch: InvoiceBatch,
+  lowConfidenceThreshold: number = DEFAULT_LOW_CONFIDENCE_THRESHOLD,
+): InvoiceBatch {
   const metrics = {
     total: batch.invoices.length,
     needs_review: 0,
@@ -87,7 +92,7 @@ export function recomputeMetrics(batch: InvoiceBatch): InvoiceBatch {
     if (invoice.status in metrics) {
       metrics[invoice.status] += 1;
     }
-    if (invoice.confidence < 0.82) metrics.low_confidence += 1;
+    if (invoice.confidence < lowConfidenceThreshold) metrics.low_confidence += 1;
     if (typeof invoice.total === "number" && Number.isFinite(invoice.total)) metrics.total_amount += invoice.total;
     if (invoice.currency) currencies.add(invoice.currency);
   }
@@ -110,11 +115,18 @@ export function applyDecisionToInvoice(
   return next;
 }
 
-export function mergeDecisions(batch: InvoiceBatch, decisions: DecisionsFile): InvoiceBatch {
-  return recomputeMetrics({
-    ...batch,
-    invoices: batch.invoices.map((invoice) => applyDecisionToInvoice(invoice, decisions.decisions[invoice.id])),
-  });
+export function mergeDecisions(
+  batch: InvoiceBatch,
+  decisions: DecisionsFile,
+  lowConfidenceThreshold: number = DEFAULT_LOW_CONFIDENCE_THRESHOLD,
+): InvoiceBatch {
+  return recomputeMetrics(
+    {
+      ...batch,
+      invoices: batch.invoices.map((invoice) => applyDecisionToInvoice(invoice, decisions.decisions[invoice.id])),
+    },
+    lowConfidenceThreshold,
+  );
 }
 
 export function normalizeInvoicePatch(patch: Record<string, unknown>): Partial<InvoiceRecord> {

@@ -8,12 +8,25 @@ import { exportsDir } from "../lib/paths.ts";
 import type { DecisionsFile, InvoiceBatch, InvoiceLineItem, InvoiceRecord } from "../lib/types.ts";
 
 const provider = await createProvider();
+
+const lock = await provider.readLock();
+if (lock) {
+  console.error(
+    `Refusing to export: agent.lock is active (${(lock as { owner?: string }).owner || "unknown"}: ${(lock as { message?: string }).message || ""}).`,
+  );
+  process.exit(1);
+}
+
 const [rawBatch, rawDecisions, configResult] = await Promise.all([
   provider.readBatch(),
   provider.readDecisions(),
   provider.readConfig(),
 ]);
-const batch = mergeDecisions(rawBatch as InvoiceBatch, rawDecisions as DecisionsFile);
+const batch = mergeDecisions(
+  rawBatch as InvoiceBatch,
+  rawDecisions as DecisionsFile,
+  configResult.config?.extraction?.low_confidence_threshold ?? undefined,
+);
 const approved = batch.invoices.filter((invoice) => invoice.status === "approved");
 const baseDir =
   configResult.config.export?.directory && !configResult.is_example

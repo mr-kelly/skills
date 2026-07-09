@@ -57,7 +57,7 @@ export function emptySnapshot(): SupportSnapshot {
         id: "no-snapshot",
         severity: "info",
         message:
-          "No support snapshot exists yet. Configure channels, then ingest collected tickets with scripts/ingest_tickets.ts.",
+          "No support snapshot exists yet. Configure channels, then have the agent merge collected tickets directly into app/.data/support_snapshot.json (see references/support-schema.md).",
       },
     ],
   };

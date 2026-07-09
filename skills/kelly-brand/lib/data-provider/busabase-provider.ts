@@ -197,7 +197,24 @@ export class BusabaseProvider implements DataProvider {
   }
 
   async getDecisions(): Promise<DecisionsFile> {
-    return { updated_at: "", decisions: {} };
+    // Busabase has no separate decisions.json; a human "approve" verdict is the
+    // change request reaching status `approved` (not yet merged). Derive a
+    // decisions map from the live snapshot so execute_decisions.ts's
+    // approve/promote loop (which reads provider.getDecisions()) actually sees
+    // approvals made through applyDecision()'s review call. Once a CR is
+    // merged, STATUS_MAP maps it to "done" and it drops out of this map,
+    // keeping repeated --apply runs idempotent.
+    const { snapshot } = await this.#snapshotFromBusabase();
+    const items = Array.isArray(snapshot.items) ? (snapshot.items as Record<string, unknown>[]) : [];
+    const decided_at = String(snapshot.generated_at || new Date().toISOString());
+    const decisions: DecisionsFile["decisions"] = {};
+    for (const item of items) {
+      const itemId = item.item_id;
+      if (typeof itemId === "string" && item.status === "approved") {
+        decisions[itemId] = { action: "approve", comment: "", decided_at };
+      }
+    }
+    return { updated_at: decided_at, decisions };
   }
 
   async getAgentTasks(): Promise<AgentTasksFile> {

@@ -26,6 +26,7 @@ interface Decision {
   action?: string;
   comment?: string;
   draft?: string;
+  decided_at?: string;
 }
 
 interface Followup {
@@ -42,6 +43,7 @@ interface Followup {
 interface Snapshot {
   contacts?: Contact[];
   followups?: Followup[];
+  generated_at?: string;
 }
 
 interface ExecutionResultItem {
@@ -86,10 +88,27 @@ const alreadyHandedOff = new Set(
 const contacts = new Map<string, Contact>((snapshot.contacts || []).map((item) => [item.contact_id, item]));
 const now = new Date().toISOString();
 const results: ExecutionResultItem[] = [];
+const generatedAt = Date.parse(snapshot.generated_at || "") || 0;
 
 for (const followup of snapshot.followups || []) {
   const decision = decisions[followup.followup_id];
   if (!decision || decision.action !== "approve") continue;
+  // A decision is only a real human approval if it was decided at or after
+  // the snapshot it applies to. A stale approval (decided before the
+  // snapshot regenerated with new content) must not be handed off, mirroring
+  // app.js effectiveStatus().
+  const decidedAt = Date.parse(decision.decided_at || "") || 0;
+  if (decidedAt < generatedAt) {
+    results.push({
+      followup_id: followup.followup_id,
+      ref: followup.ref,
+      status: "skipped",
+      operation: "none",
+      reason: "Approval is stale relative to the current snapshot; needs re-review.",
+      executed_at: now,
+    });
+    continue;
+  }
   if (followup.status === "done" || alreadyHandedOff.has(followup.followup_id)) {
     results.push({
       followup_id: followup.followup_id,

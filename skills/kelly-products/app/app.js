@@ -14,6 +14,12 @@ const state = {
 
 const FEATURED_PRODUCT = "prod-aurora-lamp";
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-products.sidebarCollapsed";
+const DECISION_STATUS = {
+  approve: "approved",
+  request_changes: "changes_requested",
+  block: "blocked",
+  revise: "needs_review",
+};
 
 const els = {
   title: document.querySelector("#page-title"),
@@ -177,6 +183,19 @@ function reviewFor(productId) {
   return reviewItems().filter((item) => item.product_id === productId);
 }
 
+function decisionFor(itemId) {
+  return state.settings?.decisions?.decisions?.[itemId] || null;
+}
+
+function effectiveReviewStatus(item) {
+  const decision = decisionFor(item.item_id);
+  if (!decision) return item.status;
+  const generatedAt = Date.parse(state.snapshot?.generated_at || 0) || 0;
+  const decidedAt = Date.parse(decision.decided_at || 0) || 0;
+  if (decidedAt >= generatedAt && DECISION_STATUS[decision.action]) return DECISION_STATUS[decision.action];
+  return item.status;
+}
+
 function filteredProducts() {
   const q = state.query.trim().toLowerCase();
   if (!q) return products();
@@ -229,7 +248,9 @@ function esc(value) {
 function renderShell() {
   applyI18n();
   const metrics = state.snapshot?.metrics || {};
-  els.reviewCount.textContent = String(reviewItems().filter((item) => item.status === "needs_review").length);
+  els.reviewCount.textContent = String(
+    reviewItems().filter((item) => effectiveReviewStatus(item) === "needs_review").length,
+  );
   els.stockCount.textContent = String(metrics.low_stock_count || 0);
   els.channelCount.textContent = String(metrics.channel_issue_count || 0);
   els.syncStatus.textContent = state.settings?.demo
@@ -496,6 +517,19 @@ function renderChannels() {
 
 function reviewRow(item) {
   const product = productById(item.product_id);
+  const status = effectiveReviewStatus(item);
+  const decision = decisionFor(item.item_id);
+  const actions =
+    status === "needs_review"
+      ? `<div class="review-actions">
+        <button data-action="approve" data-item="${esc(item.item_id)}">${t("approve")}</button>
+        <button class="secondary" data-action="request_changes" data-item="${esc(item.item_id)}">${t("requestChanges")}</button>
+        <button class="danger" data-action="block" data-item="${esc(item.item_id)}">${t("block")}</button>
+      </div>`
+      : `<div class="review-actions">
+        ${badge(status)}
+        ${decision?.comment ? `<span class="muted">${esc(decision.comment)}</span>` : ""}
+      </div>`;
   return `<article class="review-item">
     <a class="review-image" href="#/products/${encodeURIComponent(item.product_id)}"><img src="${esc(product?.image || "")}" alt=""></a>
     <div>
@@ -507,17 +541,14 @@ function reviewRow(item) {
       <h3>${esc(item.title)}</h3>
       <p>${esc(item.summary)}</p>
       <ul>${(item.evidence || []).map((line) => `<li>${esc(line)}</li>`).join("")}</ul>
-      <div class="review-actions">
-        <button data-action="approve" data-item="${esc(item.item_id)}">${t("approve")}</button>
-        <button class="secondary" data-action="request_changes" data-item="${esc(item.item_id)}">${t("requestChanges")}</button>
-        <button class="danger" data-action="block" data-item="${esc(item.item_id)}">${t("block")}</button>
-      </div>
+      ${actions}
     </div>
   </article>`;
 }
 
 function renderReview() {
-  setPage(t("reviewQueue"), `${reviewItems().length} ${t("needsReview")}`);
+  const pending = reviewItems().filter((item) => effectiveReviewStatus(item) === "needs_review").length;
+  setPage(t("reviewQueue"), `${pending} ${t("needsReview")}`);
   els.content.innerHTML = `
     ${state.notice ? `<div class="notice">${esc(state.notice)}</div>` : ""}
     <div class="review-list">${reviewItems()
@@ -569,10 +600,11 @@ async function postDecision(action, itemId) {
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     state.notice = data.error || `HTTP ${res.status}`;
-  } else {
-    state.notice = activeLang() === "zh" ? "决策已记录。" : "Decision recorded.";
+    render();
+    return;
   }
-  render();
+  state.notice = activeLang() === "zh" ? "决策已记录。" : "Decision recorded.";
+  await loadState();
 }
 
 function render() {

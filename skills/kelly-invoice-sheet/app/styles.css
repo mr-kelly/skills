@@ -245,6 +245,24 @@ button:focus-visible {
   min-height: 0;
 }
 
+.lock-banner,
+.notice-banner {
+  grid-column: 1 / -1;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #f0dfb2;
+  border-radius: 8px;
+  background: #fff8db;
+  color: #8a6500;
+  font-size: 13px;
+}
+
+.notice-banner {
+  border-color: #c9dcf5;
+  background: #eff5fe;
+  color: #1d4ed8;
+}
+
 .list-panel {
   position: relative;
   display: grid;

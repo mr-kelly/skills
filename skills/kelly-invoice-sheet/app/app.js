@@ -10,6 +10,7 @@ const state = {
   uploadOpen: false,
   lang: localStorage.getItem("kelly-invoice-sheet-lang") || "auto",
   accent: localStorage.getItem("kelly-invoice-sheet-accent") || "green",
+  notice: "",
 };
 
 const accents = {
@@ -167,6 +168,14 @@ function sidebarHtml() {
   `;
 }
 
+function noticeHtml() {
+  const lock = state.data?.lock;
+  const parts = [];
+  if (lock) parts.push(`<div class="lock-banner">${t("lockedBanner")}</div>`);
+  if (state.notice) parts.push(`<div class="notice-banner">${state.notice}</div>`);
+  return parts.join("");
+}
+
 function spreadsheetChromeHtml() {
   return `
     <div class="sheet-chrome">
@@ -268,13 +277,15 @@ function detailHtml() {
   if (!invoice) {
     return `<aside class="detail-panel"><div class="empty-detail">Run the demo generator or ask the agent to extract invoice files.</div></aside>`;
   }
+  const locked = Boolean(state.data?.lock);
+  const disabled = locked ? "disabled" : "";
   return `
     <aside class="detail-panel">
       <button class="back-to-list" type="button">${t("back")}</button>
       <div class="detail-actions-top">
-        <button class="primary" type="button" data-action="approve">${t("approve")}</button>
-        <button type="button" data-action="request_changes">${t("requestChanges")}</button>
-        <button type="button" data-action="block">${t("block")}</button>
+        <button class="primary" type="button" data-action="approve" ${disabled}>${t("approve")}</button>
+        <button type="button" data-action="request_changes" ${disabled}>${t("requestChanges")}</button>
+        <button type="button" data-action="block" ${disabled}>${t("block")}</button>
       </div>
       <form class="detail-form" data-form="${invoice.id}">
         <div class="detail-title">
@@ -323,7 +334,7 @@ function detailHtml() {
           <h3>Extraction Notes</h3>
           ${[...invoice.risk, ...invoice.warnings].map((item) => `<span>${item}</span>`).join("") || "<p>No warnings.</p>"}
         </section>
-        <button class="save-edit" type="submit">${t("save")}</button>
+        <button class="save-edit" type="submit" ${disabled}>${t("save")}</button>
       </form>
     </aside>
   `;
@@ -404,6 +415,7 @@ function render() {
       <main class="main">
         ${mobileTopbarHtml()}
         <section class="content">
+          ${noticeHtml()}
           ${tableHtml()}
           ${detailHtml()}
         </section>
@@ -431,11 +443,18 @@ function patchFromForm(form) {
 async function submitDecision(action, patch = null, comment = "") {
   const invoice = selectedInvoice();
   if (!invoice) return;
-  await fetch("/api/decision", {
+  const res = await fetch("/api/decision", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ item_id: invoice.id, action, comment, patch }),
   });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    state.notice = body.error || `Decision failed: ${res.status}`;
+    render();
+    return;
+  }
+  state.notice = "";
   await loadState();
 }
 

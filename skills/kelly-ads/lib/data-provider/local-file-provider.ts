@@ -31,6 +31,11 @@ const VERDICT_STATUS: Record<string, string> = {
   block: "blocked",
 };
 
+// A lock older than this is treated as abandoned/stale so a crashed ingest,
+// checks, or execute run can never permanently block human review (mirrors
+// the stale-lock threshold used by sibling App-in-Skill providers).
+const LOCK_STALE_MS = 15 * 60 * 1000;
+
 export function createLocalFileProvider(meta: ProviderMeta = {}): DataProvider {
   const provider: DataProvider = {
     name: "local",
@@ -52,7 +57,11 @@ export function createLocalFileProvider(meta: ProviderMeta = {}): DataProvider {
     },
 
     async readLock(): Promise<Lock | null> {
-      return readJson<Lock>(lockPath, null);
+      const lock = await readJson<Lock>(lockPath, null);
+      if (!lock) return null;
+      const startedAt = lock.started_at ? Date.parse(lock.started_at) : Number.NaN;
+      if (Number.isFinite(startedAt) && Date.now() - startedAt > LOCK_STALE_MS) return null;
+      return lock;
     },
 
     async readDecisions(): Promise<DecisionsFile> {

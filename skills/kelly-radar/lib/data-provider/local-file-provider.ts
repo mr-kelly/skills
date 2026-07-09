@@ -689,7 +689,11 @@ export function createLocalFileProvider(meta: ProviderMeta = {}): import("./prov
         const operations: ExecutionOperation[] = [];
 
         for (const signal of snapshot.signals || []) {
-          if (signal.status !== "approved") continue;
+          // Gate on the raw decision record itself, not just the decorated/merged
+          // status, so a status field the agent set on the item can never masquerade
+          // as a real human approval — and so marking the decision "done" after
+          // execution reliably prevents re-triggering on the next run.
+          if (decisions.decisions[signal.signal_id]?.status !== "approved") continue;
           const handoff = signal.handoff || { operation: "start_research", target: "", summary: "" };
           operations.push({
             id: signal.signal_id,
@@ -704,7 +708,7 @@ export function createLocalFileProvider(meta: ProviderMeta = {}): import("./prov
         }
 
         for (const brief of snapshot.research?.briefs || []) {
-          if (brief.status !== "approved") continue;
+          if (decisions.decisions[brief.brief_id]?.status !== "approved") continue;
           const question = (snapshot.research?.questions || []).find((entry) => entry.brief_id === brief.brief_id);
           if (!question || !["brief_needs_review", "researching"].includes(question.status)) continue;
           operations.push({
@@ -720,7 +724,7 @@ export function createLocalFileProvider(meta: ProviderMeta = {}): import("./prov
         }
 
         for (const opportunity of snapshot.trends?.opportunities || []) {
-          if (opportunity.status !== "approved") continue;
+          if (decisions.decisions[opportunity.opportunity_id]?.status !== "approved") continue;
           const step = opportunity.proposed_next_step || ({} as Partial<typeof opportunity.proposed_next_step>);
           operations.push({
             id: opportunity.opportunity_id,
@@ -734,12 +738,21 @@ export function createLocalFileProvider(meta: ProviderMeta = {}): import("./prov
           });
         }
 
+        // Merge this run's operations into the execution report by id instead of
+        // overwriting the whole file, so earlier runs' results aren't lost.
+        const previousReport = await readJson<{ operations?: ExecutionOperation[] }>(EXECUTION_REPORT_PATH, null);
+        const operationsById = new Map<string, ExecutionOperation>(
+          (previousReport?.operations || []).map((op) => [op.id, op]),
+        );
+        for (const op of operations) operationsById.set(op.id, op);
+        const mergedOperations = Array.from(operationsById.values());
+
         const report = {
           generated_at: now,
           source: "kelly-radar",
           dry_run: !apply,
-          operation_count: operations.length,
-          operations,
+          operation_count: mergedOperations.length,
+          operations: mergedOperations,
         };
         await writeJson(EXECUTION_REPORT_PATH, report);
 
@@ -763,6 +776,17 @@ export function createLocalFileProvider(meta: ProviderMeta = {}): import("./prov
           });
           raw.sync_log = raw.sync_log.slice(0, 50);
           await writeJson(SNAPSHOT_PATH, raw);
+
+          // Mark the underlying decisions terminal ('done') so a lingering 'approved'
+          // decision in decisions.json can't re-trigger the same handoff on the next
+          // --apply run (applyDecisions() always overlays decision.status onto the item).
+          const executedIds = new Set(operations.map((op) => op.id));
+          for (const id of executedIds) {
+            const decision = decisions.decisions[id];
+            if (decision && decision.status !== "done") decisions.decisions[id] = { ...decision, status: "done" };
+          }
+          decisions.updated_at = now;
+          await writeJson(DECISIONS_PATH, decisions);
         }
 
         return { apply, operations, report_path: EXECUTION_REPORT_PATH };

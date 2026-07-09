@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
 import path from "node:path";
-import { readSnapshot, writeExecutionReport } from "../lib/common.ts";
+import { readSnapshot, writeExportReport } from "../lib/common.ts";
 import { APP_ID, APP_TITLE, EXPORT_OPERATION, type ExecutionReport } from "../lib/types.ts";
 
 const outIndex = process.argv.indexOf("--out");
@@ -55,7 +55,7 @@ const report: ExecutionReport = {
     { operation: EXPORT_OPERATION, path: csvPath, format: "csv", count: items.length },
   ],
 };
-await writeExecutionReport(report);
+await writeExportReport(report);
 console.log(`Exported ${items.length} approved items to ${outDir}`);
 
 function csv(value: unknown) {

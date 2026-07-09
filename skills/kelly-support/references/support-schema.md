@@ -33,7 +33,7 @@ Use these shapes for the files under `app/.data/`. Keep them stable so the local
 }
 ```
 
-Written only by `scripts/ingest_tickets.ts`, `scripts/sync_knowledge.ts`, `scripts/execute_decisions.ts`, and the app server's queue/decision/sla/update endpoints. Demo mode never reads or writes it.
+Written only by the agent (merging collected tickets / KB entries directly into this file — there is no `ingest_tickets.ts` / `sync_knowledge.ts` script yet), by `scripts/execute_decisions.ts`, and by the app server's queue/decision/sla/update endpoints. Demo mode never reads or writes it.
 
 ## Account
 
@@ -203,7 +203,7 @@ A ticket's `kb_refs` reference `article_id`s. The `support-qa` gate requires a s
 
 `operation: send_reply` carries `channel` + `draft_id`; `escalate` carries `tier`; `refund` carries `amount` (approval-required). The executor refuses any ticket whose gate verdict is `block`.
 
-## Ingest payload (input to `scripts/ingest_tickets.ts`)
+## Ingest payload (shape the agent merges directly into `support_snapshot.json`; no ingest script exists yet)
 
 ```json
 {

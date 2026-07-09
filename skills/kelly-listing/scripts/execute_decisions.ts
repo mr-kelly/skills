@@ -65,7 +65,7 @@ function pushResult(item, operation, target, extra = {}) {
       reason: "Already executed; skipping to stay idempotent.",
       executed_at: now,
     });
-    return;
+    return false;
   }
   results.push({
     review_id: item.review_id,
@@ -77,6 +77,7 @@ function pushResult(item, operation, target, extra = {}) {
     ...extra,
     executed_at: now,
   });
+  return true;
 }
 
 for (const item of snapshot.review_items || []) {
@@ -98,20 +99,25 @@ for (const item of snapshot.review_items || []) {
       detail: "Publishing via the platform API is executed by the agent outside the app, after approval.",
     });
   } else if (decision.action === "request_changes") {
-    pushResult(item, "request_revision", draft.draft_id, {
+    const fresh = pushResult(item, "request_revision", draft.draft_id, {
       comment: decision.comment || "",
       detail: "Queued in agent_tasks.json for the agent to redraft.",
     });
-    revisionTasks.push({
-      task_id: `task-${item.review_id}-${Date.parse(now)}`,
-      type: "revise_listing",
-      review_id: item.review_id,
-      draft_id: item.draft_id,
-      ref: item.ref,
-      comment: decision.comment || "",
-      requested_at: decision.decided_at || now,
-      status: "queued",
-    });
+    // Only (re-)queue an agent task the first time this decision is executed;
+    // once it has been recorded as executed, a lingering decisions.json entry
+    // must not resurrect/overwrite the task on later --apply runs.
+    if (fresh) {
+      revisionTasks.push({
+        task_id: `task-${item.review_id}-${Date.parse(now)}`,
+        type: "revise_listing",
+        review_id: item.review_id,
+        draft_id: item.draft_id,
+        ref: item.ref,
+        comment: decision.comment || "",
+        requested_at: decision.decided_at || now,
+        status: "queued",
+      });
+    }
   }
 }
 

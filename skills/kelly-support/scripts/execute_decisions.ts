@@ -99,7 +99,11 @@ const results: ExecutionResultItem[] = [];
 
 for (const ticket of snapshot.tickets || []) {
   const decision = decisions[ticket.ticket_id];
-  if (!decision || decision.action !== "approve") continue;
+  // The ticket's own status is the effective decision: decisions.json can go
+  // stale (e.g. re-saving an edited reply resets status to needs_review and
+  // clears ticket.decision without touching decisions.json), so a lingering
+  // "approve" entry alone must never trigger a send.
+  if (!decision || decision.action !== "approve" || ticket.status !== "approved") continue;
 
   // Safety gate: never execute a ticket the support-qa audit blocked, even if a
   // stale approve decision exists.
@@ -115,7 +119,7 @@ for (const ticket of snapshot.tickets || []) {
     continue;
   }
 
-  if (ticket.status === "done" || alreadySent.has(ticket.ticket_id)) {
+  if (alreadySent.has(ticket.ticket_id)) {
     results.push({
       ticket_id: ticket.ticket_id,
       ref: ticket.ref,

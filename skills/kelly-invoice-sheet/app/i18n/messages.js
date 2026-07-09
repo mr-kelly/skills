@@ -18,6 +18,7 @@ window.KELLY_INVOICE_SHEET_MESSAGES = {
     block: "Block",
     save: "Save Edit",
     back: "Back to table",
+    lockedBanner: "An agent is writing files right now. Review actions are paused until the lock clears.",
   },
   zh: {
     all: "全部",
@@ -38,5 +39,6 @@ window.KELLY_INVOICE_SHEET_MESSAGES = {
     block: "阻塞",
     save: "保存修改",
     back: "返回表格",
+    lockedBanner: "代理正在写入文件，审核操作暂时锁定，请稍候再试。",
   },
 };

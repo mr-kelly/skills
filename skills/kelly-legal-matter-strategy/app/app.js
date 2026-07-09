@@ -221,7 +221,9 @@ function decisions() {
 
 function effectiveItem(item) {
   const decision = decisions()[item.id];
-  if (!decision) return item;
+  // "done" is terminal: once execute_decisions.ts has applied a decision, the snapshot status
+  // must win even if a lingering decisions.json entry still points at the earlier "approve" action.
+  if (!decision || item.status === "done") return item;
   const statusByAction = {
     approve: "approved",
     request_changes: "changes_requested",
@@ -367,7 +369,7 @@ function businessMetricsHtml(profile, metrics) {
     matter: [
       [activeLang() === "zh" ? "进行中案件" : "Active matters", all.length],
       [activeLang() === "zh" ? "证据缺口" : "Evidence gaps", metrics.evidence_gaps || sumField("evidence_gap_count")],
-      [activeLang() === "zh" ? "临近期限" : "Near deadlines", metrics.deadlines_soon || 1],
+      [activeLang() === "zh" ? "临近期限" : "Near deadlines", metrics.deadlines_soon || 0],
       [activeLang() === "zh" ? "可进文书" : "Draft-ready", metrics.draft_ready || ready],
     ],
     firm: [
@@ -877,7 +879,9 @@ async function submitDecision(id, action) {
     comment: document.querySelector(`[data-note="${CSS.escape(id)}"]`)?.value || "",
     draft: document.querySelector(`[data-draft="${CSS.escape(id)}"]`)?.value || "",
   };
-  const res = await fetch("/api/decision", {
+  const params = new URLSearchParams();
+  if (state.demo) params.set("demo", state.demo);
+  const res = await fetch(`/api/decision?${params}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),

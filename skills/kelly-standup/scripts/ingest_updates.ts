@@ -232,11 +232,23 @@ await provider.withLock("Ingesting standup update payloads", async () => {
       const id = String(item.id || `rem-${sha1(`${item.type}|${item.member_id}|${date}`).slice(0, 10)}`);
       const existing = base.reminders.find((entry) => entry.id === id);
       if (existing) {
-        existing.title = String(item.title || existing.title);
-        existing.reason = String(item.reason || existing.reason);
-        existing.draft = item.draft.trim();
+        const nextTitle = String(item.title || existing.title);
+        const nextReason = String(item.reason || existing.reason);
+        const nextDraft = item.draft.trim();
+        // Track real content revisions (e.g. a request_changes -> revise_reminder
+        // re-draft) so mergeSnapshot() can tell a fresh re-ingest apart from a
+        // stale decisions.json entry left over from before the revision.
+        const revised =
+          nextTitle !== existing.title ||
+          nextReason !== existing.reason ||
+          nextDraft !== existing.draft ||
+          item.channel !== existing.channel;
+        existing.title = nextTitle;
+        existing.reason = nextReason;
+        existing.draft = nextDraft;
         existing.channel = item.channel;
         existing.status = status;
+        if (revised) existing.revised_at = now;
       } else {
         base.reminders.push({
           id,

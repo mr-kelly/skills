@@ -60,8 +60,24 @@ export function emptySnapshot(): AuditSnapshot {
   };
 }
 
+// Same open/at-stake status sets deriveSnapshot() uses (app/server/compute.ts),
+// duplicated here so the transient decision overlay below can recompute the
+// two KPIs that depend on anomaly status without lib/ importing app/server/.
+const OPEN_ANOMALY_STATUSES = new Set(["needs_review", "changes_requested"]);
+const AT_STAKE_STATUSES = new Set(["needs_review", "changes_requested", "approved"]);
+
+function toBaseAmount(amount: unknown, currency: string | undefined, snapshot: AuditSnapshot): number {
+  const base = snapshot.base_currency || "USD";
+  if (!currency || currency === base) return Number(amount || 0);
+  const rate = Number(snapshot.fx_rates?.[currency] || 0);
+  return rate ? Number(amount || 0) * rate : Number(amount || 0);
+}
+
 // Overlay user decisions and the latest execution report onto the anomaly batch
-// so the UI and the executor see the same workflow states.
+// so the UI and the executor see the same workflow states. Also recomputes the
+// status-derived KPI metrics (open_anomaly_count, at_stake_total) so they stay
+// in sync with approvals/dismissals instead of only reflecting the raw
+// persisted anomaly.status from the last import/checks run.
 export function mergeAnomalies(
   snapshot: AuditSnapshot,
   decisions: DecisionsFile | null,
@@ -100,7 +116,17 @@ export function mergeAnomalies(
       execution,
     };
   });
-  return { ...snapshot, anomalies };
+  const metrics = {
+    ...snapshot.metrics,
+    open_anomaly_count: anomalies.filter((anomaly) => OPEN_ANOMALY_STATUSES.has(anomaly.status)).length,
+    at_stake_total: Number(
+      anomalies
+        .filter((anomaly) => AT_STAKE_STATUSES.has(anomaly.status))
+        .reduce((sum, anomaly) => sum + toBaseAmount(anomaly.amount_at_stake, anomaly.currency, snapshot), 0)
+        .toFixed(2),
+    ),
+  };
+  return { ...snapshot, anomalies, metrics };
 }
 
 // ---- Config / env loading ----

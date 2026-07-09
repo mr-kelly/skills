@@ -18,12 +18,33 @@ try {
   const decisions = await readDecisions();
   const now = new Date().toISOString();
   const results: Record<string, unknown>[] = [];
+  const generatedAt = Date.parse(snapshot.generated_at || "") || 0;
 
   for (const item of snapshot.items) {
     const decision = decisions.decisions[item.id];
     if (!decision) continue;
     const nextStatus = statusFromDecision(decision.action);
     if (!nextStatus) continue;
+    if (item.status === "done") continue;
+    // Freshness gate: a decision decided before the current snapshot was
+    // generated refers to an earlier version of this item's content (e.g. a
+    // re-import overwrote it after the decision was recorded) and must not be
+    // treated as authorizing what is in the snapshot now. Mirrors app.js's
+    // effectiveItem() staleness handling.
+    const decidedAt = Date.parse(decision.decided_at || "") || 0;
+    if (decidedAt < generatedAt) {
+      results.push({
+        item_id: item.id,
+        ref: item.ref,
+        operation: "none",
+        dry_run: !apply,
+        from_status: item.status,
+        to_status: item.status,
+        comment: decision.comment || "",
+        reason: "Approval decision predates the current snapshot (stale approval); refusing to execute.",
+      });
+      continue;
+    }
     const result = {
       item_id: item.id,
       ref: item.ref,

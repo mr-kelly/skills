@@ -83,12 +83,22 @@ try {
     }
   }
 
+  // Merge into the existing report by (id, operation) instead of overwriting it —
+  // otherwise a fresh run (e.g. a later dry-run, or an apply after "done" proposals
+  // have been filtered out above) would wipe out the record of previously executed
+  // operations rather than just adding to it.
+  const previousReport = await readJson<{ operations?: Array<Record<string, unknown>> }>(EXECUTION_REPORT_PATH, null);
+  const operationKey = (op: Record<string, unknown>) => `${op.id}::${op.operation}`;
+  const mergedOperations = new Map((previousReport?.operations || []).map((op) => [operationKey(op), op] as const));
+  for (const op of operations) mergedOperations.set(operationKey(op), op);
+  const allOperations = [...mergedOperations.values()];
+
   const report = {
     generated_at: now,
     source: "kelly-picks",
     dry_run: !apply,
-    operation_count: operations.length,
-    operations,
+    operation_count: allOperations.length,
+    operations: allOperations,
   };
   await writeJson(EXECUTION_REPORT_PATH, report);
 

@@ -7,8 +7,8 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { ensureDirs, readJson, slugify, withLock, writeJson } from "../common.ts";
-import { currentBatchPath, decisionsPath, exportReportPath, exportsDir, lockPath } from "../paths.ts";
+import { ensureDirs, readActiveLock, readJson, slugify, withLock, writeJson } from "../common.ts";
+import { currentBatchPath, decisionsPath, exportReportPath, exportsDir } from "../paths.ts";
 import type { HttpError, ProviderMeta } from "../types.ts";
 
 const AGENT_TASKS_PATH = path.join(path.dirname(currentBatchPath), "agent_tasks.json");
@@ -21,7 +21,7 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
       const [batch, decisions, lock] = await Promise.all([
         readJson(currentBatchPath, null),
         readJson(decisionsPath, { decisions: {} }),
-        readJson(lockPath, null),
+        readActiveLock(),
       ]);
       return {
         batch,
@@ -45,7 +45,7 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
     },
 
     async saveDecision(payload) {
-      if (await readJson(lockPath, null)) {
+      if (await readActiveLock()) {
         const error: HttpError = new Error("Content files are locked while the agent is writing.");
         error.statusCode = 423;
         throw error;
@@ -80,7 +80,7 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
     },
 
     async confirmDirection(payload) {
-      if (await readJson(lockPath, null)) {
+      if (await readActiveLock()) {
         const error: HttpError = new Error("Content files are locked while the agent is writing.");
         error.statusCode = 423;
         throw error;
@@ -95,6 +95,20 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
         const error: HttpError = new Error("missing batch");
         error.statusCode = 404;
         throw error;
+      }
+      // No automation has written real topics yet (see SKILL.md: "If a future
+      // automation writes topics ... into current_batch.json, the UI should
+      // prefer those explicit fields"). Until then the UI derives a temporary
+      // repository view client-side and never persists it, so the topic/direction
+      // ids it confirms against don't exist here. Materialize that same view
+      // (sent by the client alongside the confirm request) into the batch so the
+      // lookup below — and every future confirm — can resolve against real data.
+      if (
+        (!Array.isArray(batch.topics) || !batch.topics.length) &&
+        Array.isArray(payload.topics) &&
+        payload.topics.length
+      ) {
+        batch.topics = payload.topics;
       }
       const topic = (batch.topics || []).find((item) => item.id === payload.topic_id);
       const direction = topic?.directions?.find((item) => item.id === payload.direction_id);
@@ -130,7 +144,7 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
     },
 
     async startTodo(payload) {
-      if (await readJson(lockPath, null)) {
+      if (await readActiveLock()) {
         const error: HttpError = new Error("Content files are locked while the agent is writing.");
         error.statusCode = 423;
         throw error;
@@ -200,9 +214,13 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
       await withLock("Exporting approved content", async () => {
         await ensureDirs(outDir);
         for (const item of batch.items || []) {
-          const decision = decisionMap[item.id] || item.decision || {};
-          const action = decision.action || (item.status === "approved" ? "approve" : "");
-          if (action !== "approve" && item.status !== "approved") {
+          // Only an explicit human decision recorded in decisions.json (written by
+          // saveDecision via POST /api/decision) proves approval. A raw item.status
+          // or item.decision field on the batch itself can be set by automation
+          // writing current_batch.json directly (see SKILL.md) and must never be
+          // trusted as a substitute for that human verdict.
+          const decision = decisionMap[item.id] || {};
+          if (decision.action !== "approve") {
             skipped.push({ id: item.id, reason: "not approved" });
             continue;
           }
