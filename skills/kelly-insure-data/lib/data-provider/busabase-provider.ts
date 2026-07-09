@@ -1,4 +1,3 @@
-import { Busabase } from "busabase-sdk";
 import { fieldMapping, recordLimit, summarizeConfig } from "../config.ts";
 import type {
   ConfigResult,
@@ -9,6 +8,7 @@ import type {
   NewsItem,
   QaPair,
 } from "../types.ts";
+import { createBusabaseClient } from "./busabase-client.ts";
 
 type AnyRecord = Record<string, any>;
 
@@ -128,88 +128,31 @@ function needsGovernance(items: Array<{ governance?: { missing_fields: string[];
   }).length;
 }
 
-async function listRecords(bb: Busabase, baseId: string, limit: number): Promise<AnyRecord[]> {
-  const records = bb.records as AnyRecord;
-  if (typeof records.listPaged === "function") {
-    const page = await records.listPaged({ baseId, limit });
-    return Array.isArray(page?.records) ? page.records : [];
-  }
-  const list = await records.list({ limit });
-  return Array.isArray(list) ? list.filter((record) => record.baseId === baseId) : [];
-}
-
-async function resolveBase(bb: Busabase, id: string, slug: string) {
-  if (!id && !slug) return null;
-  const bases = await bb.bases.list();
-  return bases.find((base: AnyRecord) => base.id === id || base.slug === slug) || null;
-}
-
-async function resolveDrive(bb: Busabase, id: string, slug: string) {
-  const drives = bb.drives as AnyRecord;
-  if (id && typeof drives.get === "function") {
-    try {
-      return await drives.get({ nodeId: id });
-    } catch {
-      // Fall through to list-based resolution for older or renamed nodes.
-    }
-  }
-  const list = typeof drives.list === "function" ? await drives.list() : [];
-  if (!Array.isArray(list)) return null;
-  if (!id && !slug) return list[0] || null;
-  return (
-    list.find(
-      (drive: AnyRecord) => drive?.node?.id === id || drive?.node?.slug === slug || drive?.node?.name === slug,
-    ) || null
-  );
-}
-
-async function listDriveFiles(bb: Busabase, drive: AnyRecord): Promise<AnyRecord[]> {
-  const nodeId = drive?.node?.id || drive?.nodeId || drive?.id;
-  if (nodeId && typeof (bb.drives as AnyRecord).listFiles === "function") {
-    try {
-      return await (bb.drives as AnyRecord).listFiles({ nodeId });
-    } catch {
-      // The drive object may already include a file list.
-    }
-  }
-  return Array.isArray(drive?.files) ? drive.files : [];
-}
-
 export function createBusabaseProvider(configResult: ConfigResult) {
   const config = configResult.config || {};
-  const busa = config.busabase || {};
-  const baseUrl = process.env.KELLY_INSURE_DATA_BUSABASE_URL || busa.base_url || process.env.BUSABASE_BASE_URL || "";
-  const apiKeyEnv = busa.api_key_env || "KELLY_INSURE_DATA_BUSABASE_API_KEY";
-  const apiKey =
-    process.env[apiKeyEnv] || process.env.KELLY_INSURE_DATA_BUSABASE_API_KEY || process.env.BUSABASE_API_KEY || "";
-  const spaceId =
-    process.env.KELLY_INSURE_DATA_BUSABASE_SPACE_ID || busa.space_id || process.env.BUSABASE_SPACE_ID || "";
-  const driveNodeId = process.env.KELLY_INSURE_DATA_BUSABASE_DRIVE_NODE_ID || busa.drive_node_id || "";
-  const driveNodeSlug = busa.drive_node_slug || "";
-  const qaBaseId = process.env.KELLY_INSURE_DATA_BUSABASE_QA_BASE_ID || busa.qa_base_id || "";
-  const qaBaseSlug = busa.qa_base_slug || "";
-  const newsBaseId = process.env.KELLY_INSURE_DATA_BUSABASE_NEWS_BASE_ID || busa.news_base_id || "";
-  const newsBaseSlug = busa.news_base_slug || "";
+  const busa = createBusabaseClient({ envPrefix: "KELLY_INSURE_DATA", config });
+  const driveNodeId = busa.meta.driveNodeId;
+  const driveNodeSlug = busa.meta.driveNodeSlug;
+  const qaBaseId = busa.meta.qaBaseId;
+  const qaBaseSlug = busa.meta.qaBaseSlug;
+  const newsBaseId = busa.meta.newsBaseId;
+  const newsBaseSlug = busa.meta.newsBaseSlug;
   const limit = recordLimit(config);
   const fileRequiredFields = Array.isArray(config.taxonomy?.file_metadata_fields)
     ? config.taxonomy.file_metadata_fields
     : [];
 
-  function client() {
-    return new Busabase({ baseUrl: baseUrl || undefined, apiKey: apiKey || undefined, spaceId: spaceId || undefined });
-  }
-
   async function readSnapshot(): Promise<InsureSnapshot> {
-    const bb = client();
     const [drive, qaBase, newsBase] = await Promise.all([
-      resolveDrive(bb, driveNodeId, driveNodeSlug),
-      resolveBase(bb, qaBaseId, qaBaseSlug),
-      resolveBase(bb, newsBaseId, newsBaseSlug),
+      busa.resolveDrive(driveNodeId, driveNodeSlug),
+      busa.resolveBase(qaBaseId, qaBaseSlug),
+      busa.resolveBase(newsBaseId, newsBaseSlug),
     ]);
+    const resolvedDriveNodeId = drive?.node?.id || drive?.nodeId || drive?.id || driveNodeId;
     const [driveFiles, qaRecords, newsRecords] = await Promise.all([
-      drive ? listDriveFiles(bb, drive) : [],
-      qaBase ? listRecords(bb, qaBase.id, limit) : [],
-      newsBase ? listRecords(bb, newsBase.id, limit) : [],
+      resolvedDriveNodeId ? busa.listDriveFiles(resolvedDriveNodeId) : [],
+      qaBase ? busa.listRecords(qaBase.id, limit) : [],
+      newsBase ? busa.listRecords(newsBase.id, limit) : [],
     ]);
 
     const files = driveFiles.map((file) => normalizeFile(file, fileRequiredFields));
@@ -291,8 +234,7 @@ export function createBusabaseProvider(configResult: ConfigResult) {
     name: "busabase",
 
     async verifyConnection() {
-      const health = await client().health();
-      return { ok: true, health };
+      return busa.verifyConnection();
     },
 
     async getState() {
