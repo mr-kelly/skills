@@ -1,10 +1,14 @@
 {
+  "data_provider": "local",
   "reply_provider": "local",
   "busabase": {
-    "base_url": "http://127.0.0.1:3000",
-    "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
+    "base_url": "http://127.0.0.1:15419",
+    "base_id": "kelly-email",
+    "drive_id": "kelly-email-files",
+    "secrets_namespace": "kelly-email",
     "api_key_env": "KELLY_EMAIL_BUSABASE_API_KEY",
-    "_note": "Optional. Only the REPLY-DRAFT review loop uses Busabase (a team-shared review queue + audit). Triage (archive/mark-read) stays on the local handoff; sending stays a side effect the runner performs after approval. busabase-cloud (multi-tenant) needs the api key; the single-tenant open-source apps/busabase does not."
+    "auto_initialize": false,
+    "_note": "Optional. Set KELLY_EMAIL_DATA_PROVIDER=busabase to store App-in-Skill state in Busabase: Base for structured review state, Drive-compatible records for loose files, and this secrets_namespace for secret refs. Run `npm run busabase:init -- --apply` after confirming the target Base. Sending and mailbox mutation still stay in the kelly-email skill after approval."
   },
   "mailboxes": [
     {
