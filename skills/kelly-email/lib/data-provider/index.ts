@@ -2,17 +2,17 @@ import { existsSync, readFileSync } from "node:fs";
 import type { Config, ConfigMeta } from "../types.ts";
 import { createBusabaseProvider } from "./busabase-provider.ts";
 import { createLocalFileProvider } from "./local-file-provider.ts";
-import { assertProvider, type EmailDataProvider } from "./provider-interface.ts";
 import {
   CONFIG_EXAMPLE_PATH,
   USER_CONFIG_PATH,
   USER_ENV_PATH,
-  configFileCandidates as localConfigFileCandidates,
-  envFileCandidates as localEnvFileCandidates,
   loadConfigWithMeta as loadLocalConfigWithMeta,
   loadDotenv as loadLocalDotenv,
+  configFileCandidates as localConfigFileCandidates,
+  envFileCandidates as localEnvFileCandidates,
   privateConfigCandidates as localPrivateConfigCandidates,
 } from "./local-file-provider.ts";
+import { type EmailDataProvider, assertProvider } from "./provider-interface.ts";
 
 let cachedProvider: EmailDataProvider | null = null;
 let cachedKind = "";

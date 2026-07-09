@@ -1,12 +1,5 @@
 #!/usr/bin/env node
-import {
-  decisionAction,
-  executionStatus,
-  isApproved,
-  isBlocked,
-  isDone,
-  isNeedsReview,
-} from "../lib/common.ts";
+import { decisionAction, executionStatus, isApproved, isBlocked, isDone, isNeedsReview } from "../lib/common.ts";
 import { createProvider } from "../lib/data-provider/index.ts";
 
 const VALID_STATUS = new Set(["prepared", "needs_review", "draft_requested", "drafted", "executed"]);
@@ -52,8 +45,10 @@ async function main() {
       errors.push(`${label}: invalid proposed_action ${JSON.stringify(item.proposed_action)}`);
     if (item.status === "decided") errors.push(`${label}: status=decided is not part of UI schema`);
     for (const key of ["user_language", "source_language", "body_original_language", "body_translation_language"]) {
-      if (item[key] && !VALID_LANGUAGE.has(item[key]))
-        errors.push(`${label}: invalid ${key} ${JSON.stringify(item[key])}`);
+      const language = item[key];
+      if (typeof language === "string" && language && !VALID_LANGUAGE.has(language)) {
+        errors.push(`${label}: invalid ${key} ${JSON.stringify(language)}`);
+      }
     }
     for (const key of ["body_original", "body_translation"]) {
       if (key in item && typeof item[key] !== "string") errors.push(`${label}: ${key} must be a string`);

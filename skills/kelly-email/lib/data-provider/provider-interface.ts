@@ -64,7 +64,11 @@ export interface EmailDataProvider {
   writeLock(message: string): Promise<void>;
   clearLock(): Promise<void>;
 
-  writeExecutionReport?(batch: Batch, report: Record<string, unknown>, stamp?: string): Promise<Record<string, unknown>>;
+  writeExecutionReport?(
+    batch: Batch,
+    report: Record<string, unknown>,
+    stamp?: string,
+  ): Promise<Record<string, unknown>>;
   persistAttachments?(
     batchId: string,
     itemId: string,
@@ -121,7 +125,9 @@ export function assertProvider(kind: string, provider: unknown): EmailDataProvid
     }
   }
   if (problems.length) {
-    throw new Error(`Data provider "${kind}" does not satisfy EmailDataProvider - missing/invalid: ${problems.join(", ")}.`);
+    throw new Error(
+      `Data provider "${kind}" does not satisfy EmailDataProvider - missing/invalid: ${problems.join(", ")}.`,
+    );
   }
   return provider as EmailDataProvider;
 }

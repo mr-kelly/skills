@@ -2,9 +2,11 @@ import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { Batch } from "../types.ts";
 import { ROOT_DIR, SKILL_DIR } from "../paths.ts";
 import { ATTACHMENTS_DIR, BATCH_DIR, CURRENT_BATCH_PATH, DECISIONS_PATH, LOCK_PATH, REPORTS_DIR } from "../paths.ts";
+import type { Batch } from "../types.ts";
+import type { Config, ConfigWithMeta } from "../types.ts";
+import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
 import {
   applyDetailUpdate,
   applyItemsDecision,
@@ -13,8 +15,6 @@ import {
   normalizeBatch,
   utcNow,
 } from "./provider-utils.ts";
-import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
-import type { Config, ConfigWithMeta } from "../types.ts";
 
 export const CONFIG_LOCAL_PATH = path.join(SKILL_DIR, "config.local.json");
 export const LEGACY_CONFIG_LOCAL_PATH = path.join(SKILL_DIR, "config.local.yml");

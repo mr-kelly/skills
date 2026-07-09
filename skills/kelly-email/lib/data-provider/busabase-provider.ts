@@ -2,6 +2,13 @@ import type { Batch, Config, ConfigWithMeta, DecisionsPayload } from "../types.t
 import { createBusabaseClient } from "./busabase-client.ts";
 import { BUSABASE_SCHEMA, schemaFingerprint } from "./busabase-schema.ts";
 import {
+  configFileCandidates,
+  loadConfigWithMeta as loadLocalConfigWithMeta,
+  loadDotenv as loadLocalDotenv,
+  onboardingStatus as localOnboardingStatus,
+} from "./local-file-provider.ts";
+import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
+import {
   applyDetailUpdate,
   applyItemsDecision,
   decisionsFromBatch,
@@ -9,13 +16,6 @@ import {
   normalizeBatch,
   utcNow,
 } from "./provider-utils.ts";
-import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
-import {
-  configFileCandidates,
-  loadConfigWithMeta as loadLocalConfigWithMeta,
-  loadDotenv as loadLocalDotenv,
-  onboardingStatus as localOnboardingStatus,
-} from "./local-file-provider.ts";
 
 const ENV_PREFIX = "KELLY_EMAIL";
 const RECORDS = BUSABASE_SCHEMA.records;

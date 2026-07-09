@@ -1,13 +1,7 @@
 #!/usr/bin/env node
 import { ImapFlow } from "imapflow";
 import nodemailer from "nodemailer";
-import {
-  clearAgentLock,
-  loadConfig,
-  loadDotenv,
-  utcNow,
-  writeAgentLock,
-} from "../lib/common.ts";
+import { clearAgentLock, loadConfig, loadDotenv, utcNow, writeAgentLock } from "../lib/common.ts";
 import { createProvider } from "../lib/data-provider/index.ts";
 import type { Batch, Config, DecisionsPayload, Mailbox, ReviewItem } from "../lib/types.ts";
 
