@@ -1,3 +1,4 @@
+import { createProvider } from "../../lib/data-provider/index.ts";
 import { loadBatch, normalizeItem } from "./batch-store.ts";
 import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./config.ts";
 import { lockPayload } from "./lock.ts";
@@ -29,6 +30,7 @@ function withReviewNumbers(items: ReviewItem[]): ReviewItem[] {
 }
 
 export async function statePayload(query: StateQuery = {}) {
+  const provider = createProvider();
   const batch = await loadBatch();
   const configMeta = await loadConfigWithMeta();
   const { config, source } = configMeta;
@@ -74,8 +76,8 @@ export async function statePayload(query: StateQuery = {}) {
     counts,
     items,
     total_cached: allItems.length,
-    batch_path: CURRENT_BATCH_PATH,
-    decisions_path: DECISIONS_PATH,
+    batch_path: provider.kind === "busabase" ? "busabase:current_batch" : CURRENT_BATCH_PATH,
+    decisions_path: provider.kind === "busabase" ? "busabase:decisions" : DECISIONS_PATH,
     email_accounts: publicAccounts(config, source, onboarding, configMeta),
     lock: await lockPayload(),
   };

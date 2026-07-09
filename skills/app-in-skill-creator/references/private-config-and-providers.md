@@ -190,3 +190,110 @@ Busabase is the recommended cloud provider for shared review/canonical workflows
 Local App-in-Skill handoff files keep "what the agent prepared" and "what the human approved" on disk. Busabase keeps the same pattern as Inbox records, reviews, canonical records, and audit trails. Backing an App-in-Skill with `busabase` turns a personal tool into a shared, multi-operator system of record for human-approved AI output.
 
 Prefer Busabase for App-in-Skills whose output should become trusted, shared, canonical content.
+
+## Busabase As Full Skill Storage
+
+Use Busabase as a whole skill storage provider, not just a reply-review queue or remote JSON file:
+
+- **Base** stores structured domain state: batches, review items, decisions, onboarding markers, locks, reports, canonical records, and schema metadata.
+- **Drive** stores loose files: attachments, raw imports, generated exports, screenshots, intermediate artifacts, and any blob-like content that should not be embedded in a Base record.
+- **EnvVars / Vault / Secrets** store secret values and secret references. Skill JSON config should contain secret names such as `password_env`, `api_key_env`, `token_env`, or Busabase secret refs, never secret values.
+
+The App UI and scripts should still depend only on `lib/data-provider/`. Busabase SDK, OpenAPI client, REST routes, auth headers, and Drive/Secrets specifics belong in a Busabase adapter such as `lib/data-provider/busabase-client.ts`.
+
+Recommended config:
+
+```json
+{
+  "data_provider": "busabase",
+  "busabase": {
+    "base_url": "http://127.0.0.1:15419",
+    "base_id": "skill-name",
+    "drive_id": "skill-name-files",
+    "secrets_namespace": "skill-name",
+    "api_key_env": "SKILL_BUSABASE_API_KEY",
+    "auto_initialize": false
+  }
+}
+```
+
+Use env overrides:
+
+```text
+<SKILL_ENV_PREFIX>_DATA_PROVIDER=busabase
+<SKILL_ENV_PREFIX>_BUSABASE_URL=http://127.0.0.1:15419
+<SKILL_ENV_PREFIX>_BUSABASE_BASE_ID=skill-name
+<SKILL_ENV_PREFIX>_BUSABASE_DRIVE_ID=skill-name-files
+<SKILL_ENV_PREFIX>_BUSABASE_SECRETS_NAMESPACE=skill-name
+<SKILL_ENV_PREFIX>_BUSABASE_API_KEY=...
+```
+
+### Schema Manifest
+
+Every Busabase-backed skill should declare a machine-readable schema manifest in the skill package, for example `lib/data-provider/busabase-schema.ts`:
+
+```ts
+export const BUSABASE_SCHEMA = {
+  provider: "busabase",
+  schema_id: "skill-name.storage",
+  schema_version: "1",
+  base: {
+    id: "skill-name",
+    name: "Skill Name",
+    record_kinds: ["schema_meta", "onboarding", "lock", "review_item", "execution_report"]
+  },
+  drive: {
+    id: "skill-name-files",
+    roots: ["attachments", "imports", "exports"]
+  },
+  secrets: {
+    namespace: "skill-name",
+    refs: ["IMAP_PASSWORD", "SMTP_PASSWORD", "API_KEY"]
+  }
+} as const;
+```
+
+The provider should compute a stable fingerprint from the manifest and persist it to a `kind=schema_meta` record in Busabase.
+
+### Startup Lifecycle
+
+On every startup:
+
+1. Load local non-secret config and env overrides.
+2. Connect to Busabase.
+3. Check Base, Drive, and Secrets namespace readiness.
+4. Read the `schema_meta` record.
+5. Compare `schema_id`, `schema_version`, and fingerprint.
+6. If missing and `auto_initialize=false`, report onboarding/setup-needed; do not mutate Busabase silently.
+7. If missing and the user explicitly approved initialization, create or update the Base/Drive metadata and write `schema_meta`.
+8. If version is older, run only declared forward migrations.
+9. If fingerprint is incompatible, enter read-only setup-needed mode and ask for a migration decision.
+
+Check schema on every startup; mutate schema only during explicit initialization or migration.
+
+### Change Request Mapping
+
+Use Busabase Change Requests for AI-prepared or human-reviewed changes:
+
+- Agent output -> change request.
+- Human approve -> review verdict.
+- Human edit -> operation revision.
+- Human asks for revision -> `request_changes` / agent task.
+- Accepted state -> merge to canonical record.
+- External side effect -> still performed by the skill after approval, then logged back as an execution report.
+
+Busabase records approval and canonical data. It should not directly send email, move money, publish, delete, mutate mailboxes, or call production APIs unless that external side effect is itself the explicit product being built and has its own approval gate.
+
+### Provider Interface Additions
+
+For Busabase-capable skills, add these optional methods to the provider contract:
+
+```ts
+checkSchema(): Promise<Record<string, unknown>>;
+ensureSchema(options?: { apply?: boolean }): Promise<Record<string, unknown>>;
+getFile?(path: string): Promise<unknown>;
+putFile?(path: string, data: unknown, meta?: Record<string, unknown>): Promise<unknown>;
+getSecretRef?(name: string): Promise<Record<string, unknown>>;
+```
+
+The app can display schema/storage readiness in Help & Settings, but must never expose secret values.

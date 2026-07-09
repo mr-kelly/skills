@@ -6,7 +6,6 @@ import {
   ATTACHMENTS_DIR,
   CLASSIFICATION_PIPELINE_VERSION,
   CURRENT_BATCH_PATH,
-  DECISIONS_PATH,
   SCAN_STATE_PATH,
   SKILL_DIR,
   classify,
@@ -28,6 +27,7 @@ import {
   writeAgentLock,
   writeJson,
 } from "../lib/common.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 import type { Config, Mailbox, ReviewItem } from "../lib/types.ts";
 
 interface BatchArgs {
@@ -276,8 +276,9 @@ async function writeBatch(items: ReviewItem[]) {
     },
   };
 
-  await writeJson(CURRENT_BATCH_PATH, batch);
-  await writeJson(DECISIONS_PATH, { batch_id: batch.batch_id, updated_at: utcNow(), decisions: [] });
+  const provider = createProvider();
+  await provider.saveBatch(batch);
+  await provider.writeDecisions(batch);
   await writeJson(SCAN_STATE_PATH, {
     last_generated_batch_id: batch.batch_id,
     last_generated_at: batch.generated_at,

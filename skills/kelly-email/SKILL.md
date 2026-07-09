@@ -77,9 +77,15 @@ Data provider selection:
 
 ```text
 KELLY_EMAIL_DATA_PROVIDER=local
+KELLY_EMAIL_DATA_PROVIDER=busabase
 ```
 
-Configuration is read through `lib/data-provider/` (selector `KELLY_EMAIL_DATA_PROVIDER`, default `local`; the old `KELLY_EMAIL_DATA_READER` is still honored). The current provider is `local`, which reads local JSON/env files with the priority above. Keep app server code, scripts, onboarding, and UI summaries dependent on the data-provider interface rather than local files directly, so a future provider can supply the same config contract from a remote store.
+Configuration and App-in-Skill handoff state are read through `lib/data-provider/` (selector `KELLY_EMAIL_DATA_PROVIDER`, default `local`; the old `KELLY_EMAIL_DATA_READER` is still honored). The supported providers are:
+
+- `local`: JSON/env config plus local `app/.data/` handoff files.
+- `busabase`: Busabase as the whole skill storage provider. Base stores structured review state, decisions, locks, onboarding, schema metadata, and execution reports; Drive-compatible records store loose files such as attachments; Secrets/Vault/EnvVars provide secret refs. The app and scripts still use the provider interface, not Busabase directly.
+
+For Busabase mode, configure `config.busabase.{base_url,base_id,drive_id,secrets_namespace,api_key_env}` or env overrides (`KELLY_EMAIL_BUSABASE_URL`, `KELLY_EMAIL_BUSABASE_BASE_ID`, `KELLY_EMAIL_BUSABASE_DRIVE_ID`, `KELLY_EMAIL_BUSABASE_SECRETS_NAMESPACE`, `KELLY_EMAIL_BUSABASE_API_KEY`). Check schema with `KELLY_EMAIL_DATA_PROVIDER=busabase npm run busabase:init`; initialize only after confirming the target Base with `KELLY_EMAIL_DATA_PROVIDER=busabase npm run busabase:init -- --apply`. Startup checks schema every time, but does not mutate Busabase unless `--apply` or `config.busabase.auto_initialize=true` is explicitly used.
 
 The config file defines mailbox accounts, aliases, outbound identities, user profile, brands/products, official URLs, knowledge sources, reply style, CTA URLs, approval policy, and user-editable risk keywords. The env file stores secret values referenced by `password_env`; never store secret values in JSON.
 
@@ -425,16 +431,26 @@ For each send-ready draft, include:
 
 Default tone: clear, calm, human, and compact. Prefer direct answers and one concrete next step.
 
-### Reply-Draft Review (optional Busabase backend)
+### Busabase Review Backend
 
-Triage (archive / mark-read) is *approve-an-action* work and stays on the local handoff. The **reply draft** is the one *edit-to-canonical* slice: a reply is written, reviewed, revised ("make it warmer"), and approved before sending — the canonical review loop. That slice has its own small store, `lib/reply-review/`, selected by `KELLY_EMAIL_REPLY_PROVIDER`:
+Busabase can back either the full Kelly Email App-in-Skill state or only the reply-draft review loop.
+
+Preferred team mode is the full provider:
+
+```text
+KELLY_EMAIL_DATA_PROVIDER=busabase
+```
+
+In this mode, current batch, review items, decisions, lock, schema metadata, attachment references, and execution reports live in the configured Busabase Base/Drive namespace. The local UI still runs as the operator surface; it reads/writes through `lib/data-provider/` and never calls Busabase directly.
+
+The **reply draft** is the most canonical review slice: a reply is written, reviewed, revised ("make it warmer"), and approved before sending. The legacy reply-only store remains available through `lib/reply-review/`, selected by `KELLY_EMAIL_REPLY_PROVIDER`:
 
 - `local` (default): `app/.data/reply_reviews.json`. Single operator, zero-dependency.
 - `busabase`: a shared Busabase base, so a **team** sees one reply-review queue and an audit of who approved which reply. Configure `config.busabase.{base_url,base_id}` (busabase-cloud needs `KELLY_EMAIL_BUSABASE_API_KEY`; the single-tenant open-source `apps/busabase` does not).
 
 Both expose the same interface and review verbs: `openReplyDraft` → `reviewReply(reply_id, {verdict})` with `approve | request_changes | revise | block` → `getApprovedReply` → the skill sends → `markSent`. `request_changes` moves the reply to `changes_requested` and enqueues an agent task (`listAgentTasks`); after the agent revises, it returns for re-review.
 
-This stays a **single-machine skill** — no standing service. Going team-wide just means pointing the reply store (and, when the triage handoff itself moves, the whole handoff including `agent.lock`) at a shared Busabase base instead of local files; the shared lock serializes the team's writes, so no per-item claim or optimistic concurrency is needed.
+This stays a **single-machine skill** — no standing email service. Going team-wide means pointing the provider at a shared Busabase base; the shared lock serializes writes, while the operator-run skill remains the only component that holds SMTP/IMAP credentials and performs external mailbox side effects.
 
 Drive this loop with `scripts/reply_review.ts` (it selects the provider from `KELLY_EMAIL_REPLY_PROVIDER`):
 
@@ -449,7 +465,7 @@ node scripts/reply_review.ts sent <reply_id>                                    
 
 When you propose a reply, `open` it as a draft instead of only inlining `suggested_reply`; poll `tasks` to pick up requested revisions; and only `send` what `approved` returns.
 
-Boundary: Busabase and the UI never send mail. Only the skill — run by an operator, holding the SMTP credentials — performs the send, after the reply is approved. A reply record's fields are `kind:"email_reply"`, `to`, `subject`, `body`.
+Boundary: Busabase and the UI never send mail, archive mail, mark mail read, or delete mail. Busabase records approved/canonical state and audit trails. Only the skill — run by an operator, holding the SMTP/IMAP credentials or secret refs — performs the side effect after approval.
 
 ## Reply Threading And Quotes
 
