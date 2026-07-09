@@ -1,6 +1,7 @@
 import type { Batch, Config, ConfigWithMeta } from "../types.ts";
 import { createBusabaseClient } from "./busabase-client.ts";
 import { BUSABASE_LEGACY_RECORDS, BUSABASE_SCHEMA, schemaFingerprint } from "./busabase-schema.ts";
+import { rowsFromContactsBatch } from "./email-contacts.ts";
 import { batchFromEmailRecords, emailRecordId, reviewItemToEmailRecordFields } from "./email-records.ts";
 import { CONFIG_EXAMPLE_PATH } from "./local-file-provider.ts";
 import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
@@ -44,6 +45,8 @@ export function createBusabaseProvider() {
         base_url: process.env.KELLY_EMAIL_BUSABASE_URL || "http://127.0.0.1:15419",
         base_id: process.env.KELLY_EMAIL_BUSABASE_BASE_ID || "kelly-email",
         base_slug: process.env.KELLY_EMAIL_BUSABASE_BASE_SLUG || "kelly-email",
+        contacts_base_id: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_ID || "kelly-email-contacts",
+        contacts_base_slug: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_SLUG || "kelly-email-contacts",
         folder_slug: process.env.KELLY_EMAIL_BUSABASE_FOLDER_SLUG || "kelly-email-workspace",
         drive_slug: process.env.KELLY_EMAIL_BUSABASE_DRIVE_SLUG || "kelly-email-workspace-files",
         drive_id: process.env.KELLY_EMAIL_BUSABASE_DRIVE_ID || "kelly-email-files",
@@ -126,6 +129,11 @@ export function createBusabaseProvider() {
     return busa.upsertRecord(recordId, fields, message);
   }
 
+  async function commitContact(recordId: string, fields: Record<string, unknown>, message: string) {
+    const busa = await client();
+    return busa.upsertContactRecord(recordId, fields, message);
+  }
+
   async function readFields(recordId: string): Promise<Record<string, any>> {
     const busa = await client();
     return busa.getRecordFields(recordId);
@@ -175,6 +183,12 @@ export function createBusabaseProvider() {
     }
   }
 
+  async function writeContactRows(batch: Batch) {
+    for (const row of rowsFromContactsBatch(batch)) {
+      await commitContact(row.record_id, row, `Email contact ${row.email}`);
+    }
+  }
+
   async function schemaStatus(options: { createBase?: boolean } = {}) {
     const busa = await client();
     const expected = schemaFingerprint();
@@ -192,11 +206,14 @@ export function createBusabaseProvider() {
         schema_id: BUSABASE_SCHEMA.schema_id,
         schema_version: BUSABASE_SCHEMA.schema_version,
         base_id: busa.meta.baseId,
+        contacts_base_id: busa.meta.contactsBaseId,
+        contacts_base_slug: busa.meta.contactsBaseSlug,
         drive_id: busa.meta.driveId,
         drive_slug: busa.meta.driveSlug,
         folder_slug: busa.meta.folderSlug,
         secrets_namespace: busa.meta.secretsNamespace,
         record_kinds: BUSABASE_SCHEMA.base.record_kinds,
+        contacts_record_kinds: BUSABASE_SCHEMA.contacts_base.record_kinds,
       };
     } catch (error) {
       return {
@@ -207,11 +224,14 @@ export function createBusabaseProvider() {
         schema_id: BUSABASE_SCHEMA.schema_id,
         schema_version: BUSABASE_SCHEMA.schema_version,
         base_id: busa.meta.baseId,
+        contacts_base_id: busa.meta.contactsBaseId,
+        contacts_base_slug: busa.meta.contactsBaseSlug,
         drive_id: busa.meta.driveId,
         drive_slug: busa.meta.driveSlug,
         folder_slug: busa.meta.folderSlug,
         secrets_namespace: busa.meta.secretsNamespace,
         record_kinds: BUSABASE_SCHEMA.base.record_kinds,
+        contacts_record_kinds: BUSABASE_SCHEMA.contacts_base.record_kinds,
       };
     }
   }
@@ -313,6 +333,7 @@ export function createBusabaseProvider() {
       await requireWritableSchema();
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
       await writeBaseRows(next);
+      await writeContactRows(next);
       await writeBatchSnapshot(next, { archive: true });
       return next;
     },
@@ -340,6 +361,7 @@ export function createBusabaseProvider() {
       const changed = applyItemsDecision(batch, input);
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
       await writeBaseRows(next, changed);
+      await writeContactRows(next);
       await writeBatchSnapshot(next);
       const decisions = await this.writeDecisions(next);
       return { changed, decisions: decisions.decisions?.length || 0 };
@@ -351,6 +373,7 @@ export function createBusabaseProvider() {
       const item = applyDetailUpdate(batch, input);
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
       await writeBaseRows(next, [item.id]);
+      await writeContactRows(next);
       await writeBatchSnapshot(next);
       const decisions = await this.writeDecisions(next);
       return { id: item.id, decisions: decisions.decisions?.length || 0 };
@@ -517,6 +540,8 @@ export function createBusabaseProvider() {
         base_url: busa.meta.baseUrl,
         base_id: busa.meta.baseId,
         base_slug: busa.meta.baseSlug,
+        contacts_base_id: busa.meta.contactsBaseId,
+        contacts_base_slug: busa.meta.contactsBaseSlug,
         drive_id: busa.meta.driveId,
         drive_slug: busa.meta.driveSlug,
         folder_slug: busa.meta.folderSlug,
@@ -538,7 +563,7 @@ export function createBusabaseProvider() {
           message: schema.ok
             ? "Kelly Email is connected to Busabase."
             : "Kelly Email connected to Busabase, but schema initialization did not complete.",
-          action: schema.ok ? "" : "Check Busabase permissions and the configured Base fields.",
+          action: schema.ok ? "" : "Check Busabase permissions and the configured Emails/Contacts Base fields.",
           error: schema.ok ? "" : String(schema.error || "schema initialization failed"),
         };
       } catch (error) {
@@ -562,7 +587,7 @@ export function createBusabaseProvider() {
     async ensureSchema(options: { apply?: boolean } = {}) {
       const busa = await client();
       if (options.apply) {
-        await Promise.all([busa.ensureFolder(), busa.ensureBase(), busa.ensureDrive()]);
+        await Promise.all([busa.ensureFolder(), busa.ensureBase(), busa.ensureContactsBase(), busa.ensureDrive()]);
       }
       const status = await schemaStatus({ createBase: Boolean(options.apply) });
       if (status.ok || !options.apply) return { ...status, applied: false };
@@ -576,6 +601,8 @@ export function createBusabaseProvider() {
           schema_version: BUSABASE_SCHEMA.schema_version,
           fingerprint,
           base_id: busa.meta.baseId,
+          contacts_base_id: busa.meta.contactsBaseId,
+          contacts_base_slug: busa.meta.contactsBaseSlug,
           drive_id: busa.meta.driveId,
           drive_slug: busa.meta.driveSlug,
           folder_slug: busa.meta.folderSlug,

@@ -5,12 +5,14 @@
     "base_url": "http://127.0.0.1:15419",
     "base_id": "kelly-email",
     "base_slug": "kelly-email",
+    "contacts_base_id": "kelly-email-contacts",
+    "contacts_base_slug": "kelly-email-contacts",
     "folder_slug": "kelly-email-workspace",
     "drive_slug": "kelly-email-workspace-files",
     "drive_id": "kelly-email-files",
     "secrets_namespace": "kelly-email",
     "api_key_env": "KELLY_EMAIL_BUSABASE_API_KEY",
-    "_note": "Optional bootstrap only. Set KELLY_EMAIL_DATA_PROVIDER=busabase to store Kelly Email provider state in Busabase. In Busabase mode, account config belongs in Drive at config/config.json and IMAP/SMTP secret values belong in Busabase Vault. The Base is the human-readable email review table and stores per-email subject/sender/body/status/decision/execution columns; the Drive stores config/schema/locks/scan_state/compat snapshots/batches/attachments. npm run busabase:init remains available as a diagnostic/repair command. Sending and mailbox mutation still stay in the kelly-email skill after approval."
+    "_note": "Optional bootstrap only. Set KELLY_EMAIL_DATA_PROVIDER=busabase to store Kelly Email provider state in Busabase. In Busabase mode, account config belongs in Drive at config/config.json and IMAP/SMTP secret values belong in Busabase Vault. The Emails Base stores per-email subject/sender/body/status/decision/execution columns; the Email Contacts Base stores derived contact rows linked by stable contact ids; the Drive stores config/schema/locks/scan_state/compat snapshots/batches/attachments. npm run busabase:init remains available as a diagnostic/repair command. Sending and mailbox mutation still stay in the kelly-email skill after approval."
   },
   "mailboxes": [
     {

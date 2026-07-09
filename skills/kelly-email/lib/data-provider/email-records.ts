@@ -1,4 +1,5 @@
 import type { Attachment, Batch, ReviewBrief, ReviewItem } from "../types.ts";
+import { emailContactRefsForItem } from "./email-contacts.ts";
 import { decisionsFromBatch, emptyBatch, normalizeBatch, normalizeItem, utcNow } from "./provider-utils.ts";
 
 export const EMAIL_RECORD_KIND = "review_item";
@@ -124,6 +125,7 @@ export function reviewItemToEmailRecordFields(item: ReviewItem, batchId = ""): E
   const bodyText = text(next.body || next.body_original || next.body_preview);
   const suggestedReply = text(next.suggested_reply || brief.suggested_reply);
   const draftText = text(next.draft);
+  const contactRefs = emailContactRefsForItem(next);
   return {
     record_id: emailRecordId(next),
     kind: EMAIL_RECORD_KIND,
@@ -135,7 +137,12 @@ export function reviewItemToEmailRecordFields(item: ReviewItem, batchId = ""): E
     folder: compactText(next.folder, 120),
     subject: compactText(next.subject, 400),
     sender: compactText(next.from, 400),
+    sender_contact_id: contactRefs.sender_contact_id,
+    sender_email: contactRefs.sender_email,
+    sender_domain: contactRefs.sender_domain,
     recipients: compactText(next.to, 1200),
+    recipient_contact_ids: contactRefs.recipient_contact_ids,
+    recipient_emails: contactRefs.recipient_emails,
     cc: compactText(next.cc, 1200),
     source_account: compactText(next.account, 160),
     email_date: dateText(next.date),

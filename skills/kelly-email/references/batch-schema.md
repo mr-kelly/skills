@@ -2,7 +2,7 @@
 
 Read this when generating, updating, or executing a kelly-email review batch.
 
-Generate provider email records that can be projected into a batch with this shape. Local mode stores the records in `.agents/skills/kelly-email/app/.data/email_records.json`; Busabase mode stores them as Base `review_item` rows. `current_batch.json` and `decisions.json` are compatibility snapshots, not the canonical store.
+Generate provider email records that can be projected into a batch with this shape. Local mode stores the records in `.agents/skills/kelly-email/app/.data/email_records.json`; Busabase mode stores them as Emails Base `review_item` rows. Contact rows are derived from the batch into local `email_contacts.json` or the Busabase Email Contacts Base, with email rows linking to contacts through sender/recipient contact id columns. `current_batch.json` and `decisions.json` are compatibility snapshots, not the canonical store.
 
 ```json
 {

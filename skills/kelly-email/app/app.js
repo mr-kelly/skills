@@ -906,11 +906,16 @@ function openHelp(tab = "guide") {
     provider.base_id || connection.base_id,
     provider.base_slug || connection.base_slug || connection.resolved_base_id,
   );
+  $("helpProviderContactsBase").textContent = providerPair(
+    provider.contacts_base_id || connection.contacts_base_id,
+    provider.contacts_base_slug || connection.contacts_base_slug || connection.resolved_contacts_base_id,
+  );
   $("helpProviderDrive").textContent = providerPair(
     provider.drive_slug || connection.drive_slug,
     provider.drive_id || connection.drive_id || connection.drive_node_id,
   );
   $("helpBatchPath").textContent = state.batch_path || t("files.no_batch");
+  $("helpContactsPath").textContent = state.contacts_path || t("files.no_contacts");
   $("helpDecisionsPath").textContent = state.decisions_path || t("files.no_decisions");
   $("helpConfigPath").textContent = onboarding.configured
     ? state.email_accounts?.source || t("files.no_config")

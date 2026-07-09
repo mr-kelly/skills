@@ -9,6 +9,8 @@ export interface BusabaseClientMeta {
   baseUrl: string;
   baseId: string;
   baseSlug: string;
+  contactsBaseId: string;
+  contactsBaseSlug: string;
   folderSlug: string;
   driveSlug: string;
   driveId: string;
@@ -97,6 +99,15 @@ export function busabaseMeta({ envPrefix, config = {} }: BusabaseClientOptions):
   const baseId = String(env("BUSABASE_BASE_ID") || configValue(config, "base_id") || "kelly-email");
   const configuredBaseSlug = cleanOptional(env("BUSABASE_BASE_SLUG") || configValue(config, "base_slug"));
   const baseSlug = configuredBaseSlug ? slugify(configuredBaseSlug) : /^[a-z0-9-]+$/.test(baseId) ? baseId : "";
+  const contactsBaseId = String(
+    env("BUSABASE_CONTACTS_BASE_ID") || configValue(config, "contacts_base_id") || `${baseId}-contacts`,
+  );
+  const configuredContactsBaseSlug = cleanOptional(
+    env("BUSABASE_CONTACTS_BASE_SLUG") || configValue(config, "contacts_base_slug"),
+  );
+  const contactsBaseSlug = configuredContactsBaseSlug
+    ? slugify(configuredContactsBaseSlug)
+    : `${baseSlug || slugify(baseId)}-contacts`;
   const defaultFolderSlug = `${baseSlug || slugify(baseId)}-workspace`;
   const folderSlug = slugify(env("BUSABASE_FOLDER_SLUG") || configValue(config, "folder_slug") || defaultFolderSlug);
   const driveSlug = slugify(env("BUSABASE_DRIVE_SLUG") || configValue(config, "drive_slug") || `${folderSlug}-files`);
@@ -104,6 +115,8 @@ export function busabaseMeta({ envPrefix, config = {} }: BusabaseClientOptions):
     baseUrl: cleanUrl(env("BUSABASE_URL") || configValue(config, "base_url") || "http://127.0.0.1:15419"),
     baseId,
     baseSlug,
+    contactsBaseId,
+    contactsBaseSlug,
     folderSlug,
     driveSlug,
     driveId: String(env("BUSABASE_DRIVE_ID") || configValue(config, "drive_id") || "kelly-email-files"),
@@ -130,7 +143,12 @@ const BASE_FIELDS = [
   { slug: "folder", name: "Folder", type: "text" },
   { slug: "subject", name: "Subject", type: "text" },
   { slug: "sender", name: "Sender", type: "text" },
+  { slug: "sender_contact_id", name: "Sender Contact ID", type: "text" },
+  { slug: "sender_email", name: "Sender Email", type: "text" },
+  { slug: "sender_domain", name: "Sender Domain", type: "text" },
   { slug: "recipients", name: "Recipients", type: "longtext" },
+  { slug: "recipient_contact_ids", name: "Recipient Contact IDs", type: "longtext" },
+  { slug: "recipient_emails", name: "Recipient Emails", type: "longtext" },
   { slug: "cc", name: "CC", type: "longtext" },
   { slug: "source_account", name: "Source Account", type: "text" },
   { slug: "email_date", name: "Email Date", type: "date" },
@@ -183,6 +201,31 @@ const BASE_FIELDS = [
   { slug: "latest_record_id", name: "Latest Record ID", type: "text" },
 ] as const;
 
+const CONTACT_BASE_FIELDS = [
+  { slug: "record_id", name: "Record ID", type: "text", required: true },
+  { slug: "kind", name: "Kind", type: "text" },
+  { slug: "contact_id", name: "Contact ID", type: "text" },
+  { slug: "email", name: "Email", type: "text" },
+  { slug: "display_name", name: "Display Name", type: "text" },
+  { slug: "domain", name: "Domain", type: "text" },
+  { slug: "roles", name: "Roles", type: "text" },
+  { slug: "source_accounts", name: "Source Accounts", type: "text" },
+  { slug: "first_seen_at", name: "First Seen At", type: "date" },
+  { slug: "last_seen_at", name: "Last Seen At", type: "date" },
+  { slug: "message_count", name: "Message Count", type: "number" },
+  { slug: "last_subject", name: "Last Subject", type: "text" },
+  { slug: "last_message_id", name: "Last Message ID", type: "text" },
+  { slug: "last_batch_id", name: "Last Batch ID", type: "text" },
+  { slug: "last_status", name: "Last Status", type: "text" },
+  { slug: "last_proposed_action", name: "Last Proposed Action", type: "text" },
+  { slug: "category_counts", name: "Category Counts", type: "longtext" },
+  { slug: "risk_tags", name: "Risk Tags", type: "text" },
+  { slug: "notes", name: "Notes", type: "longtext" },
+  { slug: "default_action", name: "Default Action", type: "text" },
+  { slug: "updated_at", name: "Updated At", type: "date" },
+  { slug: "created_at", name: "Created At", type: "date" },
+] as const;
+
 const RETIRED_BASE_FIELD_SLUGS = new Set(["item"]);
 
 const JSON_FIELD_SLUGS: ReadonlySet<string> = new Set(
@@ -193,9 +236,11 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
   const meta = busabaseMeta(options);
   let folderPromise: Promise<NodeRecord> | null = null;
   let basePromise: Promise<BaseRecord> | null = null;
+  let contactsBasePromise: Promise<BaseRecord> | null = null;
   let drivePromise: Promise<DriveRecord> | null = null;
   let vaultPromise: Promise<Record<string, string>> | null = null;
   const recordCache = new Map<string, RecordVO>();
+  const contactsRecordCache = new Map<string, RecordVO>();
 
   function requireConfig() {
     if (!meta.baseUrl || !meta.baseId) {
@@ -251,8 +296,8 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     return flattenNodes(nodes).find((node) => node.slug === slug && (!type || node.type === type)) || null;
   }
 
-  function findConfiguredBase(bases: BaseRecord[]) {
-    return bases.find((base) => base.id === meta.baseId || base.slug === meta.baseId || base.slug === meta.baseSlug);
+  function findConfiguredBase(bases: BaseRecord[], target = { id: meta.baseId, slug: meta.baseSlug }) {
+    return bases.find((base) => base.id === target.id || base.slug === target.id || base.slug === target.slug);
   }
 
   function findDriveBySlug(drives: DriveRecord[], slug: string) {
@@ -340,48 +385,82 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     return folderPromise;
   }
 
+  async function ensureNamedBase(options: {
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    fields: readonly Record<string, unknown>[];
+    cacheLabel: string;
+  }): Promise<BaseRecord> {
+    const bases = await listBases();
+    const existing = findConfiguredBase(bases, { id: options.id, slug: options.slug });
+    const folder = await ensureFolder();
+    if (existing) {
+      const node = findNodeBySlug(await listNodes(), existing.slug || options.slug, "base");
+      if (node) await moveNodeToFolder(node, folder, `Move Kelly Email ${options.name} Base under workspace folder`);
+      return ensureBaseFields(existing, options.fields, options.cacheLabel);
+    }
+    if (!options.slug) {
+      throw new Error(`Busabase base "${options.id}" does not exist and no slug is configured to create it lazily.`);
+    }
+    return api("POST", "/api/v1/bases", {
+      parentNodeId: folder.id,
+      slug: options.slug,
+      name: options.name,
+      description: options.description,
+      fields: options.fields,
+    });
+  }
+
   async function ensureBase(): Promise<BaseRecord> {
     if (basePromise) return basePromise;
-    basePromise = (async () => {
-      const bases = await listBases();
-      const existing = findConfiguredBase(bases);
-      const folder = await ensureFolder();
-      if (existing) {
-        const node = findNodeBySlug(await listNodes(), existing.slug || meta.baseSlug, "base");
-        if (node) await moveNodeToFolder(node, folder, "Move Kelly Email Base under workspace folder");
-        return ensureBaseFields(existing);
-      }
-      if (!meta.baseSlug) {
-        throw new Error(
-          `Busabase base "${meta.baseId}" does not exist. Set KELLY_EMAIL_BUSABASE_BASE_SLUG or config.busabase.base_slug to create it lazily.`,
-        );
-      }
-      return api("POST", "/api/v1/bases", {
-        parentNodeId: folder.id,
-        slug: meta.baseSlug,
-        name: "Kelly Email",
-        description: "Structured Kelly Email review rows and execution reports.",
-        fields: BASE_FIELDS,
-      });
-    })().catch((error) => {
+    basePromise = ensureNamedBase({
+      id: meta.baseId,
+      slug: meta.baseSlug,
+      name: "Kelly Email Emails",
+      description: "Structured Kelly Email review email rows and execution reports.",
+      fields: BASE_FIELDS,
+      cacheLabel: "Base",
+    }).catch((error) => {
       basePromise = null;
       throw error;
     });
     return basePromise;
   }
 
-  async function ensureBaseFields(base: BaseRecord): Promise<BaseRecord> {
+  async function ensureContactsBase(): Promise<BaseRecord> {
+    if (contactsBasePromise) return contactsBasePromise;
+    contactsBasePromise = ensureNamedBase({
+      id: meta.contactsBaseId,
+      slug: meta.contactsBaseSlug,
+      name: "Kelly Email Contacts",
+      description: "Aggregated Kelly Email contacts linked from review email rows.",
+      fields: CONTACT_BASE_FIELDS,
+      cacheLabel: "Contacts Base",
+    }).catch((error) => {
+      contactsBasePromise = null;
+      throw error;
+    });
+    return contactsBasePromise;
+  }
+
+  async function ensureBaseFields(
+    base: BaseRecord,
+    wantedFields: readonly Record<string, unknown>[] = BASE_FIELDS,
+    label = "Base",
+  ): Promise<BaseRecord> {
     const fields = Array.isArray(base.fields) ? base.fields : [];
     const activeFields = fields.filter((field) => !field.deletedAt && !field.deleted_at);
     const slugs = new Set(activeFields.map((field) => String(field.slug || "")));
-    const missing = BASE_FIELDS.filter((field) => !slugs.has(field.slug));
+    const missing = wantedFields.filter((field) => !slugs.has(String(field.slug || "")));
     for (const field of missing) {
       const changeRequest = await api("POST", `/api/v1/bases/${encodeURIComponent(base.id)}/fields/change-requests`, {
         slug: field.slug,
         name: field.name,
         type: field.type,
         required: Boolean("required" in field && field.required),
-        message: `Add Kelly Email Base field ${field.slug}`,
+        message: `Add Kelly Email ${label} field ${field.slug}`,
         submittedBy: "kelly-email",
       });
       if (changeRequest.status !== "merged") await approveAndMerge(String(changeRequest.id));
@@ -390,13 +469,13 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     for (const field of retired) {
       const changeRequest = await api("DELETE", `/api/v1/bases/${encodeURIComponent(base.id)}/fields/change-requests`, {
         fieldId: String(field.id),
-        message: `Remove retired Kelly Email Base field ${field.slug}`,
+        message: `Remove retired Kelly Email ${label} field ${field.slug}`,
         submittedBy: "kelly-email",
       });
       if (changeRequest.status !== "merged") await approveAndMerge(String(changeRequest.id));
     }
     if (!missing.length && !retired.length) return base;
-    return findConfiguredBase(await listBases()) || base;
+    return findConfiguredBase(await listBases(), { id: base.id, slug: String(base.slug || "") }) || base;
   }
 
   async function ensureDrive(): Promise<DriveRecord> {
@@ -419,7 +498,7 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
           {
             path: "README.md",
             content:
-              "# Kelly Email Files\n\nApp-state Drive for Kelly Email. Blob snapshots live here; structured review rows live in the Kelly Email Base.\n",
+              "# Kelly Email Files\n\nApp-state Drive for Kelly Email. Blob snapshots live here; structured email/contact rows live in Kelly Email Bases.\n",
             mimeType: "text/markdown",
           },
         ],
@@ -449,22 +528,53 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     return findConfiguredBase(await listBases()) || null;
   }
 
+  async function configuredContactsBaseReadOnly(): Promise<BaseRecord | null> {
+    return findConfiguredBase(await listBases(), { id: meta.contactsBaseId, slug: meta.contactsBaseSlug }) || null;
+  }
+
   async function configuredDriveReadOnly(): Promise<DriveRecord | null> {
     return findDriveBySlug(await listDrives(), meta.driveSlug);
   }
 
-  async function findRecordByAppId(recordId: string, options: { createBase?: boolean } = {}): Promise<RecordVO | null> {
-    const cached = recordCache.get(recordId);
+  async function findRecordByAppIdInBase(
+    recordId: string,
+    target: {
+      cache: Map<string, RecordVO>;
+      ensure: () => Promise<BaseRecord>;
+      readOnly: () => Promise<BaseRecord | null>;
+    },
+    options: { createBase?: boolean } = {},
+  ): Promise<RecordVO | null> {
+    const cached = target.cache.get(recordId);
     if (cached) return cached;
-    const base = options.createBase === false ? await configuredBaseReadOnly() : await ensureBase();
+    const base = options.createBase === false ? await target.readOnly() : await target.ensure();
     if (!base) return null;
     const records = await listRecords(base.id);
     const matches = records
       .filter((record) => String(recordFields(record).record_id || "") === recordId)
       .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
     const record = matches[0] || null;
-    if (record) recordCache.set(recordId, record);
+    if (record) target.cache.set(recordId, record);
     return record;
+  }
+
+  async function findRecordByAppId(recordId: string, options: { createBase?: boolean } = {}): Promise<RecordVO | null> {
+    return findRecordByAppIdInBase(
+      recordId,
+      { cache: recordCache, ensure: ensureBase, readOnly: configuredBaseReadOnly },
+      options,
+    );
+  }
+
+  async function findContactRecordByAppId(
+    recordId: string,
+    options: { createBase?: boolean } = {},
+  ): Promise<RecordVO | null> {
+    return findRecordByAppIdInBase(
+      recordId,
+      { cache: contactsRecordCache, ensure: ensureContactsBase, readOnly: configuredContactsBaseReadOnly },
+      options,
+    );
   }
 
   async function getRecordFields(
@@ -476,15 +586,39 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     return recordFields(record);
   }
 
+  async function getContactRecordFields(
+    recordId: string,
+    options: { createBase?: boolean } = {},
+  ): Promise<Record<string, unknown>> {
+    const record = await findContactRecordByAppId(recordId, options);
+    if (!record) throw new Error(`Busabase contact record not found: ${recordId}`);
+    return recordFields(record);
+  }
+
   async function listRecordFields(options: { createBase?: boolean } = {}): Promise<Record<string, unknown>[]> {
     const base = options.createBase === false ? await configuredBaseReadOnly() : await ensureBase();
     if (!base) return [];
     return (await listRecords(base.id)).map(recordFields);
   }
 
-  async function upsertRecord(recordId: string, fields: Record<string, unknown>, message: string) {
-    const base = await ensureBase();
-    const existing = await findRecordByAppId(recordId);
+  async function listContactRecordFields(options: { createBase?: boolean } = {}): Promise<Record<string, unknown>[]> {
+    const base = options.createBase === false ? await configuredContactsBaseReadOnly() : await ensureContactsBase();
+    if (!base) return [];
+    return (await listRecords(base.id)).map(recordFields);
+  }
+
+  async function upsertRecordInBase(
+    recordId: string,
+    fields: Record<string, unknown>,
+    message: string,
+    target: {
+      cache: Map<string, RecordVO>;
+      ensure: () => Promise<BaseRecord>;
+      find: (recordId: string) => Promise<RecordVO | null>;
+    },
+  ) {
+    const base = await target.ensure();
+    const existing = await target.find(recordId);
     const nextFields = serializeFields({ record_id: recordId, ...fields });
     const changeRequest = existing
       ? await api("PUT", `/api/v1/records/${encodeURIComponent(existing.id)}/change-requests`, {
@@ -499,9 +633,25 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
         });
     const merged = await approveAndMerge(String(changeRequest.id));
     const record = (merged?.record || null) as RecordVO | null;
-    if (record) recordCache.set(recordId, record);
-    else recordCache.delete(recordId);
+    if (record) target.cache.set(recordId, record);
+    else target.cache.delete(recordId);
     return merged;
+  }
+
+  async function upsertRecord(recordId: string, fields: Record<string, unknown>, message: string) {
+    return upsertRecordInBase(recordId, fields, message, {
+      cache: recordCache,
+      ensure: ensureBase,
+      find: findRecordByAppId,
+    });
+  }
+
+  async function upsertContactRecord(recordId: string, fields: Record<string, unknown>, message: string) {
+    return upsertRecordInBase(recordId, fields, message, {
+      cache: contactsRecordCache,
+      ensure: ensureContactsBase,
+      find: findContactRecordByAppId,
+    });
   }
 
   function driveFilePath(pathname: string) {
@@ -593,13 +743,18 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     listBases,
     listDrives,
     configuredBaseReadOnly,
+    configuredContactsBaseReadOnly,
     configuredDriveReadOnly,
     ensureFolder,
     ensureBase,
+    ensureContactsBase,
     ensureDrive,
     getRecordFields,
+    getContactRecordFields,
     listRecordFields,
+    listContactRecordFields,
     upsertRecord,
+    upsertContactRecord,
     commitRecord: upsertRecord,
     readDriveText,
     readDriveJson,
@@ -613,16 +768,21 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
       const [nodes, bases, drives] = await Promise.all([listNodes(), listBases(), listDrives()]);
       const folder = findNodeBySlug(nodes, meta.folderSlug, "folder");
       const base = findConfiguredBase(bases);
+      const contactsBase = findConfiguredBase(bases, { id: meta.contactsBaseId, slug: meta.contactsBaseSlug });
       const drive = findDriveBySlug(drives, meta.driveSlug);
       return {
         ok: true,
         folder_exists: Boolean(folder),
         base_exists: Boolean(base),
+        contacts_base_exists: Boolean(contactsBase),
         drive_exists: Boolean(drive),
         base_url: meta.baseUrl,
         base_id: meta.baseId,
         base_slug: base?.slug || meta.baseSlug,
         resolved_base_id: base?.id || "",
+        contacts_base_id: meta.contactsBaseId,
+        contacts_base_slug: contactsBase?.slug || meta.contactsBaseSlug,
+        resolved_contacts_base_id: contactsBase?.id || "",
         folder_slug: meta.folderSlug,
         folder_node_id: folder?.id || "",
         drive_slug: meta.driveSlug,

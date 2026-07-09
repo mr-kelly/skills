@@ -8,12 +8,14 @@ import {
   BATCH_DIR,
   CURRENT_BATCH_PATH,
   DECISIONS_PATH,
+  EMAIL_CONTACTS_PATH,
   EMAIL_RECORDS_PATH,
   LOCK_PATH,
   REPORTS_DIR,
 } from "../paths.ts";
 import type { Batch } from "../types.ts";
 import type { Config, ConfigWithMeta } from "../types.ts";
+import { rowsFromContactsBatch } from "./email-contacts.ts";
 import { batchFromEmailRecords, rowsFromBatch } from "./email-records.ts";
 import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
 import {
@@ -187,6 +189,7 @@ async function writeJson(pathname: string, value: unknown) {
 }
 
 async function ensureDataDirs() {
+  await fs.mkdir(path.dirname(EMAIL_CONTACTS_PATH), { recursive: true });
   await fs.mkdir(path.dirname(EMAIL_RECORDS_PATH), { recursive: true });
   await fs.mkdir(path.dirname(CURRENT_BATCH_PATH), { recursive: true });
   await fs.mkdir(BATCH_DIR, { recursive: true });
@@ -200,6 +203,7 @@ async function readEmailRecords() {
 
 async function writeEmailRecords(batch: Batch) {
   await writeJson(EMAIL_RECORDS_PATH, rowsFromBatch(batch));
+  await writeJson(EMAIL_CONTACTS_PATH, rowsFromContactsBatch(batch));
 }
 
 async function readBatchFromRecords() {

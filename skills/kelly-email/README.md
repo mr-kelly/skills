@@ -102,6 +102,7 @@ Local provider files:
 
 ```text
 .agents/skills/kelly-email/app/.data/email_records.json
+.agents/skills/kelly-email/app/.data/email_contacts.json
 .agents/skills/kelly-email/app/.data/agent.lock
 .agents/skills/kelly-email/app/.data/current_batch.json     # compatibility snapshot
 .agents/skills/kelly-email/app/.data/decisions.json         # compatibility snapshot
@@ -111,6 +112,7 @@ Busabase provider paths:
 
 ```text
 busabase:base/review_item
+busabase:base/email_contact
 busabase:base/execution_report
 busabase:drive/config/config.json
 busabase:drive/state/lock.json

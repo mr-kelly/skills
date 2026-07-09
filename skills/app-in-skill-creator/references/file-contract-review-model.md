@@ -15,7 +15,7 @@ Use a predictable provider contract so both the agent and UI can recover after i
 
 Keep files minimal and auditable. Store only the content needed for review and execution.
 
-In Busabase provider mode, project the same contract into Base rows whenever the item is naturally tabular and human-readable. Use local/Drive JSON files only as compatibility snapshots or blob storage; the app should still call the provider interface instead of reading storage directly.
+In Busabase provider mode, project the same contract into Base rows whenever the item is naturally tabular and human-readable. Use multiple Base tables for distinct human-readable views such as items plus contacts/accounts/projects, and link them with stable ids instead of burying relationships in a single JSON field. Use local/Drive JSON files only as compatibility snapshots or blob storage; the app should still call the provider interface instead of reading storage directly.
 
 ## Workflow States
 

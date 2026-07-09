@@ -196,7 +196,8 @@ Prefer Busabase for App-in-Skills whose output should become trusted, shared, ca
 Use Busabase as a whole skill storage provider, not just a reply-review queue or remote JSON file.
 
 - **Folder node** is the dedicated aggregation point for one skill or one configured workspace. Put the skill-owned Base and Drive under this folder. Do not use the Base node itself as the workspace container.
-- **Base node** stores structured, queryable, reviewable domain rows: review items, emails, reply drafts, tasks, approvals, canonical records, scan rows, and execution report summaries. Treat Base as the surface humans open to understand the workflow. Split important fields into columns: title/subject, sender/source, body text or excerpt when humans need to inspect it, status, category, proposed action, decision, owner, timestamps, counters, and Drive/Doc refs. Avoid one giant `item` JSON column that hides the object from Base views. Do not store attachment bytes, PDFs, screenshots, raw MIME, huge HTML, logs, or media blobs in Base.
+- **Base node** stores structured, queryable, reviewable domain rows: review items, emails, contacts, reply drafts, tasks, approvals, canonical records, scan rows, and execution report summaries. Treat Base as the surface humans open to understand the workflow. Split important fields into columns: title/subject, sender/source, body text or excerpt when humans need to inspect it, status, category, proposed action, decision, owner, timestamps, counters, and Drive/Doc refs. Avoid one giant `item` JSON column that hides the object from Base views. Do not store attachment bytes, PDFs, screenshots, raw MIME, huge HTML, logs, or media blobs in Base.
+- Use multiple Base nodes/tables when the user has multiple natural human views, such as `Emails` plus `Email Contacts`, `Accounts` plus `Transactions`, or `Campaigns` plus `Messages`. Keep each table readable by itself, use stable ids (`contact_id`, `account_id`, `message_id`) for relationships, and add reference columns on the primary row instead of requiring humans to open JSON.
 - **Doc node** stores long-form editable documents that need rich human review, comments, sections, or publishable narrative: generated articles, policy drafts, research memos, contracts, briefs, playbooks, and canonical long text. Use Docs when humans should read/edit the artifact as a document, not when the app only needs a blob path.
 - **Drive node** stores file-tree blobs and non-tabular state: `config/config.json`, `state/schema.json`, `state/lock.json`, `state/scan_state.json`, compatibility snapshots, batch archives, attachments, raw imports, generated exports, screenshots, large HTML/email snapshots, PDFs, media, and any blob-like content that should not be embedded in a Base record.
 - **Busabase Vault** stores secret values. Skill JSON config should contain secret references such as `vault_ref`, `password_vault_ref`, `secret_ref`, or compatibility `password_env`, never secret values.
@@ -218,9 +219,10 @@ Use these rules when deciding where an App-in-Skill artifact belongs:
 | Lock, scan cursor/state, schema manifest | Drive `state/*.json` | Non-tabular app control state owned by the skill workspace. |
 | Batch archives, raw imports, exports, attachments, screenshots, PDFs, large HTML/text snapshots | Drive | Blob/file tree storage; link from Base rows. |
 | Review queue rows, emails, tasks, approvals, canonical entities, execution summaries | Base | Needs filtering, status views, audit, assignment, dedupe, visual inspection, and canonical query. |
+| Related domain indexes such as contacts, accounts, vendors, projects, customers, or counterparties | Separate Base table when useful | Gives humans a second queryable view and avoids hiding relationships in nested JSON. |
 | Long-form artifact humans edit as a document | Doc | Rich document semantics; keep a Base row pointing at the Doc when workflow/status is needed. |
 
-For review apps, write one canonical Base row per human-reviewable item. The Base row should be useful when opened directly by a person: include a human-readable primary field, status, proposed action, decision/verdict, category/risk, sender/source/account, summary, relevant body text or excerpt, editable draft/comment fields, execution status/result, attachment count/name columns, and Drive/Doc refs for blobs. Do not collapse the item into one JSON column. Store attachment bytes, raw MIME, huge HTML, screenshots, PDFs, and logs in Drive; store long-form editable narratives in Doc.
+For review apps, write one canonical Base row per human-reviewable item. The Base row should be useful when opened directly by a person: include a human-readable primary field, status, proposed action, decision/verdict, category/risk, sender/source/account, summary, relevant body text or excerpt, editable draft/comment fields, execution status/result, attachment count/name columns, and Drive/Doc refs for blobs. Do not collapse the item into one JSON column. If secondary entities matter to humans, derive or maintain separate Base rows for them and link with stable ids. Store attachment bytes, raw MIME, huge HTML, screenshots, PDFs, and logs in Drive; store long-form editable narratives in Doc.
 
 Recommended config:
 
@@ -231,6 +233,8 @@ Recommended config:
     "base_url": "http://127.0.0.1:15419",
     "base_id": "skill-name",
     "base_slug": "skill-name",
+    "contacts_base_id": "skill-name-contacts",
+    "contacts_base_slug": "skill-name-contacts",
     "folder_slug": "skill-name-workspace",
     "drive_slug": "skill-name-workspace-files",
     "drive_id": "skill-name-files",
@@ -246,6 +250,8 @@ Use env overrides:
 <SKILL_ENV_PREFIX>_BUSABASE_URL=http://127.0.0.1:15419
 <SKILL_ENV_PREFIX>_BUSABASE_BASE_ID=skill-name
 <SKILL_ENV_PREFIX>_BUSABASE_BASE_SLUG=skill-name
+<SKILL_ENV_PREFIX>_BUSABASE_CONTACTS_BASE_ID=skill-name-contacts
+<SKILL_ENV_PREFIX>_BUSABASE_CONTACTS_BASE_SLUG=skill-name-contacts
 <SKILL_ENV_PREFIX>_BUSABASE_FOLDER_SLUG=skill-name-workspace
 <SKILL_ENV_PREFIX>_BUSABASE_DRIVE_SLUG=skill-name-workspace-files
 <SKILL_ENV_PREFIX>_BUSABASE_DRIVE_ID=skill-name-files
@@ -264,15 +270,24 @@ export const BUSABASE_SCHEMA = {
   schema_version: "1",
   folder: {
     default_slug: "skill-name-workspace",
-    children: ["base", "drive"]
+    children: ["base", "related_bases", "drive"]
   },
   base: {
     id: "skill-name",
     slug: "skill-name",
-    name: "Skill Name",
+    name: "Skill Name Items",
     fields: ["record_id", "kind", "title", "source", "body_text", "status", "decision_action", "updated_at"],
     record_kinds: ["review_item", "task", "approval", "canonical_record", "execution_report"]
   },
+  related_bases: [
+    {
+      id: "skill-name-contacts",
+      slug: "skill-name-contacts",
+      name: "Skill Name Contacts",
+      fields: ["record_id", "kind", "contact_id", "email", "display_name", "domain", "updated_at"],
+      record_kinds: ["contact"]
+    }
+  ],
   drive: {
     id: "skill-name-files",
     slug: "skill-name-workspace-files",
@@ -301,7 +316,7 @@ On every startup:
 
 1. Load Busabase bootstrap settings from env/flags: base URL, base id/slug, folder slug, drive slug, optional space/API key.
 2. Connect to Busabase.
-3. Ensure the workspace Folder exists, then ensure/move the configured Base and Drive under that folder.
+3. Ensure the workspace Folder exists, then ensure/move the configured Base nodes and Drive under that folder.
 4. Read `state/schema.json` from the Drive.
 5. If the schema file is missing, write it lazily from the local manifest.
 6. Read non-secret runtime config from Drive `config/config.json`.
