@@ -23,6 +23,7 @@ import {
   totalsForDays,
   writeJson,
 } from "../app/server/store.ts";
+import { resolveProviderKind } from "../lib/data-provider/index.ts";
 
 const OWNER = "kelly-ads-checks";
 
@@ -224,6 +225,15 @@ async function main() {
   const config = configResult.config || {};
   const thresholds = config.thresholds || {};
   const defaultAcos = Number(config.targets?.default_acos_pct || 25);
+
+  const providerKind = resolveProviderKind(config);
+  if (providerKind !== "local") {
+    console.error(
+      `KELLY_ADS_DATA_PROVIDER=${providerKind}: anomaly checks are local-only and always read/write ${SNAPSHOT_PATH} directly, so they will not appear in a ${providerKind}-backed UI. Set KELLY_ADS_DATA_PROVIDER=local (or unset it) to run checks.`,
+    );
+    process.exitCode = 1;
+    return;
+  }
 
   try {
     await acquireLock(OWNER, "Running anomaly checks");

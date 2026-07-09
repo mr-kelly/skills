@@ -221,7 +221,10 @@ function decisions() {
 
 function effectiveItem(item) {
   const decision = decisions()[item.id];
-  if (!decision) return item;
+  // Once execute_decisions has applied a decision, item.status is the
+  // authoritative, terminal state (e.g. "done"). A lingering decision record
+  // must not keep masking it back to an intermediate status like "approved".
+  if (!decision || item.status === "done") return item;
   const statusByAction = {
     approve: "approved",
     request_changes: "changes_requested",
@@ -876,6 +879,7 @@ async function submitDecision(id, action) {
     action,
     comment: document.querySelector(`[data-note="${CSS.escape(id)}"]`)?.value || "",
     draft: document.querySelector(`[data-draft="${CSS.escape(id)}"]`)?.value || "",
+    demo: Boolean(state.settings?.demo),
   };
   const res = await fetch("/api/decision", {
     method: "POST",

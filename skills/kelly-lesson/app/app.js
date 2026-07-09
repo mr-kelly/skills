@@ -210,24 +210,24 @@ function decisionFor(reviewId) {
   return state.settings?.decisions?.decisions?.[reviewId] || null;
 }
 
+// Overlay the recorded human decision onto the item's stored status. This
+// mirrors scripts/execute_decisions.ts and scripts/export_plans.ts, which
+// both treat any recorded decision as authoritative regardless of when the
+// snapshot was last regenerated — a per-item action (approve/block/etc.)
+// should never appear "stale" just because run_checks.ts rewrote
+// snapshot.generated_at for the whole snapshot (including untouched plans).
 function effectiveReviewStatus(item) {
   const decision = decisionFor(item.review_id);
-  if (!decision) return item.status;
-  const generatedAt = Date.parse(state.snapshot?.generated_at || 0) || 0;
-  const decidedAt = Date.parse(decision.decided_at || 0) || 0;
-  if (decidedAt >= generatedAt && DECISION_STATUS[decision.action]) return DECISION_STATUS[decision.action];
-  return item.status;
+  if (!decision || !DECISION_STATUS[decision.action]) return item.status;
+  return DECISION_STATUS[decision.action];
 }
 
 function effectivePlanStatus(plan) {
   const item = reviewForPlan(plan.plan_id);
   if (!item) return plan.status;
   const decision = decisionFor(item.review_id);
-  if (!decision) return plan.status;
-  const generatedAt = Date.parse(state.snapshot?.generated_at || 0) || 0;
-  const decidedAt = Date.parse(decision.decided_at || 0) || 0;
-  if (decidedAt >= generatedAt && DECISION_STATUS[decision.action]) return DECISION_STATUS[decision.action];
-  return plan.status;
+  if (!decision || !DECISION_STATUS[decision.action]) return plan.status;
+  return DECISION_STATUS[decision.action];
 }
 
 function renderShell() {
@@ -312,11 +312,18 @@ function warnings(planId = "") {
 
 function metricCards() {
   const metrics = state.snapshot?.metrics || {};
+  // plans_approved/plans_in_revision come from the last run_checks.ts/ingest
+  // pass and are never rewritten by POST /api/decision, so recompute them
+  // here from the same effectivePlanStatus() overlay the rest of the page
+  // (teacher table, review queue, status badges) already uses — otherwise
+  // these cards go stale the instant a dean approves/blocks a plan.
+  const approved = plans().filter((item) => ["approved", "done"].includes(effectivePlanStatus(item))).length;
+  const inRevision = plans().filter((item) => effectivePlanStatus(item) === "changes_requested").length;
   return `
     <div class="metrics">
       <div class="metric"><span>${t("plansTotal")}</span><strong>${metrics.plan_count || 0}</strong></div>
-      <div class="metric"><span>${t("approved")}</span><strong>${metrics.plans_approved || 0}</strong></div>
-      <div class="metric"><span>${t("inRevision")}</span><strong>${metrics.plans_in_revision || 0}</strong></div>
+      <div class="metric"><span>${t("approved")}</span><strong>${approved}</strong></div>
+      <div class="metric"><span>${t("inRevision")}</span><strong>${inRevision}</strong></div>
       <div class="metric"><span>${t("passRate")}</span><strong>${metrics.compliance_pass_rate || 0}%</strong></div>
     </div>
   `;

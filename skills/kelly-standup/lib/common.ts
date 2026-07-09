@@ -189,7 +189,15 @@ export function mergeSnapshot(snapshot, decisions, executionReport) {
     if (result?.id) execById.set(result.id, result);
   }
   const reminders = (snapshot.reminders || []).map((reminder) => {
-    const decision = verdicts[reminder.id] || reminder.decision || null;
+    let decision = verdicts[reminder.id] || reminder.decision || null;
+    // A decision recorded before the reminder's last content revision (e.g. an
+    // agent re-draft + re-ingest after "request changes") is stale: the human
+    // never reviewed the revised content, so it must not keep pinning the item
+    // to the old verdict/draft. Let the freshly-ingested needs_review + draft
+    // through instead, per the documented revise -> re-ingest -> needs_review loop.
+    if (decision?.decided_at && reminder.revised_at && reminder.revised_at > decision.decided_at) {
+      decision = null;
+    }
     const reportEntry = execById.get(reminder.id);
     const execution =
       reminder.execution ||

@@ -27,6 +27,12 @@ app.get("/api/state", async (c) => {
 });
 
 app.post("/api/decision", async (c) => {
+  const query = c.req.query();
+  if (isDemoQuery(query)) {
+    return c.json({ ok: true, demo: true, decisions: { schema_version: "1", updated_at: "", decisions: {} } }, 200, {
+      "cache-control": "no-store",
+    });
+  }
   const lock = await provider.readLock();
   if (lock) {
     return c.json({ error: "Agent lock is active; the review queue is read-only right now.", lock }, 423, {
@@ -49,6 +55,12 @@ app.post("/api/decision", async (c) => {
 });
 
 app.post("/api/onboarding/complete", async (c) => {
+  const query = c.req.query();
+  if (isDemoQuery(query)) {
+    return c.json({ ok: true, demo: true, onboarding: { completed: true, demo: true } }, 200, {
+      "cache-control": "no-store",
+    });
+  }
   let payload: Record<string, unknown> = {};
   try {
     payload = JSON.parse((await c.req.text()) || "{}");

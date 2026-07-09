@@ -186,6 +186,12 @@ export function createLocalFileProvider(meta: ProviderMeta): InquiryProvider {
       const item = (snapshot.approvals || []).find((entry) => entry.item_id === item_id);
       if (!item) throw new Error(`Unknown approval item: ${item_id}`);
       const now = new Date().toISOString();
+      // "done" is terminal: send_approved.ts has already executed this item
+      // (item.execution.status === "executed"/"handoff"). Re-approving it here
+      // would let a stray/duplicate decision re-trigger a real send next run.
+      if (item.status === "done") {
+        throw new Error(`Approval item ${item_id} was already executed and cannot be re-decided.`);
+      }
       if (typeof text === "string" && text.trim()) item.text = text.trim();
       if (action === "approve") item.status = "approved";
       else if (action === "request_changes") item.status = "changes_requested";

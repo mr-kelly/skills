@@ -79,6 +79,11 @@ export function applyPublishingOperation(snapshot: SocialSnapshot, op: Publishin
         (error as { statusCode?: number }).statusCode = 422;
         throw error;
       }
+      if (draft.status !== "approved") {
+        const error = new Error("Cannot publish a draft that has not been human-approved.");
+        (error as { statusCode?: number }).statusCode = 422;
+        throw error;
+      }
       (next.drafts as PostDraft[])[index] = {
         ...draft,
         status: "done",
@@ -126,6 +131,11 @@ export function applyPublishingOperation(snapshot: SocialSnapshot, op: Publishin
       const index = (next.engagement as EngagementItem[]).findIndex((item) => item.item_id === op.item_id);
       if (index < 0) notFound("engagement item", op.item_id);
       const item = (next.engagement as EngagementItem[])[index];
+      if (item.status !== "approved") {
+        const error = new Error("Cannot send a reply that has not been human-approved.");
+        (error as { statusCode?: number }).statusCode = 422;
+        throw error;
+      }
       (next.engagement as EngagementItem[])[index] = {
         ...item,
         status: "done",

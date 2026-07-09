@@ -265,9 +265,14 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
     },
 
     async writeSnapshot(snapshot: SeoSnapshot) {
-      // Publish agent-proposed opportunities as change requests. Analytics data is
+      // Publish agent-proposed opportunities as change requests. Opportunities
+      // that already round-tripped through crToOpportunity carry busabase_status,
+      // meaning a change request already exists for them in the base; skip those
+      // so repeated syncs (which preserve snapshot.opportunities) stay idempotent
+      // instead of creating duplicate change requests. Analytics data is
       // read-only and not persisted to Busabase.
       for (const opportunity of snapshot.opportunities || []) {
+        if (opportunity.busabase_status) continue;
         await api("POST", `/api/v1/bases/${encodeURIComponent(baseId)}/change-requests`, {
           payload: {
             fields: pickFields(opportunity),
@@ -278,14 +283,16 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
       }
     },
 
-    async writeExecutionReport() {
-      // Execution == merge in Busabase; there is no separate report file.
-      const crs = await api("GET", "/api/v1/change-requests");
-      const list = Array.isArray(crs) ? crs : crs?.items || [];
-      for (const cr of list) {
-        if (cr.status === "approved") {
-          await api("POST", `/api/v1/change-requests/${encodeURIComponent(cr.id)}/merge`, {});
-        }
+    async writeExecutionReport(report) {
+      // Execution == merge in Busabase; there is no separate report file. Only
+      // merge when the caller explicitly asked for a real (non dry-run) run, and
+      // only the change requests included in this batch's report -- never every
+      // approved change request in the base -- so a dry run has no external side
+      // effects and execution stays scoped to the current decisions batch.
+      if (!report || report.dry_run) return;
+      for (const result of report.results || []) {
+        if (!result?.id || result.status === "blocked") continue;
+        await api("POST", `/api/v1/change-requests/${encodeURIComponent(result.id)}/merge`, {});
       }
     },
 

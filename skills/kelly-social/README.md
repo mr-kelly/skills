@@ -70,6 +70,14 @@ Both implement the same interface, including `applyOperation()` for publishing-d
   <tr>
     <td><strong>Engagement</strong><br>Mentions and comments inbox grouped by urgency, sentiment, owner, and reply-approval state.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/shorts.webp" alt="Kelly Social short-video scripts"></td>
+    <td width="50%"><img src="assets/screenshots/crisis.webp" alt="Kelly Social crisis playbook"></td>
+  </tr>
+  <tr>
+    <td><strong>Short-video scripts</strong><br>Short-video script queue for Instagram, TikTok, and YouTube with hooks, shot lists, and approval state.</td>
+    <td><strong>Crisis playbook</strong><br>Incident status board with triage steps, pause-publishing controls, and spokesperson designation.</td>
+  </tr>
 </table>
 
 ## Demo Mode

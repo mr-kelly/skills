@@ -64,6 +64,7 @@ const messages = {
     handoffFiles: "Handoff files",
     safety: "Safety boundary",
     demoNotice: "Demo mode: no local files were changed.",
+    lockedNotice: "An agent is writing to this data right now. Review actions are disabled until it finishes.",
     saved: "Saved locally.",
     search: "Search",
     empty: "No matching items.",
@@ -133,6 +134,7 @@ const messages = {
     handoffFiles: "交接文件",
     safety: "安全边界",
     demoNotice: "Demo 模式：没有改动本地文件。",
+    lockedNotice: "Agent 正在写入数据，审核操作暂时不可用，请稍后再试。",
     saved: "已保存到本地。",
     search: "搜索",
     empty: "没有匹配项。",
@@ -368,6 +370,14 @@ function noticeBanner() {
   return state.notice ? `<div class="notice-banner">${esc(state.notice)}</div>` : "";
 }
 
+function isLocked() {
+  return Boolean(state.settings?.locked);
+}
+
+function lockBanner() {
+  return isLocked() ? `<div class="notice-banner">${esc(t("lockedNotice"))}</div>` : "";
+}
+
 function metric(label, value, percent) {
   return `<div class="metric">
     <span>${esc(label)}</span>
@@ -378,8 +388,10 @@ function metric(label, value, percent) {
 
 function renderOverview() {
   const snapshot = state.snapshot;
-  const fast = snapshot.pipelines.find((item) => item.path === "2d_fast");
-  const custom = snapshot.pipelines.find((item) => item.path === "3d_custom");
+  const pipelines = snapshot.pipelines || [];
+  const fast = pipelines.find((item) => item.path === "2d_fast");
+  const custom = pipelines.find((item) => item.path === "3d_custom");
+  const primary = fast || custom || pipelines[0] || null;
   els.title.textContent = t("overview");
   els.subtitle.textContent = `${t("generated")} ${new Date(snapshot.generated_at).toLocaleString()}`;
   els.content.innerHTML = `
@@ -402,16 +414,16 @@ function renderOverview() {
         <a class="metric metric-link" href="#/qa"><span>${t("qa")}</span><strong>${snapshot.metrics.qa_passed}/${snapshot.metrics.qa_total}</strong><em class="status-badge ${statusClass(snapshot.project.verdict)}">${snapshot.project.verdict}</em></a>
       </section>
       <section class="path-grid">
-        ${pathPanel(t("fastPath"), fast, "fast", "Ship a polished web demo in days through an existing 2D digital-human service.")}
-        ${pathPanel(t("customPath"), custom, "custom", "Build a reusable brand character with owned motion and engine-rendered scenes.")}
+        ${fast ? pathPanel(t("fastPath"), fast, "fast", "Ship a polished web demo in days through an existing 2D digital-human service.") : ""}
+        ${custom ? pathPanel(t("customPath"), custom, "custom", "Build a reusable brand character with owned motion and engine-rendered scenes.") : ""}
       </section>
       <section class="panel">
         <div class="section-head">
-          <div><h2>${t("pipeline")}</h2><p class="muted">${esc(fast.provider)}</p></div>
+          <div><h2>${t("pipeline")}</h2><p class="muted">${esc(primary?.provider || "")}</p></div>
           <a class="quiet-link" href="#/studio">${t("studio")} →</a>
         </div>
         <div class="pipeline">
-          ${fast.stages.map((stage, index) => `<div class="stage"><strong>${index + 1}. ${esc(stage)}</strong><span>${pipelineCaption(stage)}</span></div>`).join("")}
+          ${(primary?.stages || []).map((stage, index) => `<div class="stage"><strong>${index + 1}. ${esc(stage)}</strong><span>${pipelineCaption(stage)}</span></div>`).join("")}
         </div>
       </section>
     </div>
@@ -452,6 +464,7 @@ function renderReview() {
   els.subtitle.textContent = t("reviewSubtitle");
   els.content.innerHTML = `
     ${noticeBanner()}
+    ${lockBanner()}
     <div class="review-layout">
       <section class="list-panel">
         <div class="list-head">
@@ -503,9 +516,9 @@ function renderCheckDetail(check) {
       <textarea data-field="note" rows="5" placeholder="${esc(t("notePlaceholder"))}">${esc(note)}</textarea>
     </section>
     <footer class="detail-actions">
-      <button class="approve" type="button" data-action="approve">${t("approve")}</button>
-      <button type="button" data-action="request_changes">${t("requestChanges")}</button>
-      <button class="danger" type="button" data-action="block">${t("block")}</button>
+      <button class="approve" type="button" data-action="approve" ${isLocked() ? "disabled" : ""}>${t("approve")}</button>
+      <button type="button" data-action="request_changes" ${isLocked() ? "disabled" : ""}>${t("requestChanges")}</button>
+      <button class="danger" type="button" data-action="block" ${isLocked() ? "disabled" : ""}>${t("block")}</button>
     </footer>
     ${
       decision
@@ -766,6 +779,11 @@ async function submitDecision(checkId, action, card) {
   const note = card.querySelector('[data-field="note"]')?.value || "";
   if (state.settings?.demo) {
     state.notice = t("demoNotice");
+    render();
+    return;
+  }
+  if (isLocked()) {
+    state.notice = t("lockedNotice");
     render();
     return;
   }

@@ -206,6 +206,12 @@ Kelly Finance is a local finance-model review desk. It creates and audits three-
     <td><strong>Three-statement builder</strong><br>Workbook preview with assumptions, income statement, balance sheet, cash flow, and model checks for a clean forecast.</td>
     <td><strong>Model audit checks</strong><br>Audit checklist for statement ties, hardcodes, formula direction, and debt/working-capital linkage before delivery.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-finance/assets/screenshots/workbook.webp" alt="Kelly Finance workbook"></td>
+  </tr>
+  <tr>
+    <td><strong>Workbook</strong><br>Generated workbook path and tab contract — Assumptions, Income Statement, Balance Sheet, Cash Flow, Checks — reviewed before any approved export.</td>
+  </tr>
 </table>
 
 ### `kelly-invest-webull`
@@ -457,6 +463,12 @@ Digital-human implementation and demo desk for choosing between a fast 2D servic
     <td><strong>Unified inbox</strong><br>Conversations across WhatsApp, Slack, Discord, and Telegram sorted by latest activity with waiting-time badges.</td>
     <td><strong>Reply outbox</strong><br>Approval queue for outgoing replies: every message is reviewed before the agent sends it via platform connectors.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-messenger/assets/screenshots/accounts.webp" alt="Kelly Messenger connected accounts"></td>
+  </tr>
+  <tr>
+    <td><strong>Accounts</strong><br>Connected messaging accounts across WhatsApp and Telegram with connector status and secret readiness.</td>
+  </tr>
 </table>
 
 ### `kelly-social`
@@ -491,6 +503,14 @@ Digital-human implementation and demo desk for choosing between a fast 2D servic
   </tr>
   <tr>
     <td><strong>Engagement</strong><br>Mentions and comments inbox grouped by urgency, sentiment, owner, and reply-approval state.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-social/assets/screenshots/shorts.webp" alt="Kelly Social short-video scripts"></td>
+    <td width="50%"><img src="skills/kelly-social/assets/screenshots/crisis.webp" alt="Kelly Social crisis playbook"></td>
+  </tr>
+  <tr>
+    <td><strong>Short-video scripts</strong><br>Short-video script queue for Instagram, TikTok, and YouTube with hooks, shot lists, and approval state.</td>
+    <td><strong>Crisis playbook</strong><br>Incident status board with triage steps, pause-publishing controls, and spokesperson designation.</td>
   </tr>
 </table>
 
@@ -546,9 +566,11 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   </tr>
   <tr>
     <td width="50%"><img src="skills/kelly-seo/assets/screenshots/entity.webp" alt="Kelly seo entity readiness"></td>
+    <td width="50%"><img src="skills/kelly-seo/assets/screenshots/sites.webp" alt="Kelly SEO sites"></td>
   </tr>
   <tr>
     <td><strong>Entity readiness</strong><br>Entity readiness checklist showing schema coverage, citation signals, and blocked/ready status for AI answer engines.</td>
+    <td><strong>Sites</strong><br>Configured Search Console properties with verification type, last sync, and 28-day click and impression totals.</td>
   </tr>
 </table>
 
@@ -592,6 +614,12 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
     <td><strong>Signals</strong><br>Competitor pricing, changelog, launch, review, and hiring signals with severity badges and Act/Watch/Ignore triage.</td>
     <td><strong>Trends</strong><br>Rising keywords and community topics with momentum sparklines and opportunity cards for content or roadmap handoff.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-radar/assets/screenshots/watchlist.webp" alt="Kelly Radar watchlist"></td>
+  </tr>
+  <tr>
+    <td><strong>Watchlist</strong><br>Tracked competitors with pricing and positioning change signals, review status, and last-monitored timestamps.</td>
+  </tr>
 </table>
 
 ### `kelly-devops`
@@ -612,6 +640,12 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Expiry ledger</strong><br>Domains, SSL certificates, key rotations, and plan renewals in one table with color-coded days-left.</td>
     <td><strong>Services</strong><br>Monitored endpoints with uptime, latency sparklines, TLS certificate status, and check history.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-devops/assets/screenshots/spend.webp" alt="Kelly DevOps spend"></td>
+  </tr>
+  <tr>
+    <td><strong>Spend</strong><br>Cloud spend across AWS, Google Cloud, and Cloudflare with month-to-date totals and per-product allocation.</td>
   </tr>
 </table>
 
@@ -697,6 +731,20 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
     <td><strong>Slide cards</strong><br>Storyboard-style page specs: objective, layout, copy, visual brief, interaction, style checks, and QA flags.</td>
     <td><strong>Exports</strong><br>PPTX outputs, render paths, generation status, and QA evidence for each deck.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/projects.webp" alt="Kelly Scale PPTX projects"></td>
+    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/decks.webp" alt="Kelly Scale PPTX decks"></td>
+  </tr>
+  <tr>
+    <td><strong>Projects</strong><br>Deck project list with status and per-project detail — brand, dates, and slide brief.</td>
+    <td><strong>Decks</strong><br>Generated decks with approval status, slide counts, and output PPTX paths.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/style.webp" alt="Kelly Scale PPTX style system"></td>
+  </tr>
+  <tr>
+    <td><strong>Style system</strong><br>Reusable deck style system — palette, headings, layout rules, and components.</td>
+  </tr>
 </table>
 
 ### `kelly-inquiry`
@@ -717,6 +765,12 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Pipeline</strong><br>Inquiries across WhatsApp, Instagram, and email with country, stage, value estimate, and next follow-up.</td>
     <td><strong>Quotes</strong><br>Quote worksheets with line items sourced from the product KB, validity, and min-price guards.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-inquiry/assets/screenshots/products.webp" alt="Kelly Inquiry products"></td>
+  </tr>
+  <tr>
+    <td><strong>Products</strong><br>Product catalog behind quotes — specs, MOQ, price range, and lead time per SKU.</td>
   </tr>
 </table>
 
@@ -760,6 +814,14 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
     <td><strong>Product detail</strong><br>Gallery, pricing, inventory, content readiness, compliance notes, channel matrix, and related review cards.</td>
     <td><strong>Review queue</strong><br>Approval-gated publish, price, quality-hold, and lifecycle recommendations with evidence.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-products/assets/screenshots/channels.webp" alt="Kelly Products channels"></td>
+    <td width="50%"><img src="skills/kelly-products/assets/screenshots/inventory.webp" alt="Kelly Products inventory"></td>
+  </tr>
+  <tr>
+    <td><strong>Channels</strong><br>Per-channel listing matrix across Amazon, Shopify, and TikTok Shop with status, price, score, and channel issues.</td>
+    <td><strong>Inventory</strong><br>Stock health across warehouses — on-hand, available, days of cover, and low-stock flags.</td>
+  </tr>
 </table>
 
 ### `kelly-listing`
@@ -780,6 +842,14 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Compliance checks</strong><br>Per-rule pass/warn/fail results — banned words, character caps, bullet counts — across all drafts.</td>
     <td><strong>Draft workbench</strong><br>Amazon draft with live title character count, five bullets, backend search terms byte counter, A+ outline, and locale tabs.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-listing/assets/screenshots/claims.webp" alt="Kelly Listing claims registry"></td>
+    <td width="50%"><img src="skills/kelly-listing/assets/screenshots/products.webp" alt="Kelly Listing products"></td>
+  </tr>
+  <tr>
+    <td><strong>Claims registry</strong><br>Approved marketing claims and banned or restricted phrases, each with evidence and compliance status.</td>
+    <td><strong>Products</strong><br>Product catalog with SKU, category, source, per-platform listing status, and last-updated.</td>
   </tr>
 </table>
 
@@ -802,6 +872,14 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
     <td><strong>Risk checks</strong><br>Per-rule pass/warn/fail results across clause issues, including hard-stop terms and playbook violations.</td>
     <td><strong>Clause issues</strong><br>Editable issue detail with fallback language, memo fields, reviewer rationale, and risk-check evidence.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-contracts/assets/screenshots/playbook.webp" alt="Kelly Legal Contracts clause playbook"></td>
+    <td width="50%"><img src="skills/kelly-legal-contracts/assets/screenshots/contracts.webp" alt="Kelly Legal Contracts contract register"></td>
+  </tr>
+  <tr>
+    <td><strong>Clause playbook</strong><br>Approved fallback clauses by position with status, matter type, and where each is safe to use.</td>
+    <td><strong>Contract register</strong><br>Contract table with counterparty, matter type, source, workstream, clause issues, and status.</td>
+  </tr>
 </table>
 
 ### `kelly-legal-casebase-ingest`
@@ -822,6 +900,12 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Checks</strong><br>Deterministic QA checks for PII leakage, taxonomy completeness, source coverage, and tag confidence.</td>
     <td><strong>Workbench</strong><br>Detail pane for facts, reasoning, legal basis, tags, editable draft, and reviewer note before ingest.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-casebase-ingest/assets/screenshots/entities.webp" alt="Kelly Legal Casebase Ingest library"></td>
+  </tr>
+  <tr>
+    <td><strong>Library</strong><br>Ingested case library with needs-review and approved buckets and per-item counts.</td>
   </tr>
 </table>
 
@@ -844,6 +928,12 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
     <td><strong>Checks</strong><br>Quality checks for citation traceability, similarity rationale, jurisdiction fit, and confidentiality limits.</td>
     <td><strong>Workbench</strong><br>Detail view for precedent reasoning, decisive facts, internal citations, draft memo, and review note.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-precedent-desk/assets/screenshots/entities.webp" alt="Kelly Legal Precedent Desk library"></td>
+  </tr>
+  <tr>
+    <td><strong>Library</strong><br>Internal precedent and trial-court pattern library, bucketed by review state.</td>
+  </tr>
 </table>
 
 ### `kelly-legal-matter-strategy`
@@ -865,6 +955,12 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
     <td><strong>Checks</strong><br>Strategy QA for missing facts, evidence gaps, deadline caveats, precedent grounding, and risk warnings.</td>
     <td><strong>Workbench</strong><br>Detail pane for issue tree, evidence map, risk posture, negotiation options, and draft outline.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-matter-strategy/assets/screenshots/entities.webp" alt="Kelly Legal Matter Strategy library"></td>
+  </tr>
+  <tr>
+    <td><strong>Library</strong><br>Matter-strategy library of evidence and drafting plans, bucketed by review state.</td>
+  </tr>
 </table>
 
 ### `kelly-legal-firm-radar`
@@ -885,6 +981,12 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Checks</strong><br>Analytics QA for anonymization, sample size, attribution, bias caveats, and external-use restrictions.</td>
     <td><strong>Workbench</strong><br>Detail pane for practice analytics, talent signals, quality indicators, and approved management report text.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-legal-firm-radar/assets/screenshots/entities.webp" alt="Kelly Legal Firm Radar library"></td>
+  </tr>
+  <tr>
+    <td><strong>Library</strong><br>Firm and entity library with competitor analytics, bucketed by review state.</td>
   </tr>
 </table>
 
@@ -908,6 +1010,12 @@ Kelly CLM is a deliberately lightweight contract lifecycle desk for contract inv
   <tr>
     <td><strong>Obligations</strong><br>Owner-assigned obligation tracker with due dates and status.</td>
     <td><strong>Renewals</strong><br>Renewal board with notice deadlines and simple follow-up actions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-clm/assets/screenshots/approvals.webp" alt="Kelly CLM approvals"></td>
+  </tr>
+  <tr>
+    <td><strong>Approvals</strong><br>Approval queue for contract-lifecycle actions — renewal notices and obligation owners — with approve, request-changes, and block controls.</td>
   </tr>
 </table>
 
@@ -950,6 +1058,12 @@ Kelly CLM is a deliberately lightweight contract lifecycle desk for contract inv
   <tr>
     <td><strong>Members</strong><br>Team roster with check-in streaks, 30-day participation, open blockers, and per-member update timelines.</td>
     <td><strong>Reminders</strong><br>Approval-gated nudges for missing check-ins — drafted by the agent, sent only after review.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-standup/assets/screenshots/history.webp" alt="Kelly Standup history"></td>
+  </tr>
+  <tr>
+    <td><strong>History</strong><br>Chronological standup log of past check-ins, blockers raised, and daily notes.</td>
   </tr>
 </table>
 

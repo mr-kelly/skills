@@ -19,6 +19,10 @@ function fail(message) {
 }
 
 function effectiveStatus(proposal, decisions) {
+  // A proposal already executed is terminal: a lingering decisions.json entry
+  // (never cleared after execution) must never resurrect it into "approved"
+  // and re-trigger its operations on a later run.
+  if (proposal.status === "done") return { status: "done", decision: null };
   const decision = decisions.proposals?.[proposal.proposal_id];
   if (!decision) return { status: proposal.status, decision: null };
   const statusByAction = { approve: "approved", request_changes: "changes_requested", block: "blocked" };
@@ -84,6 +88,11 @@ const provider = await createProvider();
 await provider
   .acquireLock(apply ? "Executing approved roadmap decisions" : "Dry-run of roadmap decisions")
   .catch((error) => fail(error.message));
+// Captured so a provider error (e.g. an unsupported operation on the
+// busabase provider) can be surfaced through the same clean "Execute
+// decisions failed: ..." path used elsewhere in this script - after the
+// lock has been released - instead of crashing uncaught mid-run.
+let executionError = null;
 try {
   const snapshot = await provider.readSnapshot();
   if (!snapshot) fail("no snapshot found");
@@ -193,9 +202,12 @@ try {
     `${apply ? "Applied" : "Dry run:"} ${report.summary.approved} approved proposal(s), ${report.operations.length} operation(s).`,
   );
   console.log(`Wrote execution report via "${provider.kind}" provider.`);
+} catch (error) {
+  executionError = error;
 } finally {
   await provider.releaseLock();
 }
+if (executionError) fail(executionError.message);
 
 function applyLocalOperation(snapshot, proposal, op, now) {
   if (op.operation === "update_roadmap") {

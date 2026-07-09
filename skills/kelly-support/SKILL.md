@@ -63,7 +63,7 @@ Env priority:
 Onboarding asks, turn by turn:
 
 1. Which channels receive tickets (email / WhatsApp / web chat / form / WeChat) and the connector per account (see Collection Workflow). Ask for non-secret details only: channel, display name, handle, and which env var names hold the tokens. Never ask the user to paste secret values into chat; secrets belong only in local env files.
-2. Knowledge base import: a JSON file of articles and macros (title, body, tags, category), imported via `scripts/sync_knowledge.ts`.
+2. Knowledge base import: a JSON file of articles and macros (title, body, tags, category). There is no import script yet — the agent merges the entries directly into `knowledge_base` in `app/.data/support_snapshot.json` (see `references/support-schema.md`), then validates with `scripts/validate_ui_schema.ts`.
 3. SLA policy: first-response targets per priority (defaults: urgent 2h, high 4h, normal 8h, low 24h) and business hours.
 4. Risk policy: whether refunds require approval (default yes), the max auto-refund (default 0), and whether ungrounded replies and unapproved commitments are blocked (default yes).
 5. Reply style: tone, language policy, signature, and "do not say" guardrails.
@@ -124,7 +124,7 @@ Validate with `node scripts/validate_ui_schema.ts` before relying on a snapshot 
    - `form_intake` — a contact form writes submissions the agent ingests.
    - `wechat_work` — WeChat Work (`corp_secret_env`).
    - `manual` — the user or agent prepares an ingest payload by hand.
-4. All collected data enters through one write path (`scripts/ingest_tickets.ts`): validate, dedupe by stable ticket/message ids, merge into the snapshot, derive SLA breach, run `support-qa` on any drafted reply, honor the agent lock, and recompute metrics.
+4. All collected data enters through one write path: the agent merges it directly into `app/.data/support_snapshot.json` (there is no `ingest_tickets.ts` script yet — see `references/support-schema.md` for the shape) — validate, dedupe by stable ticket/message ids, merge into the snapshot, derive SLA breach, run `support-qa` on any drafted reply, honor the agent lock, recompute metrics, and validate with `scripts/validate_ui_schema.ts`.
 5. While triaging, the agent classifies each ticket (`category`, `priority`), drafts a `suggested_reply` grounded in the knowledge base with the `kb_refs` it used, and sets a `proposed_action`. It never promises a refund or makes a commitment unless the action is an approved refund.
 
 ## Triage & Reply Workflow

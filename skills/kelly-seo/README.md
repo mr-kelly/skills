@@ -42,9 +42,11 @@ Kelly SEO is a local App-in-Skill desk covering **SEO + GEO (AI-search) + brand 
   </tr>
   <tr>
     <td width="50%"><img src="assets/screenshots/entity.webp" alt="Kelly seo entity readiness"></td>
+    <td width="50%"><img src="assets/screenshots/sites.webp" alt="Kelly SEO sites"></td>
   </tr>
   <tr>
     <td><strong>Entity readiness</strong><br>Entity readiness checklist showing schema coverage, citation signals, and blocked/ready status for AI answer engines.</td>
+    <td><strong>Sites</strong><br>Configured Search Console properties with verification type, last sync, and 28-day click and impression totals.</td>
   </tr>
 </table>
 

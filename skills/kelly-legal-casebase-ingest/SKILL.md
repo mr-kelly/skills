@@ -113,7 +113,8 @@ Read `references/casebase-schema.md` before editing the app, scripts, or generat
 - `app/.data/casebase_snapshot.json`: canonical snapshot with case records, review items, checks, metrics, and activity log.
 - `app/.data/decisions.json`: reviewer verdicts keyed by review item id.
 - `app/.data/agent_tasks.json`: queued agent revision work from `request_changes` decisions.
-- `app/.data/execution_report.json`: dry-run/apply operations from approved decisions.
+- `app/.data/execution_report.json`: dry-run/apply operations from approved decisions (written only by `scripts/execute_decisions.ts`).
+- `app/.data/export_report.json`: paths/formats written by `scripts/export_case_records.ts`; kept separate so exports never overwrite the decision-execution audit trail.
 - `app/.data/onboarding.json`: onboarding completion marker.
 - `app/.data/agent.lock`: temporary lock while the skill writes; write endpoints reject with HTTP 423 while it exists.
 

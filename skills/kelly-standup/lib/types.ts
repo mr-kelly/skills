@@ -109,6 +109,7 @@ export interface Reminder {
   draft: string;
   status: ReminderStatus | string;
   created_at: string;
+  revised_at?: string;
   decision: ReminderDecision | null;
   execution: ReminderExecution | null;
 }

@@ -197,10 +197,26 @@ export function createLocalFileProvider(configResult: ConfigResult) {
 
       const now = new Date().toISOString();
       const results = [];
+      const generatedAt = Date.parse(snapshot.generated_at || 0) || 0;
 
       for (const creator of snapshot.creators || []) {
         const decision = decisions[creator.creator_id];
         if (!decision || decision.action !== "approve") continue;
+        const decidedAt = Date.parse(decision.decided_at || 0) || 0;
+        if (decidedAt < generatedAt) {
+          // Decision predates this snapshot (e.g. the creator was re-swept
+          // after approval); treat like the UI's effectiveStatus() and skip
+          // the stale approve rather than handing off unreviewed content.
+          results.push({
+            creator_id: creator.creator_id,
+            ref: creator.ref,
+            status: "skipped",
+            operation: "none",
+            reason: "Approval predates the current snapshot (stale decision); re-review required.",
+            executed_at: now,
+          });
+          continue;
+        }
         const proposed = creator.proposed_action || "no_action";
         const mapping = OPERATION_BY_ACTION[proposed] || OPERATION_BY_ACTION.no_action;
         if (creator.status === "done" || alreadyHandedOff.has(creator.creator_id)) {

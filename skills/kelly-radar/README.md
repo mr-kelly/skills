@@ -36,6 +36,12 @@ Kelly Radar is a local App-in-Skill market-intelligence desk. One app merges com
     <td><strong>Signals</strong><br>Competitor pricing, changelog, launch, review, and hiring signals with severity badges and Act/Watch/Ignore triage.</td>
     <td><strong>Trends</strong><br>Rising keywords and community topics with momentum sparklines and opportunity cards for content or roadmap handoff.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/watchlist.webp" alt="Kelly Radar watchlist"></td>
+  </tr>
+  <tr>
+    <td><strong>Watchlist</strong><br>Tracked competitors with pricing and positioning change signals, review status, and last-monitored timestamps.</td>
+  </tr>
 </table>
 
 ## Demo Mode

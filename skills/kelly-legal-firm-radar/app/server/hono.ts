@@ -27,17 +27,29 @@ app.get("/api/state", async (c) => {
 });
 
 app.post("/api/decision", async (c) => {
-  const lock = await provider.readLock();
-  if (lock) {
-    return c.json({ error: "Agent lock is active; the review queue is read-only right now.", lock }, 423, {
-      "cache-control": "no-store",
-    });
-  }
+  const query = c.req.query();
   let payload: Record<string, unknown>;
   try {
     payload = JSON.parse((await c.req.text()) || "{}");
   } catch {
     return c.json({ error: "Invalid JSON body" }, 400, { "cache-control": "no-store" });
+  }
+  if (isDemoQuery(query) || payload.demo) {
+    return c.json(
+      {
+        ok: true,
+        demo: true,
+        decisions: { schema_version: "1", updated_at: new Date().toISOString(), decisions: {} },
+      },
+      200,
+      { "cache-control": "no-store" },
+    );
+  }
+  const lock = await provider.readLock();
+  if (lock) {
+    return c.json({ error: "Agent lock is active; the review queue is read-only right now.", lock }, 423, {
+      "cache-control": "no-store",
+    });
   }
   try {
     const decisions = await provider.applyDecision(payload);

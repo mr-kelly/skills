@@ -5,6 +5,7 @@ import {
   DATA_DIR,
   DECISIONS_PATH,
   EXECUTION_REPORT_PATH,
+  EXPORT_REPORT_PATH,
   LOCK_PATH,
   ONBOARDING_PATH,
   SNAPSHOT_PATH,
@@ -135,6 +136,18 @@ export async function readExecutionReport(): Promise<ExecutionReport | null> {
 
 export async function writeExecutionReport(report: ExecutionReport): Promise<void> {
   await writeJson(EXECUTION_REPORT_PATH, report);
+}
+
+// Kept separate from EXECUTION_REPORT_PATH: that file is the audit trail for
+// scripts/execute_decisions.ts (which reviewer decisions were applied). The
+// export report below only records where export_case_records.ts wrote its
+// handoff files, and must not clobber the decision-execution audit trail.
+export async function readExportReport(): Promise<ExecutionReport | null> {
+  return readJson<ExecutionReport>(EXPORT_REPORT_PATH, null);
+}
+
+export async function writeExportReport(report: ExecutionReport): Promise<void> {
+  await writeJson(EXPORT_REPORT_PATH, report);
 }
 
 export async function readOnboarding(): Promise<Record<string, unknown>> {

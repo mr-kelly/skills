@@ -103,7 +103,11 @@ export function applyDecisions(
     const decision = map[item.proposal_id];
     if (!decision) return item;
     const merged = { ...item, review: decision };
-    if (decision.status) merged.status = decision.status;
+    // "done" is terminal: execute_decisions.ts writes it to the snapshot once a
+    // proposal's operations have actually been executed. A lingering decisions.json
+    // entry (still "approve") must never resurrect it as "approved", or the next
+    // --apply run would re-execute the same handoff (see execute_decisions.ts).
+    if (decision.status && item.status !== "done") merged.status = decision.status;
     if (typeof decision.brief === "string" && decision.brief) merged.brief = decision.brief;
     return merged;
   });

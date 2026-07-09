@@ -52,8 +52,17 @@ export async function readOnboarding(): Promise<Onboarding> {
   return (await readJson<Onboarding>(ONBOARDING_PATH, { completed: false })) as Onboarding;
 }
 
+// A lock older than this is treated as abandoned/stale so a crashed ingest,
+// checks, or execute run can never permanently block human review (mirrors
+// the stale-lock threshold used by sibling App-in-Skill providers).
+const LOCK_STALE_MS = 15 * 60 * 1000;
+
 export async function readLock(): Promise<Lock | null> {
-  return readJson<Lock>(LOCK_PATH, null);
+  const lock = await readJson<Lock>(LOCK_PATH, null);
+  if (!lock) return null;
+  const startedAt = lock.started_at ? Date.parse(lock.started_at) : Number.NaN;
+  if (Number.isFinite(startedAt) && Date.now() - startedAt > LOCK_STALE_MS) return null;
+  return lock;
 }
 
 export async function readDecisions(): Promise<DecisionsFile> {
@@ -243,6 +252,26 @@ function trendFor(campaign: Campaign): string {
   return "flat";
 }
 
+// Resolve the effective ACOS target for a campaign: per-product override (by
+// SKU) beats per-platform override (by platform id) beats the global default.
+// Onboarding documents both `config.targets.per_product` (array of
+// { sku, acos_pct }) and `config.targets.per_platform` (map of platform id ->
+// { acos_pct }); this is the only place either is read.
+function resolveAcosTarget(campaign: Campaign, config: Config, defaultAcos: number): number {
+  const targets = (config.targets || {}) as Record<string, unknown>;
+  const perProduct = Array.isArray(targets.per_product) ? (targets.per_product as Record<string, unknown>[]) : [];
+  if (campaign.sku) {
+    const productOverride = perProduct.find((item) => item && item.sku === campaign.sku);
+    const value = Number((productOverride as Record<string, unknown> | undefined)?.acos_pct);
+    if (Number.isFinite(value) && value > 0) return value;
+  }
+  const perPlatform = (targets.per_platform || {}) as Record<string, { acos_pct?: number }>;
+  const platformOverride = perPlatform[campaign.platform];
+  const platformValue = Number(platformOverride?.acos_pct);
+  if (Number.isFinite(platformValue) && platformValue > 0) return platformValue;
+  return defaultAcos;
+}
+
 // Recompute campaign totals, platform rollups, and top-level metrics from the
 // daily series. Shared by the ingest/check scripts so the UI always reflects
 // what the scripts wrote.
@@ -256,7 +285,7 @@ export function recomputeDerived(snapshot: AdsSnapshot, config: Config = {}): Ad
   for (const campaign of campaigns) {
     campaign.totals_7d = totalsForDays(campaign, 7);
     campaign.trend = trendFor(campaign);
-    if (!campaign.acos_target_pct) campaign.acos_target_pct = defaultAcos;
+    if (!campaign.acos_target_pct) campaign.acos_target_pct = resolveAcosTarget(campaign, config, defaultAcos);
     for (const day of campaign.daily || []) {
       if (day.date > latest) latest = day.date;
     }

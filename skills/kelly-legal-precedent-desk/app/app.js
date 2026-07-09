@@ -877,7 +877,9 @@ async function submitDecision(id, action) {
     comment: document.querySelector(`[data-note="${CSS.escape(id)}"]`)?.value || "",
     draft: document.querySelector(`[data-draft="${CSS.escape(id)}"]`)?.value || "",
   };
-  const res = await fetch("/api/decision", {
+  const params = new URLSearchParams();
+  if (state.demo) params.set("demo", state.demo);
+  const res = await fetch(`/api/decision?${params}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),

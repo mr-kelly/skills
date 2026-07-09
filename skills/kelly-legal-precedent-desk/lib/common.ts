@@ -133,8 +133,17 @@ export async function readExecutionReport(): Promise<ExecutionReport | null> {
   return readJson<ExecutionReport>(EXECUTION_REPORT_PATH, null);
 }
 
+function executionResultKey(result: Record<string, unknown>): string {
+  if (typeof result.item_id === "string" && result.item_id) return `item:${result.item_id}`;
+  if (typeof result.path === "string" && result.path) return `path:${result.path}`;
+  return `op:${JSON.stringify(result)}`;
+}
+
 export async function writeExecutionReport(report: ExecutionReport): Promise<void> {
-  await writeJson(EXECUTION_REPORT_PATH, report);
+  const existing = await readExecutionReport();
+  const merged = new Map((existing?.results || []).map((result) => [executionResultKey(result), result]));
+  for (const result of report.results || []) merged.set(executionResultKey(result), result);
+  await writeJson(EXECUTION_REPORT_PATH, { ...report, results: [...merged.values()] });
 }
 
 export async function readOnboarding(): Promise<Record<string, unknown>> {
@@ -145,8 +154,19 @@ export async function writeOnboarding(marker: Record<string, unknown>): Promise<
   await writeJson(ONBOARDING_PATH, marker);
 }
 
+const LOCK_STALE_MS = 5 * 60 * 1000;
+
+// Read agent.lock, treating a lock older than LOCK_STALE_MS as stale and
+// clearing it so review actions aren't blocked indefinitely by a crash.
 export async function readLock(): Promise<Record<string, unknown> | null> {
-  return readJson<Record<string, unknown>>(LOCK_PATH, null);
+  const lock = await readJson<Record<string, unknown>>(LOCK_PATH, null);
+  if (!lock) return null;
+  const startedAt = Date.parse(String(lock.started_at || ""));
+  if (Number.isFinite(startedAt) && Date.now() - startedAt > LOCK_STALE_MS) {
+    await fs.rm(LOCK_PATH, { force: true });
+    return null;
+  }
+  return lock;
 }
 
 export async function acquireLock(message: string): Promise<Record<string, unknown>> {

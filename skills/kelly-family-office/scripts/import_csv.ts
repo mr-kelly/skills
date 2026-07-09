@@ -8,7 +8,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildSnapshot } from "../app/server/portfolio.ts";
-import type { AccountRef, Entity, HoldingInput } from "../app/server/types.ts";
+import type { AccountRef, Entity, HoldingInput, Warning } from "../app/server/types.ts";
 import { createProvider } from "../lib/data-provider/index.ts";
 import { snapshotPath } from "../lib/paths.ts";
 
@@ -103,6 +103,7 @@ const fx_rates = config.fx_rates || { USD: 1 };
 const entityMap = new Map<string, Entity>();
 const accountMap = new Map<string, AccountRef>();
 const holdings: HoldingInput[] = [];
+const warnings: Warning[] = [];
 
 for (const [index, record] of records.entries()) {
   const line = index + 2;
@@ -114,6 +115,15 @@ for (const [index, record] of records.entries()) {
   const market_value = Number(record.market_value);
   if ([quantity, cost_basis, market_value].some((value) => Number.isNaN(value))) {
     fail(`row ${line}: quantity/cost_basis/market_value must be numeric`);
+  }
+  if (!record.quantity || !record.cost_basis || !record.market_value) {
+    warnings.push({
+      id: `unpriced-${record.holding_id || `row-${line}`}`,
+      severity: "warning",
+      entity_id: record.entity_id,
+      message: `Row ${line} (${record.holding_id || "holding"}) is missing quantity/cost_basis/market_value; imported as unpriced (0) rather than invented.`,
+      detail: "Fill in the blank cell and re-import to correct this holding's value.",
+    });
   }
 
   if (!entityMap.has(record.entity_id)) {
@@ -161,7 +171,7 @@ const snapshot = buildSnapshot({
   accounts: [...accountMap.values()],
   holdings,
   source: "kelly-family-office-csv",
-  warnings: [],
+  warnings,
 });
 
 // Persist through the data provider when writing to the standard snapshot path;

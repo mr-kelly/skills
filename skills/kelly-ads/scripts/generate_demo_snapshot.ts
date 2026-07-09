@@ -2,8 +2,10 @@
 // Writes a small example snapshot to app/.data/ads_snapshot.json so the app
 // and validator can be exercised without real platform data.
 import { SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { ensureDirs, recomputeDerived, round2, writeJson } from "../app/server/store.ts";
+import { acquireLock, ensureDirs, recomputeDerived, releaseLock, round2, writeJson } from "../app/server/store.ts";
 import type { AdsSnapshot } from "../app/server/types.ts";
+
+const OWNER = "kelly-ads-generate-demo-snapshot";
 
 const now = new Date().toISOString();
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -192,5 +194,15 @@ const snapshot = {
 
 recomputeDerived(snapshot, { targets: { default_acos_pct: 25 }, thresholds: { budget_risk_pct: 85 } });
 await ensureDirs();
-await writeJson(SNAPSHOT_PATH, snapshot);
-console.log(`Wrote ${SNAPSHOT_PATH}`);
+try {
+  await acquireLock(OWNER, "Writing example ads snapshot");
+} catch (error) {
+  console.error(error.message);
+  process.exit(1);
+}
+try {
+  await writeJson(SNAPSHOT_PATH, snapshot);
+  console.log(`Wrote ${SNAPSHOT_PATH}`);
+} finally {
+  await releaseLock();
+}

@@ -300,19 +300,22 @@ export function createBusabaseProvider(configResult: ConfigResult) {
       return { ok: true, created, creator_count: created.length };
     },
 
-    async executeDecisions(_options: ExecuteOptions = {}) {
+    async executeDecisions(options: ExecuteOptions = {}) {
+      const apply = Boolean(options.apply);
       const crs = await api("GET", "/api/v1/change-requests");
       const list = Array.isArray(crs) ? crs : crs?.items || [];
       const results = [];
       for (const cr of list) {
         if (cr.status === "approved") {
-          await api("POST", `/api/v1/change-requests/${encodeURIComponent(cr.id)}/merge`, {});
-          results.push({ creator_id: cr.id, status: "handed_off", operation: "merge" });
+          if (apply) {
+            await api("POST", `/api/v1/change-requests/${encodeURIComponent(cr.id)}/merge`, {});
+          }
+          results.push({ creator_id: cr.id, status: apply ? "handed_off" : "dry_run", operation: "merge" });
         } else {
           results.push({ creator_id: cr.id, status: "skipped", operation: "none", reason: `status ${cr.status}` });
         }
       }
-      return { dry_run: false, results, report_path: `${baseUrl} (base ${baseId})` };
+      return { dry_run: !apply, results, report_path: `${baseUrl} (base ${baseId})` };
     },
   };
 

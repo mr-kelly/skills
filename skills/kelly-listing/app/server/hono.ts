@@ -39,6 +39,12 @@ app.get("/api/state", async (c) => {
 });
 
 app.post("/api/decision", async (c) => {
+  const query = c.req.query();
+  if (isDemoQuery(query)) {
+    return c.json({ ok: true, demo: true, message: "Demo mode: no decision was recorded." }, 200, {
+      "cache-control": "no-store",
+    });
+  }
   const lock = await provider.readLock();
   if (lock) {
     return c.json({ error: "Agent lock is active; the review queue is read-only right now.", lock }, 423, {

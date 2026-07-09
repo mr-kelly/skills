@@ -5,7 +5,16 @@
 // Every operation is marked handoff_to_agent: the agent executes it outside
 // the app via the platform APIs, then marks the card done in the snapshot.
 import { EXECUTION_REPORT_PATH, SNAPSHOT_PATH } from "../app/server/paths.ts";
-import { acquireLock, ensureDirs, readDecisions, readSnapshot, releaseLock, writeJson } from "../app/server/store.ts";
+import {
+  acquireLock,
+  ensureDirs,
+  readConfig,
+  readDecisions,
+  readSnapshot,
+  releaseLock,
+  writeJson,
+} from "../app/server/store.ts";
+import { resolveProviderKind } from "../lib/data-provider/index.ts";
 
 const OWNER = "kelly-ads-execute";
 
@@ -81,6 +90,15 @@ function operationFor(adjustment) {
 
 async function main() {
   await ensureDirs();
+  const configResult = await readConfig();
+  const providerKind = resolveProviderKind(configResult.config || {});
+  if (providerKind !== "local") {
+    console.error(
+      `KELLY_ADS_DATA_PROVIDER=${providerKind}: execution planning is local-only and always reads/writes ${SNAPSHOT_PATH} directly, so approvals recorded in a ${providerKind}-backed UI will not be seen here. Set KELLY_ADS_DATA_PROVIDER=local (or unset it) to plan execution.`,
+    );
+    process.exitCode = 1;
+    return;
+  }
   try {
     await acquireLock(OWNER, "Preparing execution report from approved adjustments");
   } catch (error) {

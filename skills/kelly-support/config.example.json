@@ -51,7 +51,7 @@
   ],
   "knowledge_base": {
     "source_path": "/absolute/path/to/knowledge_base.json",
-    "refresh_with": "scripts/sync_knowledge.ts"
+    "refresh_with": "agent merges this file directly into app/.data/support_snapshot.json (no sync script yet); see references/support-schema.md"
   },
   "sla_policy": {
     "first_response_hours": {
