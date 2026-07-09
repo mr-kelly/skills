@@ -631,7 +631,8 @@ function renderBulkActions() {
 
 function providerStatus() {
   const status = state.provider_status || {};
-  const provider = status.provider || state.email_accounts?.data_provider || state.email_accounts?.data_reader || "local";
+  const provider =
+    status.provider || state.email_accounts?.data_provider || state.email_accounts?.data_reader || "local";
   return {
     ...status,
     provider,
@@ -893,8 +894,7 @@ function openHelp(tab = "guide") {
   $("helpBatchInfo").textContent = batch.batch_id
     ? t("batch.info", { id: batch.batch_id, count: state.total_cached || 0, date: batch.generated_at || "" })
     : t("batch.none");
-  $("helpDataReader").textContent =
-    state.email_accounts?.data_reader || provider.provider || "local";
+  $("helpDataReader").textContent = state.email_accounts?.data_reader || provider.provider || "local";
   $("helpDataProvider").textContent = providerModeLabel(provider);
   $("helpProviderStatus").textContent = providerStatusText(provider);
   $("helpProviderFolder").textContent = providerValue(

@@ -38,7 +38,9 @@ function secretRef(endpoint: unknown) {
 }
 
 function compactText(value: unknown, limit = 1200) {
-  const text = String(value || "").replace(/\s+/g, " ").trim();
+  const text = String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
   return text.length > limit ? `${text.slice(0, limit).trimEnd()}...` : text;
 }
 
@@ -97,7 +99,13 @@ function baseRowFields(item: Record<string, any>, batchId: string) {
     has_attachments: attachments.length > 0,
     drive_path: batchId ? `batches/${batchId}.json` : DRIVE_FILES.currentBatch,
     attachment_count: attachments.length,
-    attachment_names: compactText(attachments.map((attachment) => attachment.filename).filter(Boolean).join(", "), 1200),
+    attachment_names: compactText(
+      attachments
+        .map((attachment) => attachment.filename)
+        .filter(Boolean)
+        .join(", "),
+      1200,
+    ),
     classification_method: compactText(item.classification_method, 120),
     user_language: compactText(item.user_language, 40),
     source_language: compactText(item.source_language || item.body_original_language, 40),
@@ -134,7 +142,10 @@ export function createBusabaseProvider() {
 
   function normalizeConfig(value: unknown): Config {
     const object = asObject(value);
-    const config = asObject(object.data).mailboxes || asObject(object.data).identities ? (object.data as Config) : (object as Config);
+    const config =
+      asObject(object.data).mailboxes || asObject(object.data).identities
+        ? (object.data as Config)
+        : (object as Config);
     if (!Array.isArray(config.mailboxes)) config.mailboxes = [];
     if (!Array.isArray(config.identities)) config.identities = [];
     return config;
@@ -306,7 +317,8 @@ export function createBusabaseProvider() {
       for (const mailbox of mailboxes) {
         for (const endpoint of [mailbox.imap, mailbox.smtp]) {
           const ref = secretRef(endpoint);
-          if (!ref) missingSecrets.push(`${mailbox.mailbox_id || "mailbox"}:${endpoint === mailbox.imap ? "imap" : "smtp"}`);
+          if (!ref)
+            missingSecrets.push(`${mailbox.mailbox_id || "mailbox"}:${endpoint === mailbox.imap ? "imap" : "smtp"}`);
         }
       }
       const missingVaultRefs = Array.isArray(meta.missing_vault_refs) ? meta.missing_vault_refs.map(String) : [];
@@ -555,7 +567,13 @@ export function createBusabaseProvider() {
       await requireWritableSchema();
       const busa = await client();
       await busa.writeDriveJson(pathname, data, `Kelly Email Drive file ${pathname}`);
-      return { provider: "busabase", drive_id: busa.meta.driveId, drive_slug: busa.meta.driveSlug, path: pathname, meta };
+      return {
+        provider: "busabase",
+        drive_id: busa.meta.driveId,
+        drive_slug: busa.meta.driveSlug,
+        path: pathname,
+        meta,
+      };
     },
 
     async getSecret(name: string) {

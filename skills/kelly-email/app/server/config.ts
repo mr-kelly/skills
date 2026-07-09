@@ -116,9 +116,17 @@ export function publicAccounts(
     knowledge_base: publicKnowledgeBase(config),
     accounts: (config.mailboxes || []).map((mailbox) => {
       const imapRef =
-        mailbox.imap?.vault_ref || mailbox.imap?.password_vault_ref || mailbox.imap?.secret_ref || mailbox.imap?.password_env || "";
+        mailbox.imap?.vault_ref ||
+        mailbox.imap?.password_vault_ref ||
+        mailbox.imap?.secret_ref ||
+        mailbox.imap?.password_env ||
+        "";
       const smtpRef =
-        mailbox.smtp?.vault_ref || mailbox.smtp?.password_vault_ref || mailbox.smtp?.secret_ref || mailbox.smtp?.password_env || "";
+        mailbox.smtp?.vault_ref ||
+        mailbox.smtp?.password_vault_ref ||
+        mailbox.smtp?.secret_ref ||
+        mailbox.smtp?.password_env ||
+        "";
       return {
         mailbox_id: mailbox.mailbox_id || "",
         display_name: mailbox.display_name || mailbox.primary_email || mailbox.mailbox_id || "",

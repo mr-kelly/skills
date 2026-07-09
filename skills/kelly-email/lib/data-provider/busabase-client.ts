@@ -23,7 +23,13 @@ interface BaseRecord {
   id: string;
   nodeId?: string;
   slug?: string;
-  fields?: Array<{ id?: string; slug?: string; deletedAt?: string | null; deleted_at?: string | null; [key: string]: unknown }>;
+  fields?: Array<{
+    id?: string;
+    slug?: string;
+    deletedAt?: string | null;
+    deleted_at?: string | null;
+    [key: string]: unknown;
+  }>;
   [key: string]: unknown;
 }
 
@@ -105,7 +111,9 @@ export function busabaseMeta({ envPrefix, config = {} }: BusabaseClientOptions):
       env("BUSABASE_SECRETS_NAMESPACE") || configValue(config, "secrets_namespace") || "kelly-email",
     ),
     apiKey: process.env[apiKeyEnv] || env("BUSABASE_API_KEY") || "",
-    spaceId: cleanOptional(env("BUSABASE_SPACE_ID") || configValue(config, "space_id") || process.env.BUSABASE_SPACE_ID),
+    spaceId: cleanOptional(
+      env("BUSABASE_SPACE_ID") || configValue(config, "space_id") || process.env.BUSABASE_SPACE_ID,
+    ),
     folderPrefix: cleanOptional(env("BUSABASE_FOLDER_PREFIX") || configValue(config, "folder_prefix")),
     parentNodeId: cleanOptional(env("BUSABASE_PARENT_NODE_ID") || configValue(config, "parent_node_id")),
   };
@@ -156,7 +164,7 @@ const BASE_FIELDS = [
 
 const RETIRED_BASE_FIELD_SLUGS = new Set(["item"]);
 
-const JSON_FIELD_SLUGS = new Set(
+const JSON_FIELD_SLUGS: ReadonlySet<string> = new Set(
   BASE_FIELDS.filter((field) => field.type === "json").map((field) => field.slug),
 );
 
@@ -470,11 +478,7 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
   }
 
   function driveFilePath(pathname: string) {
-    return pathname
-      .split("/")
-      .filter(Boolean)
-      .map(encodeURIComponent)
-      .join("/");
+    return pathname.split("/").filter(Boolean).map(encodeURIComponent).join("/");
   }
 
   async function vaultRuntimeEnv(): Promise<Record<string, string>> {
@@ -506,7 +510,10 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
   async function readDriveText(pathname: string, options: { createDrive?: boolean } = {}): Promise<string> {
     const drive = options.createDrive === false ? await configuredDriveReadOnly() : await ensureDrive();
     if (!drive) throw new Error(`Busabase drive not found: ${meta.driveSlug}`);
-    const file = await api("GET", `/api/v1/drives/${encodeURIComponent(drive.node.id)}/files/${driveFilePath(pathname)}`);
+    const file = await api(
+      "GET",
+      `/api/v1/drives/${encodeURIComponent(drive.node.id)}/files/${driveFilePath(pathname)}`,
+    );
     return String(file?.content || "");
   }
 

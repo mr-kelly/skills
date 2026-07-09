@@ -426,7 +426,8 @@ export const I18N = {
     "bulk.more_label": "更多",
     "bulk.more_placeholder": "选择决策",
     "bulk.more_aria": "更多批量决策",
-    "bulk.approve.tooltip": "批准所选项目当前的方案，只写入当前数据提供方。/kelly-email 真正碰邮箱前仍会做最终安全检查。",
+    "bulk.approve.tooltip":
+      "批准所选项目当前的方案，只写入当前数据提供方。/kelly-email 真正碰邮箱前仍会做最终安全检查。",
     "bulk.review.tooltip": "把所选邮件交回 /kelly-email 等待人工查看；不会执行邮箱操作。",
     "bulk.no_action.tooltip": "在这个批次里记录所选邮件无需操作。",
     "detail.approve.tooltip": "批准这封邮件的建议方案。这只写入审核决定；/kelly-email 执行前仍会做安全检查。",

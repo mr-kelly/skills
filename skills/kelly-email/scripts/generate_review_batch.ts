@@ -360,7 +360,9 @@ async function main() {
           needs_review: allItems.filter((item) => item.status === "needs_review").length,
           skill_dir: SKILL_DIR,
           batch_path: busabase ? "busabase:drive/state/current_batch.json" : "app/.data/current_batch.json",
-          attachments_path: busabase ? "busabase:drive/attachments/<batch_id>/..." : "app/.data/attachments/<batch_id>/...",
+          attachments_path: busabase
+            ? "busabase:drive/attachments/<batch_id>/..."
+            : "app/.data/attachments/<batch_id>/...",
         },
         null,
         2,
