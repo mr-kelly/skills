@@ -35,7 +35,9 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
         "contentHash": "sha256:...",
         "metadata": {
           "carrier": "Carrier",
-          "product_name": "Product"
+          "product_name": "Product",
+          "parsed_text": "PDF text extracted by the metadata backfill parser",
+          "parsed_text_chars": 1234
         }
       }
     ]

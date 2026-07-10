@@ -94,6 +94,8 @@ PDF asset metadata can be regenerated from local PDFs:
 npm run busabase:backfill-pdf-metadata -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5
 ```
 
+The generated `Asset.metadata` includes parser details, structured file fields, a short `extraction_summary`, and the parsed PDF body in `parsed_text`.
+
 ---
 
 # Kelly Insure Data（中文）
