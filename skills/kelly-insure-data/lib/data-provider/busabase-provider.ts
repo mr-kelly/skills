@@ -321,7 +321,8 @@ export function createBusabaseProvider(configResult: ConfigResult) {
         provider: this.name,
         unsupported: true,
         review,
-        message: "Kelly Insure Data is currently a read-first Busabase governance dashboard; review writeback is not enabled.",
+        message:
+          "Kelly Insure Data is currently a read-first Busabase governance dashboard; review writeback is not enabled.",
       };
     },
 
