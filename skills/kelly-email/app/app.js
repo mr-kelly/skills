@@ -1132,6 +1132,13 @@ function applyProviderGate() {
   if (checklist) checklist.innerHTML = setupChecklistHtml();
   const prompt = $("setupPromptText");
   if (prompt) prompt.textContent = setupPrompt();
+  const promptTitle = $("setupPromptTitle");
+  if (promptTitle) {
+    const promptProvider = setup.provider_selected ? setup.provider || status.provider || "local" : "";
+    promptTitle.textContent = promptProvider
+      ? t("setup.prompt_title.provider", { provider: promptProvider })
+      : t("setup.prompt_title");
+  }
   const localButton = $("setupChooseLocal");
   const busabaseButton = $("setupChooseBusabase");
   for (const button of [localButton, busabaseButton]) {

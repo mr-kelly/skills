@@ -95,7 +95,7 @@ When creating or updating an App-in-Skill:
 5. Create/update the local app inside `app/` with a Hono server and zero-build frontend unless a documented exception applies.
 6. Add generator, executor, validator, and data-provider helpers under `scripts/` and `lib/`.
 7. Add private config templates and sanitized config summaries when the skill has accounts, products, connectors, or personal context.
-8. Make onboarding the initial phase when setup is required; follow `references/setup-onboarding.md` for the friendly full-screen setup gate, provider choice, language picker, and suggested agent prompt.
+8. Make onboarding the initial phase when setup is required; follow `references/setup-onboarding.md` for the friendly full-screen setup gate, provider choice, language picker, and provider-aware suggested agent prompt.
 9. Add `agent.lock` handling to both the skill workflow and app server.
 10. Add the human-attention panel, workflow filters, stable item refs, hash routes, Help & Settings, and i18n when appropriate.
 11. Add the mobile shell and verify one desktop viewport plus a 390px-wide phone viewport.

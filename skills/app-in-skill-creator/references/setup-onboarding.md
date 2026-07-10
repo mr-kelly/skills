@@ -129,6 +129,18 @@ agent. The prompt should name:
 - missing secret reference names,
 - the rule that secrets must not be pasted into chat.
 
+The prompt must be provider-aware. If the user has not selected a provider, the
+prompt should ask the agent to help choose one. After the user selects `local`,
+the prompt should switch to local config paths and env var refs. After the user
+selects `busabase`, it should switch to Busabase Drive config paths, Base/Folder
+identifiers, and Vault ref names. The prompt title or nearby label should show
+the active provider so the change is obvious.
+
+Provider selection and provider readiness are separate states. If the user
+selected `busabase` but the Busabase service is unreachable, the setup state and
+suggested prompt should still say `busabase`; do not fall back to an unselected
+local prompt merely because the provider is not ready.
+
 Example:
 
 ```text
