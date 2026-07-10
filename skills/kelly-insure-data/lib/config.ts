@@ -65,20 +65,39 @@ export function recordLimit(config: Config): number {
   return Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 1000) : 200;
 }
 
-export function fieldMapping(kind: "qa" | "news", config: Config): FieldMapping {
+export function fieldMapping(kind: "qa" | "news" | "feedback", config: Config): FieldMapping {
   const defaults =
     kind === "qa"
       ? { question: "question", answer: "answer", category: "category", source: "source", tags: "tags" }
-      : {
-          title: "title",
-          summary: "summary",
-          url: "url",
-          source: "source",
-          published_at: "published_at",
-          category: "category",
-          tags: "tags",
-        };
-  return { ...defaults, ...(kind === "qa" ? config.taxonomy?.qa_fields || {} : config.taxonomy?.news_fields || {}) };
+      : kind === "news"
+        ? {
+            title: "title",
+            summary: "summary",
+            url: "url",
+            source: "source",
+            published_at: "published_at",
+            category: "category",
+            tags: "tags",
+          }
+        : {
+            title: "title",
+            content: "content",
+            source: "source",
+            user_name: "user_name",
+            contact: "contact",
+            rating: "rating",
+            category: "category",
+            tags: "tags",
+            created_at: "created_at",
+            status: "status",
+          };
+  const overrides =
+    kind === "qa"
+      ? config.taxonomy?.qa_fields || {}
+      : kind === "news"
+        ? config.taxonomy?.news_fields || {}
+        : config.taxonomy?.feedback_fields || {};
+  return { ...defaults, ...overrides };
 }
 
 export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
@@ -101,6 +120,7 @@ export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
       drive_node_id: process.env.KELLY_INSURE_DATA_BUSABASE_DRIVE_NODE_ID || busa.drive_node_id || "",
       qa_base_id: process.env.KELLY_INSURE_DATA_BUSABASE_QA_BASE_ID || busa.qa_base_id || "",
       news_base_id: process.env.KELLY_INSURE_DATA_BUSABASE_NEWS_BASE_ID || busa.news_base_id || "",
+      feedback_base_id: process.env.KELLY_INSURE_DATA_BUSABASE_FEEDBACK_BASE_ID || busa.feedback_base_id || "",
       record_limit: recordLimit(config),
     },
     taxonomy: {
@@ -109,6 +129,7 @@ export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
         : [],
       qa_fields: fieldMapping("qa", config),
       news_fields: fieldMapping("news", config),
+      feedback_fields: fieldMapping("feedback", config),
     },
   };
 }

@@ -48,6 +48,7 @@ const folderSlug = String(args.folderSlug || args["folder-slug"] || "hk-insuranc
 const driveSlug = String(args.driveSlug || args["drive-slug"] || "hk-insurance-drive");
 const qaSlug = String(args.qaSlug || args["qa-slug"] || "insurance-qa");
 const newsSlug = String(args.newsSlug || args["news-slug"] || "insurance-news");
+const feedbackSlug = String(args.feedbackSlug || args["feedback-slug"] || "user-feedback");
 const concurrency = Number.parseInt(String(args.concurrency || "8"), 10);
 
 function flatten(nodes: JsonRecord[]): JsonRecord[] {
@@ -81,6 +82,33 @@ function normalizeRecord(record: JsonRecord) {
   };
 }
 
+function fallbackBase(slug: string, name: string, fields: JsonRecord[]) {
+  return {
+    id: "",
+    node_id: "",
+    slug,
+    name,
+    description: "",
+    fields,
+    records: [],
+  };
+}
+
+function feedbackFields() {
+  return [
+    { slug: "title", name: "标题", type: "text", required: true, options: {} },
+    { slug: "content", name: "反馈内容", type: "longtext", required: true, options: {} },
+    { slug: "source", name: "来源", type: "text", required: true, options: {} },
+    { slug: "user_name", name: "用户", type: "text", required: false, options: {} },
+    { slug: "contact", name: "联系方式", type: "text", required: false, options: {} },
+    { slug: "rating", name: "评分", type: "text", required: false, options: {} },
+    { slug: "category", name: "类别", type: "text", required: false, options: {} },
+    { slug: "tags", name: "标签", type: "text", required: false, options: {} },
+    { slug: "status", name: "状态", type: "text", required: true, options: {} },
+    { slug: "created_at", name: "创建时间", type: "date", required: true, options: {} },
+  ];
+}
+
 async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const results: R[] = [];
   let index = 0;
@@ -107,14 +135,16 @@ async function main() {
   if (!driveNode) throw new Error(`Drive not found under ${folderSlug}: ${driveSlug}`);
   const qaBase = bases.find((base: JsonRecord) => base.slug === qaSlug);
   const newsBase = bases.find((base: JsonRecord) => base.slug === newsSlug);
+  const feedbackBase = bases.find((base: JsonRecord) => base.slug === feedbackSlug);
   if (!qaBase) throw new Error(`QA Base not found: ${qaSlug}`);
   if (!newsBase) throw new Error(`News Base not found: ${newsSlug}`);
 
-  const [drive, driveFiles, qaRecords, newsRecords] = await Promise.all([
+  const [drive, driveFiles, qaRecords, newsRecords, feedbackRecords] = await Promise.all([
     client.getDrive(driveNode.id),
     client.listDriveFiles(driveNode.id),
     client.listRecords(qaBase.id),
     client.listRecords(newsBase.id),
+    feedbackBase ? client.listRecords(feedbackBase.id) : [],
   ]);
 
   const files = await mapLimit(driveFiles, concurrency, async (file) => {
@@ -179,6 +209,17 @@ async function main() {
         fields: (newsBase.fields || []).map(normalizeField),
         records: newsRecords.map(normalizeRecord),
       },
+      feedback: feedbackBase
+        ? {
+            id: feedbackBase.id,
+            node_id: feedbackBase.nodeId,
+            slug: feedbackBase.slug,
+            name: feedbackBase.name,
+            description: feedbackBase.description || "",
+            fields: (feedbackBase.fields || []).map(normalizeField),
+            records: feedbackRecords.map(normalizeRecord),
+          }
+        : fallbackBase(feedbackSlug, "用户反馈", feedbackFields()),
     },
   };
 
@@ -191,6 +232,8 @@ async function main() {
         files: files.length,
         qa_records: qaRecords.length,
         news_records: newsRecords.length,
+        feedback_records: feedbackRecords.length,
+        feedback_base: feedbackBase ? "found" : "fallback-empty-schema",
       },
       null,
       2,

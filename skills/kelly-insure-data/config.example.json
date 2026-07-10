@@ -7,6 +7,7 @@
     "drive_node_id": "your-busabase-drive-node-id",
     "qa_base_id": "your-qa-base-id",
     "news_base_id": "your-news-base-id",
+    "feedback_base_id": "your-feedback-base-id",
     "record_limit": 200
   },
   "locale": "auto",
@@ -32,6 +33,18 @@
       "published_at": "published_at",
       "category": "category",
       "tags": "tags"
+    },
+    "feedback_fields": {
+      "title": "title",
+      "content": "content",
+      "source": "source",
+      "user_name": "user_name",
+      "contact": "contact",
+      "rating": "rating",
+      "category": "category",
+      "tags": "tags",
+      "status": "status",
+      "created_at": "created_at"
     }
   }
 }

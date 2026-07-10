@@ -17,6 +17,8 @@ export interface BusabaseClientMeta {
   qaBaseSlug: string;
   newsBaseId: string;
   newsBaseSlug: string;
+  feedbackBaseId: string;
+  feedbackBaseSlug: string;
   recordLimit: number;
   apiKey: string;
 }
@@ -57,6 +59,8 @@ export function busabaseMeta({ envPrefix, config = {} }: BusabaseClientOptions):
     qaBaseSlug: String(configValue(config, "qa_base_slug") || ""),
     newsBaseId: String(env("BUSABASE_NEWS_BASE_ID") || configValue(config, "news_base_id") || ""),
     newsBaseSlug: String(configValue(config, "news_base_slug") || ""),
+    feedbackBaseId: String(env("BUSABASE_FEEDBACK_BASE_ID") || configValue(config, "feedback_base_id") || ""),
+    feedbackBaseSlug: String(configValue(config, "feedback_base_slug") || ""),
     recordLimit: parseLimit(env("BUSABASE_RECORD_LIMIT") || configValue(config, "record_limit")),
     apiKey: process.env[apiKeyEnv] || env("BUSABASE_API_KEY") || process.env.BUSABASE_API_KEY || "",
   };
@@ -254,6 +258,7 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
         drive_node_id: meta.driveNodeId,
         qa_base_id: meta.qaBaseId,
         news_base_id: meta.newsBaseId,
+        feedback_base_id: meta.feedbackBaseId,
         api_key: meta.apiKey ? "configured" : "none",
       };
     },
