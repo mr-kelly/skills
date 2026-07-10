@@ -58,16 +58,31 @@ Reconfiguration may also be deliberate. A "reconfigure" command may clear or rew
 
 ## Onboarding UI
 
-The app should show setup guidance while onboarding:
+The app should show a first-screen setup/onboarding gate while onboarding. This
+is a normal startup state, not an error banner.
 
+- provider choice when no provider has been selected yet (`local` vs
+  `busabase` when supported),
 - recommended config path,
 - recommended env path,
+- Busabase URL/Base/Space/Folder identifiers when Busabase is selected,
 - required non-secret fields,
 - missing env var names,
+- missing Vault secret reference names for Busabase,
 - safe account/profile/style summaries,
-- next setup step.
+- next setup step,
+- a copyable prompt the user can give the agent to continue setup.
 
 Disable any implication that the app can scan, execute, send, delete, publish, or mutate external systems before onboarding completes.
+
+The setup gate should be the one full-screen blocking surface. Avoid duplicating
+"not ready" cards throughout sidebars, list panes, and detail panes. The rest of
+the app may show neutral empty placeholders while the gate is active.
+
+Provider selection may be performed by the UI when it only writes a minimal,
+non-secret bootstrap config. Secrets still belong in env files for local mode or
+Busabase Vault for Busabase mode; never ask users to paste secret values into the
+browser or chat.
 
 ## Locking Principle
 

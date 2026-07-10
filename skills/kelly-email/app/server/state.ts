@@ -34,7 +34,6 @@ export async function statePayload(query: StateQuery = {}) {
   const provider = createProvider();
   const providerState = await providerStatus();
   const providerUnavailable = providerState.ok === false;
-  const batch = providerUnavailable ? { items: [] } : await loadBatch();
   const configMeta = providerUnavailable ? { config: {}, source: "" } : await loadConfigWithMeta();
   const { config, source } = configMeta;
   const onboarding = providerUnavailable
@@ -46,6 +45,8 @@ export async function statePayload(query: StateQuery = {}) {
         missing_env: [],
       }
     : onboardingStatus(config, configMeta);
+  const setupIncomplete = providerUnavailable || onboarding.configured === false;
+  const batch = setupIncomplete ? { items: [] } : await loadBatch();
   const allItems = withReviewNumbers((batch.items || []).map(normalizeItem));
   let items = allItems;
   const mode = normalizeQueryValue(query.mode, "all");
@@ -77,6 +78,16 @@ export async function statePayload(query: StateQuery = {}) {
   counts.blocked = allItems.filter(isBlocked).length;
   return {
     app: "kelly-email",
+    setup: {
+      provider_selected: Boolean(process.env.KELLY_EMAIL_DATA_PROVIDER || configMeta.has_private_config),
+      provider_env_locked: Boolean(process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER),
+      provider: provider.kind,
+      state: providerUnavailable ? "provider_not_ready" : onboarding.state || "ready",
+      recommended_config: onboarding.recommended_config || configMeta.recommended_config || "",
+      recommended_env: onboarding.recommended_env || configMeta.recommended_env || "",
+      example_config: onboarding.example_config || configMeta.example_config || "",
+      missing_env: onboarding.missing_env || [],
+    },
     batch: {
       batch_id: batch.batch_id,
       generated_at: batch.generated_at,

@@ -331,6 +331,32 @@ An explicit init script such as `npm run busabase:init -- --apply` can still exi
 
 Provider methods that generate batches should avoid local handoff files in Busabase mode. Do not write provider state, pid/log files, config snapshots, current batches, decisions, scan state, or attachments under `app/.data` as a fallback. If Busabase is not writable, show one provider-not-ready gate instead of silently falling back to local storage.
 
+### Startup Setup Gate
+
+Every Busabase-capable App-in-Skill must provide a friendly startup gate before
+normal workflow controls become active:
+
+- If no provider is selected, show a first-run provider choice (`local` vs
+  `busabase`) and explain the tradeoff in one sentence each.
+- If the provider can be selected safely in UI, write only a minimal non-secret
+  bootstrap config. Do not collect passwords, API keys, OAuth tokens, cookies,
+  or app passwords in the browser.
+- If Busabase is selected, show sanitized bootstrap identifiers: Base URL, Base
+  ID/slug, Folder slug, Drive slug/id, optional Space ID, and API-key env name or
+  "not configured". Never show API-key values or Vault values.
+- Show a compact checklist: provider selected, storage connection, workspace
+  Folder, primary Base, related Base tables, Drive, config, and secrets.
+- Provide a copyable agent prompt that names the chosen provider, the config
+  home, the secret home, and the missing non-secret/secret-reference fields.
+- Keep the gate full-screen and singular. Do not scatter duplicate provider
+  checks across every component; normal list/detail panes can remain disabled or
+  show neutral setup placeholders while the gate is active.
+- Use "Provider not ready" only for real infrastructure readiness failures:
+  Busabase is unreachable, auth is invalid, a required Space/parent/folder
+  routing parameter is missing, writes are forbidden, or a schema migration is
+  unsafe to auto-apply. Missing config, missing account details, and missing
+  secret refs are setup/onboarding states.
+
 ### Change Request Mapping
 
 Use Busabase Change Requests for AI-prepared or human-reviewed changes:
@@ -360,4 +386,4 @@ putDoc?(idOrPath: string, data: unknown, meta?: Record<string, unknown>): Promis
 getSecret?(name: string): Promise<string>;
 ```
 
-The app should call `providerStatus()` through the server and use one full-screen gate when `ok === false`. Help & Settings should show the active data provider mode and sanitized storage identifiers such as Folder slug, Base id/slug, Drive slug/id, and schema version. It must never expose secret values.
+The app should call `providerStatus()` through the server and use one full-screen gate when `ok === false` or onboarding is incomplete. Help & Settings should show the active data provider mode and sanitized storage identifiers such as Folder slug, Base id/slug, Drive slug/id, schema version, and secret namespace/reference names. It must never expose secret values.

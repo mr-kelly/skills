@@ -644,6 +644,14 @@ function providerReady() {
   return providerStatus().ok !== false;
 }
 
+function onboardingReady() {
+  return state.email_accounts?.onboarding?.configured !== false;
+}
+
+function setupNeeded() {
+  return !providerReady() || !onboardingReady();
+}
+
 function providerModeLabel(status = providerStatus()) {
   const provider = status.provider || "local";
   const mode = status.mode || provider;
@@ -653,6 +661,109 @@ function providerModeLabel(status = providerStatus()) {
 function providerStatusText(status = providerStatus()) {
   if (status.ok === false) return status.message || t("provider.not_ready_message");
   return status.message || t("provider.ready_message");
+}
+
+function setupState() {
+  return state.setup || {};
+}
+
+function setupPrompt() {
+  const setup = setupState();
+  const status = providerStatus();
+  const connection = status.connection || {};
+  const provider = setup.provider || status.provider || "local";
+  if (!setup.provider_selected) {
+    return t("setup.prompt.choose");
+  }
+  if (provider === "busabase") {
+    return t("setup.prompt.busabase", {
+      config: setup.recommended_config || "busabase:drive/config/config.json",
+      vault: setup.recommended_env || "busabase:vault/kelly-email",
+      baseUrl: status.base_url || connection.base_url || "http://127.0.0.1:15419",
+      baseId: status.base_id || connection.base_id || "kelly-email",
+      apiKeyEnv: connection.api_key === "configured" ? "KELLY_EMAIL_BUSABASE_API_KEY (configured)" : "none",
+    });
+  }
+  return t("setup.prompt.local", {
+    config: setup.recommended_config || "~/.config/kelly-email/config.json",
+    env: setup.recommended_env || "~/.config/kelly-email/.env",
+  });
+}
+
+function setupChecklistHtml() {
+  const setup = setupState();
+  const status = providerStatus();
+  const connection = status.connection || {};
+  const onboarding = state.email_accounts?.onboarding || {};
+  const providerSelected = Boolean(setup.provider_selected);
+  const busabaseSelected = providerSelected && status.provider === "busabase";
+  const missingSecrets = setup.missing_env || [];
+  const secretsReady = Boolean(onboarding.configured && missingSecrets.length === 0);
+  const providerFirst = t("setup.choose_first");
+  const localStorage = t("setup.local_storage");
+  const rows = [
+    [t("setup.check.provider"), providerSelected, providerModeLabel(status)],
+    [
+      t("setup.check.connection"),
+      providerSelected && providerReady(),
+      providerSelected ? providerStatusText(status) : providerFirst,
+    ],
+    [
+      t("setup.check.folder"),
+      busabaseSelected ? Boolean(connection.folder_exists) : providerSelected,
+      busabaseSelected ? status.folder_slug || "" : providerSelected ? localStorage : providerFirst,
+    ],
+    [
+      t("setup.check.base"),
+      busabaseSelected ? Boolean(connection.base_exists) : providerSelected,
+      busabaseSelected ? status.base_id || "" : providerSelected ? localStorage : providerFirst,
+    ],
+    [
+      t("setup.check.contacts"),
+      busabaseSelected ? Boolean(connection.contacts_base_exists) : providerSelected,
+      busabaseSelected ? status.contacts_base_id || "" : providerSelected ? localStorage : providerFirst,
+    ],
+    [
+      t("setup.check.drive"),
+      busabaseSelected ? Boolean(connection.drive_exists) : providerSelected,
+      busabaseSelected ? status.drive_slug || "" : providerSelected ? localStorage : providerFirst,
+    ],
+    [t("setup.check.config"), Boolean(onboarding.configured), setup.recommended_config || ""],
+    [
+      t("setup.check.secrets"),
+      secretsReady,
+      missingSecrets.length ? missingSecrets.join(", ") : setup.recommended_env || "",
+    ],
+  ];
+  return rows
+    .map(([label, ok, detail]) => {
+      const stateClass = ok ? "ok" : "warn";
+      const stateText = ok ? t("setup.ready") : t("setup.todo");
+      return `
+        <div class="setup-check ${stateClass}">
+          <span>${escapeHtml(stateText)}</span>
+          <strong>${escapeHtml(label)}</strong>
+          <small>${escapeHtml(detail || "")}</small>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+async function chooseProvider(provider) {
+  try {
+    await api("/api/setup/provider", { provider });
+    toast(t("setup.provider_saved", { provider }));
+    await refresh({ preserveScroll: false });
+  } catch (error) {
+    toast(error.message);
+  }
+}
+
+async function copySetupPrompt() {
+  const text = setupPrompt();
+  await navigator.clipboard.writeText(text);
+  toast(t("setup.prompt_copied"));
 }
 
 function providerValue(...values) {
@@ -945,14 +1056,19 @@ function isLocked() {
 }
 
 function applyProviderGate() {
-  const unavailable = !providerReady();
+  const unavailable = setupNeeded();
   const gate = $("providerGate");
   if (!gate) return;
   const status = providerStatus();
+  const setup = setupState();
   gate.classList.toggle("is-hidden", !unavailable);
   gate.setAttribute("aria-hidden", String(!unavailable));
   const message = $("providerGateMessage");
-  if (message) message.textContent = providerStatusText(status);
+  if (message) {
+    message.textContent = !setup.provider_selected
+      ? t("setup.choose_provider")
+      : state.email_accounts?.onboarding?.message || providerStatusText(status);
+  }
   const mode = $("providerGateMode");
   if (mode) mode.textContent = providerModeLabel(status);
   const baseUrl = $("providerGateBaseUrl");
@@ -960,12 +1076,26 @@ function applyProviderGate() {
   const baseId = $("providerGateBaseId");
   if (baseId) baseId.textContent = status.base_id || t("settings.not_configured");
   const action = $("providerGateAction");
-  if (action) action.textContent = status.action || t("provider.default_action");
+  if (action) {
+    action.textContent = !setup.provider_selected ? t("setup.choose_action") : status.action || t("setup.next_action");
+  }
+  const checklist = $("setupChecklist");
+  if (checklist) checklist.innerHTML = setupChecklistHtml();
+  const prompt = $("setupPromptText");
+  if (prompt) prompt.textContent = setupPrompt();
+  const localButton = $("setupChooseLocal");
+  const busabaseButton = $("setupChooseBusabase");
+  for (const button of [localButton, busabaseButton]) {
+    if (!button) continue;
+    const selected = setup.provider_selected && button.dataset.providerChoice === (setup.provider || status.provider);
+    button.classList.toggle("active", Boolean(selected));
+    button.disabled = Boolean(setup.provider_env_locked);
+  }
 }
 
 function applyLockState() {
   const locked = isLocked();
-  const unavailable = !providerReady();
+  const unavailable = setupNeeded();
   document.body.classList.toggle("is-locked", locked);
   document.body.classList.toggle("provider-unavailable", unavailable);
   if (locked || unavailable) closeDetailActionMenu();
@@ -984,6 +1114,9 @@ function applyLockState() {
       node.id === "helpButton" ||
       node.id === "mobileHelpButton" ||
       node.id === "providerGateHelpButton" ||
+      node.id === "setupChooseLocal" ||
+      node.id === "setupChooseBusabase" ||
+      node.id === "setupCopyPrompt" ||
       node.id === "closeHelp" ||
       node.id === "sidebarToggle" ||
       node.id === "mobileSidebarToggle" ||
@@ -1154,8 +1287,8 @@ function rowHtml(item) {
 }
 
 function renderList() {
-  if (state.email_accounts?.onboarding && !state.email_accounts.onboarding.configured) {
-    $("messageList").innerHTML = onboardingHtml();
+  if (setupNeeded()) {
+    $("messageList").innerHTML = `<div class="empty-detail">${escapeHtml(t("setup.list_empty"))}</div>`;
     $("listCount").textContent = t("list.setup_required");
     return;
   }
@@ -1221,8 +1354,8 @@ function selectedItem() {
 
 function renderDetail() {
   const backButton = `<button class="back-to-list" type="button">${escapeHtml(t("detail.back_to_list"))}</button>`;
-  if (state.email_accounts?.onboarding && !state.email_accounts.onboarding.configured) {
-    $("detailPanel").innerHTML = `${backButton}${onboardingHtml()}`;
+  if (setupNeeded()) {
+    $("detailPanel").innerHTML = `${backButton}<div class="empty-detail">${escapeHtml(t("setup.detail_empty"))}</div>`;
     renderMobileTopbar();
     return;
   }
@@ -1393,6 +1526,9 @@ function wire() {
   $("helpButton").onclick = openHelp;
   $("mobileHelpButton").onclick = openHelp;
   $("providerGateHelpButton").onclick = () => openHelp("config");
+  $("setupChooseLocal").onclick = () => chooseProvider("local");
+  $("setupChooseBusabase").onclick = () => chooseProvider("busabase");
+  $("setupCopyPrompt").onclick = copySetupPrompt;
   $("closeHelp").onclick = closeHelp;
   $("helpModal").addEventListener("click", (event) => {
     if (event.target.id === "helpModal") closeHelp();

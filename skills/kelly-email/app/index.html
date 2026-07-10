@@ -285,8 +285,18 @@ busabase:vault/kelly-email</code></pre>
     <div id="providerGate" class="provider-gate is-hidden" role="alert" aria-live="assertive">
       <section class="provider-gate-panel" aria-labelledby="providerGateTitle">
         <div class="provider-gate-kicker">Kelly Email</div>
-        <h1 id="providerGateTitle" data-i18n="provider.gate.title">Provider not ready!!!</h1>
+        <h1 id="providerGateTitle" data-i18n="setup.title">Set up Kelly Email</h1>
         <p id="providerGateMessage">Kelly Email cannot write review state yet.</p>
+        <div class="provider-choice-grid" aria-label="Data provider choices">
+          <button id="setupChooseLocal" class="provider-choice-card" type="button" data-provider-choice="local">
+            <strong data-i18n="setup.local.title">Local files</strong>
+            <span data-i18n="setup.local.body">Private on this Mac. Fastest way to start.</span>
+          </button>
+          <button id="setupChooseBusabase" class="provider-choice-card" type="button" data-provider-choice="busabase">
+            <strong data-i18n="setup.busabase.title">Busabase</strong>
+            <span data-i18n="setup.busabase.body">Shared workspace with Bases, Drive, and Vault.</span>
+          </button>
+        </div>
         <dl class="provider-gate-meta">
           <dt data-i18n="provider.mode">Mode</dt>
           <dd id="providerGateMode">Not loaded</dd>
@@ -295,8 +305,16 @@ busabase:vault/kelly-email</code></pre>
           <dt data-i18n="provider.base_id">Base ID</dt>
           <dd id="providerGateBaseId">Not loaded</dd>
         </dl>
+        <div id="setupChecklist" class="setup-checklist"></div>
         <p id="providerGateAction" class="provider-gate-action"></p>
-        <button id="providerGateHelpButton" type="button" data-i18n="provider.banner.action">Open Settings</button>
+        <div class="setup-prompt-box">
+          <div class="setup-prompt-title" data-i18n="setup.prompt_title">Suggested prompt</div>
+          <pre><code id="setupPromptText"></code></pre>
+        </div>
+        <div class="setup-actions">
+          <button id="setupCopyPrompt" type="button" data-i18n="setup.copy_prompt">Copy prompt</button>
+          <button id="providerGateHelpButton" type="button" data-i18n="provider.banner.action">Open Settings</button>
+        </div>
       </section>
     </div>
     <script src="./demo-visuals.js"></script>
