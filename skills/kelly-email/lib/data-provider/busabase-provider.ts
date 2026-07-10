@@ -192,6 +192,10 @@ export function createBusabaseProvider() {
   async function schemaStatus(options: { createBase?: boolean } = {}) {
     const busa = await client();
     const expected = schemaFingerprint();
+    const connection = await busa.verifyConnection();
+    const nodesReady = Boolean(
+      connection.folder_exists && connection.base_exists && connection.contacts_base_exists && connection.drive_exists,
+    );
     try {
       const fields = await busa.readDriveJson(DRIVE_FILES.schema, { createDrive: options.createBase !== false });
       const current = String(fields.fingerprint || "");
@@ -199,8 +203,11 @@ export function createBusabaseProvider() {
         ok:
           fields.schema_id === BUSABASE_SCHEMA.schema_id &&
           fields.schema_version === BUSABASE_SCHEMA.schema_version &&
-          current === expected,
+          current === expected &&
+          nodesReady,
         initialized: Boolean(fields.schema_id),
+        nodes_ready: nodesReady,
+        connection,
         expected_fingerprint: expected,
         current_fingerprint: current,
         schema_id: BUSABASE_SCHEMA.schema_id,
@@ -219,6 +226,8 @@ export function createBusabaseProvider() {
       return {
         ok: false,
         initialized: false,
+        nodes_ready: nodesReady,
+        connection,
         error: error instanceof Error ? error.message : String(error),
         expected_fingerprint: expected,
         schema_id: BUSABASE_SCHEMA.schema_id,
@@ -553,18 +562,25 @@ export function createBusabaseProvider() {
       try {
         const schema = await this.ensureSchema({ apply: true });
         const connection = await busa.verifyConnection();
+        const ready = Boolean(
+          schema.ok &&
+            connection.folder_exists &&
+            connection.base_exists &&
+            connection.contacts_base_exists &&
+            connection.drive_exists,
+        );
         return {
           ...base,
-          ok: Boolean(schema.ok),
+          ok: ready,
           connection_ok: true,
           connection,
           schema,
-          initialized: Boolean(schema.ok),
-          message: schema.ok
+          initialized: ready,
+          message: ready
             ? "Kelly Email is connected to Busabase."
             : "Kelly Email connected to Busabase, but schema initialization did not complete.",
-          action: schema.ok ? "" : "Check Busabase permissions and the configured Emails/Contacts Base fields.",
-          error: schema.ok ? "" : String(schema.error || "schema initialization failed"),
+          action: ready ? "" : "Check Busabase permissions and the configured Emails/Contacts Base fields.",
+          error: ready ? "" : String(schema.error || "schema initialization failed"),
         };
       } catch (error) {
         return {

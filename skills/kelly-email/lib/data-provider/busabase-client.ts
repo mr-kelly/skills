@@ -404,13 +404,19 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     if (!options.slug) {
       throw new Error(`Busabase base "${options.id}" does not exist and no slug is configured to create it lazily.`);
     }
-    return api("POST", "/api/v1/bases", {
+    const created = await api("POST", "/api/v1/bases", {
       parentNodeId: folder.id,
       slug: options.slug,
       name: options.name,
       description: options.description,
       fields: options.fields,
     });
+    if (created?.status && created.status !== "merged") {
+      await approveAndMerge(String(created.id));
+    }
+    const base = findConfiguredBase(await listBases(), { id: options.id, slug: options.slug });
+    if (!base) throw new Error(`Busabase ${options.cacheLabel} was not created: ${options.slug || options.id}`);
+    return base;
   }
 
   async function ensureBase(): Promise<BaseRecord> {
