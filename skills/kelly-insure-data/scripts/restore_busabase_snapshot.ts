@@ -63,6 +63,18 @@ function basePayload(base: JsonRecord, parentNodeId: string) {
   };
 }
 
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    const record = value as JsonRecord;
+    return `{${Object.keys(record)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
 async function existingState(client: ReturnType<typeof createBusabaseClient>) {
   const [nodes, bases] = await Promise.all([client.listNodes(), client.listBases()]);
   return { nodes: flatten(Array.isArray(nodes) ? nodes : []), bases };
@@ -115,11 +127,11 @@ async function ensureFolderAndDrive(client: ReturnType<typeof createBusabaseClie
 }
 
 async function ensureBases(client: ReturnType<typeof createBusabaseClient>, manifest: JsonRecord, parentNodeId: string) {
-  const state = await existingState(client);
+  let state = await existingState(client);
   const result: JsonRecord = {};
   for (const kind of ["qa", "news"]) {
     const expected = manifest.bases[kind];
-    const found = state.bases.find((base: JsonRecord) => base.slug === expected.slug);
+    let found = state.bases.find((base: JsonRecord) => base.slug === expected.slug);
     if (found) {
       result[kind] = found;
       continue;
@@ -129,7 +141,14 @@ async function ensureBases(client: ReturnType<typeof createBusabaseClient>, mani
       result[kind] = null;
       continue;
     }
-    result[kind] = await client.createBase(basePayload(expected, parentNodeId));
+    const created = await client.createBase(basePayload(expected, parentNodeId));
+    if (created?.id && created?.targetType === "node") {
+      await client.approveAndMerge(created.id);
+    }
+    state = await existingState(client);
+    found = state.bases.find((base: JsonRecord) => base.slug === expected.slug);
+    if (!found) throw new Error(`Failed to resolve restored ${kind} Base: ${expected.slug}`);
+    result[kind] = found;
   }
   return result;
 }
@@ -183,18 +202,28 @@ async function restoreFiles(client: ReturnType<typeof createBusabaseClient>, dri
 
 async function restoreRecords(client: ReturnType<typeof createBusabaseClient>, baseId: string, records: JsonRecord[], label: string) {
   if (!records?.length) return { restored: 0 };
+  const existingRecords = await client.listRecords(baseId, 1000).catch(() => []);
+  const existingSignatures = new Set(existingRecords.map((record: JsonRecord) => stableJson(record.fields || record.headCommit?.fields || {})));
+  const missingRecords = records.filter((record) => !existingSignatures.has(stableJson(record.fields || {})));
+  if (!missingRecords.length) return dryRun ? { planned: 0, skippedExisting: records.length } : { restored: 0, skippedExisting: records.length };
   if (dryRun) {
-    console.log(JSON.stringify({ dry_run: true, action: "restore_records", label, records: records.length }, null, 2));
-    return { planned: records.length };
+    console.log(
+      JSON.stringify(
+        { dry_run: true, action: "restore_records", label, records: missingRecords.length, skippedExisting: records.length - missingRecords.length },
+        null,
+        2,
+      ),
+    );
+    return { planned: missingRecords.length, skippedExisting: records.length - missingRecords.length };
   }
   let restored = 0;
-  for (let index = 0; index < records.length; index += chunkSize) {
-    const chunk = records.slice(index, index + chunkSize).map((record) => record.fields || {});
+  for (let index = 0; index < missingRecords.length; index += chunkSize) {
+    const chunk = missingRecords.slice(index, index + chunkSize).map((record) => record.fields || {});
     const cr = await client.bulkRecordChangeRequest(baseId, chunk, `Restore Kelly Insure Data ${label} records`);
     await client.approveAndMerge(cr.id);
     restored += chunk.length;
   }
-  return { restored };
+  return { restored, skippedExisting: records.length - missingRecords.length };
 }
 
 async function main() {
