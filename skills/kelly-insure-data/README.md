@@ -1,6 +1,6 @@
 # Kelly Insure Data
 
-Kelly Insure Data is a local App-in-Skill workspace for insurance-industry high-quality data entry and data governance. It connects to Busabase through the SDK-first data provider layer: one Drive node for the file drive, one Base for QA pairs, and one Base for insurance news and market-intelligence records.
+Kelly Insure Data is a local App-in-Skill workspace for insurance-industry high-quality data entry and data governance. It connects to Busabase through the REST data provider layer: one Drive node for the file drive, one Base for QA pairs, and one Base for insurance news and market-intelligence records.
 
 ## What It Shows
 
@@ -72,11 +72,35 @@ Copy `config.example.json` to `config.local.json` or `~/.config/kelly-insure-dat
 
 Keep real tokens in environment variables only. Never commit real insurance files, record snapshots, tokens, or anything under `app/.data/`.
 
+## Busabase Backup and Restore
+
+The skill can export a portable restore manifest for the active insurance workspace:
+
+```bash
+npm run busabase:export -- --output app/.data/busabase_restore_manifest.json
+```
+
+After a Busabase reset, restore from that manifest plus the local PDF backup directory:
+
+```bash
+npm run busabase:restore -- --manifest app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run
+```
+
+Use `--apply` only when you are ready to recreate missing folder, Drive files, Bases, and records.
+
+PDF asset metadata can be regenerated from local PDFs:
+
+```bash
+npm run busabase:backfill-pdf-metadata -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5
+```
+
+The generated `Asset.metadata` includes parser details, structured file fields, a short `extraction_summary`, and the parsed PDF body in `parsed_text`.
+
 ---
 
 # Kelly Insure Data（中文）
 
-Kelly Insure Data 是一个面向保险行业的本地 App-in-Skill 数据录入与治理工作台。它基于 Busabase SDK 读取三类数据：一个 Drive node 做「文件盘」，一个 Base 做「问答」，一个 Base 做「新闻资讯」。
+Kelly Insure Data 是一个面向保险行业的本地 App-in-Skill 数据录入与治理工作台。它基于 Busabase REST provider 读取三类数据：一个 Drive node 做「文件盘」，一个 Base 做「问答」，一个 Base 做「新闻资讯」。
 
 ## 界面内容
 
