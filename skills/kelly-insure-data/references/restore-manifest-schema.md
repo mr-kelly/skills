@@ -76,6 +76,34 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
       "description": "",
       "fields": [],
       "records": []
+    },
+    "feedback": {
+      "id": "bse_...",
+      "node_id": "nod_...",
+      "slug": "user-feedback",
+      "name": "用户反馈",
+      "description": "",
+      "fields": [
+        {
+          "slug": "content",
+          "name": "反馈内容",
+          "type": "longtext",
+          "required": true,
+          "options": {}
+        }
+      ],
+      "records": [
+        {
+          "id": "rec_...",
+          "fields": {
+            "title": "...",
+            "content": "...",
+            "source": "...",
+            "status": "new",
+            "created_at": "ISO timestamp"
+          }
+        }
+      ]
     }
   }
 }
@@ -92,4 +120,4 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
 - Records are restored through Base bulk ChangeRequests.
 - Existing objects are reused when their slug/id/path is already present.
 
-This manifest is not a full Busabase database dump. It is scoped to the Kelly Insure Data workspace contract: one folder, one Drive, one QA Base, and one News Base.
+This manifest is not a full Busabase database dump. It is scoped to the Kelly Insure Data workspace contract: one folder, one Drive, one QA Base, one News Base, and one User Feedback Base.

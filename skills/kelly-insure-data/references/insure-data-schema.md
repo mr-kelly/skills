@@ -30,6 +30,12 @@ This schema powers the local UI for insurance data entry and governance.
       "name": "新闻资讯",
       "slug": "insurance-news",
       "fields": [{ "key": "title", "value": "Title (text)" }]
+    },
+    "feedback": {
+      "base_id": "bse_...",
+      "name": "用户反馈",
+      "slug": "user-feedback",
+      "fields": [{ "key": "content", "value": "反馈内容 (longtext)" }]
     }
   },
   "metrics": {
@@ -37,6 +43,7 @@ This schema powers the local UI for insurance data entry and governance.
     "metadata_field_count": 0,
     "qa_count": 0,
     "news_count": 0,
+    "feedback_count": 0,
     "total_records": 0,
     "data_quality_score": 0,
     "needs_governance": 0
@@ -44,6 +51,7 @@ This schema powers the local UI for insurance data entry and governance.
   "files": [],
   "qa_pairs": [],
   "news_items": [],
+  "feedback_items": [],
   "warnings": []
 }
 ```
@@ -99,6 +107,26 @@ Required:
 - `governance`
 
 The news item corresponds to one record in the configured news Base.
+
+## Feedback Item
+
+Required:
+
+- `id`
+- `title`
+- `content`
+- `source`
+- `user_name`
+- `contact`
+- `rating`
+- `category`
+- `tags`
+- `created_at`
+- `status`
+- `fields`
+- `governance`
+
+The feedback item corresponds to one record in the configured user feedback Base. It should preserve the user-visible feedback text, source context, status, and any contact/rating fields that are safe to store.
 
 ## Governance
 

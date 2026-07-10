@@ -1,13 +1,13 @@
 ---
 name: kelly-insure-data
-description: Insurance-industry App-in-Skill for high-quality data entry and governance, backed by a Busabase REST provider and operator scripts. Use when the user invokes $kelly-insure-data or /kelly-insure-data, wants an insurance data workspace with UI, needs to govern insurance files, metadata, QA pairs, or news records, restore a Busabase insurance workspace from local PDFs, or wants Busabase Drive/Base data surfaced for data quality review, metadata completeness, canonical insurance knowledge entry, and ongoing data governance.
+description: Insurance-industry App-in-Skill for high-quality data entry and governance, backed by a Busabase REST provider and operator scripts. Use when the user invokes $kelly-insure-data or /kelly-insure-data, wants an insurance data workspace with UI, needs to govern insurance files, metadata, QA pairs, news records, or user feedback, restore a Busabase insurance workspace from local PDFs, or wants Busabase Drive/Base data surfaced for data quality review, metadata completeness, canonical insurance knowledge entry, and ongoing data governance.
 ---
 
 # Kelly Insure Data
 
 ## Overview
 
-Use this skill as Kelly's insurance data-entry and data-governance cockpit. It pairs a local App-in-Skill UI with a Busabase-backed data layer: one Busabase Drive node for the file drive, one Base for insurance QA pairs, and one Base for insurance news and market-intelligence records.
+Use this skill as Kelly's insurance data-entry and data-governance cockpit. It pairs a local App-in-Skill UI with a Busabase-backed data layer: one Busabase Drive node for the file drive, one Base for insurance QA pairs, one Base for insurance news and market-intelligence records, and one Base for user feedback.
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, start or reuse the local app with `app/start.sh` and give the actual URL. The first screen is the usable workspace, not a landing page.
 
@@ -19,14 +19,16 @@ This skill is for insurance-industry high-quality data entry and governance:
 - inspect the Busabase Drive node named by `config.busabase.drive_node_id` or `drive_node_slug`;
 - inspect QA pairs from the Busabase Base named by `qa_base_id` or `qa_base_slug`;
 - inspect insurance news records from the Busabase Base named by `news_base_id` or `news_base_slug`;
+- inspect user feedback records from the Busabase Base named by `feedback_base_id` or `feedback_base_slug`;
 - surface missing fields, draft/review statuses, source gaps, and quality warnings before data becomes trusted insurance knowledge.
 
-The UI has four primary routes:
+The UI has five primary routes:
 
 - `#/overview`: counts, quality score, and records needing governance.
 - `#/files`: "文件盘", corresponding to one Busabase Drive node, showing files and metadata fields.
 - `#/qa`: "问答", corresponding to one Busabase Base of QA pairs.
 - `#/news`: "新闻资讯", corresponding to one Busabase Base of news records.
+- `#/feedback`: "用户反馈", corresponding to one Busabase Base of feedback records.
 
 ## Boundary
 
@@ -57,6 +59,7 @@ Configure `config.local.json` or `~/.config/kelly-insure-data/config.json`:
     "drive_node_id": "drv_or_node_id",
     "qa_base_id": "bse_qa",
     "news_base_id": "bse_news",
+    "feedback_base_id": "bse_feedback",
     "record_limit": 200
   }
 }
@@ -71,6 +74,7 @@ Environment overrides:
 - `KELLY_INSURE_DATA_BUSABASE_DRIVE_NODE_ID`
 - `KELLY_INSURE_DATA_BUSABASE_QA_BASE_ID`
 - `KELLY_INSURE_DATA_BUSABASE_NEWS_BASE_ID`
+- `KELLY_INSURE_DATA_BUSABASE_FEEDBACK_BASE_ID`
 - `KELLY_INSURE_DATA_BUSABASE_RECORD_LIMIT`
 
 Use `busabase-cli` for setup checks when useful. Runtime reads and operator scripts use the shared REST Busabase client in `lib/data-provider/busabase-client.ts`.
@@ -97,8 +101,8 @@ The app follows the App-in-Skill provider boundary: all `/api/state`, config sum
 ## Normal Workflow
 
 1. Load config via `lib/config.ts`.
-2. If provider is `busabase`, read through the skill's REST BusabaseProvider: Drive files, QA Base records, and News Base records. Use `busabase-cli` for operator diagnostics, not as the primary runtime API.
-3. Normalize into the UI schema: `files`, `qa_pairs`, `news_items`, `metrics`, and governance blocks with `completeness_pct` and `missing_fields`.
+2. If provider is `busabase`, read through the skill's REST BusabaseProvider: Drive files, QA Base records, News Base records, and Feedback Base records. Use `busabase-cli` for operator diagnostics, not as the primary runtime API.
+3. Normalize into the UI schema: `files`, `qa_pairs`, `news_items`, `feedback_items`, `metrics`, and governance blocks with `completeness_pct` and `missing_fields`.
 4. Start/reuse the UI with `app/start.sh`.
 5. For data-entry requests, draft proposed new records or metadata cleanup as reviewable changes first. Do not silently mutate Busabase canonical records.
 6. Validate local snapshots with `scripts/validate_ui_schema.ts`.
@@ -107,7 +111,7 @@ The app follows the App-in-Skill provider boundary: all `/api/state`, config sum
 
 Read `references/restore-manifest-schema.md` before changing backup or restore behavior.
 
-Use `npm run busabase:export -- --output app/.data/busabase_restore_manifest.json` to export a portable manifest for the active Kelly Insure Data Busabase folder. The manifest captures the folder/Drive/Base shape, Drive file paths, asset metadata, Base schemas, and QA/news record fields. It does not embed PDF bytes.
+Use `npm run busabase:export -- --output app/.data/busabase_restore_manifest.json` to export a portable manifest for the active Kelly Insure Data Busabase folder. The manifest captures the folder/Drive/Base shape, Drive file paths, asset metadata, Base schemas, and QA/news/feedback record fields. It does not embed PDF bytes.
 
 Use `npm run busabase:restore -- --manifest app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run` to preview restoration after a Busabase reset. Add `--apply` only when the user explicitly asks to recreate missing folder, Drive files, Bases, and records.
 

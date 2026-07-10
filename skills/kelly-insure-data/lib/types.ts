@@ -8,6 +8,8 @@ export interface BusabaseConfig {
   qa_base_slug?: string;
   news_base_id?: string;
   news_base_slug?: string;
+  feedback_base_id?: string;
+  feedback_base_slug?: string;
   record_limit?: number | string;
 }
 
@@ -25,6 +27,7 @@ export interface TaxonomyConfig {
   file_metadata_fields?: string[];
   qa_fields?: FieldMapping;
   news_fields?: FieldMapping;
+  feedback_fields?: FieldMapping;
 }
 
 export interface Config {
@@ -55,12 +58,14 @@ export interface ConfigSummary {
     drive_node_id: string;
     qa_base_id: string;
     news_base_id: string;
+    feedback_base_id: string;
     record_limit: number;
   };
   taxonomy: {
     file_metadata_fields: string[];
     qa_fields: FieldMapping;
     news_fields: FieldMapping;
+    feedback_fields: FieldMapping;
   };
 }
 
@@ -121,11 +126,32 @@ export interface NewsItem {
   };
 }
 
+export interface FeedbackItem {
+  id: string;
+  title: string;
+  content: string;
+  source: string;
+  user_name: string;
+  contact: string;
+  rating: string;
+  category: string;
+  tags: string[];
+  created_at: string;
+  status: string;
+  fields: Record<string, unknown>;
+  governance?: {
+    completeness_pct: number;
+    missing_fields: string[];
+    status: string;
+  };
+}
+
 export interface InsureMetrics {
   file_count: number;
   metadata_field_count: number;
   qa_count: number;
   news_count: number;
+  feedback_count: number;
   total_records: number;
   data_quality_score?: number;
   needs_governance?: number;
@@ -145,11 +171,13 @@ export interface InsureSnapshot {
   bases: {
     qa: { base_id: string; name: string; slug: string; fields: MetadataField[] };
     news: { base_id: string; name: string; slug: string; fields: MetadataField[] };
+    feedback: { base_id: string; name: string; slug: string; fields: MetadataField[] };
   };
   metrics: InsureMetrics;
   files: InsureFile[];
   qa_pairs: QaPair[];
   news_items: NewsItem[];
+  feedback_items: FeedbackItem[];
   warnings: { id: string; severity: "info" | "warning" | "error"; message: string }[];
 }
 

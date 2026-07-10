@@ -66,7 +66,7 @@ if (!isObject(snapshot.drive.metadata)) fail("root.drive.metadata must be an obj
 validateMetadataFields(requireArray(snapshot.drive, "metadata_fields", "root.drive"), "root.drive.metadata_fields");
 
 if (!isObject(snapshot.bases)) fail("root.bases must be an object");
-for (const baseName of ["qa", "news"]) {
+for (const baseName of ["qa", "news", "feedback"]) {
   const base = snapshot.bases[baseName];
   if (!isObject(base)) fail(`root.bases.${baseName} must be an object`);
   for (const key of ["base_id", "name", "slug"]) requireString(base, key, `root.bases.${baseName}`);
@@ -74,7 +74,7 @@ for (const baseName of ["qa", "news"]) {
 }
 
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
-for (const key of ["file_count", "metadata_field_count", "qa_count", "news_count", "total_records"]) {
+for (const key of ["file_count", "metadata_field_count", "qa_count", "news_count", "feedback_count", "total_records"]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
 if ("data_quality_score" in snapshot.metrics) requireNumber(snapshot.metrics, "data_quality_score", "root.metrics");
@@ -109,6 +109,28 @@ news.forEach((item, index) => {
   requireArray(item, "tags", `root.news_items[${index}]`);
   if (!isObject(item.fields)) fail(`root.news_items[${index}].fields must be an object`);
   validateGovernance(item, `root.news_items[${index}]`);
+});
+
+const feedback = requireArray(snapshot, "feedback_items", "root");
+feedback.forEach((item, index) => {
+  if (!isObject(item)) fail(`root.feedback_items[${index}] must be an object`);
+  for (const key of [
+    "id",
+    "title",
+    "content",
+    "source",
+    "user_name",
+    "contact",
+    "rating",
+    "category",
+    "created_at",
+    "status",
+  ]) {
+    requireString(item, key, `root.feedback_items[${index}]`);
+  }
+  requireArray(item, "tags", `root.feedback_items[${index}]`);
+  if (!isObject(item.fields)) fail(`root.feedback_items[${index}].fields must be an object`);
+  validateGovernance(item, `root.feedback_items[${index}]`);
 });
 
 requireArray(snapshot, "warnings", "root");
