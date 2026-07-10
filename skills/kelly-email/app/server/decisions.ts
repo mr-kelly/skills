@@ -1,4 +1,5 @@
 import { createProvider } from "../../lib/data-provider/index.ts";
+import { rejectIfProviderUnavailable } from "./provider-status.ts";
 import type { DecisionRequestBody } from "./types.ts";
 
 let writeQueue: Promise<unknown> = Promise.resolve();
@@ -10,9 +11,15 @@ function withWriteQueue<T>(operation: () => Promise<T>): Promise<T> {
 }
 
 export async function updateItems(body: DecisionRequestBody) {
-  return withWriteQueue(() => createProvider().updateItems(body));
+  return withWriteQueue(async () => {
+    await rejectIfProviderUnavailable();
+    return createProvider().updateItems(body);
+  });
 }
 
 export async function updateDetail(body: DecisionRequestBody) {
-  return withWriteQueue(() => createProvider().updateDetail(body));
+  return withWriteQueue(async () => {
+    await rejectIfProviderUnavailable();
+    return createProvider().updateDetail(body);
+  });
 }

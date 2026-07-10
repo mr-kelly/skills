@@ -17,6 +17,10 @@ import {
 
 const host = process.env.KELLY_EMAIL_UI_HOST || DEFAULT_HOST;
 const explicitPort = process.env.KELLY_EMAIL_UI_PORT || "";
+const providerMode = (process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER || "local")
+  .trim()
+  .toLowerCase();
+const busabaseMode = providerMode === "busabase";
 
 function stateUrlFor(port) {
   return `http://${host}:${port}/api/state`;
@@ -33,7 +37,18 @@ function isReady(port) {
       res.on("end", () => {
         try {
           const state = JSON.parse(body);
-          resolve(res.statusCode >= 200 && res.statusCode < 300 && state.app === "kelly-email");
+          const stateProvider =
+            state.provider_status?.provider ||
+            state.provider_status?.mode ||
+            state.email_accounts?.data_provider ||
+            state.email_accounts?.data_reader ||
+            "local";
+          resolve(
+            res.statusCode >= 200 &&
+              res.statusCode < 300 &&
+              state.app === "kelly-email" &&
+              String(stateProvider).toLowerCase() === providerMode,
+          );
         } catch {
           resolve(false);
         }
@@ -68,6 +83,7 @@ function pidIsRunning(pid) {
 }
 
 async function stalePid() {
+  if (busabaseMode) return null;
   try {
     const pid = Number.parseInt((await fsp.readFile(PID_PATH, "utf8")).trim(), 10);
     return Number.isFinite(pid) && pidIsRunning(pid) ? pid : null;
@@ -87,7 +103,7 @@ async function findPort() {
 }
 
 async function main() {
-  await fsp.mkdir(CACHE_DIR, { recursive: true });
+  if (!busabaseMode) await fsp.mkdir(CACHE_DIR, { recursive: true });
   const port = await findPort();
   if (await isReady(port)) {
     console.log(`Kelly Email UI already running: http://${host}:${port}`);
@@ -96,15 +112,15 @@ async function main() {
   const pid = await stalePid();
   if (pid) console.log(`Kelly Email UI process exists but is not ready. PID: ${pid}`);
 
-  const log = fs.openSync(LOG_PATH, "a");
+  const log = busabaseMode ? null : fs.openSync(LOG_PATH, "a");
   const child = spawn(process.execPath, ["index.ts"], {
     cwd: SERVER_DIR,
     detached: true,
-    stdio: ["ignore", log, log],
+    stdio: busabaseMode ? ["ignore", "ignore", "ignore"] : ["ignore", log, log],
     env: { ...process.env, KELLY_EMAIL_UI_HOST: host, KELLY_EMAIL_UI_PORT: port },
   });
   child.unref();
-  await fsp.writeFile(PID_PATH, `${child.pid}\n`);
+  if (!busabaseMode) await fsp.writeFile(PID_PATH, `${child.pid}\n`);
 
   for (let i = 0; i < 40; i += 1) {
     if (await isReady(port)) {
@@ -119,7 +135,11 @@ async function main() {
   try {
     process.kill(-child.pid, "SIGTERM");
   } catch {}
-  console.error(`Kelly Email UI did not become ready. See ${LOG_PATH}`);
+  console.error(
+    busabaseMode
+      ? "Kelly Email UI did not become ready in Busabase mode."
+      : `Kelly Email UI did not become ready. See ${LOG_PATH}`,
+  );
   process.exitCode = 1;
 }
 

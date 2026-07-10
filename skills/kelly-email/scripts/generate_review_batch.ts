@@ -2,10 +2,7 @@
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
 import {
-  APP_CACHE_DIR,
-  ATTACHMENTS_DIR,
   CLASSIFICATION_PIPELINE_VERSION,
-  CURRENT_BATCH_PATH,
   SCAN_STATE_PATH,
   SKILL_DIR,
   classify,
@@ -62,8 +59,8 @@ function parseArgs(argv: string[]): BatchArgs {
 function printHelp() {
   console.log(`Usage: node scripts/generate_review_batch.ts [--review-quota 5] [--max-scan-per-mailbox 120] [--dry-run]
 
-Read unread IMAP mail, generate the local App-in-Skill review batch, and reset decisions.json.
---dry-run reads and classifies mail but does not write current_batch.json or decisions.json.`);
+Read unread IMAP mail, generate the provider email review table, and refresh compatibility snapshots.
+--dry-run reads and classifies mail but does not write provider records or snapshots.`);
 }
 
 function mailboxFolders(mailbox: Mailbox) {
@@ -72,12 +69,29 @@ function mailboxFolders(mailbox: Mailbox) {
   return folders;
 }
 
-function imapClient(mailbox: Mailbox) {
+function endpointSecretRef(endpoint: unknown) {
+  const data = endpoint && typeof endpoint === "object" ? (endpoint as Record<string, unknown>) : {};
+  return String(data.vault_ref || data.password_vault_ref || data.secret_ref || data.password_env || "").trim();
+}
+
+async function endpointPassword(endpoint: unknown, label: string) {
+  const ref = endpointSecretRef(endpoint);
+  if (!ref) throw new Error(`missing secret reference for ${label}`);
+  const provider = createProvider();
+  if (provider.getSecret) {
+    const secret = await provider.getSecret(ref);
+    if (!secret) throw new Error(`Missing Busabase Vault secret: ${ref}`);
+    return secret;
+  }
+  const secret = process.env[ref];
+  if (!secret) throw new Error(`Missing environment variable: ${ref}`);
+  return secret;
+}
+
+async function imapClient(mailbox: Mailbox) {
   const imap = mailbox.imap;
-  if (!imap?.host || !imap.username || !imap.password_env)
-    throw new Error(`missing IMAP config for ${mailbox.mailbox_id}`);
-  const password = process.env[imap.password_env];
-  if (!password) throw new Error(`Missing environment variable: ${imap.password_env}`);
+  if (!imap?.host || !imap.username) throw new Error(`missing IMAP config for ${mailbox.mailbox_id}`);
+  const password = await endpointPassword(imap, `${mailbox.mailbox_id}:imap`);
   return new ImapFlow({
     host: imap.host,
     port: Number(imap.port || 993),
@@ -139,7 +153,7 @@ async function fetchMailbox(
   maxScan: number,
   config: Config,
 ): Promise<ReviewItem[]> {
-  const client = imapClient(mailbox);
+  const client = await imapClient(mailbox);
   await client.connect();
   const items: ReviewItem[] = [];
   const seenKeys = new Set<string>();
@@ -279,7 +293,7 @@ async function writeBatch(items: ReviewItem[]) {
   const provider = createProvider();
   await provider.saveBatch(batch);
   await provider.writeDecisions(batch);
-  await writeJson(SCAN_STATE_PATH, {
+  const scanState = {
     last_generated_batch_id: batch.batch_id,
     last_generated_at: batch.generated_at,
     items: items.map((item) => ({
@@ -290,7 +304,9 @@ async function writeBatch(items: ReviewItem[]) {
       category: item.category,
       proposed_action: item.proposed_action,
     })),
-  });
+  };
+  if (provider.writeScanState) await provider.writeScanState(scanState);
+  else await writeJson(SCAN_STATE_PATH, scanState);
   return batch;
 }
 
@@ -333,6 +349,8 @@ async function main() {
   allItems.sort((a, b) => Number(b.uid || 0) - Number(a.uid || 0));
 
   if (args.dryRun) {
+    const provider = createProvider();
+    const busabase = provider.kind === "busabase";
     console.log(
       JSON.stringify(
         {
@@ -341,8 +359,10 @@ async function main() {
           prepared: allItems.filter((item) => item.status === "prepared").length,
           needs_review: allItems.filter((item) => item.status === "needs_review").length,
           skill_dir: SKILL_DIR,
-          cache_dir: APP_CACHE_DIR,
-          attachments_dir: ATTACHMENTS_DIR,
+          batch_path: busabase ? "busabase:base/review_item" : "app/.data/email_records.json",
+          attachments_path: busabase
+            ? "busabase:drive/attachments/<batch_id>/..."
+            : "app/.data/attachments/<batch_id>/...",
         },
         null,
         2,
@@ -352,6 +372,7 @@ async function main() {
   }
 
   const batch = await writeBatch(allItems);
+  const provider = createProvider();
   console.log(
     JSON.stringify(
       {
@@ -359,7 +380,7 @@ async function main() {
         items: allItems.length,
         prepared: batch.metrics.prepared,
         needs_review: batch.metrics.needs_review,
-        batch_path: CURRENT_BATCH_PATH,
+        batch_path: provider.kind === "busabase" ? "busabase:base/review_item" : "app/.data/email_records.json",
       },
       null,
       2,

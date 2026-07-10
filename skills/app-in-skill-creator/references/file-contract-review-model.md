@@ -1,10 +1,10 @@
-# File Contract And Review Model
+# Provider Contract And Review Model
 
-Use this reference when designing handoff files, review states, batch schemas, decisions, agent tasks, or execution reports.
+Use this reference when designing provider handoff state, local files, review states, batch schemas, decisions, agent tasks, or execution reports.
 
-## File Contract
+## Provider Contract
 
-Use predictable JSON files so both the agent and UI can recover after interruption:
+Use a predictable provider contract so both the agent and UI can recover after interruption. Local provider mode usually serializes this contract as JSON files:
 
 - `app/.data/onboarding.json`: onboarding completion marker. Absent or `completed:false` means the skill is still in onboarding.
 - `app/.data/current_batch.json`: latest agent-generated batch.
@@ -14,6 +14,8 @@ Use predictable JSON files so both the agent and UI can recover after interrupti
 - `app/.data/agent.lock`: temporary lock while the skill is generating, writing, or executing.
 
 Keep files minimal and auditable. Store only the content needed for review and execution.
+
+In Busabase provider mode, project the same contract into Base rows whenever the item is naturally tabular and human-readable. Use multiple Base tables for distinct human-readable views such as items plus contacts/accounts/projects, and link them with stable ids instead of burying relationships in a single JSON field. Use local/Drive JSON files only as compatibility snapshots or blob storage; the app should still call the provider interface instead of reading storage directly.
 
 ## Workflow States
 
@@ -31,13 +33,13 @@ Show categories and risks as badges, not primary navigation.
 
 ## Review Model
 
-The file handoff is the local serialization of one review model, shared with Busabase.
+The provider handoff is one review model that can be serialized to local files or projected into Busabase rows.
 
 | Term | Meaning | Local file | Busabase |
 | --- | --- | --- | --- |
-| change request | what the agent prepared: a proposed creation or edit awaiting review | items in `current_batch.json` | `change_request` |
-| operation | one change inside a change request, with before -> after fields | an item's fields + draft | `operation` |
-| review | a human verdict on a change request | entry in `decisions.json` | `review` |
+| change request | what the agent prepared: a proposed creation or edit awaiting review | item row in provider table, optionally snapshotted in `current_batch.json` | Base row or change request |
+| operation | one change inside a change request, with before -> after fields | item fields + draft columns | Base columns or operation |
+| review | a human verdict on a change request | decision columns, optionally snapshotted in `decisions.json` | Base decision columns or review |
 | verdict | the decision verb | `decision.action` | review verdict + revise operations |
 | merge | apply an approved change to the canonical/published artifact | `execution_report.json` + export | merge to canonical record |
 | comment | a note on an item; `@ai` asks the agent to act | comment/note field | `comment` |
@@ -54,7 +56,7 @@ Use provider-neutral verdict verbs:
 - `revise`: the human saved their own edit as a new version; the item stays in review.
 - `block`: reject or close the item.
 
-Domain-specific action labels can be simpler in the UI, such as `archive`, `publish`, `send`, or `export`, but the decision file should map them into a concrete provider-neutral verdict plus a domain operation.
+Domain-specific action labels can be simpler in the UI, such as `archive`, `publish`, `send`, or `export`, but provider decision state should map them into a concrete provider-neutral verdict plus a domain operation.
 
 ## App Types
 

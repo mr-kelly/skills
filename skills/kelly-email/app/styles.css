@@ -623,7 +623,7 @@ body.sidebar-collapsed .help-box {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 100;
   display: grid;
   place-items: center;
   padding: 24px;
@@ -1210,12 +1210,103 @@ body.sidebar-collapsed .help-box {
   display: none;
 }
 
-body.is-locked .message-row {
+body.is-locked .message-row,
+body.provider-unavailable .message-row {
   cursor: not-allowed;
 }
 
-body.is-locked .message-row:hover {
+body.is-locked .message-row:hover,
+body.provider-unavailable .message-row:hover {
   background: inherit;
+}
+
+.provider-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #fff7f5;
+  color: #7a271a;
+}
+
+.provider-gate.is-hidden {
+  display: none;
+}
+
+.provider-gate-panel {
+  width: min(680px, 100%);
+  display: grid;
+  gap: 16px;
+  border: 1px solid #f4b5aa;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 28px;
+  box-shadow: 0 24px 80px rgba(180, 35, 24, 0.16);
+}
+
+.provider-gate-kicker {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.provider-gate h1 {
+  margin: 0;
+  color: var(--danger);
+  font-size: 32px;
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.provider-gate p {
+  margin: 0;
+  max-width: 58ch;
+  color: #7a271a;
+  line-height: 1.5;
+}
+
+.provider-gate-meta {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 8px 12px;
+  margin: 2px 0 0;
+  border-top: 1px solid #fee2de;
+  border-bottom: 1px solid #fee2de;
+  padding: 12px 0;
+}
+
+.provider-gate-meta dt {
+  color: #9f3b31;
+  font-size: 12px;
+}
+
+.provider-gate-meta dd {
+  margin: 0;
+  min-width: 0;
+  color: #3f2a27;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.provider-gate-action {
+  font-weight: 660;
+}
+
+.provider-gate button {
+  width: fit-content;
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
+  box-shadow: none;
+}
+
+.provider-gate button:hover {
+  border-color: #912018;
+  background: #912018;
 }
 
 .bulk-actions {
@@ -2374,7 +2465,8 @@ body.is-locked .message-row:hover {
   .settings-grid,
   .account-card-head,
   .settings-row,
-  .account-row {
+  .account-row,
+  .provider-gate-meta {
     grid-template-columns: 1fr;
   }
 

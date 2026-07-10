@@ -176,12 +176,29 @@ function resolveIdentity(item: ReviewItem, config: Config) {
   throw new Error(`no send identity configured for ${item.account}`);
 }
 
-function imapClient(mailbox: Mailbox) {
+function endpointSecretRef(endpoint: unknown) {
+  const data = endpoint && typeof endpoint === "object" ? (endpoint as Record<string, unknown>) : {};
+  return String(data.vault_ref || data.password_vault_ref || data.secret_ref || data.password_env || "").trim();
+}
+
+async function endpointPassword(endpoint: unknown, label: string) {
+  const ref = endpointSecretRef(endpoint);
+  if (!ref) throw new Error(`missing secret reference for ${label}`);
+  const provider = createProvider();
+  if (provider.getSecret) {
+    const secret = await provider.getSecret(ref);
+    if (!secret) throw new Error(`Missing Busabase Vault secret: ${ref}`);
+    return secret;
+  }
+  const secret = process.env[ref];
+  if (!secret) throw new Error(`Missing environment variable: ${ref}`);
+  return secret;
+}
+
+async function imapClient(mailbox: Mailbox) {
   const imap = mailbox.imap;
-  if (!imap?.host || !imap.username || !imap.password_env)
-    throw new Error(`missing IMAP config for ${mailbox.mailbox_id}`);
-  const password = process.env[imap.password_env];
-  if (!password) throw new Error(`Missing environment variable: ${imap.password_env}`);
+  if (!imap?.host || !imap.username) throw new Error(`missing IMAP config for ${mailbox.mailbox_id}`);
+  const password = await endpointPassword(imap, `${mailbox.mailbox_id}:imap`);
   return new ImapFlow({
     host: imap.host,
     port: Number(imap.port || 993),
@@ -191,12 +208,10 @@ function imapClient(mailbox: Mailbox) {
   });
 }
 
-function smtpTransport(mailbox: Mailbox) {
+async function smtpTransport(mailbox: Mailbox) {
   const smtp = mailbox.smtp;
-  if (!smtp?.host || !smtp.username || !smtp.password_env)
-    throw new Error(`missing SMTP config for ${mailbox.mailbox_id}`);
-  const password = process.env[smtp.password_env];
-  if (!password) throw new Error(`Missing environment variable: ${smtp.password_env}`);
+  if (!smtp?.host || !smtp.username) throw new Error(`missing SMTP config for ${mailbox.mailbox_id}`);
+  const password = await endpointPassword(smtp, `${mailbox.mailbox_id}:smtp`);
   return nodemailer.createTransport({
     host: smtp.host,
     port: Number(smtp.port || 465),
@@ -241,7 +256,7 @@ function executionPlan(entry: ExecEntry): ExecResult {
 
 async function executeMailboxGroup(mailbox: Mailbox, entries: ExecEntry[], dryRun: boolean): Promise<ExecResult[]> {
   if (dryRun) return entries.map((entry) => ({ ...executionPlan(entry), status: "dry_run" }));
-  const client = imapClient(mailbox);
+  const client = await imapClient(mailbox);
   await client.connect();
   const results: ExecResult[] = [];
   try {
@@ -293,7 +308,7 @@ async function sendReply(item: ReviewItem, config: Config, dryRun: boolean): Pro
   const [recipient] = parseAddresses(item.from || "");
   if (!recipient?.address) throw new Error("cannot determine reply recipient");
   const threadId = ensureMsgId(item.thread_id);
-  const transporter = smtpTransport(mailbox);
+  const transporter = await smtpTransport(mailbox);
   await transporter.sendMail({
     from: { name: identity.display_name || identity.send_as_email, address: identity.send_as_email },
     to: recipient.name ? { name: recipient.name, address: recipient.address } : recipient.address,

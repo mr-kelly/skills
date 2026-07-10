@@ -470,9 +470,9 @@ function demoItems(): ReviewItem[] {
       body_translation_language: "",
       html: "<p>Hi Alex,</p><p>Can Northstar summarize incoming customer threads without sending message content to a hosted dashboard?</p><p>We need a human approval step before replies go out.</p>",
       suggested_reply:
-        "Hi Maya, yes. The review batch can stay on your machine, and the UI only writes local decisions until you explicitly ask the agent to execute approved replies. Happy to share the setup checklist.",
+        "Hi Maya, yes. The review batch can stay in the selected data provider, and the UI only writes review decisions until you explicitly ask the agent to execute approved replies. Happy to share the setup checklist.",
       draft:
-        "Hi Maya, yes. The review batch can stay on your machine, and the UI only writes local decisions until you explicitly ask the agent to execute approved replies. Happy to share the setup checklist.",
+        "Hi Maya, yes. The review batch can stay in the selected data provider, and the UI only writes review decisions until you explicitly ask the agent to execute approved replies. Happy to share the setup checklist.",
       review_brief: {
         user_language: "en",
         suggested_reply: "Hi Maya, yes. The review batch can stay on your machine...",

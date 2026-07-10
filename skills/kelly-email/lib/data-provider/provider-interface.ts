@@ -44,6 +44,20 @@ export interface LockPayload {
   [key: string]: unknown;
 }
 
+export interface ProviderStatus {
+  ok: boolean;
+  provider: string;
+  mode?: string;
+  message?: string;
+  action?: string;
+  base_url?: string;
+  base_id?: string;
+  drive_id?: string;
+  schema?: Record<string, unknown>;
+  error?: string;
+  [key: string]: unknown;
+}
+
 export interface EmailDataProvider {
   readonly kind: string;
 
@@ -56,6 +70,7 @@ export interface EmailDataProvider {
   saveBatch(batch: Batch): Promise<Batch>;
   getDecisions(): Promise<DecisionsPayload>;
   writeDecisions(batch: Batch): Promise<DecisionsPayload>;
+  writeScanState?(value: Record<string, unknown>): Promise<void>;
   updateItems(input: DecisionInput): Promise<Record<string, unknown>>;
   updateDetail(input: DetailInput): Promise<Record<string, unknown>>;
 
@@ -77,9 +92,13 @@ export interface EmailDataProvider {
   ): Promise<AttachmentResult>;
   clearBatchAttachments?(batchId: string): Promise<void>;
   getFile?(pathname: string): Promise<Record<string, unknown> | null>;
+  putFile?(pathname: string, data: unknown, meta?: Record<string, unknown>): Promise<Record<string, unknown>>;
+  getSecret?(name: string): Promise<string>;
+  init?(): Promise<ProviderStatus | Record<string, unknown>>;
   checkSchema?(): Promise<Record<string, unknown>>;
   ensureSchema?(options?: { apply?: boolean }): Promise<Record<string, unknown>>;
   verifyConnection?(): Promise<Record<string, unknown>>;
+  providerStatus?(): Promise<ProviderStatus>;
 }
 
 export const CORE_METHODS = [
@@ -101,12 +120,17 @@ export const CORE_METHODS = [
 
 export const OPTIONAL_METHODS = [
   "writeExecutionReport",
+  "writeScanState",
   "persistAttachments",
   "clearBatchAttachments",
   "getFile",
+  "putFile",
+  "getSecret",
+  "init",
   "checkSchema",
   "ensureSchema",
   "verifyConnection",
+  "providerStatus",
 ] as const satisfies readonly (keyof EmailDataProvider)[];
 
 export function assertProvider(kind: string, provider: unknown): EmailDataProvider {
