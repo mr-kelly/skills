@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+
+app/.cache/
+app/.data/
+
+config.local.json
+config.local.yml
+*.local.json
+*.local.yml
+.env
+.env.local
+
+*.log

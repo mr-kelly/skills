@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Eval & Regression Board"
+  short_description: "Local review board comparing baseline vs candidate agent versions on a mock eval suite"
+  default_prompt: "Use $kelly-agent-eval to open the eval board and review this release's regressions."

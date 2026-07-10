@@ -1,0 +1,4 @@
+interface:
+  display_name: "LLM Gateway Cost & Governance Desk"
+  short_description: "Local dashboard for LLM gateway spend, canary rollouts, and anomalies"
+  default_prompt: "Use $kelly-llm-gateway to open the gateway cost and governance dashboard."

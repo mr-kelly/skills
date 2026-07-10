@@ -1,0 +1,4 @@
+interface:
+  display_name: "Predictive Recommendation Analytics Desk"
+  short_description: "Local dashboard over mock user-behavior funnel data with a deterministic next-action heuristic"
+  default_prompt: "Use $kelly-behavior-predict to open the behavior funnel dashboard and review segment predictions."

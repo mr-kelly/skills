@@ -1,0 +1,15 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "locale": "auto",
+  "gateway": {
+    "region": "global",
+    "base_url": "https://gateway.internal.example/usage/v1",
+    "api_key_env": "KELLY_LLM_GATEWAY_API_KEY"
+  },
+  "cost_spike_threshold_pct": 50,
+  "error_spike_threshold_pct": 100,
+  "ui": {
+    "language": "auto"
+  }
+}

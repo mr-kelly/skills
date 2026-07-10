@@ -4,7 +4,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "../lib/data-provider/busabase-client.ts";
 
-
 type JsonRecord = Record<string, any>;
 
 function parseArgs(argv = process.argv.slice(2)) {
@@ -84,7 +83,9 @@ async function ensureFolderAndDrive(client: ReturnType<typeof createBusabaseClie
   const state = await existingState(client);
   let folder = state.nodes.find((node) => node.slug === manifest.folder.slug && node.type === "folder");
   let drive = folder
-    ? state.nodes.find((node) => node.parentId === folder.id && node.slug === manifest.drive.slug && node.type === "drive")
+    ? state.nodes.find(
+        (node) => node.parentId === folder.id && node.slug === manifest.drive.slug && node.type === "drive",
+      )
     : null;
 
   const operations: JsonRecord[] = [];
@@ -120,13 +121,19 @@ async function ensureFolderAndDrive(client: ReturnType<typeof createBusabaseClie
   const refreshed = await existingState(client);
   folder = refreshed.nodes.find((node) => node.slug === manifest.folder.slug && node.type === "folder");
   drive = folder
-    ? refreshed.nodes.find((node) => node.parentId === folder.id && node.slug === manifest.drive.slug && node.type === "drive")
+    ? refreshed.nodes.find(
+        (node) => node.parentId === folder.id && node.slug === manifest.drive.slug && node.type === "drive",
+      )
     : null;
   if (!folder || !drive) throw new Error("Failed to resolve restored folder or Drive.");
   return { folder, drive, created: true };
 }
 
-async function ensureBases(client: ReturnType<typeof createBusabaseClient>, manifest: JsonRecord, parentNodeId: string) {
+async function ensureBases(
+  client: ReturnType<typeof createBusabaseClient>,
+  manifest: JsonRecord,
+  parentNodeId: string,
+) {
   let state = await existingState(client);
   const result: JsonRecord = {};
   for (const kind of ["qa", "news"]) {
@@ -137,7 +144,13 @@ async function ensureBases(client: ReturnType<typeof createBusabaseClient>, mani
       continue;
     }
     if (dryRun) {
-      console.log(JSON.stringify({ dry_run: true, action: "create_base", kind, payload: basePayload(expected, parentNodeId) }, null, 2));
+      console.log(
+        JSON.stringify(
+          { dry_run: true, action: "create_base", kind, payload: basePayload(expected, parentNodeId) },
+          null,
+          2,
+        ),
+      );
       result[kind] = null;
       continue;
     }
@@ -153,7 +166,11 @@ async function ensureBases(client: ReturnType<typeof createBusabaseClient>, mani
   return result;
 }
 
-async function restoreFiles(client: ReturnType<typeof createBusabaseClient>, driveNodeId: string, manifest: JsonRecord) {
+async function restoreFiles(
+  client: ReturnType<typeof createBusabaseClient>,
+  driveNodeId: string,
+  manifest: JsonRecord,
+) {
   const existing = await client.listDriveFiles(driveNodeId);
   const existingPaths = new Set(existing.map((file: JsonRecord) => file.path));
   const operations: JsonRecord[] = [];
@@ -176,7 +193,11 @@ async function restoreFiles(client: ReturnType<typeof createBusabaseClient>, dri
       operations.push({ kind: "create", path: file.path, localFile, mimeType: file.mimeType });
       continue;
     }
-    const uploaded = await client.uploadAsset(localFile, file.mimeType || "application/octet-stream", file.metadata || {});
+    const uploaded = await client.uploadAsset(
+      localFile,
+      file.mimeType || "application/octet-stream",
+      file.metadata || {},
+    );
     operations.push({
       kind: "create",
       path: file.path,
@@ -185,31 +206,59 @@ async function restoreFiles(client: ReturnType<typeof createBusabaseClient>, dri
       mimeType: file.mimeType,
     });
     if (operations.length >= chunkSize) {
-      const cr = await client.createDriveChangeRequest(driveNodeId, operations.splice(0), "Restore Kelly Insure Data Drive files");
+      const cr = await client.createDriveChangeRequest(
+        driveNodeId,
+        operations.splice(0),
+        "Restore Kelly Insure Data Drive files",
+      );
       await client.approveAndMerge(cr.id);
     }
   }
   if (dryRun) {
-    console.log(JSON.stringify({ dry_run: true, action: "restore_files", count: operations.length, missingLocal, skippedExisting }, null, 2));
+    console.log(
+      JSON.stringify(
+        { dry_run: true, action: "restore_files", count: operations.length, missingLocal, skippedExisting },
+        null,
+        2,
+      ),
+    );
     return { restored: 0, planned: operations.length, missingLocal, skippedExisting };
   }
   if (operations.length) {
     const cr = await client.createDriveChangeRequest(driveNodeId, operations, "Restore Kelly Insure Data Drive files");
     await client.approveAndMerge(cr.id);
   }
-  return { restored: (manifest.drive.files || []).length - missingLocal - skippedExisting, missingLocal, skippedExisting };
+  return {
+    restored: (manifest.drive.files || []).length - missingLocal - skippedExisting,
+    missingLocal,
+    skippedExisting,
+  };
 }
 
-async function restoreRecords(client: ReturnType<typeof createBusabaseClient>, baseId: string, records: JsonRecord[], label: string) {
+async function restoreRecords(
+  client: ReturnType<typeof createBusabaseClient>,
+  baseId: string,
+  records: JsonRecord[],
+  label: string,
+) {
   if (!records?.length) return { restored: 0 };
   const existingRecords = await client.listRecords(baseId, 1000).catch(() => []);
-  const existingSignatures = new Set(existingRecords.map((record: JsonRecord) => stableJson(record.fields || record.headCommit?.fields || {})));
+  const existingSignatures = new Set(
+    existingRecords.map((record: JsonRecord) => stableJson(record.fields || record.headCommit?.fields || {})),
+  );
   const missingRecords = records.filter((record) => !existingSignatures.has(stableJson(record.fields || {})));
-  if (!missingRecords.length) return dryRun ? { planned: 0, skippedExisting: records.length } : { restored: 0, skippedExisting: records.length };
+  if (!missingRecords.length)
+    return dryRun ? { planned: 0, skippedExisting: records.length } : { restored: 0, skippedExisting: records.length };
   if (dryRun) {
     console.log(
       JSON.stringify(
-        { dry_run: true, action: "restore_records", label, records: missingRecords.length, skippedExisting: records.length - missingRecords.length },
+        {
+          dry_run: true,
+          action: "restore_records",
+          label,
+          records: missingRecords.length,
+          skippedExisting: records.length - missingRecords.length,
+        },
         null,
         2,
       ),
@@ -234,15 +283,25 @@ async function main() {
   const driveNodeId = nodeResult.drive?.id;
   if (!folderId || !driveNodeId) {
     if (dryRun) {
-      console.log(JSON.stringify({ dry_run: true, done: true, note: "Use --apply to create missing folder/Drive before restoring data." }, null, 2));
+      console.log(
+        JSON.stringify(
+          { dry_run: true, done: true, note: "Use --apply to create missing folder/Drive before restoring data." },
+          null,
+          2,
+        ),
+      );
       return;
     }
     throw new Error("Missing folder or Drive after node restore.");
   }
   const bases = await ensureBases(client, manifest, folderId);
   const files = await restoreFiles(client, driveNodeId, manifest);
-  const qa = bases.qa?.id ? await restoreRecords(client, bases.qa.id, manifest.bases.qa.records || [], "QA") : { restored: 0 };
-  const news = bases.news?.id ? await restoreRecords(client, bases.news.id, manifest.bases.news.records || [], "news") : { restored: 0 };
+  const qa = bases.qa?.id
+    ? await restoreRecords(client, bases.qa.id, manifest.bases.qa.records || [], "QA")
+    : { restored: 0 };
+  const news = bases.news?.id
+    ? await restoreRecords(client, bases.news.id, manifest.bases.news.records || [], "news")
+    : { restored: 0 };
   console.log(JSON.stringify({ ok: true, dry_run: dryRun, files, qa, news }, null, 2));
 }
 

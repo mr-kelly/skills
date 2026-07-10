@@ -1,0 +1,4 @@
+interface:
+  display_name: "Revenue-Share Contract Simulator"
+  short_description: "Model and compare revenue-based-financing deals for SME chains"
+  default_prompt: "Use $kelly-revshare-simulator to open the deal simulator and model a revenue-share financing offer."

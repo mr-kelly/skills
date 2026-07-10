@@ -1,0 +1,20 @@
+{
+  "name": "kelly-portfolio-health",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "RBF Portfolio Health Dashboard App-in-Skill — local read-mostly view over a revenue-based-financing / private-credit book (Hono server, zero-build vanilla frontend).",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "seed": "node scripts/generate_demo_snapshot.ts",
+    "validate": "node scripts/validate_ui_schema.ts app/.data/snapshot.json"
+  },
+  "dependencies": {
+    "hono": "^4.6.14",
+    "@hono/node-server": "^1.13.7"
+  }
+}

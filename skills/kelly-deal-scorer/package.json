@@ -1,0 +1,21 @@
+{
+  "name": "kelly-deal-scorer",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Deal Scoring Desk App-in-Skill — local review queue for SME financing deal candidates with a deterministic, auditable scoring rubric (Hono server, zero-build vanilla frontend).",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "seed": "node scripts/generate_batch.ts",
+    "validate": "node scripts/validate_ui_schema.ts",
+    "execute": "node scripts/execute_decisions.ts"
+  },
+  "dependencies": {
+    "hono": "^4.6.14",
+    "@hono/node-server": "^1.13.7"
+  }
+}
