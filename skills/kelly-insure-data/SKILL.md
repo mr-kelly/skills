@@ -113,7 +113,7 @@ Use `npm run busabase:restore -- --manifest app/.data/busabase_restore_manifest.
 
 ## PDF Metadata Backfill
 
-Use `npm run busabase:backfill-pdf-metadata -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5` to parse local PDFs and preview generated asset metadata.
+Use `npm run busabase:backfill-pdf-metadata -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5` to parse local PDFs and preview generated asset metadata. The generated `Asset.metadata` includes structured governance fields, `parser` details, a short `extraction_summary`, and the parsed PDF body in `parsed_text`.
 
 Add `--apply` only when the user asks to write metadata back to Busabase assets. The parser is heuristic and should mark generated records as `needs_review`, preserving source file path, asset id, parser method, and extraction summary.
 
