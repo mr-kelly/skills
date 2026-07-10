@@ -1,0 +1,23 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "locale": "auto",
+  "fund_profile": {
+    "display_name": "Example Lending Fund",
+    "product": "SME merchant cash advance / revenue-based financing",
+    "target_check_size": "USD 50,000 - 2,000,000 monthly revenue equivalent"
+  },
+  "scoring_criteria": {
+    "note": "Weights and bands used by lib/scoring.ts to compute a deterministic 0-100 lead-quality score. Not advice; purely rule-based fit-to-criteria triage.",
+    "ideal_store_count_min": 5,
+    "ideal_store_count_max": 150,
+    "ideal_monthly_revenue_min": 50000,
+    "ideal_monthly_revenue_max": 2000000,
+    "low_risk_categories": ["services", "healthcare"],
+    "medium_risk_categories": ["food_beverage", "ecommerce"],
+    "higher_risk_categories": ["retail_discretionary", "other"]
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

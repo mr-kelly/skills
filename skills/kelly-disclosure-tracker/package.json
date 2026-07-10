@@ -1,0 +1,21 @@
+{
+  "name": "kelly-disclosure-tracker",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Cross-Entity Disclosure Tracker App-in-Skill — local review workspace for assembling a standardized disclosure package per financing vehicle across origination, fund-manager, and listing-venue entities (Hono server, zero-build vanilla frontend).",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "generate": "node scripts/generate_batch.ts",
+    "validate": "node scripts/validate_ui_schema.ts",
+    "execute": "node scripts/execute_decisions.ts"
+  },
+  "dependencies": {
+    "hono": "^4.6.14",
+    "@hono/node-server": "^1.13.7"
+  }
+}

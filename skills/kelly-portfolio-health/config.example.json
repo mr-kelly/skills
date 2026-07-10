@@ -1,0 +1,14 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "locale": "auto",
+  "fund_name": "Sample RBF Fund I",
+  "risk_policy": {
+    "lag_watch_pp": 15,
+    "lag_high_pp": 25,
+    "revenue_decline_pct": 10
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

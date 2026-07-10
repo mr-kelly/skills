@@ -1,0 +1,14 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "locale": "auto",
+  "thresholds": {
+    "error_rate_degraded_pct": 3,
+    "error_rate_critical_pct": 8,
+    "p95_latency_degraded_ms": 4000,
+    "p95_latency_critical_ms": 8000
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

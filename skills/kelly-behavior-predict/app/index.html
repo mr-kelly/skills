@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Predictive Recommendation Analytics Desk</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">P</div>
+          <div class="brand-copy">
+            <div class="brand-title">Analytics Desk</div>
+            <div id="sync-status" class="brand-subtitle">Loading</div>
+          </div>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+        </div>
+        <div class="search sidebar-search">
+          <input id="search" type="search" placeholder="Search" aria-label="Search">
+        </div>
+        <section class="human-work" aria-labelledby="humanWorkTitle">
+          <div class="human-work-eyebrow" data-i18n="attention">Analytics</div>
+          <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">Funnel at a glance</div>
+          <a class="human-work-primary" href="#/backtest" data-route="backtest">
+            <span>
+              <strong id="accuracy-figure">—</strong>
+              <span>
+                <span id="summary-accuracy" class="human-work-figure">—</span>
+                <span data-i18n="overallAccuracy">overall accuracy</span>
+              </span>
+            </span>
+          </a>
+          <div class="human-work-secondary">
+            <a href="#/segments" data-route="segments">
+              <strong id="count-needs-decision">0</strong>
+              <span data-i18n="needsDecision">need a decision</span>
+            </a>
+            <a href="#/segments" data-route="segments">
+              <strong id="count-segments">0</strong>
+              <span data-i18n="segmentCount">segments</span>
+            </a>
+          </div>
+        </section>
+        <div class="sidebar-separator"></div>
+        <nav class="filters" aria-label="Main">
+          <a href="#/overview" data-route="overview" data-i18n="overview">Overview</a>
+          <a href="#/segments" data-route="segments" data-i18n="segmentsTitle">Segments</a>
+          <a href="#/backtest" data-route="backtest" data-i18n="backtestTitle">Backtest</a>
+          <a href="#/settings" data-route="settings" data-i18n="settings">Help & Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          <label for="language" data-i18n="language">Language</label>
+          <select id="language">
+            <option value="auto">Auto</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+          <div class="mobile-topbar-copy">
+            <div id="mobileViewTitle" class="mobile-view-title">Analytics Desk</div>
+            <div id="mobileViewMeta" class="mobile-view-meta">Loading</div>
+          </div>
+          <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">↻</button>
+        </div>
+        <header class="topbar">
+          <div>
+            <h1 id="page-title">Overview</h1>
+            <p id="page-subtitle" class="muted"></p>
+          </div>
+          <div class="topbar-actions">
+            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+          </div>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

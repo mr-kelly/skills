@@ -4,11 +4,11 @@
 
 **Kelly 的个人 AI skills 工作区，用来处理日常业务里的重复工作。**
 
-53 个 skills，其中 50 个是 App-in-Skill 工作流，配本地浏览器 UI 用于 review、审批和看板。
+63 个 skills，其中 60 个是 App-in-Skill 工作流，配本地浏览器 UI 用于 review、审批和看板。
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-53-D97757)](https://mr-kelly.github.io/skills/?lang=zh)
+[![Skills](https://img.shields.io/badge/skills-63-D97757)](https://mr-kelly.github.io/skills/?lang=zh)
 [![License](https://img.shields.io/badge/license-MIT-green)](../LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#安装)
@@ -139,6 +139,16 @@
 | `kelly-campaigns` | 外发邮件营销台，跑 SEND 生命周期（Setup→Engage→Nurture→Deliver）：agent 建分群，起草 campaign、newsletter 和序列，发送前跑送达率 + 主题行 QA，背后有 EQS 质量门（SHIP/FIX/BLOCK），排期或发送前先过审。 | 策划邮件 campaign、newsletter 或生命周期序列、检查送达率和 A/B 主题、审批群发时使用——与 `kelly-email` 收件箱清零区分开。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-campaigns.html?lang=zh) |
 | `kelly-launch` | 产品发布指挥台，跑 RAMP 框架（Research→Assemble→Mobilize→Prove）：agent 组装发布清单，起草素材、Product Hunt / Hacker News 提交、媒体推介和发布日 runbook，发布就绪门给出发布质量分（LQS → SHIP/FIX/BLOCK）。 | 策划和执行产品发布：搭清单、审批素材和渠道提交、把关发布就绪度，或指挥发布日时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-launch.html?lang=zh) |
 | `kelly-brand` | 品牌叙事唯一真源，跑 TALE 框架（Trace→Architect→Land→Evaluate）：agent 起草定位、message house、story bank、带证据的 proof point 和用词护栏，给叙事质量打分（NQS → SHIP/FIX/BLOCK），并标记跨渠道漂移；你决定哪些草稿升为 canonical。 | 定义或审计品牌定位和信息、维护 canonical 叙事和 story bank，或捕捉跨渠道跑偏时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-brand.html?lang=zh) |
+| `kelly-revshare-simulator` | 收益分成融资（RBF）合约模拟工作台：推算现金流和累计回款、计算 Cash-Flow Payout Multiple 和商户实际年化成本，并用纯确定性数学标记风险（回款上限未达标、成本过高）。 | 给收益分成/商户预付款交易做尽调、并排比较多个融资方案，或记录批准/需修改/拒绝决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-revshare-simulator.html?lang=zh) |
+| `kelly-deal-scorer` | 审核队列台，用可审计的确定性规则打分（营收稳定性、增长趋势、行业风险、本金比例、经营记录）给候选中小企融资项目打分——从不调用 LLM。 | 审阅尽调打分队列、查看分数拆解、获取建议分成比例区间，或记录批准/退回/拒绝决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-deal-scorer.html?lang=zh) |
+| `kelly-portfolio-health` | 面向 RBF 基金或私募信贷组合的只读看板：总 AUM、加权回款进度、行业集中度风险，以及营收下滑合约的观察名单。 | 检查投资组合健康状况、标记合约待复核，或查看行业集中度和风险敞口时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-portfolio-health.html?lang=zh) |
+| `kelly-lead-funnel` | 面向 BD/获客团队的看板控制台，用确定性规则给商户融资线索打分，并跟踪各阶段转化率。 | 审阅获客漏斗、推进/驳回线索、或查看漏斗转化率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-lead-funnel.html?lang=zh) |
+| `kelly-disclosure-tracker` | 合规/IR 工作台，跨发行地实体、基金管理人实体和挂牌交易场所三方，跟踪每个融资载体的标准化披露清单和跨方对账异常。 | 审阅披露清单进度、载体就绪状态，或申报前的对账异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-disclosure-tracker.html?lang=zh) |
+| `kelly-agent-observability` | 本地看板，展示运行在共享 AI 网关背后的一批 LLM agent：调用量、延迟、错误率、成本，以及链路级故障追踪。 | 审阅 agent 集群健康状况，或排查某条失败链路断在哪一步时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html?lang=zh) |
+| `kelly-agent-eval` | 评测看板，跑固定测试集对比 baseline 与候选版本 agent，在发版前用打分规则揪出回归问题。 | 排查 agent 版本回归、对比 baseline 与候选质量，或记录发版批准/阻止决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-eval.html?lang=zh) |
+| `kelly-agent-builder` | 低代码 agent 配置与治理控制台：维护一批 mock agent 配置的配额、审批和归属，未填齐字段前禁止上线。 | 管理 agent 目录、检查配额使用、把草稿激活为上线，或归档某个 agent 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-builder.html?lang=zh) |
+| `kelly-behavior-predict` | 基于 mock 用户行为漏斗数据的看板，给每个用户分群提供预测下一步动作的启发式规则，并跑准确率回测。 | 查看漏斗流失、各分群预测结果，或回测规则式推荐启发式时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-behavior-predict.html?lang=zh) |
+| `kelly-llm-gateway` | 共享 LLM 网关的成本与模型治理看板：花费趋势、按服务/模型的成本拆分、灰度发布状态板，以及确定性成本/错误异常检测。 | 查看 LLM 网关花费、灰度发布状态，或确认成本/错误异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html?lang=zh) |
 
 ---
 

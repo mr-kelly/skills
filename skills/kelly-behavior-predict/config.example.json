@@ -1,0 +1,13 @@
+{
+  "data_provider": "local",
+  "locale": "auto",
+  "product_profile": {
+    "product_name": "Example Booking Co.",
+    "vertical": "consumer travel/booking"
+  },
+  "target_precision_note": "Minimum acceptable per-class precision for the backtest view before a segment's rule is considered trustworthy without a human note. Informational only; the app never blocks on this.",
+  "target_precision": 0.6,
+  "ui": {
+    "language": "auto"
+  }
+}

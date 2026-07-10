@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cross-Entity Disclosure Tracker"
+  short_description: "Local review workspace for multi-entity disclosure packages"
+  default_prompt: "Use $kelly-disclosure-tracker to open my disclosure tracker and review outstanding items across the vehicles."

@@ -1,0 +1,7 @@
+{
+  "default_port": 3100,
+  "org_name": "Example Platform Team",
+  "ui": {
+    "language": "auto"
+  }
+}
