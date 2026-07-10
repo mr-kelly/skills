@@ -1,7 +1,7 @@
 ---
 name: app-in-skill-creator
 license: MIT
-description: "Create or update App-in-Skill patterns: Codex skills that bundle a local file-backed web app for review, approval, dashboards, or lightweight workflows. Use when the user wants a skill with an embedded local UI, file handoff, lock files, app launcher, schemas, or a reusable App-in-Skill scaffold."
+description: "Create or update App-in-Skill patterns: Codex skills that bundle a local provider-backed web app for review, approval, dashboards, or lightweight workflows. Use when the user wants a skill with an embedded local UI, provider handoff, local files, Busabase, locks, app launcher, schemas, or a reusable App-in-Skill scaffold."
 ---
 
 # App-in-Skill Creator
@@ -23,9 +23,9 @@ Good fits:
 Keep the boundary clear:
 
 - The skill reads external systems, reasons, drafts, and executes approved actions.
-- The app reads and writes local handoff files only.
+- The app reads and writes active-provider handoff state only.
 - The app never sends emails, deletes data, charges money, publishes, changes remote systems, or performs external side effects.
-- The handoff files are the contract between app and skill.
+- The provider handoff contract is the boundary between app and skill.
 - The default interaction mode for review/approval work is App UI; support chat-only only when the user explicitly asks for it (`chat only`, `no UI`, `纯聊天`, `不要打开 UI`, or similar).
 
 App-in-Skill is a pattern, not one fixed UI. A review queue is the most common shape, but dashboards, workspaces, control panels, and collaboration surfaces are also valid.
@@ -62,7 +62,7 @@ skill-name/
 │   ├── start.sh
 │   ├── i18n/messages.js
 │   └── server/*.ts
-├── app/.data/              # local handoff files, gitignored
+├── app/.data/              # local provider handoff files, gitignored
 ├── lib/
 │   ├── paths.ts
 │   ├── common.ts
@@ -77,7 +77,7 @@ Default runtime choices:
 
 - Hono server, Node >=23.6 native type stripping, TypeScript on the Node side.
 - Vanilla zero-build browser frontend: `.html`, `.js`, `.css`, and `app/i18n/` catalogs.
-- JSON runtime config and JSON handoff files.
+- JSON runtime config and provider handoff state.
 - Data access through `lib/data-provider/`.
 - Local HTTP on `127.0.0.1`, preferred ports `3000-4000`.
 
@@ -109,7 +109,7 @@ An App-in-Skill should:
 - launch or reuse the local app for visual review by default;
 - keep chat-only review as an explicit fallback;
 - preserve stable item references such as `Review #1` for chat follow-up;
-- store human input in local handoff files;
+- store human input through the active provider;
 - re-read decisions immediately before execution;
 - write execution reports with concrete operations and targets;
 - keep app-side actions local-only;

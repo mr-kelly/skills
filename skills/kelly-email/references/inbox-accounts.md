@@ -86,4 +86,4 @@ reply_as: Support <support@example.com>
 
 It is okay to store non-secret routing rules here. Do not store passwords, app passwords, OAuth tokens, recovery codes, private API keys, session cookies, full customer exports, or large attachment contents.
 
-Use `.agents/skills/kelly-email/config.local.json` for the user's private account/identity inventory. It is ignored by git. Start from `.agents/skills/kelly-email/config.example.json`.
+In local provider mode, use `.agents/skills/kelly-email/config.local.json` for the user's private account/identity inventory. In Busabase provider mode, use Drive `config/config.json` and Busabase Vault secret refs. Start from `.agents/skills/kelly-email/config.example.json`.

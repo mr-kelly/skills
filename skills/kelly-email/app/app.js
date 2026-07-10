@@ -629,6 +629,43 @@ function renderBulkActions() {
   if (bulkSelect) bulkSelect.value = "";
 }
 
+function providerStatus() {
+  const status = state.provider_status || {};
+  const provider =
+    status.provider || state.email_accounts?.data_provider || state.email_accounts?.data_reader || "local";
+  return {
+    ...status,
+    provider,
+    mode: status.mode || provider,
+  };
+}
+
+function providerReady() {
+  return providerStatus().ok !== false;
+}
+
+function providerModeLabel(status = providerStatus()) {
+  const provider = status.provider || "local";
+  const mode = status.mode || provider;
+  return provider === mode ? provider : `${provider} / ${mode}`;
+}
+
+function providerStatusText(status = providerStatus()) {
+  if (status.ok === false) return status.message || t("provider.not_ready_message");
+  return status.message || t("provider.ready_message");
+}
+
+function providerValue(...values) {
+  return values.map((value) => String(value || "").trim()).find(Boolean) || t("settings.not_configured");
+}
+
+function providerPair(primary, secondary) {
+  const left = String(primary || "").trim();
+  const right = String(secondary || "").trim();
+  if (left && right && left !== right) return `${left} / ${right}`;
+  return left || right || t("settings.not_configured");
+}
+
 function accountsCardsHtml() {
   const payload = state.email_accounts || {};
   const onboarding = payload.onboarding || {};
@@ -639,11 +676,11 @@ function accountsCardsHtml() {
         <strong>${escapeHtml(t("account.add_title"))}</strong>
         <p>${escapeHtml(t("account.add_body"))}</p>
       </div>
-      <pre><code>/kelly-email 帮我增加一个 email account：邮箱是 name@example.com，IMAP/SMTP 是 example.com，alias 有 support@example.com，用 Support 身份回复。请更新本地 config，但不要让我在聊天里贴密码。
+      <pre><code>/kelly-email 帮我增加一个 email account：邮箱是 name@example.com，IMAP/SMTP 是 example.com，alias 有 support@example.com，用 Support 身份回复。请更新当前 provider config，但不要让我在聊天里贴密码。
 
 /kelly-email 给 main 账号增加 alias：hello@example.com，并新增一个 outbound identity：display name 是 Founder，send_as 是 founder@example.com。
 
-/kelly-email 测试当前 email account 配置，告诉我缺哪些 env secret。</code></pre>
+/kelly-email 测试当前 email account 配置，告诉我缺哪些 secret ref 或 Vault secret。</code></pre>
     </article>
   `;
   if (!onboarding.configured) {
@@ -852,12 +889,33 @@ function openHelp(tab = "guide") {
   const modal = $("helpModal");
   const batch = state.batch || {};
   const onboarding = state.email_accounts?.onboarding || {};
+  const provider = providerStatus();
+  const connection = provider.connection || {};
   $("helpBatchInfo").textContent = batch.batch_id
     ? t("batch.info", { id: batch.batch_id, count: state.total_cached || 0, date: batch.generated_at || "" })
     : t("batch.none");
-  $("helpDataReader").textContent =
-    `${state.email_accounts?.data_reader || "local"}${state.email_accounts?.data_provider ? ` · ${state.email_accounts.data_provider}` : ""}`;
+  $("helpDataReader").textContent = state.email_accounts?.data_reader || provider.provider || "local";
+  $("helpDataProvider").textContent = providerModeLabel(provider);
+  $("helpProviderStatus").textContent = providerStatusText(provider);
+  $("helpProviderFolder").textContent = providerValue(
+    provider.folder_slug,
+    connection.folder_slug,
+    connection.folder_node_id,
+  );
+  $("helpProviderBase").textContent = providerPair(
+    provider.base_id || connection.base_id,
+    provider.base_slug || connection.base_slug || connection.resolved_base_id,
+  );
+  $("helpProviderContactsBase").textContent = providerPair(
+    provider.contacts_base_id || connection.contacts_base_id,
+    provider.contacts_base_slug || connection.contacts_base_slug || connection.resolved_contacts_base_id,
+  );
+  $("helpProviderDrive").textContent = providerPair(
+    provider.drive_slug || connection.drive_slug,
+    provider.drive_id || connection.drive_id || connection.drive_node_id,
+  );
   $("helpBatchPath").textContent = state.batch_path || t("files.no_batch");
+  $("helpContactsPath").textContent = state.contacts_path || t("files.no_contacts");
   $("helpDecisionsPath").textContent = state.decisions_path || t("files.no_decisions");
   $("helpConfigPath").textContent = onboarding.configured
     ? state.email_accounts?.source || t("files.no_config")
@@ -886,10 +944,32 @@ function isLocked() {
   return Boolean(state.lock?.locked);
 }
 
+function applyProviderGate() {
+  const unavailable = !providerReady();
+  const gate = $("providerGate");
+  if (!gate) return;
+  const status = providerStatus();
+  gate.classList.toggle("is-hidden", !unavailable);
+  gate.setAttribute("aria-hidden", String(!unavailable));
+  const message = $("providerGateMessage");
+  if (message) message.textContent = providerStatusText(status);
+  const mode = $("providerGateMode");
+  if (mode) mode.textContent = providerModeLabel(status);
+  const baseUrl = $("providerGateBaseUrl");
+  if (baseUrl) baseUrl.textContent = status.base_url || t("settings.not_configured");
+  const baseId = $("providerGateBaseId");
+  if (baseId) baseId.textContent = status.base_id || t("settings.not_configured");
+  const action = $("providerGateAction");
+  if (action) action.textContent = status.action || t("provider.default_action");
+}
+
 function applyLockState() {
   const locked = isLocked();
+  const unavailable = !providerReady();
   document.body.classList.toggle("is-locked", locked);
-  if (locked) closeDetailActionMenu();
+  document.body.classList.toggle("provider-unavailable", unavailable);
+  if (locked || unavailable) closeDetailActionMenu();
+  applyProviderGate();
   const banner = $("lockBanner");
   if (banner) {
     banner.classList.toggle("is-hidden", !locked);
@@ -899,8 +979,16 @@ function applyLockState() {
     message.textContent = locked ? state.lock.message || t("lock.processing") : t("lock.default");
   }
   document.querySelectorAll("button, input, textarea, select").forEach((node) => {
-    if (node.id === "searchInput") return;
-    node.disabled = locked;
+    const keepEnabled =
+      node.id === "searchInput" ||
+      node.id === "helpButton" ||
+      node.id === "mobileHelpButton" ||
+      node.id === "providerGateHelpButton" ||
+      node.id === "closeHelp" ||
+      node.id === "sidebarToggle" ||
+      node.id === "mobileSidebarToggle" ||
+      Boolean(node.closest("#helpModal"));
+    node.disabled = !keepEnabled && (locked || unavailable);
   });
 }
 
@@ -1289,15 +1377,13 @@ async function decide(action, ids = null) {
   if (!list.length) return toast(t("toast.select_one"));
   const item = isSingleDetailAction ? selectedItem() : null;
   const comment = item ? $("commentText")?.value || "" : "";
+  const payload = { ids: list, action };
   if (item) {
-    await api("/api/detail", {
-      id: item.id,
-      draft: $("draftText")?.value || item.draft || "",
-      suggested_reply: $("draftText")?.value || item.suggested_reply || "",
-      comment,
-    });
+    payload.comment = comment;
+    payload.draft = $("draftText")?.value || item.draft || "";
+    payload.suggested_reply = $("draftText")?.value || item.suggested_reply || "";
   }
-  const data = await api("/api/decision", { ids: list, action, comment });
+  const data = await api("/api/decision", payload);
   list.forEach((id) => checked.delete(id));
   toast(t("toast.saved_count", { count: data.changed.length }));
   await refresh({ preserveScroll: false });
@@ -1306,6 +1392,7 @@ async function decide(action, ids = null) {
 function wire() {
   $("helpButton").onclick = openHelp;
   $("mobileHelpButton").onclick = openHelp;
+  $("providerGateHelpButton").onclick = () => openHelp("config");
   $("closeHelp").onclick = closeHelp;
   $("helpModal").addEventListener("click", (event) => {
     if (event.target.id === "helpModal") closeHelp();

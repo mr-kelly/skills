@@ -1,8 +1,8 @@
-# Batch & Decisions File Schema
+# Batch & Decisions Provider Schema
 
 Read this when generating, updating, or executing a kelly-email review batch.
 
-Generate a batch file at `.agents/skills/kelly-email/app/.data/current_batch.json` with this shape:
+Generate provider email records that can be projected into a batch with this shape. Local mode stores the records in `.agents/skills/kelly-email/app/.data/email_records.json`; Busabase mode stores them as Emails Base `review_item` rows. Contact rows are derived from the batch into local `email_contacts.json` or the Busabase Email Contacts Base, with email rows linking to contacts through sender/recipient contact id columns. `current_batch.json` and `decisions.json` are compatibility snapshots, not the canonical store.
 
 ```json
 {
@@ -104,6 +104,6 @@ Current UI workflow state is derived from the item rather than stored as a separ
 
 Avoid using `status=decided`; the user's decision belongs in `decision.action`, while `status` describes the item's current support lifecycle.
 
-## Decisions file
+## Decisions
 
-After the user reviews in the UI, read `.agents/skills/kelly-email/app/.data/decisions.json`. Treat it as the user's approval/comment layer, but still execute only decisions that are explicit: `archive` (move to the configured category/risk target folder and mark read), `mark_read`, `send_reply`, `draft_reply`, `keep_unread`, `no_action`, `needs_review`, `revise`.
+After the user reviews in the UI, read decisions through the active provider. Local mode derives them from `email_records.json`; Busabase mode derives them from `review_item.decision_*` Base columns. Treat them as the user's approval/comment layer, but still execute only decisions that are explicit: `archive` (move to the configured category/risk target folder and mark read), `mark_read`, `send_reply`, `draft_reply`, `keep_unread`, `no_action`, `needs_review`, `revise`.

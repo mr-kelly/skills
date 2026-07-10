@@ -233,6 +233,9 @@ export interface MailboxEndpoint {
   host?: string;
   username?: string;
   password_env?: string;
+  password_vault_ref?: string;
+  vault_ref?: string;
+  secret_ref?: string;
   [key: string]: unknown;
 }
 

@@ -21,6 +21,19 @@ export interface ReviewInput {
   [key: string]: unknown;
 }
 
+/** Readiness payload surfaced by `/api/state` and Help & Settings. */
+export interface ProviderStatus {
+  ok: boolean;
+  provider: string;
+  mode?: string;
+  message?: string;
+  action?: string;
+  connection?: Record<string, unknown>;
+  schema?: Record<string, unknown>;
+  error?: string;
+  [key: string]: unknown;
+}
+
 /**
  * The polymorphic contract shared by every provider. Adapt the member list to
  * your skill's handoff files (see the File Contract section of the spec). Core
@@ -48,6 +61,22 @@ export interface DataProvider {
 
   // ── optional extensions (provider-specific) ────────────────────────────────
   createItem?(input: Record<string, unknown>, options?: Record<string, unknown>): Promise<unknown>;
+  /** Idempotent startup hook; remote providers may lazy-create Folder/Base/Drive/schema here. */
+  init?(): Promise<ProviderStatus | Record<string, unknown>>;
+  /** Readiness summary for UI gates and Help & Settings. */
+  providerStatus?(): Promise<ProviderStatus | Record<string, unknown>>;
+  /** Read schema metadata without mutating remote storage. */
+  checkSchema?(): Promise<Record<string, unknown>>;
+  /** Create/repair provider-owned schema when `apply` is true. */
+  ensureSchema?(options?: { apply?: boolean }): Promise<Record<string, unknown>>;
+  /** File-tree storage for app-state blobs, attachments, imports, and exports. */
+  getFile?(path: string): Promise<unknown>;
+  putFile?(path: string, data: unknown, meta?: Record<string, unknown>): Promise<unknown>;
+  /** Long-form editable documents; use Drive for blobs and Base for compact workflow rows. */
+  getDoc?(idOrPath: string): Promise<unknown>;
+  putDoc?(idOrPath: string, data: unknown, meta?: Record<string, unknown>): Promise<unknown>;
+  /** Runtime secret lookup from a provider vault; never expose values in UI state. */
+  getSecret?(name: string): Promise<string>;
   /** Probe connectivity (remote providers). */
   verifyConnection?(): Promise<Record<string, unknown>>;
 }
@@ -64,7 +93,19 @@ export const CORE_METHODS = [
 ] as const satisfies readonly (keyof DataProvider)[];
 
 /** Members a provider MAY implement; validated only when present. */
-export const OPTIONAL_METHODS = ["createItem", "verifyConnection"] as const satisfies readonly (keyof DataProvider)[];
+export const OPTIONAL_METHODS = [
+  "createItem",
+  "init",
+  "providerStatus",
+  "checkSchema",
+  "ensureSchema",
+  "getFile",
+  "putFile",
+  "getDoc",
+  "putDoc",
+  "getSecret",
+  "verifyConnection",
+] as const satisfies readonly (keyof DataProvider)[];
 
 /**
  * Assert `provider` conforms to {@link DataProvider}; throw one actionable error

@@ -8,9 +8,10 @@ if (!process.env.KELLY_EMAIL_DATA_PROVIDER && !process.env.KELLY_EMAIL_DATA_READ
 function help() {
   console.log(`Usage: KELLY_EMAIL_DATA_PROVIDER=busabase node scripts/init_busabase_schema.ts [--apply]
 
-Checks the Kelly Email Busabase Base/Drive/Secrets schema metadata.
-Without --apply, this is read-only. With --apply, it writes the schema_meta
-record into the configured Busabase Base.`);
+Checks the Kelly Email Busabase Folder/Base/Drive/Secrets schema metadata.
+Without --apply, this is read-only. With --apply, it creates/repairs the
+workspace Folder, structured Base, app-state Drive, and Drive schema file.
+Normal app startup also lazy-initializes this schema after the provider connects.`);
 }
 
 async function main() {
