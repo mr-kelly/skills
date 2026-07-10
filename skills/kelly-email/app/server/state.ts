@@ -76,15 +76,26 @@ export async function statePayload(query: StateQuery = {}) {
   counts.approved = allItems.filter(isApprovedForExecution).length;
   counts.done = allItems.filter(isDone).length;
   counts.blocked = allItems.filter(isBlocked).length;
+  const providerSelected = Boolean(
+    process.env.KELLY_EMAIL_DATA_PROVIDER || configMeta.has_private_config || provider.kind !== "local",
+  );
+  const recommendedConfig =
+    onboarding.recommended_config ||
+    configMeta.recommended_config ||
+    (provider.kind === "busabase" ? "busabase:drive/config/config.json" : "");
+  const recommendedEnv =
+    onboarding.recommended_env ||
+    configMeta.recommended_env ||
+    (provider.kind === "busabase" ? `busabase:vault/${String(providerState.secrets_namespace || "kelly-email")}` : "");
   return {
     app: "kelly-email",
     setup: {
-      provider_selected: Boolean(process.env.KELLY_EMAIL_DATA_PROVIDER || configMeta.has_private_config),
+      provider_selected: providerSelected,
       provider_env_locked: Boolean(process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER),
       provider: provider.kind,
       state: providerUnavailable ? "provider_not_ready" : onboarding.state || "ready",
-      recommended_config: onboarding.recommended_config || configMeta.recommended_config || "",
-      recommended_env: onboarding.recommended_env || configMeta.recommended_env || "",
+      recommended_config: recommendedConfig,
+      recommended_env: recommendedEnv,
       example_config: onboarding.example_config || configMeta.example_config || "",
       missing_env: onboarding.missing_env || [],
     },
