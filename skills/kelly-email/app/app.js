@@ -59,11 +59,11 @@ function languageSwitcherHtml(container) {
   const name = container.dataset.languageName || "uiLanguage";
   const title =
     container.dataset.languageTitle === "true"
-      ? `<span data-i18n="language.title">${escapeHtml(t("language.title"))}</span>`
+      ? `<span data-language-title-label>${escapeHtml(t("language.title"))}</span>`
       : "";
   const options = LANGUAGE_OPTIONS.map(
     (option) => `
-      <label>
+      <label data-ui-language-option>
         <input
           type="radio"
           name="${escapeHtml(name)}"
@@ -71,7 +71,7 @@ function languageSwitcherHtml(container) {
           data-ui-language
           ${option.value === languageMode ? "checked" : ""}
         />
-        <span>${escapeHtml(t(option.labelKey))}</span>
+        <span data-language-label-key="${escapeHtml(option.labelKey)}">${escapeHtml(t(option.labelKey))}</span>
       </label>
     `,
   ).join("");
@@ -80,7 +80,18 @@ function languageSwitcherHtml(container) {
 
 function renderLanguageSwitchers() {
   document.querySelectorAll("[data-language-switcher]").forEach((container) => {
-    container.innerHTML = languageSwitcherHtml(container);
+    if (container.dataset.languageSwitcherReady !== "true") {
+      container.innerHTML = languageSwitcherHtml(container);
+      container.dataset.languageSwitcherReady = "true";
+    }
+    container.querySelectorAll("[data-ui-language]").forEach((input) => {
+      input.checked = input.value === languageMode;
+    });
+    const title = container.querySelector("[data-language-title-label]");
+    if (title) title.textContent = t("language.title");
+    container.querySelectorAll("[data-language-label-key]").forEach((label) => {
+      label.textContent = t(label.dataset.languageLabelKey);
+    });
   });
 }
 
@@ -171,7 +182,12 @@ function renderLanguageSummary() {
 }
 
 function setLanguageMode(value) {
-  languageMode = ["auto", "en", "zh-CN"].includes(value) ? value : "auto";
+  const nextMode = ["auto", "en", "zh-CN"].includes(value) ? value : "auto";
+  if (nextMode === languageMode) {
+    renderLanguageSwitchers();
+    return;
+  }
+  languageMode = nextMode;
   localStorage.setItem(LANGUAGE_STORAGE_KEY, languageMode);
   applyTranslations();
   renderCounts();
@@ -1572,10 +1588,20 @@ function wire() {
   });
   document.addEventListener("click", (event) => {
     if (!event.target.closest(".action-cluster")) closeDetailActionMenu();
+    const option = event.target.closest?.("[data-ui-language-option]");
+    if (option && !(event.target instanceof HTMLInputElement && event.target.matches("[data-ui-language]"))) {
+      const input = option.querySelector("[data-ui-language]");
+      if (input instanceof HTMLInputElement) {
+        event.preventDefault();
+        setLanguageMode(input.value);
+      }
+    }
   });
   document.addEventListener("change", (event) => {
-    const input = event.target.closest?.("[data-ui-language]");
-    if (input) setLanguageMode(input.value);
+    const input = event.target;
+    if (input instanceof HTMLInputElement && input.matches("[data-ui-language]")) {
+      setLanguageMode(input.value);
+    }
   });
   $("sidebarToggle").onclick = toggleSidebar;
   $("mobileSidebarToggle").onclick = () => setMobileSidebarOpen(true);

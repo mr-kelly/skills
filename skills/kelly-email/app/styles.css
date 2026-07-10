@@ -869,6 +869,8 @@ body.sidebar-collapsed .help-box {
   color: #374151;
   font-size: 13px;
   box-shadow: var(--shadow);
+  cursor: pointer;
+  user-select: none;
 }
 
 .language-options input,
@@ -1301,6 +1303,8 @@ body.provider-unavailable .message-row:hover {
   color: #374151;
   font-size: 12px;
   line-height: 1;
+  cursor: pointer;
+  user-select: none;
 }
 
 .setup-language-switch input {
