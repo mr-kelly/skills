@@ -8,7 +8,10 @@
     "start": "node app/server/launcher.ts",
     "serve": "node app/server/index.ts",
     "validate": "node scripts/validate_ui_schema.ts",
-    "demo:snapshot": "node scripts/generate_demo_snapshot.ts"
+    "demo:snapshot": "node scripts/generate_demo_snapshot.ts",
+    "busabase:export": "node scripts/export_busabase_snapshot.ts",
+    "busabase:restore": "node scripts/restore_busabase_snapshot.ts",
+    "busabase:backfill-pdf-metadata": "node scripts/backfill_pdf_metadata.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.8",

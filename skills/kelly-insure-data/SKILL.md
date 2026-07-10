@@ -1,6 +1,6 @@
 ---
 name: kelly-insure-data
-description: Insurance-industry App-in-Skill for high-quality data entry and governance, backed by Busabase SDK/CLI. Use when the user invokes $kelly-insure-data or /kelly-insure-data, wants an insurance data workspace with UI, needs to govern insurance files, metadata, QA pairs, or news records, or wants Busabase Drive/Base data surfaced for data quality review, metadata completeness, canonical insurance knowledge entry, and ongoing data governance.
+description: Insurance-industry App-in-Skill for high-quality data entry and governance, backed by a Busabase REST provider and operator scripts. Use when the user invokes $kelly-insure-data or /kelly-insure-data, wants an insurance data workspace with UI, needs to govern insurance files, metadata, QA pairs, or news records, restore a Busabase insurance workspace from local PDFs, or wants Busabase Drive/Base data surfaced for data quality review, metadata completeness, canonical insurance knowledge entry, and ongoing data governance.
 ---
 
 # Kelly Insure Data
@@ -73,7 +73,7 @@ Environment overrides:
 - `KELLY_INSURE_DATA_BUSABASE_NEWS_BASE_ID`
 - `KELLY_INSURE_DATA_BUSABASE_RECORD_LIMIT`
 
-Use `busabase-cli` for setup checks when useful:
+Use `busabase-cli` for setup checks when useful. Runtime reads and operator scripts use the shared REST Busabase client in `lib/data-provider/busabase-client.ts`.
 
 ```bash
 npx busabase-cli health --base-url http://127.0.0.1:15419
@@ -100,6 +100,20 @@ Primary local files:
 4. Start/reuse the UI with `app/start.sh`.
 5. For data-entry requests, draft proposed new records or metadata cleanup as reviewable changes first. Do not silently mutate Busabase canonical records.
 6. Validate local snapshots with `scripts/validate_ui_schema.ts`.
+
+## Backup / Restore Workflow
+
+Read `references/restore-manifest-schema.md` before changing backup or restore behavior.
+
+Use `npm run busabase:export -- --output app/.data/busabase_restore_manifest.json` to export a portable manifest for the active Kelly Insure Data Busabase folder. The manifest captures the folder/Drive/Base shape, Drive file paths, asset metadata, Base schemas, and QA/news record fields. It does not embed PDF bytes.
+
+Use `npm run busabase:restore -- --manifest app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run` to preview restoration after a Busabase reset. Add `--apply` only when the user explicitly asks to recreate missing folder, Drive files, Bases, and records.
+
+## PDF Metadata Backfill
+
+Use `npm run busabase:backfill-pdf-metadata -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5` to parse local PDFs and preview generated asset metadata.
+
+Add `--apply` only when the user asks to write metadata back to Busabase assets. The parser is heuristic and should mark generated records as `needs_review`, preserving source file path, asset id, parser method, and extraction summary.
 
 ## Validation
 

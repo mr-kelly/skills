@@ -1,3 +1,6 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { createHash } from "node:crypto";
 import type { Config } from "../types.ts";
 
 export interface BusabaseClientOptions {
@@ -36,6 +39,10 @@ function envValue(envPrefix: string, name: string) {
 function parseLimit(value: unknown) {
   const parsed = Number.parseInt(String(value || ""), 10);
   return Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 1000) : 200;
+}
+
+function sha256(buffer: Buffer) {
+  return `sha256:${createHash("sha256").update(buffer).digest("hex")}`;
 }
 
 export function busabaseMeta({ envPrefix, config = {} }: BusabaseClientOptions): BusabaseClientMeta {
@@ -86,6 +93,11 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     return Array.isArray(bases) ? bases : [];
   }
 
+  async function listNodes(): Promise<AnyRecord[]> {
+    const nodes = await api("GET", "/api/v1/nodes");
+    return Array.isArray(nodes) ? nodes : [];
+  }
+
   async function resolveBase(id = "", slug = "") {
     if (!id && !slug) return null;
     const bases = await listBases();
@@ -117,6 +129,18 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     return Array.isArray(files) ? files : [];
   }
 
+  async function getDrive(nodeId: string) {
+    return api("GET", `/api/v1/drives/${encodeURIComponent(nodeId)}`);
+  }
+
+  async function getAsset(assetId: string) {
+    return api("GET", `/api/v1/assets/${encodeURIComponent(assetId)}`);
+  }
+
+  async function updateAssetMetadata(assetId: string, metadata: AnyRecord, mode: "merge" | "replace" = "merge") {
+    return api("PATCH", `/api/v1/assets/${encodeURIComponent(assetId)}/metadata`, { metadata, mode });
+  }
+
   async function listRecords(baseId: string, limit = meta.recordLimit): Promise<AnyRecord[]> {
     const records: AnyRecord[] = [];
     let cursor = "";
@@ -133,14 +157,94 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     return records.slice(0, limit);
   }
 
+  async function createNodeChangeRequest(operations: AnyRecord[], message: string) {
+    return api("POST", "/api/v1/nodes/change-requests", {
+      operations,
+      message,
+      submittedBy: "kelly-insure-data",
+      autoMerge: true,
+    });
+  }
+
+  async function createBase(payload: AnyRecord) {
+    return api("POST", "/api/v1/bases", payload);
+  }
+
+  async function createDriveChangeRequest(nodeId: string, operations: AnyRecord[], message: string) {
+    return api("POST", `/api/v1/drives/${encodeURIComponent(nodeId)}/change-requests`, {
+      operations,
+      message,
+      submittedBy: "kelly-insure-data",
+    });
+  }
+
+  async function bulkRecordChangeRequest(baseId: string, records: AnyRecord[], message: string) {
+    return api("POST", `/api/v1/bases/${encodeURIComponent(baseId)}/records/bulk-change-request`, {
+      records,
+      message,
+      submittedBy: "kelly-insure-data",
+    });
+  }
+
+  async function approveAndMerge(changeRequestId: string) {
+    await api("POST", `/api/v1/change-requests/${encodeURIComponent(changeRequestId)}/reviews`, {
+      verdict: "approved",
+      reason: "Kelly Insure Data Busabase operation requested with --apply.",
+    });
+    return api("POST", `/api/v1/change-requests/${encodeURIComponent(changeRequestId)}/merge`);
+  }
+
+  async function uploadAsset(localFile: string, mimeType: string, metadata: AnyRecord = {}) {
+    const bytes = await fs.readFile(localFile);
+    const fileName = path.basename(localFile);
+    const sizeBytes = bytes.length;
+    const contentHash = sha256(bytes);
+    const upload = await api("POST", "/api/v1/assets/upload-urls", {
+      fileName,
+      mimeType,
+      sizeBytes,
+      spaceId: meta.spaceId || undefined,
+      context: "kelly-insure-data/restore",
+      contentHash,
+    });
+    if (upload.assetId) return { assetId: upload.assetId, contentHash };
+    const put = await fetch(upload.uploadUrl, {
+      method: "PUT",
+      headers: { "content-type": mimeType },
+      body: bytes,
+    });
+    if (!put.ok) throw new Error(`asset upload PUT -> ${put.status} ${await put.text().catch(() => "")}`.trim());
+    const confirmation = await api("POST", "/api/v1/assets/confirmations", {
+      storageKey: upload.storageKey,
+      fileName,
+      mimeType,
+      sizeBytes,
+      spaceId: meta.spaceId || undefined,
+      context: "kelly-insure-data/restore",
+      metadata,
+      contentHash,
+    });
+    return { assetId: confirmation.assetId, contentHash };
+  }
+
   return {
     meta,
     api,
+    listNodes,
     listBases,
     resolveBase,
     resolveDrive,
     listDriveFiles,
+    getDrive,
+    getAsset,
+    updateAssetMetadata,
     listRecords,
+    createNodeChangeRequest,
+    createBase,
+    createDriveChangeRequest,
+    bulkRecordChangeRequest,
+    approveAndMerge,
+    uploadAsset,
     async verifyConnection() {
       const auth = await api("GET", "/api/v1/auth").catch(() => null);
       return {
