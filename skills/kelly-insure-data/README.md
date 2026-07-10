@@ -1,13 +1,14 @@
 # Kelly Insure Data
 
-Kelly Insure Data is a local App-in-Skill workspace for insurance-industry high-quality data entry and data governance. It connects to Busabase through the REST data provider layer: one Drive node for the file drive, one Base for QA pairs, and one Base for insurance news and market-intelligence records.
+Kelly Insure Data is a local App-in-Skill workspace for insurance-industry high-quality data entry and data governance. It connects to Busabase through the REST data provider layer: one Drive node for the file drive, one Base for QA pairs, one Base for insurance news and market-intelligence records, and one Base for user feedback.
 
 ## What It Shows
 
-- Overview: file, QA, and news counts; data quality score; metadata field coverage; and records that still need governance.
+- Overview: file, QA, news, and feedback counts; data quality score; metadata field coverage; and records that still need governance.
 - 文件盘: Busabase Drive-node files with metadata fields, missing-field badges, source, owner, jurisdiction, carrier, product line, and review status.
 - 问答: QA Base records with canonical question/answer text, source traceability, tags, review status, and completeness checks.
 - 新闻资讯: News Base records with title, publisher, publish date, market, URL, summary, and governance warnings.
+- 用户反馈: Feedback Base records with feedback text, source, user/contact fields, rating, status, tags, and completeness checks.
 - Settings: local provider state and Busabase connection targets, without exposing tokens or private config.
 
 The app is read-first by default. It surfaces quality gaps and review targets before any insurance data becomes trusted knowledge.
@@ -48,6 +49,7 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=files&lang=zh#/files
 /?demo=qa&lang=zh#/qa
 /?demo=news&lang=zh#/news
+/?demo=feedback&lang=zh#/feedback
 /?demo=settings&lang=zh#/settings
 ```
 
@@ -65,7 +67,8 @@ Copy `config.example.json` to `config.local.json` or `~/.config/kelly-insure-dat
     "api_key_env": "KELLY_INSURE_DATA_BUSABASE_API_KEY",
     "drive_node_id": "drv_or_node_id",
     "qa_base_id": "bse_qa",
-    "news_base_id": "bse_news"
+    "news_base_id": "bse_news",
+    "feedback_base_id": "bse_feedback"
   }
 }
 ```
@@ -100,14 +103,15 @@ The generated `Asset.metadata` includes parser details, structured file fields, 
 
 # Kelly Insure Data（中文）
 
-Kelly Insure Data 是一个面向保险行业的本地 App-in-Skill 数据录入与治理工作台。它基于 Busabase REST provider 读取三类数据：一个 Drive node 做「文件盘」，一个 Base 做「问答」，一个 Base 做「新闻资讯」。
+Kelly Insure Data 是一个面向保险行业的本地 App-in-Skill 数据录入与治理工作台。它基于 Busabase REST provider 读取四类数据：一个 Drive node 做「文件盘」，一个 Base 做「问答」，一个 Base 做「新闻资讯」，一个 Base 做「用户反馈」。
 
 ## 界面内容
 
-- Overview：展示文件数、问答数、资讯数、数据质量分、Metadata 字段覆盖率，以及需要治理的记录。
+- Overview：展示文件数、问答数、资讯数、反馈数、数据质量分、Metadata 字段覆盖率，以及需要治理的记录。
 - 文件盘：展示 Busabase Drive node 下的文件与 Metadata 字段，突出缺失字段、来源、负责人、地区、险种、承保方与审核状态。
 - 问答：展示 Busabase Base 中的 QA 对，包含标准问题、标准答案、来源、标签、审核状态与完整性检查。
 - 新闻资讯：展示另一个 Busabase Base 中的保险资讯，包含标题、发布方、发布时间、市场、链接、摘要与治理风险。
+- 用户反馈：展示用户反馈 Base 中的反馈内容、来源、用户/联系方式、评分、标签、状态与完整性检查。
 - Settings：展示本地 provider 和 Busabase 目标配置摘要，不暴露 token 或私有配置。
 
 默认是只读治理视图。需要新增、清洗或回写 Busabase 记录时，应先生成可审核的变更建议，再由用户确认。

@@ -41,6 +41,7 @@ export function demoSnapshot(): InsureSnapshot {
   const fileRequired = ["policy_type", "carrier", "region", "effective_date", "status"];
   const qaRequired = ["question", "answer", "category", "source"];
   const newsRequired = ["title", "summary", "source", "published_at"];
+  const feedbackRequired = ["title", "content", "source", "created_at", "status"];
   const files = [
     {
       id: "file-policy-hk-medical",
@@ -211,7 +212,52 @@ export function demoSnapshot(): InsureSnapshot {
     },
     governance: governance(item, newsRequired),
   }));
-  const governed = [...files, ...qaPairs, ...newsItems];
+  const feedbackItems = [
+    {
+      id: "feedback-brochure-clarity",
+      title: "产品小册子的等待期说明不够醒目",
+      content: "客户反馈等待期和既往症限制散落在不同页，销售同事希望能有统一摘要。",
+      source: "HK Medical Plan Summary.pdf",
+      user_name: "Ops reviewer",
+      contact: "",
+      rating: "4",
+      category: "document_clarity",
+      tags: ["medical", "waiting_period"],
+      created_at: "2026-07-08T10:30:00.000Z",
+      status: "new",
+      fields: {},
+    },
+    {
+      id: "feedback-qa-source",
+      title: "问答需要补充条款页码",
+      content: "部分 QA 已有答案但缺少具体 PDF 页码，复核时需要回到原文件确认。",
+      source: "问答",
+      user_name: "Kelly",
+      contact: "",
+      rating: "",
+      category: "traceability",
+      tags: ["qa", "source"],
+      created_at: "2026-07-06T15:20:00.000Z",
+      status: "needs_review",
+      fields: {},
+    },
+  ].map((item) => ({
+    ...item,
+    fields: {
+      title: item.title,
+      content: item.content,
+      source: item.source,
+      user_name: item.user_name,
+      contact: item.contact,
+      rating: item.rating,
+      category: item.category,
+      tags: item.tags,
+      created_at: item.created_at,
+      status: item.status,
+    },
+    governance: governance(item, feedbackRequired),
+  }));
+  const governed = [...files, ...qaPairs, ...newsItems, ...feedbackItems];
   const dataQualityScore = Math.round(
     governed.reduce((sum, item) => sum + Number(item.governance.completeness_pct || 0), 0) / governed.length,
   );
@@ -259,12 +305,25 @@ export function demoSnapshot(): InsureSnapshot {
           { key: "published_at", value: "date" },
         ],
       },
+      feedback: {
+        base_id: "bse_demo_feedback",
+        name: "用户反馈",
+        slug: "user-feedback",
+        fields: [
+          { key: "title", value: "text" },
+          { key: "content", value: "longtext" },
+          { key: "source", value: "text" },
+          { key: "status", value: "select" },
+          { key: "created_at", value: "date" },
+        ],
+      },
     },
     metrics: {
       file_count: files.length,
       metadata_field_count: 4,
       qa_count: qaPairs.length,
       news_count: newsItems.length,
+      feedback_count: feedbackItems.length,
       total_records: governed.length,
       data_quality_score: dataQualityScore,
       needs_governance: governed.filter(
@@ -276,6 +335,7 @@ export function demoSnapshot(): InsureSnapshot {
     files,
     qa_pairs: qaPairs,
     news_items: newsItems,
+    feedback_items: feedbackItems,
     warnings: [],
   };
 }
@@ -355,6 +415,7 @@ export function createLocalFileProvider(configResult: ConfigResult) {
         file_count: 0,
         qa_count: 0,
         news_count: 0,
+        feedback_count: 0,
       };
       return {
         ok: true,
@@ -362,6 +423,7 @@ export function createLocalFileProvider(configResult: ConfigResult) {
         file_count: metrics.file_count || 0,
         qa_count: metrics.qa_count || 0,
         news_count: metrics.news_count || 0,
+        feedback_count: metrics.feedback_count || 0,
       };
     },
   };

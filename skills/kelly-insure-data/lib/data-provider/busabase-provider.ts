@@ -1,6 +1,7 @@
 import { fieldMapping, recordLimit, summarizeConfig } from "../config.ts";
 import type {
   ConfigResult,
+  FeedbackItem,
   FieldMapping,
   InsureFile,
   InsureSnapshot,
@@ -112,6 +113,28 @@ function normalizeNews(record: AnyRecord, mapping: FieldMapping): NewsItem {
   };
 }
 
+function normalizeFeedback(record: AnyRecord, mapping: FieldMapping): FeedbackItem {
+  const fields = fieldsOf(record);
+  const required = [mapping.title, mapping.content, mapping.source, mapping.created_at, mapping.status].filter(
+    Boolean,
+  ) as string[];
+  return {
+    id: String(record.id || fields.id || crypto.randomUUID()),
+    title: text(fields[mapping.title || "title"]) || "(untitled feedback)",
+    content: text(fields[mapping.content || "content"]),
+    source: text(fields[mapping.source || "source"]),
+    user_name: text(fields[mapping.user_name || "user_name"]),
+    contact: text(fields[mapping.contact || "contact"]),
+    rating: text(fields[mapping.rating || "rating"]),
+    category: text(fields[mapping.category || "category"]),
+    tags: compactArray(fields[mapping.tags || "tags"]),
+    created_at: text(fields[mapping.created_at || "created_at"]) || String(record.createdAt || record.updatedAt || ""),
+    status: text(fields[mapping.status || "status"]) || record.status || "new",
+    fields,
+    governance: governance(fields, required),
+  };
+}
+
 function qualityScore(items: Array<{ governance?: { completeness_pct: number } }>): number {
   if (!items.length) return 100;
   return Math.round(
@@ -138,6 +161,8 @@ export function createBusabaseProvider(configResult: ConfigResult) {
   const qaBaseSlug = busa.meta.qaBaseSlug;
   const newsBaseId = busa.meta.newsBaseId;
   const newsBaseSlug = busa.meta.newsBaseSlug;
+  const feedbackBaseId = busa.meta.feedbackBaseId;
+  const feedbackBaseSlug = busa.meta.feedbackBaseSlug;
   const limit = recordLimit(config);
   const fileRequiredFields = Array.isArray(config.taxonomy?.file_metadata_fields)
     ? config.taxonomy.file_metadata_fields
@@ -180,22 +205,25 @@ export function createBusabaseProvider(configResult: ConfigResult) {
   }
 
   async function readSnapshot(): Promise<InsureSnapshot> {
-    const [drive, qaBase, newsBase] = await Promise.all([
+    const [drive, qaBase, newsBase, feedbackBase] = await Promise.all([
       busa.resolveDrive(driveNodeId, driveNodeSlug),
       busa.resolveBase(qaBaseId, qaBaseSlug),
       busa.resolveBase(newsBaseId, newsBaseSlug),
+      busa.resolveBase(feedbackBaseId, feedbackBaseSlug),
     ]);
     const resolvedDriveNodeId = drive?.node?.id || drive?.nodeId || drive?.id || driveNodeId;
-    const [driveFiles, qaRecords, newsRecords] = await Promise.all([
+    const [driveFiles, qaRecords, newsRecords, feedbackRecords] = await Promise.all([
       resolvedDriveNodeId ? busa.listDriveFiles(resolvedDriveNodeId) : [],
       qaBase ? busa.listRecords(qaBase.id, limit) : [],
       newsBase ? busa.listRecords(newsBase.id, limit) : [],
+      feedbackBase ? busa.listRecords(feedbackBase.id, limit) : [],
     ]);
 
     const files = driveFiles.map((file) => normalizeFile(file, fileRequiredFields));
     const qaPairs = qaRecords.map((record) => normalizeQa(record, fieldMapping("qa", config)));
     const newsItems = newsRecords.map((record) => normalizeNews(record, fieldMapping("news", config)));
-    const allGoverned = [...files, ...qaPairs, ...newsItems];
+    const feedbackItems = feedbackRecords.map((record) => normalizeFeedback(record, fieldMapping("feedback", config)));
+    const allGoverned = [...files, ...qaPairs, ...newsItems, ...feedbackItems];
     const warnings: InsureSnapshot["warnings"] = [];
     if (!drive)
       warnings.push({
@@ -214,6 +242,12 @@ export function createBusabaseProvider(configResult: ConfigResult) {
         id: "missing-news-base",
         severity: "warning",
         message: "Busabase news Base is not configured or not found.",
+      });
+    if (!feedbackBase)
+      warnings.push({
+        id: "missing-feedback-base",
+        severity: "warning",
+        message: "Busabase feedback Base is not configured or not found.",
       });
 
     return {
@@ -250,19 +284,32 @@ export function createBusabaseProvider(configResult: ConfigResult) {
               }))
             : [],
         },
+        feedback: {
+          base_id: String(feedbackBase?.id || feedbackBaseId || ""),
+          name: String(feedbackBase?.name || "用户反馈"),
+          slug: String(feedbackBase?.slug || feedbackBaseSlug || ""),
+          fields: Array.isArray(feedbackBase?.fields)
+            ? feedbackBase.fields.map((field: AnyRecord) => ({
+                key: field.slug || field.id,
+                value: `${fieldName(field)} (${field.type})`,
+              }))
+            : [],
+        },
       },
       metrics: {
         file_count: files.length,
         metadata_field_count: metadataFields(drive?.node?.metadata || {}).length,
         qa_count: qaPairs.length,
         news_count: newsItems.length,
-        total_records: files.length + qaPairs.length + newsItems.length,
+        feedback_count: feedbackItems.length,
+        total_records: files.length + qaPairs.length + newsItems.length + feedbackItems.length,
         data_quality_score: qualityScore(allGoverned),
         needs_governance: needsGovernance(allGoverned),
       },
       files,
       qa_pairs: qaPairs,
       news_items: newsItems,
+      feedback_items: feedbackItems,
       warnings,
     };
   }
@@ -289,12 +336,14 @@ export function createBusabaseProvider(configResult: ConfigResult) {
           bases: {
             qa: { base_id: qaBaseId, name: "问答", slug: qaBaseSlug, fields: [] },
             news: { base_id: newsBaseId, name: "新闻资讯", slug: newsBaseSlug, fields: [] },
+            feedback: { base_id: feedbackBaseId, name: "用户反馈", slug: feedbackBaseSlug, fields: [] },
           },
           metrics: {
             file_count: 0,
             metadata_field_count: 0,
             qa_count: 0,
             news_count: 0,
+            feedback_count: 0,
             total_records: 0,
             data_quality_score: 0,
             needs_governance: 0,
@@ -302,6 +351,7 @@ export function createBusabaseProvider(configResult: ConfigResult) {
           files: [],
           qa_pairs: [],
           news_items: [],
+          feedback_items: [],
           warnings: [{ id: "busabase-error", severity: "warning", message: (error as Error).message }],
         };
       }

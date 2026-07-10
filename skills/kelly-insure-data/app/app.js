@@ -30,6 +30,7 @@ const els = {
   fileCount: document.querySelector("#count-files"),
   qaCount: document.querySelector("#count-qa"),
   newsCount: document.querySelector("#count-news"),
+  feedbackCount: document.querySelector("#count-feedback"),
   language: document.querySelector("#language"),
 };
 
@@ -127,7 +128,12 @@ function metrics() {
 }
 
 function allItems() {
-  return [...(state.snapshot?.files || []), ...(state.snapshot?.qa_pairs || []), ...(state.snapshot?.news_items || [])];
+  return [
+    ...(state.snapshot?.files || []),
+    ...(state.snapshot?.qa_pairs || []),
+    ...(state.snapshot?.news_items || []),
+    ...(state.snapshot?.feedback_items || []),
+  ];
 }
 
 function qualityScore() {
@@ -144,6 +150,7 @@ function viewLabel(view = state.route.view) {
   if (view === "files") return t("files");
   if (view === "qa") return t("qa");
   if (view === "news") return t("news");
+  if (view === "feedback") return t("feedback");
   if (view === "settings") return t("settings");
   return t("overview");
 }
@@ -152,6 +159,7 @@ function viewSubtitle(view = state.route.view) {
   if (view === "files") return t("filesSubtitle");
   if (view === "qa") return t("qaSubtitle");
   if (view === "news") return t("newsSubtitle");
+  if (view === "feedback") return t("feedbackSubtitle");
   if (view === "settings") return t("settingsSubtitle");
   return t("overviewSubtitle");
 }
@@ -167,6 +175,7 @@ function renderShell() {
   els.fileCount.textContent = m.file_count || 0;
   els.qaCount.textContent = m.qa_count || 0;
   els.newsCount.textContent = m.news_count || 0;
+  els.feedbackCount.textContent = m.feedback_count || 0;
   els.mobileViewTitle.textContent = viewLabel();
   els.mobileViewMeta.textContent = `${score} ${t("qualityScore")} · ${m.needs_governance || 0} ${t("needsGovernance")}`;
   document.querySelectorAll("[data-route]").forEach((link) => {
@@ -255,6 +264,7 @@ function renderOverview() {
       ${metricCard(t("files"), m.file_count || 0, `${m.metadata_field_count || 0} ${t("metadataFields")}`)}
       ${metricCard(t("qa"), m.qa_count || 0, "Base")}
       ${metricCard(t("news"), m.news_count || 0, "Base")}
+      ${metricCard(t("feedback"), m.feedback_count || 0, "Base")}
       ${metricCard(t("totalRecords"), m.total_records || 0, state.settings?.data_provider || "")}
     </section>
     <section class="governance-section">
@@ -453,6 +463,40 @@ function renderNews() {
   });
 }
 
+function renderFeedback() {
+  renderListDetail({
+    view: "feedback",
+    items: state.snapshot?.feedback_items || [],
+    idKey: "id",
+    titleKey: "title",
+    subtitleKey: "source",
+    meta: (item) => `${item.category || t("category")} · ${formatDate(item.created_at)}`,
+    detail: (item) => `
+      <section class="detail-section">
+        <h3>${escapeHtml(t("feedbackContent"))}</h3>
+        <p class="detail-body">${escapeHtml(item.content)}</p>
+      </section>
+      <section class="detail-section">
+        <h3>${escapeHtml(t("status"))}</h3>
+        ${keyValueTable({
+          status: item.status,
+          user_name: item.user_name,
+          contact: item.contact,
+          rating: item.rating,
+        })}
+      </section>
+      <section class="detail-section">
+        <h3>${escapeHtml(t("missingFields"))}</h3>
+        <div class="missing-list">${missingMarkup(item)}</div>
+      </section>
+      <section class="detail-section">
+        <h3>${escapeHtml(t("baseFields"))}</h3>
+        ${keyValueTable(item.fields)}
+      </section>
+    `,
+  });
+}
+
 function renderSettings() {
   setPage("settings");
   const summary = state.settings?.config_summary || {};
@@ -472,6 +516,7 @@ function renderSettings() {
           drive_node_id: summary.busabase?.drive_node_id || "",
           qa_base_id: summary.busabase?.qa_base_id || "",
           news_base_id: summary.busabase?.news_base_id || "",
+          feedback_base_id: summary.busabase?.feedback_base_id || "",
           [t("recordLimit")]: summary.busabase?.record_limit || "",
           [t("apiKeyReady")]: summary.busabase?.api_key_ready ? "yes" : "no",
         })}
@@ -486,6 +531,8 @@ function renderSettings() {
         ${fieldTable(state.snapshot?.bases?.qa?.fields || [])}
         <h3>${escapeHtml(t("news"))}</h3>
         ${fieldTable(state.snapshot?.bases?.news?.fields || [])}
+        <h3>${escapeHtml(t("feedback"))}</h3>
+        ${fieldTable(state.snapshot?.bases?.feedback?.fields || [])}
       </article>
     </section>
   `;
@@ -497,6 +544,7 @@ function render() {
   if (state.route.view === "files") renderFiles();
   else if (state.route.view === "qa") renderQa();
   else if (state.route.view === "news") renderNews();
+  else if (state.route.view === "feedback") renderFeedback();
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
 }

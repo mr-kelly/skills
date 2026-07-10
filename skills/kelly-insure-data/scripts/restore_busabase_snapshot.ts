@@ -136,8 +136,9 @@ async function ensureBases(
 ) {
   let state = await existingState(client);
   const result: JsonRecord = {};
-  for (const kind of ["qa", "news"]) {
+  for (const kind of ["qa", "news", "feedback"]) {
     const expected = manifest.bases[kind];
+    if (!expected) continue;
     let found = state.bases.find((base: JsonRecord) => base.slug === expected.slug);
     if (found) {
       result[kind] = found;
@@ -302,7 +303,10 @@ async function main() {
   const news = bases.news?.id
     ? await restoreRecords(client, bases.news.id, manifest.bases.news.records || [], "news")
     : { restored: 0 };
-  console.log(JSON.stringify({ ok: true, dry_run: dryRun, files, qa, news }, null, 2));
+  const feedback = bases.feedback?.id
+    ? await restoreRecords(client, bases.feedback.id, manifest.bases.feedback?.records || [], "feedback")
+    : { restored: 0 };
+  console.log(JSON.stringify({ ok: true, dry_run: dryRun, files, qa, news, feedback }, null, 2));
 }
 
 main().catch((error) => {
