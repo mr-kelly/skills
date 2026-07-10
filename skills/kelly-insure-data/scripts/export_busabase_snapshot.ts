@@ -4,7 +4,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "../lib/data-provider/busabase-client.ts";
 
-
 type JsonRecord = Record<string, any>;
 
 function parseArgs(argv = process.argv.slice(2)) {
@@ -102,7 +101,9 @@ async function main() {
   const allNodes = flatten(Array.isArray(nodes) ? nodes : []);
   const folder = allNodes.find((node) => node.slug === folderSlug);
   if (!folder) throw new Error(`Folder not found: ${folderSlug}`);
-  const driveNode = allNodes.find((node) => node.parentId === folder.id && node.type === "drive" && node.slug === driveSlug);
+  const driveNode = allNodes.find(
+    (node) => node.parentId === folder.id && node.type === "drive" && node.slug === driveSlug,
+  );
   if (!driveNode) throw new Error(`Drive not found under ${folderSlug}: ${driveSlug}`);
   const qaBase = bases.find((base: JsonRecord) => base.slug === qaSlug);
   const newsBase = bases.find((base: JsonRecord) => base.slug === newsSlug);

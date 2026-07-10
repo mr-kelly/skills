@@ -1,7 +1,7 @@
 #!/usr/bin/env node
+import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createBusabaseClient } from "../lib/data-provider/busabase-client.ts";
 
@@ -114,11 +114,9 @@ async function pdfPages(localFile: string) {
 }
 
 function metadataFor(file: AnyRecord, text: string, pages: number) {
-  const tags = [
-    firstSegment(file.path),
-    inferDocumentType(file.path, text),
-    inferPolicyType(file.path, text),
-  ].filter(Boolean);
+  const tags = [firstSegment(file.path), inferDocumentType(file.path, text), inferPolicyType(file.path, text)].filter(
+    Boolean,
+  );
   const parsedText = text.trim();
   return {
     metadata_schema: "kelly-insure-data.file_metadata.v1",
@@ -171,7 +169,9 @@ async function mapLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<v
 
 async function main() {
   const args = parseArgs();
-  const driveNodeId = String(args.driveNodeId || args["drive-node-id"] || process.env.KELLY_INSURE_DATA_BUSABASE_DRIVE_NODE_ID || "");
+  const driveNodeId = String(
+    args.driveNodeId || args["drive-node-id"] || process.env.KELLY_INSURE_DATA_BUSABASE_DRIVE_NODE_ID || "",
+  );
   const filesRoot = path.resolve(String(args.filesRoot || args["files-root"] || process.cwd()));
   const limit = args.limit ? Number.parseInt(String(args.limit), 10) : 0;
   const concurrency = Number.parseInt(String(args.concurrency || "4"), 10);
@@ -195,13 +195,23 @@ async function main() {
       }
       results.push({ path: file.path, assetId: file.assetId, applied: apply, metadata });
     } catch (error) {
-      results.push({ path: file.path, assetId: file.assetId, error: error instanceof Error ? error.message : String(error) });
+      results.push({
+        path: file.path,
+        assetId: file.assetId,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   });
 
   const ok = results.filter((item) => !item.error).length;
   const failed = results.length - ok;
-  console.log(JSON.stringify({ ok: true, apply, scanned: results.length, updated: apply ? ok : 0, planned: apply ? 0 : ok, failed, results }, null, 2));
+  console.log(
+    JSON.stringify(
+      { ok: true, apply, scanned: results.length, updated: apply ? ok : 0, planned: apply ? 0 : ok, failed, results },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((error) => {
