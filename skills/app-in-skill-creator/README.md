@@ -120,6 +120,7 @@ The main skill file is intentionally a router. Detailed implementation rules liv
 | Runtime, structure, Hono, TypeScript, frontend stack, dependency and asset policy | `references/runtime-architecture.md` |
 | Private config, env files, providers, Busabase, sanitized summaries | `references/private-config-and-providers.md` |
 | Handoff files, workflow states, review model, batch schema, execution reports | `references/file-contract-review-model.md` |
+| First-run setup gate, provider choice, setup state, language Auto, suggested agent prompt | `references/setup-onboarding.md` |
 | First-run onboarding, reconfiguration, locks, concurrent write safety | `references/onboarding-and-locking.md` |
 | Human-attention panel, workflow navigation, notes/drafts, hash routing, i18n | `references/ui-workflow-patterns.md` |
 | Desktop/mobile shell and responsive layout checklist | `references/mobile-shell-layout.md` |

@@ -39,6 +39,7 @@ Read only the references needed for the current task, but read the selected refe
 | Directory layout, Hono server, Node TypeScript, zero-build frontend, dependency policy, screenshots/recordings asset policy | `references/runtime-architecture.md` |
 | Private config, env priority, sanitized summaries, provider spectrum, Busabase, provider interface guidance | `references/private-config-and-providers.md` |
 | Handoff files, workflow states, review model, batch schema, execution reports | `references/file-contract-review-model.md` |
+| First-run setup gate, provider choice, setup state model, language Auto, suggested agent prompt | `references/setup-onboarding.md` |
 | First-run setup, onboarding marker, reconfiguration, agent.lock, concurrent write safety | `references/onboarding-and-locking.md` |
 | Human-attention panel, workflow filters, accent color system, hash routing, review notes, Help & Settings, i18n, approval semantics | `references/ui-workflow-patterns.md` |
 | Desktop split-pane shell, mobile drawer shell, sidebar icon, responsive CSS/checklist | `references/mobile-shell-layout.md` |
@@ -94,7 +95,7 @@ When creating or updating an App-in-Skill:
 5. Create/update the local app inside `app/` with a Hono server and zero-build frontend unless a documented exception applies.
 6. Add generator, executor, validator, and data-provider helpers under `scripts/` and `lib/`.
 7. Add private config templates and sanitized config summaries when the skill has accounts, products, connectors, or personal context.
-8. Make onboarding the initial phase when setup is required; show one friendly full-screen setup gate, offer provider choice when applicable, and gate real work on the active provider's onboarding marker.
+8. Make onboarding the initial phase when setup is required; follow `references/setup-onboarding.md` for the friendly full-screen setup gate, provider choice, language picker, and suggested agent prompt.
 9. Add `agent.lock` handling to both the skill workflow and app server.
 10. Add the human-attention panel, workflow filters, stable item refs, hash routes, Help & Settings, and i18n when appropriate.
 11. Add the mobile shell and verify one desktop viewport plus a 390px-wide phone viewport.

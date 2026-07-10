@@ -1,6 +1,9 @@
 # Onboarding And Locking
 
-Use this reference when implementing first-run setup, reconfiguration, config validation, local locks, concurrent writes, or execution gating.
+Use this reference when implementing onboarding markers, reconfiguration,
+config validation, local locks, concurrent writes, or execution gating. For the
+first-run setup gate, provider choice, language selection, and suggested agent
+prompt, use `setup-onboarding.md`.
 
 ## Onboarding Principle
 
@@ -57,6 +60,8 @@ Re-entry: if required config or secrets later go missing or fail validation, dro
 Reconfiguration may also be deliberate. A "reconfigure" command may clear or rewrite the marker.
 
 ## Onboarding UI
+
+Detailed setup gate rules live in `setup-onboarding.md`.
 
 The app should show a first-screen setup/onboarding gate while onboarding. This
 is a normal startup state, not an error banner.

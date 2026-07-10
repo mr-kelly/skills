@@ -334,7 +334,8 @@ Provider methods that generate batches should avoid local handoff files in Busab
 ### Startup Setup Gate
 
 Every Busabase-capable App-in-Skill must provide a friendly startup gate before
-normal workflow controls become active:
+normal workflow controls become active. See `setup-onboarding.md` for the full
+UX contract:
 
 - If no provider is selected, show a first-run provider choice (`local` vs
   `busabase`) and explain the tradeoff in one sentence each.
