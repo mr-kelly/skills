@@ -47,7 +47,8 @@ export const messages = {
     recordLimit: "Record limit",
     warnings: "Warnings",
     empty: "No insurance data loaded",
-    overviewSubtitle: "High-quality insurance data entry and governance across files, QA, news, and user feedback records.",
+    overviewSubtitle:
+      "High-quality insurance data entry and governance across files, QA, news, and user feedback records.",
     filesSubtitle: "Busabase Drive node files with metadata completeness.",
     qaSubtitle: "Governed insurance question-answer pairs from a Busabase Base.",
     newsSubtitle: "Insurance news and market intelligence records from a Busabase Base.",
