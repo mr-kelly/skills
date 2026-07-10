@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { type Context, Hono } from "hono";
 import { createProvider } from "../../lib/data-provider/index.ts";
@@ -51,6 +52,45 @@ async function sendFile(c: Context, absPath: string, { store = false }: { store?
 export const app = new Hono();
 app.use("/api/state", attachDemoVisuals);
 
+function providerBootstrapConfig(kind: string) {
+  if (kind === "busabase") {
+    return {
+      data_provider: "busabase",
+      busabase: {
+        base_url: process.env.KELLY_EMAIL_BUSABASE_URL || "http://127.0.0.1:15419",
+        base_id: process.env.KELLY_EMAIL_BUSABASE_BASE_ID || "kelly-email",
+        base_slug: process.env.KELLY_EMAIL_BUSABASE_BASE_SLUG || "kelly-email",
+        contacts_base_id: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_ID || "kelly-email-contacts",
+        contacts_base_slug: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_SLUG || "kelly-email-contacts",
+        folder_slug: process.env.KELLY_EMAIL_BUSABASE_FOLDER_SLUG || "kelly-email-workspace",
+        drive_slug: process.env.KELLY_EMAIL_BUSABASE_DRIVE_SLUG || "kelly-email-workspace-files",
+        drive_id: process.env.KELLY_EMAIL_BUSABASE_DRIVE_ID || "kelly-email-files",
+        secrets_namespace: process.env.KELLY_EMAIL_BUSABASE_SECRETS_NAMESPACE || "kelly-email",
+        api_key_env: "KELLY_EMAIL_BUSABASE_API_KEY",
+      },
+      mailboxes: [],
+      identities: [],
+    };
+  }
+  return {
+    data_provider: "local",
+    mailboxes: [],
+    identities: [],
+  };
+}
+
+async function saveProviderBootstrap(kind: string) {
+  if (process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER) {
+    throw new Error("KELLY_EMAIL_DATA_PROVIDER is set in the process environment; change that env var to switch mode.");
+  }
+  const normalized = kind === "busabase" ? "busabase" : kind === "local" ? "local" : "";
+  if (!normalized) throw new Error('Provider must be "local" or "busabase".');
+  const configPath = path.join(os.homedir(), ".config", "kelly-email", "config.json");
+  await fs.mkdir(path.dirname(configPath), { recursive: true, mode: 0o700 });
+  await fs.writeFile(configPath, `${JSON.stringify(providerBootstrapConfig(normalized), null, 2)}\n`, "utf8");
+  return { provider: normalized, config_path: configPath };
+}
+
 // ---- API ----
 app.get("/api/state", async (c) => {
   const query = c.req.query();
@@ -79,6 +119,12 @@ app.post("/api/detail", async (c) => {
 app.post("/api/reload", async (c) => {
   const query = c.req.query();
   return c.json(isDemoQuery(query) ? demoStatePayload(query) : await statePayload({}));
+});
+
+app.post("/api/setup/provider", async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const saved = await saveProviderBootstrap(String(body.provider || ""));
+  return c.json({ ok: true, ...saved, state: await statePayload({}) });
 });
 
 // ---- Static (vanilla frontend) ----
