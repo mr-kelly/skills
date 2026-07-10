@@ -3,6 +3,7 @@ import path from "node:path";
 import { summarizeConfig } from "../config.ts";
 import { DATA_DIR, LOCK_PATH, ONBOARDING_PATH, SNAPSHOT_PATH } from "../paths.ts";
 import type { ConfigResult, InsureSnapshot, InsureState } from "../types.ts";
+import type { ReviewInput } from "./provider-interface.ts";
 
 async function readJson<T = unknown>(file: string, fallback: T | null = null): Promise<T | null> {
   try {
@@ -280,6 +281,18 @@ export function demoSnapshot(): InsureSnapshot {
 }
 
 export function createLocalFileProvider(configResult: ConfigResult) {
+  async function getConfigSummary() {
+    return { ...summarizeConfig(configResult), provider: "local" };
+  }
+
+  async function getOnboarding() {
+    return (await readJson<Record<string, unknown>>(ONBOARDING_PATH, { completed: false })) || { completed: false };
+  }
+
+  async function getLock() {
+    return await readJson<Record<string, unknown>>(LOCK_PATH, null);
+  }
+
   return {
     name: "local",
 
@@ -290,17 +303,48 @@ export function createLocalFileProvider(configResult: ConfigResult) {
     async getState(): Promise<InsureState> {
       const [snapshot, onboarding, lock] = await Promise.all([
         this.readSnapshot(),
-        readJson<Record<string, unknown>>(ONBOARDING_PATH, { completed: false }),
-        readJson<Record<string, unknown>>(LOCK_PATH, null),
+        this.getOnboarding(),
+        this.getLock(),
       ]);
       return {
         app: "kelly-insure-data",
         data_provider: this.name,
-        config_summary: { ...summarizeConfig(configResult), provider: this.name },
-        onboarding: onboarding || { completed: false },
+        config_summary: await this.getConfigSummary(),
+        onboarding,
         lock,
         snapshot,
       };
+    },
+
+    async submitReview(review: ReviewInput) {
+      return {
+        ok: false,
+        provider: this.name,
+        unsupported: true,
+        review,
+        message: "Kelly Insure Data is currently a read-first governance dashboard; review writeback is not enabled.",
+      };
+    },
+
+    async getAgentTasks() {
+      return { ok: true, provider: this.name, tasks: [] };
+    },
+
+    getConfigSummary,
+
+    getLock,
+
+    getOnboarding,
+
+    async completeOnboarding(marker: Record<string, unknown> = {}) {
+      const onboarding = {
+        completed: true,
+        completed_at: new Date().toISOString(),
+        config_version: "1",
+        ...marker,
+      };
+      await writeJson(ONBOARDING_PATH, onboarding);
+      return onboarding;
     },
 
     async writeSnapshot(snapshot: Record<string, unknown>) {

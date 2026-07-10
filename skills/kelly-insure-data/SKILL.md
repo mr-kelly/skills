@@ -92,6 +92,8 @@ Primary local files:
 - `app/.data/agent.lock`: temporary lock while the agent is importing or regenerating data.
 - `config.local.json`: private Busabase/operator config, ignored by git.
 
+The app follows the App-in-Skill provider boundary: all `/api/state`, config summary, onboarding, lock, and agent-task reads go through `lib/data-provider/`. The UI remains a local read-first operator surface; Busabase mutations happen only through explicit skill/operator scripts or user-requested change requests.
+
 ## Normal Workflow
 
 1. Load config via `lib/config.ts`.

@@ -9,6 +9,7 @@ import type {
   QaPair,
 } from "../types.ts";
 import { createBusabaseClient } from "./busabase-client.ts";
+import type { ReviewInput } from "./provider-interface.ts";
 
 type AnyRecord = Record<string, any>;
 
@@ -141,6 +142,42 @@ export function createBusabaseProvider(configResult: ConfigResult) {
   const fileRequiredFields = Array.isArray(config.taxonomy?.file_metadata_fields)
     ? config.taxonomy.file_metadata_fields
     : [];
+  const configSummary = () => ({ ...summarizeConfig(configResult), provider: "busabase" });
+
+  async function providerStatus() {
+    const summary = configSummary();
+    const missing = [
+      !summary.busabase.base_url ? "base_url" : "",
+      !summary.busabase.space_id ? "space_id" : "",
+      !summary.busabase.api_key_ready ? summary.busabase.api_key_env : "",
+    ].filter(Boolean);
+    if (missing.length) {
+      return {
+        ok: false,
+        provider: "busabase",
+        mode: "configuration",
+        action: "configure_busabase",
+        message: `Missing Busabase configuration: ${missing.join(", ")}`,
+        connection: {
+          base_url: Boolean(summary.busabase.base_url),
+          space_id: Boolean(summary.busabase.space_id),
+          api_key_ready: summary.busabase.api_key_ready,
+        },
+      };
+    }
+    try {
+      const connection = await busa.verifyConnection();
+      return { ok: true, provider: "busabase", mode: "ready", connection };
+    } catch (error) {
+      return {
+        ok: false,
+        provider: "busabase",
+        mode: "connection_error",
+        action: "check_busabase_connection",
+        message: (error as Error).message,
+      };
+    }
+  }
 
   async function readSnapshot(): Promise<InsureSnapshot> {
     const [drive, qaBase, newsBase] = await Promise.all([
@@ -237,6 +274,8 @@ export function createBusabaseProvider(configResult: ConfigResult) {
       return busa.verifyConnection();
     },
 
+    providerStatus,
+
     async getState() {
       let snapshot: InsureSnapshot;
       try {
@@ -269,10 +308,52 @@ export function createBusabaseProvider(configResult: ConfigResult) {
       return {
         app: "kelly-insure-data",
         data_provider: this.name,
-        config_summary: { ...summarizeConfig(configResult), provider: this.name },
-        onboarding: { completed: true, source: "busabase" },
-        lock: null,
+        config_summary: await this.getConfigSummary(),
+        onboarding: await this.getOnboarding(),
+        lock: await this.getLock(),
         snapshot,
+      };
+    },
+
+    async submitReview(review: ReviewInput) {
+      return {
+        ok: false,
+        provider: this.name,
+        unsupported: true,
+        review,
+        message: "Kelly Insure Data is currently a read-first Busabase governance dashboard; review writeback is not enabled.",
+      };
+    },
+
+    async getAgentTasks() {
+      return { ok: true, provider: this.name, tasks: [] };
+    },
+
+    async getConfigSummary() {
+      return configSummary();
+    },
+
+    async getLock() {
+      return null;
+    },
+
+    async getOnboarding() {
+      const status = await providerStatus();
+      return {
+        completed: Boolean(status.ok),
+        source: "busabase",
+        provider_status: status,
+      };
+    },
+
+    async completeOnboarding(marker: Record<string, unknown> = {}) {
+      const status = await providerStatus();
+      return {
+        completed: Boolean(status.ok),
+        completed_at: status.ok ? new Date().toISOString() : "",
+        source: "busabase",
+        provider_status: status,
+        ...marker,
       };
     },
   };
