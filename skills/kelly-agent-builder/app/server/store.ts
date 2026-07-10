@@ -1,5 +1,5 @@
 import { nowIso } from "../../lib/common.ts";
-import { deriveAgent, isOverQuota, missingRequiredFields, sanitizeTools } from "../../lib/config-validation.ts";
+import { deriveAgent, isQuotaReached, missingRequiredFields, sanitizeTools } from "../../lib/config-validation.ts";
 import { getProvider } from "../../lib/data-provider/index.ts";
 import type {
   AgentConfig,
@@ -52,15 +52,18 @@ export function toView(agent: AgentConfig): AgentView {
 
 export function summarize(agents: AgentConfig[]): GovernanceSummary {
   const views = agents.map(toView);
-  const totalQuota = agents.reduce((sum, a) => sum + Number(a.monthly_quota || 0), 0);
-  const totalCalls = agents.reduce((sum, a) => sum + Number(a.calls_this_month || 0), 0);
+  // Archived/paused agents' quota is frozen, not "current" — only live agents
+  // should count toward the dashboard-wide current usage figure.
+  const liveAgents = agents.filter((a) => a.status === "live");
+  const totalQuota = liveAgents.reduce((sum, a) => sum + Number(a.monthly_quota || 0), 0);
+  const totalCalls = liveAgents.reduce((sum, a) => sum + Number(a.calls_this_month || 0), 0);
   return {
     total: agents.length,
     live_count: agents.filter((a) => a.status === "live").length,
     draft_count: agents.filter((a) => a.status === "draft").length,
     paused_count: agents.filter((a) => a.status === "paused").length,
     archived_count: agents.filter((a) => a.status === "archived").length,
-    over_quota_count: views.filter((v) => v.derived.is_over_quota).length,
+    quota_reached_count: views.filter((v) => v.derived.is_quota_reached).length,
     needs_attention_count: views.filter((v) => v.derived.needs_attention).length,
     total_quota: totalQuota,
     total_calls: totalCalls,
@@ -130,4 +133,4 @@ export function activateAgent(agent: AgentConfig): ActivationResult {
   return { ok: true, agent: { ...agent, status: "live", updated_at: nowIso() } };
 }
 
-export { isOverQuota, missingRequiredFields, deriveAgent };
+export { isQuotaReached, missingRequiredFields, deriveAgent };

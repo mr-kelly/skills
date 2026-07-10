@@ -103,11 +103,13 @@ function tNested(group, key) {
 }
 
 function money(value) {
+  const n = Number(value || 0);
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
     style: "currency",
     currency: "USD",
-    maximumFractionDigits: 3,
-  }).format(Number(value || 0));
+    minimumFractionDigits: 2,
+    maximumFractionDigits: Math.abs(n) < 1 ? 4 : 2,
+  }).format(n);
 }
 
 function num(value, digits = 0) {
@@ -266,7 +268,7 @@ function fleetOverviewGrid() {
       <a class="overview-panel agent-card" href="#/agents/${encodeURIComponent(agent.agent_id)}">
         <div class="row between">
           <strong>${escapeHtml(agent.name)}</strong>
-          <span class="badge status-${metrics.status || "healthy"}">${t(`status${capitalize(metrics.status || "healthy")}`)}</span>
+          <span class="badge status-${metrics.status || "healthy"}"><span class="status-dot"></span>${t(`status${capitalize(metrics.status || "healthy")}`)}</span>
         </div>
         <p class="muted">${escapeHtml(agent.description)}</p>
         ${sparkline(metrics.hourly)}
@@ -356,13 +358,13 @@ function agentHealthTable() {
               const m = row.metrics || {};
               return `
             <tr>
-              <td><a href="#/agents/${encodeURIComponent(row.agent_id)}"><span class="strong">${escapeHtml(row.name)}</span></a><div class="muted">${escapeHtml(row.agent_id)}</div></td>
+              <td><a href="#/agents/${encodeURIComponent(row.agent_id)}"><span class="strong">${escapeHtml(row.name)}</span></a><div class="muted agent-id">${escapeHtml(row.agent_id)}</div></td>
               <td class="num">${num(m.calls_24h)}</td>
               <td class="num">${ms(m.p50_latency_ms)}</td>
               <td class="num">${ms(m.p95_latency_ms)}</td>
               <td class="num ${statusClass(m.status)}">${pct(m.error_rate_pct)}</td>
               <td class="num">${money(m.cost_today_usd)}</td>
-              <td class="num"><span class="badge status-${m.status || "healthy"}">${t(`status${capitalize(m.status || "healthy")}`)}</span></td>
+              <td class="num"><span class="badge status-${m.status || "healthy"}"><span class="status-dot"></span>${t(`status${capitalize(m.status || "healthy")}`)}</span></td>
             </tr>
           `;
             })
@@ -480,20 +482,25 @@ function renderAgentDetail() {
 }
 
 function traceStepTimeline(trace) {
+  const lastIndex = trace.steps.length - 1;
   return `
     <ol class="step-timeline">
       ${trace.steps
         .map((step, index) => {
           const isBreak = step.status === "error" && step.step_id === trace.broke_at_step_id;
+          const isLast = index === lastIndex;
           return `
         <li class="step-item ${step.status === "error" ? "step-error" : "step-ok"} ${isBreak ? "step-break" : ""}">
-          <div class="step-index">${index + 1}</div>
+          <div class="step-node">
+            <div class="step-index">${step.status === "error" ? "!" : "✓"}</div>
+            ${isLast ? "" : `<div class="step-connector"></div>`}
+          </div>
           <div class="step-body">
             <div class="row between">
               <strong>${escapeHtml(step.name)}</strong>
-              <span class="num">${ms(step.duration_ms)}</span>
+              <span class="num step-duration">${ms(step.duration_ms)}</span>
             </div>
-            <div class="muted">${step.status === "error" ? `⚠ ${escapeHtml(step.detail || t("error"))}` : t("ok")}</div>
+            <div class="muted step-status-line">${step.status === "error" ? `⚠ ${escapeHtml(step.detail || t("error"))}` : t("ok")}</div>
             ${isBreak ? `<div class="chain-break-flag">${t("chainBroke")}</div>` : ""}
           </div>
         </li>

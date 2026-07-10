@@ -218,14 +218,17 @@ function viewLabel() {
 function funnelSummaryPanel() {
   const byStage = state.summary?.by_stage || [];
   return `
-    <div class="funnel-summary">
+    <div class="funnel-track">
       ${byStage
         .map(
           (item) => `
-        <a class="funnel-stage-card" href="#/board/${item.stage}">
-          <span>${escapeHtml(stageLabel(item.stage))}</span>
-          <strong>${item.count}</strong>
-          <small>${item.conversion_from_new_pct}% ${escapeHtml(t("leads"))}</small>
+        <a class="funnel-step" data-stage="${item.stage}" href="#/board/${item.stage}">
+          <span class="funnel-step-label">${escapeHtml(stageLabel(item.stage))}</span>
+          <span class="funnel-step-row">
+            <strong class="funnel-step-count">${item.count}</strong>
+            <span class="funnel-step-pct">${item.conversion_from_new_pct}%</span>
+          </span>
+          <span class="funnel-step-bar"><span style="width:${item.conversion_from_new_pct}%"></span></span>
         </a>
       `,
         )

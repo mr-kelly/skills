@@ -39,6 +39,9 @@ export const messages = {
     proposedAction: "Proposed action",
     reason: "Reason",
     reconciliationMismatch: "Reconciliation mismatch",
+    reconciliationHoldNote:
+      "This item has an unresolved cross-entity reconciliation mismatch. Marking it “Verified” will hold it at “Awaiting source” until you explicitly acknowledge the mismatch below.",
+    overrideAckLabel: "I reviewed the mismatch above and confirm it is resolved or accepted",
     reviewNote: "Review note",
     verified: "Verified",
     needsSource: "Needs source",
@@ -114,6 +117,9 @@ export const messages = {
     proposedAction: "建议操作",
     reason: "原因",
     reconciliationMismatch: "对账不一致",
+    reconciliationHoldNote:
+      "该项存在尚未解决的跨主体对账不一致。若标记为“已核实”，在您于下方明确确认该不一致之前，状态将保持为“等待材料”。",
+    overrideAckLabel: "我已审阅上述不一致情况，并确认其已解决或可接受",
     reviewNote: "审阅备注",
     verified: "已核实",
     needsSource: "需要材料",

@@ -9,6 +9,7 @@ import {
   applyUpdate,
   archiveAgent,
   createAgent,
+  missingRequiredFields,
   pauseAgent,
   readAgentsFile,
   readConfig,
@@ -106,7 +107,18 @@ app.put("/api/agents/:id", async (c) => {
   if (file.agents[index].status === "archived") {
     return c.json({ error: "archived_agents_are_read_only" }, 409);
   }
-  file.agents[index] = applyUpdate(file.agents[index], body);
+  const updated = applyUpdate(file.agents[index], body);
+  // A live agent must never be left in a state that would fail the same
+  // required-field gate activation enforces — otherwise a PUT could silently
+  // undo the invariant activateAgent() guarantees (e.g. clearing owning_team
+  // or allowed_tools on an already-live agent).
+  if (updated.status === "live") {
+    const missing = missingRequiredFields(updated);
+    if (missing.length) {
+      return c.json({ error: "missing_required_fields", missing_fields: missing }, 422);
+    }
+  }
+  file.agents[index] = updated;
   await writeAgentsFile(file);
   return c.json({ agent: toView(file.agents[index]) });
 });

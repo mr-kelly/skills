@@ -17,7 +17,7 @@ export function missingRequiredFields(agent: AgentConfig): string[] {
   return missing;
 }
 
-export function isOverQuota(agent: AgentConfig): boolean {
+export function isQuotaReached(agent: AgentConfig): boolean {
   return agent.status === "live" && agent.monthly_quota > 0 && agent.calls_this_month >= agent.monthly_quota;
 }
 
@@ -25,16 +25,16 @@ export function isOverQuota(agent: AgentConfig): boolean {
 // over-quota, OR (approval_required true with no owner assigned).
 export function deriveAgent(agent: AgentConfig): AgentDerived {
   const missing = missingRequiredFields(agent);
-  const overQuota = isOverQuota(agent);
+  const quotaReached = isQuotaReached(agent);
   const missingOwner = !agent.owning_team?.trim();
   const reasons: string[] = [];
   if (agent.status === "draft" && missing.length) reasons.push("draft_incomplete");
   if (missingOwner) reasons.push("missing_owner");
-  if (overQuota) reasons.push("over_quota");
+  if (quotaReached) reasons.push("quota_reached");
   if (agent.approval_required && missingOwner) reasons.push("approval_without_owner");
   const usagePct = agent.monthly_quota > 0 ? Math.round((agent.calls_this_month / agent.monthly_quota) * 1000) / 10 : 0;
   return {
-    is_over_quota: overQuota,
+    is_quota_reached: quotaReached,
     usage_pct: usagePct,
     needs_attention: reasons.length > 0,
     attention_reasons: [...new Set(reasons)],

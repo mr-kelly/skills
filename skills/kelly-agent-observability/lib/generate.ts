@@ -239,7 +239,7 @@ export function generateFleetData(options: GenerateOptions = {}): FleetData {
     const p50 = percentile(latencySamples, 50);
     const p95 = percentile(latencySamples, 95);
 
-    const costToday = round2(calls24h * profile.costPerCall * (0.9 + rng() * 0.2));
+    const costToday = round2(calls24h * profile.costPerCall);
     const cost7d = round2(costToday * (5 + rng() * 3));
 
     metrics.push({

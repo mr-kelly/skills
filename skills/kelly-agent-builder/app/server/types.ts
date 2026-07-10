@@ -16,7 +16,7 @@ import type { AgentConfig } from "../../lib/data-provider/provider-interface.ts"
 // Derived, read-only view of an AgentConfig computed by store.ts. Never
 // persisted; always recomputed from the raw record.
 export interface AgentDerived {
-  is_over_quota: boolean;
+  is_quota_reached: boolean;
   usage_pct: number;
   needs_attention: boolean;
   attention_reasons: string[];
@@ -33,7 +33,7 @@ export interface GovernanceSummary {
   draft_count: number;
   paused_count: number;
   archived_count: number;
-  over_quota_count: number;
+  quota_reached_count: number;
   needs_attention_count: number;
   total_quota: number;
   total_calls: number;

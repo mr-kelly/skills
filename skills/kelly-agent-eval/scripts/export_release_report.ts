@@ -6,6 +6,7 @@ import type { EvalRun, ReleaseDecision } from "../app/server/types.ts";
 // a release ticket. Refuses to run if a blocking regression has no decision
 // yet, or if no release decision has been recorded.
 import { readJson, withLock, writeJson } from "../lib/common.ts";
+import { readConfig } from "../lib/data-provider/local-file-provider.ts";
 import { computeMetrics } from "../lib/eval-data.ts";
 import { DATA_DIR, DECISIONS_PATH, EVAL_RUN_PATH, RELEASE_DECISION_PATH } from "../lib/paths.ts";
 
@@ -48,6 +49,17 @@ async function main(): Promise<void> {
     }
     if (!release) {
       console.error("Refusing to export: no release decision recorded yet (approve_release / block_release).");
+      process.exitCode = 1;
+      return;
+    }
+
+    const { config } = await readConfig();
+    const blockingRegressionBlocksRelease = config.release_policy?.blocking_regression_blocks_release ?? false;
+    const blockingRegressions = cases.filter((c) => c.regression && c.decision?.action === "mark_blocking");
+    if (blockingRegressionBlocksRelease && blockingRegressions.length && release.decision === "approve") {
+      console.error(
+        `Refusing to export: release_policy.blocking_regression_blocks_release is true and ${blockingRegressions.length} regression(s) are marked "blocking" while the release decision is "approve": ${blockingRegressions.map((c) => c.id).join(", ")}. Mark them "acceptable" or change the release decision to "block".`,
+      );
       process.exitCode = 1;
       return;
     }

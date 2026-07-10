@@ -39,8 +39,14 @@ export function computeInsights(contracts: Contract[], riskPolicy: RiskPolicy = 
   const totalCap = active.reduce((sum, c) => sum + c.cap_amount, 0);
   const weightedRepayment = active.reduce((sum, c) => sum + c.cumulative_repayment, 0);
   const weightedAvgProgress = totalCap ? round2((weightedRepayment / totalCap) * 100) : 0;
-  const atRiskCount =
-    progress.filter((row) => row.severity !== "ok").length + contracts.filter((c) => c.status === "delinquent").length;
+  const atRiskIds = new Set<string>();
+  for (const row of progress) {
+    if (row.severity !== "ok") atRiskIds.add(row.id);
+  }
+  for (const c of contracts) {
+    if (c.status === "delinquent") atRiskIds.add(c.id);
+  }
+  const atRiskCount = atRiskIds.size;
 
   const totals: Totals = {
     total_aum: totalAum,
@@ -51,11 +57,11 @@ export function computeInsights(contracts: Contract[], riskPolicy: RiskPolicy = 
     contract_count: contracts.length,
   };
 
-  const concentration_by_category = concentrationBy(contracts, (c) => c.category, totalAumForConcentration(contracts));
-  const concentration_by_city = concentrationBy(contracts, (c) => c.city, totalAumForConcentration(contracts)).slice(
-    0,
-    8,
-  );
+  // Use the same active-only total as headline "Total AUM" so concentration
+  // percentages are genuinely "% of AUM" and consistent with the rest of the
+  // dashboard (completed contracts are excluded from both).
+  const concentration_by_category = concentrationBy(active, (c) => c.category, totalAum);
+  const concentration_by_city = concentrationBy(active, (c) => c.city, totalAum).slice(0, 8);
 
   const watchlist: WatchlistRow[] = contracts
     .map((c) => {
@@ -80,10 +86,6 @@ export function computeInsights(contracts: Contract[], riskPolicy: RiskPolicy = 
     .sort((a, b) => a.decline_pct - b.decline_pct);
 
   return { totals, progress, concentration_by_category, concentration_by_city, watchlist };
-}
-
-function totalAumForConcentration(contracts: Contract[]): number {
-  return contracts.reduce((sum, c) => sum + c.funding_amount, 0);
 }
 
 function concentrationBy(contracts: Contract[], keyFn: (c: Contract) => string, total: number): ConcentrationSlice[] {

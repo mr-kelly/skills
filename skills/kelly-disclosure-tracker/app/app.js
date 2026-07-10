@@ -13,6 +13,7 @@ const state = {
   demo: new URLSearchParams(location.search).get("demo") || "",
   noteDraft: "",
   pendingAction: "",
+  overrideAck: false,
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-disclosure-tracker.sidebarCollapsed";
@@ -110,6 +111,7 @@ function setRoute() {
   state.route = parseRoute();
   state.noteDraft = "";
   state.pendingAction = "";
+  state.overrideAck = false;
   render();
 }
 
@@ -125,11 +127,11 @@ async function loadState() {
   render();
 }
 
-async function saveDecision(itemId, action, comment) {
+async function saveDecision(itemId, action, comment, overrideReconciliation) {
   const res = await fetch(`/api/items/${encodeURIComponent(itemId)}/decision`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ action, comment }),
+    body: JSON.stringify({ action, comment, override_reconciliation: Boolean(overrideReconciliation) }),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -271,10 +273,15 @@ function renderVehicles() {
         <a class="vehicle-card" href="#/vehicles/${encodeURIComponent(vehicle.vehicle_id)}">
           <div class="row"><strong>${escapeHtml(vehicle.name)}</strong>${readinessBadge(vehicle.readiness)}</div>
           <div class="muted">${escapeHtml(vehicle.origination_entity)} · ${escapeHtml(vehicle.fund_manager_entity)} · ${escapeHtml(vehicle.listing_venue)}</div>
-          <div class="vehicle-progress ${vehicle.metrics.blocked ? "has-blocked" : ""}"><span style="width:${donePct}%"></span></div>
-          <div class="muted">${vehicle.metrics.done}/${vehicle.metrics.total} ${t("itemsDone").toLowerCase()}${
-            vehicle.metrics.blocked ? ` · ${vehicle.metrics.blocked} ${t("flagged").toLowerCase()}` : ""
-          }</div>
+          <div class="vehicle-progress-wrap">
+            <div class="vehicle-progress ${vehicle.metrics.blocked ? "has-blocked" : ""}"><span style="width:${donePct}%"></span></div>
+            <div class="vehicle-progress-label">
+              <span>${vehicle.metrics.done}/${vehicle.metrics.total} ${t("itemsDone").toLowerCase()}${
+                vehicle.metrics.blocked ? ` · ${vehicle.metrics.blocked} ${t("flagged").toLowerCase()}` : ""
+              }</span>
+              <span>${donePct}%</span>
+            </div>
+          </div>
         </a>
       `;
         })
@@ -294,7 +301,8 @@ function checklistRow(item, selected) {
     item.reconciliation && !item.reconciliation.match
       ? `
       <div class="reconciliation-banner">
-        ${escapeHtml(t("reconciliationMismatch"))}: ${escapeHtml(item.reconciliation.note || "")}
+        <div class="reconciliation-banner-title">${escapeHtml(t("reconciliationMismatch"))}</div>
+        ${escapeHtml(item.reconciliation.note || "")}
         <dl>
           <dt>${escapeHtml(t("originationEntity"))}</dt><dd>${escapeHtml(item.reconciliation.origination_value)}</dd>
           <dt>${escapeHtml(t("listingVenue"))}</dt><dd>${escapeHtml(item.reconciliation.listing_value)}</dd>
@@ -319,6 +327,18 @@ function itemDetailPanel(item) {
   if (!item) return `<aside class="item-detail-side"><p class="muted">${t("selectItem")}</p></aside>`;
   const currentAction = item.decision?.action || "";
   const draft = state.noteDraft || item.decision?.comment || "";
+  const hasMismatch = Boolean(item.reconciliation && !item.reconciliation.match);
+  const pendingOrCurrentAction = state.pendingAction || currentAction;
+  const overrideNeeded = hasMismatch && pendingOrCurrentAction === "verified";
+  const overrideChecked = state.overrideAck || Boolean(item.decision?.override_reconciliation);
+  const overrideField = overrideNeeded
+    ? `
+      <label class="override-ack">
+        <input type="checkbox" id="overrideAck" ${overrideChecked ? "checked" : ""} />
+        ${escapeHtml(t("overrideAckLabel"))}
+      </label>
+    `
+    : "";
   return `
     <aside class="item-detail-side">
       <h2>${escapeHtml(item.title)}</h2>
@@ -327,6 +347,7 @@ function itemDetailPanel(item) {
         <dt>${t("proposedAction")}</dt><dd>${escapeHtml(tGroup("proposed_action", item.proposed_action))}</dd>
         <dt>${t("reason")}</dt><dd>${escapeHtml(item.reason)}</dd>
       </dl>
+      ${hasMismatch ? `<p class="mismatch-note">${escapeHtml(t("reconciliationHoldNote"))}</p>` : ""}
       <div class="decision-actions">
         <button type="button" data-action="verified" class="${currentAction === "verified" ? "active" : ""}">${t("verified")}</button>
         <button type="button" data-action="needs_source" class="${currentAction === "needs_source" ? "active" : ""}">${t("needsSource")}</button>
@@ -335,6 +356,7 @@ function itemDetailPanel(item) {
       <div class="note-field">
         <label for="reviewNote">${t("reviewNote")}</label>
         <textarea id="reviewNote" data-item-id="${escapeHtml(item.id)}">${escapeHtml(draft)}</textarea>
+        ${overrideField}
         <div class="save-row">
           <button type="button" id="saveDecisionButton" data-item-id="${escapeHtml(item.id)}">${t("saveDecision")}</button>
         </div>
@@ -360,7 +382,7 @@ function renderVehicleDetail() {
     if (!roleItems.length) return "";
     return `
       <section class="role-section">
-        <h2>${escapeHtml(t(role))}</h2>
+        <h2>${escapeHtml(t(role))}<span class="role-section-count">${roleItems.filter((i) => i.status === "done").length}/${roleItems.length}</span></h2>
         <div class="checklist">
           ${roleItems.map((item) => checklistRow(item, item.id === state.route.itemId)).join("")}
         </div>
@@ -473,11 +495,15 @@ els.content.addEventListener("click", async (event) => {
       saveButton.textContent = t("selectItem");
       return;
     }
+    const hasMismatch = Boolean(item?.reconciliation && !item.reconciliation.match);
+    const overrideCheckbox = document.querySelector("#overrideAck");
+    const overrideReconciliation = hasMismatch && action === "verified" ? Boolean(overrideCheckbox?.checked) : false;
     saveButton.disabled = true;
     try {
-      await saveDecision(itemId, action, comment);
+      await saveDecision(itemId, action, comment, overrideReconciliation);
       state.pendingAction = "";
       state.noteDraft = "";
+      state.overrideAck = false;
       render();
     } catch (error) {
       els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
@@ -489,6 +515,9 @@ els.content.addEventListener("click", async (event) => {
 });
 els.content.addEventListener("input", (event) => {
   if (event.target.id === "reviewNote") state.noteDraft = event.target.value;
+});
+els.content.addEventListener("change", (event) => {
+  if (event.target.id === "overrideAck") state.overrideAck = event.target.checked;
 });
 els.refresh.addEventListener("click", () => loadState());
 els.mobileRefresh?.addEventListener("click", () => loadState());

@@ -26,11 +26,16 @@ async function main(): Promise<void> {
       generated_at: new Date().toISOString(),
       results: resolved.items.map((item) => ({
         item_id: item.id,
-        status: item.status === "needs_review" ? "skipped" : "written",
+        // "written" means settled: verified (done) or flagged (blocked, escalated).
+        // "changes_requested" items are still waiting on a source document and
+        // must not be reported as written even though a decision exists.
+        status: item.status === "done" || item.status === "blocked" ? "written" : "skipped",
         detail:
           item.status === "needs_review"
             ? "No reviewer decision yet."
-            : `Recorded as ${item.status} (${item.decision?.action ?? "n/a"}).`,
+            : item.status === "changes_requested"
+              ? `Awaiting source document (${item.decision?.action ?? "n/a"}); not yet settled.`
+              : `Recorded as ${item.status} (${item.decision?.action ?? "n/a"}).`,
       })),
     };
     await writeJson(EXECUTION_REPORT_PATH, report);

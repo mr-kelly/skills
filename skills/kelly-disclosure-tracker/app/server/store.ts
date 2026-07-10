@@ -111,8 +111,16 @@ export function applyDecisions(batch: Batch, decisions: DecisionsFile): Batch {
             ? "needs_review"
             : item.status,
       };
-    const status =
+    const hasUnresolvedMismatch = Boolean(item.reconciliation && item.reconciliation.match === false);
+    let status: typeof item.status =
       decision.action === "verified" ? "done" : decision.action === "needs_source" ? "changes_requested" : "blocked";
+    // Guardrail: a "verified" decision cannot silently settle an item that still
+    // has an unresolved cross-entity reconciliation mismatch. Hold it at
+    // "changes_requested" until the reviewer explicitly acknowledges the
+    // mismatch via override_reconciliation on the decision.
+    if (hasUnresolvedMismatch && decision.action === "verified" && !decision.override_reconciliation) {
+      status = "changes_requested";
+    }
     return { ...item, decision, status } as typeof item;
   });
 

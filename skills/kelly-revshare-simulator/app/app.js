@@ -106,6 +106,7 @@ function pct(value, digits = 1) {
 
 function num(value, digits = 2) {
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-Hans" : "en-US", {
+    minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   }).format(Number(value || 0));
 }
@@ -406,28 +407,82 @@ function renderNewScenario() {
 
 // ---- Scenario detail ----
 
+function smoothPath(pts) {
+  if (pts.length < 2) return "";
+  if (pts.length === 2) return `M${pts[0][0]},${pts[0][1]} L${pts[1][0]},${pts[1][1]}`;
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i += 1) {
+    const p0 = pts[i === 0 ? i : i - 1];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+
 function projectionChart(monthly, capAmount) {
   if (!monthly.length) return "";
   const width = 640;
   const height = 220;
+  const padLeft = 44;
+  const padBottom = 22;
+  const padTop = 10;
+  const plotWidth = width - padLeft;
+  const plotHeight = height - padBottom - padTop;
   const maxY = Math.max(capAmount, ...monthly.map((m) => m.cumulative_repayment)) || 1;
-  const stepX = width / Math.max(monthly.length - 1, 1);
-  const points = monthly
-    .map((m, i) => `${(i * stepX).toFixed(1)},${(height - (m.cumulative_repayment / maxY) * height).toFixed(1)}`)
-    .join(" ");
-  const capY = (height - (capAmount / maxY) * height).toFixed(1);
+  const stepX = plotWidth / Math.max(monthly.length - 1, 1);
+  const toXY = (i, value) => [padLeft + i * stepX, padTop + (plotHeight - (value / maxY) * plotHeight)];
+  const linePts = monthly.map((m, i) => toXY(i, m.cumulative_repayment));
+  const linePath = smoothPath(linePts);
+  const areaPath =
+    linePts.length > 1
+      ? `${linePath} L${linePts[linePts.length - 1][0].toFixed(1)},${(padTop + plotHeight).toFixed(1)} ` +
+        `L${linePts[0][0].toFixed(1)},${(padTop + plotHeight).toFixed(1)} Z`
+      : "";
+  const capY = (padTop + (plotHeight - (capAmount / maxY) * plotHeight)).toFixed(1);
   const bars = monthly
     .map((m, i) => {
-      const barHeight = (m.payment / maxY) * height;
-      const x = i * stepX;
-      return `<rect x="${x.toFixed(1)}" y="${(height - barHeight).toFixed(1)}" width="${Math.max(stepX * 0.6, 2).toFixed(1)}" height="${barHeight.toFixed(1)}" class="chart-bar ${m.breakeven_reached ? "post-breakeven" : "pre-breakeven"}"></rect>`;
+      const barHeight = (m.payment / maxY) * plotHeight;
+      const [x] = toXY(i, 0);
+      return `<rect x="${(x - stepX * 0.3).toFixed(1)}" y="${(padTop + plotHeight - barHeight).toFixed(1)}" width="${Math.max(stepX * 0.6, 2).toFixed(1)}" height="${barHeight.toFixed(1)}" class="chart-bar ${m.breakeven_reached ? "post-breakeven" : "pre-breakeven"}"></rect>`;
+    })
+    .join("");
+  const gridLineCount = 4;
+  const gridLines = Array.from({ length: gridLineCount + 1 }, (_, idx) => {
+    const y = padTop + (plotHeight / gridLineCount) * idx;
+    const value = maxY * (1 - idx / gridLineCount);
+    return `
+      <line x1="${padLeft}" y1="${y.toFixed(1)}" x2="${width}" y2="${y.toFixed(1)}" class="chart-grid-line"></line>
+      <text x="${(padLeft - 8).toFixed(1)}" y="${(y + 3).toFixed(1)}" class="chart-axis-label chart-axis-label-y">${money(value)}</text>
+    `;
+  }).join("");
+  const monthTickEvery = Math.max(Math.ceil(monthly.length / 6), 1);
+  const monthTicks = monthly
+    .map((m, i) => {
+      if (i % monthTickEvery !== 0 && i !== monthly.length - 1) return "";
+      const [x] = toXY(i, 0);
+      return `<text x="${x.toFixed(1)}" y="${height - 4}" class="chart-axis-label chart-axis-label-x">${m.month}</text>`;
     })
     .join("");
   return `
     <svg viewBox="0 0 ${width} ${height}" class="projection-chart" role="img" aria-label="${t("projectionChart")}">
-      <line x1="0" y1="${capY}" x2="${width}" y2="${capY}" class="chart-cap-line"></line>
+      <defs>
+        <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.16"></stop>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"></stop>
+        </linearGradient>
+      </defs>
+      ${gridLines}
+      <line x1="${padLeft}" y1="${capY}" x2="${width}" y2="${capY}" class="chart-cap-line"></line>
       ${bars}
-      <polyline points="${points}" class="chart-line"></polyline>
+      <path d="${areaPath}" class="chart-area"></path>
+      <path d="${linePath}" class="chart-line"></path>
+      ${monthTicks}
     </svg>
   `;
 }

@@ -166,15 +166,20 @@ button {
 h1,
 h2 {
   margin: 0;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
 h1 {
-  font-size: 24px;
+  font-size: 22px;
+  font-weight: 680;
 }
 
 h2 {
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
 .topbar-actions {
@@ -208,18 +213,29 @@ h2 {
 
 .metric {
   padding: 14px;
+  transition: border-color 0.15s ease;
+}
+
+.metric:hover {
+  border-color: var(--line-strong, var(--line));
 }
 
 .metric span {
   display: block;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .metric strong {
   display: block;
   margin-top: 8px;
   font-size: 22px;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .table-wrap {
@@ -245,9 +261,23 @@ td {
 
 th {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   background: #fbfcfa;
+}
+
+tbody tr {
+  transition: background-color 0.12s ease;
+}
+
+tbody tr:hover {
+  background: var(--panel-subtle, #fafbfc);
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 .strong {
@@ -256,6 +286,14 @@ th {
 
 .num {
   text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.alloc-weight,
+.alloc-value,
+.mover-row small,
+.spark-wrap {
   font-variant-numeric: tabular-nums;
 }
 
@@ -1348,30 +1386,55 @@ th {
   width: 132px;
   height: 132px;
   border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.04);
 }
 
 .alloc-donut-hole {
   position: absolute;
-  inset: 26px;
+  inset: 28px;
+  display: grid;
+  place-items: center;
+  gap: 1px;
   border-radius: 50%;
   background: var(--panel);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+  text-align: center;
+}
+
+.alloc-donut-figure {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--ink, var(--text));
+}
+
+.alloc-donut-caption {
+  max-width: 68px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .alloc-legend {
   display: grid;
-  gap: 8px;
+  gap: 9px;
 }
 
 .alloc-legend-row {
   display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) auto auto;
+  grid-template-columns: 10px minmax(0, 1fr) auto auto;
   gap: 8px;
   align-items: center;
+  font-size: 13px;
 }
 
 .alloc-swatch {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 3px;
 }
 
@@ -1382,13 +1445,16 @@ th {
 }
 
 .alloc-weight {
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
+  min-width: 42px;
+  color: var(--ink, var(--text));
+  font-weight: 650;
+  text-align: right;
 }
 
 .alloc-value {
   font-size: 12px;
   color: var(--muted);
+  text-align: right;
 }
 
 .mover-row {
@@ -1459,9 +1525,15 @@ th.sortable.active {
   display: grid;
   gap: 8px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--panel);
   padding: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.watchlist-card:hover {
+  border-color: var(--line-strong, var(--line));
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.05);
 }
 
 .watchlist-actions {
@@ -1470,7 +1542,8 @@ th.sortable.active {
 }
 
 .spark-wrap {
-  height: 34px;
+  height: 36px;
+  margin: 2px 0;
   color: var(--good, #047857);
 }
 
@@ -1482,6 +1555,7 @@ th.sortable.active {
   width: 100%;
   height: 100%;
   display: block;
+  overflow: visible;
 }
 
 .review-panel textarea {

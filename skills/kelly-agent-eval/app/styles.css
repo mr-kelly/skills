@@ -440,12 +440,18 @@ h2 {
 }
 
 h1 {
-  font-size: 20px;
+  font-size: 21px;
+  font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 h2 {
-  font-size: 15px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .topbar-actions {
@@ -586,6 +592,20 @@ th.sortable.active {
   white-space: nowrap;
 }
 
+.badge-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-dot-mark {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.85;
+}
+
 .badge.needs_review {
   border-color: #f0dcae;
   background: #fbf3dc;
@@ -676,52 +696,121 @@ dd {
 
 /* ---- Eval board components ---- */
 
-.pass-rate-panel {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+.compare-panel {
   margin-bottom: 14px;
-}
-
-.pass-rate-card {
-  padding: 16px;
+  padding: 18px 18px 16px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--panel);
+  box-shadow: var(--shadow);
 }
 
-.pass-rate-card .label {
+.compare-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.compare-panel-head h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.compare-panel-head h2 .muted {
+  margin: 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.compare-delta {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--accent-weak);
   color: var(--muted);
   font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.pass-rate-card .value {
-  margin-top: 8px;
-  font-size: 30px;
-  font-weight: 760;
+.compare-delta.positive {
+  border-color: #b9e6cd;
+  background: #eafaf1;
+  color: var(--good);
 }
 
-.pass-rate-bar {
-  margin-top: 12px;
-  height: 8px;
+.compare-delta.negative {
+  border-color: #f3c9c9;
+  background: #fdeeee;
+  color: var(--bad);
+}
+
+.compare-rows {
+  display: grid;
+  gap: 10px;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 240px) minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 12px;
+}
+
+.compare-row-label {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compare-row-label .muted {
+  font-weight: 400;
+}
+
+.compare-bar-track {
+  position: relative;
+  height: 12px;
   border-radius: 999px;
   background: #eef1f5;
   overflow: hidden;
 }
 
-.pass-rate-bar > span {
+.compare-bar {
   display: block;
   height: 100%;
-  background: var(--accent-neutral);
   border-radius: 999px;
+  transition: width 0.2s ease;
 }
 
-.pass-rate-card.candidate .pass-rate-bar > span {
+.compare-bar.baseline-bar {
+  background: var(--accent-neutral);
+  opacity: 0.5;
+}
+
+.compare-bar.candidate-bar {
   background: var(--accent, #0a84ff);
 }
 
-.pass-rate-card.regressed .value {
-  color: var(--bad);
+.compare-bar.candidate-bar.regressed {
+  background: var(--bad);
+}
+
+.compare-row-value {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .release-panel {
@@ -787,10 +876,12 @@ button.block:hover {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 
 .case-row:hover {
   border-color: var(--line-strong);
+  box-shadow: var(--shadow);
 }
 
 .case-row .case-title {
@@ -800,6 +891,7 @@ button.block:hover {
 .case-row .case-title strong {
   display: block;
   font-size: 13px;
+  font-weight: 650;
 }
 
 .case-row .case-title span {
@@ -807,13 +899,27 @@ button.block:hover {
   overflow: hidden;
   color: var(--muted);
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .case-row .score-delta {
+  min-width: 40px;
+  padding: 2px 6px;
+  border-radius: 6px;
   font-variant-numeric: tabular-nums;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 760;
+  text-align: right;
+}
+
+.case-row .score-delta.positive {
+  background: #eafaf1;
+}
+
+.case-row .score-delta.negative {
+  background: #fdeeee;
 }
 
 .detail {
@@ -825,39 +931,85 @@ button.block:hover {
 
 .rubric-bars {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   margin-top: 12px;
+}
+
+.rubric-group {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  padding: 10px 56px 10px 0;
+  border-bottom: 1px solid #f1f3f6;
+}
+
+.rubric-group:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .rubric-row {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) 40px;
+  grid-template-columns: 84px minmax(0, 1fr) 32px;
   align-items: center;
   gap: 8px;
   font-size: 12px;
 }
 
+.rubric-key {
+  overflow: hidden;
+  color: var(--muted);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .rubric-track {
   position: relative;
-  height: 8px;
+  height: 7px;
   border-radius: 999px;
   background: #eef1f5;
   overflow: hidden;
 }
 
-.rubric-track > span {
+.rubric-fill {
   position: absolute;
   inset: 0;
   border-radius: 999px;
+  transition: width 0.2s ease;
 }
 
 .rubric-track .baseline-bar {
   background: var(--accent-neutral);
-  opacity: 0.55;
+  opacity: 0.45;
 }
 
 .rubric-track .candidate-bar {
   background: var(--accent, #0a84ff);
+}
+
+.rubric-delta {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  padding: 2px 7px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  background: var(--accent-weak);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+}
+
+.rubric-delta.positive {
+  background: #eafaf1;
+  color: var(--good);
+}
+
+.rubric-delta.negative {
+  background: #fdeeee;
+  color: var(--bad);
 }
 
 .transcript-diff {
@@ -876,12 +1028,20 @@ button.block:hover {
 }
 
 .transcript-col h3 {
-  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
   font-size: 12px;
   font-weight: 700;
+}
+
+.transcript-tag {
   color: var(--muted);
+  font-size: 11px;
+  font-weight: 760;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
 .transcript-col p {
@@ -892,9 +1052,31 @@ button.block:hover {
   line-height: 1.55;
 }
 
+.transcript-baseline {
+  border-left: 3px solid var(--line-strong);
+  background: var(--panel-subtle);
+}
+
+.transcript-baseline .transcript-tag {
+  color: #64748b;
+}
+
+.transcript-candidate {
+  border-left: 3px solid var(--accent, #0a84ff);
+}
+
+.transcript-candidate .transcript-tag {
+  color: var(--accent-text, #0066cc);
+}
+
 .transcript-col.diff-changed {
   border-color: var(--accent-line, #dbe6ff);
   background: var(--accent-wash, #f5f8ff);
+}
+
+.transcript-col.diff-changed.transcript-baseline {
+  border-left-color: var(--line-strong);
+  background: var(--panel-subtle);
 }
 
 .decision-panel {
@@ -957,9 +1139,12 @@ button.acceptable-btn {
     grid-template-columns: 220px minmax(0, 1fr);
   }
 
-  .metrics,
-  .pass-rate-panel {
+  .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compare-row {
+    grid-template-columns: minmax(90px, 160px) minmax(0, 1fr) 48px;
   }
 
   .detail,
@@ -1092,10 +1277,18 @@ button.acceptable-btn {
   }
 
   .metrics,
-  .pass-rate-panel,
   .overview-grid {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+
+  .compare-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .compare-row-value {
+    text-align: left;
   }
 
   .case-row {

@@ -96,7 +96,10 @@ export function simulateScenario(input: ScenarioInput): ScenarioResult {
 
   // Cash-Flow Payout Multiple: a P/E-like ratio — "price" is the principal
   // advanced, "earnings" is the annualized cash flow the merchant pays back.
-  // Lower is "cheaper" for the funder (faster payback relative to cash flow).
+  // A LOW multiple means the investor recovers principal faster relative to
+  // the annualized cash flow (attractive to the investor/funder) — it does
+  // NOT by itself mean the deal is cheaper for the merchant. Merchant cost
+  // is measured separately below via effective_annual_cost_pct.
   const annualizedRepaymentCashFlow = monthsElapsed > 0 ? (totalRepayment / monthsElapsed) * 12 : 0;
   const cashFlowPayoutMultiple =
     annualizedRepaymentCashFlow > 0 ? round2(principal / annualizedRepaymentCashFlow) : null;

@@ -213,9 +213,23 @@ function escapeHtml(value) {
 }
 
 function statusBadge(agent) {
-  const status = agent.derived?.is_over_quota ? "over_quota" : agent.status;
-  const label = agent.derived?.is_over_quota ? `${statusLabel(agent.status)} · ⚠` : statusLabel(agent.status);
+  const status = agent.derived?.is_quota_reached ? "quota_reached" : agent.status;
+  const label = agent.derived?.is_quota_reached ? `${statusLabel(agent.status)} · ⚠` : statusLabel(agent.status);
   return `<span class="badge status-${escapeHtml(status)}">${escapeHtml(label)}</span>`;
+}
+
+function quotaBar(agent) {
+  const pct = agent.derived?.usage_pct || 0;
+  const clamped = Math.max(0, Math.min(100, pct));
+  const level = agent.derived?.is_quota_reached ? "danger" : pct >= 80 ? "warn" : "ok";
+  return `
+    <div class="quota-bar" role="img" aria-label="${clamped.toFixed(1)}% of quota used">
+      <div class="quota-bar-track">
+        <div class="quota-bar-fill quota-bar-${level}" style="width:${clamped}%"></div>
+      </div>
+      <span class="quota-bar-label">${pct.toFixed(1)}%</span>
+    </div>
+  `;
 }
 
 function attentionReasons(agent) {
@@ -310,7 +324,10 @@ function catalogTable(agents) {
               <td><a href="#/agent/${encodeURIComponent(agent.id)}"><span class="strong">${escapeHtml(agent.name || t("newAgent"))}</span></a>${attentionReasons(agent)}</td>
               <td>${agent.owning_team ? escapeHtml(agent.owning_team) : `<span class="muted">${escapeHtml(t("missingOwner"))}</span>`}</td>
               <td>${statusBadge(agent)}</td>
-              <td class="num">${(agent.derived?.usage_pct || 0).toFixed(1)}% <span class="muted">(${agent.calls_this_month}/${agent.monthly_quota})</span></td>
+              <td class="num usage-cell">
+                ${quotaBar(agent)}
+                <span class="muted usage-count">${agent.calls_this_month}/${agent.monthly_quota}</span>
+              </td>
             </tr>
           `,
             )
@@ -408,6 +425,7 @@ function agentMeta(agent) {
         <dt>${t("createdAt")}</dt><dd>${new Date(agent.created_at).toLocaleString()}</dd>
         <dt>${t("updatedAt")}</dt><dd>${new Date(agent.updated_at).toLocaleString()}</dd>
       </dl>
+      <div class="detail-quota">${quotaBar(agent)}</div>
       ${attentionReasons(agent)}
       <div class="detail-actions">
         ${

@@ -51,7 +51,7 @@ export const messages = {
     reason: {
       draft_incomplete: "Draft is missing required fields",
       missing_owner: "No owning team assigned",
-      over_quota: "Over monthly quota",
+      quota_reached: "Quota reached",
       approval_without_owner: "Approval required but no owner assigned",
     },
     field: {
@@ -121,7 +121,7 @@ export const messages = {
     reason: {
       draft_incomplete: "草稿缺少必填字段",
       missing_owner: "未指定负责团队",
-      over_quota: "超出月度配额",
+      quota_reached: "配额已达上限",
       approval_without_owner: "需要审批但未指定负责人",
     },
     field: {

@@ -70,9 +70,9 @@ app.post("/api/items/:id/decision", async (c) => {
   if (lock) return c.json({ error: "Locked while the tracker is generating a batch." }, 423);
 
   const id = c.req.param("id");
-  let payload: { action?: string; comment?: string };
+  let payload: { action?: string; comment?: string; override_reconciliation?: boolean };
   try {
-    payload = (await c.req.json()) as { action?: string; comment?: string };
+    payload = (await c.req.json()) as { action?: string; comment?: string; override_reconciliation?: boolean };
   } catch {
     return c.json({ error: "Invalid JSON body" }, 400);
   }
@@ -86,6 +86,7 @@ app.post("/api/items/:id/decision", async (c) => {
     action,
     comment: typeof payload.comment === "string" ? payload.comment.slice(0, 4000) : undefined,
     decided_at: new Date().toISOString(),
+    override_reconciliation: payload.override_reconciliation === true,
   };
 
   try {

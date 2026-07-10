@@ -23,7 +23,7 @@ function configSearchPaths(): string[] {
   return paths;
 }
 
-async function readConfig(): Promise<ConfigResult> {
+export async function readConfig(): Promise<ConfigResult> {
   for (const file of configSearchPaths()) {
     const config = await readJson<Config>(file, null);
     if (config) return { config, path: file, is_example: file.endsWith("config.example.json") };

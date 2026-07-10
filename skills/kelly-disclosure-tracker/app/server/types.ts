@@ -26,6 +26,12 @@ export interface Decision {
   action: DecisionAction;
   comment?: string;
   decided_at: string;
+  // Required to let a "verified" decision settle an item whose reconciliation
+  // shows a match: false (a real cross-entity AUM/count discrepancy). Without
+  // this explicit acknowledgment, such items are held at "changes_requested"
+  // regardless of the decision action, so a mismatch can never be silently
+  // waved through to a "ready" vehicle.
+  override_reconciliation?: boolean;
 }
 
 export interface DisclosureItem {

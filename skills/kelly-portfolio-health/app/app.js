@@ -242,13 +242,18 @@ function laggingPanel() {
 function allocationPanel() {
   const allocation = state.snapshot?.insights?.concentration_by_category || [];
   if (!allocation.length) return "";
+  // Thin transparent gaps between slices read as a cleaner, more refined
+  // donut than solid abutting wedges. gapPct is expressed in the same
+  // percentage-of-circle units as the weights themselves.
+  const gapPct = 0.6;
   let acc = 0;
   const gradientStops = allocation
     .map((item, index) => {
       const start = acc;
+      const width = Math.max(0, Number(item.weight_pct || 0) - gapPct);
       acc += Number(item.weight_pct || 0);
       const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
-      return `${color} ${start.toFixed(2)}% ${acc.toFixed(2)}%`;
+      return `${color} ${start.toFixed(2)}% ${(start + width).toFixed(2)}%, transparent ${(start + width).toFixed(2)}% ${acc.toFixed(2)}%`;
     })
     .join(", ");
   const legend = allocation
@@ -263,15 +268,24 @@ function allocationPanel() {
     `,
     )
     .join("");
+  const top = allocation[0];
+  const centerLabel = top
+    ? `<span class="alloc-donut-figure">${Number(top.weight_pct || 0).toFixed(0)}%</span><span class="alloc-donut-caption">${escapeHtml(truncate(top.key, 12))}</span>`
+    : "";
   return `
     <div class="overview-panel">
       <h2>${t("concentrationByCategory")}</h2>
       <div class="alloc-body">
-        <div class="alloc-donut" style="background:conic-gradient(${gradientStops})" aria-hidden="true"><span class="alloc-donut-hole"></span></div>
+        <div class="alloc-donut" style="background:conic-gradient(${gradientStops})" aria-hidden="true"><span class="alloc-donut-hole">${centerLabel}</span></div>
         <div class="alloc-legend">${legend}</div>
       </div>
     </div>
   `;
+}
+
+function truncate(value, max) {
+  const s = String(value ?? "");
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s;
 }
 
 function renderOverview() {
@@ -418,14 +432,45 @@ function sparkline(values) {
   const max = Math.max(...values);
   const min = Math.min(...values);
   const span = max - min || 1;
-  const points = values
-    .map((v, i) => {
-      const x = (i / (values.length - 1 || 1)) * 100;
-      const y = 30 - ((v - min) / span) * 28 - 1;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
-  return `<svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points="${points}" fill="none" stroke="currentColor" stroke-width="2"></polyline></svg>`;
+  const points = values.map((v, i) => {
+    const x = (i / (values.length - 1 || 1)) * 100;
+    const y = 28 - ((v - min) / span) * 24 - 2;
+    return [x, y];
+  });
+  // Catmull-Rom -> cubic Bezier smoothing so the trend reads as a gentle
+  // curve rather than a jagged polyline.
+  const linePath = smoothPath(points);
+  const areaPath = `${linePath} L ${points[points.length - 1][0].toFixed(2)},30 L ${points[0][0].toFixed(2)},30 Z`;
+  const gradientId = `spark-fill-${Math.random().toString(36).slice(2, 9)}`;
+  return `<svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="currentColor" stop-opacity="0.22" />
+        <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    <path d="${areaPath}" fill="url(#${gradientId})" stroke="none"></path>
+    <path d="${linePath}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>`;
+}
+
+function smoothPath(points) {
+  if (points.length < 3) {
+    return `M ${points.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" L ")}`;
+  }
+  let d = `M ${points[0][0].toFixed(2)},${points[0][1].toFixed(2)}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i === 0 ? 0 : i - 1];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] || p2;
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C ${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2[0].toFixed(2)},${p2[1].toFixed(2)}`;
+  }
+  return d;
 }
 
 function renderWatchlist() {

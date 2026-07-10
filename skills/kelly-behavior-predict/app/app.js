@@ -184,16 +184,20 @@ function funnelRows(funnel) {
   const stages = ["browse", "search", "compare", "booking_attempt", "complete"];
   const maxCount = Math.max(1, ...stages.map((s) => funnel.stage_counts[s] || 0));
   return stages
-    .map((stage) => {
+    .map((stage, index) => {
       const count = funnel.stage_counts[stage] || 0;
-      const width = (count / maxCount) * 100;
+      const width = Math.max((count / maxCount) * 100, count > 0 ? 4 : 0);
       const drop = funnel.drop_off_pct?.[stage];
+      const isFirst = index === 0;
+      const isLast = index === stages.length - 1;
       return `
-        <div class="funnel-row">
+        <div class="funnel-row${isLast ? " funnel-row-complete" : ""}">
           <span class="funnel-stage-label">${escapeHtml(enumLabel(stage, "stage"))}</span>
-          <span class="funnel-bar-track"><span class="funnel-bar-fill" style="width:${width}%"></span></span>
+          <span class="funnel-bar-track">
+            <span class="funnel-bar-fill" style="width:${width}%"></span>
+          </span>
           <span class="funnel-count">${count}</span>
-          <span class="funnel-drop">${drop != null ? `-${pct(drop)}` : ""}</span>
+          <span class="funnel-drop">${!isFirst && drop != null ? `<span class="funnel-drop-value">-${pct(drop)}</span>` : isFirst ? `<span class="funnel-drop-baseline">${escapeHtml(t("baseline"))}</span>` : ""}</span>
         </div>
       `;
     })
@@ -225,6 +229,10 @@ function decisionBadge(decision) {
   return `<span class="badge ${decision.status}">${escapeHtml(t(decision.status === "trusted" ? "trusted" : "needsRecalibration"))}</span>`;
 }
 
+function actionBadge(action) {
+  return `<span class="badge action-badge" data-action="${escapeHtml(action)}">${escapeHtml(enumLabel(action, "action"))}</span>`;
+}
+
 async function renderSegments() {
   els.title.textContent = t("segmentsTitle");
   if (!state.segments) state.segments = await fetchJson("/api/segments");
@@ -241,15 +249,18 @@ async function renderSegments() {
         .map(
           (segment) => `
       <a class="segment-card" href="#/segments/${encodeURIComponent(segment.segment_id)}">
-        <div class="row between"><strong>${escapeHtml(enumLabel(segment.segment_id, "segment"))}</strong>${decisionBadge(segment.decision)}</div>
-        <div class="muted">${segment.session_count} sessions</div>
         <div class="row between">
-          <span class="muted">${escapeHtml(t("dominantAction"))}</span>
-          <span class="badge">${escapeHtml(enumLabel(segment.prediction_summary.dominant_action, "action"))}</span>
+          <strong class="segment-card-title">${escapeHtml(enumLabel(segment.segment_id, "segment"))}</strong>
+          ${decisionBadge(segment.decision)}
         </div>
-        <div class="row stats">
-          <span>${t("accuracy")} ${pct01(segment.backtest.accuracy)}</span>
-          <span>${t("macroF1")} ${pct01(segment.backtest.macro_f1)}</span>
+        <div class="muted segment-card-count">${segment.session_count} sessions</div>
+        <div class="row between segment-card-action">
+          <span class="eyebrow">${escapeHtml(t("dominantAction"))}</span>
+          ${actionBadge(segment.prediction_summary.dominant_action)}
+        </div>
+        <div class="row stats segment-card-stats">
+          <span><span class="stat-value">${pct01(segment.backtest.accuracy)}</span> ${t("accuracy").toLowerCase()}</span>
+          <span><span class="stat-value">${pct01(segment.backtest.macro_f1)}</span> ${t("macroF1").toLowerCase()}</span>
         </div>
       </a>
     `,
@@ -280,12 +291,12 @@ function triggerRows(triggers) {
   return triggers
     .map(
       (trigger) => `
-      <div class="driver-row">
-        <span>
-          <strong>${trigger.matched ? "✓" : "✕"}</strong> ${escapeHtml(trigger.code.replaceAll("_", " "))}
-          <div class="muted">${escapeHtml(trigger.description)}</div>
+      <div class="trigger-row${trigger.matched ? " trigger-row-matched" : ""}">
+        <span class="trigger-mark" aria-hidden="true">${trigger.matched ? "✓" : "–"}</span>
+        <span class="trigger-body">
+          <span class="trigger-code">${escapeHtml(trigger.code.replaceAll("_", " "))}</span>
+          <span class="trigger-desc muted">${escapeHtml(trigger.description)}</span>
         </span>
-        <span></span>
       </div>
     `,
     )

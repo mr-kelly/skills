@@ -12,8 +12,11 @@ export const SEGMENTS: SegmentDefinition[] = [
     description_key: "segment.price_sensitive_browser.description",
     continuation_rates: [0.62, 0.5, 0.32, 0.55],
     session_length_range: [2, 9],
-    cart_abandon_range: [1, 4],
-    price_check_range: [4, 12],
+    // Kept below DEAL_CART_ABANDON_MIN (3) so this segment is driven by heavy
+    // price-checking, not cart abandonment -- distinguishes it from
+    // deal_hunter, which trips the same discount rule via high abandon counts.
+    cart_abandon_range: [0, 2],
+    price_check_range: [5, 14],
     days_since_last_visit_range: [0, 3],
     coupon_click_range: [1, 5],
     session_count: 60,
@@ -26,7 +29,9 @@ export const SEGMENTS: SegmentDefinition[] = [
     session_length_range: [4, 14],
     cart_abandon_range: [0, 2],
     price_check_range: [1, 4],
-    days_since_last_visit_range: [10, 60],
+    // Kept below LAPSED_DAYS_SINCE_MIN (10) so a loyal, frequently-returning
+    // traveler isn't misclassified as a lapsed/churned visitor.
+    days_since_last_visit_range: [2, 8],
     coupon_click_range: [0, 1],
     session_count: 55,
   },

@@ -44,8 +44,9 @@ UI, scripts, and any future data source can evolve independently.
 
 `app/server/store.ts` computes a read-only `derived` view for every agent:
 
-- `is_over_quota`: `status === "live" && calls_this_month >= monthly_quota &&
-  monthly_quota > 0`.
+- `is_quota_reached`: `status === "live" && calls_this_month >= monthly_quota &&
+  monthly_quota > 0`. Note the `>=`: it fires the moment usage reaches quota,
+  not only once it's exceeded — hence "reached" rather than "over".
 - `usage_pct`: `calls_this_month / monthly_quota * 100`, rounded to 1 decimal;
   `0` when `monthly_quota` is `0`.
 - `missing_required_fields`: any of `name`, `trigger_description`,
@@ -56,7 +57,7 @@ UI, scripts, and any future data source can evolve independently.
   - `draft_incomplete` — status is `draft` and `missing_required_fields` is
     non-empty.
   - `missing_owner` — `owning_team` is empty, regardless of status.
-  - `over_quota` — `is_over_quota` is `true`.
+  - `quota_reached` — `is_quota_reached` is `true`.
   - `approval_without_owner` — `approval_required` is `true` and `owning_team`
     is empty.
 

@@ -281,13 +281,22 @@ function candidateRow(item) {
   `;
 }
 
+function emptyState(message) {
+  return `
+    <div class="empty">
+      <div class="empty-icon" aria-hidden="true"></div>
+      <div class="empty-message">${escapeHtml(message)}</div>
+    </div>
+  `;
+}
+
 function renderOverview() {
   els.title.textContent = t("overview");
   els.subtitle.textContent = state.batch?.generated_at
     ? `${t("generated")} ${new Date(state.batch.generated_at).toLocaleString()}`
     : t("empty");
   if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("needsConnection")}</div>`;
+    els.content.innerHTML = emptyState(t("needsConnection"));
     return;
   }
   const items = [...(state.batch.items || [])].sort((a, b) => b.score.composite_score - a.score.composite_score);
@@ -307,13 +316,13 @@ function renderCandidates() {
   const items = filteredItems(statusFilter);
   els.subtitle.textContent = `${items.length} ${t("candidates")}`;
   if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("needsConnection")}</div>`;
+    els.content.innerHTML = emptyState(t("needsConnection"));
     return;
   }
   const sorted = [...items].sort((a, b) => b.score.composite_score - a.score.composite_score);
   els.content.innerHTML = sorted.length
     ? `<div class="overview-panel wide"><div>${sorted.map(candidateRow).join("")}</div></div>`
-    : `<div class="empty">${t("empty")}</div>`;
+    : emptyState(t("empty"));
 }
 
 function revenueChart(revenue) {
@@ -333,22 +342,35 @@ function revenueChart(revenue) {
   `;
 }
 
+function factorBarTier(score) {
+  if (score >= 78) return "high";
+  if (score >= 50) return "review";
+  return "low";
+}
+
 function factorTable(factors) {
   return `
     <div class="factor-table">
+      <div class="factor-row factor-row-head" aria-hidden="true">
+        <span class="factor-label">${escapeHtml(t("factor"))}</span>
+        <span class="num">${escapeHtml(t("rawScore"))}</span>
+        <span class="num">${escapeHtml(t("weight"))}</span>
+        <span class="num">${escapeHtml(t("contribution"))}</span>
+      </div>
       ${factors
-        .map(
-          (factor) => `
+        .map((factor) => {
+          const tier = factorBarTier(factor.raw_score);
+          return `
         <div class="factor-row">
           <span class="factor-label">${escapeHtml(factorLabel(factor.key))}</span>
           <span class="num">${num(factor.raw_score)}</span>
           <span class="num">${Math.round(factor.weight * 100)}%</span>
           <span class="num strong">${num(factor.contribution)}</span>
-          <span class="factor-bar-track"><span class="factor-bar-fill" style="width:${factor.raw_score}%"></span></span>
+          <span class="factor-bar-track"><span class="factor-bar-fill tier-${tier}" style="width:${factor.raw_score}%"></span></span>
           <span class="factor-detail">${escapeHtml(factor.detail)}</span>
         </div>
-      `,
-        )
+      `;
+        })
         .join("")}
     </div>
   `;
@@ -537,5 +559,5 @@ els.language.addEventListener("change", () => {
 
 syncResponsiveShell();
 loadState().catch((error) => {
-  els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+  els.content.innerHTML = emptyState(error.message);
 });

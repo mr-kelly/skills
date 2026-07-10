@@ -193,7 +193,7 @@ function statusBadge(item) {
         : status === "needs_review"
           ? t("statusNeedsReview")
           : t("statusPass");
-  return `<span class="badge ${status}">${escapeHtml(label)}</span>`;
+  return `<span class="badge badge-dot ${status}"><span class="badge-dot-mark" aria-hidden="true"></span>${escapeHtml(label)}</span>`;
 }
 
 function renderShell() {
@@ -234,17 +234,32 @@ function viewLabel(view) {
 function passRatePanel() {
   const metrics = state.run?.metrics || {};
   const run = state.run;
+  const baseRate = metrics.baseline_pass_rate ?? 0;
+  const candRate = metrics.candidate_pass_rate ?? 0;
+  const delta = candRate - baseRate;
+  const deltaCls = delta < -0.05 ? "negative" : delta > 0.05 ? "positive" : "";
+  const deltaSign = delta > 0 ? "+" : "";
   return `
-    <div class="pass-rate-panel">
-      <div class="pass-rate-card baseline">
-        <div class="label">${t("baselinePassRate")} · ${escapeHtml(run.baseline_version)}</div>
-        <div class="value">${num1(metrics.baseline_pass_rate)}%</div>
-        <div class="pass-rate-bar"><span style="width:${metrics.baseline_pass_rate}%"></span></div>
+    <div class="compare-panel">
+      <div class="compare-panel-head">
+        <h2>${t("candidatePassRate")} <span class="muted">vs</span> ${t("baselinePassRate")}</h2>
+        <span class="compare-delta ${deltaCls}">${deltaSign}${num1(delta)}pts</span>
       </div>
-      <div class="pass-rate-card candidate ${metrics.candidate_pass_rate < metrics.baseline_pass_rate ? "regressed" : ""}">
-        <div class="label">${t("candidatePassRate")} · ${escapeHtml(run.candidate_version)}</div>
-        <div class="value">${num1(metrics.candidate_pass_rate)}%</div>
-        <div class="pass-rate-bar"><span style="width:${metrics.candidate_pass_rate}%"></span></div>
+      <div class="compare-rows">
+        <div class="compare-row">
+          <div class="compare-row-label">${t("baselinePassRate")} <span class="muted">· ${escapeHtml(run.baseline_version)}</span></div>
+          <div class="compare-bar-track">
+            <span class="compare-bar baseline-bar" style="width:${baseRate}%"></span>
+          </div>
+          <div class="compare-row-value">${num1(baseRate)}%</div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-row-label">${t("candidatePassRate")} <span class="muted">· ${escapeHtml(run.candidate_version)}</span></div>
+          <div class="compare-bar-track">
+            <span class="compare-bar candidate-bar ${delta < 0 ? "regressed" : ""}" style="width:${candRate}%"></span>
+          </div>
+          <div class="compare-row-value">${num1(candRate)}%</div>
+        </div>
       </div>
     </div>
     <div class="metrics">
@@ -425,20 +440,26 @@ function bindFilterBar() {
 }
 
 function rubricRow(key, baselineScores, candidateScores) {
+  const delta = candidateScores[key] - baselineScores[key];
+  const deltaCls = delta < 0 ? "negative" : delta > 0 ? "positive" : "muted";
+  const deltaSign = delta > 0 ? "+" : "";
   return `
-    <div class="rubric-row">
-      <span>${t(key)}</span>
-      <span class="rubric-track">
-        <span class="baseline-bar" style="width:${baselineScores[key]}%"></span>
-      </span>
-      <span class="num">${baselineScores[key]}</span>
-    </div>
-    <div class="rubric-row">
-      <span></span>
-      <span class="rubric-track">
-        <span class="candidate-bar" style="width:${candidateScores[key]}%"></span>
-      </span>
-      <span class="num">${candidateScores[key]}</span>
+    <div class="rubric-group">
+      <div class="rubric-row">
+        <span class="rubric-key">${t(key)}</span>
+        <span class="rubric-track">
+          <span class="rubric-fill baseline-bar" style="width:${baselineScores[key]}%"></span>
+        </span>
+        <span class="num muted">${baselineScores[key]}</span>
+      </div>
+      <div class="rubric-row">
+        <span class="rubric-key"></span>
+        <span class="rubric-track">
+          <span class="rubric-fill candidate-bar" style="width:${candidateScores[key]}%"></span>
+        </span>
+        <span class="num">${candidateScores[key]}</span>
+      </div>
+      <div class="rubric-delta ${deltaCls}">${deltaSign}${delta}</div>
     </div>
   `;
 }
@@ -470,12 +491,12 @@ function renderCaseDetail() {
         <div class="overview-panel" style="margin-top:14px">
           <h2>${t("transcriptDiff")}</h2>
           <div class="transcript-diff">
-            <div class="transcript-col ${item.baseline.transcript !== item.candidate.transcript ? "diff-changed" : ""}">
-              <h3>${t("baseline")} — ${item.baseline.pass ? t("pass") : t("fail")}</h3>
+            <div class="transcript-col transcript-baseline">
+              <h3><span class="transcript-tag">${t("baseline")}</span><span class="badge ${item.baseline.pass ? "acceptable" : "blocking"}">${item.baseline.pass ? t("pass") : t("fail")}</span></h3>
               <p>${escapeHtml(item.baseline.transcript)}</p>
             </div>
-            <div class="transcript-col ${item.baseline.transcript !== item.candidate.transcript ? "diff-changed" : ""}">
-              <h3>${t("candidate")} — ${item.candidate.pass ? t("pass") : t("fail")}</h3>
+            <div class="transcript-col transcript-candidate ${item.baseline.transcript !== item.candidate.transcript ? "diff-changed" : ""}">
+              <h3><span class="transcript-tag">${t("candidate")}</span><span class="badge ${item.candidate.pass ? "acceptable" : "blocking"}">${item.candidate.pass ? t("pass") : t("fail")}</span></h3>
               <p>${escapeHtml(item.candidate.transcript)}</p>
             </div>
           </div>

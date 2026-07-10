@@ -98,9 +98,13 @@ short:
   Archived agents become read-only (`PUT` returns `409`).
 - **Pause** (`POST /api/agents/:id/pause`) is only allowed from `live`.
 - **Needs attention** = a draft with missing required fields, OR an agent
-  (any status) with no owning team, OR an over-quota live agent
-  (`calls_this_month >= monthly_quota`), OR `approval_required: true` with no
-  owning team assigned.
+  (any status) with no owning team, OR a quota-reached live agent
+  (`calls_this_month >= monthly_quota` — reached, not strictly exceeded), OR
+  `approval_required: true` with no owning team assigned.
+- **PUT validation**: a `PUT` that would leave an already-`live` agent
+  missing any required field (e.g. clearing `owning_team` or
+  `allowed_tools`) is rejected with `422` + `missing_fields`, the same gate
+  `activate` uses. Draft agents remain freely editable.
 
 All writes persist to `app/.data/agents.json`; there is no approval workflow
 beyond this local file and no outbound network call anywhere in this skill's
@@ -117,7 +121,7 @@ app.
   read/write surface, all delegated to `lib/data-provider/` (never `node:fs`
   directly).
 - `lib/config-validation.ts`: pure governance rules (`missingRequiredFields`,
-  `isOverQuota`, `deriveAgent`) shared by the server and `scripts/`.
+  `isQuotaReached`, `deriveAgent`) shared by the server and `scripts/`.
 - `lib/data-provider/`: the `DataProvider` contract
   (`provider-interface.ts`) and the default `local-file-provider.ts`; selected
   via `KELLY_AGENT_BUILDER_DATA_PROVIDER` (default `local`).

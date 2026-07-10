@@ -230,8 +230,8 @@ const RAW_LEADS: RawLead[] = [
     brand_name: "Bargain Bin Outlet",
     category: "retail_discretionary",
     city: "Memphis",
-    store_count: 5,
-    est_monthly_revenue: 41000,
+    store_count: 1,
+    est_monthly_revenue: 15000,
     lead_source: "outbound_sourcing",
     data_verifiable: false,
     stage: "rejected",
@@ -255,7 +255,7 @@ const RAW_LEADS: RawLead[] = [
     category: "other",
     city: "Kansas City",
     store_count: 1,
-    est_monthly_revenue: 1250000,
+    est_monthly_revenue: 6500000,
     lead_source: "partner",
     data_verifiable: true,
     stage: "rejected",
@@ -266,6 +266,38 @@ const RAW_LEADS: RawLead[] = [
 
 export function generateMockLeads(now: Date = new Date()): Lead[] {
   return RAW_LEADS.map((raw, index) => buildLead(raw, index, now));
+}
+
+// Forward progression order for the non-terminal, non-rejected stages. Used
+// to synthesize a full stage_history for leads seeded directly into a later
+// stage, so `hasReachedStage` correctly counts cumulative funnel reach at
+// every intermediate stage (not just the final one).
+const PROGRESSION: Stage[] = ["new", "data_verified", "scored", "term_sheet_ready"];
+
+function buildStageHistory(
+  raw: RawLead,
+  createdAt: string,
+  updatedAt: string,
+): { from: Stage | null; to: Stage; at: string }[] {
+  const history: { from: Stage | null; to: Stage; at: string }[] = [{ from: null, to: "new", at: createdAt }];
+  if (raw.stage === "new") return history;
+
+  if (raw.stage === "rejected") {
+    // Rejections in this mock data happen directly out of the "new" stage
+    // (before further verification/scoring work is invested).
+    history.push({ from: "new", to: "rejected", at: updatedAt });
+    return history;
+  }
+
+  const targetIndex = PROGRESSION.indexOf(raw.stage);
+  const createdMs = new Date(createdAt).getTime();
+  const updatedMs = new Date(updatedAt).getTime();
+  const stepMs = targetIndex > 0 ? (updatedMs - createdMs) / targetIndex : 0;
+  for (let i = 1; i <= targetIndex; i++) {
+    const at = new Date(createdMs + stepMs * i).toISOString();
+    history.push({ from: PROGRESSION[i - 1], to: PROGRESSION[i], at });
+  }
+  return history;
 }
 
 function buildLead(raw: RawLead, index: number, now: Date): Lead {
@@ -290,10 +322,7 @@ function buildLead(raw: RawLead, index: number, now: Date): Lead {
     notes: raw.note
       ? [{ id: `note-${index + 1}-1`, text: raw.note, author: "sourcing-team", created_at: createdAt }]
       : [],
-    stage_history: [
-      { from: null, to: "new", at: createdAt },
-      ...(raw.stage !== "new" ? [{ from: "new" as Stage, to: raw.stage, at: updatedAt }] : []),
-    ],
+    stage_history: buildStageHistory(raw, createdAt, updatedAt),
     created_at: createdAt,
     updated_at: updatedAt,
   };

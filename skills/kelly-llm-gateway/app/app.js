@@ -259,29 +259,86 @@ function totalsMetricCards() {
   `;
 }
 
+function trendDayLabel(date) {
+  return new Date(`${date}T00:00:00Z`).toLocaleDateString(activeLang() === "zh" ? "zh-Hans" : "en-US", {
+    month: "numeric",
+    day: "numeric",
+  });
+}
+
+function smoothPath(points) {
+  if (points.length < 2) return "";
+  let d = `M ${points[0].x},${points[0].y}`;
+  for (let i = 1; i < points.length; i += 1) {
+    const prev = points[i - 1];
+    const cur = points[i];
+    const mx = (prev.x + cur.x) / 2;
+    const my = (prev.y + cur.y) / 2;
+    d += ` Q ${prev.x},${prev.y} ${mx},${my}`;
+  }
+  const last = points[points.length - 1];
+  d += ` L ${last.x},${last.y}`;
+  return d;
+}
+
 function spendTrendPanel() {
   const trend = state.snapshot?.spend_trend || [];
   if (!trend.length) return "";
+  const W = 960;
+  const H = 180;
+  const padTop = 14;
+  const padBottom = 8;
   const max = Math.max(...trend.map((p) => p.cost), 1);
-  const bars = trend
-    .map((point) => {
-      const heightPct = Math.max(4, Math.round((point.cost / max) * 100));
-      const day = new Date(`${point.date}T00:00:00Z`).toLocaleDateString(activeLang() === "zh" ? "zh-Hans" : "en-US", {
-        month: "numeric",
-        day: "numeric",
-      });
-      return `
-        <div class="trend-bar-wrap" title="${escapeHtml(day)}: ${escapeHtml(money(point.cost))}">
-          <div class="trend-bar" style="height:${heightPct}%"></div>
-          <span class="trend-bar-label">${escapeHtml(day)}</span>
-        </div>
-      `;
+  const points = trend.map((point, i) => {
+    const x = trend.length > 1 ? (i / (trend.length - 1)) * W : 0;
+    const y = padTop + (1 - point.cost / max) * (H - padTop - padBottom);
+    return { x, y, point };
+  });
+  const linePath = smoothPath(points);
+  const areaPath = `${linePath} L ${points[points.length - 1].x},${H} L ${points[0].x},${H} Z`;
+  const gridLines = [0, 0.5, 1]
+    .map((frac) => {
+      const y = padTop + frac * (H - padTop - padBottom);
+      return `<line class="trend-grid-line" x1="0" y1="${y}" x2="${W}" y2="${y}" />`;
     })
+    .join("");
+  const axisLabels = [
+    { frac: 0, value: max },
+    { frac: 1, value: 0 },
+  ]
+    .map(
+      ({ frac, value }) =>
+        `<text class="trend-axis-label" x="4" y="${padTop + frac * (H - padTop - padBottom) - 4}">${escapeHtml(money(value))}</text>`,
+    )
+    .join("");
+  const dots = points
+    .map(
+      ({ x, y, point }) =>
+        `<circle class="trend-dot" cx="${x}" cy="${y}" r="3"><title>${escapeHtml(trendDayLabel(point.date))}: ${escapeHtml(money(point.cost))}</title></circle>`,
+    )
+    .join("");
+  const xLabels = trend
+    .map((point) => `<span class="trend-x-label">${escapeHtml(trendDayLabel(point.date))}</span>`)
     .join("");
   return `
     <div class="overview-panel wide">
       <h2>${t("spendTrend")}</h2>
-      <div class="trend-chart">${bars}</div>
+      <div class="trend-chart">
+        <svg class="trend-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="trendFillGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" style="stop-color:var(--accent);stop-opacity:0.22" />
+              <stop offset="100%" style="stop-color:var(--accent);stop-opacity:0" />
+            </linearGradient>
+          </defs>
+          ${gridLines}
+          <path class="trend-area" d="${areaPath}" />
+          <path class="trend-line" d="${linePath}" />
+          ${dots}
+          ${axisLabels}
+        </svg>
+        <div class="trend-x-labels">${xLabels}</div>
+      </div>
     </div>
   `;
 }
@@ -376,6 +433,29 @@ function sortHeader(key, label, cls = "") {
 function spendTable(routes) {
   if (!routes.length) return `<div class="empty">${t("empty")}</div>`;
   const rows = sortedRoutes(routes);
+  const groupByService = state.sort.key === "service_id";
+  let lastService = null;
+  const bodyRows = rows
+    .map((route, index) => {
+      const model = modelInfo(route.model_id);
+      const isGroupStart = groupByService && route.service_id !== lastService;
+      lastService = route.service_id;
+      return `
+            <tr class="${isGroupStart && index > 0 ? "group-start" : ""}">
+              <td><span class="strong">${escapeHtml(serviceName(route.service_id))}</span></td>
+              <td>
+                <span class="model-name">${escapeHtml(model.display_name)}</span>
+                <div class="model-provider">${escapeHtml(model.provider)} · <span class="badge">${escapeHtml(enumLabel(model.tier, "tier"))}</span></div>
+              </td>
+              <td class="num">${num(route.calls_today)}</td>
+              <td class="num">${money(route.cost_today)}</td>
+              <td class="num">${errorRatePct(route.error_rate_today)}</td>
+              <td class="num">${route.canary_pct}%</td>
+              <td><span class="badge ${statusBadgeClass(route.status)}">${escapeHtml(enumLabel(route.status, "status"))}</span></td>
+            </tr>
+          `;
+    })
+    .join("");
   return `
     <div class="table-wrap">
       <table>
@@ -391,22 +471,7 @@ function spendTable(routes) {
           </tr>
         </thead>
         <tbody>
-          ${rows
-            .map((route) => {
-              const model = modelInfo(route.model_id);
-              return `
-            <tr>
-              <td><span class="strong">${escapeHtml(serviceName(route.service_id))}</span></td>
-              <td>${escapeHtml(model.display_name)}<div class="muted"><span class="badge">${escapeHtml(enumLabel(model.tier, "tier"))}</span></div></td>
-              <td class="num">${num(route.calls_today)}</td>
-              <td class="num">${money(route.cost_today)}</td>
-              <td class="num">${errorRatePct(route.error_rate_today)}</td>
-              <td class="num">${route.canary_pct}%</td>
-              <td><span class="badge ${statusBadgeClass(route.status)}">${escapeHtml(enumLabel(route.status, "status"))}</span></td>
-            </tr>
-          `;
-            })
-            .join("")}
+          ${bodyRows}
         </tbody>
       </table>
     </div>
@@ -443,13 +508,14 @@ function rolloutActionButtons(route) {
 function rolloutCard(route) {
   const model = modelInfo(route.model_id);
   return `
-    <div class="account-card rollout-card">
+    <div class="account-card rollout-card" data-status="${escapeHtml(route.status)}">
       <div class="row between">
         <strong>${escapeHtml(serviceName(route.service_id))}</strong>
         <span class="badge ${statusBadgeClass(route.status)}">${escapeHtml(enumLabel(route.status, "status"))}</span>
       </div>
       <div class="muted">${escapeHtml(model.display_name)} · ${escapeHtml(enumLabel(model.tier, "tier"))}</div>
-      <div class="balance">${route.canary_pct}%</div>
+      <div class="rollout-progress"><div class="rollout-progress-fill" style="width:${route.canary_pct}%"></div></div>
+      <div class="rollout-progress-label"><span>${route.canary_pct}% ${t("canaryPct").toLowerCase()}</span><span>100%</span></div>
       <div class="row stats">
         <span>${t("callsToday")} ${num(route.calls_today)}</span>
         <span>${t("costToday")} ${money(route.cost_today)}</span>
@@ -510,7 +576,7 @@ function anomalyRowMarkup(anomaly, { compact = false } = {}) {
   const severity = ["watch", "high"].includes(anomaly.severity) ? anomaly.severity : "watch";
   const acknowledged = anomaly.status === "acknowledged";
   return `
-    <div class="insight-row anomaly-row">
+    <div class="insight-row anomaly-row" data-severity="${severity}">
       <span class="badge sev-${severity}">${escapeHtml(enumLabel(anomaly.kind, "kind"))}</span>
       <span class="insight-text">
         <strong>${escapeHtml(label)}</strong><br>

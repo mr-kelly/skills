@@ -1449,37 +1449,92 @@ th.sortable.active {
 }
 
 /* Kelly LLM Gateway — cost & governance components */
-.section-heading {
-  margin: 18px 0 10px;
+h1 {
+  font-weight: 680;
+  letter-spacing: -0.01em;
 }
 
+h2 {
+  font-weight: 680;
+  letter-spacing: -0.005em;
+}
+
+.section-heading {
+  margin: 22px 0 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric span {
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.metric strong {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+table .num,
+.balance,
+.trend-axis-label {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Spend trend chart */
 .trend-chart {
+  position: relative;
+  margin-top: 14px;
+}
+
+.trend-chart-svg {
+  display: block;
+  width: 100%;
+  height: 180px;
+  overflow: visible;
+}
+
+.trend-grid-line {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.trend-axis-label {
+  fill: var(--muted-soft, var(--muted));
+  font-size: 10px;
+}
+
+.trend-area {
+  fill: url(#trendFillGradient);
+}
+
+.trend-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trend-dot {
+  fill: var(--panel);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.trend-x-labels {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
-  align-items: end;
-  gap: 6px;
-  height: 140px;
-  margin-top: 12px;
-  padding-top: 8px;
+  margin-top: 6px;
 }
 
-.trend-bar-wrap {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  align-items: end;
-  height: 100%;
-  gap: 6px;
-}
-
-.trend-bar {
-  min-height: 4px;
-  border-radius: 3px 3px 0 0;
-  background: var(--accent);
-  opacity: 0.85;
-}
-
-.trend-bar-label {
+.trend-x-label {
   overflow: hidden;
   color: var(--muted);
   font-size: 10px;
@@ -1488,12 +1543,71 @@ th.sortable.active {
   white-space: nowrap;
 }
 
+/* Cost breakdown table grouping */
+tr.group-start td {
+  border-top: 1px solid var(--line-strong, var(--line));
+}
+
+tr.group-subtotal td {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  background: var(--panel-subtle, #fafbfc);
+  border-bottom: 1px solid var(--line);
+}
+
+tr.group-subtotal td.num {
+  font-weight: 650;
+}
+
+td .model-name {
+  font-weight: 600;
+}
+
+td .model-provider {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* Rollout board */
 .rollout-card {
-  gap: 8px;
+  gap: 10px;
 }
 
 .rollout-note {
   overflow-wrap: anywhere;
+}
+
+.rollout-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent-weak);
+  overflow: hidden;
+}
+
+.rollout-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.rollout-card[data-status="rollback"] .rollout-progress-fill {
+  background: var(--bad);
+}
+
+.rollout-card[data-status="hold"] .rollout-progress-fill {
+  opacity: 0.55;
+}
+
+.rollout-progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .decision-note,
@@ -1519,8 +1633,63 @@ th.sortable.active {
   flex: 1 1 auto;
 }
 
+.rollout-actions button[data-action="promote"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 650;
+}
+
+.rollout-actions button[data-action="promote"]:hover {
+  background: var(--accent);
+  filter: brightness(1.06);
+}
+
+.rollout-actions button[data-action="hold"] {
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.rollout-actions button[data-action="rollback"] {
+  border-color: #f0cdcd;
+  background: var(--panel);
+  color: var(--bad);
+}
+
+.rollout-actions button[data-action="rollback"]:hover {
+  background: #fdeeee;
+}
+
+.rollout-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Anomaly list */
 .anomaly-row {
   align-items: start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: 7px;
+  background: var(--panel);
+}
+
+.anomaly-row + .anomaly-row {
+  margin-top: 8px;
+}
+
+.anomaly-row[data-severity="watch"] {
+  border-left-color: var(--warn);
+}
+
+.anomaly-row[data-severity="high"] {
+  border-left-color: var(--bad);
+}
+
+.anomaly-row[data-severity="info"] {
+  border-left-color: var(--line-strong, var(--line));
 }
 
 .anomaly-ack {
@@ -1545,5 +1714,9 @@ th.sortable.active {
   .rollout-actions {
     flex-wrap: nowrap;
     overflow-x: auto;
+  }
+
+  .trend-chart-svg {
+    height: 140px;
   }
 }

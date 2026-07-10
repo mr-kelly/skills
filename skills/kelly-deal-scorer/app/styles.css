@@ -1602,3 +1602,193 @@ th.sortable.active {
     width: 100%;
   }
 }
+
+/* Deal Scoring Desk — visual polish pass */
+h1 {
+  font-weight: 660;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-weight: 660;
+  letter-spacing: -0.005em;
+}
+
+.score-pill,
+.metric strong,
+.candidate-row .num,
+.revshare-panel strong,
+.human-work-figure,
+.attention-primary,
+.balance {
+  font-variant-numeric: tabular-nums;
+}
+
+.overview-panel,
+.metric,
+.account-card,
+.detail-side,
+.invoice-detail-panel > div,
+.audit-panel {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+}
+
+.overview-panel h2 {
+  margin-bottom: 2px;
+}
+
+.overview-panel + .overview-panel,
+.overview-panel.wide {
+  margin-top: 0;
+}
+
+.overview-grid,
+.metrics {
+  margin-bottom: 16px;
+}
+
+/* Candidate rows — refined hover/selected feel */
+.candidate-row {
+  border-radius: 8px;
+  margin: 0 -8px;
+  padding: 12px 8px;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+.candidate-row:hover {
+  background: var(--accent-wash, #f5f7fa);
+}
+
+.candidate-row:focus-visible {
+  outline: 2px solid var(--accent-line, rgba(51, 65, 85, 0.35));
+  outline-offset: -2px;
+}
+
+.candidate-row strong {
+  font-weight: 640;
+}
+
+.candidate-row small {
+  font-size: 12px;
+}
+
+.score-pill {
+  min-width: 44px;
+  padding: 3px 9px;
+  font-weight: 700;
+}
+
+/* Score breakdown — analytics-style factor table */
+.factor-table {
+  gap: 4px;
+}
+
+.factor-row {
+  grid-template-columns: minmax(0, 1.6fr) 56px 52px 72px;
+  gap: 12px;
+  padding: 11px 0;
+}
+
+.factor-row-head {
+  padding-top: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.factor-row-head .factor-label,
+.factor-row-head .num {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.factor-row .num {
+  font-variant-numeric: tabular-nums;
+}
+
+.factor-row .factor-label {
+  font-weight: 620;
+}
+
+.factor-bar-track {
+  height: 7px;
+  margin-top: 2px;
+  background: #eef1f3;
+}
+
+.factor-bar-fill {
+  display: block;
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+.factor-bar-fill.tier-high {
+  background: var(--good, #147a32);
+}
+
+.factor-bar-fill.tier-review {
+  background: var(--warn, #9c5a12);
+}
+
+.factor-bar-fill.tier-low {
+  background: var(--bad, #b33434);
+}
+
+.factor-row .factor-detail {
+  margin-top: 0;
+  line-height: 1.5;
+}
+
+/* Distribution bar — thin, calm segments */
+.dist-bar {
+  height: 10px;
+  background: #eef1f3;
+}
+
+.dist-legend {
+  gap: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Empty / loading states */
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  border: 1px dashed var(--line-strong, var(--line));
+  border-radius: 8px;
+  background: var(--panel-subtle, var(--panel));
+  color: var(--muted);
+  text-align: center;
+  box-shadow: none;
+}
+
+.empty-icon {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--muted-soft, var(--line-strong));
+  border-radius: 8px;
+  opacity: 0.7;
+}
+
+.empty-icon::before {
+  content: "";
+}
+
+.empty-message {
+  max-width: 320px;
+  font-size: 13px;
+}
+
+/* Detail dl — slightly wider label column for readability */
+dl {
+  grid-template-columns: 120px minmax(0, 1fr);
+  row-gap: 10px;
+}
+
+dt {
+  font-size: 12px;
+}
