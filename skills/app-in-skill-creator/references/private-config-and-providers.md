@@ -149,6 +149,13 @@ Use an env selector such as:
 <SKILL_ENV_PREFIX>_DATA_PROVIDER=local
 ```
 
+Treat that env selector as an explicit override only. Do not set it by default
+in `app/start.sh`; a fresh install with no selector and no private config must
+still start the app and show the provider-choice setup gate. The provider
+selector may internally use the local provider implementation as a bootstrap
+fallback for `/api/state`, but setup state should still say no provider has been
+selected.
+
 Reserve provider names such as `postgres`, `aitable`, `notion`, and `busabase` for later implementations.
 
 ## Provider Interface

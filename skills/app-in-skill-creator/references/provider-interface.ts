@@ -141,7 +141,13 @@ export function assertProvider(name: string, provider: unknown): DataProvider {
 //   const providers: Record<string, DataProvider> = { local: localFileProvider /*, … */ };
 //   const validated = new Map<string, DataProvider>();
 //
+//   export function providerSelected(): boolean {
+//     return Boolean(process.env.<SKILL_ENV_PREFIX>_DATA_PROVIDER || hasPrivateBootstrapConfig());
+//   }
+//
 //   export function getProvider(): DataProvider {
+//     // No selected provider must still return a bootstrap provider so the app can
+//     // serve setup. Keep setup.provider_selected=false until the user chooses.
 //     const selected = process.env.<SKILL_ENV_PREFIX>_DATA_PROVIDER || "local";
 //     const cached = validated.get(selected);
 //     if (cached) return cached;

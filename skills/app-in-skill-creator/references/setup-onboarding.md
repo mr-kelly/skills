@@ -8,6 +8,13 @@ Setup onboarding is a product surface, not an error page. A freshly installed
 skill should feel ready to guide the user, even when no provider, account,
 workspace, or secret has been configured yet.
 
+The app server must be launchable before provider selection. Do not make
+`app/start.sh`, the Hono server, or `/api/state` require Busabase, a database,
+private config, secrets, or any remote service merely to render setup. When no
+provider has been selected, use the local provider implementation only as a
+bootstrap fallback for serving setup state, report `provider_selected:false`,
+and set `setup.state` to `choose_provider`.
+
 ## Required First-Run Experience
 
 Every App-in-Skill that needs runtime configuration must include one full-screen
@@ -41,6 +48,12 @@ cookies, or other secret values.
 If provider mode is locked by environment variables or launch flags, show the
 selected mode and disable provider switching. Tell the user which env var or
 launcher setting controls the mode.
+
+Launchers must not invent a provider. `app/start.sh` should pass through an
+explicit `<SKILL_ENV_PREFIX>_DATA_PROVIDER` when the user set one, but it must
+not default that env var to `busabase`, `local`, or any other provider. A
+launcher-level default turns first-run setup into a locked or failing provider
+state instead of the required provider-choice screen.
 
 ## Language Choice
 
@@ -192,6 +205,9 @@ user already made the destructive request clearly.
 Before shipping setup onboarding:
 
 - Start with no private config and verify the setup gate is the first screen.
+- Start with no `<SKILL_ENV_PREFIX>_DATA_PROVIDER`, no private config, and no
+  provider service running; verify `app/start.sh` still starts and `/api/state`
+  returns `setup.provider_selected:false` plus `setup.state:"choose_provider"`.
 - Verify provider choice writes only non-secret bootstrap config.
 - Verify secrets are represented only by env var names or Vault ref names.
 - Verify changing language updates dynamic setup text.

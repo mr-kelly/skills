@@ -79,6 +79,11 @@ export async function statePayload(query: StateQuery = {}) {
   const providerSelected = Boolean(
     process.env.KELLY_EMAIL_DATA_PROVIDER || configMeta.has_private_config || provider.kind !== "local",
   );
+  const setupState = !providerSelected
+    ? "choose_provider"
+    : providerUnavailable
+      ? "provider_not_ready"
+      : onboarding.state || "ready";
   const recommendedConfig =
     onboarding.recommended_config ||
     configMeta.recommended_config ||
@@ -93,7 +98,7 @@ export async function statePayload(query: StateQuery = {}) {
       provider_selected: providerSelected,
       provider_env_locked: Boolean(process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER),
       provider: provider.kind,
-      state: providerUnavailable ? "provider_not_ready" : onboarding.state || "ready",
+      state: setupState,
       recommended_config: recommendedConfig,
       recommended_env: recommendedEnv,
       example_config: onboarding.example_config || configMeta.example_config || "",

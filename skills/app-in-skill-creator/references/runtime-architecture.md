@@ -64,6 +64,7 @@ The app server is a Hono app:
 - Prefer `127.0.0.1` and local ports in the `3000-4000` range, starting at `3000`.
 - If a port is occupied, reuse it only when the health/state response proves it is the same app; otherwise choose the next available port.
 - Always report the actual URL printed by the launcher.
+- `app/start.sh` must be able to start with no selected provider, no private config, and no remote provider service. Do not export a default `<SKILL_ENV_PREFIX>_DATA_PROVIDER` in the launcher; let `/api/state` expose `setup.provider_selected:false` and the setup gate handle provider choice.
 
 Hono is chosen because it is Web-standard `fetch(Request) -> Response` code. The same `app.fetch` can later run in Cloudflare Workers once the data layer is cloud-backed.
 
