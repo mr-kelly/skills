@@ -1268,6 +1268,45 @@ body.provider-unavailable .message-row:hover {
   line-height: 1.5;
 }
 
+.provider-gate-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.setup-language-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.setup-language-switch > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.setup-language-switch label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  padding: 4px 8px;
+  color: #374151;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.setup-language-switch input {
+  margin: 0;
+}
+
 .provider-choice-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2584,6 +2623,15 @@ body.provider-unavailable .message-row:hover {
   .provider-choice-grid,
   .setup-checklist {
     grid-template-columns: 1fr;
+  }
+
+  .provider-gate-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .setup-language-switch {
+    justify-content: flex-start;
   }
 
   .help-paths {

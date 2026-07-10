@@ -145,6 +145,7 @@ function setLanguageMode(value) {
   renderCounts();
   renderList();
   renderDetail();
+  applyProviderGate();
   applyLockState();
   toast(t("language.saved"));
 }
