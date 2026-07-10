@@ -111,6 +111,8 @@ For users, this means the app can show a safe summary of what is connected: whic
 
 The current scaffold uses a small Hono server, Node >=23.6 native TypeScript for server/scripts/lib, and a zero-build vanilla browser frontend. Runtime config and handoff files are JSON, and data access goes through a provider layer so local files can later graduate to Busabase, PostgreSQL, AITable.ai, Notion, or another backend.
 
+First run should open a friendly setup gate, not a scary broken state. When no provider is configured, let the user choose Local files or Busabase, show the active data-provider mode, and provide a copyable prompt for the agent to finish setup. Use "Provider not ready" only for real connection/auth/schema failures that the app cannot repair safely.
+
 The main skill file is intentionally a router. Detailed implementation rules live in references:
 
 | Topic | Reference |
@@ -118,6 +120,7 @@ The main skill file is intentionally a router. Detailed implementation rules liv
 | Runtime, structure, Hono, TypeScript, frontend stack, dependency and asset policy | `references/runtime-architecture.md` |
 | Private config, env files, providers, Busabase, sanitized summaries | `references/private-config-and-providers.md` |
 | Handoff files, workflow states, review model, batch schema, execution reports | `references/file-contract-review-model.md` |
+| First-run setup gate, provider choice, setup state, language Auto, suggested agent prompt | `references/setup-onboarding.md` |
 | First-run onboarding, reconfiguration, locks, concurrent write safety | `references/onboarding-and-locking.md` |
 | Human-attention panel, workflow navigation, notes/drafts, hash routing, i18n | `references/ui-workflow-patterns.md` |
 | Desktop/mobile shell and responsive layout checklist | `references/mobile-shell-layout.md` |
