@@ -47,6 +47,10 @@ launcher setting controls the mode.
 First-run setup should offer language selection directly on the setup gate when
 the app supports i18n.
 
+Reuse the same language switcher component/state used by Help & Settings. The
+setup gate may place it in a more compact container, but do not duplicate the
+language option markup, storage key, labels, or event binding.
+
 Use the same language state as Help & Settings:
 
 - `Auto`: follows browser or system language.

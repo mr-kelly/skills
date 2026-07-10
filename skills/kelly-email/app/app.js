@@ -8,6 +8,11 @@ let lockTimer = null;
 const LANGUAGE_STORAGE_KEY = "kelly-email.uiLanguage";
 const ACCENT_THEME_STORAGE_KEY = "kelly-email.accentTheme";
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-email.sidebarCollapsed";
+const LANGUAGE_OPTIONS = [
+  { value: "auto", labelKey: "language.auto" },
+  { value: "en", labelKey: "language.english" },
+  { value: "zh-CN", labelKey: "language.chinese" },
+];
 const ACCENT_THEMES = [
   { id: "blue", color: "#0a84ff" },
   { id: "purple", color: "#bf5af2" },
@@ -48,6 +53,35 @@ function browserLanguage() {
 function resolveLanguage() {
   if (!["auto", "en", "zh-CN"].includes(languageMode)) languageMode = "auto";
   return languageMode === "auto" ? browserLanguage() : languageMode;
+}
+
+function languageSwitcherHtml(container) {
+  const name = container.dataset.languageName || "uiLanguage";
+  const title =
+    container.dataset.languageTitle === "true"
+      ? `<span data-i18n="language.title">${escapeHtml(t("language.title"))}</span>`
+      : "";
+  const options = LANGUAGE_OPTIONS.map(
+    (option) => `
+      <label>
+        <input
+          type="radio"
+          name="${escapeHtml(name)}"
+          value="${escapeHtml(option.value)}"
+          data-ui-language
+          ${option.value === languageMode ? "checked" : ""}
+        />
+        <span>${escapeHtml(t(option.labelKey))}</span>
+      </label>
+    `,
+  ).join("");
+  return `${title}${options}`;
+}
+
+function renderLanguageSwitchers() {
+  document.querySelectorAll("[data-language-switcher]").forEach((container) => {
+    container.innerHTML = languageSwitcherHtml(container);
+  });
 }
 
 function resolveAccentTheme(value) {
@@ -120,9 +154,7 @@ function applyTranslations() {
   document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => {
     node.setAttribute("aria-label", t(node.dataset.i18nAriaLabel));
   });
-  document.querySelectorAll('input[name="uiLanguage"]').forEach((input) => {
-    input.checked = input.value === languageMode;
-  });
+  renderLanguageSwitchers();
   renderThemeOptions();
   renderLanguageSummary();
   applyAccentTheme();
@@ -1541,6 +1573,10 @@ function wire() {
   document.addEventListener("click", (event) => {
     if (!event.target.closest(".action-cluster")) closeDetailActionMenu();
   });
+  document.addEventListener("change", (event) => {
+    const input = event.target.closest?.("[data-ui-language]");
+    if (input) setLanguageMode(input.value);
+  });
   $("sidebarToggle").onclick = toggleSidebar;
   $("mobileSidebarToggle").onclick = () => setMobileSidebarOpen(true);
   $("sidebarScrim").onclick = () => setMobileSidebarOpen(false);
@@ -1590,9 +1626,6 @@ function wire() {
       setMobileDetailOpen(false);
       navigateTo({ mode: button.dataset.mode, selectedId: null }, { refreshData: true });
     };
-  });
-  document.querySelectorAll('input[name="uiLanguage"]').forEach((input) => {
-    input.onchange = () => setLanguageMode(input.value);
   });
 }
 
