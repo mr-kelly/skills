@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-53 skills, including 50 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+63 skills, including 60 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-53-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-63-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -139,6 +139,16 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-campaigns` | Outbound email-marketing desk on the SEND lifecycle (Setup→Engage→Nurture→Deliver): the agent builds segments, drafts campaigns, newsletters, and sequences, and runs pre-send deliverability + subject-line QA behind an EQS quality gate (SHIP/FIX/BLOCK) before anything is scheduled or sent. | Use it when planning email campaigns, newsletters, or lifecycle sequences, checking deliverability and A/B subjects, or approving sends — distinct from `kelly-email` inbox triage. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-campaigns.html) |
 | `kelly-launch` | Product-launch command desk on the RAMP framework (Research→Assemble→Mobilize→Prove): the agent assembles the launch checklist, drafts assets, Product Hunt / Hacker News submissions, press pitches, and the launch-day runbook, with a readiness gate scoring launch quality (LQS → SHIP/FIX/BLOCK). | Use it when planning and running a product launch: building the checklist, approving assets and channel submissions, gating launch readiness, or conducting launch day. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-launch.html) |
 | `kelly-brand` | Brand-narrative single source of truth on the TALE framework (Trace→Architect→Land→Evaluate): the agent drafts positioning, the message house, story bank, evidence-backed proof points, and vocabulary guardrails, scores narrative quality (NQS → SHIP/FIX/BLOCK), and flags cross-channel drift; you curate which drafts become canonical. | Use it when defining or auditing brand positioning and messaging, curating the canonical narrative and story bank, or catching off-brand drift across channels. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-brand.html) |
+| `kelly-revshare-simulator` | Control-panel workspace for modeling revenue-based-financing (RBF) deals: projects cash flow and cumulative repayment, computes a Cash-Flow Payout Multiple and effective annualized merchant cost, and flags risk (cap not reached, cost too high) with pure deterministic math. | Use it when underwriting a revenue-share or merchant-cash-advance deal, comparing financing scenarios side by side, or recording an approve/needs-revision/reject decision. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-revshare-simulator.html) |
+| `kelly-deal-scorer` | Review-queue desk that scores candidate SME financing deals with a deterministic, fully auditable rule-based rubric (revenue stability, growth trend, category risk, principal ratio, track record) — never an LLM call. | Use it when triaging a deal-underwriting queue, checking a score breakdown, getting a suggested revenue-share rate range, or recording approve/send-back/reject decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-deal-scorer.html) |
+| `kelly-portfolio-health` | Read-mostly dashboard for an RBF fund or private-credit book: total AUM, weighted repayment progress, concentration risk by category, and a watchlist of contracts with declining revenue. | Use it when reviewing portfolio health, flagging a contract for review, or checking industry concentration and at-risk exposure. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-portfolio-health.html) |
+| `kelly-lead-funnel` | Kanban control panel for a BD/sourcing team triaging merchant financing leads, with a deterministic rule-based lead-quality score and per-stage funnel conversion tracking. | Use it when reviewing a deal-sourcing pipeline, moving a lead's stage, rejecting a lead with a reason, or checking funnel conversion rates. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-lead-funnel.html) |
+| `kelly-disclosure-tracker` | Compliance/IR review workspace tracking a standardized disclosure package per financing vehicle across an origination entity, a fund-manager entity, and a listing venue, with cross-entity reconciliation flags. | Use it when reviewing disclosure checklists, vehicle readiness, or reconciliation mismatches before a filing. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-disclosure-tracker.html) |
+| `kelly-agent-observability` | Local dashboard visualizing a fleet of LLM agents behind a shared AI gateway: call volume, latency, error rates, cost, and trace-level chain breaks. | Use it when reviewing agent fleet health or drilling into a failed trace to see where a chain broke. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html) |
+| `kelly-agent-eval` | Review board that runs a fixed suite of mock test cases against baseline vs candidate agent versions, surfacing rubric-scored regressions before a release gate. | Use it when triaging agent-version regressions, comparing baseline vs candidate quality, or recording a release approve/block decision. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-agent-eval.html) |
+| `kelly-agent-builder` | Low-code agent configuration and governance console: a catalog of mock agent configs with quota, approval, and ownership tracking, blocking incomplete configs from going live. | Use it when managing an agent catalog, checking quota usage, activating a draft agent, or archiving one. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-agent-builder.html) |
+| `kelly-behavior-predict` | Dashboard over mock user-behavior funnel data with per-segment predicted-next-action heuristics and a precision/recall backtest against historical sessions. | Use it when reviewing funnel drop-off, per-segment predictions, or backtesting a rule-based recommendation heuristic. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-behavior-predict.html) |
+| `kelly-llm-gateway` | Dashboard for a shared LLM gateway's cost and model governance: spend trend, cost breakdown by service/model, canary-rollout status, and deterministic cost/error anomaly detection. | Use it when reviewing LLM gateway spend, canary rollouts, or acknowledging a cost/error anomaly. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html) |
 
 ---
 
@@ -1376,6 +1386,156 @@ Brand-narrative single source of truth on the TALE framework (Trace→Architect�
   <tr>
     <td><strong>Story bank</strong><br>Customer stories and evidence-backed proof points.</td>
     <td><strong>Drift</strong><br>Cross-channel off-brand alerts — offending usage versus the canonical guardrail.</td>
+  </tr>
+</table>
+
+### `kelly-revshare-simulator`
+
+Control-panel workspace modeling revenue-based-financing deals: cash flow, Cash-Flow Payout Multiple, effective merchant cost, and risk flags.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-revshare-simulator/assets/screenshots/overview.png" alt="Kelly Revshare Simulator overview"></td>
+    <td width="50%"><img src="skills/kelly-revshare-simulator/assets/screenshots/scenario-detail.png" alt="Kelly Revshare Simulator scenario detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Saved scenarios with decision status at a glance.</td>
+    <td><strong>Scenario detail</strong><br>Cash-flow chart, Cash-Flow Payout Multiple, effective annualized cost, and risk flags.</td>
+  </tr>
+</table>
+
+### `kelly-deal-scorer`
+
+Review-queue desk scoring candidate SME financing deals with a deterministic, auditable rule-based rubric.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-deal-scorer/assets/screenshots/overview.png" alt="Kelly Deal Scorer overview"></td>
+    <td width="50%"><img src="skills/kelly-deal-scorer/assets/screenshots/score-breakdown.png" alt="Kelly Deal Scorer score breakdown"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Score-distribution queue across candidates needing review.</td>
+    <td><strong>Score breakdown</strong><br>Every sub-factor's raw score, weight, and contribution, hand-recomputable.</td>
+  </tr>
+</table>
+
+### `kelly-portfolio-health`
+
+Read-mostly dashboard for an RBF fund's portfolio: AUM, repayment progress, concentration risk, and a decline watchlist.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-portfolio-health/assets/screenshots/overview.png" alt="Kelly Portfolio Health overview"></td>
+    <td width="50%"><img src="skills/kelly-portfolio-health/assets/screenshots/watchlist.png" alt="Kelly Portfolio Health watchlist"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Total AUM, collected amount, weighted repayment progress, and at-risk count.</td>
+    <td><strong>Watchlist</strong><br>Contracts with recent revenue decline that could threaten repayment.</td>
+  </tr>
+</table>
+
+### `kelly-lead-funnel`
+
+Kanban control panel for a BD/sourcing team triaging financing leads with a deterministic lead-quality score.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-lead-funnel/assets/screenshots/kanban.png" alt="Kelly Lead Funnel kanban"></td>
+    <td width="50%"><img src="skills/kelly-lead-funnel/assets/screenshots/lead-detail.png" alt="Kelly Lead Funnel lead detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Kanban</strong><br>Funnel-summary header with per-stage counts and conversion rates.</td>
+    <td><strong>Lead detail</strong><br>Score breakdown and suggested next action for a selected lead.</td>
+  </tr>
+</table>
+
+### `kelly-disclosure-tracker`
+
+Compliance/IR workspace tracking disclosure packages per financing vehicle across three entity roles.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-disclosure-tracker/assets/screenshots/overview.png" alt="Kelly Disclosure Tracker overview"></td>
+    <td width="50%"><img src="skills/kelly-disclosure-tracker/assets/screenshots/flagged.png" alt="Kelly Disclosure Tracker flagged"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Vehicles ready, blocked, or in progress across the portfolio.</td>
+    <td><strong>Flagged</strong><br>A cross-entity reconciliation mismatch caught before it reaches a filing.</td>
+  </tr>
+</table>
+
+### `kelly-agent-observability`
+
+Local dashboard visualizing a fleet of LLM agents behind a shared AI gateway.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-agent-observability/assets/screenshots/overview.png" alt="Kelly Agent Observability overview"></td>
+    <td width="50%"><img src="skills/kelly-agent-observability/assets/screenshots/trace-detail.png" alt="Kelly Agent Observability trace detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Fleet-level call volume, cost, and degraded-agent counts.</td>
+    <td><strong>Trace detail</strong><br>Step-by-step timeline highlighting where a chain broke.</td>
+  </tr>
+</table>
+
+### `kelly-agent-eval`
+
+Review board comparing baseline vs candidate agent versions across a fixed rubric-scored test suite.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-agent-eval/assets/screenshots/overview.png" alt="Kelly Agent Eval overview"></td>
+    <td width="50%"><img src="skills/kelly-agent-eval/assets/screenshots/case-detail.png" alt="Kelly Agent Eval case detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Baseline vs candidate pass-rate comparison and release approve/block panel.</td>
+    <td><strong>Case detail</strong><br>Rubric bars and a side-by-side transcript diff for a regression.</td>
+  </tr>
+</table>
+
+### `kelly-agent-builder`
+
+Low-code agent configuration and governance console with quota, approval, and ownership tracking.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-agent-builder/assets/screenshots/overview.png" alt="Kelly Agent Builder overview"></td>
+    <td width="50%"><img src="skills/kelly-agent-builder/assets/screenshots/catalog.png" alt="Kelly Agent Builder catalog"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Agents needing attention: over-quota, missing owner, or incomplete draft.</td>
+    <td><strong>Catalog</strong><br>Status badges across draft/live/paused/over-quota agents.</td>
+  </tr>
+</table>
+
+### `kelly-behavior-predict`
+
+Predictive-recommendation analytics over mock user-behavior funnel data.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-behavior-predict/assets/screenshots/overview.png" alt="Kelly Behavior Predict overview"></td>
+    <td width="50%"><img src="skills/kelly-behavior-predict/assets/screenshots/segment-detail.png" alt="Kelly Behavior Predict segment detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Funnel drop-off and per-segment predicted next actions.</td>
+    <td><strong>Segment detail</strong><br>Rule triggers and a precision/recall backtest against historical sessions.</td>
+  </tr>
+</table>
+
+### `kelly-llm-gateway`
+
+Cost and model-governance dashboard for a shared LLM gateway.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-llm-gateway/assets/screenshots/overview.png" alt="Kelly LLM Gateway overview"></td>
+    <td width="50%"><img src="skills/kelly-llm-gateway/assets/screenshots/rollouts.png" alt="Kelly LLM Gateway rollouts"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Total daily spend trend and cost breakdown by service/model.</td>
+    <td><strong>Rollouts</strong><br>Canary-rollout status board with promote/rollback/hold decisions.</td>
   </tr>
 </table>
 

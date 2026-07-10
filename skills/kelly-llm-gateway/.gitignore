@@ -1,0 +1,10 @@
+node_modules/
+app/.data/
+app/.cache/
+config.local.json
+config.local.yml
+*.local.json
+*.local.yml
+.env
+.env.local
+*.log

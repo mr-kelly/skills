@@ -1,0 +1,14 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "locale": "auto",
+  "underwriting_policy": {
+    "max_effective_annual_cost_pct": 40,
+    "min_cap_multiple": 1.2,
+    "max_cap_multiple": 2.5,
+    "max_term_months": 36
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "RBF Portfolio Health Dashboard"
+  short_description: "Local portfolio-health dashboard for a revenue-based-financing or private-credit book"
+  default_prompt: "Use $kelly-portfolio-health to open the portfolio health dashboard and check for lagging contracts."

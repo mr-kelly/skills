@@ -1,0 +1,32 @@
+{
+  "data_provider": "local",
+  "base_currency": "USD",
+  "locale": "auto",
+  "rubric_note": "Weights and tier tables here drive lib/scoring.ts. Edit to match your fund's underwriting policy; the app recomputes every candidate from these numbers, never from an LLM call.",
+  "rubric": {
+    "weights": {
+      "stability": 0.25,
+      "growth": 0.2,
+      "category_risk": 0.15,
+      "principal_ratio": 0.25,
+      "track_record": 0.15
+    },
+    "category_risk_tier": {
+      "Education": 90,
+      "Fitness": 70,
+      "Retail": 65,
+      "F&B": 50
+    },
+    "decision_thresholds": {
+      "high_confidence_min": 78,
+      "needs_review_min": 50
+    },
+    "revenue_share_rate": {
+      "base_min_pct": 6,
+      "base_max_pct": 14
+    }
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

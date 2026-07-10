@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Builder & Governance Console"
+  short_description: "Local control panel for a catalog of mock LLM agent configs"
+  default_prompt: "Use $kelly-agent-builder to open the agent governance console and review the agent catalog."

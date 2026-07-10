@@ -1,0 +1,14 @@
+{
+  "data_provider": "local",
+  "team_name": "Agent Quality Team",
+  "baseline_version": "v2.4.0 (baseline)",
+  "candidate_version": "v2.5.0-rc1 (candidate)",
+  "release_policy": {
+    "blocking_regression_blocks_release_note": "If true, any regression marked \"blocking\" should stop the release decision from being recorded as approve; the UI still lets a human override with a note.",
+    "blocking_regression_blocks_release": true,
+    "min_candidate_pass_rate": 80
+  },
+  "ui": {
+    "language": "auto"
+  }
+}

@@ -95,6 +95,30 @@ const GROUPS = [
   },
   { id: "eng", en: "Engineering & Ops", zh: "工程与运维", skills: ["kelly-devops", "kelly-pr-review"] },
   {
+    id: "rbf",
+    en: "Revenue-Based Finance",
+    zh: "收益分成融资",
+    skills: [
+      "kelly-revshare-simulator",
+      "kelly-deal-scorer",
+      "kelly-portfolio-health",
+      "kelly-lead-funnel",
+      "kelly-disclosure-tracker",
+    ],
+  },
+  {
+    id: "agent-ops",
+    en: "AI Agent Ops",
+    zh: "AI Agent 运维",
+    skills: [
+      "kelly-agent-observability",
+      "kelly-agent-eval",
+      "kelly-agent-builder",
+      "kelly-behavior-predict",
+      "kelly-llm-gateway",
+    ],
+  },
+  {
     id: "workspace",
     en: "Workspace Helpers",
     zh: "工作区工具",

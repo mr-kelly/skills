@@ -1,0 +1,20 @@
+{
+  "name": "kelly-llm-gateway",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "LLM Gateway Cost & Governance Desk App-in-Skill — local dashboard over a shared LLM gateway's spend, canary rollouts, and anomalies (Hono server, zero-build vanilla frontend).",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "seed": "node scripts/seed_snapshot.ts",
+    "validate": "node scripts/validate_ui_schema.ts"
+  },
+  "dependencies": {
+    "hono": "^4.6.14",
+    "@hono/node-server": "^1.13.7"
+  }
+}

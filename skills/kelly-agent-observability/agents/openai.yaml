@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Fleet Observability Desk"
+  short_description: "Local dashboard for monitoring a fleet of LLM agents"
+  default_prompt: "Use $kelly-agent-observability to open the fleet observability desk and check on agent health."

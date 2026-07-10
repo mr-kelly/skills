@@ -1,0 +1,20 @@
+{
+  "name": "kelly-lead-funnel",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Deal Sourcing Funnel — local App-in-Skill kanban/control panel for a BD/sourcing team triaging merchant financing leads (Hono server, zero-build vanilla frontend).",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "start": "node app/server/launcher.ts",
+    "serve": "node app/server/index.ts",
+    "seed": "node scripts/seed_leads.ts",
+    "validate": "node scripts/validate_ui_schema.ts"
+  },
+  "dependencies": {
+    "hono": "^4.6.14",
+    "@hono/node-server": "^1.13.7"
+  }
+}
