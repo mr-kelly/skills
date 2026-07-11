@@ -105,7 +105,7 @@ export const app = new Hono();
 app.use("/api/state", attachDemoVisuals);
 
 // ---- HEAD (health probes for a small set of paths) ----
-app.on("HEAD", ["/", "/app.js", "/styles.css", "/api/state"], (c) => c.body(null, 200));
+app.on("HEAD", ["/", "/app.js", "/styles/layers.css", "/api/state"], (c) => c.body(null, 200));
 
 // ---- GET API ----
 app.get("/api/state", async (c) => {
@@ -224,9 +224,19 @@ app.post("/api/:kind{characters|relationships|episodes|shots|tasks}/:id?", async
 // ---- Static (vanilla frontend + generated media) ----
 app.get("/", (c) => sendFile(c, path.join(APP_DIR, "index.html")));
 app.get("/app.js", (c) => sendFile(c, path.join(APP_DIR, "app.js")));
-app.get("/styles.css", (c) => sendFile(c, path.join(APP_DIR, "styles.css")));
 app.get("/accent-theme.js", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.js")));
 app.get("/accent-theme.css", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.css")));
+
+// Split into cascade-layered files (base/components/shell/overview/episodes/
+// shots/forms/list-detail/modal/settings) — see frontend-modules.md. @layer
+// precedence makes the <link> order in index.html irrelevant to which rule wins.
+app.get("/styles/*", (c) => {
+  const rel = decodeURIComponent(c.req.path.replace(/^\/styles\//, ""));
+  const base = path.resolve(APP_DIR, "styles");
+  const resolved = path.resolve(base, rel);
+  if (resolved !== base && !resolved.startsWith(base + path.sep)) return c.text("Forbidden", 403);
+  return sendFile(c, resolved);
+});
 
 app.get("/i18n/*", (c) => {
   const rel = decodeURIComponent(c.req.path.replace(/^\/i18n\//, ""));

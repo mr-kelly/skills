@@ -273,3 +273,7 @@ Before handing off a componentized frontend:
   search, bulk selection and decision, every Help & Settings tab, language
   switch, accent theme switch, and the mobile viewport — a refactor with no
   behavior change should have identical, not just similar, output.
+
+A large `styles.css` can outgrow the same way `app.js` does. That split uses
+a different native mechanism (cascade layers, not ES modules) and has its
+own footguns — see `css-modules.md`.

@@ -182,7 +182,17 @@ app.post("/api/setup/provider", async (c) => {
 // ---- Static (vanilla frontend) ----
 app.get("/", (c) => sendFile(c, path.join(APP_DIR, "index.html")));
 app.get("/app.js", (c) => sendFile(c, path.join(APP_DIR, "app.js")));
-app.get("/styles.css", (c) => sendFile(c, path.join(APP_DIR, "styles.css")));
+// Split into cascade-layered files (base/components/shell/setup-wizard/
+// help-modal/list-detail) — see frontend-modules.md. @layer precedence
+// makes the <link> order below irrelevant to which rule wins.
+app.get("/styles/*", (c) => {
+  const rel = decodeURIComponent(c.req.path.replace(/^\/styles\//, ""));
+  const resolved = path.resolve(APP_DIR, "styles", rel);
+  if (!resolved.startsWith(path.resolve(APP_DIR, "styles") + path.sep) || path.extname(resolved) !== ".css") {
+    return c.text("Forbidden", 403);
+  }
+  return sendFile(c, resolved);
+});
 
 app.get("/i18n/*", (c) => {
   const rel = decodeURIComponent(c.req.path.replace(/^\/i18n\//, ""));

@@ -1,0 +1,150 @@
+@layer modal {
+
+/* Prompt / image preview modal */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: rgba(24, 24, 27, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.modal-card {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: 86vh;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 22px 24px 26px;
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-close-button:hover {
+  color: var(--ink);
+  background: var(--surface-soft);
+}
+
+.modal-head h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.modal-section {
+  margin-top: 18px;
+}
+
+.modal-section > label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.prompt-pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12.5px;
+  line-height: 1.6;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 0;
+}
+
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.ref-thumb {
+  margin: 0;
+}
+
+.ref-thumb img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: zoom-in;
+}
+
+.ref-thumb figcaption {
+  margin-top: 5px;
+  font-size: 12px;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.ref-thumb figcaption small {
+  color: var(--faint);
+}
+
+.ctx-row {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ctx-row:first-of-type {
+  border-top: none;
+}
+
+.ctx-row span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ctx-row p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.modal-image-wrap img {
+  display: block;
+  max-width: 100%;
+  max-height: 78vh;
+  margin: 8px auto 0;
+  border-radius: var(--radius);
+}
+
+}

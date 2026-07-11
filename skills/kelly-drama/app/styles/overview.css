@@ -1,0 +1,165 @@
+@layer overview {
+
+.row-arrow {
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.section-label {
+  padding: 10px 12px 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.overview-row {
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+}
+
+.hyperframe-card {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.hyperframe-card .section-head {
+  margin-bottom: 0;
+}
+
+.hyperframe-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hyperframe-metrics div {
+  display: grid;
+  gap: 2px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-soft);
+}
+
+.hyperframe-metrics strong {
+  font-size: 18px;
+}
+
+.hyperframe-metrics span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.hyperframe-list {
+  display: grid;
+  gap: 7px;
+}
+
+.hyperframe-list h4 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.hyperframe-list.compact {
+  gap: 6px;
+}
+
+.hyperframe-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.hyperframe-row code {
+  overflow: hidden;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hf-chip {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--surface-soft);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.metric {
+  padding: 12px;
+  border-width: 0 1px 0 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.metric:last-child {
+  border-right: 0;
+}
+
+.metric strong {
+  display: block;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.metric span {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.visual-bible-card {
+  grid-template-columns: minmax(0, 1fr) 116px;
+  align-items: center;
+}
+
+.visual-bible-card .reference-grid {
+  min-width: 0;
+}
+
+.visual-bible-card .reference-grid figure:not(:first-child) {
+  display: none;
+}
+
+.visual-bible-card .asset-placeholder {
+  min-height: 64px;
+}
+
+@media (max-width: 720px) {
+.metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+.metric:nth-child(2n) {
+    border-right: 0;
+  }
+
+.visual-bible-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+}
