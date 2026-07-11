@@ -56,6 +56,7 @@ interface BusabaseBootstrapInput {
   hosting?: string;
   base_url?: string;
   space_id?: string;
+  api_key?: string;
 }
 
 function providerBootstrapConfig(kind: string, busabaseInput: BusabaseBootstrapInput = {}) {
@@ -70,6 +71,10 @@ function providerBootstrapConfig(kind: string, busabaseInput: BusabaseBootstrapI
         // A self-hosted (open-source) Busabase has no space concept and no auth;
         // only the hosted/cloud product is multi-tenant and needs a space + API key.
         space_id: hosting === "cloud" ? String(busabaseInput.space_id || "").trim() : "",
+        // Cloud/Enterprise convenience: written to this local, gitignored file
+        // (0600) so an operator can paste it once in the setup UI instead of
+        // exporting an env var. Never echoed back in any API response.
+        api_key: hosting === "cloud" ? String(busabaseInput.api_key || "").trim() : "",
         base_id: process.env.KELLY_EMAIL_BUSABASE_BASE_ID || "kelly-email",
         base_slug: process.env.KELLY_EMAIL_BUSABASE_BASE_SLUG || "kelly-email",
         contacts_base_id: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_ID || "kelly-email-contacts",
@@ -111,16 +116,20 @@ async function saveProviderBootstrap(kind: string, busabaseInput: BusabaseBootst
     existing = {};
   }
   const bootstrap = providerBootstrapConfig(normalized, busabaseInput);
+  if (normalized === "busabase" && !busabaseInput.api_key?.trim()) {
+    // A blank submission means "leave it alone", not "clear it" — otherwise
+    // saving a Base URL edit would silently wipe a previously-saved key.
+    const existingBusabase = (existing.busabase as Record<string, unknown>) || {};
+    (bootstrap.busabase as Record<string, unknown>).api_key = existingBusabase.api_key || "";
+  }
   const next = {
     ...existing,
     ...bootstrap,
     mailboxes: (existing.mailboxes as unknown[]) || [],
     identities: (existing.identities as unknown[]) || [],
   };
-  if (next.busabase && typeof next.busabase === "object") {
-    (next.busabase as Record<string, unknown>).api_key = undefined;
-  }
   await fs.writeFile(configPath, `${JSON.stringify(next, null, 2)}\n`, "utf8");
+  // The file may now hold a plaintext Busabase API key; keep it owner-only.
   await fs.chmod(configPath, 0o600);
   return { provider: normalized, config_path: configPath };
 }
@@ -161,6 +170,7 @@ app.post("/api/setup/provider", async (c) => {
     hosting: String(body.hosting || ""),
     base_url: String(body.base_url || ""),
     space_id: String(body.space_id || ""),
+    api_key: String(body.api_key || ""),
   });
   // The frontend always calls /api/state itself right after this (refresh()),
   // so returning the full payload here would probe the Busabase connection

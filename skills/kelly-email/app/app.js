@@ -72,7 +72,7 @@ function wire() {
     updateBusabaseFormVisibility();
     autosaveBusabaseConfig();
   });
-  for (const id of ["busabaseBaseUrlInput", "busabaseSpaceIdInput"]) {
+  for (const id of ["busabaseBaseUrlInput", "busabaseSpaceIdInput", "busabaseApiKeyInput"]) {
     $(id)?.addEventListener("input", scheduleBusabaseAutosave);
   }
   $("setupCopyPrompt").onclick = copySetupPrompt;
