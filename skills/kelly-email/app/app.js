@@ -11,13 +11,14 @@ import {
   applyProviderGate,
   autosaveBusabaseConfig,
   backFromBusabaseStep,
-  chooseProvider,
+  confirmProviderChoice,
   continueFromBusabaseStep,
   copySetupPrompt,
   goToBusabaseStep,
   registerSetupHooks,
   returnToChooseStep,
   scheduleBusabaseAutosave,
+  selectProviderDraft,
   updateBusabaseFormVisibility,
 } from "./js/setup.js";
 import {
@@ -59,8 +60,9 @@ function wire() {
   $("helpButton").onclick = () => openHelp();
   $("mobileHelpButton").onclick = () => openHelp();
   $("providerGateHelpButton").onclick = () => openHelp("config");
-  $("setupChooseLocal").onclick = () => chooseProvider("local");
-  $("setupChooseBusabase").onclick = goToBusabaseStep;
+  $("setupChooseLocal").onclick = () => selectProviderDraft("local");
+  $("setupChooseBusabase").onclick = () => selectProviderDraft("busabase");
+  $("setupChooseNextButton").onclick = confirmProviderChoice;
   $("busabaseBackButton").onclick = backFromBusabaseStep;
   $("busabaseContinueButton").onclick = continueFromBusabaseStep;
   $("busabaseReconfigureButton").onclick = goToBusabaseStep;

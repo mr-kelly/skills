@@ -80,6 +80,16 @@
     justify-self: auto;
   }
 
+  .setup-step-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .setup-step-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
   .setup-autosave-row {
     display: flex;
     align-items: center;
@@ -371,6 +381,14 @@
     border-top: 1px solid var(--line);
     padding: 14px 28px;
     background: var(--panel);
+  }
+
+  /* Same-specificity as .setup-actions itself (both single-class), so the
+     generic .is-hidden utility loses to it regardless of layer/source order —
+     needs its own higher-specificity override, same as .provider-gate.is-hidden
+     and .modal-backdrop.is-hidden above. */
+  .setup-actions.is-hidden {
+    display: none;
   }
 
   .setup-actions button {

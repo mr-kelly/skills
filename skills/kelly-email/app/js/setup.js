@@ -115,6 +115,32 @@ export async function chooseProvider(provider) {
   }
 }
 
+// The card the user clicks only sets a pending choice — it does not save or
+// navigate. Next is what confirms it, so choosing a provider is a deliberate
+// two-step action instead of a click that immediately commits.
+export function selectProviderDraft(provider) {
+  store.chooseStepDraft = provider;
+  applyProviderGate();
+}
+
+function pendingProviderChoice() {
+  if (store.chooseStepDraft) return store.chooseStepDraft;
+  const setup = setupState();
+  const status = providerStatus();
+  return setup.provider_selected ? setup.provider || status.provider || "local" : "";
+}
+
+export async function confirmProviderChoice() {
+  const choice = pendingProviderChoice();
+  if (!choice) return;
+  store.chooseStepDraft = null;
+  if (choice === "busabase") {
+    goToBusabaseStep();
+  } else {
+    await chooseProvider("local");
+  }
+}
+
 export function goToBusabaseStep() {
   store.forceChooseStep = false;
   store.busabaseFormVisible = true;
@@ -123,6 +149,10 @@ export function goToBusabaseStep() {
 
 export function backFromBusabaseStep() {
   store.busabaseFormVisible = false;
+  // Keep Busabase highlighted with Next enabled — the user picked it on
+  // purpose; losing that on Back would make them re-click the card for no
+  // reason when nothing about their choice changed.
+  store.chooseStepDraft = "busabase";
   applyProviderGate();
 }
 
@@ -324,12 +354,14 @@ export function applyProviderGate() {
 
   const localButton = $("setupChooseLocal");
   const busabaseButton = $("setupChooseBusabase");
-  const currentChoice = step === "configure_busabase" ? "busabase" : setup.provider_selected ? activeProvider : "";
+  const currentChoice = step === "configure_busabase" ? "busabase" : pendingProviderChoice();
   for (const button of [localButton, busabaseButton]) {
     if (!button) continue;
     button.classList.toggle("active", button.dataset.providerChoice === currentChoice);
     button.disabled = Boolean(setup.provider_env_locked);
   }
+  const nextButton = $("setupChooseNextButton");
+  if (nextButton) nextButton.disabled = !pendingProviderChoice() || Boolean(setup.provider_env_locked);
   const busabaseForm = $("busabaseConfigForm");
   if (busabaseForm) {
     busabaseForm.querySelectorAll("input, button").forEach((node) => {
