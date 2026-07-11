@@ -15,6 +15,7 @@ const AGENT_TASKS_PATH = path.join(path.dirname(currentBatchPath), "agent_tasks.
 
 export function createLocalFileProvider(meta: ProviderMeta = {}) {
   return {
+    name: "local",
     kind: "local",
 
     async getState() {

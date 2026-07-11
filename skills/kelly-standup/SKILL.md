@@ -1,6 +1,5 @@
 ---
 name: kelly-standup
-license: MIT
 description: Team standup board App-in-Skill for team leads. Use when the user invokes $kelly-standup or /kelly-standup, or asks for standup, daily standup, 晨会, daily check-in, team status board, 团队日报, blockers, who's working on what, team digest, check-in streaks, missing check-in reminders, or collecting async updates from Slack/WeCom/Discord/WhatsApp/docs into one board.
 ---
 

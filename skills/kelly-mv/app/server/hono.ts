@@ -10,23 +10,16 @@ import {
   demoStatePayload,
   isDemoQuery,
 } from "./demo.ts";
-import {
-  generateCharacterCard,
-  generateStoryboardImage,
-  generateVisualBackground,
-  imageConfigPayload,
-  saveImageConfig,
-  storyboardPromptPreview,
-} from "./image-service.ts";
+import { imageConfigPayload, saveImageConfig, storyboardPromptPreview } from "./image-service.ts";
 import { assertUnlocked } from "./lock.ts";
 import { APP_DIR } from "./paths.ts";
 import { loadProject, saveProject, upsertById } from "./project-store.ts";
 import { provider } from "./provider.ts";
-import { generateSongDraft, importSong, songConfigPayload, updateSong, uploadSong } from "./song-service.ts";
+import { installSetup } from "./setup.ts";
+import { importSong, songConfigPayload, updateSong, uploadSong } from "./song-service.ts";
 import { setActiveProject, statePayload } from "./state.ts";
 import { uploadShotAsset } from "./upload-service.ts";
 import { slug } from "./utils.ts";
-import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic/service modules, so the
@@ -113,7 +106,27 @@ async function deleteCollectionItem(kind, id) {
   return statePayload();
 }
 
+async function queueAgentTask(action: string, targetId: string, details: Record<string, unknown> = {}) {
+  await assertUnlocked();
+  const project = await loadProject();
+  const id = `task-${slug(`${action}-${targetId || "project"}`)}`;
+  const task = {
+    id,
+    type: "agent_execution",
+    title: `${action.replaceAll("_", " ")} · ${targetId || project.project_id || "project"}`,
+    status: "approved",
+    proposed_action: action,
+    target_id: targetId || "project",
+    requested_at: new Date().toISOString(),
+    ...details,
+  };
+  project.tasks = upsertById(project.tasks || [], task);
+  await saveProject(project);
+  return statePayload();
+}
+
 export const app = new Hono();
+installSetup(app);
 app.use("/api/state", attachDemoVisuals);
 
 // ---- HEAD (readiness probes) ----
@@ -185,8 +198,7 @@ app.post("/api/shot-asset-upload", async (c) => {
 
 app.post("/api/song-generate", async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  await assertUnlocked();
-  return c.json(await (generateSongDraft as (b: unknown) => Promise<unknown>)(body));
+  return c.json(await queueAgentTask("generate_song_draft", "song", { request: body }));
 });
 
 app.post("/api/active-project", async (c) => {
@@ -201,19 +213,13 @@ app.post("/api/image-config", async (c) => {
 
 app.post("/api/storyboard-image", async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  await assertUnlocked();
-  return c.json(await generateStoryboardImage(String(body.shot_id || "")));
+  return c.json(await queueAgentTask("generate_storyboard_image", String(body.shot_id || "")));
 });
 
 app.post("/api/shot-video", async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  await assertUnlocked();
   const mode = String(body.mode || "draft");
-  return c.json(
-    mode === "prod"
-      ? await (generateShotVideoProd as (id: string) => Promise<unknown>)(String(body.shot_id || ""))
-      : await generateShotVideoDraft(String(body.shot_id || "")),
-  );
+  return c.json(await queueAgentTask("generate_shot_video", String(body.shot_id || ""), { mode }));
 });
 
 app.post("/api/shot-active", async (c) => {
@@ -224,14 +230,12 @@ app.post("/api/shot-active", async (c) => {
 
 app.post("/api/visual-background-image", async (c) => {
   await c.req.json().catch(() => ({}));
-  await assertUnlocked();
-  return c.json(await generateVisualBackground());
+  return c.json(await queueAgentTask("generate_visual_background", "treatment"));
 });
 
 app.post("/api/character-card-image", async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  await assertUnlocked();
-  return c.json(await generateCharacterCard(String(body.character_id || "")));
+  return c.json(await queueAgentTask("generate_character_card", String(body.character_id || "")));
 });
 
 // Collection upsert/delete: /api/characters|shots|tasks[/:id]
@@ -248,9 +252,28 @@ app.post("/api/:kind{characters|shots|tasks}/:id?", async (c) => {
 // ---- Static (vanilla frontend) + generated media ----
 app.get("/", (c) => sendFile(c, path.join(APP_DIR, "index.html")));
 app.get("/app.js", (c) => sendFile(c, path.join(APP_DIR, "app.js")));
-app.get("/styles.css", (c) => sendFile(c, path.join(APP_DIR, "styles.css")));
+app.get("/js/*", (c) => {
+  const rel = decodeURIComponent(c.req.path.replace(/^\/js\//, ""));
+  const base = path.resolve(APP_DIR, "js");
+  const resolved = path.resolve(base, rel);
+  if ((resolved !== base && !resolved.startsWith(base + path.sep)) || path.extname(resolved) !== ".js") {
+    return c.text("Forbidden", 403);
+  }
+  return sendFile(c, resolved);
+});
+app.get("/styles/*", (c) => {
+  const rel = decodeURIComponent(c.req.path.replace(/^\/styles\//, ""));
+  const base = path.resolve(APP_DIR, "styles");
+  const resolved = path.resolve(base, rel);
+  if ((resolved !== base && !resolved.startsWith(base + path.sep)) || path.extname(resolved) !== ".css") {
+    return c.text("Forbidden", 403);
+  }
+  return sendFile(c, resolved);
+});
 app.get("/accent-theme.js", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.js")));
 app.get("/accent-theme.css", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.css")));
+app.get("/demo-visuals.js", (c) => sendFile(c, path.join(APP_DIR, "demo-visuals.js")));
+app.get("/demo-visuals.css", (c) => sendFile(c, path.join(APP_DIR, "demo-visuals.css")));
 
 // i18n locale modules. Decode percent-encoding so non-ASCII filenames resolve,
 // and guard against path traversal outside the i18n directory.

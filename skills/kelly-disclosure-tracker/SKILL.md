@@ -1,6 +1,5 @@
 ---
 name: kelly-disclosure-tracker
-license: MIT
 description: Cross-Entity Disclosure Tracker App-in-Skill — a local review workspace that helps a compliance/IR team assemble and track a standardized disclosure package per financing vehicle (fund/SPV), across a generic onshore origination entity, an offshore fund-manager entity, and a listing/exchange venue. Use when the user invokes $kelly-disclosure-tracker or /kelly-disclosure-tracker, wants to review disclosure checklists, vehicle readiness, cross-entity reconciliation flags, or reviewer notes across multiple financing vehicles. Local review workspace only — it never files anything or calls any external system.
 ---
 
@@ -38,15 +37,15 @@ review model.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Disclosure Tracker overview"></td>
-    <td width="50%"><img src="assets/screenshots/vehicle-detail.png" alt="Disclosure Tracker vehicle detail"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Disclosure Tracker overview"></td>
+    <td width="50%"><img src="assets/screenshots/vehicle-detail.webp" alt="Disclosure Tracker vehicle detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Portfolio-level summary (ready / blocked / in-progress vehicles) plus the vehicle grid.</td>
     <td><strong>Vehicle detail</strong><br>Checklist grouped by role (origination / fund-manager / listing venue) with a decision panel: verified, needs source, or flag inconsistent, plus a reviewer note.</td>
   </tr>
   <tr>
-    <td colspan="2"><img src="assets/screenshots/flagged.png" alt="Disclosure Tracker flagged items"></td>
+    <td colspan="2"><img src="assets/screenshots/flagged.webp" alt="Disclosure Tracker flagged items"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Flagged</strong><br>Cross-entity reconciliation mismatches (e.g. a figure that doesn't reconcile between the fund-manager's AUM statement and the listing venue's filing) and reviewer-flagged inconsistencies, in one list.</td>

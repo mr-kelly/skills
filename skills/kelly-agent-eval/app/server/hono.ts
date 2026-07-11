@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { getProvider } from "../../lib/data-provider/index.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through lib/data-provider/ (never node:fs
@@ -21,6 +22,7 @@ const types: Record<string, string> = {
 };
 
 export const app = new Hono();
+installSetup(app);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

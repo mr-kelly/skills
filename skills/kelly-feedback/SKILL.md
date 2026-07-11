@@ -1,6 +1,5 @@
 ---
 name: kelly-feedback
-license: MIT
 description: Personal App-in-Skill voice-of-customer desk for aggregating user feedback from support email, Discord/Slack communities, X replies, app-store reviews, surveys, and interviews into clustered feature requests and a roadmap decision queue. Use when the user invokes $kelly-feedback or /kelly-feedback, or mentions user feedback, voice of customer, feature requests, roadmap decisions, feedback clustering, feedback triage, request dedupe, changelog replies, decline replies, or reviewing what users are asking for.
 ---
 

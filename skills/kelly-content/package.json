@@ -6,7 +6,8 @@
   "description": "Kelly Content App-in-Skill — local review desk (Hono server, zero-build vanilla frontend).",
   "scripts": {
     "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts"
+    "serve": "node app/server/index.ts",
+    "validate": "node scripts/validate_ui_schema.ts"
   },
   "dependencies": {
     "hono": "^4.6.14",

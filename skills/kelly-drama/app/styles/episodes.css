@@ -386,6 +386,22 @@
     }
   }
 
+  @media (max-width: 720px) {
+    .workspace.episode-detail-mode .list-panel {
+      display: none;
+    }
+
+    .workspace.episode-detail-mode .detail-panel {
+      display: block;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    .workspace.episode-detail-mode .back-button {
+      display: inline-flex;
+    }
+  }
+
   .back-button:hover {
     box-shadow: none;
   }

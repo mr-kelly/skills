@@ -1,6 +1,5 @@
 ---
 name: kelly-crm
-license: MIT
 description: Personal App-in-Skill CRM operator for contacts, companies, deals, and agent-drafted follow-ups in a local review dashboard. Use when the user invokes $kelly-crm or /kelly-crm, mentions CRM, pipeline, contacts, companies, deals, follow-ups, relationship management, meeting-note capture, outreach drafts, next steps, or wants to review/approve agent-drafted follow-up messages before they are sent through other channels.
 ---
 

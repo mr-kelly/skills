@@ -1,6 +1,5 @@
 ---
 name: kelly-behavior-predict
-license: MIT
 description: Local dashboard App-in-Skill over mock user-behavior funnel data (browse → search → compare → booking attempt/abandon → complete) for a generic consumer booking product. Use when the user invokes $kelly-behavior-predict or /kelly-behavior-predict, wants to review funnel drop-off, per-segment predicted next actions, or backtest a rule-based "predicted next action" heuristic against a mock historical sample. Fully offline mock data and a deterministic, hand-recomputable rule — never a real ML/LLM model, never a live system.
 ---
 
@@ -30,15 +29,15 @@ itself, the dataset, or any live system — it is a review record only.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Analytics Desk overview"></td>
-    <td width="50%"><img src="assets/screenshots/funnel.png" alt="Analytics Desk segments"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Analytics Desk overview"></td>
+    <td width="50%"><img src="assets/screenshots/funnel.webp" alt="Analytics Desk segments"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Overall funnel drop-off (browse → search → compare → booking attempt → complete), total sessions, overall backtest accuracy, and how many segments still need a trust decision.</td>
     <td><strong>Segments</strong><br>Per-segment cards: session count, dominant predicted action, backtest accuracy/F1, and the current trusted / needs-recalibration badge.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/segment-detail.png" alt="Analytics Desk segment detail"></td>
+    <td width="50%"><img src="assets/screenshots/segment-detail.webp" alt="Analytics Desk segment detail"></td>
     <td width="50%"></td>
   </tr>
   <tr>
@@ -144,3 +143,6 @@ what the Backtest view renders, at both the overall and per-segment level.
 - Do not commit `app/.data/`, `config.local.json`, or any local env file.
 - The decision panel is a review record only — it must never regenerate the
   dataset, edit the rule, or reach any external system.
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

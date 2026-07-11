@@ -6,7 +6,8 @@ import { summarizeFleet } from "../../lib/generate.ts";
 import type { Handoff, HandoffStatus, HandoffTargetType } from "../../lib/types.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
-import { appendHandoff, readFleet, readHandoffs } from "./store.ts";
+import { installSetup } from "./setup.ts";
+import { appendHandoff, assertUnlocked, readFleet, readHandoffs, readLock } from "./store.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract, so the same app runs under @hono/node-server locally today and could
@@ -27,17 +28,19 @@ const types: Record<string, string> = {
 };
 
 async function fullState(): Promise<Record<string, unknown>> {
-  const [fleet, handoffs] = await Promise.all([readFleet(), readHandoffs()]);
+  const [fleet, handoffs, lock] = await Promise.all([readFleet(), readHandoffs(), readLock()]);
   return {
     app: "kelly-agent-observability",
     data_provider: "local",
     fleet,
     summary: summarizeFleet(fleet),
     handoffs,
+    lock,
   };
 }
 
 export const app = new Hono();
+installSetup(app);
 
 // ---- Bootstrap state (used by the frontend for a single fetch) ----
 app.get("/api/state", async (c) => {
@@ -102,6 +105,7 @@ app.get("/api/traces/:traceId", async (c) => {
 // POST handoff/acknowledge: writes a human-in-the-loop note to a local jsonl
 // file. No external network calls; this is the only mutating endpoint.
 app.post("/api/handoffs", async (c) => {
+  await assertUnlocked();
   let payload: Record<string, unknown>;
   try {
     payload = await c.req.json();
@@ -158,4 +162,4 @@ app.get("/*", async (c) => {
   });
 });
 
-app.onError((err, c) => c.json({ error: err.message }, 500));
+app.onError((err, c) => c.json({ error: err.message }, ("statusCode" in err ? Number(err.statusCode) : 500) as 500));

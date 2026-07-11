@@ -113,3 +113,6 @@ skills/kelly-digital-human/app/start.sh
 node skills/kelly-digital-human/scripts/generate_demo_snapshot.ts
 node skills/kelly-digital-human/scripts/validate_ui_schema.ts
 ```
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

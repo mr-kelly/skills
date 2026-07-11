@@ -5,6 +5,7 @@ import { createProvider } from "../../lib/data-provider/index.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 
 const provider = await createProvider();
 console.log(`Kelly Scale PPTX data provider: ${provider.kind}`);
@@ -22,6 +23,7 @@ function jsonResponse(c: Context, status: number, body: unknown) {
 }
 
 export const app = new Hono();
+installSetup(app);
 app.use("/api/state", attachDemoVisuals);
 
 app.get("/api/state", async (c) => {

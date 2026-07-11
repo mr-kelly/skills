@@ -167,14 +167,6 @@ export function fillBusabaseForm() {
     apiPill.classList.toggle("warn", !apiKeyConfigured);
     apiPill.textContent = apiKeyConfigured ? t("setup.ready") : t("setup.todo");
   }
-  const apiKeyInput = $("busabaseApiKeyInput");
-  if (apiKeyInput && document.activeElement !== apiKeyInput) {
-    // Never echo the real secret back into the browser; only hint that one
-    // already exists, so leaving this blank on save keeps it unchanged.
-    apiKeyInput.placeholder = apiKeyConfigured
-      ? t("setup.busabase.api_key_placeholder_configured")
-      : t("setup.busabase.api_key_placeholder_empty");
-  }
   const apiHint = $("busabaseApiKeyHint");
   if (apiHint) apiHint.textContent = t("setup.busabase.api_key_hint", { env: "KELLY_EMAIL_BUSABASE_API_KEY" });
   updateBusabaseFormVisibility();
@@ -201,7 +193,6 @@ export async function autosaveBusabaseConfig() {
   const hosting = busabaseHosting();
   const baseUrl = ($("busabaseBaseUrlInput")?.value || "").trim();
   const spaceId = ($("busabaseSpaceIdInput")?.value || "").trim();
-  const apiKey = ($("busabaseApiKeyInput")?.value || "").trim();
   if (!baseUrl) {
     setBusabaseAutosaveStatus(t("setup.busabase.base_url_required"), "error");
     return false;
@@ -218,11 +209,8 @@ export async function autosaveBusabaseConfig() {
       hosting,
       base_url: baseUrl,
       space_id: spaceId,
-      api_key: apiKey,
     });
     if (token !== store.busabaseAutosaveToken) return true;
-    const apiKeyInput = $("busabaseApiKeyInput");
-    if (apiKeyInput) apiKeyInput.value = "";
     setBusabaseAutosaveStatus(t("setup.busabase.autosave_saved"), "saved");
     await hooks.refresh({ preserveScroll: false });
     return true;

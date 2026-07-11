@@ -29,16 +29,16 @@ product name appears anywhere.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Gateway overview"></td>
-    <td width="50%"><img src="assets/screenshots/cost-breakdown.png" alt="Gateway cost breakdown"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Gateway overview"></td>
+    <td width="50%"><img src="assets/screenshots/cost-breakdown.webp" alt="Gateway cost breakdown"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Total daily spend trend, a canary-rollout summary, and a top anomalies preview.</td>
     <td><strong>Cost Breakdown</strong><br>Sortable service × model table: calls, cost, error rate, canary %, status.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/rollouts.png" alt="Gateway rollouts"></td>
-    <td width="50%"><img src="assets/screenshots/anomalies.png" alt="Gateway anomalies"></td>
+    <td width="50%"><img src="assets/screenshots/rollouts.webp" alt="Gateway rollouts"></td>
+    <td width="50%"><img src="assets/screenshots/anomalies.webp" alt="Gateway anomalies"></td>
   </tr>
   <tr>
     <td><strong>Rollouts</strong><br>Canary-rollout status board with rollback readiness and promote/rollback/hold actions.</td>

@@ -61,11 +61,9 @@ export function createBusabaseProvider() {
       busabase: {
         hosting,
         base_url: process.env.KELLY_EMAIL_BUSABASE_URL || String(local.base_url || "").trim() || defaultBaseUrl,
-        // Cloud/Enterprise lets an operator paste the API key in the setup UI
-        // for convenience; it is written to this same local (gitignored)
-        // bootstrap file, never echoed back to the browser. Self-hosted/open
-        // source Busabase has no auth, so there is nothing to store here.
-        api_key: hosting === "cloud" ? String(local.api_key || "").trim() : "",
+        // Secret values come from KELLY_EMAIL_BUSABASE_API_KEY only. The local
+        // bootstrap stores the env-var reference, never the key itself.
+        api_key: "",
         base_id: process.env.KELLY_EMAIL_BUSABASE_BASE_ID || "kelly-email",
         base_slug: process.env.KELLY_EMAIL_BUSABASE_BASE_SLUG || "kelly-email",
         contacts_base_id: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_ID || "kelly-email-contacts",
@@ -97,7 +95,7 @@ export function createBusabaseProvider() {
 
   async function client() {
     const local = localBusabaseBootstrap();
-    const signature = JSON.stringify([local.hosting, local.base_url, local.space_id, local.api_key]);
+    const signature = JSON.stringify([local.hosting, local.base_url, local.space_id]);
     if (!clientPromise || signature !== clientSignature) {
       clientPromise = createBusabaseClient({ envPrefix: ENV_PREFIX, config: bootstrapConfig() });
       clientSignature = signature;

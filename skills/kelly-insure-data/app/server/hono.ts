@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { createProvider } from "../../lib/data-provider/index.ts";
 import { demoSnapshot } from "../../lib/data-provider/local-file-provider.ts";
 import { APP_DIR } from "../../lib/paths.ts";
+import { installSetup } from "./setup.ts";
 
 const provider = await createProvider();
 console.log(`Kelly Insure Data provider: ${provider.name}`);
@@ -16,6 +17,7 @@ const types: Record<string, string> = {
 };
 
 export const app = new Hono();
+installSetup(app);
 
 app.get("/api/state", async (c) => {
   const query = c.req.query();

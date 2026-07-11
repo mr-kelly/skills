@@ -3,6 +3,7 @@ import path from "node:path";
 import { Hono } from "hono";
 import { demoRouteFor, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 import {
   readDataset,
   readDecision,
@@ -40,6 +41,7 @@ function json(c: import("hono").Context, body: unknown, status = 200) {
 }
 
 export const app = new Hono();
+installSetup(app);
 
 // ---- API ----
 

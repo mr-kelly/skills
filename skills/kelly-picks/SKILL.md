@@ -1,6 +1,5 @@
 ---
 name: kelly-picks
-license: MIT
 description: Kelly's product-research (选品) desk for a cross-border e-commerce seller, as a local App-in-Skill. The agent sweeps trend sources — Amazon BSR movers, TikTok viral product videos, Temu/AliExpress rising items, Google Trends terms, competitor new launches — and files product candidates with margin cards (landed cost, fees, breakeven ACOS) and competition reads; Kelly verdicts them develop / watch / drop, and develop items become sourcing and listing briefs handed to kelly-listing. Use when the user invokes $kelly-picks or /kelly-picks, or asks for 选品, product research, a product sourcing radar, BSR movers, TikTok viral products, a margin calculator, breakeven ACOS, competition reads, or product candidate triage.
 ---
 

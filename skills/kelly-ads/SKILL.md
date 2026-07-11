@@ -1,6 +1,5 @@
 ---
 name: kelly-ads
-license: MIT
 description: Personal App-in-Skill ad-campaign command desk (投放指挥台) for a cross-border e-commerce seller running Amazon Ads, Meta (FB/IG), TikTok Ads, and Google Ads. Use when the user invokes $kelly-ads or /kelly-ads, or asks about 投放, ad campaigns, ad spend, ACOS, ROAS, Amazon Ads, TikTok ads, Meta ads, Google Ads, search terms, negative keywords, bid adjustment, budget pacing, CPC spikes, rejected ads, ad anomaly detection, 广告优化, or reviewing agent-proposed adjustment cards (negative keyword, bid down/up, pause target, budget shift, creative refresh).
 ---
 

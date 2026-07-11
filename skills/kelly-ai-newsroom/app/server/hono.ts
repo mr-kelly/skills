@@ -2,9 +2,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { Hono } from "hono";
 import { appDir } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 import { readBatch, readDecisions, readState, saveDecision } from "./store.ts";
 
 export const app = new Hono();
+installSetup(app);
 
 function wantsDemo(c: any) {
   return Boolean(c.req.query("demo"));

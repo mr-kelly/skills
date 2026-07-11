@@ -7,10 +7,12 @@ import { ensureDirs, readJson, writeJson } from "../../lib/common.ts";
 import { appDir, dataDir, decisionsPath, defaultHost, defaultPort, lockPath, snapshotPath } from "../../lib/paths.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoState, isDemoQuery } from "./demo.ts";
+import { installSetup } from "./setup.ts";
 
 const host = process.env.KELLY_DIGITAL_HUMAN_UI_HOST || defaultHost;
 const port = Number.parseInt(process.env.KELLY_DIGITAL_HUMAN_UI_PORT || process.env.PORT || String(defaultPort), 10);
 const app = new Hono();
+installSetup(app);
 app.use("/api/state", attachDemoVisuals);
 
 function queryFor(requestUrl: string): URLSearchParams {

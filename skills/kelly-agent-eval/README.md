@@ -38,22 +38,22 @@ refuses to run while any regression is still undecided.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Agent Eval Board overview"></td>
-    <td width="50%"><img src="assets/screenshots/regressions.png" alt="Agent Eval Board regressions list"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Agent Eval Board overview"></td>
+    <td width="50%"><img src="assets/screenshots/regressions.webp" alt="Agent Eval Board regressions list"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Baseline vs candidate pass-rate comparison, case-count metrics, and the release approve/block panel.</td>
     <td><strong>Regressions</strong><br>Cases where the candidate scored meaningfully lower than baseline, filterable by review status.</td>
   </tr>
   <tr>
-    <td colspan="2"><img src="assets/screenshots/case-detail.png" alt="Agent Eval Board case detail"></td>
+    <td colspan="2"><img src="assets/screenshots/case-detail.webp" alt="Agent Eval Board case detail"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Case detail</strong><br>Rubric bar comparison (helpfulness/correctness/safety/tone) plus a side-by-side transcript diff and the mark-blocking / mark-acceptable review note.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview-zh-CN.png" alt="Agent Eval Board overview, Chinese UI"></td>
-    <td width="50%"><img src="assets/screenshots/regressions-zh-CN.png" alt="Agent Eval Board regressions, Chinese UI"></td>
+    <td width="50%"><img src="assets/screenshots/overview-zh-CN.webp" alt="Agent Eval Board overview, Chinese UI"></td>
+    <td width="50%"><img src="assets/screenshots/regressions-zh-CN.webp" alt="Agent Eval Board regressions, Chinese UI"></td>
   </tr>
   <tr>
     <td><strong>Overview (中文)</strong></td>

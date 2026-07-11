@@ -1,6 +1,5 @@
 ---
 name: kelly-listing
-license: MIT
 description: Listing factory (上架工作台) for a cross-border e-commerce seller. Use when the user invokes $kelly-listing or /kelly-listing, mentions 上架, listing, Amazon title bullets, A+ content, flat file, TikTok Shop listing, listing compliance, 禁用词, multi-locale listings, wants platform listings drafted from product source material or a kelly-picks brief, deterministic compliance checks against per-platform rule sets, a review queue for approving drafts, or approved listings exported as Markdown/CSV for upload.
 ---
 

@@ -1,6 +1,5 @@
 ---
 name: kelly-agent-eval
-license: MIT
 description: Local App-in-Skill review board that runs a fixed suite of mock test cases against a baseline vs candidate agent version and surfaces rubric-scored regressions before a release. Use when the user invokes $kelly-agent-eval or /kelly-agent-eval, wants to review agent-version regressions, compare baseline vs candidate quality, triage a release, or record a release approve/block decision. Deterministic mock rubric scores only — not a real LLM-judge call, and it never deploys anything.
 ---
 
@@ -33,15 +32,15 @@ a **review queue** (regressions needing a human verdict).
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Agent Eval Board overview"></td>
-    <td width="50%"><img src="assets/screenshots/regressions.png" alt="Agent Eval Board regressions list"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Agent Eval Board overview"></td>
+    <td width="50%"><img src="assets/screenshots/regressions.webp" alt="Agent Eval Board regressions list"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Baseline vs candidate pass-rate comparison, case-count metrics, and the release approve/block panel.</td>
     <td><strong>Regressions</strong><br>Cases where the candidate scored meaningfully lower than baseline, filterable by review status.</td>
   </tr>
   <tr>
-    <td colspan="2"><img src="assets/screenshots/case-detail.png" alt="Agent Eval Board case detail"></td>
+    <td colspan="2"><img src="assets/screenshots/case-detail.webp" alt="Agent Eval Board case detail"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Case detail</strong><br>Rubric bar comparison (helpfulness/correctness/safety/tone) plus a side-by-side transcript diff and the mark-blocking / mark-acceptable review note.</td>

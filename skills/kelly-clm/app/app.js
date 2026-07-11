@@ -290,16 +290,17 @@ function renderApprovals() {
   els.content.innerHTML = `<div class="card-grid">${state.data.approvals
     .map(
       (item) =>
-        `<article class="card panel"><h2>${e(item.title)}</h2><p class="muted">${e(item.summary)}</p><p>${badge(item.status)}</p><div class="actions"><button type="button" data-action="approve" data-id="${item.id}" title="${t("approve")}">${t("approve")}</button><button type="button" data-action="changes" data-id="${item.id}" title="${t("changes")}">${t("changes")}</button><button type="button" data-action="block" data-id="${item.id}" title="${t("block")}">${t("block")}</button></div></article>`,
+        `<article class="card panel"><h2>${e(item.title)}</h2><p class="muted">${e(item.summary)}</p><p>${badge(item.status)}</p><div class="actions"><button type="button" data-action="approve" data-id="${item.id}" title="${t("approve")}" ${state.data.lock ? "disabled" : ""}>${t("approve")}</button><button type="button" data-action="changes" data-id="${item.id}" title="${t("changes")}" ${state.data.lock ? "disabled" : ""}>${t("changes")}</button><button type="button" data-action="block" data-id="${item.id}" title="${t("block")}" ${state.data.lock ? "disabled" : ""}>${t("block")}</button></div></article>`,
     )
     .join("")}</div>`;
   els.content.querySelectorAll("button[data-action]").forEach((button) => {
     button.addEventListener("click", async () => {
-      await fetch("/api/decision", {
+      const response = await fetch("/api/decision", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ id: button.dataset.id, action: button.dataset.action }),
       });
+      if (!response.ok) throw new Error(`Decision request failed: ${response.status}`);
       button.closest(".card").querySelector(".muted").textContent = t("demoDecision");
     });
   });

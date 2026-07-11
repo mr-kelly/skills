@@ -344,6 +344,11 @@ a:hover { text-decoration: underline; }
 .hero p.lede { margin: 0; max-width: 760px; color: var(--muted); font-size: 16px; }
 .hero .stats { display: flex; gap: 20px; margin: 22px 0 0; color: var(--muted); font-size: 13.5px; flex-wrap: wrap; }
 .hero .stats strong { color: var(--text); font-size: 15px; margin-right: 5px; }
+.audit-note {
+  margin-top: 18px; max-width: 760px; padding: 11px 13px; border-left: 3px solid var(--accent);
+  background: var(--accent-soft); color: var(--muted); font-size: 13px; line-height: 1.5;
+}
+.audit-note strong { color: var(--text); margin-right: 6px; }
 .home-layout {
   display: grid; grid-template-columns: minmax(0, 1fr) 286px; gap: 28px; align-items: start;
 }
@@ -791,6 +796,12 @@ async function main() {
         <span><strong>${allNames.length}</strong>${bilingual("skills", "个 skills")}</span>
         <span><strong>${appCount}</strong>${bilingual("bundled App UIs", "个内置 App UI")}</span>
         <span><strong>0</strong>${bilingual("npm dependencies", "npm 依赖")}</span>
+      </div>
+      <div class="audit-note">
+        ${bilingual(
+          "<strong>App-in-Skill compliance audited.</strong> All 60 workflows include provider-safe setup, validated handoffs, explicit approval boundaries, and maintainable ESM/CSS structure.",
+          "<strong>App-in-Skill 规范已审计。</strong>60 个工作流均包含 provider-safe setup、validated handoff、明确审批边界与可维护的 ESM/CSS 结构。",
+        )}
       </div>
       ${homeMobileControls(visibleGroups)}
     </section>

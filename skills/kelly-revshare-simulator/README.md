@@ -28,15 +28,15 @@ run through pure, deterministic math.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Revenue-Share Simulator overview"></td>
-    <td width="50%"><img src="assets/screenshots/scenario-detail.png" alt="Revenue-Share Simulator scenario detail"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Revenue-Share Simulator overview"></td>
+    <td width="50%"><img src="assets/screenshots/scenario-detail.webp" alt="Revenue-Share Simulator scenario detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Portfolio-level summary across saved scenarios: average effective cost, flagged deals, and deals still needing an underwriting decision.</td>
     <td><strong>Scenario detail</strong><br>Cash-flow/cumulative-repayment chart, Cash-Flow Payout Multiple, effective annualized merchant cost, risk flags, and the decision panel.</td>
   </tr>
   <tr>
-    <td colspan="2" width="100%"><img src="assets/screenshots/comparison.png" alt="Revenue-Share Simulator comparison"></td>
+    <td colspan="2" width="100%"><img src="assets/screenshots/comparison.webp" alt="Revenue-Share Simulator comparison"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Comparison</strong><br>Side-by-side table of selected scenarios' inputs, projected repayment, payout multiple, effective cost, and decisions.</td>

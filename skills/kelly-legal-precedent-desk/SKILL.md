@@ -1,6 +1,5 @@
 ---
 name: kelly-legal-precedent-desk
-license: MIT
 description: Legal precedent App-in-Skill desk for internal casebase search, local court-pattern analysis, similar-case packs, AI Q&A, citations, and approval-gated research exports. Use when the user invokes $kelly-legal-precedent-desk, mentions 类案检索, 本地裁判尺度, 内部案例库查询, AI 智能问答, 案例查阅与收藏, precedent research, similar cases, legal research pack, or wants a local UI where lawyers review agent-prepared precedent findings before reuse.
 ---
 

@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node app/server/launcher.ts",
     "serve": "node app/server/index.ts",
-    "seed": "node scripts/generate_fleet_data.ts"
+    "seed": "node scripts/generate_fleet_data.ts",
+    "validate": "node scripts/validate_ui_schema.ts"
   },
   "dependencies": {
     "hono": "^4.6.14",

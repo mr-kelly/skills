@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { TOOL_CATALOG } from "../../lib/tool-catalog.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 import {
   activateAgent,
   applyUpdate,
@@ -55,6 +56,7 @@ async function state(): Promise<Record<string, unknown>> {
 }
 
 export const app = new Hono();
+installSetup(app);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

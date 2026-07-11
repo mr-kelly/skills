@@ -246,15 +246,22 @@ function screenshotStem(file) {
   return path
     .basename(file)
     .replace(/\.(png|svg|webp)$/i, "")
-    .replace(/-zh-CN$/, "");
+    .replace(/[.-]zh-CN$/, "");
 }
 
 function languageFor(file) {
-  return /-zh-CN\.(png|svg|webp)$/i.test(file) ? "zh-CN" : "en";
+  return /[.-]zh-CN\.(png|svg|webp)$/i.test(file) ? "zh-CN" : "en";
 }
 
 function isMobile(file) {
-  return screenshotStem(file).startsWith("mobile-");
+  const stem = screenshotStem(file);
+  return stem.startsWith("mobile-") || stem.endsWith("-mobile");
+}
+
+function routeStem(file) {
+  return screenshotStem(file)
+    .replace(/^mobile-/, "")
+    .replace(/-mobile$/, "");
 }
 
 async function screenshotFiles(args) {
@@ -290,13 +297,12 @@ function envPrefixFor(skill) {
 
 function routeFor(file) {
   const skill = skillNameFor(file);
-  const stem = screenshotStem(file);
-  const cleanStem = stem.replace(/^mobile-/, "");
+  const cleanStem = routeStem(file);
   return ROUTE_OVERRIDES[skill]?.[cleanStem] || GENERIC_ROUTE_MAP[cleanStem] || `/${cleanStem}`;
 }
 
 function urlFor(file, port) {
-  const stem = screenshotStem(file).replace(/^mobile-/, "");
+  const stem = routeStem(file);
   const lang = languageFor(file);
   const route = routeFor(file);
   const params = new URLSearchParams({ demo: stem, lang });
@@ -591,7 +597,9 @@ async function main() {
 
   for (const [skill, skillFiles] of bySkill) {
     for (const file of skillFiles) {
-      console.log(`${args.dryRun ? "would capture" : "capture"} ${relPath(file)} -> ${urlFor(file, "PORT")}`);
+      console.log(
+        `${args.dryRun ? "would capture" : "capture"} ${relPath(screenshotOutputPath(file))} <- ${urlFor(file, "PORT")}`,
+      );
     }
   }
   if (args.dryRun) return;
@@ -609,6 +617,7 @@ async function main() {
         for (const file of skillFiles) {
           const target = screenshotOutputPath(file);
           const { viewport } = await captureOne(tab, target, port);
+          if (target !== file) await rm(file, { force: true });
           console.log(`captured ${relPath(target)} ${viewport.width}x${viewport.height}`);
         }
       } finally {
@@ -627,11 +636,7 @@ async function main() {
   if (args.frame) {
     console.log("\nFraming screenshots...");
     const frameArgs = ["scripts/frame-screenshots.mjs", "--force"];
-    if (args.paths.length) {
-      for (const file of files) frameArgs.push("--path", relPath(screenshotOutputPath(file)));
-    } else {
-      for (const skill of bySkill.keys()) frameArgs.push("--skill", skill);
-    }
+    for (const file of files) frameArgs.push("--path", relPath(screenshotOutputPath(file)));
     await runCommand(process.execPath, frameArgs);
   }
 }

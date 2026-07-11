@@ -1,6 +1,5 @@
 ---
 name: kelly-inquiry
-license: MIT
 description: Personal App-in-Skill inbound-inquiry reception desk for cross-border/foreign-trade sellers, aggregating WhatsApp, Instagram, Messenger, and email inquiries into a local pipeline with a product knowledge base, quote worksheet, approval queue, and follow-up reminders. Use when the user invokes $kelly-inquiry or /kelly-inquiry, mentions 询盘, inquiry desk, WhatsApp leads, quote management, 报价, foreign trade sales, follow-up reminders, or a lead pipeline, wants inquiries triaged into new/replied/quoted/negotiating/won/lost stages, agent-drafted replies and quotes reviewed before sending, or stale deals surfaced.
 ---
 

@@ -28,6 +28,7 @@ import { skillDir } from "../paths.ts";
 import type { Config } from "../types.ts";
 import { createBusabaseProvider } from "./busabase-provider.ts";
 import { createLocalFileProvider } from "./local-file-provider.ts";
+import { assertProvider } from "./provider-interface.ts";
 
 // Workflow status is shared across providers. Busabase maps its change-request
 // status onto these so the UI renders identically in either mode.
@@ -63,7 +64,7 @@ export function resolveProviderKind(config: Config = {}) {
 export async function createProvider() {
   const meta = await loadConfig();
   const kind = resolveProviderKind(meta.config);
-  if (kind === "local") return createLocalFileProvider(meta);
-  if (kind === "busabase") return createBusabaseProvider(meta);
+  if (kind === "local") return assertProvider("local", createLocalFileProvider(meta));
+  if (kind === "busabase") return assertProvider("busabase", createBusabaseProvider(meta));
   throw new Error(`Unknown KELLY_CONTENT_DATA_PROVIDER: "${kind}" (expected "local" or "busabase")`);
 }

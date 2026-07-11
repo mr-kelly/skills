@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
+import { renderEntity, renderGeo, renderOptimize, submitEntitySignal, submitGeoDecision } from "./js/geo-views.js";
+import { renderOpportunities, renderSettings, renderSites, submitDecision } from "./js/seo-ops-views.js";
+export { cssEscape, decisionStatus } from "./js/seo-ops-views.js";
 
-const state = {
+export const state = {
   snapshot: null,
   settings: null,
   route: parseRoute(),
@@ -19,7 +22,7 @@ const state = {
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-seo.sidebarCollapsed";
 
-const els = {
+export const els = {
   title: document.querySelector("#page-title"),
   subtitle: document.querySelector("#page-subtitle"),
   content: document.querySelector("#content"),
@@ -90,11 +93,11 @@ function normalizeLang(lang) {
     : lang || "auto";
 }
 
-function t(key) {
+export function t(key) {
   return messages[activeLang()]?.[key] || messages.en[key] || key;
 }
 
-function enumLabel(value, group = "status") {
+export function enumLabel(value, group = "status") {
   if (!value) return "";
   const key = String(value);
   return messages[activeLang()]?.enum?.[group]?.[key] || messages.en.enum?.[group]?.[key] || key.replaceAll("_", " ");
@@ -104,24 +107,24 @@ function locale() {
   return activeLang() === "zh" ? "zh-Hans" : "en-US";
 }
 
-function n(value) {
+export function n(value) {
   return new Intl.NumberFormat(locale(), { maximumFractionDigits: 0 }).format(Number(value || 0));
 }
 
-function pct(value) {
+export function pct(value) {
   return `${(Number(value || 0) * 100).toFixed(1)}%`;
 }
 
-function pos1(value) {
+export function pos1(value) {
   return Number(value || 0).toFixed(1);
 }
 
-function date(value) {
+export function date(value) {
   if (!value) return "";
   return new Intl.DateTimeFormat(locale(), { month: "short", day: "2-digit", year: "numeric" }).format(new Date(value));
 }
 
-function deltaHtml(current, previous, { kind = "int", invert = false } = {}) {
+export function deltaHtml(current, previous, { kind = "int", invert = false } = {}) {
   const diff = Number(current || 0) - Number(previous || 0);
   if (!Number.isFinite(diff) || Math.abs(diff) < (kind === "int" ? 0.5 : 0.0005)) {
     return `<span class="delta flat">±0</span>`;
@@ -207,7 +210,7 @@ function applyI18n() {
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
 }
 
-function opportunities() {
+export function opportunities() {
   const list = state.snapshot?.opportunities || [];
   if (!state.demo) return list;
   return list.map((opportunity) => {
@@ -321,7 +324,7 @@ function filteredPages() {
   });
 }
 
-function filteredOpportunities() {
+export function filteredOpportunities() {
   const query = state.query.trim().toLowerCase();
   return opportunities().filter((item) => {
     if (state.oppFilter !== "all" && item.status !== state.oppFilter) return false;
@@ -403,7 +406,7 @@ function badgeList(badges, group = "badge") {
     .join(" ");
 }
 
-function statusBadge(status) {
+export function statusBadge(status) {
   return `<span class="status-badge status-${escapeHtml(status)}">${escapeHtml(enumLabel(status))}</span>`;
 }
 
@@ -422,7 +425,7 @@ function warningsPanel(siteId = "") {
     .join("")}</div>`;
 }
 
-function siteName(siteId) {
+export function siteName(siteId) {
   return state.snapshot?.sites?.find((site) => site.site_id === siteId)?.property_url || siteId;
 }
 
@@ -683,203 +686,9 @@ function miniTable(rows, keyField) {
   `;
 }
 
-const OPP_FILTERS = ["all", "needs_review", "changes_requested", "approved", "done", "blocked"];
+export const OPP_FILTERS = ["all", "needs_review", "changes_requested", "approved", "done", "blocked"];
 
-function renderOpportunities() {
-  els.title.textContent = t("opportunities");
-  const all = opportunities();
-  const items = filteredOpportunities();
-  els.subtitle.textContent = `${all.filter((item) => item.status === "needs_review").length} ${t("needsReview")}`;
-  const locked = Boolean(state.settings?.lock);
-  const chips = OPP_FILTERS.map((filter) => {
-    const count = filter === "all" ? all.length : all.filter((item) => item.status === filter).length;
-    const label = filter === "all" ? t("viewAll") : enumLabel(filter);
-    return `<button type="button" class="chip ${state.oppFilter === filter ? "active" : ""}" data-opp-filter="${filter}" title="${escapeHtml(label)}">${escapeHtml(label)} <b>${count}</b></button>`;
-  }).join("");
-  els.content.innerHTML = `
-    ${locked ? `<div class="warnings"><div class="warning"><strong>${t("lockBanner")}</strong><span>${escapeHtml(state.settings.lock?.message || "")}</span></div></div>` : ""}
-    ${state.demo ? `<div class="demo-note">${t("demoDecisionNote")}</div>` : ""}
-    <div class="chip-row">${chips}</div>
-    <div class="opp-list">
-      ${items.map((item) => opportunityCard(item, locked)).join("") || `<div class="empty">${t("noOpportunities")}</div>`}
-    </div>
-  `;
-}
-
-function opportunityCard(item, locked) {
-  const disabled = locked ? "disabled" : "";
-  const targetBits = [
-    item.target_page
-      ? `<a class="external" href="${escapeHtml(item.target_page)}" target="_blank" rel="noreferrer">${escapeHtml(displayPath(item.target_page))}</a>`
-      : "",
-    item.target_query ? `<span class="badge">${escapeHtml(item.target_query)}</span>` : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
-  return `
-    <article class="opp-card" data-opp-id="${escapeHtml(item.id)}">
-      <header class="opp-head">
-        <span class="opp-ref">${t("opportunity")} #${item.ref}</span>
-        <span class="badge">${escapeHtml(enumLabel(item.type, "type"))}</span>
-        ${statusBadge(item.status)}
-        <span class="muted opp-site">${escapeHtml(siteName(item.site_id))}</span>
-      </header>
-      <h3>${escapeHtml(item.title)}</h3>
-      ${targetBits ? `<div class="opp-target"><span class="muted">${t("target")}:</span> ${targetBits}</div>` : ""}
-      <p class="opp-reason"><span class="muted">${t("reason")}:</span> ${escapeHtml(item.reason)}</p>
-      <p class="opp-impact"><span class="muted">${t("expectedImpact")}:</span> ${escapeHtml(item.expected_impact)}</p>
-      ${item.agent_notes ? `<p class="agent-notes">${escapeHtml(item.agent_notes)}</p>` : ""}
-      <label class="opp-label" for="draft-${escapeHtml(item.id)}">${t("draft")}</label>
-      <textarea id="draft-${escapeHtml(item.id)}" class="opp-draft" rows="6" ${disabled}>${escapeHtml(item.draft || "")}</textarea>
-      ${
-        item.decision
-          ? `
-        <div class="opp-decision">
-          <strong>${t("decision")}: ${escapeHtml(enumLabel(decisionStatus(item.decision.action)))}</strong>
-          ${item.decision.note ? `<span>${escapeHtml(item.decision.note)}</span>` : ""}
-          <small>${t("decided")} ${escapeHtml(item.decision.decided_at ? new Date(item.decision.decided_at).toLocaleString() : "")}</small>
-        </div>
-      `
-          : ""
-      }
-      ${
-        item.execution
-          ? `
-        <div class="opp-execution">
-          <strong>${t("execution")}: ${escapeHtml(enumLabel(item.execution.operation, "operation"))} · ${escapeHtml(enumLabel(item.execution.status))}</strong>
-          ${item.execution.detail ? `<span>${escapeHtml(item.execution.detail)}</span>` : ""}
-        </div>
-      `
-          : ""
-      }
-      <label class="opp-label" for="note-${escapeHtml(item.id)}">${t("reviewNote")}</label>
-      <textarea id="note-${escapeHtml(item.id)}" class="opp-note" rows="2" placeholder="${escapeHtml(t("reviewNotePlaceholder"))}" ${disabled}></textarea>
-      <div class="opp-actions">
-        <button type="button" class="primary" data-decision="approve" data-id="${escapeHtml(item.id)}" title="${t("approve")}" ${disabled}>${t("approve")}</button>
-        <button type="button" data-decision="request_changes" data-id="${escapeHtml(item.id)}" title="${t("requestChanges")}" ${disabled}>${t("requestChanges")}</button>
-        <button type="button" data-decision="revise" data-id="${escapeHtml(item.id)}" title="${t("saveDraft")}" ${disabled}>${t("saveDraft")}</button>
-        <button type="button" class="danger" data-decision="block" data-id="${escapeHtml(item.id)}" title="${t("block")}" ${disabled}>${t("block")}</button>
-      </div>
-    </article>
-  `;
-}
-
-function decisionStatus(action) {
-  if (action === "approve") return "approved";
-  if (action === "request_changes") return "changes_requested";
-  if (action === "block") return "blocked";
-  return "needs_review";
-}
-
-async function submitDecision(id, action) {
-  const note = document.querySelector(`#note-${cssEscape(id)}`)?.value || "";
-  const draft = document.querySelector(`#draft-${cssEscape(id)}`)?.value;
-  if (state.demo) {
-    state.demoDecisions[id] = { action, note, draft: draft ?? null, decided_at: new Date().toISOString() };
-    render();
-    return;
-  }
-  const res = await fetch("/api/decision", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id, action, note, draft }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    els.subtitle.textContent = body.error || `Decision failed: ${res.status}`;
-    return;
-  }
-  const data = await res.json();
-  state.snapshot = data.snapshot;
-  state.settings = data;
-  render();
-}
-
-function cssEscape(value) {
-  return typeof CSS !== "undefined" && CSS.escape
-    ? CSS.escape(value)
-    : String(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
-}
-
-function renderSites() {
-  els.title.textContent = t("sites");
-  const sites = state.snapshot?.sites || [];
-  els.subtitle.textContent = `${sites.length} ${t("sites").toLowerCase()}`;
-  els.content.innerHTML = sites.length
-    ? `
-    <div class="account-grid">
-      ${sites
-        .map(
-          (site) => `
-        <a class="account-card" href="#/overview" data-site-pick="${escapeHtml(site.site_id)}">
-          <div class="row between"><strong>${escapeHtml(site.property_url)}</strong><span class="badge">${escapeHtml(enumLabel(site.verification_type, "verification"))}</span></div>
-          <div class="muted">${t("permission")}: ${escapeHtml(site.permission_level || "unknown")} · ${t("lastSync")} ${escapeHtml(site.last_sync_at ? new Date(site.last_sync_at).toLocaleString() : "-")}</div>
-          <div class="balance">${n(site.totals?.clicks)} <small class="muted">${t("clicks").toLowerCase()} / 28d</small></div>
-          <div class="row stats">
-            <span>${t("impressions")} ${n(site.totals?.impressions)}</span>
-            <span>${t("ctr")} ${pct(site.totals?.ctr)}</span>
-            <span>${t("avgPosition")} ${pos1(site.totals?.position)}</span>
-          </div>
-          <div class="row stats">
-            <span>${deltaHtml(site.totals?.clicks, site.previous?.clicks)} ${t("clicks").toLowerCase()}</span>
-            <span>${deltaHtml(site.totals?.position, site.previous?.position, { kind: "pos", invert: true })} ${t("position").toLowerCase()}</span>
-          </div>
-          <div class="status ${escapeHtml(site.status)}">${escapeHtml(enumLabel(site.status))}</div>
-        </a>
-      `,
-        )
-        .join("")}
-    </div>
-  `
-    : `<div class="empty">${t("setupNeeded")}</div>`;
-}
-
-function renderSettings() {
-  els.title.textContent = t("settings");
-  els.subtitle.textContent = t("localFilesOnly");
-  const summary = state.settings?.config_summary || {};
-  const auth = summary.auth || {};
-  const sync = summary.sync || {};
-  els.content.innerHTML = `
-    <div class="settings">
-      <section>
-        <h2>${t("configuration")}</h2>
-        <dl>
-          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "local")}</dd>
-          <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
-          <dt>${t("onboarding")}</dt><dd>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</dd>
-          <dt>${t("syncWindow")}</dt><dd>${escapeHtml(String(sync.window_days ?? 28))} ${t("days")} · row limit ${escapeHtml(String(sync.row_limit ?? 250))}</dd>
-        </dl>
-      </section>
-      <section>
-        <h2>${t("authMethod")}</h2>
-        <dl>
-          <dt>${t("authMethod")}</dt><dd>${escapeHtml(auth.method || "service_account")}</dd>
-          <dt><code>${escapeHtml(auth.service_account_file_env || "")}</code></dt><dd>${auth.service_account_ready ? t("envReady") : t("envMissing")}</dd>
-          <dt><code>${escapeHtml(auth.access_token_env || "")}</code></dt><dd>${auth.access_token_ready ? t("envReady") : t("envMissing")}</dd>
-        </dl>
-      </section>
-      <section>
-        <h2>${t("sites")}</h2>
-        ${
-          (summary.sites || [])
-            .map(
-              (site) => `
-          <div class="settings-account">
-            <strong>${escapeHtml(site.property_url)}</strong>
-            <span>${escapeHtml(site.site_id)}</span>
-            <span>${escapeHtml(enumLabel(site.verification_type, "verification"))}</span>
-          </div>
-        `,
-            )
-            .join("") || `<div class="empty">${t("setupNeeded")}</div>`
-        }
-      </section>
-    </div>
-  `;
-}
-
-function displayPath(url) {
+export function displayPath(url) {
   try {
     const parsed = new URL(url);
     return parsed.pathname === "/" ? parsed.hostname : parsed.pathname;
@@ -888,402 +697,7 @@ function displayPath(url) {
   }
 }
 
-// ── GEO: AI-visibility tracker ────────────────────────────────────────────────
-
-function renderGeo() {
-  els.title.textContent = t("aiVisibility");
-  const visibility = state.snapshot?.ai_visibility;
-  if (!visibility || !(visibility.prompts || []).length) {
-    els.subtitle.textContent = t("aiVisibilitySub");
-    els.content.innerHTML = `<div class="empty">${t("noGeoData")}</div>`;
-    return;
-  }
-  els.subtitle.textContent = `${escapeHtml(visibility.brand)} · ${visibility.prompts.length} ${t("trackedPrompts").toLowerCase()}`;
-  const engines = visibility.engines || [];
-  const trendPoints = aggregateVisibilityTrend(visibility.prompts);
-  els.content.innerHTML = `
-    <div class="metrics">
-      <div class="metric">
-        <span>${t("aiVisibilityScore")}</span>
-        <strong>${n(visibility.score)}<small class="metric-unit">/100</small></strong>
-        <div class="metric-delta">${deltaHtml(visibility.score, visibility.prev_score)} <small>${t("prevPeriod")}</small></div>
-      </div>
-      <div class="metric">
-        <span>${t("engines")}</span>
-        <strong>${engines.length}</strong>
-        <div class="metric-delta"><small>${engines.map((engine) => escapeHtml(enumLabel(engine, "engine"))).join(" · ")}</small></div>
-      </div>
-      <div class="metric">
-        <span>${t("trackedPrompts")}</span>
-        <strong>${visibility.prompts.length}</strong>
-        <div class="metric-delta"><small>${t("engineMatrix")}</small></div>
-      </div>
-    </div>
-    <div class="overview-panel wide">
-      <h2>${t("engineMatrix")}</h2>
-      ${visibilityMatrix(visibility.prompts, engines)}
-    </div>
-    <div class="overview-panel wide">
-      <h2>${t("visibilityTrend")}</h2>
-      ${visibilityTrendChart(trendPoints)}
-    </div>
-  `;
-}
-
-function visibilityMatrix(prompts, engines) {
-  return `
-    <div class="table-wrap">
-      <table class="geo-matrix">
-        <thead>
-          <tr>
-            <th>${t("prompt")}</th>
-            ${engines.map((engine) => `<th class="geo-engine-col">${escapeHtml(enumLabel(engine, "engine"))}</th>`).join("")}
-          </tr>
-        </thead>
-        <tbody>
-          ${prompts
-            .map(
-              (prompt) => `
-            <tr>
-              <td>
-                <div class="strong">${escapeHtml(prompt.prompt)}</div>
-                <div class="muted">${escapeHtml(prompt.intent)}</div>
-              </td>
-              ${engines
-                .map((engine) => {
-                  const mention = (prompt.mentions || []).find((item) => item.engine === engine);
-                  return `<td class="geo-cell">${matrixCell(mention)}</td>`;
-                })
-                .join("")}
-            </tr>
-          `,
-            )
-            .join("")}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-function matrixCell(mention) {
-  if (!mention || !mention.mentioned) {
-    return `<span class="geo-dot geo-dot-absent" title="${t("notMentioned")}">—</span>`;
-  }
-  const sentiment = mention.sentiment || "neutral";
-  const posText = mention.position ? `#${mention.position}` : "✓";
-  const tip = [
-    `${t("mentioned")} ${posText}`,
-    `${t("sentiment")}: ${enumLabel(sentiment, "sentiment")}`,
-    mention.cited_url ? `${t("citedUrl")}: ${mention.cited_url}` : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
-  return `<span class="geo-dot geo-dot-${escapeHtml(sentiment)}" title="${escapeHtml(tip)}">${escapeHtml(posText)}</span>`;
-}
-
-function aggregateVisibilityTrend(prompts) {
-  const byDate = new Map();
-  for (const prompt of prompts) {
-    for (const point of prompt.trend || []) {
-      const entry = byDate.get(point.date) || { date: point.date, sum: 0, count: 0 };
-      entry.sum += Number(point.visibility || 0);
-      entry.count += 1;
-      byDate.set(point.date, entry);
-    }
-  }
-  return [...byDate.values()]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .map((entry) => ({ date: entry.date, value: entry.count ? entry.sum / entry.count : 0 }));
-}
-
-function visibilityTrendChart(points) {
-  if (!points.length) return `<div class="empty">${t("noTrend")}</div>`;
-  const step = 40;
-  const width = Math.max(points.length * step, step);
-  const height = 120;
-  const bars = points
-    .map((point, index) => {
-      const x = index * step;
-      const barH = Math.max(Math.round(point.value * (height - 24)), 2);
-      return `
-      <g>
-        <title>${point.date}: ${Math.round(point.value * 100)}%</title>
-        <rect x="${x + 6}" y="${height - barH}" width="${step - 14}" height="${barH}" rx="3" class="bar-clicks"></rect>
-        <text x="${x + step / 2 - 3}" y="${height - barH - 4}" class="geo-bar-label">${Math.round(point.value * 100)}%</text>
-      </g>
-    `;
-    })
-    .join("");
-  return `
-    <div class="trend">
-      <div class="trend-legend">
-        <span><i class="dot dot-clicks"></i>${t("aiVisibility")}</span>
-        <span class="muted">${date(points[0]?.date)} – ${date(points[points.length - 1]?.date)}</span>
-      </div>
-      <div class="trend-scroll">
-        <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="trend-svg" role="img" aria-label="${t("visibilityTrend")}">${bars}</svg>
-      </div>
-    </div>
-  `;
-}
-
-// ── GEO: content-optimization review queue ────────────────────────────────────
-
-function geoOpportunities() {
-  const list = state.snapshot?.geo_opportunities || [];
-  return list.map((opportunity) => {
-    // A shipped GEO change stays done; a geo-qa BLOCK is a hard gate otherwise.
-    const executed = opportunity.execution?.status === "executed";
-    if (opportunity.gate?.verdict === "BLOCK" && !executed) {
-      return { ...opportunity, status: "blocked" };
-    }
-    if (!state.demo) return opportunity;
-    const local = state.geoDecisions[opportunity.id];
-    if (!local) return opportunity;
-    let status = opportunity.status;
-    if (local.action === "approve") status = "approved";
-    if (local.action === "request_changes") status = "changes_requested";
-    if (local.action === "block") status = "blocked";
-    if (executed) status = "done";
-    return { ...opportunity, status, decision: local, draft: local.draft ?? opportunity.draft };
-  });
-}
-
-const GEO_OPP_FILTERS = ["all", "needs_review", "changes_requested", "approved", "done", "blocked"];
-
-function renderOptimize() {
-  els.title.textContent = t("geoOptimizer");
-  const all = geoOpportunities();
-  const query = state.query.trim().toLowerCase();
-  const items = all.filter((item) => {
-    if (state.geoFilter !== "all" && item.status !== state.geoFilter) return false;
-    if (!query) return true;
-    return [item.title, item.target_page, item.target_prompt, item.type, item.reason]
-      .filter(Boolean)
-      .some((value) => String(value).toLowerCase().includes(query));
-  });
-  els.subtitle.textContent = t("geoOptimizerSub");
-  const locked = Boolean(state.settings?.lock);
-  const chips = GEO_OPP_FILTERS.map((filter) => {
-    const count = filter === "all" ? all.length : all.filter((item) => item.status === filter).length;
-    const label = filter === "all" ? t("viewAll") : enumLabel(filter);
-    return `<button type="button" class="chip ${state.geoFilter === filter ? "active" : ""}" data-geo-filter="${filter}" title="${escapeHtml(label)}">${escapeHtml(label)} <b>${count}</b></button>`;
-  }).join("");
-  els.content.innerHTML = `
-    ${locked ? `<div class="warnings"><div class="warning"><strong>${t("lockBanner")}</strong><span>${escapeHtml(state.settings.lock?.message || "")}</span></div></div>` : ""}
-    ${state.demo ? `<div class="demo-note">${t("demoDecisionNote")}</div>` : ""}
-    <div class="chip-row">${chips}</div>
-    <div class="opp-list">
-      ${items.map((item) => geoOpportunityCard(item, locked)).join("") || `<div class="empty">${t("noGeoOpportunities")}</div>`}
-    </div>
-  `;
-}
-
-function geoOpportunityCard(item, locked) {
-  const blocked = item.gate?.verdict === "BLOCK";
-  const disabled = locked ? "disabled" : "";
-  return `
-    <article class="opp-card geo-card" data-geo-id="${escapeHtml(item.id)}">
-      <header class="opp-head">
-        <span class="opp-ref">${t("geoOpportunity")} #${item.ref}</span>
-        <span class="badge">${escapeHtml(enumLabel(item.type, "type"))}</span>
-        ${statusBadge(item.status)}
-        ${gateBadge(item.gate)}
-      </header>
-      <h3>${escapeHtml(item.title)}</h3>
-      <div class="opp-target">
-        <span class="muted">${t("targetPrompt")}:</span> <span class="badge">${escapeHtml(item.target_prompt || "")}</span>
-        ${item.target_page ? ` · <a class="external" href="${escapeHtml(item.target_page)}" target="_blank" rel="noreferrer">${escapeHtml(displayPath(item.target_page))}</a>` : ""}
-      </div>
-      <p class="opp-reason"><span class="muted">${t("reason")}:</span> ${escapeHtml(item.reason)}</p>
-      <p class="opp-impact"><span class="muted">${t("expectedImpact")}:</span> ${escapeHtml(item.expected_impact)}</p>
-      ${gatePanel(item.gate)}
-      ${
-        (item.grounding || []).length
-          ? `<div class="geo-grounding"><span class="muted">${t("grounding")}:</span><ul>${item.grounding.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul></div>`
-          : ""
-      }
-      ${item.agent_notes ? `<p class="agent-notes">${escapeHtml(item.agent_notes)}</p>` : ""}
-      <label class="opp-label" for="geo-draft-${escapeHtml(item.id)}">${t("draft")}</label>
-      <textarea id="geo-draft-${escapeHtml(item.id)}" class="opp-draft" rows="6" ${disabled}>${escapeHtml(item.draft || "")}</textarea>
-      ${
-        item.decision
-          ? `
-        <div class="opp-decision">
-          <strong>${t("decision")}: ${escapeHtml(enumLabel(decisionStatus(item.decision.action)))}</strong>
-          ${item.decision.note ? `<span>${escapeHtml(item.decision.note)}</span>` : ""}
-          <small>${t("decided")} ${escapeHtml(item.decision.decided_at ? new Date(item.decision.decided_at).toLocaleString() : "")}</small>
-        </div>
-      `
-          : ""
-      }
-      ${
-        item.execution
-          ? `
-        <div class="opp-execution">
-          <strong>${t("execution")}: ${escapeHtml(enumLabel(item.execution.operation, "operation"))} · ${escapeHtml(enumLabel(item.execution.status))}</strong>
-          ${item.execution.detail ? `<span>${escapeHtml(item.execution.detail)}</span>` : ""}
-        </div>
-      `
-          : ""
-      }
-      ${blocked ? `<div class="warnings"><div class="error"><strong>${t("gateBlockedNote")}</strong></div></div>` : ""}
-      <label class="opp-label" for="geo-note-${escapeHtml(item.id)}">${t("reviewNote")}</label>
-      <textarea id="geo-note-${escapeHtml(item.id)}" class="opp-note" rows="2" placeholder="${escapeHtml(t("reviewNotePlaceholder"))}" ${disabled}></textarea>
-      <div class="opp-actions">
-        <button type="button" class="primary" data-geo-decision="approve" data-id="${escapeHtml(item.id)}" title="${t("approve")}" ${disabled || blocked ? "disabled" : ""}>${t("approve")}</button>
-        <button type="button" data-geo-decision="request_changes" data-id="${escapeHtml(item.id)}" title="${t("requestChanges")}" ${disabled}>${t("requestChanges")}</button>
-        <button type="button" data-geo-decision="revise" data-id="${escapeHtml(item.id)}" title="${t("saveDraft")}" ${disabled}>${t("saveDraft")}</button>
-        <button type="button" class="danger" data-geo-decision="block" data-id="${escapeHtml(item.id)}" title="${t("block")}" ${disabled}>${t("block")}</button>
-      </div>
-    </article>
-  `;
-}
-
-function gateBadge(gate) {
-  if (!gate) return "";
-  const verdict = gate.verdict || "SHIP";
-  return `<span class="gate-badge gate-${escapeHtml(verdict)}" title="${t("qualityGate")} · ${t("geoScore")} ${n(gate.score)}">⛩ ${escapeHtml(verdict)} · ${n(gate.score)}</span>`;
-}
-
-function gatePanel(gate) {
-  if (!gate) return "";
-  return `
-    <div class="gate-panel gate-panel-${escapeHtml(gate.verdict)}">
-      <div class="gate-panel-head">
-        <strong>⛩ ${t("qualityGate")}: ${escapeHtml(gate.verdict)}</strong>
-        <span class="muted">${t("geoScore")} ${n(gate.score)}/100</span>
-      </div>
-      ${gate.summary ? `<p class="gate-summary">${escapeHtml(gate.summary)}</p>` : ""}
-      <ul class="gate-checks">
-        ${(gate.checks || [])
-          .map(
-            (check) => `
-          <li class="gate-check gate-check-${escapeHtml(check.result)}">
-            <span class="gate-check-mark">${check.result === "pass" ? "✓" : check.result === "warn" ? "!" : "✕"}</span>
-            <span><strong>${escapeHtml(check.label)}</strong>${check.note ? ` — ${escapeHtml(check.note)}` : ""}</span>
-          </li>
-        `,
-          )
-          .join("")}
-      </ul>
-    </div>
-  `;
-}
-
-async function submitGeoDecision(id, action) {
-  const note = document.querySelector(`#geo-note-${cssEscape(id)}`)?.value || "";
-  const draft = document.querySelector(`#geo-draft-${cssEscape(id)}`)?.value;
-  if (state.demo) {
-    state.geoDecisions[id] = { action, note, draft: draft ?? null, decided_at: new Date().toISOString() };
-    render();
-    return;
-  }
-  const res = await fetch("/api/geo-decision", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id, action, note, draft }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    els.subtitle.textContent = body.error || `Decision failed: ${res.status}`;
-    return;
-  }
-  const data = await res.json();
-  state.snapshot = data.snapshot;
-  state.settings = data;
-  render();
-}
-
-// ── GEO: entity / knowledge-panel readiness ───────────────────────────────────
-
-function renderEntity() {
-  els.title.textContent = t("entityReadiness");
-  const readiness = state.snapshot?.entity_signals;
-  if (!readiness || !(readiness.signals || []).length) {
-    els.subtitle.textContent = t("entityReadinessSub");
-    els.content.innerHTML = `<div class="empty">${t("noEntityData")}</div>`;
-    return;
-  }
-  const signals = entitySignals();
-  els.subtitle.textContent = `${escapeHtml(readiness.brand)} · ${t("entityReadinessSub")}`;
-  const locked = Boolean(state.settings?.lock);
-  const score = entityScore(signals, readiness.score);
-  els.content.innerHTML = `
-    <div class="metrics">
-      <div class="metric">
-        <span>${t("entityScore")}</span>
-        <strong>${n(score)}<small class="metric-unit">/100</small></strong>
-        <div class="metric-delta"><small>${signals.filter((s) => s.status === "present").length}/${signals.length} ${t("present")}</small></div>
-      </div>
-    </div>
-    ${state.demo ? `<div class="demo-note">${t("demoDecisionNote")}</div>` : ""}
-    <div class="entity-list">
-      ${signals.map((signal) => entityCard(signal, locked)).join("")}
-    </div>
-  `;
-}
-
-function entitySignals() {
-  const signals = state.snapshot?.entity_signals?.signals || [];
-  if (!state.demo) return signals;
-  return signals.map((signal) => {
-    const local = state.entityOverrides[signal.id];
-    return local ? { ...signal, status: local.status, detail: local.note || signal.detail } : signal;
-  });
-}
-
-const ENTITY_WEIGHT = { present: 1, partial: 0.5, missing: 0 };
-
-function entityScore(signals, fallback) {
-  if (!signals.length) return fallback;
-  const total = signals.reduce((sum, signal) => sum + (ENTITY_WEIGHT[signal.status] ?? 0), 0);
-  return Math.round((total / signals.length) * 100);
-}
-
-function entityCard(signal, locked) {
-  const disabled = locked ? "disabled" : "";
-  return `
-    <article class="entity-card entity-${escapeHtml(signal.status)}" data-entity-id="${escapeHtml(signal.id)}">
-      <div class="entity-head">
-        <span class="entity-status entity-status-${escapeHtml(signal.status)}">${escapeHtml(enumLabel(signal.status, "entity"))}</span>
-        <strong>${escapeHtml(signal.label)}</strong>
-        <span class="badge">${escapeHtml(signal.category)}</span>
-      </div>
-      <p class="entity-detail">${escapeHtml(signal.detail)}</p>
-      ${signal.fix ? `<p class="entity-fix"><span class="muted">${t("proposedFix")}:</span> ${escapeHtml(signal.fix)}</p>` : ""}
-      <div class="entity-actions">
-        <button type="button" class="primary" data-entity-status="present" data-id="${escapeHtml(signal.id)}" ${disabled}>${t("markPresent")}</button>
-        <button type="button" data-entity-status="partial" data-id="${escapeHtml(signal.id)}" ${disabled}>${t("markPartial")}</button>
-        <button type="button" class="danger" data-entity-status="missing" data-id="${escapeHtml(signal.id)}" ${disabled}>${t("markMissing")}</button>
-      </div>
-    </article>
-  `;
-}
-
-async function submitEntitySignal(id, status) {
-  if (state.demo) {
-    state.entityOverrides[id] = { status, note: "", updated_at: new Date().toISOString() };
-    render();
-    return;
-  }
-  const res = await fetch("/api/entity-signal", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id, status }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    els.subtitle.textContent = body.error || `Update failed: ${res.status}`;
-    return;
-  }
-  const data = await res.json();
-  state.snapshot = data.snapshot;
-  state.settings = data;
-  render();
-}
-
-function render() {
+export function render() {
   renderShell();
   if (state.route.view === "queries" && state.route.id) renderQueryDetail();
   else if (state.route.view === "queries") renderQueries();
@@ -1298,7 +712,7 @@ function render() {
   else renderOverview();
 }
 
-function escapeHtml(value) {
+export function escapeHtml(value) {
   return String(value ?? "").replace(
     /[&<>"']/g,
     (char) =>

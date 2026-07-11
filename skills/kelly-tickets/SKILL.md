@@ -1,6 +1,5 @@
 ---
 name: kelly-tickets
-license: MIT
 description: Complaint/ticket triage-and-dispatch App-in-Skill for property managers, facilities teams, and helpdesk leads. Use when the user invokes $kelly-tickets or /kelly-tickets, or asks for complaint triage, ticket dispatch, 投诉, 工单, 派单, property management complaints, helpdesk queue, intake from WeChat exports/call logs/front-desk forms, crew assignment, SLA board, dispatch approval, or ticket resolution tracking.
 ---
 

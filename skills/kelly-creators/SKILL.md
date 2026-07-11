@@ -1,6 +1,5 @@
 ---
 name: kelly-creators
-license: MIT
 description: Personal App-in-Skill command desk for influencer/creator marketing — the agent sweeps and fit-scores creator candidates, drafts outreach and briefs, and gates content before it ships; the human reviews creator cards, approves outreach/briefs/contracts, and tracks campaign ROI in a local review dashboard. Use when the user invokes $kelly-creators or /kelly-creators, mentions influencer or creator marketing, creator discovery, fit scoring, outreach DMs, campaign briefs, UGC, sponsorship or partnership deals, content review / FTC disclosure gating, or campaign ROI, or wants to review/approve agent-drafted creator outreach before it is sent through other channels.
 ---
 
