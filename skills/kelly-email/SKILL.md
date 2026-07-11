@@ -1,6 +1,5 @@
 ---
 name: kelly-email
-license: MIT
 description: Configurable email inbox-zero operator for clearing unread email through AI triage, draft replies, local UI review, human approval, and approved execution across configured email accounts. Use when the user invokes $kelly-email, asks to process unread email, generate or execute an email approval batch, review mail in the local App-in-Skill UI, draft replies, archive/mark-read approved messages, or reach email/support inbox zero.
 ---
 

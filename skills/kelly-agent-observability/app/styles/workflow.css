@@ -1,0 +1,340 @@
+@layer workflow {
+  /* ---- Agent Fleet Observability Desk additions ---- */
+
+  .warn {
+    color: var(--warn);
+  }
+
+  .warnings .info {
+    color: var(--muted);
+    padding: 10px 0;
+  }
+
+  .warnings .info strong {
+    display: block;
+    color: var(--ink);
+  }
+
+  .badge.status-healthy {
+    border: 1px solid #cfe8da;
+    background: #eaf7ef;
+    color: var(--good);
+  }
+
+  .badge.status-degraded {
+    border: 1px solid #f0dcae;
+    background: #fbf3dc;
+    color: var(--warn);
+  }
+
+  .badge.status-critical {
+    border: 1px solid #f0cdcd;
+    background: #fdeeee;
+    color: var(--bad);
+  }
+
+  .agent-overview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  .agent-card {
+    display: grid;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .agent-card:hover {
+    border-color: var(--accent);
+  }
+
+  .sparkline {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 44px;
+    padding: 4px 0;
+  }
+
+  .spark-bar {
+    flex: 1 1 auto;
+    min-width: 3px;
+    border-radius: 2px 2px 0 0;
+    background: var(--accent);
+    opacity: 0.55;
+  }
+
+  .spark-bar-error {
+    background: var(--bad);
+    opacity: 0.85;
+  }
+
+  .spark-caption {
+    margin-top: -4px;
+  }
+
+  .step-timeline {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .step-item {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+
+  .step-index {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-weak);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .step-item.step-error .step-index {
+    background: #fdeeee;
+    color: var(--bad);
+  }
+
+  .step-item.step-break {
+    border-color: var(--bad);
+    background: #fff5f5;
+    box-shadow: 0 0 0 1px rgba(179, 52, 52, 0.25);
+  }
+
+  .chain-break-flag {
+    margin-top: 6px;
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--bad);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .handoff-form {
+    display: grid;
+    gap: 10px;
+  }
+
+  .handoff-form textarea {
+    width: 100%;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px;
+    font: inherit;
+    color: var(--ink);
+    background: var(--panel);
+  }
+
+  .handoff-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .handoff-actions button {
+    flex: 1 1 auto;
+  }
+
+  .handoff-form-message {
+    font-size: 12px;
+  }
+
+  .handoff-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  /* ---- Premium refinement pass: typography, table, trace timeline ---- */
+
+  .topbar h1,
+  h1 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  #page-subtitle {
+    margin-top: 2px;
+    font-size: 13px;
+  }
+
+  h2 {
+    margin-bottom: 2px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+
+  .metric span {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .metric strong {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* Agent health table refinement */
+  .table-wrap table {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .table-wrap th {
+    padding: 10px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .table-wrap tbody tr {
+    transition: background-color 0.12s ease;
+  }
+
+  .table-wrap tbody tr:hover {
+    background: #fafbfc;
+  }
+
+  .table-wrap td {
+    font-size: 13px;
+  }
+
+  .table-wrap td.num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .agent-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Trace timeline: connected stepper with clear success/error states */
+  .step-timeline {
+    gap: 0;
+  }
+
+  .step-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    padding: 10px 12px 18px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .step-item:last-child {
+    padding-bottom: 10px;
+  }
+
+  .step-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .step-index {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--panel);
+    color: var(--good);
+    font-weight: 700;
+    font-size: 12px;
+    box-shadow: 0 0 0 3px var(--bg);
+  }
+
+  .step-item.step-error .step-index {
+    border-color: #f0cdcd;
+    background: #fdeeee;
+    color: var(--bad);
+  }
+
+  .step-connector {
+    width: 2px;
+    flex: 1 1 auto;
+    min-height: 20px;
+    margin-top: 2px;
+    background: var(--line);
+  }
+
+  .step-item.step-error ~ .step-item .step-connector,
+  .step-item.step-error .step-connector {
+    background: #f0cdcd;
+  }
+
+  .step-body {
+    padding: 2px 0 4px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .step-item:last-child .step-body {
+    border-bottom: 0;
+  }
+
+  .step-duration {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .step-status-line {
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  .step-item.step-error .step-status-line {
+    color: var(--bad);
+  }
+
+  .step-item.step-break .step-body {
+    padding: 10px 12px;
+    border: 1px solid #f0cdcd;
+    border-radius: 8px;
+    background: #fff5f5;
+    box-shadow: 0 0 0 1px rgba(179, 52, 52, 0.12);
+  }
+}

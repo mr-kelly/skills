@@ -1,0 +1,243 @@
+html.ks-setup-active,
+html.ks-setup-active body {
+  overflow: hidden;
+}
+.ks-setup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(in srgb, #101828 72%, transparent);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #17202a;
+}
+.ks-setup-panel {
+  width: min(720px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgb(16 24 40 / 28%);
+}
+.ks-setup-head {
+  display: flex;
+  gap: 24px;
+  align-items: start;
+  justify-content: space-between;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid #eaecf0;
+}
+.ks-setup-head h1 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+.ks-setup-head p {
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 14px;
+}
+.ks-setup-head select {
+  flex: none;
+  min-height: 36px;
+  padding: 0 30px 0 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #344054;
+}
+.ks-setup-body {
+  overflow: auto;
+  padding: 20px 24px;
+}
+.ks-setup-body h2 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.ks-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.ks-provider-card {
+  min-height: 104px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 16px;
+  text-align: left;
+  color: #344054;
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.ks-provider-card:hover {
+  border-color: #667085;
+}
+.ks-provider-card.is-selected {
+  border-color: #1570ef;
+  box-shadow: inset 0 0 0 1px #1570ef;
+  background: #f5f9ff;
+}
+.ks-provider-card strong {
+  font-size: 15px;
+}
+.ks-provider-card span {
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.ks-busabase-fields {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #eaecf0;
+  border-radius: 7px;
+  background: #f9fafb;
+}
+.ks-hosting-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.ks-busabase-fields > label {
+  display: grid;
+  gap: 6px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ks-busabase-fields input[type="url"],
+.ks-busabase-fields input:not([type]) {
+  min-width: 0;
+  min-height: 38px;
+  padding: 8px 10px;
+  color: #101828;
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 400;
+}
+.ks-secret-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ks-secret-row span:first-child {
+  display: grid;
+  gap: 3px;
+}
+.ks-secret-row small {
+  color: #667085;
+  overflow-wrap: anywhere;
+}
+.ks-ready-pill {
+  flex: none;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #b42318;
+  background: #fef3f2;
+  font-size: 12px;
+  font-weight: 700;
+}
+.ks-ready-pill.is-ready {
+  color: #067647;
+  background: #ecfdf3;
+}
+.ks-prompt {
+  margin-top: 18px;
+}
+.ks-prompt > strong {
+  font-size: 13px;
+}
+.ks-prompt pre {
+  margin: 8px 0 0;
+  padding: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #344054;
+  background: #f2f4f7;
+  border-radius: 6px;
+  font: 12px / 1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+.ks-setup-error {
+  color: #b42318;
+  font-size: 13px;
+}
+.ks-setup-loading {
+  color: #667085;
+}
+.ks-setup-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px;
+  border-top: 1px solid #eaecf0;
+  background: #fff;
+}
+.ks-setup-footer button {
+  min-height: 38px;
+  padding: 0 14px;
+  color: #344054;
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.ks-setup-footer .ks-setup-primary {
+  color: #fff;
+  background: #1570ef;
+  border-color: #1570ef;
+}
+.ks-setup-footer button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+@media (max-width: 600px) {
+  .ks-setup-overlay {
+    align-items: stretch;
+    padding: 0;
+  }
+  .ks-setup-panel {
+    width: 100%;
+    max-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+  .ks-setup-head {
+    padding: 18px 16px 14px;
+  }
+  .ks-setup-head h1 {
+    font-size: 19px;
+  }
+  .ks-setup-head p {
+    font-size: 13px;
+  }
+  .ks-setup-body {
+    padding: 16px;
+  }
+  .ks-provider-grid {
+    grid-template-columns: 1fr;
+  }
+  .ks-setup-footer {
+    padding: 12px 16px;
+  }
+  .ks-setup-footer button {
+    min-width: 0;
+    flex: 1;
+    padding-inline: 8px;
+  }
+}

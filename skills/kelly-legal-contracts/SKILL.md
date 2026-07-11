@@ -1,6 +1,5 @@
 ---
 name: kelly-legal-contracts
-license: MIT
 description: Legal-contract App-in-Skill review desk for NDAs, MSAs, DPAs, SOWs, clause playbooks, risk checks, fallback language, and approval-gated issue-list exports. Use when the user invokes $kelly-legal-contracts or /kelly-legal-contracts, mentions legal, 法务, contract review, 合同审阅, NDA, MSA, DPA, SOW, redlines, clause playbook, legal intake, issue list, or wants a local UI where a human legal reviewer approves, revises, or blocks agent-prepared contract issues.
 ---
 

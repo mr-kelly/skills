@@ -6,6 +6,7 @@ import { getProvider } from "../../lib/data-provider/index.ts";
 import { STAGES, type Stage } from "../../lib/types.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 import { buildState } from "./store.ts";
 
 // Platform-neutral Hono app: Web-standard fetch(Request)->Response, reaching
@@ -24,6 +25,7 @@ const types: Record<string, string> = {
 };
 
 export const app = new Hono();
+installSetup(app);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

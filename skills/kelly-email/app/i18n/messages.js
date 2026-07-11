@@ -129,7 +129,7 @@ export const I18N = {
     "setup.busabase.space_id_label": "Space ID",
     "setup.busabase.api_key_label": "API key",
     "setup.busabase.api_key_hint":
-      "Saved to your local config file (not synced anywhere). Prefer the {env} environment variable instead if you'd rather not store it in a file.",
+      "Set the secret outside the app with {env}. The browser never accepts or displays keys.",
     "setup.busabase.api_key_placeholder_configured": "Leave blank to keep the current key",
     "setup.busabase.api_key_placeholder_empty": "Paste your Busabase API key",
     "setup.busabase.save": "Save Busabase connection",
@@ -488,7 +488,7 @@ export const I18N = {
     "setup.busabase.base_url_label": "Base URL",
     "setup.busabase.space_id_label": "Space ID",
     "setup.busabase.api_key_label": "API key",
-    "setup.busabase.api_key_hint": "保存在本地配置文件里（不会被同步）。如果不想存文件，也可以改用环境变量 {env}。",
+    "setup.busabase.api_key_hint": "请在 App 外通过 {env} 设置密钥；浏览器不会接收或显示密钥。",
     "setup.busabase.api_key_placeholder_configured": "留空以保留当前密钥",
     "setup.busabase.api_key_placeholder_empty": "粘贴你的 Busabase API key",
     "setup.busabase.save": "保存 Busabase 连接",

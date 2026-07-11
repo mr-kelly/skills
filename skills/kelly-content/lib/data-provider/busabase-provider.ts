@@ -110,6 +110,7 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
   }
 
   return {
+    name: "busabase",
     kind: "busabase",
 
     configSummary() {

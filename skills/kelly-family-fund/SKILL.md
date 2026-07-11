@@ -1,6 +1,5 @@
 ---
 name: kelly-family-fund
-license: MIT
 description: Household pooled-pension / elder-care fund App-in-Skill (家庭统筹基金) that keeps one read-only bookkeeping dashboard where transparency equals fairness. Use when the user invokes $kelly-family-fund or /kelly-family-fund, wants to pool two elders' pensions (退休金) managed by one steward (统筹人), pay a fixed care cost (养老院 / nursing home), and share the surplus across sibling families (交通/聚餐/生日礼物/人情/social gifts), track a household fund balance and monthly income/expense/net, see per-family cumulative benefit, share %, and fairness deviation (公平), a per-category spend split, CSV import or manual ledger entry (记账). It reads and writes LOCAL files only and NEVER moves money.
 ---
 

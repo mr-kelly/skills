@@ -1,6 +1,5 @@
 ---
 name: kelly-ecommerce-intel
-license: MIT
 description: "Kelly Ecommerce Intel: App-in-Skill daily industry intelligence cockpit for e-commerce and cross-border sellers. Use when the user asks about e-commerce, cross-border selling, product trends, competitor prices, listing optimization, ads,电商, or跨境 scenes. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
 ---
 

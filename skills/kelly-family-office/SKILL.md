@@ -1,6 +1,5 @@
 ---
 name: kelly-family-office
-license: MIT
 description: Family office App-in-Skill that consolidates multi-entity investment holdings into one read-only dashboard. Use when the user invokes $kelly-family-office or /kelly-family-office, wants a consolidated family office view, multi-entity aggregation across an individual, trust, company, fund, or foundation, total AUM in a base currency, asset allocation by asset class, by entity/member, or by custodian/institution, multi-currency FX consolidation, CSV import of holdings, manual holdings entry, unrealized P/L, or read-only portfolio monitoring. It never moves money or trades.
 ---
 

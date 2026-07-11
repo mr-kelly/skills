@@ -5,6 +5,7 @@ import { createProvider } from "../../lib/data-provider/index.ts";
 import { appDir } from "../../lib/paths.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
+import { installSetup } from "./setup.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the data provider, so the same app
@@ -30,6 +31,7 @@ async function state() {
 }
 
 export const app = new Hono();
+installSetup(app);
 app.use("/api/state", attachDemoVisuals);
 
 // ---- API ----

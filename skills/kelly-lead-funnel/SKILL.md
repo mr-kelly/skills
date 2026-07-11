@@ -1,6 +1,5 @@
 ---
 name: kelly-lead-funnel
-license: MIT
 description: Local App-in-Skill control panel / kanban board for a BD or sourcing team triaging merchant and business financing leads for a lender or investment fund. Use when the user invokes $kelly-lead-funnel or /kelly-lead-funnel, wants to review the deal sourcing pipeline, funnel, lead board, or asks to move a lead's stage, reject a lead, add a note, score a lead, or see funnel conversion rates. Deterministic rule-based lead scoring only — never an LLM call — and never sends outreach, signs term sheets, or moves money.
 ---
 
@@ -29,15 +28,15 @@ Use chat-only mode only when the user says "纯聊天", "chat only", or similar.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Deal Sourcing Funnel overview"></td>
-    <td width="50%"><img src="assets/screenshots/kanban.png" alt="Deal Sourcing Funnel kanban board"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Deal Sourcing Funnel overview"></td>
+    <td width="50%"><img src="assets/screenshots/kanban.webp" alt="Deal Sourcing Funnel kanban board"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Funnel summary header with per-stage counts, conversion rates, and rejection rate.</td>
     <td><strong>Kanban board</strong><br>Leads across New → Data-Verified → Scored → Term-Sheet-Ready → Rejected, with a score chip per card.</td>
   </tr>
   <tr>
-    <td colspan="2"><img src="assets/screenshots/lead-detail.png" alt="Deal Sourcing Funnel lead detail"></td>
+    <td colspan="2"><img src="assets/screenshots/lead-detail.webp" alt="Deal Sourcing Funnel lead detail"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Lead detail</strong><br>Score breakdown by factor, suggested next action, notes, stage-move actions, and reject-with-reason.</td>
@@ -140,3 +139,6 @@ consistent).
   to the handoff log.
 - Keep local exports minimal and use stable lead ids so repeated seeds/syncs
   stay idempotent.
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

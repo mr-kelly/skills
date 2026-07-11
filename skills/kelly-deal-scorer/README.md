@@ -30,16 +30,16 @@ call** — so every number can be recomputed by hand.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Deal Scoring Desk overview"></td>
-    <td width="50%"><img src="assets/screenshots/candidate-detail.png" alt="Deal Scoring Desk candidate detail"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Deal Scoring Desk overview"></td>
+    <td width="50%"><img src="assets/screenshots/candidate-detail.webp" alt="Deal Scoring Desk candidate detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Queue-level summary header — score distribution, counts needing review vs. high-confidence — plus the ranked candidate list.</td>
     <td><strong>Candidate detail</strong><br>Revenue history chart, red flags, requested principal, and the decision row.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/score-breakdown.png" alt="Deal Scoring Desk score breakdown"></td>
-    <td width="50%"><img src="assets/screenshots/overview-zh-CN.png" alt="Deal Scoring Desk overview (Chinese)"></td>
+    <td width="50%"><img src="assets/screenshots/score-breakdown.webp" alt="Deal Scoring Desk score breakdown"></td>
+    <td width="50%"><img src="assets/screenshots/overview-zh-CN.webp" alt="Deal Scoring Desk overview (Chinese)"></td>
   </tr>
   <tr>
     <td><strong>Score breakdown</strong><br>Per-factor raw score, weight, and contribution with an arithmetic trace for every sub-factor, plus the suggested revenue-share rate range.</td>

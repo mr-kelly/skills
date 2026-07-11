@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR, ASSETS_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 import { applyDecision, getState, readLock } from "./store.ts";
 
 const types: Record<string, string> = {
@@ -19,6 +20,7 @@ const types: Record<string, string> = {
 };
 
 export const app = new Hono();
+installSetup(app);
 app.use("/api/state", attachDemoVisuals);
 
 app.get("/api/state", async (c) => {

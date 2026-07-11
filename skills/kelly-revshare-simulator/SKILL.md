@@ -1,6 +1,5 @@
 ---
 name: kelly-revshare-simulator
-license: MIT
 description: Revenue-Share Contract Simulator App-in-Skill — a control-panel/workspace for a deal analyst to model revenue-based-financing (RBF) deals for SME businesses (retail/F&B chain stores). Use when the user invokes $kelly-revshare-simulator or /kelly-revshare-simulator, wants to model a revenue-share or merchant-cash-advance deal, project cash flow and repayment, compute a Cash-Flow Payout Multiple, effective annualized merchant cost, or compare/underwrite multiple financing scenarios. Pure deterministic math, no external calls, no real trading/payment side effects.
 ---
 
@@ -29,15 +28,15 @@ only", "不要打开 UI", or similar.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Revenue-Share Simulator overview"></td>
-    <td width="50%"><img src="assets/screenshots/scenario-detail.png" alt="Revenue-Share Simulator scenario detail"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Revenue-Share Simulator overview"></td>
+    <td width="50%"><img src="assets/screenshots/scenario-detail.webp" alt="Revenue-Share Simulator scenario detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Portfolio-level summary across saved scenarios: average effective cost, flagged deals, and deals still needing an underwriting decision.</td>
     <td><strong>Scenario detail</strong><br>Cash-flow/cumulative-repayment chart, Cash-Flow Payout Multiple, effective annualized merchant cost, risk flags, and the decision panel.</td>
   </tr>
   <tr>
-    <td colspan="2" width="100%"><img src="assets/screenshots/comparison.png" alt="Revenue-Share Simulator comparison"></td>
+    <td colspan="2" width="100%"><img src="assets/screenshots/comparison.webp" alt="Revenue-Share Simulator comparison"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Comparison</strong><br>Side-by-side table of selected scenarios' inputs, projected repayment, payout multiple, effective cost, and decisions.</td>
@@ -168,3 +167,6 @@ a batch in the UI.
   and seed-script output are meant to be shared/demo data.
 - Risk flags and computed metrics are informational only — this skill never
   auto-approves or auto-rejects a deal.
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

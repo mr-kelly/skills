@@ -1,6 +1,5 @@
 ---
 name: kelly-seo
-license: MIT
 description: Personal App-in-Skill desk covering SEO + GEO (AI-search) + brand entity — wired to Google Search Console for a local dashboard over search analytics and an agent-prepared SEO opportunities review queue, plus an AI-visibility tracker (are we cited in ChatGPT / Perplexity / Gemini / Claude / Copilot answers), a GEO content-optimization queue gated by geo-qa, and an entity / knowledge-panel readiness checklist. Use when the user invokes $kelly-seo or /kelly-seo, mentions SEO, Google Search Console, GSC, search analytics, search performance, queries, keywords, rankings, positions, impressions, clicks, CTR, striking-distance queries, title/meta rewrites, content briefs, internal links, SEO opportunities review, GEO, generative engine optimization, AI search, AI visibility, being cited by AI answer engines, ChatGPT/Perplexity/Gemini/Claude/Copilot citations, brand entity, knowledge panel, Wikidata, schema.org, or entity readiness.
 ---
 

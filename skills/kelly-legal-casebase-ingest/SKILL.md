@@ -1,6 +1,5 @@
 ---
 name: kelly-legal-casebase-ingest
-license: MIT
 description: Legal casebase App-in-Skill intake and anonymization QA desk for law-firm judgment and award documents. Use when the user invokes $kelly-legal-casebase-ingest, mentions internal case database, 智能案例库, 裁判文书入库, 脱敏, 结构化, 分类标注, 案例审核, 质量验收, or wants a local UI where reviewers approve, revise, or block agent-prepared case records before they become searchable knowledge assets.
 ---
 

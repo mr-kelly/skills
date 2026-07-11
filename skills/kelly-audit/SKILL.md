@@ -1,6 +1,5 @@
 ---
 name: kelly-audit
-license: MIT
 description: Personal App-in-Skill finance anomaly review desk that imports the three business tables — orders, invoices, payments/receipts (回款) — from CSV/JSON exports, flags anomalies with deterministic rules, and runs a human review queue with auditable decisions. Use when the user invokes $kelly-audit or /kelly-audit, mentions finance audit, order invoice payment reconciliation, 对账, 应收, 回款, 发票异常, receivables aging, overdue receivables, duplicate payments, missing invoices, amount mismatches, or anomaly review.
 ---
 

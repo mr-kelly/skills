@@ -1,6 +1,5 @@
 ---
 name: kelly-deal-scorer
-license: MIT
 description: Review-queue App-in-Skill that scores candidate SME financing deals (revenue-based/RBF-style credit) with a deterministic, fully auditable rule-based rubric — never an LLM or API call. Use when the user invokes $kelly-deal-scorer or /kelly-deal-scorer, wants to review a deal-underwriting queue, score financing candidates, compute a composite score breakdown, see a suggested revenue-share rate range, or record approve/send-back/reject decisions for a private-credit or RBF-style lending pipeline.
 ---
 
@@ -31,15 +30,15 @@ or similar.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Deal Scoring Desk overview"></td>
-    <td width="50%"><img src="assets/screenshots/candidate-detail.png" alt="Deal Scoring Desk candidate detail"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Deal Scoring Desk overview"></td>
+    <td width="50%"><img src="assets/screenshots/candidate-detail.webp" alt="Deal Scoring Desk candidate detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Queue-level summary header — score distribution, counts needing review vs. high-confidence — plus the candidate list.</td>
     <td><strong>Candidate detail</strong><br>Revenue history, red flags, requested principal, and the decision row (approve for term sheet / send back for more data / reject).</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/score-breakdown.png" alt="Deal Scoring Desk score breakdown"></td>
+    <td width="50%"><img src="assets/screenshots/score-breakdown.webp" alt="Deal Scoring Desk score breakdown"></td>
     <td width="50%"></td>
   </tr>
   <tr>

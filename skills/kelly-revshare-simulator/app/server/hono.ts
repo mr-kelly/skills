@@ -7,6 +7,7 @@ import { simulateScenario } from "../../lib/simulate.ts";
 import type { ScenarioInput } from "../../lib/simulate.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 import {
   buildScenario,
   readBatch,
@@ -48,6 +49,7 @@ async function state(): Promise<Record<string, unknown>> {
 }
 
 export const app = new Hono();
+installSetup(app);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

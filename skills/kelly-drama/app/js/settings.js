@@ -6,9 +6,6 @@ import { $, LANG_STORAGE_KEY, project, store } from "./store.js";
 
 function imageConfigPanel() {
   const config = store.imageConfig || {};
-  const keyPlaceholder = config.has_api_key
-    ? t("image_config_key_configured").replace("{preview}", config.api_key_preview)
-    : t("image_config_key_placeholder");
   return `
     <form class="image-config" data-image-config>
       <div class="field">
@@ -16,8 +13,8 @@ function imageConfigPanel() {
         <input id="imageBaseUrl" name="base_url" value="${escapeHtml(config.base_url || "https://moonrouter.dev/v1")}" />
       </div>
       <div class="field">
-        <label for="imageApiKey">API Key</label>
-        <input id="imageApiKey" name="api_key" type="password" placeholder="${escapeHtml(keyPlaceholder)}" value="" />
+        <label>API Key</label>
+        <div class="settings-row"><code>KELLY_DRAMA_IMAGE_API_KEY</code><span>${config.has_api_key ? "configured" : "missing"}</span></div>
       </div>
       <div class="field">
         <label for="imageModel">${t("image_config_model")}</label>
@@ -42,10 +39,8 @@ function bindImageConfigForm() {
   if (!imageConfigForm) return;
   imageConfigForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const keepKey = !value(imageConfigForm, "api_key");
     store.imageConfig = await api("/api/image-config", {
       base_url: value(imageConfigForm, "base_url"),
-      api_key: keepKey ? "__KEEP__" : value(imageConfigForm, "api_key"),
       model: value(imageConfigForm, "model"),
       size: value(imageConfigForm, "size"),
     });

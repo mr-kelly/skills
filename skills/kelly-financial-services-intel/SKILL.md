@@ -1,6 +1,5 @@
 ---
 name: kelly-financial-services-intel
-license: MIT
 description: "Kelly Financial Services Intel: App-in-Skill daily industry intelligence cockpit for financial services, investment advisory, and family offices. Use when the user asks about financial services, investment advisory, market explainers, client memos, family office,投顾,金融服务, or family-office scenes. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
 ---
 

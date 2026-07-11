@@ -1,6 +1,5 @@
 ---
 name: kelly-mv
-license: MIT
 description: "Music-video production skill for turning an existing MP3 into a pure-visual (no-voiceover) music video through a bundled local App-in-Skill UI. Use when the user wants to build an MV from a song they upload: write a one-line concept, keep a cast of characters with reference cards, and break the song into storyboard shots where each shot has a scene description and an image + video that can be either AI-generated (image-to-image from the character cards, draft video via local LTX) or uploaded by the user. Same character/storyboard management model as kelly-drama. Song generation (creating the song itself, incl. voice-cloned singing) is a documented future capability."
 ---
 
@@ -100,3 +99,6 @@ node skills/kelly-mv/scripts/export_story_bible.ts
 ```
 
 Run `validate_shot_readiness.ts` (optionally `--strict`) before an image/video generation pass. Use paths relative to the skills repository root, or run the scripts from inside `skills/kelly-mv`.
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

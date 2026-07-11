@@ -5,6 +5,7 @@ import { createProvider } from "../../lib/data-provider/index.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR, TEST_EVIDENCE_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the data-provider (createProvider()
@@ -44,6 +45,7 @@ async function sendFile(c, absPath) {
 }
 
 export const app = new Hono();
+installSetup(app);
 app.use("/api/state", attachDemoVisuals);
 
 // ---- HEAD (readiness probes) ----
@@ -91,9 +93,19 @@ app.post("/api/reload", async (c) => {
 // ---- Static (vanilla frontend) ----
 app.get("/", (c) => sendFile(c, path.join(APP_DIR, "index.html")));
 app.get("/app.js", (c) => sendFile(c, path.join(APP_DIR, "app.js")));
+app.get("/js/*", (c) => {
+  const relative = decodeURIComponent(c.req.path.replace(/^\/js\//, ""));
+  const resolved = path.resolve(APP_DIR, "js", relative);
+  if (!resolved.startsWith(path.resolve(APP_DIR, "js") + path.sep) || path.extname(resolved) !== ".js") {
+    return c.text("Forbidden", 403);
+  }
+  return sendFile(c, resolved);
+});
 app.get("/styles.css", (c) => sendFile(c, path.join(APP_DIR, "styles.css")));
 app.get("/accent-theme.js", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.js")));
 app.get("/accent-theme.css", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.css")));
+app.get("/demo-visuals.js", (c) => sendFile(c, path.join(APP_DIR, "demo-visuals.js")));
+app.get("/demo-visuals.css", (c) => sendFile(c, path.join(APP_DIR, "demo-visuals.css")));
 
 app.get("/i18n/*", (c) => {
   const relative = decodeURIComponent(c.req.path.replace(/^\/i18n\//, ""));

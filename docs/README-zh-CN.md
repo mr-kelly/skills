@@ -39,6 +39,7 @@
 ## 目录
 
 - [有什么不一样](#有什么不一样)
+- [App-in-Skill 规范基线](#app-in-skill-规范基线)
 - [快速开始](#快速开始)
 - [Skills](#skills)
 - [App UI 截图](#app-ui-截图)
@@ -61,6 +62,20 @@
 结果是：agent 的速度 + 人在回路，而不是一个黑盒。
 
 这不是随手拼的：整套模式遵循 **[App-in-Skill 规范论文](https://mr-kelly.github.io/research/app-in-skill-specification-for-pairing-agent-skills-with-a-local-companion-ui.pdf)** —— 一份关于「给 agent skill 配一个本地伴随 UI」的研究规范（文件交接、五态评审模型、data-provider 分层、onboarding、安全门）。这里每个 skill 都是这份规范的一个实现。
+
+---
+
+## App-in-Skill 规范基线
+
+全部 60 个 `kelly-*` 工作流都按仓库内的 `app-in-skill-creator` contract 完成审计。这套共同基线落实在代码里，不只是文档约定：
+
+- **首次使用 onboarding** —— 每个 App 在读取 live data 前都有识别 provider 的 setup route。浏览器只引导用户进入 provider 自己的安全配置流程，不收集密码或 API key。
+- **确定性 handoff** —— 每个工作流都带 UI state validator；agent 到 App 的交接文件缺失或格式错误时会明确失败。使用 Busabase 的工作流还声明带 fingerprint 的 schema manifest。
+- **Review 安全边界** —— 默认使用 demo data；外部写入、发布、发送、生成等有实际影响的动作，必须经过明确审批或进入 agent-task 边界。
+- **可维护前端** —— 大型浏览器脚本拆成原生 ESM modules，入口文件保持在 800 行以内；大型样式表按稳定 cascade layer 拆成有序 CSS modules。
+- **可复现证据** —— 截图使用确定性 demo state 和规范桌面/手机 viewport；GitHub Pages 画廊由中英文 README 与 skill 内本地 assets 统一重建。
+
+审计门会运行仓库 lint 与 type check、校验每个 skill package、检查启动脚本与 setup route，并在桌面和手机尺寸实际执行 App UI。
 
 ---
 

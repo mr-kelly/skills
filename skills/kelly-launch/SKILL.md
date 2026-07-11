@@ -1,6 +1,5 @@
 ---
 name: kelly-launch
-license: MIT
 description: "Product-launch command desk (App-in-Skill) built on the RAMP discipline — Research / Assemble / Mobilize / Prove. The agent assembles the launch checklist and drafts launch assets, channel submissions (Product Hunt / Hacker News / directories), press pitches, and the launch-day runbook; the human approves the launch-readiness gate and steers launch day in a local review UI. Use when the user invokes $kelly-launch or /kelly-launch, or mentions launching / shipping a product, a launch checklist or runbook, launch readiness, RAMP, Product Hunt / Show HN / press-kit / launch-email drafting, or wants to review and approve launch assets and channel submissions before they go public. This is launch OPERATIONS — the checklist, assets, submissions, and runbook — not a launch video (for a promo video use product-launch-video)."
 ---
 

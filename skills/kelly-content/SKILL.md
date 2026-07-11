@@ -1,6 +1,5 @@
 ---
 name: kelly-content
-license: MIT
 description: Repurpose source content into channel-ready drafts with a local review UI and approval/export workflow. Use when the user asks to write content, make a content pack, turn a main blog/long article/transcript/notes into Xiaohongshu, WeChat, newsletter, LinkedIn, X/Twitter, short video scripts, SEO snippets, or a multi-platform publishing plan; also use when they ask for a content approval dashboard or App-in-Skill content workflow.
 ---
 

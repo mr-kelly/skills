@@ -45,6 +45,11 @@ a:hover { text-decoration: underline; }
 .hero p.lede { margin: 0; max-width: 760px; color: var(--muted); font-size: 16px; }
 .hero .stats { display: flex; gap: 20px; margin: 22px 0 0; color: var(--muted); font-size: 13.5px; flex-wrap: wrap; }
 .hero .stats strong { color: var(--text); font-size: 15px; margin-right: 5px; }
+.audit-note {
+  margin-top: 18px; max-width: 760px; padding: 11px 13px; border-left: 3px solid var(--accent);
+  background: var(--accent-soft); color: var(--muted); font-size: 13px; line-height: 1.5;
+}
+.audit-note strong { color: var(--text); margin-right: 6px; }
 .home-layout {
   display: grid; grid-template-columns: minmax(0, 1fr) 286px; gap: 28px; align-items: start;
 }
@@ -262,13 +267,13 @@ After it is installed, invoke the skill as $kelly-agent-builder.</textarea>
     </section>
     <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when managing an agent catalog, checking quota usage, activating a draft agent, or archiving one.</span><span class="zh">管理 agent 目录、检查配额使用、把草稿激活为上线，或归档某个 agent 时使用。</span></p></div>
     <div class="shots"><figure class="shot">
-  <img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/overview.png" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/overview.png" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/overview.png" alt="Overview" loading="lazy">
+  <img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/overview.webp" alt="Overview" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Overview</strong><span>Agents needing attention: over-quota, missing owner, or incomplete draft.</span></div><div class="zh"><strong>Overview</strong><span>Agents needing attention: over-quota, missing owner, or incomplete draft.</span></div>
   </figcaption>
 </figure>
 <figure class="shot">
-  <img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/catalog.png" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/catalog.png" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/catalog.png" alt="Catalog" loading="lazy">
+  <img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/catalog.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/catalog.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/catalog.webp" alt="Catalog" loading="lazy">
   <figcaption class="cap">
     <div class="en"><strong>Catalog</strong><span>Status badges across draft/live/paused/over-quota agents.</span></div><div class="zh"><strong>Catalog</strong><span>Status badges across draft/live/paused/over-quota agents.</span></div>
   </figcaption>

@@ -1,6 +1,5 @@
 ---
 name: kelly-messenger
-license: MIT
 description: Personal App-in-Skill unified chat inbox aggregating WhatsApp, Discord, Slack, and Telegram messages into one local app with a reply queue. Use when the user invokes $kelly-messenger or /kelly-messenger, wants a unified inbox, chat aggregation, to read WhatsApp/Discord/Slack/Telegram messages in one place, review unanswered conversations, queue or approve replies, run connector sync, or manage the outgoing reply queue.
 ---
 

@@ -1,6 +1,5 @@
 ---
 name: kelly-real-estate-intel
-license: MIT
 description: "Kelly Real Estate Intel: App-in-Skill daily industry intelligence cockpit for real estate and property agencies. Use when the user asks about real estate, property agencies, listings, transactions, competitor ads, client follow-up, or a地产/中介 intelligence workflow. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
 ---
 

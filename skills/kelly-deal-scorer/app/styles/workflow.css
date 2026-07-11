@@ -1,0 +1,500 @@
+@layer workflow {
+  /* Deal Scoring Desk — queue components */
+  .human-work-figure {
+    display: block;
+    font-size: 14px;
+    font-weight: 760;
+    line-height: 1.2;
+  }
+
+  .metric strong small {
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--muted);
+  }
+
+  .metric strong.positive {
+    color: var(--good, #047857);
+  }
+
+  .metric strong.negative {
+    color: var(--bad, #b42318);
+  }
+
+  .dist-bar {
+    display: flex;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #eef1ee;
+    margin-top: 10px;
+  }
+
+  .dist-bar span {
+    height: 100%;
+  }
+
+  .dist-bar .seg-high {
+    background: var(--good, #147a32);
+  }
+
+  .dist-bar .seg-review {
+    background: var(--warn, #9c5a12);
+  }
+
+  .dist-bar .seg-low {
+    background: var(--bad, #b33434);
+  }
+
+  .dist-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .dist-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .dist-swatch {
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+  }
+
+  .score-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 760;
+    font-size: 13px;
+  }
+
+  .score-pill.tier-high {
+    background: #ecfdf3;
+    color: #047857;
+  }
+
+  .score-pill.tier-review {
+    background: #fff8db;
+    color: #9a6700;
+  }
+
+  .score-pill.tier-low {
+    background: #fff1f0;
+    color: #b42318;
+  }
+
+  .flag-badge {
+    display: inline-block;
+    margin: 2px 4px 2px 0;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #fff1f0;
+    color: #b42318;
+    font-size: 11px;
+    font-weight: 650;
+  }
+
+  .flag-empty {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .factor-table {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .factor-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) 70px 60px 80px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .factor-row:last-child {
+    border-bottom: 0;
+  }
+
+  .factor-row .factor-label {
+    font-weight: 650;
+  }
+
+  .factor-row .factor-detail {
+    grid-column: 1 / -1;
+    margin-top: -4px;
+    color: var(--muted);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .factor-bar-track {
+    grid-column: 1 / -1;
+    height: 6px;
+    border-radius: 999px;
+    background: #eef1ee;
+    overflow: hidden;
+  }
+
+  .factor-bar-fill {
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .revshare-panel {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid var(--accent-line, var(--line));
+    border-radius: 8px;
+    background: var(--accent-wash, #f5f7fa);
+  }
+
+  .revshare-panel strong {
+    font-size: 22px;
+  }
+
+  .decision-panel {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+
+  .decision-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .decision-actions button {
+    min-height: 38px;
+  }
+
+  .decision-actions button.approve {
+    border-color: #a7d9be;
+    background: #ecfdf3;
+    color: #047857;
+  }
+
+  .decision-actions button.sendback {
+    border-color: #f0dcae;
+    background: #fff8db;
+    color: #9a6700;
+  }
+
+  .decision-actions button.reject {
+    border-color: #f0cdcd;
+    background: #fdeeee;
+    color: #b33434;
+  }
+
+  .decision-note {
+    width: 100%;
+    min-height: 70px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font: inherit;
+    resize: vertical;
+  }
+
+  .decision-recorded {
+    padding: 10px 12px;
+    border-radius: 7px;
+    background: var(--accent-wash, #f1f4f8);
+    color: var(--text);
+    font-size: 13px;
+  }
+
+  .revenue-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 120px;
+    margin-top: 12px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+
+  .revenue-bar {
+    flex: 1;
+    min-width: 8px;
+    border-radius: 3px 3px 0 0;
+    background: var(--accent);
+    position: relative;
+  }
+
+  .revenue-bar span {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .candidate-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .candidate-row:last-child {
+    border-bottom: 0;
+  }
+
+  .candidate-row small {
+    display: block;
+    color: var(--muted);
+  }
+
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  th.sortable:hover {
+    color: var(--text);
+  }
+
+  th.sortable.active {
+    color: var(--text);
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .back-link:hover {
+    color: var(--text);
+  }
+
+  @media (max-width: 720px) {
+    .alloc-body {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      text-align: left;
+    }
+
+    .alloc-legend {
+      width: 100%;
+    }
+  }
+
+  /* Deal Scoring Desk — visual polish pass */
+  h1 {
+    font-weight: 660;
+    letter-spacing: -0.01em;
+  }
+
+  h2 {
+    font-weight: 660;
+    letter-spacing: -0.005em;
+  }
+
+  .score-pill,
+  .metric strong,
+  .candidate-row .num,
+  .revshare-panel strong,
+  .human-work-figure,
+  .attention-primary,
+  .balance {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .overview-panel,
+  .metric,
+  .account-card,
+  .detail-side,
+  .invoice-detail-panel > div,
+  .audit-panel {
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+  }
+
+  .overview-panel h2 {
+    margin-bottom: 2px;
+  }
+
+  .overview-panel + .overview-panel,
+  .overview-panel.wide {
+    margin-top: 0;
+  }
+
+  .overview-grid,
+  .metrics {
+    margin-bottom: 16px;
+  }
+
+  /* Candidate rows — refined hover/selected feel */
+  .candidate-row {
+    border-radius: 8px;
+    margin: 0 -8px;
+    padding: 12px 8px;
+    transition: background-color 0.12s ease, border-color 0.12s ease;
+  }
+
+  .candidate-row:hover {
+    background: var(--accent-wash, #f5f7fa);
+  }
+
+  .candidate-row:focus-visible {
+    outline: 2px solid var(--accent-line, rgba(51, 65, 85, 0.35));
+    outline-offset: -2px;
+  }
+
+  .candidate-row strong {
+    font-weight: 640;
+  }
+
+  .candidate-row small {
+    font-size: 12px;
+  }
+
+  .score-pill {
+    min-width: 44px;
+    padding: 3px 9px;
+    font-weight: 700;
+  }
+
+  /* Score breakdown — analytics-style factor table */
+  .factor-table {
+    gap: 4px;
+  }
+
+  .factor-row {
+    grid-template-columns: minmax(0, 1.6fr) 56px 52px 72px;
+    gap: 12px;
+    padding: 11px 0;
+  }
+
+  .factor-row-head {
+    padding-top: 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .factor-row-head .factor-label,
+  .factor-row-head .num {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .factor-row .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .factor-row .factor-label {
+    font-weight: 620;
+  }
+
+  .factor-bar-track {
+    height: 7px;
+    margin-top: 2px;
+    background: #eef1f3;
+  }
+
+  .factor-bar-fill {
+    display: block;
+    border-radius: 999px;
+    transition: width 0.2s ease;
+  }
+
+  .factor-bar-fill.tier-high {
+    background: var(--good, #147a32);
+  }
+
+  .factor-bar-fill.tier-review {
+    background: var(--warn, #9c5a12);
+  }
+
+  .factor-bar-fill.tier-low {
+    background: var(--bad, #b33434);
+  }
+
+  .factor-row .factor-detail {
+    margin-top: 0;
+    line-height: 1.5;
+  }
+
+  /* Distribution bar — thin, calm segments */
+  .dist-bar {
+    height: 10px;
+    background: #eef1f3;
+  }
+
+  .dist-legend {
+    gap: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Empty / loading states */
+  .empty {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding: 40px 20px;
+    border: 1px dashed var(--line-strong, var(--line));
+    border-radius: 8px;
+    background: var(--panel-subtle, var(--panel));
+    color: var(--muted);
+    text-align: center;
+    box-shadow: none;
+  }
+
+  .empty-icon {
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--muted-soft, var(--line-strong));
+    border-radius: 8px;
+    opacity: 0.7;
+  }
+
+  .empty-icon::before {
+    content: "";
+  }
+
+  .empty-message {
+    max-width: 320px;
+    font-size: 13px;
+  }
+
+  /* Detail dl — slightly wider label column for readability */
+  dl {
+    grid-template-columns: 120px minmax(0, 1fr);
+    row-gap: 10px;
+  }
+
+  dt {
+    font-size: 12px;
+  }
+}

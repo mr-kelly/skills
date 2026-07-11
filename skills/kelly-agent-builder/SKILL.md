@@ -1,6 +1,5 @@
 ---
 name: kelly-agent-builder
-license: MIT
 description: Public App-in-Skill low-code agent configuration and governance console for a platform team. Use when the user invokes $kelly-agent-builder or /kelly-agent-builder, wants to review or edit a catalog of mock LLM agent configs, check quota usage, find configs that need attention, move a draft to live, pause a live agent, or archive an agent. Local mock config/governance UI only — it never provisions or calls any real agent.
 ---
 
@@ -24,15 +23,15 @@ actual local URL.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Agent Builder overview"></td>
-    <td width="50%"><img src="assets/screenshots/catalog.png" alt="Agent Builder catalog"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Agent Builder overview"></td>
+    <td width="50%"><img src="assets/screenshots/catalog.webp" alt="Agent Builder catalog"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Governance summary: live agent count, aggregate quota usage, and a list of agents that need attention with reasons.</td>
     <td><strong>Catalog</strong><br>Sortable, searchable table of every agent config with status badges, owning team, and quota usage.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/agent-detail.png" alt="Agent Builder agent detail"></td>
+    <td width="50%"><img src="assets/screenshots/agent-detail.webp" alt="Agent Builder agent detail"></td>
     <td width="50%"></td>
   </tr>
   <tr>
@@ -136,3 +135,6 @@ app.
 - Do not commit `config.local.json`, `app/.data/`, or `app/.cache/`.
 - Keep `owning_team` values as free text; do not validate against a real
   directory service.
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

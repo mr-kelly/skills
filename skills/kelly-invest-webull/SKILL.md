@@ -1,6 +1,5 @@
 ---
 name: kelly-invest-webull
-license: MIT
 description: Personal read-only App-in-Skill portfolio dashboard that aggregates Webull brokerage holdings into a local view. Use when the user invokes $kelly-invest-webull or /kelly-invest-webull, wants to review their Webull portfolio, holdings, positions, accounts (cash/margin), asset allocation, market value, unrealized P/L, day change, cash, or buying power. Read-only aggregation only — it never places, modifies, or cancels orders and never moves money.
 ---
 

@@ -77,10 +77,26 @@ function navItem(view, label) {
   return `<a class="nav-item ${active}" href="#/${view}">${label}</a>`;
 }
 
+function setMobileSidebar(open) {
+  document.body.classList.toggle("sidebar-open", Boolean(open));
+  const toggle = document.querySelector("#mobileSidebarToggle");
+  const scrim = document.querySelector("#sidebarScrim");
+  toggle?.setAttribute("aria-expanded", String(Boolean(open)));
+  if (scrim) scrim.hidden = !open;
+}
+
+function bindMobileShell() {
+  document.querySelector("#mobileSidebarToggle")?.addEventListener("click", () => setMobileSidebar(true));
+  document.querySelector("#sidebarScrim")?.addEventListener("click", () => setMobileSidebar(false));
+  document
+    .querySelectorAll(".sidebar nav a")
+    .forEach((link) => link.addEventListener("click", () => setMobileSidebar(false)));
+}
+
 function renderShell(content) {
   const c = counts();
   document.querySelector("#app").innerHTML = `
-    <aside class="sidebar">
+    <aside class="sidebar" id="appSidebar">
       <div class="brand">
         <div class="brand-mark">K</div>
         <div>
@@ -104,9 +120,12 @@ function renderShell(content) {
       </nav>
     </aside>
     <main class="main">
+      <div class="mobile-topbar"><button id="mobileSidebarToggle" class="mobile-menu-button" type="button" aria-controls="appSidebar" aria-expanded="false" aria-label="Open navigation" title="Open navigation"><span class="mobile-menu-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><strong>${state.batch.source}</strong><span>${state.batch.vertical}</span></div></div>
       ${content}
     </main>
+    <button id="sidebarScrim" class="sidebar-scrim" type="button" aria-label="Close navigation" hidden></button>
   `;
+  bindMobileShell();
 }
 
 function badge(value) {

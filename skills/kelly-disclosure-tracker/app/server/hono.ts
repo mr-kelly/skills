@@ -3,6 +3,7 @@ import path from "node:path";
 import { Hono } from "hono";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 import {
   acquireLock,
   applyDecisions,
@@ -54,6 +55,7 @@ async function state(): Promise<Record<string, unknown>> {
 }
 
 export const app = new Hono();
+installSetup(app);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

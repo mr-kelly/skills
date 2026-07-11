@@ -1,6 +1,5 @@
 ---
 name: kelly-campaigns
-license: MIT
 description: Outbound email-marketing desk (App-in-Skill) for building segments, drafting campaigns, newsletters, and sequences, running pre-send deliverability and subject-line QA, and approving every send before it is scheduled. Structured around the SEND discipline — Setup, Engage, Nurture, Deliver — with an email-quality-auditor gate (EQS score + SHIP/FIX/BLOCK verdict). Use when the user invokes $kelly-campaigns or /kelly-campaigns, or mentions email marketing, campaigns, newsletters, drip/welcome/win-back sequences, broadcasts, segments, subject-line A/B tests, deliverability (SPF/DKIM/DMARC/spam score/inbox placement), or wants to review and approve marketing email before it is sent. This is OUTBOUND marketing to a subscriber list, distinct from kelly-email inbox triage (incoming mail). 出站邮件营销：策划分群、起草营销活动 / 新闻邮件 / 邮件序列，发送前做可送达性与主题行质检，人工审批后再排期发送。
 ---
 

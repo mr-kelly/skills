@@ -1,6 +1,5 @@
 ---
 name: kelly-support
-license: MIT
 description: Personal App-in-Skill customer-support desk (help desk) that triages incoming support tickets from email, WhatsApp, web chat, contact forms, and WeChat, drafts KB-grounded replies, and proposes actions, then holds every send behind a human approval queue with a pre-send quality gate (support-qa) that outputs SHIP/FIX/BLOCK, plus SLA and CSAT tracking. Use when the user invokes $kelly-support or /kelly-support, mentions 客服 / 工单 / 支持台, a support desk, help desk, customer service, support tickets, ticket triage, a knowledge base or canned macros, SLA / first-response time, CSAT, escalations, or refund requests, wants incoming tickets triaged into a needs_review → approved → done pipeline, agent-drafted replies grounded in a knowledge base and reviewed before sending, refunds and commitments gated behind human approval, or breaching-SLA tickets surfaced. This is the OPERATOR desk (agent + human), distinct from a visitor-facing chat bubble.
 ---
 
