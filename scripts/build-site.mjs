@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync } from "node:fs";
 // Builds the GitHub Pages site in docs/ from README.md + docs/README-zh-CN.md + bundled screenshots.
 // Zero dependencies. Re-run after changing READMEs or screenshots: node scripts/build-site.mjs
 import fs from "node:fs/promises";
@@ -160,9 +161,8 @@ function siteShotPath(src, rel = "") {
 }
 
 function siteThumbPath(src) {
-  return siteShotPath(
-    src.replace(/\/assets\/screenshots\/([^/]+)\.(png|webp)$/i, "/assets/screenshots/thumbs/$1.webp"),
-  );
+  const thumb = src.replace(/\/assets\/screenshots\/([^/]+)\.(png|webp)$/i, "/assets/screenshots/thumbs/$1.webp");
+  return siteShotPath(existsSync(path.join(ROOT, thumb)) ? thumb : src);
 }
 
 function parseShotSections(md, imgPrefix) {
