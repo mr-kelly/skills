@@ -52,6 +52,10 @@ export const store = {
   // Lets a user back out to the provider choice even after one is already
   // saved — otherwise the only way back is deleting the local config file.
   forceChooseStep: false,
+  // The card the user just clicked on the choose-provider step, before they
+  // confirm it with Next — null falls back to whatever provider is already
+  // saved, so returning to this step re-highlights the current choice.
+  chooseStepDraft: null,
   mode: modeForDemo(demoScenario),
   languageMode: queryLanguage || localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto",
   accentTheme: resolveAccentTheme(localStorage.getItem(ACCENT_THEME_STORAGE_KEY) || "blue"),
