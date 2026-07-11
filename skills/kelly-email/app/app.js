@@ -3,35 +3,10 @@
 // runtime-architecture.md). This file only wires the modules together and
 // bootstraps the page.
 import { toast } from "./js/api.js";
-import {
-  activeHelpTab,
-  closeHelp,
-  isHelpOpen,
-  openHelp,
-  setHelpTab,
-} from "./js/help-modal.js";
+import { activeHelpTab, closeHelp, isHelpOpen, openHelp, setHelpTab } from "./js/help-modal.js";
 import { applyTranslations, onLanguageChange, setLanguageMode, t } from "./js/i18n.js";
-import {
-  decide,
-  refresh,
-  renderBulkActions,
-  renderCounts,
-  renderDetail,
-  renderList,
-} from "./js/list-detail.js";
+import { decide, refresh, renderBulkActions, renderCounts, renderDetail, renderList } from "./js/list-detail.js";
 import { applyRouteFromHash, navigateTo, registerRouterHooks, syncRoute } from "./js/router.js";
-import {
-  applyLockState,
-  closeDetailActionMenu,
-  isLocked,
-  isMobileLayout,
-  pollLock,
-  setMobileDetailOpen,
-  setMobileSidebarOpen,
-  syncModeButtons,
-  syncResponsiveShell,
-  toggleSidebar,
-} from "./js/shell.js";
 import {
   applyProviderGate,
   autosaveBusabaseConfig,
@@ -45,6 +20,18 @@ import {
   scheduleBusabaseAutosave,
   updateBusabaseFormVisibility,
 } from "./js/setup.js";
+import {
+  applyLockState,
+  closeDetailActionMenu,
+  isLocked,
+  isMobileLayout,
+  pollLock,
+  setMobileDetailOpen,
+  setMobileSidebarOpen,
+  syncModeButtons,
+  syncResponsiveShell,
+  toggleSidebar,
+} from "./js/shell.js";
 import { $, store } from "./js/store.js";
 
 // --- Wire up the circular edges between modules (see each module's own

@@ -204,7 +204,10 @@ export function renderEpisodesWorkspace() {
   const allEpisodes = collectionFor("episodes");
   const items = allEpisodes.filter(matches).sort((a, b) => (a.number || 0) - (b.number || 0));
   $("itemCount").textContent = String(items.length);
-  if (store.episodeMode === "detail" && (!store.selectedId || !allEpisodes.some((item) => item.id === store.selectedId))) {
+  if (
+    store.episodeMode === "detail" &&
+    (!store.selectedId || !allEpisodes.some((item) => item.id === store.selectedId))
+  ) {
     store.selectedId = items[0]?.id || null;
     syncRoute({ replace: true });
   }

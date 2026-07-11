@@ -1,466 +1,464 @@
 @layer help-modal {
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(17, 24, 39, 0.36);
-  backdrop-filter: blur(4px);
-}
-
-.modal-backdrop.is-hidden {
-  display: none;
-}
-
-.modal {
-  width: min(780px, 100%);
-  max-height: min(760px, calc(100vh - 48px));
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--panel);
-  box-shadow: 0 24px 80px rgba(17, 24, 39, 0.28);
-}
-
-.modal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--line);
-}
-
-.modal-title {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.modal-subtitle {
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.icon-button {
-  box-shadow: none;
-}
-
-.modal-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 10px 14px 0;
-  border-bottom: 1px solid var(--line);
-  background: #fbfcfd;
-}
-
-.modal-tabs button {
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  color: var(--muted);
-  padding: 9px 10px 10px;
-  font-weight: 560;
-}
-
-.modal-tabs button:hover {
-  background: transparent;
-  color: var(--text);
-  box-shadow: none;
-}
-
-.modal-tabs button.active {
-  border-bottom-color: var(--accent);
-  color: var(--text);
-}
-
-.modal-body {
-  padding: 18px;
-  overflow: auto;
-}
-
-.help-tab-panel {
-  display: none;
-}
-
-.help-tab-panel.active {
-  display: grid;
-  gap: 8px;
-}
-
-.help-tab-panel ol {
-  margin: 0;
-  padding-left: 19px;
-  color: #4b5563;
-  line-height: 1.55;
-}
-
-.modal-body h2 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 680;
-  color: #374151;
-}
-
-.modal-body p {
-  margin: 0;
-  color: #4b5563;
-  line-height: 1.5;
-}
-
-.modal-body code,
-.modal-body pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
-.modal-body pre {
-  margin: 0;
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel-subtle);
-  padding: 10px;
-  color: #374151;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.help-accounts {
-  display: grid;
-  gap: 8px;
-}
-
-.account-help-card {
-  display: grid;
-  gap: 10px;
-  border: 1px solid var(--accent-line);
-  border-radius: 8px;
-  background: var(--accent-wash);
-  padding: 12px;
-}
-
-.account-help-card strong {
-  display: block;
-  font-size: 13px;
-  color: #1f2937;
-}
-
-.account-help-card p {
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.account-help-card pre {
-  margin: 0;
-  overflow: auto;
-  border: 1px solid var(--accent-line);
-  border-radius: 7px;
-  background: #fff;
-  padding: 10px;
-  color: #334155;
-  font-size: 12px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-
-.settings-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.settings-card {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  padding: 10px;
-}
-
-.settings-card-title {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
-  min-width: 0;
-  font-size: 13px;
-  font-weight: 660;
-  color: var(--text);
-}
-
-.settings-card p {
-  color: #4b5563;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.language-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.settings-row {
-  display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  gap: 8px;
-  align-items: baseline;
-  min-width: 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.settings-row strong,
-.settings-row a,
-.settings-row code {
-  min-width: 0;
-  overflow: hidden;
-  color: #374151;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.settings-row a {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-.settings-list,
-.settings-bullets,
-.settings-pill-row {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-
-.settings-bullets div {
-  position: relative;
-  padding-left: 12px;
-  color: #4b5563;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.settings-bullets div::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.65em;
-  width: 4px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--muted-soft);
-}
-
-.settings-pill-row {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.settings-pill,
-.source-type {
-  width: fit-content;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel-subtle);
-  color: #4b5563;
-  padding: 2px 7px;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.source-type {
-  flex: 0 0 auto;
-  text-transform: uppercase;
-  letter-spacing: 0;
-}
-
-.account-card {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
-  overflow: hidden;
-}
-
-.account-card-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: start;
-  padding: 10px;
-}
-
-.account-card strong,
-.account-card small,
-.account-row code,
-.account-identity code {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.account-card strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 650;
-  color: var(--text);
-}
-
-.account-card small {
-  display: block;
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.account-detail {
-  border-top: 1px solid var(--line);
-  padding: 8px;
-  display: grid;
-  gap: 7px;
-}
-
-.account-row {
-  display: grid;
-  grid-template-columns: 58px 1fr;
-  gap: 6px;
-  align-items: center;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.account-row code,
-.account-identity code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
-  color: #374151;
-}
-
-.identity-list {
-  display: grid;
-  gap: 5px;
-}
-
-.account-identity {
-  display: grid;
-  gap: 1px;
-  font-size: 11px;
-}
-
-.account-identity span {
-  color: #374151;
-  font-weight: 560;
-}
-
-@media (max-width: 720px) {
-.modal-backdrop {
-    padding: 0;
-    align-items: stretch;
-  }
-
-.modal {
-    width: 100%;
-    height: 100dvh;
-    max-height: 100dvh;
-    border-width: 0;
-    border-radius: 0;
-  }
-
-.modal-head {
-    align-items: flex-start;
-    gap: 10px;
-    padding: 12px 14px;
-  }
-
-.modal-head > div {
-    min-width: 0;
-  }
-
-.modal-title,
-  .modal-subtitle {
-    overflow-wrap: anywhere;
-  }
-
-.modal-head .icon-button {
-    flex: 0 0 auto;
-    padding: 7px 9px;
-  }
-
-.modal-tabs {
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-    overflow: visible;
-    padding: 10px;
+    place-items: center;
+    padding: 24px;
+    background: rgba(17, 24, 39, 0.36);
+    backdrop-filter: blur(4px);
   }
 
-.modal-tabs button {
-    min-width: 0;
-    border: 1px solid var(--line);
-    border-radius: 7px;
-    background: #fff;
-    padding: 7px 8px;
+  .modal-backdrop.is-hidden {
+    display: none;
+  }
+
+  .modal {
+    width: min(780px, 100%);
+    max-height: min(760px, calc(100vh - 48px));
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    box-shadow: 0 24px 80px rgba(17, 24, 39, 0.28);
   }
 
-.modal-tabs button:hover {
-    background: #fbfbfc;
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
   }
 
-.modal-tabs button.active {
-    border-color: var(--accent-line);
-    background: var(--accent-soft);
+  .modal-title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .modal-subtitle {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .icon-button {
+    box-shadow: none;
+  }
+
+  .modal-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 10px 14px 0;
+    border-bottom: 1px solid var(--line);
+    background: #fbfcfd;
+  }
+
+  .modal-tabs button {
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--muted);
+    padding: 9px 10px 10px;
+    font-weight: 560;
+  }
+
+  .modal-tabs button:hover {
+    background: transparent;
+    color: var(--text);
+    box-shadow: none;
+  }
+
+  .modal-tabs button.active {
+    border-bottom-color: var(--accent);
     color: var(--text);
   }
 
-.modal-body {
+  .modal-body {
+    padding: 18px;
+    overflow: auto;
+  }
+
+  .help-tab-panel {
+    display: none;
+  }
+
+  .help-tab-panel.active {
+    display: grid;
+    gap: 8px;
+  }
+
+  .help-tab-panel ol {
+    margin: 0;
+    padding-left: 19px;
+    color: #4b5563;
+    line-height: 1.55;
+  }
+
+  .modal-body h2 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 680;
+    color: #374151;
+  }
+
+  .modal-body p {
+    margin: 0;
+    color: #4b5563;
+    line-height: 1.5;
+  }
+
+  .modal-body code,
+  .modal-body pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .modal-body pre {
+    margin: 0;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel-subtle);
+    padding: 10px;
+    color: #374151;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .help-accounts {
+    display: grid;
+    gap: 8px;
+  }
+
+  .account-help-card {
+    display: grid;
+    gap: 10px;
+    border: 1px solid var(--accent-line);
+    border-radius: 8px;
+    background: var(--accent-wash);
+    padding: 12px;
+  }
+
+  .account-help-card strong {
+    display: block;
+    font-size: 13px;
+    color: #1f2937;
+  }
+
+  .account-help-card p {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .account-help-card pre {
+    margin: 0;
+    overflow: auto;
+    border: 1px solid var(--accent-line);
+    border-radius: 7px;
+    background: #fff;
+    padding: 10px;
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .settings-card {
+    display: grid;
+    gap: 8px;
     min-width: 0;
-    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    padding: 10px;
   }
 
-.settings-grid,
-.account-card-head,
-.settings-row,
-.account-row {
-  grid-template-columns: 1fr;
-}
-
-.settings-row strong,
-.settings-row a,
-.settings-row code,
-.account-card strong,
-.account-card small,
-.account-row code,
-.account-identity code,
-.modal-body pre,
-.modal-body code {
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.modal-body pre {
-    max-width: 100%;
+  .settings-card-title {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 660;
+    color: var(--text);
   }
-}
 
-.account-card,
-.settings-card {
-  box-shadow: none;
-}
+  .settings-card p {
+    color: #4b5563;
+    font-size: 12px;
+    line-height: 1.5;
+  }
 
+  .language-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .settings-row {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 8px;
+    align-items: baseline;
+    min-width: 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .settings-row strong,
+  .settings-row a,
+  .settings-row code {
+    min-width: 0;
+    overflow: hidden;
+    color: #374151;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .settings-row a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .settings-list,
+  .settings-bullets,
+  .settings-pill-row {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .settings-bullets div {
+    position: relative;
+    padding-left: 12px;
+    color: #4b5563;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .settings-bullets div::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.65em;
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--muted-soft);
+  }
+
+  .settings-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .settings-pill,
+  .source-type {
+    width: fit-content;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel-subtle);
+    color: #4b5563;
+    padding: 2px 7px;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .source-type {
+    flex: 0 0 auto;
+    text-transform: uppercase;
+    letter-spacing: 0;
+  }
+
+  .account-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    overflow: hidden;
+  }
+
+  .account-card-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+    padding: 10px;
+  }
+
+  .account-card strong,
+  .account-card small,
+  .account-row code,
+  .account-identity code {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .account-card strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 650;
+    color: var(--text);
+  }
+
+  .account-card small {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .account-detail {
+    border-top: 1px solid var(--line);
+    padding: 8px;
+    display: grid;
+    gap: 7px;
+  }
+
+  .account-row {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    gap: 6px;
+    align-items: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .account-row code,
+  .account-identity code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+    color: #374151;
+  }
+
+  .identity-list {
+    display: grid;
+    gap: 5px;
+  }
+
+  .account-identity {
+    display: grid;
+    gap: 1px;
+    font-size: 11px;
+  }
+
+  .account-identity span {
+    color: #374151;
+    font-weight: 560;
+  }
+
+  @media (max-width: 720px) {
+    .modal-backdrop {
+      padding: 0;
+      align-items: stretch;
+    }
+
+    .modal {
+      width: 100%;
+      height: 100dvh;
+      max-height: 100dvh;
+      border-width: 0;
+      border-radius: 0;
+    }
+
+    .modal-head {
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+    }
+
+    .modal-head > div {
+      min-width: 0;
+    }
+
+    .modal-title,
+    .modal-subtitle {
+      overflow-wrap: anywhere;
+    }
+
+    .modal-head .icon-button {
+      flex: 0 0 auto;
+      padding: 7px 9px;
+    }
+
+    .modal-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      overflow: visible;
+      padding: 10px;
+    }
+
+    .modal-tabs button {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      padding: 7px 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .modal-tabs button:hover {
+      background: #fbfbfc;
+    }
+
+    .modal-tabs button.active {
+      border-color: var(--accent-line);
+      background: var(--accent-soft);
+      color: var(--text);
+    }
+
+    .modal-body {
+      min-width: 0;
+      padding: 14px;
+    }
+
+    .settings-grid,
+    .account-card-head,
+    .settings-row,
+    .account-row {
+      grid-template-columns: 1fr;
+    }
+
+    .settings-row strong,
+    .settings-row a,
+    .settings-row code,
+    .account-card strong,
+    .account-card small,
+    .account-row code,
+    .account-identity code,
+    .modal-body pre,
+    .modal-body code {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .modal-body pre {
+      max-width: 100%;
+    }
+  }
+
+  .account-card,
+  .settings-card {
+    box-shadow: none;
+  }
 }

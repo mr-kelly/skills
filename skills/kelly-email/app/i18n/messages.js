@@ -148,7 +148,8 @@ export const I18N = {
     "setup.ready_title": "Kelly Email",
     "setup.state.needs_config":
       "Copy config.example.json to ~/.config/kelly-email/config.json, fill mailboxes, identities, profile, style, official URLs, and knowledge sources, then add secrets to ~/.config/kelly-email/.env before scanning mail.",
-    "setup.state.missing_secrets": "Config is present, but one or more required secret env vars or Vault refs are missing.",
+    "setup.state.missing_secrets":
+      "Config is present, but one or more required secret env vars or Vault refs are missing.",
     "setup.state.ready": "Configuration is ready.",
     "setup.busabase.connected": "Connected to Busabase.",
     "setup.prompt_title": "Suggested prompt",

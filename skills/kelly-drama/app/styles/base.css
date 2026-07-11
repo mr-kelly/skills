@@ -1,84 +1,82 @@
 @layer base {
+  :root {
+    color-scheme: light;
+    --bg: #f7f8fa;
+    --surface: #ffffff;
+    --surface-soft: #fafafa;
+    --sidebar: #fbfbfc;
+    --ink: #171717;
+    --muted: #71717a;
+    --faint: #a1a1aa;
+    --line: #e4e4e7;
+    --line-strong: #d4d4d8;
+    --accent: #5e6ad2;
+    --accent-soft: #eef0ff;
+    --danger: #d92d4c;
+    --success: #168754;
+    --warning: #a16207;
+    --radius: 8px;
+    --shadow: 0 10px 28px rgba(24, 24, 27, 0.08);
+  }
 
-:root {
-  color-scheme: light;
-  --bg: #f7f8fa;
-  --surface: #ffffff;
-  --surface-soft: #fafafa;
-  --sidebar: #fbfbfc;
-  --ink: #171717;
-  --muted: #71717a;
-  --faint: #a1a1aa;
-  --line: #e4e4e7;
-  --line-strong: #d4d4d8;
-  --accent: #5e6ad2;
-  --accent-soft: #eef0ff;
-  --danger: #d92d4c;
-  --success: #168754;
-  --warning: #a16207;
-  --radius: 8px;
-  --shadow: 0 10px 28px rgba(24, 24, 27, 0.08);
-}
+  * {
+    box-sizing: border-box;
+  }
 
-* {
-  box-sizing: border-box;
-}
+  html {
+    background: var(--bg);
+  }
 
-html {
-  background: var(--bg);
-}
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+  }
 
-body {
-  margin: 0;
-  color: var(--ink);
-  background: var(--bg);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 14px;
-}
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
+  button {
+    border: 0;
+    cursor: pointer;
+  }
 
-button {
-  border: 0;
-  cursor: pointer;
-}
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid rgba(94, 106, 210, 0.35);
+    outline-offset: 2px;
+  }
 
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: 2px solid rgba(94, 106, 210, 0.35);
-  outline-offset: 2px;
-}
+  input,
+  textarea,
+  select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 8px 9px;
+    color: var(--ink);
+    background: var(--surface);
+  }
 
-input,
-textarea,
-select {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 8px 9px;
-  color: var(--ink);
-  background: var(--surface);
-}
+  input::placeholder {
+    color: var(--faint);
+  }
 
-input::placeholder {
-  color: var(--faint);
-}
+  textarea {
+    min-height: 82px;
+    resize: vertical;
+    line-height: 1.5;
+  }
 
-textarea {
-  min-height: 82px;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-:root {
-  --shadow: 0 1px 2px rgba(24, 24, 27, 0.05);
-}
-
+  :root {
+    --shadow: 0 1px 2px rgba(24, 24, 27, 0.05);
+  }
 }
