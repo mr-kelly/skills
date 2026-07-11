@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly PPT Factory"
+  short_description: "Project-based PPTX production desk."
+  default_prompt: "Use $kelly-ppt-factory to open my PPT production desk and review decks awaiting generation."

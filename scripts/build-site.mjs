@@ -91,7 +91,7 @@ const GROUPS = [
     id: "production",
     en: "Production & Teaching",
     zh: "制作与教学",
-    skills: ["kelly-drama", "kelly-mv", "kelly-digital-human", "kelly-lesson", "kelly-scale-pptx"],
+    skills: ["kelly-drama", "kelly-mv", "kelly-digital-human", "kelly-lesson", "kelly-ppt-factory"],
   },
   { id: "eng", en: "Engineering & Ops", zh: "工程与运维", skills: ["kelly-devops", "kelly-pr-review"] },
   {

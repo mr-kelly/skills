@@ -117,7 +117,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-audit` | Imports orders, invoices, and payments from business exports and audits them against each other: missing invoices, amount mismatches, overdue receivables with aging, duplicates, and unmatched payments, each with an evidence chain and drafted follow-up. | Use it when reconciling the order-invoice-payment chain, chasing receivables, or reviewing finance anomalies before month-end. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-audit.html) |
 | `kelly-tickets` | Triages complaints and requests from WeChat exports, call logs, forms, and email into classified tickets, proposes crew dispatches with SLA targets for approval, and tracks everything on a resolution board. | Use it when managing property or facilities complaints, dispatching work orders to crews, or running any intake-classify-dispatch-track workflow. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-tickets.html) |
 | `kelly-lesson` | Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export. | Use it when standardizing lesson plans across teachers, checking plan compliance, or reviewing and approving teaching plans at scale. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-lesson.html) |
-| `kelly-scale-pptx` | Project-based PPTX courseware factory: turns client style samples and lesson content into reviewed slide cards, generates style-consistent PowerPoint decks, and tracks render QA and exports. | Use it when producing many teaching PPTX decks, building a reusable courseware style system, approving slide-card storyboards, or batch-generating client-ready PPTX files. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-scale-pptx.html) |
+| `kelly-ppt-factory` | Project-based PPTX factory: turns briefs, source materials, and style samples into reviewed slide cards, generates style-consistent PowerPoint decks, and tracks render QA and exports. | Use it when producing pitch decks, sales decks, training materials, reports, proposals, courseware, or any batch of client-ready PPTX files. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ppt-factory.html) |
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html) |
 | `kelly-picks` | Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read. | Use it when hunting products to sell, pressure-testing margins before committing, or running develop/watch/drop decisions with sourcing and listing briefs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-picks.html) |
 | `kelly-products` | E-commerce product management desk: visual SKU catalog, pricing, inventory cover, channel status, content assets, compliance notes, lifecycle state, and approval-gated product operations. | Use it when managing product master data, inventory/reorder risks, marketplace channel status, price changes, quality holds, SKU archive decisions, or publish approvals. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-products.html) |
@@ -942,38 +942,38 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   </tr>
 </table>
 
-### `kelly-scale-pptx`
+### `kelly-ppt-factory`
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/overview.webp" alt="Kelly Scale PPTX overview"></td>
-    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/review.webp" alt="Kelly Scale PPTX review queue"></td>
+    <td width="50%"><img src="skills/kelly-ppt-factory/assets/screenshots/overview.webp" alt="Kelly PPT Factory overview"></td>
+    <td width="50%"><img src="skills/kelly-ppt-factory/assets/screenshots/review.webp" alt="Kelly PPT Factory review queue"></td>
   </tr>
   <tr>
-    <td><strong>Overview</strong><br>Courseware factory dashboard with project, deck, slide-card, QA, and style-score counters.</td>
+    <td><strong>Overview</strong><br>PPT factory dashboard with project, deck, slide-card, QA, and style-score counters.</td>
     <td><strong>Review queue</strong><br>Slide-card and deck approvals before the agent generates or revises PPTX output.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/slides.webp" alt="Kelly Scale PPTX slide cards"></td>
-    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/exports.webp" alt="Kelly Scale PPTX exports"></td>
+    <td width="50%"><img src="skills/kelly-ppt-factory/assets/screenshots/slides.webp" alt="Kelly PPT Factory slide cards"></td>
+    <td width="50%"><img src="skills/kelly-ppt-factory/assets/screenshots/exports.webp" alt="Kelly PPT Factory exports"></td>
   </tr>
   <tr>
     <td><strong>Slide cards</strong><br>Storyboard-style page specs: objective, layout, copy, visual brief, interaction, style checks, and QA flags.</td>
     <td><strong>Exports</strong><br>PPTX outputs, render paths, generation status, and QA evidence for each deck.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/projects.webp" alt="Kelly Scale PPTX projects"></td>
-    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/decks.webp" alt="Kelly Scale PPTX decks"></td>
+    <td width="50%"><img src="skills/kelly-ppt-factory/assets/screenshots/projects.webp" alt="Kelly PPT Factory projects"></td>
+    <td width="50%"><img src="skills/kelly-ppt-factory/assets/screenshots/decks.webp" alt="Kelly PPT Factory decks"></td>
   </tr>
   <tr>
-    <td><strong>Projects</strong><br>Deck project list with status and per-project detail — brand, dates, and slide brief.</td>
+    <td><strong>Projects</strong><br>Deck project list with status and per-project detail — client, dates, and slide brief.</td>
     <td><strong>Decks</strong><br>Generated decks with approval status, slide counts, and output PPTX paths.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="skills/kelly-scale-pptx/assets/screenshots/style.webp" alt="Kelly Scale PPTX style system"></td>
+    <td width="50%"><img src="skills/kelly-ppt-factory/assets/screenshots/style.webp" alt="Kelly PPT Factory style system"></td>
   </tr>
   <tr>
-    <td><strong>Style system</strong><br>Reusable deck style system — palette, headings, layout rules, and components.</td>
+    <td><strong>Style kit</strong><br>Reusable deck style kit — palette, headings, layout rules, and components.</td>
   </tr>
 </table>
 

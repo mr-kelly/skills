@@ -46,7 +46,7 @@ const SKILL_SCENES = {
   "kelly-legal-precedent-desk": { workbench: "detail" },
   "kelly-mv": { overview: "overview" },
   "kelly-pr-review": { ready: "ready", "needs-test": "needs_test" },
-  "kelly-scale-pptx": { slides: "slides" },
+  "kelly-ppt-factory": { slides: "slides" },
   "kelly-standup": { overview: "today", blockers: "blockers" },
 };
 
@@ -122,10 +122,10 @@ const ROUTE_OVERRIDES = {
     "needs-test": "#/needs_test",
     tested: "#/tested",
   },
-  "kelly-scale-pptx": {
+  "kelly-ppt-factory": {
     overview: "#/overview",
     review: "#/review",
-    slides: "#/slides/slide-name-question",
+    slides: "#/slides/slide-why-now",
     exports: "#/exports",
   },
   "kelly-social": {
@@ -283,7 +283,7 @@ function appNameFallback(skill) {
   const map = {
     "kelly-clm": "kelly-clm",
     "kelly-content": "kelly-content",
-    "kelly-scale-pptx": "kelly-scale-pptx",
+    "kelly-ppt-factory": "kelly-ppt-factory",
   };
   return map[skill] || skill;
 }
