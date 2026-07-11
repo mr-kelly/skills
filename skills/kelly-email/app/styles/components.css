@@ -1,0 +1,345 @@
+@layer components {
+  button {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 7px 11px;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1.15;
+    box-shadow: var(--shadow);
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  button:hover {
+    border-color: var(--line-strong);
+    background: #fbfbfc;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+  }
+
+  button:active {
+    transform: translateY(1px);
+  }
+
+  button:disabled,
+  input:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  button.has-tooltip {
+    position: relative;
+  }
+
+  button.has-tooltip::after,
+  button.has-tooltip::before {
+    position: absolute;
+    left: 50%;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 6px);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+    z-index: 20;
+  }
+
+  button.has-tooltip::after {
+    content: attr(data-tooltip);
+    top: calc(100% + 8px);
+    width: max-content;
+    max-width: min(360px, 70vw);
+    white-space: normal;
+    background: #111827;
+    color: #fff;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.38;
+    text-align: left;
+    box-shadow: 0 10px 28px rgba(17, 24, 39, 0.24);
+  }
+
+  button.has-tooltip::before {
+    content: "";
+    top: calc(100% + 3px);
+    border: 6px solid transparent;
+    border-bottom-color: #111827;
+  }
+
+  button.has-tooltip:hover::after,
+  button.has-tooltip:hover::before,
+  button.has-tooltip:focus-visible::after,
+  button.has-tooltip:focus-visible::before {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  button.primary {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent-strong) 88%, #ffffff), var(--accent-strong));
+    border-color: var(--accent-strong);
+    color: var(--accent-contrast);
+    box-shadow: 0 1px 1px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
+
+  button.primary:hover {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent-strong) 94%, #ffffff),
+      color-mix(in srgb, var(--accent-strong) 88%, #000000)
+    );
+    border-color: var(--accent-strong);
+  }
+
+  button.danger {
+    color: var(--danger);
+  }
+
+  /* Generic visibility utility. Components with their own hide/show transition
+   (e.g. .provider-gate, .modal-backdrop) keep their own higher-specificity
+   rule; this is the default for anything else toggled with classList. */
+
+  .is-hidden {
+    display: none;
+  }
+
+  .brand-subtitle,
+  .muted {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+    word-break: break-word;
+  }
+
+  .onboarding-card {
+    margin: 14px;
+    border: 1px solid var(--accent-line);
+    border-radius: 8px;
+    background: var(--accent-wash);
+    padding: 14px;
+    color: #263142;
+  }
+
+  .onboarding-card.compact {
+    margin: 0;
+  }
+
+  .onboarding-card strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .onboarding-card p {
+    margin: 0 0 10px;
+    color: #4b5563;
+    line-height: 1.48;
+  }
+
+  .onboarding-card ol {
+    margin: 0 0 10px;
+    padding-left: 20px;
+    color: #4b5563;
+    line-height: 1.55;
+  }
+
+  .onboarding-card code {
+    overflow-wrap: anywhere;
+  }
+
+  .help-paths {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 8px 12px;
+    margin: 0;
+  }
+
+  .help-paths dt {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .help-paths dd {
+    margin: 0;
+    min-width: 0;
+  }
+
+  .help-paths code {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #374151;
+    font-size: 12px;
+  }
+
+  .language-options label,
+  .theme-option {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    padding: 8px 10px;
+    color: #374151;
+    font-size: 13px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .language-options input,
+  .theme-option input {
+    margin: 0;
+  }
+
+  .theme-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+    gap: 8px;
+  }
+
+  .theme-option {
+    position: relative;
+    min-width: 0;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 68px;
+    padding: 9px 6px 7px;
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 560;
+    text-align: center;
+    transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .theme-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .theme-option:has(input:checked) {
+    border-color: var(--accent-line);
+    background: var(--accent-wash);
+    color: var(--text);
+    box-shadow: 0 0 0 3px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  }
+
+  .theme-option:has(input:focus-visible) {
+    outline: 3px solid var(--accent-focus);
+    outline-offset: 2px;
+  }
+
+  .theme-swatch {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 auto;
+    border: 1px solid rgba(15, 23, 42, 0.16);
+    border-radius: 999px;
+    background: var(--swatch);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.46), inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+  }
+
+  .theme-option:has(input:checked) .theme-swatch {
+    box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px var(--accent), inset 0 1px 1px rgba(255, 255, 255, 0.46), inset 0 -1px
+      1px rgba(0, 0, 0, 0.12);
+  }
+
+  .theme-option:has(input:checked) .theme-swatch::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 6px;
+    width: 8px;
+    height: 5px;
+    border: 2px solid var(--swatch-check);
+    border-top: 0;
+    border-right: 0;
+    transform: rotate(-45deg);
+  }
+
+  .account-envs,
+  .alias-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .env-pill,
+  .alias-list span {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px 7px;
+    font-size: 11px;
+    color: #4b5563;
+    background: var(--panel-subtle);
+  }
+
+  .env-pill.ok {
+    color: var(--ok);
+    border-color: #bbf7d0;
+    background: var(--ok-soft);
+  }
+
+  .env-pill.warn {
+    color: var(--warning);
+    border-color: #fde68a;
+    background: var(--warning-soft);
+  }
+
+  .toast {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    background: #111827;
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    max-width: 420px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  }
+
+  @media (max-width: 720px) {
+    button.has-tooltip::before,
+    button.has-tooltip::after {
+      display: none;
+    }
+
+    .help-paths {
+      grid-template-columns: 1fr;
+    }
+
+    .help-paths {
+      gap: 4px 0;
+    }
+
+    .help-paths dt {
+      margin-top: 8px;
+    }
+
+    .help-paths code {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .toast {
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      max-width: none;
+    }
+  }
+
+  .onboarding-card,
+  .html-frame {
+    box-shadow: none;
+  }
+}

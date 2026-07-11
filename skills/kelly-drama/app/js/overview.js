@@ -1,5 +1,5 @@
-import { api, toast } from "./api.js";
 import { bindForm } from "./actions.js";
+import { api, toast } from "./api.js";
 import { escapeHtml, formatBytes } from "./format.js";
 import { seriesForm } from "./forms.js";
 import { t } from "./i18n.js";

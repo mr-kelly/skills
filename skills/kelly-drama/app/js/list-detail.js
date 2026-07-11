@@ -1,6 +1,6 @@
 import { bindForm } from "./actions.js";
-import { detailForm } from "./forms.js";
 import { escapeHtml, statusBadge } from "./format.js";
+import { detailForm } from "./forms.js";
 import { t } from "./i18n.js";
 import { syncRoute } from "./router.js";
 import { $, project, store } from "./store.js";

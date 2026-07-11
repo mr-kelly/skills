@@ -40,14 +40,8 @@ export function renderProjectSwitcher() {
 
 export function updateChrome() {
   const p = project();
-  document.body.classList.toggle(
-    "episodes-list-mode",
-    store.view === "episodes" && store.episodeMode === "list",
-  );
-  document.body.classList.toggle(
-    "episode-focus-mode",
-    store.view === "episodes" && store.episodeMode === "detail",
-  );
+  document.body.classList.toggle("episodes-list-mode", store.view === "episodes" && store.episodeMode === "list");
+  document.body.classList.toggle("episode-focus-mode", store.view === "episodes" && store.episodeMode === "detail");
   renderProjectSwitcher();
   $("projectTitle").textContent = p.series?.title || t("project_unnamed");
   $("projectMeta").textContent =

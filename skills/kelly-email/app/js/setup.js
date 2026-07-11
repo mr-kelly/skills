@@ -160,7 +160,7 @@ export function fillBusabaseForm() {
   if (spaceIdInput && document.activeElement !== spaceIdInput) {
     spaceIdInput.value = status.space_id || spaceIdInput.value || "";
   }
-  const apiKeyConfigured = (status.connection || {}).api_key === "configured";
+  const apiKeyConfigured = status.connection?.api_key === "configured";
   const apiPill = $("busabaseApiKeyPill");
   if (apiPill) {
     apiPill.classList.toggle("ok", apiKeyConfigured);
@@ -213,7 +213,13 @@ export async function autosaveBusabaseConfig() {
   const token = ++store.busabaseAutosaveToken;
   setBusabaseAutosaveStatus(t("setup.busabase.autosave_saving"), "");
   try {
-    await api("/api/setup/provider", { provider: "busabase", hosting, base_url: baseUrl, space_id: spaceId, api_key: apiKey });
+    await api("/api/setup/provider", {
+      provider: "busabase",
+      hosting,
+      base_url: baseUrl,
+      space_id: spaceId,
+      api_key: apiKey,
+    });
     if (token !== store.busabaseAutosaveToken) return true;
     const apiKeyInput = $("busabaseApiKeyInput");
     if (apiKeyInput) apiKeyInput.value = "";
@@ -292,7 +298,12 @@ export function applyProviderGate() {
     const gateMode = $("providerGateMode");
     if (gateMode) gateMode.textContent = providerModeLabel(status);
     const showBusabaseMeta = activeProvider === "busabase";
-    for (const id of ["providerGateBaseUrlLabel", "providerGateBaseUrl", "providerGateBaseIdLabel", "providerGateBaseId"]) {
+    for (const id of [
+      "providerGateBaseUrlLabel",
+      "providerGateBaseUrl",
+      "providerGateBaseIdLabel",
+      "providerGateBaseId",
+    ]) {
       $(id)?.classList.toggle("is-hidden", !showBusabaseMeta);
     }
     const baseUrl = $("providerGateBaseUrl");

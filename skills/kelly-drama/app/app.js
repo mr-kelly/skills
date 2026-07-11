@@ -7,7 +7,14 @@ import { refreshHyperframeStatus } from "./js/overview.js";
 import { render } from "./js/render.js";
 import { applyRouteFromHash, navigateTo, routeFor } from "./js/router.js";
 import { closeSettings, openSettings, setSettingsTab } from "./js/settings.js";
-import { isTypingTarget, moveSelection, setMobileDetailOpen, setMobileSidebarOpen, syncResponsiveShell, toggleSidebar } from "./js/shell.js";
+import {
+  isTypingTarget,
+  moveSelection,
+  setMobileDetailOpen,
+  setMobileSidebarOpen,
+  syncResponsiveShell,
+  toggleSidebar,
+} from "./js/shell.js";
 import { shotsForEpisode } from "./js/shots.js";
 import { $, DEMO_SCENARIO, store } from "./js/store.js";
 

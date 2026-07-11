@@ -1,7 +1,15 @@
 import { I18N } from "../i18n/messages.js";
 import { toast } from "./api.js";
 import { escapeHtml } from "./format.js";
-import { ACCENT_THEME_STORAGE_KEY, ACCENT_THEMES, LANGUAGE_OPTIONS, LANGUAGE_STORAGE_KEY, resolveAccentTheme, store, $ } from "./store.js";
+import {
+  $,
+  ACCENT_THEMES,
+  ACCENT_THEME_STORAGE_KEY,
+  LANGUAGE_OPTIONS,
+  LANGUAGE_STORAGE_KEY,
+  resolveAccentTheme,
+  store,
+} from "./store.js";
 
 // applyLockState/applyProviderGate/renderCounts/renderList/renderDetail all
 // live in modules that import from here (i18n applies to their markup), so
