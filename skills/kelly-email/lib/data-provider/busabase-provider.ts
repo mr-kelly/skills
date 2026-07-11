@@ -1,9 +1,10 @@
+import { existsSync, readFileSync } from "node:fs";
 import type { Batch, Config, ConfigWithMeta } from "../types.ts";
 import { createBusabaseClient } from "./busabase-client.ts";
 import { BUSABASE_LEGACY_RECORDS, BUSABASE_SCHEMA, schemaFingerprint } from "./busabase-schema.ts";
 import { rowsFromContactsBatch } from "./email-contacts.ts";
 import { batchFromEmailRecords, emailRecordId, reviewItemToEmailRecordFields } from "./email-records.ts";
-import { CONFIG_EXAMPLE_PATH } from "./local-file-provider.ts";
+import { CONFIG_EXAMPLE_PATH, USER_CONFIG_PATH } from "./local-file-provider.ts";
 import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
 import {
   applyDetailUpdate,
@@ -35,14 +36,36 @@ function secretRef(endpoint: unknown) {
   return String(data.vault_ref || data.password_vault_ref || data.secret_ref || data.password_env || "").trim();
 }
 
+// The setup UI writes non-secret connection fields (base_url, space_id, hosting)
+// to this same local bootstrap file it uses to select the provider itself. Env
+// vars still win when set, so an operator/launcher override always takes
+// precedence over whatever was saved through the browser.
+function localBusabaseBootstrap(): Record<string, unknown> {
+  try {
+    if (!existsSync(USER_CONFIG_PATH)) return {};
+    return asObject(JSON.parse(readFileSync(USER_CONFIG_PATH, "utf8")).busabase);
+  } catch {
+    return {};
+  }
+}
+
 export function createBusabaseProvider() {
   let configMetaPromise: Promise<ConfigWithMeta> | null = null;
   let clientPromise: ReturnType<typeof createBusabaseClient> | null = null;
 
   function bootstrapConfig(): Config {
+    const local = localBusabaseBootstrap();
+    const hosting = String(local.hosting || "") === "cloud" ? "cloud" : "self_hosted";
+    const defaultBaseUrl = hosting === "cloud" ? "https://busabase.com" : "http://127.0.0.1:15419";
     return {
       busabase: {
-        base_url: process.env.KELLY_EMAIL_BUSABASE_URL || "http://127.0.0.1:15419",
+        hosting,
+        base_url: process.env.KELLY_EMAIL_BUSABASE_URL || String(local.base_url || "").trim() || defaultBaseUrl,
+        // Cloud/Enterprise lets an operator paste the API key in the setup UI
+        // for convenience; it is written to this same local (gitignored)
+        // bootstrap file, never echoed back to the browser. Self-hosted/open
+        // source Busabase has no auth, so there is nothing to store here.
+        api_key: hosting === "cloud" ? String(local.api_key || "").trim() : "",
         base_id: process.env.KELLY_EMAIL_BUSABASE_BASE_ID || "kelly-email",
         base_slug: process.env.KELLY_EMAIL_BUSABASE_BASE_SLUG || "kelly-email",
         contacts_base_id: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_ID || "kelly-email-contacts",
@@ -52,13 +75,33 @@ export function createBusabaseProvider() {
         drive_id: process.env.KELLY_EMAIL_BUSABASE_DRIVE_ID || "kelly-email-files",
         secrets_namespace: process.env.KELLY_EMAIL_BUSABASE_SECRETS_NAMESPACE || "kelly-email",
         api_key_env: "KELLY_EMAIL_BUSABASE_API_KEY",
-        space_id: process.env.KELLY_EMAIL_BUSABASE_SPACE_ID || process.env.BUSABASE_SPACE_ID || "",
+        // Self-hosted/open-source Busabase has no space/tenant concept and no auth;
+        // only the hosted cloud product is multi-tenant and needs a space id.
+        space_id:
+          hosting === "cloud"
+            ? process.env.KELLY_EMAIL_BUSABASE_SPACE_ID ||
+              process.env.BUSABASE_SPACE_ID ||
+              String(local.space_id || "").trim()
+            : "",
       },
     };
   }
 
+  // createBusabaseClient() bakes base_url/space_id/api_key into a closure at
+  // construction time. Caching it forever means a Save from the setup UI
+  // (which only rewrites the local bootstrap file) would never take effect
+  // without a process restart. Rebuild only when the bootstrap fields the
+  // client was built from actually changed; this still avoids re-running
+  // ensureFolder/ensureBase/ensureDrive on every request in the common case.
+  let clientSignature = "";
+
   async function client() {
-    if (!clientPromise) clientPromise = createBusabaseClient({ envPrefix: ENV_PREFIX, config: bootstrapConfig() });
+    const local = localBusabaseBootstrap();
+    const signature = JSON.stringify([local.hosting, local.base_url, local.space_id, local.api_key]);
+    if (!clientPromise || signature !== clientSignature) {
+      clientPromise = createBusabaseClient({ envPrefix: ENV_PREFIX, config: bootstrapConfig() });
+      clientSignature = signature;
+    }
     return clientPromise;
   }
 
@@ -546,6 +589,7 @@ export function createBusabaseProvider() {
       const base = {
         provider: "busabase",
         mode: "busabase",
+        hosting: String(localBusabaseBootstrap().hosting || "") === "cloud" ? "cloud" : "self_hosted",
         base_url: busa.meta.baseUrl,
         base_id: busa.meta.baseId,
         base_slug: busa.meta.baseSlug,

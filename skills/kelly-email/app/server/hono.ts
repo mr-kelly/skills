@@ -52,12 +52,29 @@ async function sendFile(c: Context, absPath: string, { store = false }: { store?
 export const app = new Hono();
 app.use("/api/state", attachDemoVisuals);
 
-function providerBootstrapConfig(kind: string) {
+interface BusabaseBootstrapInput {
+  hosting?: string;
+  base_url?: string;
+  space_id?: string;
+  api_key?: string;
+}
+
+function providerBootstrapConfig(kind: string, busabaseInput: BusabaseBootstrapInput = {}) {
   if (kind === "busabase") {
+    const hosting = busabaseInput.hosting === "cloud" ? "cloud" : "self_hosted";
+    const defaultBaseUrl = hosting === "cloud" ? "https://busabase.com" : "http://127.0.0.1:15419";
     return {
       data_provider: "busabase",
       busabase: {
-        base_url: process.env.KELLY_EMAIL_BUSABASE_URL || "http://127.0.0.1:15419",
+        hosting,
+        base_url: String(busabaseInput.base_url || "").trim() || process.env.KELLY_EMAIL_BUSABASE_URL || defaultBaseUrl,
+        // A self-hosted (open-source) Busabase has no space concept and no auth;
+        // only the hosted/cloud product is multi-tenant and needs a space + API key.
+        space_id: hosting === "cloud" ? String(busabaseInput.space_id || "").trim() : "",
+        // Cloud/Enterprise convenience: written to this local, gitignored file
+        // (0600) so an operator can paste it once in the setup UI instead of
+        // exporting an env var. Never echoed back in any API response.
+        api_key: hosting === "cloud" ? String(busabaseInput.api_key || "").trim() : "",
         base_id: process.env.KELLY_EMAIL_BUSABASE_BASE_ID || "kelly-email",
         base_slug: process.env.KELLY_EMAIL_BUSABASE_BASE_SLUG || "kelly-email",
         contacts_base_id: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_ID || "kelly-email-contacts",
@@ -79,15 +96,41 @@ function providerBootstrapConfig(kind: string) {
   };
 }
 
-async function saveProviderBootstrap(kind: string) {
+async function saveProviderBootstrap(kind: string, busabaseInput: BusabaseBootstrapInput = {}) {
   if (process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER) {
     throw new Error("KELLY_EMAIL_DATA_PROVIDER is set in the process environment; change that env var to switch mode.");
   }
   const normalized = kind === "busabase" ? "busabase" : kind === "local" ? "local" : "";
   if (!normalized) throw new Error('Provider must be "local" or "busabase".');
+  if (normalized === "busabase" && busabaseInput.hosting === "cloud" && !String(busabaseInput.space_id || "").trim()) {
+    throw new Error("Busabase Cloud needs a Space ID.");
+  }
   const configPath = path.join(os.homedir(), ".config", "kelly-email", "config.json");
   await fs.mkdir(path.dirname(configPath), { recursive: true, mode: 0o700 });
-  await fs.writeFile(configPath, `${JSON.stringify(providerBootstrapConfig(normalized), null, 2)}\n`, "utf8");
+  // Preserve any mailboxes/identities the agent already configured; only the
+  // provider selection and (for busabase) the non-secret connection fields change here.
+  let existing: Record<string, unknown> = {};
+  try {
+    existing = JSON.parse(await fs.readFile(configPath, "utf8"));
+  } catch {
+    existing = {};
+  }
+  const bootstrap = providerBootstrapConfig(normalized, busabaseInput);
+  if (normalized === "busabase" && !busabaseInput.api_key?.trim()) {
+    // A blank submission means "leave it alone", not "clear it" — otherwise
+    // saving a Base URL edit would silently wipe a previously-saved key.
+    const existingBusabase = (existing.busabase as Record<string, unknown>) || {};
+    (bootstrap.busabase as Record<string, unknown>).api_key = existingBusabase.api_key || "";
+  }
+  const next = {
+    ...existing,
+    ...bootstrap,
+    mailboxes: (existing.mailboxes as unknown[]) || [],
+    identities: (existing.identities as unknown[]) || [],
+  };
+  await fs.writeFile(configPath, `${JSON.stringify(next, null, 2)}\n`, "utf8");
+  // The file may now hold a plaintext Busabase API key; keep it owner-only.
+  await fs.chmod(configPath, 0o600);
   return { provider: normalized, config_path: configPath };
 }
 
@@ -123,8 +166,17 @@ app.post("/api/reload", async (c) => {
 
 app.post("/api/setup/provider", async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  const saved = await saveProviderBootstrap(String(body.provider || ""));
-  return c.json({ ok: true, ...saved, state: await statePayload({}) });
+  const saved = await saveProviderBootstrap(String(body.provider || ""), {
+    hosting: String(body.hosting || ""),
+    base_url: String(body.base_url || ""),
+    space_id: String(body.space_id || ""),
+    api_key: String(body.api_key || ""),
+  });
+  // The frontend always calls /api/state itself right after this (refresh()),
+  // so returning the full payload here would probe the Busabase connection
+  // twice per save — doubling latency whenever that connection is slow or
+  // unreachable, which is exactly the moment users notice a "save" as janky.
+  return c.json({ ok: true, ...saved });
 });
 
 // ---- Static (vanilla frontend) ----
@@ -136,6 +188,17 @@ app.get("/i18n/*", (c) => {
   const rel = decodeURIComponent(c.req.path.replace(/^\/i18n\//, ""));
   const resolved = path.resolve(APP_DIR, "i18n", rel);
   if (!resolved.startsWith(path.resolve(APP_DIR, "i18n") + path.sep) || path.extname(resolved) !== ".js") {
+    return c.text("Forbidden", 403);
+  }
+  return sendFile(c, resolved);
+});
+
+// Frontend components (plain ES modules, no bundler): app.js imports these
+// with relative "./js/*.js" specifiers, so the browser requests them here.
+app.get("/js/*", (c) => {
+  const rel = decodeURIComponent(c.req.path.replace(/^\/js\//, ""));
+  const resolved = path.resolve(APP_DIR, "js", rel);
+  if (!resolved.startsWith(path.resolve(APP_DIR, "js") + path.sep) || path.extname(resolved) !== ".js") {
     return c.text("Forbidden", 403);
   }
   return sendFile(c, resolved);

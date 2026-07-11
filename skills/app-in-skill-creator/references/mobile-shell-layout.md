@@ -280,6 +280,13 @@ Settings/help screens must be mobile responsive too.
 - Tabs should wrap into a compact grid on mobile, not rely on hidden horizontal scroll.
 - Long paths, URLs, code, account ids, and config values must wrap.
 
+The first-run setup gate (`setup-onboarding.md`) is the same shape: a bounded
+dialog with `max-height` capped to the viewport, a fixed head, an internally
+scrollable body, and a fixed footer for actions — not an unbounded panel
+centered with `place-items: center` and no height limit. Reuse this modal's
+CSS directly for the setup gate panel where practical instead of duplicating
+the head/body/scroll structure under different class names.
+
 ```css
 .modal {
   display: grid;
