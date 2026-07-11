@@ -228,6 +228,13 @@ button.danger {
   color: var(--danger);
 }
 
+/* Generic visibility utility. Components with their own hide/show transition
+   (e.g. .provider-gate, .modal-backdrop) keep their own higher-specificity
+   rule; this is the default for anything else toggled with classList. */
+.is-hidden {
+  display: none;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
@@ -1239,13 +1246,88 @@ body.provider-unavailable .message-row:hover {
 
 .provider-gate-panel {
   width: min(860px, 100%);
+  max-height: min(780px, calc(100vh - 48px));
   display: grid;
-  gap: 16px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
-  padding: 28px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 24px 80px rgba(17, 24, 39, 0.28);
+}
+
+.provider-gate-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 28px 0;
+}
+
+.provider-gate-body {
+  display: grid;
+  overflow: auto;
+  padding: 16px 28px 24px;
+}
+
+/* One step visible at a time — a wizard, not everything on one long scroll. */
+.setup-step {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.setup-step.is-hidden {
+  display: none;
+}
+
+.setup-step-back {
+  justify-self: start;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  padding: 4px 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.setup-step-back:hover {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text);
+  box-shadow: none;
+}
+
+.setup-step-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.setup-step-links .setup-step-back {
+  justify-self: auto;
+}
+
+.setup-autosave-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.setup-autosave-status {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.setup-autosave-status.is-saved {
+  color: var(--ok);
+}
+
+.setup-autosave-status.is-error {
+  color: var(--danger);
 }
 
 .provider-gate-kicker {
@@ -1258,8 +1340,9 @@ body.provider-unavailable .message-row:hover {
 .provider-gate h1 {
   margin: 0;
   color: var(--text);
-  font-size: 32px;
-  line-height: 1.08;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
   letter-spacing: 0;
 }
 
@@ -1268,13 +1351,6 @@ body.provider-unavailable .message-row:hover {
   max-width: 58ch;
   color: var(--muted);
   line-height: 1.5;
-}
-
-.provider-gate-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 
 .setup-language-switch {
@@ -1319,8 +1395,8 @@ body.provider-unavailable .message-row:hover {
 
 .provider-choice-card {
   display: grid;
-  gap: 5px;
-  min-height: 94px;
+  gap: 3px;
+  min-height: 56px;
   justify-items: start;
   align-content: center;
   border: 1px solid var(--line);
@@ -1328,16 +1404,17 @@ body.provider-unavailable .message-row:hover {
   color: var(--text);
   text-align: left;
   box-shadow: none;
+  padding: 10px 12px;
 }
 
 .provider-choice-card strong {
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .provider-choice-card span {
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .provider-choice-card:hover,
@@ -1346,10 +1423,78 @@ body.provider-unavailable .message-row:hover {
   background: var(--accent-soft);
 }
 
-.provider-gate-meta {
+.busabase-config-form {
   display: grid;
-  grid-template-columns: 110px minmax(0, 1fr);
-  gap: 8px 12px;
+  gap: 12px;
+}
+
+.busabase-config-form .theme-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.busabase-config-form .theme-option {
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-height: 0;
+  padding: 9px 10px;
+  text-align: left;
+}
+
+.busabase-config-form .theme-option strong {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.busabase-config-form .theme-option span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.field-row {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.field-row.is-hidden {
+  display: none;
+}
+
+.field-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-focus);
+}
+
+.env-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.env-pill-row small {
+  min-width: 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+/* Grid columns/gap come from the shared .help-paths class applied alongside
+   this one in the HTML; only the setup-gate-specific framing lives here. */
+.provider-gate-meta {
   margin: 2px 0 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -1370,38 +1515,33 @@ body.provider-unavailable .message-row:hover {
   overflow-wrap: anywhere;
 }
 
+/* One flat, bordered list with row dividers, not a grid of individual
+   boxed cards — a dialog is an allowed card, a grid of cards inside it reads
+   as nested cards. */
 .setup-checklist {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
 }
 
 .setup-check {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 2px 8px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 9px 10px;
-  background: #fff;
+  gap: 2px 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
 }
 
-.setup-check span {
+.setup-checklist .setup-check:last-child {
+  border-bottom: 0;
+}
+
+/* Pill shape/color reused from .env-pill (see account-envs); only the
+   grid position is setup-checklist-specific. */
+.setup-check span.env-pill {
   grid-row: span 2;
   align-self: center;
-  border-radius: 999px;
-  padding: 2px 7px;
-  font-size: 11px;
-}
-
-.setup-check.ok span {
-  background: var(--ok-soft);
-  color: var(--ok);
-}
-
-.setup-check.warn span {
-  background: var(--warning-soft);
-  color: var(--warning);
 }
 
 .setup-check strong {
@@ -1454,16 +1594,13 @@ body.provider-unavailable .message-row:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  border-top: 1px solid var(--line);
+  padding: 14px 28px;
+  background: var(--panel);
 }
 
 .setup-actions button {
   width: fit-content;
-}
-
-.setup-actions button:first-child {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
 }
 
 .bulk-actions {
@@ -2624,8 +2761,7 @@ body.provider-unavailable .message-row:hover {
   .settings-row,
   .account-row,
   .provider-gate-meta,
-  .provider-choice-grid,
-  .setup-checklist {
+  .provider-choice-grid {
     grid-template-columns: 1fr;
   }
 

@@ -31,6 +31,20 @@ Do not scatter duplicate "not ready" messages across list panes, detail panes,
 sidebars, cards, and modals. The setup gate is the blocking surface. The rest of
 the app can show neutral placeholders or stay disabled while setup is active.
 
+### Setup Gate Shell
+
+Treat the setup gate panel as a bounded dialog, not an unbounded grid centered
+in a fixed-position overlay. If the overlay uses `display:grid; place-items:
+center` with no height cap, a panel taller than the viewport overflows with no
+way to scroll to the hidden top/bottom, and any content-length change (a
+checklist detail string, a prompt body) reflows the whole panel and visibly
+re-centers it — this reads as jank/stutter even when the underlying request is
+sub-50ms. Give the panel a `max-height: min(<n>px, calc(100vh - 48px))`,
+split it into a fixed head, an internally scrollable body (`overflow:auto`),
+and a fixed footer for actions, the same shape already used for the Help &
+Settings modal (see `mobile-shell-layout.md`). Reuse that modal's shell
+properties directly where practical instead of inventing a second one.
+
 ## Provider Choice
 
 When no provider has been selected, show a clear provider choice:
@@ -54,6 +68,41 @@ explicit `<SKILL_ENV_PREFIX>_DATA_PROVIDER` when the user set one, but it must
 not default that env var to `busabase`, `local`, or any other provider. A
 launcher-level default turns first-run setup into a locked or failing provider
 state instead of the required provider-choice screen.
+
+### Hosting Sub-Choice
+
+When a provider has more than one deployment shape — a hosted/cloud product
+versus a self-hosted/open-source build of the same service — reveal a second,
+nested choice under that provider card instead of asking the user to guess
+which fields apply. Show only the fields each mode actually needs:
+
+- Self-hosted/open-source builds are commonly single-tenant with no
+  authentication: show only a Base URL field.
+- Hosted/cloud builds are commonly multi-tenant: show a Base URL field plus a
+  tenant/space id field, and a secret (API key) readiness row.
+
+Non-secret connection identifiers — a base URL, a tenant/space id, a folder or
+base slug — are safe to collect through a real text input and write to the
+same local bootstrap file used for the provider choice itself; this is not the
+"never collect secrets" rule, which applies only to passwords, tokens, and API
+keys. Keep the secret itself off that input entirely: show a compact
+ready/missing pill plus the required env var or Vault ref name (reuse the same
+readiness-pill pattern used for IMAP/SMTP-style secrets elsewhere in the app),
+and never render a text box a user could paste a key into.
+
+This sub-choice is UI/config state, not a second provider identity — the
+provider's own connection code decides how to use it (e.g. skip auth headers
+entirely when no key is configured), it does not need its own `assertProvider`
+entry.
+
+Wire the local bootstrap file all the way through: it is easy to write a
+provider-choice bootstrap file that only the provider *selector* reads (to
+decide which provider class to instantiate) while the provider's own
+connection bootstrap reads exclusively from environment variables. If that
+happens, values typed into the setup UI are silently ignored. Make sure
+whatever resolves the provider's actual connection settings (base URL, tenant
+id, etc.) checks the same local bootstrap file, with environment variables
+still taking priority so a launcher/operator override always wins.
 
 ## Language Choice
 

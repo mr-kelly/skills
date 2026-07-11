@@ -236,6 +236,16 @@ app.get("/i18n/*", (c) => {
   return sendFile(c, resolved);
 });
 
+// Frontend component modules (plain ES modules, no bundler): app.js imports
+// these with relative "./js/*.js" specifiers.
+app.get("/js/*", (c) => {
+  const rel = decodeURIComponent(c.req.path.replace(/^\/js\//, ""));
+  const base = path.resolve(APP_DIR, "js");
+  const resolved = path.resolve(base, rel);
+  if (resolved !== base && !resolved.startsWith(base + path.sep)) return c.text("Forbidden", 403);
+  return sendFile(c, resolved);
+});
+
 // Demo placeholder assets are generated in memory under /generated/demo/*.
 // This must be matched before the real /generated/* handler so demo mode never
 // touches app/.data.
