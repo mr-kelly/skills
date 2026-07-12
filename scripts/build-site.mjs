@@ -99,6 +99,7 @@ const GROUPS = [
       "kelly-homework-coach",
       "kelly-lesson",
       "kelly-ppt-factory",
+      "kelly-demo-video-factory",
     ],
   },
   { id: "eng", en: "Engineering & Ops", zh: "工程与运维", skills: ["kelly-devops", "kelly-pr-review"] },

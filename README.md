@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-64 skills, including 61 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+65 skills, including 62 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-64-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-65-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -134,6 +134,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-homework-coach` | Child-friendly homework tutoring desk: the agent explains photographed questions, analyzes wrong answers, builds a mistake notebook, and prepares practice papers behind parent/teacher review. | Use it when elementary students need photo-based homework help, gentle step-by-step explanations, wrong-question review, or mistake-focused paper generation. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-homework-coach.html) |
 | `kelly-lesson` | Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export. | Use it when standardizing lesson plans across teachers, checking plan compliance, or reviewing and approving teaching plans at scale. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-lesson.html) |
 | `kelly-ppt-factory` | Project-based PPTX factory: turns briefs, source materials, and style samples into reviewed slide cards, generates style-consistent PowerPoint decks, and tracks render QA and exports. | Use it when producing pitch decks, sales decks, training materials, reports, proposals, courseware, or any batch of client-ready PPTX files. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ppt-factory.html) |
+| `kelly-demo-video-factory` | Plans product demo/marketing videos end to end: hook/pain-point/storyboard drafting, codebase claim verification against the actual product, and per-shot recording progress, tracked in Busabase and rendered in a local read-only review app; hands off to post-production/HyperFrame (Remotion). | Use it when planning a product demo video, writing a storyboard, verifying a video script's product claims before recording, tracking which shots are recorded, or handing a finished storyboard to editing/Remotion. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-demo-video-factory.html) |
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html) |
 | `kelly-picks` | Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read. | Use it when hunting products to sell, pressure-testing margins before committing, or running develop/watch/drop decisions with sourcing and listing briefs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-picks.html) |
 | `kelly-products` | E-commerce product management desk: visual SKU catalog, pricing, inventory cover, channel status, content assets, compliance notes, lifecycle state, and approval-gated product operations. | Use it when managing product master data, inventory/reorder risks, marketplace channel status, price changes, quality holds, SKU archive decisions, or publish approvals. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-products.html) |
@@ -1011,6 +1012,19 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   </tr>
   <tr>
     <td><strong>Style kit</strong><br>Reusable deck style kit — palette, headings, layout rules, and components.</td>
+  </tr>
+</table>
+
+### `kelly-demo-video-factory`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-demo-video-factory/assets/screenshots/videos.webp" alt="Kelly Demo Video Factory videos list"></td>
+    <td width="50%"><img src="skills/kelly-demo-video-factory/assets/screenshots/video-shots.webp" alt="Kelly Demo Video Factory video detail with storyboard"></td>
+  </tr>
+  <tr>
+    <td><strong>Videos</strong><br>Every planned video with status, shot count, and per-status recording progress, read live from Busabase.</td>
+    <td><strong>Video detail</strong><br>Purpose/hook/pain-point/concept fields, the verified-claims correction table, and the full shot-by-shot storyboard with recording status.</td>
   </tr>
 </table>
 

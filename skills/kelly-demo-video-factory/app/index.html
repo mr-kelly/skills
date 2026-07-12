@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly Demo Video Factory</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">VF</div>
+          <div class="brand-copy">
+            <div class="brand-title">Demo Video Factory</div>
+            <div id="sync-status" class="brand-subtitle">Loading</div>
+          </div>
+        </div>
+        <nav class="filters" aria-label="Main">
+          <a href="#/videos" data-route="videos">Videos</a>
+        </nav>
+        <div id="videoNav" class="video-nav"></div>
+      </aside>
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h1 id="page-title">Videos</h1>
+            <p id="page-subtitle" class="muted"></p>
+          </div>
+          <div class="topbar-actions">
+            <button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button>
+          </div>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
