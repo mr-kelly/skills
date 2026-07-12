@@ -25,11 +25,7 @@ export function demoStatePayload(query: Query): PptFactoryState {
     palette: ["#2563EB", "#F8FAFC", "#111827", "#14B8A6", "#F59E0B"],
     fonts: { heading: "Aptos Display", body: "Aptos", chinese: "PingFang SC" },
     visual_rules: [
-      L(
-        "Use one clear headline and one visual proof point per slide.",
-        "每页只保留一个清晰主张和一个视觉证据。",
-        zh,
-      ),
+      L("Use one clear headline and one visual proof point per slide.", "每页只保留一个清晰主张和一个视觉证据。", zh),
       L(
         "Prefer product screenshots, clean charts, and inspectable diagrams over decoration.",
         "优先使用产品截图、清晰图表和可检查的流程图，不做纯装饰。",
@@ -161,12 +157,16 @@ export function demoStatePayload(query: Query): PptFactoryState {
       "cover",
       "full-bleed product scene",
       L("AI Workflow Platform", "AI 工作流平台", zh),
-      L("Open the investor narrative with a concrete promise and visual product proof.", "用明确承诺和产品证据开启融资叙事。", zh),
+      L(
+        "Open the investor narrative with a concrete promise and visual product proof.",
+        "用明确承诺和产品证据开启融资叙事。",
+        zh,
+      ),
       "approved",
       {
         subtitle: L("Seed round narrative", "种子轮融资叙事", zh),
         chinese: L("Turn repeated team work into reviewable AI workflows.", "把重复团队工作变成可审核 AI 流程。", zh),
-        english: L("Investor story deck", "投资人故事稿"),
+        english: L("Investor story deck", "投资人故事稿", zh),
         teacher_notes: L(
           "Lead with the pain: teams already use AI, but the work is not yet repeatable or auditable.",
           "先讲痛点：团队已经在用 AI，但工作还没有可复用、可审核的流程。",
@@ -211,7 +211,11 @@ export function demoStatePayload(query: Query): PptFactoryState {
       "changes_requested",
       {
         chinese: L("Start per team, expand per workflow.", "按团队起步，按工作流扩张。", zh),
-        english: L("Replace jargon with a customer-facing pricing explanation.", "把行话改成客户能听懂的定价解释。", zh),
+        english: L(
+          "Replace jargon with a customer-facing pricing explanation.",
+          "把行话改成客户能听懂的定价解释。",
+          zh,
+        ),
         interaction: L("Ask founder to confirm pricing language before rendering.", "渲染前请创始人确认定价措辞。", zh),
       },
       [L("Too much internal jargon.", "内部行话太多。", zh)],
@@ -246,7 +250,11 @@ export function demoStatePayload(query: Query): PptFactoryState {
       "generated",
       {
         chinese: L("Win rate rose while low-fit leads declined.", "低匹配线索下降，赢率同步提升。", zh),
-        english: L("Use chart annotations to explain mix shift, not just totals.", "用图表标注解释结构变化，而不只是总量。", zh),
+        english: L(
+          "Use chart annotations to explain mix shift, not just totals.",
+          "用图表标注解释结构变化，而不只是总量。",
+          zh,
+        ),
         image_prompt: L(
           "Clean pipeline quality chart with callouts for conversion and lead-fit mix.",
           "清晰管道质量图，标注转化率和线索匹配结构。",
@@ -263,7 +271,11 @@ export function demoStatePayload(query: Query): PptFactoryState {
       "slide",
       L("Headline specificity", "标题具体度", zh),
       "warn",
-      L("Headline says the category changed, but not what changed for the buyer.", "标题说明了品类变化，但还没说买方具体变化。", zh),
+      L(
+        "Headline says the category changed, but not what changed for the buyer.",
+        "标题说明了品类变化，但还没说买方具体变化。",
+        zh,
+      ),
     ),
     qa(
       "qa-style-2",
@@ -315,9 +327,20 @@ export function demoStatePayload(query: Query): PptFactoryState {
       "slide",
       "slide-why-now",
       "needs_review",
-      L("Slide #2 needs a sharper why-now headline before generation.", "页面 #2 需要更有力的 why-now 标题后再生成。", zh),
-      [L("Name the buyer behavior change", "点明买方行为变化", zh), L("Keep one claim per page", "一页只保留一个主张", zh)],
-      L("Please make the headline more specific and add one proof metric.", "请把标题改得更具体，并补一个证据指标。", zh),
+      L(
+        "Slide #2 needs a sharper why-now headline before generation.",
+        "页面 #2 需要更有力的 why-now 标题后再生成。",
+        zh,
+      ),
+      [
+        L("Name the buyer behavior change", "点明买方行为变化", zh),
+        L("Keep one claim per page", "一页只保留一个主张", zh),
+      ],
+      L(
+        "Please make the headline more specific and add one proof metric.",
+        "请把标题改得更具体，并补一个证据指标。",
+        zh,
+      ),
     ),
     review(
       "rv-slide-pricing",
@@ -327,7 +350,11 @@ export function demoStatePayload(query: Query): PptFactoryState {
       "changes_requested",
       L("Pricing slide needs less internal jargon.", "定价页需要减少内部行话。", zh),
       [L("Rewrite in customer-facing language", "改成客户能听懂的语言", zh)],
-      L("Revise into simple buyer language and keep internal notes in speaker notes.", "改成买方能理解的简单表达，内部说明放演讲备注。", zh),
+      L(
+        "Revise into simple buyer language and keep internal notes in speaker notes.",
+        "改成买方能理解的简单表达，内部说明放演讲备注。",
+        zh,
+      ),
     ),
     review(
       "rv-deck-sales",

@@ -21,9 +21,9 @@ import type {
   ExecutionReport,
   Lock,
   Onboarding,
-  ProviderMeta,
   PptFactorySnapshot,
   PptFactoryState,
+  ProviderMeta,
   StyleSystem,
 } from "../types.ts";
 
