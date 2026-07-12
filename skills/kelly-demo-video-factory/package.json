@@ -1,0 +1,16 @@
+{
+  "name": "kelly-demo-video-factory",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Kelly Demo Video Factory — Busabase-backed video planning pipeline (idea -> storyboard -> verified claims -> recording -> post-production -> HyperFrame).",
+  "scripts": {
+    "ensure-schema": "node scripts/ensure_schema.ts",
+    "propose-video": "node scripts/propose_video.ts",
+    "status": "node scripts/status.ts",
+    "set-shot-status": "node scripts/set_shot_status.ts"
+  },
+  "engines": {
+    "node": ">=23.6"
+  }
+}

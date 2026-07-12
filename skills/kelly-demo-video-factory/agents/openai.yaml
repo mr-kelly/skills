@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Demo Video Factory"
+  short_description: "Plan and verify demo video storyboards in Busabase"
+  default_prompt: "Use $kelly-demo-video-factory to turn my idea into a verified storyboard in Busabase."

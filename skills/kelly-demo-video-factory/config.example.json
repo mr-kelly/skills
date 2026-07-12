@@ -1,0 +1,9 @@
+{
+  "data_provider": "busabase",
+  "busabase": {
+    "base_url": "http://127.0.0.1:15419",
+    "folder_slug": "video-factory",
+    "base_slug": "videos",
+    "shots_base_slug": "video-shots"
+  }
+}

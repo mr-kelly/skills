@@ -1,0 +1,29 @@
+{
+  "title": "视频1：Busabase 是 AI Coder 的『小白宝箱』",
+  "series": "aicoder",
+  "purpose": "讲清楚 Busabase 对「每天在 Vibe Coding、用 AI 写各种 APP」的人来说，怎么让他们更简单。",
+  "hook": "你是不是也每天在 Vibe Coding，用 AI 写各种各样的 APP？",
+  "pain_point": "代码 AI 一会儿就写完了，UI 你甚至都不用看。可一到要自己搭一个数据库，反而比写代码本身还麻烦。",
+  "concept": "Busabase = AI coder 的小白宝箱：Spaces + 审批优先（approval-first）的知识库工作台，集中管理 API Keys、Vault、Assets/Archive；完全开源、可自托管，数据是你自己的。",
+  "owner": "kelly",
+  "verified_claims": "| 原草稿说法 | 代码库实际情况 |\n| --- | --- |\n| \"钱包\" | 实际是 Vault，存放密钥/敏感信息 |\n| \"网盘\" | 没有网盘/Drive 功能，对应的是 Assets 和 Archive |",
+  "shots": [
+    {
+      "timecode": "0:00-0:05",
+      "scene": "黑屏文字 / 提问式钩子",
+      "script_line": "你是不是也每天在 Vibe Coding，用 AI 写各种各样的 APP？",
+      "note": "钩子，纯提问"
+    },
+    {
+      "timecode": "0:05-0:15",
+      "scene": "痛点场景快剪：一堆代码文件滚动 + 手忙脚乱配置数据库",
+      "script_line": "代码 AI 一会儿就写完了，UI 你甚至都不用看。可一到要自己搭一个数据库，反而比写代码本身还麻烦。",
+      "note": "开场控制在 10~15 秒内"
+    },
+    {
+      "timecode": "0:15-0:20",
+      "scene": "产品揭晓：Busabase Logo",
+      "script_line": "这时候，就需要 Busabase：一个专门给 AI coder 用的小白宝箱。"
+    }
+  ]
+}
