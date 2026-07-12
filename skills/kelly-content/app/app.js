@@ -1,4 +1,13 @@
 import { I18N } from "./i18n/messages.js";
+import {
+  getSelectedDirection,
+  normalizeTodo,
+  normalizeTopic,
+  renderDistribution,
+  renderMainContent,
+  renderTodos,
+  renderTopics,
+} from "./js/editorial-views.js";
 
 const params = new URLSearchParams(window.location.search);
 const LANGUAGE_STORAGE_KEY = "kelly-content.uiLanguage";
@@ -6,7 +15,7 @@ let languageMode = normalizeLanguageMode(params.get("lang") || localStorage.getI
 const language = resolveLanguage();
 const demoScenario = params.get("demo") || "";
 
-function t(key) {
+export function t(key) {
   return I18N[language]?.[key] || I18N.en[key] || key;
 }
 
@@ -49,19 +58,21 @@ function visibleStages() {
   return stages;
 }
 
-let state = { batch: null, decisions: {}, lock: null };
-let activeStage = stageForDemo(demoScenario);
-let selectedTopicId = null;
-let selectedDirectionId = null;
-let selectedTodoId = null;
-let selectedDistributionId = null;
+export let state = { batch: null, decisions: {}, lock: null };
+export const editorStore = {
+  activeStage: stageForDemo(demoScenario),
+  selectedTopicId: null,
+  selectedDirectionId: null,
+  selectedTodoId: null,
+  selectedDistributionId: null,
+};
 let editing = false;
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
 let lastAppliedHash = "";
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-content.sidebarCollapsed";
 
-const els = {
+export const els = {
   stageNav: document.querySelector("#stageNav"),
   stagePanel: document.querySelector("#stagePanel"),
   batchMeta: document.querySelector("#batchMeta"),
@@ -130,12 +141,12 @@ setInterval(() => {
   if (!editing) loadState();
 }, 3000);
 
-async function loadState() {
+export async function loadState() {
   const response = await fetch(withContextParams("/api/state"));
   state = await response.json();
   const repo = buildRepository();
-  selectedTopicId ||= repo.topics[0]?.id || null;
-  selectedDistributionId ||= repo.distribution[0]?.id || null;
+  editorStore.selectedTopicId ||= repo.topics[0]?.id || null;
+  editorStore.selectedDistributionId ||= repo.distribution[0]?.id || null;
   applyRouteFromHash(repo, { replaceEmpty: true });
   render(repo);
 }
@@ -153,22 +164,25 @@ function decodeRoutePart(value) {
 }
 
 function routeFor() {
-  if (activeStage === "topics") {
-    const topicPart = selectedTopicId ? `/${encodeRoutePart(selectedTopicId)}` : "";
-    const directionPart = selectedDirectionId ? `/${encodeRoutePart(selectedDirectionId)}` : "";
+  if (editorStore.activeStage === "topics") {
+    const topicPart = editorStore.selectedTopicId ? `/${encodeRoutePart(editorStore.selectedTopicId)}` : "";
+    const directionPart = editorStore.selectedDirectionId ? `/${encodeRoutePart(editorStore.selectedDirectionId)}` : "";
     return `/topics${topicPart}${directionPart}`;
   }
-  if (activeStage === "todos") return selectedTodoId ? `/todos/${encodeRoutePart(selectedTodoId)}` : "/todos";
-  if (activeStage === "main") return "/main";
-  if (activeStage === "distribution")
-    return selectedDistributionId ? `/distribution/${encodeRoutePart(selectedDistributionId)}` : "/distribution";
+  if (editorStore.activeStage === "todos")
+    return editorStore.selectedTodoId ? `/todos/${encodeRoutePart(editorStore.selectedTodoId)}` : "/todos";
+  if (editorStore.activeStage === "main") return "/main";
+  if (editorStore.activeStage === "distribution")
+    return editorStore.selectedDistributionId
+      ? `/distribution/${encodeRoutePart(editorStore.selectedDistributionId)}`
+      : "/distribution";
   return "/topics";
 }
 
 function parseHashRoute() {
   const raw = (window.location.hash || "").replace(/^#\/?/, "");
   const parts = raw.split("/").filter(Boolean).map(decodeRoutePart);
-  const stage = stages.some((item) => item.id === parts[0]) ? parts[0] : activeStage || "topics";
+  const stage = stages.some((item) => item.id === parts[0]) ? parts[0] : editorStore.activeStage || "topics";
   return { stage, first: parts[1] || null, second: parts[2] || null };
 }
 
@@ -177,14 +191,17 @@ function applyRouteFromHash(repo = buildRepository(), { replaceEmpty = false } =
   routeNeedsReplace = false;
   const route = parseHashRoute();
   const shown = visibleStages();
-  activeStage = shown.some((stage) => stage.id === route.stage) ? route.stage : shown[0]?.id || "distribution";
-  if (activeStage === "topics") {
-    selectedTopicId = route.first || selectedTopicId || repo.topics[0]?.id || null;
-    selectedDirectionId = route.second || selectedDirectionId;
-  } else if (activeStage === "todos") {
-    selectedTodoId = route.first || selectedTodoId || repo.todos[0]?.id || null;
-  } else if (activeStage === "distribution") {
-    selectedDistributionId = route.first || selectedDistributionId || repo.distribution[0]?.id || null;
+  editorStore.activeStage = shown.some((stage) => stage.id === route.stage)
+    ? route.stage
+    : shown[0]?.id || "distribution";
+  if (editorStore.activeStage === "topics") {
+    editorStore.selectedTopicId = route.first || editorStore.selectedTopicId || repo.topics[0]?.id || null;
+    editorStore.selectedDirectionId = route.second || editorStore.selectedDirectionId;
+  } else if (editorStore.activeStage === "todos") {
+    editorStore.selectedTodoId = route.first || editorStore.selectedTodoId || repo.todos[0]?.id || null;
+  } else if (editorStore.activeStage === "distribution") {
+    editorStore.selectedDistributionId =
+      route.first || editorStore.selectedDistributionId || repo.distribution[0]?.id || null;
   }
   if (replaceEmpty && !window.location.hash) {
     history.replaceState(null, "", `#${routeFor()}`);
@@ -192,7 +209,7 @@ function applyRouteFromHash(repo = buildRepository(), { replaceEmpty = false } =
   isApplyingRoute = false;
 }
 
-function syncRoute({ push = false } = {}) {
+export function syncRoute({ push = false } = {}) {
   if (isApplyingRoute) {
     routeNeedsReplace = true;
     return;
@@ -207,12 +224,12 @@ function syncRoute({ push = false } = {}) {
   lastAppliedHash = target;
 }
 
-function navigateTo(partial = {}, { replace = false } = {}) {
-  if (partial.stage) activeStage = partial.stage;
-  if ("topicId" in partial) selectedTopicId = partial.topicId;
-  if ("directionId" in partial) selectedDirectionId = partial.directionId;
-  if ("todoId" in partial) selectedTodoId = partial.todoId;
-  if ("distributionId" in partial) selectedDistributionId = partial.distributionId;
+export function navigateTo(partial = {}, { replace = false } = {}) {
+  if (partial.stage) editorStore.activeStage = partial.stage;
+  if ("topicId" in partial) editorStore.selectedTopicId = partial.topicId;
+  if ("directionId" in partial) editorStore.selectedDirectionId = partial.directionId;
+  if ("todoId" in partial) editorStore.selectedTodoId = partial.todoId;
+  if ("distributionId" in partial) editorStore.selectedDistributionId = partial.distributionId;
   syncRoute({ push: !replace });
   render(buildRepository());
 }
@@ -226,7 +243,7 @@ function wireHashRouting() {
   });
 }
 
-function withContextParams(path) {
+export function withContextParams(path) {
   const url = new URL(path, window.location.origin);
   for (const key of ["demo", "lang"]) {
     const value = params.get(key);
@@ -241,7 +258,7 @@ function stageForDemo(value) {
   return "topics";
 }
 
-function buildRepository() {
+export function buildRepository() {
   const batch = state.batch || {};
   const items = Array.isArray(batch.items) ? batch.items : [];
   const topics = normalizeTopics(batch, items);
@@ -441,8 +458,10 @@ function renderShell(repo) {
   els.settingsText.textContent = `${state.config_summary?.provider || "local"} ${t("data")} · ${repo.topics.length} ${t("topics")} · ${repo.distribution.length} ${t("distribution.drafts")}`;
 
   const shown = visibleStages();
-  if (!shown.some((stage) => stage.id === activeStage)) activeStage = shown[0]?.id || "distribution";
-  els.pageTitle.textContent = shown.find((stage) => stage.id === activeStage)?.label || t("content.repository");
+  if (!shown.some((stage) => stage.id === editorStore.activeStage))
+    editorStore.activeStage = shown[0]?.id || "distribution";
+  els.pageTitle.textContent =
+    shown.find((stage) => stage.id === editorStore.activeStage)?.label || t("content.repository");
 
   const counts = {
     topics: repo.topics.length,
@@ -454,7 +473,7 @@ function renderShell(repo) {
   els.stageNav.innerHTML = shown
     .map(
       (stage) => `
-    <button class="stageButton ${stage.id === activeStage ? "active" : ""}" data-stage="${stage.id}" title="${escapeAttr(stage.caption)}">
+    <button class="stageButton ${stage.id === editorStore.activeStage ? "active" : ""}" data-stage="${stage.id}" title="${escapeAttr(stage.caption)}">
       <span>${stage.label}</span>
       <small>${stage.caption}</small>
       <em>${counts[stage.id] || 0}</em>
@@ -478,382 +497,13 @@ function renderStage(repo) {
   }
 
   els.stagePanel.className = "stagePanel";
-  if (activeStage === "topics") renderTopics(repo);
-  if (activeStage === "todos") renderTodos(repo);
-  if (activeStage === "main") renderMainContent(repo);
-  if (activeStage === "distribution") renderDistribution(repo);
+  if (editorStore.activeStage === "topics") renderTopics(repo);
+  if (editorStore.activeStage === "todos") renderTodos(repo);
+  if (editorStore.activeStage === "main") renderMainContent(repo);
+  if (editorStore.activeStage === "distribution") renderDistribution(repo);
 }
 
-function renderTopics(repo) {
-  const selected = repo.topics.find((topic) => topic.id === selectedTopicId) || repo.topics[0];
-  selectedTopicId = selected?.id || null;
-  selectedDirectionId = selected?.directions?.some((direction) => direction.id === selectedDirectionId)
-    ? selectedDirectionId
-    : getSelectedDirection(selected)?.id || selected?.directions?.[0]?.id || null;
-  els.stagePanel.innerHTML = `
-    <div class="stageHeader">
-      <div>
-        <p class="eyebrow">${escapeHtml(t("subject.discovery"))}</p>
-        <h2>${escapeHtml(t("topics.pool"))}</h2>
-      </div>
-      <button class="quietButton" title="${escapeAttr(t("refresh.subjects.title"))}">${escapeHtml(t("refresh"))}</button>
-    </div>
-    <div class="split">
-      <div class="recordList">
-        ${repo.topics.map((topic) => topicRow(topic, selected?.id)).join("")}
-      </div>
-      <article class="canvas">
-        ${selected ? topicDetail(selected) : ""}
-      </article>
-    </div>
-  `;
-  bindRecordSelection("topic", (id) => {
-    navigateTo({ stage: "topics", topicId: id, directionId: null });
-  });
-  bindRecordSelection("direction", (id) => {
-    navigateTo({ stage: "topics", directionId: id });
-  });
-  const confirmButton = els.stagePanel.querySelector("[data-action='confirm-direction']");
-  confirmButton?.addEventListener("click", () => confirmDirection(selected?.id, selectedDirectionId));
-}
-
-function topicRow(topic, selectedId) {
-  return `
-    <button class="recordRow ${topic.id === selectedId ? "selected" : ""}" data-topic="${escapeAttr(topic.id)}">
-      <span class="statusDot ${topic.status}"></span>
-      <strong>${escapeHtml(topic.title)}</strong>
-      <small>${escapeHtml(topic.source)} · ${topic.directions?.length || 0} ${escapeHtml(t("directions"))} · ${escapeHtml(t("score"))} ${topic.score || "-"}</small>
-    </button>
-  `;
-}
-
-function topicDetail(topic) {
-  const directions = topic.directions || [];
-  const selectedDirection = directions.find((direction) => direction.id === selectedDirectionId) || directions[0];
-  return `
-    <div class="canvasHead">
-      <div>
-        <span class="pill">${escapeHtml(topic.source)}</span>
-        <span class="pill">${escapeHtml(statusLabel(topic.status))}</span>
-      </div>
-      <button class="primaryButton" data-action="confirm-direction" title="${escapeAttr(t("confirm.direction.title"))}">${escapeHtml(t("confirm.direction"))}</button>
-    </div>
-    <h2>${escapeHtml(topic.title)}</h2>
-    <dl class="metaGrid">
-      <div><dt>${escapeHtml(t("audience"))}</dt><dd>${escapeHtml(topic.audience || "-")}</dd></div>
-      <div><dt>${escapeHtml(t("score"))}</dt><dd>${escapeHtml(topic.score || "-")}</dd></div>
-    </dl>
-    <section class="sectionBlock">
-      <h3>${escapeHtml(t("subject"))}</h3>
-      <p>${escapeHtml(topic.subject || topic.title || "")}</p>
-    </section>
-    <div class="directionLayout">
-      <div class="directionList">
-        ${directions.map((direction) => directionCard(direction, selectedDirection?.id)).join("")}
-      </div>
-      <section class="directionPreview">
-        <p class="eyebrow">${escapeHtml(t("selected.direction"))}</p>
-        <h3>${escapeHtml(selectedDirection?.title || t("no.direction"))}</h3>
-        <p>${escapeHtml(selectedDirection?.description || t("choose.direction"))}</p>
-        <dl class="miniMeta">
-          <div><dt>${escapeHtml(t("angle"))}</dt><dd>${escapeHtml(selectedDirection?.angle || "-")}</dd></div>
-          <div><dt>${escapeHtml(t("status"))}</dt><dd>${escapeHtml(statusLabel(selectedDirection?.status) || "-")}</dd></div>
-        </dl>
-      </section>
-    </div>
-    <section class="sectionBlock">
-      <h3>${escapeHtml(t("evidence"))}</h3>
-      <p>${escapeHtml(topic.evidence || t("no.evidence"))}</p>
-    </section>
-  `;
-}
-
-function renderTodos(repo) {
-  const selected = repo.todos.find((todo) => todo.id === selectedTodoId) || repo.todos[0];
-  selectedTodoId = selected?.id || null;
-  els.stagePanel.innerHTML = `
-    <div class="stageHeader">
-      <div>
-        <p class="eyebrow">${escapeHtml(t("production.queue"))}</p>
-        <h2>${escapeHtml(t("todos.title"))}</h2>
-      </div>
-      <button class="primaryButton" data-action="start-selected-todo" title="${escapeAttr(t("todo.start.title"))}">${escapeHtml(t("todo.start"))}</button>
-    </div>
-    <div class="split">
-      <div class="recordList">
-        ${repo.todos.map((todo) => todoRow(todo, selected?.id)).join("")}
-      </div>
-      <article class="canvas">
-        ${selected ? todoDetail(selected) : `<p class="mutedText">${escapeHtml(t("todos.empty"))}</p>`}
-      </article>
-    </div>
-  `;
-  bindRecordSelection("todo", (id) => {
-    navigateTo({ stage: "todos", todoId: id });
-  });
-  for (const button of els.stagePanel.querySelectorAll(
-    "[data-action='start-todo'], [data-action='start-selected-todo']",
-  )) {
-    button.addEventListener("click", () => startTodo(selectedTodoId));
-  }
-}
-
-function todoRow(todo, selectedId) {
-  return `
-    <button class="recordRow ${todo.id === selectedId ? "selected" : ""}" data-todo="${escapeAttr(todo.id)}">
-      <span class="statusDot ${todo.status}"></span>
-      <strong>${escapeHtml(todo.title)}</strong>
-      <small>${escapeHtml(todo.statusLabel)} · ${escapeHtml(todo.assignee || t("ai.writer"))}</small>
-    </button>
-  `;
-}
-
-function todoDetail(todo) {
-  return `
-    <div class="canvasHead">
-      <div>
-        <span class="pill">${escapeHtml(todo.statusLabel)}</span>
-        <span class="pill">${escapeHtml(todo.source || t("local"))}</span>
-      </div>
-      <button class="primaryButton" data-action="start-todo" title="${escapeAttr(t("todo.start.title"))}">${escapeHtml(t("todo.start"))}</button>
-    </div>
-    <h2>${escapeHtml(todo.title)}</h2>
-    <p class="leadText">${escapeHtml(todo.description)}</p>
-    <dl class="metaGrid">
-      <div><dt>${escapeHtml(t("subject"))}</dt><dd>${escapeHtml(todo.subject || "-")}</dd></div>
-      <div><dt>${escapeHtml(t("assignee"))}</dt><dd>${escapeHtml(todo.assignee || t("ai.writer"))}</dd></div>
-    </dl>
-    <section class="sectionBlock">
-      <h3>${escapeHtml(t("next.action"))}</h3>
-      <p>${todo.status === "in_progress" ? t("todo.next.started") : t("todo.next.waiting")}</p>
-    </section>
-  `;
-}
-
-function directionCard(direction, selectedId) {
-  return `
-    <button class="directionCard ${direction.id === selectedId ? "selected" : ""}" data-direction="${escapeAttr(direction.id)}">
-      <span>${escapeHtml(statusLabel(direction.status || "ready"))}</span>
-      <strong>${escapeHtml(direction.title)}</strong>
-      <small>${escapeHtml(direction.description)}</small>
-    </button>
-  `;
-}
-
-function renderMainContent(repo) {
-  const main = repo.main;
-  els.stagePanel.innerHTML = `
-    <div class="stageHeader">
-      <div>
-        <p class="eyebrow">${escapeHtml(t("canonical.draft"))}</p>
-        <h2>${escapeHtml(t("main.title"))}</h2>
-      </div>
-      <div class="toolbar">
-        <button class="quietButton" title="${escapeAttr(t("preview.title"))}">${escapeHtml(t("preview"))}</button>
-        <button class="primaryButton" title="${escapeAttr(t("approve.main.title"))}">${escapeHtml(t("approve.main"))}</button>
-      </div>
-    </div>
-    <article class="mainPreview">
-      <div class="coverFrame">
-        <span>${escapeHtml(t("cover"))}</span>
-        <strong>${escapeHtml(main.cover_brief || main.hero_alt || t("visual.brief"))}</strong>
-      </div>
-      <div class="articleShell">
-        <span class="pill">${escapeHtml(statusLabel(main.status || "draft"))}</span>
-        <h1>${escapeHtml(main.title)}</h1>
-        <p class="dek">${escapeHtml(main.dek || "")}</p>
-        <div class="articleBody">${main.html || `<p>${escapeHtml(main.body || "")}</p>`}</div>
-      </div>
-    </article>
-  `;
-}
-
-function renderDistribution(repo) {
-  const selected = repo.distribution.find((item) => item.id === selectedDistributionId) || repo.distribution[0];
-  selectedDistributionId = selected?.id || null;
-  els.stagePanel.innerHTML = `
-    <div class="stageHeader">
-      <div>
-        <p class="eyebrow">${escapeHtml(t("channel.adaptation"))}</p>
-        <h2>${escapeHtml(t("distribution.title"))}</h2>
-      </div>
-      <div class="toolbar">
-        <button class="quietButton" title="${escapeAttr(t("validate.title"))}">${escapeHtml(t("validate"))}</button>
-        <button class="primaryButton" title="${escapeAttr(t("export.title"))}">${escapeHtml(t("export"))}</button>
-      </div>
-    </div>
-    <div class="split">
-      <div class="recordList">
-        ${repo.distribution.map((item) => distributionRow(item, selected?.id)).join("")}
-      </div>
-      <article class="canvas">
-        ${selected ? distributionDetail(selected) : ""}
-      </article>
-    </div>
-  `;
-  bindRecordSelection("distribution", (id) => {
-    navigateTo({ stage: "distribution", distributionId: id });
-  });
-  bindEditorActions(selected?.id);
-}
-
-function distributionRow(item, selectedId) {
-  return `
-    <button class="recordRow ${item.id === selectedId ? "selected" : ""}" data-distribution="${escapeAttr(item.id)}">
-      <span class="channelMark">${escapeHtml(channelInitial(item.channel))}</span>
-      <strong>${escapeHtml(item.title)}</strong>
-      <small>${escapeHtml(item.channel)} · ${escapeHtml(item.readiness)}</small>
-    </button>
-  `;
-}
-
-function distributionDetail(item) {
-  const decision = state.decisions[item.id] || {};
-  const title = decision.title || item.title || "";
-  const body = decision.body || item.body || "";
-  const comment = decision.comment || "";
-  return `
-    <div class="canvasHead">
-      <div>
-        <span class="pill">${escapeHtml(item.channel)}</span>
-        <span class="pill">${escapeHtml(statusLabel(item.status))}</span>
-      </div>
-      <div class="actions">
-        <button data-action="approve" title="${escapeAttr(t("approve.title"))}">${escapeHtml(t("approve"))}</button>
-        <button data-action="revise" title="${escapeAttr(t("save.title"))}">${escapeHtml(t("save"))}</button>
-        <button data-action="request_changes" title="${escapeAttr(t("request.changes.title"))}">${escapeHtml(t("request.changes"))}</button>
-        <button data-action="block" title="${escapeAttr(t("block.title"))}">${escapeHtml(t("block"))}</button>
-      </div>
-    </div>
-    <label>${escapeHtml(t("title"))}
-      <input id="titleInput" value="${escapeAttr(title)}">
-    </label>
-    <label>${escapeHtml(t("draft"))}
-      <textarea id="bodyInput">${escapeHtml(body)}</textarea>
-    </label>
-    <label>${escapeHtml(t("review.note"))}
-      <textarea id="commentInput" class="note">${escapeHtml(comment)}</textarea>
-    </label>
-    <div class="supportGrid">
-      ${item.title_options?.length ? `<section class="sectionBlock"><h3>${escapeHtml(t("title.options"))}</h3><p>${item.title_options.map(escapeHtml).join("<br>")}</p></section>` : ""}
-      ${item.media_brief ? `<section class="sectionBlock"><h3>${escapeHtml(t("media.brief"))}</h3><p>${escapeHtml(item.media_brief)}</p></section>` : ""}
-      ${item.hashtags?.length ? `<section class="sectionBlock"><h3>${escapeHtml(t("hashtags"))}</h3><p>${item.hashtags.map(escapeHtml).join(" ")}</p></section>` : ""}
-    </div>
-  `;
-}
-
-function bindRecordSelection(kind, onSelect) {
-  for (const row of els.stagePanel.querySelectorAll(`[data-${kind}]`)) {
-    row.addEventListener("click", () => onSelect(row.dataset[kind]));
-  }
-}
-
-async function confirmDirection(topicId, directionId) {
-  if (!topicId || !directionId) return;
-  // The server only knows about batch.topics written by real automation. When
-  // that's empty, the UI is showing a temporary client-derived view (see
-  // normalizeTopics) that the server has never seen, so it can't resolve
-  // topicId/directionId on its own. Send that view along so the server can
-  // persist it before looking the ids up.
-  const payload = { topic_id: topicId, direction_id: directionId };
-  if (!Array.isArray(state.batch?.topics) || !state.batch.topics.length) {
-    payload.topics = buildRepository().topics;
-  }
-  const response = await fetch(withContextParams("/api/confirm-direction"), {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) {
-    alert(`Could not create todo: ${await response.text()}`);
-    return;
-  }
-  activeStage = "todos";
-  selectedTodoId = null;
-  syncRoute({ push: true });
-  await loadState();
-}
-
-async function startTodo(id) {
-  if (!id) return;
-  const response = await fetch(withContextParams("/api/start-todo"), {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id }),
-  });
-  if (!response.ok) {
-    alert(`Could not start todo: ${await response.text()}`);
-    return;
-  }
-  activeStage = "main";
-  syncRoute({ push: true });
-  await loadState();
-}
-
-function normalizeTopic(topic) {
-  const directions =
-    Array.isArray(topic.directions) && topic.directions.length
-      ? topic.directions
-      : [
-          {
-            id: `${topic.id || "topic"}-direction-1`,
-            title: topic.title || "Untitled direction",
-            description: topic.description || topic.angle || "No description yet.",
-            angle: topic.angle || "General",
-            status: topic.status === "confirmed" ? "selected" : "ready",
-          },
-        ];
-  return {
-    ...topic,
-    subject: topic.subject || topic.topic || topic.title,
-    directions,
-  };
-}
-
-function normalizeTodo(todo) {
-  const labels = {
-    todo: t("status.todo"),
-    queued: t("status.todo"),
-    in_progress: t("status.started"),
-    writing: t("status.started"),
-    done: t("status.done"),
-    blocked: t("status.blocked"),
-  };
-  return {
-    ...todo,
-    status: todo.status || "todo",
-    statusLabel: labels[todo.status || "todo"] || todo.status || t("status.todo"),
-  };
-}
-
-function statusLabel(status = "") {
-  const labels = {
-    todo: t("status.todo"),
-    queued: t("status.todo"),
-    in_progress: t("status.started"),
-    writing: t("status.started"),
-    done: t("status.done"),
-    blocked: t("status.blocked"),
-    confirmed: t("status.confirmed"),
-    selected: t("status.selected"),
-    approved: t("status.approved"),
-    needs_review: t("status.needsReview"),
-    changes_requested: t("status.changesRequested"),
-    draft: t("status.draft"),
-    ready: t("status.ready"),
-  };
-  return labels[status] || status;
-}
-
-function getSelectedDirection(topic) {
-  if (!topic?.directions?.length) return null;
-  return (
-    topic.directions.find((direction) => direction.status === "selected" || direction.status === "confirmed") ||
-    topic.directions[0]
-  );
-}
-
-function bindEditorActions(id) {
+export function bindEditorActions(id) {
   if (!id) return;
   for (const input of els.stagePanel.querySelectorAll("input, textarea")) {
     input.addEventListener("focus", () => {
@@ -919,7 +569,7 @@ function normalizeChannel(channel = "") {
   return channel || t("channel");
 }
 
-function channelInitial(channel) {
+export function channelInitial(channel) {
   return String(channel || "C")
     .slice(0, 1)
     .toUpperCase();
@@ -939,7 +589,7 @@ function smartTitle(value) {
   return firstClause.length > 72 ? `${firstClause.slice(0, 69).trim()}...` : firstClause;
 }
 
-function escapeHtml(value) {
+export function escapeHtml(value) {
   return String(value ?? "").replace(
     /[&<>"']/g,
     (char) =>
@@ -953,6 +603,6 @@ function escapeHtml(value) {
   );
 }
 
-function escapeAttr(value) {
+export function escapeAttr(value) {
   return escapeHtml(value).replace(/\n/g, " ");
 }

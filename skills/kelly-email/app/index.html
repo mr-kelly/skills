@@ -4,7 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Kelly Email</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles/layers.css" />
+    <link rel="stylesheet" href="/styles/base.css" />
+    <link rel="stylesheet" href="/styles/components.css" />
+    <link rel="stylesheet" href="/styles/shell.css" />
+    <link rel="stylesheet" href="/styles/setup-wizard.css" />
+    <link rel="stylesheet" href="/styles/help-modal.css" />
+    <link rel="stylesheet" href="/styles/list-detail.css" />
     <link rel="stylesheet" href="./demo-visuals.css" />
   </head>
   <body>
@@ -284,34 +290,94 @@ busabase:vault/kelly-email</code></pre>
           <div class="provider-gate-kicker">Kelly Email</div>
           <div class="setup-language-switch" data-language-switcher data-language-name="uiLanguageSetup" data-language-title="true" role="radiogroup" data-i18n-aria-label="language.title" aria-label="Language"></div>
         </div>
-        <h1 id="providerGateTitle" data-i18n="setup.title">Set up Kelly Email</h1>
-        <p id="providerGateMessage">Kelly Email cannot write review state yet.</p>
-        <div class="provider-choice-grid" aria-label="Data provider choices">
-          <button id="setupChooseLocal" class="provider-choice-card" type="button" data-provider-choice="local">
-            <strong data-i18n="setup.local.title">Local files</strong>
-            <span data-i18n="setup.local.body">Private on this Mac. Fastest way to start.</span>
-          </button>
-          <button id="setupChooseBusabase" class="provider-choice-card" type="button" data-provider-choice="busabase">
-            <strong data-i18n="setup.busabase.title">Busabase</strong>
-            <span data-i18n="setup.busabase.body">Shared workspace with Bases, Drive, and Vault.</span>
-          </button>
+        <div class="provider-gate-body" id="providerGateBody">
+          <!-- Step 1: pick a provider. Nothing else competes for attention here. -->
+          <div id="setupStepChoose" class="setup-step">
+            <h1 id="providerGateTitle" data-i18n="setup.title">Set up Kelly Email</h1>
+            <p id="providerGateMessage">Kelly Email cannot write review state yet.</p>
+            <div class="provider-choice-grid" data-i18n-aria-label="setup.provider_choices_aria" aria-label="Data provider choices">
+              <button id="setupChooseLocal" class="provider-choice-card" type="button" data-provider-choice="local">
+                <strong data-i18n="setup.local.title">Local files</strong>
+                <span data-i18n="setup.local.body">Private on this Mac. Fastest way to start.</span>
+              </button>
+              <button id="setupChooseBusabase" class="provider-choice-card" type="button" data-provider-choice="busabase">
+                <strong data-i18n="setup.busabase.title">Busabase</strong>
+                <span data-i18n="setup.busabase.body">Shared workspace with Bases, Drive, and Vault.</span>
+              </button>
+            </div>
+            <div class="setup-step-actions">
+              <button id="setupChooseNextButton" type="button" class="primary" disabled data-i18n="setup.next">Next</button>
+            </div>
+          </div>
+
+          <!-- Step 2: Busabase-only connection details. Autosaves; no Save button. -->
+          <div id="setupStepBusabase" class="setup-step is-hidden">
+            <button id="busabaseBackButton" type="button" class="setup-step-back">
+              <span aria-hidden="true">←</span> <span data-i18n="setup.back">Back</span>
+            </button>
+            <h1 data-i18n="setup.busabase.connect_title">Connect Busabase</h1>
+            <div id="busabaseConfigForm" class="busabase-config-form">
+              <div class="theme-options" id="busabaseHostingOptions" role="radiogroup" data-i18n-aria-label="setup.busabase.hosting_aria" aria-label="Busabase hosting">
+                <label class="theme-option">
+                  <input type="radio" name="busabaseHosting" value="self_hosted" data-busabase-hosting checked />
+                  <strong data-i18n="setup.busabase.hosting.self_hosted">Open Source / Personal</strong>
+                  <span data-i18n="setup.busabase.hosting.self_hosted_body">Self-hosted Busabase you run yourself. Only needs a Base URL, no key.</span>
+                </label>
+                <label class="theme-option">
+                  <input type="radio" name="busabaseHosting" value="cloud" data-busabase-hosting />
+                  <strong data-i18n="setup.busabase.hosting.cloud">Cloud / Enterprise</strong>
+                  <span data-i18n="setup.busabase.hosting.cloud_body">Hosted Busabase. Needs a Space ID and an API key.</span>
+                </label>
+              </div>
+              <label class="field-row">
+                <span data-i18n="setup.busabase.base_url_label">Base URL</span>
+                <input id="busabaseBaseUrlInput" class="field-input" type="text" placeholder="http://127.0.0.1:15419" autocomplete="off" spellcheck="false" />
+              </label>
+              <label class="field-row is-hidden" id="busabaseSpaceIdRow">
+                <span data-i18n="setup.busabase.space_id_label">Space ID</span>
+                <input id="busabaseSpaceIdInput" class="field-input" type="text" placeholder="space_xxx" autocomplete="off" spellcheck="false" />
+              </label>
+              <label class="field-row is-hidden" id="busabaseApiKeyRow">
+                <span data-i18n="setup.busabase.api_key_label">API key</span>
+                <input id="busabaseApiKeyInput" class="field-input" type="password" autocomplete="off" spellcheck="false" />
+                <div class="env-pill-row">
+                  <span id="busabaseApiKeyPill" class="env-pill warn">?</span>
+                  <small id="busabaseApiKeyHint"></small>
+                </div>
+              </label>
+              <div class="setup-autosave-row">
+                <small id="busabaseAutosaveStatus" class="setup-autosave-status"></small>
+                <button id="busabaseContinueButton" type="button" class="primary" data-i18n="setup.busabase.continue">Continue</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: ready — status + the prompt to hand to the agent. -->
+          <div id="setupStepReady" class="setup-step is-hidden">
+            <h1 data-i18n="setup.ready_title">Kelly Email</h1>
+            <p id="providerGateMessageReady"></p>
+            <dl class="provider-gate-meta help-paths">
+              <dt data-i18n="provider.mode">Mode</dt>
+              <dd id="providerGateMode">Not loaded</dd>
+              <dt id="providerGateBaseUrlLabel" data-i18n="provider.base_url">Base URL</dt>
+              <dd id="providerGateBaseUrl">Not loaded</dd>
+              <dt id="providerGateBaseIdLabel" data-i18n="provider.base_id">Base ID</dt>
+              <dd id="providerGateBaseId">Not loaded</dd>
+            </dl>
+            <div id="setupChecklist" class="setup-checklist"></div>
+            <p id="providerGateAction" class="provider-gate-action"></p>
+            <div class="setup-prompt-box">
+              <div id="setupPromptTitle" class="setup-prompt-title" data-i18n="setup.prompt_title">Suggested prompt</div>
+              <pre><code id="setupPromptText"></code></pre>
+            </div>
+            <div class="setup-step-links">
+              <button id="busabaseReconfigureButton" type="button" class="setup-step-back is-hidden" data-i18n="setup.busabase.reconfigure">Change Busabase connection</button>
+              <button id="setupChangeProviderButton" type="button" class="setup-step-back" data-i18n="setup.change_provider">Change data provider</button>
+            </div>
+          </div>
         </div>
-        <dl class="provider-gate-meta">
-          <dt data-i18n="provider.mode">Mode</dt>
-          <dd id="providerGateMode">Not loaded</dd>
-          <dt data-i18n="provider.base_url">Base URL</dt>
-          <dd id="providerGateBaseUrl">Not loaded</dd>
-          <dt data-i18n="provider.base_id">Base ID</dt>
-          <dd id="providerGateBaseId">Not loaded</dd>
-        </dl>
-        <div id="setupChecklist" class="setup-checklist"></div>
-        <p id="providerGateAction" class="provider-gate-action"></p>
-        <div class="setup-prompt-box">
-          <div id="setupPromptTitle" class="setup-prompt-title" data-i18n="setup.prompt_title">Suggested prompt</div>
-          <pre><code id="setupPromptText"></code></pre>
-        </div>
-        <div class="setup-actions">
-          <button id="setupCopyPrompt" type="button" data-i18n="setup.copy_prompt">Copy prompt</button>
+        <div id="setupActionsReady" class="setup-actions is-hidden">
+          <button id="setupCopyPrompt" type="button" class="primary" data-i18n="setup.copy_prompt">Copy prompt</button>
           <button id="providerGateHelpButton" type="button" data-i18n="provider.banner.action">Open Settings</button>
         </div>
       </section>

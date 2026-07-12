@@ -123,7 +123,10 @@ export function busabaseMeta({ envPrefix, config = {} }: BusabaseClientOptions):
     secretsNamespace: String(
       env("BUSABASE_SECRETS_NAMESPACE") || configValue(config, "secrets_namespace") || "kelly-email",
     ),
-    apiKey: process.env[apiKeyEnv] || env("BUSABASE_API_KEY") || "",
+    // Env vars win; a key saved to the local bootstrap config through the
+    // setup UI (Cloud/Enterprise only — self-hosted Busabase has no auth) is
+    // the last resort.
+    apiKey: process.env[apiKeyEnv] || env("BUSABASE_API_KEY") || String(configValue(config, "api_key") || "").trim(),
     spaceId: cleanOptional(
       env("BUSABASE_SPACE_ID") || configValue(config, "space_id") || process.env.BUSABASE_SPACE_ID,
     ),
@@ -250,15 +253,25 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
 
   async function api(method: string, pathname: string, body?: unknown): Promise<any> {
     requireConfig();
-    const res = await fetch(`${meta.baseUrl}${pathname}`, {
-      method,
-      headers: {
-        "content-type": "application/json",
-        ...(meta.apiKey ? { authorization: `Bearer ${meta.apiKey}` } : {}),
-        ...(meta.spaceId ? { "x-busabase-space": meta.spaceId } : {}),
-      },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-    });
+    // /api/state polls this on a timer; an unreachable or slow-to-respond
+    // host (misconfigured Base URL, no network) must fail fast rather than
+    // hang the request for the platform's TCP timeout.
+    let res: Response;
+    try {
+      res = await fetch(`${meta.baseUrl}${pathname}`, {
+        method,
+        headers: {
+          "content-type": "application/json",
+          ...(meta.apiKey ? { authorization: `Bearer ${meta.apiKey}` } : {}),
+          ...(meta.spaceId ? { "x-busabase-space": meta.spaceId } : {}),
+        },
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(8000),
+      });
+    } catch (error) {
+      const reason = error instanceof Error && error.name === "TimeoutError" ? "timed out" : "unreachable";
+      throw new Error(`busabase ${method} ${pathname} -> ${reason} (${meta.baseUrl})`);
+    }
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
       throw new Error(`busabase ${method} ${pathname} -> ${res.status} ${detail}`.trim());

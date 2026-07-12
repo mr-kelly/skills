@@ -44,6 +44,8 @@ Read only the references needed for the current task, but read the selected refe
 | Human-attention panel, workflow filters, accent color system, hash routing, review notes, Help & Settings, i18n, approval semantics | `references/ui-workflow-patterns.md` |
 | Desktop split-pane shell, mobile drawer shell, sidebar icon, responsive CSS/checklist | `references/mobile-shell-layout.md` |
 | Data-provider interface template and runtime guard | `references/provider-interface.ts` |
+| Splitting a large app.js into ES modules, shared store pattern, circular-dependency handling | `references/frontend-modules.md` |
+| Splitting a large styles.css with cascade layers (`@layer`), why `@scope` doesn't work here | `references/css-modules.md` |
 | Demo recordings and walkthrough clips | `references/demo-recording.md` |
 
 ## Default Shape

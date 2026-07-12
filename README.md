@@ -39,6 +39,7 @@
 ## Contents
 
 - [What Makes These Different](#what-makes-these-different)
+- [App-in-Skill Compliance](#app-in-skill-compliance)
 - [Quick Start](#quick-start)
 - [Skills](#skills)
 - [App UI Screenshots](#app-ui-screenshots)
@@ -61,6 +62,20 @@ Most skill libraries are just prompts. **Kelly's skills are App-in-Skill workflo
 The result is agent speed with a human in the loop — not a black box.
 
 This is not ad-hoc: the pattern follows the **[App-in-Skill specification](https://mr-kelly.github.io/research/app-in-skill-specification-for-pairing-agent-skills-with-a-local-companion-ui.pdf)** — a research spec for pairing an agent skill with a local companion UI (the file handoff, the five-state review model, the data-provider seam, onboarding, and safety gates). Every skill here is an implementation of that spec.
+
+---
+
+## App-in-Skill Compliance
+
+All 60 `kelly-*` workflows are audited against the repository's `app-in-skill-creator` contract. The shared baseline is enforced in code, not left as documentation-only guidance:
+
+- **First-run onboarding** — every app exposes a provider-aware setup route before live data is used. Setup points users to the provider's own secure configuration flow and never collects passwords or API keys in the browser UI.
+- **Deterministic handoff** — every workflow ships a UI-state validator and fails loudly when the agent-to-app handoff is absent or malformed. Busabase-backed workflows also declare a fingerprinted schema manifest.
+- **Review safety** — demo data is the default; external writes, publishing, sending, generation, and other consequential work stay behind an explicit approval or agent-task boundary.
+- **Maintainable frontend** — large browser scripts are split into native ESM modules, entry files stay below 800 lines, and larger stylesheets use ordered CSS modules with stable cascade layers.
+- **Reproducible evidence** — screenshot routes use deterministic demo states at the canonical desktop and phone viewports, and the GitHub Pages gallery is rebuilt from the bilingual READMEs plus skill-local assets.
+
+The audit gate runs repository lint and type checks, validates every skill package, verifies executable launch scripts and setup routes, and exercises the App UIs at desktop and mobile sizes.
 
 ---
 
@@ -1395,8 +1410,8 @@ Control-panel workspace modeling revenue-based-financing deals: cash flow, Cash-
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-revshare-simulator/assets/screenshots/overview.png" alt="Kelly Revshare Simulator overview"></td>
-    <td width="50%"><img src="skills/kelly-revshare-simulator/assets/screenshots/scenario-detail.png" alt="Kelly Revshare Simulator scenario detail"></td>
+    <td width="50%"><img src="skills/kelly-revshare-simulator/assets/screenshots/overview.webp" alt="Kelly Revshare Simulator overview"></td>
+    <td width="50%"><img src="skills/kelly-revshare-simulator/assets/screenshots/scenario-detail.webp" alt="Kelly Revshare Simulator scenario detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Saved scenarios with decision status at a glance.</td>
@@ -1410,8 +1425,8 @@ Review-queue desk scoring candidate SME financing deals with a deterministic, au
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-deal-scorer/assets/screenshots/overview.png" alt="Kelly Deal Scorer overview"></td>
-    <td width="50%"><img src="skills/kelly-deal-scorer/assets/screenshots/score-breakdown.png" alt="Kelly Deal Scorer score breakdown"></td>
+    <td width="50%"><img src="skills/kelly-deal-scorer/assets/screenshots/overview.webp" alt="Kelly Deal Scorer overview"></td>
+    <td width="50%"><img src="skills/kelly-deal-scorer/assets/screenshots/score-breakdown.webp" alt="Kelly Deal Scorer score breakdown"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Score-distribution queue across candidates needing review.</td>
@@ -1425,8 +1440,8 @@ Read-mostly dashboard for an RBF fund's portfolio: AUM, repayment progress, conc
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-portfolio-health/assets/screenshots/overview.png" alt="Kelly Portfolio Health overview"></td>
-    <td width="50%"><img src="skills/kelly-portfolio-health/assets/screenshots/watchlist.png" alt="Kelly Portfolio Health watchlist"></td>
+    <td width="50%"><img src="skills/kelly-portfolio-health/assets/screenshots/overview.webp" alt="Kelly Portfolio Health overview"></td>
+    <td width="50%"><img src="skills/kelly-portfolio-health/assets/screenshots/watchlist.webp" alt="Kelly Portfolio Health watchlist"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Total AUM, collected amount, weighted repayment progress, and at-risk count.</td>
@@ -1440,8 +1455,8 @@ Kanban control panel for a BD/sourcing team triaging financing leads with a dete
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-lead-funnel/assets/screenshots/kanban.png" alt="Kelly Lead Funnel kanban"></td>
-    <td width="50%"><img src="skills/kelly-lead-funnel/assets/screenshots/lead-detail.png" alt="Kelly Lead Funnel lead detail"></td>
+    <td width="50%"><img src="skills/kelly-lead-funnel/assets/screenshots/kanban.webp" alt="Kelly Lead Funnel kanban"></td>
+    <td width="50%"><img src="skills/kelly-lead-funnel/assets/screenshots/lead-detail.webp" alt="Kelly Lead Funnel lead detail"></td>
   </tr>
   <tr>
     <td><strong>Kanban</strong><br>Funnel-summary header with per-stage counts and conversion rates.</td>
@@ -1455,8 +1470,8 @@ Compliance/IR workspace tracking disclosure packages per financing vehicle acros
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-disclosure-tracker/assets/screenshots/overview.png" alt="Kelly Disclosure Tracker overview"></td>
-    <td width="50%"><img src="skills/kelly-disclosure-tracker/assets/screenshots/flagged.png" alt="Kelly Disclosure Tracker flagged"></td>
+    <td width="50%"><img src="skills/kelly-disclosure-tracker/assets/screenshots/overview.webp" alt="Kelly Disclosure Tracker overview"></td>
+    <td width="50%"><img src="skills/kelly-disclosure-tracker/assets/screenshots/flagged.webp" alt="Kelly Disclosure Tracker flagged"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Vehicles ready, blocked, or in progress across the portfolio.</td>
@@ -1470,8 +1485,8 @@ Local dashboard visualizing a fleet of LLM agents behind a shared AI gateway.
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-agent-observability/assets/screenshots/overview.png" alt="Kelly Agent Observability overview"></td>
-    <td width="50%"><img src="skills/kelly-agent-observability/assets/screenshots/trace-detail.png" alt="Kelly Agent Observability trace detail"></td>
+    <td width="50%"><img src="skills/kelly-agent-observability/assets/screenshots/overview.webp" alt="Kelly Agent Observability overview"></td>
+    <td width="50%"><img src="skills/kelly-agent-observability/assets/screenshots/trace-detail.webp" alt="Kelly Agent Observability trace detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Fleet-level call volume, cost, and degraded-agent counts.</td>
@@ -1485,8 +1500,8 @@ Review board comparing baseline vs candidate agent versions across a fixed rubri
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-agent-eval/assets/screenshots/overview.png" alt="Kelly Agent Eval overview"></td>
-    <td width="50%"><img src="skills/kelly-agent-eval/assets/screenshots/case-detail.png" alt="Kelly Agent Eval case detail"></td>
+    <td width="50%"><img src="skills/kelly-agent-eval/assets/screenshots/overview.webp" alt="Kelly Agent Eval overview"></td>
+    <td width="50%"><img src="skills/kelly-agent-eval/assets/screenshots/case-detail.webp" alt="Kelly Agent Eval case detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Baseline vs candidate pass-rate comparison and release approve/block panel.</td>
@@ -1500,8 +1515,8 @@ Low-code agent configuration and governance console with quota, approval, and ow
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-agent-builder/assets/screenshots/overview.png" alt="Kelly Agent Builder overview"></td>
-    <td width="50%"><img src="skills/kelly-agent-builder/assets/screenshots/catalog.png" alt="Kelly Agent Builder catalog"></td>
+    <td width="50%"><img src="skills/kelly-agent-builder/assets/screenshots/overview.webp" alt="Kelly Agent Builder overview"></td>
+    <td width="50%"><img src="skills/kelly-agent-builder/assets/screenshots/catalog.webp" alt="Kelly Agent Builder catalog"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Agents needing attention: over-quota, missing owner, or incomplete draft.</td>
@@ -1515,8 +1530,8 @@ Predictive-recommendation analytics over mock user-behavior funnel data.
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-behavior-predict/assets/screenshots/overview.png" alt="Kelly Behavior Predict overview"></td>
-    <td width="50%"><img src="skills/kelly-behavior-predict/assets/screenshots/segment-detail.png" alt="Kelly Behavior Predict segment detail"></td>
+    <td width="50%"><img src="skills/kelly-behavior-predict/assets/screenshots/overview.webp" alt="Kelly Behavior Predict overview"></td>
+    <td width="50%"><img src="skills/kelly-behavior-predict/assets/screenshots/segment-detail.webp" alt="Kelly Behavior Predict segment detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Funnel drop-off and per-segment predicted next actions.</td>
@@ -1530,8 +1545,8 @@ Cost and model-governance dashboard for a shared LLM gateway.
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-llm-gateway/assets/screenshots/overview.png" alt="Kelly LLM Gateway overview"></td>
-    <td width="50%"><img src="skills/kelly-llm-gateway/assets/screenshots/rollouts.png" alt="Kelly LLM Gateway rollouts"></td>
+    <td width="50%"><img src="skills/kelly-llm-gateway/assets/screenshots/overview.webp" alt="Kelly LLM Gateway overview"></td>
+    <td width="50%"><img src="skills/kelly-llm-gateway/assets/screenshots/rollouts.webp" alt="Kelly LLM Gateway rollouts"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Total daily spend trend and cost breakdown by service/model.</td>

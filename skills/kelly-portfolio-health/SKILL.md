@@ -1,6 +1,5 @@
 ---
 name: kelly-portfolio-health
-license: MIT
 description: Read-mostly App-in-Skill dashboard for a revenue-based-financing (RBF) fund or private-credit book of many small SME contracts. Use when the user invokes $kelly-portfolio-health or /kelly-portfolio-health, wants to check portfolio health, AUM, repayment progress, concentration risk, or a watchlist of contracts with declining revenue. Generic and brand-free — not tied to any specific company or fund.
 ---
 
@@ -27,15 +26,15 @@ local URL. Use chat-only mode only when the user says "纯聊天", "chat only",
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Portfolio health overview"></td>
-    <td width="50%"><img src="assets/screenshots/concentration.png" alt="Portfolio concentration"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Portfolio health overview"></td>
+    <td width="50%"><img src="assets/screenshots/concentration.webp" alt="Portfolio concentration"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Total AUM, total collected, weighted-average repayment progress, at-risk count, category allocation, and the contracts most lagging behind their expected repayment pace.</td>
     <td><strong>Concentration</strong><br>Industry/category and city concentration by funding amount and contract count.</td>
   </tr>
   <tr>
-    <td colspan="2"><img src="assets/screenshots/watchlist.png" alt="Portfolio watchlist" width="50%"></td>
+    <td colspan="2"><img src="assets/screenshots/watchlist.webp" alt="Portfolio watchlist" width="50%"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Watchlist</strong><br>Contracts whose most recent month's revenue dropped materially below their trailing average, with a revenue sparkline and a flag-for-review / clear-flag / note action.</td>
@@ -154,3 +153,6 @@ new provider. Primary local files:
   with a synthetic, brand-free mock book only.
 - Keep local exports minimal and use stable contract ids so repeated
   seeds/syncs stay idempotent for review state.
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

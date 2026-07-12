@@ -8,6 +8,7 @@ export const DATA_DIR = path.join(APP_DIR, ".data");
 export const CACHE_DIR = path.join(APP_DIR, ".cache");
 export const FLEET_PATH = path.join(DATA_DIR, "fleet.json");
 export const HANDOFFS_PATH = path.join(DATA_DIR, "handoffs.jsonl");
+export const LOCK_PATH = path.join(DATA_DIR, "agent.lock");
 export const LOG_PATH = path.join(CACHE_DIR, "server.log");
 export const PID_PATH = path.join(CACHE_DIR, "server.pid");
 export const DEFAULT_HOST = "127.0.0.1";

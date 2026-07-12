@@ -4,6 +4,12 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   lint-and-typecheck:
@@ -29,3 +35,50 @@ jobs:
 
       - name: Typecheck (.mjs)
         run: npm run typecheck
+
+  deploy-pages:
+    if: github.event_name != 'pull_request'
+    needs: lint-and-typecheck
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout with LFS
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Stage Pages site with LFS assets
+        run: |
+          node scripts/build-site.mjs
+          site="$RUNNER_TEMP/pages"
+          mkdir -p "$site"
+          cp -R docs/. "$site/"
+          for source in skills/*/assets/screenshots; do
+            skill="$(basename "$(dirname "$(dirname "$source")")")"
+            target="$site/skills/$skill/assets"
+            mkdir -p "$target"
+            cp -R "$source" "$target/screenshots"
+          done
+          find "$site" -type f -name '*.html' -exec sed -i \
+            's#https://raw.githubusercontent.com/mr-kelly/skills/main/#/skills/#g' {} +
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/pages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

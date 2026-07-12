@@ -124,6 +124,8 @@ The main skill file is intentionally a router. Detailed implementation rules liv
 | First-run onboarding, reconfiguration, locks, concurrent write safety | `references/onboarding-and-locking.md` |
 | Human-attention panel, workflow navigation, notes/drafts, hash routing, i18n | `references/ui-workflow-patterns.md` |
 | Desktop/mobile shell and responsive layout checklist | `references/mobile-shell-layout.md` |
+| Splitting a large app.js into ES modules (no build step) | `references/frontend-modules.md` |
+| Splitting a large styles.css with cascade layers (no build step) | `references/css-modules.md` |
 | Demo walkthrough recordings | `references/demo-recording.md` |
 
 Visual assets are optional. Do not create screenshots or demo recordings by default; add them only when requested or when visual files already exist for the skill. Screenshots live under `assets/screenshots/`. Walkthrough videos should stay outside individual skill packages; if committed to this repo, place them under repo-level `docs/demo-recordings/<skill-name>/` and track MP4 files with Git LFS.

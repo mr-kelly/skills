@@ -1,6 +1,5 @@
 ---
 name: kelly-legal-matter-strategy
-license: MIT
 description: Legal matter-strategy App-in-Skill desk for new-case strategy, issue trees, evidence checklists, risk analysis, pleading outlines, and approval-gated drafting packs grounded in internal precedents. Use when the user invokes $kelly-legal-matter-strategy, mentions 案件策略, 办案辅助, 证据清单, 争议焦点, 文书生成辅助, litigation strategy, arbitration strategy, pleading outline, or wants a local UI where responsible lawyers review agent-prepared strategy before use.
 ---
 

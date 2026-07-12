@@ -29,24 +29,24 @@ Sourcing, Meeting Scheduler, and Contract Summarizer.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Fleet overview"></td>
-    <td width="50%"><img src="assets/screenshots/agent-health.png" alt="Agent health table"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Fleet overview"></td>
+    <td width="50%"><img src="assets/screenshots/agent-health.webp" alt="Agent health table"></td>
   </tr>
   <tr>
     <td><strong>Fleet Overview</strong><br>Total calls, total cost, degraded/critical/healthy agent counts, and a per-agent sparkline card grid.</td>
     <td><strong>Agent Health</strong><br>Sortable table with call volume, p50/p95 latency, error rate, cost, and a status badge per agent.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/trace-detail.png" alt="Trace detail with chain break"></td>
-    <td width="50%"><img src="assets/screenshots/handoff.png" alt="Handoff submitted"></td>
+    <td width="50%"><img src="assets/screenshots/trace-detail.webp" alt="Trace detail with chain break"></td>
+    <td width="50%"><img src="assets/screenshots/handoff.webp" alt="Handoff submitted"></td>
   </tr>
   <tr>
     <td><strong>Trace Detail</strong><br>Ordered step timeline for one trace; the step where the chain broke is visually flagged in red.</td>
     <td><strong>Handoff</strong><br>Submitting a "needs investigation" note from the trace detail view; it is recorded locally.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.zh-CN.png" alt="Fleet overview in Chinese"></td>
-    <td width="50%"><img src="assets/screenshots/agent-health.zh-CN.png" alt="Agent health table in Chinese"></td>
+    <td width="50%"><img src="assets/screenshots/overview.zh-CN.webp" alt="Fleet overview in Chinese"></td>
+    <td width="50%"><img src="assets/screenshots/agent-health.zh-CN.webp" alt="Agent health table in Chinese"></td>
   </tr>
   <tr>
     <td><strong>Chinese UI — Overview</strong><br>Full zh-CN chrome via the language toggle or <code>lang=zh</code>.</td>

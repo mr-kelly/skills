@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { FleetData, Handoff } from "../../lib/types.ts";
-import { DATA_DIR, FLEET_PATH, HANDOFFS_PATH, SKILL_DIR } from "./paths.ts";
+import { DATA_DIR, FLEET_PATH, HANDOFFS_PATH, LOCK_PATH, SKILL_DIR } from "./paths.ts";
 
 export async function ensureDirs(): Promise<void> {
   await fs.mkdir(DATA_DIR, { recursive: true });
@@ -46,6 +46,20 @@ export async function readHandoffs(): Promise<Handoff[]> {
 export async function appendHandoff(handoff: Handoff): Promise<void> {
   await ensureDirs();
   await fs.appendFile(HANDOFFS_PATH, `${JSON.stringify(handoff)}\n`, "utf8");
+}
+
+export async function readLock(): Promise<Record<string, unknown> | null> {
+  return readJson<Record<string, unknown>>(LOCK_PATH, null);
+}
+
+export async function assertUnlocked(): Promise<void> {
+  const lock = await readLock();
+  if (!lock) return;
+  const error = new Error(String(lock.message || "Agent is updating observability handoff data.")) as Error & {
+    statusCode?: number;
+  };
+  error.statusCode = 423;
+  throw error;
 }
 
 export async function loadDotenvFiles(files: string[]): Promise<void> {

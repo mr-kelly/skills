@@ -1,6 +1,5 @@
 ---
 name: kelly-agent-observability
-license: MIT
 description: "Agent Fleet Observability Desk App-in-Skill — local mock dashboard visualizing a fleet of LLM agents running behind a shared AI gateway for your organization. Use when the user invokes $kelly-agent-observability or /kelly-agent-observability, wants to review agent health, call volume, latency, error rates, cost, or trace-level chain breaks across an agent fleet. This is a demo/reference dashboard over generated mock telemetry, not a live monitoring integration."
 ---
 
@@ -28,16 +27,16 @@ no external network calls anywhere in this skill.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Fleet overview"></td>
-    <td width="50%"><img src="assets/screenshots/agent-health.png" alt="Agent health table"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Fleet overview"></td>
+    <td width="50%"><img src="assets/screenshots/agent-health.webp" alt="Agent health table"></td>
   </tr>
   <tr>
     <td><strong>Fleet Overview</strong><br>Total calls, total cost, degraded/critical/healthy agent counts, and a per-agent sparkline card grid.</td>
     <td><strong>Agent Health</strong><br>Sortable table with call volume, p50/p95 latency, error rate, cost, and a status badge per agent.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/trace-detail.png" alt="Trace detail with chain break"></td>
-    <td width="50%"><img src="assets/screenshots/overview.zh-CN.png" alt="Fleet overview in Chinese"></td>
+    <td width="50%"><img src="assets/screenshots/trace-detail.webp" alt="Trace detail with chain break"></td>
+    <td width="50%"><img src="assets/screenshots/overview.zh-CN.webp" alt="Fleet overview in Chinese"></td>
   </tr>
   <tr>
     <td><strong>Trace Detail</strong><br>Ordered step timeline for one trace; the step where the chain broke is visually flagged.</td>
@@ -118,3 +117,6 @@ generator. Primary local files:
   external network calls anywhere in this skill.
 - Redact nothing sensitive is collected here — there are no credentials in
   this skill.
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

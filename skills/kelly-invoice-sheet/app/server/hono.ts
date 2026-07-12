@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { createProvider } from "../../lib/data-provider/index.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 
 const provider = await createProvider();
 console.log(`Kelly Invoice Sheet data provider: ${provider.kind}`);
@@ -17,6 +18,7 @@ const types: Record<string, string> = {
 };
 
 export const app = new Hono();
+installSetup(app);
 app.use("/api/state", attachDemoVisuals);
 
 app.get("/api/state", async (c) => {

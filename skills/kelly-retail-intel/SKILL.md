@@ -1,6 +1,5 @@
 ---
 name: kelly-retail-intel
-license: MIT
 description: "Kelly Retail Intel: App-in-Skill daily industry intelligence cockpit for retail stores and consumer brands. Use when the user asks about retail, stores, promotions, merchandising, shopping trends, weather/event sales opportunities,零售, or门店 scenes. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
 ---
 

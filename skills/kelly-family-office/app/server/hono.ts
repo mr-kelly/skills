@@ -6,6 +6,7 @@ import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { computeInsights } from "./insights.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 
 // Storage is reached only through the data-provider (local-file default, or a
 // remote Busabase base). The provider is selected once at startup from
@@ -47,6 +48,7 @@ async function state() {
 }
 
 export const app = new Hono();
+installSetup(app);
 app.use("/api/state", attachDemoVisuals);
 
 // ---- API ----

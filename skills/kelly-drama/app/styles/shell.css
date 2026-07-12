@@ -1,0 +1,441 @@
+@layer shell {
+  .app-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    transition: grid-template-columns 0.18s ease;
+  }
+
+  body.sidebar-collapsed .app-shell {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 14px;
+    border-right: 1px solid var(--line);
+    background: var(--sidebar);
+    overflow: hidden auto;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    padding: 2px 4px;
+  }
+
+  .brand-copy {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .sidebar-toggle {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+
+  body.sidebar-collapsed .sidebar {
+    padding: 14px 8px;
+    overflow: hidden;
+  }
+
+  body.sidebar-collapsed .brand {
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    padding: 2px 0;
+  }
+
+  body.sidebar-collapsed .brand-copy,
+  body.sidebar-collapsed .project-switcher,
+  body.sidebar-collapsed .sidebar-actions,
+  body.sidebar-collapsed .quick-stats,
+  body.sidebar-collapsed .separator,
+  body.sidebar-collapsed .nav,
+  body.sidebar-collapsed .settings-dock {
+    display: none;
+  }
+
+  .mobile-sidebar-toggle,
+  .back-to-list,
+  .sidebar-scrim {
+    display: none;
+  }
+
+  .sidebar-scrim[hidden] {
+    display: none;
+  }
+
+  .brand-icon {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--accent);
+    background: var(--surface);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .brand-title {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .brand-subtitle {
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  .project-switcher {
+    min-width: 0;
+    display: grid;
+    gap: 7px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .project-switcher select {
+    min-height: 34px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .switch-meta {
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .switch-meta span:not(:empty) {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .quick-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .quick-stats button {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: 8px 7px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--ink);
+    background: var(--surface);
+    text-align: left;
+  }
+
+  .quick-stats span {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .quick-stats small {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .separator {
+    height: 1px;
+    background: var(--line);
+  }
+
+  .nav {
+    display: grid;
+    gap: 2px;
+  }
+
+  .nav button {
+    width: 100%;
+    min-height: 32px;
+    padding: 7px 9px;
+    border-radius: 7px;
+    color: #3f3f46;
+    background: transparent;
+    text-align: left;
+  }
+
+  .nav button.active {
+    color: var(--ink);
+    background: #eceefc;
+    font-weight: 650;
+  }
+
+  .settings-dock {
+    margin-top: auto;
+  }
+
+  .settings-button {
+    width: 100%;
+    display: grid;
+    gap: 2px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    text-align: left;
+  }
+
+  .settings-button:hover {
+    background: #f4f4f5;
+  }
+
+  .settings-button span {
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .settings-button small {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .content-title {
+    padding: 14px 18px 0;
+  }
+
+  .project-title {
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.25;
+  }
+
+  .project-meta {
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  .sidebar-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .sidebar-actions input {
+    min-width: 0;
+  }
+
+  #newItemButton {
+    width: 34px;
+    padding: 0;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .lock-banner {
+    margin: 12px 18px 0;
+    padding: 9px 10px;
+    border: 1px solid #fde68a;
+    border-radius: var(--radius);
+    color: #854d0e;
+    background: #fffbeb;
+    font-size: 13px;
+  }
+
+  .quick-stats button:hover,
+  .nav button:hover {
+    background: #f4f4f5;
+  }
+
+  .sidebar-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 8px 11px;
+    border-radius: var(--radius);
+    color: #fff;
+    background: var(--accent);
+    font-weight: 650;
+  }
+
+  @media (max-width: 980px) {
+    .app-shell {
+      grid-template-columns: 220px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      height: 100vh;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .app-shell {
+      grid-template-columns: 1fr;
+      min-height: 100dvh;
+    }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: min(84vw, 320px);
+      height: 100dvh;
+      z-index: 30;
+      transform: translateX(-100%);
+      transition: transform 0.18s ease;
+      box-shadow: 20px 0 40px rgba(24, 24, 27, 0.18);
+    }
+
+    body.sidebar-open .sidebar {
+      transform: translateX(0);
+    }
+
+    .sidebar-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 25;
+      display: block;
+      background: rgba(24, 24, 27, 0.28);
+    }
+
+    .mobile-sidebar-toggle {
+      position: fixed;
+      right: 12px;
+      bottom: 12px;
+      z-index: 20;
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: #fff;
+      background: #18181b;
+      box-shadow: var(--shadow);
+    }
+
+    body.sidebar-open .mobile-sidebar-toggle {
+      display: none;
+    }
+
+    .back-to-list {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      color: var(--accent);
+      background: var(--surface);
+    }
+  }
+
+  @media (max-width: 720px) {
+    .sidebar {
+      box-shadow: none;
+    }
+
+    body.sidebar-open .sidebar {
+      box-shadow: 18px 0 36px rgba(24, 24, 27, 0.12);
+    }
+
+    .mobile-sidebar-toggle {
+      top: 12px;
+      right: auto;
+      bottom: auto;
+      left: 12px;
+      width: 36px;
+      height: 34px;
+      border-radius: 8px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.76);
+      backdrop-filter: blur(10px);
+    }
+
+    .content-title {
+      padding-top: 58px;
+    }
+
+    .sidebar-scrim[hidden] {
+      display: none;
+    }
+  }
+
+  .sidebar-toggle,
+  .mobile-sidebar-toggle {
+    border-color: transparent;
+    background: transparent;
+    color: var(--muted);
+    box-shadow: none;
+  }
+
+  .sidebar-toggle:hover,
+  .sidebar-toggle:focus-visible,
+  .mobile-sidebar-toggle:hover,
+  .mobile-sidebar-toggle:focus-visible {
+    background: #eef1f5;
+    color: var(--ink);
+    box-shadow: none;
+  }
+
+  .sidebar-toggle-icon {
+    position: relative;
+    display: block;
+    width: 17px;
+    height: 15px;
+    border: 1.5px solid currentColor;
+    border-radius: 4px;
+    opacity: 0.82;
+  }
+
+  .sidebar-toggle-icon::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 5px;
+    width: 1.5px;
+    background: currentColor;
+    opacity: 0.52;
+  }
+
+  .quick-stats button:hover,
+  .nav button:hover {
+    box-shadow: none;
+  }
+}

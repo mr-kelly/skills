@@ -1,0 +1,147 @@
+@layer base {
+  :root {
+    color-scheme: light;
+    --bg: #f7f8fa;
+    --panel: #ffffff;
+    --panel-subtle: #fafbfc;
+    --line: #e5e7eb;
+    --line-strong: #d8dde6;
+    --text: #171a1f;
+    --muted: #6b7280;
+    --muted-soft: #9aa3af;
+    --accent: #0a84ff;
+    --accent-strong: #0071e3;
+    --accent-soft: rgba(10, 132, 255, 0.08);
+    --accent-wash: rgba(10, 132, 255, 0.045);
+    --accent-line: rgba(10, 132, 255, 0.26);
+    --accent-focus: rgba(10, 132, 255, 0.2);
+    --accent-text: #0066cc;
+    --accent-contrast: #ffffff;
+    --danger: #b42318;
+    --danger-soft: #fff1f0;
+    --warning: #9a6700;
+    --warning-soft: #fff8db;
+    --ok: #047857;
+    --ok-soft: #ecfdf3;
+    --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  }
+
+  html[data-accent-theme="purple"] {
+    --accent: #bf5af2;
+    --accent-strong: #9f35d0;
+    --accent-soft: rgba(191, 90, 242, 0.09);
+    --accent-wash: rgba(191, 90, 242, 0.045);
+    --accent-line: rgba(191, 90, 242, 0.28);
+    --accent-focus: rgba(191, 90, 242, 0.2);
+    --accent-text: #8f2bbf;
+    --accent-contrast: #ffffff;
+  }
+
+  html[data-accent-theme="pink"] {
+    --accent: #ff2d55;
+    --accent-strong: #e11d48;
+    --accent-soft: rgba(255, 45, 85, 0.085);
+    --accent-wash: rgba(255, 45, 85, 0.045);
+    --accent-line: rgba(255, 45, 85, 0.26);
+    --accent-focus: rgba(255, 45, 85, 0.18);
+    --accent-text: #c9163d;
+    --accent-contrast: #ffffff;
+  }
+
+  html[data-accent-theme="red"] {
+    --accent: #ff3b30;
+    --accent-strong: #d92d24;
+    --accent-soft: rgba(255, 59, 48, 0.085);
+    --accent-wash: rgba(255, 59, 48, 0.045);
+    --accent-line: rgba(255, 59, 48, 0.26);
+    --accent-focus: rgba(255, 59, 48, 0.18);
+    --accent-text: #c1261e;
+    --accent-contrast: #ffffff;
+  }
+
+  html[data-accent-theme="orange"] {
+    --accent: #ff9500;
+    --accent-strong: #a65300;
+    --accent-soft: rgba(255, 149, 0, 0.1);
+    --accent-wash: rgba(255, 149, 0, 0.052);
+    --accent-line: rgba(255, 149, 0, 0.28);
+    --accent-focus: rgba(255, 149, 0, 0.2);
+    --accent-text: #a65300;
+    --accent-contrast: #ffffff;
+  }
+
+  html[data-accent-theme="yellow"] {
+    --accent: #c78b00;
+    --accent-strong: #7a5200;
+    --accent-soft: rgba(255, 204, 0, 0.14);
+    --accent-wash: rgba(255, 204, 0, 0.07);
+    --accent-line: rgba(199, 139, 0, 0.3);
+    --accent-focus: rgba(199, 139, 0, 0.2);
+    --accent-text: #7a5200;
+    --accent-contrast: #ffffff;
+  }
+
+  html[data-accent-theme="green"] {
+    --accent: #30d158;
+    --accent-strong: #147a32;
+    --accent-soft: rgba(48, 209, 88, 0.105);
+    --accent-wash: rgba(48, 209, 88, 0.052);
+    --accent-line: rgba(48, 209, 88, 0.3);
+    --accent-focus: rgba(48, 209, 88, 0.22);
+    --accent-text: #147a32;
+    --accent-contrast: #ffffff;
+  }
+
+  html[data-accent-theme="graphite"] {
+    --accent: #6e6e73;
+    --accent-strong: #5b5b60;
+    --accent-soft: rgba(110, 110, 115, 0.095);
+    --accent-wash: rgba(110, 110, 115, 0.045);
+    --accent-line: rgba(110, 110, 115, 0.26);
+    --accent-focus: rgba(110, 110, 115, 0.18);
+    --accent-text: #4b4b50;
+    --accent-contrast: #ffffff;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    letter-spacing: 0;
+    font-size: 14px;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--accent);
+  }
+
+  @media (max-width: 720px) {
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-size: 13px;
+    }
+  }
+}

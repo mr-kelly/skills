@@ -1,6 +1,5 @@
 ---
 name: kelly-insurance-intel
-license: MIT
 description: "Kelly Insurance Intel: App-in-Skill daily industry intelligence cockpit for insurance and wealth advisory. Use when the user asks about insurance, wealth advisory, client risk reminders, market news, policyholder follow-up,保险, or financial-advisor sales scenes. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
 ---
 

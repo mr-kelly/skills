@@ -30,22 +30,22 @@ mock book (no real company, fund, or SME names).
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Overview"></td>
-    <td width="50%"><img src="assets/screenshots/concentration.png" alt="Concentration"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Overview"></td>
+    <td width="50%"><img src="assets/screenshots/concentration.webp" alt="Concentration"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Total AUM, total collected, weighted-average repayment progress, at-risk count, category allocation, and the contracts most behind on expected repayment pace.</td>
     <td><strong>Concentration</strong><br>Industry/category and city concentration by funding amount and contract count.</td>
   </tr>
   <tr>
-    <td colspan="2"><img src="assets/screenshots/watchlist.png" alt="Watchlist"></td>
+    <td colspan="2"><img src="assets/screenshots/watchlist.webp" alt="Watchlist"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Watchlist</strong><br>Contracts with a recent revenue decline, each with a sparkline and a flag-for-review action.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview-zh-CN.png" alt="Overview (Chinese)"></td>
-    <td width="50%"><img src="assets/screenshots/watchlist-zh-CN.png" alt="Watchlist (Chinese)"></td>
+    <td width="50%"><img src="assets/screenshots/overview-zh-CN.webp" alt="Overview (Chinese)"></td>
+    <td width="50%"><img src="assets/screenshots/watchlist-zh-CN.webp" alt="Watchlist (Chinese)"></td>
   </tr>
   <tr>
     <td><strong>Overview (中文)</strong></td>

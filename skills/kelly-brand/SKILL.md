@@ -1,6 +1,5 @@
 ---
 name: kelly-brand
-license: MIT
 description: "Brand-narrative single source of truth (TALE: Trace/Architect/Land/Evaluate) with a local App-in-Skill workbench. The agent drafts positioning, the message house of value pillars, the story bank, evidence-backed proof points, and vocabulary/tone guardrails; the human curates which drafts become the CANONICAL narrative; a drift monitor flags off-brand usage across channels. Use when the user invokes $kelly-brand or /kelly-brand, mentions brand narrative, brand messaging, positioning, message house, value pillars, story bank, proof points, tone/vocabulary guardrails, narrative quality (NQS), brand drift, or wants a single source of truth for what the brand says."
 ---
 

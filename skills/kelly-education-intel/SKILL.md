@@ -1,6 +1,5 @@
 ---
 name: kelly-education-intel
-license: MIT
 description: "Kelly Education Intel: App-in-Skill daily industry intelligence cockpit for education, training, tutoring, and admissions services. Use when the user asks about education, training centers, exams, study abroad, visas, school policy, parent FAQ,招生,升学, or教育机构 sales scenes. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
 ---
 

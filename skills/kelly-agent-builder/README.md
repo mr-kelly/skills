@@ -23,16 +23,16 @@ a local JSON handoff file under `app/.data/`.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Agent Builder overview"></td>
-    <td width="50%"><img src="assets/screenshots/catalog.png" alt="Agent Builder catalog"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Agent Builder overview"></td>
+    <td width="50%"><img src="assets/screenshots/catalog.webp" alt="Agent Builder catalog"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Governance summary with live count, quota usage, and agents needing attention.</td>
     <td><strong>Catalog</strong><br>Sortable, searchable agent config table.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/agent-detail.png" alt="Agent Builder agent detail"></td>
-    <td width="50%"><img src="assets/screenshots/overview-zh-CN.png" alt="Agent Builder overview zh-CN"></td>
+    <td width="50%"><img src="assets/screenshots/agent-detail.webp" alt="Agent Builder agent detail"></td>
+    <td width="50%"><img src="assets/screenshots/overview-zh-CN.webp" alt="Agent Builder overview zh-CN"></td>
   </tr>
   <tr>
     <td><strong>Agent detail / edit</strong><br>Tool checklist, quota, approval toggle, owning team, and lifecycle actions.</td>

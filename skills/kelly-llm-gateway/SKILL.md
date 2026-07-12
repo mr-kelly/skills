@@ -1,6 +1,5 @@
 ---
 name: kelly-llm-gateway
-license: MIT
 description: Generic, brand-free App-in-Skill dashboard for a shared LLM gateway's cost and model governance — daily spend trend, cost breakdown by service/model, a canary-rollout status board, and a deterministic cost/error anomaly list. Use when the user invokes $kelly-llm-gateway or /kelly-llm-gateway, or wants to review LLM gateway spend, model routing, canary rollouts, rollback readiness, or cost/error anomalies for services routed through one shared gateway to multiple LLM providers/models. Human actions (promote/rollback/hold a rollout, acknowledge an anomaly) write only local handoff files — this skill never changes a real routing config.
 ---
 
@@ -31,16 +30,16 @@ similar.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Gateway overview"></td>
-    <td width="50%"><img src="assets/screenshots/cost-breakdown.png" alt="Gateway cost breakdown"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Gateway overview"></td>
+    <td width="50%"><img src="assets/screenshots/cost-breakdown.webp" alt="Gateway cost breakdown"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Total daily spend trend, a canary-rollout summary, and a top anomalies preview.</td>
     <td><strong>Cost Breakdown</strong><br>Sortable service × model table: calls, cost, error rate, canary %, status.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/rollouts.png" alt="Gateway rollouts"></td>
-    <td width="50%"><img src="assets/screenshots/anomalies.png" alt="Gateway anomalies"></td>
+    <td width="50%"><img src="assets/screenshots/rollouts.webp" alt="Gateway rollouts"></td>
+    <td width="50%"><img src="assets/screenshots/anomalies.webp" alt="Gateway anomalies"></td>
   </tr>
   <tr>
     <td><strong>Rollouts</strong><br>Canary-rollout status board with rollback readiness and promote/rollback/hold actions.</td>

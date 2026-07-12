@@ -133,3 +133,6 @@ npm run start
 ```
 
 For UI changes, verify desktop and phone widths. On mobile, the sidebar drawer must open/close, selecting a row opens detail, back returns to list, and there must be no horizontal overflow.
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

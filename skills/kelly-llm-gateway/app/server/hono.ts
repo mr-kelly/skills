@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { recordAnomalyAck, recordRolloutDecision } from "./decisions.ts";
 import { demoStatePayload, isDemoQuery } from "./demo.ts";
 import { APP_DIR } from "./paths.ts";
+import { installSetup } from "./setup.ts";
 import { attachDerived, readConfig, readLock, readOnboarding, readSnapshot, summarizeConfig } from "./store.ts";
 import type { RolloutAction } from "./types.ts";
 
@@ -45,6 +46,7 @@ async function state(): Promise<Record<string, unknown>> {
 }
 
 export const app = new Hono();
+installSetup(app);
 
 // ---- API ----
 app.get("/api/state", async (c) => {

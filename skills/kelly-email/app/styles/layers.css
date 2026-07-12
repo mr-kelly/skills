@@ -1,0 +1,4 @@
+/* Declares cascade layer precedence order once. Which file loads first (or
+   which <link> tag comes first in index.html) no longer decides which rule
+   wins — only this declaration order does. See frontend-modules.md. */
+@layer base, components, shell, setup-wizard, help-modal, list-detail;

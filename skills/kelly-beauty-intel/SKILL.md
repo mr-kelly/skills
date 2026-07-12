@@ -1,6 +1,5 @@
 ---
 name: kelly-beauty-intel
-license: MIT
 description: "Kelly Beauty Intel: App-in-Skill daily industry intelligence cockpit for beauty, wellness, and medical aesthetics. Use when the user asks about beauty, medical aesthetics, wellness, treatments, competitor offers, IG/Xiaohongshu content,美容,医美, or health-service sales scenes. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
 ---
 

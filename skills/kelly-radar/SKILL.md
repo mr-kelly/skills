@@ -1,6 +1,5 @@
 ---
 name: kelly-radar
-license: MIT
 description: Kelly's market-intelligence desk as a local App-in-Skill. Merges passive competitor monitoring (Radar), agent-run deep research with approved briefs and cited reports (Research), and keyword/topic demand signals (Trends) over one snapshot, watchlist, and review model. Use when the user invokes $kelly-radar or /kelly-radar, or asks for competitor monitoring, market intelligence, market research, research reports, trends, rising keywords, pricing changes, product launches, changelog diffs, competitor reviews, funding or hiring news, or opportunity triage.
 ---
 

@@ -6,7 +6,9 @@
   "description": "Kelly Drama App-in-Skill — local media studio (Hono server, zero-build vanilla frontend).",
   "scripts": {
     "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts"
+    "serve": "node app/server/index.ts",
+    "execute:dry-run": "node scripts/execute_agent_tasks.ts",
+    "execute": "node scripts/execute_agent_tasks.ts --apply"
   },
   "dependencies": {
     "hono": "^4.6.14",

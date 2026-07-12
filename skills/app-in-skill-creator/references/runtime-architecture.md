@@ -112,6 +112,12 @@ The vanilla app should own:
 
 If save-and-refresh during development is useful, add a small dev-only SSE live reload instead of a bundler.
 
+If `app.js` grows past roughly 800-1000 lines with clearly separable
+responsibilities, split it into native ES modules under `app/js/` — still no
+build step, still zero-dependency. See `references/frontend-modules.md` for
+the directory layout, the shared-store pattern, and how to handle the
+circular imports that a responsibility-organized module graph naturally has.
+
 ## Frontend Escape Hatches
 
 Choose the lowest tier that fits:

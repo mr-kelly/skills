@@ -1,6 +1,5 @@
 ---
 name: kelly-devops
-license: MIT
 description: Personal App-in-Skill ops desk for Kelly's multi-product SaaS fleet. Use when the user invokes $kelly-devops or /kelly-devops, or asks about uptime, service health checks, SSL certificate expiry, domain renewal, domain expiry, API key rotation, token rotation reminders, cloud spend anomaly, billing spikes, ops desk, incident review, or reviewing agent-proposed action cards (renew domain, rotate key, investigate spend, restart service, acknowledge incident).
 ---
 

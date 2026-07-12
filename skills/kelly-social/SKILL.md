@@ -1,7 +1,12 @@
 ---
 name: kelly-social
-license: MIT
-description: Personal App-in-Skill social media command desk for Kelly's Twitter/X, Facebook, and Instagram accounts (extensible to LinkedIn, YouTube, Threads, TikTok, Xiaohongshu) — monitoring AND publishing on the ECHO discipline (Explore / Craft / Host / Observe). Use when the user invokes $kelly-social or /kelly-social, wants social media aggregation, unified cross-platform timelines, account stats, follower counts, follower growth, engagement rates, impressions, social traffic metrics, post performance, top posts, agent-driven collection of their own accounts, OR the publishing side: a content calendar, agent-drafted post/short-video review and approval, an engagement (mentions/comments) reply inbox, a crisis playbook, share-of-voice, or a pre-publish quality gate.
+description: >-
+  Personal App-in-Skill social media command desk for Kelly's Twitter/X,
+  Facebook, and Instagram accounts (extensible to LinkedIn, YouTube, Threads,
+  TikTok, Xiaohongshu), covering monitoring and ECHO-based publishing. Use when
+  the user invokes $kelly-social or /kelly-social, wants cross-platform account
+  metrics and timelines, or needs a content calendar, draft review, engagement
+  inbox, crisis playbook, share-of-voice, or pre-publish quality gate.
 ---
 
 # Kelly Social

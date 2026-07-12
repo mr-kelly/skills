@@ -28,15 +28,15 @@ never files anything and never calls any external system.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Disclosure Tracker overview"></td>
-    <td width="50%"><img src="assets/screenshots/vehicle-detail.png" alt="Disclosure Tracker vehicle detail"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Disclosure Tracker overview"></td>
+    <td width="50%"><img src="assets/screenshots/vehicle-detail.webp" alt="Disclosure Tracker vehicle detail"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Portfolio-level summary (ready / blocked / in-progress vehicles) plus the vehicle grid.</td>
     <td><strong>Vehicle detail</strong><br>Checklist grouped by role with a decision panel: verified, needs source, or flag inconsistent, plus a reviewer note.</td>
   </tr>
   <tr>
-    <td colspan="2"><img src="assets/screenshots/flagged.png" alt="Disclosure Tracker flagged items"></td>
+    <td colspan="2"><img src="assets/screenshots/flagged.webp" alt="Disclosure Tracker flagged items"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Flagged</strong><br>Cross-entity reconciliation mismatches and reviewer-flagged inconsistencies, in one list.</td>

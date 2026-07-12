@@ -6,22 +6,15 @@ import type { HttpError } from "../../lib/types.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoAsset, demoImageConfigPayload, demoNotice, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { hyperframeProjectStatus } from "./hyperframe-service.ts";
-import {
-  generateCharacterCard,
-  generateStoryboardImage,
-  generateVisualBackground,
-  imageConfigPayload,
-  saveImageConfig,
-  storyboardPromptPreview,
-} from "./image-service.ts";
+import { imageConfigPayload, saveImageConfig, storyboardPromptPreview } from "./image-service.ts";
 import { assertUnlocked } from "./lock.ts";
 import { APP_DIR, GENERATED_DIR } from "./paths.ts";
 import { loadProject, saveProject, upsertById } from "./project-store.ts";
 import { getProvider } from "./provider.ts";
+import { installSetup } from "./setup.ts";
 import { setActiveProject, statePayload } from "./state.ts";
 import { slug } from "./utils.ts";
-import { generateShotVideoDraft, generateShotVideoProd } from "./video-service.ts";
-import { generateCharacterVoice, setCharacterVoiceActive } from "./voice-service.ts";
+import { setCharacterVoiceActive } from "./voice-service.ts";
 
 // Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
 // contract and reaches storage only through the logic/service modules, so the
@@ -101,11 +94,31 @@ async function deleteCollectionItem(kind, id) {
   return statePayload();
 }
 
+async function queueAgentTask(action, targetId, details = {}) {
+  await assertUnlocked();
+  const project = await loadProject();
+  const id = `task-${slug(`${action}-${targetId || "project"}`)}`;
+  const task = {
+    id,
+    type: "agent_execution",
+    title: `${action.replaceAll("_", " ")} · ${targetId || project.project_id || "project"}`,
+    status: "approved",
+    proposed_action: action,
+    target_id: targetId || "project",
+    requested_at: new Date().toISOString(),
+    ...details,
+  };
+  project.tasks = upsertById(project.tasks || [], task);
+  await saveProject(project);
+  return statePayload();
+}
+
 export const app = new Hono();
+installSetup(app);
 app.use("/api/state", attachDemoVisuals);
 
 // ---- HEAD (health probes for a small set of paths) ----
-app.on("HEAD", ["/", "/app.js", "/styles.css", "/api/state"], (c) => c.body(null, 200));
+app.on("HEAD", ["/", "/app.js", "/styles/layers.css", "/api/state"], (c) => c.body(null, 200));
 
 // ---- GET API ----
 app.get("/api/state", async (c) => {
@@ -168,20 +181,13 @@ app.post("/api/image-config", async (c) => {
 
 app.post("/api/storyboard-image", async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  await assertUnlocked();
-  return c.json(await generateStoryboardImage(String(body.shot_id || "")));
+  return c.json(await queueAgentTask("generate_storyboard_image", String(body.shot_id || "")));
 });
 
 app.post("/api/shot-video", async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  await assertUnlocked();
-  // Unified: every backend just appends a video candidate. Default = Seedance (cloud).
   const backend = String(body.backend || body.mode || "seedance");
-  return c.json(
-    backend === "ltx"
-      ? await generateShotVideoDraft(String(body.shot_id || ""))
-      : await generateShotVideoProd(String(body.shot_id || "")),
-  );
+  return c.json(await queueAgentTask("generate_shot_video", String(body.shot_id || ""), { backend }));
 });
 
 app.post("/api/shot-active", async (c) => {
@@ -191,20 +197,17 @@ app.post("/api/shot-active", async (c) => {
 });
 
 app.post("/api/visual-background-image", async (c) => {
-  await assertUnlocked();
-  return c.json(await generateVisualBackground());
+  return c.json(await queueAgentTask("generate_visual_background", "series"));
 });
 
 app.post("/api/character-card-image", async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  await assertUnlocked();
-  return c.json(await generateCharacterCard(String(body.character_id || "")));
+  return c.json(await queueAgentTask("generate_character_card", String(body.character_id || "")));
 });
 
 app.post("/api/character-voice", async (c) => {
   const body = await c.req.json().catch(() => ({}));
-  await assertUnlocked();
-  return c.json(await generateCharacterVoice(String(body.character_id || "")));
+  return c.json(await queueAgentTask("generate_character_voice", String(body.character_id || "")));
 });
 
 app.post("/api/character-voice-active", async (c) => {
@@ -224,13 +227,37 @@ app.post("/api/:kind{characters|relationships|episodes|shots|tasks}/:id?", async
 // ---- Static (vanilla frontend + generated media) ----
 app.get("/", (c) => sendFile(c, path.join(APP_DIR, "index.html")));
 app.get("/app.js", (c) => sendFile(c, path.join(APP_DIR, "app.js")));
-app.get("/styles.css", (c) => sendFile(c, path.join(APP_DIR, "styles.css")));
 app.get("/accent-theme.js", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.js")));
 app.get("/accent-theme.css", (c) => sendFile(c, path.join(APP_DIR, "accent-theme.css")));
+app.get("/demo-visuals.js", (c) => sendFile(c, path.join(APP_DIR, "demo-visuals.js")));
+app.get("/demo-visuals.css", (c) => sendFile(c, path.join(APP_DIR, "demo-visuals.css")));
+
+// Split into cascade-layered files (base/components/shell/overview/episodes/
+// shots/forms/list-detail/modal/settings) — see frontend-modules.md. @layer
+// precedence makes the <link> order in index.html irrelevant to which rule wins.
+app.get("/styles/*", (c) => {
+  const rel = decodeURIComponent(c.req.path.replace(/^\/styles\//, ""));
+  const base = path.resolve(APP_DIR, "styles");
+  const resolved = path.resolve(base, rel);
+  if ((resolved !== base && !resolved.startsWith(base + path.sep)) || path.extname(resolved) !== ".css") {
+    return c.text("Forbidden", 403);
+  }
+  return sendFile(c, resolved);
+});
 
 app.get("/i18n/*", (c) => {
   const rel = decodeURIComponent(c.req.path.replace(/^\/i18n\//, ""));
   const base = path.resolve(APP_DIR, "i18n");
+  const resolved = path.resolve(base, rel);
+  if (resolved !== base && !resolved.startsWith(base + path.sep)) return c.text("Forbidden", 403);
+  return sendFile(c, resolved);
+});
+
+// Frontend component modules (plain ES modules, no bundler): app.js imports
+// these with relative "./js/*.js" specifiers.
+app.get("/js/*", (c) => {
+  const rel = decodeURIComponent(c.req.path.replace(/^\/js\//, ""));
+  const base = path.resolve(APP_DIR, "js");
   const resolved = path.resolve(base, rel);
   if (resolved !== base && !resolved.startsWith(base + path.sep)) return c.text("Forbidden", 403);
   return sendFile(c, resolved);

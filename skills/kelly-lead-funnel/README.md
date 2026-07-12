@@ -28,15 +28,15 @@ sheets, or moves money.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Deal Sourcing Funnel overview"></td>
-    <td width="50%"><img src="assets/screenshots/kanban.png" alt="Deal Sourcing Funnel kanban board"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Deal Sourcing Funnel overview"></td>
+    <td width="50%"><img src="assets/screenshots/kanban.webp" alt="Deal Sourcing Funnel kanban board"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Funnel summary header with per-stage counts, conversion rates, and rejection rate.</td>
     <td><strong>Kanban board</strong><br>Leads across New → Data-Verified → Scored → Term-Sheet-Ready → Rejected, with a score chip per card.</td>
   </tr>
   <tr>
-    <td colspan="2"><img src="assets/screenshots/lead-detail.png" alt="Deal Sourcing Funnel lead detail"></td>
+    <td colspan="2"><img src="assets/screenshots/lead-detail.webp" alt="Deal Sourcing Funnel lead detail"></td>
   </tr>
   <tr>
     <td colspan="2"><strong>Lead detail</strong><br>Score breakdown by factor, suggested next action, notes, stage-move actions, and reject-with-reason.</td>

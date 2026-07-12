@@ -22,7 +22,6 @@ export function demoImageConfigPayload() {
     model: "gpt-image-2",
     size: "1536x1024",
     has_api_key: false,
-    api_key_preview: "",
     demo: true,
   };
 }

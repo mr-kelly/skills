@@ -69,3 +69,10 @@ Screenshots live in `assets/screenshots/`:
 - `contracts.png`: contract inventory.
 - `obligations.png`: obligation tracker.
 - `renewals.png`: renewal board.
+## App workflow
+
+Default to the local app for review. Use chat-only mode only when the user explicitly asks for "chat only", "no UI", "纯聊天", or "不要打开 UI".
+
+## Execution reports
+
+Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

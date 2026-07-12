@@ -10,8 +10,8 @@ if [ ! -d "$SKILL_DIR/node_modules/hono" ] || [ ! -d "$SKILL_DIR/node_modules/@h
   (cd "$SKILL_DIR" && npm install)
 fi
 
-export KELLY_EMAIL_BUSABASE_URL="${KELLY_EMAIL_BUSABASE_URL:-http://127.0.0.1:15419}"
-export KELLY_EMAIL_BUSABASE_BASE_ID="${KELLY_EMAIL_BUSABASE_BASE_ID:-kelly-email}"
-export KELLY_EMAIL_BUSABASE_BASE_SLUG="${KELLY_EMAIL_BUSABASE_BASE_SLUG:-kelly-email}"
-
+# Do not default KELLY_EMAIL_BUSABASE_URL/BASE_ID/BASE_SLUG here: env vars
+# outrank the local bootstrap config on purpose (so an operator override always
+# wins), so a launcher-level default would silently overrule whatever the
+# setup UI saves. Pass through only what the user actually set.
 exec node "$APP_DIR/server/launcher.ts"

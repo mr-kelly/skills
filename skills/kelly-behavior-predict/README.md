@@ -25,15 +25,15 @@ computed by a fixed, hand-recomputable rule, never a real ML/LLM model.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.png" alt="Analytics Desk overview"></td>
-    <td width="50%"><img src="assets/screenshots/funnel.png" alt="Analytics Desk segments"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Analytics Desk overview"></td>
+    <td width="50%"><img src="assets/screenshots/funnel.webp" alt="Analytics Desk segments"></td>
   </tr>
   <tr>
     <td><strong>Overview</strong><br>Overall funnel drop-off, total sessions, overall backtest accuracy, and how many segments still need a trust decision.</td>
     <td><strong>Segments</strong><br>Per-segment cards: session count, dominant predicted action, backtest accuracy/F1, and the current trusted / needs-recalibration badge.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="assets/screenshots/segment-detail.png" alt="Analytics Desk segment detail"></td>
+    <td width="50%"><img src="assets/screenshots/segment-detail.webp" alt="Analytics Desk segment detail"></td>
     <td width="50%"></td>
   </tr>
   <tr>
