@@ -12,6 +12,7 @@ export BUSABASE_BASE_URL=http://127.0.0.1:15419   # or your busabase-cli-configu
 node scripts/ensure_schema.ts     # one-time, idempotent
 node scripts/status.ts            # pipeline overview
 node scripts/propose_video.ts references/example-outline.json   # propose (no merge)
+app/start.sh                      # local review UI (read-only), http://127.0.0.1:3000+
 ```
 
 Built and smoke-tested 2026-07-12 against a live local Busabase instance seeded with

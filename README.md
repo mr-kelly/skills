@@ -4,7 +4,7 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-64 skills, including 60 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+64 skills, including 61 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
@@ -133,7 +133,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-tickets` | Triages complaints and requests from WeChat exports, call logs, forms, and email into classified tickets, proposes crew dispatches with SLA targets for approval, and tracks everything on a resolution board. | Use it when managing property or facilities complaints, dispatching work orders to crews, or running any intake-classify-dispatch-track workflow. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-tickets.html) |
 | `kelly-lesson` | Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export. | Use it when standardizing lesson plans across teachers, checking plan compliance, or reviewing and approving teaching plans at scale. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-lesson.html) |
 | `kelly-scale-pptx` | Project-based PPTX courseware factory: turns client style samples and lesson content into reviewed slide cards, generates style-consistent PowerPoint decks, and tracks render QA and exports. | Use it when producing many teaching PPTX decks, building a reusable courseware style system, approving slide-card storyboards, or batch-generating client-ready PPTX files. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-scale-pptx.html) |
-| `kelly-demo-video-factory` | Plans product demo/marketing videos end to end in Busabase: hook/pain-point/storyboard drafting, codebase claim verification against the actual product, per-shot recording progress, and post-production/HyperFrame (Remotion) handoff — Busabase itself is the review dashboard, no separate local app. | Use it when planning a product demo video, writing a storyboard, verifying a video script's product claims before recording, tracking which shots are recorded, or handing a finished storyboard to editing/Remotion. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-demo-video-factory.html) |
+| `kelly-demo-video-factory` | Plans product demo/marketing videos end to end: hook/pain-point/storyboard drafting, codebase claim verification against the actual product, and per-shot recording progress, tracked in Busabase and rendered in a local read-only review app; hands off to post-production/HyperFrame (Remotion). | Use it when planning a product demo video, writing a storyboard, verifying a video script's product claims before recording, tracking which shots are recorded, or handing a finished storyboard to editing/Remotion. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-demo-video-factory.html) |
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html) |
 | `kelly-picks` | Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read. | Use it when hunting products to sell, pressure-testing margins before committing, or running develop/watch/drop decisions with sourcing and listing briefs. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-picks.html) |
 | `kelly-products` | E-commerce product management desk: visual SKU catalog, pricing, inventory cover, channel status, content assets, compliance notes, lifecycle state, and approval-gated product operations. | Use it when managing product master data, inventory/reorder risks, marketplace channel status, price changes, quality holds, SKU archive decisions, or publish approvals. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-products.html) |
@@ -997,12 +997,12 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-demo-video-factory/assets/screenshots/videos.webp" alt="Kelly Demo Video Factory videos base"></td>
-    <td width="50%"><img src="skills/kelly-demo-video-factory/assets/screenshots/video-shots.webp" alt="Kelly Demo Video Factory storyboard shots"></td>
+    <td width="50%"><img src="skills/kelly-demo-video-factory/assets/screenshots/videos.webp" alt="Kelly Demo Video Factory videos list"></td>
+    <td width="50%"><img src="skills/kelly-demo-video-factory/assets/screenshots/video-shots.webp" alt="Kelly Demo Video Factory video detail with storyboard"></td>
   </tr>
   <tr>
-    <td><strong>Videos</strong><br>One row per planned video — series, purpose, hook, pain point, concept, status, and a verified-claims audit trail, opened directly as a Busabase Base.</td>
-    <td><strong>Storyboard shots</strong><br>Shot-by-shot table linked back to each video — timecode, scene, code reference, script line, and recording status.</td>
+    <td><strong>Videos</strong><br>Every planned video with status, shot count, and per-status recording progress, read live from Busabase.</td>
+    <td><strong>Video detail</strong><br>Purpose/hook/pain-point/concept fields, the verified-claims correction table, and the full shot-by-shot storyboard with recording status.</td>
   </tr>
 </table>
 

@@ -11,22 +11,26 @@ description: "Plan, verify, and track demo/marketing video production in Busabas
 This skill plans product demo/marketing videos end to end: capture the idea (hook, pain
 point, concept), build a shot-by-shot storyboard, verify every product claim against the
 real codebase, track recording progress per shot, and hand off to post-production /
-Remotion (HyperFrame). It does not have its own local App UI — **Busabase itself is the
-review dashboard**: `videos` and `video-shots` are real Bases a human opens directly in
-the Busabase web app to read/edit/approve. This is a deliberate deviation from the
-default App-in-Skill shape (see `app-in-skill-creator/references/private-config-and-providers.md`
-§ "Busabase As Full Skill Storage" — Base is the human-readable system of record).
+Remotion (HyperFrame). It follows the standard App-in-Skill shape: a local read-only
+review app (Hono server + zero-build frontend, `app/`) renders the pipeline for a human,
+while **Busabase is the system of record** — `videos` and `video-shots` are real Bases,
+editable directly in the Busabase web app or through this skill's scripts. The local app
+never writes to Busabase itself; it is a dashboard, not an editor (see Boundary).
 
-## Busabase UI Screenshots
+Default interaction mode: App UI. Start/reuse it with `app/start.sh` and report the
+actual local URL. All record writes (proposing videos/shots, marking recording status)
+go through `scripts/*.ts`, not the app.
+
+## App UI Screenshots
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/videos.webp" alt="Kelly Demo Video Factory videos base"></td>
-    <td width="50%"><img src="assets/screenshots/video-shots.webp" alt="Kelly Demo Video Factory storyboard shots"></td>
+    <td width="50%"><img src="assets/screenshots/videos.webp" alt="Kelly Demo Video Factory videos list"></td>
+    <td width="50%"><img src="assets/screenshots/video-shots.webp" alt="Kelly Demo Video Factory video detail with storyboard"></td>
   </tr>
   <tr>
-    <td><strong>Videos</strong><br>One row per planned video — series, purpose, hook, pain point, concept, status, and a verified-claims audit trail.</td>
-    <td><strong>Storyboard shots</strong><br>Shot-by-shot table linked back to each video — timecode, scene, code reference, script line, and recording status.</td>
+    <td><strong>Videos</strong><br>Every planned video with status, shot count, and per-status recording progress, read live from Busabase.</td>
+    <td><strong>Video detail</strong><br>Purpose/hook/pain-point/concept fields, the verified-claims correction table rendered as a real table, and the full shot-by-shot storyboard with recording status.</td>
   </tr>
 </table>
 
@@ -35,6 +39,9 @@ default App-in-Skill shape (see `app-in-skill-creator/references/private-config-
 - The skill drafts video outlines and shot scripts, verifies claims against the repo,
   proposes Busabase records, and updates recording/production status on explicit
   instruction.
+- The app (`app/`) is read-only: it renders `videos`/`video-shots` from Busabase for
+  human review and has no write API. All writes go through `scripts/*.ts` (or the human
+  editing directly in the Busabase web app), never through the app server.
 - The skill never merges a records ChangeRequest on its own initiative. Every
   `videos`/`video-shots` record write is a ChangeRequest; merging requires either an
   explicit "go ahead" / "approve" from the human in the current conversation, or the
@@ -74,6 +81,16 @@ the `busabase` skill): `KELLY_VIDEO_FACTORY_BUSABASE_URL` / `BUSABASE_BASE_URL`,
 `KELLY_VIDEO_FACTORY_BUSABASE_SPACE_ID` / `BUSABASE_SPACE_ID`. Idempotent — safe to
 re-run; no-ops if the Bases already exist.
 
+Then start the review app (installs `hono`/`@hono/node-server` on first run):
+
+```bash
+skills/kelly-demo-video-factory/app/start.sh
+```
+
+Reuses a running instance if `/api/state` already reports `app: "kelly-demo-video-factory"`.
+Deterministic demo data (no live Busabase read) is available at `?demo=1` for
+screenshots/docs.
+
 ## Normal Workflow
 
 1. **Capture the idea.** From the human's raw pitch (often a voice-to-text ramble),
@@ -110,8 +127,9 @@ re-run; no-ops if the Bases already exist.
   `GET /api/v1/nodes/{id}` call that has not been validated against a live server —
   treat any error there as "delete the partial Base and re-run from scratch" rather
   than debugging blind.
-- No local review UI. If a human wants a filtered/dashboard view beyond what the
-  Busabase web app offers natively, that would be a future App-in-Skill addition
-  reading through `lib/data-provider/busabase-client.ts` — not built yet.
+- The local app is read-only (list + detail views only) — no in-app editing, filters,
+  or approve/reject actions yet. It also has no onboarding gate: if Busabase isn't
+  reachable, `/api/state`/`/api/videos` just return an error the app surfaces inline
+  rather than a full-screen setup flow. No mobile-shell verification done yet.
 - No automated recording or rendering. This skill only tracks state; a human or a
   separate agent run does the actual screen-recording / voiceover / Remotion render.
