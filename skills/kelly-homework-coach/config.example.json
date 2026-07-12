@@ -1,0 +1,29 @@
+{
+  "student_profile": {
+    "display_name": "Demo Student",
+    "grade": "Grade 4",
+    "language": "zh-HK",
+    "timezone": "Asia/Hong_Kong"
+  },
+  "subjects": ["Math", "Chinese", "English"],
+  "learning_policy": {
+    "tone": "warm, patient, brief, encouraging",
+    "answer_policy": "hint_first",
+    "max_steps_per_explanation": 5,
+    "parent_review_required_for_exports": true,
+    "store_raw_photos": false
+  },
+  "practice_defaults": {
+    "question_count": 8,
+    "estimated_minutes": 25,
+    "difficulty_mix": {
+      "easy": 0.35,
+      "medium": 0.5,
+      "challenge": 0.15
+    }
+  },
+  "export": {
+    "format": "markdown",
+    "out_dir": "exports"
+  }
+}
