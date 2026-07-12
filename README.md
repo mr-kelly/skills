@@ -4,11 +4,11 @@
 
 **Kelly's personal AI skills workspace for daily business operations.**
 
-63 skills, including 60 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
+64 skills, including 61 App-in-Skill workflows with calm local browser UIs for review, approval, and dashboards.
 
 [![Stars](https://img.shields.io/github/stars/mr-kelly/skills?style=flat&logo=github&color=D97757)](https://github.com/mr-kelly/skills)
 [![Last Commit](https://img.shields.io/github/last-commit/mr-kelly/skills?color=D97757)](https://github.com/mr-kelly/skills/commits/main)
-[![Skills](https://img.shields.io/badge/skills-63-D97757)](https://mr-kelly.github.io/skills/)
+[![Skills](https://img.shields.io/badge/skills-64-D97757)](https://mr-kelly.github.io/skills/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![npx skills add](https://img.shields.io/badge/npx-skills%20add%20mr--kelly%2Fskills-black?logo=npm&logoColor=white)](#install)
@@ -131,6 +131,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-devops` | Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval. | Use it when checking service health, catching expiring domains and certificates, reviewing cloud spend spikes, or approving renewal and rotation actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html) |
 | `kelly-audit` | Imports orders, invoices, and payments from business exports and audits them against each other: missing invoices, amount mismatches, overdue receivables with aging, duplicates, and unmatched payments, each with an evidence chain and drafted follow-up. | Use it when reconciling the order-invoice-payment chain, chasing receivables, or reviewing finance anomalies before month-end. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-audit.html) |
 | `kelly-tickets` | Triages complaints and requests from WeChat exports, call logs, forms, and email into classified tickets, proposes crew dispatches with SLA targets for approval, and tracks everything on a resolution board. | Use it when managing property or facilities complaints, dispatching work orders to crews, or running any intake-classify-dispatch-track workflow. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-tickets.html) |
+| `kelly-homework-coach` | Child-friendly homework tutoring desk: the agent explains photographed questions, analyzes wrong answers, builds a mistake notebook, and prepares practice papers behind parent/teacher review. | Use it when elementary students need photo-based homework help, gentle step-by-step explanations, wrong-question review, or mistake-focused paper generation. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-homework-coach.html) |
 | `kelly-lesson` | Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export. | Use it when standardizing lesson plans across teachers, checking plan compliance, or reviewing and approving teaching plans at scale. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-lesson.html) |
 | `kelly-ppt-factory` | Project-based PPTX factory: turns briefs, source materials, and style samples into reviewed slide cards, generates style-consistent PowerPoint decks, and tracks render QA and exports. | Use it when producing pitch decks, sales decks, training materials, reports, proposals, courseware, or any batch of client-ready PPTX files. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-ppt-factory.html) |
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html) |
@@ -933,6 +934,27 @@ Customer-support desk — KB-grounded drafted replies, SLA + CSAT, and a support
   <tr>
     <td><strong>Dispatch queue</strong><br>Agent-proposed crew assignments with priority, SLA target, reasoning, and an editable note to the crew.</td>
     <td><strong>Intake</strong><br>Raw complaints from WeChat, phone, forms, and email with classification fields and convert-to-ticket controls.</td>
+  </tr>
+</table>
+
+### `kelly-homework-coach`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-homework-coach/assets/screenshots/student.webp" alt="Kelly Homework Coach student desk"></td>
+    <td width="50%"><img src="skills/kelly-homework-coach/assets/screenshots/mistakes.webp" alt="Kelly Homework Coach mistake notebook"></td>
+  </tr>
+  <tr>
+    <td><strong>Student desk</strong><br>Photo-based homework help with a gentle step-by-step explanation, self-check, and hint-first controls for the child.</td>
+    <td><strong>Mistake notebook</strong><br>Wrong-answer cards with root cause, misconception, fix strategy, similar practice, and the next review date.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-homework-coach/assets/screenshots/papers.webp" alt="Kelly Homework Coach practice papers"></td>
+    <td width="50%"><img src="skills/kelly-homework-coach/assets/screenshots/review.webp" alt="Kelly Homework Coach review queue"></td>
+  </tr>
+  <tr>
+    <td><strong>Practice papers</strong><br>Mistake-focused paper plans with topic mix, estimated minutes, wrong-question analysis, strengths, and review sequence.</td>
+    <td><strong>Review queue</strong><br>Parent/teacher approval desk for explanations, mistake cards, and paper exports before the agent continues.</td>
   </tr>
 </table>
 
