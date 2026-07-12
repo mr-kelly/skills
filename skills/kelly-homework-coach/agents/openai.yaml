@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Homework Coach"
+  short_description: "Friendly homework tutor with mistake-book review"
+  default_prompt: "Use $kelly-homework-coach to open a friendly homework tutoring desk for photo-based help, mistake review, and practice paper analysis."
