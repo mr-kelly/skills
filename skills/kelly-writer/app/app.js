@@ -392,7 +392,8 @@ function normalizeTodos(batch, topics) {
 
 function normalizeMainContent(batch, topics, todos, items) {
   if (batch.main_content) return batch.main_content;
-  const activeTodo = todos.find((todo) => todo.status === "in_progress" || todo.status === "writing") || todos[0];
+  const activeTodo = todos.find((todo) => todo.status === "in_progress" || todo.status === "writing");
+  if (!activeTodo) return null;
   const confirmed =
     topics.find((topic) => topic.id === activeTodo?.topic_id) ||
     topics.find((topic) => topic.status === "confirmed") ||
