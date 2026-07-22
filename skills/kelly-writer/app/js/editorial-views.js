@@ -174,6 +174,10 @@ function directionCard(direction, selectedId) {
 
 export function renderMainContent(repo) {
   const main = repo.main;
+  if (!main) {
+    els.stagePanel.innerHTML = `<p class="mutedText">${escapeHtml(t("main.empty"))}</p>`;
+    return;
+  }
   els.stagePanel.innerHTML = `
     <div class="stageHeader">
       <div>
