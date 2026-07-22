@@ -171,6 +171,7 @@ export function renderMainContent(repo) {
     els.stagePanel.innerHTML = `<p class="mutedText">${escapeHtml(t("main.empty"))}</p>`;
     return;
   }
+  const coverImage = main.cover_image || main.cover_url || "";
   els.stagePanel.innerHTML = `
     <div class="stageHeader">
       <div>
@@ -180,9 +181,12 @@ export function renderMainContent(repo) {
       <button class="primaryButton" data-action="request-distribution" title="${escapeAttr(t("distribute.title"))}">${escapeHtml(t("distribute"))}</button>
     </div>
     <article class="mainPreview">
-      <div class="coverFrame">
-        <span>${escapeHtml(t("cover"))}</span>
-        <strong>${escapeHtml(main.cover_brief || main.hero_alt || t("visual.brief"))}</strong>
+      <div class="coverFrame ${coverImage ? "hasImage" : ""}">
+        ${coverImage ? `<img class="coverImage" src="${escapeAttr(coverImage)}" alt="${escapeAttr(main.hero_alt || main.title)}">` : ""}
+        <div class="coverMeta">
+          <span>${escapeHtml(t("cover"))}</span>
+          <strong>${escapeHtml(main.cover_brief || main.hero_alt || t("visual.brief"))}</strong>
+        </div>
       </div>
       <div class="articleShell">
         <span class="pill">${escapeHtml(statusLabel(main.status || "draft"))}</span>
