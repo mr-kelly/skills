@@ -138,12 +138,18 @@ syncResponsiveShell();
 applyStaticI18n();
 loadState();
 setInterval(() => {
-  if (!editing) loadState();
+  if (!hasActiveInteraction()) loadState();
 }, 3000);
+
+function hasActiveInteraction() {
+  return editing || Boolean(document.querySelector("dialog[open]"));
+}
 
 export async function loadState() {
   const response = await fetch(withContextParams("/api/state"));
-  state = await response.json();
+  const nextState = await response.json();
+  if (hasActiveInteraction()) return;
+  state = nextState;
   const repo = buildRepository();
   editorStore.selectedTopicId ||= repo.topics[0]?.id || null;
   editorStore.selectedDistributionId ||= repo.distribution[0]?.id || null;
