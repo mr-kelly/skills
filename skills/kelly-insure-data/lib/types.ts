@@ -4,10 +4,16 @@ export interface BusabaseConfig {
   api_key_env?: string;
   drive_node_id?: string;
   drive_node_slug?: string;
+  featured_base_id?: string;
+  featured_base_slug?: string;
+  notices_base_id?: string;
+  notices_base_slug?: string;
+  /** Legacy alias for notices_base_id. */
+  news_base_id?: string;
+  /** Legacy alias for notices_base_slug. */
+  news_base_slug?: string;
   qa_base_id?: string;
   qa_base_slug?: string;
-  news_base_id?: string;
-  news_base_slug?: string;
   feedback_base_id?: string;
   feedback_base_slug?: string;
   record_limit?: number | string;
@@ -26,6 +32,9 @@ export interface FieldMapping {
 export interface TaxonomyConfig {
   file_metadata_fields?: string[];
   qa_fields?: FieldMapping;
+  featured_fields?: FieldMapping;
+  notices_fields?: FieldMapping;
+  /** Legacy shared mapping for both information collections. */
   news_fields?: FieldMapping;
   feedback_fields?: FieldMapping;
 }
@@ -56,14 +65,24 @@ export interface ConfigSummary {
     api_key_env: string;
     api_key_ready: boolean;
     drive_node_id: string;
-    qa_base_id: string;
+    drive_node_slug: string;
+    featured_base_id: string;
+    featured_base_slug: string;
+    notices_base_id: string;
+    notices_base_slug: string;
     news_base_id: string;
+    news_base_slug: string;
+    qa_base_id: string;
+    qa_base_slug: string;
     feedback_base_id: string;
+    feedback_base_slug: string;
     record_limit: number;
   };
   taxonomy: {
     file_metadata_fields: string[];
     qa_fields: FieldMapping;
+    featured_fields: FieldMapping;
+    notices_fields: FieldMapping;
     news_fields: FieldMapping;
     feedback_fields: FieldMapping;
   };
@@ -84,11 +103,13 @@ export interface InsureFile {
   asset_id?: string;
   url?: string;
   metadata: Record<string, unknown>;
-  governance?: {
-    completeness_pct: number;
-    missing_fields: string[];
-    status: string;
-  };
+  governance?: Governance;
+}
+
+export interface Governance {
+  completeness_pct: number;
+  missing_fields: string[];
+  status: string;
 }
 
 export interface QaPair {
@@ -101,15 +122,12 @@ export interface QaPair {
   updated_at: string;
   status: string;
   fields: Record<string, unknown>;
-  governance?: {
-    completeness_pct: number;
-    missing_fields: string[];
-    status: string;
-  };
+  governance?: Governance;
 }
 
 export interface NewsItem {
   id: string;
+  collection: "featured" | "notice";
   title: string;
   summary: string;
   url: string;
@@ -119,11 +137,7 @@ export interface NewsItem {
   tags: string[];
   status: string;
   fields: Record<string, unknown>;
-  governance?: {
-    completeness_pct: number;
-    missing_fields: string[];
-    status: string;
-  };
+  governance?: Governance;
 }
 
 export interface FeedbackItem {
@@ -139,22 +153,27 @@ export interface FeedbackItem {
   created_at: string;
   status: string;
   fields: Record<string, unknown>;
-  governance?: {
-    completeness_pct: number;
-    missing_fields: string[];
-    status: string;
-  };
+  governance?: Governance;
 }
 
 export interface InsureMetrics {
   file_count: number;
   metadata_field_count: number;
   qa_count: number;
+  featured_count: number;
+  notice_count: number;
   news_count: number;
   feedback_count: number;
   total_records: number;
   data_quality_score?: number;
   needs_governance?: number;
+}
+
+export interface BaseSummary {
+  base_id: string;
+  name: string;
+  slug: string;
+  fields: MetadataField[];
 }
 
 export interface InsureSnapshot {
@@ -169,14 +188,17 @@ export interface InsureSnapshot {
     metadata_fields: MetadataField[];
   };
   bases: {
-    qa: { base_id: string; name: string; slug: string; fields: MetadataField[] };
-    news: { base_id: string; name: string; slug: string; fields: MetadataField[] };
-    feedback: { base_id: string; name: string; slug: string; fields: MetadataField[] };
+    featured: BaseSummary;
+    notices: BaseSummary;
+    qa: BaseSummary;
+    feedback: BaseSummary;
   };
   metrics: InsureMetrics;
   files: InsureFile[];
   qa_pairs: QaPair[];
   news_items: NewsItem[];
+  featured_items: NewsItem[];
+  notice_items: NewsItem[];
   feedback_items: FeedbackItem[];
   warnings: { id: string; severity: "info" | "warning" | "error"; message: string }[];
 }

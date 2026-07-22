@@ -80,34 +80,35 @@ function normalizeFile(file: AnyRecord, requiredFields: string[]): InsureFile {
 
 function normalizeQa(record: AnyRecord, mapping: FieldMapping): QaPair {
   const fields = fieldsOf(record);
-  const required = [mapping.question, mapping.answer, mapping.category, mapping.source].filter(Boolean) as string[];
+  const required = [mapping.question, mapping.answer, mapping.source].filter(Boolean) as string[];
   return {
     id: String(record.id || fields.id || crypto.randomUUID()),
     question: text(fields[mapping.question || "question"]) || "(no question)",
     answer: text(fields[mapping.answer || "answer"]),
-    category: text(fields[mapping.category || "category"]),
-    source: text(fields[mapping.source || "source"]),
-    tags: compactArray(fields[mapping.tags || "tags"]),
+    category: mapping.category ? text(fields[mapping.category]) : "",
+    source: text(fields[mapping.source || "carrier"]),
+    tags: mapping.tags ? compactArray(fields[mapping.tags]) : [],
     updated_at: String(record.updatedAt || record.createdAt || ""),
-    status: text(fields.status) || record.status || "active",
+    status: text(fields[mapping.status || "status"]) || record.status || "active",
     fields,
     governance: governance(fields, required),
   };
 }
 
-function normalizeNews(record: AnyRecord, mapping: FieldMapping): NewsItem {
+function normalizeNews(record: AnyRecord, mapping: FieldMapping, collection: "featured" | "notice"): NewsItem {
   const fields = fieldsOf(record);
-  const required = [mapping.title, mapping.summary, mapping.source, mapping.published_at].filter(Boolean) as string[];
+  const required = [mapping.title].filter(Boolean) as string[];
   return {
     id: String(record.id || fields.id || crypto.randomUUID()),
+    collection,
     title: text(fields[mapping.title || "title"]) || "(untitled)",
-    summary: text(fields[mapping.summary || "summary"]),
-    url: text(fields[mapping.url || "url"]),
-    source: text(fields[mapping.source || "source"]),
+    summary: text(fields[mapping.summary || "content"]),
+    url: text(fields[mapping.url || "source_url"]),
+    source: text(fields[mapping.source || "carrier"]),
     published_at: text(fields[mapping.published_at || "published_at"]) || String(record.updatedAt || ""),
     category: text(fields[mapping.category || "category"]),
-    tags: compactArray(fields[mapping.tags || "tags"]),
-    status: text(fields.status) || record.status || "active",
+    tags: mapping.tags ? compactArray(fields[mapping.tags]) : [],
+    status: text(fields[mapping.status || "status"]) || record.status || "active",
     fields,
     governance: governance(fields, required),
   };
@@ -157,10 +158,12 @@ export function createBusabaseProvider(configResult: ConfigResult) {
   const busa = createBusabaseClient({ envPrefix: "KELLY_INSURE_DATA", config });
   const driveNodeId = busa.meta.driveNodeId;
   const driveNodeSlug = busa.meta.driveNodeSlug;
+  const featuredBaseId = busa.meta.featuredBaseId;
+  const featuredBaseSlug = busa.meta.featuredBaseSlug;
+  const noticesBaseId = busa.meta.noticesBaseId;
+  const noticesBaseSlug = busa.meta.noticesBaseSlug;
   const qaBaseId = busa.meta.qaBaseId;
   const qaBaseSlug = busa.meta.qaBaseSlug;
-  const newsBaseId = busa.meta.newsBaseId;
-  const newsBaseSlug = busa.meta.newsBaseSlug;
   const feedbackBaseId = busa.meta.feedbackBaseId;
   const feedbackBaseSlug = busa.meta.feedbackBaseSlug;
   const limit = recordLimit(config);
@@ -205,23 +208,31 @@ export function createBusabaseProvider(configResult: ConfigResult) {
   }
 
   async function readSnapshot(): Promise<InsureSnapshot> {
-    const [drive, qaBase, newsBase, feedbackBase] = await Promise.all([
+    const [drive, featuredBase, noticesBase, qaBase, feedbackBase] = await Promise.all([
       busa.resolveDrive(driveNodeId, driveNodeSlug),
+      busa.resolveBase(featuredBaseId, featuredBaseSlug),
+      busa.resolveBase(noticesBaseId, noticesBaseSlug),
       busa.resolveBase(qaBaseId, qaBaseSlug),
-      busa.resolveBase(newsBaseId, newsBaseSlug),
       busa.resolveBase(feedbackBaseId, feedbackBaseSlug),
     ]);
     const resolvedDriveNodeId = drive?.node?.id || drive?.nodeId || drive?.id || driveNodeId;
-    const [driveFiles, qaRecords, newsRecords, feedbackRecords] = await Promise.all([
+    const [driveFiles, featuredRecords, noticesRecords, qaRecords, feedbackRecords] = await Promise.all([
       resolvedDriveNodeId ? busa.listDriveFiles(resolvedDriveNodeId) : [],
+      featuredBase ? busa.listRecords(featuredBase.id, limit) : [],
+      noticesBase ? busa.listRecords(noticesBase.id, limit) : [],
       qaBase ? busa.listRecords(qaBase.id, limit) : [],
-      newsBase ? busa.listRecords(newsBase.id, limit) : [],
       feedbackBase ? busa.listRecords(feedbackBase.id, limit) : [],
     ]);
 
     const files = driveFiles.map((file) => normalizeFile(file, fileRequiredFields));
     const qaPairs = qaRecords.map((record) => normalizeQa(record, fieldMapping("qa", config)));
-    const newsItems = newsRecords.map((record) => normalizeNews(record, fieldMapping("news", config)));
+    const featuredItems = featuredRecords.map((record) =>
+      normalizeNews(record, fieldMapping("featured", config), "featured"),
+    );
+    const noticeItems = noticesRecords.map((record) =>
+      normalizeNews(record, fieldMapping("notices", config), "notice"),
+    );
+    const newsItems = [...featuredItems, ...noticeItems];
     const feedbackItems = feedbackRecords.map((record) => normalizeFeedback(record, fieldMapping("feedback", config)));
     const allGoverned = [...files, ...qaPairs, ...newsItems, ...feedbackItems];
     const warnings: InsureSnapshot["warnings"] = [];
@@ -237,11 +248,17 @@ export function createBusabaseProvider(configResult: ConfigResult) {
         severity: "warning",
         message: "Busabase QA Base is not configured or not found.",
       });
-    if (!newsBase)
+    if (!featuredBase)
       warnings.push({
-        id: "missing-news-base",
+        id: "missing-featured-base",
         severity: "warning",
-        message: "Busabase news Base is not configured or not found.",
+        message: "Busabase Featured Information Base is not configured or not found.",
+      });
+    if (!noticesBase)
+      warnings.push({
+        id: "missing-notices-base",
+        severity: "warning",
+        message: "Busabase Insurer Notices Base is not configured or not found.",
       });
     if (!feedbackBase)
       warnings.push({
@@ -273,12 +290,23 @@ export function createBusabaseProvider(configResult: ConfigResult) {
               }))
             : [],
         },
-        news: {
-          base_id: String(newsBase?.id || newsBaseId || ""),
-          name: String(newsBase?.name || "新闻资讯"),
-          slug: String(newsBase?.slug || newsBaseSlug || ""),
-          fields: Array.isArray(newsBase?.fields)
-            ? newsBase.fields.map((field: AnyRecord) => ({
+        featured: {
+          base_id: String(featuredBase?.id || featuredBaseId || ""),
+          name: String(featuredBase?.name || "资讯精选"),
+          slug: String(featuredBase?.slug || featuredBaseSlug || "featured-information"),
+          fields: Array.isArray(featuredBase?.fields)
+            ? featuredBase.fields.map((field: AnyRecord) => ({
+                key: field.slug || field.id,
+                value: `${fieldName(field)} (${field.type})`,
+              }))
+            : [],
+        },
+        notices: {
+          base_id: String(noticesBase?.id || noticesBaseId || ""),
+          name: String(noticesBase?.name || "保司通知"),
+          slug: String(noticesBase?.slug || noticesBaseSlug || "insurance-news"),
+          fields: Array.isArray(noticesBase?.fields)
+            ? noticesBase.fields.map((field: AnyRecord) => ({
                 key: field.slug || field.id,
                 value: `${fieldName(field)} (${field.type})`,
               }))
@@ -300,6 +328,8 @@ export function createBusabaseProvider(configResult: ConfigResult) {
         file_count: files.length,
         metadata_field_count: metadataFields(drive?.node?.metadata || {}).length,
         qa_count: qaPairs.length,
+        featured_count: featuredItems.length,
+        notice_count: noticeItems.length,
         news_count: newsItems.length,
         feedback_count: feedbackItems.length,
         total_records: files.length + qaPairs.length + newsItems.length + feedbackItems.length,
@@ -309,6 +339,8 @@ export function createBusabaseProvider(configResult: ConfigResult) {
       files,
       qa_pairs: qaPairs,
       news_items: newsItems,
+      featured_items: featuredItems,
+      notice_items: noticeItems,
       feedback_items: feedbackItems,
       warnings,
     };
@@ -334,14 +366,27 @@ export function createBusabaseProvider(configResult: ConfigResult) {
           source: "busabase",
           drive: { node_id: driveNodeId, name: "文件盘", slug: driveNodeSlug, metadata: {}, metadata_fields: [] },
           bases: {
+            featured: {
+              base_id: featuredBaseId,
+              name: "资讯精选",
+              slug: featuredBaseSlug || "featured-information",
+              fields: [],
+            },
+            notices: {
+              base_id: noticesBaseId,
+              name: "保司通知",
+              slug: noticesBaseSlug || "insurance-news",
+              fields: [],
+            },
             qa: { base_id: qaBaseId, name: "问答", slug: qaBaseSlug, fields: [] },
-            news: { base_id: newsBaseId, name: "新闻资讯", slug: newsBaseSlug, fields: [] },
             feedback: { base_id: feedbackBaseId, name: "用户反馈", slug: feedbackBaseSlug, fields: [] },
           },
           metrics: {
             file_count: 0,
             metadata_field_count: 0,
             qa_count: 0,
+            featured_count: 0,
+            notice_count: 0,
             news_count: 0,
             feedback_count: 0,
             total_records: 0,
@@ -351,6 +396,8 @@ export function createBusabaseProvider(configResult: ConfigResult) {
           files: [],
           qa_pairs: [],
           news_items: [],
+          featured_items: [],
+          notice_items: [],
           feedback_items: [],
           warnings: [{ id: "busabase-error", severity: "warning", message: (error as Error).message }],
         };

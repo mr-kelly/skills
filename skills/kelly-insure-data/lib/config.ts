@@ -65,20 +65,23 @@ export function recordLimit(config: Config): number {
   return Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, 1000) : 200;
 }
 
-export function fieldMapping(kind: "qa" | "news" | "feedback", config: Config): FieldMapping {
+type MappingKind = "qa" | "featured" | "notices" | "news" | "feedback";
+
+export function fieldMapping(kind: MappingKind, config: Config): FieldMapping {
+  const informationDefaults = {
+    title: "title",
+    summary: "content",
+    url: "source_url",
+    source: "carrier",
+    published_at: "published_at",
+    category: "category",
+    status: "status",
+  };
   const defaults =
     kind === "qa"
-      ? { question: "question", answer: "answer", category: "category", source: "source", tags: "tags" }
-      : kind === "news"
-        ? {
-            title: "title",
-            summary: "summary",
-            url: "url",
-            source: "source",
-            published_at: "published_at",
-            category: "category",
-            tags: "tags",
-          }
+      ? { question: "question", answer: "answer", source: "carrier", source_path: "source_path", status: "status" }
+      : kind === "featured" || kind === "notices" || kind === "news"
+        ? informationDefaults
         : {
             title: "title",
             content: "content",
@@ -91,19 +94,33 @@ export function fieldMapping(kind: "qa" | "news" | "feedback", config: Config): 
             created_at: "created_at",
             status: "status",
           };
+  const legacyNews = config.taxonomy?.news_fields || {};
   const overrides =
     kind === "qa"
       ? config.taxonomy?.qa_fields || {}
-      : kind === "news"
-        ? config.taxonomy?.news_fields || {}
-        : config.taxonomy?.feedback_fields || {};
+      : kind === "featured"
+        ? { ...legacyNews, ...(config.taxonomy?.featured_fields || {}) }
+        : kind === "notices" || kind === "news"
+          ? { ...legacyNews, ...(config.taxonomy?.notices_fields || {}) }
+          : config.taxonomy?.feedback_fields || {};
   return { ...defaults, ...overrides };
+}
+
+function configured(value: unknown, fallback: string): string {
+  return String(value || fallback);
 }
 
 export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
   const config = configResult.config || {};
   const busa = config.busabase || {};
   const apiKeyEnv = busa.api_key_env || "KELLY_INSURE_DATA_BUSABASE_API_KEY";
+  const noticesId =
+    process.env.KELLY_INSURE_DATA_BUSABASE_NOTICES_BASE_ID ||
+    busa.notices_base_id ||
+    process.env.KELLY_INSURE_DATA_BUSABASE_NEWS_BASE_ID ||
+    busa.news_base_id ||
+    "";
+  const noticesSlug = configured(busa.notices_base_slug || busa.news_base_slug, "insurance-news");
   return {
     config_path: configResult.path,
     is_example: configResult.is_example,
@@ -118,9 +135,17 @@ export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
       api_key_env: apiKeyEnv,
       api_key_ready: Boolean(process.env[apiKeyEnv] || process.env.KELLY_INSURE_DATA_BUSABASE_API_KEY),
       drive_node_id: process.env.KELLY_INSURE_DATA_BUSABASE_DRIVE_NODE_ID || busa.drive_node_id || "",
+      drive_node_slug: configured(busa.drive_node_slug, "hk-insurance-drive"),
+      featured_base_id: process.env.KELLY_INSURE_DATA_BUSABASE_FEATURED_BASE_ID || busa.featured_base_id || "",
+      featured_base_slug: configured(busa.featured_base_slug, "featured-information"),
+      notices_base_id: String(noticesId),
+      notices_base_slug: noticesSlug,
+      news_base_id: String(noticesId),
+      news_base_slug: noticesSlug,
       qa_base_id: process.env.KELLY_INSURE_DATA_BUSABASE_QA_BASE_ID || busa.qa_base_id || "",
-      news_base_id: process.env.KELLY_INSURE_DATA_BUSABASE_NEWS_BASE_ID || busa.news_base_id || "",
+      qa_base_slug: configured(busa.qa_base_slug, "insurance-qa"),
       feedback_base_id: process.env.KELLY_INSURE_DATA_BUSABASE_FEEDBACK_BASE_ID || busa.feedback_base_id || "",
+      feedback_base_slug: configured(busa.feedback_base_slug, "user-feedback"),
       record_limit: recordLimit(config),
     },
     taxonomy: {
@@ -128,7 +153,9 @@ export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
         ? config.taxonomy.file_metadata_fields
         : [],
       qa_fields: fieldMapping("qa", config),
-      news_fields: fieldMapping("news", config),
+      featured_fields: fieldMapping("featured", config),
+      notices_fields: fieldMapping("notices", config),
+      news_fields: fieldMapping("notices", config),
       feedback_fields: fieldMapping("feedback", config),
     },
   };

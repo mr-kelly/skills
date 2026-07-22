@@ -66,7 +66,7 @@ if (!isObject(snapshot.drive.metadata)) fail("root.drive.metadata must be an obj
 validateMetadataFields(requireArray(snapshot.drive, "metadata_fields", "root.drive"), "root.drive.metadata_fields");
 
 if (!isObject(snapshot.bases)) fail("root.bases must be an object");
-for (const baseName of ["qa", "news", "feedback"]) {
+for (const baseName of ["featured", "notices", "qa", "feedback"]) {
   const base = snapshot.bases[baseName];
   if (!isObject(base)) fail(`root.bases.${baseName} must be an object`);
   for (const key of ["base_id", "name", "slug"]) requireString(base, key, `root.bases.${baseName}`);
@@ -74,7 +74,16 @@ for (const baseName of ["qa", "news", "feedback"]) {
 }
 
 if (!isObject(snapshot.metrics)) fail("root.metrics must be an object");
-for (const key of ["file_count", "metadata_field_count", "qa_count", "news_count", "feedback_count", "total_records"]) {
+for (const key of [
+  "file_count",
+  "metadata_field_count",
+  "qa_count",
+  "featured_count",
+  "notice_count",
+  "news_count",
+  "feedback_count",
+  "total_records",
+]) {
   requireNumber(snapshot.metrics, key, "root.metrics");
 }
 if ("data_quality_score" in snapshot.metrics) requireNumber(snapshot.metrics, "data_quality_score", "root.metrics");
@@ -103,13 +112,24 @@ qaPairs.forEach((item, index) => {
 const news = requireArray(snapshot, "news_items", "root");
 news.forEach((item, index) => {
   if (!isObject(item)) fail(`root.news_items[${index}] must be an object`);
-  for (const key of ["id", "title", "summary", "url", "source", "published_at", "category", "status"]) {
+  for (const key of ["id", "collection", "title", "summary", "url", "source", "published_at", "category", "status"]) {
     requireString(item, key, `root.news_items[${index}]`);
+  }
+  if (item.collection !== "featured" && item.collection !== "notice") {
+    fail(`root.news_items[${index}].collection must be featured or notice`);
   }
   requireArray(item, "tags", `root.news_items[${index}]`);
   if (!isObject(item.fields)) fail(`root.news_items[${index}].fields must be an object`);
   validateGovernance(item, `root.news_items[${index}]`);
 });
+
+for (const collectionKey of ["featured_items", "notice_items"]) {
+  const collection = requireArray(snapshot, collectionKey, "root");
+  collection.forEach((item, index) => {
+    if (!isObject(item)) fail(`root.${collectionKey}[${index}] must be an object`);
+    requireString(item, "collection", `root.${collectionKey}[${index}]`);
+  });
+}
 
 const feedback = requireArray(snapshot, "feedback_items", "root");
 feedback.forEach((item, index) => {

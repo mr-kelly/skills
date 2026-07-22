@@ -41,13 +41,26 @@ function fieldsOf(record: JsonRecord): JsonRecord {
   return record?.headCommit?.fields || record?.fields || record?.commit?.fields || {};
 }
 
+function sanitizeMetadata(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sanitizeMetadata);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as JsonRecord)
+      .filter(([key]) => key !== "parsed_text")
+      .map(([key, child]) => [key, sanitizeMetadata(child)]),
+  );
+}
+
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = parseArgs();
 const output = String(args.output || path.join(skillDir, "app", ".data", "busabase_restore_manifest.json"));
-const folderSlug = String(args.folderSlug || args["folder-slug"] || "hk-insurance-library-0630");
+const folderSlug = String(args.folderSlug || args["folder-slug"] || "hk-insurance-company-folders");
 const driveSlug = String(args.driveSlug || args["drive-slug"] || "hk-insurance-drive");
+const featuredSlug = String(args.featuredSlug || args["featured-slug"] || "featured-information");
+const noticesSlug = String(
+  args.noticesSlug || args["notices-slug"] || args.newsSlug || args["news-slug"] || "insurance-news",
+);
 const qaSlug = String(args.qaSlug || args["qa-slug"] || "insurance-qa");
-const newsSlug = String(args.newsSlug || args["news-slug"] || "insurance-news");
 const feedbackSlug = String(args.feedbackSlug || args["feedback-slug"] || "user-feedback");
 const concurrency = Number.parseInt(String(args.concurrency || "8"), 10);
 
@@ -133,28 +146,34 @@ async function main() {
     (node) => node.parentId === folder.id && node.type === "drive" && node.slug === driveSlug,
   );
   if (!driveNode) throw new Error(`Drive not found under ${folderSlug}: ${driveSlug}`);
+  const featuredBase = bases.find((base: JsonRecord) => base.slug === featuredSlug);
+  const noticesBase = bases.find((base: JsonRecord) => base.slug === noticesSlug);
   const qaBase = bases.find((base: JsonRecord) => base.slug === qaSlug);
-  const newsBase = bases.find((base: JsonRecord) => base.slug === newsSlug);
   const feedbackBase = bases.find((base: JsonRecord) => base.slug === feedbackSlug);
+  if (!featuredBase) throw new Error(`Featured Information Base not found: ${featuredSlug}`);
+  if (!noticesBase) throw new Error(`Insurer Notices Base not found: ${noticesSlug}`);
   if (!qaBase) throw new Error(`QA Base not found: ${qaSlug}`);
-  if (!newsBase) throw new Error(`News Base not found: ${newsSlug}`);
 
-  const [drive, driveFiles, qaRecords, newsRecords, feedbackRecords] = await Promise.all([
+  const [drive, driveFiles, featuredRecords, noticesRecords, qaRecords, feedbackRecords] = await Promise.all([
     client.getDrive(driveNode.id),
     client.listDriveFiles(driveNode.id),
+    client.listRecords(featuredBase.id),
+    client.listRecords(noticesBase.id),
     client.listRecords(qaBase.id),
-    client.listRecords(newsBase.id),
     feedbackBase ? client.listRecords(feedbackBase.id) : [],
   ]);
 
   const files = await mapLimit(driveFiles, concurrency, async (file) => {
     let assetMetadata: JsonRecord = {};
     let contentHash = "";
+    let textStatus = "unknown";
     if (file.assetId) {
       try {
         const detail = await client.getAsset(file.assetId);
-        assetMetadata = detail?.asset?.metadata || {};
-        contentHash = detail?.asset?.contentHash || "";
+        const asset = detail?.asset || detail || {};
+        assetMetadata = sanitizeMetadata(asset.metadata || {}) as JsonRecord;
+        contentHash = asset.contentHash || asset.content_hash || "";
+        textStatus = String(asset.textStatus || asset.text_status || "unknown");
       } catch {
         assetMetadata = {};
       }
@@ -168,6 +187,7 @@ async function main() {
       updatedAt: file.updatedAt,
       assetId: file.assetId,
       contentHash,
+      text_status: textStatus,
       metadata: assetMetadata,
     };
   });
@@ -187,10 +207,28 @@ async function main() {
       slug: driveNode.slug,
       name: driveNode.name,
       description: driveNode.description || "",
-      metadata: drive?.node?.metadata || driveNode.metadata || {},
+      metadata: sanitizeMetadata(drive?.node?.metadata || driveNode.metadata || {}),
       files,
     },
     bases: {
+      featured: {
+        id: featuredBase.id,
+        node_id: featuredBase.nodeId,
+        slug: featuredBase.slug,
+        name: featuredBase.name,
+        description: featuredBase.description || "",
+        fields: (featuredBase.fields || []).map(normalizeField),
+        records: featuredRecords.map(normalizeRecord),
+      },
+      notices: {
+        id: noticesBase.id,
+        node_id: noticesBase.nodeId,
+        slug: noticesBase.slug,
+        name: noticesBase.name,
+        description: noticesBase.description || "",
+        fields: (noticesBase.fields || []).map(normalizeField),
+        records: noticesRecords.map(normalizeRecord),
+      },
       qa: {
         id: qaBase.id,
         node_id: qaBase.nodeId,
@@ -199,15 +237,6 @@ async function main() {
         description: qaBase.description || "",
         fields: (qaBase.fields || []).map(normalizeField),
         records: qaRecords.map(normalizeRecord),
-      },
-      news: {
-        id: newsBase.id,
-        node_id: newsBase.nodeId,
-        slug: newsBase.slug,
-        name: newsBase.name,
-        description: newsBase.description || "",
-        fields: (newsBase.fields || []).map(normalizeField),
-        records: newsRecords.map(normalizeRecord),
       },
       feedback: feedbackBase
         ? {
@@ -230,8 +259,9 @@ async function main() {
         ok: true,
         output,
         files: files.length,
+        featured_records: featuredRecords.length,
+        notices_records: noticesRecords.length,
         qa_records: qaRecords.length,
-        news_records: newsRecords.length,
         feedback_records: feedbackRecords.length,
         feedback_base: feedbackBase ? "found" : "fallback-empty-schema",
       },

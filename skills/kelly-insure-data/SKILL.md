@@ -1,13 +1,13 @@
 ---
 name: kelly-insure-data
-description: Insurance-industry App-in-Skill for high-quality data entry and governance, backed by a Busabase REST provider and operator scripts. Use when the user invokes $kelly-insure-data or /kelly-insure-data, wants an insurance data workspace with UI, needs to govern insurance files, metadata, QA pairs, news records, or user feedback, restore a Busabase insurance workspace from local PDFs, or wants Busabase Drive/Base data surfaced for data quality review, metadata completeness, canonical insurance knowledge entry, and ongoing data governance.
+description: Insurance-industry App-in-Skill for high-quality data entry and governance, backed by a Busabase REST provider and operator scripts. Use when the user invokes $kelly-insure-data or /kelly-insure-data, wants an insurance data workspace with UI, needs to govern insurance files, metadata, QA pairs, featured information, insurer notices, or user feedback, restore a Busabase insurance workspace from local PDFs, or wants Busabase Drive/Base data surfaced for data quality review, metadata completeness, canonical insurance knowledge entry, and ongoing data governance.
 ---
 
 # Kelly Insure Data
 
 ## Overview
 
-Use this skill as Kelly's insurance data-entry and data-governance cockpit. It pairs a local App-in-Skill UI with a Busabase-backed data layer: one Busabase Drive node for the file drive, one Base for insurance QA pairs, one Base for insurance news and market-intelligence records, and one Base for user feedback.
+Use this skill as Kelly's insurance data-entry and data-governance cockpit. It pairs a local App-in-Skill UI with a Busabase-backed data layer: one Busabase Drive node for the file drive, one Base for insurance QA pairs, two Bases for featured information and insurer notices, and one Base for user feedback.
 
 Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, start or reuse the local app with `app/start.sh` and give the actual URL. The first screen is the usable workspace, not a landing page.
 
@@ -18,7 +18,8 @@ This skill is for insurance-industry high-quality data entry and governance:
 - govern files by metadata completeness and source hygiene;
 - inspect the Busabase Drive node named by `config.busabase.drive_node_id` or `drive_node_slug`;
 - inspect QA pairs from the Busabase Base named by `qa_base_id` or `qa_base_slug`;
-- inspect insurance news records from the Busabase Base named by `news_base_id` or `news_base_slug`;
+- inspect featured information records from the Base named by `featured_base_id` or `featured_base_slug` (`featured-information`);
+- inspect insurer notice records from the Base named by `notices_base_id` or `notices_base_slug` (`insurance-news`); legacy `news_base_id`/`news_base_slug` are accepted as aliases;
 - inspect user feedback records from the Busabase Base named by `feedback_base_id` or `feedback_base_slug`;
 - surface missing fields, draft/review statuses, source gaps, and quality warnings before data becomes trusted insurance knowledge.
 
@@ -27,7 +28,7 @@ The UI has five primary routes:
 - `#/overview`: counts, quality score, and records needing governance.
 - `#/files`: "文件盘", corresponding to one Busabase Drive node, showing files and metadata fields.
 - `#/qa`: "问答", corresponding to one Busabase Base of QA pairs.
-- `#/news`: "新闻资讯", corresponding to one Busabase Base of news records.
+- `#/news`: "资讯精选 / 保司通知", combining featured information and insurer notices from two Busabase Bases.
 - `#/feedback`: "用户反馈", corresponding to one Busabase Base of feedback records.
 
 ## Boundary
@@ -56,14 +57,17 @@ Configure `config.local.json` or `~/.config/kelly-insure-data/config.json`:
     "base_url": "http://127.0.0.1:15419",
     "space_id": "",
     "api_key_env": "KELLY_INSURE_DATA_BUSABASE_API_KEY",
-    "drive_node_id": "drv_or_node_id",
-    "qa_base_id": "bse_qa",
-    "news_base_id": "bse_news",
-    "feedback_base_id": "bse_feedback",
+    "drive_node_slug": "hk-insurance-drive",
+    "featured_base_slug": "featured-information",
+    "notices_base_slug": "insurance-news",
+    "qa_base_slug": "insurance-qa",
+    "feedback_base_slug": "user-feedback",
     "record_limit": 200
   }
 }
 ```
+
+IDs are optional; slugs are resolved dynamically. Legacy `news_base_id`/`news_base_slug` are accepted as aliases for the notices Base.
 
 Environment overrides:
 
@@ -72,8 +76,9 @@ Environment overrides:
 - `KELLY_INSURE_DATA_BUSABASE_SPACE_ID`
 - `KELLY_INSURE_DATA_BUSABASE_API_KEY`
 - `KELLY_INSURE_DATA_BUSABASE_DRIVE_NODE_ID`
+- `KELLY_INSURE_DATA_BUSABASE_FEATURED_BASE_ID`
+- `KELLY_INSURE_DATA_BUSABASE_NOTICES_BASE_ID`
 - `KELLY_INSURE_DATA_BUSABASE_QA_BASE_ID`
-- `KELLY_INSURE_DATA_BUSABASE_NEWS_BASE_ID`
 - `KELLY_INSURE_DATA_BUSABASE_FEEDBACK_BASE_ID`
 - `KELLY_INSURE_DATA_BUSABASE_RECORD_LIMIT`
 
@@ -101,8 +106,8 @@ The app follows the App-in-Skill provider boundary: all `/api/state`, config sum
 ## Normal Workflow
 
 1. Load config via `lib/config.ts`.
-2. If provider is `busabase`, read through the skill's REST BusabaseProvider: Drive files, QA Base records, News Base records, and Feedback Base records. Use `busabase-cli` for operator diagnostics, not as the primary runtime API.
-3. Normalize into the UI schema: `files`, `qa_pairs`, `news_items`, `feedback_items`, `metrics`, and governance blocks with `completeness_pct` and `missing_fields`.
+2. If provider is `busabase`, read through the skill's REST BusabaseProvider: Drive files, Featured Base records, Notices Base records, QA Base records, and Feedback Base records. Use `busabase-cli` for operator diagnostics, not as the primary runtime API.
+3. Normalize into the UI schema: `files`, `qa_pairs`, `news_items`, `featured_items`, `notice_items`, `feedback_items`, `metrics`, and governance blocks with `completeness_pct` and `missing_fields`.
 4. Start/reuse the UI with `app/start.sh`.
 5. For data-entry requests, draft proposed new records or metadata cleanup as reviewable changes first. Do not silently mutate Busabase canonical records.
 6. Validate local snapshots with `scripts/validate_ui_schema.ts`.
@@ -111,28 +116,30 @@ The app follows the App-in-Skill provider boundary: all `/api/state`, config sum
 
 Read `references/restore-manifest-schema.md` before changing backup or restore behavior.
 
-Use `npm run busabase:export -- --output app/.data/busabase_restore_manifest.json` to export a portable manifest for the active Kelly Insure Data Busabase folder. The manifest captures the folder/Drive/Base shape, Drive file paths, asset metadata, Base schemas, and QA/news/feedback record fields. It does not embed PDF bytes.
+Use `npm run busabase:export -- --output app/.data/busabase_restore_manifest.json` to export a portable manifest for the active Kelly Insure Data Busabase folder. The manifest captures the folder/Drive/Base shape, Drive file paths, asset metadata, Base schemas, and QA/featured/notices/feedback record fields. It does not embed PDF bytes.
 
 Use `npm run busabase:restore -- --manifest app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run` to preview restoration after a Busabase reset. Add `--apply` only when the user explicitly asks to recreate missing folder, Drive files, Bases, and records.
 
-## PDF Metadata Backfill
+## PDF Text Backfill
 
-Use `npm run busabase:backfill-pdf-metadata -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5` to parse local PDFs and preview generated asset metadata. The generated `Asset.metadata` includes structured governance fields, `parser` details, a short `extraction_summary`, and the parsed PDF body in `parsed_text`.
+Use `npm run busabase:backfill-pdf-text -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5` to parse local PDFs and preview the Asset text slot write and generated asset metadata. Dry-run output shows `text_status` and `text_chars` but does not write to Busabase and must not place full text in metadata.
 
-Add `--apply` only when the user asks to write metadata back to Busabase assets. The parser is heuristic and should mark generated records as `needs_review`, preserving source file path, asset id, parser method, and extraction summary.
+Add `--apply` only when the user asks to write the text slot and metadata back to Busabase assets. With `--apply`, the script writes the Asset text slot first (`PUT /api/v1/assets/{assetId}/text`), then updates sanitized metadata (no `parsed_text` field). The parser is heuristic and marks generated records as `needs_review`.
+
+The old `busabase:backfill-pdf-metadata` command remains available as a compatibility alias.
 
 ## Validation
 
 Use these before handing off meaningful changes:
 
 ```bash
-node scripts/generate_demo_snapshot.ts
-node scripts/validate_ui_schema.ts
+npm run demo:snapshot
+npm run validate
 node --check app/app.js
-npm run start
 ```
 
 For UI changes, verify desktop and phone widths. On mobile, the sidebar drawer must open/close, selecting a row opens detail, back returns to list, and there must be no horizontal overflow.
+
 ## Execution reports
 
 Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.

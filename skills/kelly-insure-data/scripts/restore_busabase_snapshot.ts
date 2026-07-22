@@ -26,6 +26,22 @@ async function readJson<T = JsonRecord>(file: string): Promise<T> {
   return JSON.parse(await fs.readFile(file, "utf8")) as T;
 }
 
+function sanitizeMetadata(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sanitizeMetadata);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as JsonRecord)
+      .filter(([key]) => key !== "parsed_text")
+      .map(([key, child]) => [key, sanitizeMetadata(child)]),
+  );
+}
+
+function normalizeManifest(manifest: JsonRecord): JsonRecord {
+  manifest.bases ||= {};
+  if (!manifest.bases.notices && manifest.bases.news) manifest.bases.notices = manifest.bases.news;
+  return manifest;
+}
+
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = parseArgs();
 const manifestPath = String(args.manifest || path.join(skillDir, "app", ".data", "busabase_restore_manifest.json"));
@@ -109,7 +125,7 @@ async function ensureFolderAndDrive(client: ReturnType<typeof createBusabaseClie
       slug: manifest.drive.slug,
       name: manifest.drive.name,
       description: manifest.drive.description || "",
-      metadata: manifest.drive.metadata || {},
+      metadata: sanitizeMetadata(manifest.drive.metadata || {}),
     });
   }
   if (!operations.length) return { folder, drive, created: false };
@@ -136,7 +152,7 @@ async function ensureBases(
 ) {
   let state = await existingState(client);
   const result: JsonRecord = {};
-  for (const kind of ["qa", "news", "feedback"]) {
+  for (const kind of ["featured", "notices", "qa", "feedback"]) {
     const expected = manifest.bases[kind];
     if (!expected) continue;
     let found = state.bases.find((base: JsonRecord) => base.slug === expected.slug);
@@ -194,11 +210,13 @@ async function restoreFiles(
       operations.push({ kind: "create", path: file.path, localFile, mimeType: file.mimeType });
       continue;
     }
+    const sanitizedMetadata = sanitizeMetadata(file.metadata || {}) as JsonRecord;
     const uploaded = await client.uploadAsset(
       localFile,
       file.mimeType || "application/octet-stream",
-      file.metadata || {},
+      sanitizedMetadata,
     );
+    await client.updateAssetMetadata(uploaded.assetId, sanitizedMetadata, "replace");
     operations.push({
       kind: "create",
       path: file.path,
@@ -277,7 +295,7 @@ async function restoreRecords(
 }
 
 async function main() {
-  const manifest = await readJson<JsonRecord>(manifestPath);
+  const manifest = normalizeManifest(await readJson<JsonRecord>(manifestPath));
   const client = createBusabaseClient({ envPrefix: "KELLY_INSURE_DATA" });
   const nodeResult = await ensureFolderAndDrive(client, manifest);
   const folderId = nodeResult.folder?.id;
@@ -297,16 +315,35 @@ async function main() {
   }
   const bases = await ensureBases(client, manifest, folderId);
   const files = await restoreFiles(client, driveNodeId, manifest);
+  const featured = bases.featured?.id
+    ? await restoreRecords(client, bases.featured.id, manifest.bases.featured.records || [], "featured information")
+    : { restored: 0 };
+  const notices = bases.notices?.id
+    ? await restoreRecords(client, bases.notices.id, manifest.bases.notices.records || [], "insurer notices")
+    : { restored: 0 };
   const qa = bases.qa?.id
     ? await restoreRecords(client, bases.qa.id, manifest.bases.qa.records || [], "QA")
-    : { restored: 0 };
-  const news = bases.news?.id
-    ? await restoreRecords(client, bases.news.id, manifest.bases.news.records || [], "news")
     : { restored: 0 };
   const feedback = bases.feedback?.id
     ? await restoreRecords(client, bases.feedback.id, manifest.bases.feedback?.records || [], "feedback")
     : { restored: 0 };
-  console.log(JSON.stringify({ ok: true, dry_run: dryRun, files, qa, news, feedback }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        dry_run: dryRun,
+        files,
+        featured,
+        notices,
+        qa,
+        feedback,
+        text_restore: "not_restored",
+        next_step: "Run busabase:backfill-pdf-text from local PDFs to rebuild Asset text slots.",
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 main().catch((error) => {
