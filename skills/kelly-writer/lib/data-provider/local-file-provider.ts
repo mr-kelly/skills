@@ -146,52 +146,86 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
       return { ok: true, todo };
     },
 
-    async startTodo(payload) {
+    async completeTodo(payload) {
       if (await readActiveLock()) {
         const error: HttpError = new Error("Content files are locked while the agent is writing.");
         error.statusCode = 423;
         throw error;
       }
-      if (!payload?.id) {
-        const error: HttpError = new Error("missing id");
+      if (!payload?.id || !payload?.main_content) {
+        const error: HttpError = new Error("missing todo id or main_content");
         error.statusCode = 400;
         throw error;
       }
       const batch = await readJson(currentBatchPath, null);
-      if (!batch) {
-        const error: HttpError = new Error("missing batch");
-        error.statusCode = 404;
-        throw error;
-      }
-      const todo = (batch.todos || []).find((item) => item.id === payload.id);
-      if (!todo) {
+      const todo = (batch?.todos || []).find((item) => item.id === payload.id);
+      if (!batch || !todo) {
         const error: HttpError = new Error("todo not found");
         error.statusCode = 404;
         throw error;
       }
-      for (const item of batch.todos || []) {
-        if (item.status === "in_progress") item.status = "todo";
+      if (batch.main_content && batch.main_content.source_todo_id !== todo.id) {
+        const error: HttpError = new Error("Distribute the current main draft before completing another todo.");
+        error.statusCode = 409;
+        throw error;
       }
-      todo.status = "in_progress";
-      todo.started_at = new Date().toISOString();
-      todo.updated_at = todo.started_at;
-      batch.main_content ||= {
-        id: "main-blog",
-        title: todo.title,
-        status: "writing",
-        hero_alt: "Editorial cover preview",
-        cover_brief: "AI writer will prepare the cover and image brief after drafting starts.",
-        dek: todo.description,
-        html: "",
+      const completedAt = new Date().toISOString();
+      batch.main_content = {
+        ...payload.main_content,
+        id: payload.main_content.id || `main-${todo.id}`,
+        source_todo_id: todo.id,
+        title: payload.main_content.title || todo.title,
+        dek: payload.main_content.dek || todo.description,
+        status: "draft",
+        completed_at: completedAt,
       };
-      batch.main_content.title = todo.title;
-      batch.main_content.status = "writing";
-      batch.main_content.dek = todo.description;
-      if (!batch.main_content.html || batch.main_content.html.includes("还没有开工")) {
-        batch.main_content.html = `<p>${escapeHtml(todo.description)}</p><h3>Draft queue</h3><p>AI writer has started this main draft. Generate the outline, body, and media brief next.</p>`;
-      }
+      batch.todos = batch.todos.filter((item) => item.id !== todo.id);
+      const topic = (batch.topics || []).find((item) => item.id === todo.topic_id);
+      if (topic) topic.status = "drafted";
+      batch.updated_at = completedAt;
       await writeJson(currentBatchPath, batch);
-      return { ok: true, todo, main_content: batch.main_content };
+      return { ok: true, main_content: batch.main_content, completed_todo_id: todo.id };
+    },
+
+    async requestDistribution(payload) {
+      if (await readActiveLock()) {
+        const error: HttpError = new Error("Content files are locked while the agent is writing.");
+        error.statusCode = 423;
+        throw error;
+      }
+      const note = String(payload?.note || "").trim();
+      if (!note) {
+        const error: HttpError = new Error("distribution note is required");
+        error.statusCode = 400;
+        throw error;
+      }
+      const batch = await readJson(currentBatchPath, null);
+      const main = batch?.main_content;
+      if (!batch || !main) {
+        const error: HttpError = new Error("main draft not found");
+        error.statusCode = 404;
+        throw error;
+      }
+      const requestedAt = new Date().toISOString();
+      const item = {
+        id: `dist-request-${Date.now()}`,
+        channel: "distribution",
+        status: "todo",
+        owner: "AI writer",
+        title: main.title,
+        summary: note,
+        body: main.html || main.body || "",
+        distribution_note: note,
+        source_main_id: main.id,
+        requested_at: requestedAt,
+      };
+      batch.distribution ||= [];
+      batch.distribution.push(item);
+      batch.main_content = null;
+      batch.updated_at = requestedAt;
+      await writeJson(currentBatchPath, batch);
+      await queueDistributionTask(item);
+      return { ok: true, distribution: item };
     },
 
     async putBatch(batch) {
@@ -262,6 +296,18 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
       return { exported, skipped, output_dir: outDir };
     },
   };
+}
+
+async function queueDistributionTask(item) {
+  const store = await readJson(AGENT_TASKS_PATH, { tasks: {} });
+  const tasks = store.tasks || {};
+  tasks[item.id] = {
+    item_id: item.id,
+    trigger: "distribution_requested",
+    reason: item.distribution_note,
+    requested_at: item.requested_at,
+  };
+  await writeJson(AGENT_TASKS_PATH, { tasks });
 }
 
 async function syncAgentTask(id, decision) {

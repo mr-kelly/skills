@@ -4,7 +4,8 @@ export interface ReviewProvider {
   getState: (...args: unknown[]) => Promise<unknown>;
   saveDecision: (...args: unknown[]) => Promise<unknown>;
   confirmDirection: (...args: unknown[]) => Promise<unknown>;
-  startTodo: (...args: unknown[]) => Promise<unknown>;
+  completeTodo: (...args: unknown[]) => Promise<unknown>;
+  requestDistribution: (...args: unknown[]) => Promise<unknown>;
   putBatch: (...args: unknown[]) => Promise<unknown>;
   exportApproved: (...args: unknown[]) => Promise<unknown>;
   listAgentTasks: (...args: unknown[]) => Promise<unknown>;
@@ -15,7 +16,8 @@ const CORE_METHODS = [
   "getState",
   "saveDecision",
   "confirmDirection",
-  "startTodo",
+  "completeTodo",
+  "requestDistribution",
   "putBatch",
   "exportApproved",
   "listAgentTasks",

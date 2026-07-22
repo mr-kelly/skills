@@ -248,6 +248,7 @@ main {
 #refreshBtn,
 .quietButton,
 .primaryButton,
+.iconButton,
 .actions button {
   min-height: 32px;
   padding: 0 11px;
@@ -261,6 +262,13 @@ main {
   border-color: var(--accent);
   color: #ffffff;
   background: var(--accent);
+}
+
+.iconButton {
+  width: 32px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
 }
 
 button:hover,
@@ -674,6 +682,46 @@ textarea {
 
 textarea.note {
   min-height: 82px;
+}
+
+.workflowDialog {
+  width: min(520px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--panel);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+}
+
+.workflowDialog::backdrop {
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.workflowDialog form {
+  padding: 20px;
+}
+
+.workflowDialog textarea {
+  min-height: 130px;
+}
+
+.dialogHead,
+.dialogActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dialogHead h2 {
+  margin-top: 3px;
+  font-size: 20px;
+}
+
+.dialogActions {
+  justify-content: flex-end;
+  margin-top: 18px;
 }
 
 input:focus,

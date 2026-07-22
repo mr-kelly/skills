@@ -12,7 +12,8 @@
 //   getState()                  -> { batch, decisions, lock, config_summary }
 //   saveDecision(payload)       -> apply a human verdict / edit to one item
 //   confirmDirection(payload)   -> (local-only ideation) confirm a topic direction
-//   startTodo(payload)          -> (local-only ideation) start a main draft
+//   completeTodo(payload)       -> (local-only) finish writing and move a todo to main draft
+//   requestDistribution(payload)-> (local-only) move the main draft to distribution with a note
 //   putBatch(batch)             -> persist the agent-prepared drafts
 //   exportApproved()            -> publish/merge approved items
 //   listAgentTasks()            -> items the agent should revise (changes_requested / @ai)

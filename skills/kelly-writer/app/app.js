@@ -390,43 +390,8 @@ function normalizeTodos(batch, topics) {
     });
 }
 
-function normalizeMainContent(batch, topics, todos, items) {
-  if (batch.main_content) return batch.main_content;
-  const activeTodo = todos.find((todo) => todo.status === "in_progress" || todo.status === "writing");
-  if (!activeTodo) return null;
-  const confirmed =
-    topics.find((topic) => topic.id === activeTodo?.topic_id) ||
-    topics.find((topic) => topic.status === "confirmed") ||
-    topics[0];
-  const selectedDirection = getSelectedDirection(confirmed);
-  const title = activeTodo?.title || selectedDirection?.title || confirmed?.title || "Building a calmer content system";
-  const body = stripMarkdown(
-    batch.source_summary || items[0]?.summary || "A strong blog post should be the source of many smaller pieces.",
-  );
-  const status = activeTodo?.status === "in_progress" ? "writing" : "waiting";
-  return {
-    id: "main-blog",
-    title,
-    status,
-    hero_alt: "Editorial cover preview",
-    cover_brief: "A clean workspace image: one canonical article connected to several publishing channels.",
-    dek:
-      activeTodo?.description ||
-      selectedDirection?.description ||
-      "A canonical post that keeps the core claim, proof, and examples intact before channel adaptation.",
-    html: `
-      <p>${escapeHtml(status === "writing" ? "AI writer has started this main draft. The outline below is ready to expand into the canonical article." : "This direction is waiting in Todo. Mark it as 开工 before the AI writer starts the main draft.")}</p>
-      <p>${escapeHtml(body)}</p>
-      <h3>Core structure</h3>
-      <p>Start with the reader problem, preserve the proof from the source, then reshape the content for each channel's reading habit.</p>
-      <figure>
-        <div class="inlineImage">Main visual brief</div>
-        <figcaption>${escapeHtml("Use a simple diagram or screenshot sequence to show source -> channel variants.")}</figcaption>
-      </figure>
-      <h3>Distribution principle</h3>
-      <p>The main claim should remain stable. The hook, pacing, CTA, and media treatment can change per platform.</p>
-    `,
-  };
+function normalizeMainContent(batch) {
+  return batch.main_content || null;
 }
 
 function normalizeDistribution(batch, items) {
