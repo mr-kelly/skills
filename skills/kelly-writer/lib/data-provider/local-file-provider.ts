@@ -10,6 +10,7 @@ import path from "node:path";
 import { ensureDirs, readActiveLock, readJson, slugify, withLock, writeJson } from "../common.ts";
 import { currentBatchPath, decisionsPath, exportReportPath, exportsDir } from "../paths.ts";
 import type { HttpError, ProviderMeta } from "../types.ts";
+import { writeZipFile } from "../zip.ts";
 
 const AGENT_TASKS_PATH = path.join(path.dirname(currentBatchPath), "agent_tasks.json");
 
@@ -210,13 +211,14 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
       const item = {
         id: `dist-request-${Date.now()}`,
         channel: "distribution",
-        status: "todo",
+        status: "needs_review",
         owner: "AI writer",
         title: main.title,
         summary: note,
-        body: main.html || main.body || "",
+        body: await readableMainBody(main),
         distribution_note: note,
         source_main_id: main.id,
+        source_draft_path: main.draft_path || null,
         requested_at: requestedAt,
       };
       batch.distribution ||= [];
@@ -225,6 +227,68 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
       batch.updated_at = requestedAt;
       await writeJson(currentBatchPath, batch);
       await queueDistributionTask(item);
+      return { ok: true, distribution: item };
+    },
+
+    async completeDistributionRevision(payload) {
+      if (await readActiveLock()) {
+        const error: HttpError = new Error("Content files are locked while the agent is writing.");
+        error.statusCode = 423;
+        throw error;
+      }
+      const revision = payload?.revision || payload?.distribution;
+      if (!payload?.id || !revision) {
+        const error: HttpError = new Error("missing distribution id or revision");
+        error.statusCode = 400;
+        throw error;
+      }
+      if (!String(revision.title || "").trim() || !String(revision.body || "").trim()) {
+        const error: HttpError = new Error("revised title and body are required");
+        error.statusCode = 400;
+        throw error;
+      }
+      const batch = await readJson(currentBatchPath, null);
+      const item = (batch?.distribution || []).find((candidate) => candidate.id === payload.id);
+      if (!batch || !item) {
+        const error: HttpError = new Error("distribution draft not found");
+        error.statusCode = 404;
+        throw error;
+      }
+      const editableFields = [
+        "title",
+        "body",
+        "summary",
+        "channel",
+        "format",
+        "hook",
+        "cta",
+        "media_brief",
+        "hashtags",
+        "title_options",
+        "source_notes",
+        "risk",
+        "export_filename",
+        "source_draft_path",
+      ];
+      for (const field of editableFields) {
+        if (field in revision) item[field] = revision[field];
+      }
+      const completedAt = new Date().toISOString();
+      item.status = "needs_review";
+      item.updated_at = completedAt;
+      item.agent_revision_completed_at = completedAt;
+      batch.updated_at = completedAt;
+      await writeJson(currentBatchPath, batch);
+
+      const decisionStore = await readJson(decisionsPath, { decisions: {} });
+      const decisions = decisionStore.decisions || {};
+      delete decisions[payload.id];
+      await writeJson(decisionsPath, { decisions });
+
+      const taskStore = await readJson(AGENT_TASKS_PATH, { tasks: {} });
+      const tasks = taskStore.tasks || {};
+      delete tasks[payload.id];
+      await writeJson(AGENT_TASKS_PATH, { tasks });
       return { ok: true, distribution: item };
     },
 
@@ -250,7 +314,9 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
 
       await withLock("Exporting approved content", async () => {
         await ensureDirs(outDir);
-        for (const item of batch.items || []) {
+        const exportItems =
+          Array.isArray(batch.distribution) && batch.distribution.length ? batch.distribution : batch.items || [];
+        for (const item of exportItems) {
           // Only an explicit human decision recorded in decisions.json (written by
           // saveDecision via POST /api/decision) proves approval. A raw item.status
           // or item.decision field on the batch itself can be set by automation
@@ -263,7 +329,8 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
           }
           const title = decision.title || item.title;
           const body = decision.body || item.body;
-          const filename = item.export_filename || `${slugify(item.channel)}-${slugify(title)}.md`;
+          const requestedFilename = item.export_filename || `${slugify(item.channel)}-${slugify(title)}.md`;
+          const filename = path.basename(requestedFilename);
           const target = path.join(outDir, filename);
           const markdown = [
             `# ${title}`,
@@ -280,8 +347,20 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
           ]
             .filter(Boolean)
             .join("\n");
-          await fs.writeFile(target, `${markdown}\n`);
-          exported.push({ id: item.id, file: target });
+          const packaged = await packageMarkdownAssets(`${markdown}\n`, item.source_draft_path);
+          await fs.writeFile(target, packaged.markdown);
+          const archiveTarget = path.join(outDir, `${path.basename(filename, path.extname(filename))}.zip`);
+          await writeZipFile(archiveTarget, [
+            { name: path.basename(target), data: packaged.markdown },
+            ...packaged.assets.map((asset) => ({ name: asset.archivePath, data: asset.data })),
+          ]);
+          exported.push({
+            id: item.id,
+            file: archiveTarget,
+            markdown_file: target,
+            assets: packaged.assets.map((asset) => asset.archivePath),
+            missing_assets: packaged.missing,
+          });
         }
         await writeJson(path.join(outDir, "batch.json"), batch);
         await writeJson(path.join(outDir, "decisions.json"), decisionsFile);
@@ -296,6 +375,127 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
       return { exported, skipped, output_dir: outDir };
     },
   };
+}
+
+export async function readableMainBody(main) {
+  const body = String(main?.body || "").trim();
+  if (body && !looksLikeHtml(body)) return body;
+
+  const draftBody = await readDraftBody(main?.draft_path);
+  if (draftBody) return draftBody;
+
+  if (body) return htmlToPlainText(body);
+  return htmlToPlainText(main?.html || "");
+}
+
+async function readDraftBody(draftPath) {
+  if (!draftPath) return "";
+  try {
+    return (await fs.readFile(draftPath, "utf8")).trim();
+  } catch {
+    return "";
+  }
+}
+
+function looksLikeHtml(value) {
+  return /<\/?(?:article|blockquote|br|div|figure|h[1-6]|img|li|ol|p|section|span|strong|ul)\b/i.test(value);
+}
+
+function htmlToPlainText(value) {
+  return String(value || "")
+    .replace(/<img\b[^>]*>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<li\b[^>]*>/gi, "- ")
+    .replace(/<\/(p|div|h[1-6]|li|blockquote|figcaption|figure|section|article)>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&(amp|lt|gt|quot|#39|nbsp);/gi, (entity) => {
+      const entities = {
+        "&amp;": "&",
+        "&lt;": "<",
+        "&gt;": ">",
+        "&quot;": '"',
+        "&#39;": "'",
+        "&nbsp;": " ",
+      };
+      return entities[entity.toLowerCase()] || entity;
+    })
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+const MARKDOWN_IMAGE = /!\[([^\]]*)\]\(\s*(<[^>]+>|[^\s)]+)(?:\s+(?:"[^"]*"|'[^']*'))?\s*\)/g;
+const EXPORTABLE_IMAGE_TYPES = new Set([".gif", ".jpeg", ".jpg", ".png", ".webp"]);
+
+function isInside(root, candidate) {
+  return candidate === root || candidate.startsWith(`${root}${path.sep}`);
+}
+
+export async function packageMarkdownAssets(
+  markdown,
+  sourceDraftPath,
+  contentRoot = process.env.KELLY_WRITER_CONTENT_ROOT || "/space/content-writer",
+) {
+  if (!sourceDraftPath) return { markdown, assets: [], missing: [] };
+
+  const resolvedContentRoot = path.resolve(contentRoot);
+  const source = path.resolve(sourceDraftPath);
+  if (!isInside(resolvedContentRoot, source)) return { markdown, assets: [], missing: [] };
+  const [projectDirectory] = path.relative(resolvedContentRoot, source).split(path.sep);
+  const projectRoot = path.join(resolvedContentRoot, projectDirectory);
+  const references = [...String(markdown).matchAll(MARKDOWN_IMAGE)];
+  const assets = [];
+  const missing = [];
+  const replacements = new Map();
+  const usedNames = new Set();
+  const packagedTargets = new Map();
+
+  for (const reference of references) {
+    const rawTarget = reference[2];
+    const imagePath = rawTarget.startsWith("<") ? rawTarget.slice(1, -1) : rawTarget;
+    if (/^(?:data:|https?:\/\/)/i.test(imagePath)) continue;
+
+    const cleanPath = imagePath.split(/[?#]/, 1)[0];
+    const target = path.resolve(path.dirname(source), cleanPath);
+    const extension = path.extname(target).toLowerCase();
+    if (!EXPORTABLE_IMAGE_TYPES.has(extension) || !isInside(projectRoot, target)) {
+      missing.push(imagePath);
+      continue;
+    }
+
+    let archivePath = packagedTargets.get(target);
+    if (!archivePath) {
+      const base = uniqueAssetName(path.basename(target), usedNames);
+      archivePath = `images/${base}`;
+      try {
+        assets.push({ archivePath, data: await fs.readFile(target) });
+        packagedTargets.set(target, archivePath);
+      } catch {
+        missing.push(imagePath);
+        continue;
+      }
+    }
+    replacements.set(rawTarget, archivePath);
+  }
+
+  const rewritten = String(markdown).replace(MARKDOWN_IMAGE, (match, alt, rawTarget) => {
+    const archivePath = replacements.get(rawTarget);
+    return archivePath ? `![${alt}](${archivePath})` : match;
+  });
+  return { markdown: rewritten, assets, missing: [...new Set(missing)] };
+}
+
+function uniqueAssetName(filename, usedNames) {
+  const extension = path.extname(filename);
+  const stem = path.basename(filename, extension);
+  let candidate = filename;
+  let suffix = 2;
+  while (usedNames.has(candidate.toLowerCase())) {
+    candidate = `${stem}-${suffix}${extension}`;
+    suffix += 1;
+  }
+  usedNames.add(candidate.toLowerCase());
+  return candidate;
 }
 
 async function queueDistributionTask(item) {

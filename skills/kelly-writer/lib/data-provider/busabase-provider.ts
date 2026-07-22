@@ -267,5 +267,13 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
       error.statusCode = 400;
       throw error;
     },
+
+    async completeDistributionRevision() {
+      const error: HttpError = new Error(
+        "Busabase Agent revisions update their change request directly and do not use the local completion endpoint.",
+      );
+      error.statusCode = 400;
+      throw error;
+    },
   };
 }

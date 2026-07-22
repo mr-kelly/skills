@@ -40,7 +40,7 @@ The skill prepares and exports content. It does not publish to external platform
 4. Generate a batch with one item per channel/content unit using `scripts/generate_batch.ts`.
 5. Validate the batch with `scripts/validate_batch.ts`.
 6. Launch or reuse the local UI with `app/start.sh` and send the user to the actual started URL, preferring `http://127.0.0.1:3000/` and the `3000-4000` port range unless an env override is set.
-7. After the user approves or edits items in the UI, run `scripts/export_decisions.ts` to export approved drafts to Markdown and JSON.
+7. After the user approves or edits items in the UI, run `scripts/export_decisions.ts` to export approved drafts. Local exports produce a ZIP per draft containing Markdown plus referenced project images, while retaining batch and decision JSON alongside the archives.
 8. If the user requested chat-only mode, present numbered drafts in chat and ask for approval there.
 
 ## App UI Contract
@@ -89,7 +89,9 @@ Model the local app as a staged content repository, not only a draft queue:
 1. `topics`: subject discovery. Treat each topic as a broad subject/material area, not a final headline. Show candidate subjects from automated search, system generation, or preset editorial plans. For each subject, provide multiple `directions` with `title`, `description`, `angle`, and `status`; the user clicks `入选` / `Select` to create a todo.
 2. `todos`: selected topics waiting for the Agent. The UI has no start button. When the user tells the Agent `开工` / `Start`, choose the requested todo (ask which one if ambiguous), write the complete canonical article, then call `POST /api/complete-todo` with `{ "id": "<todo-id>", "main_content": { ... } }`. This transition removes the todo and creates `main_content` in one operation. Never create a placeholder or partial main draft.
 3. `main_content`: the finished canonical source article. Show its rich preview, cover/image brief, embedded media slots, and rendered HTML when available. Markdown is acceptable as storage, but the UI should render a polished editorial preview. Only the Agent completion transition creates this stage.
-4. `distribution`: channel adaptation work. From Main Draft, the user clicks `分发` / `Distribute`, enters target channels and notes, and submits. The app removes `main_content`, creates a pending distribution item, and queues an Agent task. The Agent then produces the requested platform versions; keep review status, URLs, and performance signals on distribution items instead of maintaining a separate outputs stage.
+4. `distribution`: channel adaptation work. From Main Draft, the user clicks `分发` / `Distribute`, enters target channels and notes, and submits. The app removes `main_content`, creates a reviewable distribution draft from the completed source article, and may queue an Agent task for channel adaptation. The draft is immediately available for rich preview, editing, saving, approval, change requests, or blocking; Agent adaptation is optional and must never gate those controls. Keep review status, URLs, and performance signals on distribution items instead of maintaining a separate outputs stage.
+
+For local Agent revisions, read the queued instruction from `GET /api/agent-tasks`, revise the distribution draft, then call `POST /api/complete-distribution-revision` with `{ "id": "<distribution-id>", "revision": { "title": "...", "body": "..." } }`. Completion replaces the card content, clears the queued task and prior review decision, and returns the draft to `needs_review`; the UI will pick it up automatically. Do not ask the user to click Save after an Agent revision. `Save edits` is only for human changes made in the editor, while `Approve final` makes the current version eligible for export.
 
 If a future automation writes `topics`, `todos`, `main_content`, or `distribution` into `current_batch.json`, the UI should prefer those explicit fields. If they are missing, it may derive a temporary repository view from `items`.
 
@@ -126,7 +128,7 @@ For migration, the runtime still reads legacy `KELLY_CONTENT_*` environment vari
 - `scripts/validate_batch.ts [batch-path]`
   Validates the required batch shape and status values (local batch files).
 - `scripts/export_decisions.ts`
-  Publishes approved/edited content via the active provider (local: Markdown + JSON under `exports/<batch-id>/`; busabase: merge approved change requests into canonical records).
+  Publishes approved/edited content via the active provider (local: a ZIP per draft with Markdown + referenced local images, plus batch/decision JSON under `exports/<batch-id>/`; busabase: merge approved change requests into canonical records).
 
 Run the validator after creating or editing any batch file. Run export only after the user has approved items in the UI or in chat.
 
