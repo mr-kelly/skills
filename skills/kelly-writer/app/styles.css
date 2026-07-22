@@ -584,6 +584,32 @@ dd {
   border-right: 1px solid var(--line);
 }
 
+.coverFrame.hasImage {
+  justify-content: flex-start;
+  padding: 0;
+  background: #f7faf9;
+}
+
+.coverImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 510;
+  object-fit: contain;
+  background: #ffffff;
+  border-bottom: 1px solid var(--line);
+}
+
+.coverMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coverFrame.hasImage .coverMeta {
+  padding: 22px;
+}
+
 .coverFrame span {
   color: var(--success);
   font-size: 12px;
