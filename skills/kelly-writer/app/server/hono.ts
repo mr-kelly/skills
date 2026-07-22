@@ -54,13 +54,22 @@ app.post("/api/confirm-direction", async (c) => {
   return c.json(await provider.confirmDirection(body));
 });
 
-app.post("/api/start-todo", async (c) => {
+app.post("/api/complete-todo", async (c) => {
   const query = searchParams(c);
   if (isDemoQuery(query)) {
     return c.json({ ok: true, demo: true, message: "Demo mode: no local content files were changed." });
   }
   const body = await c.req.json().catch(() => ({}));
-  return c.json(await provider.startTodo(body));
+  return c.json(await provider.completeTodo(body));
+});
+
+app.post("/api/request-distribution", async (c) => {
+  const query = searchParams(c);
+  if (isDemoQuery(query)) {
+    return c.json({ ok: true, demo: true, message: "Demo mode: no local content files were changed." });
+  }
+  const body = await c.req.json().catch(() => ({}));
+  return c.json(await provider.requestDistribution(body));
 });
 
 app.post("/api/export", async (c) => {

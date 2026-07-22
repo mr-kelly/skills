@@ -109,7 +109,6 @@ export function renderTodos(repo) {
         <p class="eyebrow">${escapeHtml(t("production.queue"))}</p>
         <h2>${escapeHtml(t("todos.title"))}</h2>
       </div>
-      <button class="primaryButton" data-action="start-selected-todo" title="${escapeAttr(t("todo.start.title"))}">${escapeHtml(t("todo.start"))}</button>
     </div>
     <div class="split">
       <div class="recordList">
@@ -123,11 +122,6 @@ export function renderTodos(repo) {
   bindRecordSelection("todo", (id) => {
     navigateTo({ stage: "todos", todoId: id });
   });
-  for (const button of els.stagePanel.querySelectorAll(
-    "[data-action='start-todo'], [data-action='start-selected-todo']",
-  )) {
-    button.addEventListener("click", () => startTodo(editorStore.selectedTodoId));
-  }
 }
 
 function todoRow(todo, selectedId) {
@@ -147,7 +141,6 @@ function todoDetail(todo) {
         <span class="pill">${escapeHtml(todo.statusLabel)}</span>
         <span class="pill">${escapeHtml(todo.source || t("local"))}</span>
       </div>
-      <button class="primaryButton" data-action="start-todo" title="${escapeAttr(t("todo.start.title"))}">${escapeHtml(t("todo.start"))}</button>
     </div>
     <h2>${escapeHtml(todo.title)}</h2>
     <p class="leadText">${escapeHtml(todo.description)}</p>
@@ -157,7 +150,7 @@ function todoDetail(todo) {
     </dl>
     <section class="sectionBlock">
       <h3>${escapeHtml(t("next.action"))}</h3>
-      <p>${todo.status === "in_progress" ? t("todo.next.started") : t("todo.next.waiting")}</p>
+      <p>${escapeHtml(t("todo.next.agent"))}</p>
     </section>
   `;
 }
@@ -184,10 +177,7 @@ export function renderMainContent(repo) {
         <p class="eyebrow">${escapeHtml(t("canonical.draft"))}</p>
         <h2>${escapeHtml(t("main.title"))}</h2>
       </div>
-      <div class="toolbar">
-        <button class="quietButton" title="${escapeAttr(t("preview.title"))}">${escapeHtml(t("preview"))}</button>
-        <button class="primaryButton" title="${escapeAttr(t("approve.main.title"))}">${escapeHtml(t("approve.main"))}</button>
-      </div>
+      <button class="primaryButton" data-action="request-distribution" title="${escapeAttr(t("distribute.title"))}">${escapeHtml(t("distribute"))}</button>
     </div>
     <article class="mainPreview">
       <div class="coverFrame">
@@ -201,7 +191,26 @@ export function renderMainContent(repo) {
         <div class="articleBody">${main.html || `<p>${escapeHtml(main.body || "")}</p>`}</div>
       </div>
     </article>
+    <dialog class="workflowDialog" id="distributionDialog">
+      <form method="dialog" id="distributionForm">
+        <div class="dialogHead">
+          <div>
+            <p class="eyebrow">${escapeHtml(t("distribution.request"))}</p>
+            <h2>${escapeHtml(t("distribution.request.title"))}</h2>
+          </div>
+          <button class="iconButton" value="cancel" aria-label="${escapeAttr(t("close"))}" title="${escapeAttr(t("close"))}">×</button>
+        </div>
+        <label>${escapeHtml(t("distribution.note"))}
+          <textarea id="distributionNote" required placeholder="${escapeAttr(t("distribution.note.placeholder"))}"></textarea>
+        </label>
+        <div class="dialogActions">
+          <button class="quietButton" value="cancel">${escapeHtml(t("cancel"))}</button>
+          <button class="primaryButton" type="submit" value="submit">${escapeHtml(t("send.distribution"))}</button>
+        </div>
+      </form>
+    </dialog>
   `;
+  bindDistributionDialog();
 }
 
 export function renderDistribution(repo) {
@@ -274,6 +283,7 @@ function distributionDetail(item) {
     <div class="supportGrid">
       ${item.title_options?.length ? `<section class="sectionBlock"><h3>${escapeHtml(t("title.options"))}</h3><p>${item.title_options.map(escapeHtml).join("<br>")}</p></section>` : ""}
       ${item.media_brief ? `<section class="sectionBlock"><h3>${escapeHtml(t("media.brief"))}</h3><p>${escapeHtml(item.media_brief)}</p></section>` : ""}
+      ${item.distribution_note ? `<section class="sectionBlock"><h3>${escapeHtml(t("distribution.note"))}</h3><p>${escapeHtml(item.distribution_note)}</p></section>` : ""}
       ${item.hashtags?.length ? `<section class="sectionBlock"><h3>${escapeHtml(t("hashtags"))}</h3><p>${item.hashtags.map(escapeHtml).join(" ")}</p></section>` : ""}
     </div>
   `;
@@ -311,20 +321,33 @@ async function confirmDirection(topicId, directionId) {
   await loadState();
 }
 
-async function startTodo(id) {
-  if (!id) return;
-  const response = await fetch(withContextParams("/api/start-todo"), {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id }),
+function bindDistributionDialog() {
+  const dialog = els.stagePanel.querySelector("#distributionDialog");
+  const form = els.stagePanel.querySelector("#distributionForm");
+  els.stagePanel.querySelector("[data-action='request-distribution']")?.addEventListener("click", () => {
+    dialog?.showModal();
   });
-  if (!response.ok) {
-    alert(`Could not start todo: ${await response.text()}`);
-    return;
-  }
-  editorStore.activeStage = "main";
-  syncRoute({ push: true });
-  await loadState();
+  form?.addEventListener("submit", async (event) => {
+    if (event.submitter?.value !== "submit") return;
+    event.preventDefault();
+    const note = els.stagePanel.querySelector("#distributionNote")?.value.trim();
+    if (!note) return;
+    const response = await fetch(withContextParams("/api/request-distribution"), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ note }),
+    });
+    if (!response.ok) {
+      alert(`Could not request distribution: ${await response.text()}`);
+      return;
+    }
+    const result = await response.json();
+    dialog?.close();
+    editorStore.activeStage = "distribution";
+    editorStore.selectedDistributionId = result.distribution?.id || null;
+    syncRoute({ push: true });
+    await loadState();
+  });
 }
 
 export function normalizeTopic(topic) {

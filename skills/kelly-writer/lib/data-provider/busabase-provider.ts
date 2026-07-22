@@ -252,9 +252,17 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
       throw error;
     },
 
-    async startTodo() {
+    async completeTodo() {
       const error: HttpError = new Error(
-        "Ideation stages (todos/main draft) are local-only. Use KELLY_WRITER_DATA_PROVIDER=local to plan, then publish to Busabase.",
+        "Completing a local todo is only available with KELLY_WRITER_DATA_PROVIDER=local.",
+      );
+      error.statusCode = 400;
+      throw error;
+    },
+
+    async requestDistribution() {
+      const error: HttpError = new Error(
+        "Moving a main draft into local distribution is only available with KELLY_WRITER_DATA_PROVIDER=local.",
       );
       error.statusCode = 400;
       throw error;
