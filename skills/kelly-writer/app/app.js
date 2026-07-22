@@ -259,7 +259,8 @@ function stageForDemo(value) {
 }
 
 export function buildRepository() {
-  const batch = state.batch || {};
+  const batch = state.batch;
+  if (!batch) return { batch: null, topics: [], todos: [], main: null, distribution: [] };
   const items = Array.isArray(batch.items) ? batch.items : [];
   const topics = normalizeTopics(batch, items);
   const todos = normalizeTodos(batch, topics);
