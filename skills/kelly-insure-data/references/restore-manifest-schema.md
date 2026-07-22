@@ -2,7 +2,7 @@
 
 The restore manifest is a portable backup description for rebuilding a Kelly Insure Data Busabase workspace after a destructive reset.
 
-It stores the workspace tree shape, Drive files, Base schemas, record values, and AI-readable asset metadata. It does not embed binary file bytes; `restore_busabase_snapshot.ts` reads those from a local backup directory.
+It stores the workspace tree shape, Drive files, Base schemas, record values, and AI-readable asset metadata. It does not embed binary file bytes; `restore_busabase_snapshot.ts` reads those from a local backup directory. `parsed_text` is never stored in file metadata; the manifest uses `text_status` to track extraction state only.
 
 ## Shape
 
@@ -13,7 +13,7 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
   "source": "busabase",
   "folder": {
     "id": "nod_...",
-    "slug": "hk-insurance-library-0630",
+    "slug": "hk-insurance-company-folders",
     "name": "港险资料库",
     "description": ""
   },
@@ -33,16 +33,52 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
         "updatedAt": "ISO timestamp",
         "assetId": "ast_...",
         "contentHash": "sha256:...",
+        "text_status": "unknown",
         "metadata": {
           "carrier": "Carrier",
           "product_name": "Product",
-          "parsed_text": "PDF text extracted by the metadata backfill parser",
           "parsed_text_chars": 1234
         }
       }
     ]
   },
   "bases": {
+    "featured": {
+      "id": "bse_...",
+      "node_id": "nod_...",
+      "slug": "featured-information",
+      "name": "资讯精选",
+      "description": "",
+      "fields": [
+        {
+          "slug": "title",
+          "name": "Title",
+          "type": "text",
+          "required": true,
+          "options": {}
+        }
+      ],
+      "records": [
+        {
+          "id": "rec_...",
+          "fields": {
+            "title": "...",
+            "content": "...",
+            "carrier": "...",
+            "published_at": "ISO timestamp"
+          }
+        }
+      ]
+    },
+    "notices": {
+      "id": "bse_...",
+      "node_id": "nod_...",
+      "slug": "insurance-news",
+      "name": "保司通知",
+      "description": "",
+      "fields": [],
+      "records": []
+    },
     "qa": {
       "id": "bse_...",
       "node_id": "nod_...",
@@ -67,15 +103,6 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
           }
         }
       ]
-    },
-    "news": {
-      "id": "bse_...",
-      "node_id": "nod_...",
-      "slug": "insurance-news",
-      "name": "新闻资讯",
-      "description": "",
-      "fields": [],
-      "records": []
     },
     "feedback": {
       "id": "bse_...",
@@ -116,8 +143,11 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
 - `--dry-run` prints the intended folder, Drive, Base, file, and record actions without mutating Busabase.
 - `--apply` creates missing nodes and writes data.
 - Local files are resolved by joining `--files-root` with each manifest file `path`.
-- Files are uploaded as assets, then attached to the Drive through a Drive ChangeRequest.
+- Files are uploaded as assets, then attached to the Drive through a Drive ChangeRequest. Metadata is sanitized before upload (`parsed_text` removed).
 - Records are restored through Base bulk ChangeRequests.
 - Existing objects are reused when their slug/id/path is already present.
+- Text slots are **not** restored from the manifest. After `--apply`, run `npm run busabase:backfill-pdf-text -- --drive-node-id <resolved-id> --files-root <local-backup> --apply` to rebuild Asset text slots from trusted local PDFs.
 
-This manifest is not a full Busabase database dump. It is scoped to the Kelly Insure Data workspace contract: one folder, one Drive, one QA Base, one News Base, and one User Feedback Base.
+The export CLI accepts `--featured-slug` and `--notices-slug`; legacy `--news-slug` is accepted as a notices alias. The restore script accepts both current `bases.notices` and legacy `bases.news` manifests.
+
+This manifest is not a full Busabase database dump. It is scoped to the Kelly Insure Data workspace contract: one folder, one Drive, one Featured Information Base, one Insurer Notices Base, one QA Base, and one User Feedback Base.

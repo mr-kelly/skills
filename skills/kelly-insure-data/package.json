@@ -11,7 +11,8 @@
     "demo:snapshot": "node scripts/generate_demo_snapshot.ts",
     "busabase:export": "node scripts/export_busabase_snapshot.ts",
     "busabase:restore": "node scripts/restore_busabase_snapshot.ts",
-    "busabase:backfill-pdf-metadata": "node scripts/backfill_pdf_metadata.ts"
+    "busabase:backfill-pdf-metadata": "node scripts/backfill_pdf_metadata.ts",
+    "busabase:backfill-pdf-text": "node scripts/backfill_pdf_metadata.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.8",

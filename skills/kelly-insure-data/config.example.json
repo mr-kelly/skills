@@ -4,10 +4,16 @@
     "base_url": "http://127.0.0.1:15419",
     "space_id": "",
     "api_key_env": "KELLY_INSURE_DATA_BUSABASE_API_KEY",
-    "drive_node_id": "your-busabase-drive-node-id",
-    "qa_base_id": "your-qa-base-id",
-    "news_base_id": "your-news-base-id",
-    "feedback_base_id": "your-feedback-base-id",
+    "drive_node_id": "",
+    "drive_node_slug": "hk-insurance-drive",
+    "featured_base_id": "",
+    "featured_base_slug": "featured-information",
+    "notices_base_id": "",
+    "notices_base_slug": "insurance-news",
+    "qa_base_id": "",
+    "qa_base_slug": "insurance-qa",
+    "feedback_base_id": "",
+    "feedback_base_slug": "user-feedback",
     "record_limit": 200
   },
   "locale": "auto",
@@ -21,18 +27,27 @@
     "qa_fields": {
       "question": "question",
       "answer": "answer",
-      "category": "category",
-      "source": "source",
-      "tags": "tags"
+      "source": "carrier",
+      "source_path": "source_path",
+      "status": "status"
     },
-    "news_fields": {
+    "featured_fields": {
       "title": "title",
-      "summary": "summary",
-      "url": "url",
-      "source": "source",
+      "summary": "content",
+      "url": "source_url",
+      "source": "carrier",
       "published_at": "published_at",
       "category": "category",
-      "tags": "tags"
+      "status": "status"
+    },
+    "notices_fields": {
+      "title": "title",
+      "summary": "content",
+      "url": "source_url",
+      "source": "carrier",
+      "published_at": "published_at",
+      "category": "category",
+      "status": "status"
     },
     "feedback_fields": {
       "title": "title",

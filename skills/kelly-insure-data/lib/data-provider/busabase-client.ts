@@ -13,10 +13,15 @@ export interface BusabaseClientMeta {
   spaceId: string;
   driveNodeId: string;
   driveNodeSlug: string;
-  qaBaseId: string;
-  qaBaseSlug: string;
+  featuredBaseId: string;
+  featuredBaseSlug: string;
+  noticesBaseId: string;
+  noticesBaseSlug: string;
+  /** Legacy aliases for the notices Base. */
   newsBaseId: string;
   newsBaseSlug: string;
+  qaBaseId: string;
+  qaBaseSlug: string;
   feedbackBaseId: string;
   feedbackBaseSlug: string;
   recordLimit: number;
@@ -50,17 +55,31 @@ function sha256(buffer: Buffer) {
 export function busabaseMeta({ envPrefix, config = {} }: BusabaseClientOptions): BusabaseClientMeta {
   const env = (name: string) => envValue(envPrefix, name);
   const apiKeyEnv = String(configValue(config, "api_key_env") || `${envPrefix}_BUSABASE_API_KEY`);
+  const noticesBaseId = String(
+    env("BUSABASE_NOTICES_BASE_ID") ||
+      configValue(config, "notices_base_id") ||
+      env("BUSABASE_NEWS_BASE_ID") ||
+      configValue(config, "news_base_id") ||
+      "",
+  );
+  const noticesBaseSlug = String(
+    configValue(config, "notices_base_slug") || configValue(config, "news_base_slug") || "insurance-news",
+  );
   return {
     baseUrl: cleanUrl(env("BUSABASE_URL") || configValue(config, "base_url") || process.env.BUSABASE_BASE_URL || ""),
     spaceId: String(env("BUSABASE_SPACE_ID") || configValue(config, "space_id") || process.env.BUSABASE_SPACE_ID || ""),
     driveNodeId: String(env("BUSABASE_DRIVE_NODE_ID") || configValue(config, "drive_node_id") || ""),
-    driveNodeSlug: String(configValue(config, "drive_node_slug") || ""),
+    driveNodeSlug: String(configValue(config, "drive_node_slug") || "hk-insurance-drive"),
+    featuredBaseId: String(env("BUSABASE_FEATURED_BASE_ID") || configValue(config, "featured_base_id") || ""),
+    featuredBaseSlug: String(configValue(config, "featured_base_slug") || "featured-information"),
+    noticesBaseId,
+    noticesBaseSlug,
+    newsBaseId: noticesBaseId,
+    newsBaseSlug: noticesBaseSlug,
     qaBaseId: String(env("BUSABASE_QA_BASE_ID") || configValue(config, "qa_base_id") || ""),
-    qaBaseSlug: String(configValue(config, "qa_base_slug") || ""),
-    newsBaseId: String(env("BUSABASE_NEWS_BASE_ID") || configValue(config, "news_base_id") || ""),
-    newsBaseSlug: String(configValue(config, "news_base_slug") || ""),
+    qaBaseSlug: String(configValue(config, "qa_base_slug") || "insurance-qa"),
     feedbackBaseId: String(env("BUSABASE_FEEDBACK_BASE_ID") || configValue(config, "feedback_base_id") || ""),
-    feedbackBaseSlug: String(configValue(config, "feedback_base_slug") || ""),
+    feedbackBaseSlug: String(configValue(config, "feedback_base_slug") || "user-feedback"),
     recordLimit: parseLimit(env("BUSABASE_RECORD_LIMIT") || configValue(config, "record_limit")),
     apiKey: process.env[apiKeyEnv] || env("BUSABASE_API_KEY") || process.env.BUSABASE_API_KEY || "",
   };
@@ -139,6 +158,14 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
 
   async function getAsset(assetId: string) {
     return api("GET", `/api/v1/assets/${encodeURIComponent(assetId)}`);
+  }
+
+  async function getAssetTextLines(assetId: string) {
+    return api("GET", `/api/v1/assets/${encodeURIComponent(assetId)}/text/lines`);
+  }
+
+  async function updateAssetText(assetId: string, text: string) {
+    return api("PUT", `/api/v1/assets/${encodeURIComponent(assetId)}/text`, { text });
   }
 
   async function updateAssetMetadata(assetId: string, metadata: AnyRecord, mode: "merge" | "replace" = "merge") {
@@ -241,6 +268,8 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
     listDriveFiles,
     getDrive,
     getAsset,
+    getAssetTextLines,
+    updateAssetText,
     updateAssetMetadata,
     listRecords,
     createNodeChangeRequest,
@@ -256,9 +285,17 @@ export function createBusabaseClient(options: BusabaseClientOptions) {
         base_url: meta.baseUrl,
         space_id: meta.spaceId || auth?.space?.id || "",
         drive_node_id: meta.driveNodeId,
+        drive_node_slug: meta.driveNodeSlug,
+        featured_base_id: meta.featuredBaseId,
+        featured_base_slug: meta.featuredBaseSlug,
+        notices_base_id: meta.noticesBaseId,
+        notices_base_slug: meta.noticesBaseSlug,
+        news_base_id: meta.noticesBaseId,
+        news_base_slug: meta.noticesBaseSlug,
         qa_base_id: meta.qaBaseId,
-        news_base_id: meta.newsBaseId,
+        qa_base_slug: meta.qaBaseSlug,
         feedback_base_id: meta.feedbackBaseId,
+        feedback_base_slug: meta.feedbackBaseSlug,
         api_key: meta.apiKey ? "configured" : "none",
       };
     },

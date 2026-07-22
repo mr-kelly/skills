@@ -1,14 +1,13 @@
 #!/usr/bin/env node
-import { createProvider } from "../lib/data-provider/index.ts";
-import { demoSnapshot } from "../lib/data-provider/local-file-provider.ts";
+import { readConfig } from "../lib/config.ts";
+import { createLocalFileProvider, demoSnapshot } from "../lib/data-provider/local-file-provider.ts";
 
-const provider = await createProvider();
+// Always use the local provider explicitly. This script must remain offline even
+// when config.local.json selects the Busabase provider.
+const configResult = await readConfig();
+const provider = createLocalFileProvider(configResult);
 const snapshot = demoSnapshot() as unknown as Record<string, unknown>;
 snapshot.generated_at = new Date().toISOString();
 
-if (!provider.writeSnapshot) {
-  throw new Error(`Provider "${provider.name}" cannot write snapshots.`);
-}
-
 const result = await provider.writeSnapshot(snapshot);
-console.log(`Wrote demo insurance snapshot via "${provider.name}" provider: ${JSON.stringify(result)}`);
+console.log(`Wrote demo insurance snapshot via explicit local provider: ${JSON.stringify(result)}`);

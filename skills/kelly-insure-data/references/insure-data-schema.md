@@ -13,23 +13,29 @@ This schema powers the local UI for insurance data entry and governance.
   "source": "local|busabase",
   "drive": {
     "node_id": "Busabase Drive node id",
-    "name": "文件盘",
-    "slug": "optional slug",
+    "name": "港险资料库",
+    "slug": "hk-insurance-drive",
     "metadata": {},
     "metadata_fields": [{ "key": "owner", "value": "Kelly" }]
   },
   "bases": {
+    "featured": {
+      "base_id": "bse_...",
+      "name": "资讯精选",
+      "slug": "featured-information",
+      "fields": [{ "key": "title", "value": "Title (text)" }]
+    },
+    "notices": {
+      "base_id": "bse_...",
+      "name": "保司通知",
+      "slug": "insurance-news",
+      "fields": [{ "key": "title", "value": "Title (text)" }]
+    },
     "qa": {
       "base_id": "bse_...",
       "name": "问答",
       "slug": "insurance-qa",
       "fields": [{ "key": "question", "value": "Question (text)" }]
-    },
-    "news": {
-      "base_id": "bse_...",
-      "name": "新闻资讯",
-      "slug": "insurance-news",
-      "fields": [{ "key": "title", "value": "Title (text)" }]
     },
     "feedback": {
       "base_id": "bse_...",
@@ -42,6 +48,8 @@ This schema powers the local UI for insurance data entry and governance.
     "file_count": 0,
     "metadata_field_count": 0,
     "qa_count": 0,
+    "featured_count": 0,
+    "notice_count": 0,
     "news_count": 0,
     "feedback_count": 0,
     "total_records": 0,
@@ -51,10 +59,14 @@ This schema powers the local UI for insurance data entry and governance.
   "files": [],
   "qa_pairs": [],
   "news_items": [],
+  "featured_items": [],
+  "notice_items": [],
   "feedback_items": [],
   "warnings": []
 }
 ```
+
+`news_items` is the ordered union of `featured_items` and `notice_items`. Every item carries `collection: "featured" | "notice"`. `news_count` is their total.
 
 ## File Item
 
@@ -80,33 +92,31 @@ Required:
 - `id`
 - `question`
 - `answer`
-- `category`
-- `source`
-- `tags`
+- `carrier` (mapped from `source`)
 - `updated_at`
 - `status`
 - `fields`
 - `governance`
 
-The QA pair corresponds to one record in the configured QA Base.
+The QA pair corresponds to one record in the configured QA Base. Raw `source_path` is preserved in `fields`.
 
-## News Item
+## News Item (Featured Information / Insurer Notices)
 
 Required:
 
 - `id`
+- `collection` (`"featured"` or `"notice"`)
 - `title`
-- `summary`
-- `url`
-- `source`
+- `summary` (mapped from `content`)
+- `url` (mapped from `source_url`)
+- `source` (mapped from `carrier`)
 - `published_at`
 - `category`
-- `tags`
 - `status`
 - `fields`
 - `governance`
 
-The news item corresponds to one record in the configured news Base.
+Both Featured Information (`featured-information`) and Insurer Notices (`insurance-news`) share the same canonical Busabase fields: `title`, `content`, `source_url`, `published_at`, `carrier`, `status`, `content_html`, `content_type` (`information`/`knowledge`), `category`, `attachments`, `lifebee_key`. Only `title` is required for governance scoring; `summary`, `source`, and `tags` are not required fields in the actual Bases.
 
 ## Feedback Item
 
@@ -143,3 +153,12 @@ Every record-like item should carry:
 ```
 
 Use `missing_fields` to drive UI attention. Use `status` values such as `active`, `draft`, `review`, `needs_metadata`, `needs_review`, or a source-specific status string.
+
+## Asset text
+
+PDF binary reads yield no extracted body and PDFs have no companion `.meta` file. Full extracted text belongs only in the Asset text slot:
+
+- Write: `PUT /api/v1/assets/{assetId}/text` with `{ "text": "..." }`
+- Read: `GET /api/v1/assets/{assetId}/text/lines`
+
+`Asset.metadata` may contain parser facts, `parsed_text_chars`, a short `extraction_summary`, source details, and structured governance fields. It must never contain `parsed_text` or the full body.

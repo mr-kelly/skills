@@ -39,8 +39,8 @@ function governance(fields: Record<string, unknown>, requiredFields: string[]) {
 
 export function demoSnapshot(): InsureSnapshot {
   const fileRequired = ["policy_type", "carrier", "region", "effective_date", "status"];
-  const qaRequired = ["question", "answer", "category", "source"];
-  const newsRequired = ["title", "summary", "source", "published_at"];
+  const qaRequired = ["question", "answer", "carrier"];
+  const newsRequired = ["title"];
   const feedbackRequired = ["title", "content", "source", "created_at", "status"];
   const files = [
     {
@@ -146,21 +146,24 @@ export function demoSnapshot(): InsureSnapshot {
       status: "review",
       fields: {},
     },
-  ].map((item) => ({
-    ...item,
-    fields: {
+  ].map((item) => {
+    const fields = {
       question: item.question,
       answer: item.answer,
-      category: item.category,
-      source: item.source,
-      tags: item.tags,
+      carrier: item.source,
+      source_path: item.source,
       status: item.status,
-    },
-    governance: governance(item, qaRequired),
-  }));
+    };
+    return {
+      ...item,
+      fields,
+      governance: governance(fields, qaRequired),
+    };
+  });
   const newsItems = [
     {
       id: "news-ai-underwriting",
+      collection: "featured" as const,
       title: "Insurers expand AI-assisted underwriting pilots",
       summary:
         "Several carriers are testing AI triage for non-binding underwriting review, with human sign-off retained for final decisions.",
@@ -174,6 +177,7 @@ export function demoSnapshot(): InsureSnapshot {
     },
     {
       id: "news-cat-risk",
+      collection: "featured" as const,
       title: "Catastrophe risk models add new regional flood layers",
       summary:
         "Model vendors are adding more granular flood and urban drainage assumptions after recent extreme rainfall events.",
@@ -187,6 +191,7 @@ export function demoSnapshot(): InsureSnapshot {
     },
     {
       id: "news-health-claims",
+      collection: "notice" as const,
       title: "Health claim automation focuses on document completeness",
       summary:
         "New automation efforts are prioritizing missing-document detection before adjudication to reduce claim cycle time.",
@@ -198,20 +203,28 @@ export function demoSnapshot(): InsureSnapshot {
       status: "active",
       fields: {},
     },
-  ].map((item) => ({
-    ...item,
-    fields: {
+  ].map((item) => {
+    const fields = {
       title: item.title,
-      summary: item.summary,
-      url: item.url,
-      source: item.source,
+      content: item.summary,
+      source_url: item.url,
       published_at: item.published_at,
-      category: item.category,
-      tags: item.tags,
+      carrier: item.source,
       status: item.status,
-    },
-    governance: governance(item, newsRequired),
-  }));
+      content_html: "",
+      content_type: item.collection === "featured" ? "information" : "knowledge",
+      category: item.category,
+      attachments: [],
+      lifebee_key: item.id,
+    };
+    return {
+      ...item,
+      fields,
+      governance: governance(fields, newsRequired),
+    };
+  });
+  const featuredItems = newsItems.filter((item) => item.collection === "featured");
+  const noticeItems = newsItems.filter((item) => item.collection === "notice");
   const feedbackItems = [
     {
       id: "feedback-brochure-clarity",
@@ -266,9 +279,9 @@ export function demoSnapshot(): InsureSnapshot {
     generated_at: new Date().toISOString(),
     source: "kelly-insure-data-demo",
     drive: {
-      node_id: "drv_demo_insure_files",
-      name: "保险文件盘",
-      slug: "insurance-drive",
+      node_id: "",
+      name: "港险资料库",
+      slug: "hk-insurance-drive",
       metadata: {
         owner: "Kelly",
         purpose: "Policy documents, product brochures, claims guides, and underwriting notes",
@@ -283,26 +296,52 @@ export function demoSnapshot(): InsureSnapshot {
       ],
     },
     bases: {
+      featured: {
+        base_id: "bse_demo_featured",
+        name: "资讯精选",
+        slug: "featured-information",
+        fields: [
+          { key: "title", value: "text (required)" },
+          { key: "content", value: "longtext" },
+          { key: "source_url", value: "url" },
+          { key: "published_at", value: "date" },
+          { key: "carrier", value: "text" },
+          { key: "status", value: "text" },
+          { key: "content_html", value: "html" },
+          { key: "content_type", value: "select (information/knowledge)" },
+          { key: "category", value: "text" },
+          { key: "attachments", value: "attachment" },
+          { key: "lifebee_key", value: "text" },
+        ],
+      },
+      notices: {
+        base_id: "bse_demo_notices",
+        name: "保司通知",
+        slug: "insurance-news",
+        fields: [
+          { key: "title", value: "text (required)" },
+          { key: "content", value: "longtext" },
+          { key: "source_url", value: "url" },
+          { key: "published_at", value: "date" },
+          { key: "carrier", value: "text" },
+          { key: "status", value: "text" },
+          { key: "content_html", value: "html" },
+          { key: "content_type", value: "select (information/knowledge)" },
+          { key: "category", value: "text" },
+          { key: "attachments", value: "attachment" },
+          { key: "lifebee_key", value: "text" },
+        ],
+      },
       qa: {
         base_id: "bse_demo_qa",
-        name: "保险问答",
+        name: "问答",
         slug: "insurance-qa",
         fields: [
           { key: "question", value: "text" },
           { key: "answer", value: "longtext" },
-          { key: "category", value: "select" },
-          { key: "tags", value: "multiselect" },
-        ],
-      },
-      news: {
-        base_id: "bse_demo_news",
-        name: "新闻资讯",
-        slug: "insurance-news",
-        fields: [
-          { key: "title", value: "text" },
-          { key: "summary", value: "longtext" },
-          { key: "url", value: "url" },
-          { key: "published_at", value: "date" },
+          { key: "carrier", value: "text" },
+          { key: "source_path", value: "text" },
+          { key: "status", value: "text" },
         ],
       },
       feedback: {
@@ -322,6 +361,8 @@ export function demoSnapshot(): InsureSnapshot {
       file_count: files.length,
       metadata_field_count: 4,
       qa_count: qaPairs.length,
+      featured_count: featuredItems.length,
+      notice_count: noticeItems.length,
       news_count: newsItems.length,
       feedback_count: feedbackItems.length,
       total_records: governed.length,
@@ -335,9 +376,47 @@ export function demoSnapshot(): InsureSnapshot {
     files,
     qa_pairs: qaPairs,
     news_items: newsItems,
+    featured_items: featuredItems,
+    notice_items: noticeItems,
     feedback_items: feedbackItems,
     warnings: [],
   };
+}
+
+function normalizeLocalSnapshot(snapshot: InsureSnapshot | Record<string, unknown>): InsureSnapshot {
+  const value = snapshot as Record<string, any>;
+  value.bases ||= {};
+  value.bases.featured ||= {
+    base_id: "",
+    name: "资讯精选",
+    slug: "featured-information",
+    fields: [],
+  };
+  value.bases.notices ||= value.bases.news || {
+    base_id: "",
+    name: "保司通知",
+    slug: "insurance-news",
+    fields: [],
+  };
+
+  const newsItems = Array.isArray(value.news_items)
+    ? value.news_items.map((item: Record<string, unknown>) => ({
+        ...item,
+        collection: item.collection === "featured" ? "featured" : "notice",
+      }))
+    : [];
+  value.news_items = newsItems;
+  value.featured_items = Array.isArray(value.featured_items)
+    ? value.featured_items
+    : newsItems.filter((item: Record<string, unknown>) => item.collection === "featured");
+  value.notice_items = Array.isArray(value.notice_items)
+    ? value.notice_items
+    : newsItems.filter((item: Record<string, unknown>) => item.collection === "notice");
+  value.metrics ||= {};
+  value.metrics.featured_count ??= value.featured_items.length;
+  value.metrics.notice_count ??= value.notice_items.length;
+  value.metrics.news_count ??= newsItems.length;
+  return value as InsureSnapshot;
 }
 
 export function createLocalFileProvider(configResult: ConfigResult) {
@@ -357,7 +436,8 @@ export function createLocalFileProvider(configResult: ConfigResult) {
     name: "local",
 
     async readSnapshot(): Promise<InsureSnapshot> {
-      return (await readJson<InsureSnapshot>(SNAPSHOT_PATH, demoSnapshot())) as InsureSnapshot;
+      const snapshot = await readJson<InsureSnapshot | Record<string, unknown>>(SNAPSHOT_PATH, demoSnapshot());
+      return normalizeLocalSnapshot(snapshot || demoSnapshot());
     },
 
     async getState(): Promise<InsureState> {
@@ -414,6 +494,8 @@ export function createLocalFileProvider(configResult: ConfigResult) {
       const metrics = typedSnapshot.metrics || {
         file_count: 0,
         qa_count: 0,
+        featured_count: 0,
+        notice_count: 0,
         news_count: 0,
         feedback_count: 0,
       };
@@ -422,6 +504,8 @@ export function createLocalFileProvider(configResult: ConfigResult) {
         path: SNAPSHOT_PATH,
         file_count: metrics.file_count || 0,
         qa_count: metrics.qa_count || 0,
+        featured_count: metrics.featured_count || 0,
+        notice_count: metrics.notice_count || 0,
         news_count: metrics.news_count || 0,
         feedback_count: metrics.feedback_count || 0,
       };

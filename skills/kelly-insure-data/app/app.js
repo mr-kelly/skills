@@ -263,7 +263,7 @@ function renderOverview() {
       ${metricCard(t("qualityScore"), `${qualityScore()}`, `${m.needs_governance || 0} ${t("needsGovernance")}`)}
       ${metricCard(t("files"), m.file_count || 0, `${m.metadata_field_count || 0} ${t("metadataFields")}`)}
       ${metricCard(t("qa"), m.qa_count || 0, "Base")}
-      ${metricCard(t("news"), m.news_count || 0, "Base")}
+      ${metricCard(t("news"), m.news_count || 0, `${m.featured_count || 0} ${t("featured")} · ${m.notice_count || 0} ${t("notices")}`)}
       ${metricCard(t("feedback"), m.feedback_count || 0, "Base")}
       ${metricCard(t("totalRecords"), m.total_records || 0, state.settings?.data_provider || "")}
     </section>
@@ -438,13 +438,18 @@ function renderQa() {
 }
 
 function renderNews() {
+  const items = (state.snapshot?.news_items || []).map((item) => ({
+    ...item,
+    collection_label: `${item.collection === "featured" ? t("featured") : t("notices")} · ${item.source || ""}`,
+  }));
   renderListDetail({
     view: "news",
-    items: state.snapshot?.news_items || [],
+    items,
     idKey: "id",
     titleKey: "title",
-    subtitleKey: "source",
-    meta: (item) => `${item.category || t("category")} · ${formatDate(item.published_at)}`,
+    subtitleKey: "collection_label",
+    meta: (item) =>
+      `${item.collection === "featured" ? t("featured") : t("notices")} · ${item.category || t("category")} · ${formatDate(item.published_at)}`,
     detail: (item) => `
       <section class="detail-section">
         <h3>${escapeHtml(t("summary"))}</h3>
@@ -513,10 +518,11 @@ function renderSettings() {
           [t("dataProvider")]: state.settings?.data_provider || "",
           base_url: summary.busabase?.base_url || "",
           space_id: summary.busabase?.space_id || "",
-          drive_node_id: summary.busabase?.drive_node_id || "",
-          qa_base_id: summary.busabase?.qa_base_id || "",
-          news_base_id: summary.busabase?.news_base_id || "",
-          feedback_base_id: summary.busabase?.feedback_base_id || "",
+          drive: `${summary.busabase?.drive_node_id || ""} · ${summary.busabase?.drive_node_slug || ""}`,
+          featured: `${summary.busabase?.featured_base_id || ""} · ${summary.busabase?.featured_base_slug || ""}`,
+          notices: `${summary.busabase?.notices_base_id || ""} · ${summary.busabase?.notices_base_slug || ""}`,
+          qa: `${summary.busabase?.qa_base_id || ""} · ${summary.busabase?.qa_base_slug || ""}`,
+          feedback: `${summary.busabase?.feedback_base_id || ""} · ${summary.busabase?.feedback_base_slug || ""}`,
           [t("recordLimit")]: summary.busabase?.record_limit || "",
           [t("apiKeyReady")]: summary.busabase?.api_key_ready ? "yes" : "no",
         })}
@@ -527,10 +533,12 @@ function renderSettings() {
       </article>
       <article class="settings-card">
         <h2>${escapeHtml(t("baseFields"))}</h2>
+        <h3>${escapeHtml(t("featured"))}</h3>
+        ${fieldTable(state.snapshot?.bases?.featured?.fields || [])}
+        <h3>${escapeHtml(t("notices"))}</h3>
+        ${fieldTable(state.snapshot?.bases?.notices?.fields || [])}
         <h3>${escapeHtml(t("qa"))}</h3>
         ${fieldTable(state.snapshot?.bases?.qa?.fields || [])}
-        <h3>${escapeHtml(t("news"))}</h3>
-        ${fieldTable(state.snapshot?.bases?.news?.fields || [])}
         <h3>${escapeHtml(t("feedback"))}</h3>
         ${fieldTable(state.snapshot?.bases?.feedback?.fields || [])}
       </article>
