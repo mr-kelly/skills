@@ -114,8 +114,12 @@ export function summarizeConfig(configResult: ConfigResult): ConfigSummary {
   const config = configResult.config || {};
   const busa = config.busabase || {};
   const apiKeyEnv = busa.api_key_env || "KELLY_INSURE_DATA_BUSABASE_API_KEY";
-  const noticesId = process.env.KELLY_INSURE_DATA_BUSABASE_NOTICES_BASE_ID ||
-    busa.notices_base_id || process.env.KELLY_INSURE_DATA_BUSABASE_NEWS_BASE_ID || busa.news_base_id || "";
+  const noticesId =
+    process.env.KELLY_INSURE_DATA_BUSABASE_NOTICES_BASE_ID ||
+    busa.notices_base_id ||
+    process.env.KELLY_INSURE_DATA_BUSABASE_NEWS_BASE_ID ||
+    busa.news_base_id ||
+    "";
   const noticesSlug = configured(busa.notices_base_slug || busa.news_base_slug, "insurance-news");
   return {
     config_path: configResult.path,

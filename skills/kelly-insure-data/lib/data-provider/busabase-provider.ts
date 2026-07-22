@@ -95,11 +95,7 @@ function normalizeQa(record: AnyRecord, mapping: FieldMapping): QaPair {
   };
 }
 
-function normalizeNews(
-  record: AnyRecord,
-  mapping: FieldMapping,
-  collection: "featured" | "notice",
-): NewsItem {
+function normalizeNews(record: AnyRecord, mapping: FieldMapping, collection: "featured" | "notice"): NewsItem {
   const fields = fieldsOf(record);
   const required = [mapping.title].filter(Boolean) as string[];
   return {
