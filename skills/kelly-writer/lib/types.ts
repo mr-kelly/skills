@@ -1,4 +1,4 @@
-// Shared types for the kelly-content data-provider layer and scripts. These
+// Shared types for the kelly-writer data-provider layer and scripts. These
 // model the ACTUAL shapes flowing through lib/data-provider/*.ts and the batch
 // scripts — a content-review workflow (batch -> items -> decisions -> export).
 

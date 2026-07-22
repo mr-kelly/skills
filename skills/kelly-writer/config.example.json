@@ -3,7 +3,7 @@
   "busabase": {
     "base_url": "http://127.0.0.1:3000",
     "base_id": "REPLACE_WITH_BUSABASE_BASE_ID",
-    "api_key_env": "KELLY_CONTENT_BUSABASE_API_KEY",
+    "api_key_env": "KELLY_WRITER_BUSABASE_API_KEY",
     "_note": "Content fields (title, body, channel, summary, format, cta, hashtags, media_brief, hook) map to a Busabase record commit's fields. Drafts become change requests; approve->review, edits->operation revisions, publish->merge. The open-source single-tenant apps/busabase needs no api key; only busabase-cloud does."
   },
   "brand": {

@@ -4,12 +4,12 @@
 // mapping layer, not a backend. Content fields (title/body/channel/...) live in
 // a Busabase record's commit `fields`; an agent draft is a change_request, the
 // human verdict is a review, an edit is an operation revision, publishing is a
-// merge. The change-request status maps back onto kelly-content's workflow
+// merge. The change-request status maps back onto kelly-writer's workflow
 // statuses so the UI is identical to local mode.
 //
 // Config (config.busabase, env overrides win):
-//   base_url      KELLY_CONTENT_BUSABASE_URL       e.g. http://127.0.0.1:3000
-//   base_id       KELLY_CONTENT_BUSABASE_BASE_ID   the target Busabase base
+//   base_url      KELLY_WRITER_BUSABASE_URL       e.g. http://127.0.0.1:3000
+//   base_id       KELLY_WRITER_BUSABASE_BASE_ID   the target Busabase base
 //   api_key_env   -> reads that env var as a Bearer token (cloud/multi-tenant)
 //
 // The open-source single-tenant `apps/busabase` needs no token; a token is only
@@ -30,17 +30,22 @@ const CONTENT_FIELD_KEYS = ["title", "body", "channel", "summary", "format", "ct
 
 export function createBusabaseProvider(meta: ProviderMeta = {}) {
   const busa = meta.config?.busabase || {};
-  const baseUrl = (process.env.KELLY_CONTENT_BUSABASE_URL || busa.base_url || "").replace(/\/$/, "");
-  const baseId = process.env.KELLY_CONTENT_BUSABASE_BASE_ID || busa.base_id || "";
-  const apiKey = busa.api_key_env
-    ? process.env[busa.api_key_env] || process.env.KELLY_CONTENT_BUSABASE_API_KEY || ""
-    : process.env.KELLY_CONTENT_BUSABASE_API_KEY || "";
+  const baseUrl = (
+    process.env.KELLY_WRITER_BUSABASE_URL ||
+    process.env.KELLY_CONTENT_BUSABASE_URL ||
+    busa.base_url ||
+    ""
+  ).replace(/\/$/, "");
+  const baseId =
+    process.env.KELLY_WRITER_BUSABASE_BASE_ID || process.env.KELLY_CONTENT_BUSABASE_BASE_ID || busa.base_id || "";
+  const fallbackApiKey = process.env.KELLY_WRITER_BUSABASE_API_KEY || process.env.KELLY_CONTENT_BUSABASE_API_KEY || "";
+  const apiKey = busa.api_key_env ? process.env[busa.api_key_env] || fallbackApiKey : fallbackApiKey;
 
   function requireConfig() {
     if (!baseUrl || !baseId) {
       throw new Error(
         "Busabase provider needs base_url and base_id. Set config.busabase.{base_url,base_id} " +
-          "or KELLY_CONTENT_BUSABASE_URL / KELLY_CONTENT_BUSABASE_BASE_ID.",
+          "or KELLY_WRITER_BUSABASE_URL / KELLY_WRITER_BUSABASE_BASE_ID.",
       );
     }
   }
@@ -176,7 +181,7 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
       if (action === "approve") {
         if (edited && op) {
           await api("POST", `/api/v1/operations/${encodeURIComponent(op.id)}/revisions`, {
-            payload: { fields: nextFields, message: "Edited before approval", author: "kelly-content" },
+            payload: { fields: nextFields, message: "Edited before approval", author: "kelly-writer" },
           });
         }
         await api("POST", `/api/v1/change-requests/${encodeURIComponent(payload.id)}/reviews`, {
@@ -185,7 +190,7 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
       } else if (action === "revise") {
         if (!op) throw new Error("change request has no operation to revise");
         await api("POST", `/api/v1/operations/${encodeURIComponent(op.id)}/revisions`, {
-          payload: { fields: nextFields, message: payload.comment || "Saved edits", author: "kelly-content" },
+          payload: { fields: nextFields, message: payload.comment || "Saved edits", author: "kelly-writer" },
         });
       } else if (action === "request_changes") {
         await api("POST", `/api/v1/change-requests/${encodeURIComponent(payload.id)}/reviews`, {
@@ -210,7 +215,7 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
           payload: {
             fields: pickFields(item),
             message: `Draft for ${item.channel || "content"}`,
-            submittedBy: "kelly-content",
+            submittedBy: "kelly-writer",
           },
         });
         created.push({ item_id: item.id, change_request_id: cr?.id || null });
@@ -241,7 +246,7 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
 
     async confirmDirection() {
       const error: HttpError = new Error(
-        "Ideation stages (topics/directions) are local-only. Use KELLY_CONTENT_DATA_PROVIDER=local to plan, then publish to Busabase.",
+        "Ideation stages (topics/directions) are local-only. Use KELLY_WRITER_DATA_PROVIDER=local to plan, then publish to Busabase.",
       );
       error.statusCode = 400;
       throw error;
@@ -249,7 +254,7 @@ export function createBusabaseProvider(meta: ProviderMeta = {}) {
 
     async startTodo() {
       const error: HttpError = new Error(
-        "Ideation stages (todos/main draft) are local-only. Use KELLY_CONTENT_DATA_PROVIDER=local to plan, then publish to Busabase.",
+        "Ideation stages (todos/main draft) are local-only. Use KELLY_WRITER_DATA_PROVIDER=local to plan, then publish to Busabase.",
       );
       error.statusCode = 400;
       throw error;

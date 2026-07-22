@@ -4,16 +4,22 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Context, Hono } from "hono";
 
-const SKILL_NAME = "kelly-content";
-const ENV_PREFIX = "KELLY_CONTENT";
+const SKILL_NAME = "kelly-writer";
+const ENV_PREFIX = "KELLY_WRITER";
+const LEGACY_ENV_PREFIX = "KELLY_CONTENT";
 const HAS_BUSABASE = true;
 const appDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const skillDir = path.resolve(appDir, "..");
 const localConfigPath = path.join(skillDir, "config.local.json");
 const userConfigPath = path.join(os.homedir(), ".config", SKILL_NAME, "config.json");
+const legacyUserConfigPath = path.join(os.homedir(), ".config", "kelly-content", "config.json");
 const onboardingPath = path.join(appDir, ".data", "onboarding.json");
 
 type JsonObject = Record<string, unknown>;
+
+function env(suffix: string): string | undefined {
+  return process.env[`${ENV_PREFIX}_${suffix}`] || process.env[`${LEGACY_ENV_PREFIX}_${suffix}`];
+}
 
 async function readObject(filePath: string): Promise<JsonObject | null> {
   try {
@@ -25,8 +31,8 @@ async function readObject(filePath: string): Promise<JsonObject | null> {
 }
 
 async function selectedConfig(): Promise<{ config: JsonObject | null; path: string | null }> {
-  const explicit = process.env[`${ENV_PREFIX}_CONFIG`];
-  for (const candidate of [explicit, localConfigPath, userConfigPath]) {
+  const explicit = env("CONFIG");
+  for (const candidate of [explicit, localConfigPath, userConfigPath, legacyUserConfigPath]) {
     if (!candidate) continue;
     const config = await readObject(candidate);
     if (config) return { config, path: candidate };
@@ -35,7 +41,7 @@ async function selectedConfig(): Promise<{ config: JsonObject | null; path: stri
 }
 
 function providerFrom(config: JsonObject | null): { provider: string; selected: boolean; envLocked: boolean } {
-  const envValue = String(process.env[`${ENV_PREFIX}_DATA_PROVIDER`] || "")
+  const envValue = String(env("DATA_PROVIDER") || "")
     .trim()
     .toLowerCase();
   if (envValue) return { provider: envValue, selected: true, envLocked: true };
@@ -61,7 +67,7 @@ async function setupPayload(demo = false): Promise<JsonObject> {
   const busabase = (selected.config?.busabase || {}) as JsonObject;
   const hosting = String(busabase.hosting || "hosted");
   const apiKeyEnv = `${ENV_PREFIX}_BUSABASE_API_KEY`;
-  const secretReady = Boolean(process.env[apiKeyEnv]);
+  const secretReady = Boolean(env("BUSABASE_API_KEY"));
   const needsSecret = provider.provider === "busabase" && hosting !== "self_hosted" && !secretReady;
   return {
     provider_selected: provider.selected,
@@ -76,8 +82,8 @@ async function setupPayload(demo = false): Promise<JsonObject> {
     missing_env: needsSecret ? [apiKeyEnv] : [],
     busabase: {
       hosting,
-      base_url: String(process.env[`${ENV_PREFIX}_BUSABASE_URL`] || busabase.base_url || ""),
-      space_id: String(process.env[`${ENV_PREFIX}_BUSABASE_SPACE_ID`] || busabase.space_id || ""),
+      base_url: String(env("BUSABASE_URL") || busabase.base_url || ""),
+      space_id: String(env("BUSABASE_SPACE_ID") || busabase.space_id || ""),
       api_key_env: apiKeyEnv,
       api_key_configured: secretReady,
     },
@@ -119,7 +125,7 @@ export function installSetup(app: Hono): void {
   );
 
   app.post("/api/setup/provider", async (c) => {
-    if (process.env[`${ENV_PREFIX}_DATA_PROVIDER`]) {
+    if (env("DATA_PROVIDER")) {
       return c.json({ error: "provider_is_locked_by_environment" }, 409);
     }
     const body = (await c.req.json().catch(() => ({}))) as JsonObject;

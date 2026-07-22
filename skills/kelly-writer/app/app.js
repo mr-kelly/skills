@@ -10,7 +10,7 @@ import {
 } from "./js/editorial-views.js";
 
 const params = new URLSearchParams(window.location.search);
-const LANGUAGE_STORAGE_KEY = "kelly-content.uiLanguage";
+const LANGUAGE_STORAGE_KEY = "kelly-writer.uiLanguage";
 let languageMode = normalizeLanguageMode(params.get("lang") || localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto");
 const language = resolveLanguage();
 const demoScenario = params.get("demo") || "";
@@ -70,7 +70,7 @@ let editing = false;
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
 let lastAppliedHash = "";
-const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-content.sidebarCollapsed";
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-writer.sidebarCollapsed";
 
 export const els = {
   stageNav: document.querySelector("#stageNav"),
@@ -271,7 +271,7 @@ export function buildRepository() {
 function normalizeTopics(batch, items) {
   if (Array.isArray(batch.topics) && batch.topics.length) return batch.topics.map(normalizeTopic);
   const idea = batch.canonical_idea || batch.source_summary || "Turn one source idea into a durable content system.";
-  const source = batch.source === "kelly-content" ? "system" : "preset";
+  const source = batch.source === "kelly-writer" ? "system" : "preset";
   return [
     {
       id: "topic-main",
@@ -434,7 +434,7 @@ function normalizeDistribution(batch, items) {
     id: item.id || `dist-${index + 1}`,
     channel: normalizeChannel(item.channel),
     status: itemStatus(item),
-    owner: item.owner || "Kelly Content",
+    owner: item.owner || "Kelly Writer",
     readiness: readinessFor(itemStatus(item)),
     title: item.title || `${item.channel || "Channel"} draft`,
     body: item.body || "",

@@ -1,7 +1,7 @@
 // The data-provider interface + consistency guard for kelly-audit.
 //
 // kelly-audit's unit of work — an audit anomaly moving through review-before-
-// execute — is the same review model kelly-content and Busabase share. Every
+// execute — is the same review model kelly-writer and Busabase share. Every
 // provider (local-file default, Busabase remote, future backends) implements
 // this one shape, so hono.ts and scripts/*.ts get a provider from
 // createProvider() and use it without knowing the backend.

@@ -2,16 +2,16 @@ import { createHash } from "node:crypto";
 
 export const BUSABASE_SCHEMA = {
   provider: "busabase",
-  schema_id: "kelly-content.storage",
+  schema_id: "kelly-writer.storage",
   schema_version: "1",
   folder: {
-    default_slug: "kelly-content-workspace",
+    default_slug: "kelly-writer-workspace",
     children: ["base", "drive"],
   },
   base: {
-    id: "kelly-content",
-    slug: "kelly-content",
-    name: "Kelly Content Records",
+    id: "kelly-writer",
+    slug: "kelly-writer",
+    name: "Kelly Writer Records",
     fields: [
       "record_id",
       "kind",
@@ -27,8 +27,8 @@ export const BUSABASE_SCHEMA = {
   },
   related_bases: [],
   drive: {
-    id: "kelly-content-files",
-    slug: "kelly-content-workspace-files",
+    id: "kelly-writer-files",
+    slug: "kelly-writer-workspace-files",
     config_files: ["config/config.json"],
     state_files: ["state/schema.json", "state/lock.json", "state/scan_state.json"],
     compat_files: ["state/current_batch.json", "state/decisions.json"],
@@ -39,7 +39,7 @@ export const BUSABASE_SCHEMA = {
     use_for: ["long_form_drafts", "canonical_documents"],
   },
   secrets: {
-    namespace: "kelly-content",
+    namespace: "kelly-writer",
     provider: "busabase-vault",
     refs: ["BUSABASE_API_KEY"],
   },

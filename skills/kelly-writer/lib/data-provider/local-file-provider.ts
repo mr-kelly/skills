@@ -2,7 +2,7 @@
 //
 // State lives in app/.cache/ as JSON handoff files. This provider is the
 // offline reference implementation of the same review model Busabase serves
-// remotely, so KELLY_CONTENT_DATA_PROVIDER=local|busabase is a config switch,
+// remotely, so KELLY_WRITER_DATA_PROVIDER=local|busabase is a config switch,
 // not a rewrite of the UI or scripts.
 
 import fs from "node:fs/promises";
@@ -38,9 +38,11 @@ export function createLocalFileProvider(meta: ProviderMeta = {}) {
         config_source: meta.source || null,
         publishing_connectors: "disabled",
         config_paths: [
-          "KELLY_CONTENT_CONFIG",
-          "skills/kelly-content/config.local.json",
-          "~/.config/kelly-content/config.json",
+          "KELLY_WRITER_CONFIG",
+          "skills/kelly-writer/config.local.json",
+          "~/.config/kelly-writer/config.json",
+          "KELLY_CONTENT_CONFIG (legacy)",
+          "~/.config/kelly-content/config.json (legacy)",
         ],
       };
     },

@@ -1,12 +1,12 @@
-// Data-provider selector for kelly-content.
+// Data-provider selector for kelly-writer.
 //
-// kelly-content is an App-in-Skill whose unit of work — a content piece under
+// kelly-writer is an App-in-Skill whose unit of work — a content piece under
 // review-before-publish — maps cleanly onto Busabase's review model
 // (record + change_request + operation + commit + review + merge). This module
 // lets the same UI and scripts run against either backend:
 //
-//   KELLY_CONTENT_DATA_PROVIDER=local     (default) JSON files in app/.cache/
-//   KELLY_CONTENT_DATA_PROVIDER=busabase  HTTP client to a Busabase base
+//   KELLY_WRITER_DATA_PROVIDER=local     (default) JSON files in app/.cache/
+//   KELLY_WRITER_DATA_PROVIDER=busabase  HTTP client to a Busabase base
 //
 // Both implement the same ReviewProvider interface (review vocabulary):
 //   getState()                  -> { batch, decisions, lock, config_summary }
@@ -38,8 +38,10 @@ export const DECISION_ACTIONS = ["approve", "revise", "request_changes", "block"
 
 function configCandidates() {
   return [
+    process.env.KELLY_WRITER_CONFIG,
     process.env.KELLY_CONTENT_CONFIG,
     path.join(skillDir, "config.local.json"),
+    path.join(os.homedir(), ".config", "kelly-writer", "config.json"),
     path.join(os.homedir(), ".config", "kelly-content", "config.json"),
     path.join(skillDir, "config.example.json"),
   ].filter(Boolean);
@@ -58,7 +60,12 @@ async function loadConfig() {
 }
 
 export function resolveProviderKind(config: Config = {}) {
-  return String(process.env.KELLY_CONTENT_DATA_PROVIDER || config.data_provider || "local").toLowerCase();
+  return String(
+    process.env.KELLY_WRITER_DATA_PROVIDER ||
+      process.env.KELLY_CONTENT_DATA_PROVIDER ||
+      config.data_provider ||
+      "local",
+  ).toLowerCase();
 }
 
 export async function createProvider() {
@@ -66,5 +73,5 @@ export async function createProvider() {
   const kind = resolveProviderKind(meta.config);
   if (kind === "local") return assertProvider("local", createLocalFileProvider(meta));
   if (kind === "busabase") return assertProvider("busabase", createBusabaseProvider(meta));
-  throw new Error(`Unknown KELLY_CONTENT_DATA_PROVIDER: "${kind}" (expected "local" or "busabase")`);
+  throw new Error(`Unknown KELLY_WRITER_DATA_PROVIDER: "${kind}" (expected "local" or "busabase")`);
 }

@@ -45,7 +45,7 @@ export async function readActiveLock() {
 export async function withLock(message, fn) {
   await ensureDirs();
   await writeJson(lockPath, {
-    owner: "kelly-content",
+    owner: "kelly-writer",
     message,
     started_at: new Date().toISOString(),
   });

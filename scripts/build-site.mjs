@@ -729,16 +729,11 @@ async function main() {
     .filter((d) => d.isDirectory())
     .map((d) => d.name);
 
-  // Display-name → folder mapping (kelly-writer lives in skills/kelly-content).
-  const folderFor = (name) => (dirs.includes(name) ? name : name === "kelly-writer" ? "kelly-content" : name);
-
-  const allNames = [
-    ...new Set([...Object.keys(tableEn), ...dirs.map((d) => (d === "kelly-content" ? "kelly-writer" : d))]),
-  ];
+  const allNames = [...new Set([...Object.keys(tableEn), ...dirs])];
 
   const skills = {};
   for (const name of allNames) {
-    const folder = folderFor(name);
+    const folder = name;
     const en = tableEn[name] || {};
     const zh = tableZh[name] || {};
     const descEn = en.desc || (await frontmatterDescription(folder));

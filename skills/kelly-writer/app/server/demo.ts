@@ -16,7 +16,7 @@ export function isDemoQuery(query: DemoQuery = {}) {
 export function demoState(query: DemoQuery = {}) {
   const lang = query.get?.("lang") || query.lang || "en";
   const state = {
-    app: "kelly-content",
+    app: "kelly-writer",
     demo: true,
     batch: {
       batch_id: "demo-content-20260618",
@@ -142,7 +142,7 @@ export function demoState(query: DemoQuery = {}) {
           id: "dist-blog",
           channel: "official_blog",
           status: "needs_review",
-          owner: "Kelly Content",
+          owner: "Kelly Writer",
           title: "Build the approval desk before you automate the action",
           summary: "Canonical article for teams designing local-first AI workflows.",
           body: "A local approval desk gives teams speed without surrendering control. Start with a queue, show the recommendation, keep edits local, and execute only after an explicit approval.",
@@ -158,7 +158,7 @@ export function demoState(query: DemoQuery = {}) {
           id: "dist-linkedin",
           channel: "linkedin",
           status: "to_approve",
-          owner: "Kelly Content",
+          owner: "Kelly Writer",
           title: "The approval desk is where AI work becomes team work",
           summary: "Short professional post for operators and founders.",
           body: "The best AI workflow I have seen lately is deliberately boring: generate a batch, review it locally, approve the next action, then execute. That small approval layer is what turns an agent from clever demo into usable operations.",
@@ -170,7 +170,7 @@ export function demoState(query: DemoQuery = {}) {
           id: "dist-newsletter",
           channel: "newsletter",
           status: "approved",
-          owner: "Kelly Content",
+          owner: "Kelly Writer",
           title: "A calmer way to ship AI-assisted work",
           summary: "Newsletter version with a practical checklist.",
           body: "This week: a pattern for AI-assisted work that does not require blind trust. Keep the batch local, show every recommendation, preserve the draft, and make approval a file-backed decision.",
@@ -182,7 +182,7 @@ export function demoState(query: DemoQuery = {}) {
           id: "dist-x",
           channel: "x",
           status: "needs_review",
-          owner: "Kelly Content",
+          owner: "Kelly Writer",
           title: "Agents need approval desks",
           summary: "Thread draft for concise distribution.",
           body: "A useful agent workflow has two separate moments: prepare the work, then execute the approved action. Mixing those together is how teams lose trust.",

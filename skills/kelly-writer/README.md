@@ -1,4 +1,4 @@
-# Kelly Content
+# Kelly Writer
 
 Repurpose one source idea into channel-ready content drafts with a local review and export workflow.
 
@@ -26,7 +26,7 @@ Repurpose one source idea into channel-ready content drafts with a local review 
 
 ## What It Does
 
-Kelly Content turns a blog post, long article, transcript, notes, outline, product announcement, or rough idea into a multi-platform content batch. It can prepare drafts for channels such as:
+Kelly Writer turns a blog post, long article, transcript, notes, outline, product announcement, or rough idea into a multi-platform content batch. It can prepare drafts for channels such as:
 
 - Xiaohongshu
 - WeChat
@@ -71,16 +71,16 @@ The app reads and writes local files only. It does not publish posts, schedule c
 ## Local Files
 
 ```text
-skills/kelly-content/app/.data/current_batch.json
-skills/kelly-content/app/.data/decisions.json
-skills/kelly-content/app/.data/export_report.json
-skills/kelly-content/app/.data/agent.lock
+skills/kelly-writer/app/.data/current_batch.json
+skills/kelly-writer/app/.data/decisions.json
+skills/kelly-writer/app/.data/export_report.json
+skills/kelly-writer/app/.data/agent.lock
 ```
 
 Exports are written under:
 
 ```text
-skills/kelly-content/exports/
+skills/kelly-writer/exports/
 ```
 
 ## Configuration
@@ -90,20 +90,20 @@ Optional private config can store brand voice, audience, official URLs, CTA defa
 Supported config locations:
 
 ```text
-KELLY_CONTENT_CONFIG=/absolute/path/to/config.json
-skills/kelly-content/config.local.json
-~/.config/kelly-content/config.json
+KELLY_WRITER_CONFIG=/absolute/path/to/config.json
+skills/kelly-writer/config.local.json
+~/.config/kelly-writer/config.json
 ```
 
-Use `config.example.json` as a starting template only. Keep private settings out of committed files.
+Use `config.example.json` as a starting template only. Keep private settings out of committed files. Existing `KELLY_CONTENT_*` environment variables and `~/.config/kelly-content/config.json` remain supported as migration fallbacks; use the `kelly-writer` names for new configuration.
 
 ## Chat-Only Mode
 
 If you do not want the local UI, ask for chat-only mode:
 
 ```text
-kelly-content chat only
-kelly-content 纯聊天
+kelly-writer chat only
+kelly-writer 纯聊天
 不要打开 UI，直接在这里处理
 ```
 

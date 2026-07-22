@@ -1,9 +1,9 @@
 {
-  "name": "kelly-content",
+  "name": "kelly-writer",
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly Content App-in-Skill — local review desk (Hono server, zero-build vanilla frontend).",
+  "description": "Kelly Writer App-in-Skill — local review desk (Hono server, zero-build vanilla frontend).",
   "scripts": {
     "start": "node app/server/launcher.ts",
     "serve": "node app/server/index.ts",

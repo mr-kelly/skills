@@ -10,23 +10,23 @@ type DemoVisual = {
   simulated: true;
 };
 
-const SKILL_NAME = "kelly-content";
+const SKILL_NAME = "kelly-writer";
 const ACCENTS = ["#0891b2", "#ca8a04"];
 const VISUAL_DEFS = [
   {
-    id: "kelly-content-visual-1",
+    id: "kelly-writer-visual-1",
     title: "Editorial cover",
     caption: "Mock article hero image and channel-safe crop plan.",
     kind: "gallery",
   },
   {
-    id: "kelly-content-visual-2",
+    id: "kelly-writer-visual-2",
     title: "Channel carousel",
     caption: "Synthetic source-to-LinkedIn-to-newsletter adaptation frames.",
     kind: "board",
   },
   {
-    id: "kelly-content-visual-3",
+    id: "kelly-writer-visual-3",
     title: "Brief board",
     caption: "Visual topic brief with claims, examples, and distribution notes.",
     kind: "sheet",

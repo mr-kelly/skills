@@ -1,9 +1,9 @@
 ---
-name: kelly-content
+name: kelly-writer
 description: Repurpose source content into channel-ready drafts with a local review UI and approval/export workflow. Use when the user asks to write content, make a content pack, turn a main blog/long article/transcript/notes into Xiaohongshu, WeChat, newsletter, LinkedIn, X/Twitter, short video scripts, SEO snippets, or a multi-platform publishing plan; also use when they ask for a content approval dashboard or App-in-Skill content workflow.
 ---
 
-# Kelly Content
+# Kelly Writer
 
 ## App UI Screenshots
 
@@ -64,10 +64,10 @@ When writing a batch, keep stable item IDs so comments like "change #2" can be r
 
 ## Data Providers (local + busabase)
 
-The UI and scripts talk to a `ReviewProvider` (`lib/data-provider/`), not directly to files. Select it with `KELLY_CONTENT_DATA_PROVIDER` (or `data_provider` in config); default `local`.
+The UI and scripts talk to a `ReviewProvider` (`lib/data-provider/`), not directly to files. Select it with `KELLY_WRITER_DATA_PROVIDER` (or `data_provider` in config); default `local`.
 
 - `local` — zero-dependency JSON handoff files in `app/.data/` (the contract above). This is the offline reference implementation.
-- `busabase` — a thin HTTP client to a Busabase base. A content piece is a Busabase **record**; an agent draft is a **change request**; the human verdict is a **review**; an edit is an **operation revision**; publishing is a **merge**. Configure `config.busabase.{base_url,base_id}` (open-source single-tenant `apps/busabase` needs no token; `busabase-cloud` reads `KELLY_CONTENT_BUSABASE_API_KEY`).
+- `busabase` — a thin HTTP client to a Busabase base. A content piece is a Busabase **record**; an agent draft is a **change request**; the human verdict is a **review**; an edit is an **operation revision**; publishing is a **merge**. Configure `config.busabase.{base_url,base_id}` (open-source single-tenant `apps/busabase` needs no token; `busabase-cloud` reads `KELLY_WRITER_BUSABASE_API_KEY`).
 
 Both implement the same review verbs, so switching providers is a config change, not a rewrite. The `saveDecision` actions are provider-neutral:
 
@@ -111,11 +111,13 @@ Read `references/channel-playbook.md` when choosing or adapting channel-specific
 
 Keep user-specific operating context out of committed files. If the user wants persistent brand/channel settings, create one of:
 
-1. `KELLY_CONTENT_CONFIG=/absolute/path/to/config.json`
-2. `skills/kelly-content/config.local.json`
-3. `~/.config/kelly-content/config.json`
+1. `KELLY_WRITER_CONFIG=/absolute/path/to/config.json`
+2. `skills/kelly-writer/config.local.json`
+3. `~/.config/kelly-writer/config.json`
 
 Use `config.example.json` as the starting template only. Store non-secret settings there: brand profile, audience, tone, official URLs, CTA defaults, channel defaults, risk terms, and export preferences. Store secrets only in private env files if future connectors need them; this skill currently has no publishing connector and should not need secrets. Keep this skill zero-dependency and do not add YAML parsing packages.
+
+For migration, the runtime still reads legacy `KELLY_CONTENT_*` environment variables and `~/.config/kelly-content/config.json` when the corresponding `KELLY_WRITER_*` setting is absent. New configuration must use the `kelly-writer` names.
 
 ## Scripts
 
