@@ -8,6 +8,7 @@ import {
   escapeHtml,
   loadState,
   navigateTo,
+  saveDecision,
   state,
   syncRoute,
   t,
@@ -228,8 +229,8 @@ export function renderDistribution(repo) {
         <h2>${escapeHtml(t("distribution.title"))}</h2>
       </div>
       <div class="toolbar">
-        <button class="quietButton" title="${escapeAttr(t("validate.title"))}">${escapeHtml(t("validate"))}</button>
-        <button class="primaryButton" title="${escapeAttr(t("export.title"))}">${escapeHtml(t("export"))}</button>
+        <button class="quietButton" type="button" data-toolbar-action="validate" title="${escapeAttr(t("validate.title"))}">${escapeHtml(t("validate"))}</button>
+        <button class="primaryButton" type="button" data-toolbar-action="export" title="${escapeAttr(t("export.title"))}">${escapeHtml(t("export"))}</button>
       </div>
     </div>
     <div class="split">
@@ -245,14 +246,48 @@ export function renderDistribution(repo) {
     navigateTo({ stage: "distribution", distributionId: id });
   });
   bindEditorActions(selected?.id);
+  bindDistributionViewMode(selected);
+  bindRequestChangesDialog(selected);
+  bindDistributionToolbar(repo);
+}
+
+function bindDistributionToolbar(repo) {
+  els.stagePanel.querySelector('[data-toolbar-action="validate"]')?.addEventListener("click", () => {
+    const invalid = repo.distribution.filter((item) => {
+      const decision = state.decisions[item.id] || {};
+      return !String(decision.title || item.title || "").trim() || !String(decision.body || item.body || "").trim();
+    });
+    alert(invalid.length ? `${invalid.length} ${t("validation.failed")}` : t("validation.passed"));
+  });
+  els.stagePanel.querySelector('[data-toolbar-action="export"]')?.addEventListener("click", async () => {
+    const response = await fetch(withContextParams("/api/export"), { method: "POST" });
+    if (!response.ok) {
+      alert(`${t("export.failed")}: ${await response.text()}`);
+      return;
+    }
+    const result = await response.json();
+    const count = Array.isArray(result.exported) ? result.exported.length : 0;
+    const downloads = Array.isArray(result.downloads) ? result.downloads : [];
+    for (const download of downloads) {
+      const link = document.createElement("a");
+      link.href = withContextParams(download.url);
+      link.download = download.name || "";
+      link.hidden = true;
+      document.body.append(link);
+      link.click();
+      link.remove();
+    }
+    alert(count ? `${count} ${t("export.completed")}` : t("export.none"));
+  });
 }
 
 function distributionRow(item, selectedId) {
+  const channel = distributionChannelLabel(item);
   return `
     <button class="recordRow ${item.id === selectedId ? "selected" : ""}" data-distribution="${escapeAttr(item.id)}">
-      <span class="channelMark">${escapeHtml(channelInitial(item.channel))}</span>
+      <span class="channelMark">${escapeHtml(channelInitial(channel))}</span>
       <strong>${escapeHtml(item.title)}</strong>
-      <small>${escapeHtml(item.channel)} · ${escapeHtml(item.readiness)}</small>
+      <small>${escapeHtml(channel)} · ${escapeHtml(distributionReadiness(item))}</small>
     </button>
   `;
 }
@@ -262,28 +297,63 @@ function distributionDetail(item) {
   const title = decision.title || item.title || "";
   const body = decision.body || item.body || "";
   const comment = decision.comment || "";
+  const channel = distributionChannelLabel(item);
+  const feedback =
+    editorStore.actionFeedback?.id === item.id ? decisionFeedback(editorStore.actionFeedback.action) : "";
   return `
     <div class="canvasHead">
       <div>
-        <span class="pill">${escapeHtml(item.channel)}</span>
-        <span class="pill">${escapeHtml(statusLabel(item.status))}</span>
+        <span class="pill">${escapeHtml(channel)}</span>
+        <span class="pill">${escapeHtml(distributionStatusLabel(item))}</span>
       </div>
       <div class="actions">
-        <button data-action="approve" title="${escapeAttr(t("approve.title"))}">${escapeHtml(t("approve"))}</button>
-        <button data-action="revise" title="${escapeAttr(t("save.title"))}">${escapeHtml(t("save"))}</button>
-        <button data-action="request_changes" title="${escapeAttr(t("request.changes.title"))}">${escapeHtml(t("request.changes"))}</button>
-        <button data-action="block" title="${escapeAttr(t("block.title"))}">${escapeHtml(t("block"))}</button>
+        <button class="primaryButton" type="button" data-action="approve" title="${escapeAttr(t("approve.title"))}">${escapeHtml(t("approve"))}</button>
+        <button type="button" data-action="revise" title="${escapeAttr(t("save.title"))}">${escapeHtml(t("save"))}</button>
+        <button type="button" data-request-changes title="${escapeAttr(t("request.changes.title"))}">${escapeHtml(t("request.changes"))}</button>
+        <button type="button" data-action="block" title="${escapeAttr(t("block.title"))}">${escapeHtml(t("block"))}</button>
       </div>
     </div>
-    <label>${escapeHtml(t("title"))}
-      <input id="titleInput" value="${escapeAttr(title)}">
-    </label>
-    <label>${escapeHtml(t("draft"))}
-      <textarea id="bodyInput">${escapeHtml(body)}</textarea>
-    </label>
-    <label>${escapeHtml(t("review.note"))}
-      <textarea id="commentInput" class="note">${escapeHtml(comment)}</textarea>
-    </label>
+    ${feedback ? `<p class="actionFeedback" role="status">${escapeHtml(feedback)}</p>` : ""}
+    <div class="viewSwitch" role="tablist" aria-label="${escapeAttr(t("draft.view"))}">
+      <button class="active" type="button" role="tab" aria-selected="true" data-view-mode="preview">${escapeHtml(t("preview"))}</button>
+      <button type="button" role="tab" aria-selected="false" data-view-mode="edit">${escapeHtml(t("edit"))}</button>
+    </div>
+    <section class="distributionPane distributionPreview" data-view-pane="preview">
+      <div class="distributionArticle">
+        <h1 data-preview-title>${escapeHtml(title)}</h1>
+        <div class="articleBody distributionArticleBody" data-preview-body>${renderDistributionMarkdown(body, item.source_draft_path, title)}</div>
+      </div>
+    </section>
+    <section class="distributionPane distributionEditor" data-view-pane="edit" hidden>
+      <label>${escapeHtml(t("title"))}
+        <input id="titleInput" value="${escapeAttr(title)}">
+      </label>
+      <label>${escapeHtml(t("draft"))}
+        <textarea id="bodyInput">${escapeHtml(body)}</textarea>
+      </label>
+      <label>${escapeHtml(t("review.note"))}
+        <textarea id="commentInput" class="note">${escapeHtml(comment)}</textarea>
+      </label>
+    </section>
+    <dialog class="workflowDialog" id="requestChangesDialog">
+      <form method="dialog" id="requestChangesForm">
+        <div class="dialogHead">
+          <div>
+            <p class="eyebrow">${escapeHtml(t("request.changes"))}</p>
+            <h2>${escapeHtml(t("request.changes.dialog.title"))}</h2>
+          </div>
+          <button class="iconButton" type="button" data-close-request-changes aria-label="${escapeAttr(t("close"))}" title="${escapeAttr(t("close"))}">×</button>
+        </div>
+        <p class="dialogHelp">${escapeHtml(t("request.changes.help"))}</p>
+        <label>${escapeHtml(t("request.changes.instructions"))}
+          <textarea id="requestChangesInput" required placeholder="${escapeAttr(t("request.changes.placeholder"))}"></textarea>
+        </label>
+        <div class="dialogActions">
+          <button class="quietButton" type="button" data-close-request-changes>${escapeHtml(t("cancel"))}</button>
+          <button class="primaryButton" type="submit" value="submit">${escapeHtml(t("request.changes.submit"))}</button>
+        </div>
+      </form>
+    </dialog>
     <div class="supportGrid">
       ${item.title_options?.length ? `<section class="sectionBlock"><h3>${escapeHtml(t("title.options"))}</h3><p>${item.title_options.map(escapeHtml).join("<br>")}</p></section>` : ""}
       ${item.media_brief ? `<section class="sectionBlock"><h3>${escapeHtml(t("media.brief"))}</h3><p>${escapeHtml(item.media_brief)}</p></section>` : ""}
@@ -291,6 +361,183 @@ function distributionDetail(item) {
       ${item.hashtags?.length ? `<section class="sectionBlock"><h3>${escapeHtml(t("hashtags"))}</h3><p>${item.hashtags.map(escapeHtml).join(" ")}</p></section>` : ""}
     </div>
   `;
+}
+
+function bindDistributionViewMode(item) {
+  if (!item) return;
+  const buttons = els.stagePanel.querySelectorAll("[data-view-mode]");
+  const panes = els.stagePanel.querySelectorAll("[data-view-pane]");
+  for (const button of buttons) {
+    button.addEventListener("click", () => {
+      const mode = button.dataset.viewMode;
+      for (const candidate of buttons) {
+        const active = candidate === button;
+        candidate.classList.toggle("active", active);
+        candidate.setAttribute("aria-selected", String(active));
+      }
+      for (const pane of panes) pane.hidden = pane.dataset.viewPane !== mode;
+      if (mode !== "preview") return;
+      const title = els.stagePanel.querySelector("#titleInput")?.value || item.title || "";
+      const body = els.stagePanel.querySelector("#bodyInput")?.value || item.body || "";
+      const titleNode = els.stagePanel.querySelector("[data-preview-title]");
+      const bodyNode = els.stagePanel.querySelector("[data-preview-body]");
+      if (titleNode) titleNode.textContent = title;
+      if (bodyNode) bodyNode.innerHTML = renderDistributionMarkdown(body, item.source_draft_path, title);
+    });
+  }
+}
+
+function bindRequestChangesDialog(item) {
+  if (!item) return;
+  const dialog = els.stagePanel.querySelector("#requestChangesDialog");
+  const form = els.stagePanel.querySelector("#requestChangesForm");
+  const input = els.stagePanel.querySelector("#requestChangesInput");
+  els.stagePanel.querySelector("[data-request-changes]")?.addEventListener("click", () => {
+    if (input) input.value = "";
+    dialog?.showModal();
+    input?.focus();
+  });
+  for (const button of els.stagePanel.querySelectorAll("[data-close-request-changes]")) {
+    button.addEventListener("click", () => dialog?.close());
+  }
+  form?.addEventListener("submit", async (event) => {
+    if (event.submitter?.value !== "submit") return;
+    event.preventDefault();
+    const comment = input?.value.trim() || "";
+    if (!comment) {
+      input?.reportValidity();
+      return;
+    }
+    dialog?.close();
+    await saveDecision(item.id, "request_changes", { comment });
+  });
+}
+
+function distributionChannelLabel(item) {
+  const note = String(item.distribution_note || "").trim();
+  return note && note.length <= 24 ? note : item.channel;
+}
+
+function decisionFeedback(action) {
+  const messages = {
+    approve: t("decision.approved"),
+    revise: t("decision.saved"),
+    request_changes: t("decision.changesRequested"),
+    block: t("decision.blocked"),
+  };
+  return messages[action] || "";
+}
+
+function distributionStatusLabel(item) {
+  return ["todo", "queued"].includes(item.status) ? t("status.needsReview") : statusLabel(item.status);
+}
+
+function distributionReadiness(item) {
+  return ["todo", "queued"].includes(item.status) ? t("readiness.toApprove") : item.readiness;
+}
+
+function renderDistributionMarkdown(markdown, sourceDraftPath, title) {
+  const lines = String(markdown || "")
+    .replace(/\r\n/g, "\n")
+    .split("\n");
+  if (lines[0]?.match(/^#\s+/)) lines.shift();
+  const html = [];
+  let paragraph = [];
+  let quote = [];
+  let list = [];
+  let listType = "";
+
+  const flushParagraph = () => {
+    if (paragraph.length) html.push(`<p>${inlineMarkdown(paragraph.join(" "))}</p>`);
+    paragraph = [];
+  };
+  const flushQuote = () => {
+    if (quote.length) html.push(`<blockquote>${quote.map(inlineMarkdown).join("<br>")}</blockquote>`);
+    quote = [];
+  };
+  const flushList = () => {
+    if (list.length)
+      html.push(`<${listType}>${list.map((item) => `<li>${inlineMarkdown(item)}</li>`).join("")}</${listType}>`);
+    list = [];
+    listType = "";
+  };
+  const flush = () => {
+    flushParagraph();
+    flushQuote();
+    flushList();
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const image = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    const heading = trimmed.match(/^(#{2,6})\s+(.+)$/);
+    const ordered = trimmed.match(/^\d+\.\s+(.+)$/);
+    const unordered = trimmed.match(/^[-*]\s+(.+)$/);
+    if (!trimmed) {
+      flush();
+    } else if (image) {
+      flush();
+      const src = distributionImageUrl(sourceDraftPath, image[2]);
+      html.push(
+        src
+          ? `<figure><img src="${escapeAttr(src)}" alt="${escapeAttr(image[1])}"><figcaption>${escapeHtml(image[1])}</figcaption></figure>`
+          : `<div class="inlineImage">${escapeHtml(image[1] || t("visual.brief"))}</div>`,
+      );
+    } else if (heading) {
+      flush();
+      const level = Math.min(heading[1].length, 4);
+      html.push(`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`);
+    } else if (trimmed === "---") {
+      flush();
+      html.push("<hr>");
+    } else if (trimmed.startsWith(">")) {
+      flushParagraph();
+      flushList();
+      quote.push(trimmed.replace(/^>\s?/, ""));
+    } else if (ordered || unordered) {
+      flushParagraph();
+      flushQuote();
+      const nextType = ordered ? "ol" : "ul";
+      if (listType && listType !== nextType) flushList();
+      listType = nextType;
+      list.push((ordered || unordered)[1]);
+    } else {
+      flushQuote();
+      flushList();
+      paragraph.push(trimmed);
+    }
+  }
+  flush();
+  return html.join("") || `<p class="mutedText">${escapeHtml(title || t("draft"))}</p>`;
+}
+
+function inlineMarkdown(value) {
+  const source = String(value);
+  const parts = [];
+  let cursor = 0;
+  for (const match of source.matchAll(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g)) {
+    parts.push(formatInlineText(source.slice(cursor, match.index)));
+    parts.push(`<a href="${escapeAttr(match[2])}" target="_blank" rel="noreferrer">${formatInlineText(match[1])}</a>`);
+    cursor = match.index + match[0].length;
+  }
+  parts.push(formatInlineText(source.slice(cursor)));
+  return parts.join("");
+}
+
+function formatInlineText(value) {
+  return escapeHtml(value)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>");
+}
+
+function distributionImageUrl(sourceDraftPath, imagePath) {
+  if (/^https?:\/\//i.test(imagePath) || /^data:image\//i.test(imagePath)) return imagePath;
+  if (!sourceDraftPath) return "";
+  const url = new URL("/api/content-asset", window.location.origin);
+  url.searchParams.set("source", sourceDraftPath);
+  url.searchParams.set("asset", imagePath);
+  return `${url.pathname}${url.search}`;
 }
 
 function bindRecordSelection(kind, onSelect) {
@@ -393,7 +640,7 @@ export function normalizeTodo(todo) {
 function statusLabel(status = "") {
   const labels = {
     todo: t("status.todo"),
-    queued: t("status.todo"),
+    queued: t("status.distributionQueued"),
     in_progress: t("status.started"),
     writing: t("status.started"),
     done: t("status.done"),

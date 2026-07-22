@@ -65,11 +65,13 @@ export const editorStore = {
   selectedDirectionId: null,
   selectedTodoId: null,
   selectedDistributionId: null,
+  actionFeedback: null,
 };
 let editing = false;
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
 let lastAppliedHash = "";
+let lastStatePayload = "";
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-writer.sidebarCollapsed";
 
 export const els = {
@@ -147,8 +149,15 @@ function hasActiveInteraction() {
 
 export async function loadState() {
   const response = await fetch(withContextParams("/api/state"));
-  const nextState = await response.json();
+  const payload = await response.text();
+  // A poll may have started just before a dialog opened or editing began. Drop
+  // that response so the current form, text selection, and scroll stay intact.
   if (hasActiveInteraction()) return;
+  // Re-render only when server state changed. Replacing identical content resets
+  // page and textarea scroll positions even though the user sees no data change.
+  if (payload === lastStatePayload) return;
+  const nextState = JSON.parse(payload);
+  lastStatePayload = payload;
   state = nextState;
   const repo = buildRepository();
   editorStore.selectedTopicId ||= repo.topics[0]?.id || null;
@@ -487,30 +496,44 @@ export function bindEditorActions(id) {
     });
   }
   for (const button of els.stagePanel.querySelectorAll("[data-action]")) {
-    button.disabled = Boolean(state.lock);
-    button.addEventListener("click", () => saveDecision(id, button.dataset.action));
+    button.disabled = button.disabled || Boolean(state.lock);
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      void saveDecision(id, button.dataset.action);
+    });
   }
 }
 
-async function saveDecision(id, action) {
+export async function saveDecision(id, action, overrides = {}) {
+  const actionButtons = [...els.stagePanel.querySelectorAll("[data-action], [data-request-changes]")];
   const payload = {
     id,
     action,
-    title: document.querySelector("#titleInput")?.value || "",
-    body: document.querySelector("#bodyInput")?.value || "",
-    comment: document.querySelector("#commentInput")?.value || "",
+    title: overrides.title ?? document.querySelector("#titleInput")?.value ?? "",
+    body: overrides.body ?? document.querySelector("#bodyInput")?.value ?? "",
+    comment: overrides.comment ?? document.querySelector("#commentInput")?.value ?? "",
   };
+  for (const button of actionButtons) button.disabled = true;
   const response = await fetch(withContextParams("/api/decision"), {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
+    for (const button of actionButtons) button.disabled = Boolean(state.lock);
     alert(`Could not save: ${await response.text()}`);
     return;
   }
+  const result = await response.json();
+  if (result.decision) state.decisions = { ...state.decisions, [id]: result.decision };
+  editorStore.actionFeedback = { id, action };
   editing = false;
+  render(buildRepository());
+  lastStatePayload = "";
   await loadState();
+  for (const button of els.stagePanel.querySelectorAll("[data-action], [data-request-changes]")) {
+    button.disabled = Boolean(state.lock);
+  }
 }
 
 function itemStatus(item) {
@@ -526,7 +549,7 @@ function readinessFor(status) {
   if (status === "approved" || status === "done") return t("readiness.ready");
   if (status === "blocked") return t("readiness.blocked");
   if (status === "changes_requested") return t("readiness.aiToRevise");
-  if (status === "needs_review") return t("readiness.needsEdit");
+  if (status === "needs_review") return t("readiness.toApprove");
   return t("readiness.toApprove");
 }
 

@@ -14,6 +14,7 @@
 //   confirmDirection(payload)   -> (local-only ideation) confirm a topic direction
 //   completeTodo(payload)       -> (local-only) finish writing and move a todo to main draft
 //   requestDistribution(payload)-> (local-only) move the main draft to distribution with a note
+//   completeDistributionRevision(payload) -> replace a queued distribution draft with the Agent revision
 //   putBatch(batch)             -> persist the agent-prepared drafts
 //   exportApproved()            -> publish/merge approved items
 //   listAgentTasks()            -> items the agent should revise (changes_requested / @ai)

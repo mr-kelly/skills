@@ -6,6 +6,7 @@ export interface ReviewProvider {
   confirmDirection: (...args: unknown[]) => Promise<unknown>;
   completeTodo: (...args: unknown[]) => Promise<unknown>;
   requestDistribution: (...args: unknown[]) => Promise<unknown>;
+  completeDistributionRevision: (...args: unknown[]) => Promise<unknown>;
   putBatch: (...args: unknown[]) => Promise<unknown>;
   exportApproved: (...args: unknown[]) => Promise<unknown>;
   listAgentTasks: (...args: unknown[]) => Promise<unknown>;
@@ -18,6 +19,7 @@ const CORE_METHODS = [
   "confirmDirection",
   "completeTodo",
   "requestDistribution",
+  "completeDistributionRevision",
   "putBatch",
   "exportApproved",
   "listAgentTasks",
