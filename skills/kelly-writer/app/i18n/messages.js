@@ -1,4 +1,4 @@
-// UI chrome message catalog for Kelly Content.
+// UI chrome message catalog for Kelly Writer.
 // Language mode defaults to Auto (browser language); `?lang=` query and the
 // Workspace language selector override it. Domain content stays untranslated.
 export const I18N = {

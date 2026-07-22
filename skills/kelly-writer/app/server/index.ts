@@ -8,11 +8,14 @@ import { app } from "./hono.ts";
 // deploys to other fetch-based runtimes unchanged once the data layer is
 // cloud-backed.
 
-const host = process.env.KELLY_CONTENT_UI_HOST || defaultHost;
-const port = Number.parseInt(process.env.KELLY_CONTENT_UI_PORT || process.env.PORT || String(defaultPort), 10);
+const host = process.env.KELLY_WRITER_UI_HOST || process.env.KELLY_CONTENT_UI_HOST || defaultHost;
+const port = Number.parseInt(
+  process.env.KELLY_WRITER_UI_PORT || process.env.KELLY_CONTENT_UI_PORT || process.env.PORT || String(defaultPort),
+  10,
+);
 
 await ensureDirs();
 
 serve({ fetch: app.fetch, hostname: host, port }, (info) => {
-  console.log(`Kelly Content UI: http://${host}:${info.port}/`);
+  console.log(`Kelly Writer UI: http://${host}:${info.port}/`);
 });

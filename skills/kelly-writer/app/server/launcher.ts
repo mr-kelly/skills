@@ -14,8 +14,8 @@ import {
   serverDir,
 } from "../../lib/paths.ts";
 
-const host = process.env.KELLY_CONTENT_UI_HOST || defaultHost;
-const explicitPort = process.env.KELLY_CONTENT_UI_PORT || "";
+const host = process.env.KELLY_WRITER_UI_HOST || process.env.KELLY_CONTENT_UI_HOST || defaultHost;
+const explicitPort = process.env.KELLY_WRITER_UI_PORT || process.env.KELLY_CONTENT_UI_PORT || "";
 
 function stateUrlFor(port) {
   return `http://${host}:${port}/api/state`;
@@ -32,7 +32,7 @@ function isReady(port) {
       res.on("end", () => {
         try {
           const state = JSON.parse(body);
-          resolve(res.statusCode >= 200 && res.statusCode < 300 && state.app === "kelly-content");
+          resolve(res.statusCode >= 200 && res.statusCode < 300 && state.app === "kelly-writer");
         } catch {
           resolve(false);
         }
@@ -71,7 +71,7 @@ async function main() {
   await fsp.mkdir(runtimeCacheDir, { recursive: true });
   const port = await findPort();
   if (await isReady(port)) {
-    console.log(`Kelly Content UI already running: http://${host}:${port}`);
+    console.log(`Kelly Writer UI already running: http://${host}:${port}`);
     return;
   }
 
@@ -80,14 +80,14 @@ async function main() {
     cwd: serverDir,
     detached: true,
     stdio: ["ignore", log, log],
-    env: { ...process.env, KELLY_CONTENT_UI_HOST: host, KELLY_CONTENT_UI_PORT: port },
+    env: { ...process.env, KELLY_WRITER_UI_HOST: host, KELLY_WRITER_UI_PORT: port },
   });
   child.unref();
   await fsp.writeFile(pidPath, `${child.pid}\n`);
 
   for (let i = 0; i < 40; i += 1) {
     if (await isReady(port)) {
-      console.log(`Kelly Content UI started: http://${host}:${port}`);
+      console.log(`Kelly Writer UI started: http://${host}:${port}`);
       console.log(`PID: ${child.pid}`);
       return;
     }
@@ -97,7 +97,7 @@ async function main() {
   try {
     process.kill(-child.pid, "SIGTERM");
   } catch {}
-  console.error(`Kelly Content UI did not become ready. See ${logPath}`);
+  console.error(`Kelly Writer UI did not become ready. See ${logPath}`);
   process.exitCode = 1;
 }
 

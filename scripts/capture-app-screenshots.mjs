@@ -67,7 +67,7 @@ const ROUTE_OVERRIDES = {
     "needs-review": "/review",
     workbench: "/items/pack-lease-break",
   },
-  "kelly-content": {
+  "kelly-writer": {
     overview: "/overview",
     topics: "/topics",
     main: "/main",

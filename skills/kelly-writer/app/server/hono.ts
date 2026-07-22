@@ -17,7 +17,7 @@ import { installSetup } from "./setup.ts";
 // does not render or bundle anything.
 
 const provider = await createProvider();
-console.log(`Kelly Content data provider: ${provider.kind}`);
+console.log(`Kelly Writer data provider: ${provider.kind}`);
 
 // The original demo helpers read query params via URLSearchParams (.get). Rebuild
 // one from the request URL so demo-mode detection and localization stay identical.
@@ -33,7 +33,7 @@ app.use("/api/state", attachDemoVisuals);
 app.get("/api/state", async (c) => {
   const query = searchParams(c);
   const state = isDemoQuery(query) ? demoState(query) : await provider.getState();
-  return c.json({ app: "kelly-content", ...state });
+  return c.json({ app: "kelly-writer", ...state });
 });
 
 app.post("/api/decision", async (c) => {

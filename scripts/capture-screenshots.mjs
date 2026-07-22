@@ -35,7 +35,7 @@ const SCENE_ALIASES = {
 
 const SKILL_SCENES = {
   "kelly-clm": { contracts: "contracts", obligations: "obligations", renewals: "renewals" },
-  "kelly-content": { overview: "todos" },
+  "kelly-writer": { overview: "todos" },
   "kelly-devops": { services: "services", expiries: "expiries", actions: "actions" },
   "kelly-email": { overview: "mixed", "inbox-approval": "review", "needs-review": "needs-review" },
   "kelly-finance": { overview: "1", checks: "1" },
@@ -57,7 +57,7 @@ const ROUTE_OVERRIDES = {
     renewals: "#/renewals",
     approvals: "#/approvals",
   },
-  "kelly-content": {
+  "kelly-writer": {
     overview: "#/todos",
     topics: "#/topics",
     main: "#/main",
@@ -282,7 +282,7 @@ async function waitForState(port, skill, timeoutMs = 12_000) {
 function appNameFallback(skill) {
   const map = {
     "kelly-clm": "kelly-clm",
-    "kelly-content": "kelly-content",
+    "kelly-writer": "kelly-writer",
     "kelly-ppt-factory": "kelly-ppt-factory",
   };
   return map[skill] || skill;

@@ -53,7 +53,7 @@ const commonWords = new Set([
 const title = firstHeading(source) || args.title || "Source Content";
 const summary = summarize(source);
 const keywords = extractKeywords(source);
-const batchId = `kelly-content-${isoStamp()}`;
+const batchId = `kelly-writer-${isoStamp()}`;
 
 const items = channels.map((channel, index) =>
   makeItem({
@@ -73,7 +73,7 @@ const metrics = countStatuses(items);
 const batch = {
   batch_id: batchId,
   generated_at: new Date().toISOString(),
-  source: "kelly-content",
+  source: "kelly-writer",
   mode: "app-in-skill",
   source_summary: summary,
   canonical_idea: canonicalIdea(summary),

@@ -1,7 +1,7 @@
 // Shared types for the kelly-pr-review data-provider layer. These re-export the
 // core domain shapes (ReviewItem / ReviewBatch / TestedCache / config) that
 // already live in app/server/types.ts, and add the provider-config shapes
-// (ProviderMeta / BusabaseConfig / HttpError) that mirror the kelly-content
+// (ProviderMeta / BusabaseConfig / HttpError) that mirror the kelly-writer
 // template. The domain model — a GitHub PR review queue (batch -> items ->
 // decisions -> execution) plus a merged-PR tested-cache — is unchanged; this
 // file only names the seam between the server/scripts and the providers.

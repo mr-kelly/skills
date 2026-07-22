@@ -349,16 +349,16 @@ Kelly Family Fund is a local, read-only ledger for a family pooling elderly pare
 
 <table>
   <tr>
-    <td width="50%"><img src="skills/kelly-content/assets/screenshots/overview.webp" alt="Kelly Writer todo queue"></td>
-    <td width="50%"><img src="skills/kelly-content/assets/screenshots/topics.webp" alt="Kelly Writer topic discovery"></td>
+    <td width="50%"><img src="skills/kelly-writer/assets/screenshots/overview.webp" alt="Kelly Writer todo queue"></td>
+    <td width="50%"><img src="skills/kelly-writer/assets/screenshots/topics.webp" alt="Kelly Writer topic discovery"></td>
   </tr>
   <tr>
     <td><strong>Todo queue</strong><br>Confirmed content directions queued for AI writing, with ownership, status, and next-step controls.</td>
     <td><strong>Topic discovery</strong><br>Mock editorial planning with keyword clusters, audience fit, and topic opportunities.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="skills/kelly-content/assets/screenshots/main.webp" alt="Kelly Writer main draft"></td>
-    <td width="50%"><img src="skills/kelly-content/assets/screenshots/distribution.webp" alt="Kelly Writer distribution review"></td>
+    <td width="50%"><img src="skills/kelly-writer/assets/screenshots/main.webp" alt="Kelly Writer main draft"></td>
+    <td width="50%"><img src="skills/kelly-writer/assets/screenshots/distribution.webp" alt="Kelly Writer distribution review"></td>
   </tr>
   <tr>
     <td><strong>Main draft</strong><br>Long-form writing workspace with outline, draft sections, source notes, and approval status.</td>
