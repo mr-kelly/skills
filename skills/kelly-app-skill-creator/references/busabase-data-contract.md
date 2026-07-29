@@ -23,12 +23,14 @@ application configuration.
 
 ## OAuth Connection Bootstrap
 
-Prefer browser OAuth only for an interactive Hono app whose document origin is
-loopback. The setup UI offers the Cloud origin or one custom Busabase origin and
-starts OAuth from a single button; it never asks the user to run a CLI login or
-paste an API key. Before navigating the browser, let Hono probe the authorization
-request without following redirects and return an actionable compatibility error
-when the selected server does not yet support the local-app OAuth client.
+Use browser OAuth only for an explicitly requested standalone `local-preview`.
+A Busabase-hosted AirApp may itself use a `localhost`, `127.0.0.1`, or
+`.localhost` host, so hostname alone must never select the OAuth gate. The local
+setup UI offers the Cloud origin or one custom Busabase origin and starts OAuth
+from a single button; it never asks the user to run a CLI login or paste an API
+key. Before navigating the browser, let Hono probe the authorization request
+without following redirects and return an actionable compatibility error when
+the selected server does not yet support the local-app OAuth client.
 
 The trusted Hono boundary owns PKCE state/verifier and the callback. After code
 exchange it uses `busabase-sdk/oauth` for the isomorphic protocol helpers and
@@ -115,6 +117,12 @@ Before implementation, record a table like:
 Validate the map on startup. Mark the app not ready when a required node is
 missing, has the wrong type/parent, is inaccessible, or needs migration.
 
+Give each resource contract a stable schema identity, version, and deterministic
+fingerprint or equivalent compatibility marker. Apply only declared forward
+migrations through the reviewed Busabase mutation path. When an existing schema
+is newer, incompatible, or ambiguously owned, enter `migration_needed` and stop
+instead of rewriting it or attaching by slug.
+
 ## SDK Boundary
 
 Create one thin Busabase repository/service layer over `busabase-sdk`:
@@ -145,11 +153,27 @@ Separate configuration by behavior:
 Do not silently fall back to bundled demo config when production configuration is
 missing. Show readiness and recovery instead.
 
+### Operating Context
+
+Model only configuration that the recurring operation consumes. Depending on the
+domain, this may include operator/profile, accounts and identities, brand/style,
+official links, knowledge sources, risk policy, thresholds, schedules, and
+approval rules.
+
+Store structured, filterable context in focused Base records; store longer
+policies, playbooks, and instructions in Doc; link source files through
+Drive/File; represent secrets only as Vault requirements. Help & Settings may
+show sanitized summaries and configured/missing readiness, never raw private
+documents or secret values. Product onboarding and versioning for this context
+follow `setup-onboarding.md`.
+
 ## Onboarding And Recovery
 
-The local Hono app always starts. Its setup gate should distinguish connection,
-authentication, Space selection, app-root discovery, resource provisioning,
-schema migration, and Vault readiness.
+The local Hono app must remain startable when `local-preview` is explicitly
+requested. Both local preview and hosted AirApp use the state model in
+`setup-onboarding.md` to distinguish connection/authentication where applicable,
+Space selection, app-root discovery, resource provisioning, schema migration,
+Vault readiness, and product onboarding.
 
 Use reviewed ChangeRequests to create or repair canonical resources. After each
 step, re-read through `busabase-sdk`; never mark setup complete based only on a

@@ -1,6 +1,6 @@
 ---
 name: kelly-app-skill-creator
-description: Design and create Busabase-backed App-in-Skill packages with a canonical app project, a standardized responsive workflow UI, Research/Plan/Action/Retrospective workflows, and AirApp-first delivery. Use when a user wants a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, collaboration workspace, or an existing Kelly App-based skill updated. Every generated skill contains a complete app/ project, deploys that source to Busabase AirApp by default, runs pnpm dev only when local preview is explicitly requested, follows the Kelly desktop and phone UI contract, and delegates only AirApp runtime, SDK, security, scaffolding, and deployment constraints to busabase-app-creator.
+description: Design and create Busabase-backed App-in-Skill packages with a canonical app project, Busabase-native setup and product onboarding, review/execution workflows, a standardized responsive UI, and AirApp-first delivery. Use when a user wants a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, collaboration workspace, onboarding/readiness flow, or an existing Kelly App-based skill updated. Every generated skill contains a complete app/ project, deploys that source to Busabase AirApp by default, runs pnpm dev only when local preview is explicitly requested, follows the Kelly desktop and phone UI contract, and delegates only AirApp runtime, SDK, security, scaffolding, and deployment constraints to busabase-app-creator.
 ---
 
 # Kelly App Skill Creator
@@ -48,6 +48,8 @@ the other selected references completely before acting:
 | Need | Reference |
 | --- | --- |
 | Busabase SDK, node selection, config, state, locks, readiness, secrets | `references/busabase-data-contract.md` |
+| Runtime readiness, product onboarding, setup UX, reconfiguration | `references/setup-onboarding.md` |
+| Human verdicts, Agent revision, claims, external execution, recovery | `references/review-and-execution-contract.md` |
 | Product shape selection | `references/app-types.md` |
 | Research/Plan/Action/Retrospective patterns | `references/workflow-patterns.md` |
 | Attention UI, review actions, routing, settings, i18n | `references/ui-workflow-patterns.md` |
@@ -80,6 +82,10 @@ the other selected references completely before acting:
 - Never expose an API key or Vault value to browser code, UI state, logs, demos,
   or screenshots. Secret access stays in the Hono server or trusted AirApp
   execution boundary.
+- Keep external side effects outside the AirApp. The AirApp may submit a
+  ChangeRequest-producing decision or proposal; only a trusted Agent or Workflow
+  may use Vault-backed integrations to send, publish, delete, charge, transfer,
+  or mutate an external system after its own required authorization.
 - Use local storage only for disposable browser presentation state when it cannot
   affect behavior, authorization, workflow, or cross-device expectations. Store
   operator preferences in Busabase when they should follow the operator.
@@ -134,6 +140,11 @@ Space ambiguity, missing Folder/resources, schema migration, and Vault
 requirements as separate states. An expired or revoked session returns to the
 same connection screen with a concise retry message. Demo never impersonates a
 successful connection and remains explicitly labeled read-only.
+
+Apply `references/setup-onboarding.md` after authentication. Infrastructure
+readiness and product onboarding are separate: a connected, materialized AirApp
+may still need operator context, policies, sources, thresholds, schedules, or
+approval rules before the workflow can act.
 
 Never tell the operator to create Nodes/Bases, approve a list of unnamed
 ChangeRequests, or copy materialized ids into deployment config. For an approved
@@ -267,6 +278,7 @@ Retrospective: outcome signals, cadence, skill/process feedback
 
 Human attention states: ...
 Agent responsibilities: ...
+Product onboarding: required operating context and completion/version rule
 Native Views needed: ...
 AirApp screens and focused actions: ...
 Busabase resource map: Folder/Node root, Bases, Docs, Drives/Files, Vault refs
@@ -292,26 +304,34 @@ and deployment.
    `<skill-root>/app/`. Do not invent a second runtime layout in this skill.
 6. Implement one Busabase repository/service boundary over `busabase-sdk`.
    Browser code calls Hono/AirApp routes; it does not hold credentials.
-7. Keep setup, seed, refresh, migration, validation, and sync scripts as thin
+7. Implement the runtime/product onboarding state and every review/execution
+   lifecycle required by the overlay. Apply `references/setup-onboarding.md` and
+   `references/review-and-execution-contract.md`; do not invent local markers,
+   locks, or a second provider.
+8. Keep setup, seed, refresh, migration, validation, and sync scripts as thin
    entrypoints over shared modules. Avoid Python, native binaries, subprocess
    orchestration, and filesystem-backed workflow state unless a domain adapter
    strictly requires them and AirApp compatibility is preserved.
-8. Run lint/typecheck/tests/build without starting a persistent local server.
+9. Run lint/typecheck/tests/build without starting a persistent local server.
    When the user explicitly selected `local-preview`, also run
    `pnpm --dir <skill-root>/app dev` and complete local connection, workflow,
    recovery, desktop, and phone acceptance before continuing.
-9. By default, submit the same canonical source directly as a reviewable AirApp
+10. By default, submit the same canonical source directly as a reviewable AirApp
    CR through `$busabase-app-creator`; return its clickable Busabase review URL
    and wait for the named merge authorization.
-10. After merge, Run the AirApp in Busabase and verify the same resource map,
+11. After merge, Run the AirApp in Busabase and verify the same resource map,
     representative data, ambient session, main workflow, recovery states, and
     mandatory desktop/phone shell behavior. Report the canonical AirApp URL.
     Report a local URL only when `local-preview` was explicitly requested.
 
 ## Onboarding And Readiness
 
-The app must start locally even when Busabase is not ready, but it must show a
-connection/setup gate rather than silently switching to local data. Distinguish:
+Apply `references/setup-onboarding.md`. The app must remain startable in an
+explicit local preview even when Busabase is not ready, and the hosted AirApp
+must render one setup/onboarding gate rather than silently switching to local or
+Demo data. Distinguish runtime readiness from product onboarding.
+
+Runtime readiness states include:
 
 - missing connection bootstrap;
 - unauthenticated or unreachable Busabase;
@@ -320,6 +340,12 @@ connection/setup gate rather than silently switching to local data. Distinguish:
 - schema migration needed;
 - missing Vault references;
 - ready.
+
+Product onboarding separately covers the durable operating context, policies,
+sources, schedules, thresholds, and approval rules required by this workflow.
+Persist its fields and completion/version state in Busabase. Do not enable
+external reads or consequential actions whose product prerequisites are
+incomplete.
 
 For missing or expired authentication, apply the Connection UX Contract above;
 do not replace its OAuth action with CLI instructions or a credential input.
@@ -348,6 +374,8 @@ Finish only when:
 - Research, Plan, Action, and Retrospective are represented or intentionally
   omitted;
 - human attention, opt-out, review, and Agent claim rules are unambiguous;
+- runtime readiness, product onboarding, review verdicts, Agent revision,
+  external execution, and recovery obey their selected reference contracts;
 - local and AirApp runs use the same application source and resource contract;
 - the default delivery produced a merged, verified AirApp and a clickable target
   URL; a local URL is reported only for an explicitly requested local preview;
