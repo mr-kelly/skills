@@ -1,12 +1,14 @@
 # Kelly App Skill Creator
 
-Kelly App Skill Creator 用来设计运行在 Busabase 上、由人类与 Agent 协作的日常工作应用。它负责产品工作流，不再维护第二套应用框架。
+Kelly App Skill Creator 把人类与 Agent 的日常协作流程制作成 Busabase-backed App-in-Skill。
+
+每个生成的 skill 都必须把完整应用项目保存在 `app/`，并默认把同一套源码部署为 Busabase AirApp。`pnpm dev` 仍然可用，但只有用户明确要求本地预览或调试时才启动。持久化配置、工作流状态、决策、任务认领和业务数据全部通过 `busabase-sdk` 读写；本地文件和浏览器存储不是备用数据后端。AirApp 运行时、框架、SDK、安全与部署限制只由 `$busabase-app-creator` 定义。
 
 它强制依赖：
 
-- `$busabase`：连接、目标 Space、工作区操作、ChangeRequest 与审批；
-- `$busabase-app-creator`：Busabase 资源、Vault 安全边界、AirApp 工程、验证与部署。
+- `$busabase`：连接、节点发现、ChangeRequest 与审批；
+- `$busabase-app-creator`：Busabase 资源建模、Vault 安全边界、AirApp 约束、验证、同步与部署。
 
-默认流程是 Research -> Plan -> Action -> Retrospective。Kelly App Skill Creator 沉淀应用类型、人的注意力与退出规则、Agent 职责、审批节点和复盘反馈，不支持 Local Provider，也不自定义运行时或数据层。
+默认流程是 Research -> Plan -> Action -> Retrospective。这个 skill 拥有完整的产品 UI 契约：信息架构、人工注意力侧栏、工作流导航、桌面列表/详情布局、hash 路由、Help & Settings、无障碍、手机抽屉与独立详情流程，以及桌面和 390/360px 宽度的视觉验收。只有 AirApp 运行时工程委托给 `$busabase-app-creator`。
 
-适用于研究台、审批队列、计划看板、行动控制台、运营概览、控制面板和协作工作区。
+正常验收路径是在 Busabase 内运行已合并的 AirApp，并返回可点击的 AirApp 链接。只有明确要求本地预览时，独立应用才显示 Cloud / 自定义服务器连接页，用户点击一次即可进入浏览器 OAuth，同时保留明确标注的只读 Demo 入口；不要求 CLI 登录或输入 API key。OAuth token 只保存在 `~/.busabase/airapps` 下按 AirApp 隔离、仅当前用户可读的本地登记文件中；部署后的 AirApp 直接使用 Busabase ambient session。

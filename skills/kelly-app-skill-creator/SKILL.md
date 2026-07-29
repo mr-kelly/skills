@@ -1,104 +1,258 @@
 ---
 name: kelly-app-skill-creator
-description: Design human-and-Agent operating apps on Busabase using Research, Plan, Action, and Retrospective workflows. Use when a user wants an approval queue, research desk, planner, action console, operating dashboard, control panel, or collaboration workspace. This skill is Busabase-only and must use both `$busabase` and `$busabase-app-creator`; it does not define a local provider, runtime, data layer, or deployment path of its own.
+description: Design and create Busabase-backed App-in-Skill packages with a canonical app project, a standardized responsive workflow UI, Research/Plan/Action/Retrospective workflows, and AirApp-first delivery. Use when a user wants a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, collaboration workspace, or an existing Kelly App-based skill updated. Every generated skill contains a complete app/ project, deploys that source to Busabase AirApp by default, runs pnpm dev only when local preview is explicitly requested, follows the Kelly desktop and phone UI contract, and delegates only AirApp runtime, SDK, security, scaffolding, and deployment constraints to busabase-app-creator.
 ---
 
 # Kelly App Skill Creator
 
-Turn a recurring human-and-Agent operating process into a focused Busabase app. Own the product workflow and delegation contract, not the Busabase implementation.
+Turn a recurring human-and-Agent operation into a Busabase-backed skill with a
+canonical Hono project whose normal delivery target is Busabase AirApp. Own the
+product workflow and the App-in-Skill artifact contract; delegate Busabase
+resource implementation and AirApp deployment mechanics.
+
+## Ownership Boundary
+
+Keep the two creator skills complementary and non-overlapping:
+
+- This skill owns product behavior, information architecture, visible UI, layout,
+  interaction patterns, responsive behavior, accessibility, Help & Settings,
+  hash routing, and visual acceptance for every generated app.
+- `$busabase-app-creator` owns AirApp runtime language, framework, server shape,
+  dependency and SDK constraints, security boundaries, validation, sync, and
+  deployment mechanics.
+- Do not delegate Kelly UI decisions to `$busabase-app-creator`, and do not let a
+  runtime scaffold replace or weaken this skill's desktop or phone shell.
+- Do not restate AirApp runtime limits here. When a runtime rule affects UI
+  implementation, satisfy it inside the UI contract rather than creating a
+  competing runtime contract.
 
 ## Mandatory Dependencies
 
-Before designing or creating anything:
+Before creating or changing an app:
 
-1. Read and follow `$busabase` for connection, target Space, API, ChangeRequest, review, and merge behavior.
-2. Read and follow `$busabase-app-creator` for discovery, resource modeling, native Views, Vault requirements, security, AirApp engineering, scaffolding, validation, and deployment.
+1. Read and follow `$busabase` for connection, target Space, node discovery,
+   ChangeRequests, review, merge, and trusted mutations.
+2. Read and follow `$busabase-app-creator` for resource modeling, native Views,
+   Vault boundaries, AirApp constraints, scaffolding, validation, sync, and
+   deployment.
 
-If either skill is unavailable, stop and report the missing dependency. Do not recreate its behavior inside this skill.
+If a dependency is unavailable, preserve this skill's local artifact and product
+contracts, stop before the unavailable Busabase operation, and report the exact
+missing dependency. Do not invent a second data backend.
 
-## Busabase-Only Contract
+## Reference Map
 
-- Every app is a new Busabase Folder with native resources and an AirApp created by `$busabase-app-creator`.
-- There is no provider choice during onboarding. Do not offer local files, a local provider, browser storage, or a generic data-provider abstraction.
-- Never ask users to paste API keys or secrets into the app, source files, chat, or setup form. `$busabase` owns connection readiness; `$busabase-app-creator` owns non-secret Vault requirement modeling and trusted execution boundaries.
-- Use native Base Views for routine table, gallery, kanban, calendar, and gantt work. Use the AirApp for cross-resource synthesis, prioritization, guidance, and focused commands.
-- Preserve reviewability. The app may propose work through ChangeRequests or a modeled approval/opt-out queue; it does not hide canonical mutation or external side effects.
+Read the two UI references completely for every app creation or UI change. Read
+the other selected references completely before acting:
+
+| Need | Reference |
+| --- | --- |
+| Busabase SDK, node selection, config, state, locks, readiness, secrets | `references/busabase-data-contract.md` |
+| Product shape selection | `references/app-types.md` |
+| Research/Plan/Action/Retrospective patterns | `references/workflow-patterns.md` |
+| Attention UI, review actions, routing, settings, i18n | `references/ui-workflow-patterns.md` |
+| Desktop and mobile shell implementation | `references/mobile-shell-layout.md` |
+| Large zero-build frontend module splits | `references/frontend-modules.md` |
+| Large stylesheet splits with cascade layers | `references/css-modules.md` |
+| Requested screenshots or demo recordings | `references/demo-recording.md` |
+
+## App-in-Skill Contract
+
+- Every generated skill includes a complete canonical project at
+  `<skill-root>/app/`, including its own `package.json`, lockfile, server entry,
+  browser files, checks, and blueprint/resource map. It must remain locally
+  runnable with `cd <skill-root>/app && pnpm dev` or
+  `pnpm --dir <skill-root>/app dev`, but do not start it unless the user
+  explicitly asks for local preview or local debugging.
+- Delegate the runtime language, framework, dependency, SDK bundle, server,
+  Nodepod, validation, and deployable-file rules to `$busabase-app-creator`.
+  Never restate or override those rules here or in a generated domain skill.
+- Treat the committed local source as canonical. Build and sync the AirApp from
+  that source; never leave a remote-only AirApp edit without back-porting it.
+- Use the same UI, routes, domain logic, validation, and Busabase resource map
+  locally and in AirApp. Isolate only the runtime bootstrap/transport adapter.
+- Use `busabase-sdk` as the application data boundary. Persistent domain config,
+  workflow state, user decisions, locks/claims, and domain records belong in
+  Busabase, not local JSON, `app/.data/`, SQLite, or browser storage.
+- Permit environment variables only for connection bootstrap such as
+  `BUSABASE_BASE_URL`, `BUSABASE_API_KEY`, and `BUSABASE_SPACE_ID`. They are not a
+  parallel domain-config system.
+- Never expose an API key or Vault value to browser code, UI state, logs, demos,
+  or screenshots. Secret access stays in the Hono server or trusted AirApp
+  execution boundary.
+- Use local storage only for disposable browser presentation state when it cannot
+  affect behavior, authorization, workflow, or cross-device expectations. Store
+  operator preferences in Busabase when they should follow the operator.
+- Do not offer provider choice. Local development connects to local, Cloud, or
+  self-hosted Busabase through the same SDK contract.
+
+## Default Delivery Mode
+
+Use `airapp-first` unless the user explicitly asks for `pnpm dev`, a local URL,
+local preview, or local debugging.
+
+- In `airapp-first`, generate and keep `<skill-root>/app/` as the canonical
+  source, run its deterministic checks, and submit that same reviewed tree as a
+  Busabase AirApp ChangeRequest. Do not start a standalone local server merely
+  because the project supports one.
+- After the named AirApp CR is merged with explicit authority, Run the AirApp in
+  the selected Busabase and perform product, desktop, phone, ambient-session,
+  resource, and real-data acceptance there. Return the exact clickable AirApp
+  URL; do not substitute a localhost URL.
+- Use `local-preview` only after an explicit user request. Then start `pnpm dev`,
+  apply the Connection UX Contract, report the local URL, and state plainly that
+  the process is standalone and has not uploaded or deployed an AirApp.
+- A Folder or Base created in Busabase does not prove that the AirApp exists.
+  Confirm an actual `airapp` node and its merged version before saying it was
+  uploaded, deployed, or is running in Busabase.
+- Local preview never becomes a second implementation. Whether or not it is
+  started, the same `<skill-root>/app/` tree remains the only source submitted to
+  AirApp.
+
+## Connection UX Contract
+
+When `local-preview` was explicitly requested, every standalone loopback
+App-in-Skill must be usable without a CLI login or pasted API key. Only in that
+standalone local context, when no connection exists, show one focused setup
+screen with:
+
+- a selected `Busabase Cloud` option using the canonical Cloud URL;
+- a `Custom server` option that reveals one URL field for self-hosted or
+  enterprise Busabase;
+- one primary `Connect Busabase` action that starts browser OAuth;
+- one secondary, visually quieter Demo action when the app has a deterministic
+  Demo provider.
+
+Do not ask for an API key, device code, terminal command, provider selection, or
+secret-storage choice. Cloud/custom is a hosting target choice, not a data
+provider choice. Preserve the chosen server only as connection bootstrap; all
+product configuration still comes from Busabase nodes through `busabase-sdk`.
+
+After OAuth returns, distinguish successful authentication from resource
+readiness. Show the sanitized server origin and then guide the user through
+Space ambiguity, missing Folder/resources, schema migration, and Vault
+requirements as separate states. An expired or revoked session returns to the
+same connection screen with a concise retry message. Demo never impersonates a
+successful connection and remains explicitly labeled read-only.
+
+Never tell the operator to create Nodes/Bases, approve a list of unnamed
+ChangeRequests, or copy materialized ids into deployment config. For an approved
+lazy-provisioning blueprint, show one `Initialize workspace` action and concise
+progress while `$busabase-app-creator` submits the exact declared structure as an
+idempotent ChangeRequest. Continue automatically when it materializes. If the
+viewer lacks write permission, show the one pending CR id or the exact permission
+needed; the operator reviews that request, not a manual schema recipe.
+
+This screen must fit the same phone contract as the main app: one-column server
+choices and full-width primary action at 390px and 360px, no horizontal overflow,
+and no terminal instructions. A deployed AirApp uses the ambient Busabase
+session and must not show the local OAuth gate, call `/auth/status` or
+`/auth/start`, or navigate to a Busabase OAuth endpoint.
+
+Delegate PKCE, callback validation, owner-only local credential registration,
+refresh/revoke behavior, proxy injection, and AirApp ambient-session rules to
+`$busabase-app-creator`. Browser JavaScript must never receive an OAuth access
+token, refresh token, PKCE verifier, or Vault value.
+
+## Mandatory UI Contract
+
+Build a quiet operator tool, not a landing page or generic dashboard. Apply
+`references/ui-workflow-patterns.md` and
+`references/mobile-shell-layout.md` as hard implementation and acceptance gates.
+
+- Put the brand, human-attention summary, workflow navigation, and Help &
+  Settings in a fixed desktop sidebar. Collapse it to an icon rail with a panel
+  icon; keep the brand icon visible.
+- State the human task in action language and show the primary attention count
+  above workflow navigation. Use stable row references for review queues.
+- For item-oriented work, use a desktop list/detail split such as
+  `minmax(360px, 38%) minmax(0, 1fr)`. Keep list and detail scrolling inside
+  their panes.
+- Use native hash routes for meaningful views, selection, and Help & Settings so
+  refresh and browser back/forward restore context.
+- At widths up to 720px, switch to a real phone shell: compact top bar,
+  off-canvas sidebar with scrim, separate full-height list and detail panes,
+  sticky back-to-list control, and sticky primary detail action when the workflow
+  has one. Do not merely shrink the desktop UI.
+- Keep touch targets 36-44px, wrap long values, and prevent page-level horizontal
+  overflow. Make Help & Settings a responsive modal and a full-screen panel on
+  phones.
+- Verify at approximately 1280x820, 390x844, and 360x740. Exercise sidebar
+  collapse/drawer, scrim, navigation, row selection, detail back, modal tabs,
+  browser history, and overflow before handoff.
+
+## Busabase Resource Discipline
+
+Select nodes for their native strengths instead of putting everything in one
+JSON blob:
+
+- use Folder and the Node tree for the app root, resource discovery, hierarchy,
+  stable ownership, and navigation;
+- use Base for structured configuration, policies, workflow rows, review items,
+  claims, metrics, and relations;
+- use Vault for secrets and secret references; surface readiness only;
+- use Doc for long-form instructions, research templates, playbooks, and editable
+  narrative content;
+- use Drive and File for imports, attachments, exports, and large artifacts;
+- use native Views for routine table, gallery, kanban, calendar, and gantt work;
+- use AirApp for cross-resource synthesis, prioritization, guidance, and focused
+  commands.
+
+Create an explicit resource map before implementation. Record stable node ids or
+slugs, purpose, schema/version, read/write behavior, mutation path, and the screens
+or jobs that consume each resource. See `references/busabase-data-contract.md`.
 
 ## Product Loop
 
-Default to this four-stage operating loop:
+Default to this four-stage operating loop.
 
-### 1. Research
+### Research
 
-An Agent collects evidence on a schedule or on demand, updates an idempotent report for the relevant period, and records source freshness, coverage, uncertainty, and findings.
+Collect evidence on a schedule or on demand. Update an idempotent report for its
+period key and record source freshness, coverage, uncertainty, and findings.
 
-### 2. Plan
+### Plan
 
-Research becomes concrete, deduplicated work items linked back to its evidence. Humans review an attention queue, change priority or timing, and opt out of work that should not proceed. If the product normally executes recommendations, new items may default to Ready with a clear opt-out window.
+Turn evidence into concrete, deduplicated work items linked back to their sources.
+Let humans opt out, block, reprioritize, reschedule, or request revision. Use an
+attention queue instead of forcing users to inspect every row.
 
-### 3. Action
+### Action
 
-An Agent claims eligible work, creates reviewable deliverables or technical changes, updates status, and leaves progress/result comments. External side effects use the trusted execution path designed by `$busabase-app-creator`.
+Claim eligible work atomically, create reviewable deliverables or ChangeRequests,
+record progress and failures, and keep consequential side effects behind the
+trusted approval/execution path.
 
-### 4. Retrospective
+### Retrospective
 
-Humans and Agents compare outcomes with the original evidence: what shipped, what was blocked, what changed the metric, what created noise, and whether prompts, skills, thresholds, data sources, or workflow rules should change.
+Compare outcomes with original evidence and decisions. Propose improvements to
+prompts, skills, thresholds, sources, schedules, resource schemas, or UI as new
+Plan items; do not silently rewrite production rules from one outcome.
 
-Not every app needs every stage as a separate screen. Every blueprint must state where each stage happens or why it is intentionally omitted.
-
-## Human And Agent Responsibilities
-
-Agents should:
-
-- gather and normalize evidence;
-- update period-based reports idempotently;
-- create deduplicated recommendations or issues with traceability;
-- execute only eligible work;
-- record progress, outcomes, failures, and evidence;
-- propose workflow or skill improvements during retrospective.
-
-Humans should:
-
-- see what needs attention without reading every record;
-- opt out, block, reprioritize, reschedule, or request revision;
-- approve consequential external side effects when the workflow requires it;
-- judge whether results were useful and whether operating rules should change.
-
-Design for ordinary operators. Repository skill nodes and implementation details do not belong in the user-facing Folder unless they are genuinely part of daily work.
-
-## App Types
-
-Read `references/app-types.md` and `references/workflow-patterns.md`, then select the smallest fitting type:
-
-- Research desk;
-- review and approval queue;
-- planner with kanban/calendar;
-- action console;
-- retrospective dashboard;
-- operating dashboard;
-- control panel;
-- collaboration workspace.
-
-Combine types only when the recurring workflow needs them. Avoid a dashboard that merely repeats native Base Views.
+Not every stage needs its own screen. State where each stage happens or why it is
+intentionally omitted.
 
 ## Discovery
 
-Use the one-question-at-a-time interaction required by `$busabase-app-creator`. Learn enough to answer:
+Ask one question at a time. Learn enough to determine:
 
-- Who operates this app, how often, and what outcome do they own?
-- What triggers Research and what defines one reporting period?
-- How does evidence become a Plan item, and how is duplication prevented?
-- What defaults to eligible, what can a human opt out of, and how long is the window?
-- What does Action produce, where is it reviewed, and which side effects are external?
-- What signals make Retrospective useful?
-- Which states require human attention?
-- Which recurring operations are better served by native Views than an AirApp screen?
+- who operates the app, how often, and what outcome they own;
+- what triggers Research and defines one reporting period;
+- how evidence becomes a deduplicated Plan item;
+- what defaults to eligible and what humans may stop or revise;
+- what Action produces, where it is reviewed, and which effects are external;
+- what makes Retrospective useful;
+- which states require human attention;
+- which operations belong in native Views versus AirApp;
+- which existing Busabase Folder, Base, Doc, Drive, File, Skill, or Vault nodes
+  should be reused and which must be proposed.
 
-Do not ask the user to choose providers, frameworks, schema mechanics, or credential storage.
+Do not ask the user to choose a provider, framework, schema mechanism, local
+config path, or secret-storage method.
 
-## Product Overlay Spec
+## Product Overlay
 
-Before invoking creation, produce this concise overlay for `$busabase-app-creator`:
+Before creation, produce this concise overlay for `$busabase-app-creator`:
 
 ```markdown
 # Product Overlay
@@ -107,55 +261,107 @@ User and outcome: ...
 App type: ...
 
 Research: trigger, period key, evidence, freshness, idempotency
-Plan: recommendation/issue rule, traceability, default eligibility, opt-out
-Action: claim rule, deliverable, review point, external side effects
-Retrospective: outcome signals, review cadence, skill/process feedback
+Plan: issue/recommendation rule, traceability, default eligibility, opt-out
+Action: atomic claim, deliverable, review point, external side effects
+Retrospective: outcome signals, cadence, skill/process feedback
 
 Human attention states: ...
 Agent responsibilities: ...
 Native Views needed: ...
 AirApp screens and focused actions: ...
+Busabase resource map: Folder/Node root, Bases, Docs, Drives/Files, Vault refs
+Delivery mode: airapp-first unless the user explicitly requested local-preview
 Guide copy in plain language: ...
 Explicit exclusions: ...
 ```
 
-This overlay describes product behavior only. `$busabase-app-creator` translates it into the full Busabase blueprint, resource graph, capability matrix, data budgets, security model, implementation, and deployment plan.
+The overlay describes product behavior. `$busabase-app-creator` translates it
+into the complete resource graph, capability matrix, security model, canonical
+`<skill-root>/app/` scaffold, AirApp-compatible implementation, validation, sync,
+and deployment.
 
-## Onboarding
+## Creation Workflow
 
-On first use:
+1. Read the relevant references and inspect nearby App-based skills before
+   choosing a structure.
+2. Establish the Busabase connection and explicit target Space.
+3. Discover the target Node tree and draft the resource map.
+4. Agree on the Product Overlay and let `$busabase-app-creator` validate the
+   technical blueprint.
+5. Have `$busabase-app-creator` create or update the complete canonical project at
+   `<skill-root>/app/`. Do not invent a second runtime layout in this skill.
+6. Implement one Busabase repository/service boundary over `busabase-sdk`.
+   Browser code calls Hono/AirApp routes; it does not hold credentials.
+7. Keep setup, seed, refresh, migration, validation, and sync scripts as thin
+   entrypoints over shared modules. Avoid Python, native binaries, subprocess
+   orchestration, and filesystem-backed workflow state unless a domain adapter
+   strictly requires them and AirApp compatibility is preserved.
+8. Run lint/typecheck/tests/build without starting a persistent local server.
+   When the user explicitly selected `local-preview`, also run
+   `pnpm --dir <skill-root>/app dev` and complete local connection, workflow,
+   recovery, desktop, and phone acceptance before continuing.
+9. By default, submit the same canonical source directly as a reviewable AirApp
+   CR through `$busabase-app-creator`; return its clickable Busabase review URL
+   and wait for the named merge authorization.
+10. After merge, Run the AirApp in Busabase and verify the same resource map,
+    representative data, ambient session, main workflow, recovery states, and
+    mandatory desktop/phone shell behavior. Report the canonical AirApp URL.
+    Report a local URL only when `local-preview` was explicitly requested.
 
-1. Invoke `$busabase` to establish Cloud/Desktop connection and target workspace safely.
-2. Invoke `$busabase-app-creator` to run its deployment/source/product interview.
-3. Supply the approved Product Overlay Spec as product context.
-4. Let `$busabase-app-creator` present and validate the complete blueprint.
-5. Follow its separate structure, Demo UI, AirApp CR, seed, and target-run approval gates.
+## Onboarding And Readiness
 
-The operator should experience one coherent onboarding flow. Do not show dependency handoffs as competing setup systems.
+The app must start locally even when Busabase is not ready, but it must show a
+connection/setup gate rather than silently switching to local data. Distinguish:
 
-## Daily UX
+- missing connection bootstrap;
+- unauthenticated or unreachable Busabase;
+- ambiguous or inaccessible Space;
+- missing app Folder/resources;
+- schema migration needed;
+- missing Vault references;
+- ready.
 
-The app's Help/Guide copy should explain the real operating loop in plain language:
+For missing or expired authentication, apply the Connection UX Contract above;
+do not replace its OAuth action with CLI instructions or a credential input.
 
-1. Run or wait for Research.
-2. Review Plan items and opt out of work that should not run.
-3. Run Action for eligible items and review its deliverables.
-4. Use Retrospective to improve the workflow and its skills.
-
-Page-level guides explain only the current operation and recovery path. Do not expose provider jargon or implementation instructions to ordinary users.
+Show sanitized connection and resource identifiers plus an actionable recovery
+step. Never accept or echo secret values in the browser. Provision or repair
+resources through reviewed ChangeRequests when required. A recovery step may ask
+the operator to initialize, retry, select a Space, or review one named CR; it must
+not delegate Node/Base construction or id wiring to them.
 
 ## Completion Criteria
 
 Finish only when:
 
-- `$busabase` connection and target are explicit;
-- `$busabase-app-creator` owns and validates the complete technical blueprint;
-- Research, Plan, Action, and Retrospective are represented or intentionally omitted;
+- the skill contains a complete canonical `<skill-root>/app/` project and
+  `pnpm --dir <skill-root>/app dev` remains supported, whether or not local
+  preview was requested;
+- `$busabase-app-creator` runtime, SDK, security, validation, and deployment checks
+  pass without a conflicting local runtime contract;
+- the Busabase connection, target Space, app root, and resource map are explicit;
+- all persistent config, state, decisions, claims, and domain data use
+  `busabase-sdk` and appropriate Busabase nodes;
+- Vault values and API credentials never reach browser-visible surfaces;
+- local setup offers Cloud/custom URL OAuth plus an explicit Demo path, while
+  deployed AirApp uses its ambient session;
+- Research, Plan, Action, and Retrospective are represented or intentionally
+  omitted;
 - human attention, opt-out, review, and Agent claim rules are unambiguous;
-- the user-facing Folder contains only useful daily resources;
-- no local/provider alternative or secret-entry UI exists;
-- all approvals, validation, deployment, and real-data checks required by the dependency skills pass.
+- local and AirApp runs use the same application source and resource contract;
+- the default delivery produced a merged, verified AirApp and a clickable target
+  URL; a local URL is reported only for an explicitly requested local preview;
+- the Kelly desktop sidebar, attention, workflow navigation, list/detail, hash
+  routing, and Help & Settings contract is implemented where applicable;
+- 1280px desktop, 390px phone, and 360px narrow-phone workflows pass visual,
+  interaction, and horizontal-overflow checks;
+- validation, deployment, and real-data checks required by dependency skills
+  pass.
 
 ## Stop Conditions
 
-Stop when a dependency is unavailable, the target Space is ambiguous, a side effect lacks an approval/trusted-execution model, or the workflow cannot define who may opt out or authorize work.
+Stop when a dependency is unavailable for the next required operation, the target
+Space or app root is ambiguous, node capabilities cannot support the intended
+model, a secret would cross into the browser, a side effect lacks a reviewed
+trusted-execution path, or local and AirApp implementations would require separate
+business logic.

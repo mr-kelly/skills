@@ -67,11 +67,11 @@
 
 ## 应用工作流契约
 
-新的 Busabase 运营应用 skill 使用仓库内的 `kelly-app-skill-creator` contract：以 Research、Plan、Action、Retrospective 定义产品工作流，并把技术实现交给 `$busabase` 与 `$busabase-app-creator`。现有本地 App-in-Skill 工作流继续保留其已审计的实现基线：
+新的 Busabase 运营应用 skill 使用仓库内的 `kelly-app-skill-creator` contract：每个 skill 都在 `app/` 保存完整规范项目，通过 `busabase-sdk` 读取持久化配置、状态和数据，并默认把同一套源码部署到 AirApp。项目仍可通过 `pnpm dev` 本地运行，但只有用户明确要求预览或调试时才启动。`kelly-app-skill-creator` 负责操作台 UI、桌面/手机布局、交互和视觉验收；`$busabase` 与 `$busabase-app-creator` 负责 Busabase 资源以及 AirApp 运行时和部署细节。现有本地 App-in-Skill 工作流继续保留其已审计的实现基线：
 
-- **首次使用 onboarding** —— 每个 App 在读取 live data 前都有识别 provider 的 setup route。浏览器只引导用户进入 provider 自己的安全配置流程，不收集密码或 API key。
-- **确定性 handoff** —— 每个工作流都带 UI state validator；agent 到 App 的交接文件缺失或格式错误时会明确失败。使用 Busabase 的工作流还声明带 fingerprint 的 schema manifest。
-- **Review 安全边界** —— 默认使用 demo data；外部写入、发布、发送、生成等有实际影响的动作，必须经过明确审批或进入 agent-task 边界。
+- **首次使用 onboarding** —— Busabase-backed App 在读取 live data 前明确展示连接、Space、资源、schema 和 Vault readiness；浏览器不收集密码、API key 或 Vault 值。
+- **确定性 handoff** —— Busabase-backed workflow 声明 resource map，并通过 `busabase-sdk` 校验 Folder/Node、Base、Doc、Drive/File 与 Vault 要求；缺失或不匹配时明确失败。
+- **Review 安全边界** —— demo 使用独立的本地 Busabase 或测试 Space；外部写入、发布、发送、生成等有实际影响的动作，必须经过明确审批或进入 Agent-task 边界。
 - **可维护前端** —— 大型浏览器脚本拆成原生 ESM modules，入口文件保持在 800 行以内；大型样式表按稳定 cascade layer 拆成有序 CSS modules。
 - **可复现证据** —— 截图使用确定性 demo state 和规范桌面/手机 viewport；GitHub Pages 画廊由中英文 README 与 skill 内本地 assets 统一重建。
 
@@ -102,14 +102,14 @@
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `agent-rules` | 让 Codex、Claude Code、Copilot、Kiro、Cursor、Gemini 等 agent 共享同一套规则和 skills。 | 设置多 agent repo、检查规则漂移、修复 rule/skill symlink 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/agent-rules.html?lang=zh) |
-| `kelly-app-skill-creator` | 围绕 Research、Plan、Action、Retrospective 设计 Busabase-only 的人类与 Agent 运营应用，并把连接与技术实现交给 `$busabase` 和 `$busabase-app-creator`。旧名 `kelly-app-creator`、`app-in-skill-creator` 保留为兼容别名。 | 构建 Busabase 研究台、审阅队列、计划看板、行动控制台、运营概览、控制面板或协作工作区时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html?lang=zh) |
+| `kelly-app-skill-creator` | 围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 `app/`，用 `busabase-sdk` 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 `pnpm dev`，拥有响应式 Kelly 操作台 UI，并只把运行时约束委托给 `$busabase-app-creator`。旧名 `kelly-app-creator`、`app-in-skill-creator` 保留为兼容别名。 | 构建 Busabase 研究台、审阅队列、计划看板、行动控制台、运营概览、控制面板或协作工作区时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html?lang=zh) |
 | `publish-skills` | 把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 `gh skill` 校验、切版本、接 Claude `/plugin` 和 Codex marketplace，并准备 MCP Registry 和精选商店。 | 发布、上架、分发 skills、plugins 或 MCP servers 到 skills.sh、Claude Code、Codex 或 MCP Registry 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/publish-skills.html?lang=zh) |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
 | `kelly-finance` | 构建和审计财务三表模型、经营预测、预算、现金 runway、SaaS/unit economics 包，以及可交付的 Excel 财务输出。 | 做财务三表、融资预测、董事会财务包、情景分析、资产负债表检查、营运资本/资本开支/债务 schedule，或修三表勾稽错误时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html?lang=zh) |
 | `kelly-money` | 聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。 | 查看余额、付款、payout、手续费、退款、转账、provider sync 状态、发票和流水匹配时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-money.html?lang=zh) |
 | `kelly-invoice-sheet` | 把发票、收据、红字/贷项通知单和 statement 抽取成类似 spreadsheet 的本地审阅表，带字段置信度、明细行、审批决定和 CSV/JSON 导出。 | 做 Invoice转表格、发票 OCR、收据转表格、记账导入准备，或需要类似 Lido Extract Data 的本地 App-in-Skill workflow 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invoice-sheet.html?lang=zh) |
 | `kelly-invest-webull` | 通过 Webull OpenAPI 把个人券商账户聚合成本地只读投资组合 dashboard：持仓、成本、市值、未实现盈亏、当日涨跌和按资产类别的配置。只读——绝不下单或撤单。 | 查看个人投资、持仓、组合市值、未实现盈亏、现金或资产配置时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html?lang=zh) |
-| `kelly-invest-stock` | 使用固定版本、免 Key、纯 JavaScript 的 `stock-sdk` 行情数据设计 Busabase-only、只读的中国股票持仓与研究台。用户持仓与公开行情分开保存，绝不交易。 | 监控中国大陆 A 股持仓、相关指数或股票 ETF，刷新行情和 K 线，或查看盈亏、集中度、回撤、异常波动、研究假设与数据新鲜度时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invest-stock.html?lang=zh) |
+| `kelly-invest-stock` | 构建本地 Hono、Busabase-backed、只读的中国股票持仓与研究台，使用固定版本、免 Key、纯 JavaScript 的 `stock-sdk` 行情数据；同一套源码可部署到 AirApp，绝不交易。 | 监控中国大陆 A 股持仓、相关指数或股票 ETF，刷新行情和 K 线，或查看盈亏、集中度、回撤、异常波动、研究假设与数据新鲜度时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invest-stock.html?lang=zh) |
 | `kelly-family-office` | 通过 CSV 导入和手工录入，把多个主体/成员的持仓合并成家族办公室 dashboard：以基准货币计的总资产管理规模（AUM），按主体、资产类别、机构的配置和业绩汇总。只读——绝不动钱。 | 汇总个人、信托、公司等多主体的家族办公室，查看合并 AUM、资产配置、机构敞口或未实现业绩时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-family-office.html?lang=zh) |
 | `kelly-family-fund` | 把两位老人的退休金汇入一个由管理人统一记账的统筹基金，按月记录养老院固定支出和大家庭共享开销（折算基准货币），让每个兄弟姐妹家庭都能看到分摊是公平的。只读——绝不动钱。 | 一家人共同赡养老人、统一管理退休金时使用：记录养老院费用，并把结余（交通、聚餐、生日礼物、人情）透明地分摊到各兄弟姐妹家庭。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-family-fund.html?lang=zh) |
 | `kelly-crm` | 个人 CRM：联系人、公司、交易和互动记录，带 pipeline dashboard 和 agent 起草的跟进审批队列。 | 跟踪交易和人脉、查看 pipeline 健康度、批准/编辑跟进草稿（由 agent 经其他渠道发出）时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-crm.html?lang=zh) |

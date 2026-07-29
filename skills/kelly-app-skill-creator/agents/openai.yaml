@@ -1,4 +1,4 @@
 interface:
   display_name: "Kelly App Skill Creator"
-  short_description: "Design Busabase human-and-Agent operating workflows"
-  default_prompt: "Use $kelly-app-skill-creator with $busabase and $busabase-app-creator to design a Busabase-only Research, Plan, Action, Retrospective app skill."
+  short_description: "Build responsive Busabase App-in-Skills"
+  default_prompt: "Use $kelly-app-skill-creator to build a Busabase-backed App-in-Skill with the Kelly desktop and phone UI contract, keep the canonical source under app/, and deploy it to AirApp by default; start pnpm dev only when I explicitly request local preview, and delegate runtime rules to $busabase-app-creator."

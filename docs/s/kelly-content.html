@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>kelly-invest-stock — mr-kelly/skills</title>
+<title>kelly-content — mr-kelly/skills</title>
 <meta name="description" content="Kelly's App-in-Skill business tools — agent skills that bundle a local review UI.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%2318181b%22%2F%3E%3Ctext%20x%3D%2216%22%20y%3D%2222%22%20font-size%3D%2217%22%20font-weight%3D%22700%22%20font-family%3D%22sans-serif%22%20fill%3D%22%23fff%22%20text-anchor%3D%22middle%22%3EK%3C%2Ftext%3E%3C%2Fsvg%3E">
 <style>
@@ -234,65 +234,64 @@ h2.group {
   <main class="skill-main">
     <section class="skill-hero">
       <a class="crumb" href="../index.html"><span class="en">&larr; All skills</span><span class="zh">&larr; 全部 skills</span></a>
-      <h1>kelly-invest-stock</h1>
-      <p><span class="en">Builds a local Hono, Busabase-backed, read-only China stock portfolio and research desk using exact-pinned, no-key JavaScript market data from stock-sdk; the same source deploys to AirApp and never trades.</span><span class="zh">构建本地 Hono、Busabase-backed、只读的中国股票持仓与研究台，使用固定版本、免 Key、纯 JavaScript 的 stock-sdk 行情数据；同一套源码可部署到 AirApp，绝不交易。</span></p>
+      <h1>kelly-content</h1>
+      <p><span class="en"></span><span class="zh"></span></p>
       <section class="install-strip mobile-skill-install">
   <div>
     <strong><span class="en">Install</span><span class="zh">安装</span></strong>
-    <span class="note"><span class="en">Install kelly-invest-stock or copy a ready prompt for your agent.</span><span class="zh">安装 kelly-invest-stock，或复制现成提示给 agent。</span></span>
+    <span class="note"><span class="en">Install kelly-content or copy a ready prompt for your agent.</span><span class="zh">安装 kelly-content，或复制现成提示给 agent。</span></span>
   </div>
   <div class="install-actions">
-    <code class="command-code" id="mobile-install-kelly-invest-stock-npx" data-copy-value="npx skills add mr-kelly/skills --skill kelly-invest-stock">npx skills add mr-kelly/skills
---skill kelly-invest-stock</code>
+    <code class="command-code" id="mobile-install-kelly-content-npx" data-copy-value="npx skills add mr-kelly/skills --skill kelly-content">npx skills add mr-kelly/skills
+--skill kelly-content</code>
 <div class="install-action-row">
-  <button class="copy-button" type="button" data-copy="mobile-install-kelly-invest-stock-npx"><span class="en">Copy</span><span class="zh">复制</span></button>
-  <button class="copy-button secondary" type="button" data-copy="mobile-install-kelly-invest-stock-prompt"><span class="en">Copy prompt</span><span class="zh">复制提示</span></button>
+  <button class="copy-button" type="button" data-copy="mobile-install-kelly-content-npx"><span class="en">Copy</span><span class="zh">复制</span></button>
+  <button class="copy-button secondary" type="button" data-copy="mobile-install-kelly-content-prompt"><span class="en">Copy prompt</span><span class="zh">复制提示</span></button>
 </div>
-<textarea id="mobile-install-kelly-invest-stock-prompt" hidden readonly>Install kelly-invest-stock from https://mr-kelly.github.io/skills/ for this agent, then use it for my next task.
+<textarea id="mobile-install-kelly-content-prompt" hidden readonly>Install kelly-content from https://mr-kelly.github.io/skills/ for this agent, then use it for my next task.
 
 Run:
-npx skills add mr-kelly/skills --skill kelly-invest-stock
+npx skills add mr-kelly/skills --skill kelly-content
 
-After it is installed, invoke the skill as $kelly-invest-stock.</textarea>
+After it is installed, invoke the skill as $kelly-content.</textarea>
 <details class="install-more">
   <summary><span class="en">Claude Code</span><span class="zh">Claude Code</span></summary>
   <div class="details-body">
-    <code class="command-code" id="mobile-install-kelly-invest-stock-claude">/plugin marketplace add mr-kelly/skills
+    <code class="command-code" id="mobile-install-kelly-content-claude">/plugin marketplace add mr-kelly/skills
 /plugin install mr-kelly-skills</code>
-    <button class="copy-button subtle" type="button" data-copy="mobile-install-kelly-invest-stock-claude"><span class="en">Copy Claude commands</span><span class="zh">复制 Claude 命令</span></button>
+    <button class="copy-button subtle" type="button" data-copy="mobile-install-kelly-content-claude"><span class="en">Copy Claude commands</span><span class="zh">复制 Claude 命令</span></button>
   </div>
 </details>
   </div>
 </section>
     </section>
-    <div class="panel"><h3><span class="en">When to use it</span><span class="zh">什么时候用</span></h3><p><span class="en">Use it when monitoring mainland A-share holdings, related indices or stock ETFs, refreshing quotes and K-lines, or reviewing P/L, concentration, drawdown, unusual moves, research hypotheses, and data freshness.</span><span class="zh">监控中国大陆 A 股持仓、相关指数或股票 ETF，刷新行情和 K 线，或查看盈亏、集中度、回撤、异常波动、研究假设与数据新鲜度时使用。</span></p></div>
 
   </main>
   <aside class="skill-sidebar">
   <section class="side-card install-card">
   <div>
     <h2><span class="en">Install</span><span class="zh">安装</span></h2>
-    <p><span class="en">Install kelly-invest-stock without leaving this page.</span><span class="zh">不用离开这个页面，直接安装 kelly-invest-stock。</span></p>
+    <p><span class="en">Install kelly-content without leaving this page.</span><span class="zh">不用离开这个页面，直接安装 kelly-content。</span></p>
   </div>
   <div class="install-actions">
-    <code class="command-code" id="install-kelly-invest-stock-npx" data-copy-value="npx skills add mr-kelly/skills --skill kelly-invest-stock">npx skills add mr-kelly/skills
---skill kelly-invest-stock</code>
+    <code class="command-code" id="install-kelly-content-npx" data-copy-value="npx skills add mr-kelly/skills --skill kelly-content">npx skills add mr-kelly/skills
+--skill kelly-content</code>
 <div class="install-action-row">
-  <button class="copy-button" type="button" data-copy="install-kelly-invest-stock-npx"><span class="en">Copy</span><span class="zh">复制</span></button>
-  <button class="copy-button secondary" type="button" data-copy="install-kelly-invest-stock-prompt"><span class="en">Copy prompt</span><span class="zh">复制提示</span></button>
+  <button class="copy-button" type="button" data-copy="install-kelly-content-npx"><span class="en">Copy</span><span class="zh">复制</span></button>
+  <button class="copy-button secondary" type="button" data-copy="install-kelly-content-prompt"><span class="en">Copy prompt</span><span class="zh">复制提示</span></button>
 </div>
-<textarea id="install-kelly-invest-stock-prompt" hidden readonly>Install kelly-invest-stock from https://mr-kelly.github.io/skills/ for this agent, then use it for my next task.
+<textarea id="install-kelly-content-prompt" hidden readonly>Install kelly-content from https://mr-kelly.github.io/skills/ for this agent, then use it for my next task.
 
 Run:
-npx skills add mr-kelly/skills --skill kelly-invest-stock
+npx skills add mr-kelly/skills --skill kelly-content
 
-After it is installed, invoke the skill as $kelly-invest-stock.</textarea>
+After it is installed, invoke the skill as $kelly-content.</textarea>
 <details class="side-details">
   <summary><span class="en">Claude Code</span><span class="zh">Claude Code</span></summary>
   <div class="details-body">
-    <code class="command-code" id="install-kelly-invest-stock-claude">/plugin marketplace add mr-kelly/skills
+    <code class="command-code" id="install-kelly-content-claude">/plugin marketplace add mr-kelly/skills
 /plugin install mr-kelly-skills</code>
-    <button class="copy-button subtle" type="button" data-copy="install-kelly-invest-stock-claude"><span class="en">Copy Claude commands</span><span class="zh">复制 Claude 命令</span></button>
+    <button class="copy-button subtle" type="button" data-copy="install-kelly-content-claude"><span class="en">Copy Claude commands</span><span class="zh">复制 Claude 命令</span></button>
   </div>
 </details>
   </div>
@@ -300,8 +299,8 @@ After it is installed, invoke the skill as $kelly-invest-stock.</textarea>
   <section class="side-card">
     <h3><span class="en">Links</span><span class="zh">链接</span></h3>
     <nav class="side-links">
-      <a href="https://github.com/mr-kelly/skills/tree/main/skills/kelly-invest-stock" target="_blank" rel="noopener"><span class="en">Source</span><span class="zh">源码</span> ↗</a>
-      <a href="https://github.com/mr-kelly/skills/blob/main/skills/kelly-invest-stock/SKILL.md" target="_blank" rel="noopener">SKILL.md ↗</a>
+      <a href="https://github.com/mr-kelly/skills/tree/main/skills/kelly-content" target="_blank" rel="noopener"><span class="en">Source</span><span class="zh">源码</span> ↗</a>
+      <a href="https://github.com/mr-kelly/skills/blob/main/skills/kelly-content/SKILL.md" target="_blank" rel="noopener">SKILL.md ↗</a>
     </nav>
   </section>
 </aside>

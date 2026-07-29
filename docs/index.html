@@ -238,8 +238,8 @@ h2.group {
         <span class="en">Agent skills for daily business operations. Each App-in-Skill pairs an operating procedure for the agent with a local browser UI where a human reviews, approves, edits, and hands work back — dashboards for money, CRM, chat, SEO, market intel, ops, and more.</span><span class="zh">服务日常业务的 agent skills。每个 App-in-Skill 都由两部分组成：给 agent 的操作规程 + 一个本地浏览器操作台，供人 review、批准、编辑并把任务交还给 agent —— 覆盖资金、CRM、聊天聚合、SEO、市场情报、运维等场景。</span>
       </p>
       <div class="stats">
-        <span><strong>66</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
-        <span><strong>62</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
+        <span><strong>67</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
+        <span><strong>64</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
         <span><strong>0</strong><span class="en">npm dependencies</span><span class="zh">npm 依赖</span></span>
       </div>
       <div class="audit-note">
@@ -286,7 +286,8 @@ After installation, list the available skills and help me choose the right one f
 <button class="category-chip" type="button" data-category-filter="eng" onclick="mkSetCategory('eng')"><span class="en">Engineering &amp; Ops</span><span class="zh">工程与运维</span></button>
 <button class="category-chip" type="button" data-category-filter="rbf" onclick="mkSetCategory('rbf')"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span></button>
 <button class="category-chip" type="button" data-category-filter="agent-ops" onclick="mkSetCategory('agent-ops')"><span class="en">AI Agent Ops</span><span class="zh">AI Agent 运维</span></button>
-<button class="category-chip" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span></button></nav>
+<button class="category-chip" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span></button>
+<button class="category-chip" type="button" data-category-filter="more" onclick="mkSetCategory('more')"><span class="en">More</span><span class="zh">更多</span></button></nav>
 </div>
     </section>
     <section class="group-section" data-group-section="finance">
@@ -389,8 +390,8 @@ After installation, list the available skills and help me choose the right one f
 <a class="card" href="s/kelly-invest-stock.html">
   <div class="thumb empty">⚙️</div>
   <div class="body">
-    <span class="name">kelly-invest-stock</span>
-    <span class="desc"><span class="en">Designs a Busabase-only, read-only China stock portfolio and research desk using exact-pinned, no-key JavaScript market data from stock-sdk. It keeps user-entered holdings separate from public prices and never trades.</span><span class="zh">使用固定版本、免 Key、纯 JavaScript 的 stock-sdk 行情数据设计 Busabase-only、只读的中国股票持仓与研究台。用户持仓与公开行情分开保存，绝不交易。</span></span>
+    <span class="name">kelly-invest-stock<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Builds a local Hono, Busabase-backed, read-only China stock portfolio and research desk using exact-pinned, no-key JavaScript market data from stock-sdk; the same source deploys to AirApp and never trades.</span><span class="zh">构建本地 Hono、Busabase-backed、只读的中国股票持仓与研究台，使用固定版本、免 Key、纯 JavaScript 的 stock-sdk 行情数据；同一套源码可部署到 AirApp，绝不交易。</span></span>
   </div>
 </a>
 <a class="card" href="s/kelly-family-office.html">
@@ -804,7 +805,7 @@ After installation, list the available skills and help me choose the right one f
   <div class="thumb empty">⚙️</div>
   <div class="body">
     <span class="name">kelly-app-skill-creator</span>
-    <span class="desc"><span class="en">Designs Busabase-only human-and-Agent operating apps around Research, Plan, Action, and Retrospective, delegating connection and implementation to $busabase and $busabase-app-creator. The previous names kelly-app-creator and app-in-skill-creator remain compatibility aliases.</span><span class="zh">围绕 Research、Plan、Action、Retrospective 设计 Busabase-only 的人类与 Agent 运营应用，并把连接与技术实现交给 $busabase 和 $busabase-app-creator。旧名 kelly-app-creator、app-in-skill-creator 保留为兼容别名。</span></span>
+    <span class="desc"><span class="en">Builds Busabase-backed App-in-Skill packages around Research, Plan, Action, and Retrospective. Each bundles a complete canonical app/, uses busabase-sdk for persistent config/state/data, deploys the same source to AirApp by default, starts pnpm dev only on explicit request, owns the responsive Kelly operator UI, and delegates only runtime rules to $busabase-app-creator. The previous names kelly-app-creator and app-in-skill-creator remain compatibility aliases.</span><span class="zh">围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 app/，用 busabase-sdk 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 pnpm dev，拥有响应式 Kelly 操作台 UI，并只把运行时约束委托给 $busabase-app-creator。旧名 kelly-app-creator、app-in-skill-creator 保留为兼容别名。</span></span>
   </div>
 </a>
 <a class="card" href="s/publish-skills.html">
@@ -812,6 +813,18 @@ After installation, list the available skills and help me choose the right one f
   <div class="body">
     <span class="name">publish-skills</span>
     <span class="desc"><span class="en">Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with gh skill, cuts a release, wires the Claude /plugin and Codex marketplaces, and preps the MCP Registry and curated stores.</span><span class="zh">把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 gh skill 校验、切版本、接 Claude /plugin 和 Codex marketplace，并准备 MCP Registry 和精选商店。</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="more">
+<h2 class="group" id="more"><span class="en">More</span><span class="zh">更多</span></h2>
+<div class="grid">
+<a class="card" href="s/kelly-content.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-content<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en"></span><span class="zh"></span></span>
   </div>
 </a>
 </div>
@@ -848,7 +861,7 @@ After installation, list the available skills and help me choose the right one f
 </section>
   <section class="side-card">
     <h3><span class="en">Categories</span><span class="zh">分类</span></h3>
-    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">66</span></button>
+    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">67</span></button>
 <button class="category-button" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">经营台账</span><span class="count">7</span></button>
 <button class="category-button" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal Knowledge</span><span class="zh">法律知识库</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="invest" onclick="mkSetCategory('invest')"><span class="en">Investing &amp; Wealth</span><span class="zh">投资与财富</span><span class="count">4</span></button>
@@ -861,7 +874,8 @@ After installation, list the available skills and help me choose the right one f
 <button class="category-button" type="button" data-category-filter="eng" onclick="mkSetCategory('eng')"><span class="en">Engineering &amp; Ops</span><span class="zh">工程与运维</span><span class="count">2</span></button>
 <button class="category-button" type="button" data-category-filter="rbf" onclick="mkSetCategory('rbf')"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span><span class="count">5</span></button>
 <button class="category-button" type="button" data-category-filter="agent-ops" onclick="mkSetCategory('agent-ops')"><span class="en">AI Agent Ops</span><span class="zh">AI Agent 运维</span><span class="count">5</span></button>
-<button class="category-button" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span><span class="count">3</span></button></div>
+<button class="category-button" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span><span class="count">3</span></button>
+<button class="category-button" type="button" data-category-filter="more" onclick="mkSetCategory('more')"><span class="en">More</span><span class="zh">更多</span><span class="count">1</span></button></div>
   </section>
 </aside>
 </div>
