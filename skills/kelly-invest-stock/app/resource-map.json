@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 2,
+  "provisioning": {
+    "mode": "lazy",
+    "trigger": "first-real-data-read-or-explicit-setup-action",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"],
+    "legacyRepair": "exact-resource-fingerprint-only",
+    "autoMergeApprovedStructure": true,
+    "schemaSource": "app/js/config.js"
+  },
+  "appRoot": {
+    "kind": "folder",
+    "slug": "kelly-invest-stock",
+    "nodeId": ""
+  },
+  "resources": [
+    {
+      "key": "strategies",
+      "kind": "base",
+      "slug": "stock-strategies-v2",
+      "purpose": "Selection rules and strategy lifecycle",
+      "nodeId": "",
+      "baseId": "",
+      "schemaVersion": 2,
+      "readLimit": 20
+    },
+    {
+      "key": "candidates",
+      "kind": "base",
+      "slug": "stock-candidates-v2",
+      "purpose": "L1, L2, and L3 stock candidates",
+      "nodeId": "",
+      "baseId": "",
+      "schemaVersion": 2,
+      "readLimit": 100
+    },
+    {
+      "key": "ledger-accounts",
+      "kind": "base",
+      "slug": "stock-ledger-accounts-v2",
+      "purpose": "Virtual capital accounts by strategy",
+      "nodeId": "",
+      "baseId": "",
+      "schemaVersion": 2,
+      "readLimit": 20
+    },
+    {
+      "key": "ledger-positions",
+      "kind": "base",
+      "slug": "stock-ledger-positions-v2",
+      "purpose": "Virtual positions for strategy validation",
+      "nodeId": "",
+      "baseId": "",
+      "schemaVersion": 2,
+      "readLimit": 100
+    }
+  ],
+  "vaultRequirements": [],
+  "trustedExecution": {
+    "marketRefresh": "Reviewed JavaScript Workflow or Agent",
+    "adapter": "stock-sdk@2.4.0"
+  }
+}

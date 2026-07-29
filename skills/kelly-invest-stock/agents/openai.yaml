@@ -1,4 +1,4 @@
 interface:
   display_name: "Kelly Invest Stock"
-  short_description: "Monitor China stocks with no-key JavaScript data"
-  default_prompt: "Use $kelly-invest-stock to create a read-only Busabase China stock portfolio and research workflow with no-key JavaScript market data."
+  short_description: "Run a Busabase-backed strategy experiment desk"
+  default_prompt: "Use $kelly-invest-stock to build a stock strategy desk with L1/L2/L3 screening and virtual ledgers."

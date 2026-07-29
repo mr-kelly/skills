@@ -1,162 +1,161 @@
 ---
 name: kelly-invest-stock
-description: Design and operate a Busabase-only, read-only China stock portfolio and research workspace using the no-key, pure-JavaScript stock-sdk market-data adapter. Use when the user invokes $kelly-invest-stock or /kelly-invest-stock, wants to monitor Shanghai, Shenzhen, or Beijing A-share holdings or watchlists, track related mainland indices or exchange-traded stock ETFs, refresh quotes and K-lines, or review portfolio value, cost basis, unrealized P/L, concentration, drawdown, market moves, research hypotheses, and recurring China stock reviews. It never connects to a brokerage, places orders, moves money, or presents generated analysis as personalized investment advice.
+description: Build and operate a Busabase-backed stock strategy experiment desk with a bundled local Hono App-in-Skill, the same source deployable to AirApp, L1/L2/L3 candidate screening, and strategy-level virtual ledgers. Use when the user invokes $kelly-invest-stock or /kelly-invest-stock, wants to define and compare stock-selection strategies, move candidates through research and paper-validation stages, inspect evidence and invalidation rules, or review virtual performance and drawdown. It never connects to a brokerage, places orders, moves money, or presents generated analysis as personalized investment advice.
 ---
 
 # Kelly Invest Stock
 
-Create a focused China stock research desk and portfolio monitor on Busabase. Keep
-personal holdings separate from public market data, preserve freshness and source
-provenance, and turn findings into review items rather than trades.
+Build a compact strategy experiment desk. Keep the workflow centered on three
+questions: which strategy is being tested, why a stock belongs at its current
+level, and what the virtual ledger says about the strategy's behavior.
 
 ## Mandatory Dependencies
 
 Before designing, creating, or changing the app:
 
-1. Read and follow `$kelly-app-skill-creator` for the Research, Plan, Action, and Retrospective product loop.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete local `app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, API, ChangeRequest, review, and merge behavior.
-3. Read and follow `$busabase-app-creator` for resource modeling, native Views, AirApp runtime limits, security, validation, and deployment.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 4. Read `references/stock-sdk.md` before implementing or changing market-data ingestion.
 
-If any required skill is unavailable, stop and report the missing dependency. Do
-not replace Busabase with a local app, browser storage, or a file-backed provider.
+If a required skill is unavailable, continue safe local app work but stop before
+the unavailable Busabase or deployment operation and report the missing dependency.
+Never replace Busabase persistence with local JSON, browser storage, SQLite, or a
+file-backed provider.
 
 ## Product Boundary
 
-- Treat this as read-only investment monitoring and research. Never place, modify,
-  or cancel orders; never transfer money; never connect to a brokerage session.
-- Limit the first version to mainland China A-shares on Shanghai, Shenzhen, and
-  Beijing exchanges, related mainland indices, and exchange-traded stock ETFs.
-  Exclude Hong Kong stocks, US stocks, futures, and options even when the data
-  adapter supports them.
-- Store holdings through Busabase manual entry or an approved broker-export import.
-  Public market-data interfaces do not provide the user's brokerage positions.
-- Use exact-pinned `stock-sdk@2.4.0` as the fixed no-key JavaScript adapter. Do not
-  add API-key, token, licence, Vault, Python, native-binary, or subprocess setup.
-- Run market refresh through a reviewed JavaScript Agent or trusted Workflow that
-  writes normalized records to Busabase. The AirApp must read those records through
-  Busabase RPC and must not call public market sites directly from browser code.
-- Describe findings as evidence, scenarios, or review prompts. Do not claim
-  suitability, guaranteed returns, or exchange-authoritative real-time data.
+- Treat every account, position, return, and promotion as research simulation.
+  Never connect to a brokerage, create an order ticket, or label L3 as live money.
+- Support a small set of explicit strategies. Each strategy must define a thesis,
+  selection rule, invalidation rule, benchmark, review cadence, and virtual account.
+- Use the three stages consistently:
+  - `L1`: research pool; hypothesis exists but evidence may still be incomplete.
+  - `L2`: paper validation; candidate is tracked in a virtual ledger and evaluated
+    for return, drawdown, and consistency with the strategy.
+  - `L3`: graduation watch; validation passed, but the candidate remains virtual
+    and read-only.
+- Keep facts, assumptions, scores, and judgment separate. A high score is not a
+  recommendation and does not bypass evidence or invalidation rules.
+- Use exact-pinned `stock-sdk@2.4.0` only in reviewed server, Agent, or Workflow
+  execution. Do not call public market sites from browser code or require a
+  market-data API key, token, Vault secret, Python runtime, native binary, or subprocess.
 
-## Discovery
+## App Artifact
 
-Use the one-question-at-a-time interview required by `$busabase-app-creator`.
-Determine:
+- Keep the complete canonical project under `<skill-root>/app/` and provide a
+  working `pnpm --dir <skill-root>/app dev` command.
+- Follow the UI and product contract from `$kelly-app-skill-creator`; delegate the
+  runtime, SDK, security, validation, and deployment contract to
+  `$busabase-app-creator` rather than defining another runtime here.
+- Read all persistent config, state, decisions, strategies, candidates, and ledger
+  records through `busabase-sdk` from Busabase.
+- Keep deterministic Demo data explicit and read-only. Demo mode may mirror the
+  same four-resource shape but must never become the persistent backend.
+- Build and sync AirApp from the committed local source. Do not maintain a second
+  remote implementation.
 
-- whether the operator tracks held positions, a watchlist, or both;
-- how positions enter the app: manual entry, broker CSV export, or an existing
-  Busabase resource;
-- the base portfolio, benchmark, review cadence, and `Asia/Shanghai` cutoff;
-- which exceptions deserve attention, such as stale quotes, missing symbols,
-  concentration, drawdown, unusual moves, or an expiring research thesis;
-- which facts a research note must contain before it can create a review item;
-- which review horizon and outcome signals make retrospective useful.
+## Core Resources
 
-Do not ask about frameworks, schema mechanics, credentials, or provider choice.
+Model the simplified product with four application-owned Bases under one
+application Folder:
+
+- `strategies`: name, key, family, status, thesis, selection rule, invalidation
+  rule, review cadence, benchmark, and confidence.
+- `candidates`: security identity, strategy key, L1/L2/L3 stage, component scores,
+  reference price, thesis, evidence, invalidation, next review, and freshness.
+- `ledger-accounts`: one virtual account per strategy with nominal capital, NAV,
+  cash, benchmark return, maximum drawdown, and update time.
+- `ledger-positions`: virtual quantity, entry price, reference price, market value,
+  weight, and strategy key.
+
+Provision missing application-owned resources lazily through a Busabase
+ChangeRequest, then re-read the Folder and use only materialized IDs. Do not ask the
+user to create Nodes or copy Base IDs. Ignore legacy app-owned resources that are
+outside the current declared resource set; never delete them implicitly. When an
+older Busabase runtime dropped ownership metadata, lazily repair it only after the
+Folder and every declared Base match the exact name, description, type, and field
+fingerprint. Persist the ownership marker when the runtime supports node metadata;
+otherwise use the verified materialized IDs in legacy compatibility mode. Never
+adopt a same-slug resource from its slug alone.
 
 ## Operating Loop
 
 ### Research
 
-Refresh the security master, market snapshot, K-lines, selected benchmarks, and
-portfolio-derived metrics on schedule or on demand. Use the `Asia/Shanghai` trading
-date plus run type (`preopen`, `intraday`, `close`, or `ondemand`) as the period key.
-Update the same report and snapshot on repeated runs instead of creating duplicates.
-
-Record adapter version, actual upstream source returned by the adapter, source time
-when available, fetch time, coverage, failures, adjustment mode, and freshness.
-Never substitute an upstream source silently or infer a missing price.
+Define the strategy before adding candidates. For each candidate, gather cited
+evidence, record freshness and source time, score only declared dimensions, and
+write a falsifiable invalidation condition. Missing evidence keeps the candidate
+in L1.
 
 ### Plan
 
-Turn material findings into deduplicated review items linked to the report,
-security, and evidence. Examples include concentration review, thesis check,
-corporate-action reconciliation, missing-data follow-up, or a scenario to inspect.
-Default items to `Needs review`, not `Ready to trade`. Let a human dismiss,
-reprioritize, reschedule, or request deeper research.
+Create a review plan that states the next evidence needed, the review date, and the
+graduation or demotion condition. Promote to L2 only when the thesis and
+invalidation rule are reviewable. Promote to L3 only after enough paper history
+exists to evaluate return, drawdown, and benchmark behavior.
 
 ### Action
 
-Allow only safe, reviewable actions: refresh data, import a holdings file through a
-ChangeRequest, recalculate portfolio metrics, create a cited research memo, or
-update a review item's status and notes. Keep any buy, sell, target-weight, broker,
-or order-ticket path outside this skill.
+Allow only reviewable research actions: refresh market observations through
+trusted execution, update evidence, change a stage through Busabase's reviewed
+mutation flow, and record virtual ledger events. Never make a stage change from a
+browser-only local state mutation.
 
 ### Retrospective
 
-At the chosen horizon, compare each reviewed hypothesis with subsequent price and
-benchmark behavior, note confounders, and assess data quality. Propose changes to
-thresholds, sources, schedules, or research prompts as new Plan items; do not
-silently rewrite production rules from one outcome.
+Compare each strategy's virtual return, benchmark return, maximum drawdown, and
+candidate outcomes. Record whether the thesis or process was wrong before changing
+rules. Route proposed rule changes back through Plan rather than silently rewriting
+the strategy.
 
-## Product Overlay
+## UI Contract
 
-Adapt this overlay with the user's answers, then give it to
-`$kelly-app-skill-creator` and `$busabase-app-creator`:
+Keep the first screen as the operating desk, not a landing page:
 
-```markdown
-# Product Overlay
-
-User and outcome: Monitor held and watched mainland China stocks with source-aware market data and a durable review process.
-App type: Research desk + operating dashboard.
-
-Research: Asia/Shanghai trading-date/run-type period key; exact-pinned stock-sdk JavaScript adapter; no credentials; idempotent snapshots and reports; explicit upstream source, freshness, coverage, adjustment mode, and failures.
-Plan: Evidence-linked review items for concentration, drawdown, unusual moves, thesis checks, corporate-action reconciliation, and data gaps; default Needs review; never executable trades.
-Action: Refresh data through reviewed JavaScript execution, import holdings through reviewable mutation, recalculate metrics, create research memos, and resolve review items; no brokerage or money movement.
-Retrospective: Compare hypotheses with later security and benchmark outcomes; review false positives, stale sources, and threshold quality.
-
-Human attention states: Stale/partial/failed refresh, unmapped symbol, missing price, cost-basis mismatch, threshold exception, overdue review, and unresolved upstream-source change.
-Agent responsibilities: Normalize symbols, gather public data, compute traceable metrics, flag uncertainty, draft research, deduplicate review items, and record outcomes.
-Native Views needed: Portfolios, positions, watchlist, securities, market snapshots, K-lines, research reports, review items, and retrospectives.
-AirApp screens and focused actions: Portfolio overview, attention queue, security detail, research report, and retrospective; Refresh, Analyze, Create review item, Dismiss, and Resolve.
-Guide copy in plain language: Update market data, review exceptions, inspect evidence, record a decision, then compare the outcome later.
-Explicit exclusions: Trading, order tickets, broker login, transfers, API keys, tokens, secret-entry UI, Python runtime, personalized suitability claims, and unlabeled upstream data.
-```
-
-Prefer native table Views for positions and snapshots. Use the AirApp for
-cross-resource totals, concentration, performance versus benchmark, attention
-prioritization, and evidence-linked review.
+- Fixed desktop sidebar with a human-attention summary and navigation for Strategy,
+  L1, L2, L3, Virtual Ledger, and Help & Settings.
+- A visible L1 -> L2 -> L3 funnel with counts and distinct but restrained stage colors.
+- Desktop list/detail split for strategy, candidate, and virtual account views.
+- On mobile, use the shared off-canvas sidebar and separate list/detail route; keep
+  a sticky back action and prevent horizontal overflow at 390px and 360px widths.
+- Show strategy rules, candidate score components, evidence, invalidation, next
+  review, account NAV, benchmark, drawdown, and virtual positions without nested cards.
+- Keep “all accounts are virtual” visible and describe L3 as graduation watch,
+  never as real trading.
 
 ## Metric Rules
 
-- Use CNY as the default currency and preserve the six-digit security code plus
-  source-confirmed exchange. Resolve ambiguous symbols through the current security
-  master rather than relying only on prefix heuristics.
-- Calculate market value as `quantity * latest usable price` and unrealized P/L as
-  `market value - cost basis`. Mark totals partial when any held position lacks a
-  usable price.
-- Use unadjusted prices for current market value and user cost-basis comparisons.
-  Label the adjustment mode used for return charts; never mix adjusted history with
-  raw cost basis.
-- Keep `source_as_of`, `fetched_at`, `freshness_status`, `coverage_status`,
-  `adapter_version`, and `upstream_source` visible. Say "latest available" unless
-  the source supplies a trustworthy timestamp and latency contract.
-- Compute portfolio weights only over priced positions and disclose excluded
-  positions. Do not make partial coverage look complete.
+- Preserve the security code, exchange, currency, upstream source, source time,
+  fetch time, and freshness. Do not infer a missing reference price.
+- Calculate virtual position P/L as `quantity * (latest reference price - virtual
+  entry price)` and account return as `NAV / nominal capital - 1`.
+- Calculate weights only from usable virtual market values. Mark account summaries
+  partial when any included position lacks a usable price.
+- Compare strategies on the same time window and benchmark before ranking them.
+  Do not compare raw returns from different inception dates as if equivalent.
+- Keep Demo observations fixed and dated. Never present them as live market data.
 
 ## Completion Criteria
 
 Finish only when:
 
-- the Busabase connection and target Space are explicit;
-- the approved Product Overlay has been translated and validated by
-  `$busabase-app-creator`;
-- holdings and public market data have separate provenance;
-- `stock-sdk` is pinned exactly and every refresh records adapter version, actual
-  upstream source, timestamps, freshness, coverage, and failures;
-- no API key, token, licence, Vault requirement, Python runtime, native binary, or
-  subprocess is required;
-- metrics pass fixture checks for missing prices, suspended securities, zero cost,
-  duplicate symbols, partial refreshes, and upstream-source changes;
-- the user can review attention items and trace every finding to evidence;
-- no browser-side market fetch, brokerage path, trading action, or personalized
-  investment claim exists;
+- `pnpm --dir app dev` starts the complete local Hono application;
+- Strategy, L1, L2, L3, and Virtual Ledger routes work on desktop and mobile;
+- each strategy has explicit selection and invalidation rules plus a virtual account;
+- candidate detail shows scores, evidence, invalidation, stage, and next review;
+- the four-resource declaration and lazy provisioning pass fixture tests, including
+  compatibility with a legacy app-owned root Folder;
+- all persistent state uses Busabase and Demo remains explicitly deterministic;
+- `stock-sdk` is pinned exactly and browser code performs no public market fetch;
+- local OAuth credentials remain local and business data requires no Vault secret;
+- no brokerage path, real-money stage, trading action, or personalized investment
+  claim exists; and
 - deployment and real-data checks required by the dependency skills pass.
 
 ## Stop Conditions
 
-Stop when a dependency is unavailable, the target Space is ambiguous, public-source
-terms do not permit the intended use, symbol identity cannot be resolved, freshness
-is unknown for a consequential calculation, or the requested workflow crosses into
-brokerage execution or money movement.
+Stop before consequential Busabase mutation when the target Space is ambiguous,
+the current user lacks permission, a same-slug resource is not application-owned,
+security identity cannot be resolved, freshness is unknown for a consequential
+calculation, or the requested workflow crosses into brokerage execution or money movement.
