@@ -46,16 +46,10 @@ test("registers the local OAuth token set under the Busabase AirApp directory", 
       assert.equal(statSync(path).mode & 0o777, 0o600);
     }
     clearBusabaseAirAppOAuthCredential("kelly-invest-stock", { rootDir: root });
-    assert.equal(
-      loadBusabaseAirAppOAuthCredential("kelly-invest-stock", { rootDir: root }),
-      null,
-    );
+    assert.equal(loadBusabaseAirAppOAuthCredential("kelly-invest-stock", { rootDir: root }), null);
   }));
 
 test("rejects path-like AirApp ids", () =>
   withStore(async (root) => {
-    assert.throws(
-      () => busabaseAirAppCredentialPath("../other", { rootDir: root }),
-      /AirApp id must use/,
-    );
+    assert.throws(() => busabaseAirAppCredentialPath("../other", { rootDir: root }), /AirApp id must use/);
   }));

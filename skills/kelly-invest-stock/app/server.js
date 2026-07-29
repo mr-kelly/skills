@@ -2,16 +2,16 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import {
-  createBusabaseOAuthRequest,
-  exchangeBusabaseOAuthCode,
-  parseBusabaseOAuthCallback,
-} from "./app/vendor/busabase-oauth.js";
-import {
   getBusabaseAirAppAccessToken,
   loadBusabaseAirAppOAuthCredential,
   revokeBusabaseAirAppOAuthCredential,
   storeBusabaseAirAppOAuthCredential,
 } from "./app/vendor/busabase-oauth-node.js";
+import {
+  createBusabaseOAuthRequest,
+  exchangeBusabaseOAuthCode,
+  parseBusabaseOAuthCallback,
+} from "./app/vendor/busabase-oauth.js";
 
 const CLOUD_BASE_URL = "https://busabase.com";
 const AIRAPP_ID = "kelly-invest-stock";
@@ -60,9 +60,7 @@ const assertOAuthSupported = async (oauthRequest) => {
 
   const body = await response.json().catch(() => null);
   if (body?.error === "invalid_request") {
-    throw new Error(
-      "此 Busabase 服务器尚未启用本地 AirApp OAuth。AirApp 内无需 OAuth；本地运行请连接已升级的服务器。",
-    );
+    throw new Error("此 Busabase 服务器尚未启用本地 AirApp OAuth。AirApp 内无需 OAuth；本地运行请连接已升级的服务器。");
   }
   throw new Error(`Busabase OAuth 暂不可用（HTTP ${response.status}）。`);
 };

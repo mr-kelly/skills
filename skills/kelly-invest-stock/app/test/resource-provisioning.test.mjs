@@ -13,11 +13,17 @@ test("builds one Folder and four Bases in a single declared structure change", (
   assert.equal(operations.length, 5);
   assert.equal(operations[0].nodeType, "folder");
   assert.equal(operations[0].ref, "app-root");
-  assert.equal(operations[1].parentNodeRef, "app-root");
-  assert.equal(operations[1].fields[0].required, true);
-  assert.equal(operations[1].metadata.appId, "kelly-invest-stock");
+  const firstBase = operations[1];
+  assert.ok("parentNodeRef" in firstBase && "fields" in firstBase);
+  assert.equal(firstBase.parentNodeRef, "app-root");
+  assert.equal(firstBase.fields[0].required, true);
+  assert.equal(firstBase.metadata.appId, "kelly-invest-stock");
   assert.ok(
-    operations.slice(1).every((operation) => operation.fields.every((field) => /^[a-z0-9-]+$/.test(field.slug))),
+    operations
+      .slice(1)
+      .every(
+        (operation) => "fields" in operation && operation.fields.every((field) => /^[a-z0-9-]+$/.test(field.slug)),
+      ),
   );
 });
 

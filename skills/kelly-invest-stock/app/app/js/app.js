@@ -35,9 +35,7 @@ const escapeHtml = (value) =>
     .replaceAll("'", "&#039;");
 
 const formatPercent = (value, signed = true) =>
-  value === null || !Number.isFinite(value)
-    ? "--"
-    : `${signed && value > 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
+  value === null || !Number.isFinite(value) ? "--" : `${signed && value > 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
 
 const tone = (value) => {
   if (value === null || value === 0) return "neutral";
@@ -99,11 +97,17 @@ const itemsForView = (view) => {
 
 const stageBadge = (stage) => `<span class="stage-badge stage-${stage.toLowerCase()}">${stage}</span>`;
 
-const renderStageMix = (strategy) => `<span class="stage-mix" aria-label="L1 ${strategy.stageCounts.L1}，L2 ${strategy.stageCounts.L2}，L3 ${strategy.stageCounts.L3}">
+const renderStageMix = (
+  strategy,
+) => `<span class="stage-mix" aria-label="L1 ${strategy.stageCounts.L1}，L2 ${strategy.stageCounts.L2}，L3 ${strategy.stageCounts.L3}">
   ${["L1", "L2", "L3"].map((stage) => `<i class="mix-${stage.toLowerCase()}" style="--mix:${strategy.candidates.length ? strategy.stageCounts[stage] : 0}"></i>`).join("")}
 </span>`;
 
-const renderStrategyRow = (strategy, active, index) => `<button class="work-row strategy-row ${active ? "active" : ""}" type="button" data-select-id="${escapeHtml(strategy.id)}">
+const renderStrategyRow = (
+  strategy,
+  active,
+  index,
+) => `<button class="work-row strategy-row ${active ? "active" : ""}" type="button" data-select-id="${escapeHtml(strategy.id)}">
   <span class="row-marker" aria-hidden="true"></span>
   <span class="row-rank">${String(index + 1).padStart(2, "0")}</span>
   <span class="row-main">
@@ -114,7 +118,10 @@ const renderStrategyRow = (strategy, active, index) => `<button class="work-row 
   <span class="row-value"><strong class="${tone(strategy.account?.returnRate ?? null)}">${formatPercent(strategy.account?.returnRate ?? null)}</strong><span class="excess-value ${tone(strategy.account?.excessReturn ?? null)}">超额 ${formatPercent(strategy.account?.excessReturn ?? null)}</span></span>
 </button>`;
 
-const renderCandidateRow = (candidate, active) => `<button class="work-row candidate-row ${active ? "active" : ""}" type="button" data-select-id="${escapeHtml(candidate.id)}">
+const renderCandidateRow = (
+  candidate,
+  active,
+) => `<button class="work-row candidate-row ${active ? "active" : ""}" type="button" data-select-id="${escapeHtml(candidate.id)}">
   <span class="row-marker" aria-hidden="true"></span>
   <span class="row-main">
     <span class="row-kicker">${escapeHtml(strategyName(candidate.strategyKey))}</span>
@@ -124,7 +131,10 @@ const renderCandidateRow = (candidate, active) => `<button class="work-row candi
   <span class="row-score score-${candidate.confidence >= 70 ? "high" : candidate.confidence >= 58 ? "mid" : "low"}"><strong>${candidate.confidence}</strong><span>综合分</span></span>
 </button>`;
 
-const renderLedgerRow = (strategy, active) => `<button class="work-row ledger-row ${active ? "active" : ""}" type="button" data-select-id="${escapeHtml(strategy.id)}">
+const renderLedgerRow = (
+  strategy,
+  active,
+) => `<button class="work-row ledger-row ${active ? "active" : ""}" type="button" data-select-id="${escapeHtml(strategy.id)}">
   <span class="row-marker" aria-hidden="true"></span>
   <span class="row-main">
     <span class="row-kicker">${escapeHtml(strategy.account.name)}</span>
@@ -149,11 +159,21 @@ const renderRows = (view, items, selectedId) => {
 const fact = (label, value, extraClass = "") =>
   `<div class="detail-fact ${extraClass}"><span>${label}</span><strong>${value}</strong></div>`;
 
-const scoreBar = (label, value) => `<div class="score-line"><span>${label}</span><div><i style="width:${Math.max(0, Math.min(100, value))}%"></i></div><strong>${value}</strong></div>`;
+const scoreBar = (label, value) =>
+  `<div class="score-line"><span>${label}</span><div><i style="width:${Math.max(0, Math.min(100, value))}%"></i></div><strong>${value}</strong></div>`;
 
-const renderStageLanes = (strategy) => `<div class="stage-lanes">${["L1", "L2", "L3"]
-  .map((stage) => `<div class="stage-lane"><span>${stageBadge(stage)}<small>${{ L1: "研究池", L2: "纸面验证", L3: "毕业观察" }[stage]}</small></span><div>${strategy.candidates.filter((candidate) => candidate.stage === stage).map((candidate) => `<b>${escapeHtml(candidate.code)}</b>`).join("") || "<em>--</em>"}</div></div>`)
-  .join("")}</div>`;
+const renderStageLanes = (strategy) =>
+  `<div class="stage-lanes">${["L1", "L2", "L3"]
+    .map(
+      (stage) =>
+        `<div class="stage-lane"><span>${stageBadge(stage)}<small>${{ L1: "研究池", L2: "纸面验证", L3: "毕业观察" }[stage]}</small></span><div>${
+          strategy.candidates
+            .filter((candidate) => candidate.stage === stage)
+            .map((candidate) => `<b>${escapeHtml(candidate.code)}</b>`)
+            .join("") || "<em>--</em>"
+        }</div></div>`,
+    )
+    .join("")}</div>`;
 
 const renderStrategyDetail = (strategy) => {
   const account = strategy.account;
@@ -219,7 +239,10 @@ const renderFunnel = () => `<section class="workflow-band"><div class="funnel" a
     ["l2", "L2", "纸面验证", desk.levels.L2.length],
     ["l3", "L3", "毕业观察", desk.levels.L3.length],
   ]
-    .map(([view, level, label, count], index) => `<button class="funnel-step ${contentRoute.view === view ? "active" : ""}" type="button" data-view="${view}">${stageBadge(level)}<span><strong>${label}</strong><small>${count} 个候选</small></span>${index < 2 ? '<i aria-hidden="true">›</i>' : ""}</button>`)
+    .map(
+      ([view, level, label, count], index) =>
+        `<button class="funnel-step ${contentRoute.view === view ? "active" : ""}" type="button" data-view="${view}">${stageBadge(level)}<span><strong>${label}</strong><small>${count} 个候选</small></span>${index < 2 ? '<i aria-hidden="true">›</i>' : ""}</button>`,
+    )
     .join("")}
 </div><div class="workflow-pulse"><span><strong>${desk.strategies.length}</strong> 策略</span><span><strong>${desk.candidates.length}</strong> 候选</span><span class="${tone(desk.ledger.excessReturn)}"><strong>${formatPercent(desk.ledger.excessReturn)}</strong> 组合超额</span></div></section>`;
 
@@ -235,7 +258,12 @@ const renderSidebar = () => {
     <div class="brand"><div class="brand-icon" aria-hidden="true">KS</div><div class="brand-copy"><div class="brand-title">Kelly Invest Stock</div><div class="brand-subtitle">策略实验台</div></div><button class="sidebar-toggle" type="button" data-sidebar-toggle aria-controls="appSidebar" aria-expanded="${!sidebarCollapsed}" aria-label="切换侧栏" title="切换侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button></div>
     <section class="human-work" aria-labelledby="humanWorkTitle"><div class="human-work-eyebrow">需要你</div><div id="humanWorkTitle" class="human-work-title">候选推进</div><button class="human-work-primary" type="button" data-view="l1"><span><strong>${desk.attention.l1}</strong><span>L1 证据待补</span></span></button><div class="human-work-secondary"><button type="button" data-view="l2"><strong>${desk.attention.l2}</strong><span>纸面验证</span></button><button type="button" data-view="l3"><strong>${desk.attention.l3}</strong><span>毕业观察</span></button></div></section>
     <div class="sidebar-separator"></div>
-    <nav class="filters" aria-label="工作流导航">${Object.entries(viewMeta).map(([key, meta]) => `<button class="${contentRoute.view === key ? "active" : ""}" type="button" data-view="${key}" title="打开${meta.label}"><span>${meta.label}</span><span>${counts[key]}</span></button>`).join("")}</nav>
+    <nav class="filters" aria-label="工作流导航">${Object.entries(viewMeta)
+      .map(
+        ([key, meta]) =>
+          `<button class="${contentRoute.view === key ? "active" : ""}" type="button" data-view="${key}" title="打开${meta.label}"><span>${meta.label}</span><span>${counts[key]}</span></button>`,
+      )
+      .join("")}</nav>
     <div class="help-box"><div class="virtual-only"><span></span>全部为虚拟账本</div><button class="help-button" type="button" data-open-help>帮助与设置</button></div>
   </aside>`;
 };
@@ -249,7 +277,8 @@ const renderSummaryStrip = () => `<section class="summary-strip" aria-label="虚
   <div><span>现金比例</span><strong>${formatPercent(desk.ledger.cashRate, false)}</strong></div>
 </section>`;
 
-const renderHelp = () => `<div class="modal-backdrop" id="helpModal" aria-hidden="false"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+const renderHelp =
+  () => `<div class="modal-backdrop" id="helpModal" aria-hidden="false"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
   <div class="modal-head"><div><div id="helpTitle" class="modal-title">帮助与设置</div><div class="modal-subtitle">Kelly Invest Stock · 策略实验台</div></div><button class="icon-button" type="button" data-close-help aria-label="关闭帮助">关闭</button></div>
   <nav class="modal-tabs" aria-label="帮助与设置标签"><button class="${helpTab === "guide" ? "active" : ""}" type="button" data-help-tab="guide">规则</button><button class="${helpTab === "resources" ? "active" : ""}" type="button" data-help-tab="resources">资源</button><button class="${helpTab === "connection" ? "active" : ""}" type="button" data-help-tab="connection">连接</button></nav>
   <div class="modal-body">
@@ -267,7 +296,7 @@ const renderApp = () => {
     <div class="mobile-topbar"><button class="mobile-sidebar-toggle" type="button" data-mobile-sidebar aria-controls="appSidebar" aria-label="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><div class="mobile-view-title">${meta.label}</div><div class="mobile-view-meta">${items.length} ${meta.noun}</div></div><button class="mobile-help-button" type="button" data-open-help aria-label="帮助与设置">帮助</button></div>
     <header class="workspace-head"><div><p class="eyebrow">${meta.eyebrow}</p><h1>${meta.label}</h1></div><div class="workspace-status">${currentState.provider.name === "demo" ? '<span class="snapshot-badge">DEMO</span>' : '<span class="status-dot"></span>'}<span>${escapeHtml(currentState.provider.asOf || "Busabase 当前数据")}</span><span class="read-only">只读</span><button type="button" data-refresh>刷新</button></div></header>
     ${contentRoute.view === "ledger" ? renderSummaryStrip() : renderFunnel()}
-    <section class="content"><div class="list-panel"><div class="list-head"><div><strong>${meta.label}</strong><span>${items.length} ${meta.noun}</span></div>${["l1", "l2", "l3"].includes(contentRoute.view) ? `<span>按综合分排序</span>` : ""}</div><div class="work-list">${renderRows(contentRoute.view, items, selected?.id)}</div></div><aside class="detail-panel">${renderDetail(contentRoute.view, selected)}</aside></section>
+    <section class="content"><div class="list-panel"><div class="list-head"><div><strong>${meta.label}</strong><span>${items.length} ${meta.noun}</span></div>${["l1", "l2", "l3"].includes(contentRoute.view) ? "<span>按综合分排序</span>" : ""}</div><div class="work-list">${renderRows(contentRoute.view, items, selected?.id)}</div></div><aside class="detail-panel">${renderDetail(contentRoute.view, selected)}</aside></section>
   </main></div><div id="sidebarScrim" class="sidebar-scrim" hidden></div>${parseHash().view === "settings" ? renderHelp() : ""}<div class="toast" role="status" aria-live="polite" hidden></div>`;
   bindEvents();
 };
@@ -312,7 +341,9 @@ const renderConnectSetup = (status = {}) => {
   form?.querySelectorAll('input[name="server_mode"]').forEach((radio) => {
     radio.addEventListener("change", () => {
       const custom = radio.checked && radio.value === "custom";
-      form.querySelectorAll(".connection-option").forEach((option) => option.classList.toggle("active", option.querySelector("input")?.checked));
+      form
+        .querySelectorAll(".connection-option")
+        .forEach((option) => option.classList.toggle("active", option.querySelector("input")?.checked));
       customWrap.hidden = !custom;
       customInput.required = custom;
       hiddenBaseUrl.value = custom ? customInput.value : status.cloudBaseUrl || "https://busabase.com";
@@ -325,15 +356,19 @@ const renderConnectSetup = (status = {}) => {
 };
 
 const bindEvents = () => {
-  root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => {
-    setMobileSidebarOpen(false);
-    setMobileDetailOpen(false);
-    navigate({ view: button.dataset.view, id: null });
-  }));
-  root.querySelectorAll("[data-select-id]").forEach((button) => button.addEventListener("click", () => {
-    if (isMobileLayout()) setMobileDetailOpen(true);
-    navigate({ view: contentRoute.view, id: button.dataset.selectId });
-  }));
+  root.querySelectorAll("[data-view]").forEach((button) =>
+    button.addEventListener("click", () => {
+      setMobileSidebarOpen(false);
+      setMobileDetailOpen(false);
+      navigate({ view: button.dataset.view, id: null });
+    }),
+  );
+  root.querySelectorAll("[data-select-id]").forEach((button) =>
+    button.addEventListener("click", () => {
+      if (isMobileLayout()) setMobileDetailOpen(true);
+      navigate({ view: contentRoute.view, id: button.dataset.selectId });
+    }),
+  );
   root.querySelector("[data-sidebar-toggle]")?.addEventListener("click", () => {
     if (isMobileLayout()) setMobileSidebarOpen(false);
     else {
@@ -347,19 +382,23 @@ const bindEvents = () => {
     setMobileDetailOpen(false);
     navigate({ view: contentRoute.view, id: null }, { replace: true });
   });
-  root.querySelectorAll("[data-open-help]").forEach((button) => button.addEventListener("click", () => {
-    lastContentHash = routeHash(contentRoute);
-    window.location.hash = "#/settings/guide";
-  }));
+  root.querySelectorAll("[data-open-help]").forEach((button) =>
+    button.addEventListener("click", () => {
+      lastContentHash = routeHash(contentRoute);
+      window.location.hash = "#/settings/guide";
+    }),
+  );
   root.querySelector("[data-close-help]")?.addEventListener("click", () => {
     window.location.hash = lastContentHash;
   });
   root.querySelector("#helpModal")?.addEventListener("click", (event) => {
     if (event.target.id === "helpModal") window.location.hash = lastContentHash;
   });
-  root.querySelectorAll("[data-help-tab]").forEach((button) => button.addEventListener("click", () => {
-    window.location.hash = `#/settings/${button.dataset.helpTab}`;
-  }));
+  root.querySelectorAll("[data-help-tab]").forEach((button) =>
+    button.addEventListener("click", () => {
+      window.location.hash = `#/settings/${button.dataset.helpTab}`;
+    }),
+  );
   root.querySelector("[data-refresh]")?.addEventListener("click", async () => {
     if (currentState.provider.name === "demo") showToast("演示数据为 2026-07-28 固定快照。");
     else await load();
@@ -381,9 +420,15 @@ const load = async () => {
   root.innerHTML = '<div class="boot-state">正在读取策略实验台...</div>';
   try {
     const demo = new URLSearchParams(window.location.search).get("demo") === "1";
-    const localRuntime = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
-    if (!demo && localRuntime) {
-      authStatus = await fetch("/auth/status", { headers: { accept: "application/json" } }).then((response) => response.json());
+    const loopbackHost =
+      ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname) ||
+      window.location.hostname.endsWith(".localhost");
+    const busabaseHosted = window.self !== window.top || window.location.pathname.startsWith("/api/airapp-preview/");
+    const standaloneLocalRuntime = loopbackHost && !busabaseHosted;
+    if (!demo && standaloneLocalRuntime) {
+      authStatus = await fetch("/auth/status", { headers: { accept: "application/json" } }).then((response) =>
+        response.json(),
+      );
       if (!authStatus.connected) {
         renderConnectSetup(authStatus);
         return;

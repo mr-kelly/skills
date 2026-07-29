@@ -113,7 +113,11 @@ export function createStrategyDesk(records) {
         ),
       };
     })
-    .sort((left, right) => (right.account?.returnRate ?? -Infinity) - (left.account?.returnRate ?? -Infinity));
+    .sort(
+      (left, right) =>
+        (right.account?.returnRate ?? Number.NEGATIVE_INFINITY) -
+        (left.account?.returnRate ?? Number.NEGATIVE_INFINITY),
+    );
 
   const levels = Object.fromEntries(
     ["L1", "L2", "L3"].map((stage) => [

@@ -14,7 +14,10 @@ test("groups candidates into L1, L2, and L3 and sorts by score", () => {
     record("graduate", "candidates", { strategy_key: "quality", stage: "L3", confidence: 80, code: "GRAD" }),
   ]);
 
-  assert.deepEqual(desk.levels.L1.map((candidate) => candidate.code), ["HIGH", "LOW"]);
+  assert.deepEqual(
+    desk.levels.L1.map((candidate) => candidate.code),
+    ["HIGH", "LOW"],
+  );
   assert.equal(desk.levels.L2.length, 1);
   assert.equal(desk.levels.L3.length, 1);
   assert.equal(desk.strategies[0].candidates.length, 4);

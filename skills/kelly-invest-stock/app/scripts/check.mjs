@@ -91,8 +91,11 @@ const assertions = [
   },
   { ok: !/\b(?:react|vite|jsx)\b/i.test(source), message: "Frontend build frameworks are forbidden" },
   {
-    ok: source.includes("if (!demo && localRuntime)"),
-    message: "OAuth connection UI must be limited to loopback local development",
+    ok:
+      source.includes("window.self !== window.top") &&
+      source.includes('window.location.pathname.startsWith("/api/airapp-preview/")') &&
+      source.includes("if (!demo && standaloneLocalRuntime)"),
+    message: "OAuth connection UI must be limited to standalone loopback development",
   },
   {
     ok: serverSource.includes("assertOAuthSupported") && serverSource.includes('redirect: "manual"'),

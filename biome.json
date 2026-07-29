@@ -9,6 +9,7 @@
       "**/.cache",
       "**/dist",
       "**/exports",
+      "**/app/vendor",
       "**/*.min.js",
       "**/package-lock.json",
       "docs/**"
