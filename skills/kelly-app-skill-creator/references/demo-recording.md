@@ -73,14 +73,20 @@ Never record an action that performs a real external side effect. Demo actions m
 
 ## Scenes And URLs
 
-Every App-in-Skill that is likely to be recorded should expose deterministic demo URLs. Recommended shape:
+Every App-in-Skill that is likely to be recorded should expose deterministic
+demo URLs. Use the merged AirApp URL in a dedicated demo/test Space by default:
 
 ```text
-http://127.0.0.1:<port>/?demo=needs-review&lang=en#/needs-review/<item-id>
-http://127.0.0.1:<port>/?demo=approved&lang=en#/approved/<item-id>
-http://127.0.0.1:<port>/?demo=done&lang=en#/done/<item-id>
-http://127.0.0.1:<port>/?demo=blocked&lang=en#/blocked/<item-id>
+<airapp-url>?demo=needs-review&lang=en#/needs-review/<item-id>
+<airapp-url>?demo=approved&lang=en#/approved/<item-id>
+<airapp-url>?demo=done&lang=en#/done/<item-id>
+<airapp-url>?demo=blocked&lang=en#/blocked/<item-id>
 ```
+
+When the user explicitly requested `local-preview`, the same routes may use the
+actual `pnpm dev` URL. State that this is a standalone preview and not the
+deployed AirApp. Do not start a local server only because a recording was
+requested when the merged AirApp is available and suitable.
 
 Use `lang=zh` or `lang=zh-CN` when recording Chinese documentation. UI chrome should localize, while domain content should stay realistic for the intended viewer.
 
@@ -134,8 +140,9 @@ Generated raw frames, temporary browser profiles, and scratch scripts should usu
 
 A robust automation script should:
 
-- start or reuse the local app through `app/start.sh`;
-- open only `127.0.0.1` demo URLs;
+- open the merged AirApp in the dedicated demo/test Space by default;
+- when `local-preview` was explicitly selected, start or reuse the canonical
+  project with `pnpm --dir <skill-root>/app dev` and open its reported URL;
 - use hash routes for sidebar views and selected items;
 - prefer stable selectors or `data-testid` over raw coordinates;
 - inject only temporary cursor/spotlight CSS into the browser page;

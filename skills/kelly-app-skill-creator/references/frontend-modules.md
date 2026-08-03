@@ -16,12 +16,13 @@ indirection without benefit.
 
 ## Still Zero-Build
 
-This is native ES Modules, not a bundler. Browsers execute `import`/`export`
-directly; there is no Vite/esbuild/webpack step, and this does not relax the
-"no build step" rule from `$busabase-app-creator`. `index.html` keeps its
-single `<script type="module" src="/app.js">`; `app.js` becomes a thin entry
-point that imports sibling modules and wires them together (event listeners,
-cross-module hook registration, bootstrap calls).
+This is native ES Modules, not an application bundler. Browsers execute
+`import`/`export` directly; there is no Vite/webpack application build, and this
+does not relax the runtime contract from `$busabase-app-creator` or prohibit its
+delegated SDK prebundle. `index.html` keeps one relative
+`<script type="module" src="./app.js">`; `app.js` becomes a thin entry point that
+imports sibling modules and wires them together (event listeners, cross-module
+hook registration, bootstrap calls).
 
 ## Do Not Reach For Web Components / Shadow DOM
 

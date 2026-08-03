@@ -11,4 +11,6 @@ It requires:
 
 The default operating model is Research -> Plan -> Action -> Retrospective. This skill owns the complete product UI contract: information architecture, human-attention sidebar, workflow navigation, desktop list/detail layout, hash routing, Help & Settings, accessibility, phone drawer and separate mobile detail flow, and visual verification at desktop and 390/360px widths. It delegates only AirApp runtime engineering to `$busabase-app-creator`.
 
+Runtime readiness and product onboarding are separate Busabase-backed states. The generated app keeps operator context, policies, sources, schedules, review decisions, Agent claims, and execution results in native Busabase resources. The AirApp records reviewable human input through ChangeRequests; trusted Agents or Workflows own Vault-backed external side effects.
+
 The normal acceptance path runs the merged AirApp inside Busabase and returns its clickable URL. When local preview is explicitly requested, the standalone app opens with a Cloud/custom-server connection screen and one-click browser OAuth, plus an explicit read-only Demo path. It never requires CLI login or an API-key input. OAuth tokens stay in an owner-only per-AirApp registration under `~/.busabase/airapps`; deployed AirApps use the ambient Busabase session.

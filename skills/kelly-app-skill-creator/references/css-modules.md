@@ -49,13 +49,13 @@ which file loads first.**
 ```
 
 ```html
-<link rel="stylesheet" href="/styles/layers.css" />
-<link rel="stylesheet" href="/styles/base.css" />
-<link rel="stylesheet" href="/styles/components.css" />
-<link rel="stylesheet" href="/styles/shell.css" />
-<link rel="stylesheet" href="/styles/list-detail.css" />
-<link rel="stylesheet" href="/styles/modal.css" />
-<link rel="stylesheet" href="/styles/settings.css" />
+<link rel="stylesheet" href="./styles/layers.css" />
+<link rel="stylesheet" href="./styles/base.css" />
+<link rel="stylesheet" href="./styles/components.css" />
+<link rel="stylesheet" href="./styles/shell.css" />
+<link rel="stylesheet" href="./styles/list-detail.css" />
+<link rel="stylesheet" href="./styles/modal.css" />
+<link rel="stylesheet" href="./styles/settings.css" />
 ```
 
 Use multiple `<link>` tags, not `@import` — `@import` is discovered only

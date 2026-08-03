@@ -205,12 +205,6 @@ Default language mode should be `Auto`, following `navigator.languages`/browser 
 
 Keep user data and domain content untranslated unless the workflow explicitly asks for translation. For mixed-language source material, preserve the original and add translation/summary as a helper field.
 
-## Local HTTP
-
-Use local HTTP on `127.0.0.1`. Do not expose the app externally.
-
-Prefer ports in the `3000-4000` range and report the actual launcher URL.
-
 ## Mobile
 
 Mobile responsiveness is part of the default app contract, not a polish pass.
