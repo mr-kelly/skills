@@ -1,6 +1,6 @@
 ---
 name: kelly-app-skill-creator
-description: Design and create Busabase-backed App-in-Skill packages with a canonical app project, a standardized responsive workflow UI, Research/Plan/Action/Retrospective workflows, and AirApp-first delivery. Use when a user wants a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, collaboration workspace, or an existing Kelly App-based skill updated. Every generated skill contains a complete app/ project, deploys that source to Busabase AirApp by default, runs pnpm dev only when local preview is explicitly requested, follows the Kelly desktop and phone UI contract, and delegates only AirApp runtime, SDK, security, scaffolding, and deployment constraints to busabase-app-creator.
+description: Design and create Busabase-backed App-in-Skill packages with a canonical app project, a standardized responsive workflow UI, Research/Plan/Action/Retrospective workflows, and AirApp-first delivery. Use when a user wants a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, collaboration workspace, or an existing Kelly App-based skill updated. Every generated skill contains a complete app/ project, deploys that source to Busabase AirApp by default, runs pnpm dev only when local preview is explicitly requested, follows the Kelly desktop and phone UI contract, delegates AirApp runtime and deployment constraints to busabase-app-creator, and delegates repository-level conformance testing to kelly-app-skill-creator-tests.
 ---
 
 # Kelly App Skill Creator
@@ -20,6 +20,9 @@ Keep the two creator skills complementary and non-overlapping:
 - `$busabase-app-creator` owns AirApp runtime language, framework, server shape,
   dependency and SDK constraints, security boundaries, validation, sync, and
   deployment mechanics.
+- `$kelly-app-skill-creator-tests` owns repository-level conformance, process,
+  responsive browser, OSS Busabase, Cloud OAuth, persistence, and AirApp parity
+  tests for the generated app.
 - Do not delegate Kelly UI decisions to `$busabase-app-creator`, and do not let a
   runtime scaffold replace or weaken this skill's desktop or phone shell.
 - Do not restate AirApp runtime limits here. When a runtime rule affects UI
@@ -39,6 +42,13 @@ Before creating or changing an app:
 If a dependency is unavailable, preserve this skill's local artifact and product
 contracts, stop before the unavailable Busabase operation, and report the exact
 missing dependency. Do not invent a second data backend.
+
+Before declaring a generated app complete, read and follow
+`$kelly-app-skill-creator-tests`. Keep app-owned unit tests in `<skill-root>/app/test/`
+and delegate shared harness, external Busabase, OAuth, responsive browser, and
+AirApp parity acceptance to that testing skill. If it is unavailable, run the
+app's deterministic local checks and report the missing conformance suites rather
+than claiming full completion.
 
 ## Reference Map
 
@@ -296,10 +306,12 @@ and deployment.
    entrypoints over shared modules. Avoid Python, native binaries, subprocess
    orchestration, and filesystem-backed workflow state unless a domain adapter
    strictly requires them and AirApp compatibility is preserved.
-8. Run lint/typecheck/tests/build without starting a persistent local server.
-   When the user explicitly selected `local-preview`, also run
-   `pnpm --dir <skill-root>/app dev` and complete local connection, workflow,
-   recovery, desktop, and phone acceptance before continuing.
+8. Run app-owned lint/typecheck/tests/build without starting a persistent local
+   server, then use `$kelly-app-skill-creator-tests` for repository-level
+   contract, browser, OSS, and available Cloud suites. When the user explicitly
+   selected `local-preview`, also run `pnpm --dir <skill-root>/app dev` and
+   complete local connection, workflow, recovery, desktop, and phone acceptance
+   before continuing.
 9. By default, submit the same canonical source directly as a reviewable AirApp
    CR through `$busabase-app-creator`; return its clickable Busabase review URL
    and wait for the named merge authorization.
@@ -339,6 +351,9 @@ Finish only when:
   preview was requested;
 - `$busabase-app-creator` runtime, SDK, security, validation, and deployment checks
   pass without a conflicting local runtime contract;
+- `$kelly-app-skill-creator-tests` required local and OSS suites pass, and its
+  Cloud/AirApp suites pass when their declared environment is available; skipped
+  external suites are reported explicitly;
 - the Busabase connection, target Space, app root, and resource map are explicit;
 - all persistent config, state, decisions, claims, and domain data use
   `busabase-sdk` and appropriate Busabase nodes;

@@ -144,7 +144,7 @@ const readFolder = async (client, config) => {
   if (!nodeId) nodeId = (await findTopLevelFolder(client, config))?.id;
   if (!nodeId) return null;
   try {
-    return await client.folders.get({ nodeId });
+    return await client.nodes.get({ nodeId, type: "folder" });
   } catch (error) {
     if (isNotFound(error) && !config.folder.nodeId) return null;
     throw error;
@@ -223,6 +223,19 @@ async function repairResourceOwnership(client, config, current) {
 
 let provisionInFlight;
 
+const waitForMaterializedResources = async (client, config, attempts = 20) => {
+  let current;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    current = await inspectProvisionedResources(client, config);
+    current = await repairResourceOwnership(client, config, current);
+    if (current.folder && current.missing.length === 0) return current;
+    if (attempt < attempts - 1) {
+      await new Promise((resolve) => globalThis.setTimeout(resolve, 100));
+    }
+  }
+  throw setupError("SCHEMA_INCOMPLETE", "初始化已合并，但资源回读不完整");
+};
+
 async function provisionOnce(client, config) {
   let current = await inspectProvisionedResources(client, config);
   current = await repairResourceOwnership(client, config, current);
@@ -250,12 +263,7 @@ async function provisionOnce(client, config) {
     throw setupError("SETUP_PENDING", `初始化请求 ${changeRequest?.id || ""} 已提交，等待 Space 管理员审批`);
   }
 
-  current = await inspectProvisionedResources(client, config);
-  current = await repairResourceOwnership(client, config, current);
-  if (!current.folder || current.missing.length) {
-    throw setupError("SCHEMA_INCOMPLETE", "初始化已合并，但资源回读不完整");
-  }
-  return current;
+  return waitForMaterializedResources(client, config);
 }
 
 export function provisionDeclaredResources(client, config) {

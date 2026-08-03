@@ -19,10 +19,23 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
       - name: Install tooling
-        run: npm install
+        run: npm ci
+
+      - name: Install browser test tooling
+        run: |
+          python -m pip install -r tests/app-skills/requirements.txt
+          python -m playwright install --with-deps chromium
 
       - name: Biome (lint + format)
         run: npm run lint
@@ -32,9 +45,21 @@ jobs:
           for pkg in skills/*/package.json; do
             (cd "$(dirname "$pkg")" && npm install --no-audit --no-fund)
           done
+          for pkg in skills/*/app/package.json; do
+            pnpm --dir "$(dirname "$pkg")" install --frozen-lockfile
+          done
 
       - name: Typecheck (.mjs)
         run: npm run typecheck
+
+      - name: Test canonical app skills
+        run: npm run test:app-skills
+        env:
+          KELLY_APP_CLOUD_BASE_URL: ${{ secrets.KELLY_APP_CLOUD_BASE_URL }}
+          KELLY_APP_CLOUD_TEST_EMAIL: ${{ secrets.KELLY_APP_CLOUD_TEST_EMAIL }}
+          KELLY_APP_CLOUD_TEST_PASSWORD: ${{ secrets.KELLY_APP_CLOUD_TEST_PASSWORD }}
+          KELLY_APP_CLOUD_TEST_SPACE_ID: ${{ secrets.KELLY_APP_CLOUD_TEST_SPACE_ID }}
+          KELLY_APP_CLOUD_TEST_ALLOW_MUTATION: ${{ secrets.KELLY_APP_CLOUD_TEST_ALLOW_MUTATION }}
 
   deploy-pages:
     if: github.event_name != 'pull_request'
@@ -54,7 +79,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Stage Pages site with LFS assets
         run: |

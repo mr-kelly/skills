@@ -53,7 +53,7 @@ export const busabaseProvider = {
   async getState() {
     runtimeClient = createRuntimeClient();
     if (!allowedReads.has("nodes.list")) throw new Error("PROCEDURE_DENIED: nodes.list");
-    if (!allowedReads.has("folders.get")) throw new Error("PROCEDURE_DENIED: folders.get");
+    if (!allowedReads.has("nodes.get")) throw new Error("PROCEDURE_DENIED: nodes.get");
     let resources = await inspectProvisionedResources(runtimeClient, appConfig);
     if (resources.folder && resources.missing.length === 0 && resources.repairs.length) {
       if (!allowedReads.has("bases.get")) throw new Error("PROCEDURE_DENIED: bases.get");

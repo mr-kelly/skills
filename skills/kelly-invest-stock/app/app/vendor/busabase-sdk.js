@@ -4,12 +4,12 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/apps/busabase-sdk/dist/chunk-5NYQX65A.js
+// node_modules/.pnpm/busabase-sdk@0.11.0/node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
 function normalizeBaseUrl(raw) {
   return raw.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/shared/dist/index.mjs
+// node_modules/.pnpm/@orpc+shared@1.14.12/node_modules/@orpc/shared/dist/index.mjs
 function resolveMaybeOptionalOptions(rest) {
   return rest[0] ?? {};
 }
@@ -18,7 +18,7 @@ function toArray(value2) {
 }
 var ORPC_NAME = "orpc";
 var ORPC_SHARED_PACKAGE_NAME = "@orpc/shared";
-var ORPC_SHARED_PACKAGE_VERSION = "1.14.6";
+var ORPC_SHARED_PACKAGE_VERSION = "1.14.12";
 var AbortError = class extends Error {
   constructor(...rest) {
     super(...rest);
@@ -307,9 +307,9 @@ function tryDecodeURIComponent(value2) {
   }
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/client/dist/shared/client.D9eWXdBV.mjs
+// node_modules/.pnpm/@orpc+client@1.14.12/node_modules/@orpc/client/dist/shared/client.DrCRv_sG.mjs
 var ORPC_CLIENT_PACKAGE_NAME = "@orpc/client";
-var ORPC_CLIENT_PACKAGE_VERSION = "1.14.6";
+var ORPC_CLIENT_PACKAGE_VERSION = "1.14.12";
 var COMMON_ORPC_ERROR_DEFS = {
   BAD_REQUEST: {
     status: 400,
@@ -475,7 +475,7 @@ function createORPCErrorFromJson(json2, options = {}) {
   });
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/standard-server/dist/index.mjs
+// node_modules/.pnpm/@orpc+standard-server@1.14.12/node_modules/@orpc/standard-server/dist/index.mjs
 var EventEncoderError = class extends TypeError {
 };
 var EventDecoderError = class extends TypeError {
@@ -689,7 +689,7 @@ function mergeStandardHeaders(a, b) {
   return merged;
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/client/dist/shared/client.BLtwTQUg.mjs
+// node_modules/.pnpm/@orpc+client@1.14.12/node_modules/@orpc/client/dist/shared/client.BLtwTQUg.mjs
 function mapEventIterator(iterator, maps) {
   const mapError = async (error51) => {
     let mappedError = await maps.error(error51);
@@ -726,7 +726,7 @@ function mapEventIterator(iterator, maps) {
   });
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/client/dist/index.mjs
+// node_modules/.pnpm/@orpc+client@1.14.12/node_modules/@orpc/client/dist/index.mjs
 function resolveFriendlyClientOptions(options) {
   return {
     ...options,
@@ -753,7 +753,7 @@ function createORPCClient(link, options = {}) {
   return preventNativeAwait(recursive);
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/standard-server-fetch/dist/index.mjs
+// node_modules/.pnpm/@orpc+standard-server-fetch@1.14.12/node_modules/@orpc/standard-server-fetch/dist/index.mjs
 function toEventIterator(stream, options = {}) {
   const eventStream = stream?.pipeThrough(new TextDecoderStream()).pipeThrough(new EventDecoderStream());
   const reader = eventStream?.getReader();
@@ -1025,7 +1025,7 @@ function toStandardLazyResponse(response, options = {}) {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/client/dist/shared/client.DLhbktiD.mjs
+// node_modules/.pnpm/@orpc+client@1.14.12/node_modules/@orpc/client/dist/shared/client.C1VUaWTu.mjs
 var CompositeStandardLinkPlugin = class {
   plugins;
   constructor(plugins = []) {
@@ -1110,7 +1110,7 @@ function getMalformedResponseErrorCode(status) {
   return Object.entries(COMMON_ORPC_ERROR_DEFS).find(([, def]) => def.status === status)?.[0] ?? "MALFORMED_ORPC_ERROR_RESPONSE";
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/client/dist/adapters/fetch/index.mjs
+// node_modules/.pnpm/@orpc+client@1.14.12/node_modules/@orpc/client/dist/adapters/fetch/index.mjs
 var CompositeLinkFetchPlugin = class extends CompositeStandardLinkPlugin {
   initRuntimeAdapter(options) {
     for (const plugin of this.plugins) {
@@ -1141,7 +1141,7 @@ var LinkFetchClient = class {
   }
 };
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/openapi-client/dist/shared/openapi-client.t9fCAe3x.mjs
+// node_modules/.pnpm/@orpc+openapi-client@1.14.12/node_modules/@orpc/openapi-client/dist/shared/openapi-client.t9fCAe3x.mjs
 var StandardBracketNotationSerializer = class {
   maxArrayIndex;
   constructor(options = {}) {
@@ -1285,7 +1285,7 @@ function pushStyleArrayToObject(array2) {
   return obj;
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/contract/dist/shared/contract.D_dZrO__.mjs
+// node_modules/.pnpm/@orpc+contract@1.14.12/node_modules/@orpc/contract/dist/shared/contract.D_dZrO__.mjs
 var ValidationError = class extends Error {
   issues;
   data;
@@ -1320,7 +1320,7 @@ function isContractProcedure(item) {
   return (typeof item === "object" || typeof item === "function") && item !== null && "~orpc" in item && typeof item["~orpc"] === "object" && item["~orpc"] !== null && "errorMap" in item["~orpc"] && "route" in item["~orpc"] && "meta" in item["~orpc"];
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/contract/dist/index.mjs
+// node_modules/.pnpm/@orpc+contract@1.14.12/node_modules/@orpc/contract/dist/index.mjs
 function mergeMeta(meta1, meta22) {
   return { ...meta1, ...meta22 };
 }
@@ -1568,7 +1568,7 @@ function eventIterator(yields, returns) {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/openapi-client/dist/shared/openapi-client.B2Q9qU5m.mjs
+// node_modules/.pnpm/@orpc+openapi-client@1.14.12/node_modules/@orpc/openapi-client/dist/shared/openapi-client.B2Q9qU5m.mjs
 var StandardOpenAPIJsonSerializer = class {
   customSerializers;
   constructor(options = {}) {
@@ -1859,7 +1859,7 @@ var StandardOpenAPILink = class extends StandardLink {
   }
 };
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/@orpc/openapi-client/dist/adapters/fetch/index.mjs
+// node_modules/.pnpm/@orpc+openapi-client@1.14.12/node_modules/@orpc/openapi-client/dist/adapters/fetch/index.mjs
 var OpenAPILink = class extends StandardOpenAPILink {
   constructor(contract, options) {
     const linkClient = new LinkFetchClient(options);
@@ -1867,7 +1867,7 @@ var OpenAPILink = class extends StandardOpenAPILink {
   }
 };
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/external.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 var external_exports = {};
 __export(external_exports, {
   $brand: () => $brand,
@@ -2110,7 +2110,7 @@ __export(external_exports, {
   xor: () => xor
 });
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/index.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/index.js
 var core_exports2 = {};
 __export(core_exports2, {
   $ZodAny: () => $ZodAny,
@@ -2389,7 +2389,7 @@ __export(core_exports2, {
   version: () => version
 });
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/core.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/core.js
 var _a;
 var NEVER = /* @__PURE__ */ Object.freeze({
   status: "aborted"
@@ -2466,7 +2466,7 @@ function config(newConfig) {
   return globalConfig;
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/util.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/util.js
 var util_exports = {};
 __export(util_exports, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -3162,7 +3162,7 @@ var Class = class {
   }
 };
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/errors.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/errors.js
 var initializer = (inst, def) => {
   inst.name = "$ZodError";
   Object.defineProperty(inst, "_zod", {
@@ -3301,7 +3301,7 @@ function prettifyError(error51) {
   return lines.join("\n");
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/parse.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/parse.js
 var _parse = (_Err) => (schema, value2, _ctx, _params) => {
   const ctx = _ctx ? { ..._ctx, async: false } : { async: false };
   const result = schema._zod.run({ value: value2, issues: [] }, ctx);
@@ -3389,7 +3389,7 @@ var _safeDecodeAsync = (_Err) => async (schema, value2, _ctx) => {
 };
 var safeDecodeAsync = /* @__PURE__ */ _safeDecodeAsync($ZodRealError);
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/regexes.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/regexes.js
 var regexes_exports = {};
 __export(regexes_exports, {
   base64: () => base64,
@@ -3548,7 +3548,7 @@ var sha512_hex = /^[0-9a-fA-F]{128}$/;
 var sha512_base64 = /* @__PURE__ */ fixedBase64(86, "==");
 var sha512_base64url = /* @__PURE__ */ fixedBase64url(86);
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/checks.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a3;
   inst._zod ?? (inst._zod = {});
@@ -4096,7 +4096,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/doc.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/doc.js
 var Doc = class {
   constructor(args = []) {
     this.content = [];
@@ -4132,14 +4132,14 @@ var Doc = class {
   }
 };
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/versions.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 4,
   patch: 3
 };
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/schemas.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a3;
   inst ?? (inst = {});
@@ -6232,7 +6232,7 @@ function handleRefineResult(result, payload, input, inst) {
   }
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/index.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/index.js
 var locales_exports = {};
 __export(locales_exports, {
   ar: () => ar_default,
@@ -6289,7 +6289,7 @@ __export(locales_exports, {
   zhTW: () => zh_TW_default
 });
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ar.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ar.js
 var error = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0641", verb: "\u0623\u0646 \u064A\u062D\u0648\u064A" },
@@ -6396,7 +6396,7 @@ function ar_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/az.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/az.js
 var error2 = () => {
   const Sizable = {
     string: { unit: "simvol", verb: "olmal\u0131d\u0131r" },
@@ -6502,7 +6502,7 @@ function az_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/be.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/be.js
 function getBelarusianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -6659,7 +6659,7 @@ function be_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/bg.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/bg.js
 var error4 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0430", verb: "\u0434\u0430 \u0441\u044A\u0434\u044A\u0440\u0436\u0430" },
@@ -6780,7 +6780,7 @@ function bg_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ca.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ca.js
 var error5 = () => {
   const Sizable = {
     string: { unit: "car\xE0cters", verb: "contenir" },
@@ -6889,7 +6889,7 @@ function ca_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/cs.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/cs.js
 var error6 = () => {
   const Sizable = {
     string: { unit: "znak\u016F", verb: "m\xEDt" },
@@ -7001,7 +7001,7 @@ function cs_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/da.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/da.js
 var error7 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "havde" },
@@ -7117,7 +7117,7 @@ function da_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/de.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/de.js
 var error8 = () => {
   const Sizable = {
     string: { unit: "Zeichen", verb: "zu haben" },
@@ -7226,7 +7226,7 @@ function de_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/el.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/el.js
 var error9 = () => {
   const Sizable = {
     string: { unit: "\u03C7\u03B1\u03C1\u03B1\u03BA\u03C4\u03AE\u03C1\u03B5\u03C2", verb: "\u03BD\u03B1 \u03AD\u03C7\u03B5\u03B9" },
@@ -7336,7 +7336,7 @@ function el_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/en.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/en.js
 var error10 = () => {
   const Sizable = {
     string: { unit: "characters", verb: "to have" },
@@ -7449,7 +7449,7 @@ function en_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/eo.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/eo.js
 var error11 = () => {
   const Sizable = {
     string: { unit: "karaktrojn", verb: "havi" },
@@ -7559,7 +7559,7 @@ function eo_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/es.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/es.js
 var error12 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "tener" },
@@ -7692,7 +7692,7 @@ function es_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/fa.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fa.js
 var error13 = () => {
   const Sizable = {
     string: { unit: "\u06A9\u0627\u0631\u0627\u06A9\u062A\u0631", verb: "\u062F\u0627\u0634\u062A\u0647 \u0628\u0627\u0634\u062F" },
@@ -7807,7 +7807,7 @@ function fa_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/fi.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fi.js
 var error14 = () => {
   const Sizable = {
     string: { unit: "merkki\xE4", subject: "merkkijonon" },
@@ -7920,7 +7920,7 @@ function fi_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/fr.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fr.js
 var error15 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -8046,7 +8046,7 @@ function fr_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/fr-CA.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fr-CA.js
 var error16 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -8154,7 +8154,7 @@ function fr_CA_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/he.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/he.js
 var error17 = () => {
   const TypeNames = {
     string: { label: "\u05DE\u05D7\u05E8\u05D5\u05D6\u05EA", gender: "f" },
@@ -8349,7 +8349,7 @@ function he_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/hr.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/hr.js
 var error18 = () => {
   const Sizable = {
     string: { unit: "znakova", verb: "imati" },
@@ -8472,7 +8472,7 @@ function hr_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/hu.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/hu.js
 var error19 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "legyen" },
@@ -8581,7 +8581,7 @@ function hu_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/hy.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/hy.js
 function getArmenianPlural(count, one, many) {
   return Math.abs(count) === 1 ? one : many;
 }
@@ -8729,7 +8729,7 @@ function hy_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/id.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/id.js
 var error21 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "memiliki" },
@@ -8836,7 +8836,7 @@ function id_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/is.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/is.js
 var error22 = () => {
   const Sizable = {
     string: { unit: "stafi", verb: "a\xF0 hafa" },
@@ -8946,7 +8946,7 @@ function is_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/it.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/it.js
 var error23 = () => {
   const Sizable = {
     string: { unit: "caratteri", verb: "avere" },
@@ -9055,7 +9055,7 @@ function it_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ja.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ja.js
 var error24 = () => {
   const Sizable = {
     string: { unit: "\u6587\u5B57", verb: "\u3067\u3042\u308B" },
@@ -9163,7 +9163,7 @@ function ja_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ka.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ka.js
 var error25 = () => {
   const Sizable = {
     string: { unit: "\u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD", verb: "\u10E3\u10DC\u10D3\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D0\u10D5\u10D3\u10D4\u10E1" },
@@ -9276,7 +9276,7 @@ function ka_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/km.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/km.js
 var error26 = () => {
   const Sizable = {
     string: { unit: "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A", verb: "\u1782\u17BD\u179A\u1798\u17B6\u1793" },
@@ -9387,12 +9387,12 @@ function km_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/kh.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/kh.js
 function kh_default() {
   return km_default();
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ko.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ko.js
 var error27 = () => {
   const Sizable = {
     string: { unit: "\uBB38\uC790", verb: "to have" },
@@ -9504,7 +9504,7 @@ function ko_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/lt.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/lt.js
 var capitalizeFirstCharacter = (text) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
@@ -9708,7 +9708,7 @@ function lt_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/mk.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/mk.js
 var error29 = () => {
   const Sizable = {
     string: { unit: "\u0437\u043D\u0430\u0446\u0438", verb: "\u0434\u0430 \u0438\u043C\u0430\u0430\u0442" },
@@ -9818,7 +9818,7 @@ function mk_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ms.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ms.js
 var error30 = () => {
   const Sizable = {
     string: { unit: "aksara", verb: "mempunyai" },
@@ -9926,7 +9926,7 @@ function ms_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/nl.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/nl.js
 var error31 = () => {
   const Sizable = {
     string: { unit: "tekens", verb: "heeft" },
@@ -10037,7 +10037,7 @@ function nl_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/no.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/no.js
 var error32 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "\xE5 ha" },
@@ -10146,7 +10146,7 @@ function no_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ota.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ota.js
 var error33 = () => {
   const Sizable = {
     string: { unit: "harf", verb: "olmal\u0131d\u0131r" },
@@ -10256,7 +10256,7 @@ function ota_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ps.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ps.js
 var error34 = () => {
   const Sizable = {
     string: { unit: "\u062A\u0648\u06A9\u064A", verb: "\u0648\u0644\u0631\u064A" },
@@ -10371,7 +10371,7 @@ function ps_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/pl.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/pl.js
 var error35 = () => {
   const Sizable = {
     string: { unit: "znak\xF3w", verb: "mie\u0107" },
@@ -10481,7 +10481,7 @@ function pl_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/pt.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/pt.js
 var error36 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "ter" },
@@ -10590,7 +10590,7 @@ function pt_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ro.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ro.js
 var error37 = () => {
   const Sizable = {
     string: { unit: "caractere", verb: "s\u0103 aib\u0103" },
@@ -10710,7 +10710,7 @@ function ro_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ru.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ru.js
 function getRussianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -10867,7 +10867,7 @@ function ru_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/sl.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/sl.js
 var error39 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "imeti" },
@@ -10977,7 +10977,7 @@ function sl_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/sv.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/sv.js
 var error40 = () => {
   const Sizable = {
     string: { unit: "tecken", verb: "att ha" },
@@ -11088,7 +11088,7 @@ function sv_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ta.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ta.js
 var error41 = () => {
   const Sizable = {
     string: { unit: "\u0B8E\u0BB4\u0BC1\u0BA4\u0BCD\u0BA4\u0BC1\u0B95\u0BCD\u0B95\u0BB3\u0BCD", verb: "\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BC1\u0B95\u0BCD\u0B95 \u0BB5\u0BC7\u0BA3\u0BCD\u0B9F\u0BC1\u0BAE\u0BCD" },
@@ -11199,7 +11199,7 @@ function ta_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/th.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/th.js
 var error42 = () => {
   const Sizable = {
     string: { unit: "\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23", verb: "\u0E04\u0E27\u0E23\u0E21\u0E35" },
@@ -11310,7 +11310,7 @@ function th_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/tr.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/tr.js
 var error43 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "olmal\u0131" },
@@ -11416,7 +11416,7 @@ function tr_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/uk.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/uk.js
 var error44 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0456\u0432", verb: "\u043C\u0430\u0442\u0438\u043C\u0435" },
@@ -11525,12 +11525,12 @@ function uk_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ua.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ua.js
 function ua_default() {
   return uk_default();
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/ur.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ur.js
 var error45 = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0648\u0641", verb: "\u06C1\u0648\u0646\u0627" },
@@ -11641,7 +11641,7 @@ function ur_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/uz.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/uz.js
 var error46 = () => {
   const Sizable = {
     string: { unit: "belgi", verb: "bo\u2018lishi kerak" },
@@ -11752,7 +11752,7 @@ function uz_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/vi.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/vi.js
 var error47 = () => {
   const Sizable = {
     string: { unit: "k\xFD t\u1EF1", verb: "c\xF3" },
@@ -11861,7 +11861,7 @@ function vi_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/zh-CN.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/zh-CN.js
 var error48 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u7B26", verb: "\u5305\u542B" },
@@ -11971,7 +11971,7 @@ function zh_CN_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/zh-TW.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/zh-TW.js
 var error49 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u5143", verb: "\u64C1\u6709" },
@@ -12079,7 +12079,7 @@ function zh_TW_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/locales/yo.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/yo.js
 var error50 = () => {
   const Sizable = {
     string: { unit: "\xE0mi", verb: "n\xED" },
@@ -12187,7 +12187,7 @@ function yo_default() {
   };
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/registries.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/registries.js
 var _a2;
 var $output = /* @__PURE__ */ Symbol("ZodOutput");
 var $input = /* @__PURE__ */ Symbol("ZodInput");
@@ -12237,7 +12237,7 @@ function registry() {
 (_a2 = globalThis).__zod_globalRegistry ?? (_a2.__zod_globalRegistry = registry());
 var globalRegistry = globalThis.__zod_globalRegistry;
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/api.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/api.js
 // @__NO_SIDE_EFFECTS__
 function _string(Class2, params) {
   return new Class2({
@@ -13276,7 +13276,7 @@ function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
   return inst;
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/to-json-schema.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/to-json-schema.js
 function initializeContext(params) {
   let target = params?.target ?? "draft-2020-12";
   if (target === "draft-4")
@@ -13635,7 +13635,7 @@ var createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params) =
   return finalize(ctx, schema);
 };
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/json-schema-processors.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/json-schema-processors.js
 var formatMap = {
   guid: "uuid",
   url: "uri",
@@ -14179,7 +14179,7 @@ function toJSONSchema(input, params) {
   return finalize(ctx, input);
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/json-schema-generator.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/json-schema-generator.js
 var JSONSchemaGenerator = class {
   /** @deprecated Access via ctx instead */
   get metadataRegistry() {
@@ -14254,10 +14254,10 @@ var JSONSchemaGenerator = class {
   }
 };
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/core/json-schema.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/json-schema.js
 var json_schema_exports = {};
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/schemas.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/schemas.js
 var schemas_exports2 = {};
 __export(schemas_exports2, {
   ZodAny: () => ZodAny,
@@ -14428,7 +14428,7 @@ __export(schemas_exports2, {
   xor: () => xor
 });
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/checks.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/checks.js
 var checks_exports2 = {};
 __export(checks_exports2, {
   endsWith: () => _endsWith,
@@ -14462,7 +14462,7 @@ __export(checks_exports2, {
   uppercase: () => _uppercase
 });
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/iso.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/iso.js
 var iso_exports = {};
 __export(iso_exports, {
   ZodISODate: () => ZodISODate,
@@ -14503,7 +14503,7 @@ function duration2(params) {
   return _isoDuration(ZodISODuration, params);
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/errors.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/errors.js
 var initializer2 = (inst, issues) => {
   $ZodError.init(inst, issues);
   inst.name = "ZodError";
@@ -14543,7 +14543,7 @@ var ZodRealError = /* @__PURE__ */ $constructor("ZodError", initializer2, {
   Parent: Error
 });
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/parse.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/parse.js
 var parse2 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse2 = /* @__PURE__ */ _safeParse(ZodRealError);
@@ -14557,7 +14557,7 @@ var safeDecode2 = /* @__PURE__ */ _safeDecode(ZodRealError);
 var safeEncodeAsync2 = /* @__PURE__ */ _safeEncodeAsync(ZodRealError);
 var safeDecodeAsync2 = /* @__PURE__ */ _safeDecodeAsync(ZodRealError);
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/schemas.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/schemas.js
 var _installedGroups = /* @__PURE__ */ new WeakMap();
 function _installLazyMethods(inst, group, methods) {
   const proto = Object.getPrototypeOf(inst);
@@ -15847,7 +15847,7 @@ function preprocess(fn, schema) {
   });
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/compat.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/compat.js
 var ZodIssueCode = {
   invalid_type: "invalid_type",
   too_big: "too_big",
@@ -15873,7 +15873,7 @@ var ZodFirstPartyTypeKind;
 /* @__PURE__ */ (function(ZodFirstPartyTypeKind2) {
 })(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/from-json-schema.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/from-json-schema.js
 var z = {
   ...schemas_exports2,
   ...checks_exports2,
@@ -16353,7 +16353,7 @@ function fromJSONSchema(schema, params) {
   return convertSchema(normalized, ctx);
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/coerce.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/coerce.js
 var coerce_exports = {};
 __export(coerce_exports, {
   bigint: () => bigint3,
@@ -16378,10 +16378,33 @@ function date4(params) {
   return _coercedDate(ZodDate, params);
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/node_modules/zod/v4/classic/external.js
+// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/apps/busabase-sdk/dist/index.js
+// node_modules/.pnpm/busabase-sdk@0.11.0/node_modules/busabase-sdk/dist/index.js
+var toUnifiedFilesGrepInput = (input) => ({
+  pattern: input.pattern,
+  flags: input.flags,
+  sources: ["files"],
+  scope: input.scope ? { files: input.scope } : void 0,
+  maxMatches: input.maxMatches,
+  contextLines: input.contextLines
+});
+var toFilesOnlyGrepResult = (result) => ({
+  matches: result.matches.flatMap((match) => {
+    if (match.source !== "files") return [];
+    const { source: _source, ...fileMatch } = match;
+    return [fileMatch];
+  }),
+  filesScanned: result.coverage.files.scanned,
+  missing: result.coverage.files.missing,
+  stale: result.coverage.files.stale,
+  unsearchable: result.coverage.files.unsearchable,
+  errored: result.coverage.files.errored,
+  notReached: result.coverage.files.notReached,
+  truncated: result.truncated
+});
+var grepAssets = async (client, input) => toFilesOnlyGrepResult(await client.grep(toUnifiedFilesGrepInput(input)));
 var i18n = {
   locales: ["en", "zh-CN", "zh-TW", "ja", "ko", "de", "fr", "es", "pt"]
 };
@@ -16888,7 +16911,33 @@ var listNodesInputSchema = external_exports.object({
    * soft-archived nodes for the Trash view — no `parentId`/`depth` walk, since
    * archived nodes are shown as a list, not a tree.
    */
-  status: external_exports.enum(["active", "archived"]).optional().default("active")
+  status: external_exports.enum(["active", "archived"]).optional().default("active"),
+  /**
+   * Narrow to specific node types and return a FLAT list of lightweight node
+   * summaries (`children: []`) instead of walking the tree. This is what
+   * replaced the four retired narrow listings (`GET /docs`, `/files`,
+   * `/folders`, `/file-trees`); file-trees are selected with their real
+   * discriminators `skill` / `drive` / `airapp`, since there is no synthetic
+   * "file-tree" node type.
+   *
+   * Omitting `types` leaves every existing caller on exactly today's
+   * behaviour (full tree, or a `parentId`/`depth`-bounded walk, or the
+   * archived flat list) — the two modes never interfere.
+   *
+   * NOTE — no `projection` parameter, deliberately. The consolidation roadmap
+   * sketched `?projection=summary`, but it also rules out adding
+   * `projection=detail` in this batch (the retired detail lists were the
+   * N+1 payloads this change exists to remove). That would leave a parameter
+   * with exactly one legal value, which is noise in OpenAPI/MCP/CLI rather
+   * than a decision a caller gets to make. Detail is `GET /nodes/{nodeId}`.
+   *
+   * A GET query param that occurs exactly once (`?types=doc`) arrives as a
+   * bare string, not a 1-element array — only a REPEATED occurrence
+   * (`?types=doc&types=file`) becomes an array. Accept both and normalize.
+   */
+  types: external_exports.union([external_exports.array(external_exports.enum(NODE_TYPES)), external_exports.enum(NODE_TYPES)]).transform((value2) => Array.isArray(value2) ? value2 : [value2]).optional().describe(
+    "Return a flat list of lightweight summaries for these node types instead of the tree. Read one node's full detail with GET /nodes/{nodeId}."
+  )
 }).optional();
 var isDescendantInputSchema = external_exports.object({
   nodeId: external_exports.string(),
@@ -17056,11 +17105,19 @@ var liveEventSchema = external_exports.object({
     // via the audit funnel, but nothing needs reviewing). Consumed by
     // `use-live-sync.ts` to pop a desktop Notification, and by
     // busabase-cloud's host hook to persist an inbox notification row.
-    "change_request.pending_review"
+    "change_request.pending_review",
+    // A node's metadata was written directly, outside the change-request flow
+    // (`PATCH /api/v1/nodes/{nodeId}/metadata` — agents, the SDK, an MCP tool,
+    // and every rich-node editor's own Save). Carries the touched node in
+    // `nodeIds` so open dashboards refetch the node tree instead of showing a
+    // stale whiteboard/workflow/HTML document until the next reload.
+    "node.metadata_updated"
   ]),
   spaceId: external_exports.string(),
   actorId: external_exports.string(),
-  changeRequestId: external_exports.string(),
+  // Null for events that aren't about a change request at all
+  // (`node.metadata_updated`), which is every direct, auto-audited write.
+  changeRequestId: external_exports.string().nullable(),
   baseId: external_exports.string().nullable(),
   nodeIds: external_exports.array(external_exports.string()),
   recordIds: external_exports.array(external_exports.string()),
@@ -17407,13 +17464,6 @@ var fileTreeRefSchema = external_exports.object({
   type: fileTreeNodeTypeSchema.optional()
 });
 var fileTreeContract = {
-  list: oc.route({
-    method: "GET",
-    path: "/file-trees",
-    tags: ["File Trees"],
-    summary: "List file-tree nodes",
-    successDescription: "Skill, Drive, and AirApp nodes with their Asset-backed file trees. Pass `type` to narrow to one kind."
-  }).input(external_exports.object({ type: fileTreeNodeTypeSchema.optional() })).output(external_exports.array(fileTreeNodeSchema)),
   create: oc.route({
     method: "POST",
     path: "/file-trees",
@@ -17426,13 +17476,6 @@ var fileTreeContract = {
       changeRequestSchema.extend({ materialized: external_exports.literal(false) })
     ])
   ),
-  get: oc.route({
-    method: "GET",
-    path: "/file-trees/{nodeId}",
-    tags: ["File Trees"],
-    summary: "Get file-tree node",
-    successDescription: "File-tree node detail and its file list."
-  }).input(fileTreeRefSchema).output(fileTreeNodeSchema),
   listFiles: oc.route({
     method: "GET",
     path: "/file-trees/{nodeId}/files",
@@ -17625,7 +17668,7 @@ var GREP_DEFAULT_MAX_MATCHES = 100;
 var GREP_HARD_MAX_MATCHES = 1e3;
 var GREP_DEFAULT_CONTEXT_LINES = 0;
 var GREP_MAX_CONTEXT_LINES = 10;
-var GrepInputSchema = external_exports.object({
+external_exports.object({
   pattern: external_exports.string().min(1),
   /** JS RegExp flags, e.g. `"i"` for case-insensitive. `g`/`y` are ignored (grep always scans every match per line). */
   flags: external_exports.string().optional().default(""),
@@ -17646,7 +17689,7 @@ var GrepMatchVOSchema = external_exports.object({
   before: external_exports.array(external_exports.string()),
   after: external_exports.array(external_exports.string())
 });
-var GrepResultVOSchema = external_exports.object({
+external_exports.object({
   matches: external_exports.array(GrepMatchVOSchema),
   filesScanned: external_exports.number().int().nonnegative(),
   /** Asset ids in scope with no text yet (contentKind text-or-writable-binary, no row). */
@@ -17778,13 +17821,6 @@ var assetsContract = {
     summary: "Request a presigned upload URL for large text",
     successDescription: "Presigned (or dev) upload URL for a temporary text object; PUT the bytes there, then call putText with the returned storageKey to bind, verify, and content-address it."
   }).input(CreateTextUploadUrlInputSchema).output(CreateTextUploadUrlVOSchema),
-  grep: oc.route({
-    method: "POST",
-    path: "/assets/grep",
-    tags: ["Assets"],
-    summary: "Search every text-bearing asset in scope",
-    successDescription: "Streaming regex/literal matches with real file + line + column numbers and context, across every asset with text \u2014 any size, no 256KB cap. Honest coverage: missing/stale/unsearchable/errored name assets that were not (fully or successfully) searched, notReached counts present assets the scan never got to, and truncated flags a capped response."
-  }).input(GrepInputSchema).output(GrepResultVOSchema),
   readTextLines: oc.route({
     method: "GET",
     path: "/assets/{assetId}/text/lines",
@@ -17867,6 +17903,9 @@ var viewSchema = external_exports.object({
   createdAt: external_exports.string(),
   updatedAt: external_exports.string()
 });
+var autoMergeSchema = external_exports.boolean().optional().describe(
+  "Whether to approve and merge this view change immediately. Omitted defaults to merging immediately if the actor has write access on the Base's node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access."
+);
 var createViewInputSchema = external_exports.object({
   config: viewConfigSchema.optional().default({ filters: [], sorts: [] }),
   description: external_exports.string().optional().default(""),
@@ -17874,7 +17913,8 @@ var createViewInputSchema = external_exports.object({
   name: external_exports.string().min(1),
   type: viewTypeSchema.optional().default("table"),
   slug: external_exports.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
-  submittedBy: external_exports.string().optional().default("local-producer")
+  submittedBy: external_exports.string().optional().default("local-producer"),
+  autoMerge: autoMergeSchema
 });
 var updateViewInputSchema = external_exports.object({
   config: viewConfigSchema.optional(),
@@ -17882,15 +17922,18 @@ var updateViewInputSchema = external_exports.object({
   message: external_exports.string().optional().default("Update view"),
   name: external_exports.string().min(1).optional(),
   type: viewTypeSchema.optional(),
-  submittedBy: external_exports.string().optional().default("local-producer")
+  submittedBy: external_exports.string().optional().default("local-producer"),
+  autoMerge: autoMergeSchema
 });
 var deleteViewInputSchema = external_exports.object({
   message: external_exports.string().optional().default("Delete view"),
-  submittedBy: external_exports.string().optional().default("local-producer")
+  submittedBy: external_exports.string().optional().default("local-producer"),
+  autoMerge: autoMergeSchema
 });
 var restoreViewInputSchema = external_exports.object({
   message: external_exports.string().optional().default("Restore view"),
-  submittedBy: external_exports.string().optional().default("local-producer")
+  submittedBy: external_exports.string().optional().default("local-producer"),
+  autoMerge: autoMergeSchema
 });
 var viewChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
   createViewInputSchema.extend({
@@ -17956,6 +17999,19 @@ var listRecordsResponseSchema = external_exports.object({
   records: external_exports.array(recordSchema),
   nextCursor: external_exports.string().nullable()
 });
+var listRecordsPageInputSchema = external_exports.object({
+  baseId: external_exports.string().min(1),
+  viewId: external_exports.string().min(1).optional(),
+  page: external_exports.coerce.number().int().min(1).optional().default(1),
+  pageSize: external_exports.coerce.number().int().min(1).max(100).optional().default(50)
+});
+var listRecordsPageResponseSchema = external_exports.object({
+  records: external_exports.array(recordSchema),
+  total: external_exports.number().int().nonnegative(),
+  totalPages: external_exports.number().int().nonnegative(),
+  page: external_exports.number().int().min(1),
+  pageSize: external_exports.number().int().min(1).max(100)
+});
 var countRecordsInputSchema = external_exports.object({
   baseId: external_exports.string().optional()
 }).optional().default({});
@@ -18002,10 +18058,16 @@ var recordFieldFilterInputSchema = external_exports.object({
   limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50)
 });
 var recordFieldGetInputSchema = external_exports.object({
-  baseId: external_exports.string(),
-  fieldSlug: external_exports.string().min(1),
-  valueText: external_exports.string().min(1)
+  baseId: external_exports.string().describe("Field selector: Base id. Requires fieldSlug and valueText."),
+  fieldSlug: external_exports.string().min(1).describe("Field selector: exact field slug. Requires baseId and valueText."),
+  valueText: external_exports.string().min(1).describe("Field selector: exact text value. Requires baseId and fieldSlug.")
 });
+var recordGetInputSchema = external_exports.union([
+  external_exports.object({
+    recordId: external_exports.string().min(1).describe("Record id selector. Use alone; do not combine with field selector fields.")
+  }).strict(),
+  recordFieldGetInputSchema.strict()
+]);
 var restoreRecordInputSchema = external_exports.object({
   message: external_exports.string().optional(),
   submittedBy: external_exports.string().optional().default("local-editor")
@@ -18141,6 +18203,13 @@ var recordContract = {
     summary: "List records",
     successDescription: "A page of canonical records plus an opaque nextCursor (null at the end). `status=archived` lists the Base's trash instead of its live rows."
   }).input(listRecordsInputSchema).output(listRecordsResponseSchema),
+  listPage: oc.route({
+    method: "GET",
+    path: "/records/page",
+    tags: ["Records"],
+    summary: "List a numbered record page",
+    successDescription: "A random-access page of active records. When viewId is supplied, the saved view is authoritatively filtered and sorted before total and page slicing are calculated."
+  }).input(listRecordsPageInputSchema).output(listRecordsPageResponseSchema),
   count: oc.route({
     method: "GET",
     path: "/records/count",
@@ -18150,11 +18219,15 @@ var recordContract = {
   }).input(countRecordsInputSchema).output(countRecordsResponseSchema),
   get: oc.route({
     method: "GET",
-    path: "/records/{recordId}",
+    path: "/records/get",
     tags: ["Records"],
     summary: "Get record",
-    successDescription: "Canonical record detail."
-  }).input(external_exports.object({ recordId: external_exports.string() })).output(recordSchema),
+    description: "Provide exactly one selector: recordId alone, or the complete baseId + fieldSlug + valueText tuple. Other combinations return 400.",
+    successDescription: "One canonical record selected by id or exact field value."
+  }).errors({
+    BAD_REQUEST: { status: 400, message: "Exactly one record selector is required" },
+    NOT_FOUND: { status: 404, message: "Record not found" }
+  }).input(recordGetInputSchema).output(recordSchema),
   search: oc.route({
     method: "GET",
     path: "/records/search",
@@ -18162,13 +18235,6 @@ var recordContract = {
     summary: "Filter records by field text",
     successDescription: "Canonical records matching a field text filter."
   }).input(recordFieldFilterInputSchema).output(external_exports.array(recordSchema)),
-  getByField: oc.route({
-    method: "GET",
-    path: "/records/by-field",
-    tags: ["Records"],
-    summary: "Get record by field value",
-    successDescription: "Single canonical record whose field value exactly matches, or null when none does \u2014 a scoped point lookup (e.g. by a unique slug or path field), not a list."
-  }).input(recordFieldGetInputSchema).output(recordSchema.nullable()),
   changeRequest: oc.route({
     method: "POST",
     path: "/records/{recordId}/change-requests",
@@ -18202,8 +18268,13 @@ var viewContract = {
     path: "/views/change-requests",
     tags: ["Views", "Change Requests"],
     summary: "Create view change request",
-    successDescription: "Created change request proposing a view change. `operation` selects what to propose: `create` (addressed by `baseId`), or `update` / `delete` / `restore` (addressed by `viewId`)."
-  }).input(viewChangeRequestInputSchema).output(changeRequestSchema)
+    successDescription: "Proposes a view change. `operation` selects what to propose: `create` (addressed by `baseId`), or `update` / `delete` / `restore` (addressed by `viewId`). Review-first when the actor lacks write access or passes `autoMerge: false` \u2014 a pending ChangeRequest (`materialized: false`). Otherwise the change is approved and merged in the same call and the materialized View comes back instead (`materialized: true`)."
+  }).input(viewChangeRequestInputSchema).output(
+    external_exports.union([
+      viewSchema.extend({ materialized: external_exports.literal(true) }),
+      changeRequestSchema.extend({ materialized: external_exports.literal(false) })
+    ])
+  )
 };
 var ReadDocLinesInputSchema = external_exports.object({
   nodeId: external_exports.string(),
@@ -18240,13 +18311,6 @@ var createDocChangeRequestInputSchema = external_exports.object({
   submittedBy: external_exports.string().optional().default("local-producer")
 });
 var docContract = {
-  list: oc.route({
-    method: "GET",
-    path: "/docs",
-    tags: ["Docs"],
-    summary: "List Doc nodes",
-    successDescription: "Doc nodes with their storage-backed bodies."
-  }).output(external_exports.array(docSchema)),
   create: oc.route({
     method: "POST",
     path: "/docs",
@@ -18259,19 +18323,12 @@ var docContract = {
       changeRequestSchema.extend({ materialized: external_exports.literal(false) })
     ])
   ),
-  get: oc.route({
-    method: "GET",
-    path: "/docs/{nodeId}",
-    tags: ["Docs"],
-    summary: "Get Doc node",
-    successDescription: "Doc node detail and body."
-  }).input(external_exports.object({ nodeId: external_exports.string() })).output(docSchema),
   readLines: oc.route({
     method: "GET",
     path: "/docs/{nodeId}/lines",
     tags: ["Docs"],
     summary: "Read an exact line range from a Doc body",
-    successDescription: "Lines [startLine, endLine] (range capped at 2000 lines / ~2MB response) sliced from the Doc's full body \u2014 Docs are KB-scale, so the whole body is read in memory; no byte-range/checkpoint machinery like assets.readTextLines uses for potentially multi-GB files. The Doc-domain follow-up to a Unified Grep match with `source: \"docs\"`, so an agent can read just the lines around a match instead of `get`'s entire body."
+    successDescription: "Lines [startLine, endLine] (range capped at 2000 lines / ~2MB response) sliced from the Doc's full body \u2014 Docs are KB-scale, so the whole body is read in memory; no byte-range/checkpoint machinery like assets.readTextLines uses for potentially multi-GB files. The Doc-domain follow-up to a Unified Grep match with `source: \"docs\"`, so an agent can read just the lines around a match instead of `nodes.get`'s entire body."
   }).input(ReadDocLinesInputSchema).output(ReadLinesVOSchema),
   updateBody: oc.route({
     method: "PUT",
@@ -18433,13 +18490,6 @@ var createFileNodeInputSchema = external_exports.object({
   autoMerge: external_exports.boolean().optional()
 });
 var fileContract = {
-  list: oc.route({
-    method: "GET",
-    path: "/files",
-    tags: ["Files"],
-    summary: "List File nodes",
-    successDescription: "Workspace File nodes with their backing Asset metadata."
-  }).output(external_exports.array(FileNodeVOSchema)),
   create: oc.route({
     method: "POST",
     path: "/files",
@@ -18451,34 +18501,7 @@ var fileContract = {
       FileNodeVOSchema.extend({ materialized: external_exports.literal(true) }),
       changeRequestSchema.extend({ materialized: external_exports.literal(false) })
     ])
-  ),
-  get: oc.route({
-    method: "GET",
-    path: "/files/{nodeId}",
-    tags: ["Files"],
-    summary: "Get File node",
-    successDescription: "File node detail and backing Asset metadata."
-  }).input(external_exports.object({ nodeId: external_exports.string() })).output(FileNodeVOSchema)
-};
-var folderSchema = external_exports.object({
-  node: nodeSchema,
-  children: external_exports.array(nodeSchema)
-});
-var folderContract = {
-  list: oc.route({
-    method: "GET",
-    path: "/folders",
-    tags: ["Folders"],
-    summary: "List Folder nodes",
-    successDescription: "Folder nodes with their direct children."
-  }).output(external_exports.array(folderSchema)),
-  get: oc.route({
-    method: "GET",
-    path: "/folders/{nodeId}",
-    tags: ["Folders"],
-    summary: "Get Folder node",
-    successDescription: "Folder node and its direct children."
-  }).input(external_exports.object({ nodeId: external_exports.string() })).output(folderSchema)
+  )
 };
 var FormFieldBindingSchema = external_exports.object({
   inputName: external_exports.string().min(1),
@@ -19023,7 +19046,7 @@ var UnifiedGrepScopeSchema = external_exports.object({
 });
 var UnifiedGrepInputSchema = external_exports.object({
   pattern: external_exports.string().min(1),
-  /** JS RegExp flags, e.g. `"i"` for case-insensitive — same language as `assets.grep`. */
+  /** JS RegExp flags, e.g. `"i"` for case-insensitive. */
   flags: external_exports.string().optional().default(""),
   /** Which sources to scan. Omitted = all three (`files`, `docs`, `records`). */
   sources: external_exports.array(GrepSourceSchema).optional(),
@@ -19103,14 +19126,82 @@ var UnifiedGrepResultVOSchema = external_exports.object({
   /** True when any source truncated, or any source has `notReached > 0`. */
   truncated: external_exports.boolean()
 });
-var changeRequestBatchResultSchema = external_exports.object({
+var folderSchema = external_exports.object({
+  node: nodeSchema,
+  children: external_exports.array(nodeSchema)
+});
+var genericNodeDetailSchema = (type) => external_exports.object({
+  type: external_exports.literal(type),
+  node: nodeSchema
+});
+var NODE_DETAIL_VARIANTS = {
+  folder: folderSchema.extend({ type: external_exports.literal("folder") }),
+  doc: docSchema.extend({ type: external_exports.literal("doc") }),
+  file: FileNodeVOSchema.extend({ type: external_exports.literal("file") }),
+  // Skills, Drives, and AirApps are one server-side shape (`fileTreeNodeSchema`)
+  // but three real node types — there is no synthetic "file-tree" node type, so
+  // each gets its own discriminated variant rather than a shared alias.
+  skill: fileTreeNodeSchema.extend({ type: external_exports.literal("skill") }),
+  drive: fileTreeNodeSchema.extend({ type: external_exports.literal("drive") }),
+  airapp: fileTreeNodeSchema.extend({ type: external_exports.literal("airapp") }),
+  base: genericNodeDetailSchema("base"),
+  form: genericNodeDetailSchema("form"),
+  whiteboard: genericNodeDetailSchema("whiteboard"),
+  workflow: genericNodeDetailSchema("workflow"),
+  html: genericNodeDetailSchema("html")
+};
+var NodeDetailVOSchema = external_exports.discriminatedUnion("type", [
+  NODE_DETAIL_VARIANTS.folder,
+  NODE_DETAIL_VARIANTS.doc,
+  NODE_DETAIL_VARIANTS.file,
+  NODE_DETAIL_VARIANTS.skill,
+  NODE_DETAIL_VARIANTS.drive,
+  NODE_DETAIL_VARIANTS.airapp,
+  NODE_DETAIL_VARIANTS.base,
+  NODE_DETAIL_VARIANTS.form,
+  NODE_DETAIL_VARIANTS.whiteboard,
+  NODE_DETAIL_VARIANTS.workflow,
+  NODE_DETAIL_VARIANTS.html
+]);
+var getNodeInputSchema = external_exports.object({
+  nodeId: external_exports.string().describe("Node id, or a slug that is unique within its type."),
+  type: external_exports.enum(NODE_TYPES).optional().describe(
+    "Optional disambiguation hint, only needed when `nodeId` is a slug that exists under more than one node type."
+  )
+});
+var changeRequestBatchFailureSchema = external_exports.object({
+  changeRequestId: external_exports.string(),
+  ok: external_exports.literal(false),
+  error: external_exports.string(),
+  code: external_exports.string().optional(),
+  data: external_exports.unknown().optional()
+});
+var changeRequestReviewBatchResultSchema = external_exports.object({
   results: external_exports.array(
-    external_exports.object({
-      changeRequestId: external_exports.string(),
-      ok: external_exports.boolean(),
-      status: external_exports.string().optional(),
-      error: external_exports.string().optional()
-    })
+    external_exports.discriminatedUnion("ok", [
+      external_exports.object({
+        changeRequestId: external_exports.string(),
+        ok: external_exports.literal(true),
+        status: external_exports.string(),
+        changeRequest: changeRequestSchema
+      }),
+      changeRequestBatchFailureSchema
+    ])
+  )
+});
+var changeRequestMergeBatchResultSchema = external_exports.object({
+  results: external_exports.array(
+    external_exports.discriminatedUnion("ok", [
+      external_exports.object({
+        changeRequestId: external_exports.string(),
+        ok: external_exports.literal(true),
+        status: external_exports.string(),
+        changeRequest: changeRequestSchema,
+        record: recordSchema.nullable(),
+        view: viewSchema.nullable()
+      }),
+      changeRequestBatchFailureSchema
+    ])
   )
 });
 var busabaseContractRoutes = {
@@ -19130,11 +19221,9 @@ var busabaseContractRoutes = {
     summary: "Search Busabase",
     successDescription: "Paginated search results across records, change requests, Bases, File nodes, and Assets."
   }).input(searchInputSchema).output(searchResponseSchema),
-  // Unified Grep (P2a files+docs, P2b records) — top-level, cross-source
-  // superset of `assets.grep`. See apps/busabase/content/spec/unified-grep.md.
-  // Composes `logic/grep.ts`; `assets.grep` (files-only specialist) is
-  // unchanged and stays the dedicated endpoint for its fuller
-  // missing/stale/unsearchable reporting.
+  // Unified Grep (P2a files+docs, P2b records) — the single public pattern
+  // search endpoint. Files-only callers use `sources: ["files"]` and retain
+  // the full missing/stale/unsearchable coverage block.
   grep: oc.route({
     method: "POST",
     path: "/grep",
@@ -19147,8 +19236,8 @@ var busabaseContractRoutes = {
       method: "GET",
       path: "/nodes",
       tags: ["Nodes"],
-      summary: "List node tree",
-      successDescription: "Workspace node tree including folders, Bases, files, and agents. With no `parentId`/`depth`, returns the FULL tree (legacy behavior, still what every non-sidebar caller gets). Passing `parentId` and/or `depth` switches to a depth-bounded fetch: `parentId` omitted/null starts from the space root and returns it wrapped exactly like the legacy call (just depth-limited); an explicit `parentId` returns that node's children directly, ready to merge into its `NodeVO.children` for a sidebar's lazy per-folder expand. See `NodeVO.hasChildren` for how a depth boundary is surfaced."
+      summary: "List nodes (workspace tree, or a flat summary list by type)",
+      successDescription: "Workspace node tree including folders, Bases, files, and agents. With no `parentId`/`depth`, returns the FULL tree (legacy behavior, still what every non-sidebar caller gets). Passing `parentId` and/or `depth` switches to a depth-bounded fetch: `parentId` omitted/null starts from the space root and returns it wrapped exactly like the legacy call (just depth-limited); an explicit `parentId` returns that node's children directly, ready to merge into its `NodeVO.children` for a sidebar's lazy per-folder expand. See `NodeVO.hasChildren` for how a depth boundary is surfaced. Passing `types` instead returns a FLAT, ACL-filtered list of lightweight summaries (`children: []`) for just those node types \u2014 this is what replaced `GET /docs`, `/files`, `/folders`, and `/file-trees`, and it deliberately hydrates nothing heavy (no Doc bodies, backing Assets, folder children, or file inventories). Open one item with `GET /nodes/{nodeId}`."
     }).input(listNodesInputSchema).output(external_exports.array(nodeSchema)),
     searchByName: oc.route({
       method: "GET",
@@ -19218,6 +19307,21 @@ var busabaseContractRoutes = {
       summary: "List the current actor's favorited nodes",
       successDescription: "The acting user's favorited nodes, newest-favorited first, filtered through the same archived/deleted/visibility rules as the main tree \u2014 a favorited node that's later archived, purged, or (cloud) hidden from this actor silently drops out rather than erroring."
     }).output(external_exports.array(nodeSchema)),
+    // Registered LAST among the `/nodes/...` GETs on purpose. `GET /nodes/search`
+    // and `GET /nodes/favorites` are literal paths that now share a prefix with
+    // this template. The oRPC OpenAPI matcher is a rou3 radix trie, which
+    // prefers a static segment over a param segment independently of insertion
+    // order — but keeping the literals declared first means the source order
+    // matches the resolution order, so nobody has to know that to read this
+    // file. `tests/openapi-node-routes.test.ts` proves the literals still win
+    // against a real handler rather than resolving as `nodeId: "search"`.
+    get: oc.route({
+      method: "GET",
+      path: "/nodes/{nodeId}",
+      tags: ["Nodes"],
+      summary: "Get one node's typed detail",
+      successDescription: "The node's full detail, discriminated by its `type`. One entry point for every node type, so a caller holding an id never has to discover the type first: `folder` carries its direct `children`, `doc` its storage-backed `body`, `file` its backing `asset`, and `skill`/`drive`/`airapp` their Asset-backed `files`. Types with no richer detail yet (`base`, `form`, `whiteboard`, `workflow`, `html`) return just `node`. `nodeId` accepts an id or a slug; pass `type` when a slug exists under more than one type. Archived nodes are not returned (404), matching the typed gets this replaced."
+    }).input(getNodeInputSchema).output(NodeDetailVOSchema),
     principals: {
       list: oc.route({
         method: "GET",
@@ -19351,7 +19455,9 @@ var busabaseContractRoutes = {
   airapps: airappRuntimeContract,
   files: fileContract,
   docs: docContract,
-  folders: folderContract,
+  // No `folders` key: the Folder domain's only two operations were `GET /folders`
+  // and `GET /folders/{nodeId}`, both now served by the unified Node surface
+  // (`nodes.list({ types: ["folder"] })` / `nodes.get`).
   forms: formContract,
   assets: assetsContract,
   vault: vaultContract,
@@ -19384,22 +19490,15 @@ var busabaseContractRoutes = {
     }).input(external_exports.object({ changeRequestId: external_exports.string() })).output(changeRequestSchema),
     review: oc.route({
       method: "POST",
-      path: "/change-requests/{changeRequestId}/reviews",
-      tags: ["Change Requests"],
-      summary: "Review change request",
-      successDescription: "Reviewed change request."
-    }).input(reviewChangeRequestInputSchema.extend({ changeRequestId: external_exports.string() })).output(changeRequestSchema),
-    reviewMany: oc.route({
-      method: "POST",
       path: "/change-requests/reviews",
       tags: ["Change Requests"],
-      summary: "Review many change requests",
+      summary: "Review change requests",
       successDescription: "Per-change-request review results (failures isolated \u2014 one bad id does not abort the rest)."
     }).input(
       reviewChangeRequestInputSchema.extend({
         changeRequestIds: external_exports.array(external_exports.string()).min(1).max(100)
       })
-    ).output(changeRequestBatchResultSchema),
+    ).output(changeRequestReviewBatchResultSchema),
     close: oc.route({
       method: "POST",
       path: "/change-requests/{changeRequestId}/close",
@@ -19409,24 +19508,11 @@ var busabaseContractRoutes = {
     }).input(external_exports.object({ changeRequestId: external_exports.string(), reason: external_exports.string().optional() })).output(changeRequestSchema),
     merge: oc.route({
       method: "POST",
-      path: "/change-requests/{changeRequestId}/merge",
-      tags: ["Change Requests"],
-      summary: "Merge change request into Base",
-      successDescription: "Merged change request and canonical record."
-    }).input(external_exports.object({ changeRequestId: external_exports.string() })).output(
-      external_exports.object({
-        changeRequest: changeRequestSchema,
-        record: recordSchema.nullable(),
-        view: viewSchema.nullable()
-      })
-    ),
-    mergeMany: oc.route({
-      method: "POST",
       path: "/change-requests/merge",
       tags: ["Change Requests"],
-      summary: "Merge many change requests",
+      summary: "Merge change requests",
       successDescription: "Per-change-request merge results (each merged in its own transaction; failures isolated)."
-    }).input(external_exports.object({ changeRequestIds: external_exports.array(external_exports.string()).min(1).max(100) })).output(changeRequestBatchResultSchema)
+    }).input(external_exports.object({ changeRequestIds: external_exports.array(external_exports.string()).min(1).max(100) })).output(changeRequestMergeBatchResultSchema)
   },
   operations: {
     revise: oc.route({
@@ -19750,6 +19836,19 @@ function createBusabaseClient(config2 = {}) {
   });
   return createORPCClient(link);
 }
+var isNotFound = (error51) => typeof error51 === "object" && error51 !== null && ("status" in error51 && error51.status === 404 || "code" in error51 && error51.code === "NOT_FOUND");
+var getRecordByField = async (client, input) => {
+  try {
+    return await client.records.get(input);
+  } catch (error51) {
+    if (isNotFound(error51)) return null;
+    throw error51;
+  }
+};
+var batchItemError = (result) => Object.assign(new Error(result?.error ?? "Change request action returned no result"), {
+  ...result?.code ? { code: result.code } : {},
+  ...result?.data === void 0 ? {} : { data: result.data }
+});
 var Busabase = class {
   /** The underlying fully-typed oRPC client. Use it for anything not surfaced here. */
   client;
@@ -19765,17 +19864,67 @@ var Busabase = class {
     return this.client.bases;
   }
   get records() {
-    return this.client.records;
+    const getByField = (input) => getRecordByField(this.client, input);
+    return new Proxy(this.client.records, {
+      get(target, property, receiver) {
+        if (property === "getByField") return getByField;
+        return Reflect.get(target, property, receiver);
+      }
+    });
   }
   get views() {
     return this.client.views;
   }
   get changeRequests() {
-    return this.client.changeRequests;
+    const review = async (input) => {
+      if ("changeRequestIds" in input) return this.client.changeRequests.review(input);
+      const { changeRequestId, ...reviewInput } = input;
+      const { results } = await this.client.changeRequests.review({
+        ...reviewInput,
+        changeRequestIds: [changeRequestId]
+      });
+      const result = results[0];
+      if (!result?.ok) throw batchItemError(result);
+      return result.changeRequest;
+    };
+    const merge2 = async (input) => {
+      if ("changeRequestIds" in input) return this.client.changeRequests.merge(input);
+      const { results } = await this.client.changeRequests.merge({
+        changeRequestIds: [input.changeRequestId]
+      });
+      const result = results[0];
+      if (!result?.ok) throw batchItemError(result);
+      return {
+        changeRequest: result.changeRequest,
+        record: result.record,
+        view: result.view
+      };
+    };
+    return new Proxy(this.client.changeRequests, {
+      get(target, property, receiver) {
+        if (property === "review") return review;
+        if (property === "merge") return merge2;
+        return Reflect.get(target, property, receiver);
+      }
+    });
   }
   get operations() {
     return this.client.operations;
   }
+  /**
+   * The workspace node surface, and the single entry point for reading ONE node
+   * of any type: `bb.nodes.get({ nodeId })` returns a `NodeDetailVO`
+   * discriminated by `type` (`folder` carries `children`, `doc` a `body`, `file`
+   * its `asset`, `skill`/`drive`/`airapp` their `files`). It replaced the four
+   * typed gets (`docs`/`files`/`folders`/`fileTrees`), so a caller holding an id
+   * no longer has to know the node's type before it can read it.
+   *
+   * `bb.nodes.list({ types })` is the matching list: a flat array of lightweight
+   * summaries for just those types. Without `types` it still returns the full
+   * workspace tree.
+   *
+   * There is no `bb.folders` any more — folders are `type: "folder"` here.
+   */
   get nodes() {
     return this.client.nodes;
   }
@@ -19789,20 +19938,45 @@ var Busabase = class {
     return this.client.agent;
   }
   get assets() {
-    return this.client.assets;
+    const filesOnlyGrep = (input) => grepAssets(this.client, input);
+    return new Proxy(this.client.assets, {
+      get(target, property, receiver) {
+        if (property === "grep") return filesOnlyGrep;
+        return Reflect.get(target, property, receiver);
+      }
+    });
   }
-  /** Skills, Drives, and AirApps — one surface, discriminated by `type`. */
+  /**
+   * Skills, Drives, and AirApps — one surface, discriminated by `type`.
+   *
+   * Creation and per-file reads/writes live here. Listing them and reading one
+   * node's detail moved to the unified Node surface:
+   * `bb.nodes.list({ types: ["skill", "drive", "airapp"] })` and
+   * `bb.nodes.get({ nodeId, type })`.
+   */
   get fileTrees() {
     return this.client.fileTrees;
   }
+  /**
+   * File nodes. `create` only — list with `bb.nodes.list({ types: ["file"] })`
+   * and read one (backing Asset included) with `bb.nodes.get({ nodeId })`.
+   */
   get files() {
     return this.client.files;
   }
+  /**
+   * Docs. Create / read a line range / update the body / open a Change Request.
+   * List with `bb.nodes.list({ types: ["doc"] })` and read one (body included)
+   * with `bb.nodes.get({ nodeId })`.
+   *
+   * There is deliberately no `bb.docs.list()` shim. The retired `GET /docs`
+   * returned every Doc *with its body*; the one-call replacement returns
+   * lightweight summaries, and the only way to keep the old shape would be a
+   * detail request per Doc. An SDK convenience that quietly turns one call into
+   * N is worse than a compile error that points at `bb.nodes`.
+   */
   get docs() {
     return this.client.docs;
-  }
-  get folders() {
-    return this.client.folders;
   }
   get agentTasks() {
     return this.client.agentTasks;
@@ -19822,10 +19996,8 @@ var Busabase = class {
    * source (Drive/Skill files, Doc bodies, and Base records — records read
    * the canonical `headCommit.fields`, never the truncated search
    * projection), with a shared `maxMatches`/deadline budget and per-source
-   * honest coverage. Use this when the answer could live anywhere; use
-   * `client.assets.grep` directly instead when you specifically only care
-   * about files and want its fuller `missing`/`stale`/`unsearchable`
-   * file-only reporting.
+   * honest coverage. `bb.assets.grep` remains available as a files-only SDK
+   * convenience and delegates here with `sources: ["files"]`.
    */
   grep(input) {
     return this.client.grep(input);
@@ -19880,6 +20052,10 @@ export {
   DEFAULT_BASE_URL,
   cloudContract,
   createBusabaseClient,
+  getRecordByField,
+  grepAssets,
   normalizeBaseUrl,
-  resolveConfig
+  resolveConfig,
+  toFilesOnlyGrepResult,
+  toUnifiedFilesGrepInput
 };

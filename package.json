@@ -8,7 +8,10 @@
     "format": "biome check --write .",
     "screenshots": "node scripts/capture-screenshots.mjs",
     "screenshots:frame": "node scripts/frame-screenshots.mjs",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "test:app-skills": "npm run test:app-skills:oss && npm run test:app-skills:cloud",
+    "test:app-skills:oss": "pnpm --dir skills/kelly-invest-stock/app check && node --test tests/app-skills/kelly-invest-stock/*.test.mjs && python3 tests/app-skills/kelly-invest-stock/ui_test.py",
+    "test:app-skills:cloud": "python3 tests/app-skills/kelly-invest-stock/cloud_oauth_test.py"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

@@ -67,7 +67,7 @@
 
 ## 应用工作流契约
 
-新的 Busabase 运营应用 skill 使用仓库内的 `kelly-app-skill-creator` contract：每个 skill 都在 `app/` 保存完整规范项目，通过 `busabase-sdk` 读取持久化配置、状态和数据，并默认把同一套源码部署到 AirApp。项目仍可通过 `pnpm dev` 本地运行，但只有用户明确要求预览或调试时才启动。`kelly-app-skill-creator` 负责操作台 UI、桌面/手机布局、交互和视觉验收；`$busabase` 与 `$busabase-app-creator` 负责 Busabase 资源以及 AirApp 运行时和部署细节。现有本地 App-in-Skill 工作流继续保留其已审计的实现基线：
+新的 Busabase 运营应用 skill 使用仓库内的 `kelly-app-skill-creator` contract：每个 skill 都在 `app/` 保存完整规范项目，通过 `busabase-sdk` 读取持久化配置、状态和数据，并默认把同一套源码部署到 AirApp。项目仍可通过 `pnpm dev` 本地运行，但只有用户明确要求预览或调试时才启动。`kelly-app-skill-creator` 负责操作台 UI、桌面/手机布局、交互和视觉验收；`kelly-app-skill-creator-tests` 独立负责可复用 conformance、OSS Busabase、Cloud OAuth、持久化和 AirApp parity 测试；`$busabase` 与 `$busabase-app-creator` 负责 Busabase 资源以及 AirApp 运行时和部署细节。现有本地 App-in-Skill 工作流继续保留其已审计的实现基线：
 
 - **首次使用 onboarding** —— Busabase-backed App 在读取 live data 前明确展示连接、Space、资源、schema 和 Vault readiness；浏览器不收集密码、API key 或 Vault 值。
 - **确定性 handoff** —— Busabase-backed workflow 声明 resource map，并通过 `busabase-sdk` 校验 Folder/Node、Base、Doc、Drive/File 与 Vault 要求；缺失或不匹配时明确失败。
@@ -75,7 +75,7 @@
 - **可维护前端** —— 大型浏览器脚本拆成原生 ESM modules，入口文件保持在 800 行以内；大型样式表按稳定 cascade layer 拆成有序 CSS modules。
 - **可复现证据** —— 截图使用确定性 demo state 和规范桌面/手机 viewport；GitHub Pages 画廊由中英文 README 与 skill 内本地 assets 统一重建。
 
-审计门会运行仓库 lint 与 type check、校验每个 skill package，并检查对应的 Busabase 或本地 App 契约。
+审计门会运行仓库 lint 与 type check、校验每个 skill package，并把 OSS 与环境变量门控的 Cloud suites 分别报告为 pass、fail 或 skip。
 
 ---
 
@@ -97,12 +97,13 @@
 
 ## Skills
 
-`kelly-*` 是日常业务工具；`agent-rules`、`kelly-app-skill-creator`、`publish-skills` 这类 helper skills 用来维护这个工作区本身。
+`kelly-*` 是日常业务工具；`agent-rules`、`kelly-app-skill-creator`、`kelly-app-skill-creator-tests`、`publish-skills` 这类 helper skills 用来维护这个工作区本身。
 
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `agent-rules` | 让 Codex、Claude Code、Copilot、Kiro、Cursor、Gemini 等 agent 共享同一套规则和 skills。 | 设置多 agent repo、检查规则漂移、修复 rule/skill symlink 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/agent-rules.html?lang=zh) |
-| `kelly-app-skill-creator` | 围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 `app/`，用 `busabase-sdk` 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 `pnpm dev`，拥有响应式 Kelly 操作台 UI，并只把运行时约束委托给 `$busabase-app-creator`。旧名 `kelly-app-creator`、`app-in-skill-creator` 保留为兼容别名。 | 构建 Busabase 研究台、审阅队列、计划看板、行动控制台、运营概览、控制面板或协作工作区时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html?lang=zh) |
+| `kelly-app-skill-creator` | 围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 `app/`，用 `busabase-sdk` 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 `pnpm dev`，拥有响应式 Kelly 操作台 UI，把运行时约束委托给 `$busabase-app-creator`，把 conformance 验收委托给 `$kelly-app-skill-creator-tests`。旧名 `kelly-app-creator`、`app-in-skill-creator` 保留为兼容别名。 | 构建 Busabase 研究台、审阅队列、计划看板、行动控制台、运营概览、控制面板或协作工作区时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html?lang=zh) |
+| `kelly-app-skill-creator-tests` | 为规范 Kelly app skill 构建并运行可复用 conformance 测试，包括本地 server 与响应式浏览器检查、临时开源 Busabase provisioning 与持久化、环境变量门控的 Cloud OAuth，以及 AirApp parity；OSS 与 Cloud 始终分开报告。 | 给 `kelly-app-skill-creator` 生成的 skill 补测试、验收迁移后的 app skill、接入 app-skill CI，或诊断 SDK、OAuth、provisioning、持久化、AirApp 回归时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html?lang=zh) |
 | `publish-skills` | 把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 `gh skill` 校验、切版本、接 Claude `/plugin` 和 Codex marketplace，并准备 MCP Registry 和精选商店。 | 发布、上架、分发 skills、plugins 或 MCP servers 到 skills.sh、Claude Code、Codex 或 MCP Registry 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/publish-skills.html?lang=zh) |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
 | `kelly-finance` | 构建和审计财务三表模型、经营预测、预算、现金 runway、SaaS/unit economics 包，以及可交付的 Excel 财务输出。 | 做财务三表、融资预测、董事会财务包、情景分析、资产负债表检查、营运资本/资本开支/债务 schedule，或修三表勾稽错误时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html?lang=zh) |

@@ -1,4 +1,6 @@
 node_modules/
+__pycache__/
+*.py[cod]
 .DS_Store
 
 # App-in-Skill local state
@@ -22,6 +24,7 @@ skills/*/.env.local
 
 # Build/packaging artifacts
 dist/
+test-results/
 
 # Claude Code local run config (machine-specific: absolute paths + ports)
 .claude/launch.json

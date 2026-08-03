@@ -101,8 +101,6 @@ test("submits the declared structure once and reads materialized ids back", asyn
         submissions.push(payload);
         return { id: "crq_setup", status: "merged" };
       },
-    },
-    folders: {
       get: async () => materialized,
     },
   };
@@ -114,6 +112,51 @@ test("submits the declared structure once and reads materialized ids back", asyn
   assert.equal(result.bases.length, 4);
   assert.equal(result.bases[0].baseId, "bse_strategies");
   assert.deepEqual(depths, [2, 2]);
+});
+
+test("waits for merged resources to become visible", async () => {
+  const materialized = {
+    node: {
+      id: "nod_root",
+      type: "folder",
+      slug: appConfig.folder.slug,
+      metadata: { appId: appConfig.appId, resourceKey: "app-root", schemaVersion: 2 },
+    },
+    children: appConfig.bases.map((base) => ({
+      id: `nod_${base.key}`,
+      baseId: `bse_${base.key}`,
+      type: "base",
+      slug: base.slug,
+      metadata: { appId: appConfig.appId, resourceKey: base.key, schemaVersion: 2 },
+    })),
+  };
+  let reads = 0;
+  let submissions = 0;
+  const client = {
+    nodes: {
+      list: async () => {
+        reads += 1;
+        return [
+          {
+            id: "nod_root_system",
+            type: "folder",
+            slug: "root",
+            children: reads < 3 ? [] : [materialized.node],
+          },
+        ];
+      },
+      createChangeRequest: async () => {
+        submissions += 1;
+        return { id: "crq_setup", status: "merged" };
+      },
+      get: async () => materialized,
+    },
+  };
+
+  const result = await provisionDeclaredResources(client, appConfig);
+  assert.equal(submissions, 1);
+  assert.equal(reads, 3);
+  assert.equal(result.bases.length, 4);
 });
 
 const legacyFolder = () => ({
@@ -165,8 +208,8 @@ test("lazily repairs an exact legacy resource set without creating another struc
         node.metadata = { ...node.metadata, ...metadata };
         return node;
       },
+      get: async () => materialized,
     },
-    folders: { get: async () => materialized },
     bases: {
       get: async ({ baseId }) => {
         const base = appConfig.bases.find((item) => `bse_${item.key}` === baseId);
@@ -195,8 +238,8 @@ test("does not repair ownership when a legacy Base field fingerprint differs", a
       updateMetadata: async () => {
         metadataUpdates += 1;
       },
+      get: async () => materialized,
     },
-    folders: { get: async () => materialized },
     bases: {
       get: async ({ baseId }) => {
         const base = appConfig.bases.find((item) => `bse_${item.key}` === baseId);
@@ -219,8 +262,8 @@ test("uses a verified legacy fingerprint when the old Busabase API has no metada
         metadataAttempts += 1;
         throw Object.assign(new Error("Not found"), { status: 404 });
       },
+      get: async () => materialized,
     },
-    folders: { get: async () => materialized },
     bases: {
       get: async ({ baseId }) => {
         const base = appConfig.bases.find((item) => `bse_${item.key}` === baseId);

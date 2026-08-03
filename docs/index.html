@@ -239,7 +239,7 @@ h2.group {
       </p>
       <div class="stats">
         <span><strong>67</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
-        <span><strong>64</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
+        <span><strong>63</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
         <span><strong>0</strong><span class="en">npm dependencies</span><span class="zh">npm 依赖</span></span>
       </div>
       <div class="audit-note">
@@ -286,8 +286,7 @@ After installation, list the available skills and help me choose the right one f
 <button class="category-chip" type="button" data-category-filter="eng" onclick="mkSetCategory('eng')"><span class="en">Engineering &amp; Ops</span><span class="zh">工程与运维</span></button>
 <button class="category-chip" type="button" data-category-filter="rbf" onclick="mkSetCategory('rbf')"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span></button>
 <button class="category-chip" type="button" data-category-filter="agent-ops" onclick="mkSetCategory('agent-ops')"><span class="en">AI Agent Ops</span><span class="zh">AI Agent 运维</span></button>
-<button class="category-chip" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span></button>
-<button class="category-chip" type="button" data-category-filter="more" onclick="mkSetCategory('more')"><span class="en">More</span><span class="zh">更多</span></button></nav>
+<button class="category-chip" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span></button></nav>
 </div>
     </section>
     <section class="group-section" data-group-section="finance">
@@ -805,7 +804,14 @@ After installation, list the available skills and help me choose the right one f
   <div class="thumb empty">⚙️</div>
   <div class="body">
     <span class="name">kelly-app-skill-creator</span>
-    <span class="desc"><span class="en">Builds Busabase-backed App-in-Skill packages around Research, Plan, Action, and Retrospective. Each bundles a complete canonical app/, uses busabase-sdk for persistent config/state/data, deploys the same source to AirApp by default, starts pnpm dev only on explicit request, owns the responsive Kelly operator UI, and delegates only runtime rules to $busabase-app-creator. The previous names kelly-app-creator and app-in-skill-creator remain compatibility aliases.</span><span class="zh">围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 app/，用 busabase-sdk 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 pnpm dev，拥有响应式 Kelly 操作台 UI，并只把运行时约束委托给 $busabase-app-creator。旧名 kelly-app-creator、app-in-skill-creator 保留为兼容别名。</span></span>
+    <span class="desc"><span class="en">Builds Busabase-backed App-in-Skill packages around Research, Plan, Action, and Retrospective. Each bundles a complete canonical app/, uses busabase-sdk for persistent config/state/data, deploys the same source to AirApp by default, starts pnpm dev only on explicit request, owns the responsive Kelly operator UI, delegates runtime rules to $busabase-app-creator, and delegates conformance acceptance to $kelly-app-skill-creator-tests. The previous names kelly-app-creator and app-in-skill-creator remain compatibility aliases.</span><span class="zh">围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 app/，用 busabase-sdk 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 pnpm dev，拥有响应式 Kelly 操作台 UI，把运行时约束委托给 $busabase-app-creator，把 conformance 验收委托给 $kelly-app-skill-creator-tests。旧名 kelly-app-creator、app-in-skill-creator 保留为兼容别名。</span></span>
+  </div>
+</a>
+<a class="card" href="s/kelly-app-skill-creator-tests.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-app-skill-creator-tests</span>
+    <span class="desc"><span class="en">Builds and runs reusable conformance tests for canonical Kelly app skills, including local server and responsive browser checks, temporary open-source Busabase provisioning and persistence, environment-gated Cloud OAuth, and AirApp parity. OSS and Cloud are always reported separately.</span><span class="zh">为规范 Kelly app skill 构建并运行可复用 conformance 测试，包括本地 server 与响应式浏览器检查、临时开源 Busabase provisioning 与持久化、环境变量门控的 Cloud OAuth，以及 AirApp parity；OSS 与 Cloud 始终分开报告。</span></span>
   </div>
 </a>
 <a class="card" href="s/publish-skills.html">
@@ -813,18 +819,6 @@ After installation, list the available skills and help me choose the right one f
   <div class="body">
     <span class="name">publish-skills</span>
     <span class="desc"><span class="en">Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with gh skill, cuts a release, wires the Claude /plugin and Codex marketplaces, and preps the MCP Registry and curated stores.</span><span class="zh">把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 gh skill 校验、切版本、接 Claude /plugin 和 Codex marketplace，并准备 MCP Registry 和精选商店。</span></span>
-  </div>
-</a>
-</div>
-</section>
-<section class="group-section" data-group-section="more">
-<h2 class="group" id="more"><span class="en">More</span><span class="zh">更多</span></h2>
-<div class="grid">
-<a class="card" href="s/kelly-content.html">
-  <div class="thumb empty">⚙️</div>
-  <div class="body">
-    <span class="name">kelly-content<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en"></span><span class="zh"></span></span>
   </div>
 </a>
 </div>
@@ -874,8 +868,7 @@ After installation, list the available skills and help me choose the right one f
 <button class="category-button" type="button" data-category-filter="eng" onclick="mkSetCategory('eng')"><span class="en">Engineering &amp; Ops</span><span class="zh">工程与运维</span><span class="count">2</span></button>
 <button class="category-button" type="button" data-category-filter="rbf" onclick="mkSetCategory('rbf')"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span><span class="count">5</span></button>
 <button class="category-button" type="button" data-category-filter="agent-ops" onclick="mkSetCategory('agent-ops')"><span class="en">AI Agent Ops</span><span class="zh">AI Agent 运维</span><span class="count">5</span></button>
-<button class="category-button" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span><span class="count">3</span></button>
-<button class="category-button" type="button" data-category-filter="more" onclick="mkSetCategory('more')"><span class="en">More</span><span class="zh">更多</span><span class="count">1</span></button></div>
+<button class="category-button" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span><span class="count">4</span></button></div>
   </section>
 </aside>
 </div>

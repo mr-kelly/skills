@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly App Skill Creator Tests"
+  short_description: "Test Kelly app skills across OSS and Cloud"
+  default_prompt: "Use $kelly-app-skill-creator-tests to build and run conformance tests for this Kelly app skill."
