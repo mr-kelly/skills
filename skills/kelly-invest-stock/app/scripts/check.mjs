@@ -56,6 +56,15 @@ if (
 if (/创建并审批六个 Base|写入部署配置/.test(appSource)) {
   throw new Error("Setup UI must not delegate resource creation to the user");
 }
+if (
+  !serverSource.includes('app.post("/auth/space"') ||
+  !serverSource.includes('new URL("/api/v1/auth"') ||
+  !appSource.includes('name="space_id"') ||
+  !appSource.includes("if (authStatus.requiresSpace)") ||
+  configSource.includes("orglnl02ONE36pXGXTs")
+) {
+  throw new Error("OAuth must select a runtime Space before resource initialization");
+}
 if ((await stat(path.join(root, "app/vendor/busabase-sdk.js"))).size < 10_000) {
   throw new Error("Busabase browser SDK bundle is incomplete");
 }

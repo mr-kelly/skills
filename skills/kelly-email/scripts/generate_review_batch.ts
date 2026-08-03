@@ -3,7 +3,6 @@ import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
 import {
   CLASSIFICATION_PIPELINE_VERSION,
-  SCAN_STATE_PATH,
   SKILL_DIR,
   classify,
   cleanText,
@@ -22,10 +21,9 @@ import {
   summaryFrom,
   utcNow,
   writeAgentLock,
-  writeJson,
-} from "../lib/common.ts";
-import { createProvider } from "../lib/data-provider/index.ts";
-import type { Config, Mailbox, ReviewItem } from "../lib/types.ts";
+} from "../app/lib/common.ts";
+import { createProvider } from "../app/lib/data-provider/index.ts";
+import type { Config, Mailbox, ReviewItem } from "../app/lib/types.ts";
 
 interface BatchArgs {
   reviewQuota: number;
@@ -59,8 +57,8 @@ function parseArgs(argv: string[]): BatchArgs {
 function printHelp() {
   console.log(`Usage: node scripts/generate_review_batch.ts [--review-quota 5] [--max-scan-per-mailbox 120] [--dry-run]
 
-Read unread IMAP mail, generate the provider email review table, and refresh compatibility snapshots.
---dry-run reads and classifies mail but does not write provider records or snapshots.`);
+Read unread IMAP mail and generate structured Busabase review/contact records.
+--dry-run reads and classifies mail but does not write Busabase records.`);
 }
 
 function mailboxFolders(mailbox: Mailbox) {
@@ -305,8 +303,8 @@ async function writeBatch(items: ReviewItem[]) {
       proposed_action: item.proposed_action,
     })),
   };
-  if (provider.writeScanState) await provider.writeScanState(scanState);
-  else await writeJson(SCAN_STATE_PATH, scanState);
+  if (!provider.writeScanState) throw new Error("Busabase provider does not support scan state.");
+  await provider.writeScanState(scanState);
   return batch;
 }
 
@@ -349,8 +347,6 @@ async function main() {
   allItems.sort((a, b) => Number(b.uid || 0) - Number(a.uid || 0));
 
   if (args.dryRun) {
-    const provider = createProvider();
-    const busabase = provider.kind === "busabase";
     console.log(
       JSON.stringify(
         {
@@ -359,10 +355,8 @@ async function main() {
           prepared: allItems.filter((item) => item.status === "prepared").length,
           needs_review: allItems.filter((item) => item.status === "needs_review").length,
           skill_dir: SKILL_DIR,
-          batch_path: busabase ? "busabase:base/review_item" : "app/.data/email_records.json",
-          attachments_path: busabase
-            ? "busabase:drive/attachments/<batch_id>/..."
-            : "app/.data/attachments/<batch_id>/...",
+          batch_path: "busabase:base/kelly-email-reviews-v3",
+          attachments_path: "busabase:drive/kelly-email-files-v3/attachments/<batch_id>/...",
         },
         null,
         2,
@@ -380,7 +374,7 @@ async function main() {
         items: allItems.length,
         prepared: batch.metrics.prepared,
         needs_review: batch.metrics.needs_review,
-        batch_path: provider.kind === "busabase" ? "busabase:base/review_item" : "app/.data/email_records.json",
+        batch_path: "busabase:base/kelly-email-reviews-v3",
       },
       null,
       2,
@@ -389,9 +383,14 @@ async function main() {
   return 0;
 }
 
-await writeAgentLock("/kelly-email is generating a new mail review batch.");
-try {
+const helpOnly = process.argv.slice(2).some((arg) => arg === "--help" || arg === "-h");
+if (helpOnly) {
   process.exitCode = await main();
-} finally {
-  await clearAgentLock();
+} else {
+  await writeAgentLock("/kelly-email is generating a new mail review batch.");
+  try {
+    process.exitCode = await main();
+  } finally {
+    await clearAgentLock();
+  }
 }

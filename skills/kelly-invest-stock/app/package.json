@@ -7,7 +7,7 @@
     "node": ">=24.18.0"
   },
   "scripts": {
-    "build:sdk": "esbuild node_modules/busabase-sdk/dist/index.js --bundle --format=esm --platform=browser --outfile=app/vendor/busabase-sdk.js",
+    "build:sdk": "esbuild node_modules/busabase-sdk/dist/index.js --bundle --format=esm --platform=browser --outfile=app/vendor/busabase-sdk.js && esbuild node_modules/busabase-sdk/dist/oauth.js --bundle --format=esm --platform=browser --outfile=app/vendor/busabase-oauth.js && esbuild node_modules/busabase-sdk/dist/oauth-node.js --bundle --format=esm --platform=node --outfile=app/vendor/busabase-oauth-node.js",
     "check": "node scripts/check.mjs && node --test",
     "dev": "node server.js",
     "start": "node server.js",

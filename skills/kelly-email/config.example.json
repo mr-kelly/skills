@@ -1,19 +1,5 @@
 {
-  "data_provider": "local",
-  "reply_provider": "local",
-  "busabase": {
-    "base_url": "http://127.0.0.1:15419",
-    "base_id": "kelly-email",
-    "base_slug": "kelly-email",
-    "contacts_base_id": "kelly-email-contacts",
-    "contacts_base_slug": "kelly-email-contacts",
-    "folder_slug": "kelly-email-workspace",
-    "drive_slug": "kelly-email-workspace-files",
-    "drive_id": "kelly-email-files",
-    "secrets_namespace": "kelly-email",
-    "api_key_env": "KELLY_EMAIL_BUSABASE_API_KEY",
-    "_note": "Optional bootstrap only. Set KELLY_EMAIL_DATA_PROVIDER=busabase to store Kelly Email provider state in Busabase. In Busabase mode, account config belongs in Drive at config/config.json and IMAP/SMTP secret values belong in Busabase Vault. The Emails Base stores per-email subject/sender/body/status/decision/execution columns; the Email Contacts Base stores derived contact rows linked by stable contact ids; the Drive stores config/schema/locks/scan_state/compat snapshots/batches/attachments. npm run busabase:init remains available as a diagnostic/repair command. Sending and mailbox mutation still stay in the kelly-email skill after approval."
-  },
+  "_note": "Template payload for the kelly-email-config record in Email Settings. Store only non-secret account settings and Vault reference names here. Secret values belong in Busabase Vault namespace kelly-email.",
   "mailboxes": [
     {
       "mailbox_id": "primary-support",
@@ -60,7 +46,7 @@
         "unread_only": true,
         "process_until_done": true
       },
-      "notes": "Replace hosts/usernames with your provider settings. In Busabase mode, put secret values in Busabase Vault and reference them with vault_ref."
+        "notes": "Replace hosts/usernames with your provider settings. Put secret values in Busabase Vault and reference them with vault_ref."
     },
     {
       "mailbox_id": "founder-inbox",
@@ -209,10 +195,10 @@
         "use_for": ["how-to answers", "feature details"]
       },
       {
-        "source_id": "local-faq",
-        "type": "file",
-        "title": "Local FAQ notes",
-        "path": "~/Documents/kelly-email/faq.md",
+        "source_id": "support-faq",
+        "type": "url",
+        "title": "Support FAQ",
+        "url": "https://docs.example.com/faq",
         "use_for": ["repeat support answers"]
       }
     ],
@@ -250,7 +236,7 @@
       "max_auto_cleanup_threads": null,
       "actions": "triage_and_draft_unread_only",
       "stop_condition": "stop_when_needs_review_reaches_quota_or_inbox_done",
-      "cache_dir": ".agents/skills/kelly-email/.cache"
+      "state_record": "kelly-email-scan-state"
     },
     "allowed_preapproval_actions": [
       "explain workflow",

@@ -1,23 +1,17 @@
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { type Context, Hono } from "hono";
-import { createProvider } from "../../lib/data-provider/index.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+import { withRuntimeRequest } from "../lib/runtime-context.ts";
 import { updateDetail, updateItems } from "./decisions.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
 import { lockPayload } from "./lock.ts";
-import { APP_DIR, ATTACHMENTS_DIR } from "./paths.ts";
+import { APP_DIR } from "./paths.ts";
 import { statePayload } from "./state.ts";
+import { installLocalBusabaseAuth } from "./local-auth.js";
 
-// Platform-neutral Hono app. It speaks the Web-standard fetch(Request)->Response
-// contract and reaches storage only through the logic modules (data-provider
-// backed), so the same app runs under @hono/node-server locally and — once the
-// data layer moves to a cloud provider like Busabase — on Cloudflare Workers.
-//
-// The frontend is the original zero-build vanilla app (index.html + app.js +
-// styles.css + i18n). Hono only serves those static files and the JSON API; it
-// does not render or bundle anything.
+// The AirApp server forwards its ambient Busabase session to busabase-sdk.
 
 const CONTENT_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -50,89 +44,16 @@ async function sendFile(c: Context, absPath: string, { store = false }: { store?
 }
 
 export const app = new Hono();
+installLocalBusabaseAuth(app, { appId: "kelly-email" });
+app.use("*", async (c, next) => {
+  const headers: Record<string, string> = {};
+  for (const name of ["cookie", "authorization"]) {
+    const value = c.req.header(name);
+    if (value) headers[name] = value;
+  }
+  return withRuntimeRequest({ origin: new URL(c.req.url).origin, headers }, next);
+});
 app.use("/api/state", attachDemoVisuals);
-
-interface BusabaseBootstrapInput {
-  hosting?: string;
-  base_url?: string;
-  space_id?: string;
-  api_key?: string;
-}
-
-function providerBootstrapConfig(kind: string, busabaseInput: BusabaseBootstrapInput = {}) {
-  if (kind === "busabase") {
-    const hosting = busabaseInput.hosting === "cloud" ? "cloud" : "self_hosted";
-    const defaultBaseUrl = hosting === "cloud" ? "https://busabase.com" : "http://127.0.0.1:15419";
-    return {
-      data_provider: "busabase",
-      busabase: {
-        hosting,
-        base_url: String(busabaseInput.base_url || "").trim() || process.env.KELLY_EMAIL_BUSABASE_URL || defaultBaseUrl,
-        // A self-hosted (open-source) Busabase has no space concept and no auth;
-        // only the hosted/cloud product is multi-tenant and needs a space + API key.
-        space_id: hosting === "cloud" ? String(busabaseInput.space_id || "").trim() : "",
-        // Cloud/Enterprise convenience: written to this local, gitignored file
-        // (0600) so an operator can paste it once in the setup UI instead of
-        // exporting an env var. Never echoed back in any API response.
-        api_key: hosting === "cloud" ? String(busabaseInput.api_key || "").trim() : "",
-        base_id: process.env.KELLY_EMAIL_BUSABASE_BASE_ID || "kelly-email",
-        base_slug: process.env.KELLY_EMAIL_BUSABASE_BASE_SLUG || "kelly-email",
-        contacts_base_id: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_ID || "kelly-email-contacts",
-        contacts_base_slug: process.env.KELLY_EMAIL_BUSABASE_CONTACTS_BASE_SLUG || "kelly-email-contacts",
-        folder_slug: process.env.KELLY_EMAIL_BUSABASE_FOLDER_SLUG || "kelly-email-workspace",
-        drive_slug: process.env.KELLY_EMAIL_BUSABASE_DRIVE_SLUG || "kelly-email-workspace-files",
-        drive_id: process.env.KELLY_EMAIL_BUSABASE_DRIVE_ID || "kelly-email-files",
-        secrets_namespace: process.env.KELLY_EMAIL_BUSABASE_SECRETS_NAMESPACE || "kelly-email",
-        api_key_env: "KELLY_EMAIL_BUSABASE_API_KEY",
-      },
-      mailboxes: [],
-      identities: [],
-    };
-  }
-  return {
-    data_provider: "local",
-    mailboxes: [],
-    identities: [],
-  };
-}
-
-async function saveProviderBootstrap(kind: string, busabaseInput: BusabaseBootstrapInput = {}) {
-  if (process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER) {
-    throw new Error("KELLY_EMAIL_DATA_PROVIDER is set in the process environment; change that env var to switch mode.");
-  }
-  const normalized = kind === "busabase" ? "busabase" : kind === "local" ? "local" : "";
-  if (!normalized) throw new Error('Provider must be "local" or "busabase".');
-  if (normalized === "busabase" && busabaseInput.hosting === "cloud" && !String(busabaseInput.space_id || "").trim()) {
-    throw new Error("Busabase Cloud needs a Space ID.");
-  }
-  const configPath = path.join(os.homedir(), ".config", "kelly-email", "config.json");
-  await fs.mkdir(path.dirname(configPath), { recursive: true, mode: 0o700 });
-  // Preserve any mailboxes/identities the agent already configured; only the
-  // provider selection and (for busabase) the non-secret connection fields change here.
-  let existing: Record<string, unknown> = {};
-  try {
-    existing = JSON.parse(await fs.readFile(configPath, "utf8"));
-  } catch {
-    existing = {};
-  }
-  const bootstrap = providerBootstrapConfig(normalized, busabaseInput);
-  if (normalized === "busabase" && !busabaseInput.api_key?.trim()) {
-    // A blank submission means "leave it alone", not "clear it" — otherwise
-    // saving a Base URL edit would silently wipe a previously-saved key.
-    const existingBusabase = (existing.busabase as Record<string, unknown>) || {};
-    (bootstrap.busabase as Record<string, unknown>).api_key = existingBusabase.api_key || "";
-  }
-  const next = {
-    ...existing,
-    ...bootstrap,
-    mailboxes: (existing.mailboxes as unknown[]) || [],
-    identities: (existing.identities as unknown[]) || [],
-  };
-  await fs.writeFile(configPath, `${JSON.stringify(next, null, 2)}\n`, "utf8");
-  // The file may now hold a plaintext Busabase API key; keep it owner-only.
-  await fs.chmod(configPath, 0o600);
-  return { provider: normalized, config_path: configPath };
-}
 
 // ---- API ----
 app.get("/api/state", async (c) => {
@@ -162,21 +83,6 @@ app.post("/api/detail", async (c) => {
 app.post("/api/reload", async (c) => {
   const query = c.req.query();
   return c.json(isDemoQuery(query) ? demoStatePayload(query) : await statePayload({}));
-});
-
-app.post("/api/setup/provider", async (c) => {
-  const body = await c.req.json().catch(() => ({}));
-  const saved = await saveProviderBootstrap(String(body.provider || ""), {
-    hosting: String(body.hosting || ""),
-    base_url: String(body.base_url || ""),
-    space_id: String(body.space_id || ""),
-    api_key: String(body.api_key || ""),
-  });
-  // The frontend always calls /api/state itself right after this (refresh()),
-  // so returning the full payload here would probe the Busabase connection
-  // twice per save — doubling latency whenever that connection is slow or
-  // unreachable, which is exactly the moment users notice a "save" as janky.
-  return c.json({ ok: true, ...saved });
 });
 
 // ---- Static (vanilla frontend) ----
@@ -216,16 +122,6 @@ app.get("/js/*", (c) => {
   return sendFile(c, resolved);
 });
 
-// Attachments live on disk under .data/, served through with a path-traversal guard.
-app.get("/attachments/*", (c) => {
-  const rel = decodeURIComponent(c.req.path.replace(/^\/attachments\//, ""));
-  const resolved = path.resolve(ATTACHMENTS_DIR, rel);
-  if (!resolved.startsWith(path.resolve(ATTACHMENTS_DIR) + path.sep)) {
-    return c.text("Forbidden", 403);
-  }
-  return sendFile(c, resolved, { store: false });
-});
-
 app.get("/api/provider-file/*", async (c) => {
   const pathname = decodeURIComponent(c.req.path.replace(/^\/api\/provider-file\//, ""));
   const provider = createProvider();
@@ -241,4 +137,7 @@ app.get("/api/provider-file/*", async (c) => {
   });
 });
 
-app.onError((err, c) => c.json({ error: err.message, trace: err.stack }, 500));
+app.onError((err, c) => {
+  console.error("Kelly Email request failed", err);
+  return c.json({ error: err.message || "Internal Server Error" }, 500);
+});

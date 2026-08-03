@@ -4,9 +4,16 @@ import test from "node:test";
 import { appConfig } from "../app/js/config.js";
 import {
   buildProvisionOperations,
+  inspectProvisionedResources,
   provisionDeclaredResources,
   resolveProvisionedFolder,
 } from "../app/js/resource-provisioning.js";
+
+const unmaterializedConfig = {
+  ...appConfig,
+  folder: { ...appConfig.folder, nodeId: "" },
+  bases: appConfig.bases.map((base) => ({ ...base, nodeId: "", baseId: "" })),
+};
 
 test("builds one Folder and four Bases in a single declared structure change", () => {
   const operations = buildProvisionOperations(appConfig, null, appConfig.bases);
@@ -69,15 +76,15 @@ test("submits the declared structure once and reads materialized ids back", asyn
     node: {
       id: "nod_root",
       type: "folder",
-      slug: appConfig.folder.slug,
-      metadata: { appId: appConfig.appId, resourceKey: "app-root", schemaVersion: 2 },
+      slug: unmaterializedConfig.folder.slug,
+      metadata: { appId: unmaterializedConfig.appId, resourceKey: "app-root", schemaVersion: 2 },
     },
-    children: appConfig.bases.map((base) => ({
+    children: unmaterializedConfig.bases.map((base) => ({
       id: `nod_${base.key}`,
       baseId: `bse_${base.key}`,
       type: "base",
       slug: base.slug,
-      metadata: { appId: appConfig.appId, resourceKey: base.key, schemaVersion: 2 },
+      metadata: { appId: unmaterializedConfig.appId, resourceKey: base.key, schemaVersion: 2 },
     })),
   };
   let reads = 0;
@@ -105,7 +112,7 @@ test("submits the declared structure once and reads materialized ids back", asyn
     },
   };
 
-  const result = await provisionDeclaredResources(client, appConfig);
+  const result = await provisionDeclaredResources(client, unmaterializedConfig);
   assert.equal(submissions.length, 1);
   assert.equal(submissions[0].operations.length, 5);
   assert.equal(submissions[0].autoMerge, true);
@@ -153,10 +160,42 @@ test("waits for merged resources to become visible", async () => {
     },
   };
 
-  const result = await provisionDeclaredResources(client, appConfig);
+  const result = await provisionDeclaredResources(client, unmaterializedConfig);
   assert.equal(submissions, 1);
   assert.equal(reads, 3);
   assert.equal(result.bases.length, 4);
+});
+
+test("falls back from a stale node id to the declared Folder in the selected Space", async () => {
+  const materialized = {
+    node: {
+      id: "nod_selected_space",
+      type: "folder",
+      slug: appConfig.folder.slug,
+      metadata: { appId: appConfig.appId, resourceKey: "app-root", schemaVersion: 2 },
+    },
+    children: appConfig.bases.map((base) => ({
+      id: `nod_${base.key}`,
+      baseId: `bse_${base.key}`,
+      type: "base",
+      slug: base.slug,
+      metadata: { appId: appConfig.appId, resourceKey: base.key, schemaVersion: 2 },
+    })),
+  };
+  const client = {
+    nodes: {
+      list: async () => [{ id: "nod_root", type: "folder", slug: "root", children: [materialized.node] }],
+      get: async ({ nodeId }) => {
+        if (nodeId === appConfig.folder.nodeId) throw Object.assign(new Error("Not found"), { status: 404 });
+        assert.equal(nodeId, materialized.node.id);
+        return materialized;
+      },
+    },
+  };
+
+  const result = await inspectProvisionedResources(client, appConfig);
+  assert.equal(result.folder.nodeId, materialized.node.id);
+  assert.equal(result.missing.length, 0);
 });
 
 const legacyFolder = () => ({
@@ -195,6 +234,7 @@ test("lazily repairs an exact legacy resource set without creating another struc
   const client = {
     nodes: {
       list: async () => [{ id: "nod_system_root", type: "folder", slug: "root", children: [materialized.node] }],
+      get: async () => materialized,
       createChangeRequest: async () => {
         structureSubmissions += 1;
         return { id: "unexpected", status: "merged" };
@@ -235,6 +275,7 @@ test("does not repair ownership when a legacy Base field fingerprint differs", a
   const client = {
     nodes: {
       list: async () => [{ id: "nod_system_root", type: "folder", slug: "root", children: [materialized.node] }],
+      get: async () => materialized,
       updateMetadata: async () => {
         metadataUpdates += 1;
       },
@@ -258,6 +299,7 @@ test("uses a verified legacy fingerprint when the old Busabase API has no metada
   const client = {
     nodes: {
       list: async () => [{ id: "nod_system_root", type: "folder", slug: "root", children: [materialized.node] }],
+      get: async () => materialized,
       updateMetadata: async () => {
         metadataAttempts += 1;
         throw Object.assign(new Error("Not found"), { status: 404 });

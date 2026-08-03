@@ -1,5 +1,5 @@
-export { loadConfig, loadConfigWithMeta, loadDotenvFiles, onboardingStatus } from "../../lib/data-provider/index.ts";
-import { onboardingStatus } from "../../lib/data-provider/index.ts";
+export { loadConfig, loadConfigWithMeta, loadDotenvFiles, onboardingStatus } from "../lib/data-provider/index.ts";
+import { onboardingStatus } from "../lib/data-provider/index.ts";
 import type { Config, ConfigMeta, Onboarding } from "./types.ts";
 
 function asArray<T = unknown>(value: T | T[] | undefined | null): T[] {
@@ -106,7 +106,7 @@ export function publicAccounts(
   }
   return {
     source,
-    data_reader: meta.reader || onboarding.reader || "local",
+    data_reader: meta.reader || onboarding.reader || "busabase",
     data_provider: meta.provider || "",
     onboarding,
     profile: publicProfile(config),

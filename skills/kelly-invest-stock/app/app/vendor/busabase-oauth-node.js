@@ -1,9 +1,9 @@
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/apps/busabase-sdk/dist/chunk-5NYQX65A.js
+// node_modules/.pnpm/busabase-sdk@0.11.0/node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
 function normalizeBaseUrl(raw) {
   return raw.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/apps/busabase-sdk/dist/chunk-J2DZKX7A.js
+// node_modules/.pnpm/busabase-sdk@0.11.0/node_modules/busabase-sdk/dist/chunk-J2DZKX7A.js
 var BUSABASE_AIRAPP_CLIENT_ID = "busabase-airapp";
 var BusabaseOAuthError = class extends Error {
   code;
@@ -86,7 +86,7 @@ async function revokeBusabaseOAuthToken(input, fetchImpl = fetch) {
   }
 }
 
-// ../../../../../.codex/worktrees/busabase-sdk-oauth/kapps/apps/busabase-sdk/dist/oauth-node.js
+// node_modules/.pnpm/busabase-sdk@0.11.0/node_modules/busabase-sdk/dist/oauth-node.js
 import { randomUUID } from "crypto";
 import { readFileSync, mkdirSync, chmodSync, writeFileSync, renameSync, rmSync } from "fs";
 import { homedir } from "os";

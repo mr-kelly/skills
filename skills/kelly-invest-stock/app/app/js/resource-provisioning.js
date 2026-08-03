@@ -146,7 +146,11 @@ const readFolder = async (client, config) => {
   try {
     return await client.nodes.get({ nodeId, type: "folder" });
   } catch (error) {
-    if (isNotFound(error) && !config.folder.nodeId) return null;
+    if (isNotFound(error) && config.folder.nodeId) {
+      const discovered = await findTopLevelFolder(client, config);
+      return discovered ? client.nodes.get({ nodeId: discovered.id, type: "folder" }) : null;
+    }
+    if (isNotFound(error)) return null;
     throw error;
   }
 };

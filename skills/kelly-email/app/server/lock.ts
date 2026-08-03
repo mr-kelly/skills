@@ -1,4 +1,4 @@
-import { createProvider } from "../../lib/data-provider/index.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 
 export async function lockPayload() {
   return createProvider().getLock();

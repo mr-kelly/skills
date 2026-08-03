@@ -144,12 +144,21 @@ secret-storage choice. Cloud/custom is a hosting target choice, not a data
 provider choice. Preserve the chosen server only as connection bootstrap; all
 product configuration still comes from Busabase nodes through `busabase-sdk`.
 
-After OAuth returns, distinguish successful authentication from resource
-readiness. Show the sanitized server origin and then guide the user through
-Space ambiguity, missing Folder/resources, schema migration, and Vault
-requirements as separate states. An expired or revoked session returns to the
-same connection screen with a concise retry message. Demo never impersonates a
-successful connection and remains explicitly labeled read-only.
+After OAuth returns, distinguish successful authentication, Space targeting,
+and resource readiness. Call Busabase auth verification without a Space header
+to obtain every accessible Space. When Cloud or an enterprise host returns more
+than one, show a native Space selector with names and safe ids; do not inspect,
+initialize, or repair app resources until the operator confirms one. When it
+returns exactly one, select it automatically. Open-source Busabase reports its
+single `local` Space and never shows this selector.
+
+Persist only the validated Space id as local connection bootstrap, separately
+from domain configuration, and inject it as `x-busabase-space` on every proxied
+SDK request. Changing server or signing out clears the selection. Show the
+selected Space name/id on later setup and Help & Settings screens. An expired or
+revoked session returns to the connection screen with a concise retry message.
+Demo never impersonates a successful connection and remains explicitly labeled
+read-only.
 
 Apply `references/setup-onboarding.md` after authentication. Infrastructure
 readiness and product onboarding are separate: a connected, materialized AirApp
@@ -158,11 +167,12 @@ approval rules before the workflow can act.
 
 Never tell the operator to create Nodes/Bases, approve a list of unnamed
 ChangeRequests, or copy materialized ids into deployment config. For an approved
-lazy-provisioning blueprint, show one `Initialize workspace` action and concise
-progress while `$busabase-app-creator` submits the exact declared structure as an
-idempotent ChangeRequest. Continue automatically when it materializes. If the
-viewer lacks write permission, show the one pending CR id or the exact permission
-needed; the operator reviews that request, not a manual schema recipe.
+lazy-provisioning blueprint, show one `Initialize workspace` action only after
+Space selection and concise progress while `$busabase-app-creator` submits the
+exact declared structure as an idempotent ChangeRequest in that Space. Continue
+automatically when it materializes. If the viewer lacks write permission, show
+the one pending CR id or the exact permission needed; the operator reviews that
+request, not a manual schema recipe.
 
 This screen must fit the same phone contract as the main app: one-column server
 choices and full-width primary action at 390px and 360px, no horizontal overflow,
@@ -386,6 +396,9 @@ Finish only when:
 - Vault values and API credentials never reach browser-visible surfaces;
 - local setup offers Cloud/custom URL OAuth plus an explicit Demo path, while
   deployed AirApp uses its ambient session;
+- local OAuth verifies accessible Spaces, auto-selects a single/open-source
+  Space, requires an explicit selector choice for multiple Spaces, and performs
+  no resource initialization before that choice;
 - Research, Plan, Action, and Retrospective are represented or intentionally
   omitted;
 - human attention, opt-out, review, and Agent claim rules are unambiguous;

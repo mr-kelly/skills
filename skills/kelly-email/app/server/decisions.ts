@@ -1,4 +1,4 @@
-import { createProvider } from "../../lib/data-provider/index.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 import { rejectIfProviderUnavailable } from "./provider-status.ts";
 import type { DecisionRequestBody } from "./types.ts";
 

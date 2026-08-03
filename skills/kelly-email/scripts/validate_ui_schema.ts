@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { decisionAction, executionStatus, isApproved, isBlocked, isDone, isNeedsReview } from "../lib/common.ts";
-import { createProvider } from "../lib/data-provider/index.ts";
+import { decisionAction, executionStatus, isApproved, isBlocked, isDone, isNeedsReview } from "../app/lib/common.ts";
+import { createProvider } from "../app/lib/data-provider/index.ts";
 
 const VALID_STATUS = new Set(["prepared", "needs_review", "draft_requested", "drafted", "executed"]);
 const VALID_ACTION = new Set(["archive", "mark_read", "send_reply", "draft_reply", "keep_unread", "review"]);
@@ -24,9 +24,9 @@ async function main() {
   const errors = [];
   const items = batch.items || [];
 
-  if (!batch.batch_id) errors.push("current_batch.json missing batch_id");
+  if (!batch.batch_id) errors.push("current Busabase review batch is missing batch_id");
   if (decisionsPayload.batch_id && decisionsPayload.batch_id !== batch.batch_id) {
-    errors.push("decisions.json batch_id does not match current_batch.json");
+    errors.push("materialized decision batch_id does not match the current review batch");
   }
 
   const itemIds = new Set();
@@ -68,7 +68,7 @@ async function main() {
   const actualDecisions = decisionsPayload.decisions || [];
   if (expectedDecisions.length !== actualDecisions.length) {
     errors.push(
-      `decisions.json has ${actualDecisions.length} decisions, expected ${expectedDecisions.length} from batch items`,
+      `Busabase has ${actualDecisions.length} materialized decisions, expected ${expectedDecisions.length} from review items`,
     );
   }
 

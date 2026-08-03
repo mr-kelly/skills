@@ -9,7 +9,7 @@ export const appConfig = {
   folder: {
     name: "Kelly Invest Stock",
     description: "Strategy screening and virtual ledger workspace",
-    nodeId: "",
+    nodeId: "nodms6x55yvfgahybw",
     slug: "kelly-invest-stock",
   },
   bases: [
@@ -18,8 +18,8 @@ export const appConfig = {
       name: "策略",
       slug: "stock-strategies-v2",
       description: "Selection rules, thesis, invalidation, and benchmark for each strategy",
-      nodeId: "",
-      baseId: "",
+      nodeId: "nodms6x55zik8prn1g",
+      baseId: "bsems6x55ziqucmuwb",
       readLimit: 20,
       fields: [
         { slug: "name", name: "策略名称", type: "text", required: true },
@@ -39,8 +39,8 @@ export const appConfig = {
       name: "候选股",
       slug: "stock-candidates-v2",
       description: "L1, L2, and L3 candidates with evidence and graduation state",
-      nodeId: "",
-      baseId: "",
+      nodeId: "nodms6x560633vozfc",
+      baseId: "bsems6x5606qe567ax",
       readLimit: 100,
       fields: [
         { slug: "name", name: "证券名称", type: "text", required: true },
@@ -66,8 +66,8 @@ export const appConfig = {
       name: "虚拟账户",
       slug: "stock-ledger-accounts-v2",
       description: "One virtual capital account per strategy",
-      nodeId: "",
-      baseId: "",
+      nodeId: "nodms6x560pw3mhtdk",
+      baseId: "bsems6x560pxd42tx6",
       readLimit: 20,
       fields: [
         { slug: "name", name: "账户名称", type: "text", required: true },
@@ -85,8 +85,8 @@ export const appConfig = {
       name: "虚拟持仓",
       slug: "stock-ledger-positions-v2",
       description: "Virtual positions used to validate strategy behavior",
-      nodeId: "",
-      baseId: "",
+      nodeId: "nodms6x5619db2pux3",
+      baseId: "bsems6x5619srj0ffu",
       readLimit: 100,
       fields: [
         { slug: "name", name: "证券名称", type: "text", required: true },

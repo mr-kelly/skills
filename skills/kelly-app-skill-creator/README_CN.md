@@ -13,4 +13,4 @@ Kelly App Skill Creator 把人类与 Agent 的日常协作流程制作成 Busaba
 
 运行时 readiness 与产品 onboarding 是两个独立的 Busabase-backed 状态。生成的应用把操作人上下文、策略、来源、计划、审阅决定、Agent claim 和执行结果保存在合适的 Busabase 原生资源中。AirApp 通过 ChangeRequest 记录可审阅的人类输入；需要 Vault 和外部副作用的执行由可信 Agent 或 Workflow 承担。
 
-正常验收路径是在 Busabase 内运行已合并的 AirApp，并返回可点击的 AirApp 链接。只有明确要求本地预览时，独立应用才显示 Cloud / 自定义服务器连接页，用户点击一次即可进入浏览器 OAuth，同时保留明确标注的只读 Demo 入口；不要求 CLI 登录或输入 API key。OAuth token 只保存在 `~/.busabase/airapps` 下按 AirApp 隔离、仅当前用户可读的本地登记文件中；部署后的 AirApp 直接使用 Busabase ambient session。
+正常验收路径是在 Busabase 内运行已合并的 AirApp，并返回可点击的 AirApp 链接。只有明确要求本地预览时，独立应用才显示 Cloud / 自定义服务器连接页，用户点击一次即可进入浏览器 OAuth，同时保留明确标注的只读 Demo 入口；不要求 CLI 登录或输入 API key。OAuth 完成后，只有一个可用 Space 时自动选择；有多个 Space 时必须先用原生 selector 明确选择，之后才允许初始化资源。开源版只有 `local` Space，不显示 selector。OAuth token 只保存在 `~/.busabase/airapps` 下按 AirApp 隔离、仅当前用户可读的本地登记文件中；部署后的 AirApp 直接使用 Busabase ambient session 和当前 Space。

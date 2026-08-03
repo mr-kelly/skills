@@ -1,0 +1,33 @@
+{
+  "appId": "kelly-email",
+  "schemaVersion": 3,
+  "runtimeSpace": "ambient-or-local-selection",
+  "resolvedSpaceId": "orglnl02ONE36pXGXTs",
+  "provisioningTrigger": "after-space-selection-or-explicit-setup-action",
+  "folder": {
+    "nodeId": "nodmscmgdpci1ebzks",
+    "slug": "kelly-email"
+  },
+  "bases": {
+    "reviews": {
+      "nodeId": "nodmscmgdpwrj7i3b7",
+      "baseId": "bsemscmgdpwhid8t9g",
+      "slug": "kelly-email-reviews-v3"
+    },
+    "contacts": {
+      "nodeId": "nodmscmgdqohwvgmwn",
+      "baseId": "bsemscmgdqot5zzcp1",
+      "slug": "kelly-email-contacts-v3"
+    },
+    "settings": {
+      "nodeId": "nodmscmgdr8g774ywa",
+      "baseId": "bsemscmgdr87ctxkdr",
+      "slug": "kelly-email-settings-v3"
+    }
+  },
+  "drive": {
+    "nodeId": "nodmscmgzya0euvgyy",
+    "slug": "kelly-email-files-v3"
+  },
+  "vaultNamespace": "kelly-email"
+}

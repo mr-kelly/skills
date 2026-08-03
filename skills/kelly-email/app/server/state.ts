@@ -1,8 +1,7 @@
-import { createProvider } from "../../lib/data-provider/index.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
 import { loadBatch, normalizeItem } from "./batch-store.ts";
 import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./config.ts";
 import { lockPayload } from "./lock.ts";
-import { CURRENT_BATCH_PATH, DECISIONS_PATH, EMAIL_CONTACTS_PATH, EMAIL_RECORDS_PATH } from "./paths.ts";
 import { providerStatus } from "./provider-status.ts";
 import type { ReviewItem, StateQuery, StatusCounts } from "./types.ts";
 import { normalizeQueryValue } from "./utils.ts";
@@ -76,27 +75,21 @@ export async function statePayload(query: StateQuery = {}) {
   counts.approved = allItems.filter(isApprovedForExecution).length;
   counts.done = allItems.filter(isDone).length;
   counts.blocked = allItems.filter(isBlocked).length;
-  const providerSelected = Boolean(
-    process.env.KELLY_EMAIL_DATA_PROVIDER || configMeta.has_private_config || provider.kind !== "local",
-  );
-  const setupState = !providerSelected
-    ? "choose_provider"
-    : providerUnavailable
-      ? "provider_not_ready"
-      : onboarding.state || "ready";
+  const providerSelected = true;
+  const setupState = providerUnavailable ? "provider_not_ready" : onboarding.state || "ready";
   const recommendedConfig =
     onboarding.recommended_config ||
     configMeta.recommended_config ||
-    (provider.kind === "busabase" ? "busabase:drive/config/config.json" : "");
+    "busabase:base/kelly-email-settings-v3";
   const recommendedEnv =
     onboarding.recommended_env ||
     configMeta.recommended_env ||
-    (provider.kind === "busabase" ? `busabase:vault/${String(providerState.secrets_namespace || "kelly-email")}` : "");
+    `busabase:vault/${String(providerState.secrets_namespace || "kelly-email")}`;
   return {
     app: "kelly-email",
     setup: {
       provider_selected: providerSelected,
-      provider_env_locked: Boolean(process.env.KELLY_EMAIL_DATA_PROVIDER || process.env.KELLY_EMAIL_DATA_READER),
+      provider_env_locked: true,
       provider: provider.kind,
       state: setupState,
       recommended_config: recommendedConfig,
@@ -114,9 +107,9 @@ export async function statePayload(query: StateQuery = {}) {
     counts,
     items,
     total_cached: allItems.length,
-    batch_path: provider.kind === "busabase" ? "busabase:base/review_item" : EMAIL_RECORDS_PATH,
-    contacts_path: provider.kind === "busabase" ? "busabase:base/email_contact" : EMAIL_CONTACTS_PATH,
-    decisions_path: provider.kind === "busabase" ? "busabase:base/review_item.decision_*" : DECISIONS_PATH,
+    batch_path: "busabase:base/kelly-email-reviews-v3",
+    contacts_path: "busabase:base/kelly-email-contacts-v3",
+    decisions_path: "busabase:base/kelly-email-reviews-v3/decision-*",
     provider_status: providerState,
     email_accounts: publicAccounts(config, source, onboarding, configMeta),
     lock: providerUnavailable ? { locked: false, provider: provider.kind } : await lockPayload(),

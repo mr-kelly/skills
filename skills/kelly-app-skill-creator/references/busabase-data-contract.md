@@ -51,6 +51,37 @@ local OAuth layer entirely, constructs `busabase-sdk` against
 `window.location.origin` without a credential, and lets Busabase authenticate
 `/api/v1` with the viewer's same-origin ambient session.
 
+## Space Selection After OAuth
+
+Authentication answers who the operator is; it does not choose where app data
+belongs. Immediately after local OAuth, call `GET /api/v1/auth` with the access
+token and without `x-busabase-space`. Use its `spaces` list as the only selector
+source:
+
+- zero Spaces is a readiness error;
+- one Space is selected automatically;
+- multiple Spaces require a native selector and explicit confirmation;
+- open-source Busabase returns the single `local` Space, so no selector appears.
+
+Do not probe the app Folder, resolve stable node ids, submit initialization, or
+repair schema until selection completes. Validate the submitted Space id against
+a fresh auth response before accepting it, then attach it as
+`x-busabase-space` to every proxied SDK request. Store only this safe id as local
+connection bootstrap (for example an HttpOnly same-origin cookie or an
+owner-only app registration field); never put OAuth tokens in browser storage.
+Clear the selection when the server target changes, OAuth is revoked, or the
+selected Space is no longer accessible.
+
+The canonical resource map must be portable between Spaces. Treat committed
+node/base ids as optional acceleration for the Space where they were resolved:
+on `NOT_FOUND`, fall back to the declared app-root slug and ownership metadata,
+then discover or lazily provision resources in the selected Space. Never reuse
+an id from one Space as proof of readiness in another.
+
+A deployed AirApp does not show a selector: its ambient Busabase host already
+supplies the current Space. It may display that safe Space identity, but must not
+override it with a committed Cloud Space id.
+
 ## Choose Nodes By Capability
 
 ### Folder And Node Tree
@@ -173,7 +204,8 @@ The local Hono app must remain startable when `local-preview` is explicitly
 requested. Both local preview and hosted AirApp use the state model in
 `setup-onboarding.md` to distinguish connection/authentication where applicable,
 Space selection, app-root discovery, resource provisioning, schema migration,
-Vault readiness, and product onboarding.
+Vault readiness, and product onboarding. Keep that order: no app-root read or
+mutation happens before Space selection.
 
 Use reviewed ChangeRequests to create or repair canonical resources. After each
 step, re-read through `busabase-sdk`; never mark setup complete based only on a
@@ -216,6 +248,9 @@ exercise or imply successful persistence.
 Verify:
 
 - ambiguous or missing Space/app-root handling;
+- OAuth responses with zero, one, and multiple Spaces, including explicit
+  selection validation and open-source `local` auto-selection;
+- absence of resource reads and writes before a multi-Space choice;
 - wrong node type, parent, version, and permissions;
 - missing Vault refs without value disclosure;
 - partial reads and stale data;

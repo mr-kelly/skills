@@ -1678,6 +1678,24 @@ code {
   font-size: 11px;
 }
 
+.space-select {
+  display: grid;
+  gap: 6px;
+  color: #68757f;
+  font-size: 10px;
+}
+
+.space-select select {
+  width: 100%;
+  min-height: 39px;
+  padding: 0 11px;
+  color: #2f3d46;
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  font-size: 11px;
+}
+
 .sidebar-scrim {
   display: none;
 }
@@ -2059,6 +2077,11 @@ code {
   .setup-footer-split {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .setup-connect .connect-button,
+  .setup-footer-split .connect-button {
+    width: 100%;
   }
 
   .connection-options {

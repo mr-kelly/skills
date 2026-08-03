@@ -16,6 +16,7 @@ import {
 const CLOUD_BASE_URL = "https://busabase.com";
 const AIRAPP_ID = "kelly-invest-stock";
 const AIRAPP_CLIENT_ID = "busabase-airapp";
+const SPACE_COOKIE = `${AIRAPP_ID}-space`;
 const pendingOAuth = new Map();
 
 const app = new Hono();
@@ -43,7 +44,73 @@ const assertSameOrigin = (context) => {
   if (origin && origin !== requestOrigin(context)) throw new Error("请求来源不匹配。");
 };
 
+const cookieValue = (context, name) => {
+  const prefix = `${name}=`;
+  const item = String(context.req.header("cookie") || "")
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix));
+  return item ? decodeURIComponent(item.slice(prefix.length)) : "";
+};
+
+const writeSpaceCookie = (context, spaceId, maxAge = 60 * 60 * 24 * 30) => {
+  const secure = requestOrigin(context).startsWith("https:") ? "; Secure" : "";
+  context.header(
+    "set-cookie",
+    `${SPACE_COOKIE}=${encodeURIComponent(spaceId)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`,
+  );
+};
+
 const getLocalCredential = () => getBusabaseAirAppAccessToken(AIRAPP_ID);
+
+const authTarget = async () => {
+  const envBaseUrl = process.env.BUSABASE_BASE_URL;
+  if (envBaseUrl) {
+    return {
+      baseUrl: normalizeBaseUrl(envBaseUrl),
+      accessToken: process.env.BUSABASE_API_KEY || "",
+      source: process.env.BUSABASE_API_KEY ? "environment" : "open-server",
+    };
+  }
+  const credential = await getLocalCredential();
+  return credential
+    ? { baseUrl: credential.baseUrl, accessToken: credential.accessToken, source: "airapp-oauth-local" }
+    : null;
+};
+
+const fetchAuthInfo = async (target, spaceId = "") => {
+  const headers = new Headers({ accept: "application/json" });
+  if (target.accessToken) headers.set("authorization", `Bearer ${target.accessToken}`);
+  if (spaceId) headers.set("x-busabase-space", spaceId);
+  const response = await fetch(new URL("/api/v1/auth", target.baseUrl), {
+    headers,
+    signal: AbortSignal.timeout(8_000),
+  });
+  if (!response.ok) throw new Error(`Busabase auth verification failed (${response.status})`);
+  const info = await response.json();
+  if (!Array.isArray(info?.spaces)) throw new Error("Busabase auth response has no spaces");
+  return info;
+};
+
+const sanitizedAuthStatus = async (context, target) => {
+  const info = await fetchAuthInfo(target);
+  if (!info.spaces.length) throw new Error("当前账号没有可用的 Busabase Space。");
+  const requested = process.env.BUSABASE_SPACE_ID || cookieValue(context, SPACE_COOKIE);
+  let selected = requested ? info.spaces.find((space) => space.id === requested) : null;
+  if (!selected && info.spaces.length === 1) {
+    selected = info.spaces[0];
+    writeSpaceCookie(context, selected.id);
+  }
+  if (requested && !selected) writeSpaceCookie(context, "", 0);
+  return {
+    connected: true,
+    baseUrl: target.baseUrl,
+    source: target.source,
+    requiresSpace: !selected,
+    space: selected || null,
+    spaces: info.spaces.map(({ id, name, slug, plan }) => ({ id, name, slug, plan })),
+  };
+};
 
 const assertOAuthSupported = async (oauthRequest) => {
   let response;
@@ -68,22 +135,10 @@ const assertOAuthSupported = async (oauthRequest) => {
 app.get("/health", (context) => context.json({ ok: true, app: "kelly-invest-stock", mode: "read-only" }));
 
 app.get("/auth/status", async (context) => {
-  const envBaseUrl = process.env.BUSABASE_BASE_URL;
-  if (envBaseUrl) {
-    return context.json({
-      connected: true,
-      baseUrl: normalizeBaseUrl(envBaseUrl),
-      source: process.env.BUSABASE_API_KEY ? "environment" : "open-server",
-    });
-  }
   try {
-    const credential = await getLocalCredential();
-    if (!credential) return context.json({ connected: false, cloudBaseUrl: CLOUD_BASE_URL });
-    return context.json({
-      connected: true,
-      baseUrl: credential.baseUrl,
-      source: "airapp-oauth-local",
-    });
+    const target = await authTarget();
+    if (!target) return context.json({ connected: false, cloudBaseUrl: CLOUD_BASE_URL });
+    return context.json(await sanitizedAuthStatus(context, target));
   } catch {
     return context.json({ connected: false, cloudBaseUrl: CLOUD_BASE_URL, expired: true });
   }
@@ -128,11 +183,30 @@ app.get("/auth/callback", async (context) => {
       clientId: AIRAPP_CLIENT_ID,
       tokenSet,
     });
+    writeSpaceCookie(context, "", 0);
     return context.redirect("/#/strategies", 303);
   } catch (error) {
     const url = new URL("/", requestOrigin(context));
     url.searchParams.set("oauth_error", error instanceof Error ? error.message : "OAuth 登录失败。");
     return context.redirect(url.toString(), 303);
+  }
+});
+
+app.post("/auth/space", async (context) => {
+  try {
+    assertSameOrigin(context);
+    const body = await context.req.parseBody();
+    const spaceId = String(body.space_id || "").trim();
+    const target = await authTarget();
+    if (!target) throw new Error("Busabase connection required");
+    const info = await fetchAuthInfo(target);
+    const selected = info.spaces.find((space) => space.id === spaceId);
+    if (!selected) throw new Error("所选 Space 不属于当前账号。");
+    await fetchAuthInfo(target, selected.id);
+    writeSpaceCookie(context, selected.id);
+    return context.json({ ok: true, space: { id: selected.id, name: selected.name } });
+  } catch (error) {
+    return context.json({ error: error instanceof Error ? error.message : "无法选择 Space。" }, 400);
   }
 });
 
@@ -143,6 +217,7 @@ app.post("/auth/logout", async (context) => {
     if (credential) {
       await revokeBusabaseAirAppOAuthCredential(AIRAPP_ID).catch(() => null);
     }
+    writeSpaceCookie(context, "", 0);
     return context.json({ ok: true });
   } catch {
     return context.json({ error: "无法退出 Busabase。" }, 400);
@@ -150,35 +225,28 @@ app.post("/auth/logout", async (context) => {
 });
 
 app.all("/api/v1/*", async (context) => {
-  const envBaseUrl = process.env.BUSABASE_BASE_URL ? normalizeBaseUrl(process.env.BUSABASE_BASE_URL) : "";
-  let credential = null;
-  if (!envBaseUrl) {
-    try {
-      credential = await getLocalCredential();
-    } catch {
-      return context.json({ error: "Busabase OAuth session expired" }, 401);
-    }
+  let target;
+  try {
+    target = await authTarget();
+  } catch {
+    return context.json({ error: "Busabase OAuth session expired" }, 401);
   }
-  const baseUrl = envBaseUrl || credential?.baseUrl;
-  if (!baseUrl) return context.json({ error: "Busabase connection required" }, 401);
+  if (!target) return context.json({ error: "Busabase connection required" }, 401);
 
   const incoming = new URL(context.req.url);
-  const target = new URL(incoming.pathname + incoming.search, baseUrl);
+  const targetUrl = new URL(incoming.pathname + incoming.search, target.baseUrl);
   const headers = new Headers();
   const contentType = context.req.header("content-type");
   const accept = context.req.header("accept");
-  const spaceId = context.req.header("x-busabase-space") || process.env.BUSABASE_SPACE_ID;
+  const spaceId = process.env.BUSABASE_SPACE_ID || cookieValue(context, SPACE_COOKIE) || context.req.header("x-busabase-space");
   if (contentType) headers.set("content-type", contentType);
   if (accept) headers.set("accept", accept);
-  if (spaceId) headers.set("x-busabase-space", spaceId);
-  if (process.env.BUSABASE_API_KEY) {
-    headers.set("authorization", `Bearer ${process.env.BUSABASE_API_KEY}`);
-  } else if (credential) {
-    headers.set("authorization", `Bearer ${credential.accessToken}`);
-  }
+  if (!spaceId) return context.json({ error: "Busabase Space selection required" }, 409);
+  headers.set("x-busabase-space", spaceId);
+  if (target.accessToken) headers.set("authorization", `Bearer ${target.accessToken}`);
 
   const hasBody = !["GET", "HEAD"].includes(context.req.method);
-  const upstream = await fetch(target, {
+  const upstream = await fetch(targetUrl, {
     method: context.req.method,
     headers,
     body: hasBody ? await context.req.arrayBuffer() : undefined,

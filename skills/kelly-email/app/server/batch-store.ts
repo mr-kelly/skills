@@ -1,10 +1,9 @@
-import { createProvider } from "../../lib/data-provider/index.ts";
-export { findItem, normalizeItem } from "../../lib/data-provider/provider-utils.ts";
+import { createProvider } from "../lib/data-provider/index.ts";
+export { findItem, normalizeItem } from "../lib/data-provider/provider-utils.ts";
 import type { Batch } from "./types.ts";
 
 export async function ensureDirs() {
-  // Local mode creates directories lazily; Busabase mode has no local handoff dirs
-  // to create. Kept for server bootstrap compatibility.
+  // Busabase owns all durable state; no handoff directories are created.
 }
 
 export async function loadBatch(): Promise<Batch> {

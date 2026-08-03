@@ -313,7 +313,10 @@ const renderSetup = (error) => {
   const body = canProvision
     ? `<p>将在当前 Space 的应用 Folder 下创建 ${escapeHtml(resources)} 四个 Base。</p><p class="detail-note">结构通过一个 Busabase ChangeRequest 幂等提交；旧版资源不会被删除或继续读取。</p>`
     : `<p>${escapeHtml(reason)}</p><p class="detail-note">应用不会要求你手工创建 Node/Base 或复制 ID，也不会切换到本地数据。</p>`;
-  root.innerHTML = `<div class="setup-shell"><section class="setup-modal" role="dialog" aria-labelledby="setupTitle"><div class="setup-head"><div class="brand-icon" aria-hidden="true">KS</div><div><p class="eyebrow">WORKSPACE SETUP</p><h1 id="setupTitle">${title}</h1></div></div><div class="setup-body"><p><strong>${escapeHtml(authStatus?.baseUrl || "Busabase")}</strong> 鉴权已就绪。</p>${body}<div class="setup-notice" data-setup-status hidden></div></div><div class="setup-footer setup-footer-split">${canProvision ? '<button class="connect-button" type="button" data-provision>初始化工作区</button>' : retryOnly ? '<button class="connect-button" type="button" data-retry-setup>重新检查</button>' : ""}<a class="text-link" href="?demo=1#/strategies">进入只读 Demo</a></div></section></div>`;
+  const selectedSpace = authStatus?.space
+    ? `${authStatus.space.name} (${authStatus.space.id})`
+    : "当前 AirApp Space";
+  root.innerHTML = `<div class="setup-shell"><section class="setup-modal" role="dialog" aria-labelledby="setupTitle"><div class="setup-head"><div class="brand-icon" aria-hidden="true">KS</div><div><p class="eyebrow">WORKSPACE SETUP</p><h1 id="setupTitle">${title}</h1></div></div><div class="setup-body"><p><strong>${escapeHtml(authStatus?.baseUrl || "Busabase")}</strong> 鉴权已就绪。</p><p>目标 Space：<strong>${escapeHtml(selectedSpace)}</strong></p>${body}<div class="setup-notice" data-setup-status hidden></div></div><div class="setup-footer setup-footer-split">${canProvision ? '<button class="connect-button" type="button" data-provision>初始化工作区</button>' : retryOnly ? '<button class="connect-button" type="button" data-retry-setup>重新检查</button>' : ""}<a class="text-link" href="?demo=1#/strategies">进入只读 Demo</a></div></section></div>`;
   root.querySelector("[data-retry-setup]")?.addEventListener("click", load);
   root.querySelector("[data-provision]")?.addEventListener("click", async (event) => {
     const button = event.currentTarget;
@@ -328,6 +331,35 @@ const renderSetup = (error) => {
     } catch (provisionError) {
       renderSetup(provisionError);
     }
+  });
+};
+
+const renderSpaceSetup = (status) => {
+  const options = (status.spaces || [])
+    .map((space) => `<option value="${escapeHtml(space.id)}">${escapeHtml(space.name)} · ${escapeHtml(space.id)}</option>`)
+    .join("");
+  root.innerHTML = `<div class="setup-shell"><section class="setup-modal setup-connect" aria-labelledby="setupTitle"><div class="setup-head"><div class="brand-icon" aria-hidden="true">KS</div><div><p class="eyebrow">KELLY INVEST STOCK</p><h1 id="setupTitle">选择 Busabase Space</h1></div></div><form class="setup-body connection-form" data-space-form><p><strong>${escapeHtml(status.baseUrl)}</strong> 鉴权已完成。选择数据与工作区要初始化到哪里。</p><label class="space-select"><span>Space</span><select name="space_id" required>${options}</select></label><div class="setup-error" data-space-error hidden></div><button class="connect-button" type="submit">使用此 Space</button></form><div class="setup-footer setup-footer-split"><span class="setup-security">确认后才会检查或初始化应用资源</span><a class="text-link" href="?demo=1#/strategies">进入只读 Demo</a></div></section></div>`;
+  root.querySelector("[data-space-form]")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const button = form.querySelector("button[type=submit]");
+    const error = form.querySelector("[data-space-error]");
+    button.disabled = true;
+    error.hidden = true;
+    const response = await fetch("/auth/space", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(new FormData(form)),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      error.textContent = result.error || "无法选择 Space。";
+      error.hidden = false;
+      button.disabled = false;
+      return;
+    }
+    authStatus = { ...status, requiresSpace: false, space: result.space };
+    await load();
   });
 };
 
@@ -431,6 +463,10 @@ const load = async () => {
       );
       if (!authStatus.connected) {
         renderConnectSetup(authStatus);
+        return;
+      }
+      if (authStatus.requiresSpace) {
+        renderSpaceSetup(authStatus);
         return;
       }
     }

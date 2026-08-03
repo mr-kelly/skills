@@ -1,8 +1,10 @@
 {
   "schemaVersion": 2,
+  "runtimeSpace": "ambient-or-local-selection",
+  "resolvedSpaceId": "orglnl02ONE36pXGXTs",
   "provisioning": {
     "mode": "lazy",
-    "trigger": "first-real-data-read-or-explicit-setup-action",
+    "trigger": "after-space-selection-or-explicit-setup-action",
     "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"],
     "legacyRepair": "exact-resource-fingerprint-only",
     "autoMergeApprovedStructure": true,
@@ -11,7 +13,7 @@
   "appRoot": {
     "kind": "folder",
     "slug": "kelly-invest-stock",
-    "nodeId": ""
+    "nodeId": "nodms6x55yvfgahybw"
   },
   "resources": [
     {
@@ -19,8 +21,8 @@
       "kind": "base",
       "slug": "stock-strategies-v2",
       "purpose": "Selection rules and strategy lifecycle",
-      "nodeId": "",
-      "baseId": "",
+      "nodeId": "nodms6x55zik8prn1g",
+      "baseId": "bsems6x55ziqucmuwb",
       "schemaVersion": 2,
       "readLimit": 20
     },
@@ -29,8 +31,8 @@
       "kind": "base",
       "slug": "stock-candidates-v2",
       "purpose": "L1, L2, and L3 stock candidates",
-      "nodeId": "",
-      "baseId": "",
+      "nodeId": "nodms6x560633vozfc",
+      "baseId": "bsems6x5606qe567ax",
       "schemaVersion": 2,
       "readLimit": 100
     },
@@ -39,8 +41,8 @@
       "kind": "base",
       "slug": "stock-ledger-accounts-v2",
       "purpose": "Virtual capital accounts by strategy",
-      "nodeId": "",
-      "baseId": "",
+      "nodeId": "nodms6x560pw3mhtdk",
+      "baseId": "bsems6x560pxd42tx6",
       "schemaVersion": 2,
       "readLimit": 20
     },
@@ -49,8 +51,8 @@
       "kind": "base",
       "slug": "stock-ledger-positions-v2",
       "purpose": "Virtual positions for strategy validation",
-      "nodeId": "",
-      "baseId": "",
+      "nodeId": "nodms6x5619db2pux3",
+      "baseId": "bsems6x5619srj0ffu",
       "schemaVersion": 2,
       "readLimit": 100
     }

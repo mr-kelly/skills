@@ -149,6 +149,9 @@ Finish only when:
 - all persistent state uses Busabase and Demo remains explicitly deterministic;
 - `stock-sdk` is pinned exactly and browser code performs no public market fetch;
 - local OAuth credentials remain local and business data requires no Vault secret;
+- local OAuth verifies Spaces before resource access, auto-selects a single or
+  open-source `local` Space, and requires an explicit native selector when the
+  account can access several Spaces;
 - no brokerage path, real-money stage, trading action, or personalized investment
   claim exists; and
 - deployment and real-data checks required by the dependency skills pass.

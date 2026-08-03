@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { ImapFlow } from "imapflow";
 import nodemailer from "nodemailer";
-import { clearAgentLock, loadConfig, loadDotenv, utcNow, writeAgentLock } from "../lib/common.ts";
-import { createProvider } from "../lib/data-provider/index.ts";
-import type { Batch, Config, DecisionsPayload, Mailbox, ReviewItem } from "../lib/types.ts";
+import { clearAgentLock, loadConfig, loadDotenv, utcNow, writeAgentLock } from "../app/lib/common.ts";
+import { createProvider } from "../app/lib/data-provider/index.ts";
+import type { Batch, Config, DecisionsPayload, Mailbox, ReviewItem } from "../app/lib/types.ts";
 
 interface ExecEntry {
   item: ReviewItem;
@@ -47,7 +47,7 @@ function parseArgs(argv: string[]): ExecArgs {
 function printHelp() {
   console.log(`Usage: node scripts/execute_ui_decisions.ts [--dry-run] [--allow-risk-approved]
 
-Execute explicit App-in-Skill UI decisions from current_batch.json and decisions.json.
+Execute explicit materialized decisions from the Busabase Email Reviews Base.
 --dry-run validates actions and writes an execution report without touching mailboxes.`);
 }
 
@@ -436,7 +436,7 @@ async function main() {
   const batch = (await provider.getBatch()) as Batch;
   const decisionsPayload = (await provider.getDecisions()) as DecisionsPayload;
   if (decisionsPayload.batch_id !== batch.batch_id)
-    throw new Error("decisions.json batch_id does not match current_batch.json");
+    throw new Error("materialized decision batch_id does not match the current Busabase review batch");
 
   const items = new Map<string, ReviewItem>((batch.items || []).map((item) => [String(item.id), item]));
   const groups = new Map<string, ExecEntry[]>();
@@ -538,9 +538,14 @@ async function main() {
   return 0;
 }
 
-await writeAgentLock("/kelly-email is executing approved decisions.");
-try {
+const helpOnly = process.argv.slice(2).some((arg) => arg === "--help" || arg === "-h");
+if (helpOnly) {
   process.exitCode = await main();
-} finally {
-  await clearAgentLock();
+} else {
+  await writeAgentLock("/kelly-email is executing approved decisions.");
+  try {
+    process.exitCode = await main();
+  } finally {
+    await clearAgentLock();
+  }
 }

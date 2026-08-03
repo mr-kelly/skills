@@ -2,7 +2,7 @@
 
 Read this when generating, updating, or executing a kelly-email review batch.
 
-Generate provider email records that can be projected into a batch with this shape. Local mode stores the records in `.agents/skills/kelly-email/app/.data/email_records.json`; Busabase mode stores them as Emails Base `review_item` rows. Contact rows are derived from the batch into local `email_contacts.json` or the Busabase Email Contacts Base, with email rows linking to contacts through sender/recipient contact id columns. `current_batch.json` and `decisions.json` are compatibility snapshots, not the canonical store.
+Generate structured Email Reviews Base records that can be projected into a batch with this shape. Contact rows are derived into the Email Contacts Base, with review rows linking to contacts through stable sender/recipient contact IDs. The Email Settings Base stores configuration, the agent lock, and scan state; the Email Files Drive stores HTML and attachments. There are no local or compatibility-snapshot stores.
 
 ```json
 {
@@ -70,7 +70,7 @@ Generate provider email records that can be projected into a batch with this sha
       "html": "sanitized HTML email body for sandboxed iframe preview",
       "has_html": true,
       "quote_preview": "short quote to include if replying",
-      "attachments": [{ "filename": "name", "content_type": "mime", "size": 123, "url": "/attachments/batch/item/file.pdf", "preview": true }],
+      "attachments": [{ "filename": "name", "content_type": "mime", "size": 123, "url": "/api/provider-file/attachments%2Fbatch%2Fitem%2Ffile.pdf", "preview": true }],
       "draft": "optional editable reply draft",
       "decision": {
         "action": "archive|mark_read|send_reply|draft_reply|keep_unread|no_action|needs_review|revise",
@@ -106,4 +106,4 @@ Avoid using `status=decided`; the user's decision belongs in `decision.action`, 
 
 ## Decisions
 
-After the user reviews in the UI, read decisions through the active provider. Local mode derives them from `email_records.json`; Busabase mode derives them from `review_item.decision_*` Base columns. Treat them as the user's approval/comment layer, but still execute only decisions that are explicit: `archive` (move to the configured category/risk target folder and mark read), `mark_read`, `send_reply`, `draft_reply`, `keep_unread`, `no_action`, `needs_review`, `revise`.
+After the user reviews in the AirApp, read only materialized `decision-*` fields from Email Reviews. A pending AirApp ChangeRequest is not approval. Execute only explicit decisions: `archive` (move to the configured category/risk target folder and mark read), `mark_read`, `send_reply`, `draft_reply`, `keep_unread`, `no_action`, `needs_review`, `revise`.
