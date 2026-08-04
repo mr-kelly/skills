@@ -1,0 +1,15 @@
+{
+  "appId": "kelly-agent-builder",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-agent-builder"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "agents", "slug": "kelly-agent-builder-agents-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-agent-builder-settings-v1", "schemaVersion": 1 }
+  ]
+}

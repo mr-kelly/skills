@@ -1,23 +1,41 @@
 ---
 name: kelly-agent-builder
-description: Public App-in-Skill low-code agent configuration and governance console for a platform team. Use when the user invokes $kelly-agent-builder or /kelly-agent-builder, wants to review or edit a catalog of mock LLM agent configs, check quota usage, find configs that need attention, move a draft to live, pause a live agent, or archive an agent. Local mock config/governance UI only — it never provisions or calls any real agent.
+description: Busabase-backed App-in-Skill low-code agent configuration and governance console for a platform team. Use when the user invokes $kelly-agent-builder or /kelly-agent-builder, wants to review or edit a catalog of mock LLM agent configs, check quota usage, find configs that need attention, move a draft to live, pause a live agent, or archive an agent. Mock config/governance console only — it never provisions or calls any real agent.
 ---
 
 # Agent Builder & Governance Console
 
 ## Overview
 
-Use this skill as a platform team's local, file-backed governance console for a
+Kelly Agent Builder is a Busabase Cloud App-in-Skill. Its canonical product
+surface is the AirApp in Busabase, not a separate local-data product. The
+same Hono source supports an explicitly requested local preview with OAuth
+connection bootstrap. It is a platform team's governance console for a
 catalog of **mock** agent configs. It never provisions or calls a real agent —
-every action reads or writes a local JSON handoff file under `app/.data/`. This
-is a generic, brand-free tool: teams define a name, a trigger/intent
-description, a set of allowed tools (from a fixed catalog), an approval flag,
-and a monthly call quota, and this console tracks status and usage and gates
-the risky transition (draft → live) behind required-field validation.
+every action reads or writes a Busabase Base record. This is a generic,
+brand-free tool: teams define a name, a trigger/intent description, a set of
+allowed tools (from a fixed catalog), an approval flag, and a monthly call
+quota, and this console tracks status and usage and gates the risky
+transition (draft → live) behind required-field validation.
 
-Default interaction mode: App UI. Unless the user explicitly asks for
-chat-only handling, start/reuse the local app with `app/start.sh` and give the
-actual local URL.
+Default behavior is AirApp-first. Unless the user explicitly asks only for
+explanation, update Busabase directly and give the user the clickable AirApp
+URL. Start localhost only when local preview/debugging is explicitly
+requested; it uses the same Busabase resources and never offers another data
+provider.
+
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
+   quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery,
+   ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
+   runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's local artifact and
+product contracts, stop before the unavailable Busabase operation, and report
+the exact missing dependency. Do not invent a second data backend.
 
 ## App UI Screenshots
 
@@ -43,34 +61,37 @@ actual local URL.
 ## Boundary
 
 - This is a **mock** governance console. It never provisions, deploys, or
-  calls any real agent, model, or external tool. The "allowed tools" checklist
-  is a fixed local catalog (`lib/tool-catalog.ts`) used only for governance
-  bookkeeping — selecting a tool here does not grant or invoke it anywhere.
-- The app reads and writes local files only: `app/.data/agents.json`,
-  `app/.data/onboarding.json`, `app/.data/agent.lock`. It must not call any
-  remote system.
-- No brand-specific integration exists or is implied. Configure `org_name` in
-  `config.local.json` for cosmetic display only.
+  calls any real agent, model, or external tool. The "allowed tools"
+  checklist is a fixed local catalog (`app/app/js/tool-catalog.js`) used only
+  for governance bookkeeping — selecting a tool here does not grant or invoke
+  it anywhere.
+- The AirApp reads and writes Busabase records only; it must not call any
+  other remote system.
+- No brand-specific integration exists or is implied.
 
-## First Run
+## Busabase Resources
 
-On invocation, start/reuse the local app with:
+Two Bases under one application Folder (`kelly-agent-builder`), declared in
+`app/app/js/config.js` and `app/resource-map.json`:
 
-```bash
-skills/kelly-agent-builder/app/start.sh
-```
+- `agents`: `agent-id`, `name`, `trigger-description`, `allowed-tools` (JSON
+  array), `approval-required`, `monthly-quota`, `calls-this-month`,
+  `owning-team`, `status`, `created-at`, `updated-at`.
+- `settings`: one row per `kind` — `kelly-agent-builder-onboarding` (presence
+  marks setup complete; this skill has no external accounts or secrets to
+  configure) and `kelly-agent-builder-lock`.
 
-First run installs `hono` and `@hono/node-server`; the frontend is zero-build
-vanilla. If `app/.data/agents.json` does not exist yet, seed a mock catalog
-with:
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space; see `references/agent-config-schema.md`
+for exact field shapes and governance rules.
 
-```bash
-node skills/kelly-agent-builder/scripts/generate_demo_snapshot.ts
-```
+## Authentication
 
-This also writes the `app/.data/onboarding.json` completion marker — this
-skill has no external accounts or secrets to configure, so seeding the mock
-catalog for the first time is itself "setup complete."
+Busabase authentication is ambient inside the deployed AirApp, which must not
+show OAuth, API-key, Base URL, provider, hosting, or Space controls.
+Standalone loopback preview uses browser OAuth without exposing tokens; after
+OAuth it auto-selects a single/open-source Space or requires a native
+selector when several Spaces are accessible.
 
 ## Demo Mode
 
@@ -78,63 +99,62 @@ catalog for the first time is itself "setup complete."
   configs spanning draft/live/paused/archived, one over-quota, one missing an
   owning team) for documentation and screenshots.
 - `lang=en` or `lang=zh` forces UI chrome language for screenshots.
-- Demo API responses never read or write `app/.data/agents.json`.
-
-UI language: support English and Chinese chrome with `Auto` default.
+- Demo mode never reads or writes Busabase.
 
 ## Governance Rules
 
-Read `references/agent-config-schema.md` before editing the app, store, or scripts. In
-short:
+Read `references/agent-config-schema.md` before editing the app or its
+domain logic. In short:
 
-- **Draft → live** (`POST /api/agents/:id/activate`) is only allowed when
-  `name`, `trigger_description`, at least one `allowed_tools` entry,
-  non-empty `owning_team`, and `monthly_quota > 0` are all present. This is
-  enforced **server-side** in `app/server/store.ts#activateAgent`; on failure
-  the API returns `422` with `missing_fields` and the UI surfaces the exact
-  reason.
-- **Archive** (`POST /api/agents/:id/archive`) is allowed from any status.
-  Archived agents become read-only (`PUT` returns `409`).
-- **Pause** (`POST /api/agents/:id/pause`) is only allowed from `live`.
+- **Draft → live** is only allowed when `name`, `trigger_description`, at
+  least one `allowed_tools` entry, non-empty `owning_team`, and
+  `monthly_quota > 0` are all present. This is enforced in
+  `app/app/js/providers/busabase-provider.js#activateAgent` — the browser
+  form disables the button too, but the provider is the source of truth.
+- **Archive** is allowed from any status. Archived agents become read-only.
+- **Pause** is only allowed from `live`.
 - **Needs attention** = a draft with missing required fields, OR an agent
   (any status) with no owning team, OR a quota-reached live agent
   (`calls_this_month >= monthly_quota` — reached, not strictly exceeded), OR
   `approval_required: true` with no owning team assigned.
-- **PUT validation**: a `PUT` that would leave an already-`live` agent
+- **Update validation**: an edit that would leave an already-`live` agent
   missing any required field (e.g. clearing `owning_team` or
-  `allowed_tools`) is rejected with `422` + `missing_fields`, the same gate
-  `activate` uses. Draft agents remain freely editable.
-
-All writes persist to `app/.data/agents.json`; there is no approval workflow
-beyond this local file and no outbound network call anywhere in this skill's
-app.
+  `allowed_tools`) is rejected, the same gate `activate` uses. Draft agents
+  remain freely editable.
 
 ## Local App
 
-- `app/index.html` + `app/app.js` + `app/styles.css` + `app/i18n/messages.js`:
-  zero-build vanilla frontend with hash routing (`#/overview`, `#/catalog`,
-  `#/agent/:id`, `#/agent/new`, `#/settings`).
-- `app/server/hono.ts`: platform-neutral Hono routes for state, tool catalog,
-  and agent CRUD/lifecycle actions.
-- `app/server/store.ts`: status derivation, CRUD/lifecycle helpers, and the
-  read/write surface, all delegated to `lib/data-provider/` (never `node:fs`
-  directly).
-- `lib/config-validation.ts`: pure governance rules (`missingRequiredFields`,
-  `isQuotaReached`, `deriveAgent`) shared by the server and `scripts/`.
-- `lib/data-provider/`: the `DataProvider` contract
-  (`provider-interface.ts`) and the default `local-file-provider.ts`; selected
-  via `KELLY_AGENT_BUILDER_DATA_PROVIDER` (default `local`).
-- `lib/tool-catalog.ts`: the fixed tool catalog (`web_search`, `code_exec`,
-  `file_read`, `file_write`, `send_email`, `calendar`, `crm_lookup`,
-  `db_query`, `slack_post`, `http_request`).
+- `app/app/index.html` + `app/app/app.js` + `app/app/styles.css` +
+  `app/app/i18n/messages.js`: zero-build vanilla frontend with hash routing
+  (`#/overview`, `#/catalog`, `#/agent/:id`, `#/agent/new`, `#/settings`).
+- `app/app/js/agent-model.js`: pure governance rules
+  (`missingRequiredFields`, `isQuotaReached`, `deriveAgent`, `summarize`,
+  lifecycle transitions) shared by the busabase and demo providers.
+- `app/app/js/providers/`: `busabase-provider.js` (reads/writes via
+  `busabase-sdk`) and `demo-provider.js` (deterministic, read-only).
+- `app/app/js/tool-catalog.js`: the fixed tool catalog (`web_search`,
+  `code_exec`, `file_read`, `file_write`, `send_email`, `calendar`,
+  `crm_lookup`, `db_query`, `slack_post`, `http_request`).
+- `app/server.js`: thin Hono OAuth bootstrap + same-origin `/api/v1` proxy to
+  Busabase — no business logic.
 
 ## Safety
 
 - Never provision or call a real agent, tool, or external system from this
   skill's app.
-- Do not commit `config.local.json`, `app/.data/`, or `app/.cache/`.
 - Keep `owning_team` values as free text; do not validate against a real
   directory service.
-## Execution reports
 
-Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.
+## Completion Criteria
+
+Finish only when:
+
+- the skill contains the complete canonical `app/` project and
+  `pnpm --dir app dev` remains supported;
+- all persistent config and agent data use `busabase-sdk` and the declared
+  resource map — no local JSON, browser storage, or provider choice;
+- local setup offers Cloud/custom URL OAuth plus the explicit Demo path,
+  while a deployed AirApp uses its ambient session;
+- Overview, Catalog, Agent detail, and Help & Settings render on desktop and
+  phone widths;
+- `pnpm --dir app run check` and `node --test` pass.

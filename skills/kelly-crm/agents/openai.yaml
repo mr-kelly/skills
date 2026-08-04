@@ -1,4 +1,4 @@
 interface:
   display_name: "Kelly CRM"
-  short_description: "Local CRM desk for contacts, deals, and follow-ups"
-  default_prompt: "Use $kelly-crm to open my CRM app and review the pipeline and follow-up queue."
+  short_description: "Busabase-backed CRM desk for contacts, deals, and follow-ups"
+  default_prompt: "Use $kelly-crm to open my CRM AirApp and review the pipeline and follow-up queue."

@@ -1,6 +1,7 @@
 # Kelly CRM
 
-Kelly CRM is a local App-in-Skill dashboard and review queue over contacts, companies, deals, and agent-drafted follow-ups.
+Kelly CRM is a Busabase-backed App-in-Skill dashboard and review queue over
+contacts, companies, deals, and agent-drafted follow-ups.
 
 ## What It Shows
 
@@ -31,15 +32,19 @@ Kelly CRM is a local App-in-Skill dashboard and review queue over contacts, comp
   </tr>
 </table>
 
-## Demo Mode
-
-Run the app and open a safe mock-data scene:
+## Running Locally
 
 ```bash
-skills/kelly-crm/app/start.sh
+pnpm --dir app install
+pnpm --dir app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Open the printed URL. A standalone local preview asks you to connect
+Busabase (Cloud or a custom server) and select a Space — never an API key.
+
+## Demo Mode
+
+Add a demo path to see mock data without a Busabase connection:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -49,8 +54,13 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=detail&lang=en#/deals/deal-beacon-api
 ```
 
-Demo mode never reads local CRM files or private config.
+Demo mode never reads or writes Busabase.
 
-## Private Config
+## Data
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-crm/config.json`, then put channel tokens in local env files only. Never commit real contact data, tokens, or files under `app/.data/`.
+All persistent data — companies, contacts, deals, interactions, follow-ups,
+and settings — lives in Busabase Bases under one application Folder. See
+`SKILL.md` and `references/crm-schema.md` for the resource map and record
+shapes. `scripts/execute_decisions.mjs` is the trusted process that hands off
+an approved follow-up's status; it connects with `BUSABASE_BASE_URL` /
+`BUSABASE_API_KEY` / `BUSABASE_SPACE_ID` and performs no external send.

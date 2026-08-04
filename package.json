@@ -10,8 +10,18 @@
     "screenshots:frame": "node scripts/frame-screenshots.mjs",
     "typecheck": "tsc -p tsconfig.json",
     "test:app-skills": "npm run test:app-skills:oss && npm run test:app-skills:cloud",
-    "test:app-skills:oss": "pnpm --dir skills/kelly-invest-stock/app check && node --test tests/app-skills/kelly-invest-stock/*.test.mjs && python3 tests/app-skills/kelly-invest-stock/ui_test.py",
-    "test:app-skills:cloud": "python3 tests/app-skills/kelly-invest-stock/cloud_oauth_test.py"
+    "test:app-skills:oss": "npm run test:app-skills:oss:kelly-invest-stock && npm run test:app-skills:oss:kelly-email && npm run test:app-skills:oss:kelly-crm && npm run test:app-skills:oss:kelly-agent-builder && npm run test:app-skills:oss:kelly-beauty-intel",
+    "test:app-skills:cloud": "npm run test:app-skills:cloud:kelly-invest-stock && npm run test:app-skills:cloud:kelly-email && npm run test:app-skills:cloud:kelly-crm && npm run test:app-skills:cloud:kelly-agent-builder && npm run test:app-skills:cloud:kelly-beauty-intel",
+    "test:app-skills:oss:kelly-invest-stock": "pnpm --dir skills/kelly-invest-stock/app check && node --test tests/app-skills/kelly-invest-stock/*.test.mjs && python3 tests/app-skills/kelly-invest-stock/ui_test.py",
+    "test:app-skills:cloud:kelly-invest-stock": "python3 tests/app-skills/kelly-invest-stock/cloud_oauth_test.py",
+    "test:app-skills:oss:kelly-email": "pnpm --dir skills/kelly-email/app check && node --test tests/app-skills/kelly-email/*.test.mjs && python3 tests/app-skills/kelly-email/ui_test.py",
+    "test:app-skills:cloud:kelly-email": "python3 tests/app-skills/kelly-email/cloud_oauth_test.py",
+    "test:app-skills:oss:kelly-crm": "pnpm --dir skills/kelly-crm/app check && node --test tests/app-skills/kelly-crm/*.test.mjs && python3 tests/app-skills/kelly-crm/ui_test.py",
+    "test:app-skills:cloud:kelly-crm": "python3 tests/app-skills/kelly-crm/cloud_oauth_test.py",
+    "test:app-skills:oss:kelly-agent-builder": "pnpm --dir skills/kelly-agent-builder/app check && node --test tests/app-skills/kelly-agent-builder/*.test.mjs && python3 tests/app-skills/kelly-agent-builder/ui_test.py",
+    "test:app-skills:cloud:kelly-agent-builder": "python3 tests/app-skills/kelly-agent-builder/cloud_oauth_test.py",
+    "test:app-skills:oss:kelly-beauty-intel": "pnpm --dir skills/kelly-beauty-intel/app check && node --test tests/app-skills/kelly-beauty-intel/*.test.mjs && python3 tests/app-skills/kelly-beauty-intel/ui_test.py",
+    "test:app-skills:cloud:kelly-beauty-intel": "python3 tests/app-skills/kelly-beauty-intel/cloud_oauth_test.py"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

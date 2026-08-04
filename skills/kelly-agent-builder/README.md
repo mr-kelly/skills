@@ -1,10 +1,10 @@
 # Agent Builder & Governance Console
 
-Agent Builder & Governance Console is a local, file-backed App-in-Skill for a
+Agent Builder & Governance Console is a Busabase-backed App-in-Skill for a
 platform team that wants to let other teams safely spin up simple LLM agent
 configs. It is a **mock** governance tool: it never provisions or calls a real
-agent. Every create, edit, activate, pause, and archive action reads or writes
-a local JSON handoff file under `app/.data/`.
+agent. Every create, edit, activate, pause, and archive action reads or
+writes an `agents` record in Busabase.
 
 ## What It Shows
 
@@ -36,19 +36,23 @@ a local JSON handoff file under `app/.data/`.
   </tr>
   <tr>
     <td><strong>Agent detail / edit</strong><br>Tool checklist, quota, approval toggle, owning team, and lifecycle actions.</td>
-    <td><strong>Overview (中文)</strong><br>Full zh-CN UI parity via <code>app/i18n/messages.js</code>.</td>
+    <td><strong>Overview (中文)</strong><br>Full zh-CN UI parity via <code>app/app/i18n/messages.js</code>.</td>
   </tr>
 </table>
 
-## Demo Mode
-
-Run the app and open a safe mock-data scene:
+## Running Locally
 
 ```bash
-skills/kelly-agent-builder/app/start.sh
+pnpm --dir app install
+pnpm --dir app dev
 ```
 
-Use the URL printed by the launcher, then add the demo query param:
+Open the printed URL. A standalone local preview asks you to connect
+Busabase (Cloud or a custom server) and select a Space — never an API key.
+
+## Demo Mode
+
+Add the demo query param to see mock data without a Busabase connection:
 
 ```text
 /?demo=1&lang=en#/overview
@@ -56,28 +60,17 @@ Use the URL printed by the launcher, then add the demo query param:
 /?demo=1&lang=zh#/overview
 ```
 
-Demo mode is fully offline and never reads or writes `app/.data/agents.json`.
+Demo mode is fully offline and never reads or writes Busabase.
 
-## Local Data
+## Data
 
-Seed a mock catalog (8 agent configs spanning draft/live/paused/archived, one
-over-quota, one missing an owning team):
-
-```bash
-node skills/kelly-agent-builder/scripts/generate_demo_snapshot.ts
-```
-
-Validate the local catalog file against the schema:
-
-```bash
-node skills/kelly-agent-builder/scripts/validate_ui_schema.ts app/.data/agents.json
-```
-
-See `references/agent-config-schema.md` for the full schema and governance rules
+All state — the agent config catalog, onboarding marker, and agent lock —
+lives in two Busabase Bases under one application Folder. See `SKILL.md` and
+`references/agent-config-schema.md` for the full schema and governance rules
 (draft → live gating, needs-attention rules, archive/pause semantics).
 
 ## Boundary
 
 This console never provisions, deploys, or calls any real agent, model, or
-external tool. All state lives in local JSON files under `app/.data/`, which
-are git-ignored and never committed.
+external tool. It only proposes and records mock governance state in
+Busabase.

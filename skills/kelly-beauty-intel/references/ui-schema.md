@@ -1,89 +1,93 @@
 # Kelly Beauty Intel UI Schema
 
-This skill uses a local review-first file contract. The app reads/writes JSON files under `app/.data/`; the skill performs external reads and approved handoffs.
-
-## Batch
-
-`current_batch.json`:
-
-```json
-{
-  "schema_version": "1",
-  "batch_id": "kelly-intel-YYYYMMDD-HHMMSS",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-beauty-intel",
-  "vertical": "beauty, wellness, and medical aesthetics",
-  "buyer": "beauty salon owners, medical-aesthetics clinics, wellness operators, and consultants",
-  "offer": "daily beauty intelligence that becomes safe treatment angles, consultation scripts, and social drafts",
-  "metrics": {
-    "signals_needs_review": 0,
-    "actions_needs_review": 0,
-    "drafts_needs_review": 0,
-    "approved": 0,
-    "blocked": 0
-  },
-  "signals": [],
-  "actions": [],
-  "drafts": [],
-  "sources": []
-}
-```
+This skill uses a Busabase-backed review-first data contract. The AirApp
+reads/writes Busabase records only; the skill performs external reads and
+approved handoffs outside the AirApp. Field slugs are kebab-case in Busabase
+and normalized to snake_case in app code
+(`app/app/js/providers/busabase-provider.js`, `app/app/js/intel-model.js`).
 
 Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 
 Decision actions: `approve`, `request_changes`, `revise`, `block`.
 
-## Signal
+## Signals (`kelly-beauty-intel-signals-v1`)
 
-Required fields:
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `signal-id` | `id` | text | stable domain id, required |
+| `ref` | `ref` | number | stable per-batch row number |
+| `title` | `title` | text | |
+| `summary` | `summary` | longtext | |
+| `why-it-matters` | `why_it_matters` | longtext | |
+| `buyer-intent` | `buyer_intent` | longtext | |
+| `confidence` | `confidence` | number | 0–1 |
+| `detected-at` | `detected_at` | text | ISO timestamp |
+| `status` | `status` | text | workflow status |
+| `risk` | `risk` | text | JSON array |
+| `source-name` | `source.name` | text | |
+| `source-url` | `source.url` | text | |
+| `suggested-action-id` | `suggested_action_id` | text | optional linked action |
+| `decision-note` | `decision_note` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
 
-- `id`, `ref`, `title`, `summary`, `why_it_matters`, `buyer_intent`, `status`, `confidence`, `detected_at`
-- `source`: `{ "name": "...", "url": "..." }`
-- `risk`: string array
-- `suggested_action_id`: optional action id
+## Actions (`kelly-beauty-intel-actions-v1`)
 
-## Action
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `action-id` | `id` | text | stable domain id, required |
+| `ref` | `ref` | number | |
+| `title` | `title` | text | |
+| `summary` | `summary` | longtext | |
+| `status` | `status` | text | workflow status |
+| `priority` | `priority` | text | |
+| `owner` | `owner` | text | |
+| `reason` | `reason` | longtext | |
+| `linked-signal-ids` | `linked_signal_ids` | text | JSON array |
+| `next-step` | `next_step` | longtext | concrete next step for the operator or agent |
+| `decision-note` | `decision_note` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
 
-Required fields:
+## Drafts (`kelly-beauty-intel-drafts-v1`)
 
-- `id`, `ref`, `title`, `summary`, `status`, `priority`, `owner`, `reason`
-- `linked_signal_ids`: string array
-- `next_step`: concrete next step for the operator or agent
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `draft-id` | `id` | text | stable domain id, required |
+| `ref` | `ref` | number | |
+| `channel` | `channel` | text | IG caption, Xiaohongshu note, consultation script |
+| `title` | `title` | text | |
+| `body` | `body` | longtext | editable in the UI; approving an edit writes it back here |
+| `status` | `status` | text | workflow status |
+| `risk` | `risk` | text | JSON array |
+| `linked-action-id` | `linked_action_id` | text | |
+| `decision-note` | `decision_note` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
 
-## Draft
+## Sources (`kelly-beauty-intel-sources-v1`)
 
-Required fields:
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `source-id` | `id` | text | stable domain id, required |
+| `label` | `label` | text | |
+| `status` | `status` | text | `configured\|needs_config` |
+| `freshness` | `freshness` | text | |
+| `coverage` | `coverage` | longtext | |
 
-- `id`, `ref`, `channel`, `title`, `body`, `status`, `risk`, `linked_action_id`
+## Settings (`kelly-beauty-intel-settings-v1`)
 
-Drafts are editable in the UI. User edits are stored in `decisions.json`, not written back into the batch until the skill applies decisions.
+One row per `kind`, looked up by `record-id`:
+
+| `record-id` | `kind` | `payload` (JSON) |
+| --- | --- | --- |
+| `kelly-beauty-intel-brand` | `brand` | `{brand_name, geography, language, customer_segment, approved_offer, cta, forbidden_claims, channels}` |
+| `kelly-beauty-intel-lock` | `lock` | not JSON-wrapped: fields `locked` (bool), `owner`, `message` live directly on the row |
 
 ## Decisions
 
-`decisions.json`:
+A human verdict writes `status`, `decision-note`, and `decided-at` directly
+onto the signal/action/draft record in one write — there is no separate
+decisions file. Approving a draft with an edited body also writes the new
+`body`.
 
-```json
-{
-  "schema_version": "1",
-  "updated_at": "ISO timestamp",
-  "decisions": {
-    "item-id": {
-      "action": "approve",
-      "note": "",
-      "edited_body": "",
-      "decided_at": "ISO timestamp"
-    }
-  }
-}
-```
-
-## Execution Report
-
-`execute_decisions.ts` writes `execution_report.json` with concrete operations such as:
-
-- `export_action_plan`
-- `handoff_content_pack`
-- `queue_agent_revision`
-- `mark_blocked`
-
-No external side effects are performed by the script.
+No external side effects are performed by the AirApp: handoff to an actual
+publishing or messaging channel remains a separate, explicitly authorized
+step outside this app.

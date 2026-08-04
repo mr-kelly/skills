@@ -1,226 +1,123 @@
 # Kelly CRM Schema
 
-Use this schema for the handoff files under `app/.data/`. Keep the shapes stable so the local app, scripts, and the skill can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
+Use this schema when reading or writing Kelly CRM's Busabase Bases. Field
+slugs are kebab-case in Busabase and normalized to snake_case in app code
+(`app/app/js/crm-model.js`, `app/app/js/providers/busabase-provider.js`).
+Keep the shapes stable so the app, scripts, and skill can evolve
+independently. Validate a drafted snapshot with
+`node scripts/validate_snapshot.mjs path/to/snapshot.json` before writing it.
 
-## Snapshot (`crm_snapshot.json`)
+## Companies (`kelly-crm-companies-v1`)
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-crm",
-  "base_currency": "USD",
-  "pipeline_stages": ["lead", "qualified", "proposal", "negotiation", "won", "lost"],
-  "metrics": {
-    "contact_count": 0,
-    "company_count": 0,
-    "deal_count": 0,
-    "open_deal_count": 0,
-    "pipeline_value": 0,
-    "weighted_pipeline_value": 0,
-    "followups_needs_review": 0,
-    "followups_due": 0
-  },
-  "companies": [],
-  "contacts": [],
-  "deals": [],
-  "interactions": [],
-  "followups": [],
-  "warnings": []
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `company-id` | `company_id` | text | stable domain id, required |
+| `name` | `name` | text | required |
+| `domain` | `domain` | text | |
+| `industry` | `industry` | text | |
+| `size` | `size` | text | headcount text |
+| `location` | `location` | text | |
+| `notes` | `notes` | longtext | |
 
-`pipeline_value` is the sum of open deal amounts in the base currency; `weighted_pipeline_value` is `sum(amount * probability)` over open deals.
+## Contacts (`kelly-crm-contacts-v1`)
 
-## Company
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `contact-id` | `contact_id` | text | stable domain id, required |
+| `name` | `name` | text | required |
+| `company-id` | `company_id` | text | optional |
+| `role` | `role` | text | |
+| `email` | `email` | text | |
+| `relationship` | `relationship` | text | `strong\|warm\|cool\|new` |
+| `tags` | `tags` | text | JSON array, e.g. `["pilot","champion"]` |
+| `last-touch-at` | `last_touch_at` | text | ISO timestamp |
+| `next-followup-at` | `next_followup_at` | text | `YYYY-MM-DD` |
+| `agent-notes` | `agent_notes` | longtext | short agent-maintained context |
+| `channels` | `channels` | text | JSON array, e.g. `["email"]` |
 
-```json
-{
-  "company_id": "stable local id",
-  "name": "Brightpath Labs",
-  "domain": "optional domain",
-  "industry": "optional",
-  "size": "optional headcount text",
-  "location": "optional",
-  "notes": "optional"
-}
-```
+## Deals (`kelly-crm-deals-v1`)
 
-## Contact
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `deal-id` | `deal_id` | text | stable domain id, required |
+| `name` | `name` | text | required |
+| `company-id` | `company_id` | text | |
+| `primary-contact-id` | `primary_contact_id` | text | |
+| `contact-ids` | `contact_ids` | text | JSON array incl. primary |
+| `stage` | `stage` | text | one of the operator's pipeline stages |
+| `amount` | `amount` | number | |
+| `currency` | `currency` | text | |
+| `probability` | `probability` | number | 0–1 |
+| `next-step` | `next_step` | text | human-readable |
+| `owner` | `owner` | text | operator name |
+| `opened-at` | `opened_at` | text | `YYYY-MM-DD` |
+| `expected-close` | `expected_close` | text | `YYYY-MM-DD` |
+| `last-activity-at` | `last_activity_at` | text | ISO timestamp |
+| `status` | `status` | text | `open\|won\|lost` |
+| `agent-next-action` | `agent_next_action` | longtext | shown in deal detail |
+| `notes` | `notes` | longtext | |
 
-```json
-{
-  "contact_id": "stable local id",
-  "name": "Mira Solano",
-  "company_id": "optional company id",
-  "role": "optional title",
-  "email": "optional email",
-  "relationship": "strong|warm|cool|new",
-  "tags": ["pilot", "champion"],
-  "last_touch_at": "ISO timestamp or empty",
-  "next_followup_at": "YYYY-MM-DD or empty",
-  "agent_notes": "short agent-maintained context for this person",
-  "channels": ["email"]
-}
-```
+Won/lost deals keep their `stage` (`won`/`lost`) and set `status` accordingly.
 
-## Deal
+## Interactions (`kelly-crm-interactions-v1`)
 
-```json
-{
-  "deal_id": "stable local id",
-  "name": "Enterprise pilot",
-  "company_id": "company id",
-  "primary_contact_id": "contact id",
-  "contact_ids": ["contact ids incl. primary"],
-  "stage": "one of pipeline_stages",
-  "amount": 48000,
-  "currency": "USD",
-  "probability": 0.7,
-  "next_step": "human-readable next step",
-  "owner": "operator name",
-  "opened_at": "YYYY-MM-DD",
-  "expected_close": "YYYY-MM-DD",
-  "last_activity_at": "ISO timestamp",
-  "status": "open|won|lost",
-  "agent_next_action": "agent-suggested next action shown in the deal detail",
-  "notes": "optional"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `interaction-id` | `interaction_id` | text | stable domain id, required |
+| `contact-id` | `contact_id` | text | required |
+| `company-id` | `company_id` | text | |
+| `deal-id` | `deal_id` | text | |
+| `type` | `type` | text | `email\|meeting\|call\|chat\|social\|note` |
+| `occurred-at` | `occurred_at` | text | ISO timestamp |
+| `direction` | `direction` | text | `inbound\|outbound\|internal` |
+| `summary` | `summary` | longtext | one or two sentences; never raw email bodies |
+| `source` | `source` | text | `email\|meeting notes\|call notes\|linkedin\|note` |
 
-`stage` must be one of `pipeline_stages`. Won/lost deals keep their stage (`won`/`lost`) and set `status` accordingly.
+## Follow-ups (`kelly-crm-followups-v1`)
 
-## Interaction
+The review-queue items. `status` uses the standard workflow states.
 
-```json
-{
-  "interaction_id": "stable local id",
-  "contact_id": "contact id",
-  "company_id": "optional company id",
-  "deal_id": "optional deal id",
-  "type": "email|meeting|call|chat|social|note",
-  "occurred_at": "ISO timestamp",
-  "direction": "inbound|outbound|internal",
-  "summary": "one- or two-sentence summary",
-  "source": "email|meeting notes|call notes|linkedin|note"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `followup-id` | `followup_id` | text | stable domain id, required |
+| `ref` | `ref` | number | stable per-batch row number; never renumber on regeneration |
+| `contact-id` | `contact_id` | text | required |
+| `deal-id` | `deal_id` | text | optional |
+| `channel-id` | `channel_id` | text | configured channel id, e.g. `email-main` |
+| `channel-type` | `channel_type` | text | `email\|linkedin\|chat` |
+| `subject` | `subject` | text | |
+| `reason` | `reason` | longtext | why the agent proposes this follow-up now |
+| `risk` | `risk` | text | JSON array, e.g. `["money","legal"]` |
+| `due-at` | `due_at` | text | `YYYY-MM-DD` |
+| `status` | `status` | text | `needs_review\|changes_requested\|approved\|done\|blocked` |
+| `suggested-reply` | `suggested_reply` | longtext | editable draft message |
+| `decision-comment` | `decision_comment` | longtext | the reviewer's note, written with the verdict |
+| `decided-at` | `decided_at` | text | ISO timestamp, written with the verdict |
+| `decided-by` | `decided_by` | text | `operator` for a human verdict |
+| `created-at` | `created_at` | text | ISO timestamp |
 
-Store only summaries, never raw email bodies or attachments.
+A human verdict (`approve` / `request_changes` / `block` / `revise`) writes
+`status`, `decision-comment`, `decided-at`, `decided-by`, and — when the
+reviewer edited the draft — `suggested-reply`, all in one record write. There
+is no separate decisions file: the followup record is the single source of
+truth for both the draft and its review state.
 
-## Follow-up
+## Settings (`kelly-crm-settings-v1`)
 
-Follow-ups are the review-queue items. `status` uses the standard workflow states.
+One row per `kind`, looked up by `record-id`:
 
-```json
-{
-  "followup_id": "stable local id",
-  "ref": 1,
-  "contact_id": "contact id",
-  "deal_id": "optional deal id",
-  "channel_id": "configured channel id, e.g. email-main",
-  "channel_type": "email|linkedin|chat",
-  "subject": "optional subject line",
-  "reason": "why the agent proposes this follow-up now",
-  "risk": ["money", "legal", "commitment", "privacy"],
-  "due_at": "YYYY-MM-DD",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "suggested_reply": "editable draft message",
-  "created_at": "ISO timestamp"
-}
-```
+| `record-id` | `kind` | `payload` (JSON) |
+| --- | --- | --- |
+| `kelly-crm-operator` | `operator` | `{name, role, company, timezone, pipeline_stages, base_currency, style_tone}` |
+| `kelly-crm-channels` | `channels` | `{channels: [{channel_id, type, display_name, handoff_skill, vault_ref}]}` |
+| `kelly-crm-lock` | `lock` | not JSON-wrapped: fields `locked` (bool), `owner`, `message` live directly on the row |
 
-`ref` is a stable per-batch row number so chat comments like "change #2" resolve unambiguously. Never renumber refs when regenerating the snapshot; retire ids instead.
-
-## Decisions (`decisions.json`)
-
-Written by the app; read by the skill and `scripts/execute_decisions.ts`.
-
-```json
-{
-  "updated_at": "ISO timestamp",
-  "decisions": {
-    "<followup_id>": {
-      "action": "approve|request_changes|block|revise",
-      "comment": "review note",
-      "draft": "optional user-edited draft; when present it replaces suggested_reply",
-      "decided_at": "ISO timestamp"
-    }
-  }
-}
-```
-
-A decision decided after `generated_at` overrides the snapshot status in the UI: `approve` → `approved`, `request_changes` → `changes_requested`, `block` → `blocked`.
-
-## Agent Tasks (`agent_tasks.json`)
-
-Queued agent work. The skill polls this to pick up revisions.
-
-```json
-{
-  "updated_at": "ISO timestamp",
-  "tasks": [
-    {
-      "task_id": "task-<followup_id>-<ms>",
-      "type": "revise_followup",
-      "followup_id": "followup id",
-      "comment": "what the user asked to change",
-      "requested_at": "ISO timestamp",
-      "status": "queued"
-    }
-  ]
-}
-```
-
-## Execution Report (`execution_report.json`)
-
-Written by `scripts/execute_decisions.ts`. Records concrete handoff operations only; no external side effects happen here.
-
-```json
-{
-  "executed_at": "ISO timestamp",
-  "dry_run": false,
-  "source": "kelly-crm",
-  "results": [
-    {
-      "followup_id": "followup id",
-      "ref": 1,
-      "status": "handed_off|dry_run|skipped",
-      "operation": "handoff_to_email",
-      "channel": "email-main",
-      "target": "contact email",
-      "draft": "approved draft that was handed off",
-      "comment": "review note",
-      "reason": "follow-up reason",
-      "executed_at": "ISO timestamp"
-    }
-  ]
-}
-```
-
-## Onboarding (`onboarding.json`)
-
-```json
-{
-  "completed": true,
-  "completed_at": "ISO timestamp",
-  "config_version": "1"
-}
-```
-
-## Lock (`agent.lock`)
-
-```json
-{
-  "owner": "kelly-crm",
-  "message": "Updating CRM snapshot",
-  "started_at": "ISO timestamp"
-}
-```
-
-While the lock exists the app rejects decision writes (HTTP 423) and renders the queue read-only.
+While the lock row has `locked: true` the app rejects decision writes and
+renders the follow-up queue read-only.
 
 ## Warnings
+
+Computed in `app/app/js/crm-model.js`, not stored in Busabase:
 
 ```json
 {
