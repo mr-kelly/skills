@@ -1,6 +1,6 @@
 # Kelly Insure Data
 
-Kelly Insure Data is a local App-in-Skill workspace for insurance-industry high-quality data entry and data governance. It connects to Busabase through the REST data provider layer: one Drive node for the file drive, one Base for QA pairs, two Bases for featured information and insurer notices, and one Base for user feedback.
+Kelly Insure Data is a Busabase Cloud App-in-Skill for insurance-industry data governance. It reads an operator-provisioned Busabase workspace: one Drive node for the file drive, one Base for QA pairs, two Bases for featured information and insurer notices, and one Base for user feedback. The AirApp itself is entirely read-only; a trusted set of skill-root scripts handles backup/restore and PDF text backfill.
 
 ## What It Shows
 
@@ -9,9 +9,9 @@ Kelly Insure Data is a local App-in-Skill workspace for insurance-industry high-
 - 问答: QA Base records with canonical question/answer text, source traceability, review status, and completeness checks.
 - 资讯精选 / 保司通知: Featured Information and Insurer Notices records combined in the `#/news` route, with title, carrier, publish date, category, URL, summary, and governance warnings. Each item is labelled `featured` or `notice`.
 - 用户反馈: Feedback Base records with feedback text, source, user/contact fields, rating, status, tags, and completeness checks.
-- Settings: local provider state and Busabase connection targets, without exposing tokens or private config.
+- Help & Settings: sanitized Busabase target slugs and Base field schemas, without exposing tokens.
 
-The app is read-first by default. It surfaces quality gaps and review targets before any insurance data becomes trusted knowledge.
+The app is read-only. It surfaces quality gaps and review targets; it never mutates Busabase itself.
 
 ## App UI Screenshots
 
@@ -34,15 +34,18 @@ The app is read-first by default. It surfaces quality gaps and review targets be
   </tr>
 </table>
 
-## Demo Mode
-
-Run the app and open safe mock insurance data:
+## Running the App
 
 ```bash
-skills/kelly-insure-data/app/start.sh
+cd skills/kelly-insure-data/app
+pnpm install
+pnpm run build:sdk
+pnpm run dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Open the printed URL. On loopback with no Busabase session yet, you'll see a "Connect Busabase" gate (Cloud or a custom server). Deployed as an AirApp, it uses its ambient Busabase session directly — no local setup screen.
+
+## Demo Mode
 
 ```text
 /?demo=overview&lang=zh#/overview
@@ -53,58 +56,43 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=settings&lang=zh#/settings
 ```
 
-Demo mode never reads Busabase, private config, API keys, or local production data.
+Demo mode never reads Busabase, tokens, or local production data.
 
-## Busabase Config
+## Busabase Workspace
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-insure-data/config.json`. IDs are optional when slugs can be resolved:
+The Drive node and the four Bases are an existing production insurance dataset, not something this AirApp creates or owns. `app/app/js/config.js` declares their slugs for lookup only:
 
-```json
-{
-  "data_provider": "busabase",
-  "busabase": {
-    "base_url": "http://127.0.0.1:15419",
-    "api_key_env": "KELLY_INSURE_DATA_BUSABASE_API_KEY",
-    "drive_node_slug": "hk-insurance-drive",
-    "featured_base_slug": "featured-information",
-    "notices_base_slug": "insurance-news",
-    "qa_base_slug": "insurance-qa",
-    "feedback_base_slug": "user-feedback"
-  }
-}
-```
+- Drive: `hk-insurance-drive`
+- Bases: `featured-information`, `insurance-news` (legacy alias `news`), `insurance-qa`, `user-feedback`
 
-Keep real tokens in environment variables only. Never commit real insurance files, record snapshots, tokens, or anything under `app/.data/`. Legacy `news_base_id` and `news_base_slug` remain accepted as aliases for the notices Base.
+A missing Drive node or Base degrades to a visible warning in the Overview; the app never blocks behind a setup/provisioning screen the way most other Kelly App-in-Skills do, because there is nothing for a read-only reader to safely auto-create in someone else's canonical dataset.
 
-## Busabase Backup and Restore
+## Backup, Restore, and PDF Text Backfill (trusted operator scripts)
 
-The skill can export a portable restore manifest for the active insurance workspace:
+Run from the skill root with the operator's own Busabase credentials:
 
 ```bash
-npm run busabase:export -- --output app/.data/busabase_restore_manifest.json
+cd skills/kelly-insure-data
+npm install
+BUSABASE_BASE_URL=... BUSABASE_API_KEY=... BUSABASE_SPACE_ID=... \
+  npm run busabase:export -- --output app/.data/busabase_restore_manifest.json
+BUSABASE_BASE_URL=... BUSABASE_API_KEY=... BUSABASE_SPACE_ID=... \
+  npm run busabase:restore -- --manifest app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run
+BUSABASE_BASE_URL=... BUSABASE_API_KEY=... BUSABASE_SPACE_ID=... \
+  npm run busabase:backfill-pdf-text -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5
 ```
 
-After a Busabase reset, restore from that manifest plus the local PDF backup directory:
+- `busabase:export` writes a portable restore manifest (folder/Drive/Base shape, Drive file paths, sanitized asset metadata, Base records). It does not embed PDF bytes.
+- `busabase:restore` previews restoration after a Busabase reset; add `--apply` only when ready to recreate missing folder, Drive files, Bases, and records.
+- `busabase:backfill-pdf-text` parses local PDFs and previews the Asset text slot write and generated metadata; add `--apply` to write. The extracted text goes to the Asset text slot only (`PUT /api/v1/assets/{assetId}/text`) — `Asset.metadata` gets parser details, structured file fields, and a short `extraction_summary`, never the full PDF body. `busabase:backfill-pdf-metadata` remains available as a compatibility alias.
 
-```bash
-npm run busabase:restore -- --manifest app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run
-```
-
-Use `--apply` only when you are ready to recreate missing folder, Drive files, Bases, and records.
-
-PDF text and metadata can be rebuilt from local PDFs after restore:
-
-```bash
-npm run busabase:backfill-pdf-text -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5
-```
-
-The extracted text is written to the Asset text slot only (`PUT /api/v1/assets/{assetId}/text`). `Asset.metadata` includes parser details, structured file fields, and a short `extraction_summary`, but never the full PDF body. The old `busabase:backfill-pdf-metadata` command remains available as an alias.
+Keep real tokens in environment variables only. Never commit real insurance files, PDF backups, tokens, or anything under `app/.data/`.
 
 ---
 
 # Kelly Insure Data（中文）
 
-Kelly Insure Data 是一个面向保险行业的本地 App-in-Skill 数据录入与治理工作台。它基于 Busabase REST provider 读取五类数据：一个 Drive node 做「文件盘」，一个 Base 做「问答」，两个 Base 分别做「资讯精选」和「保司通知」，一个 Base 做「用户反馈」。
+Kelly Insure Data 是一个面向保险行业数据治理的 Busabase Cloud App-in-Skill。它读取一个由运营者预先配置好的 Busabase 工作区：一个 Drive node 做「文件盘」，一个 Base 做「问答」，两个 Base 分别做「资讯精选」和「保司通知」，一个 Base 做「用户反馈」。AirApp 本身完全只读；一组受信任的 skill 根目录脚本负责备份/恢复与 PDF 文本回填。
 
 ## 界面内容
 
@@ -113,6 +101,6 @@ Kelly Insure Data 是一个面向保险行业的本地 App-in-Skill 数据录入
 - 问答：展示 Busabase Base 中的 QA 对，包含标准问题、标准答案、来源、审核状态与完整性检查。
 - 资讯精选 / 保司通知：合并展示资讯精选和保司通知两个 Base 的记录，包含标题、承保方、发布时间、分类、链接、摘要与治理风险。每条记录标注 `featured` 或 `notice`。
 - 用户反馈：展示用户反馈 Base 中的反馈内容、来源、用户/联系方式、评分、标签、状态与完整性检查。
-- Settings：展示本地 provider 和 Busabase 目标配置摘要，不暴露 token 或私有配置。
+- Help & Settings：展示 Busabase 目标 slug 和 Base 字段结构摘要，不暴露 token。
 
-默认是只读治理视图。需要新增、清洗或回写 Busabase 记录时，应先生成可审核的变更建议，再由用户确认。
+默认是只读治理视图；AirApp 从不修改 Busabase，数据录入/清洗都通过受信任的脚本完成。

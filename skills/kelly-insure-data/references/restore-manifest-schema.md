@@ -2,7 +2,7 @@
 
 The restore manifest is a portable backup description for rebuilding a Kelly Insure Data Busabase workspace after a destructive reset.
 
-It stores the workspace tree shape, Drive files, Base schemas, record values, and AI-readable asset metadata. It does not embed binary file bytes; `restore_busabase_snapshot.ts` reads those from a local backup directory. `parsed_text` is never stored in file metadata; the manifest uses `text_status` to track extraction state only.
+It stores the workspace tree shape, Drive files, Base schemas, record values, and AI-readable asset metadata. It does not embed binary file bytes; `restore_busabase_snapshot.mjs` reads those from a local backup directory. `parsed_text` is never stored in file metadata; the manifest uses `text_status` to track extraction state only.
 
 ## Shape
 
@@ -138,12 +138,12 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
 
 ## Restore Behavior
 
-`restore_busabase_snapshot.ts` is intentionally explicit:
+`restore_busabase_snapshot.mjs` is intentionally explicit:
 
 - `--dry-run` prints the intended folder, Drive, Base, file, and record actions without mutating Busabase.
 - `--apply` creates missing nodes and writes data.
 - Local files are resolved by joining `--files-root` with each manifest file `path`.
-- Files are uploaded as assets, then attached to the Drive through a Drive ChangeRequest. Metadata is sanitized before upload (`parsed_text` removed).
+- Files are uploaded as assets, then attached to the Drive through a Drive ChangeRequest. Metadata is sanitized before upload (`parsed_text` removed). **This attach step's exact endpoint could not be verified live against a `busabase@0.11.0` server** (see the comment on `createDriveChangeRequest` in `scripts/lib/busabase-client.mjs`); always run `--dry-run` first and confirm the printed plan against the real target server before trusting `--apply` for missing files. Folder/Drive/Base *creation* and record restoration were verified live and work.
 - Records are restored through Base bulk ChangeRequests.
 - Existing objects are reused when their slug/id/path is already present.
 - Text slots are **not** restored from the manifest. After `--apply`, run `npm run busabase:backfill-pdf-text -- --drive-node-id <resolved-id> --files-root <local-backup> --apply` to rebuild Asset text slots from trusted local PDFs.

@@ -1,10 +1,12 @@
 # Kelly Insure Data UI Schema
 
-This schema powers the local UI for insurance data entry and governance.
+This schema powers the AirApp UI for insurance data governance. It is the
+`snapshot` object returned by `app/app/js/providers/busabase-provider.js`
+(read from the operator-provisioned Busabase workspace) and
+`app/app/js/providers/demo-provider.js` (deterministic offline fixture) —
+there is no local snapshot file anymore.
 
 ## Snapshot
-
-`app/.data/insure_snapshot.json`:
 
 ```json
 {

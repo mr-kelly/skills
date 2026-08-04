@@ -1,0 +1,16 @@
+{
+  "appId": "kelly-insure-data",
+  "schemaVersion": 1,
+  "provisioning": {
+    "mode": "operator-provisioned",
+    "mutations": [],
+    "note": "The Drive node and all four Bases below are an existing production Busabase workspace, not a Folder+Bases tree this AirApp creates or owns. An operator provisions/repairs them with the trusted scripts in the skill-root scripts/ directory (export_busabase_snapshot.mjs / restore_busabase_snapshot.mjs / backfill_pdf_metadata.mjs). The AirApp only resolves these resources by slug and reads them; a missing resource degrades to a snapshot warning instead of blocking behind a setup screen."
+  },
+  "drive": { "key": "drive", "slug": "hk-insurance-drive" },
+  "resources": [
+    { "key": "featured", "slug": "featured-information", "schemaVersion": 1 },
+    { "key": "notices", "slug": "insurance-news", "schemaVersion": 1 },
+    { "key": "qa", "slug": "insurance-qa", "schemaVersion": 1 },
+    { "key": "feedback", "slug": "user-feedback", "schemaVersion": 1 }
+  ]
+}

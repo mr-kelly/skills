@@ -3,27 +3,15 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly Insure Data App-in-Skill - local insurance data workspace backed by Busabase.",
+  "description": "Kelly Insure Data Busabase Cloud skill and trusted operator scripts (export/restore/PDF text backfill).",
   "scripts": {
-    "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts",
-    "validate": "node scripts/validate_ui_schema.ts",
-    "demo:snapshot": "node scripts/generate_demo_snapshot.ts",
-    "busabase:export": "node scripts/export_busabase_snapshot.ts",
-    "busabase:restore": "node scripts/restore_busabase_snapshot.ts",
-    "busabase:backfill-pdf-metadata": "node scripts/backfill_pdf_metadata.ts",
-    "busabase:backfill-pdf-text": "node scripts/backfill_pdf_metadata.ts"
-  },
-  "dependencies": {
-    "@hono/node-server": "^2.0.8",
-    "busabase-cli": "0.9.3",
-    "hono": "^4.12.28"
+    "busabase:export": "node scripts/export_busabase_snapshot.mjs",
+    "busabase:restore": "node scripts/restore_busabase_snapshot.mjs",
+    "busabase:backfill-pdf-text": "node scripts/backfill_pdf_metadata.mjs",
+    "busabase:backfill-pdf-metadata": "node scripts/backfill_pdf_metadata.mjs",
+    "app:check": "pnpm --dir app check"
   },
   "engines": {
-    "node": ">=24.18"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.2",
-    "typescript": "^5.7.2"
+    "node": ">=24.18.0"
   }
 }
