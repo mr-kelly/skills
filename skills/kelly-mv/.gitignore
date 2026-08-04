@@ -1,7 +1,0 @@
-# Local handoff data, generated media, runtime state — never commit.
-app/.data/
-app/.cache/
-exports/
-config.local.json
-.env.local
-.env

@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 """Local song-generation wrapper (STUB).
 
-Invoked by app/server/song-service.ts with a single JSON arg on argv[1]:
+Kept as Python deliberately (see the migration recipe / SKILL.md's "Song
+Generation" section): the recommended local backends are Python-ecosystem ML
+models (SongGeneration v2 / MLX, ACE-Step 1.5) with no Node equivalent, so
+this stays a real Python operator script rather than a Node rewrite.
+scripts/generate_song_draft.mjs is the trusted Node wrapper that spawns this
+script and — once a backend is actually wired in below — uploads the result
+to Busabase and writes it onto the project record's song_* fields.
+
+Invoked with a single JSON arg on argv[1]:
 
     {
       "model": "mlx-community/SongGeneration-v2-large",

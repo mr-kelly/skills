@@ -1,0 +1,17 @@
+{
+  "appId": "kelly-mv",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-mv"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "project", "slug": "kelly-mv-project-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-mv-settings-v1", "schemaVersion": 1 },
+    { "key": "cast", "slug": "kelly-mv-cast-v1", "schemaVersion": 1 },
+    { "key": "shots", "slug": "kelly-mv-shots-v1", "schemaVersion": 1 }
+  ]
+}

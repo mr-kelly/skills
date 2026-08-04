@@ -1,6 +1,6 @@
 ---
 name: kelly-mv
-description: "Music-video production skill for turning an existing MP3 into a pure-visual (no-voiceover) music video through a bundled local App-in-Skill UI. Use when the user wants to build an MV from a song they upload: write a one-line concept, keep a cast of characters with reference cards, and break the song into storyboard shots where each shot has a scene description and an image + video that can be either AI-generated (image-to-image from the character cards, draft video via local LTX) or uploaded by the user. Same character/storyboard management model as kelly-drama. Song generation (creating the song itself, incl. voice-cloned singing) is a documented future capability."
+description: "Music-video production skill for turning an existing MP3 into a pure-visual (no-voiceover) music video through a bundled Busabase App-in-Skill UI. Use when the user wants to build an MV from a song they upload: write a one-line concept, keep a cast of characters with reference cards, and break the song into storyboard shots where each shot has a scene description and an image + video that can be either AI-generated (image-to-image from the character cards, draft video via local LTX) or uploaded by the user. Same character/storyboard management model as kelly-drama. Song generation (creating the song itself, incl. voice-cloned singing) is a documented future capability."
 ---
 
 # Kelly MV
@@ -28,25 +28,26 @@ description: "Music-video production skill for turning an existing MP3 into a pu
 
 ## Core Idea
 
-Use this skill as a music-video creative workspace. The app is the human editing surface; the skill is the creative producer: it reasons, drafts, validates, exports, and prepares AI-generation prompts. The app only reads and writes local project files.
+Use this skill as a music-video creative workspace. The app is the human editing surface; the skill is the creative producer: it reasons, drafts, validates, exports, and fulfills the AI-generation requests the app can only queue. The app reads and writes a Busabase workspace — one Folder, four Bases (project/settings/cast/shots) — plus Busabase Drive Assets for every uploaded or generated MP3/image/video.
 
 An MV here is **pure picture — no voiceover, no dialogue, no on-screen lyrics**. The job is simple: take an existing MP3 and give it visuals. The final video is the storyboard shots played in order over the song. (For voiced/dialogue drama, use `kelly-drama` instead — that is its job.)
 
 The app has exactly four areas: **概括 (Concept)**, **Song**, **角色 (Cast)**, **分镜 (Storyboard)**. Keep it that simple — don't reintroduce song sections, timeline tiling, or large per-shot production sheets.
 
-Default to the local app for ongoing creative work. Use chat-only mode only when the user explicitly asks for "chat only", "no UI", "纯聊天", or similar.
+Default to the AirApp for ongoing creative work — give the user the clickable AirApp URL, or run `pnpm --dir app dev` for a local preview. Use chat-only mode only when the user explicitly asks for "chat only", "no UI", "纯聊天", or similar.
 
 ## Default Flow
 
-1. Start or reuse the local app with `app/start.sh` (defaults to `127.0.0.1:3041`; honors `KELLY_MV_UI_PORT`).
-2. Check `app/.data/project.json`. If missing, the server seeds the bundled starter (a 静夜思 sample MV). You can also reseed with `scripts/create_sample_project.ts`.
+1. Open the AirApp (or `pnpm --dir app dev` for local preview, which asks you to connect Busabase and select a Space — never an API key).
+2. On first run the workspace is empty; provision it from the app's setup screen, then seed the bundled starter (a 静夜思 sample MV) with `node scripts/create_sample_project.mjs --apply`, or start from scratch.
 3. Use the app, following the sidebar **下一步 (next step)**:
    - **概括 (Concept)**: one-line summary of what the MV is and its tonality, a one-line visual `look`, and aspect ratio. That's it.
    - **Song**: upload an MP3. Duration is read automatically. Optional title/artist. Nothing else.
    - **角色 (Cast)**: the people on screen. Stable id, role, three-view visual notes, wardrobe, anchors, forbidden drift, and a **character reference card** image. Generate reference cards before storyboard work when consistency matters. No voice profiles (pure-visual MV). Same model as kelly-drama.
    - **分镜 (Storyboard)**: an ordered list of shots. Each shot has a **画面描述 (scene description)**, on-screen characters, a duration, and an **image + a video**. Image and video can each be **AI-generated** (image-to-image from the character cards; draft video via local LTX) **or uploaded** by the user.
-4. After edits, run `scripts/validate_ui_schema.ts` (structure) and `scripts/validate_shot_readiness.ts` (each shot has a title, description, and sane duration) before generating.
-5. Export a readable concept + shotlist with `scripts/export_story_bible.ts` for handoff.
+4. Clicking a "Generate" button in the app only writes a **request** onto the character/shot record (`reference_card_status` / `image_status` / `video_status` = `requested`) — the browser cannot hold the image-API key or spawn the local LTX process. After the user asks, fulfill pending requests with `node scripts/execute_generation_requests.mjs --apply` (dry run without `--apply`).
+5. After edits, run `node scripts/validate_shot_readiness.mjs` (each shot has a title, description, and sane duration; warns on cast missing reference cards) before generating.
+6. Export a readable concept + shotlist with `node scripts/export_story_bible.mjs` for handoff.
 
 ## Creative Operating Rules
 
@@ -60,7 +61,7 @@ Default to the local app for ongoing creative work. Use chat-only mode only when
 
 ## Song Generation (future capability)
 
-Selecting/importing an existing song is the supported path today. Creating the song itself — including singing in the user's **cloned voice** — is wired as a documented stub (`POST /api/song-generate` → `scripts/gen_song.py`), mirroring the local-draft / cloud-prod split used for video.
+Selecting/importing an existing song is the supported path today. Creating the song itself — including singing in the user's **cloned voice** — is wired as a documented stub: `scripts/generate_song_draft.mjs` spawns `scripts/gen_song.py`, mirroring the local-draft / cloud-prod split used for video. `gen_song.py` stays Python deliberately (the local backends worth recommending are Python-ecosystem ML models with no Node equivalent); `generate_song_draft.mjs` is the trusted wrapper that uploads whatever it produces to Busabase.
 
 Recommended local backends (Apple Silicon, no cloud):
 
@@ -68,37 +69,48 @@ Recommended local backends (Apple Silicon, no cloud):
 - **ACE-Step 1.5** — strongest local model, runs on Mac, <4GB, full vocals + instruments, supports **audio-prompt timbre cloning** and lyric editing → the path for "用我 clone 的声音创歌" (pass a reference clip as the timbre prompt).
 - **YuE** / **DiffRhythm** — full-length song-from-lyrics alternates; heavier.
 
-Caveat: cloning a *singing* voice needs a singing reference clip; a spoken sample clones timbre but not vocal performance well. To enable generation, install a backend into `app/.data/song/venv`, implement the inference call in `scripts/gen_song.py`, then flip `draft_ready` in `song-service.songConfigPayload()`.
+Caveat: cloning a *singing* voice needs a singing reference clip; a spoken sample clones timbre but not vocal performance well. To enable generation, install a backend into a local venv, implement the inference call in `scripts/gen_song.py`, then run `scripts/generate_song_draft.mjs --apply`.
 
-## App Contract
+## Busabase Resources
 
-The local app uses file-backed JSON only:
+One Folder (`kelly-mv`), four Bases, declared in `app/app/js/config.js` and
+`app/resource-map.json`:
 
-- `app/.data/project.json`: canonical MV workspace (`song`, `treatment` = concept, `characters`, `shots`).
-- `app/.data/image_config.json`: local-only image API configuration for storyboard generation.
-- `app/.data/song_config.json`: optional local-only song-generation backend configuration.
-- `app/.data/generated/songs/`: uploaded (or generated) song audio.
-- `app/.data/generated/storyboards/`, `.../references/`, `.../videos/`: generated or uploaded images and shot videos.
-- `app/.data/agent.lock`: temporary write lock.
+- `project`: single-row MV project meta — song title/artist/asset-id/duration/source and the concept (`treatment_summary`/`treatment_look`/`treatment_aspect_ratio`).
+- `settings`: one row (`record-id: "config"`) with the image-generation backend (base URL/model/size — the API key itself is an env var, never stored) and the song/video generation backend names.
+- `cast`: on-screen characters — visual notes, wardrobe, anchors/forbidden-drift (JSON arrays), and the reference-card's status/prompt/asset id.
+- `shots`: ordered storyboard shots (`position` field carries the order) — description/negative-prompt/video-prompt/duration/on-screen characters (JSON array of cast ids), and the image/video asset id + status + JSON-encoded candidate list.
 
-The app must not call external models for free, publish files, send messages, or mutate external systems beyond the configured image/video generation the user triggers. The skill may prepare or execute other actions only after the user asks.
+Binary media (uploaded MP3, character reference images, shot images/videos)
+are **Busabase Drive Assets**, not Base fields — uploaded from the browser
+via `busabase-sdk`'s real `assets` client (`createUploadUrl` → PUT bytes →
+`confirm`), with only the returned asset id stored on the owning record. See
+`references/ui-schema.md` for the full field <-> asset mapping and a known
+limitation of the standalone OSS CLI's asset-upload route.
+
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space. A soft-delete `deleted` text field
+(`"true"`/`"false"`) backs the app's Delete buttons on `cast`/`shots` — there
+is no destructive record delete in the write surface.
 
 ## When To Read References
 
 - Read `references/mv-workflow.md` when designing or improving an MV concept, cast library, shot breakdown, or image/video prompt workflow.
-- Read `references/ui-schema.md` when editing app files, generating project JSON, or validating data.
+- Read `references/ui-schema.md` when editing the app, generating/validating project data, or working with the Busabase field shapes or Drive Assets.
 
 ## Useful Commands
 
 ```bash
-skills/kelly-mv/app/start.sh
-node skills/kelly-mv/scripts/create_sample_project.ts
-node skills/kelly-mv/scripts/validate_ui_schema.ts
-node skills/kelly-mv/scripts/validate_shot_readiness.ts
-node skills/kelly-mv/scripts/export_story_bible.ts
+pnpm --dir skills/kelly-mv/app dev
+node skills/kelly-mv/scripts/create_sample_project.mjs --apply
+node skills/kelly-mv/scripts/validate_shot_readiness.mjs
+node skills/kelly-mv/scripts/export_story_bible.mjs
+node skills/kelly-mv/scripts/execute_generation_requests.mjs --apply
+node skills/kelly-mv/scripts/generate_song_draft.mjs --apply
 ```
 
-Run `validate_shot_readiness.ts` (optionally `--strict`) before an image/video generation pass. Use paths relative to the skills repository root, or run the scripts from inside `skills/kelly-mv`.
+Run `validate_shot_readiness.mjs` (optionally `--strict`) before an image/video generation pass. Every trusted script here connects with its own credentials (`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID`), never the AirApp's ambient session, and defaults to a dry run wherever it writes or generates.
+
 ## Execution reports
 
-Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.
+Re-read the active Busabase workspace immediately before fulfilling any pending generation request. `scripts/execute_generation_requests.mjs` records each concrete operation, target, status, and error directly on the owning `cast`/`shots` record (`*_status` = `generated`/`blocked`) — there is no separate execution-report file.

@@ -1,6 +1,6 @@
 # Kelly MV
 
-Kelly MV is a local App-in-Skill workbench for turning an existing MP3 into a pure-visual music video: a one-line concept, a cast with reference cards, and a storyboard of shots where each image/video can be AI-generated or uploaded.
+Kelly MV is a Busabase-backed App-in-Skill workbench for turning an existing MP3 into a pure-visual music video: a one-line concept, a cast with reference cards, and a storyboard of shots where each image/video can be AI-generated or uploaded.
 
 ## What It Shows
 
@@ -8,6 +8,7 @@ Kelly MV is a local App-in-Skill workbench for turning an existing MP3 into a pu
 - Song: the uploaded MP3, auto-detected duration, and title/artist metadata.
 - Cast: on-screen characters with three-view visual notes, anchors, and character reference-card images.
 - Storyboard: the ordered shot list with durations, image/video status badges, and a per-shot detail sheet.
+- Every uploaded MP3, character reference image, and shot image/video is a real Busabase Asset — never a local file or a data URL (demo mode is the only exception, using synthetic placeholders).
 
 ## App UI Screenshots
 
@@ -30,15 +31,21 @@ Kelly MV is a local App-in-Skill workbench for turning an existing MP3 into a pu
   </tr>
 </table>
 
-## Demo Mode
-
-Run the app and open a safe mock-data scene:
+## Running Locally
 
 ```bash
-skills/kelly-mv/app/start.sh
+pnpm --dir app install
+pnpm --dir app run build:sdk
+pnpm --dir app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Open the printed URL. A standalone local preview asks you to connect
+Busabase (Cloud or a custom server) and select a Space — never an API key.
+
+## Demo Mode
+
+Add a demo path to see a mock MV project (《霓虹潮汐》 / "Neon Tide") without a
+Busabase connection:
 
 ```text
 /?demo=overview&lang=en#/concept
@@ -47,8 +54,37 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=storyboard&lang=en#/storyboard
 ```
 
-Use `lang=zh` for the localized Chinese sample project (《霓虹潮汐》). Demo mode is deterministic and strictly read-only: it never reads or writes project files under `app/.data/`, all write endpoints are rejected with a demo notice, and demo media are synthetic placeholders served from memory (`/generated/demo/*` — flat SVG frames and a silent WAV), never real project assets.
+Use `lang=zh` for the localized Chinese copy. Demo mode is deterministic and
+strictly read-only: it never reads or writes Busabase, and demo media are
+synthetic placeholders generated in the browser (hash-tinted SVG frames, a
+short silent WAV) — never a real uploaded or generated asset.
 
-## Private Config
+## AI Generation
 
-Project state lives in `app/.data/project.json`; uploaded songs and generated images/videos live under `app/.data/generated/`. The image-generation backend (base URL, API key, model) is configured in the app's Settings panel and stored in `app/.data/image_config.json`; the song-generation backend is a documented stub in `config.example.json`. Never commit anything under `app/.data/` — real API keys, songs, project files, and generated assets stay local.
+Generating a character reference card, a storyboard image, or a draft shot
+video needs either a paid image-API key or a local LTX-Video checkout — the
+browser can only write a **request** onto the record (never hold the key or
+spawn the local model). `scripts/execute_generation_requests.mjs [--apply]`
+is the trusted process that fulfills those requests: it re-reads Busabase,
+performs the real generation call, uploads the result as a Busabase Asset,
+and flips the record's status to `generated` (or `blocked` on failure).
+Song generation (including a voice-cloned singing performance) is a
+documented future capability — see `SKILL.md`'s "Song Generation" section
+and `scripts/generate_song_draft.mjs` / `scripts/gen_song.py`.
+
+## Data
+
+The whole MV workspace — project meta (song + concept), cast, and storyboard
+shots — lives in four Busabase Bases under one application Folder; binary
+media are Busabase Drive Assets referenced by id. See `SKILL.md` and
+`references/ui-schema.md` for the field-slug tables and the Asset shape.
+Trusted skill-root scripts (`scripts/execute_generation_requests.mjs`,
+`scripts/create_sample_project.mjs`, `scripts/validate_shot_readiness.mjs`,
+`scripts/export_story_bible.mjs`, `scripts/generate_song_draft.mjs`) connect
+with their own credentials (`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` /
+`BUSABASE_SPACE_ID`), never the AirApp's ambient session, and default to a
+dry run wherever they write.
+
+## Philosophy
+
+The App-in-Skill pattern pairs an agent skill with a small companion UI. See the spec paper: <https://mr-kelly.github.io/research/app-in-skill-specification-for-pairing-agent-skills-with-a-local-companion-ui.pdf>.

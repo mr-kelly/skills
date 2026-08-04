@@ -3,18 +3,19 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly MV App-in-Skill — local music-video studio (Hono server, zero-build vanilla frontend).",
+  "description": "Kelly MV trusted skill-root scripts: AI generation dispatcher, sample-project seed, shot-readiness validation, story-bible export.",
   "scripts": {
-    "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts",
-    "execute:dry-run": "node scripts/execute_agent_tasks.ts",
-    "execute": "node scripts/execute_agent_tasks.ts --apply"
+    "generate": "node scripts/execute_generation_requests.mjs",
+    "generate:apply": "node scripts/execute_generation_requests.mjs --apply",
+    "seed:dry-run": "node scripts/create_sample_project.mjs",
+    "seed": "node scripts/create_sample_project.mjs --apply",
+    "validate": "node scripts/validate_shot_readiness.mjs",
+    "export": "node scripts/export_story_bible.mjs"
   },
   "dependencies": {
-    "hono": "^4.6.14",
-    "@hono/node-server": "^1.13.7"
+    "busabase-sdk": "0.11.0"
   },
   "engines": {
-    "node": ">=23.6"
+    "node": ">=24.18.0"
   }
 }
