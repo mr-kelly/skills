@@ -1,0 +1,15 @@
+{
+  "appId": "kelly-pr-review",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-pr-review"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "reviews", "slug": "kelly-pr-review-reviews-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-pr-review-settings-v1", "schemaVersion": 1 }
+  ]
+}

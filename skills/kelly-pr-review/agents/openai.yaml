@@ -1,3 +1,4 @@
-name: kelly-pr-review
-description: GitHub PR review desk using gh CLI and local App-in-Skill approval UI.
-model: gpt-5-codex
+interface:
+  display_name: "Kelly PR Review"
+  short_description: "GitHub pull request review desk (gh CLI ingestion + AirApp approval + gh CLI execution)"
+  default_prompt: "Use $kelly-pr-review to open my GitHub PR review desk AirApp and review the pull request queue."
