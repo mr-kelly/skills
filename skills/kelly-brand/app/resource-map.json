@@ -1,0 +1,16 @@
+{
+  "appId": "kelly-brand",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-brand"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "items", "slug": "kelly-brand-items-v1", "schemaVersion": 1 },
+    { "key": "drift_alerts", "slug": "kelly-brand-drift-alerts-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-brand-settings-v1", "schemaVersion": 1 }
+  ]
+}

@@ -1,14 +1,14 @@
 # Kelly Brand
 
-Kelly Brand is a local App-in-Skill workbench for a brand's **narrative single source of truth**, organized around the **TALE** framework — **Trace → Architect → Land → Evaluate**. The agent drafts the message house; you curate which drafts become the **canonical** narrative; a drift monitor flags off-brand usage across channels.
+Kelly Brand is a Busabase-backed App-in-Skill workbench for a brand's **narrative single source of truth**, organized around the **TALE** framework — **Trace → Architect → Land → Evaluate**. The agent drafts the message house; you curate which drafts become the **canonical** narrative; a drift monitor flags off-brand usage across channels.
 
 ## What It Shows
 
-- Overview — the **message house**: the positioning statement, the value pillars, the overall Narrative Quality Score (NQS) with its SHIP / FIX / BLOCK gate, and the open drift-alert count.
-- Narrative — message pillars plus vocabulary and guardrails, canonical vs draft, each editable with its NQS and TALE phase. Adopt / Request changes / Block per asset.
-- Stories — the story bank and the proof points with their evidence (a named source and stat). A proof point with no source is blocked.
-- Drift — off-brand usage the drift monitor flagged, each showing the offending copy vs the canonical guidance, with Approve fix / Dismiss.
-- The app never publishes anything. Adopting a draft as canonical and exporting the narrative are executed by the skill only after your explicit approval.
+- **Overview** — the **message house**: the positioning statement, the value pillars, the overall Narrative Quality Score (NQS) with its SHIP / FIX / BLOCK gate, and the open drift-alert count.
+- **Narrative** — message pillars plus vocabulary and guardrails, canonical vs draft, each editable with its NQS and TALE phase. Adopt / Request changes / Block per asset.
+- **Stories** — the story bank and the proof points with their evidence (a named source and stat). A proof point with no source is blocked.
+- **Drift** — off-brand usage the drift monitor flagged, each showing the offending copy vs the canonical guidance, with Approve fix / Dismiss.
+- The AirApp never publishes anything. Adopting a draft as canonical and exporting the narrative are executed by the skill only after your explicit approval.
 
 The left sidebar keeps fixed workflow filters (All / Needs Review / Canonical / Done / Blocked) alongside the views. "Canonical" is the label for the adopted (`approved`) state.
 
@@ -42,15 +42,19 @@ Every narrative asset carries a TALE phase and names the sub-skill that produced
   </tr>
 </table>
 
-## Demo Mode
-
-Run the app and open a safe mock-data scene for the invented brand "Fernpath":
+## Running Locally
 
 ```bash
-skills/kelly-brand/app/start.sh
+pnpm --dir app install
+pnpm --dir app dev
 ```
 
-Use the URL printed by the launcher (default port `3230`), then add one of these demo paths:
+Open the printed URL. A standalone local preview asks you to connect
+Busabase (Cloud or a custom server) and select a Space — never an API key.
+
+## Demo Mode
+
+Add a demo path to see a mock brand ("Fernpath") without a Busabase connection:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -60,12 +64,18 @@ Use the URL printed by the launcher (default port `3230`), then add one of these
 /?demo=settings&lang=en#/settings
 ```
 
-Demo mode never reads local brand files or private config.
+Demo mode never reads or writes Busabase.
 
-## Private Config
+## Data
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-brand/config.json`, then put channel source URLs/tokens in local env files only. Never commit real brand data, tokens, or files under `app/.data/`.
+All state — narrative items and the cross-channel drift alerts they're
+checked against, plus the brand profile — lives in three Busabase Bases
+under one application Folder. See `SKILL.md` and `references/brand-schema.md`
+for the resource map. `scripts/execute_decisions.mjs` is the trusted process
+that promotes an approved item to canonical; it connects with
+`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID` and performs
+no publishing itself.
 
-## Design
+## Philosophy
 
-Kelly Brand follows the App-in-Skill specification: a skill-launched local UI, a file handoff, a lock, a data provider, private config, onboarding, and a chat-only fallback. See the spec paper: <https://mr-kelly.github.io/research/app-in-skill-specification-for-pairing-agent-skills-with-a-local-companion-ui.pdf>
+The App-in-Skill pattern pairs an agent skill with a small companion UI. See the spec paper: <https://mr-kelly.github.io/research/app-in-skill-specification-for-pairing-agent-skills-with-a-local-companion-ui.pdf>.
