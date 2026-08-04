@@ -1,0 +1,17 @@
+{
+  "appId": "kelly-family-office",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-family-office"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "entities", "slug": "kelly-family-office-entities-v1", "schemaVersion": 1 },
+    { "key": "accounts", "slug": "kelly-family-office-accounts-v1", "schemaVersion": 1 },
+    { "key": "holdings", "slug": "kelly-family-office-holdings-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-family-office-settings-v1", "schemaVersion": 1 }
+  ]
+}

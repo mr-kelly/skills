@@ -1,6 +1,6 @@
 # Kelly Family Office
 
-Kelly Family Office is a local App-in-Skill dashboard that consolidates the holdings of multiple entities and members — an individual, a family trust, an offshore company, and more — into one read-only consolidated investment view. Data comes from CSV import and manual entry (no live brokerage API in v1).
+Kelly Family Office is a Busabase Cloud App-in-Skill dashboard that consolidates the holdings of multiple entities and members — an individual, a family trust, an offshore company, and more — into one read-only consolidated investment view. Data comes from CSV import (through a trusted skill-root script); there is no live brokerage API in v1.
 
 ## What It Shows
 
@@ -39,13 +39,13 @@ Kelly Family Office is a local App-in-Skill dashboard that consolidates the hold
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Run the app locally and open a safe mock-data scene:
 
 ```bash
-skills/kelly-family-office/app/start.sh
+pnpm --dir skills/kelly-family-office/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Then add one of these demo paths:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -56,18 +56,19 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=detail&lang=en#/entities/family-trust
 ```
 
-Demo mode never reads live brokerage/custody data or local private holdings files.
+Demo mode never reads or writes Busabase.
 
-## Private Config
+## Busabase Resources
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-family-office/config.json`. Set your `base_currency`, `fx_rates`, `entities`, and `institutions`. Never commit real holdings exports or files under `app/.data/`.
+Four Bases under one application Folder (`kelly-family-office`): `entities`, `accounts`, `holdings`, and `settings`. The AirApp is read-only — it only reads these Bases. See `SKILL.md` and `references/portfolio-schema.md` for exact field shapes.
 
 ## CSV Import
 
-Fill in `references/holdings-csv-template.csv` (or a copy) and run:
+Fill in `references/holdings-csv-template.csv` (or a copy) and run the trusted importer:
 
 ```bash
-node scripts/import_csv.ts path/to/holdings.csv
+BUSABASE_BASE_URL=... BUSABASE_API_KEY=... BUSABASE_SPACE_ID=... \
+  node scripts/import_csv.mjs path/to/holdings.csv --apply
 ```
 
-It normalizes rows into `app/.data/snapshot.json`, converting each holding to the base currency via config `fx_rates`.
+It resolves entity/account references against Busabase (creating a new entity or account record on the fly if the CSV names one that doesn't exist yet) and writes `holdings` rows via Busabase ChangeRequests. Without `--apply` it is a dry run.
