@@ -1,0 +1,21 @@
+{
+  "appId": "kelly-feedback",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-feedback"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "products", "slug": "kelly-feedback-products-v1", "schemaVersion": 1 },
+    { "key": "sources", "slug": "kelly-feedback-sources-v1", "schemaVersion": 1 },
+    { "key": "feedback", "slug": "kelly-feedback-feedback-v1", "schemaVersion": 1 },
+    { "key": "requests", "slug": "kelly-feedback-requests-v1", "schemaVersion": 1 },
+    { "key": "roadmap", "slug": "kelly-feedback-roadmap-v1", "schemaVersion": 1 },
+    { "key": "proposals", "slug": "kelly-feedback-proposals-v1", "schemaVersion": 1 },
+    { "key": "sync_log", "slug": "kelly-feedback-sync-log-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-feedback-settings-v1", "schemaVersion": 1 }
+  ]
+}

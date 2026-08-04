@@ -1,168 +1,164 @@
-# Kelly Feedback Snapshot Schema
+# Kelly Feedback Schema
 
-Use this schema for `app/.data/feedback_snapshot.json`. Keep the shape stable so the local app, scripts, and sibling-skill handoffs can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
+Use this schema when reading or writing Kelly Feedback's Busabase Bases.
+Field slugs are kebab-case in Busabase and normalized to snake_case in app
+code (`app/app/js/providers/busabase-provider.js`, `app/app/js/feedback-model.js`).
+Request `frequency`/`weighted_score` and every snapshot metric are computed
+client-side from `feedback`/`requests`/`proposals` on every read via
+`recomputeDerived()` — they are never stored.
 
-## Snapshot
+Channels: `email`, `discord`, `slack`, `x`, `appstore`, `survey`, `interview`.
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-feedback",
-  "products": [],
-  "sources": [],
-  "feedback": [],
-  "requests": [],
-  "roadmap": { "now": [], "next": [], "later": [] },
-  "proposals": [],
-  "metrics": {
-    "feedback_count": 0,
-    "new_feedback": 0,
-    "request_count": 0,
-    "proposals_needs_review": 0,
-    "requests_needs_info": 0,
-    "week_inflow": { "email": 0 },
-    "sentiment": { "positive": 0, "neutral": 0, "negative": 0 }
-  },
-  "sync_log": []
-}
-```
+Sentiments: `positive`, `neutral`, `negative`.
 
-`metrics`, request `frequency`, and request `weighted_score` are derived from the raw feedback stream by `recomputeDerived` in `app/server/store.ts`; every script that mutates the snapshot must call it before writing.
+Triage states: `new` (untriaged), `clustered` (linked to a request),
+`ignored` (spam/no signal), `insight` (useful signal that is not a feature
+request — bug reports, power-user patterns, docs ideas).
 
-## Product
+Request statuses: `candidate`, `roadmap`, `declined`, `needs_info`.
 
-```json
-{
-  "product_id": "stable local id",
-  "display_name": "Product Name",
-  "tagline": "optional one-liner"
-}
-```
+Proposal statuses: `needs_review`, `changes_requested`, `approved`, `done`,
+`blocked`. Proposal types: `promote_request`, `decline_request`,
+`merge_requests`, `publish_changelog`.
 
-## Source
+## Products (`kelly-feedback-products-v1`)
 
-```json
-{
-  "source_id": "stable local id",
-  "channel": "email|discord|slack|x|appstore|survey|interview",
-  "name": "Support inbox",
-  "collection": "kelly-email handoff | manual export | ...",
-  "last_ingest_at": "ISO timestamp",
-  "item_count": 0,
-  "status": "ok|warning|error"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `product-id` | `product_id` | text | stable domain id, required |
+| `display-name` | `display_name` | text | |
+| `tagline` | `tagline` | text | optional one-liner |
 
-## Feedback Item
+## Sources (`kelly-feedback-sources-v1`)
 
-```json
-{
-  "feedback_id": "fb-<source_id>-<external_id>",
-  "source_id": "source id",
-  "channel": "email|discord|slack|x|appstore|survey|interview",
-  "product": "product id or \"\"",
-  "user": {
-    "handle": "email, @handle, reviewer name, or respondent label",
-    "plan": "free|pro|team|... (free-form, mapped by scoring.plan_weights)",
-    "tenure_months": 0,
-    "weight": 1
-  },
-  "text": "full raw feedback text (original language)",
-  "sentiment": "positive|neutral|negative",
-  "received_at": "ISO timestamp",
-  "permalink": "optional source URL",
-  "request_id": "linked request id or \"\"",
-  "triage": "new|clustered|ignored|insight",
-  "agent_note": "optional short agent annotation"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `source-id` | `source_id` | text | stable domain id, required |
+| `channel` | `channel` | text | see Channels above |
+| `name` | `name` | text | |
+| `collection` | `collection` | text | e.g. `kelly-email handoff`, `manual export` |
+| `secret-envs` | `secret_envs` | longtext | JSON array of env var *names* (never values) |
+| `last-ingest-at` | `last_ingest_at` | text | ISO timestamp |
+| `item-count` | `item_count` | number | |
+| `status` | `status` | text | `ok\|warning\|error` |
 
-`weight` is the user's revenue weight (usually the plan weight from scoring config). A request's `weighted_score` is the sum of linked feedback weights, so weighted score = frequency × average user weight.
+## Feedback (`kelly-feedback-feedback-v1`)
 
-Triage states: `new` (untriaged), `clustered` (linked to a request), `ignored` (spam/no signal), `insight` (useful signal that is not a feature request — bug reports, power-user patterns, docs ideas).
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `feedback-id` | `feedback_id` | text | `fb-<source_id>-<external_id>`, required |
+| `source-id` | `source_id` | text | |
+| `channel` | `channel` | text | |
+| `product` | `product` | text | product id or empty |
+| `user-handle` | `user_handle` | text | email, @handle, reviewer name, or respondent label |
+| `user-plan` | `user_plan` | text | free-form, mapped by `settings.plan-weights` |
+| `user-tenure-months` | `user_tenure_months` | number | |
+| `user-weight` | `user_weight` | number | revenue weight; default 1 |
+| `text` | `text` | longtext | full raw feedback text, original language |
+| `sentiment` | `sentiment` | text | see Sentiments above |
+| `received-at` | `received_at` | text | ISO timestamp |
+| `permalink` | `permalink` | text | optional source URL |
+| `request-id` | `request_id` | text | linked request id or empty |
+| `triage` | `triage` | text | see Triage states above |
+| `agent-note` | `agent_note` | longtext | optional short agent annotation |
 
-## Request (Cluster)
+`weighted_score` on the linked request is the sum of linked feedback
+weights, so weighted score = frequency × average user weight.
 
-```json
-{
-  "request_id": "stable local id",
-  "title": "human-readable feature request title",
-  "product": "product id or \"\"",
-  "status": "candidate|roadmap|declined|needs_info",
-  "trend": "up|flat|down",
-  "frequency": 0,
-  "weighted_score": 0,
-  "problem_statement": "agent-drafted problem statement",
-  "spec_summary": "agent-drafted proposed spec summary",
-  "effort_estimate": "free-form, e.g. M (1-2 weeks)",
-  "representative_feedback_ids": ["fb-..."],
-  "decision_history": [
-    { "at": "ISO timestamp", "actor": "agent|kelly", "action": "created|updated|promoted|shipped|needs_info|proposed_decline", "note": "short note" }
-  ],
-  "created_at": "ISO timestamp",
-  "updated_at": "ISO timestamp"
-}
-```
+## Requests (`kelly-feedback-requests-v1`)
 
-## Roadmap Item
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `request-id` | `request_id` | text | stable domain id, required |
+| `title` | `title` | text | human-readable feature request title |
+| `product` | `product` | text | product id or empty |
+| `status` | `status` | text | see Request statuses above |
+| `trend` | `trend` | text | `up\|flat\|down` |
+| `effort-estimate` | `effort_estimate` | text | free-form, e.g. `M (1-2 weeks)` |
+| `problem-statement` | `problem_statement` | longtext | agent-drafted problem statement |
+| `spec-summary` | `spec_summary` | longtext | agent-drafted proposed spec summary |
+| `representative-feedback-ids` | `representative_feedback_ids` | longtext | JSON array of `feedback-id`s |
+| `decision-history` | `decision_history` | longtext | JSON array of `{at, actor, action, note}` |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `updated-at` | `updated_at` | text | ISO timestamp |
 
-```json
-{
-  "item_id": "stable local id",
-  "title": "roadmap item title",
-  "request_id": "optional linked request id",
-  "note": "optional short note"
-}
-```
+`frequency` and `weighted-score` are **not fields on this Base** — both are
+derived client-side from `feedback` by `recomputeDerived()` every time the
+snapshot is built, so the numbers always agree after any merge.
 
-The roadmap object has three lanes: `now`, `next`, `later`. The app renders them read-only; lanes change only through approved proposals executed by `scripts/execute_decisions.ts`.
+## Roadmap (`kelly-feedback-roadmap-v1`)
 
-## Proposal (Decision Queue Item)
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `item-id` | `item_id` | text | stable domain id, required |
+| `lane` | `lane` | text | `now\|next\|later` |
+| `title` | `title` | text | roadmap item title |
+| `request-id` | `request_id` | text | optional linked request id |
+| `note` | `note` | longtext | optional short note |
 
-```json
-{
-  "proposal_id": "stable local id",
-  "ref": 1,
-  "type": "promote_request|decline_request|merge_requests|publish_changelog",
-  "title": "agent-proposed roadmap change",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "request_id": "primary linked request id or \"\"",
-  "request_ids": ["for merge_requests: all involved request ids"],
-  "target_lane": "now|next|later or \"\" (promote_request only)",
-  "reason": "why the agent proposes this",
-  "evidence": "feedback counts, weights, accounts, trend",
-  "draft_kind": "changelog_note|decline_reply|merge_note or \"\"",
-  "draft": "editable public text (changelog note, decline reply, ...)",
-  "review_note": "Kelly's note from the review UI",
-  "created_at": "ISO timestamp",
-  "decided_at": "ISO timestamp or \"\""
-}
-```
+Read-only in the app; lanes change only through an approved proposal
+executed by `scripts/execute_decisions.mjs --apply`.
 
-`ref` is the stable per-snapshot number rendered as `Proposal #1` so chat comments like "approve #2" resolve unambiguously. Statuses follow the standard App-in-Skill workflow states; `changes_requested` enqueues an agent task and returns to `needs_review` after revision.
+## Proposals (`kelly-feedback-proposals-v1`)
 
-## Sync Log Entry
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `proposal-id` | `proposal_id` | text | stable domain id, required |
+| `type` | `type` | text | see Proposal types above |
+| `title` | `title` | text | agent-proposed roadmap change |
+| `status` | `status` | text | see Proposal statuses above |
+| `request-id` | `request_id` | text | primary linked request id or empty |
+| `request-ids` | `request_ids` | longtext | JSON array — for `merge_requests`, all involved request ids |
+| `target-lane` | `target_lane` | text | `now\|next\|later` or empty (`promote_request` only) |
+| `reason` | `reason` | longtext | why the agent proposes this |
+| `evidence` | `evidence` | longtext | feedback counts, weights, accounts, trend |
+| `draft-kind` | `draft_kind` | text | `changelog_note\|decline_reply\|merge_note` or empty |
+| `draft` | `draft` | longtext | editable public text (changelog note, decline reply, ...) |
+| `review-note` | `review_note` | longtext | Kelly's note from the review UI |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `decided-at` | `decided_at` | text | ISO timestamp or empty |
 
-```json
-{
-  "at": "ISO timestamp",
-  "actor": "kelly-feedback|agent|kelly",
-  "action": "ingest|cluster|execute|init",
-  "detail": "short human-readable description",
-  "count": 0
-}
-```
+`ref` (rendered as `Proposal #1`) is **not a field** — it is assigned
+client-side by `feedback-model.js`'s `withProposalRefs()`, a stable
+`created-at`-ascending sort, so refs stay put across reloads regardless of
+`records.list` page order.
 
-## Handoff Files
+## Sync Log (`kelly-feedback-sync-log-v1`)
 
-- `app/.data/decisions.json` — UI-written verdicts keyed by id: `proposals{}` (`approve|request_changes|block` + `review_note` + edited `draft`), `feedback{}` (`assign|ignore|insight` + `request_id`), `requests{}` (`effort_estimate`).
-- `app/.data/agent_tasks.json` — queued agent work (`revise_proposal` etc.), appended when a proposal gets `request_changes`.
-- `app/.data/execution_report.json` — output of `scripts/execute_decisions.ts` with concrete operations (`update_roadmap`, `publish_changelog_note`, `send_decline_reply`, `merge_requests`).
-- `app/.data/onboarding.json` — onboarding completion marker.
-- `app/.data/agent.lock` — write lock; the UI rejects decision writes and disables editing while it exists.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `sync-id` | `sync_id` | text | stable domain id, required |
+| `at` | `at` | text | ISO timestamp |
+| `actor` | `actor` | text | `kelly-feedback\|agent\|kelly` |
+| `action` | `action` | text | `ingest\|cluster\|execute\|init` |
+| `detail` | `detail` | longtext | short human-readable description |
+| `count` | `count` | number | |
 
-## Ingest Payload (input to `scripts/ingest_feedback.ts`)
+## Settings (`kelly-feedback-settings-v1`)
+
+One row, `record-id: "config"`:
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | always `"config"` |
+| `plan-weights` | `plan_weights` | longtext | JSON object, e.g. `{"free":1,"pro":3,"team":5}` |
+| `default-weight` | `default_weight` | number | default 1 |
+| `recency-half-life-days` | `recency_half_life_days` | number | default 30 |
+| `roadmap-lanes` | `roadmap_lanes` | longtext | JSON array, default `["now","next","later"]` |
+
+## Decisions
+
+A human verdict writes directly onto the record it decides — there is no
+separate decisions file:
+
+- **Proposal** (`#/roadmap`): `status`, `review-note`, optionally an edited
+  `draft`, and `decided-at` (unless the action is `revise`, a draft edit
+  with no verdict). Actions: `approve`, `request_changes`, `block`, `revise`.
+- **Feedback** (`#/inbox/<id>`): `triage` and, for `assign`, `request-id`.
+  Actions: `assign`, `ignore`, `insight`.
+- **Request** (`#/requests/<id>`): `effort-estimate`, `updated-at`.
+
+## Ingest Payload (input to `scripts/ingest_feedback.mjs`)
 
 ```json
 {
@@ -172,6 +168,9 @@ The roadmap object has three lanes: `now`, `next`, `later`. The app renders them
     "name": "Support inbox",
     "collection": "kelly-email handoff"
   },
+  "products": [
+    { "product_id": "pulseboard", "display_name": "PulseBoard", "tagline": "..." }
+  ],
   "items": [
     {
       "external_id": "stable id in the source system (dedupe key)",
@@ -187,9 +186,12 @@ The roadmap object has three lanes: `now`, `next`, `later`. The app renders them
 }
 ```
 
-Feedback ids are derived as `fb-<source_id>-<external_id>`; re-ingesting the same payload is idempotent.
+`products[]` is optional — include it to register or update product catalog
+entries (mirrors kelly-messenger's `ingest_messages.mjs` optional `account`
+onboarding field). Feedback ids are derived as `fb-<source_id>-<external_id>`;
+re-ingesting the same payload is idempotent.
 
-## Cluster Assignment Payload (input to `scripts/apply_clusters.ts`)
+## Cluster Assignment Payload (input to `scripts/apply_clusters.mjs`)
 
 ```json
 {
@@ -214,4 +216,22 @@ Feedback ids are derived as `fb-<source_id>-<external_id>`; re-ingesting the sam
 }
 ```
 
-An empty `request_id` unassigns; combine with `triage` to mark `ignored` or `insight`.
+An empty `request_id` unassigns; combine with `triage` to mark `ignored` or
+`insight`.
+
+## Execution (`scripts/execute_decisions.mjs`)
+
+The trusted handoff step. Reads `proposals` with `status: "approved"`.
+Without `--apply` it only prints the plan; with `--apply`:
+
+- `update_roadmap` and `merge_requests` are **LOCAL** — applied directly to
+  the `roadmap`/`requests` Bases.
+- `publish_changelog_note` and `send_decline_reply` are **always**
+  `handoff_ready` — this script never publishes a changelog, edits a roadmap
+  doc, or sends a reply itself. Real delivery happens through the
+  corresponding skill (`kelly-messenger`/`kelly-email`/docs edits) as a
+  separate, explicitly authorized step.
+
+Every processed proposal (local or handoff-only) is marked `status: "done"`
+directly on the proposal record, making re-runs idempotent — Busabase reads
+are always live, so there is no separate execution-report file.

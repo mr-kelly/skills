@@ -1,14 +1,19 @@
 # Kelly Feedback
 
-Kelly Feedback is a local App-in-Skill voice-of-customer desk. It aggregates raw user feedback from every channel — support email, Discord, Slack, X replies, app-store reviews, in-app surveys, interviews — lets the agent cluster it into feature requests with frequency and user weight, and gives Kelly a roadmap decision queue.
+Kelly Feedback is a Busabase-backed App-in-Skill voice-of-customer desk. It
+aggregates raw user feedback from every channel — support email, Discord,
+Slack, X replies, app-store reviews, in-app surveys, interviews — lets the
+agent cluster it into feature requests with frequency and user weight, and
+gives Kelly a roadmap decision queue.
 
 ## What It Shows
 
-- Overview: what needs a decision, feedback inflow this week by channel, sentiment split, top clusters by momentum, and source freshness.
-- Inbox: the raw feedback stream with channel badges, sentiment, and triage state; detail pages carry full text, user context, and triage actions.
-- Requests: clustered feature requests with frequency, weighted score (frequency × user revenue weight), trend, and status; detail pages carry the agent-drafted problem statement, spec summary, representative quotes, and decision history.
-- Roadmap: the decision queue — agent-proposed changes (promote to Now/Next/Later, decline with a drafted reply, merge duplicates) with reason, evidence, editable drafts, review notes, and Approve / Request changes / Block buttons — plus the current roadmap lanes read-only.
-- Help & Settings: sanitized config summary (products, sources, scoring weights, env readiness) and the sync log.
+- **Overview**: what needs a decision, feedback inflow this week by channel, sentiment split, top clusters by momentum, and source freshness.
+- **Inbox**: the raw feedback stream with channel badges, sentiment, and triage state; detail pages carry full text, user context, and triage actions that write straight to Busabase.
+- **Requests**: clustered feature requests with frequency, weighted score (frequency × user revenue weight, always recomputed client-side), trend, and status; detail pages carry the agent-drafted problem statement, spec summary, representative quotes, and decision history.
+- **Roadmap**: the decision queue — agent-proposed changes (promote to Now/Next/Later, decline with a drafted reply, merge duplicates) with reason, evidence, editable drafts, review notes, and Approve / Request changes / Block buttons that write directly to Busabase — plus the current roadmap lanes read-only.
+- **Help & Settings**: sanitized config summary (products, sources, scoring weights, env readiness) and the sync log.
+- The AirApp never calls a feedback platform, posts a reply, or publishes a changelog. Every outbound action is approval-required and executed by the agent via other skills, only after the matching proposal is approved.
 
 ## App UI Screenshots
 
@@ -31,15 +36,20 @@ Kelly Feedback is a local App-in-Skill voice-of-customer desk. It aggregates raw
   </tr>
 </table>
 
-## Demo Mode
-
-Run the app and open a safe mock-data scene:
+## Running Locally
 
 ```bash
-skills/kelly-feedback/app/start.sh
+pnpm --dir app install
+pnpm --dir app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Open the printed URL. A standalone local preview asks you to connect
+Busabase (Cloud or a custom server) and select a Space — never an API key.
+
+## Demo Mode
+
+Add a demo path to see a mock desk (PulseBoard/Formora, invented SaaS
+products) without a Busabase connection:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -49,22 +59,40 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=detail&lang=en#/requests/req-csv-export
 ```
 
-Demo mode never reads or writes local snapshot files; demo decisions are in-memory only.
+Demo mode never reads or writes Busabase; demo decisions are in-memory only.
 
 ## How Feedback Flows In
 
-Kelly Feedback sits downstream of the other kelly skills. kelly-email (support threads), kelly-messenger (Discord/Slack posts), and kelly-social (X replies) hand payload JSON files to the single write path:
+Kelly Feedback sits downstream of the other kelly skills. kelly-email
+(support threads), kelly-messenger (Discord/Slack posts), and kelly-social
+(X replies) hand payload JSON files to the single write path:
 
 ```bash
-node skills/kelly-feedback/scripts/ingest_feedback.ts payload.json
+node skills/kelly-feedback/scripts/ingest_feedback.mjs payload.json --apply
 ```
 
-The agent then clusters new items (`scripts/apply_clusters.ts`), drafts roadmap proposals, and — only after Kelly approves in the app — executes decisions (`scripts/execute_decisions.ts`, dry-run by default). Outbound replies and changelog posts are handed back to the messaging/email skills; the app itself never touches remote systems.
+The agent then clusters new items (`scripts/apply_clusters.mjs --apply`),
+drafts roadmap proposals directly into Busabase, and — only after Kelly
+approves in the app — executes decisions
+(`scripts/execute_decisions.mjs --apply`, dry-run by default). Outbound
+replies and changelog posts are handed back to the messaging/email skills;
+the app and the execute script never touch remote systems themselves.
 
-## Private Config
+## Data
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-feedback/config.json` (products, sources, scoring weights), and put tokens in local env files only. Never commit real tokens, user feedback exports, or files under `app/.data/`.
+All state — products, sources, feedback, clustered requests, roadmap lanes,
+proposals, the sync log, and scoring config — lives in eight Busabase Bases
+under one application Folder. See `SKILL.md` and
+`references/feedback-schema.md` for the resource map. Request
+`frequency`/`weighted_score` and every snapshot metric are computed
+client-side on every read, never stored. The three trusted scripts
+(`scripts/ingest_feedback.mjs`, `scripts/apply_clusters.mjs`,
+`scripts/execute_decisions.mjs`) connect with their own credentials
+(`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID`);
+`execute_decisions.mjs` performs no external send itself even with
+`--apply` — outbound operations are always left `handoff_ready` for the
+agent.
 
-## Boundary
+## Philosophy
 
-Aggregation is local and covers Kelly's own products and channels only. Any outbound action — replying to users, publishing a changelog note, editing a public roadmap — requires an approved proposal in the decision queue and is executed by the agent via other skills, never by this app.
+The App-in-Skill pattern pairs an agent skill with a small companion UI. See the spec paper: <https://mr-kelly.github.io/research/app-in-skill-specification-for-pairing-agent-skills-with-a-local-companion-ui.pdf>.
