@@ -1,184 +1,117 @@
 # Kelly Creators Schema
 
-Use this schema for the handoff files under `app/.data/`. Keep the shapes stable so the local app, scripts, and the skill can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
+Use this schema when reading or writing Kelly Creators' Busabase Bases.
+Field slugs are kebab-case in Busabase and normalized to snake_case in app
+code (`app/app/js/providers/busabase-provider.js`,
+`app/app/js/creators-model.js`). `phase`, `cpm`, and every rollup metric are
+computed client-side from the `creators` Base on every read — they are never
+stored.
 
-An **item is a creator engagement** (or a **quality gate** on a live post). The review-queue lifecycle uses the standard workflow states.
+An **item is a creator engagement** (or a **quality gate** on a live post).
+The review-queue lifecycle uses the standard workflow states.
 
-## Snapshot (`creator_snapshot.json`)
+Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-creators",
-  "base_currency": "USD",
-  "pipeline_stages": ["discovery", "outreach", "negotiating", "live", "measured"],
-  "metrics": {
-    "creator_count": 0,
-    "needs_review": 0,
-    "approved": 0,
-    "done": 0,
-    "blocked": 0,
-    "total_reach": 0,
-    "budget_total": 0,
-    "budget_allocated": 0,
-    "est_value": 0
-  },
-  "creators": [],
-  "warnings": []
-}
-```
+Decision actions: `approve`, `request_changes`, `block`, `revise`.
 
-`total_reach` sums followers over non-blocked engagements; `budget_allocated` sums `est_rate` over approved/done/live engagements; `est_value` sums `est_value` over engagements. Quality-gate items are excluded from these rollups.
+## Creators (`kelly-creators-creators-v1`)
 
-## Creator engagement (item)
+Rows are the review-queue items — every creator engagement plus every
+content-reviewer quality gate. `item-type: "quality_gate"` rows are excluded
+from `creator_count`/`total_reach`/`budget_allocated`/`est_value` but are
+counted in the `needs_review`/`approved`/`done`/`blocked` totals like any
+other row.
 
-```json
-{
-  "creator_id": "stable local id",
-  "ref": 1,
-  "handle": "@invented.handle",
-  "name": "Display Name",
-  "platform": "tiktok|instagram|youtube|xiaohongshu|twitter|twitch",
-  "niche": "beauty|fitness|tech|lifestyle|food|wellness|parenting",
-  "followers": 184000,
-  "engagement_rate": 0.062,
-  "fit_score": 92,
-  "fit_breakdown": {
-    "content": 95, "community": 90, "credibility": 88,
-    "audience": 96, "cost": 90, "engagement": 93
-  },
-  "stage": "discovery|outreach|negotiating|live|measured",
-  "phase": "discover|plan|activate|measure",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "proposed_action": "send_outreach|send_brief|draft_contract|no_action",
-  "est_rate": 1800,
-  "risk": ["money", "contract"],
-  "channel": "instagram_dm|tiktok_dm|email",
-  "reason": "why this action is proposed now",
-  "audience_note": "short audience-fit note",
-  "suggested_reply": "editable outreach DM / email / brief draft",
-  "est_value": 5200,
-  "spend": 0,
-  "cpm": 9.78,
-  "item_type": "engagement",
-  "created_at": "ISO timestamp"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `creator-id` | `creator_id` | text | stable domain id, required |
+| `ref` | `ref` | number | stable per-batch row number; never renumber on regeneration |
+| `item-type` | `item_type` | text | `engagement\|quality_gate` |
+| `handle` | `handle` | text | invented handle, e.g. `@lena.glowlab` |
+| `name` | `name` | text | display name |
+| `platform` | `platform` | text | `instagram\|tiktok\|youtube\|xiaohongshu\|twitter\|twitch` |
+| `niche` | `niche` | text | `beauty\|fitness\|tech\|lifestyle\|food\|wellness\|parenting` |
+| `followers` | `followers` | number | |
+| `engagement-rate` | `engagement_rate` | number | fraction, e.g. `0.062` |
+| `fit-score` | `fit_score` | number | C³ ACE match score, 0-100 |
+| `fit-breakdown` | `fit_breakdown` | longtext | JSON object: `{content, community, credibility, audience, cost, engagement}` |
+| `stage` | `stage` | text | `discovery\|outreach\|negotiating\|live\|measured` |
+| `status` | `status` | text | workflow status |
+| `proposed-action` | `proposed_action` | text | `send_outreach\|send_brief\|draft_contract\|no_action` |
+| `est-rate` | `est_rate` | number | estimated/quoted rate |
+| `risk` | `risk` | text | JSON array, e.g. `["money","contract"]` |
+| `channel` | `channel` | text | `instagram_dm\|tiktok_dm\|email` |
+| `reason` | `reason` | longtext | why this action is proposed now |
+| `audience-note` | `audience_note` | longtext | short audience-fit note |
+| `suggested-reply` | `suggested_reply` | longtext | editable outreach DM / email / brief draft |
+| `est-value` | `est_value` | number | estimated media value |
+| `spend` | `spend` | number | actual spend once live |
+| `gate-verdict` | `gate_verdict` | text | `ship\|fix\|block`, quality-gate items only |
+| `gate-checks` | `gate_checks` | longtext | JSON array of `{check, result, note}`, quality-gate items only |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `decision-note` | `decision_note` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
 
-- `fit_score` is the objective **C³ ACE** matching score (0-100): **C**ontent / **C**ommunity / **C**redibility × **A**udience / **C**ost / **E**ngagement, expanded in `fit_breakdown`.
-- `phase` tags the engagement with Aaron's discipline phase (Discover / Plan / Activate / Measure); it is derived from `stage`.
-- `est_rate` and `risk: ["money"|"contract"]` drive the money/contract risk badges. Any engagement carrying money or contract risk is **approval-required** before a contract is drafted.
-- `ref` is a stable per-batch row number so chat comments like "change #2" resolve unambiguously. Never renumber refs; retire ids instead.
+`fit_score` is the objective **C³ ACE** matching score (0-100): **C**ontent
+/ **C**ommunity / **C**redibility × **A**udience / **C**ost / **E**ngagement,
+expanded in `fit_breakdown`. `phase` tags the engagement with the
+Discover/Plan/Activate/Measure discipline phase; it is derived from `stage`.
+`cpm` (`(est_rate / followers) * 1000`, rounded to 2dp) is derived from
+`est_rate`/`followers`. `est_rate` and `risk: ["money"|"contract"]` drive the
+money/contract risk badges — any engagement carrying money or contract risk
+is **approval-required** before a contract is drafted.
 
-## Quality-gate item (content-reviewer)
+### Quality-gate rows (content-reviewer)
 
-A pre-publication decision gate on a live creator's draft post. Same item shape plus:
+A pre-publication decision gate on a live creator's draft post, same row
+shape plus `gate-verdict`/`gate-checks`. The gate outputs **SHIP / FIX /
+BLOCK** by checking FTC disclosure placement and claim authenticity before
+the post publishes. `est-rate`, `est-value`, and `followers` on a gate row
+are informational only and excluded from metric rollups.
 
-```json
-{
-  "item_type": "quality_gate",
-  "gate_verdict": "ship|fix|block",
-  "gate_checks": [
-    { "check": "ftc_disclosure", "result": "ship|fix|block", "note": "..." },
-    { "check": "claim_authenticity", "result": "ship|fix|block", "note": "..." },
-    { "check": "brand_safety", "result": "ship|fix|block", "note": "..." }
-  ]
-}
-```
+## Settings (`kelly-creators-settings-v1`)
 
-The gate outputs **SHIP / FIX / BLOCK** by checking FTC disclosure placement and claim authenticity before the post publishes. `est_rate`, `est_value`, and `followers` on a gate item are informational only and excluded from metric rollups.
+One row per `kind`, looked up by `record-id`:
 
-## Decisions (`decisions.json`)
+| `record-id` | `kind` | `payload` (JSON) |
+| --- | --- | --- |
+| `kelly-creators-profile` | `profile` | `{operator: {name, role, company, timezone}, program: {base_currency, budget_total, target_niches}, brands: [{brand_id, display_name, positioning}], style: {tone}, platforms: [{platform_id, type, display_name, handoff_skill, secret_envs, secrets_ready}]}` |
+| `kelly-creators-lock` | `lock` | not JSON-wrapped: fields `locked` (bool), `owner`, `message` live directly on the row |
 
-Written by the app; read by the skill and `scripts/execute_decisions.ts`.
+While the lock row has `locked: true` the app rejects decision writes and
+renders the outreach queue read-only.
 
-```json
-{
-  "updated_at": "ISO timestamp",
-  "decisions": {
-    "<creator_id>": {
-      "action": "approve|request_changes|block|revise",
-      "comment": "review note",
-      "draft": "optional user-edited draft; when present it replaces suggested_reply",
-      "decided_at": "ISO timestamp"
-    }
-  }
-}
-```
+## Decisions
 
-A decision decided after `generated_at` overrides the snapshot status in the UI: `approve` → `approved`, `request_changes` → `changes_requested`, `block` → `blocked`.
+A human verdict (`approve` / `request_changes` / `block` / `revise`) writes
+`status`, `decision-note`, and `decided-at` directly onto the creator
+record — approving an edited draft also writes the new `suggested-reply`.
+There is no separate decisions file: the creator record is the single source
+of truth for both the draft and its review state.
 
-## Agent Tasks (`agent_tasks.json`)
+## Metrics (computed, never stored)
 
-Queued agent work. The skill polls this to pick up revisions.
+- `creator_count`: engagements (excludes quality-gate rows).
+- `needs_review` / `approved` / `done` / `blocked`: counted over every row
+  (engagements AND quality-gate rows both carry a workflow `status`).
+- `total_reach`: sum of `followers` over non-`blocked` engagements.
+- `budget_allocated`: sum of `est_rate` over `approved`/`done`/`live`-status
+  engagements.
+- `est_value`: sum of `est_value` over engagements.
+- `budget_total`: read from the operator profile's `program.budget_total`,
+  not derived from rows.
 
-```json
-{
-  "updated_at": "ISO timestamp",
-  "tasks": [
-    {
-      "task_id": "task-<creator_id>-<ms>",
-      "type": "revise_outreach",
-      "creator_id": "creator id",
-      "comment": "what the user asked to change",
-      "requested_at": "ISO timestamp",
-      "status": "queued"
-    }
-  ]
-}
-```
+## Execution (`scripts/execute_decisions.mjs`)
 
-## Execution Report (`execution_report.json`)
+The trusted handoff step. Reads `creators` rows with `status: "approved"`
+and `item-type: "engagement"` (quality-gate rows are skipped — they have no
+outbound handoff), and with `--apply` writes `status: "done"` back onto
+each. It performs no sending, publishing, or contract execution itself —
+that happens through the corresponding skill (for example
+`instagram-outreach`, `tiktok-outreach`, `kelly-email`) as a separate,
+explicitly authorized step. Execution semantics by `proposed-action`:
 
-Written by `scripts/execute_decisions.ts`. Records concrete handoff operations only; no external side effects happen here.
-
-```json
-{
-  "executed_at": "ISO timestamp",
-  "dry_run": false,
-  "source": "kelly-creators",
-  "results": [
-    {
-      "creator_id": "creator id",
-      "ref": 1,
-      "status": "handed_off|dry_run|skipped",
-      "operation": "send_outreach|send_brief|draft_contract",
-      "channel": "instagram_dm|tiktok_dm|email",
-      "format": "pdf",
-      "draft_id": "stable local id",
-      "target": "@handle",
-      "draft": "approved draft that was handed off",
-      "comment": "review note",
-      "reason": "engagement reason",
-      "executed_at": "ISO timestamp"
-    }
-  ]
-}
-```
-
-## Onboarding (`onboarding.json`)
-
-```json
-{ "completed": true, "completed_at": "ISO timestamp", "config_version": "1" }
-```
-
-## Lock (`agent.lock`)
-
-```json
-{ "owner": "kelly-creators", "message": "Sweeping and scoring creators", "started_at": "ISO timestamp" }
-```
-
-While the lock exists the app rejects decision writes (HTTP 423) and renders the queue read-only.
-
-## Warnings
-
-```json
-{
-  "id": "stable warning id",
-  "severity": "info|warning|error",
-  "creator_id": "optional",
-  "message": "short human-readable message",
-  "detail": "optional detail"
-}
-```
+- `send_outreach` → hand off `suggested-reply` to the platform DM/email skill for `channel`.
+- `send_brief` → hand off the approved brief (`suggested-reply`, format `pdf`).
+- `draft_contract` → hand off contract terms for drafting (format `pdf`).
+- rows with `proposed-action: "no_action"` or missing are skipped.
