@@ -1,14 +1,15 @@
 # Kelly Drama
 
-Kelly Drama is a local App-in-Skill workbench for planning short-drama series: series bible, character consistency cards, relationship map, episode ladder, and storyboard shots, with AI image/video/voice generation hooks and a HyperFrame handoff for final motion work.
+Kelly Drama is a Busabase-backed App-in-Skill workbench for planning short-drama series: series bible, character consistency cards, relationship map, episode ladder, and storyboard shots, with AI image/video/voice generation hooks and a HyperFrame handoff for final motion work.
 
 ## What It Shows
 
-- Overview: project metrics, next-step cards, HyperFrame project status, and the visual bible.
+- Overview: project metrics, next-step cards, cached HyperFrame project status, and the visual bible.
 - Characters: character cards, actor profiles, three-view visual notes, reference-card images, and voice profiles.
 - Relationships: who relates to whom — public status, hidden truth, power dynamic, and evidence episodes.
 - Episodes: the episode table (summary, status, shot counts) plus per-episode script beats and the storyboard shot list.
 - Review queue: tasks that need human review or approval.
+- Every character reference card, reference voice, and shot image/video is a real Busabase Asset — never a local file or a data URL (demo mode is the only exception, using synthetic placeholders).
 
 ## App UI Screenshots
 
@@ -31,15 +32,21 @@ Kelly Drama is a local App-in-Skill workbench for planning short-drama series: s
   </tr>
 </table>
 
-## Demo Mode
-
-Run the app and open a safe mock-data scene:
+## Running Locally
 
 ```bash
-skills/kelly-drama/app/start.sh
+pnpm --dir app install
+pnpm --dir app run build:sdk
+pnpm --dir app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Open the printed URL. A standalone local preview asks you to connect
+Busabase (Cloud or a custom server) and select a Space — never an API key.
+
+## Demo Mode
+
+Add a demo path to see a mock drama project ("Walking Against the Light" /
+《逆光而行》) without a Busabase connection:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -48,8 +55,44 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=episodes&lang=en#/episodes
 ```
 
-Use `lang=zh` for the localized Chinese sample project (《逆光而行》). Demo mode is deterministic and strictly read-only: it never reads or writes project files under `app/.data/`, all write endpoints are rejected with a demo notice, and demo images are synthetic SVG placeholders served from memory (`/generated/demo/*`), never real project assets.
+Use `lang=zh` for the localized Chinese copy. Demo mode is deterministic and
+strictly read-only: it never reads or writes Busabase, and demo media are
+synthetic hash-tinted SVG placeholders generated in the browser — never a
+real generated or uploaded asset.
 
-## Private Config
+## AI Generation
 
-Project state lives in `app/.data/project.json`; generated images, videos, and voice samples live under `app/.data/generated/`. The image-generation backend (base URL, API key, model) is configured in the app's Settings panel and stored in `app/.data/image_config.json`. Never commit anything under `app/.data/` — real API keys, project files, and generated assets stay local. `config.example.json` documents the shareable defaults.
+Generating a character reference card, a reference voice, a storyboard
+image, or a shot video needs either a paid image-API key, a local Python
+with `mlx_audio` installed, a local LTX-Video checkout, or a Seedance/Ark
+API key — the browser can only write a **request** onto the record (never
+hold a key or spawn a local process). `scripts/execute_generation_requests.mjs
+[--apply]` is the trusted process that fulfills those requests: it re-reads
+Busabase, performs the real generation call, uploads the result as a
+Busabase Asset, and flips the record's status to `generated` (or `blocked`
+on failure).
+
+## HyperFrame
+
+The paired HyperFrame project lives on the operator's machine, so its status
+can never be read from the browser. `scripts/read_hyperframe_status.mjs
+[--apply]` scans the local HyperFrame project path (compositions, renders,
+audio, changelog) and caches the result on the project record for the app's
+HyperFrame panel to display.
+
+## Data
+
+The whole workspace — series bible, characters, relationships, episodes, and
+storyboard shots — lives in seven Busabase Bases under one application
+Folder; binary media are Busabase Drive Assets referenced by id. See
+`SKILL.md` and `references/ui-schema.md` for the field-slug tables and the
+Asset shape. Trusted skill-root scripts (`scripts/execute_generation_requests.mjs`,
+`scripts/read_hyperframe_status.mjs`, `scripts/create_sample_project.mjs`,
+`scripts/validate_shot_readiness.mjs`, `scripts/export_story_bible.mjs`)
+connect with their own credentials (`BUSABASE_BASE_URL` / `BUSABASE_API_KEY`
+/ `BUSABASE_SPACE_ID`), never the AirApp's ambient session, and default to a
+dry run wherever they write.
+
+## Philosophy
+
+The App-in-Skill pattern pairs an agent skill with a small companion UI. See the spec paper: <https://mr-kelly.github.io/research/app-in-skill-specification-for-pairing-agent-skills-with-a-local-companion-ui.pdf>.

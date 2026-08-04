@@ -27,11 +27,11 @@ Do not infer or relocate a HyperFrame project when the user gives a path. Store 
 
 For an existing HyperFrame project:
 
-1. Read `index.html` or the requested composition, plus `design.md` and changelog notes if present.
-2. Extract the scene list, timing, on-screen copy, narration/audio tracks, visual system, and key UI objects.
-3. Mirror each scene as a Kelly Drama beat/shot, preserving source scene id and source time ranges.
-4. Copy or extract rendered reference frames and the rendered video into `app/.data/generated/hyperframes/<project-episode>/`.
-5. Set `episode.hyperframe_composition` and `episode.hyperframe_video_asset`.
+1. Run `node scripts/read_hyperframe_status.mjs --apply` to cache the HyperFrame project's current status onto the Kelly Drama project record (the browser cannot read the local HyperFrame path directly).
+2. Read `index.html` or the requested composition, plus `design.md` and changelog notes if present.
+3. Extract the scene list, timing, on-screen copy, narration/audio tracks, visual system, and key UI objects.
+4. Mirror each scene as a Kelly Drama beat/shot, preserving source scene id and source time ranges.
+5. Set `episode.hyperframe_composition` and `episode.hyperframe_video_asset` (a reference/note pointing at the rendered output on the HyperFrame side).
 
 For a new episode planned in Kelly Drama first:
 
@@ -51,7 +51,7 @@ For a new episode planned in Kelly Drama first:
 - Add "continuity anchors" that should appear often: necklace, scar, suit color, phone case, ring, etc.
 - Add "forbidden drift" for common mistakes: age change, hair color change, missing scar, wrong wardrobe, softened villain energy.
 - Update the card whenever a plot reveal changes identity, wealth, family ties, trauma, legal status, or public reputation.
-- Give each character a voice as well as a face: a `voice_profile` (timbre/type, pace, accent, signature delivery, casting reference, sample audition line) plus a `voice_reference` asset slot for a generated reference voice (reserved placeholder until a TTS provider is wired). Keep shot `audio.dialogue[].tone` and `srt` speakers consistent with the character's voice profile, the same way image prompts stay consistent with the reference card.
+- Give each character a voice as well as a face: a `voice_profile` (timbre/type, pace, accent, signature delivery, casting reference, sample audition line) plus a `voice_reference` asset slot for a generated reference voice (local Qwen3-TTS/mlx-audio, fulfilled by `scripts/execute_generation_requests.mjs --apply`). Keep shot `audio.dialogue[].tone` and `srt` speakers consistent with the character's voice profile, the same way image prompts stay consistent with the reference card.
 
 ## Relationship Map Best Practices
 
@@ -95,7 +95,7 @@ Write prompts as production instructions, not literary prose. Keep one shot to o
 
 ## Shot Definition of Done (video-ready)
 
-A shot that only describes a still frame is image-ready, not video-ready. Generating video from thin shot data wastes generations. Before generating a shot's image or video, complete the full production sheet and run `scripts/validate_shot_readiness.ts`:
+A shot that only describes a still frame is image-ready, not video-ready. Generating video from thin shot data wastes generations. Before generating a shot's image or video, complete the full production sheet and run `scripts/validate_shot_readiness.mjs`:
 
 1. Timing: float `duration_seconds` to information density (4-6s reactions/close-ups, 8-12s establishing/ceremony/action); never exceed 12s. Set `emotion`.
 2. Camera spec: structured `shot_size`, `camera_angle`, `camera_movement`, `lens` in addition to freeform `camera`/`composition`/`setting`/`lighting`.
