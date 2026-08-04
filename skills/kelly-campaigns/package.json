@@ -3,16 +3,15 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly Campaigns App-in-Skill — outbound email-marketing review desk (Hono server, zero-build vanilla frontend).",
+  "description": "Kelly Campaigns Busabase Cloud skill and trusted send-handoff operator.",
   "scripts": {
-    "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts"
+    "execute": "node scripts/execute_decisions.mjs",
+    "app:check": "pnpm --dir app check"
   },
   "dependencies": {
-    "hono": "^4.6.14",
-    "@hono/node-server": "^1.13.7"
+    "busabase-sdk": "0.11.0"
   },
   "engines": {
-    "node": ">=23.6"
+    "node": ">=24.18.0"
   }
 }

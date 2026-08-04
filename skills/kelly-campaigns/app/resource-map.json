@@ -1,0 +1,17 @@
+{
+  "appId": "kelly-campaigns",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-campaigns"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "segments", "slug": "kelly-campaigns-segments-v1", "schemaVersion": 1 },
+    { "key": "sends", "slug": "kelly-campaigns-sends-v1", "schemaVersion": 1 },
+    { "key": "suppression", "slug": "kelly-campaigns-suppression-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-campaigns-settings-v1", "schemaVersion": 1 }
+  ]
+}

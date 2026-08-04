@@ -1,222 +1,125 @@
 # Kelly Campaigns Schema
 
-Use this schema for the handoff files under `app/.data/`. Keep the shapes stable so the local app, scripts, and the skill can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
+Use this schema when reading or writing Kelly Campaigns' Busabase Bases.
+Field slugs are kebab-case in Busabase and normalized to snake_case in app
+code (`app/app/js/providers/busabase-provider.js`,
+`app/app/js/campaigns-model.js`). Metrics, the pre-send deliverability-risk
+derivation, and the consent/suppression pre-send check are computed
+client-side from the `sends`/`suppression` Bases on every read — they are
+never stored.
 
-An **item is one email send** — a campaign, a newsletter issue, or a single sequence step. Sends are grouped by Aaron's SEND **phase** (`setup | engage | nurture | deliver`) and carry a pre-send **quality gate** (EQS score + `ship | fix | block` verdict).
+An **item is one email send** — a campaign, a newsletter issue, or a single
+sequence step. Sends are grouped by the SEND **phase** (`setup | engage |
+nurture | deliver`) and carry a pre-send **quality gate** (EQS score +
+`ship | fix | block` verdict), authored by the `email-quality-auditor` gate
+and stored on the record.
 
-## Snapshot (`campaigns_snapshot.json`)
+Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-campaigns",
-  "list_health": {
-    "subscriber_count": 0,
-    "bounce_rate": 0,
-    "complaint_rate": 0,
-    "churn_rate": 0,
-    "avg_open_rate": 0,
-    "avg_click_rate": 0
-  },
-  "metrics": {
-    "needs_review": 0,
-    "approved": 0,
-    "done": 0,
-    "blocked": 0,
-    "scheduled": 0,
-    "at_risk": 0
-  },
-  "segments": [],
-  "sends": [],
-  "warnings": []
-}
-```
+Decision actions: `approve`, `request_changes`, `block`, `revise`.
 
-`bounce_rate`, `complaint_rate`, `churn_rate`, `avg_open_rate`, and `avg_click_rate` are fractions (0–1).
+## Segments (`kelly-campaigns-segments-v1`)
 
-## Segment
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `segment-id` | `segment_id` | text | stable domain id, required |
+| `name` | `name` | text | |
+| `description` | `description` | longtext | |
+| `audience-size` | `audience_size` | number | |
 
-```json
-{
-  "segment_id": "stable local id",
-  "name": "New signups (30d)",
-  "description": "optional audience description",
-  "audience_size": 2140
-}
-```
+## Sends (`kelly-campaigns-sends-v1`)
 
-## Send (the review-queue item)
+The review-queue rows — every campaign / newsletter / sequence step / cold
+outbound send.
 
-`status` uses the standard workflow states. `phase` is the SEND facet.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `send-id` | `send_id` | text | stable domain id, required |
+| `ref` | `ref` | number | stable per-batch row number; never renumber on regeneration |
+| `type` | `type` | text | `campaign\|newsletter\|sequence_step\|cold_outbound` |
+| `phase` | `phase` | text | `setup\|engage\|nurture\|deliver` |
+| `from-identity-id` | `from_identity_id` | text | configured identity id |
+| `subject` | `subject` | text | subject line |
+| `preview-text` | `preview_text` | text | inbox preview / preheader |
+| `segment-id` | `segment_id` | text | target segment id |
+| `audience-size` | `audience_size` | number | |
+| `status` | `status` | text | workflow status |
+| `proposed-action` | `proposed_action` | text | `schedule_send\|ab_test\|hold\|no_action` |
+| `risk` | `risk` | text | JSON array, e.g. `["money","spam-word"]` |
+| `send-at` | `send_at` | text | ISO timestamp |
+| `deliverability` | `deliverability` | longtext | JSON object: `{spf_pass, dkim_pass, dmarc_pass, spam_score, inbox_readiness}` — `risk` is derived client-side, never stored (see below) |
+| `subject-variants` | `subject_variants` | longtext | JSON array `[{id, subject}]`; empty unless the send is an A/B subject test |
+| `chosen-variant` | `chosen_variant` | text | A/B variant id the reviewer picked |
+| `reason` | `reason` | longtext | why the agent proposes this send now |
+| `body` | `body` | longtext | editable email body draft |
+| `target-addresses` | `target_addresses` | longtext | JSON array; explicit recipient addresses, used only by the suppression pre-send check |
+| `performance` | `performance` | longtext | JSON object `{delivered, open_rate, click_rate, unsub_rate, bounce_rate}`, `null`/absent until `done` |
+| `quality-gate` | `quality_gate` | longtext | JSON object `{eqs, verdict, summary, checks}`, `null`/absent until the SEND audit has run |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `decision-note` | `decision_note` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
 
-```json
-{
-  "send_id": "stable local id",
-  "ref": 1,
-  "type": "campaign|newsletter|sequence_step|cold_outbound",
-  "phase": "setup|engage|nurture|deliver",
-  "from_identity_id": "configured identity id",
-  "subject": "subject line",
-  "preview_text": "inbox preview / preheader",
-  "segment_id": "segment id",
-  "audience_size": 5630,
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "proposed_action": "schedule_send|ab_test|hold|no_action",
-  "risk": ["money", "spam-word", "compliance", "deliverability"],
-  "send_at": "ISO timestamp",
-  "deliverability": {
-    "spf_pass": true,
-    "dkim_pass": true,
-    "dmarc_pass": true,
-    "spam_score": 1.4,
-    "inbox_readiness": 0.94,
-    "risk": "low|medium|high"
-  },
-  "subject_variants": [
-    { "id": "a", "subject": "Variant A subject" },
-    { "id": "b", "subject": "Variant B subject" }
-  ],
-  "reason": "why the agent proposes this send now",
-  "body": "editable email body draft",
-  "performance": {
-    "delivered": 47180,
-    "open_rate": 0.421,
-    "click_rate": 0.118,
-    "unsub_rate": 0.0021,
-    "bounce_rate": 0.0064
-  },
-  "quality_gate": {
-    "eqs": 92,
-    "verdict": "ship|fix|block",
-    "summary": "one-line SEND-audit summary",
-    "checks": [
-      { "key": "S", "label": "Sender & auth", "pass": true, "note": "SPF/DKIM/DMARC pass." },
-      { "key": "E", "label": "Engagement risk", "pass": true, "note": "..." },
-      { "key": "N", "label": "Not spammy", "pass": true, "note": "..." },
-      { "key": "D", "label": "Deliverability", "pass": true, "note": "..." }
-    ]
-  },
-  "created_at": "ISO timestamp"
-}
-```
+- `quality_gate.verdict` is `ship | fix | block`. A `block` verdict is a hard
+  stop regardless of `status`.
+- `deliverability.risk` is derived, never stored: `high` when auth fails,
+  `spam_score >= 5`, or `inbox_readiness < 0.6`; `medium` when
+  `spam_score >= 3` or `inbox_readiness < 0.8`; else `low`. See
+  `deliverabilityInfo()` in `app/app/js/campaigns-model.js`.
 
-- `ref` is a stable per-batch row number so chat comments like "change #2" resolve unambiguously. Never renumber refs when regenerating the snapshot; retire ids instead.
-- `subject_variants` is empty (`[]`) unless the send is an A/B subject test.
-- `performance` is `null` until a send is `done`.
-- `quality_gate` is `null` until the SEND audit has run. A `block` verdict or `deliverability.risk === "high"` means the send must not be scheduled.
-- `deliverability.risk` is derived: `high` when auth fails, `spam_score >= 5`, or `inbox_readiness < 0.6`; `medium` when `spam_score >= 3` or `inbox_readiness < 0.8`; else `low`.
+## Suppression (`kelly-campaigns-suppression-v1`)
 
-## SEND phases and the EQS gate
+The consent/suppression list: recipients or whole segments removed by
+unsubscribe, hard bounce, or complaint.
 
-Every send is tagged with the SEND phase it belongs to:
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `entry-id` | `entry_id` | text | stable domain id, required |
+| `address` | `address` | text | exactly one of `address` / `segment-id` identifies the scope |
+| `segment-id` | `segment_id` | text | |
+| `reason` | `reason` | text | `unsubscribe\|hard_bounce\|complaint` |
+| `note` | `note` | longtext | |
+| `suppressed-at` | `suppressed_at` | text | ISO timestamp |
+| `source` | `source` | text | e.g. `esp-webhook`, `operator` |
 
-- **Setup** — deliverability foundations, segments, list growth and hygiene.
-- **Engage** — creative, subject lines, render/dark-mode, dynamic personalization.
-- **Nurture** — sequences, newsletters, preference/frequency, reactivation.
-- **Deliver** — send experiments (A/B), inbox-placement monitoring, cold outbound, and the pre-send quality gate.
+An address-level entry is global — it excludes that address from every send
+regardless of segment. A segment-level entry only excludes recipients of
+that segment. An explicitly-targeted suppressed address (a send's
+`target_addresses` includes a suppressed `address`) hard-blocks the send; see
+`checkSuppression()` in `app/app/js/campaigns-model.js`.
 
-The **quality gate** is `email-quality-auditor`: it runs the **SEND** framework (Sender & auth, Engagement risk, Not spammy, Deliverability) to produce an **EQS** (0–100) and a **SHIP / FIX / BLOCK** verdict. Sending stays approval-required regardless of verdict; `block` is a hard stop.
+## Settings (`kelly-campaigns-settings-v1`)
 
-## Decisions (`decisions.json`)
+One row per `kind`, looked up by `record-id`:
 
-Written by the app; read by the skill and `scripts/execute_decisions.ts`.
+| `record-id` | `kind` | Shape |
+| --- | --- | --- |
+| `kelly-campaigns-profile` | `profile` | `payload` (JSON): `{operator: {name, role, company, timezone}, brand: {name, homepage, unsubscribe_url}, esp: {provider, display_name, secrets_ready}, from_identities: [{identity_id, from_name, from_email, reply_to, use_when}], sending_policy: {approval_required, daily_send_cap, hourly_send_cap, min_inbox_readiness, max_spam_score}, style_tone, list_health: {subscriber_count, bounce_rate, complaint_rate, churn_rate, avg_open_rate, avg_click_rate}}` |
+| `kelly-campaigns-lock` | `lock` | not JSON-wrapped: fields `locked` (bool), `owner`, `message` live directly on the row |
 
-```json
-{
-  "updated_at": "ISO timestamp",
-  "decisions": {
-    "<send_id>": {
-      "action": "approve|request_changes|block|revise",
-      "comment": "review note",
-      "body": "optional user-edited body; when present it replaces the draft",
-      "chosen_variant": "optional A/B variant id the user picked",
-      "decided_at": "ISO timestamp"
-    }
-  }
-}
-```
+While the lock row has `locked: true` the app rejects decision writes and
+renders the campaigns queue read-only.
 
-A decision decided after `generated_at` overrides the snapshot status in the UI: `approve` → `approved`, `request_changes` → `changes_requested`, `block` → `blocked`.
+## Decisions
 
-## Agent Tasks (`agent_tasks.json`)
+A human verdict writes `status`, `decision-note`, and `decided-at` directly
+onto the send record — approving an edited draft also writes the new `body`;
+picking an A/B variant also writes `chosen-variant`. There is no separate
+decisions file: the send record is the single source of truth for both the
+draft and its review state.
 
-Queued agent work. The skill polls this to pick up revisions.
+## Metrics And Warnings (computed, never stored)
 
-```json
-{
-  "updated_at": "ISO timestamp",
-  "tasks": [
-    {
-      "task_id": "task-<send_id>-<ms>",
-      "type": "revise_send",
-      "send_id": "send id",
-      "comment": "what the user asked to change",
-      "requested_at": "ISO timestamp",
-      "status": "queued"
-    }
-  ]
-}
-```
+- `metrics`: `needs_review`, `approved`, `done`, `blocked`, `scheduled`
+  (= `approved` count), `at_risk` (deliverability risk `high` OR quality
+  gate `block`).
+- `warnings`: one entry per send whose quality gate returns `block`.
 
-## Execution Report (`execution_report.json`)
+## Execution (`scripts/execute_decisions.mjs`)
 
-Written by `scripts/execute_decisions.ts`. Records concrete ESP handoff operations only; no external side effects happen here.
-
-```json
-{
-  "executed_at": "ISO timestamp",
-  "dry_run": false,
-  "source": "kelly-campaigns",
-  "esp": "configured-esp",
-  "results": [
-    {
-      "send_id": "send id",
-      "ref": 1,
-      "status": "scheduled|dry_run|skipped|blocked",
-      "operation": "schedule_send|ab_test|none",
-      "esp": "configured-esp",
-      "segment_id": "segment id",
-      "send_at": "ISO timestamp",
-      "variants": 2,
-      "chosen_variant": "b",
-      "reason": "send reason",
-      "executed_at": "ISO timestamp"
-    }
-  ]
-}
-```
-
-## Onboarding (`onboarding.json`)
-
-```json
-{
-  "completed": true,
-  "completed_at": "ISO timestamp",
-  "config_version": "1"
-}
-```
-
-## Lock (`agent.lock`)
-
-```json
-{
-  "owner": "kelly-campaigns",
-  "message": "Drafting sends",
-  "started_at": "ISO timestamp"
-}
-```
-
-While the lock exists the app rejects decision writes (HTTP 423) and renders the queue read-only.
-
-## Warnings
-
-```json
-{
-  "id": "stable warning id",
-  "severity": "info|warning|error",
-  "send_id": "optional",
-  "message": "short human-readable message",
-  "detail": "optional detail"
-}
-```
+The trusted handoff step. Reads `sends` with `status: "approved"`, re-checks
+the SEND quality gate, deliverability risk, and the consent/suppression
+list, and with `--apply` writes `status: "done"` back onto each send that
+clears every gate. It performs no ESP call, no send, and no list mutation
+itself — that happens through the configured ESP as a separate, explicitly
+authorized step. Without `--apply` it is a dry run that only prints the
+handoff operations (`schedule_send` or `ab_test`).
