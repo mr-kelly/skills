@@ -1,180 +1,167 @@
-# Kelly Lesson Snapshot Schema
+# Kelly Lesson Schema
 
-Use this schema for `app/.data/lesson_snapshot.json`. Keep the shape stable so the local app, scripts, and the agent's drafting workflow can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
+Use this schema when reading or writing Kelly Lesson's Busabase Bases. Field
+slugs are kebab-case in Busabase and normalized to snake_case in app code
+(`app/app/js/providers/busabase-provider.js`, `app/app/js/lesson-model.js`).
+Compliance checks, per-plan compliance scores, review-item content, the
+recent-activity feed, and metrics are all computed client-side from the
+`teachers`/`plans`/`checks`/`settings` Bases on every read (`buildSnapshot`/
+`assembleSnapshot` in `lesson-model.js`) — the only persisted state is what
+lives directly on those four Bases.
 
-## Snapshot
+Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-lesson",
-  "school": {
-    "name": "Example Middle School",
-    "kind": "middle_school|primary_school|high_school|training_program",
-    "class_length_minutes": 45,
-    "term": "term label"
-  },
-  "metrics": {
-    "teacher_count": 0,
-    "plan_count": 0,
-    "plans_approved": 0,
-    "plans_in_revision": 0,
-    "plans_needs_review": 0,
-    "checks_failed": 0,
-    "compliance_pass_rate": 0
-  },
-  "teachers": [],
-  "plans": [],
-  "rules": [],
-  "checks": [],
-  "review_items": [],
-  "activity_log": [],
-  "warnings": []
-}
-```
+Decision actions: `approve`, `request_changes`, `block`, `revise`.
 
-`plans_approved` counts `approved` plus `done`; `compliance_pass_rate` is the percentage of resolved checks (pass/warn/fail) that pass.
+Plan sources: `agent_draft`, `teacher_import`.
 
-## Teacher
+Check results: `pass`, `warn`, `fail`, `agent_review`.
 
-```json
-{
-  "teacher_id": "stable local id",
-  "name": "display name",
-  "subject": "Math",
-  "grades": ["Grade 7"]
-}
-```
+## Teachers (`kelly-lesson-teachers-v1`)
 
-## Plan
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `teacher-id` | `teacher_id` | text | stable domain id, required |
+| `name` | `name` | text | display name |
+| `subject` | `subject` | text | |
+| `grades` | `grades` | longtext | JSON array, e.g. `["Grade 7","Grade 8"]` |
 
-```json
-{
-  "plan_id": "stable local id",
-  "ref": 1,
-  "title": "human-readable lesson title",
-  "subject": "Math",
-  "grade": "Grade 7",
-  "unit": "unit or chapter label",
-  "teacher_id": "teacher id",
-  "source": "agent_draft|teacher_import",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "compliance_score": 0,
-  "class_length_minutes": 45,
-  "duration_minutes": 45,
-  "sections": {
-    "objectives": ["measurable objective"],
-    "key_points": ["key point"],
-    "difficulties": ["difficulty"],
-    "materials": ["material"],
-    "stages": [
-      { "name": "stage name", "minutes": 10, "activities": "what happens" }
-    ],
-    "board_plan": "board layout description",
-    "homework": "homework description",
-    "reflection": "post-lesson reflection",
-    "curriculum_refs": ["curriculum standard reference"],
-    "safety_notes": "required for lab lessons"
-  },
-  "notes": "dean's edit notes",
-  "created_at": "ISO timestamp",
-  "updated_at": "ISO timestamp"
-}
-```
+## Plans (`kelly-lesson-plans-v1`)
 
-`ref` is a stable per-snapshot number so the dean can say "Plan #2" in chat. `duration_minutes` is the sum of stage minutes. Sections mirror the school template; the keys above are the built-in set, and extra keys must be declared in `config template_sections`.
+A plan record is both the lesson plan and its review-queue item — there is
+no separate review-item or decisions Base. `scripts/ingest_plan.mjs` writes
+the plan/section fields; `scripts/run_checks.mjs` writes `compliance-score`;
+the AirApp (or a human in a standalone local preview) writes the
+`decision-*` fields; `scripts/execute_decisions.mjs` writes the
+`execution-*` fields.
 
-## Rule
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `plan-id` | `plan_id` | text | stable domain id, required |
+| `ref` | `ref` | number | stable per-Base row number so the dean can say "Plan #2" |
+| `title` | `title` | text | |
+| `subject` | `subject` | text | |
+| `grade` | `grade` | text | |
+| `unit` | `unit` | text | unit or chapter label |
+| `teacher-id` | `teacher_id` | text | references `teachers.teacher-id` |
+| `source` | `source` | text | `agent_draft\|teacher_import` |
+| `status` | `status` | text | workflow status |
+| `compliance-score` | `compliance_score` | number | `round(points/total*100)`, POINTS = pass 1 / warn 0.5 / fail 0 |
+| `class-length-minutes` | `class_length_minutes` | number | |
+| `duration-minutes` | `duration_minutes` | number | sum of `stages[].minutes` |
+| `objectives` | `objectives` | longtext | JSON array of measurable objectives |
+| `key-points` | `key_points` | longtext | JSON array |
+| `difficulties` | `difficulties` | longtext | JSON array |
+| `materials` | `materials` | longtext | JSON array |
+| `curriculum-refs` | `curriculum_refs` | longtext | JSON array of curriculum standard references |
+| `board-plan` | `board_plan` | longtext | board layout description |
+| `homework` | `homework` | longtext | |
+| `reflection` | `reflection` | longtext | post-lesson reflection |
+| `safety-notes` | `safety_notes` | longtext | required for lab lessons |
+| `stages` | `stages` | longtext | JSON array of `{name, minutes, activities}` |
+| `notes` | `notes` | longtext | dean's freeform notes (see below) |
+| `compliance-summary` | `compliance_summary` | longtext | one-line check summary for the review queue |
+| `suggestions` | `suggestions` | longtext | JSON array of agent revision suggestions |
+| `feedback-draft` | `feedback_draft` | longtext | editable feedback-to-teacher draft |
+| `decision-action` | `decision_action` | text | `approve\|request_changes\|block\|revise` |
+| `decision-note` | `decision_note` | longtext | dean's review note; also what the "Edit notes" panel writes |
+| `decided-at` | `decided_at` | text | ISO timestamp |
+| `execution-status` | `execution_status` | text | `planned\|ready_for_agent`, written by `execute_decisions.mjs` |
+| `execution-operation` | `execution_operation` | text | `publish_plan\|request_revision` |
+| `execution-target` | `execution_target` | text | export path (`publish_plan`) or `plan-id` (`request_revision`) |
+| `execution-detail` | `execution_detail` | longtext | human-readable next step |
+| `executed-at` | `executed_at` | text | ISO timestamp |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `updated-at` | `updated_at` | text | ISO timestamp |
 
-```json
-{
-  "rule_id": "stable rule id",
-  "name": "human-readable rule name",
-  "severity": "error|warning",
-  "type": "deterministic|agent_review"
-}
-```
+## Checks (`kelly-lesson-checks-v1`)
 
-Rules live in private config (`compliance_rules`, with optional `params`); `scripts/run_checks.ts` copies the sanitized list into the snapshot for display.
+One row per plan × compliance rule, keyed by `check-id = chk-<plan without
+"plan-" prefix>-<rule-id>`. `scripts/run_checks.mjs` upserts every row;
+`scripts/ingest_plan.mjs` can also upsert `agent_review`-typed rows via an
+ingest payload's `check_results` (marking `judged-by: "agent"`, which
+`run_checks.mjs` then preserves on re-runs).
 
-## Check
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `check-id` | `check_id` | text | `chk-<plan>-<rule>`, required |
+| `plan-id` | `plan_id` | text | references `plans.plan-id` |
+| `rule-id` | `rule_id` | text | e.g. `measurable_objectives`, `stage_count_timing` |
+| `severity` | `severity` | text | `error\|warning` |
+| `result` | `result` | text | `pass\|warn\|fail\|agent_review` |
+| `evidence` | `evidence` | longtext | short evidence snippet |
+| `judged-by` | `judged_by` | text | `agent`, only set for agent-judged `agent_review` rules |
+| `checked-at` | `checked_at` | text | ISO timestamp |
 
-```json
-{
-  "check_id": "chk-<plan>-<rule>",
-  "plan_id": "plan id",
-  "rule_id": "rule id",
-  "severity": "error|warning",
-  "result": "pass|warn|fail|agent_review",
-  "evidence": "short evidence snippet",
-  "judged_by": "agent (optional, for agent_review rules)",
-  "checked_at": "ISO timestamp"
-}
-```
+## Settings (`kelly-lesson-settings-v1`)
 
-`agent_review` means the rule needs the agent's judgement; the agent delivers the verdict through an ingest payload's `check_results`, and `run_checks.ts` preserves agent-judged results (`judged_by: "agent"`) on re-runs.
+A single row, `record-id: "config"`:
 
-## Review Item
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | always `"config"`, required |
+| `school-name` | `school_name` | text | |
+| `school-kind` | `school_kind` | text | `middle_school\|primary_school\|high_school\|training_program` |
+| `school-term` | `school_term` | text | term label |
+| `class-length-minutes` | `class_length_minutes` | number | default class length; a plan may override |
+| `subjects` | `subjects` | longtext | JSON array |
+| `grades` | `grades` | longtext | JSON array |
+| `template-sections` | `template_sections` | longtext | JSON array of `{key, label, required}` |
+| `compliance-rules` | `compliance_rules` | longtext | JSON array of `{rule_id, name, severity, type, params?}` |
+| `export-format` | `export_format` | text | `markdown` |
+| `export-out-dir` | `export_out_dir` | text | default `exports` |
+| `docx-via-agent` | `docx_via_agent` | text | `"true"\|"false"` |
+| `feedback-handoff-skill` | `feedback_handoff_skill` | text | e.g. `kelly-email` |
+| `feedback-requires-approval` | `feedback_requires_approval` | text | `"true"\|"false"` |
 
-```json
-{
-  "review_id": "stable local id",
-  "ref": 1,
-  "plan_id": "plan id",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "compliance_summary": "one-line check summary",
-  "suggestions": ["agent revision suggestion"],
-  "feedback_draft": "editable feedback-to-teacher draft",
-  "created_at": "ISO timestamp"
-}
-```
+## Deterministic Compliance Rules
 
-Decisions are stored separately in `app/.data/decisions.json` keyed by `review_id`:
+Evaluated by `evaluateRule()` in `lesson-model.js` (same logic in the AirApp
+and `scripts/run_checks.mjs`), driven by `compliance-rules[].params`:
 
-```json
-{
-  "updated_at": "ISO timestamp",
-  "decisions": {
-    "rv-example": {
-      "action": "approve|request_changes|block|revise",
-      "comment": "review note",
-      "draft": "edited feedback draft (optional)",
-      "decided_at": "ISO timestamp"
-    }
-  }
-}
-```
+- `measurable_objectives` — every objective must contain a measurable verb (`params.measurable_verbs`, default English + Chinese list) and there must be at least `params.min_objectives` (default 2).
+- `stage_count_timing` — at least `params.min_stages` (default 3) lesson-flow stages, every stage with `minutes > 0`.
+- `duration_sum` — `sum(stages[].minutes)` within `params.tolerance_minutes` (default 2) of the class length passes; within 5 minutes warns; beyond that fails.
+- `homework_assigned` — the `homework` section must be non-empty.
+- `template_sections` — every `template-sections` row with `required: true` must be present on the plan.
+- `safety_note_lab` — a lab lesson (title/unit/materials/stage text matching `params.lab_keywords`, default `["lab","experiment","实验"]`) must have a non-empty `safety-notes` section.
 
-`request_changes` also queues a `revise_plan` entry in `app/.data/agent_tasks.json`.
+`agent_review`-typed rules (for example `curriculum_alignment`) are not
+evaluated deterministically: an existing agent-judged pass/warn/fail is
+preserved; otherwise the check is `warn` (no `curriculum-refs` to judge
+against) or `agent_review` (pending).
 
-## Activity Log Entry
+## Decisions
 
-```json
-{
-  "id": "stable id",
-  "at": "ISO timestamp",
-  "actor": "agent|dean",
-  "detail": "what happened",
-  "plan_id": "optional plan id"
-}
-```
+A human verdict writes `status` (via `statusForVerdict()`), `decision-action`,
+`decision-note`, and `decided-at` directly onto the plan record —
+approving/revising with an edited draft also writes `feedback-draft`. There
+is no separate decisions file: the plan record is the single source of truth
+for both the draft and its review state. `revise` never changes `status`.
 
-## Warning
+## Execution (`scripts/execute_decisions.mjs`)
 
-```json
-{
-  "id": "stable warning id",
-  "severity": "info|warning|error",
-  "plan_id": "optional",
-  "message": "short human-readable message",
-  "detail": "optional detail"
-}
-```
+The trusted handoff step. Reads plans with `decision-action: "approve"` or
+`"request_changes"`, and with `--apply` writes `execution-status`/
+`execution-operation`/`execution-target`/`execution-detail`/`executed-at`
+back onto each — it never changes `status` itself. Operations:
 
-## Ingest Payload
+- `publish_plan` (from `approve`) → the agent runs `scripts/export_plans.mjs` to write the Markdown, then sends `feedback-draft` to the teacher via other channels (e.g. `kelly-email`) per SKILL.md's Boundary.
+- `request_revision` (from `request_changes`) → the agent redrafts the plan per `decision-note`, re-ingests with `scripts/ingest_plan.mjs`, and re-runs `scripts/run_checks.mjs`.
 
-`scripts/ingest_plan.ts` accepts a single plan object or:
+## Export (`scripts/export_plans.mjs`)
+
+Read-only against Busabase. Reads plans with `status` `approved` or `done`
+and writes one Markdown file per plan to `--out` (default `exports/` at the
+skill root, gitignored): a metadata table (school/subject/grade/unit/
+teacher/class length/compliance score) followed by objectives, key points,
+difficulties, materials, a lesson-flow table, board plan, homework, safety
+notes, teaching reflection, and curriculum refs — whichever sections are
+non-empty.
+
+## Ingest Payload (`scripts/ingest_plan.mjs`)
+
+Accepts a single plan object or:
 
 ```json
 {
@@ -188,7 +175,7 @@ Decisions are stored separately in `app/.data/decisions.json` keyed by `review_i
       "teacher": "teacher display name (or teacher_id)",
       "source": "agent_draft|teacher_import",
       "status": "optional; defaults to needs_review",
-      "sections": { "…as in Plan above…" },
+      "sections": { "objectives": [], "key_points": [], "difficulties": [], "materials": [], "curriculum_refs": [], "board_plan": "", "homework": "", "reflection": "", "safety_notes": "", "stages": [{ "name": "", "minutes": 0, "activities": "" }] },
       "compliance_summary": "optional review-item summary",
       "suggestions": ["optional review-item suggestions"],
       "feedback_draft": "optional feedback draft"
@@ -200,10 +187,5 @@ Decisions are stored separately in `app/.data/decisions.json` keyed by `review_i
 }
 ```
 
-## Other Handoff Files
-
-- `app/.data/decisions.json` — dean verdicts (shape above).
-- `app/.data/agent_tasks.json` — `{ "updated_at": "…", "tasks": [{ "task_id", "type": "revise_plan", "review_id", "plan_id", "ref", "comment", "requested_at", "status" }] }`.
-- `app/.data/execution_report.json` — written by `scripts/execute_decisions.ts --apply`; operations are `publish_plan`, `send_feedback`, `request_revision`.
-- `app/.data/onboarding.json` — `{ "completed": true, "completed_at": "…", "config_version": "…" }`.
-- `app/.data/agent.lock` — `{ "owner", "message", "started_at" }`; write endpoints return HTTP 423 while it exists.
+A new teacher name (with no matching `teacher_id`) is created on the fly in
+the `teachers` Base, mirroring the retired local importer's behavior.

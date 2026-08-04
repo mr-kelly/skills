@@ -1,0 +1,17 @@
+{
+  "appId": "kelly-lesson",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-lesson"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "teachers", "slug": "kelly-lesson-teachers-v1", "schemaVersion": 1 },
+    { "key": "plans", "slug": "kelly-lesson-plans-v1", "schemaVersion": 1 },
+    { "key": "checks", "slug": "kelly-lesson-checks-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-lesson-settings-v1", "schemaVersion": 1 }
+  ]
+}

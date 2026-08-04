@@ -1,6 +1,6 @@
 # Kelly Lesson
 
-Kelly Lesson is a local App-in-Skill desk for a dean of studies (教导主任) or training-program lead: the agent drafts lesson plans from curriculum materials and the school template, runs compliance checks against school quality standards, and the dean reviews, approves, and exports the plans — all over local files.
+Kelly Lesson is a Busabase App-in-Skill desk for a dean of studies (教导主任) or training-program lead: the agent drafts lesson plans from curriculum materials and the school template, runs compliance checks against school quality standards, and the dean reviews, approves, and exports the plans through the App-in-Skill review queue.
 
 ## What It Shows
 
@@ -33,13 +33,13 @@ Kelly Lesson is a local App-in-Skill desk for a dean of studies (教导主任) o
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-skills/kelly-lesson/app/start.sh
+pnpm --dir skills/kelly-lesson/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Then add one of these demo paths:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -49,11 +49,11 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=detail&lang=en#/plans/plan-math-linear-eq
 ```
 
-Use `lang=zh` for Chinese screenshots — the demo school, teachers, plan content, rules, and feedback drafts are localized (北湖中学). Demo mode never reads or writes files under `app/.data/`.
+Use `lang=zh` for Chinese screenshots — the demo school, teachers, plan content, rules, and feedback drafts are localized (北湖中学). Demo mode never reads or writes Busabase.
 
 ## Plan Payload Format
 
-`scripts/ingest_plan.ts` accepts a single plan object or `{ "plans": [...], "check_results": [...] }`:
+`scripts/ingest_plan.mjs` accepts a single plan object or `{ "plans": [...], "check_results": [...] }`:
 
 ```json
 {
@@ -78,12 +78,12 @@ Use `lang=zh` for Chinese screenshots — the demo school, teachers, plan conten
 }
 ```
 
-After ingesting, run `node scripts/run_checks.ts` to refresh compliance results, and `node scripts/export_plans.ts --out <dir>` to export approved plans as Markdown. See `references/lesson-schema.md` for the full contract.
+After ingesting, run `node scripts/run_checks.mjs --apply` to refresh compliance results, and `node scripts/export_plans.mjs --out <dir>` to export approved plans as Markdown. See `references/lesson-schema.md` for the full Busabase field contract.
 
-## Private Config
+## Busabase Setup
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-lesson/config.json` and adjust the school profile, template sections, and compliance rules. No secrets are required by default; if a feedback channel needs one, reference it by env var name in local env files only.
+Kelly Lesson provisions its own Folder and four Bases (`teachers`, `plans`, `checks`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
 
 ## Boundary
 
-The app renders local files only — it never contacts teachers or remote systems. Feedback to teachers is approval-required and sent by the agent via other channels after the dean approves. Never commit school data: `config.local.json`, `.env*`, `app/.data/`, and `exports/` are gitignored.
+The AirApp reads and writes Busabase only — it never contacts teachers or remote systems. Feedback to teachers is approval-required and sent by the agent via other channels after the dean approves. Ingesting a plan and exporting approved plans are local-file operations performed by the trusted `scripts/*.mjs` scripts, never by the browser. Never commit local payload files, env files, or generated exports (`exports/` is gitignored).
