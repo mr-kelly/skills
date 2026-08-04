@@ -3,16 +3,15 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly Launch App-in-Skill — local product-launch command desk (RAMP framework; Hono server, zero-build vanilla frontend).",
+  "description": "Kelly Launch Busabase Cloud skill and trusted launch-handoff operator.",
   "scripts": {
-    "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts"
+    "execute": "node scripts/execute_decisions.mjs",
+    "app:check": "pnpm --dir app check"
   },
   "dependencies": {
-    "hono": "^4.6.14",
-    "@hono/node-server": "^1.13.7"
+    "busabase-sdk": "0.11.0"
   },
   "engines": {
-    "node": ">=23.6"
+    "node": ">=24.18.0"
   }
 }
