@@ -1,200 +1,186 @@
-# Kelly Radar Snapshot Schema
+# Kelly Radar Schema
 
-Use this schema for `app/.data/radar_snapshot.json`. Keep the shape stable so the local app, scripts, and future connectors can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
+Use this schema when reading or writing Kelly Radar's Busabase Bases. Field
+slugs are kebab-case in Busabase and normalized to snake_case in app code
+(`app/app/js/providers/busabase-provider.js`, `app/app/js/radar-model.js`).
+`signals_7d` per watchlist target, the brief→question status join, and every
+metric are computed client-side from the live rows on every read — they are
+never stored twice.
 
-## Snapshot
+Signal triage actions: `approve`, `watch`, `ignore`, `block` (maps to
+`approved|needs_review|done|blocked`).
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-radar",
-  "range": { "start": "YYYY-MM-DD", "end": "YYYY-MM-DD" },
-  "metrics": {
-    "watch_target_count": 0,
-    "signal_count": 0,
-    "signals_needs_review": 0,
-    "questions_open": 0,
-    "briefs_needs_review": 0,
-    "reports_ready": 0,
-    "trend_mover_count": 0,
-    "opportunities_open": 0
-  },
-  "watchlist": [],
-  "signals": [],
-  "research": { "questions": [], "briefs": [], "reports": [] },
-  "trends": { "movers": [], "opportunities": [] },
-  "sync_log": []
-}
-```
+Brief decision actions: `approve`, `request_changes`, `block` (maps to
+`approved|changes_requested|blocked`).
 
-## Watch Target
+Opportunity decision actions: `approve`, `ignore` (maps to `approved|done`).
 
-```json
-{
-  "target_id": "stable local id",
-  "name": "Formora",
-  "type": "competitor|category|keyword|community",
-  "status": "ok|warning|stale|paused",
-  "notes": "why this target is watched",
-  "last_check_at": "ISO timestamp",
-  "signals_7d": 0,
-  "sources": [
-    {
-      "source_id": "stable local id",
-      "kind": "pricing|changelog|landing|launch|reviews|news|hiring|community",
-      "url": "public URL the agent checks",
-      "method": "browser_agent|manual",
-      "last_check_at": "ISO timestamp",
-      "last_change_at": "ISO timestamp"
-    }
-  ]
-}
-```
+Report action: `approve` — a 0-5 confidence rating, no status change.
 
-Use `stale` when `last_check_at` is older than the configured cadence. `paused` targets are kept but skipped by monitoring runs.
+## Watchlist (`kelly-radar-watchlist-v1`)
 
-## Signal
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `target-id` | `target_id` | text | stable domain id, required |
+| `name` | `name` | text | |
+| `type` | `type` | text | `competitor\|category\|keyword\|community` |
+| `status` | `status` | text | `ok\|warning\|stale\|paused` |
+| `notes` | `notes` | longtext | why this target is watched |
+| `last-check-at` | `last_check_at` | text | ISO timestamp |
+| `sources` | `sources` | longtext | JSON array: `[{source_id, kind, url, method, last_check_at, last_change_at}]` |
 
-```json
-{
-  "signal_id": "stable local id",
-  "target_id": "watch target id",
-  "source_id": "source id on that target",
-  "source_kind": "pricing|changelog|landing|launch|reviews|news|hiring|community",
-  "headline": "Formora raised Pro from $12 to $15/month",
-  "summary": "what changed, in 1-3 sentences",
-  "why_it_matters": "agent's note on relevance and suggested angle",
-  "severity": "high|medium|low",
-  "detected_at": "ISO timestamp",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "proposed_action": "act|watch|ignore|needs_info",
-  "handoff": {
-    "operation": "handoff_content_brief|handoff_roadmap_candidate|add_watch_source|start_research",
-    "target": "kelly-writer|kelly-feedback|<target_id>|<question_id>",
-    "summary": "concrete next step if approved"
-  },
-  "diff": {
-    "before_label": "Pricing page · Jun 24 crawl",
-    "after_label": "Pricing page · Jul 1 crawl",
-    "lines": [{ "type": "context|added|removed", "text": "Pro — $15/mo billed monthly" }]
-  },
-  "evidence": [{ "title": "Formora pricing page", "url": "https://…" }],
-  "content_hash": "sha256 of target_id+source_id+normalized change content"
-}
-```
+`signals_7d` is not stored — it is computed at read time by counting
+`signals` rows for the target detected within the last 7 days. Use `stale`
+when `last_check_at` is older than the configured cadence; `paused` targets
+are kept but skipped by monitoring runs.
 
-`handoff` and `diff` are optional. `content_hash` is the dedupe key: `scripts/ingest_signals.ts` skips payload signals whose hash already exists.
+## Signals (`kelly-radar-signals-v1`)
 
-Triage maps onto the standard review verbs: **Act** = `approve` (queues the handoff), **Watch** = leave in `needs_review` with a note, **Ignore** = `done`, **Needs info** = `blocked` (also enqueues an agent task to collect more).
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `signal-id` | `signal_id` | text | stable domain id, required |
+| `target-id` | `target_id` | text | watchlist target id |
+| `source-id` | `source_id` | text | source id on that target |
+| `source-kind` | `source_kind` | text | `pricing\|changelog\|landing\|launch\|reviews\|news\|hiring\|community` |
+| `severity` | `severity` | text | `high\|medium\|low` |
+| `detected-at` | `detected_at` | text | ISO timestamp |
+| `status` | `status` | text | `needs_review\|changes_requested\|approved\|done\|blocked` |
+| `headline` | `headline` | text | |
+| `summary` | `summary` | longtext | what changed, in 1-3 sentences |
+| `why-it-matters` | `why_it_matters` | longtext | agent's note on relevance and suggested angle |
+| `content-hash` | `content_hash` | text | sha256 of target_id+source_id+headline+summary+diff text — the dedupe key |
+| `evidence` | `evidence` | longtext | JSON array: `[{title, url}]` |
+| `proposed-action` | `proposed_action` | text | `act\|watch\|ignore\|needs_info` |
+| `handoff` | `handoff` | longtext | optional JSON: `{operation, target, summary}` |
+| `diff` | `diff` | longtext | optional JSON: `{before_label, after_label, lines: [{type, text}]}` |
+| `decision-verdict` | `decision_verdict` | text | written with the verdict |
+| `decision-comment` | `decision_comment` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
 
-## Research Question
+`handoff` and `diff` are optional. `scripts/ingest_signals.mjs` skips
+payload signals whose `content_hash` already exists.
 
-```json
-{
-  "question_id": "stable local id",
-  "question": "Should we build a mobile app?",
-  "status": "brief_needs_review|researching|report_ready|annotated|closed",
-  "asked_at": "ISO timestamp",
-  "depth": "quick|standard|deep",
-  "cost_note": "rough effort estimate",
-  "brief_id": "brief id or empty",
-  "report_id": "report id or empty",
-  "confidence": null,
-  "followups": [
-    { "followup_id": "id", "question": "…", "status": "queued|researching|closed", "asked_at": "ISO timestamp" }
-  ]
-}
-```
+## Research Questions (`kelly-radar-questions-v1`)
 
-## Research Brief
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `question-id` | `question_id` | text | stable domain id, required |
+| `question` | `question` | text | |
+| `status` | `status` | text | `brief_needs_review\|researching\|report_ready\|annotated\|closed` — derived client-side from the linked brief while still `brief_needs_review` |
+| `asked-at` | `asked_at` | text | ISO timestamp |
+| `depth` | `depth` | text | `quick\|standard\|deep` |
+| `cost-note` | `cost_note` | longtext | rough effort estimate |
+| `brief-id` | `brief_id` | text | linked brief id or empty |
+| `report-id` | `report_id` | text | linked report id or empty |
+| `confidence` | `confidence` | number | mirrors the linked report's confidence once rated |
+| `followups` | `followups` | longtext | JSON array: `[{followup_id, question, status, asked_at}]` — appended by the app's follow-up box |
 
-```json
-{
-  "brief_id": "stable local id",
-  "question_id": "question id",
-  "status": "needs_review|approved|changes_requested|blocked",
-  "drafted_at": "ISO timestamp",
-  "depth": "quick|standard|deep",
-  "scope": "what is in and out of scope",
-  "planned_sources": ["source descriptions"],
-  "expected_deliverable": "what the report will contain",
-  "notes": "optional"
-}
-```
+## Research Briefs (`kelly-radar-briefs-v1`)
 
-The agent drafts the brief first; research starts only after Kelly approves it. Brief verdicts use the standard verbs: `approve`, `request_changes` (agent revises, brief returns to `needs_review`), `block`.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `brief-id` | `brief_id` | text | stable domain id, required |
+| `question-id` | `question_id` | text | |
+| `status` | `status` | text | `needs_review\|approved\|changes_requested\|blocked` |
+| `drafted-at` | `drafted_at` | text | ISO timestamp |
+| `depth` | `depth` | text | `quick\|standard\|deep` |
+| `scope` | `scope` | longtext | what is in and out of scope |
+| `planned-sources` | `planned_sources` | longtext | JSON array of source descriptions |
+| `expected-deliverable` | `expected_deliverable` | longtext | what the report will contain |
+| `notes` | `notes` | longtext | optional |
+| `decision-verdict` | `decision_verdict` | text | written with the verdict |
+| `decision-comment` | `decision_comment` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
 
-## Research Report
+The agent drafts the brief first; research starts only after Kelly approves
+it. An approved brief moves its linked question to `researching`; a blocked
+brief closes the question — both derived client-side, never written back
+onto the question record.
 
-```json
-{
-  "report_id": "stable local id",
-  "question_id": "question id",
-  "title": "report title",
-  "filed_at": "ISO timestamp",
-  "summary": "executive summary",
-  "confidence": 4,
-  "sections": [
-    { "section_id": "id", "heading": "1. …", "body": "…", "source_ids": ["src-1"] }
-  ],
-  "sources": [
-    { "source_id": "src-1", "title": "…", "url": "https://… or local://…", "accessed_at": "ISO timestamp" }
-  ],
-  "annotations": [
-    { "annotation_id": "id", "author": "Kelly", "at": "ISO timestamp", "section_id": "id", "text": "…" }
-  ]
-}
-```
+## Research Reports (`kelly-radar-reports-v1`)
 
-Citation rule enforced by `scripts/file_report.ts`: every `sections[].source_ids` entry must resolve to a `sources[].source_id`, and every source needs a non-empty `title` and `url`. `confidence` is Kelly's 0-5 rating, set through the app.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `report-id` | `report_id` | text | stable domain id, required |
+| `question-id` | `question_id` | text | |
+| `title` | `title` | text | |
+| `filed-at` | `filed_at` | text | ISO timestamp |
+| `summary` | `summary` | longtext | executive summary |
+| `confidence` | `confidence` | number | Kelly's 0-5 rating, set through the app |
+| `sections` | `sections` | longtext | JSON array: `[{section_id, heading, body, source_ids}]` |
+| `sources` | `sources` | longtext | JSON array: `[{source_id, title, url, accessed_at}]` |
+| `annotations` | `annotations` | longtext | JSON array: `[{annotation_id, author, at, section_id, text}]` |
+| `decided-at` | `decided_at` | text | last confidence-rating timestamp |
 
-## Trend Mover
+Citation rule enforced by `scripts/file_report.mjs`: every `sections[].source_ids`
+entry must resolve to a `sources[].source_id`, and every source needs a
+non-empty `title` and `url`.
 
-```json
-{
-  "mover_id": "stable local id",
-  "keyword": "ai form builder",
-  "source": "search|community|category",
-  "volume_proxy": 9200,
-  "delta_pct": 64,
-  "momentum": [34, 38, 45, 52, 58, 71, 84, 100],
-  "first_seen": "YYYY-MM-DD",
-  "last_updated": "ISO timestamp",
-  "opportunity_id": "linked opportunity id or empty"
-}
-```
+## Trend Movers (`kelly-radar-movers-v1`)
 
-`volume_proxy` is a relative measure (search volume estimate, upvotes, mentions), not an absolute truth. `momentum` is a small series for the sparkline, oldest first. Dedupe key for `scripts/ingest_trends.ts` is `keyword` + `source`.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `mover-id` | `mover_id` | text | stable domain id, required |
+| `keyword` | `keyword` | text | |
+| `source` | `source` | text | `search\|community\|category` |
+| `volume-proxy` | `volume_proxy` | number | relative measure (search volume estimate, upvotes, mentions), not absolute truth |
+| `delta-pct` | `delta_pct` | number | |
+| `momentum` | `momentum` | longtext | JSON array of numbers, oldest first, for the sparkline |
+| `first-seen` | `first_seen` | text | `YYYY-MM-DD` |
+| `last-updated` | `last_updated` | text | ISO timestamp |
+| `opportunity-id` | `opportunity_id` | text | linked opportunity id or empty |
 
-## Opportunity
+Dedupe key for `scripts/ingest_trends.mjs` is `keyword` + `source` (keyword
+compared case-insensitively).
 
-```json
-{
-  "opportunity_id": "stable local id",
-  "title": "Own the 'ai form builder' comparison surface",
-  "mover_ids": ["mover ids"],
-  "status": "needs_review|approved|done|blocked",
-  "created_at": "ISO timestamp",
-  "rationale": "why this is worth acting on now",
-  "proposed_next_step": {
-    "operation": "handoff_content_brief|handoff_roadmap_candidate",
-    "target": "kelly-writer|kelly-feedback",
-    "summary": "concrete deliverable"
-  }
-}
-```
+## Opportunities (`kelly-radar-opportunities-v1`)
 
-## Companion Files
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `opportunity-id` | `opportunity_id` | text | stable domain id, required |
+| `title` | `title` | text | |
+| `mover-ids` | `mover_ids` | longtext | JSON array of linked mover ids |
+| `status` | `status` | text | `needs_review\|approved\|done\|blocked` |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `rationale` | `rationale` | longtext | why this is worth acting on now |
+| `proposed-next-step` | `proposed_next_step` | longtext | JSON: `{operation, target, summary}` — `handoff_content_brief\|handoff_roadmap_candidate`, target `kelly-writer\|kelly-feedback` |
+| `decision-verdict` | `decision_verdict` | text | written with the verdict |
+| `decision-comment` | `decision_comment` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
 
-- `app/.data/decisions.json`: `{ "updated_at": "ISO", "decisions": { "<item_id>": { "kind": "signal|brief|opportunity|report", "action": "approve|watch|ignore|block|request_changes", "status": "derived workflow status", "comment": "", "confidence": 4, "decided_at": "ISO" } } }`
-- `app/.data/agent_tasks.json`: `{ "updated_at": "ISO", "tasks": [{ "task_id": "", "kind": "revise_brief|collect_more_evidence|research_followup|…", "ref_id": "item id", "note": "", "created_at": "ISO", "status": "queued|in_progress|done" }] }`
-- `app/.data/execution_report.json`: written by `scripts/execute_decisions.ts`; one entry per approved item with `operation`, `target`, `dry_run`, and `status`.
-- `app/.data/onboarding.json`: `{ "completed": true, "completed_at": "ISO", "config_version": "1" }`
-- `app/.data/agent.lock`: `{ "owner": "kelly-radar", "message": "…", "started_at": "ISO" }` — the app rejects decision writes and the ingest scripts refuse to run while it exists.
+## Sync Log (`kelly-radar-sync-log-v1`)
 
-## Sync Log Entry
+Append-only; the app shows the most recent 50 entries sorted by `at` descending.
 
-```json
-{ "at": "ISO timestamp", "actor": "kelly-radar-agent", "action": "ingest_signals|ingest_trends|file_report|execute_decisions", "detail": "short human-readable result" }
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `log-id` | `log_id` | text | stable domain id, required |
+| `at` | `at` | text | ISO timestamp |
+| `actor` | `actor` | text | `kelly-radar-agent` |
+| `action` | `action` | text | `ingest_signals\|ingest_trends\|file_report\|execute_decisions` |
+| `detail` | `detail` | longtext | short human-readable result |
+
+## Settings (`kelly-radar-settings-v1`)
+
+One row, `record-id: "config"`.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | always `"config"`, required |
+| `products` | `products` | longtext | JSON array: `[{name, positioning}]` |
+| `cadence-monitor` | `cadence_monitor` | text | default `daily` |
+| `cadence-trends` | `cadence_trends` | text | default `weekly` |
+| `research-default-depth` | `research_default_depth` | text | `quick\|standard\|deep`, default `standard` |
+| `research-source-policy` | `research_source_policy` | text | default `public_pages_only` |
+| `research-require-citations` | `research_require_citations` | text | `"true"`/`"false"` string, default true |
+| `research-max-sources` | `research_max_sources` | number | default `8` |
+| `trend-sources` | `trend_sources` | longtext | JSON array: `[{source_id, kind, name, method}]` |
+
+## Decisions
+
+A human verdict writes `status` (where applicable), `decision-verdict`,
+`decision-comment`, and `decided-at` directly onto the item record. There is
+no separate decisions Base: the item record is the single source of truth,
+and `autoMerge` is gated by `isStandaloneLocalRuntime()` — a standalone
+local preview merges immediately (trusted operator), a deployed AirApp
+creates a pending ChangeRequest for the trusted process to merge.
