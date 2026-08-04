@@ -1,0 +1,303 @@
+from __future__ import annotations
+
+import json
+import sys
+import tempfile
+import urllib.request
+from pathlib import Path
+
+from playwright.sync_api import Page, sync_playwright
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
+
+from runtime import free_port, managed_process
+
+APP_ROOT = REPO_ROOT / "skills" / "kelly-social" / "app"
+RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-social"
+BUSABASE_VERSION = "0.11.0"
+
+
+def assert_no_horizontal_overflow(page: Page) -> None:
+    dimensions = page.evaluate(
+        """() => ({
+          viewport: document.documentElement.clientWidth,
+          content: document.documentElement.scrollWidth,
+        })"""
+    )
+    assert dimensions["content"] <= dimensions["viewport"] + 1, dimensions
+
+
+def attach_error_capture(page: Page) -> list[str]:
+    errors: list[str] = []
+    page.on("console", lambda message: errors.append(f"console: {message.text}") if message.type == "error" else None)
+    page.on("pageerror", lambda error: errors.append(f"pageerror: {error}"))
+    return errors
+
+
+def test_demo_ui(browser, base_url: str) -> None:
+    desktop = browser.new_context(viewport={"width": 1280, "height": 820})
+    page = desktop.new_page()
+    errors = attach_error_capture(page)
+
+    # The demo dataset (3 accounts, 17 posts, 8 calendar entries, 6 drafts,
+    # 3 shorts, 5 engagement items) is ported verbatim from the retired
+    # app/server/demo.ts — counts verified against
+    # app/app/js/providers/demo-provider.js with a throwaway Node probe before
+    # writing these assertions. Exactly 1 of the 6 drafts (draft-5) trips the
+    # social-qa gate (banned claim + undisclosed promo) and is forced to
+    # "blocked", so it never renders an Approve button.
+    page.goto(f"{base_url}/?demo=overview&lang=en#/overview")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".metrics").is_visible()
+    assert page.locator(".kpi-grid .account-card").count() == 3
+    assert_no_horizontal_overflow(page)
+
+    page.goto(f"{base_url}/?demo=timeline&lang=en#/timeline")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".table-wrap table tbody tr").count() == 17
+
+    page.goto(f"{base_url}/?demo=accounts&lang=en#/accounts")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".account-grid .account-card").count() == 3
+
+    page.goto(f"{base_url}/?demo=calendar&lang=en#/calendar")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".calendar-table tbody tr").count() == 8
+
+    page.goto(f"{base_url}/?demo=compose&lang=en#/compose")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".desk-card").count() == 6
+    assert page.locator("[data-op='review_draft'][data-status='approved']").count() == 5
+    # The single blocked draft (draft-5) renders the "gate-BLOCK" class 3
+    # times: the desk-head badge, the gate-panel container, and the badge
+    # repeated inside the gate-panel header.
+    assert page.locator(".gate-BLOCK").count() == 3
+
+    page.goto(f"{base_url}/?demo=shorts&lang=en#/shorts")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".desk-card").count() == 3
+
+    page.goto(f"{base_url}/?demo=engagement&lang=en#/engagement")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".desk-card").count() == 5
+
+    page.goto(f"{base_url}/?demo=crisis&lang=en#/crisis")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".crisis-step").count() == 5
+
+    page.goto(f"{base_url}/?demo=detail&lang=en#/accounts/x-kelly")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".detail").is_visible()
+    assert not errors, errors
+    desktop.close()
+
+    for width, height in ((390, 844), (360, 740)):
+        mobile = browser.new_context(viewport={"width": width, "height": height})
+        page = mobile.new_page()
+        errors = attach_error_capture(page)
+        page.goto(f"{base_url}/?demo=compose&lang=en#/compose")
+        page.wait_for_load_state("networkidle")
+        assert_no_horizontal_overflow(page)
+
+        page.locator("#mobileSidebarToggle").click()
+        assert page.locator("body.sidebar-open").count() == 1
+        assert page.locator("#sidebarScrim").is_visible()
+        page.locator("#sidebarScrim").click(position={"x": width - 5, "y": 5})
+        assert page.locator("body.sidebar-open").count() == 0
+
+        assert_no_horizontal_overflow(page)
+        assert not errors, errors
+        mobile.close()
+
+
+def read_json(url: str):
+    with urllib.request.urlopen(url, timeout=5) as response:
+        return json.load(response)
+
+
+def post_json(url: str, payload: dict):
+    request = urllib.request.Request(
+        url,
+        data=json.dumps(payload).encode(),
+        headers={"content-type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        return json.load(response)
+
+
+def resource_keys(nodes) -> list[str]:
+    keys: list[str] = []
+    for node in nodes:
+        key = (node.get("metadata") or {}).get("resourceKey")
+        if key:
+            keys.append(key)
+        keys.extend(resource_keys(node.get("children") or []))
+    return keys
+
+
+def find_resource(nodes, resource_key: str):
+    for node in nodes:
+        if (node.get("metadata") or {}).get("resourceKey") == resource_key:
+            return node
+        found = find_resource(node.get("children") or [], resource_key)
+        if found:
+            return found
+    return None
+
+
+def test_busabase_provisioning(browser) -> None:
+    busabase_port = free_port()
+    app_port = free_port()
+    busabase_url = f"http://127.0.0.1:{busabase_port}"
+    app_url = f"http://127.0.0.1:{app_port}"
+
+    with tempfile.TemporaryDirectory(prefix="kelly-social-busabase-") as data_dir:
+        busabase_command = [
+            "npx",
+            "-y",
+            f"busabase@{BUSABASE_VERSION}",
+            "server",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(busabase_port),
+            "--data",
+            data_dir,
+        ]
+        with managed_process(
+            busabase_command, REPO_ROOT, {}, f"{busabase_url}/api/health", timeout=90
+        ) as (_, busabase_logs):
+            with tempfile.TemporaryDirectory(prefix="kelly-social-home-") as app_home:
+                app_env = {"BUSABASE_BASE_URL": busabase_url, "HOME": app_home, "PORT": str(app_port)}
+                with managed_process(["node", "server.js"], APP_ROOT, app_env, f"{app_url}/health") as (
+                    _,
+                    app_logs,
+                ):
+                    context = browser.new_context(viewport={"width": 1280, "height": 820})
+                    page = context.new_page()
+                    errors = attach_error_capture(page)
+                    page.goto(f"{app_url}/#/compose")
+                    page.wait_for_load_state("networkidle")
+                    assert page.get_by_role("heading", name="Initialize the Busabase workspace").is_visible()
+                    page.locator("[data-provision]").click()
+                    try:
+                        page.wait_for_selector("[data-provision]", state="detached", timeout=30_000)
+                    except Exception:
+                        nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
+                        change_requests = read_json(f"{busabase_url}/api/v1/change-requests")
+                        raise AssertionError(
+                            "Lazy provisioning did not become ready.\n"
+                            f"Page: {page.locator('body').inner_text()}\n"
+                            f"Nodes: {json.dumps(nodes, ensure_ascii=False)}\n"
+                            f"Change requests: {json.dumps(change_requests, ensure_ascii=False)}\n"
+                            f"App logs: {''.join(app_logs[-100:])}\n"
+                            f"Busabase logs: {''.join(busabase_logs[-100:])}"
+                        )
+                    page.reload()
+                    page.wait_for_load_state("networkidle")
+                    assert page.locator("[data-provision]").count() == 0
+                    assert not errors, errors
+                    context.close()
+
+                nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
+                drafts_base = find_resource(nodes, "drafts")
+                assert drafts_base and drafts_base.get("baseId"), nodes
+                record_cr = post_json(
+                    f"{busabase_url}/api/v1/bases/{drafts_base['baseId']}/change-requests",
+                    {
+                        "fields": {
+                            "draft-id": "draft-fixture",
+                            "channels": json.dumps(["x"]),
+                            "pillar": "build-in-public",
+                            "hook": "Fixture-worthy hook that clears the gate easily.",
+                            "body": "Fixture body text for the integration test round trip.",
+                            "hashtags": json.dumps(["#fixture"]),
+                            "cta": "Read more.",
+                            "status": "needs_review",
+                            "created-at": "2026-01-01T00:00:00.000Z",
+                        },
+                        "message": "Seed Kelly Social integration fixture draft",
+                        "submittedBy": "kelly-skills-test",
+                    },
+                )
+                post_json(f"{busabase_url}/api/v1/change-requests/merge", {"changeRequestIds": [record_cr["id"]]})
+
+                # A fresh app process must discover the existing resources and records,
+                # and a human verdict on the seeded draft must write straight to Busabase.
+                app_port = free_port()
+                app_url = f"http://127.0.0.1:{app_port}"
+                app_env["PORT"] = str(app_port)
+                with managed_process(["node", "server.js"], APP_ROOT, app_env, f"{app_url}/health"):
+                    context = browser.new_context(viewport={"width": 390, "height": 844})
+                    page = context.new_page()
+                    errors = attach_error_capture(page)
+                    page.goto(f"{app_url}/#/compose")
+                    page.wait_for_load_state("networkidle")
+                    assert page.locator("[data-provision]").count() == 0
+                    card = page.locator(".desk-card", has_text="Fixture-worthy hook that clears the gate easily.")
+                    assert card.is_visible()
+                    card.locator("[data-op='review_draft'][data-status='approved']").click()
+                    page.wait_for_timeout(500)
+                    assert_no_horizontal_overflow(page)
+                    assert not errors, errors
+                    context.close()
+
+                records = read_json(f"{busabase_url}/api/v1/records?baseId={drafts_base['baseId']}")
+                record_items = records if isinstance(records, list) else records.get("records", [])
+                fixture = next(
+                    r
+                    for r in record_items
+                    if r.get("headCommit", {}).get("fields", {}).get("draft-id") == "draft-fixture"
+                )
+                assert fixture["headCommit"]["fields"]["status"] == "approved", fixture
+
+            nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
+            keys = resource_keys(nodes)
+            assert sorted(keys) == sorted(
+                ["app-root", "accounts", "posts", "sync_log", "calendar", "drafts", "shorts", "engagement", "settings"]
+            ), nodes
+            change_requests = read_json(f"{busabase_url}/api/v1/change-requests")["changeRequests"]
+            structure_requests = [
+                item for item in change_requests if (item.get("sourceMeta") or {}).get("subject") == "node_tree"
+            ]
+            assert len(structure_requests) == 1, change_requests
+
+        # Data must survive a complete Busabase process restart.
+        with managed_process(busabase_command, REPO_ROOT, {}, f"{busabase_url}/api/health", timeout=90):
+            nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
+            assert len(resource_keys(nodes)) == 9, nodes
+            drafts_base = find_resource(nodes, "drafts")
+            records = read_json(f"{busabase_url}/api/v1/records?baseId={drafts_base['baseId']}")
+            record_items = records if isinstance(records, list) else records.get("records", [])
+            assert any(
+                record.get("headCommit", {}).get("fields", {}).get("status") == "approved"
+                for record in record_items
+            )
+
+
+def main() -> None:
+    RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="kelly-social-home-") as app_home:
+        port = free_port()
+        base_url = f"http://127.0.0.1:{port}"
+        with managed_process(["node", "server.js"], APP_ROOT, {"HOME": app_home, "PORT": str(port)}, f"{base_url}/health"):
+            with sync_playwright() as playwright:
+                browser = playwright.chromium.launch(headless=True)
+                try:
+                    test_demo_ui(browser, base_url)
+                    print("PASS OSS - demo UI at desktop and phone viewports")
+                    test_busabase_provisioning(browser)
+                    print("PASS OSS - lazy provisioning, decision write, and persistence against temporary Busabase")
+                except Exception:
+                    for index, context in enumerate(browser.contexts):
+                        for page_index, page in enumerate(context.pages):
+                            page.screenshot(path=RESULTS_ROOT / f"failure-{index}-{page_index}.png", full_page=True)
+                    raise
+                finally:
+                    browser.close()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,6 @@
 # Kelly Social
 
-Kelly Social is a local App-in-Skill **command desk** that both **monitors** and **publishes** across Twitter/X, Facebook, and Instagram (extensible to LinkedIn, YouTube, Threads, TikTok, and Xiaohongshu). It follows the **ECHO** discipline — **E**xplore, **C**raft, **H**ost, **O**bserve — so the same app aggregates the numbers and drives an agent-drafts → human-approves → skill-publishes workflow.
+Kelly Social is a Busabase Cloud App-in-Skill **command desk** that both **monitors** and **publishes** across Twitter/X, Facebook, and Instagram (extensible to LinkedIn, YouTube, Threads, TikTok, and Xiaohongshu). It follows the **ECHO** discipline — **E**xplore, **C**raft, **H**ost, **O**bserve — so the same app aggregates the numbers and drives an agent-drafts → human-approves → skill-publishes workflow.
 
 ## What It Shows
 
@@ -22,7 +22,7 @@ Publishing desk (Explore / Craft / Host):
 
 ## The Quality Gate (⛩ social-qa)
 
-Every draft is scored 0–100 (SQS) across brand voice, disclosure, and banned claims, producing a **SHIP / FIX / BLOCK** verdict. A BLOCK forces the draft to `blocked` and disables approve/publish until it's revised. The logic lives in `lib/social-qa.ts`.
+Every draft is scored 0–100 (SQS) across brand voice, disclosure, and banned claims, producing a **SHIP / FIX / BLOCK** verdict. A BLOCK forces the draft to `blocked` and disables approve/publish until it's revised. The logic lives in `app/app/js/social-model.js` and is recomputed live from each draft's own copy on every read — never trusted as stale stored state.
 
 ## Collection & Publishing Philosophy
 
@@ -80,15 +80,24 @@ Both implement the same interface, including `applyOperation()` for publishing-d
   </tr>
 </table>
 
+## Data Provider
+
+Kelly Social is a Busabase Cloud App-in-Skill: the AirApp reads and writes
+Busabase records directly through `busabase-sdk` (`app/app/js/providers/busabase-provider.js`),
+never a local-file backend. `scripts/ingest_snapshot.mjs` is the trusted
+collector-write path — it connects with its own credentials
+(`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID`), never the
+AirApp's ambient session.
+
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Start a local preview and open a safe mock-data scene:
 
 ```bash
-skills/kelly-social/app/start.sh
+pnpm --dir skills/kelly-social/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Use the printed URL, then add one of these demo paths:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -106,13 +115,16 @@ The `compose` demo includes one draft that the quality gate **BLOCK**s. Demo mod
 
 ## Private Config
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-social/config.json`, then put any API tokens in local env files only. Never commit real handles' tokens, exports, or files under `app/.data/`.
+There is no local config file. Account handles, platforms, and collection
+methods live in the `accounts` Base in Busabase; API tokens used by the agent
+during collection stay in that process's own environment (never Busabase,
+never chat).
 
 ---
 
 # Kelly Social（中文）
 
-Kelly Social 是一个本地 App-in-Skill **指挥台**，既**监控**也**发布**，覆盖 Twitter/X、Facebook、Instagram（可扩展至 LinkedIn、YouTube、Threads、TikTok、小红书）。它遵循 **ECHO** 工作法——探索（Explore）、打磨（Craft）、托管（Host）、观察（Observe）——同一个应用既聚合数据，又驱动「Agent 起草 → 人工审批 → 技能发布」的流程。
+Kelly Social 是一个 Busabase Cloud App-in-Skill **指挥台**，既**监控**也**发布**，覆盖 Twitter/X、Facebook、Instagram（可扩展至 LinkedIn、YouTube、Threads、TikTok、小红书）。它遵循 **ECHO** 工作法——探索（Explore）、打磨（Craft）、托管（Host）、观察（Observe）——同一个应用既聚合数据，又驱动「Agent 起草 → 人工审批 → 技能发布」的流程。
 
 ## 展示什么
 
@@ -134,30 +146,25 @@ Kelly Social 是一个本地 App-in-Skill **指挥台**，既**监控**也**发�
 
 ## 质量闸（⛩ social-qa）
 
-每条草稿在品牌语气、信息披露、违规主张三个维度上打 0–100 分（SQS），给出 **放行 / 待修 / 拦截** 判定。判定为「拦截」会把草稿强制置为 `blocked`，在修改前禁用批准与发布。逻辑见 `lib/social-qa.ts`。
+每条草稿在品牌语气、信息披露、违规主张三个维度上打 0–100 分（SQS），给出 **放行 / 待修 / 拦截** 判定。判定为「拦截」会把草稿强制置为 `blocked`，在修改前禁用批准与发布。逻辑见 `app/app/js/social-model.js`，且每次读取都会用草稿自身文案实时重新计算，从不信任过期的存量数据。
 
 ## 采集与发布理念
 
-多数社媒平台的 API 昂贵或不友好，因此采集由 Agent 驱动：AI 按每个账号配置的方式采集——用用户自己的登录会话浏览、解析用户下载的分析导出、或在配置了 token 时调用官方 API——再通过 `scripts/ingest_snapshot.ts` 写入。发布由人工把关：Agent 起草、人工在审核队列批准、技能在链路外执行真正的平台动作。应用本身只渲染和改写本地文件，除 `127.0.0.1` 外不接触任何网络。仅限本人账号，不存储密码，不制造虚假互动。
+多数社媒平台的 API 昂贵或不友好，因此采集由 Agent 驱动：AI 按每个账号配置的方式采集——用用户自己的登录会话浏览、解析用户下载的分析导出、或在配置了 token 时调用官方 API——再通过 `scripts/ingest_snapshot.mjs` 写入 Busabase。发布由人工把关：Agent 起草、人工在审核队列批准、技能在链路外执行真正的平台动作。应用本身只读写 Busabase 记录，绝不发起平台请求。仅限本人账号，不存储密码，不制造虚假互动。
 
 ## 数据提供方
 
-应用只通过数据提供方接口（`lib/data-provider/`）访问存储，因此同一套 UI 与脚本可运行在两种后端：
-
-- `KELLY_SOCIAL_DATA_PROVIDER=local`（默认）——`app/.data/` 下的 JSON 文件。
-- `KELLY_SOCIAL_DATA_PROVIDER=busabase`——连接 Busabase base 的 HTTP 客户端。
-
-两者实现同一接口，包含用于发布台写入的 `applyOperation()`。
+Kelly Social 是 Busabase Cloud App-in-Skill：AirApp 通过 `busabase-sdk`（`app/app/js/providers/busabase-provider.js`）直接读写 Busabase 记录，不再有本地文件后端。`scripts/ingest_snapshot.mjs` 是受信任的采集写入路径——它使用自己的凭据连接（`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID`），而非 AirApp 的环境态会话。
 
 ## 演示模式
 
-运行应用并打开安全的模拟数据场景：
+启动本地预览并打开安全的模拟数据场景：
 
 ```bash
-skills/kelly-social/app/start.sh
+pnpm --dir skills/kelly-social/app dev
 ```
 
-使用启动器打印的 URL，再追加以下演示路径之一：
+使用打印出的 URL，再追加以下演示路径之一：
 
 ```text
 /?demo=overview&lang=zh#/overview
@@ -172,4 +179,4 @@ skills/kelly-social/app/start.sh
 
 ## 私有配置
 
-将 `config.example.json` 复制为 `config.local.json` 或 `~/.config/kelly-social/config.json`，API token 只放在本地 env 文件里。切勿提交真实账号的 token、导出文件或 `app/.data/` 下的文件。
+不再有本地配置文件。账号的 handle、平台、采集方式都存放在 Busabase 的 `accounts` Base 中；Agent 采集时使用的 API token 只留在该进程自身的环境变量里（绝不写入 Busabase，也绝不出现在聊天记录中）。

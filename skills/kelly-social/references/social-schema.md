@@ -1,267 +1,198 @@
-# Kelly Social Snapshot Schema
+# Kelly Social Schema
 
-Use this schema for `app/.data/social_snapshot.json`. Keep the shape stable so the local app, the ingest script, and future collectors can evolve independently. All writes must go through `scripts/ingest_snapshot.ts`.
+Use this schema when reading or writing Kelly Social's Busabase Bases. Field
+slugs are kebab-case in Busabase and normalized to snake_case in app code
+(`app/app/js/providers/busabase-provider.js`, `app/app/js/social-model.js`).
+Monitoring rollups (`metrics`), the derived `warnings` list, and every
+draft's social-qa gate are computed client-side from these Bases on every
+read — they are never stored.
 
-## Snapshot
+Platform vocabulary: `x | facebook | instagram | linkedin | youtube |
+threads | tiktok | xiaohongshu | manual`.
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-social",
-  "range": {
-    "start": "YYYY-MM-DD",
-    "end": "YYYY-MM-DD"
-  },
-  "metrics": {
-    "account_count": 0,
-    "post_count": 0,
-    "total_followers": 0,
-    "followers_delta_7d": 0,
-    "followers_delta_28d": 0,
-    "impressions_7d": 0,
-    "engagements_7d": 0,
-    "engagement_rate_7d": 0
-  },
-  "accounts": [],
-  "posts": [],
-  "sync_log": [],
-  "warnings": [],
-  "calendar": [],
-  "drafts": [],
-  "shorts": [],
-  "engagement": [],
-  "crisis": { "status": "calm", "publishing_paused": false, "steps": [] },
-  "share_of_voice": { "window": "7d", "total_mentions": 0, "entries": [] }
-}
-```
+Collection methods: `browser_agent | api | manual_export`.
 
-`metrics` is a rollup across accounts and is recomputed by `ingest_snapshot.ts` on every merge; do not hand-edit it.
+Review states (drafts / shorts / engagement): `needs_review |
+changes_requested | approved | done | blocked`.
 
-The snapshot has two halves. The **monitoring** half (`accounts`, `posts`, `sync_log`, `warnings`, `metrics`, `range`) is written only by `ingest_snapshot.ts`. The **publishing** half (`calendar`, `drafts`, `shorts`, `engagement`, `crisis`, `share_of_voice`) is optional, read by the app, and mutated in place through `POST /api/operation`; the ingest script preserves these keys untouched. All publishing fields may be absent on legacy snapshots.
+Social-qa gate verdicts: `SHIP | FIX | BLOCK`.
 
-## Account
+## Accounts (`kelly-social-accounts-v1`)
 
-```json
-{
-  "account_id": "stable local id",
-  "platform": "x|facebook|instagram|linkedin|youtube|threads|tiktok|xiaohongshu|manual",
-  "handle": "@kellyships",
-  "display_name": "Kelly Ships",
-  "profile_url": "optional public profile URL",
-  "collection": "browser_agent|api|manual_export",
-  "status": "ok|warning|error|not_configured",
-  "metrics": {
-    "followers": 0,
-    "following": 0,
-    "posts": 0,
-    "impressions_7d": 0,
-    "impressions_28d": 0,
-    "engagements_7d": 0,
-    "engagement_rate_7d": 0,
-    "profile_visits_7d": 0,
-    "followers_delta_7d": 0,
-    "followers_delta_28d": 0
-  },
-  "follower_series": [
-    { "date": "YYYY-MM-DD", "followers": 0 }
-  ],
-  "traffic_sources": [
-    { "source": "For You feed", "share": 0.46 }
-  ],
-  "last_sync_at": "ISO timestamp",
-  "notes": "optional"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `account-id` | `account_id` | text | stable domain id, required |
+| `platform` | `platform` | text | see platform vocabulary above |
+| `handle` | `handle` | text | e.g. `@kellyships` |
+| `display-name` | `display_name` | text | |
+| `profile-url` | `profile_url` | text | optional public profile URL |
+| `collection` | `collection` | text | how the agent gathers this account's data |
+| `status` | `status` | text | `ok\|warning\|error`; anything but `ok` surfaces as a derived warning |
+| `notes` | `notes` | longtext | required when `status != ok` — becomes the warning message |
+| `metrics` | `metrics` | longtext | JSON `AccountMetrics` (see below) |
+| `follower-series` | `follower_series` | longtext | JSON array of `{date, followers}`, one point per collection date |
+| `traffic-sources` | `traffic_sources` | longtext | JSON array of `{source, share}`; `share` is a 0-1 fraction; optional |
+| `last-sync-at` | `last_sync_at` | text | ISO timestamp |
 
-- `collection` declares how the agent gathers this account's data; it mirrors the account entry in private config.
-- `follower_series` powers the inline SVG sparklines. Keep one point per collection date; `ingest_snapshot.ts` merges series points by `date` (newest payload wins).
-- `traffic_sources` is optional; include it only when the platform's analytics expose it. `share` is a 0-1 fraction.
-- Rates (`engagement_rate_7d`) are 0-1 fractions, not percentages.
+`AccountMetrics` JSON shape: `{followers, following, posts, impressions_7d,
+impressions_28d, engagements_7d, engagement_rate_7d, profile_visits_7d,
+followers_delta_7d, followers_delta_28d}`. Rates are 0-1 fractions, not
+percentages.
 
-## Post
+## Posts (`kelly-social-posts-v1`)
 
-```json
-{
-  "post_id": "stable local id",
-  "platform": "x|facebook|instagram|linkedin|youtube|threads|tiktok|xiaohongshu|manual",
-  "account_id": "stable local account id",
-  "provider_post_id": "platform-native post id",
-  "posted_at": "ISO timestamp",
-  "type": "post|thread|reel|story|video|article",
-  "text": "full post text in its original language",
-  "media": "none|image|video|carousel|link",
-  "media_count": 0,
-  "permalink": "public URL of the post",
-  "metrics": {
-    "likes": 0,
-    "replies": 0,
-    "reposts": 0,
-    "views": 0,
-    "saves": 0,
-    "clicks": 0
-  },
-  "engagement_rate": 0,
-  "agent_notes": "optional short observation from the collecting agent",
-  "tags": ["optional"]
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `post-id` | `post_id` | text | stable domain id, required |
+| `platform` | `platform` | text | |
+| `account-id` | `account_id` | text | must reference an `accounts` row |
+| `provider-post-id` | `provider_post_id` | text | platform-native post id |
+| `posted-at` | `posted_at` | text | ISO timestamp |
+| `type` | `type` | text | `post\|thread\|reel\|story\|video\|article` |
+| `text` | `text` | longtext | full post text in its original language |
+| `media` | `media` | text | `none\|image\|video\|carousel\|link` |
+| `media-count` | `media_count` | number | `0` when `media = none` |
+| `permalink` | `permalink` | text | public URL of the post |
+| `metrics` | `metrics` | longtext | JSON `PostMetrics`: `{likes, replies, reposts, views, saves, clicks}` |
+| `engagement-rate` | `engagement_rate` | number | computed and stored at ingest time: `(likes+replies+reposts+saves)/views` when `views>0`, else `0` |
+| `agent-notes` | `agent_notes` | longtext | optional short observation from the collecting agent |
+| `tags` | `tags` | longtext | JSON array of strings |
 
-Normalize per-platform vocabulary into these fields: X replies/reposts, Facebook comments/shares, Instagram comments/shares map onto `replies`/`reposts`; views/impressions/plays map onto `views`. Missing metrics are `0`, never `null`. `engagement_rate` = (likes + replies + reposts + saves) / views when views > 0.
+Normalize per-platform vocabulary into these fields: X replies/reposts,
+Facebook comments/shares, Instagram comments/shares map onto
+`replies`/`reposts`; views/impressions/plays map onto `views`. Missing
+metrics are `0`, never absent.
 
-## Sync Log Entry
+## Sync Log (`kelly-social-sync-log-v1`)
 
-```json
-{
-  "sync_id": "stable id, e.g. sync-<account_id>-<timestamp>",
-  "account_id": "stable local account id",
-  "method": "browser_agent|api|manual_export",
-  "started_at": "ISO timestamp",
-  "completed_at": "ISO timestamp",
-  "status": "ok|warning|error",
-  "posts_collected": 0,
-  "message": "short human-readable note about the run",
-  "actor": "agent or collector id"
-}
-```
+Append-only, written only by `scripts/ingest_snapshot.mjs`.
 
-`ingest_snapshot.ts` appends one entry per payload account on every merge and keeps the newest 200 entries. Never store credentials, cookies, or session tokens in messages.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `sync-id` | `sync_id` | text | stable id, e.g. `sync-<account_id>-<timestamp>`, required |
+| `account-id` | `account_id` | text | |
+| `method` | `method` | text | `browser_agent\|api\|manual_export` |
+| `started-at` | `started_at` | text | ISO timestamp |
+| `completed-at` | `completed_at` | text | ISO timestamp |
+| `status` | `status` | text | `ok\|warning\|error` |
+| `posts-collected` | `posts_collected` | number | |
+| `message` | `message` | longtext | short human-readable note; never credentials, cookies, or session tokens |
+| `actor` | `actor` | text | agent or collector id |
 
-## Warnings
+## Calendar (`kelly-social-calendar-v1`)
 
-```json
-{
-  "id": "stable warning id",
-  "severity": "info|warning|error",
-  "account_id": "optional",
-  "message": "short human-readable message",
-  "detail": "optional detail"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `entry-id` | `entry_id` | text | stable id, required |
+| `date` | `date` | text | `YYYY-MM-DD` |
+| `channel` | `channel` | text | platform |
+| `pillar` | `pillar` | text | theme pillar, e.g. `build-in-public` |
+| `title` | `title` | text | short slot title |
+| `status` | `status` | text | `planned\|drafting\|scheduled\|published\|skipped` |
+| `draft-id` | `draft_id` | text | optional link to a `drafts` row |
+| `scheduled-for` | `scheduled_for` | text | optional ISO timestamp |
+| `notes` | `notes` | longtext | optional |
 
-Use warnings for stale exports, missing tokens, partial collections, rate-limit backoffs, or metric fields a platform stopped exposing.
+`publish_post` sets a linked entry's `status` to `scheduled` and its
+`scheduled-for` to the approved schedule time.
 
-## Publishing Desk (ECHO)
+## Drafts (`kelly-social-drafts-v1`)
 
-These sections drive the publishing half. They travel through the same data provider and are mutated by `POST /api/operation` (one `PublishingOperation` per call); the app writes local files only, and real publishing/replying is skill-executed after human approval. The five-state review model is `needs_review | changes_requested | approved | done | blocked`.
+The post composer / draft review queue.
 
-### Calendar Entry
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `draft-id` | `draft_id` | text | stable id, required |
+| `channels` | `channels` | longtext | JSON array of platforms |
+| `pillar` | `pillar` | text | theme pillar |
+| `hook` | `hook` | text | first-line hook |
+| `body` | `body` | longtext | post body |
+| `hashtags` | `hashtags` | longtext | JSON array of strings |
+| `cta` | `cta` | text | call to action |
+| `status` | `status` | text | workflow status; a `BLOCK` gate overrides this to `blocked` at render time regardless of the stored value |
+| `scheduled-for` | `scheduled_for` | text | optional ISO timestamp |
+| `agent-notes` | `agent_notes` | longtext | optional |
+| `review-note` | `review_note` | longtext | human note on `changes_requested` / approval |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `updated-at` | `updated_at` | text | ISO timestamp |
 
-```json
-{
-  "entry_id": "stable id",
-  "date": "YYYY-MM-DD",
-  "channel": "x|facebook|instagram|linkedin|youtube|threads|tiktok|xiaohongshu|manual",
-  "pillar": "theme pillar, e.g. build-in-public",
-  "title": "short slot title",
-  "status": "planned|drafting|scheduled|published|skipped",
-  "draft_id": "optional link to a composer draft",
-  "scheduled_for": "optional ISO timestamp",
-  "notes": "optional"
-}
-```
+There is no stored `gate` field: `evaluateGate({hook, body, hashtags, cta,
+channels})` in `app/app/js/social-model.js` recomputes the social-qa
+`{verdict, score, checks, summary}` live from the draft's own copy on every
+read, so an edited draft is always judged by its current text.
 
-### Post Draft
+## Shorts (`kelly-social-shorts-v1`)
 
-```json
-{
-  "draft_id": "stable id",
-  "channels": ["x", "linkedin"],
-  "pillar": "theme pillar",
-  "hook": "first-line hook",
-  "body": "post body",
-  "hashtags": ["#tag"],
-  "cta": "call to action",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "scheduled_for": "optional ISO timestamp",
-  "gate": {
-    "verdict": "SHIP|FIX|BLOCK",
-    "score": 0,
-    "checks": [{ "id": "banned-claims", "label": "Banned claims", "result": "pass|warn|fail", "note": "optional" }],
-    "summary": "optional"
-  },
-  "agent_notes": "optional",
-  "review_note": "optional human note",
-  "created_at": "ISO timestamp",
-  "updated_at": "ISO timestamp"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `short-id` | `short_id` | text | stable id, required |
+| `channels` | `channels` | longtext | JSON array of platforms |
+| `pillar` | `pillar` | text | theme pillar |
+| `title` | `title` | text | script title |
+| `hook` | `hook` | text | opening hook |
+| `status` | `status` | text | workflow status |
+| `duration-s` | `duration_s` | number | total duration in seconds |
+| `shots` | `shots` | longtext | JSON array of `{shot_no, visual, voiceover, duration_s, on_screen_text?}` |
+| `caption` | `caption` | text | optional |
+| `hashtags` | `hashtags` | longtext | JSON array of strings |
+| `agent-notes` | `agent_notes` | longtext | optional |
+| `review-note` | `review_note` | longtext | optional |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `updated-at` | `updated_at` | text | ISO timestamp |
 
-The `gate` is the pre-publish `social-qa` result (see `lib/social-qa.ts`). A `BLOCK` verdict forces `status: "blocked"` and the app refuses to approve or publish the draft.
+## Engagement (`kelly-social-engagement-v1`)
 
-### Short Script
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `item-id` | `item_id` | text | stable id, required |
+| `platform` | `platform` | text | |
+| `account-id` | `account_id` | text | optional; which of our accounts it landed on |
+| `kind` | `kind` | text | `mention\|comment\|dm\|reply` |
+| `author-handle` | `author_handle` | text | `@someone` |
+| `incoming-text` | `incoming_text` | longtext | the incoming message |
+| `received-at` | `received_at` | text | ISO timestamp |
+| `sentiment` | `sentiment` | text | `positive\|neutral\|negative\|question` |
+| `priority` | `priority` | text | `low\|normal\|high` |
+| `draft-reply` | `draft_reply` | longtext | agent-drafted reply |
+| `status` | `status` | text | workflow status |
+| `review-note` | `review_note` | longtext | optional |
+| `permalink` | `permalink` | text | optional |
 
-```json
-{
-  "short_id": "stable id",
-  "channels": ["instagram", "tiktok"],
-  "pillar": "theme pillar",
-  "title": "script title",
-  "hook": "opening hook",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "duration_s": 30,
-  "shots": [
-    { "shot_no": 1, "visual": "what's on screen", "voiceover": "VO line", "duration_s": 5, "on_screen_text": "optional" }
-  ],
-  "caption": "optional",
-  "hashtags": ["optional"],
-  "agent_notes": "optional",
-  "review_note": "optional",
-  "created_at": "ISO timestamp",
-  "updated_at": "ISO timestamp"
-}
-```
+## Settings (`kelly-social-settings-v1`)
 
-### Engagement Item
+One row per `kind`, looked up by `record-id`:
 
-```json
-{
-  "item_id": "stable id",
-  "platform": "x|facebook|instagram|linkedin|youtube|threads|tiktok|xiaohongshu|manual",
-  "account_id": "optional local account id",
-  "kind": "mention|comment|dm|reply",
-  "author_handle": "@someone",
-  "incoming_text": "the incoming message",
-  "received_at": "ISO timestamp",
-  "sentiment": "positive|neutral|negative|question",
-  "priority": "low|normal|high",
-  "draft_reply": "agent-drafted reply",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "review_note": "optional",
-  "permalink": "optional"
-}
-```
+| `record-id` | `kind` | `payload` (JSON) |
+| --- | --- | --- |
+| `kelly-social-crisis` | `crisis` | `{status: "calm\|watch\|active", publishing_paused, spokesperson?, updated_at?, steps: [{step_id, label, detail, owner?, done}]}` |
+| `kelly-social-share-of-voice` | `share_of_voice` | `{window: "7d", total_mentions, entries: [{name, is_self, mentions_7d, share}]}` (`share` is a 0-1 fraction; exactly one entry should have `is_self: true`) |
 
-### Crisis Playbook
+## Decisions
 
-```json
-{
-  "status": "calm|watch|active",
-  "publishing_paused": false,
-  "spokesperson": "optional",
-  "updated_at": "optional ISO timestamp",
-  "steps": [
-    { "step_id": "cr-1", "label": "Triage the signal", "detail": "what to do", "owner": "optional", "done": false }
-  ]
-}
-```
+A human verdict writes directly onto the item record — there is no separate
+decisions Base:
 
-### Share of Voice
+- `review_draft` / `review_short` / `review_engagement`: writes `status` and
+  `review-note`. Approving a draft whose gate is `BLOCK` is refused.
+- `publish_post`: requires the draft's stored `status` to already be
+  `approved` and its live gate to not be `BLOCK`, then writes `status:
+  "done"` and `scheduled-for` — the recorded intent, never a network call.
+  Also updates any `calendar` row linked by `draft-id` to `status:
+  "scheduled"`.
+- `send_reply`: requires the engagement item's `status` to already be
+  `approved`, then writes `status: "done"`.
+- `crisis_toggle`: read-modify-writes the `kelly-social-crisis` settings row
+  (`status`, `publishing_paused`, and/or one step's `done`).
 
-```json
-{
-  "window": "7d",
-  "total_mentions": 0,
-  "entries": [{ "name": "You", "is_self": true, "mentions_7d": 0, "share": 0.0 }]
-}
-```
+## Ingest (`scripts/ingest_snapshot.mjs`)
 
-`share` is a 0-1 fraction. Project this from monitoring data; exactly one entry should have `is_self: true`.
-
-### Operations
-
-`POST /api/operation` accepts one of: `review_draft` / `review_short` / `review_engagement` (`{ id, status, review_note? }`), `publish_post` (`{ draft_id, channel?, scheduled_for? }`), `send_reply` (`{ item_id, channel? }`), or `crisis_toggle` (`{ status?, publishing_paused?, step_id?, done? }`). It refuses to approve or publish a gate-`BLOCK`ed draft.
-
-## Validation
-
-Run `node scripts/validate_ui_schema.ts [path]` before relying on a snapshot in the UI. The validator enforces required fields, platform/collection/media enums, unique ids, and account references for posts and sync entries. The publishing sections (`calendar`, `drafts`, `shorts`, `engagement`, `crisis`, `share_of_voice`) are validated only when present, including review-state and gate-verdict enums.
+The trusted collector-write path. Reads a payload JSON file (see the header
+comment in the script for the exact shape), validates it, and upserts
+`accounts` (metrics/follower-series/traffic-sources merge, `status`/`notes`
+set from any per-account `warnings[]` entry in the payload), upserts `posts`
+by `post-id`, and appends one `sync_log` row per account. It never touches
+the ECHO publishing-desk Bases (`calendar`/`drafts`/`shorts`/`engagement`/
+`settings`) — those are compose/approval state the AirApp itself owns.
+Connects with its own credentials (`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` /
+`BUSABASE_SPACE_ID`), never the AirApp's ambient session. Writes are gated
+behind `--apply` (default dry run).
