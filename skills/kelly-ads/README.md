@@ -1,6 +1,6 @@
 # Kelly Ads
 
-Kelly Ads is a local App-in-Skill ad-campaign command desk (投放指挥台) for a cross-border e-commerce seller: it aggregates Amazon Ads, Meta (FB/IG), TikTok Ads, and Google Ads into one board, detects anomalies deterministically, and queues agent-proposed adjustment cards for human approval.
+Kelly Ads is a Busabase App-in-Skill ad-campaign command desk (投放指挥台) for a cross-border e-commerce seller: it aggregates Amazon Ads, Meta (FB/IG), TikTok Ads, and Google Ads into one board, detects anomalies deterministically, and queues agent-proposed adjustment cards for human approval.
 
 ## What It Shows
 
@@ -32,31 +32,30 @@ Kelly Ads is a local App-in-Skill ad-campaign command desk (投放指挥台) for
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Run the local preview and open a safe mock-data scene:
 
 ```bash
-skills/kelly-ads/app/start.sh
+pnpm --dir skills/kelly-ads/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Use the printed URL, then add one of these demo paths:
 
 ```text
 /?demo=overview&lang=en#/overview
 /?demo=campaigns&lang=en#/campaigns
 /?demo=alerts&lang=en#/alerts
 /?demo=adjustments&lang=en#/adjustments
-/?demo=detail&lang=en#/campaigns/amz-sp-manual-lunchbox
 ```
 
-`lang=zh` localizes UI chrome and the demo reasons/evidence/impact estimates for Chinese screenshots. Demo mode never reads platform data or files under `app/.data/`, and never persists decisions.
+`lang=zh` localizes UI chrome and the demo reasons/evidence/impact estimates for Chinese screenshots. Demo mode never reads or writes Busabase, and never persists decisions.
 
 ## Report Ingestion
 
-`scripts/ingest_reports.ts` is the single write path for performance data. The agent gathers the data (platform API pulls, report exports, or a CSV you paste) and runs one of:
+`scripts/ingest_reports.mjs` is the single write path for performance data. The agent gathers the data (platform API pulls, report exports, or a CSV you paste) and runs one of:
 
 ```bash
-node skills/kelly-ads/scripts/ingest_reports.ts payload.json
-node skills/kelly-ads/scripts/ingest_reports.ts --csv report.csv --platform amazon
+node skills/kelly-ads/scripts/ingest_reports.mjs payload.json --apply
+node skills/kelly-ads/scripts/ingest_reports.mjs --csv report.csv --platform amazon --apply
 ```
 
 JSON payload shape (see the script header for the full example):
@@ -78,18 +77,17 @@ JSON payload shape (see the script header for the full example):
 }
 ```
 
-CSV mode maps columns via `config.csv_mappings.<platform>` (campaign, date, spend, impressions, clicks, conversions, revenue, currency); the built-in parser handles quoted fields with embedded commas. Non-base currencies are converted via `config.currency_rates`. Re-ingesting the same dates is idempotent.
+CSV mode maps columns via the Settings row's `csv_mappings.<platform>` (campaign, date, spend, impressions, clicks, conversions, revenue, currency); the built-in parser handles quoted fields with embedded commas. Non-base currencies are converted via the Settings row's `currency_rates`. Re-ingesting the same dates is idempotent. Without `--apply` every script is a dry run.
 
 ## Checks And Adjustments
 
-- `node skills/kelly-ads/scripts/run_checks.ts` detects anomalies from config thresholds (`acos_breach_days`, `budget_exhausted_pct`, `zero_conversion_spend_floor`, `cpc_spike_pct`), upserts them with stable ids, auto-resolves cleared ones, and drafts skeleton adjustment cards for new critical anomalies.
-- `node skills/kelly-ads/scripts/execute_decisions.ts` turns approved adjustment cards into a dry-run `execution_report.json` (`add_negative_keyword`, `set_bid`, `pause_target`, `shift_budget`, `refresh_creative`), all marked `handoff_to_agent`; the agent executes them via platform APIs outside the app.
-- `node skills/kelly-ads/scripts/validate_ui_schema.ts` validates the snapshot; `node skills/kelly-ads/scripts/generate_demo_snapshot.ts` writes a small example snapshot.
+- `node skills/kelly-ads/scripts/run_checks.mjs --apply` detects anomalies from Settings thresholds (`acos_breach_days`, `budget_exhausted_pct`, `zero_conversion_spend_floor`, `cpc_spike_pct`), upserts them with stable ids, auto-resolves cleared ones, and drafts skeleton adjustment cards for new critical anomalies.
+- `node skills/kelly-ads/scripts/execute_decisions.mjs --apply` turns approved adjustment cards into a planned operation (`add_negative_keyword`, `set_bid`, `pause_target`, `shift_budget`, `refresh_creative`) written onto each card as `execution-status: "planned"`; the agent executes the real mutation via platform APIs outside the app, then marks the card `done` directly on the record.
 
-## Private Config
+## Busabase Resources
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-ads/config.json`, list your platforms (display-safe account ids only), ACOS/ROAS targets, anomaly thresholds, and currency table, and keep tokens in local env files only (referenced by `*_env` names). Never commit ad-account credentials, report exports, or files under `app/.data/`.
+Six Bases under one application Folder (`kelly-ads`): `platforms`, `campaigns`, `anomalies`, `adjustments`, `sync_log`, `settings`. See `references/ads-schema.md` for exact field shapes. Provisioning is lazy and idempotent the first time the app runs in a Space.
 
 ## Boundary
 
-Report ingestion is read-only and agent-driven — the app only renders local snapshot files and never touches any network beyond `127.0.0.1`. Every bid, budget, keyword, or creative mutation requires an approved adjustment card and is executed by the agent outside the app via the platform APIs.
+Report ingestion is read-only against the ad platforms and agent-driven outside the app — the AirApp only reads and writes Busabase records. Every bid, budget, keyword, or creative mutation requires an approved adjustment card and is executed by the agent outside the app via the platform APIs.

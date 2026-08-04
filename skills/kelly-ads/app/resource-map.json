@@ -1,0 +1,19 @@
+{
+  "appId": "kelly-ads",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-ads"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "platforms", "slug": "kelly-ads-platforms-v1", "schemaVersion": 1 },
+    { "key": "campaigns", "slug": "kelly-ads-campaigns-v1", "schemaVersion": 1 },
+    { "key": "anomalies", "slug": "kelly-ads-anomalies-v1", "schemaVersion": 1 },
+    { "key": "adjustments", "slug": "kelly-ads-adjustments-v1", "schemaVersion": 1 },
+    { "key": "sync_log", "slug": "kelly-ads-sync-log-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-ads-settings-v1", "schemaVersion": 1 }
+  ]
+}

@@ -1,194 +1,143 @@
-# Kelly Ads Snapshot Schema
+# Kelly Ads Schema
 
-Use this schema for `app/.data/ads_snapshot.json`. Keep the shape stable so the local app, scripts, and future connectors can evolve independently. Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
+Use this schema when reading or writing Kelly Ads' Busabase Bases. Field
+slugs are kebab-case in Busabase and normalized to snake_case in app code
+(`app/app/js/providers/busabase-provider.js`, `app/app/js/ads-model.js`).
+Campaign totals (`totals_7d`, `trend`), platform rollups (`spend_14d`,
+`revenue_14d`, `roas`, `acos_pct`), and top-level `metrics` are computed
+client-side from the `campaigns` Base on every read — they are never stored.
 
-## Snapshot
+Workflow statuses (adjustments): `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-ads",
-  "currency": "USD",
-  "range": { "start": "YYYY-MM-DD", "end": "YYYY-MM-DD" },
-  "targets": { "acos_target_pct": 25, "roas_target": 4 },
-  "metrics": {},
-  "platforms": [],
-  "campaigns": [],
-  "anomalies": [],
-  "adjustments": [],
-  "sync_log": [],
-  "warnings": []
-}
-```
+Decision verdicts: `approve`, `request_changes`, `block`, `note`.
 
-All money amounts are decimal numbers in the snapshot base `currency`; `scripts/ingest_reports.ts` normalizes other currencies via `config.currency_rates` at ingest time.
+Anomaly states: `open`, `actioned`, `dismissed`, `resolved`.
 
-## Metrics
+## Platforms (`kelly-ads-platforms-v1`)
 
-Recomputed by `recomputeDerived()` in `app/server/store.ts` (shared by all write-path scripts). Do not hand-edit except `spend_last_month`, which comes from the ingest payload.
+The connected ad-platform roster. Rollup fields below are recomputed client-side from `campaigns`, never stored here.
 
-```json
-{
-  "spend_mtd": 0,
-  "spend_last_month": 0,
-  "revenue_mtd": 0,
-  "spend_14d": 0,
-  "revenue_14d": 0,
-  "blended_roas": 0,
-  "blended_acos_pct": 0,
-  "acos_target_pct": 25,
-  "conversions_14d": 0,
-  "campaigns_total": 0,
-  "campaigns_active": 0,
-  "anomalies_open": 0,
-  "anomalies_critical": 0,
-  "adjustments_needing_review": 0,
-  "budget_at_risk_today": 0
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `platform-id` | `platform_id` | text | `amazon\|meta\|tiktok\|google`, required |
+| `name` | `name` | text | display name, e.g. `Amazon Ads US` |
+| `account-id` | `account_id` | text | display-safe account id |
+| `status` | `status` | text | `ok\|warning\|error` |
+| `currency` | `currency` | text | |
+| `last-sync-at` | `last_sync_at` | text | ISO timestamp, written by `scripts/ingest_reports.mjs` |
 
-## Platform
+## Campaigns (`kelly-ads-campaigns-v1`)
 
-```json
-{
-  "platform_id": "amazon|meta|tiktok|google",
-  "name": "Amazon Ads US",
-  "account_id": "display-safe account id",
-  "status": "ok|warning|error",
-  "currency": "USD",
-  "last_sync_at": "ISO timestamp",
-  "campaign_count": 0,
-  "spend_14d": 0,
-  "revenue_14d": 0,
-  "conversions_14d": 0,
-  "roas": 0,
-  "acos_pct": 0
-}
-```
+One row per campaign. `daily` and `targets` are JSON-encoded (Busabase has no array field type).
 
-Rollup fields (`campaign_count` and below) are recomputed from campaigns.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `campaign-id` | `campaign_id` | text | stable domain id, required |
+| `platform` | `platform` | text | `amazon\|meta\|tiktok\|google` |
+| `name` | `name` | text | |
+| `product` | `product` | text | optional product name |
+| `sku` | `sku` | text | optional SKU |
+| `status` | `status` | text | `active\|paused\|rejected` |
+| `daily-budget` | `daily_budget` | number | |
+| `budget-spent-today-pct` | `budget_spent_today_pct` | number | |
+| `acos-target-pct` | `acos_target_pct` | number | resolved once at ingest; falls back through per-product/per-platform/default if unset |
+| `currency` | `currency` | text | |
+| `daily` | `daily` | longtext | JSON array of `{date, spend, impressions, clicks, conversions, revenue}`, keyed by date — re-ingesting the same date replaces the row (idempotent) |
+| `targets` | `targets` | longtext | JSON array of search-term/audience/creative/asset-group rows: `{target_id, type, text, match_type, state, spend_14d, clicks, conversions, revenue, cpc, acos_pct}` |
+| `last-sync-at` | `last_sync_at` | text | ISO timestamp |
 
-## Campaign
+`totals_7d` (`{spend, impressions, clicks, conversions, revenue, roas, acos_pct, cpc}`) and `trend` (`up\|down\|flat`) are derived from `daily` by `totalsForDays()`/`trendFor()` on every read.
 
-```json
-{
-  "campaign_id": "stable local id",
-  "platform": "amazon|meta|tiktok|google",
-  "name": "SP Manual — Lunchbox Keywords",
-  "product": "optional product name",
-  "sku": "optional SKU",
-  "status": "active|paused|rejected",
-  "daily_budget": 45,
-  "budget_spent_today_pct": 88,
-  "acos_target_pct": 25,
-  "currency": "USD",
-  "daily": [
-    { "date": "YYYY-MM-DD", "spend": 0, "impressions": 0, "clicks": 0, "conversions": 0, "revenue": 0 }
-  ],
-  "targets": [],
-  "totals_7d": { "spend": 0, "impressions": 0, "clicks": 0, "conversions": 0, "revenue": 0, "roas": 0, "acos_pct": 0, "cpc": 0 },
-  "trend": "up|down|flat",
-  "last_sync_at": "ISO timestamp"
-}
-```
+## Anomalies (`kelly-ads-anomalies-v1`)
 
-`daily` is keyed by date: re-ingesting the same date replaces the row (idempotent). `totals_7d` and `trend` are derived.
+Deterministic anomaly feed, upserted by `scripts/run_checks.mjs` with stable ids so re-detection refreshes evidence instead of duplicating.
 
-## Target (search term / audience / creative / asset group)
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `anomaly-id` | `anomaly_id` | text | `anm-<type>-<campaign_id>[-<target_id>]`, required |
+| `type` | `type` | text | `acos_breach\|budget_exhausted\|zero_conversion_spend\|cpc_spike\|rejected` |
+| `severity` | `severity` | text | `critical\|warning\|info` |
+| `state` | `state` | text | `open\|actioned\|dismissed\|resolved` |
+| `campaign-id` | `campaign_id` | text | |
+| `platform` | `platform` | text | |
+| `target-id` | `target_id` | text | optional |
+| `evidence` | `evidence` | longtext | one-line, numeric evidence (plain text, not JSON) |
+| `detected-at` | `detected_at` | text | ISO timestamp of the latest check |
+| `first-seen-at` | `first_seen_at` | text | ISO timestamp of the first detection |
+| `adjustment-id` | `adjustment_id` | text | optional linked adjustment |
 
-```json
-{
-  "target_id": "stable local id (unique across the snapshot)",
-  "type": "search_term|audience|creative|asset_group",
-  "text": "lunch box kids",
-  "match_type": "broad|phrase|exact|auto|",
-  "state": "enabled|paused|negative|rejected",
-  "spend_14d": 142.0,
-  "clicks": 86,
-  "conversions": 0,
-  "revenue": 0,
-  "cpc": 1.65,
-  "acos_pct": 0
-}
-```
+A cleared condition auto-resolves `open|actioned` to `resolved`; `dismissed` stays dismissed (dismissal is a manual field edit, not exposed in the review UI yet).
 
-## Anomaly
+## Adjustments (`kelly-ads-adjustments-v1`)
 
-```json
-{
-  "anomaly_id": "anm-<type>-<campaign_id>[-<target_id>]",
-  "type": "acos_breach|budget_exhausted|zero_conversion_spend|cpc_spike|rejected",
-  "severity": "critical|warning|info",
-  "state": "open|actioned|dismissed|resolved",
-  "campaign_id": "campaign id",
-  "platform": "amazon|meta|tiktok|google",
-  "target_id": "optional target id",
-  "evidence": "one-line, numeric evidence",
-  "detected_at": "ISO timestamp of the latest check",
-  "first_seen_at": "ISO timestamp of the first detection",
-  "adjustment_id": "optional linked adjustment"
-}
-```
+Agent-proposed adjustment cards under review-before-execute.
 
-Anomaly ids are stable so `run_checks.ts` can upsert: re-detection updates `evidence`/`detected_at`, a cleared condition flips `open|actioned` to `resolved`, and `dismissed` stays dismissed.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `adjustment-id` | `adjustment_id` | text | stable domain id, required |
+| `ref` | `ref` | number | stable per-workspace number so chat can reference `Adjustment #2`; never renumbered |
+| `type` | `type` | text | `negative_keyword\|bid_down\|bid_up\|pause_target\|budget_shift\|creative_refresh` |
+| `title` | `title` | text | human-readable proposal |
+| `status` | `status` | text | workflow status |
+| `campaign-id` | `campaign_id` | text | |
+| `platform` | `platform` | text | |
+| `reason` | `reason` | longtext | why the agent proposes this |
+| `evidence` | `evidence` | longtext | JSON array of numeric evidence lines |
+| `target` | `target` | longtext | JSON `{kind: term\|campaign\|creative\|budget, id, text}` |
+| `current-value` | `current_value` | text | current state, human-readable |
+| `proposed-value` | `proposed_value` | text | proposed state, human-readable |
+| `expected-impact` | `expected_impact` | longtext | estimated effect on spend/ACOS/ROAS |
+| `anomaly-id` | `anomaly_id` | text | optional source anomaly |
+| `note` | `note` | longtext | editable review note |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `decision-verdict` | (→ `decision.verdict`) | text | written with the verdict |
+| `decision-note` | (→ `decision.note`) | longtext | written with the verdict |
+| `decided-at` | (→ `decision.decided_at`) | text | written with the verdict |
+| `execution-status` | (→ `execution.status`) | text | `planned`, written by `scripts/execute_decisions.mjs --apply` |
+| `execution-operation` | (→ `execution.operation`) | text | `add_negative_keyword\|set_bid\|pause_target\|shift_budget\|refresh_creative` |
+| `execution-target` | (→ `execution.target`) | longtext | JSON, the concrete outside-the-app target |
+| `execution-detail` | (→ `execution.detail`) | longtext | human-readable instruction for the agent |
+| `executed-at` | (→ `execution.executed_at`) | text | ISO timestamp |
 
-## Adjustment
+`status: "done"` and the real `execution` result are recorded by the agent after it performs the mutation outside the app via the platform APIs — `execute_decisions.mjs` only ever plans (`execution-status: "planned"`) and never sets `status` to `done` itself.
 
-```json
-{
-  "adjustment_id": "stable local id",
-  "ref": 1,
-  "type": "negative_keyword|bid_down|bid_up|pause_target|budget_shift|creative_refresh",
-  "title": "human-readable proposal",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "campaign_id": "campaign id",
-  "platform": "amazon|meta|tiktok|google",
-  "target": { "kind": "term|campaign|creative|budget", "id": "target or campaign id", "text": "display text" },
-  "current_value": "current state, human-readable",
-  "proposed_value": "proposed state, human-readable",
-  "reason": "why the agent proposes this",
-  "evidence": ["numeric evidence lines"],
-  "expected_impact": "estimated effect on spend/ACOS/ROAS",
-  "anomaly_id": "optional source anomaly",
-  "note": "editable review note",
-  "created_at": "ISO timestamp",
-  "decision": { "verdict": "approve|request_changes|block|note", "note": "", "decided_at": "ISO timestamp" },
-  "execution": { "status": "executed", "operation": "add_negative_keyword|set_bid|pause_target|shift_budget|refresh_creative", "target": {}, "detail": "", "executed_at": "ISO timestamp" }
-}
-```
+## Sync Log (`kelly-ads-sync-log-v1`)
 
-`ref` is a stable, unique per-snapshot number so chat can reference `Adjustment #2`. `status: "done"` requires an `execution` record (written after the agent executes the approved operation outside the app). `decision` and `execution` are `null` until they exist.
+Append-only feed, upserted by `sync-id` so a same-day re-ingest/re-check updates its own entry instead of duplicating.
 
-## Sync Log Entry
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `sync-id` | `sync_id` | text | `sync-<platform>-<date>` or `sync-checks-<date>`, required |
+| `at` | `at` | text | ISO timestamp |
+| `platform` | `platform` | text | `amazon\|meta\|tiktok\|google` or empty |
+| `kind` | `kind` | text | `ingest\|checks\|execution` |
+| `message` | `message` | longtext | short human-readable line |
+| `rows` | `rows` | number | |
 
-```json
-{
-  "sync_id": "sync-<platform>-<date>",
-  "at": "ISO timestamp",
-  "platform": "amazon|meta|tiktok|google or empty",
-  "kind": "ingest|checks|execution",
-  "message": "short human-readable line",
-  "rows": 14
-}
-```
+## Settings (`kelly-ads-settings-v1`)
 
-## Warning
+A single row, `record-id: "config"`.
 
-```json
-{
-  "id": "stable warning id",
-  "severity": "info|warning|error",
-  "campaign_id": "optional",
-  "message": "short human-readable message",
-  "detail": "optional detail"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | always `config`, required |
+| `currency` | `currency` | text | base currency for all snapshot amounts |
+| `default-acos-pct` | `default_acos_pct` | number | global ACOS target |
+| `default-roas` | `default_roas` | number | global ROAS target |
+| `per-platform-targets` | `per_platform_targets` | longtext | JSON map `{<platform_id>: {acos_pct}}` |
+| `per-product-targets` | `per_product_targets` | longtext | JSON array `[{sku, acos_pct}]` |
+| `acos-breach-days` | `acos_breach_days` | number | consecutive spend-days above target before `acos_breach` fires |
+| `budget-exhausted-pct` | `budget_exhausted_pct` | number | `budget_exhausted` threshold |
+| `budget-risk-pct` | `budget_risk_pct` | number | overview "budget at risk today" threshold |
+| `zero-conversion-spend-floor` | `zero_conversion_spend_floor` | number | `zero_conversion_spend` spend floor |
+| `cpc-spike-pct` | `cpc_spike_pct` | number | `cpc_spike` threshold, percent above trailing mean |
+| `cpc-trailing-days` | `cpc_trailing_days` | number | trailing window for the CPC mean |
+| `currency-rates` | `currency_rates` | longtext | JSON map `{<currency>: <rate to base>}`, read by `scripts/ingest_reports.mjs` |
+| `csv-mappings` | `csv_mappings` | longtext | JSON map `{<platform_id>: {campaign, date, spend, impressions, clicks, conversions, revenue, currency}}`, read by `scripts/ingest_reports.mjs --csv` |
+| `spend-last-month` | `spend_last_month` | number | last calendar month's total spend, for the overview KPI card's month-over-month comparison |
 
-## Sibling files
+The effective ACOS target for a campaign resolves per-product override (by SKU) beats per-platform override (by platform id) beats `default-acos-pct` — the only place `per-platform-targets`/`per-product-targets` are read (`resolveAcosTarget()` in `app/app/js/ads-model.js`).
 
-- `app/.data/decisions.json`: `{ "updated_at": "...", "decisions": { "<adjustment_id>": { "verdict": "...", "note": "...", "decided_at": "..." } } }`
-- `app/.data/agent_tasks.json`: `{ "updated_at": "...", "tasks": [ { "task_id": "...", "adjustment_id": "...", "type": "...", "title": "...", "request": "...", "status": "queued", "created_at": "..." } ] }` — written on `request_changes`; the agent polls it, revises the card, sets it back to `needs_review`, and clears the task.
-- `app/.data/execution_report.json`: dry-run plan from `scripts/execute_decisions.ts`; every entry carries `dry_run: true` and `handoff_to_agent: true`.
-- `app/.data/onboarding.json`: `{ "completed": true, "completed_at": "...", "config_version": "..." }`.
-- `app/.data/agent.lock`: `{ "owner": "...", "message": "...", "started_at": "..." }` — write endpoints return HTTP 423 while it exists.
+## Decisions
+
+A human verdict writes `status`, `decision-verdict`, `decision-note`, and `decided-at` directly onto the adjustment record via `records.changeRequest` (`busabase-provider.js`'s `decideAdjustment()`). There is no separate decisions Base: the adjustment record is the single source of truth, same as every other review-queue skill in this batch. `autoMerge` is `true` for a standalone local preview (trusted operator) and `false` (pending `ChangeRequest`) for a deployed AirApp, per the AirApp review boundary.
