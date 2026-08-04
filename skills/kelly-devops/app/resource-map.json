@@ -1,0 +1,20 @@
+{
+  "appId": "kelly-devops",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-devops"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "services", "slug": "kelly-devops-services-v1", "schemaVersion": 1 },
+    { "key": "expiries", "slug": "kelly-devops-expiries-v1", "schemaVersion": 1 },
+    { "key": "spend_providers", "slug": "kelly-devops-spend-providers-v1", "schemaVersion": 1 },
+    { "key": "spend_products", "slug": "kelly-devops-spend-products-v1", "schemaVersion": 1 },
+    { "key": "actions", "slug": "kelly-devops-actions-v1", "schemaVersion": 1 },
+    { "key": "events", "slug": "kelly-devops-events-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-devops-settings-v1", "schemaVersion": 1 }
+  ]
+}

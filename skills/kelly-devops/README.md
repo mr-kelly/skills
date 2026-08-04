@@ -1,6 +1,6 @@
 # Kelly DevOps
 
-Kelly DevOps is a local App-in-Skill ops desk for a multi-product SaaS fleet: service uptime, SSL certificate expiry, domain renewals, API key rotation reminders, cloud spend anomalies, and a review queue of agent-proposed action cards.
+Kelly DevOps is a Busabase App-in-Skill ops desk for a multi-product SaaS fleet: service uptime, SSL certificate expiry, domain renewals, API key rotation reminders, cloud spend anomalies, and a review queue of agent-proposed action cards. `scripts/check_services.mjs` probes service health and TLS certificates, `scripts/sync_domains.mjs` checks domain expiry via RDAP, `scripts/ingest_spend.mjs` writes cloud billing data, and `scripts/execute_decisions.mjs` prints the plan for approved action cards — the AirApp itself never probes a URL, checks WHOIS/RDAP, or touches a billing API.
 
 ## What It Shows
 
@@ -39,10 +39,10 @@ Kelly DevOps is a local App-in-Skill ops desk for a multi-product SaaS fleet: se
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Start the local preview and open a safe mock-data scene:
 
 ```bash
-skills/kelly-devops/app/start.sh
+pnpm --dir skills/kelly-devops/app dev
 ```
 
 Use the URL printed by the launcher, then add one of these demo paths:
@@ -55,19 +55,18 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=actions&lang=en#/actions
 ```
 
-Demo mode never probes real endpoints, never reads files under `app/.data/`, and never persists decisions.
+Demo mode never probes real endpoints, never reads or writes Busabase, and never persists decisions.
 
 ## Check Setup
 
-- `node skills/kelly-devops/scripts/check_services.ts` probes configured endpoints (HTTP status + latency) and reads TLS certificate expiry.
-- `node skills/kelly-devops/scripts/sync_domains.ts` fetches domain expiry dates via public RDAP.
-- `node skills/kelly-devops/scripts/ingest_spend.ts payload.json` merges billing data the agent gathered and flags spend anomalies.
-- `node skills/kelly-devops/scripts/execute_decisions.ts` turns approved action cards into a dry-run execution report; the agent executes approved operations outside the app.
+- `node skills/kelly-devops/scripts/check_services.mjs [roster.json] --apply` probes configured endpoints (HTTP status + latency), reads TLS certificate expiry, and computes key-rotation due dates. Pass a roster JSON to register new services/key-rotation policies.
+- `node skills/kelly-devops/scripts/sync_domains.mjs [roster.json] --apply` fetches domain expiry dates via public RDAP. Pass a roster JSON to register new domains.
+- `node skills/kelly-devops/scripts/ingest_spend.mjs payload.json --apply` merges billing data the agent gathered and flags spend anomalies, proposing `investigate_spend` action cards.
+- `node skills/kelly-devops/scripts/execute_decisions.mjs` prints the plan for every approved action card, with no external side effects and no Busabase writes.
+- `node skills/kelly-devops/scripts/execute_decisions.mjs --complete <action_id> --note "..."` marks one action card `done` after the agent performs the real action outside the app.
 
-## Private Config
-
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-devops/config.json`, list your products, endpoints, domains, key-rotation policies, and billing sources, and keep secrets in local env files only (referenced by `*_env` names). Never commit registrar or cloud credentials, or files under `app/.data/`.
+All four scripts are dry runs by default (no `--apply` flag, or `execute_decisions.mjs` without `--complete`) so you can preview what would change before writing anything to Busabase.
 
 ## Boundary
 
-Checks are read-only probes of your own endpoints and public RDAP. The app itself only renders local snapshot files. Renewals, rotations, and restarts happen only after you approve the matching action card, and are executed by the agent outside the app.
+Checks are read-only probes of your own endpoints, public RDAP, and billing exports the agent gathered — the AirApp itself only reads and writes Busabase records. Renewals, rotations, and restarts happen only after you approve the matching action card, and are executed by the agent outside the app with your own tools. See `references/ops-schema.md` for the full Busabase field schema.
