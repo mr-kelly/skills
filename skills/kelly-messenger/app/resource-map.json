@@ -1,0 +1,19 @@
+{
+  "appId": "kelly-messenger",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-messenger"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "accounts", "slug": "kelly-messenger-accounts-v1", "schemaVersion": 1 },
+    { "key": "conversations", "slug": "kelly-messenger-conversations-v1", "schemaVersion": 1 },
+    { "key": "messages", "slug": "kelly-messenger-messages-v1", "schemaVersion": 1 },
+    { "key": "sync_log", "slug": "kelly-messenger-sync-log-v1", "schemaVersion": 1 },
+    { "key": "replies", "slug": "kelly-messenger-replies-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-messenger-settings-v1", "schemaVersion": 1 }
+  ]
+}
