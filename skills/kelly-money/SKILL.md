@@ -1,15 +1,39 @@
 ---
 name: kelly-money
-description: Personal App-in-Skill money ledger for aggregating Mercury, Stripe, Airwallex, and Creem accounts into a local dashboard. Use when the user invokes $kelly-money or /kelly-money, wants a total cashflow ledger, account columns, Accounts sidebar, Account Detail views, finance onboarding, connector setup, transaction import/sync, reconciliation, balances, payouts, payments, fees, refunds, transfers, or local review of money movement across these providers.
+description: Busabase-backed App-in-Skill money ledger for aggregating Mercury, Stripe, Airwallex, and Creem accounts into a read-only dashboard. Use when the user invokes $kelly-money or /kelly-money, wants a total cashflow ledger, account columns, Accounts sidebar, Account Detail views, finance onboarding, connector setup, transaction import/sync, reconciliation, balances, payouts, payments, fees, refunds, transfers, or a review of money movement across these providers.
 ---
 
 # Kelly Money
 
 ## Overview
 
-Use this skill as Kelly's local money ledger operator. It aggregates Mercury, Stripe, Airwallex, and Creem into one file-backed App-in-Skill dashboard with a total cashflow table, provider/account columns, an `Accounts` sidebar view, and account detail pages.
+Kelly Money is a Busabase Cloud App-in-Skill. Its canonical product surface
+is the AirApp in Busabase, not a separate local-data product. The same Hono
+source supports an explicitly requested local preview with OAuth connection
+bootstrap. Use this skill as Kelly's money ledger operator: it aggregates
+Mercury, Stripe, Airwallex, and Creem into one read-only dashboard with a
+total cashflow table, provider/account columns, an `Accounts` view, and
+account detail pages.
 
-Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or load the local ledger snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
+Default behavior is AirApp-first. Unless the user explicitly asks only for
+explanation, sync/import through the trusted skill process and give the user
+the clickable AirApp URL. Start localhost only when local preview/debugging
+is explicitly requested; it uses the same Busabase resources and never
+offers another data provider. Use chat-only mode only when the user says
+"纯聊天", "chat only", "不要打开 UI", or similar.
+
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
+   quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery,
+   ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
+   runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's local artifact and
+product contracts, stop before the unavailable Busabase operation, and report
+the exact missing dependency. Do not invent a second data backend.
 
 ## App UI Screenshots
 
@@ -40,61 +64,53 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 ## Boundary
 
-- The skill may read provider APIs, import exports, normalize transactions, validate schemas, and write local handoff files.
-- The app reads and writes local files only. It must not initiate provider API calls, move money, issue refunds, create charges, change bank settings, or mutate remote systems.
-- Treat all money/account data as sensitive. Do not commit `config.local.json`, env files, `app/.data/`, exports, tokens, customer PII, or raw provider responses.
-- Require explicit user approval before any remote mutation. Normal Kelly Money operation should be read-only aggregation unless the user asks for a specific approved action.
+- The skill may read provider APIs, import exports, normalize transactions, and write the result into Busabase.
+- The AirApp reads Busabase records only; it is entirely read-only and must never initiate a provider API call, move money, issue refunds, create charges, change bank settings, or mutate any remote system.
+- Treat all money/account data as sensitive. Never commit provider tokens, account exports, customer PII, raw provider responses, or Busabase credentials.
+- Require explicit user approval before any remote mutation. Normal Kelly Money operation is read-only aggregation unless the user asks for a specific approved action, and that action happens outside the AirApp.
+
+## Busabase Resources
+
+Five Bases under one application Folder (`kelly-money`), declared in
+`app/app/js/config.js` and `app/resource-map.json`:
+
+- `accounts`: provider account inventory — balances, currency, status, totals, last sync.
+- `transactions`: normalized ledger entries across providers.
+- `invoices`: invoice metadata from provider exports, PDFs, or manual entry.
+- `invoice_matches`: invoice-to-transaction reconciliation results, including review status and audit trail.
+- `settings`: one row per `kind` — `kelly-money-accounts` (configured account list, non-secret) and `kelly-money-lock`.
+
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space; see `references/ledger-schema.md` for
+exact field shapes. The AirApp never writes to `accounts`, `transactions`,
+`invoices`, or `invoice_matches` — only the trusted sync process does.
 
 ## First Run And Onboarding
 
-On invocation, check `app/.data/onboarding.json` and private config readiness. If onboarding is absent/incomplete, guide setup before syncing real accounts.
+On invocation, check the `kelly-money-accounts` settings row for readiness.
+If it is absent, guide setup before syncing real accounts.
 
-Private config priority:
-
-1. `KELLY_MONEY_CONFIG=/absolute/path/to/config.json`
-2. `skills/kelly-money/config.local.json`
-3. `~/.config/kelly-money/config.json`
-4. `skills/kelly-money/config.example.json` as template only
-
-Env priority:
-
-1. Existing environment variables
-2. `KELLY_MONEY_ENV_FILE=/absolute/path/to/.env`
-3. Repository root `.env`
-4. `skills/kelly-money/.env.local`
-5. `~/.config/kelly-money/.env`
-
-Ask for non-secret setup details only: provider, display name, business/entity, currency, account grouping, and which env var names contain API keys/tokens. Never ask the user to paste secret values into chat. Secrets belong only in local env files.
-
-When setup is complete and the user confirms, write `app/.data/onboarding.json`:
-
-```json
-{
-  "completed": true,
-  "completed_at": "ISO timestamp",
-  "config_version": "1"
-}
-```
+Ask for non-secret setup details only: provider, display name,
+business/entity, currency, account grouping, and which env var names contain
+API keys/tokens. Never ask the user to paste secret values into chat. Secrets
+belong only in local env files used by the trusted sync process; Busabase
+authentication is ambient inside the deployed AirApp.
 
 ## Local App
 
-Start the dashboard with:
-
-```bash
-skills/kelly-money/app/start.sh
-```
-
-The app uses local HTTP on `127.0.0.1`, preferring port `3000` through `4000`, or `KELLY_MONEY_UI_PORT` when set.
+Default behavior is AirApp-first — give the user the clickable AirApp URL.
+Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+requested.
 
 Required app views:
 
 - `#/ledger`: total cashflow table. Rows are normalized transactions; columns include date, description, provider, account, type, currency, gross, fee, net, and status.
 - `#/overview`: dashboard summary with account health, totals, and recent money movement.
-- `#/accounts`: Accounts sidebar/list. Each configured or imported account appears with provider, currency, balance, inflow, outflow, net, and last sync.
+- `#/accounts`: Accounts view. Each configured or imported account appears with provider, currency, balance, inflow, outflow, net, and last sync.
 - `#/accounts/<account_id>`: Account Detail. Show balances, recent transactions, counterparties, statuses, provider identifiers, and sync health.
 - `#/invoices`: invoice reconciliation desk. Show invoices, match status, amount deltas, missing matches, and transactions that need human review.
 - `#/invoices/<invoice_id>`: Invoice Detail. Show invoice metadata, selected transaction, confidence, amount/date deltas, and notes.
-- `#/settings`: sanitized setup summary. Show account names, provider types, configured env var readiness booleans, data provider name, onboarding state, and safe file paths. Never expose secret values.
+- `#/settings`: sanitized setup summary. Show configured account names, provider types, onboarding state, and Busabase connection identifiers. Never expose secret values.
 
 Demo mode:
 
@@ -102,37 +118,21 @@ Demo mode:
 - `?demo=overview`, `?demo=ledger`, `?demo=accounts`, and `?demo=detail` select named mock scenes.
 - `?demo=invoices` opens the invoice matching mock scene.
 - `lang=en` or `lang=zh` forces UI chrome language for screenshots.
-- Demo API responses must never read or write live provider data or local private ledger files.
+- Demo mode never reads or writes Busabase.
 
 UI language: support English and Chinese chrome with `Auto` default. Keep provider names, account names, transaction descriptions, and imported data in their original language.
 
-## File Contract
+## Sync Workflow
 
-Read `references/ledger-schema.md` before editing the app, scripts, or any generated ledger JSON.
+Read `references/ledger-schema.md` before editing the app or the sync
+process. Sync happens entirely outside the AirApp, in the trusted skill
+process:
 
-Primary local files:
+1. Propose a read-only sync scope first: providers, accounts, date window, currencies, and whether to include pending transactions.
+2. After approval, fetch or import provider data, normalize to the ledger schema, and write it to the `accounts`/`transactions`/`invoices`/`invoice_matches` Bases through `busabase-sdk`.
+3. For discrepancies, write them as computed warnings (the app derives account-level warnings from `status`) and ask before any remote action.
 
-- `app/.data/ledger_snapshot.json`: canonical dashboard snapshot generated by the skill/scripts.
-- `app/.data/onboarding.json`: onboarding completion marker.
-- `app/.data/sync_report.json`: latest connector/import run result.
-- `app/.data/agent.lock`: temporary lock while the skill is syncing or rewriting files.
-- `config.local.json`: private account configuration, ignored by git.
-
-Use `scripts/validate_ui_schema.ts app/.data/ledger_snapshot.json` before relying on a snapshot in the UI. The app may show an empty setup state when no snapshot exists.
-
-Invoice matching lives inside Kelly Money rather than a separate skill until it becomes a full invoice-generation or tax-export workflow. Write imported invoice metadata into `invoices[]` and matching decisions into `invoice_matches[]`; do not store private invoice PDFs in git.
-
-## Normal Workflow
-
-1. Detect mode. Default to App UI.
-2. Load private config through the local provider/config helpers. If only `config.example.json` exists, enter onboarding.
-3. If the user asks to add/change accounts, update private config or explain exact JSON/env changes. Do not write secrets.
-4. If the user asks to sync, propose a read-only sync scope first: providers, accounts, date window, currencies, and whether to include pending transactions.
-5. After approval, acquire `app/.data/agent.lock`, fetch or import provider data, normalize to the ledger schema, write `ledger_snapshot.json`, write `sync_report.json`, validate, and release the lock.
-6. Start/reuse the UI and report the URL.
-7. For discrepancies, surface them as ledger warnings and ask before any remote action.
-
-For invoice reconciliation, match by amount/currency, signed direction, counterparty/vendor/customer names, provider references, invoice number in memo/metadata, and nearby dates. Mark uncertain cases `needs_review` instead of forcing a match. Use `amount_mismatch` for partial payments, credits, refunds, fee-vs-gross confusion, or invoice totals that do not equal transaction net/gross.
+Invoice matching lives inside Kelly Money rather than a separate skill until it becomes a full invoice-generation or tax-export workflow. Write imported invoice metadata into the `invoices` Base and matching decisions into `invoice_matches`; do not store private invoice PDFs in git.
 
 ## Provider Notes
 

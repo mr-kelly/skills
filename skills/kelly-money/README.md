@@ -1,6 +1,6 @@
 # Kelly Money
 
-Kelly Money is a local App-in-Skill dashboard for aggregating Mercury, Stripe, Airwallex, and Creem into one money ledger.
+Kelly Money is a Busabase-backed App-in-Skill dashboard for aggregating Mercury, Stripe, Airwallex, and Creem into one money ledger.
 
 ## What It Shows
 
@@ -37,15 +37,19 @@ Kelly Money is a local App-in-Skill dashboard for aggregating Mercury, Stripe, A
   </tr>
 </table>
 
-## Demo Mode
-
-Run the app and open a safe mock-data scene:
+## Running Locally
 
 ```bash
-skills/kelly-money/app/start.sh
+pnpm --dir app install
+pnpm --dir app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Open the printed URL. A standalone local preview asks you to connect
+Busabase (Cloud or a custom server) and select a Space — never an API key.
+
+## Demo Mode
+
+Add a demo path to see mock data without a Busabase connection:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -55,8 +59,13 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=detail&lang=en#/accounts/stripe-main
 ```
 
-Demo mode never reads live provider data or local private ledger files.
+Demo mode never reads or writes Busabase.
 
-## Private Config
+## Data
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-money/config.json`, then put secrets in local env files only. Never commit real provider tokens, account exports, or files under `app/.data/`.
+All state — accounts, transactions, invoices, invoice matches, and
+configured-account settings — lives in five Busabase Bases under one
+application Folder. The app is entirely read-only: it displays whatever the
+trusted skill process has synced or imported into these same Bases; it never
+writes from the browser. See `SKILL.md` and `references/ledger-schema.md`
+for the resource map.
