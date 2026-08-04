@@ -1,135 +1,137 @@
 # Kelly Standup Schema
 
-Use this schema for `app/.data/standup_snapshot.json` and the ingest payload consumed by `scripts/ingest_updates.ts`. Keep the shape stable so the local app, scripts, and future connectors can evolve independently. Validate with `node scripts/validate_ui_schema.ts app/.data/standup_snapshot.json`.
+Use this schema when reading or writing Kelly Standup's Busabase Bases. Field
+slugs are kebab-case in Busabase and normalized to snake_case in app code
+(`app/app/js/providers/busabase-provider.js`, `app/app/js/standup-model.js`).
+Streaks, per-day participation, 30-day participation, and the missing-
+today/open-blockers metrics are all computed client-side from these Bases on
+every read — they are never stored.
 
-## Snapshot
+Sources: `slack`, `wecom`, `discord`, `whatsapp`, `doc`, `manual`.
+Moods: `good`, `ok`, `stuck` (or empty).
+Severities: `high`, `medium`, `low`.
+Blocker statuses: `open`, `resolved`.
+Reminder types: `missing_checkin`, `blocker_escalation`.
+Reminder channels: `slack`, `wecom`, `discord`, `whatsapp`, `email`.
+Reminder statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
+Decision actions: `approve`, `request_changes`, `revise`, `block`.
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-standup",
-  "team": {
-    "name": "Team name",
-    "timezone": "IANA timezone",
-    "workdays": ["mon", "tue", "wed", "thu", "fri"]
-  },
-  "today": "YYYY-MM-DD",
-  "members": [],
-  "days": [],
-  "blockers": [],
-  "reminders": [],
-  "metrics": {
-    "member_count": 0,
-    "active_member_count": 0,
-    "submitted_today": 0,
-    "expected_today": 0,
-    "on_leave_today": 0,
-    "missing_today": 0,
-    "open_blockers": 0,
-    "high_open_blockers": 0,
-    "reminders_needs_review": 0,
-    "avg_participation_30d": 0
-  },
-  "sync_log": [],
-  "warnings": []
-}
-```
+## Members (`kelly-standup-members-v1`)
 
-`today` is the most recent recorded date. `metrics` and all per-member derived fields (streak, participation, blocker counts, day participation) are recomputed by `recomputeDerived` in `app/server/store.ts` — never hand-edit them.
+The team roster.
 
-## Member
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `member-id` | `member_id` | text | stable local id, required |
+| `name` | `name` | text | display name |
+| `role` | `role` | text | e.g. `Engineer` |
+| `timezone` | `timezone` | text | IANA timezone |
+| `channel` | `channel` | text | `slack\|wecom\|discord\|whatsapp\|email\|doc` |
+| `active` | `active` | text | `"true"\|"false"` |
+| `contact-env` | `contact_env` | text | env var *name* holding this member's contact for reminders — never the value itself |
+| `notes` | `notes` | longtext | optional per-member notes |
 
-```json
-{
-  "member_id": "stable local id",
-  "name": "Display name",
-  "role": "Engineer",
-  "timezone": "IANA timezone",
-  "channel": "slack|wecom|discord|whatsapp|email",
-  "active": true,
-  "streak": 0,
-  "participation_30d": 0.9,
-  "open_blockers": 0,
-  "last_submitted_date": "YYYY-MM-DD or empty",
-  "notes": "optional per-member notes"
-}
-```
+`streak`, `participation_30d`, `open_blockers`, and `last_submitted_date` are
+never stored on this record — `recomputeDerived()` computes them from
+`days`/`checkins`/`blockers` on every read.
 
-The roster is seeded from private config (`config.members[]`) on ingest and upserted by `member_id`. Contact details never enter the snapshot; they live only in env vars referenced by `contact_env` in config. `streak` counts consecutive recorded days with a submission, skipping days the member was on leave; `participation_30d` is submissions divided by expected days in the trailing 30 calendar days.
+## Days (`kelly-standup-days-v1`)
 
-## Day
+One row per recorded standup day, unique by `date`.
 
-```json
-{
-  "date": "YYYY-MM-DD",
-  "digest": "agent-written summary paragraph for the day",
-  "on_leave": ["member_id"],
-  "updates": [],
-  "participation": { "submitted": 6, "expected": 8, "on_leave": 1 }
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `date` | `date` | text | `YYYY-MM-DD`, required |
+| `digest` | `digest` | longtext | agent-written summary paragraph for the day |
+| `on-leave` | `on_leave` | longtext | JSON array of `member_id` |
 
-One entry per recorded standup day, unique by `date`. `participation` is derived.
+`participation` (`submitted`/`expected`/`on_leave` counts) is derived, never
+stored.
 
-## Update (per member per day)
+## Check-ins (`kelly-standup-checkins-v1`)
 
-```json
-{
-  "member_id": "stable local id",
-  "yesterday": ["what got done"],
-  "today": ["what is planned"],
-  "blockers": [
-    { "blocker_id": "bl-…", "text": "short description", "severity": "high|medium|low", "status": "open|resolved" }
-  ],
-  "mood": "good|ok|stuck or empty",
-  "submitted_at": "ISO timestamp",
-  "source": "slack|wecom|discord|whatsapp|doc|manual",
-  "raw_excerpt": "short verbatim excerpt of the original message"
-}
-```
+One row per member per day; unique by `checkin-id` (`"<member_id>|<date>"`).
+Re-ingesting the same member + date replaces the existing row (idempotent).
 
-At most one update per member per day; re-ingesting replaces the existing update (idempotent). `raw_excerpt` keeps a short provenance trail only — never store whole chat logs.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `checkin-id` | `checkin_id` | text | `"<member_id>|<date>"`, required |
+| `member-id` | `member_id` | text | |
+| `date` | `date` | text | `YYYY-MM-DD` |
+| `yesterday` | `yesterday` | longtext | JSON array of strings |
+| `today` | `today` | longtext | JSON array of strings |
+| `blockers` | `blockers` | longtext | JSON array of `{blocker_id, text, severity, status}` — nested per-update snapshot, kept in sync with the `blockers` registry below |
+| `mood` | `mood` | text | `good\|ok\|stuck` or empty |
+| `submitted-at` | `submitted_at` | text | ISO timestamp |
+| `source` | `source` | text | `slack\|wecom\|discord\|whatsapp\|doc\|manual` |
+| `raw-excerpt` | `raw_excerpt` | longtext | short verbatim excerpt of the original message, provenance only — never a whole chat log |
 
-## Blocker (registry)
+## Blockers (`kelly-standup-blockers-v1`)
 
-```json
-{
-  "blocker_id": "bl-<sha1(member|normalized text)[0:10]>",
-  "member_id": "owner",
-  "raised_date": "YYYY-MM-DD",
-  "severity": "high|medium|low",
-  "status": "open|resolved",
-  "text": "short description",
-  "suggested_action": "agent-suggested next action",
-  "resolved_date": "YYYY-MM-DD or empty"
-}
-```
+The top-level registry, deduplicating blockers across days by content hash.
+Unique by `blocker-id` (`"bl-<sha1(member|normalized text)[0:10]>"`). When an
+ingested check-in carries the same blocker text with `status: "resolved"`,
+the registry entry transitions to resolved with `resolved-date` set (and back
+to open if a later day reports it open again).
 
-The top-level registry deduplicates blockers across days by content hash. When an ingested update carries the same blocker text with `status: "resolved"`, the registry entry transitions to resolved with `resolved_date` set. `suggested_action` is agent-written advice for the team lead, not an executed action.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `blocker-id` | `blocker_id` | text | `"bl-<sha1(member|text)[0:10]>"`, required |
+| `member-id` | `member_id` | text | owner |
+| `raised-date` | `raised_date` | text | `YYYY-MM-DD` |
+| `severity` | `severity` | text | `high\|medium\|low` |
+| `status` | `status` | text | `open\|resolved` |
+| `text` | `text` | longtext | short description |
+| `suggested-action` | `suggested_action` | longtext | agent-written advice for the team lead, not an executed action |
+| `resolved-date` | `resolved_date` | text | `YYYY-MM-DD` or empty |
 
-## Reminder (review-queue item)
+## Reminders (`kelly-standup-reminders-v1`)
 
-```json
-{
-  "id": "rem-<sha1(type|member|date)[0:10]>",
-  "ref": 1,
-  "type": "missing_checkin|blocker_escalation",
-  "member_id": "target member",
-  "channel": "slack|wecom|discord|whatsapp|email",
-  "title": "short human title",
-  "reason": "why the agent drafted this",
-  "draft": "editable outbound message draft",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "created_at": "ISO timestamp",
-  "decision": null,
-  "execution": null
-}
-```
+The review-queue: approval-gated nudges for missing check-ins and blocker
+escalations. Unique by `reminder-id` (`"rem-<sha1(type|member|date)[0:10]>"`),
+so re-drafting the same reminder on the same day updates it in place. `ref`
+(`Reminder #N`) is assigned client-side by `created-at` ascending, never
+stored.
 
-Reminders follow the standard review model. Decisions land in `decisions.json` via `POST /api/decision` (`approve` / `request_changes` / `revise` / `block`); `request_changes` enqueues a `revise_reminder` task in `agent_tasks.json`. `scripts/execute_decisions.ts` turns approved reminders into `send_reminder` operations in `execution_report.json` — the app and scripts never send anything.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `reminder-id` | `reminder_id` (`id`) | text | required |
+| `type` | `type` | text | `missing_checkin\|blocker_escalation` |
+| `member-id` | `member_id` | text | target member |
+| `channel` | `channel` | text | `slack\|wecom\|discord\|whatsapp\|email` |
+| `title` | `title` | text | short human title |
+| `reason` | `reason` | longtext | why the agent drafted this |
+| `draft` | `draft` | longtext | editable outbound message draft |
+| `status` | `status` | text | workflow status |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `revised-at` | `revised_at` | text | set by `scripts/ingest_updates.mjs` when a re-ingest changes title/reason/draft/channel |
+| `decision-action` | `decision_action` | text | `approve\|request_changes\|revise\|block` |
+| `decision-note` | `decision_note` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
+| `execution-status` | `execution_status` | text | `planned\|ready_for_agent`, written by `scripts/execute_decisions.mjs` |
+| `execution-operations` | `execution_operations` | longtext | JSON array, one `send_reminder` operation |
+| `execution-detail` | `execution_detail` | longtext | human-readable plan detail |
+| `executed-at` | `executed_at` | text | ISO timestamp of the last plan write |
 
-## Ingest payload (`scripts/ingest_updates.ts`)
+`revise` (labeled "Save note" in the UI) never changes `status`; it only
+updates `draft`/`decision-note`/`decided-at`. `approve`/`request_changes`/
+`block` map to `status` `approved`/`changes_requested`/`blocked` via
+`statusForAction()` in `standup-model.js`.
+
+## Settings (`kelly-standup-settings-v1`)
+
+One row, `record-id: "team"`.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | always `"team"`, required |
+| `team-name` | `team_name` | text | |
+| `team-timezone` | `team_timezone` | text | IANA timezone |
+| `team-workdays` | `team_workdays` | longtext | JSON array, e.g. `["mon","tue","wed","thu","fri"]` |
+| `digest-style` | `digest_style` | text | e.g. `concise` |
+| `standup-questions` | `standup_questions` | longtext | JSON array of strings |
+
+## Ingest payload (`scripts/ingest_updates.mjs`)
 
 ```json
 {
@@ -137,6 +139,10 @@ Reminders follow the standard review model. Decisions land in `decisions.json` v
   "date": "2026-07-03",
   "digest": "optional digest paragraph for the day",
   "on_leave": ["member_id"],
+  "team": { "name": "Nimbus team", "timezone": "Asia/Shanghai", "workdays": ["mon","tue","wed","thu","fri"] },
+  "members": [
+    { "member_id": "alice", "name": "Alice Chen", "role": "Engineer", "timezone": "Asia/Shanghai", "channel": "slack", "contact_env": "KELLY_STANDUP_MEMBER_ALICE_CONTACT" }
+  ],
   "updates": [
     {
       "member_id": "alice",
@@ -164,16 +170,20 @@ Reminders follow the standard review model. Decisions land in `decisions.json` v
 }
 ```
 
-`updates[].source` defaults to the payload `source`. Update blockers only need `text` (+ optional `severity`/`status`); ids are derived. Reminder ids default to `rem-<sha1(type|member|date)>`, so re-drafting the same reminder on the same day updates it in place.
+`team` and `members` are optional and only needed for onboarding or roster
+changes — a daily ingest omits them. `updates[].source` defaults to the
+payload `source`. Update blockers only need `text` (+ optional
+`severity`/`status`); ids are derived. Reminder ids default to
+`rem-<sha1(type|member|date)>`, so re-drafting the same reminder on the same
+day updates it in place. `date` is always required (even an onboarding-only
+payload needs one, e.g. today's date).
 
-## Sync log entry
+## Decisions
 
-```json
-{ "at": "ISO timestamp", "source": "slack", "action": "ingest", "detail": "human-readable", "count": 6 }
-```
-
-## Warning
-
-```json
-{ "id": "stable id", "severity": "info|warning|error", "message": "short message", "detail": "optional" }
-```
+A human verdict writes `status`, `decision-action`, `decision-note`, and
+`decided-at` directly onto the reminder record through `busabase-sdk` (and,
+for any action, the current draft-textarea value onto `draft`). There is no
+separate decisions file: the reminder record is the single source of truth.
+From a standalone local preview the write merges immediately (trusted
+operator); from the deployed AirApp it creates a pending ChangeRequest for
+the trusted process to merge.

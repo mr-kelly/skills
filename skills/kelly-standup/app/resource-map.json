@@ -1,0 +1,19 @@
+{
+  "appId": "kelly-standup",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-standup"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "members", "slug": "kelly-standup-members-v1", "schemaVersion": 1 },
+    { "key": "days", "slug": "kelly-standup-days-v1", "schemaVersion": 1 },
+    { "key": "checkins", "slug": "kelly-standup-checkins-v1", "schemaVersion": 1 },
+    { "key": "blockers", "slug": "kelly-standup-blockers-v1", "schemaVersion": 1 },
+    { "key": "reminders", "slug": "kelly-standup-reminders-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-standup-settings-v1", "schemaVersion": 1 }
+  ]
+}
