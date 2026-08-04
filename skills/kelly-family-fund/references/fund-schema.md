@@ -1,127 +1,101 @@
-# Kelly Family Fund Snapshot Schema
+# Kelly Family Fund Schema
 
-Use this schema for `app/.data/snapshot.json`. Keep the shape stable so the local
-app, scripts, and future connectors can evolve independently. Every amount is in
-the snapshot `base_currency` (CNY, ¥). This is a read-only bookkeeping snapshot:
-it never moves money.
-
-## Snapshot
-
-```json
-{
-  "schema_version": "1",
-  "snapshot_id": "stable id for this snapshot",
-  "generated_at": "ISO timestamp",
-  "base_currency": "CNY",
-  "fund": { "name": "家庭统筹基金", "steward": "老大 · 张伟", "note": "optional" },
-  "beneficiaries": [],
-  "families": [],
-  "income": [],
-  "expenses": [],
-  "months": [],
-  "totals": {
-    "income_total": 0,
-    "expense_total": 0,
-    "balance": 0,
-    "care_total": 0,
-    "family_total": 0,
-    "avg_family_benefit": 0
-  },
-  "by_category": [],
-  "by_family": [],
-  "insights": []
-}
-```
-
-## Beneficiary (the elders whose pensions are pooled)
-
-```json
-{ "id": "elder-grandpa", "name": "祖父 张国强", "relation": "祖父", "pension_monthly": 16000 }
-```
-
-## Family (the sibling families that share the surplus)
-
-```json
-{ "id": "fam-01", "name": "老大 张伟家", "head": "张伟", "members_count": 4, "note": "optional" }
-```
-
-## Income (pension inflow)
-
-```json
-{ "id": "inc-2026-01-grandpa", "month": "2026-01", "beneficiary_id": "elder-grandpa", "amount": 16000, "note": "optional" }
-```
-
-## Expense
-
-```json
-{
-  "id": "exp-2026-01-gift",
-  "month": "2026-01",
-  "date": "2026-01-20",
-  "category": "care|transport|meal|gift|renqing|medical|misc",
-  "amount": 900,
-  "payee": "生日礼物",
-  "occasion": "长辈生日",
-  "family_id": "fam-01 | null",
-  "shared": false,
-  "note": "optional"
-}
-```
+Use this schema when reading or writing Kelly Family Fund's Busabase Bases.
+Field slugs are kebab-case in Busabase and normalized to snake_case in app
+code (`app/app/js/providers/busabase-provider.js`,
+`app/app/js/fund-model.js`, `scripts/import_csv.mjs`). The fund snapshot
+(months, totals, by_category, by_family, insights) is computed client-side
+from `beneficiaries`/`families`/`income`/`expenses` on every read — it is
+never stored. Every amount is in the fund's `base_currency` (CNY, ¥). This is
+a read-only bookkeeping dashboard: it never moves money.
 
 Category union: `care` (养老院) · `transport` (交通) · `meal` (聚餐) · `gift`
 (生日礼物) · `renqing` (人情) · `medical` (医疗) · `misc` (其他).
 
-`care` rows are the parents' cost: `family_id` MUST be `null` and `shared` MUST
-be `false`. They are excluded from family benefit.
+## Beneficiaries (`kelly-family-fund-beneficiaries-v1`)
 
-## Months (chronological, running balance)
+The elders whose pensions are pooled.
 
-```json
-{ "month": "2026-01", "income_total": 30000, "expense_total": 23100, "net": 6900, "balance_end": 6900 }
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `beneficiary-id` | `beneficiary_id` | text | stable domain id, required |
+| `name` | `name` | text | |
+| `relation` | `relation` | text | e.g. `祖父`, `祖母` |
+| `pension-monthly` | `pension_monthly` | number | |
 
-`net = income_total - expense_total`. `balance_end` is the running balance across
-months in chronological order; the final `balance_end` equals `totals.balance`.
+## Families (`kelly-family-fund-families-v1`)
 
-## Totals
+The sibling families that share the fund surplus.
 
-```json
-{
-  "income_total": 0,      // sum of all income
-  "expense_total": 0,     // sum of all expenses
-  "balance": 0,           // income_total - expense_total
-  "care_total": 0,        // sum of care expenses
-  "family_total": 0,      // expense_total - care_total (all non-care expenses)
-  "avg_family_benefit": 0 // family_total / number_of_families
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `family-id` | `family_id` | text | stable domain id, required |
+| `name` | `name` | text | |
+| `head` | `head` | text | |
+| `members-count` | `members_count` | number | |
+| `note` | `note` | text | optional |
 
-## by_category
+## Income (`kelly-family-fund-income-v1`)
 
-```json
-{ "category": "care", "amount": 120000, "pct": 84.7 }
-```
+Monthly pension inflow per beneficiary.
 
-Amounts sum to `expense_total`; `pct` is the share of `expense_total`.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `income-id` | `income_id` | text | stable domain id, required |
+| `month` | `month` | text | `YYYY-MM` |
+| `beneficiary-id` | `beneficiary_id` | text | references a Beneficiaries row |
+| `amount` | `amount` | number | |
+| `note` | `note` | text | optional |
 
-## by_family (the fairness computation — the core of this skill)
+## Expenses (`kelly-family-fund-expenses-v1`)
 
-```json
-{ "family_id": "fam-01", "name": "老大 张伟家", "benefit_total": 6662.5, "share_pct": 30.6, "deviation_pct": 22.5 }
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `expense-id` | `expense_id` | text | stable domain id, required |
+| `month` | `month` | text | `YYYY-MM` |
+| `date` | `date` | text | `YYYY-MM-DD`, optional |
+| `category` | `category` | text | `care\|transport\|meal\|gift\|renqing\|medical\|misc` |
+| `amount` | `amount` | number | |
+| `payee` | `payee` | text | |
+| `occasion` | `occasion` | text | |
+| `family-id` | `family_id` | text | empty for `care` and for `shared: true` rows |
+| `shared` | `shared` | text | `"true"\|"false"` |
+| `note` | `note` | text | optional |
 
-- `benefit_total` = expenses directed to the family (`family_id === fam`, non-care,
-  not shared) PLUS the family's equal share of every `shared: true` non-care
-  expense (`amount / number_of_families`).
+`care` rows are the parents' cost: `family-id` MUST be empty and `shared`
+MUST be `"false"`. They are excluded from family benefit.
+
+## Settings (`kelly-family-fund-settings-v1`)
+
+One row per `kind`.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | required, e.g. `fund-meta`, `onboarding` |
+| `kind` | `kind` | text | required |
+| `name` | `name` | text | optional label |
+| `payload` | `payload` | longtext | JSON, non-secret |
+| `updated-at` | `updated_at` | text | ISO timestamp |
+
+`fund-meta` payload: `{ name, steward, note, base_currency, deviation_threshold_pct }`.
+`onboarding` payload: `{ completed, completed_at, config_version }`.
+
+## Fairness computation (the core of this skill)
+
+- `benefit_total` = expenses directed to the family (`family_id === fam`,
+  non-care, not shared) PLUS the family's equal share of every `shared: true`
+  non-care expense (`amount / number_of_families`).
+- `family_total` = `expense_total - care_total` (all non-care expenses).
+- `avg_family_benefit` = `family_total / number_of_families`.
 - `share_pct` = `benefit_total / family_total * 100`. Shares sum to ~100%.
 - `deviation_pct` = `(benefit_total - avg_family_benefit) / avg_family_benefit * 100`.
-  A family more than `fairness.deviation_threshold_pct` (default 20%) from the
-  average surfaces a `fairness_deviation` insight.
+  A family more than `deviation_threshold_pct` (default 20%) from the average
+  surfaces a `fairness_deviation` insight.
 
 ## Insights
 
 Structured, read-only observations — `{ id, code, severity, category, params }`.
-The frontend renders localized text from `code` + `params`; no sentences are baked
-into the snapshot. Codes: `monthly_surplus`, `monthly_deficit`, `care_coverage`,
-`care_share`, `balance_runway`, `fairness_deviation`. This is a monitoring
-dashboard: it never moves money, pays, or transfers.
+The frontend renders localized text from `code` + `params`; no sentences are
+baked into the snapshot. Codes: `monthly_surplus`, `monthly_deficit`,
+`care_coverage`, `care_share`, `balance_runway`, `fairness_deviation`. This is
+a monitoring dashboard: it never moves money, pays, or transfers.

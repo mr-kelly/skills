@@ -1,6 +1,6 @@
 # Kelly Family Fund
 
-Kelly Family Fund (家庭统筹基金) is a local App-in-Skill dashboard for a family caring for elderly parents. Two elders' pensions are pooled and managed by one steward; the fund pays a fixed care cost (nursing home) and shares the remaining surplus across the sibling families — transport, meals, birthday gifts, and 人情 (social gifts). It is a read-only bookkeeping dashboard whose whole point is transparency = fairness. It never moves money.
+Kelly Family Fund (家庭统筹基金) is a Busabase Cloud App-in-Skill dashboard for a family caring for elderly parents. Two elders' pensions are pooled and managed by one steward; the fund pays a fixed care cost (nursing home) and shares the remaining surplus across the sibling families — transport, meals, birthday gifts, and 人情 (social gifts). It is a read-only bookkeeping dashboard whose whole point is transparency = fairness. It never moves money.
 
 ## What It Shows
 
@@ -32,13 +32,13 @@ Kelly Family Fund (家庭统筹基金) is a local App-in-Skill dashboard for a f
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Run the app locally and open a safe mock-data scene:
 
 ```bash
-skills/kelly-family-fund/app/start.sh
+pnpm --dir skills/kelly-family-fund/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Then add one of these demo paths:
 
 ```text
 /?demo=overview&lang=zh#/overview
@@ -48,18 +48,19 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=category&lang=zh#/category
 ```
 
-Demo mode never reads live data or local private ledger files.
+Demo mode never reads or writes Busabase.
 
-## Private Config
+## Busabase Resources
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-family-fund/config.json`. Set your `fund` (name, steward), `base_currency`, `beneficiaries` (the elders and their pensions), `families`, and the `fairness.deviation_threshold_pct`. Never commit real ledger data or files under `app/.data/`.
+Five Bases under one application Folder (`kelly-family-fund`): `beneficiaries`, `families`, `income`, `expenses`, and `settings`. The AirApp is read-only — it only reads these Bases. See `SKILL.md` and `references/fund-schema.md` for exact field shapes.
 
 ## CSV Import
 
-Fill in `references/ledger-csv-template.csv` (or a copy) and run:
+Fill in `references/ledger-csv-template.csv` (or a copy) and run the trusted importer:
 
 ```bash
-node scripts/import_csv.ts path/to/ledger.csv
+BUSABASE_BASE_URL=... BUSABASE_API_KEY=... BUSABASE_SPACE_ID=... \
+  node scripts/import_csv.mjs path/to/ledger.csv --apply
 ```
 
-It normalizes income and expenses into `app/.data/snapshot.json`, computing the monthly running balance, the fund totals, the per-category split, and the per-family fairness rollup. `care` rows are always the elders' cost and are excluded from family benefit.
+It resolves beneficiary/family references against Busabase (creating a new family record on the fly if the CSV names one that doesn't exist yet) and writes `income`/`expenses` rows via Busabase ChangeRequests. Without `--apply` it is a dry run. `care` rows are always the elders' cost and are excluded from family benefit.
