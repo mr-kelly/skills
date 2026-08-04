@@ -1,238 +1,190 @@
 # Kelly Support Schema
 
-Use these shapes for the files under `app/.data/`. Keep them stable so the local app, scripts, and future connectors can evolve independently. `scripts/validate_ui_schema.ts` enforces the required fields and cross-references.
+Use this schema when reading or writing Kelly Support's Busabase Bases. Field
+slugs are kebab-case in Busabase and normalized to snake_case in app code
+(`app/app/js/providers/busabase-provider.js`, `app/app/js/support-model.js`).
+Per-ticket rollups (`last_message_at`, `last_incoming_at`, `sla.breached`)
+and the `support-qa` `quality_gate` verdict are computed client-side on every
+read from `tickets`/`messages`/`knowledge_base` — they are **never stored**,
+so an edited reply always reflects the current verdict.
 
-## Snapshot (`app/.data/support_snapshot.json`)
+Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 
-```json
-{
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-support",
-  "metrics": {
-    "account_count": 0,
-    "ticket_count": 0,
-    "kb_count": 0,
-    "open_count": 0,
-    "awaiting_approval_count": 0,
-    "breaching_sla_count": 0,
-    "resolved_count": 0,
-    "csat_average": 0,
-    "csat_responses": 0,
-    "first_response_median_minutes": 0,
-    "tickets_this_week": { "total": 0, "by_channel": {} },
-    "by_category": {},
-    "status_counts": { "needs_review": 0, "changes_requested": 0, "approved": 0, "done": 0, "blocked": 0 },
-    "csat_trend": [{ "label": "Jul 6", "score": 4.7 }]
-  },
-  "accounts": [],
-  "tickets": [],
-  "knowledge_base": [],
-  "sync_log": [],
-  "warnings": []
-}
-```
+Decision actions: `approve`, `request_changes`, `block`, `revise`.
 
-Written only by the agent (merging collected tickets / KB entries directly into this file — there is no `ingest_tickets.ts` / `sync_knowledge.ts` script yet), by `scripts/execute_decisions.ts`, and by the app server's queue/decision/sla/update endpoints. Demo mode never reads or writes it.
+Channels: `email`, `whatsapp`, `webchat`, `form`, `wechat`.
 
-## Account
+Connectors: `email_agent`, `whatsapp_cloud`, `webchat_widget`, `form_intake`, `wechat_work`, `manual`.
 
-```json
-{
-  "account_id": "stable local id",
-  "channel": "email|whatsapp|webchat|form|wechat",
-  "connector": "email_agent|whatsapp_cloud|webchat_widget|form_intake|wechat_work|manual",
-  "display_name": "Support Mailbox",
-  "handle": "help@example.com / +… / app.example.com",
-  "status": "ok|warning|error|not_configured",
-  "ticket_count": 0,
-  "unread_count": 0,
-  "last_sync_at": "ISO timestamp"
-}
-```
+## Accounts (`kelly-support-accounts-v1`)
 
-`email_agent` marks an account whose collection and sending are handed off to kelly-email.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `account-id` | `account_id` | text | stable id, e.g. `email-support`, required |
+| `channel` | `channel` | text | see Channels above |
+| `connector` | `connector` | text | see Connectors above |
+| `display-name` | `display_name` | text | |
+| `handle` | `handle` | text | email / phone / URL / WeChat id |
+| `status` | `status` | text | `ok\|warning\|error\|not_configured` |
+| `access-token-env` | `access_token_env` | text | env var *name* only, for `whatsapp_cloud` |
+| `phone-number-id-env` | `phone_number_id_env` | text | env var *name* only, for `whatsapp_cloud` |
+| `corp-secret-env` | `corp_secret_env` | text | env var *name* only, for `wechat_work` |
+| `last-sync-at` | `last_sync_at` | text | ISO timestamp |
 
-## Ticket
+`ticket_count`/`unread_count` are rollups computed client-side from `tickets`, never stored.
 
-```json
-{
-  "ticket_id": "stable local id",
-  "ref": 1,
-  "account_id": "account id",
-  "channel": "email|whatsapp|webchat|form|wechat",
-  "customer": { "name": "Marta Ochoa", "company": "", "email": "", "handle": "", "country": "ES", "plan": "Pro (annual)" },
-  "subject": "Requesting a refund",
-  "body": "the original ticket body",
-  "category": "bug|how_to|billing|refund|complaint|feature",
-  "priority": "urgent|high|normal|low",
-  "status": "needs_review|changes_requested|approved|done|blocked",
-  "proposed_action": "send_reply|escalate|refund|close|no_action",
-  "reason": "why this draft / triage note",
-  "suggested_reply": "the KB-grounded reply draft (editable until sent)",
-  "kb_refs": ["kb-refunds"],
-  "sla": { "policy": "first_response", "due_by": "ISO timestamp", "breached": false, "first_response_at": "ISO or absent" },
-  "csat": { "score": 5, "comment": "…", "rated_at": "ISO" },
-  "quality_gate": { "verdict": "ship|fix|block", "score": 100, "summary": "…", "checks": [] },
-  "owner": "Kelly",
-  "unread": true,
-  "created_at": "ISO timestamp",
-  "last_message_at": "ISO timestamp",
-  "last_incoming_at": "ISO timestamp or empty",
-  "provider_conversation_id": "platform-native send target",
-  "decision": { "action": "approve|request_changes|revise|block", "comment": "", "decided_at": "ISO" },
-  "execution": { "status": "executed|pending|error", "operation": "send_reply|escalate|refund|close", "connector": "…", "channel": "…", "target": "…", "tier": "…", "amount": 0, "detail": "…", "executed_at": "ISO" },
-  "messages": []
-}
-```
+## Tickets (`kelly-support-tickets-v1`)
 
-`provider_conversation_id` is the send target: email address for `email_agent`, `<msisdn>@wa` for WhatsApp, `wc:<session>` for web chat, `wx:<user>` for WeChat. `sla.breached` is DERIVED, never trusted from input — a ticket breaches when it is still open, has no first response, and `due_by` has passed. `quality_gate` is the `support-qa` output (see below). `csat` is present only on rated (usually resolved) tickets. For `proposed_action: refund`, the amount lives on `execution.amount`.
+The approval-queue rows — one per support ticket, combining the triaged
+content, the KB-grounded draft reply, the human decision, and the execution
+marker.
 
-## Message
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `ticket-id` | `ticket_id` | text | stable domain id, required |
+| `account-id` | `account_id` | text | |
+| `channel` | `channel` | text | |
+| `customer-name` | `customer_name` | text | |
+| `customer-company` | `customer_company` | text | |
+| `customer-email` | `customer_email` | text | |
+| `customer-handle` | `customer_handle` | text | |
+| `customer-country` | `customer_country` | text | ISO-2 |
+| `customer-plan` | `customer_plan` | text | |
+| `subject` | `subject` | text | |
+| `body` | `body` | longtext | original ticket body |
+| `category` | `category` | text | `bug\|how_to\|billing\|refund\|complaint\|feature` |
+| `priority` | `priority` | text | `urgent\|high\|normal\|low` |
+| `status` | `status` | text | workflow status |
+| `proposed-action` | `proposed_action` | text | `send_reply\|escalate\|refund\|close\|no_action` |
+| `reason` | `reason` | longtext | why this draft / triage note |
+| `suggested-reply` | `suggested_reply` | longtext | the KB-grounded reply draft (editable until sent) |
+| `kb-refs` | `kb_refs` | longtext | JSON array of `article_id`s |
+| `sla-policy` | `sla_policy` | text | default `first_response` |
+| `sla-due-by` | `sla_due_by` | text | ISO timestamp |
+| `sla-first-response-at` | `sla_first_response_at` | text | ISO timestamp, set once a reply is sent |
+| `csat-score` | `csat_score` | number | 1-5, present only on rated tickets |
+| `csat-comment` | `csat_comment` | longtext | |
+| `csat-rated-at` | `csat_rated_at` | text | ISO timestamp |
+| `owner` | `owner` | text | default `Kelly` |
+| `unread` | `unread` | text | `"true"\|"false"` |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `provider-conversation-id` | `provider_conversation_id` | text | send target — email address, `<msisdn>@wa`, `wc:<session>`, `wx:<user>` |
+| `decision-action` | `decision_action` | text | written with the verdict |
+| `decision-comment` | `decision_comment` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | written with the verdict |
+| `execution-status` | `execution_status` | text | `sent\|dry_run\|skipped\|blocked`, written by `scripts/execute_decisions.mjs` |
+| `execution-operation` | `execution_operation` | text | `send_reply\|escalate\|refund\|close\|no_action` |
+| `execution-connector` | `execution_connector` | text | the account id that would deliver it |
+| `execution-target` | `execution_target` | text | `provider_conversation_id` at execution time |
+| `execution-tier` | `execution_tier` | text | for `escalate` |
+| `execution-amount` | `execution_amount` | number | for `refund` |
+| `execution-detail` | `execution_detail` | longtext | |
+| `executed-at` | `executed_at` | text | ISO timestamp |
+| `updated-at` | `updated_at` | text | ISO timestamp |
 
-```json
-{
-  "message_id": "stable per-ticket id",
-  "direction": "incoming|outgoing",
-  "sender": "display name (Kelly for own messages)",
-  "text": "message body",
-  "sent_at": "ISO timestamp",
-  "attachment": "optional short note like 'file: screenshot.png'"
-}
-```
+`ref` (the stable `#N` shown in the UI), `last_message_at`, `last_incoming_at`,
+`sla.breached`, and `quality_gate` are all computed client-side — never
+stored fields. `ref` is assigned by a `created_at`-ascending stable sort so
+it stays put across reloads regardless of the page order `records.list`
+returns. `sla.breached` is derived, never trusted from input: a ticket
+breaches when it is still open (`status` not `done`/`blocked`), has no first
+response, and `sla_due_by` has passed relative to the current time.
+
+## Messages (`kelly-support-messages-v1`)
+
+One row per conversation message, joined onto its ticket by `ticket-id`.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `message-id` | `message_id` | text | stable per-ticket id, required |
+| `ticket-id` | `ticket_id` | text | |
+| `direction` | `direction` | text | `incoming\|outgoing` |
+| `sender` | `sender` | text | display name (`Kelly` for own messages) |
+| `text` | `text` | longtext | message body |
+| `sent-at` | `sent_at` | text | ISO timestamp |
+| `attachment` | `attachment` | text | optional short note, e.g. `file: screenshot.png` |
 
 Store only the minimum excerpt needed for review. Never store credentials, QR payloads, or session tokens.
 
-## Knowledge base article / macro (`snapshot.knowledge_base[]`)
+## Knowledge Base (`kelly-support-knowledge-base-v1`)
 
-```json
-{
-  "article_id": "kb-refunds",
-  "kind": "article|macro",
-  "title": "Refund policy (30-day)",
-  "body": "the article or canned macro text",
-  "tags": ["billing", "refund"],
-  "category": "billing",
-  "updated_at": "ISO timestamp"
-}
-```
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `article-id` | `article_id` | text | stable id, required |
+| `kind` | `kind` | text | `article\|macro` |
+| `title` | `title` | text | |
+| `body` | `body` | longtext | the article or canned macro text |
+| `tags` | `tags` | longtext | JSON array |
+| `category` | `category` | text | |
+| `updated-at` | `updated_at` | text | ISO timestamp |
 
-A ticket's `kb_refs` reference `article_id`s. The `support-qa` gate requires a substantive reply to cite at least one real article and flags any dangling `kb_ref`.
+A ticket's `kb_refs` reference `article_id`s. The `support-qa` gate requires
+a substantive reply to cite at least one real article and flags any dangling
+`kb_ref`.
 
-## Quality gate (`ticket.quality_gate`)
+## Sync Log (`kelly-support-sync-log-v1`)
 
-```json
-{
-  "verdict": "ship|fix|block",
-  "score": 100,
-  "summary": "one-line rationale",
-  "checks": [
-    { "id": "grounding", "ok": true, "message": "Reply cites 1 KB article(s)." },
-    { "id": "kb_refs_resolve", "ok": true, "message": "All cited KB refs resolve." },
-    { "id": "no_unapproved_commitment", "ok": true, "message": "No refund or commitment language detected." },
-    { "id": "refund_policy", "ok": true, "message": "No refund requested." }
-  ]
-}
-```
+Append-only history of ticket-collection runs per account.
 
-`block` is a hard stop: it refuses approval (HTTP 409) and refuses execution even if a stale `approve` decision exists. `fix` is deliverable but should be revised first (usually a dangling KB ref or missing grounding). `ship` is grounded and within policy.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `sync-id` | `sync_id` | text | stable id, required |
+| `account-id` | `account_id` | text | |
+| `method` | `method` | text | usually the account's `connector` |
+| `at` | `at` | text | ISO timestamp |
+| `status` | `status` | text | `ok\|warning\|error` |
+| `message` | `message` | longtext | human-readable summary |
+| `new-messages` | `new_messages` | number | |
 
-## Decisions (`app/.data/decisions.json`)
+## Settings (`kelly-support-settings-v1`)
 
-```json
-{
-  "schema_version": "1",
-  "updated_at": "ISO timestamp",
-  "decisions": {
-    "<ticket_id>": {
-      "action": "approve|request_changes|revise|block",
-      "comment": "operator note",
-      "text": "final reply text at decision time",
-      "status": "resulting status",
-      "decided_at": "ISO timestamp"
-    }
-  }
-}
-```
+One row, `record-id: "config"`:
 
-## Agent tasks (`app/.data/agent_tasks.json`)
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | always `"config"`, required |
+| `sla-policy` | `sla_policy` | longtext | JSON: `{first_response_hours: {urgent, high, normal, low}, business_hours}` |
+| `risk-policy` | `risk_policy` | longtext | JSON: `{refund_requires_approval, max_auto_refund, block_ungrounded_replies, block_commitments_without_approval}` |
+| `reply-style` | `reply_style` | longtext | JSON: `{tone, language, signature, avoid: [...]}` |
+| `kb-source-path` | `kb_source_path` | text | where the KB was imported from, for display only |
 
-```json
-{
-  "schema_version": "1",
-  "updated_at": "ISO timestamp",
-  "tasks": [
-    {
-      "task_id": "stable id",
-      "type": "revise_reply|fix_grounding",
-      "ticket_id": "ticket id",
-      "ref": 6,
-      "comment": "what the human asked / why the gate flagged it",
-      "status": "open|done",
-      "requested_at": "ISO timestamp"
-    }
-  ]
-}
-```
+## Decisions
 
-`revise_reply` tasks come from `request_changes` decisions. `fix_grounding` tasks are written when the gate returns `FIX` (a dangling KB ref or an ungrounded reply): the agent adds a real KB article or drops the ref, re-runs the gate, and marks the task done.
+A human verdict (`approve`/`request_changes`/`block`/`revise`) writes the new
+`status` plus `decision-action`/`decision-comment`/`decided-at` (and, for a
+Save-reply or an edited approval, the new `suggested-reply`) directly onto
+the ticket record through `busabase-sdk`. There is no separate decisions
+file: the ticket record is the single source of truth for both the draft and
+its review state. From a standalone local preview the write merges
+immediately (trusted operator); from the deployed AirApp it creates a
+pending ChangeRequest for the trusted process to merge.
 
-## Execution report (`app/.data/execution_report.json`)
+## The Quality Gate (`support-qa`, computed, never stored)
 
-```json
-{
-  "report_id": "exec-YYYYMMDDHHMM",
-  "mode": "send",
-  "executed_at": "ISO timestamp",
-  "results": [
-    {
-      "ticket_id": "ticket id",
-      "ref": 2,
-      "status": "sent|dry_run|skipped|blocked",
-      "operation": "send_reply|escalate|refund|close|none",
-      "channel": "email|whatsapp|webchat|form|wechat",
-      "target": "provider_conversation_id",
-      "tier": "engineering (for escalate)",
-      "amount": 120,
-      "draft_id": "reply-<ticket_id>",
-      "reason": "detail"
-    }
-  ]
-}
-```
+`runQualityGate(ticket, knowledge_base, risk_policy)` in
+`app/app/js/support-model.js` returns `{verdict, score, summary, checks}`:
 
-`operation: send_reply` carries `channel` + `draft_id`; `escalate` carries `tier`; `refund` carries `amount` (approval-required). The executor refuses any ticket whose gate verdict is `block`.
+- **`grounding`** — a substantive reply (≥40 chars) must cite at least one KB article that resolves; a short acknowledgement is exempt.
+- **`kb_refs_resolve`** — every cited `kb_ref` must resolve to a real article (a dangling ref is a FIX, not a BLOCK).
+- **`no_unapproved_commitment`** — a reply matching refund/credit/guarantee language is a hard BLOCK unless the ticket's `proposed_action` is `refund` AND `status` is `approved`.
+- **`refund_policy`** — a `refund` proposed action is a hard BLOCK until `status` is `approved` (or the risk policy explicitly disables approval and the amount is under the auto-cap).
 
-## Ingest payload (shape the agent merges directly into `support_snapshot.json`; no ingest script exists yet)
+`verdict` is `block` if either hard-blocking check fails, else `fix` if
+either soft check fails, else `ship`. `score` is the percentage of passing
+checks. A `block` verdict refuses approval and refuses execution even if a
+stale `approve` decision exists.
 
-```json
-{
-  "account_id": "email-support",
-  "method": "email_agent",
-  "collected_at": "ISO timestamp",
-  "tickets": [
-    {
-      "ticket_id": "optional stable id (derived from customer + subject when absent)",
-      "customer": { "name": "Marta Ochoa", "email": "marta@…", "country": "ES", "plan": "Pro" },
-      "subject": "…",
-      "body": "…",
-      "category": "refund",
-      "priority": "high",
-      "proposed_action": "refund",
-      "suggested_reply": "",
-      "kb_refs": [],
-      "provider_conversation_id": "marta@…",
-      "messages": [
-        { "message_id": "och-1", "direction": "incoming", "sender": "Marta Ochoa", "text": "…", "sent_at": "ISO" }
-      ]
-    }
-  ]
-}
-```
+## Execution (`scripts/execute_decisions.mjs`)
 
-Merging is idempotent: tickets dedupe by `ticket_id`, messages by `message_id`; re-running the same payload adds nothing. On ingest, `sla.breached` is re-derived and `support-qa` runs on any drafted reply.
-
-## Other files
-
-- `app/.data/onboarding.json`: `{ "completed": true, "completed_at": "…", "config_version": "…" }`.
-- `app/.data/agent.lock`: `{ "owner": "kelly-support", "message": "…", "started_at": "…" }`. While it exists the app rejects writes (HTTP 423) and renders the composer and decisions read-only.
+The trusted handoff step. Reads `tickets` whose `decision_action` is
+`approve` AND `status` is `approved`, re-checks the `support-qa` gate live,
+and — with `--apply` — writes an execution marker
+(`execution-status`/`execution-operation`/`execution-target`/etc.) onto each
+ticket that clears every safety gate. **It never changes the ticket's
+`status`** (real delivery, not this script, ultimately resolves the ticket)
+and performs **no external side effect** — no email send, no WhatsApp/WeChat
+API call, no refund. Idempotency is checked live off each ticket's own
+`execution-status` field (no separate report file). Real
+sends/escalations/refunds are performed by the configured channel connectors
+(kelly-email, WhatsApp Cloud API, the web-chat widget, WeChat Work), a
+separate, explicitly authorized step.
