@@ -1,0 +1,19 @@
+{
+  "appId": "kelly-audit",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-audit"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "orders", "slug": "kelly-audit-orders-v1", "schemaVersion": 1 },
+    { "key": "invoices", "slug": "kelly-audit-invoices-v1", "schemaVersion": 1 },
+    { "key": "payments", "slug": "kelly-audit-payments-v1", "schemaVersion": 1 },
+    { "key": "anomalies", "slug": "kelly-audit-anomalies-v1", "schemaVersion": 1 },
+    { "key": "import_log", "slug": "kelly-audit-import-log-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-audit-settings-v1", "schemaVersion": 1 }
+  ]
+}
