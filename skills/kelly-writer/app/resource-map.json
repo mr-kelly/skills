@@ -1,0 +1,15 @@
+{
+  "appId": "kelly-writer",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-writer"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "drafts", "slug": "kelly-writer-drafts-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-writer-settings-v1", "schemaVersion": 1 }
+  ]
+}

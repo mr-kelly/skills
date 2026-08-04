@@ -1,110 +1,66 @@
 # Kelly Writer
 
-Repurpose one source idea into channel-ready content drafts with a local review and export workflow.
+Kelly Writer is a Busabase-backed App-in-Skill review desk for repurposing one source idea, blog post, transcript, or announcement into channel-ready drafts — Xiaohongshu, WeChat, newsletter, LinkedIn, X/Twitter, short video scripts, SEO snippets, and an official blog draft. The agent drafts each channel variant; you review, edit, and approve drafts in a quiet review UI before anything is exported.
 
+## What It Shows
+
+- **Overview**: draft metrics (needs review / approved / done / blocked) and the channel breakdown.
+- **Drafts**: the review queue over channel drafts, with editable title/body, hashtags/CTA/media-brief/title-options support panels, a review note, and Approve / Request changes / Block decisions.
+- **Settings**: sanitized brand/audience/channel configuration and the exact trusted-script commands to run next.
+- The AirApp never generates content or exports anything itself. Generation and export are trusted skill-root scripts run outside the browser (see below).
 
 ## App UI Screenshots
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Writer todo queue"></td>
-    <td width="50%"><img src="assets/screenshots/topics.webp" alt="Kelly Writer topic discovery"></td>
-  </tr>
-  <tr>
-    <td><strong>Todo queue</strong><br>Confirmed content directions queued for AI writing, with ownership, status, and next-step controls.</td>
-    <td><strong>Topic discovery</strong><br>Mock editorial planning with keyword clusters, audience fit, and topic opportunities.</td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="assets/screenshots/main.webp" alt="Kelly Writer main draft"></td>
+    <td width="50%"><img src="assets/screenshots/overview.webp" alt="Kelly Writer overview"></td>
     <td width="50%"><img src="assets/screenshots/distribution.webp" alt="Kelly Writer distribution review"></td>
   </tr>
   <tr>
-    <td><strong>Main draft</strong><br>Long-form writing workspace with outline, draft sections, source notes, and approval status.</td>
-    <td><strong>Distribution review</strong><br>Channel handoff view for publishing, social snippets, newsletter framing, and final checks.</td>
+    <td><strong>Overview</strong><br>Channel breakdown and the drafts that need attention next.</td>
+    <td><strong>Drafts</strong><br>Channel-ready draft review queue with editable title/body and approval controls.</td>
   </tr>
 </table>
 
-## What It Does
+## Running Locally
 
-Kelly Writer turns a blog post, long article, transcript, notes, outline, product announcement, or rough idea into a multi-platform content batch. It can prepare drafts for channels such as:
-
-- Xiaohongshu
-- WeChat
-- newsletter
-- LinkedIn
-- X/Twitter
-- short video scripts
-- SEO snippets
-- multi-platform publishing plans
-
-By default, it uses a local App-in-Skill UI so drafts can be reviewed, edited, approved, and exported before anything leaves the local workflow.
-
-## When To Use It
-
-Use this skill when you want to:
-
-- turn long-form source material into multiple shorter platform drafts
-- adapt one idea for Chinese and English social channels
-- create a content pack from a product launch, article, transcript, or notes
-- review and approve generated drafts in a local dashboard
-- export approved content to Markdown and JSON
-
-## Workflow
-
-1. Provide source material, target audience, desired channels, language, and CTA.
-2. The skill extracts the core idea, proof points, examples, keywords, and reusable quotes.
-3. It generates a local content batch.
-4. The batch is validated and opened in the local review UI.
-5. You edit or approve items in the UI.
-6. Approved drafts are exported locally.
-
-## Local UI
-
-Default local app URL:
-
-```text
-http://127.0.0.1:3000/
+```bash
+pnpm --dir app install
+pnpm --dir app dev
 ```
 
-The app reads and writes local files only. It does not publish posts, schedule content, upload media, or change external platforms.
+Open the printed URL. A standalone local preview asks you to connect
+Busabase (Cloud or a custom server) and select a Space — never an API key.
 
-## Local Files
+## Demo Mode
 
-```text
-skills/kelly-writer/app/.data/current_batch.json
-skills/kelly-writer/app/.data/decisions.json
-skills/kelly-writer/app/.data/export_report.json
-skills/kelly-writer/app/.data/agent.lock
-```
-
-Exports are written under:
+Add a demo path to see a mock content batch without a Busabase connection:
 
 ```text
-skills/kelly-writer/exports/
+/?demo=overview&lang=en#/overview
+/?demo=drafts&lang=en#/drafts
+/?demo=settings&lang=en#/settings
 ```
 
-## Configuration
+Demo mode never reads or writes Busabase.
 
-Optional private config can store brand voice, audience, official URLs, CTA defaults, channel defaults, risk terms, and export preferences.
+## Data
 
-Supported config locations:
+All state — channel drafts and the brand/audience/channel profile — lives in
+two Busabase Bases under one application Folder. See `SKILL.md` for the
+resource map.
 
-```text
-KELLY_WRITER_CONFIG=/absolute/path/to/config.json
-skills/kelly-writer/config.local.json
-~/.config/kelly-writer/config.json
+```bash
+node scripts/generate_batch.mjs --source path-or-text --apply
+node scripts/export_decisions.mjs --apply
 ```
 
-Use `config.example.json` as a starting template only. Keep private settings out of committed files. Existing `KELLY_CONTENT_*` environment variables and `~/.config/kelly-content/config.json` remain supported as migration fallbacks; use the `kelly-writer` names for new configuration.
+Both are trusted skill-root scripts with their own `package.json`; they
+connect with `BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID`,
+never the AirApp's ambient session. `export_decisions.mjs` writes a
+Markdown+ZIP pack per approved draft to `exports/<batch-id>/` and marks the
+draft `done` — it never publishes anywhere.
 
-## Chat-Only Mode
+## Philosophy
 
-If you do not want the local UI, ask for chat-only mode:
-
-```text
-kelly-writer chat only
-kelly-writer 纯聊天
-不要打开 UI，直接在这里处理
-```
-
-In chat-only mode, the skill presents numbered drafts directly in the conversation for review and approval.
+The App-in-Skill pattern pairs an agent skill with a small companion UI. See the spec paper: <https://mr-kelly.github.io/research/app-in-skill-specification-for-pairing-agent-skills-with-a-local-companion-ui.pdf>.
