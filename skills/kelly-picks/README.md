@@ -1,6 +1,6 @@
 # Kelly Picks
 
-Kelly Picks is a local App-in-Skill product-research (选品) desk for a cross-border e-commerce seller. The agent sweeps trend sources — Amazon BSR movers, TikTok viral product videos, Temu/AliExpress rising items, Google Trends terms, competitor new launches — and files product candidates; Kelly verdicts them develop / watch / drop in a review queue.
+Kelly Picks is a Busabase App-in-Skill product-research (选品) desk for a cross-border e-commerce seller. The agent sweeps trend sources — Amazon BSR movers, TikTok viral product videos, Temu/AliExpress rising items, Google Trends terms, competitor new launches — and files product candidates; Kelly verdicts them develop / watch / drop in a review queue. `scripts/ingest_trends.mjs` is the single write path for sweep payloads, `scripts/compute_margins.mjs` deterministically recomputes every margin card, and `scripts/execute_decisions.mjs` prints the plan for approved proposals — the AirApp itself never browses a trend source, scrapes a listing, or performs a handoff.
 
 ## What It Shows
 
@@ -8,14 +8,14 @@ Kelly Picks is a local App-in-Skill product-research (选品) desk for a cross-b
 - Candidates: the research table — source badge, momentum, est. price, est. margin %, competition grade (A-D), stage. Detail shows a line-by-line margin card (price − COGS − freight − platform fee − est. ad cost → margin %, breakeven ACOS) with live-recomputing inputs, a competition read (top-10 review counts as SVG bars, head-seller dominance, new-entrant velocity), evidence links, and Develop / Watch / Drop verdict buttons.
 - Trends: the raw signal feed, filterable by source badges, each item linked to its candidate or offering "Promote to candidate".
 - Decisions: the review queue (`needs_review / changes_requested / approved / done / blocked`) — each item is an agent verdict proposal with an editable sourcing/listing brief, Approve / Request changes / Block buttons, and stable refs like `Pick #1`.
-- Help & Settings: sanitized config — seller profile, platform fee tables, freight rules, sources with method, env readiness booleans.
+- Help & Settings: sanitized config — seller profile, platform fee tables, freight rules, sources with method, data provider, onboarding state.
 
 ## How It Flows
 
-1. The agent sweeps sources (browser skills, exports, pasted research) and files everything through `scripts/ingest_trends.ts` — the single write path, which validates, dedupes (source + external id, content-hash fallback), merges, and honors `app/.data/agent.lock`. The app itself never touches the network beyond `127.0.0.1`.
-2. `scripts/compute_margins.ts` deterministically recomputes every margin card from the config fee tables and flags candidates below the margin floor. It is idempotent.
-3. Kelly verdicts candidates and reviews proposals in the app. Decisions land in `app/.data/decisions.json`; revision requests queue in `app/.data/agent_tasks.json`. `POST /api/decision` returns HTTP 423 while the agent lock exists.
-4. `scripts/execute_decisions.ts` (dry-run by default) turns approved proposals into concrete operations in `app/.data/execution_report.json`: `create_sourcing_brief` (export path), `handoff_listing_brief` (→ kelly-listing), `add_watch` (re-check criteria). The agent performs the handoffs, then re-runs with `--apply`.
+1. The agent sweeps sources (browser skills, exports, pasted research) and files everything through `node scripts/ingest_trends.mjs <payload.json>` — the single write path, which validates, dedupes (source + external id, content-hash fallback), and merges into the `candidates`/`trend_items`/`sources` Bases.
+2. `node scripts/compute_margins.mjs` deterministically recomputes every margin card from the `settings` fee tables and flags candidates below the margin floor. It is idempotent.
+3. Kelly verdicts candidates and reviews proposals in the app — writes go straight to the candidate/proposal record through `busabase-sdk`; a standalone local preview merges immediately, a deployed AirApp creates a pending ChangeRequest.
+4. `node scripts/execute_decisions.mjs` (dry-run by default) prints the plan for approved proposals: `create_sourcing_brief` (export path), `handoff_listing_brief` (→ kelly-listing), `add_watch` (re-check criteria), `drop_candidate` (stage update). The agent performs the handoffs, then re-runs with `--apply` to mark them done.
 
 ## App UI Screenshots
 
@@ -40,13 +40,13 @@ Kelly Picks is a local App-in-Skill product-research (选品) desk for a cross-b
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene (a home/kitchen gadget seller, "Nimbus Home"):
+Run the app locally and open a safe mock-data scene (a home/kitchen gadget seller, "Nimbus Home"):
 
 ```bash
-skills/kelly-picks/app/start.sh
+pnpm --dir skills/kelly-picks/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Use the printed URL, then add one of these demo paths:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -62,11 +62,11 @@ Featured deep link (full margin card + competition bars, Chinese content for zh 
 /?demo=detail&lang=zh#/candidates/cand-lunchbox
 ```
 
-With `lang=zh`, demo content (product names like 可折叠硅胶饭盒, reasons, briefs, summaries) is localized to Chinese; currency stays USD. Demo mode never reads or writes files under `app/.data/`, and demo decisions are simulated only.
+With `lang=zh`, demo content (product names like 可折叠硅胶饭盒, reasons, briefs, summaries) is localized to Chinese; currency stays USD. Demo mode never reads or writes Busabase, and demo decisions are simulated in memory only.
 
-## Payload Format
+## Sweep Payload Format
 
-`scripts/ingest_trends.ts <payload.json>` accepts:
+`node scripts/ingest_trends.mjs <payload.json>` accepts:
 
 ```json
 {
@@ -105,12 +105,19 @@ Source kinds: `amazon_bsr | tiktok | temu | aliexpress | trends | competitor`. F
 
 ## Fee-Table Config
 
-`config.example.json` shows the shape: `seller_profile` (categories, target platforms, `margin_floor_pct`, `max_cogs`), `platforms[]` (per-platform `referral_fee_pct` + `fulfillment_flat`), `freight` (`default_per_unit` + per-category `rules`), and `ad_cost_default_pct`. `compute_margins.ts` reads these to recompute every margin card; the margin floor drives the `below_floor` flags in the UI.
+The `settings` Base's single row holds `seller_profile` (categories, target platforms, `margin_floor_pct`, `max_cogs`), `platforms[]` (per-platform `referral_fee_pct` + `fulfillment_flat`), `freight` (`default_per_unit` + per-category `rules`), and `ad_cost_default_pct`. `scripts/compute_margins.mjs` reads these to recompute every margin card; the margin floor drives the `below_floor` flags in the UI.
 
-## Private Config
+## Trusted Scripts
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-picks/config.json`. Put any API secrets in local env files only, referenced by `*_env` names (env priority: system env → `KELLY_PICKS_ENV_FILE` → repo `.env` → `.env.local` → `~/.config/kelly-picks/.env`). Never commit real fee tables you consider sensitive, supplier quotes, tokens, or files under `app/.data/` or `exports/`.
+All three scripts connect with their own Busabase credentials (`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID`), never the AirApp's ambient browser session:
+
+```bash
+node skills/kelly-picks/scripts/ingest_trends.mjs payload.json
+node skills/kelly-picks/scripts/compute_margins.mjs
+node skills/kelly-picks/scripts/execute_decisions.mjs
+node skills/kelly-picks/scripts/execute_decisions.mjs --apply
+```
 
 ## Boundary
 
-Collection is read-only over public data — respect each platform's terms of service and robots.txt, throttle politely, and never scrape private or personal data. Margin data stays local. Handoffs (sourcing brief exports, listing briefs → kelly-listing) require Kelly's approval in the app first; `execute_decisions.ts` is dry-run by default.
+Collection is read-only over public data — respect each platform's terms of service and robots.txt, throttle politely, and never scrape private or personal data. The AirApp reads and writes Busabase records only; it never fetches a trend source, scrapes a listing, or performs a handoff itself. Handoffs (sourcing brief exports, listing briefs → kelly-listing) require Kelly's approval in the app first; `execute_decisions.mjs` is dry-run by default.
