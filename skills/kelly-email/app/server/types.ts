@@ -14,7 +14,7 @@ export type {
   Onboarding,
   ReviewBrief,
   ReviewItem,
-} from "../../lib/types.ts";
+} from "../lib/types.ts";
 
 // Query string params parsed from the request URL. Values may arrive as string
 // or string[] (Hono returns strings; demo helpers tolerate both).
