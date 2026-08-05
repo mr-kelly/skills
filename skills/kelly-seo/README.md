@@ -1,6 +1,12 @@
 # Kelly SEO
 
-Kelly SEO is a local App-in-Skill desk covering **SEO + GEO (AI-search) + brand entity**: a dashboard over Google Search Console search analytics and an agent-prepared SEO opportunities review queue, plus an AI-visibility tracker, a GEO content-optimization queue, and an entity / knowledge-panel readiness checklist.
+Kelly SEO is a Busabase App-in-Skill desk covering **SEO + GEO (AI-search) + brand entity**: a dashboard over Google Search Console search analytics and an agent-prepared SEO opportunities review queue, plus an AI-visibility tracker, a GEO content-optimization queue, and an entity / knowledge-panel readiness checklist.
+
+## How It Flows
+
+1. Pulling Search Console data is a trusted-script-only operation: `scripts/sync_gsc.mjs` authenticates with a service-account key or OAuth token, pulls Search Analytics, and upserts `sites`/`queries`/`pages` into Busabase. The AirApp itself only reads and writes Busabase — it never touches the GSC API.
+2. The agent analyzes synced analytics and writes proposed SEO/GEO opportunities and entity signals straight into Busabase (via `busabase-sdk`). Kelly reviews and decides (approve / request changes / block / revise) in the app; verdicts write directly onto the item record.
+3. `scripts/execute_decisions.mjs` (dry-run by default) prints the concrete follow-up operation for every approved SEO opportunity; the agent performs it in the site's repo/CMS, then `--apply` marks it `ready_for_agent` and the agent marks it `done` after the real edit ships.
 
 ## What It Shows
 
@@ -52,13 +58,13 @@ Kelly SEO is a local App-in-Skill desk covering **SEO + GEO (AI-search) + brand 
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Run the AirApp locally and open a safe mock-data scene:
 
 ```bash
-skills/kelly-seo/app/start.sh
+cd skills/kelly-seo/app && node server.js
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Then add one of these demo paths:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -71,7 +77,7 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=detail&lang=en#/queries/q-featherlog-app-release-notes-vs-changelog
 ```
 
-Demo mode never reads live GSC data or files under `app/.data/`. The GEO demo uses an invented brand (Featherlog); the `#/optimize` scene includes one change the `geo-qa` gate BLOCKs for a fabricated stat.
+Demo mode never reads or writes Busabase. The GEO demo uses an invented brand (Featherlog); the `#/optimize` scene includes one change the `geo-qa` gate BLOCKs for a fabricated stat.
 
 ## GSC Auth Setup
 
@@ -86,25 +92,25 @@ Service account (recommended):
 Plain access token (quick manual runs):
 
 1. Obtain a short-lived OAuth access token with the read-only webmasters scope (for example via `gcloud auth print-access-token` on an authorized account, or the OAuth playground).
-2. Set `KELLY_SEO_GSC_ACCESS_TOKEN=<token>` and run `node skills/kelly-seo/scripts/sync_gsc.ts`.
+2. Set `KELLY_SEO_GSC_ACCESS_TOKEN=<token>` and run `node skills/kelly-seo/scripts/sync_gsc.mjs`.
 
 ## Private Config
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-seo/config.json` and list your site properties. Secrets live only in local env files referenced by name (`KELLY_SEO_GSC_SERVICE_ACCOUNT_FILE`, `KELLY_SEO_GSC_ACCESS_TOKEN`). Never commit keys, tokens, or files under `app/.data/`.
+Create `config.local.json` (or `~/.config/kelly-seo/config.json`) and list your site properties — see `SKILL.md`'s First Run And Onboarding section for the exact shape. Secrets live only in local env files referenced by name (`KELLY_SEO_GSC_SERVICE_ACCOUNT_FILE`, `KELLY_SEO_GSC_ACCESS_TOKEN`). Never commit keys, tokens, or `config.local.json`.
 
 ## Boundary
 
-GSC access is read-only. The app itself never calls the GSC API or edits site content; approved opportunities are executed by the agent outside the app (in the site's repo/CMS) and reported back to `app/.data/execution_report.json`. GEO content changes follow the same rule (approved in `#/optimize`, published by the agent outside the app). AI-visibility data is observational — the skill never fabricates a citation, an answer position, or a stat; the `geo-qa` gate BLOCKs ungrounded claims so no invented number reaches AI answer engines.
+GSC access is read-only, pulled only by the trusted `scripts/sync_gsc.mjs`. The AirApp itself never calls the GSC API or edits site content; approved opportunities are executed by the agent outside the app (in the site's repo/CMS) after `scripts/execute_decisions.mjs` marks them `ready_for_agent`. GEO content changes follow the same rule (approved in `#/optimize`, published by the agent outside the app). AI-visibility data is observational — the skill never fabricates a citation, an answer position, or a stat; the `geo-qa` gate BLOCKs ungrounded claims so no invented number reaches AI answer engines.
 
 ---
 
 ## 中文说明
 
-Kelly SEO 是一个本地 App-in-Skill 桌面，覆盖 **SEO + GEO（AI 搜索）+ 品牌实体**：
+Kelly SEO 是一个 Busabase App-in-Skill 桌面，覆盖 **SEO + GEO（AI 搜索）+ 品牌实体**：
 
 - **SEO 分析**：基于 Google Search Console 的点击、曝光、CTR、排名仪表盘，以及代理准备的 SEO 优化项审核队列（标题/描述改写、内链、内容简报、页面修复），可批准 / 要求修改 / 拦截。
 - **AI 可见度（GEO）**：一个「引擎 × 提问」矩阵，展示 ChatGPT / Perplexity / Gemini / Claude / Copilot 是否为一组追踪提问引用了本品牌、在答案中的位置与情感，以及总体可见度得分和趋势。
 - **GEO 内容优化**：代理提议让页面更易被 AI 引擎引用的改写（可引用改写、可引用数据、问答块、结构化数据），用同一套五状态审核；每项由 `geo-qa` 质量门评为 SHIP / FIX / BLOCK——编造数据会在发布前被拦截。
 - **实体就绪度**：品牌实体 / 知识面板清单（Wikidata、维基百科/知名度、schema.org Organization、sameAs、名称一致性 NAP、创始人实体），每项标注已具备 / 部分 / 缺失并给出建议修复。
 
-演示模式（`?demo=geo` / `?demo=optimize` / `?demo=entity`，可加 `lang=zh`）使用虚构品牌，不读取任何真实 GSC 数据或 `app/.data/` 文件。GEO 内容变更同样只在 App 外由代理发布；本技能绝不编造引用、答案位置或数据。
+演示模式（`?demo=geo` / `?demo=optimize` / `?demo=entity`，可加 `lang=zh`）使用虚构品牌，不读取或写入任何真实 Busabase 数据。GEO 内容变更同样只在 App 外由代理发布；本技能绝不编造引用、答案位置或数据。
