@@ -1,0 +1,18 @@
+{
+  "appId": "kelly-financial-services-intel",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-financial-services-intel"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "signals", "slug": "kelly-financial-services-intel-signals-v1", "schemaVersion": 1 },
+    { "key": "actions", "slug": "kelly-financial-services-intel-actions-v1", "schemaVersion": 1 },
+    { "key": "drafts", "slug": "kelly-financial-services-intel-drafts-v1", "schemaVersion": 1 },
+    { "key": "sources", "slug": "kelly-financial-services-intel-sources-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-financial-services-intel-settings-v1", "schemaVersion": 1 }
+  ]
+}

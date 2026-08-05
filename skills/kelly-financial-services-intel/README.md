@@ -1,20 +1,20 @@
 # Kelly Financial Services Intel
 
-Kelly Financial Services Intel is a local App-in-Skill cockpit for advisory, family-office, and financial-services teams. It turns market, macro, regulatory, portfolio-theme, and client-question signals into reviewable education and relationship-management actions.
+Kelly Financial Services Intel is a Busabase App-in-Skill cockpit for turning market, macro, regulatory, portfolio-theme, and client-question movement into reviewable relationship-management decisions. It is built for financial-service founders, family office operators, analysts, and client advisors.
 
 ## What It Shows
 
-- Overview: today's client-question trigger, ready advisor actions, blocked advice, and source coverage.
-- Signals: regulator, exchange, central-bank, macro, company, portfolio-theme, competitor, and client-question movement.
-- Actions: internal briefs, client education memos, advisor talking points, risk reminders, and meeting agendas.
-- Drafts: editable client memos, market explainers, meeting notes, and internal briefing copy.
-- Sources: regulatory pages, market news, macro data, company announcements, and approved client-question themes.
+- Overview: the client-question trigger worth acting on today, top source-backed signals, ready actions, blocked claims, and source freshness.
+- Signals: regulatory, macro, market, portfolio-theme, and client-question movement with evidence links, buyer-intent interpretation, confidence, and risk badges.
+- Actions: approved, watch-only, or blocked internal briefs, client education memos, advisor talking points, and risk reminders tied to a specific trigger.
+- Drafts: editable client memo, internal brief, and advisor script drafts that stay behind a review gate until approved.
+- Sources: monitored regulator/exchange/market-news/competitor/trend source categories, freshness, missing coverage, and config readiness.
 
 ## How It Flows
 
-1. The agent frames market movement as education or preparation, not personalized advice.
-2. Kelly reviews risk language and blocks any suitability, performance, tax, or trading implication.
-3. Approved items dry-run locally before export to an advisor, Busabase, or a client-review workflow.
+1. The agent browses current public sources and writes only business-relevant movement directly into Busabase as signal/action/draft/source records.
+2. The app lets Kelly review signals, approve or block actions, and request changes to drafts — every decision writes straight onto the item's own Busabase record.
+3. `scripts/execute_decisions.mjs` dry-runs approved handoffs, then marks approved items done with `--apply` after the agent performs the real handoff outside the script.
 
 ## App UI Screenshots
 
@@ -33,18 +33,18 @@ Kelly Financial Services Intel is a local App-in-Skill cockpit for advisory, fam
   </tr>
   <tr>
     <td><strong>Actions</strong><br>Internal briefs, client education tasks, advisor scripts, and risk reminders queued for approval.</td>
-    <td><strong>Drafts</strong><br>Editable explainers and meeting notes that avoid personalized advice and performance promises.</td>
+    <td><strong>Drafts</strong><br>Editable client memos and advisor scripts that avoid personalized advice and performance promises.</td>
   </tr>
 </table>
 
 ## Demo Mode
 
 ```bash
-skills/kelly-financial-services-intel/app/start.sh
+pnpm --dir skills/kelly-financial-services-intel/app dev
 ```
 
-Use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.
+Open the printed URL and use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.
 
 ## Boundary
 
-The skill blocks personalized investment advice, suitability conclusions, performance promises, tax/legal advice, trades, and money movement.
+The AirApp reads and writes its own Busabase Bases only. It may prepare evidence-backed drafts and review decisions, but it never publishes, sends messages, mutates CRMs, spends money, or stores private customer data without explicit approval. The skill blocks personalized investment advice, suitability conclusions, performance promises, tax/legal advice, and any trade or money movement.
