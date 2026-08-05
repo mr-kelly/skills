@@ -1,12 +1,12 @@
 # Deal Scoring Desk (kelly-deal-scorer)
 
-Deal Scoring Desk is a local, file-backed App-in-Skill review queue for
-underwriting candidate SME financing deals (private-credit / revenue-based
-financing style). It is a generic, brand-free tool — it does not reference any
-specific real lender or company. For each candidate it computes a
-deterministic, fully auditable composite score (0-100) from a rule-based
-weighted rubric — **plain arithmetic in `lib/scoring.ts`, never an LLM or API
-call** — so every number can be recomputed by hand.
+Deal Scoring Desk is a Busabase App-in-Skill review queue for underwriting
+candidate SME financing deals (private-credit / revenue-based financing
+style). It is a generic, brand-free tool — it does not reference any specific
+real lender or company. For each candidate it computes a deterministic, fully
+auditable composite score (0-100) from a rule-based weighted rubric — **plain
+arithmetic in `app/app/js/scorer-model.js`, never an LLM or API call** — so
+every number can be recomputed by hand.
 
 ## What It Shows
 
@@ -23,8 +23,7 @@ call** — so every number can be recomputed by hand.
   revenue decline).
 - A suggested revenue-share rate range derived from the composite score.
 - A human decision row — approve for term sheet / send back for more data /
-  reject — written to local handoff files (`app/.data/decisions.json`,
-  `app/.data/current_batch.json`).
+  reject — written directly onto the candidate's Busabase record.
 
 ## App UI Screenshots
 
@@ -39,26 +38,21 @@ call** — so every number can be recomputed by hand.
   </tr>
   <tr>
     <td width="50%"><img src="assets/screenshots/score-breakdown.webp" alt="Deal Scoring Desk score breakdown"></td>
-    <td width="50%"><img src="assets/screenshots/overview-zh-CN.webp" alt="Deal Scoring Desk overview (Chinese)"></td>
+    <td width="50%"></td>
   </tr>
   <tr>
     <td><strong>Score breakdown</strong><br>Per-factor raw score, weight, and contribution with an arithmetic trace for every sub-factor, plus the suggested revenue-share rate range.</td>
-    <td><strong>Overview (中文)</strong><br>Full Chinese UI chrome via <code>lang=zh</code>.</td>
+    <td></td>
   </tr>
 </table>
 
-Additional Chinese-locale screenshots: `candidate-detail-zh-CN.png`,
-`score-breakdown-zh-CN.png`.
-
 ## Demo Mode
 
-Run the app and open a safe, fully offline mock queue:
-
 ```bash
-skills/kelly-deal-scorer/app/start.sh
+pnpm --dir skills/kelly-deal-scorer/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Use the printed URL, then add one of these demo paths:
 
 ```text
 /?demo=1&lang=en#/overview
@@ -66,20 +60,19 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=1&lang=zh#/candidates/cand-004
 ```
 
-Demo mode never reads or writes the real local batch/decision files.
+Demo mode never reads or writes Busabase.
 
-## Seeding A Real (Mock) Queue
+## Seeding And Executing A Real (Mock) Queue
 
 ```bash
-node scripts/generate_batch.ts     # seed 8 mock candidates, scored
-node scripts/validate_ui_schema.ts # validate app/.data/current_batch.json
-node scripts/execute_decisions.ts  # apply approved/rejected decisions
+node scripts/generate_batch.mjs --apply     # seed 8 mock candidates, scored, into Busabase
+node scripts/execute_decisions.mjs --apply  # mark approved candidates "done" (no external side effect)
 ```
 
-## Private Config
+Both scripts default to a dry run — pass `--apply` to actually write.
 
-Copy `config.example.json` to `config.local.json` or
-`~/.config/kelly-deal-scorer/config.json` to tune the rubric weights,
-category risk tiers, and decision thresholds to your fund's underwriting
-policy. Never commit real candidate financials, exports, or files under
-`app/.data/`.
+## Busabase Resources
+
+Two Bases (`candidates`, `settings`) under one application Folder,
+provisioned lazily on first run. See `references/scoring-schema.md` for the
+full field-slug schema and the rubric formulas.

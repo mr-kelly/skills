@@ -1,0 +1,15 @@
+{
+  "appId": "kelly-deal-scorer",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-deal-scorer"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "candidates", "slug": "kelly-deal-scorer-candidates-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-deal-scorer-settings-v1", "schemaVersion": 1 }
+  ]
+}

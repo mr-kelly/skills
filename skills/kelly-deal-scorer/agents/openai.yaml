@@ -1,4 +1,4 @@
 interface:
   display_name: "Deal Scoring Desk"
-  short_description: "Local review queue that scores SME financing deal candidates"
+  short_description: "Busabase review queue that scores SME financing deal candidates"
   default_prompt: "Use $kelly-deal-scorer to open the deal scoring desk and review the candidate queue."

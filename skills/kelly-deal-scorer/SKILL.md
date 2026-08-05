@@ -1,30 +1,32 @@
 ---
 name: kelly-deal-scorer
-description: Review-queue App-in-Skill that scores candidate SME financing deals (revenue-based/RBF-style credit) with a deterministic, fully auditable rule-based rubric — never an LLM or API call. Use when the user invokes $kelly-deal-scorer or /kelly-deal-scorer, wants to review a deal-underwriting queue, score financing candidates, compute a composite score breakdown, see a suggested revenue-share rate range, or record approve/send-back/reject decisions for a private-credit or RBF-style lending pipeline.
+description: Busabase App-in-Skill review queue that scores candidate SME financing deals (revenue-based/RBF-style credit) with a deterministic, fully auditable rule-based rubric — never an LLM or API call. Use when the user invokes $kelly-deal-scorer or /kelly-deal-scorer, wants to review a deal-underwriting queue, score financing candidates, compute a composite score breakdown, see a suggested revenue-share rate range, or record approve/send-back/reject decisions for a private-credit or RBF-style lending pipeline.
 ---
 
 # Deal Scoring Desk
 
 ## Overview
 
-Use this skill as a local review-queue operator for a generic SME financing
-deal desk (private-credit / revenue-based-financing style). It ingests a mock
-queue of candidate businesses (name, category, city, monthly revenue history,
-requested principal, red flags) and computes a deterministic composite score
-(0-100) per candidate with a full, hand-recomputable breakdown: each
-sub-factor's raw score, weight, and contribution, plus a suggested
-revenue-share rate range. This is a generic, brand-free tool — it does not
-reference any specific real company, lender, or fund.
+Use this skill as a Busabase-backed review-queue desk for a generic SME
+financing deal desk (private-credit / revenue-based-financing style). It
+holds a mock queue of candidate businesses (name, category, city, monthly
+revenue history, requested principal, red flags) and computes a deterministic
+composite score (0-100) per candidate with a full, hand-recomputable
+breakdown: each sub-factor's raw score, weight, and contribution, plus a
+suggested revenue-share rate range. This is a generic, brand-free tool — it
+does not reference any specific real company, lender, or fund.
 
-**The scoring rubric is plain arithmetic in `lib/scoring.ts`, not an LLM or API
-call.** Every number the app shows can be recomputed with a calculator from the
-candidate's raw fields and the rubric weights in `config.json`.
+**The scoring rubric is plain arithmetic in `app/app/js/scorer-model.js`, not
+an LLM or API call.** Every number the app shows can be recomputed with a
+calculator from the candidate's raw fields and the rubric weights in the
+`settings` Base.
 
-Default interaction mode: App UI. Unless the user explicitly asks for
-chat-only handling, check onboarding/config, seed or reuse the local batch,
-start/reuse the local app with `app/start.sh`, and give the actual local URL.
-Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI",
-or similar.
+Default behavior is AirApp-first. Unless the user explicitly asks only for
+explanation, ensure the mock queue exists (run the seed script below if the
+`candidates` Base is empty) and give the user the clickable AirApp URL (or
+the local preview URL when local preview is explicitly requested). Use
+chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or
+similar.
 
 ## App UI Screenshots
 
@@ -47,96 +49,138 @@ or similar.
   </tr>
 </table>
 
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's local artifact and product contracts, stop before the unavailable Busabase operation, and report the exact missing dependency. Do not invent a second data backend.
+
 ## Boundary
 
-- Review-only. The skill prepares/scores a candidate queue and writes local
-  handoff files; it never wires money, signs a term sheet, or contacts a
-  business.
+- Review-only. The skill scores a candidate queue and records human
+  decisions in Busabase; it never wires money, signs a term sheet, or
+  contacts a business.
 - NEVER treat the composite score as legal or financial advice, and never
   auto-approve: a human decision (`approve_term_sheet` / `send_back_for_data`
-  / `reject`) is always required before `scripts/execute_decisions.ts` marks
-  anything `done`.
-- The app reads and writes local files only. Treat candidate financials as
-  sensitive; do not commit `config.local.json`, env files, or `app/.data/`.
+  / `reject`) is always required before `scripts/execute_decisions.mjs` marks
+  a candidate `done`.
+- The AirApp reads and writes its own two Busabase Bases only.
+- Treat candidate financials as sensitive review data; the composite score
+  and every intermediate number are always recomputed client-side from the
+  candidate's raw fields, never fabricated.
+
+## Busabase Resources
+
+Two Bases under one application Folder (`kelly-deal-scorer`), declared in
+`app/app/js/config.js` and `app/resource-map.json`:
+
+- `candidates`: one row per candidate business — raw underwriting fields
+  (category, city, requested principal, monthly revenue history, red flags)
+  plus the reviewer's decision (`decision-action`/`decision-comment`/
+  `decided-at`) and workflow `status`, all written directly onto the same
+  row. The composite score breakdown is never stored — it is recomputed
+  client-side from the raw fields on every read.
+- `settings`: up to two rows, keyed by `record-id`/`kind`: `config`
+  (base currency + an optional rubric override for the fund's underwriting
+  policy) and `run` (the current queue's batch id + generated-at).
+
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space; see `references/scoring-schema.md` for
+exact field shapes.
 
 ## First Run And Onboarding
 
-On invocation, check `app/.data/onboarding.json`. If absent/incomplete, ask the
-user to confirm the rubric weights and category risk tiers in
-`config.local.json` (copy from `config.example.json`) match their fund's
-underwriting policy, then write the completion marker.
+On invocation, check the `candidates` Base. If it's empty, run the trusted
+seed script to generate the fixed mock queue:
 
-Private config priority:
-
-1. `KELLY_DEAL_SCORER_CONFIG=/absolute/path/to/config.json`
-2. `skills/kelly-deal-scorer/config.local.json`
-3. `~/.config/kelly-deal-scorer/config.json`
-4. `skills/kelly-deal-scorer/config.example.json` as template only
-
-When setup is complete and the user confirms, write `app/.data/onboarding.json`:
-
-```json
-{ "completed": true, "completed_at": "ISO timestamp", "config_version": "1" }
+```bash
+node skills/kelly-deal-scorer/scripts/generate_batch.mjs --apply
 ```
+
+There are no credentials to collect beyond Busabase itself — onboarding is
+just confirming the rubric weights and category risk tiers in the `settings`
+Base's `config` row match the fund's underwriting policy (defaults apply if
+omitted).
 
 ## Local App
 
-```bash
-skills/kelly-deal-scorer/app/start.sh
-```
+Default behavior is AirApp-first — give the user the clickable AirApp URL.
+Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+requested.
 
-First run installs `hono` + `@hono/node-server`, seeds a mock candidate queue
-(`scripts/generate_batch.ts`) if none exists, and starts the server on
-`127.0.0.1`, preferring port `3000` through `4000`, or
-`KELLY_DEAL_SCORER_UI_PORT` when set. The frontend is zero-build vanilla.
+Required app views (hash routes):
+
+- `#/overview`: queue-level summary — score distribution (high-confidence /
+  needs review / low-confidence), workflow counts, and the candidate list.
+- `#/candidates` and `#/candidates/<id>`: the full queue, filterable by
+  status; detail shows revenue history, red flags, requested principal,
+  score breakdown, suggested revenue-share range, and the decision row.
+  Decisions write directly onto the candidate record through `busabase-sdk`.
+- `#/settings`: sanitized rubric summary (weights, thresholds), active data
+  provider, and onboarding state.
 
 ## Demo Mode
 
 - `?demo=1` opens a deterministic, fully offline mock queue (8 candidates
   across F&B/Retail/Fitness/Education) for documentation and screenshots.
-- `?demo=overview`, `?demo=detail` select named mock scenes.
+  Demo mode never reads or writes Busabase.
 - `lang=en` or `lang=zh` forces UI chrome language for screenshots.
-- Demo API responses never read or write real candidate/queue files.
 
 UI language: English and Chinese chrome with `Auto` default.
 
-## Data Provider
+## Workflow
 
-- Provider selector env: `KELLY_DEAL_SCORER_DATA_PROVIDER=local` (default).
-  App code reaches storage only through `lib/data-provider/` — see
-  `lib/data-provider/provider-interface.ts` for the contract every future
-  provider (postgres/aitable/notion/busabase) must implement.
-- Read `references/scoring-schema.md` before editing the batch shape, the
-  rubric, the app, or the scripts.
+1. `node scripts/generate_batch.mjs --apply` (dry run without `--apply`)
+   writes the fixed 8-candidate mock queue to the `candidates` Base
+   (resetting every candidate's decision fields to `needs_review`) and
+   refreshes the `settings` Base's `run` row — run it once at setup, and
+   again any time the demo queue needs resetting.
+2. Open the app. **Overview** shows the score distribution and workflow
+   counts; **Candidates** lists every candidate, filterable by status.
+3. For each candidate, open the detail view, review the revenue history
+   chart, red flags, and the full score breakdown (every sub-factor's raw
+   score/weight/contribution with an arithmetic trace), then record
+   `Approve for term sheet` / `Send back for more data` / `Reject` with an
+   optional note — written straight onto the candidate record.
+4. `node scripts/execute_decisions.mjs --apply` (dry run without `--apply`)
+   re-reads Busabase and marks every `approved` candidate `done`, preparing
+   the local term-sheet-draft artifact at the suggested revenue-share rate.
+   It performs no external side effect — no wiring, no signing, no
+   contacting the business.
 
-Primary local files:
+Read `references/scoring-schema.md` before editing the app, scripts, or
+`app/app/js/scorer-model.js`.
 
-- `app/.data/current_batch.json`: latest scored candidate queue.
-- `app/.data/decisions.json`: human decisions keyed by candidate id.
-- `app/.data/execution_report.json`: latest execution run (term-sheet prep / close).
-- `app/.data/onboarding.json`: onboarding completion marker.
-- `app/.data/agent.lock`: temporary lock while writing.
+## The Rubric (not a model)
 
-Use `scripts/generate_batch.ts` to (re)seed the mock queue,
-`scripts/validate_ui_schema.ts app/.data/current_batch.json` before trusting a
-batch in the UI, and `scripts/execute_decisions.ts` to apply approved/blocked
-decisions.
-
-## Views
-
-- `#/overview`: queue-level summary — score distribution (high-confidence /
-  needs review / low-confidence), workflow counts, and the candidate list.
-- `#/candidates/<id>`: candidate detail — revenue history, red flags,
-  requested principal, score breakdown, suggested revenue-share range, and the
-  decision row.
-- `#/settings`: sanitized rubric summary (weights, thresholds), active data
-  provider, and onboarding state.
+`app/app/js/scorer-model.js` documents and implements the entire scoring
+rubric: five weighted 0-100 sub-factors (revenue stability, growth trend,
+category risk tier, principal-to-revenue ratio, track record & scale), each
+with a human-readable arithmetic trace in `detail`. `computeScore()` is a
+pure function — same inputs always produce the same composite score and
+suggested revenue-share range, so a human reviewer can check every number
+with a calculator. It backs the trusted seed script
+(`scripts/generate_batch.mjs`), the live Busabase read path
+(`app/app/js/providers/busabase-provider.js`), and the offline `?demo=`
+scenario (`app/app/js/providers/demo-provider.js`), so all three always
+agree on scoring.
 
 ## Safety
 
 - Deterministic scoring only: never call an LLM or external API to produce a
-  candidate's score — `lib/scoring.ts` is plain arithmetic so every number is
-  auditable.
+  candidate's score — `app/app/js/scorer-model.js` is plain arithmetic so
+  every number is auditable.
 - Never auto-execute a decision the human has not made.
-- Keep local exports minimal and use stable candidate ids so repeated runs are
-  idempotent.
+- Do not invent candidates outside the fixed seed set; if the user wants a
+  different queue, add to `app/app/js/scorer-model.js`'s `CANDIDATE_SEEDS`
+  and re-run the seed script.
+
+## Useful Commands
+
+```bash
+node skills/kelly-deal-scorer/scripts/generate_batch.mjs --apply
+node skills/kelly-deal-scorer/scripts/execute_decisions.mjs --apply
+pnpm --dir skills/kelly-deal-scorer/app dev
+```
