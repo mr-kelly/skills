@@ -1,0 +1,16 @@
+{
+  "appId": "kelly-clm",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-clm"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "contracts", "slug": "kelly-clm-contracts-v1", "schemaVersion": 1 },
+    { "key": "obligations", "slug": "kelly-clm-obligations-v1", "schemaVersion": 1 },
+    { "key": "approvals", "slug": "kelly-clm-approvals-v1", "schemaVersion": 1 }
+  ]
+}

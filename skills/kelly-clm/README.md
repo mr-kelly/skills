@@ -1,32 +1,39 @@
 # Kelly CLM
 
-Kelly CLM is a lightweight App-in-Skill contract lifecycle desk. It keeps a simple local view of contract inventory, lifecycle stage, owners, obligations, renewal notices, and approval reminders.
+Kelly CLM is a lightweight, Busabase-backed App-in-Skill contract lifecycle
+desk. It tracks contract inventory, lifecycle stage, owners, obligations,
+renewal notices, and approval reminders — all read and written directly
+through `busabase-sdk` from the browser, with no local-file data layer.
 
-It is deliberately separate from `kelly-legal-contracts`: use this for contract operations and reminders, not detailed clause review or redline strategy.
+It is deliberately separate from `kelly-legal-contracts`: use this for
+contract operations and reminders, not detailed clause review or redline
+strategy.
 
 ## What It Shows
 
 - Overview: lifecycle pipeline, metrics, upcoming renewals, and at-risk obligations.
-- Contracts: searchable contract inventory with owner, stage, value, and dates.
-- Obligations: due dates, owners, status, and evidence notes.
-- Renewals: notice deadlines and renewal windows.
-- Approvals: local-only handoff queue for reminders and operational follow-up.
+- Contracts: searchable contract inventory with owner, stage, value, and dates; create and edit directly.
+- Obligations: due dates, owners, status, and evidence notes, with a mark-done/reopen action.
+- Renewals: notice deadlines and renewal windows, with a renewal-notice acknowledge action.
+- Approvals: approve / request-changes / block reminders, written directly onto the approval record.
 
-## Demo
+## Local Preview
 
 ```bash
-skills/kelly-clm/app/start.sh
+pnpm --dir skills/kelly-clm/app dev
 ```
 
 Open the printed URL, then use:
 
 ```text
-/?demo=overview&lang=en#/overview
-/?demo=contracts&lang=en#/contracts
-/?demo=obligations&lang=en#/obligations
-/?demo=renewals&lang=en#/renewals
-/?demo=approvals&lang=en#/approvals
+/?demo=1#/overview
+/?demo=1#/contracts
+/?demo=1#/obligations
+/?demo=1#/renewals
+/?demo=1#/approvals
 ```
+
+Add `&lang=zh` for Chinese UI screenshots.
 
 ## App UI Screenshots
 
@@ -57,4 +64,8 @@ Open the printed URL, then use:
 
 ## Boundary
 
-The app never updates an external CLM, starts e-signature, contacts counterparties, signs contracts, accepts terms, or provides legal advice. Approval buttons write local decision records only.
+The app never updates an external CLM, starts e-signature, contacts
+counterparties, signs contracts, accepts terms, or provides legal advice.
+Approval buttons write the decision directly onto the approval's own
+Busabase record; any external action must happen through the user or a
+separate explicitly approved connector.

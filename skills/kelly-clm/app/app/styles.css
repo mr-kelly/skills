@@ -414,6 +414,65 @@ button:hover {
   background: #fbfbfc;
 }
 
+button.ghost {
+  background: transparent;
+}
+
+textarea {
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+}
+
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+.detail-side {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.contract-form {
+  display: grid;
+  gap: 12px;
+}
+
+.contract-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.back-link:hover {
+  color: var(--ink);
+}
+
+.due-soon {
+  color: var(--warn);
+  font-weight: 700;
+}
+
 .main {
   min-width: 0;
   min-height: 0;
@@ -607,7 +666,8 @@ th {
 .badge.active,
 .badge.signature_ready,
 .badge.done,
-.badge.low {
+.badge.low,
+.badge.approved {
   background: #ecfdf3;
   color: var(--good);
 }
@@ -616,7 +676,8 @@ th {
 .badge.approval,
 .badge.at_risk,
 .badge.medium,
-.badge.needs_review {
+.badge.needs_review,
+.badge.changes_requested {
   background: #fff8db;
   color: var(--warn);
 }
@@ -669,6 +730,10 @@ th {
   }
 
   .overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail {
     grid-template-columns: 1fr;
   }
 }

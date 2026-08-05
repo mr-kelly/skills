@@ -2,20 +2,9 @@
   const PANEL_ID = "demoVisualsPanel";
   let visuals = [];
   let renderTimer = 0;
-  const originalFetch = window.fetch ? window.fetch.bind(window) : null;
-
-  function isStateUrl(input) {
-    try {
-      const value = typeof input === "string" ? input : input?.url ? input.url : String(input);
-      const url = new URL(value, window.location.origin);
-      return url.pathname === "/api/state";
-    } catch {
-      return false;
-    }
-  }
 
   function extractVisuals(payload) {
-    const sources = [payload, payload?.snapshot, payload?.project, payload?.batch];
+    const sources = [payload, payload?.snapshot];
     for (const source of sources) {
       if (source && Array.isArray(source.demo_visuals) && source.demo_visuals.length) return source.demo_visuals;
     }
@@ -39,7 +28,6 @@
       document.querySelector("main.main") ||
       document.querySelector("main") ||
       document.querySelector("#content") ||
-      document.querySelector("#stagePanel") ||
       document.querySelector("#app") ||
       document.body
     );
@@ -90,43 +78,15 @@
     }, 0);
   }
 
-  function record(payload) {
-    const next = extractVisuals(payload);
+  // app.js dispatches this after every successful loadState() with the
+  // provider's raw payload — replaces the old fetch("/api/state") intercept
+  // now that the browser talks to Busabase directly instead of a server route.
+  window.addEventListener("kelly-clm:state", (event) => {
+    const next = extractVisuals(event.detail);
     if (!next.length) return;
     visuals = next;
     scheduleRender();
-  }
-
-  if (originalFetch) {
-    window.fetch = (...args) =>
-      originalFetch(...args).then((response) => {
-        if (isStateUrl(args[0])) {
-          response
-            .clone()
-            .json()
-            .then(record)
-            .catch(() => {});
-        }
-        return response;
-      });
-  }
-
-  function fallbackLoad() {
-    if (!originalFetch || !isDemoPage() || visuals.length) return;
-    const params = new URLSearchParams(window.location.search);
-    if (!params.has("demo")) params.set("demo", "overview");
-    params.set("demo_visuals", "1");
-    originalFetch(`/api/state?${params.toString()}`, { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload) => {
-        if (payload) record(payload);
-      })
-      .catch(() => {});
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    fallbackLoad();
-    scheduleRender();
   });
+
   window.addEventListener("hashchange", scheduleRender);
 })();
