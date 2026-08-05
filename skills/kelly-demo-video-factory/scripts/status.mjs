@@ -1,29 +1,22 @@
 #!/usr/bin/env node
 // Pipeline overview: every video's status plus its shots' recording progress.
-
-import { findBase, listRecords, loadBusabaseConfig } from "../lib/data-provider/busabase-client.ts";
+import { findBase, listRecords, loadBusabaseConfig } from "./lib/busabase-client.mjs";
 
 async function main() {
   const cfg = loadBusabaseConfig();
   const videosBase = await findBase(cfg, "videos");
   const shotsBase = await findBase(cfg, "video-shots");
   if (!videosBase || !shotsBase) {
-    throw new Error("Schema missing — run `npm run ensure-schema` first.");
+    throw new Error("Schema missing — run `node scripts/ensure_schema.mjs` first.");
   }
 
-  const videos = (await listRecords(cfg, videosBase.id, 100)).records as Array<{
-    id: string;
-    headCommit: { fields: Record<string, unknown> };
-  }>;
-  const shots = (await listRecords(cfg, shotsBase.id, 100)).records as Array<{
-    id: string;
-    headCommit: { fields: Record<string, unknown> };
-  }>;
+  const videos = (await listRecords(cfg, videosBase.id, 100)).records;
+  const shots = (await listRecords(cfg, shotsBase.id, 100)).records;
 
   for (const v of videos) {
     const f = v.headCommit.fields;
     const mine = shots.filter((s) => s.headCommit.fields.video === v.id);
-    const byStatus = mine.reduce<Record<string, number>>((acc, s) => {
+    const byStatus = mine.reduce((acc, s) => {
       const st = String(s.headCommit.fields["recording-status"] ?? "pending");
       acc[st] = (acc[st] ?? 0) + 1;
       return acc;

@@ -11,15 +11,15 @@ idea -> needs_review -> approved -> recording -> post_production -> done
   or in progress.
 - `approved`: claim verification is complete (see `claim-verification.md`), storyboard
   is final, human has signed off on every shot's script line.
-- `recording`: shots are being captured. Use `scripts/set_shot_status.ts <id> recorded`
+- `recording`: shots are being captured. Use `scripts/set_shot_status.mjs <id> recorded`
   per shot as footage/screen-recordings come in; `npm run status` shows live progress
   per video (`recorded:N, pending:M, needs_reshoot:K`).
 - `post_production`: all shots `recorded`; editing/subtitling/music handed off to the
   `video-editing` skill (kapps) or Remotion HyperFrame project (see below).
 - `done`: final video URL filled into `videos.final-video-url`.
 
-Move `videos.status` forward with `scripts/propose_video.ts`-style full-record updates
-(see `busabase-client.ts` → `proposeRecordUpdate`) — always propose + merge explicitly,
+Move `videos.status` forward with `scripts/propose_video.mjs`-style full-record updates
+(see `scripts/lib/busabase-client.mjs` → `proposeRecordUpdate`) — always propose + merge explicitly,
 never silently.
 
 ## Who records each shot

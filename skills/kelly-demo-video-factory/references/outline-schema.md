@@ -1,6 +1,6 @@
 # Outline JSON Schema
 
-`scripts/propose_video.ts` consumes a JSON file shaped like this:
+`scripts/propose_video.mjs` consumes a JSON file shaped like this:
 
 ```json
 {
@@ -26,9 +26,10 @@
 
 Field notes:
 
-- `series` must match an existing choice in the `videos.series` select field, or a new
-  choice needs to be added first (`bases/{baseId}/fields/change-requests` PATCH on the
-  `series` field, `options.choices`).
+- `series` is a `select` field with no pre-registered choices (`options.choices: []` —
+  see `scripts/ensure_schema.mjs`); verified live against busabase@0.11.0 that writing
+  an arbitrary `series` value on record creation is accepted without a separate
+  "add choice" step first — pick a short, consistent slug (e.g. `aicoder`) per series.
 - `verified_claims` is a markdown table — always fill this in only *after* running the
   claim-verification workflow (see `references/claim-verification.md`), never invent it.
 - `shots[].code_reference` should be a real file path/route when the shot demos an actual

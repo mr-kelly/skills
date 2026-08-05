@@ -3,20 +3,15 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly Demo Video Factory — Busabase-backed video planning pipeline (idea -> storyboard -> verified claims -> recording -> post-production -> HyperFrame).",
+  "description": "Kelly Demo Video Factory — trusted Busabase schema/record scripts (idea -> storyboard -> verified claims -> recording -> post-production -> HyperFrame) plus its read-only AirApp under app/.",
   "scripts": {
-    "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts",
-    "ensure-schema": "node scripts/ensure_schema.ts",
-    "propose-video": "node scripts/propose_video.ts",
-    "status": "node scripts/status.ts",
-    "set-shot-status": "node scripts/set_shot_status.ts"
-  },
-  "dependencies": {
-    "hono": "^4.6.14",
-    "@hono/node-server": "^1.13.7"
+    "ensure-schema": "node scripts/ensure_schema.mjs",
+    "propose-video": "node scripts/propose_video.mjs",
+    "status": "node scripts/status.mjs",
+    "set-shot-status": "node scripts/set_shot_status.mjs",
+    "app:check": "pnpm --dir app check"
   },
   "engines": {
-    "node": ">=23.6"
+    "node": ">=24.18.0"
   }
 }

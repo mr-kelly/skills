@@ -2,8 +2,8 @@
 // Propose a video + its storyboard shots from a JSON outline.
 //
 // Usage:
-//   node scripts/propose_video.ts path/to/outline.json           # propose only (stays in_review)
-//   node scripts/propose_video.ts path/to/outline.json --merge   # propose AND merge
+//   node scripts/propose_video.mjs path/to/outline.json           # propose only (stays in_review)
+//   node scripts/propose_video.mjs path/to/outline.json --merge   # propose AND merge
 //
 // --merge must only be passed after the human has explicitly approved this exact
 // content in the conversation (see SKILL.md "Never auto-merge records"). Without
@@ -11,7 +11,6 @@
 // the Busabase UI or via `busabase-cli change-requests review/merge`.
 //
 // Outline shape — see references/outline-schema.md.
-
 import { readFileSync } from "node:fs";
 import {
   approveAndMerge,
@@ -19,42 +18,22 @@ import {
   loadBusabaseConfig,
   proposeRecord,
   proposeRecordUpdate,
-} from "../lib/data-provider/busabase-client.ts";
-
-interface ShotOutline {
-  timecode: string;
-  scene: string;
-  code_reference?: string;
-  script_line: string;
-  note?: string;
-}
-
-interface VideoOutline {
-  title: string;
-  series?: string;
-  purpose: string;
-  hook: string;
-  pain_point: string;
-  concept: string;
-  verified_claims?: string; // markdown table, see reference: research-verify workflow
-  owner?: "kelly" | "ai";
-  shots: ShotOutline[];
-}
+} from "./lib/busabase-client.mjs";
 
 async function main() {
   const [outlinePath, flag] = process.argv.slice(2);
   if (!outlinePath) {
-    console.error("Usage: propose_video.ts <outline.json> [--merge]");
+    console.error("Usage: propose_video.mjs <outline.json> [--merge]");
     process.exit(1);
   }
   const shouldMerge = flag === "--merge";
-  const outline: VideoOutline = JSON.parse(readFileSync(outlinePath, "utf8"));
+  const outline = JSON.parse(readFileSync(outlinePath, "utf8"));
 
   const cfg = loadBusabaseConfig();
   const videosBase = await findBase(cfg, "videos");
   const shotsBase = await findBase(cfg, "video-shots");
   if (!videosBase || !shotsBase) {
-    throw new Error("Schema missing — run `npm run ensure-schema` first.");
+    throw new Error("Schema missing — run `node scripts/ensure_schema.mjs` first.");
   }
 
   const videoCr = await proposeRecord(
@@ -75,16 +54,16 @@ async function main() {
   );
   console.log("video CR", videoCr.id, videoCr.status);
 
-  let videoRecordId: string | undefined;
+  let videoRecordId;
   if (shouldMerge) {
     const merged = await approveAndMerge(cfg, videoCr.id, "Kelly approved via chat");
-    videoRecordId = merged.changeRequest.mergeSummary.recordIds[0];
+    videoRecordId = merged.results[0].record.id;
     console.log("video record", videoRecordId);
   }
 
-  const shotRecordIds: string[] = [];
+  const shotRecordIds = [];
   for (const [i, shot] of outline.shots.entries()) {
-    const shotFields: Record<string, unknown> = {
+    const shotFields = {
       title: `${outline.title} · 镜头${i + 1}`,
       "shot-number": i + 1,
       timecode: shot.timecode,
@@ -101,15 +80,18 @@ async function main() {
 
     if (shouldMerge) {
       const merged = await approveAndMerge(cfg, shotCr.id, "Kelly approved via chat");
-      const recId = merged.changeRequest.mergeSummary.recordIds[0];
+      const recId = merged.results[0].record.id;
       shotRecordIds.push(recId);
     }
   }
 
   // Backfill the inverse `shots` field on the video record so it's visible from
-  // the Videos side in the Busabase UI (see references/busabase-schema.md — the
-  // inverse field only displays what was written on the video record itself;
-  // it is not computed live from the shots' `video` field).
+  // the Videos side in the Busabase UI (the inverse field only displays what was
+  // written on the video record itself; it is not computed live from the shots'
+  // `video` field — see busabase-schema.md's manifest comment, ported into
+  // app/app/js/config.js). The AirApp's own read path never depends on this
+  // (busabase-provider.js joins shots to their video client-side by filtering on
+  // shot.video === video id), but this keeps the Busabase web UI usable too.
   if (shouldMerge && videoRecordId && shotRecordIds.length > 0) {
     const current = await proposeRecordUpdate(
       cfg,

@@ -1,25 +1,36 @@
 #!/usr/bin/env node
 // Idempotent: creates the video-factory Folder + videos/video-shots Bases only if missing.
 // Structure changes use autoMerge — only run this after the human has approved the schema
-// shape once (see references/busabase-schema.md). Safe to re-run: it no-ops if bases exist.
+// shape once (see SKILL.md). Safe to re-run: it no-ops if bases exist.
+//
+// Ported from the retired scripts/ensure_schema.ts onto scripts/lib/busabase-client.mjs
+// (which fixes several REST call shapes that predate verification against the real
+// busabase-sdk 0.11.0 contract — see that file's header comment). One deliberate
+// addition beyond a faithful port: every created node gets a `metadata:
+// {appId, resourceKey, schemaVersion}` stamp matching app/app/js/config.js's
+// declarations, so the AirApp's generic resource-provisioning.js (which expects that
+// stamp, or a "legacy" exact slug/name/description match, to treat a Folder/Base as
+// already provisioned) adopts these resources immediately with no repair step —
+// same convention every other Busabase-only Kelly skill's browser-side provisioning
+// already uses for resources it creates itself.
+import {
+  approveAndMerge,
+  createFieldChangeRequest,
+  createNodeChangeRequest,
+  findBase,
+  getNode,
+  listBases,
+  loadBusabaseConfig,
+  updateFieldChangeRequest,
+} from "./lib/busabase-client.mjs";
 
-import { findBase, loadBusabaseConfig } from "../lib/data-provider/busabase-client.ts";
+const APP_ID = "kelly-demo-video-factory";
+const SCHEMA_VERSION = 1;
 
 const cfg = loadBusabaseConfig();
 
-async function call(method: string, path: string, body?: unknown) {
-  const headers: Record<string, string> = { "content-type": "application/json" };
-  if (cfg.apiKey) headers.Authorization = `Bearer ${cfg.apiKey}`;
-  if (cfg.spaceId) headers["x-busabase-space"] = cfg.spaceId;
-  const res = await fetch(`${cfg.baseUrl}${path}`, {
-    method,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
-  if (!res.ok) throw new Error(`${method} ${path} -> ${res.status}: ${text.slice(0, 500)}`);
-  return data;
+function meta(resourceKey) {
+  return { appId: APP_ID, resourceKey, schemaVersion: SCHEMA_VERSION };
 }
 
 async function main() {
@@ -33,22 +44,32 @@ async function main() {
     return;
   }
 
-  let folderNodeId: string;
-  let videosBaseId: string;
+  let folderNodeId;
+  let videosBaseId;
 
   if (!existingVideos) {
-    const r = await call("POST", "/api/v1/nodes/change-requests", {
-      message: "Create video-factory folder + videos Base",
-      submittedBy: "agent",
-      autoMerge: true,
-      operations: [
-        { kind: "create", ref: "folder", nodeType: "folder", slug: "video-factory", name: "Video Factory" },
+    const r = await createNodeChangeRequest(
+      cfg,
+      [
+        {
+          kind: "create",
+          ref: "folder",
+          nodeType: "folder",
+          slug: "video-factory",
+          name: "Video Factory",
+          description:
+            "Demo/marketing video planning pipeline: idea -> storyboard -> verified claims -> recording -> post-production.",
+          metadata: meta("app-root"),
+        },
         {
           kind: "create",
           parentNodeRef: "folder",
           nodeType: "base",
           slug: "videos",
           name: "Videos",
+          description:
+            "One row per video: purpose, hook, pain point, concept, status, verified claims, HyperFrame path, final video URL, owner.",
+          metadata: meta("videos"),
           fields: [
             { slug: "title", name: "Title", type: "text", required: true },
             { slug: "series", name: "Series", type: "select", options: { choices: [] } },
@@ -88,31 +109,33 @@ async function main() {
           ],
         },
       ],
-    });
+      "Create video-factory folder + videos Base",
+    );
     folderNodeId = r.mergeSummary.mergedNodeIds[0];
-    videosBaseId = (await findBase(cfg, "videos"))!.id;
+    videosBaseId = (await findBase(cfg, "videos")).id;
     console.log("Created folder", folderNodeId, "and videos base", videosBaseId);
   } else {
     videosBaseId = existingVideos.id;
-    const bases = (await call("GET", "/api/v1/bases")) as Array<{ id: string; nodeId: string; slug: string }>;
-    const videosNode = bases.find((b) => b.slug === "videos")!;
+    const bases = await listBases(cfg);
+    const videosNode = bases.find((b) => b.slug === "videos");
     // parent folder id: fetch node tree ancestor — fall back to re-deriving via node get.
-    const node = await call("GET", `/api/v1/nodes/${videosNode.nodeId}`);
-    folderNodeId = node.parentNodeId ?? node.parentId;
+    const node = await getNode(cfg, videosNode.nodeId);
+    folderNodeId = node.parentNodeId ?? node.parentId ?? node.node?.parentId;
   }
 
   if (!existingShots) {
-    await call("POST", "/api/v1/nodes/change-requests", {
-      message: "Create video_shots Base",
-      submittedBy: "agent",
-      autoMerge: true,
-      operations: [
+    await createNodeChangeRequest(
+      cfg,
+      [
         {
           kind: "create",
           parentNodeId: folderNodeId,
           nodeType: "base",
           slug: "video-shots",
           name: "Video Shots",
+          description:
+            "One row per shot: linked video, shot number, timecode, scene, code reference, script line, note, recording status, asset.",
+          metadata: meta("video-shots"),
           fields: [
             { slug: "title", name: "Title", type: "text", required: true },
             {
@@ -121,7 +144,7 @@ async function main() {
               type: "relation",
               options: { targetBaseId: videosBaseId, multiple: false },
             },
-            { slug: "shot-number", name: "Shot Number", type: "number", options: { format: "plain" } },
+            { slug: "shot-number", name: "Shot Number", type: "number", options: { number: { format: "plain" } } },
             { slug: "timecode", name: "Timecode", type: "text" },
             { slug: "scene", name: "Scene", type: "longtext" },
             { slug: "code-reference", name: "Code Reference", type: "text" },
@@ -139,42 +162,43 @@ async function main() {
                 ],
               },
             },
-            { slug: "asset", name: "Asset", type: "attachment", options: { maxFiles: 10 } },
+            { slug: "asset", name: "Asset", type: "attachment", options: { attachment: { maxFiles: 10 } } },
           ],
         },
       ],
-    });
+      "Create video-shots Base",
+    );
     console.log("Created video-shots base");
 
     // Inverse relation on videos so a Video record shows its Shots in the Busabase UI.
-    const shotsBaseId = (await findBase(cfg, "video-shots"))!.id;
-    const videoField = (await findBase(cfg, "video-shots"))!.fields.find((f) => f.slug === "video")!;
-    const shotsFieldCr = await call("POST", `/api/v1/bases/${videosBaseId}/fields/change-requests`, {
-      message: "Add inverse relation field so Videos shows its Shots",
-      submittedBy: "agent",
-      name: "Shots",
-      slug: "shots",
-      type: "relation",
-      options: { targetBaseId: shotsBaseId, multiple: true, inverseFieldId: videoField.id },
-    });
-    await call("POST", `/api/v1/change-requests/${shotsFieldCr.id}/reviews`, {
-      verdict: "approved",
-      reason: "Schema setup — inverse relation",
-    });
-    await call("POST", `/api/v1/change-requests/${shotsFieldCr.id}/merge`);
+    // Field ChangeRequests have no autoMerge option (unlike node/record CRs — see
+    // createFieldChangeRequest's comment), so both steps below explicitly
+    // approveAndMerge after proposing.
+    const shotsBase = await findBase(cfg, "video-shots");
+    const shotsBaseId = shotsBase.id;
+    const videoField = shotsBase.fields.find((f) => f.slug === "video");
+    const shotsFieldCr = await createFieldChangeRequest(
+      cfg,
+      videosBaseId,
+      {
+        name: "Shots",
+        slug: "shots",
+        type: "relation",
+        options: { targetBaseId: shotsBaseId, multiple: true, inverseFieldId: videoField.id },
+      },
+      "Add inverse relation field so Videos shows its Shots",
+    );
+    await approveAndMerge(cfg, shotsFieldCr.id, "Schema setup — inverse relation");
 
-    const shotsField = (await findBase(cfg, "videos"))!.fields.find((f) => f.slug === "shots")!;
-    const videoFieldPatchCr = await call("PATCH", `/api/v1/bases/${shotsBaseId}/fields/change-requests`, {
-      message: "Link video field to inverse Shots field on Videos base",
-      submittedBy: "agent",
-      fieldId: videoField.id,
-      patch: { options: { targetBaseId: videosBaseId, multiple: false, inverseFieldId: shotsField.id } },
-    });
-    await call("POST", `/api/v1/change-requests/${videoFieldPatchCr.id}/reviews`, {
-      verdict: "approved",
-      reason: "Schema setup — bidirectional relation",
-    });
-    await call("POST", `/api/v1/change-requests/${videoFieldPatchCr.id}/merge`);
+    const shotsField = (await findBase(cfg, "videos")).fields.find((f) => f.slug === "shots");
+    const videoFieldUpdateCr = await updateFieldChangeRequest(
+      cfg,
+      shotsBaseId,
+      videoField.id,
+      { options: { targetBaseId: videosBaseId, multiple: false, inverseFieldId: shotsField.id } },
+      "Link video field to inverse Shots field on Videos base",
+    );
+    await approveAndMerge(cfg, videoFieldUpdateCr.id, "Schema setup — bidirectional relation");
     console.log("Wired bidirectional relation (videos.shots <-> video-shots.video)");
   }
 
