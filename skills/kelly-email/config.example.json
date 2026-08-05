@@ -46,7 +46,7 @@
         "unread_only": true,
         "process_until_done": true
       },
-        "notes": "Replace hosts/usernames with your provider settings. Put secret values in Busabase Vault and reference them with vault_ref."
+      "notes": "Replace hosts/usernames with your provider settings. Put secret values in Busabase Vault and reference them with vault_ref."
     },
     {
       "mailbox_id": "founder-inbox",
