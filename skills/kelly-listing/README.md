@@ -1,6 +1,6 @@
 # Kelly Listing
 
-Kelly Listing is a local App-in-Skill listing factory (上架工作台) for a cross-border e-commerce seller: the agent turns product source material — or a kelly-picks handoff brief — into platform-specific listing drafts (Amazon, Shopify, TikTok Shop, eBay, with US/DE/JP locale variants), deterministic compliance checks run against per-platform rule sets, and the seller reviews, edits, approves, and exports upload-ready files — all over local files.
+Kelly Listing is a Busabase App-in-Skill listing factory (上架工作台) for a cross-border e-commerce seller: the agent turns product source material — or a kelly-picks handoff brief — into platform-specific listing drafts (Amazon, Shopify, TikTok Shop, eBay, with US/DE/JP locale variants), deterministic compliance checks run against per-platform rule sets and the claims registry, and the seller reviews, edits, approves, and exports upload-ready files through the App-in-Skill review queue.
 
 ## What It Shows
 
@@ -8,6 +8,7 @@ Kelly Listing is a local App-in-Skill listing factory (上架工作台) for a cr
 - Products: the source-material library — SKU, category, source badge (manual / kelly-picks handoff), specs, feature list, target keywords, image checklist with status ticks, linked drafts.
 - Drafts: the workbench — every platform field editable with live character counts against the caps (and a byte counter for Amazon backend search terms), the compliance panel alongside, and locale tabs for variants.
 - Checks: rule × draft results with pass/warn/fail badges and evidence, filterable by rule, platform, product, and result.
+- Claims: the compliance registry — approved marketing claims, rejected claims, and banned-word/restricted-phrase rules.
 - Review: the queue with approve / request changes / block decisions, compliance summaries, the agent's keyword-strategy notes, and stable refs (`Draft #1`).
 - Settings: sanitized seller profile, platform rule sets, locales, banned-word counts, and export preferences.
 
@@ -42,30 +43,31 @@ Kelly Listing is a local App-in-Skill listing factory (上架工作台) for a cr
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-skills/kelly-listing/app/start.sh
+pnpm --dir skills/kelly-listing/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Then add one of these demo paths:
 
 ```text
 /?demo=overview&lang=en#/overview
 /?demo=products&lang=en#/products
 /?demo=drafts&lang=en#/drafts
 /?demo=checks&lang=en#/checks
+/?demo=claims&lang=en#/claims
 /?demo=review&lang=en#/review
 /?demo=detail&lang=en#/drafts/d-lunchbox-amazon-us
 ```
 
-The featured deep link for the workbench detail is `/?demo=detail&lang=zh#/drafts/d-lunchbox-amazon-us` — an Amazon US draft with a title one character under the 200 cap, five bullets, backend search terms with a live byte count, an A+ outline, and its compliance panel. The demo persona is "Nimbus Home", a home/kitchen gadget seller; one draft (`Draft #4`, magnetic spice rack) deliberately fails three checks (banned phrase "FDA approved", backend terms over 249 bytes, only 4 bullets), and the lunch box carries a German (DE) locale variant.
+The featured deep link for the workbench detail is `/?demo=detail&lang=zh#/drafts/d-lunchbox-amazon-us` — an Amazon US draft with a title one character under the 200 cap, five bullets, backend search terms with a live byte count, an A+ outline, and its compliance panel. The demo persona is "Nimbus Home", a home/kitchen gadget seller; one draft (`Draft #4`, magnetic spice rack) deliberately fails three checks (banned phrase "FDA approved", backend terms over 249 bytes, only 4 bullets), and the lunch box carries a German (DE) locale variant. Demo mode never reads or writes Busabase.
 
-Use `lang=zh` for Chinese screenshots — the desk chrome and agent meta content (product names 可折叠硅胶饭盒 / 磁吸调料架 / 可折叠洗衣篮 / 厨房电子秤, rule names, keyword-strategy notes, review reasons) are Chinese, while listing copy stays in the marketplace language (English/German). Demo mode never reads or writes files under `app/.data/`.
+Use `lang=zh` for Chinese screenshots — the desk chrome and agent meta content (product names 可折叠硅胶饭盒 / 磁吸调料架 / 可折叠洗衣篮 / 厨房电子秤, rule names, keyword-strategy notes) are Chinese, while listing copy stays in the marketplace language (English/German).
 
-## Payload Format
+## Draft Payload Format
 
-`scripts/ingest_drafts.ts` accepts a single draft object or `{ "products": [...], "drafts": [...] }`:
+`scripts/ingest_drafts.mjs` accepts a single draft object or `{ "products": [...], "drafts": [...] }`:
 
 ```json
 {
@@ -100,16 +102,16 @@ Use `lang=zh` for Chinese screenshots — the desk chrome and agent meta content
 }
 ```
 
-After ingesting, run `node scripts/run_checks.ts` to refresh compliance results, and `node scripts/export_listings.ts --out <dir>` to export approved drafts as Markdown plus a flat-file-ready `listings.csv`. `scripts/execute_decisions.ts` is dry-run by default. See `references/listing-schema.md` for the full contract.
+After ingesting, run `node scripts/run_checks.mjs --apply` to refresh compliance results, and `node scripts/export_listings.mjs --out <dir>` to export approved drafts as Markdown plus a flat-file-ready `listings.csv`. `scripts/execute_decisions.mjs` is dry-run by default. See `references/listing-schema.md` for the full Busabase field contract.
 
 ## Rule-Set Config
 
-Per-platform rules live in config under `platforms[].rules` — title caps (200 Amazon / 70 Shopify / 255 TikTok Shop / 80 eBay), `bullets_exact`, `search_terms_max_bytes` (249), SEO meta lengths, required fields — plus top-level `banned_words` (or a `banned_words_file` JSON array), `competitor_brands`, `keyword_stuffing.max_repeats`, and `allowed_all_caps`. Checks are deterministic: character caps count code points, byte caps use `Buffer.byteLength`, and ASCII banned-word matching uses word boundaries.
+Per-platform rules live on the Settings row's `platforms[]` — title caps (200 Amazon / 70 Shopify / 255 TikTok Shop / 80 eBay), `bullets_exact`, `search_terms_max_bytes` (249), SEO meta lengths, required fields — plus top-level `banned_words`, `competitor_brands`, `keyword_stuffing.max_repeats`, and `allowed_all_caps`. Checks are deterministic: character caps count code points, byte caps use `TextEncoder` (`Buffer.byteLength` in the trusted scripts), and ASCII banned-word matching uses word boundaries.
 
-## Private Config
+## Busabase Setup
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-listing/config.json` and fill in the brand profile, platform rule sets, locales, and banned words. No secrets are required by default; if a publish handoff needs a marketplace token, reference it by env var name in local env files only.
+Kelly Listing provisions its own Folder and six Bases (`products`, `drafts`, `checks`, `claims`, `claim_rules`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
 
 ## Boundary
 
-The app renders local files only — it never touches any network beyond 127.0.0.1 and never publishes anything. Drafting and checking are local; publishing to marketplaces is approval-required and executed by the agent outside the app after the seller approves. Never commit seller data: `config.local.json`, `.env*`, `app/.data/`, and `exports/` are gitignored.
+The AirApp reads and writes Busabase only — it never touches marketplace APIs or remote systems beyond Busabase. Drafting and checking are performed by the trusted `scripts/*.mjs` scripts, never by the browser; publishing to marketplaces is approval-required and executed by the agent outside the app after the seller approves. Never commit seller data: env files, local payload files, and `exports/` should stay out of git.
