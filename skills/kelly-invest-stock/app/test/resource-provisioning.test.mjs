@@ -248,7 +248,6 @@ test("lazily repairs an exact legacy resource set without creating another struc
         node.metadata = { ...node.metadata, ...metadata };
         return node;
       },
-      get: async () => materialized,
     },
     bases: {
       get: async ({ baseId }) => {
@@ -279,7 +278,6 @@ test("does not repair ownership when a legacy Base field fingerprint differs", a
       updateMetadata: async () => {
         metadataUpdates += 1;
       },
-      get: async () => materialized,
     },
     bases: {
       get: async ({ baseId }) => {
@@ -304,7 +302,6 @@ test("uses a verified legacy fingerprint when the old Busabase API has no metada
         metadataAttempts += 1;
         throw Object.assign(new Error("Not found"), { status: 404 });
       },
-      get: async () => materialized,
     },
     bases: {
       get: async ({ baseId }) => {
