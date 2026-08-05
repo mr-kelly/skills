@@ -1,28 +1,57 @@
 ---
 name: kelly-revshare-simulator
-description: Revenue-Share Contract Simulator App-in-Skill — a control-panel/workspace for a deal analyst to model revenue-based-financing (RBF) deals for SME businesses (retail/F&B chain stores). Use when the user invokes $kelly-revshare-simulator or /kelly-revshare-simulator, wants to model a revenue-share or merchant-cash-advance deal, project cash flow and repayment, compute a Cash-Flow Payout Multiple, effective annualized merchant cost, or compare/underwrite multiple financing scenarios. Pure deterministic math, no external calls, no real trading/payment side effects.
+description: Busabase-backed App-in-Skill control-panel/workspace for a deal analyst to model revenue-based-financing (RBF) deals for SME businesses (retail/F&B chain stores). Use when the user invokes $kelly-revshare-simulator or /kelly-revshare-simulator, wants to model a revenue-share or merchant-cash-advance deal, project cash flow and repayment, compute a Cash-Flow Payout Multiple, effective annualized merchant cost, or compare/underwrite multiple financing scenarios. Pure deterministic math, no external calls, no real trading/payment side effects. Scenario create/edit/delete and the underwriting decision are direct writes made by the analyst, not a review/approval queue.
 ---
 
 # Revenue-Share Contract Simulator
 
 ## Overview
 
-Use this skill as a local control-panel/workspace App-in-Skill for modeling
-revenue-based-financing (RBF) deals: a funder advances a principal to an SME
-business (e.g. a bubble tea, gym, or hotpot restaurant chain) in exchange for
-a share of monthly revenue until a repayment cap multiple is reached or the
-term ends. The app lets a deal analyst tune inputs, see the projected cash
-flow and cumulative repayment, and record an underwriting decision per named
-scenario — then save several scenarios for side-by-side comparison.
+Kelly Revenue-Share Simulator is a Busabase Cloud App-in-Skill. Its canonical
+product surface is the AirApp in Busabase, not a separate local-data
+product. The same Hono source supports an explicitly requested local preview
+with OAuth connection bootstrap. It is a control-panel/workspace for a deal
+analyst modeling revenue-based-financing (RBF) deals: a funder advances a
+principal to an SME business (e.g. a bubble tea, gym, or hotpot restaurant
+chain) in exchange for a share of monthly revenue until a repayment cap
+multiple is reached or the term ends. The analyst tunes inputs, sees the
+projected cash flow and cumulative repayment, and records an underwriting
+decision per named scenario — then saves several scenarios for side-by-side
+comparison.
 
 This is generic, brand-free tooling: business names in seed data are
 placeholder archetypes (bubble tea chain, gym chain, hotpot restaurant), not
 real companies.
 
-Default interaction mode: App UI. Unless the user explicitly asks for
-chat-only handling, start/reuse the local app with `app/start.sh` and give the
-actual local URL. Use chat-only mode only when the user says "纯聊天", "chat
-only", "不要打开 UI", or similar.
+This is a direct-manipulation control panel, not a review-then-approve
+queue: creating, editing, or deleting a scenario, and recording the
+underwriting decision, are all direct writes made straight through
+`busabase-sdk` from the browser — the same way `kelly-lead-funnel`'s kanban
+stage moves and `kelly-agent-builder`'s agent-config CRUD work. There is no
+AI-authored draft to approve and no separate execute/decisions step; the
+projected result (`cash_flow_payout_multiple`, `effective_annual_cost_pct`,
+risk flags) is pure/derived from a scenario's saved inputs and recomputed on
+every read (`app/app/js/simulator-model.js`, ported from the retired
+`lib/simulate.ts`).
+
+Default behavior is AirApp-first. Unless the user explicitly asks only for
+explanation, give the user the clickable AirApp URL. Start localhost only
+when local preview/debugging is explicitly requested; it uses the same
+Busabase resources and never offers another data provider. Use chat-only
+mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
+
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
+   quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery,
+   ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
+   runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's artifact and product
+contracts, stop before the unavailable Busabase operation, and report the
+exact missing dependency. Do not invent a second data backend.
 
 ## App UI Screenshots
 
@@ -45,70 +74,45 @@ only", "不要打开 UI", or similar.
 
 ## Boundary
 
-- Pure deterministic math over analyst-supplied inputs. The app never fetches
-  live revenue, banking, or payment data, and never disburses, transfers, or
-  moves money.
-- The app reads and writes local files only (`app/.data/scenarios.json`).
+- Pure deterministic math over analyst-supplied inputs. The app never
+  fetches live revenue, banking, or payment data, and never disburses,
+  transfers, or moves money.
+- The AirApp reads and writes its own Busabase Bases only; there is no
+  execution/merge step beyond the direct write itself. Deleting a scenario
+  always requires an explicit Busabase review step before it merges (the
+  platform rejects `autoMerge` on record deletes) — on a standalone local
+  preview the app completes that review+merge itself immediately since the
+  local operator is the trusted actor; from a deployed AirApp the delete
+  request stays pending for a human to review directly in Busabase.
 - Risk flags are neutral, rule-based observations — never automated
   approve/reject decisions. A human always makes the underwriting call.
+- Generic, brand-neutral tool: never hardcode or reference a specific real
+  company or SME name in code, templates, or docs.
 
-## First Run And Onboarding
+## Busabase Resources
 
-On invocation, check `app/.data/onboarding.json`. If absent/incomplete, ask
-the user to confirm the base currency and underwriting policy thresholds
-(max effective annual cost, cap-multiple range, max term), then write
-`app/.data/onboarding.json`:
+Two Bases under one application Folder (`kelly-revshare-simulator`),
+declared in `app/app/js/config.js` and `app/resource-map.json`:
 
-```json
-{
-  "completed": true,
-  "completed_at": "ISO timestamp",
-  "config_version": "1"
-}
-```
+- `scenarios`: one row per saved deal scenario — the analyst's raw inputs
+  (business type, average monthly revenue, revenue volatility, principal,
+  initial and step-down revenue-share rates, repayment cap multiple, term)
+  and the underwriting decision (`decision-action`, `decision-note`,
+  `decided-at`). The projected cash-flow/repayment result (monthly
+  projection, Cash-Flow Payout Multiple, effective annualized cost, risk
+  flags) is never stored — it is pure/derived from these inputs and
+  recomputed on every read.
+- `settings`: sanitized config (base currency, underwriting policy
+  thresholds), one row keyed by `kind`.
 
-Private config priority:
-
-1. `KELLY_REVSHARE_SIMULATOR_CONFIG=/absolute/path/to/config.json`
-2. `skills/kelly-revshare-simulator/config.local.json`
-3. `~/.config/kelly-revshare-simulator/config.json`
-4. `skills/kelly-revshare-simulator/config.example.json` as template only
-
-No secrets are required — this skill has no external accounts to connect.
-
-## Local App
-
-Start the app with:
-
-```bash
-skills/kelly-revshare-simulator/app/start.sh
-```
-
-Seed 3-4 example scenarios (bubble tea chain, gym chain, hotpot restaurant,
-one deliberately risky example that trips the risk flags) with:
-
-```bash
-node skills/kelly-revshare-simulator/scripts/generate_batch.ts
-```
-
-The app uses local HTTP on `127.0.0.1`, preferring port `3000` through `4000`,
-or `KELLY_REVSHARE_SIMULATOR_UI_PORT` when set. First run installs `hono` and
-`@hono/node-server`; the frontend is zero-build vanilla.
-
-## Demo Mode
-
-- `?demo=1` opens a deterministic, fully offline mock batch of four scenarios
-  for documentation and screenshots.
-- `?demo=scenarios` and `?demo=comparison` select named mock scenes;
-  `?demo=detail` opens the first mock scenario's detail pane.
-- `lang=en` or `lang=zh` forces UI chrome language for screenshots.
-- Demo API responses never read or write local scenario files.
-
-UI language: support English and Chinese chrome with `Auto` default.
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space; see `references/ui-schema.md` for exact
+field shapes.
 
 ## Domain Model
 
-Inputs per scenario (`lib/simulate.ts` `ScenarioInput`):
+Inputs per scenario (`app/app/js/simulator-model.js` `simulateScenario`,
+ported verbatim from the retired `lib/simulate.ts`):
 
 - `business_type`, `avg_monthly_revenue`, `revenue_volatility_pct`
 - `principal` (proposed advance)
@@ -117,7 +121,7 @@ Inputs per scenario (`lib/simulate.ts` `ScenarioInput`):
 - `repayment_cap_multiple` (e.g. 1.5x principal — the total obligation cap)
 - `term_months`
 
-Computed (`ScenarioResult`):
+Computed, always fresh, never stored:
 
 - `monthly[]`: month-by-month revenue, share rate, payment, cumulative
   repayment, and breakeven/cap flags.
@@ -130,22 +134,53 @@ Computed (`ScenarioResult`):
   `high_revenue_volatility`, `thin_term_buffer` — deterministic, rule-based,
   never automated decisions.
 
-Read `references/ui-schema.md` before editing the app, scripts, or
-`lib/simulate.ts`.
+No randomness, no ML — the same scenario input always produces the same
+result. Read `references/ui-schema.md` before editing the app or
+`app/app/js/simulator-model.js`.
 
-## Data Provider
+## Direct Scenario Writes
 
-- Provider selector env: `KELLY_REVSHARE_SIMULATOR_DATA_PROVIDER=local`
-  (default). Reserve `postgres`, `aitable`, `notion`, `busabase` for future
-  shared/multi-analyst backends.
-- Primary local files:
-  - `app/.data/scenarios.json`: the scenario batch (canonical).
-  - `app/.data/onboarding.json`: onboarding completion marker.
-  - `app/.data/agent.lock`: temporary lock while the app writes.
-  - `config.local.json`: private configuration, ignored by git.
+There is no decisions/approval bucket. Every scenario action writes straight
+through `busabase-sdk` from the browser (`app/app/js/providers/busabase-provider.js`):
 
-Use `scripts/validate_ui_schema.ts app/.data/scenarios.json` before relying on
-a batch in the UI.
+- **Create** / **Update**: `bases.createChangeRequest` / `records.changeRequest`
+  with the analyst's saved inputs.
+- **Record underwriting decision**: `records.changeRequest` sets
+  `decision-action`/`decision-note`/`decided-at` directly on the scenario's
+  own record — `approve_underwriting`, `needs_revision`, `reject`, or
+  cleared back to undecided.
+- **Delete**: `records.changeRequest` with `operation: "delete"`. Busabase
+  always requires an explicit review before a delete merges (`autoMerge` is
+  rejected server-side for deletes, unlike create/update) — from a
+  standalone local preview the app reviews and merges its own delete request
+  immediately after submitting it (the trusted local operator approving
+  their own action); from a deployed AirApp the request stays pending for a
+  human to review directly in Busabase.
+
+From a standalone local preview create/update/decision writes merge
+immediately (trusted operator); from the deployed AirApp they create a
+pending ChangeRequest for the trusted process to merge, per the AirApp
+boundary in `$busabase-app-creator`.
+
+## Demo Mode
+
+- `?demo=1` opens a deterministic, fully offline mock batch of four
+  scenarios (bubble tea chain, gym chain, hotpot restaurant, one
+  deliberately risky example that trips the risk flags) for documentation
+  and screenshots. It never reads or writes Busabase and never claims a real
+  connection; demo create/edit/delete/decision actions only update the
+  in-memory snapshot already rendered in the browser tab.
+- `?demo=scenarios` and `?demo=comparison` select named mock scenes;
+  `?demo=detail` opens the first mock scenario's detail pane.
+- `lang=en` or `lang=zh` forces UI chrome language for screenshots.
+
+UI language: support English and Chinese chrome with `Auto` default.
+
+## Local App
+
+Default behavior is AirApp-first — give the user the clickable AirApp URL.
+Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+requested.
 
 ## Views
 
@@ -155,18 +190,29 @@ a batch in the UI.
   `Needs Revision`, `Rejected`).
 - `#/scenarios/new`: new scenario input form.
 - `#/scenarios/<id>`: cash-flow chart, computed metrics, risk flags, editable
-  inputs, and the underwriting decision panel.
+  inputs, the underwriting decision panel, and delete.
 - `#/comparison`: pick multiple saved scenarios for a side-by-side table.
 - `#/settings`: sanitized config summary and underwriting policy thresholds.
 
-## Safety
+## Completion Criteria
 
-- Never invent live revenue/banking data; all inputs are analyst estimates
-  entered in the UI.
-- Keep `app/.data/` (real deal data) out of git; only `config.example.json`
-  and seed-script output are meant to be shared/demo data.
-- Risk flags and computed metrics are informational only — this skill never
-  auto-approves or auto-rejects a deal.
-## Execution reports
+Finish only when:
 
-Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.
+- the skill contains the complete canonical `app/` project and
+  `pnpm --dir app dev` remains supported;
+- all persistent config, state, and domain data use `busabase-sdk` and the
+  declared resource map — no local JSON, browser storage, or provider
+  choice;
+- Vault values and API credentials never reach browser-visible surfaces;
+- local setup offers Cloud/custom URL OAuth plus the explicit Demo path,
+  while a deployed AirApp uses its ambient session;
+- Overview, Scenarios, Comparison, and Help & Settings render on desktop and
+  phone widths;
+- `pnpm --dir app run check` and `node --test` pass.
+
+## Stop Conditions
+
+Stop before consequential Busabase mutation when the target Space is
+ambiguous, the current user lacks permission, or a same-slug resource is not
+application-owned. Never fetch live revenue/banking/payment data or move
+money from the AirApp.

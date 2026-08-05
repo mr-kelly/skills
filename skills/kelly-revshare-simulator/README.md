@@ -1,10 +1,13 @@
 # Revenue-Share Contract Simulator
 
-Revenue-Share Contract Simulator is a local, file-backed App-in-Skill control
-panel for modeling revenue-based-financing (RBF) deals for SME businesses
-such as retail and F&B chain stores. It never fetches live revenue/banking
-data and never moves money — every number comes from analyst-entered inputs
-run through pure, deterministic math.
+Kelly Revenue-Share Simulator is a Busabase-backed App-in-Skill
+control-panel/workspace for modeling revenue-based-financing (RBF) deals for
+SME businesses such as retail and F&B chain stores. It never fetches live
+revenue/banking data and never moves money — every number comes from
+analyst-entered inputs run through pure, deterministic math. Creating,
+editing, and deleting a scenario, and recording the underwriting decision,
+are all direct writes made straight to Busabase — there is no separate
+review/approval queue.
 
 ## What It Shows
 
@@ -19,8 +22,8 @@ run through pure, deterministic math.
   chart, the Cash-Flow Payout Multiple (a P/E-like ratio of principal to
   annualized repayment cash flow), the implied effective annualized merchant
   cost, rule-based risk flags (cap not reached within term, merchant cost too
-  high, high revenue volatility, thin term buffer), and a decision panel
-  (approve for underwriting / needs revision / reject) with a note.
+  high, high revenue volatility, thin term buffer), a decision panel (approve
+  for underwriting / needs revision / reject) with a note, and delete.
 - Comparison: pick any saved scenarios for a side-by-side table of inputs,
   projected repayment, payout multiple, effective cost, and decisions.
 
@@ -45,13 +48,13 @@ run through pure, deterministic math.
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Run the app and open a safe, fully offline mock scene:
 
 ```bash
-skills/kelly-revshare-simulator/app/start.sh
+pnpm --dir skills/kelly-revshare-simulator/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Use the printed local URL, then add one of these demo paths:
 
 ```text
 /?demo=1&lang=en#/overview
@@ -60,28 +63,16 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=comparison&lang=en#/comparison
 ```
 
-Demo mode is fully offline and never reads or writes local scenario files.
+Add `lang=zh` for the Chinese UI chrome, e.g. `/?demo=1&lang=zh#/overview`.
 
-## Seed Data
+Demo mode is fully offline (four scenarios ported verbatim from the retired
+`app/server/demo.ts`) and never reads or writes Busabase; create/edit/delete/
+decision actions taken while `?demo=` is set only update in-memory state in
+the browser tab.
 
-Populate `app/.data/scenarios.json` with four example scenarios (bubble tea
-chain, gym chain, hotpot restaurant, and one deliberately aggressive/risky
-example that trips the risk flags):
+## Busabase Data
 
-```bash
-node skills/kelly-revshare-simulator/scripts/generate_batch.ts
-```
-
-Validate the schema at any time with:
-
-```bash
-node skills/kelly-revshare-simulator/scripts/validate_ui_schema.ts
-```
-
-## Private Config
-
-Copy `config.example.json` to `config.local.json` or
-`~/.config/kelly-revshare-simulator/config.json` to set the base currency and
-underwriting policy thresholds (max effective annual cost, cap-multiple
-range, max term). This skill has no external accounts and needs no secrets.
-Never commit real deal data — `app/.data/` is gitignored.
+The AirApp is Busabase-backed: scenarios and settings both live in Busabase
+Bases declared in `app/app/js/config.js` (see `references/ui-schema.md`).
+Resources provision lazily on first run. There is no local file storage and
+no separate provider choice.

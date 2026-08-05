@@ -462,6 +462,15 @@ button:hover {
   background: #fbfbfc;
 }
 
+button.danger {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+
+button.danger:hover {
+  background: color-mix(in srgb, var(--bad) 10%, white);
+}
+
 .content {
   min-height: 0;
   overflow: auto;

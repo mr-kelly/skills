@@ -1,94 +1,116 @@
-# Scenario Batch Schema
+# Kelly Revenue-Share Simulator Schema
 
-`app/.data/scenarios.json` is the file handoff between the deal analyst (via
-the app) and anyone reading the underwriting outcome later. This is a
-**control-panel / workspace** App-in-Skill: the "batch" carries saved deal
-scenarios rather than a review queue of externally-sourced items, and the
-decision field is a human underwriting verdict rather than an approval of an
-agent-drafted action.
+Use this schema when reading or writing Kelly Revenue-Share Simulator's
+Busabase Bases. Field slugs are kebab-case in Busabase and normalized to
+snake_case in app code (`app/app/js/providers/busabase-provider.js`,
+`app/app/js/simulator-model.js`). `result` (the monthly cash-flow projection,
+Cash-Flow Payout Multiple, effective annualized cost, and risk flags) is
+computed client-side from a scenario's `scenarios` row on every read — it is
+never stored. This is a generic, brand-free dataset: no real company names.
 
-```json
-{
-  "batch_id": "seed-2026-07-10",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-revshare-simulator",
-  "mode": "app-in-skill",
-  "metrics": {
-    "total": 4,
-    "approved": 1,
-    "needs_revision": 1,
-    "rejected": 1,
-    "undecided": 1
-  },
-  "scenarios": [
-    {
-      "id": "stable local id",
-      "name": "human-readable scenario name",
-      "created_at": "ISO timestamp",
-      "updated_at": "ISO timestamp",
-      "input": {
-        "business_type": "free text, e.g. Bubble tea retail chain",
-        "avg_monthly_revenue": 420000,
-        "revenue_volatility_pct": 18,
-        "principal": 250000,
-        "initial_share_rate_pct": 6,
-        "step_down_share_rate_pct": 3,
-        "repayment_cap_multiple": 1.4,
-        "term_months": 18
-      },
-      "result": {
-        "monthly": [
-          {
-            "month": 1,
-            "revenue": 420000,
-            "share_rate_pct": 6,
-            "payment": 25200,
-            "cumulative_repayment": 25200,
-            "breakeven_reached": false,
-            "cap_reached": false
-          }
-        ],
-        "total_repayment": 350000,
-        "cap_amount": 350000,
-        "months_to_breakeven": 10,
-        "months_to_cap": 14,
-        "cash_flow_payout_multiple": 1.19,
-        "effective_annual_cost_pct": 27.4,
-        "risk_flags": [
-          {
-            "code": "cap_not_reached",
-            "severity": "high",
-            "message": "..."
-          }
-        ]
-      },
-      "decision": {
-        "action": "approve_underwriting",
-        "note": "human note",
-        "decided_at": "ISO timestamp"
-      }
-    }
-  ]
-}
-```
+## Scenarios (`kelly-revshare-simulator-scenarios-v1`)
 
-## Field notes
+One row per saved revenue-share deal scenario. This is a **control-panel /
+workspace** App-in-Skill: each row carries a saved deal scenario rather than
+a review queue of externally-sourced items, and the decision field is a
+human underwriting verdict rather than an approval of an agent-drafted
+action.
 
-- `input.avg_monthly_revenue`, `input.revenue_volatility_pct`, and every rate
-  field are **estimates the analyst supplies**; the simulator never fetches
-  live revenue data.
-- `result` is fully derived from `input` by `lib/simulate.ts` — deterministic,
-  no randomness, no external calls. `scripts/validate_ui_schema.ts` checks
-  that `result.cap_amount == input.principal * input.repayment_cap_multiple`
-  as one internal-consistency guard.
-- `decision.action` is one of `approve_underwriting`, `needs_revision`,
-  `reject`, or `null` (undecided). This mirrors the review-model verdict
-  vocabulary (`approve` / `request_changes` / `block`) adapted to an
-  underwriting decision rather than a content-review decision.
-- Risk flag codes: `cap_not_reached`, `merchant_cost_too_high`,
-  `high_revenue_volatility`, `thin_term_buffer`. These are neutral,
-  rule-based observations for a human underwriter — never automated
-  approve/reject decisions.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `scenario-id` | `scenario_id` (app: `id`) | text | stable domain id, required, e.g. `scn_a1b2c3d4` |
+| `name` | `name` | text | human-readable scenario name |
+| `business-type` | `business_type` | text | free text, e.g. `Bubble tea retail chain` |
+| `avg-monthly-revenue` | `avg_monthly_revenue` | number | analyst estimate |
+| `revenue-volatility-pct` | `revenue_volatility_pct` | number | analyst estimate; risk signal only, not a stochastic driver |
+| `principal` | `principal` | number | proposed advance |
+| `initial-share-rate-pct` | `initial_share_rate_pct` | number | revenue share until breakeven |
+| `step-down-share-rate-pct` | `step_down_share_rate_pct` | number | reduced share rate after principal is recovered |
+| `repayment-cap-multiple` | `repayment_cap_multiple` | number | `cap_amount = principal * repayment_cap_multiple` |
+| `term-months` | `term_months` | number | contract term |
+| `decision-action` | `decision_action` | text | `""` (undecided) \| `approve_underwriting` \| `needs_revision` \| `reject` |
+| `decision-note` | `decision_note` | longtext | human underwriting note |
+| `decided-at` | `decided_at` | text | ISO timestamp, set whenever `decision-action` changes |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `updated-at` | `updated_at` | text | ISO timestamp, set on every edit |
 
-Write a validator (`scripts/validate_ui_schema.ts`) before relying on this
-schema for any downstream export.
+Scenarios are created, edited, and deleted directly by the analyst through
+the app UI — this is a direct-manipulation control panel, not a
+review/approval queue. `records.changeRequest` with `operation: "delete"`
+always requires an explicit Busabase review before it merges (`autoMerge` is
+rejected server-side for deletes); a standalone local preview reviews and
+merges its own delete request immediately, a deployed AirApp leaves it
+pending for a human to review directly in Busabase.
+
+## Settings (`kelly-revshare-simulator-settings-v1`)
+
+One row per `kind`, looked up by `record-id`:
+
+| `record-id` | `kind` | `payload` (JSON) |
+| --- | --- | --- |
+| `kelly-revshare-simulator-config` | `config` | `{base_currency, underwriting_policy: {max_effective_annual_cost_pct, min_cap_multiple, max_cap_multiple, max_term_months}}` |
+
+If no `config` row exists, the app falls back to defaults
+(`app/app/js/simulator-model.js`'s `DEFAULT_POLICY`
+`{max_effective_annual_cost_pct: 40, min_cap_multiple: 1.2, max_cap_multiple: 2.5, max_term_months: 36}`,
+and `base_currency: "USD"`) — the simulator still functions, just without a
+configured underwriting policy summary.
+
+## Derived Result (computed, never stored)
+
+`simulateScenario(input)` in `app/app/js/simulator-model.js`, ported
+verbatim from the retired `lib/simulate.ts`:
+
+- `monthly[]`: month-by-month revenue (held flat at `avg_monthly_revenue`),
+  `share_rate_pct` (steps down from `initial_share_rate_pct` to
+  `step_down_share_rate_pct` once cumulative repayment reaches `principal`),
+  `payment`, `cumulative_repayment`, `breakeven_reached`, `cap_reached`.
+  Simulation stops once `cumulative_repayment` reaches `cap_amount`, or at
+  `term_months`, whichever comes first.
+- `total_repayment` / `cap_amount`: `cap_amount = principal *
+  repayment_cap_multiple`, one internal-consistency guard worth checking
+  before relying on a batch.
+- `months_to_breakeven` / `months_to_cap`: `null` if never reached within
+  `term_months`.
+- `cash_flow_payout_multiple`: `principal / ((total_repayment /
+  months_elapsed) * 12)` — a P/E-like ratio; a LOW multiple means the funder
+  recovers principal faster relative to the annualized cash flow. This does
+  NOT by itself mean the deal is cheaper for the merchant — merchant cost is
+  `effective_annual_cost_pct`, computed separately.
+- `effective_annual_cost_pct`: `((total_repayment / principal) ** (12 /
+  months_elapsed) - 1) * 100` — the annualized cost implied by paying back
+  `total_repayment` over `months_elapsed`, expressed like an APR.
+- `risk_flags[]`: deterministic, rule-based, neutral observations for a
+  human underwriter — never automated approve/reject decisions.
+  - `cap_not_reached` (`high`): the cap is never reached within the term.
+  - `merchant_cost_too_high` (`high`): `effective_annual_cost_pct` exceeds
+    40%.
+  - `high_revenue_volatility` (`watch`): `revenue_volatility_pct` is 30% or
+    higher.
+  - `thin_term_buffer` (`watch`): the cap is reached at or within one month
+    of the end of the term.
+
+No randomness, no external calls — the same scenario input always produces
+the same result.
+
+## Direct Scenario Writes
+
+There is no decisions/approval bucket. Every scenario action writes straight
+onto Busabase via `app/app/js/providers/busabase-provider.js`:
+
+- **Create**: `bases.createChangeRequest` with a new `scenario-id`.
+- **Update** (edit inputs, rename): `records.changeRequest` with
+  `operation: "update"`.
+- **Record underwriting decision**: `records.changeRequest` with
+  `operation: "update"`, setting only
+  `decision-action`/`decision-note`/`decided-at`.
+- **Delete**: `records.changeRequest` with `operation: "delete"`.
+
+`autoMerge` = `isStandaloneLocalRuntime()` for create/update/decision writes:
+local preview merges immediately (trusted operator), deployed AirApp creates
+a pending ChangeRequest for the trusted process to merge, per the AirApp
+boundary. Delete always requires review server-side regardless of
+`autoMerge`; on a standalone local preview the app calls
+`changeRequests.review` (`verdict: "approved"`) then `changeRequests.merge`
+immediately after submitting the delete request, so the trusted local
+operator's own click completes the deletion in one step.

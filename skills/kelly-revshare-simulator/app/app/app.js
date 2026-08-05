@@ -1,4 +1,7 @@
 import { messages } from "./i18n/messages.js";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { buildScenario } from "./js/simulator-model.js?v=0.1.0";
 
 const state = {
   batch: null,
@@ -12,6 +15,7 @@ const state = {
       "auto",
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
+  busy: false,
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-revshare-simulator.sidebarCollapsed";
@@ -125,14 +129,12 @@ function setRoute() {
 }
 
 async function loadState() {
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  if (state.lang) params.set("lang", state.lang);
-  const res = await fetch(`/api/state?${params}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`State request failed: ${res.status}`);
-  const data = await res.json();
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
   state.batch = data.batch;
   state.settings = data;
+  window.dispatchEvent(new CustomEvent("kelly-revshare-simulator:state", { detail: data }));
   applyDemoRoute();
   render();
 }
@@ -347,19 +349,20 @@ function scenarioFormHtml(input = {}, name = "") {
     repayment_cap_multiple: input.repayment_cap_multiple ?? 1.5,
     term_months: input.term_months ?? 24,
   };
+  const disabled = state.busy ? "disabled" : "";
   return `
     <form id="scenarioForm" class="scenario-form">
-      <label>${t("name")}<input name="name" required value="${escapeHtml(name)}"></label>
-      <label>${t("businessType")}<input name="business_type" required value="${escapeHtml(f.business_type)}"></label>
-      <label>${t("avgMonthlyRevenue")}<input name="avg_monthly_revenue" type="number" min="0" step="1000" required value="${f.avg_monthly_revenue}"></label>
-      <label>${t("revenueVolatility")}<input name="revenue_volatility_pct" type="number" min="0" max="100" step="1" required value="${f.revenue_volatility_pct}"></label>
-      <label>${t("principal")}<input name="principal" type="number" min="0" step="1000" required value="${f.principal}"></label>
-      <label>${t("initialShareRate")}<input name="initial_share_rate_pct" type="number" min="0" max="100" step="0.1" required value="${f.initial_share_rate_pct}"></label>
-      <label>${t("stepDownRate")}<input name="step_down_share_rate_pct" type="number" min="0" max="100" step="0.1" required value="${f.step_down_share_rate_pct}"></label>
-      <label>${t("capMultiple")}<input name="repayment_cap_multiple" type="number" min="1" step="0.1" required value="${f.repayment_cap_multiple}"></label>
-      <label>${t("termMonths")}<input name="term_months" type="number" min="1" step="1" required value="${f.term_months}"></label>
+      <label>${t("name")}<input name="name" required value="${escapeHtml(name)}" ${disabled}></label>
+      <label>${t("businessType")}<input name="business_type" required value="${escapeHtml(f.business_type)}" ${disabled}></label>
+      <label>${t("avgMonthlyRevenue")}<input name="avg_monthly_revenue" type="number" min="0" step="1000" required value="${f.avg_monthly_revenue}" ${disabled}></label>
+      <label>${t("revenueVolatility")}<input name="revenue_volatility_pct" type="number" min="0" max="100" step="1" required value="${f.revenue_volatility_pct}" ${disabled}></label>
+      <label>${t("principal")}<input name="principal" type="number" min="0" step="1000" required value="${f.principal}" ${disabled}></label>
+      <label>${t("initialShareRate")}<input name="initial_share_rate_pct" type="number" min="0" max="100" step="0.1" required value="${f.initial_share_rate_pct}" ${disabled}></label>
+      <label>${t("stepDownRate")}<input name="step_down_share_rate_pct" type="number" min="0" max="100" step="0.1" required value="${f.step_down_share_rate_pct}" ${disabled}></label>
+      <label>${t("capMultiple")}<input name="repayment_cap_multiple" type="number" min="1" step="0.1" required value="${f.repayment_cap_multiple}" ${disabled}></label>
+      <label>${t("termMonths")}<input name="term_months" type="number" min="1" step="1" required value="${f.term_months}" ${disabled}></label>
       <div class="form-actions">
-        <button type="submit">${name ? t("update") : t("save")}</button>
+        <button type="submit" ${disabled}>${name ? t("update") : t("save")}</button>
       </div>
     </form>
   `;
@@ -393,15 +396,8 @@ function renderNewScenario() {
   document.querySelector("#scenarioForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const payload = readScenarioForm(event.target);
-    const res = await fetch("/api/scenarios", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) return;
-    const { scenario } = await res.json();
-    await loadState();
-    location.hash = `#/scenarios/${scenario.id}`;
+    const scenario = await submitCreateScenario(payload.name, payload.input);
+    if (scenario) location.hash = `#/scenarios/${scenario.id}`;
   });
 }
 
@@ -501,18 +497,19 @@ function riskFlagsHtml(flags) {
 }
 
 function decisionPanel(scenario) {
+  const disabled = state.busy ? "disabled" : "";
   return `
     <div class="overview-panel">
       <h2>${t("decision")}</h2>
       <form id="decisionForm" class="decision-form">
         <div class="decision-buttons">
-          <label class="radio"><input type="radio" name="action" value="approve_underwriting" ${scenario.decision.action === "approve_underwriting" ? "checked" : ""}> ${t("approveUnderwriting")}</label>
-          <label class="radio"><input type="radio" name="action" value="needs_revision" ${scenario.decision.action === "needs_revision" ? "checked" : ""}> ${t("needsRevisionAction")}</label>
-          <label class="radio"><input type="radio" name="action" value="reject" ${scenario.decision.action === "reject" ? "checked" : ""}> ${t("rejectAction")}</label>
+          <label class="radio"><input type="radio" name="action" value="approve_underwriting" ${scenario.decision.action === "approve_underwriting" ? "checked" : ""} ${disabled}> ${t("approveUnderwriting")}</label>
+          <label class="radio"><input type="radio" name="action" value="needs_revision" ${scenario.decision.action === "needs_revision" ? "checked" : ""} ${disabled}> ${t("needsRevisionAction")}</label>
+          <label class="radio"><input type="radio" name="action" value="reject" ${scenario.decision.action === "reject" ? "checked" : ""} ${disabled}> ${t("rejectAction")}</label>
         </div>
-        <label>${t("decisionNote")}<textarea name="note" rows="3">${escapeHtml(scenario.decision.note || "")}</textarea></label>
+        <label>${t("decisionNote")}<textarea name="note" rows="3" ${disabled}>${escapeHtml(scenario.decision.note || "")}</textarea></label>
         <div class="form-actions">
-          <button type="submit">${t("saveDecision")}</button>
+          <button type="submit" ${disabled}>${t("saveDecision")}</button>
         </div>
       </form>
     </div>
@@ -528,6 +525,7 @@ function renderScenarioDetail() {
   els.title.textContent = scenario.name;
   els.subtitle.textContent = scenario.input.business_type;
   const r = scenario.result;
+  const disabled = state.busy ? "disabled" : "";
   els.content.innerHTML = `
     <section class="detail">
       <div class="detail-main">
@@ -551,6 +549,9 @@ function renderScenarioDetail() {
       <aside class="detail-side">
         <h2>${t("scenariosTitle")}</h2>
         ${scenarioFormHtml(scenario.input, scenario.name)}
+        <div class="form-actions">
+          <button type="button" id="deleteScenarioBtn" class="danger" ${disabled}>${t("delete")}</button>
+        </div>
       </aside>
     </section>
   `;
@@ -558,25 +559,18 @@ function renderScenarioDetail() {
   document.querySelector("#decisionForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const data = new FormData(event.target);
-    await fetch(`/api/scenarios/${encodeURIComponent(scenario.id)}/decision`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: data.get("action") || null, note: String(data.get("note") || "") }),
-    });
-    await loadState();
-    render();
+    await submitDecision(scenario.id, data.get("action") || null, String(data.get("note") || ""));
   });
 
   document.querySelector("#scenarioForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const payload = readScenarioForm(event.target);
-    await fetch(`/api/scenarios/${encodeURIComponent(scenario.id)}`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    await loadState();
-    render();
+    await submitUpdateScenario(scenario.id, payload.name, payload.input);
+  });
+
+  document.querySelector("#deleteScenarioBtn")?.addEventListener("click", async () => {
+    if (!window.confirm(`${t("delete")}: ${scenario.name}?`)) return;
+    await submitDeleteScenario(scenario.id);
   });
 }
 
@@ -666,7 +660,7 @@ function renderSettings() {
       <section>
         <h2>${t("configuration")}</h2>
         <dl>
-          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "local")}</dd>
+          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "busabase")}</dd>
           <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
           <dt>${t("baseCurrency")}</dt><dd>${escapeHtml(summary.base_currency || "USD")}</dd>
           <dt>${t("onboarding")}</dt><dd>${state.settings?.onboarding?.completed ? t("completed") : t("incomplete")}</dd>
@@ -694,6 +688,105 @@ function render() {
   else renderOverview();
 }
 
+// ---- Direct writes: create/edit/delete a scenario and record an
+// underwriting decision, applied straight through the active provider
+// (Busabase or demo) -- this is a direct-manipulation control panel, not a
+// review/approval queue, the same way kelly-lead-funnel's stage moves and
+// kelly-portfolio-health's flag/note writes work. Demo mode never reaches
+// Busabase; it mutates the in-memory snapshot already rendered so the demo
+// stays fully interactive for screenshots/docs. ----
+
+async function submitCreateScenario(name, input) {
+  if (state.demo) {
+    const scenario = buildScenario(name, input);
+    state.batch.scenarios.push(scenario);
+    render();
+    return scenario;
+  }
+  state.busy = true;
+  render();
+  try {
+    const provider = await getProvider();
+    const scenario = await provider.createScenario(name, input);
+    await loadState();
+    return scenario;
+  } catch (error) {
+    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+    return null;
+  } finally {
+    state.busy = false;
+  }
+}
+
+async function submitUpdateScenario(id, name, input) {
+  if (state.demo) {
+    const index = state.batch.scenarios.findIndex((s) => s.id === id);
+    if (index !== -1) {
+      const existing = state.batch.scenarios[index];
+      const next = buildScenario(name || existing.name, input, id);
+      next.created_at = existing.created_at;
+      next.decision = existing.decision;
+      state.batch.scenarios[index] = next;
+    }
+    render();
+    return;
+  }
+  state.busy = true;
+  render();
+  try {
+    const provider = await getProvider();
+    await provider.updateScenario(id, name, input);
+    await loadState();
+  } catch (error) {
+    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+  } finally {
+    state.busy = false;
+  }
+}
+
+async function submitDecision(id, action, note) {
+  if (state.demo) {
+    const scenario = state.batch.scenarios.find((s) => s.id === id);
+    if (scenario) {
+      scenario.decision = { action: action || null, note: note || "", decided_at: new Date().toISOString() };
+    }
+    render();
+    return;
+  }
+  state.busy = true;
+  render();
+  try {
+    const provider = await getProvider();
+    await provider.saveDecision(id, action, note);
+    await loadState();
+  } catch (error) {
+    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+  } finally {
+    state.busy = false;
+  }
+}
+
+async function submitDeleteScenario(id) {
+  if (state.demo) {
+    state.batch.scenarios = state.batch.scenarios.filter((s) => s.id !== id);
+    location.hash = "#/scenarios";
+    render();
+    return;
+  }
+  state.busy = true;
+  render();
+  try {
+    const provider = await getProvider();
+    await provider.deleteScenario(id);
+    location.hash = "#/scenarios";
+    await loadState();
+  } catch (error) {
+    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+  } finally {
+    state.busy = false;
+  }
+}
+
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
 els.sidebarToggle?.addEventListener("click", toggleSidebar);
@@ -716,6 +809,19 @@ els.language.addEventListener("change", () => {
 });
 
 syncResponsiveShell();
-loadState().catch((error) => {
-  els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-});
+
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+  } catch (error) {
+    if (String(error?.message || error).startsWith("SETUP_")) {
+      renderSetupRequired(error, boot);
+      return;
+    }
+    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+  }
+}
+
+boot();
