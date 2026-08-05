@@ -1,6 +1,15 @@
 # Legal Casebase Ingest
 
-Turns archived judgments and arbitral awards into reviewed internal case records: anonymization checks, issue tags, court/cause metadata, reasoning snippets, and reviewer approval before ingest.
+Legal Casebase Ingest is a Busabase App-in-Skill casebase intake and anonymization QA desk for law-firm judgment and award documents. The agent extracts facts, holdings, legal basis, tags, and anonymization evidence from source documents; the human reviewer approves, revises, requests changes, or blocks every record through the App-in-Skill review queue before it becomes a searchable knowledge asset.
+
+## What It Shows
+
+- Overview: casebase command desk with intake progress, anonymization risk, review load, and recent activity.
+- Workbench (`#/items`): case-record facts, court reasoning, legal basis, tags, and source snippets.
+- Review queue: approval-gated case records with stable refs (`Intake #1`), anonymization evidence, review notes, and decision controls (approve / request changes / revise / block).
+- Checks: deterministic QA checks for PII leakage, taxonomy completeness, source coverage, and tag confidence.
+- Library (`#/entities`): canonical case library grouped by cause, court, lawyer, and status.
+- Settings: sanitized firm profile, ingestion/anonymization/taxonomy policy, export preferences, and data-provider status.
 
 ## App UI Screenshots
 
@@ -27,27 +36,71 @@ Turns archived judgments and arbitral awards into reviewed internal case records
   <tr>
     <td><strong>Library</strong><br>Ingested case library with needs-review and approved buckets and per-item counts.</td>
   </tr>
-  <tr>
-    <td width="50%"><img src="assets/screenshots/mobile-detail-zh-CN.webp" alt="Legal Casebase Ingest mobile detail"></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td><strong>Mobile detail</strong><br>Phone-width shell with top bar, single-pane detail, sticky actions, and back-to-list control.</td>
-    <td></td>
-  </tr>
 </table>
 
-## Local App
+## Demo Mode
+
+Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-skills/kelly-legal-casebase-ingest/app/start.sh
+pnpm --dir skills/kelly-legal-casebase-ingest/app dev
 ```
 
-Views: overview, review queue, workbench, checks, entities, and settings. The app reads/writes local handoff files only.
+Then add one of these demo paths:
 
-## Safety
+```text
+/?demo=overview&lang=en#/overview
+/?demo=review&lang=en#/review
+/?demo=items&lang=en#/items
+/?demo=checks&lang=en#/checks
+/?demo=entities&lang=en#/entities
+/?demo=detail&lang=en
+```
 
-- Treat all source documents, parties, trade secrets, personal data, and attorney work product as sensitive.
-- Do not ingest a record if anonymization evidence is missing, PII-risk checks fail, or reviewer approval is absent.
-- Preserve enough facts, reasoning, and legal application for reuse while minimizing raw source text.
-- Never expose private source text, secrets, or real client names through demo data, screenshots, logs, or config summaries.
+Demo mode never reads or writes Busabase.
+
+## Payload Format
+
+`scripts/ingest_documents.mjs` accepts a single item object or `{ "entities": [...], "items": [...], "checks": [...] }`:
+
+```json
+{
+  "items": [
+    {
+      "id": "ingest-lease-arrears",
+      "title": "Commercial lease arrears termination case",
+      "category": "Civil/Commercial",
+      "status": "needs_review",
+      "owner": "Reviewer name",
+      "risk": ["privacy", "business_secret"],
+      "summary": "One-paragraph review summary.",
+      "recommendation": "Approve for ingest but redact business metrics.",
+      "evidence": ["Party names replaced", "Phone numbers removed"],
+      "fields": {
+        "cause": "Lease contract dispute",
+        "court": "Intermediate People's Court",
+        "procedure": "Second instance",
+        "outcome": "Partially supports landlord",
+        "paragraphs": ["Facts 3", "Reasoning 2"],
+        "extraction_confidence": 0.91,
+        "duplicate_score": 0.22,
+        "pii_cleared": true,
+        "parties_redacted": true,
+        "contacts_redacted": true
+      }
+    }
+  ],
+  "entities": [{ "id": "case-lease-arrears", "title": "Commercial lease arrears cases", "summary": "..." }],
+  "checks": [{ "id": "chk-pii", "label": "PII redaction", "status": "warn", "item_id": "ingest-lease-arrears" }]
+}
+```
+
+After ingesting, run `node scripts/execute_decisions.mjs --apply` once a reviewer has decided, and `node scripts/export_case_records.mjs --out <dir>` to export genuinely approved records as Markdown + JSON + CSV. See `references/casebase-schema.md` for the full Busabase field contract.
+
+## Busabase Setup
+
+Legal Casebase Ingest provisions its own Folder and four Bases (`items`, `entities`, `checks`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
+
+## Boundary
+
+The AirApp reads and writes Busabase only — it never files documents, sends client advice, contacts counterparties, or performs other external side effects. Every legal position, client-facing output, external citation, or outbound message is approval-required and happens outside the app only after explicit human approval. Ingesting a document and exporting approved records are local-file operations performed by the trusted `scripts/*.mjs` scripts, never by the browser. Never commit local payload files, env files, or generated exports (`exports/` is gitignored).
