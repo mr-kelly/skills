@@ -1,6 +1,15 @@
 # Legal Precedent Desk
 
-Finds and packages internal precedents for a new legal question: similar facts, local court tendencies, decisive evidence, holdings, citations, and a reviewer-approved research memo.
+Legal Precedent Desk is a Busabase App-in-Skill precedent-research desk for internal casebase search, local court-pattern analysis, similar-case packs, citations, and approval-gated research exports. The agent prepares research packs — matched similar cases, similarity scores, local court-pattern notes, and citations; the responsible lawyer approves, revises, requests changes, or blocks every pack through the App-in-Skill review queue before it becomes an approved research input.
+
+## What It Shows
+
+- Overview: precedent command desk with packs awaiting review, high-match cases, approved packs, and recent activity.
+- Workbench (`#/items`): editable research pack, similar-case matches, and local court-pattern notes.
+- Review queue: approval-gated research packs with stable refs (`Pack #1`), citations, review notes, and decision controls (approve / request changes / revise / block).
+- Checks: precedent QA checks for citation traceability, similarity rationale, jurisdiction fit, and confidentiality limits.
+- Library (`#/entities`): issue clusters, court-pattern groups, or precedent collections grouped by issue, court, outcome, and lawyer.
+- Settings: sanitized firm profile, search policy, export preferences, and data-provider status.
 
 ## App UI Screenshots
 
@@ -29,17 +38,67 @@ Finds and packages internal precedents for a new legal question: similar facts, 
   </tr>
 </table>
 
-## Local App
+## Demo Mode
+
+Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-skills/kelly-legal-precedent-desk/app/start.sh
+pnpm --dir skills/kelly-legal-precedent-desk/app dev
 ```
 
-Views: overview, review queue, workbench, checks, entities, and settings. The app reads/writes local handoff files only.
+Then add one of these demo paths:
 
-## Safety
+```text
+/?demo=overview&lang=en#/overview
+/?demo=review&lang=en#/review
+/?demo=items&lang=en#/items
+/?demo=checks&lang=en#/checks
+/?demo=entities&lang=en#/entities
+/?demo=detail&lang=en
+```
 
-- Do not present internal precedent findings as final legal advice or guaranteed outcomes.
-- Keep client names and privileged strategy out of exported packs unless expressly approved.
-- Every quoted snippet must trace to an approved case record and respect the configured quote policy.
-- If the internal casebase does not contain enough similar cases, say so and route to external legal research instead of inventing support.
+Demo mode never reads or writes Busabase.
+
+## Payload Format
+
+`scripts/create_research_batch.mjs` accepts a single item object or `{ "entities": [...], "items": [...], "checks": [...] }`:
+
+```json
+{
+  "items": [
+    {
+      "id": "pack-lease-break",
+      "title": "Commercial lease arrears termination precedent pack",
+      "category": "租赁合同纠纷",
+      "status": "needs_review",
+      "owner": "Reviewer name",
+      "risk": ["legal", "confidentiality"],
+      "summary": "One-paragraph review summary.",
+      "recommendation": "Search 2025+ Shenzhen basic-court cases before use in a client memo.",
+      "evidence": ["case-lease-arrears-shenzhen similarity 0.86"],
+      "fields": {
+        "query": "疫情影响下商业租赁欠租能否解除",
+        "jurisdiction": "深圳",
+        "match_count": 4,
+        "high_match_count": 3,
+        "top_similarity": 0.86,
+        "avg_similarity": 0.81,
+        "court_pattern": "深圳法院更重视催告、欠租持续性、减免协商记录与损失证明。",
+        "citation_count": 9
+      }
+    }
+  ],
+  "entities": [{ "id": "prec-lease-break", "title": "疫情期间商业租赁解除与违约金调减", "summary": "..." }],
+  "checks": [{ "id": "chk-citations", "label": "Citation coverage", "status": "pass", "item_id": "pack-lease-break" }]
+}
+```
+
+After importing, run `node scripts/execute_decisions.mjs --apply` once a reviewer has decided, and `node scripts/export_research_pack.mjs --out <dir>` to export genuinely approved research packs as Markdown + JSON + CSV. See `references/precedent-schema.md` for the full Busabase field contract.
+
+## Busabase Setup
+
+Legal Precedent Desk provisions its own Folder and four Bases (`items`, `entities`, `checks`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
+
+## Boundary
+
+The AirApp reads and writes Busabase only — it never files documents, sends client advice, contacts counterparties, publishes brand claims, or performs other external side effects. Every legal position, client-facing output, external citation, filing step, or outbound message is approval-required and happens outside the app only after explicit human approval. Ingesting research batches and exporting approved packs are local-file operations performed by the trusted `scripts/*.mjs` scripts, never by the browser. Never commit local payload files, env files, or generated exports (`exports/` is gitignored).

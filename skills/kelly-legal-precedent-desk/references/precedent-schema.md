@@ -1,120 +1,186 @@
 # Legal Precedent Desk Schema
 
-This schema describes `app/.data/precedent_snapshot.json`, the local handoff file shared by the agent, scripts, and the App UI.
+Use this schema when reading or writing Legal Precedent Desk's Busabase
+Bases. Field slugs are kebab-case in Busabase and normalized to snake_case
+in app code (`app/app/js/providers/busabase-provider.js`,
+`app/app/js/precedent-model.js`). Metrics and the recent-activity feed are
+computed client-side from the `items`/`entities`/`checks` Bases on every
+read (`buildSnapshot`/`assembleSnapshot` in `precedent-model.js`) — the only
+persisted state is what lives directly on those four Bases.
 
-## Snapshot
+Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
+
+Decision actions: `approve`, `request_changes`, `revise`, `block`. Like
+`kelly-legal-casebase-ingest`, `kelly-legal-firm-radar`, and
+`kelly-legal-matter-strategy`, `revise` maps status back to `needs_review`
+(saving an edited draft/note returns the record to the queue), not
+"unchanged" — see `statusFromDecision()` in `precedent-model.js` (ported
+verbatim from the retired `lib/common.ts` and confirmed against the retired
+`lib/data-provider/local-file-provider.ts`'s `ALLOWED_ACTIONS`).
+
+Check results: `pass`, `warn`, `fail`.
+
+## Items (`kelly-legal-precedent-desk-items-v1`)
+
+An item record is both the precedent-research workbench entry and its
+review-queue item — there is no separate review-item or decisions Base.
+`scripts/create_research_batch.mjs` writes the item/field columns; the
+AirApp (or a human in a standalone local preview) writes the `decision-*`
+fields; `scripts/execute_decisions.mjs` writes the `execution-*` fields.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `item-id` | `item_id` | text | stable domain id, required |
+| `ref` | `ref` | text | human-friendly stable reference, e.g. `Pack #1` |
+| `title` | `title` | text | short title for the review row |
+| `category` | `category` | text | matter category, e.g. `租赁合同纠纷` |
+| `status` | `status` | text | workflow status |
+| `owner` | `owner` | text | responsible lawyer |
+| `risk` | `risk` | longtext | JSON array of risk badges, e.g. `["legal","confidentiality"]` |
+| `summary` | `summary` | longtext | one-paragraph review summary |
+| `body` | `body` | longtext | longer source-derived detail (local court tendencies) |
+| `recommendation` | `recommendation` | longtext | agent recommendation for the reviewer |
+| `proposed-action` | `proposed_action` | text | domain operation, usually `approve_research_pack` |
+| `draft` | `draft` | longtext | editable research memo draft text |
+| `evidence` | `evidence` | longtext | JSON array of short evidence strings or approved case ids with similarity |
+| `query` | `query` | longtext | focused legal question or fact pattern being researched |
+| `jurisdiction` | `jurisdiction` | text | target jurisdiction, court level, and any excluded forum |
+| `match-count` | `match_count` | number | total similar cases considered in the pack |
+| `high-match-count` | `high_match_count` | number | cases above the configured similarity or reviewer threshold |
+| `top-similarity` | `top_similarity` | number | highest similarity score (0-1) in the pack |
+| `avg-similarity` | `avg_similarity` | number | average similarity score (0-1) for the included pack |
+| `court-pattern` | `court_pattern` | longtext | local court tendency, dissenting pattern, or "insufficient data" note |
+| `citation-count` | `citation_count` | number | traceable internal citations or approved public citations included |
+| `decision-action` | `decision_action` | text | `approve\|request_changes\|revise\|block` |
+| `decision-note` | `decision_note` | longtext | reviewer's review note |
+| `decided-at` | `decided_at` | text | ISO timestamp |
+| `execution-status` | `execution_status` | text | `planned\|ready_for_agent`, written by `execute_decisions.mjs` |
+| `execution-operation` | `execution_operation` | text | `export_research_pack\|request_revision` |
+| `execution-target` | `execution_target` | text | export path (`export_research_pack`) or `item-id` (`request_revision`) |
+| `execution-detail` | `execution_detail` | longtext | human-readable next step |
+| `executed-at` | `executed_at` | text | ISO timestamp |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `updated-at` | `updated_at` | text | ISO timestamp |
+
+## Entities (`kelly-legal-precedent-desk-entities-v1`)
+
+Issue clusters, court-pattern groups, or precedent collections, not raw case documents.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `entity-id` | `entity_id` | text | stable domain id, required |
+| `title` | `title` | text | display name |
+| `meta` | `meta` | text | short meta line, e.g. case count · jurisdiction |
+| `status` | `status` | text | rollup status |
+| `owner` | `owner` | text | responsible practice group |
+| `summary` | `summary` | longtext | one-paragraph summary |
+| `tags` | `tags` | longtext | JSON array of tags |
+| `metrics` | `metrics` | longtext | JSON object, e.g. `{"case_count":4,"avg_similarity":0.81,"citation_count":9}` |
+
+## Checks (`kelly-legal-precedent-desk-checks-v1`)
+
+Deterministic precedent QA checks for citation traceability, similarity
+rationale, jurisdiction fit, and confidentiality limits.
+`scripts/create_research_batch.mjs` upserts these alongside items/entities
+as part of the agent's payload.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `check-id` | `check_id` | text | stable domain id, required |
+| `label` | `label` | text | short check name |
+| `status` | `status` | text | `pass\|warn\|fail` |
+| `detail` | `detail` | longtext | evidence / explanation |
+| `item-id` | `item_id` | text | references `items.item-id` |
+| `severity` | `severity` | text | optional severity label |
+
+## Settings (`kelly-legal-precedent-desk-settings-v1`)
+
+A single row, `record-id: "config"`:
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | always `"config"`, required |
+| `firm-name` | `firm_name` | text | firm display name |
+| `branch` | `branch` | text | office / branch |
+| `default-jurisdictions` | `default_jurisdictions` | longtext | JSON array of jurisdictions |
+| `reviewer-role` | `reviewer_role` | text | e.g. "responsible lawyer" |
+| `default-jurisdiction` | `default_jurisdiction` | text | default search jurisdiction |
+| `minimum-similarity-score` | `minimum_similarity_score` | number | minimum similarity score (0-1) for a case to be considered a match |
+| `require-source-case-ids` | `require_source_case_ids` | text | `"true"\|"false"` |
+| `quote-limit-words` | `quote_limit_words` | number | maximum words per quoted case snippet |
+| `export-format` | `export_format` | text | e.g. "markdown+json" |
+| `export-out-dir` | `export_out_dir` | text | default `exports/research-packs` |
+
+## Decisions
+
+A human verdict writes `status` (via `statusFromDecision()`), `decision-action`,
+`decision-note`, and `decided-at` directly onto the item record; `revise`
+additionally may carry an edited `draft`. There is no separate decisions
+file: the item record is the single source of truth for both the draft and
+its review state.
+
+## Execution (`scripts/execute_decisions.mjs`)
+
+The trusted handoff step. Reads items with `decision-action: "approve"` or
+`"request_changes"`, and with `--apply` writes `execution-status`/
+`execution-operation`/`execution-target`/`execution-detail`/`executed-at`
+back onto each — it never changes `status` itself (a deliberate departure
+from the retired local-file `scripts/execute_decisions.ts`, which set
+`item.status = nextStatus` directly on `--apply`, e.g. straight to
+`"approved"` for an "approve" decision). Operations:
+
+- `export_research_pack` (from `approve`) → the agent runs `scripts/export_research_pack.mjs` to write the Markdown/JSON/CSV export. Client advice, filings, and public citation remain a separate explicit approval, never this script.
+- `request_revision` (from `request_changes`) → the agent strengthens the research pack per `decision-note` and re-imports with `scripts/create_research_batch.mjs`.
+
+## Export (`scripts/export_research_pack.mjs`)
+
+Reads items with a genuine `decision-action: "approve"` from Busabase (not
+merely `status: "approved"`, which an import payload could set directly
+without a real human decision) and writes `approved-items.md`,
+`approved-items.json`, and `approved-items.csv` to `--out` (default
+`exports/` at the skill root, gitignored). Marks each exported item
+`status: "done"` in Busabase; this is the only write export performs.
+
+## Payload Import (`scripts/create_research_batch.mjs`)
+
+Accepts a single item object or:
 
 ```json
 {
-  "schema_version": "1",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-legal-precedent-desk",
-  "workspace": {
-    "title": "Legal Precedent Desk",
-    "subtitle": "Internal precedents and local court patterns",
-    "firm": "safe display name"
-  },
-  "metrics": {
-    "items_total": 0,
-    "needs_review": 0,
-    "approved": 0,
-    "done": 0,
-    "blocked": 0,
-    "changes_requested": 0,
-    "checks_failed": 0,
-    "query_count": 0,
-    "high_matches": 0,
-    "local_patterns": 0
-  },
-  "entities": [],
-  "items": [],
-  "checks": [],
-  "activity_log": []
+  "entities": [{ "id": "...", "title": "required", "meta": "", "status": "", "owner": "", "summary": "", "tags": [], "metrics": {} }],
+  "items": [
+    {
+      "id": "optional; auto-derived ref if id omitted from an existing record",
+      "ref": "optional; auto-assigned Pack #<n> when absent",
+      "title": "required",
+      "summary": "required",
+      "category": "optional",
+      "status": "optional; defaults to needs_review",
+      "owner": "optional",
+      "risk": ["optional risk badges"],
+      "recommendation": "optional",
+      "draft": "optional",
+      "evidence": ["optional evidence strings or approved case ids with similarity"],
+      "fields": {
+        "query": "optional", "jurisdiction": "optional",
+        "match_count": 4, "high_match_count": 3,
+        "top_similarity": 0.86, "avg_similarity": 0.81,
+        "court_pattern": "optional", "citation_count": 9
+      }
+    }
+  ],
+  "checks": [{ "id": "required", "label": "required", "status": "pass|warn|fail", "detail": "optional", "item_id": "optional" }]
 }
 ```
 
-## Review Item
-
-Each item is one agent-prepared change request awaiting human judgment.
-
-| Field | Required | Notes |
-| --- | --- | --- |
-| `id` | yes | Stable id, unique within the snapshot. |
-| `ref` | yes | Human-friendly stable reference such as `Pack #1`. |
-| `title` | yes | Short title for the review row. |
-| `status` | yes | `needs_review`, `changes_requested`, `approved`, `done`, or `blocked`. |
-| `summary` | yes | One-paragraph review summary. |
-| `body` | no | Longer source-derived detail. |
-| `recommendation` | no | Agent recommendation for the reviewer. |
-| `draft` | no | Editable output text or memo draft. |
-| `proposed_action` | no | Domain operation, usually `approve_research_pack`. |
-| `risk` | no | Array of risk badges such as `legal`, `privacy`, `management`. |
-| `evidence` | no | Array of short evidence strings or approved source ids. |
-| `fields` | no | Domain-specific structured fields. |
-
-## Domain Fields
-
-Use `fields` to carry precedent-research details that let a lawyer verify the pack.
-
-| Field | Notes |
-| --- | --- |
-| `query` | Focused legal question or fact pattern being researched. |
-| `jurisdiction` | Target jurisdiction, court level, and any excluded forum. |
-| `match_count` | Total similar cases considered in the pack. |
-| `high_match_count` | Cases above the configured similarity or reviewer threshold. |
-| `top_similarity` | Highest similarity score or labeled match strength. |
-| `avg_similarity` | Average similarity score for the included pack. |
-| `court_pattern` | Local court tendency, dissenting pattern, or "insufficient data" note. |
-| `citation_count` | Traceable internal citations or approved public citations included. |
-
-## Entities
-
-Use `entities` for issue clusters, court-pattern groups, or precedent collections. Useful entity metrics include:
-
-- `case_count`: cases included in the cluster.
-- `avg_similarity`: average similarity for the cluster.
-- `citation_count`: verified citations attached to the cluster.
+The script validates required fields (`items[].id/title/summary`,
+`entities[].id/title`, `checks[].id/label/status`) and upserts
+entities/items/checks into Busabase by natural id, so re-imports are
+idempotent — mirroring the retired local importer's `upsertById()` behavior,
+just against Busabase instead of a local JSON snapshot file.
 
 ## Business Gates
 
 - Block export when citation traceability is missing, the jurisdiction fit is wrong, confidential facts leak, or findings imply a guaranteed result.
 - Request changes when the similarity rationale is conclusory, local court-pattern caveats are missing, or the pack has too few comparable cases.
 - Mark approved/done packs as inputs for matter strategy only; external citation, client advice, and filing language require separate lawyer approval.
-
-## Decisions
-
-`decisions.json` stores reviewer verdicts keyed by item id:
-
-```json
-{
-  "schema_version": "1",
-  "updated_at": "ISO timestamp",
-  "decisions": {
-    "item-id": {
-      "action": "approve | request_changes | revise | block",
-      "comment": "review note",
-      "draft": "optional edited draft",
-      "fields": {},
-      "decided_at": "ISO timestamp"
-    }
-  }
-}
-```
-
-`request_changes` creates `agent_tasks.json` entries for revision. `approve` makes the item eligible for `scripts/execute_decisions.ts --apply`; `block` closes it.
-
-## Payload Import
-
-`scripts/create_research_batch.ts` accepts a JSON payload with any of these keys:
-
-```json
-{
-  "generated_at": "ISO timestamp",
-  "entities": [],
-  "items": [],
-  "checks": [],
-  "activity_log": []
-}
-```
-
-The script upserts by `id`, recomputes metrics, and writes the snapshot under `agent.lock`.

@@ -1,0 +1,17 @@
+{
+  "appId": "kelly-legal-precedent-desk",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-legal-precedent-desk"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "items", "slug": "kelly-legal-precedent-desk-items-v1", "schemaVersion": 1 },
+    { "key": "entities", "slug": "kelly-legal-precedent-desk-entities-v1", "schemaVersion": 1 },
+    { "key": "checks", "slug": "kelly-legal-precedent-desk-checks-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-legal-precedent-desk-settings-v1", "schemaVersion": 1 }
+  ]
+}
