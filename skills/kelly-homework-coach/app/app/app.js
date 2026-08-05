@@ -1,4 +1,6 @@
 import { messages, resolveLanguage } from "./i18n/messages.js";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const app = document.getElementById("app");
 const scrim = document.getElementById("sidebarScrim");
@@ -37,10 +39,6 @@ function routeTo(view, id = "") {
   window.location.hash = `#/${view}${id ? `/${id}` : ""}`;
 }
 
-function apiPath(path) {
-  return `${path}${window.location.search || ""}`;
-}
-
 function isMobile() {
   return window.matchMedia("(max-width: 720px)").matches;
 }
@@ -62,13 +60,12 @@ function isEditing() {
 
 async function loadState({ quiet = false } = {}) {
   if (isEditing() && quiet) return;
-  try {
-    const response = await fetch(apiPath("/api/state"), { cache: "no-store" });
-    state.data = await response.json();
-    render();
-  } catch (error) {
-    app.innerHTML = `<main class="setup"><section class="setup-panel"><h1>Kelly Homework Coach</h1><p class="note">${esc(error.message)}</p></section></main>`;
-  }
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
+  state.data = data;
+  window.dispatchEvent(new CustomEvent("kelly-homework-coach:state", { detail: data }));
+  render();
 }
 
 function statusChip(status) {
@@ -98,73 +95,7 @@ function render() {
   if (!state.data) return;
   state.lang = resolveLanguage();
   state.route = parseRoute();
-  if (!state.data.demo && state.data.setup?.state !== "ready") {
-    renderSetup();
-    return;
-  }
   renderShell();
-}
-
-function renderSetup() {
-  const setup = state.data.setup || {};
-  const config = state.data.config_summary || {};
-  const prompt = [
-    "/kelly-homework-coach Help me configure this app.",
-    `Provider: ${setup.provider || "not selected"}.`,
-    `Non-secret config: ${setup.recommended_config || "~/.config/kelly-homework-coach/config.json"}.`,
-    `Example config: ${setup.example_config || "skills/kelly-homework-coach/config.example.json"}.`,
-    "Do not ask me to paste passwords, API keys, cookies, or student private files into chat.",
-    "Set up grade, subjects, answer policy, photo-retention policy, practice-paper defaults, and export preferences.",
-  ].join("\n");
-  app.className = "";
-  app.innerHTML = `
-    <main class="setup">
-      <section class="setup-panel">
-        <div>
-          <h1>${esc(t("setupTitle"))}</h1>
-          <p class="note">${esc(t("setupCopy"))}</p>
-        </div>
-        <div class="provider-grid">
-          ${providerCard("local", t("local"), t("localCopy"), setup.provider === "local" && setup.provider_selected)}
-          ${providerCard("busabase", t("busabase"), t("busabaseCopy"), setup.provider === "busabase" && setup.provider_selected)}
-        </div>
-        <div class="split">
-          <section class="settings-card">
-            <h3>${esc(t("checklist"))}</h3>
-            ${checkRow(t("providerSelected"), Boolean(setup.provider_selected))}
-            ${checkRow(t("config"), Boolean(config.config_path && !config.is_example))}
-            ${checkRow(t("onboarding"), Boolean(state.data.onboarding?.completed))}
-          </section>
-          <section class="settings-card">
-            <h3>${esc(t("language"))}</h3>
-            ${languagePicker()}
-            <button class="plain" data-complete-onboarding type="button">${esc(t("completeDemoSetup"))}</button>
-            <p class="note">${esc(config.is_example ? "Create a private config before normal workflow opens." : "Private config detected.")}</p>
-          </section>
-        </div>
-        <section class="settings-card">
-          <h3>${esc(t("copyPrompt"))}</h3>
-          <pre class="prompt-box" id="setupPrompt">${esc(prompt)}</pre>
-          <button class="primary" data-copy="#setupPrompt" type="button">${esc(t("copyPrompt"))}</button>
-        </section>
-      </section>
-    </main>
-  `;
-}
-
-function providerCard(provider, title, copy, selected) {
-  return `
-    <section class="provider-card">
-      <div class="chips">${selected ? '<span class="chip ok">Selected</span>' : ""}</div>
-      <h3>${esc(title)}</h3>
-      <p class="note">${esc(copy)}</p>
-      <button class="${selected ? "plain" : "primary"}" data-select-provider="${esc(provider)}" type="button">${esc(t("choose"))}</button>
-    </section>
-  `;
-}
-
-function checkRow(label, ok) {
-  return `<div class="check-row"><span class="check-dot ${ok ? "ok" : ""}"></span><span>${esc(label)}</span></div>`;
 }
 
 function renderShell() {
@@ -309,7 +240,6 @@ function renderListPanel(snapshot) {
             <h1>${esc(navLabel(view))}</h1>
             <p>${esc(snapshot.profile?.display_name || "Student")} · ${esc(snapshot.profile?.grade || "")}</p>
           </div>
-          ${state.data.lock ? `<span class="chip warn">${esc(t("locked"))}</span>` : ""}
         </div>
         <input class="search" type="search" value="${esc(state.query)}" data-search placeholder="${esc(t("search"))}" />
       </div>
@@ -407,11 +337,10 @@ function studentActions(view, item) {
 }
 
 function reviewActions(item) {
-  const disabled = state.data.lock ? "disabled" : "";
   return `
-    <button class="primary" data-decision-action="approve" data-review-id="${esc(item.review_id)}" ${disabled} type="button">${esc(t("approve"))}</button>
-    <button class="plain" data-decision-action="request_changes" data-review-id="${esc(item.review_id)}" ${disabled} type="button">${esc(t("requestChanges"))}</button>
-    <button class="danger" data-decision-action="block" data-review-id="${esc(item.review_id)}" ${disabled} type="button">${esc(t("block"))}</button>
+    <button class="primary" data-decision-action="approve" data-review-id="${esc(item.review_id)}" type="button">${esc(t("approve"))}</button>
+    <button class="plain" data-decision-action="request_changes" data-review-id="${esc(item.review_id)}" type="button">${esc(t("requestChanges"))}</button>
+    <button class="danger" data-decision-action="block" data-review-id="${esc(item.review_id)}" type="button">${esc(t("block"))}</button>
   `;
 }
 
@@ -494,7 +423,7 @@ function renderPaper(paper) {
 
 function renderReviewItem(item, snapshot) {
   const target = findTarget(snapshot, item);
-  const decision = state.data.decisions?.decisions?.[item.review_id];
+  const decision = item.decision;
   return `
     <section class="hero-answer">
       <div class="chips">${statusChip(item.status)}${(item.risk || []).map((risk) => `<span class="chip warn">${esc(risk)}</span>`).join("")}</div>
@@ -544,8 +473,7 @@ function listSection(title, items = []) {
 
 function renderSettingsModal() {
   const config = state.data.config_summary || {};
-  const setup = state.data.setup || {};
-  const tabs = ["guide", "files", "policy", "language"];
+  const tabs = ["guide", "policy", "language"];
   return `
     <div class="modal-backdrop" data-close-settings>
       <section class="modal" role="dialog" aria-modal="true" aria-label="${esc(t("settings"))}" data-modal>
@@ -557,7 +485,7 @@ function renderSettingsModal() {
           ${tabs.map((tab) => `<button class="${state.settingsTab === tab ? "active" : ""}" data-settings-tab="${tab}" type="button">${esc(settingsTabLabel(tab))}</button>`).join("")}
         </nav>
         <div class="modal-body">
-          ${settingsTab(config, setup)}
+          ${settingsTab(config)}
         </div>
       </section>
     </div>
@@ -565,21 +493,10 @@ function renderSettingsModal() {
 }
 
 function settingsTabLabel(tab) {
-  return { guide: t("guide"), files: t("files"), policy: t("policy"), language: t("language") }[tab] || tab;
+  return { guide: t("guide"), policy: t("policy"), language: t("language") }[tab] || tab;
 }
 
-function settingsTab(config, setup) {
-  if (state.settingsTab === "files") {
-    return `
-      <section class="settings-card">
-        ${settingsRow(t("provider"), setup.provider)}
-        ${settingsRow(t("config"), config.config_path)}
-        ${settingsRow(t("example"), setup.example_config)}
-        ${settingsRow(t("recommended"), setup.recommended_config)}
-        ${settingsRow(t("setupStatus"), state.data.onboarding?.completed ? "complete" : "not complete")}
-      </section>
-    `;
-  }
+function settingsTab(config) {
   if (state.settingsTab === "policy") {
     return `
       <section class="settings-card">
@@ -618,20 +535,15 @@ function languagePicker() {
   `;
 }
 
-async function postJson(path, payload) {
+async function submitDecision(payload) {
   if (state.data?.demo) {
-    console.info("Demo mode: local write skipped", path, payload);
+    console.info("Demo mode: decision write skipped", payload);
     return;
   }
   state.busy = true;
   try {
-    const response = await fetch(path, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Request failed");
+    const provider = await getProvider();
+    await provider.submitReview(payload);
     await loadState();
   } catch (error) {
     window.alert(error.message);
@@ -703,16 +615,6 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
-  if (button.dataset.selectProvider) {
-    await postJson("/api/provider", { provider: button.dataset.selectProvider });
-    return;
-  }
-
-  if (button.dataset.completeOnboarding !== undefined) {
-    await postJson("/api/onboarding/complete", { config_version: "1" });
-    return;
-  }
-
   if (button.dataset.copy) {
     const target = document.querySelector(button.dataset.copy);
     await navigator.clipboard.writeText(target?.textContent || "");
@@ -721,15 +623,15 @@ document.addEventListener("click", async (event) => {
 
   if (button.dataset.copyPrompt === "photo") {
     const prompt = state.localPhotoName
-      ? `/kelly-homework-coach I selected a local homework photo named "${state.localPhotoName}". Please analyze it, explain it gently, and update the App UI snapshot.`
-      : "/kelly-homework-coach Help me analyze the next homework photo, explain it gently, and update the App UI snapshot.";
+      ? `/kelly-homework-coach I selected a local homework photo named "${state.localPhotoName}". Please analyze it, explain it gently, and record the result with scripts/record_homework.mjs.`
+      : "/kelly-homework-coach Help me analyze the next homework photo, explain it gently, and record the result with scripts/record_homework.mjs.";
     await navigator.clipboard.writeText(prompt);
     return;
   }
 
   if (button.dataset.decisionAction) {
     const comment = document.getElementById("reviewNote")?.value || "";
-    await postJson("/api/decision", {
+    await submitDecision({
       review_id: button.dataset.reviewId,
       action: button.dataset.decisionAction,
       comment,
@@ -739,15 +641,14 @@ document.addEventListener("click", async (event) => {
 
   if (button.dataset.understand) {
     const review = nearestReviewForTarget(button.dataset.understand);
-    if (review)
-      await postJson("/api/decision", { review_id: review.review_id, action: "approve", comment: t("iUnderstand") });
+    if (review) await submitDecision({ review_id: review.review_id, action: "approve", comment: t("iUnderstand") });
     return;
   }
 
   if (button.dataset.needHelp) {
     const review = nearestReviewForTarget(button.dataset.needHelp);
     if (review)
-      await postJson("/api/decision", {
+      await submitDecision({
         review_id: review.review_id,
         action: "request_changes",
         comment: t("stillNeedHelp"),
@@ -790,5 +691,19 @@ window.addEventListener("resize", () => {
   }
 });
 
-loadState();
-setInterval(() => loadState({ quiet: true }), 5000);
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+    setInterval(() => loadState({ quiet: true }), 20000);
+  } catch (error) {
+    if (String(error?.message || error).startsWith("SETUP_")) {
+      renderSetupRequired(error, boot);
+      return;
+    }
+    app.innerHTML = `<main class="setup"><section class="setup-panel"><h1>Kelly Homework Coach</h1><p class="note">${esc(error.message)}</p></section></main>`;
+  }
+}
+
+boot();

@@ -1,14 +1,14 @@
 # Kelly Homework Coach
 
-Kelly Homework Coach is a local App-in-Skill desk for elementary-school homework support. The agent explains photographed questions, analyzes wrong answers, turns mistakes into a review notebook, and prepares practice papers; the app gives students a gentle study surface and gives parents or teachers a review queue before anything is exported or acted on.
+Kelly Homework Coach is a Busabase-backed App-in-Skill desk for elementary-school homework support. The agent explains photographed or pasted questions, analyzes wrong answers, turns mistakes into a review notebook, and prepares practice papers; the AirApp gives students a gentle study surface and gives parents or teachers a review queue before anything is treated as settled.
 
 ## What It Shows
 
-- Student: a photo/intake surface, current question, child-friendly explanation, hint ladder, self-check, and "I understand / need another hint" controls.
+- Student: a photo/intake box (local-only filename picker plus a copy-to-chat prompt), current question, child-friendly explanation, hint ladder, self-check, and "I understand / need another hint" controls.
 - Mistakes: a review notebook grouped by topic and due date, with root cause, misconception, fix strategy, similar practice, and parent note.
-- Papers: a mistake-focused paper builder and paper analysis view with difficulty mix, estimated time, wrong-question count, strengths, review plan, and deep notes.
-- Review: parent/teacher queue with approve / request changes / block decisions, stable `Review #1` refs, proposed actions, and editable review notes.
-- Settings: sanitized learning policy, provider state, config paths, answer policy, photo-retention policy, and language.
+- Papers: a practice paper list and paper analysis view with difficulty mix, estimated time, wrong-question count, strengths, review plan, and deep notes.
+- Review: parent/teacher queue with approve / request changes / block decisions, stable `Review #1` refs, proposed actions, and editable review notes — written straight onto the review record through `busabase-sdk`.
+- Settings: sanitized learning policy, data provider, answer policy, and language.
 
 ## App UI Screenshots
 
@@ -36,10 +36,10 @@ Kelly Homework Coach is a local App-in-Skill desk for elementary-school homework
 Run the app and open a safe mock-data scene:
 
 ```bash
-skills/kelly-homework-coach/app/start.sh
+pnpm --dir skills/kelly-homework-coach/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Then open the printed URL with one of these demo paths:
 
 ```text
 /?demo=student&lang=en#/student
@@ -48,19 +48,22 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=review&lang=en#/review
 ```
 
-Use `lang=zh-HK` or `lang=zh-CN` for Chinese screenshots. Demo mode never reads or writes files under `app/.data/`.
+Use `lang=zh` or `lang=zh-HK` for Chinese screenshots. Demo mode never reads or writes Busabase; demo decisions stay in the browser and are discarded on refresh.
 
-## File Contract
+## How A New Question/Mistake/Paper Enters The System
 
-The app reads and writes local handoff files:
+There is no upload API — the photo box only lets the student pick a local filename and copies a chat prompt asking the agent to analyze it. The agent does the real work in chat and then records the result with its own trusted Busabase credentials:
 
-- `app/.data/homework_snapshot.json`: questions, mistakes, papers, review items, metrics, and activity log.
-- `app/.data/decisions.json`: parent/teacher verdicts keyed by review id.
-- `app/.data/agent_tasks.json`: queued work for the agent after change requests.
-- `app/.data/execution_report.json`: dry-run/apply report for local-only operations.
+```bash
+node skills/kelly-homework-coach/scripts/record_homework.mjs --file payload.json --apply
+```
 
-See `references/homework-schema.md` for the full contract and run `node scripts/validate_ui_schema.ts` before relying on a generated snapshot.
+See `references/homework-schema.md` for the exact Busabase field contract, and `SKILL.md` for the full workflow.
+
+## Review And Execution
+
+Parent/teacher decisions write straight onto the review record. `node scripts/execute_decisions.mjs --apply` (dry run without `--apply`) then re-reads every decided review and writes an execution marker reporting the local-only operation the agent should perform next — it never exports a paper, contacts a teacher, or mutates any external system.
 
 ## Boundary
 
-The app is local-only and never calls AI, uploads a child's photo, contacts a teacher, or mutates external systems. The skill performs OCR/vision reasoning, explanation drafting, mistake analysis, and paper generation, then writes handoff files for human review. Never commit student data: `config.local.json`, `.env*`, `app/.data/`, raw photos, and exports are gitignored.
+The app reads and writes its own Busabase Bases only and never calls AI, uploads a child's photo outside the current chat session, contacts a teacher, or mutates external systems. The skill performs OCR/vision reasoning, explanation drafting, mistake analysis, and paper generation, then records the result to Busabase for human review. Never write a raw photo into a Busabase field — only a short `photo_label` description. Never commit any local credential file.
