@@ -1,0 +1,18 @@
+{
+  "appId": "kelly-ai-newsroom",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-ai-newsroom"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "signals", "slug": "kelly-ai-newsroom-signals-v1", "schemaVersion": 1 },
+    { "key": "actions", "slug": "kelly-ai-newsroom-actions-v1", "schemaVersion": 1 },
+    { "key": "drafts", "slug": "kelly-ai-newsroom-drafts-v1", "schemaVersion": 1 },
+    { "key": "sources", "slug": "kelly-ai-newsroom-sources-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-ai-newsroom-settings-v1", "schemaVersion": 1 }
+  ]
+}

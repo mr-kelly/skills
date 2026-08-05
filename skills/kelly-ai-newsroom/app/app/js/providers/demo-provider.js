@@ -1,11 +1,24 @@
-export function makeDemoBatch() {
-  const now = new Date().toISOString();
+// Deterministic, explicitly-labeled, offline demo data. Never reads or writes
+// Busabase, never claims a real connection, and never persists anything —
+// matches the ?demo=1 contract used across Kelly App-in-Skills.
+//
+// The signal/action/draft/source content below is ported verbatim (same
+// copy, same field values, same index-based rotation) from the retired
+// app/server/demo.ts's makeDemoBatch() — the same fixture the retired
+// scripts/generate_batch.ts wrote to app/.data/current_batch.json for local
+// dev. That script has no Busabase equivalent (it never fetched real
+// signals — it only ever generated this same demo batch), so its role folds
+// entirely into this module.
+import { buildSnapshot, computeMetrics } from "../newsroom-model.js?v=0.1.0";
+
+function makeDemoBatch(now) {
+  const nowIso = now.toISOString();
   const signals = [
     "Publisher and AI-search licensing moves change which sources get cited by AI assistants",
     "Copilot Studio and Microsoft 365 admin searches suggest enterprise deployment intent",
     "Privacy and AI governance updates make review-first workflows easier to sell",
   ].map((summary, index) => ({
-    id: `signal-${index + 1}`,
+    signal_id: `signal-${index + 1}`,
     ref: index + 1,
     title: summary,
     summary,
@@ -20,7 +33,7 @@ export function makeDemoBatch() {
       "Medium: watch for stronger proof before scaling.",
     ][index % 3],
     confidence: [0.82, 0.74, 0.68][index % 3],
-    detected_at: now,
+    detected_at: nowIso,
     status: "needs_review",
     risk: index === 2 ? ["claims-review"] : [],
     source: {
@@ -35,7 +48,7 @@ export function makeDemoBatch() {
     "Draft a one-day sample intelligence report for a prospect",
     "Create a sales message that leads with approved daily actions, not generic AI",
   ].map((summary, index) => ({
-    id: `action-${index + 1}`,
+    action_id: `action-${index + 1}`,
     ref: index + 1,
     title: summary,
     summary,
@@ -49,11 +62,12 @@ export function makeDemoBatch() {
 
   const channels = ["sales opener", "LinkedIn post", "client memo"];
   const drafts = channels.map((channel, index) => ({
-    id: `draft-${index + 1}`,
+    draft_id: `draft-${index + 1}`,
     ref: index + 1,
     channel,
     title: `${channel}: today's approved angle`,
     body: `Draft for ${channel}: We noticed a timely update in AI/news-source intelligence. Here is the practical implication for customers, the careful caveat, and one simple next step. Reply if you want us to tailor this to your situation.`,
+    edited_body: "",
     status: "needs_review",
     risk: channel.toLowerCase().includes("client") || channel.toLowerCase().includes("whatsapp") ? ["outbound"] : [],
     linked_action_id: `action-${Math.min(index + 1, actions.length)}`,
@@ -61,21 +75,21 @@ export function makeDemoBatch() {
 
   const sources = [
     {
-      id: "news",
+      source_id: "news",
       label: "News sources",
       status: "configured",
       freshness: "demo",
       coverage: "OpenAI, Microsoft Copilot, Google AI Search, Perplexity, privacy regulators, and local business media",
     },
     {
-      id: "competitors",
+      source_id: "competitors",
       label: "Competitor/public pages",
       status: "needs_config",
       freshness: "not connected",
       coverage: "Add target URLs in config.local.json",
     },
     {
-      id: "trends",
+      source_id: "trends",
       label: "Trend keywords",
       status: "configured",
       freshness: "demo",
@@ -83,25 +97,74 @@ export function makeDemoBatch() {
     },
   ];
 
-  return {
+  const meta = {
     schema_version: "1",
-    batch_id: `kelly-ai-newsroom-demo-${Date.now()}`,
-    generated_at: now,
+    batch_id: `kelly-ai-newsroom-demo-${now.getTime()}`,
+    generated_at: nowIso,
     source: "kelly-ai-newsroom",
     vertical: "AI/news-source intelligence",
     buyer:
       "founders, operators, and product sellers who need to convert news and trend signals into daily sales scenes",
     offer: "daily news-source and buyer-intent intelligence that turns trend signals into approved sales actions",
-    metrics: {
-      signals_needs_review: signals.length,
-      actions_needs_review: actions.length,
-      drafts_needs_review: drafts.length,
-      approved: 0,
-      blocked: 0,
-    },
-    signals,
-    actions,
-    drafts,
-    sources,
   };
+
+  return buildSnapshot({ signals, actions, drafts, sources, meta });
 }
+
+let cachedDemoBatch = null;
+
+function demoBatch() {
+  if (!cachedDemoBatch) cachedDemoBatch = makeDemoBatch(new Date());
+  return cachedDemoBatch;
+}
+
+export const demoProvider = {
+  kind: "demo",
+
+  async getState() {
+    const params = new URLSearchParams(window.location.search);
+    const scenario = String(params.get("demo") || "overview");
+    const batch = demoBatch();
+    return {
+      app: "kelly-ai-newsroom",
+      demo: true,
+      demo_scenario: scenario,
+      data_provider: "demo",
+      onboarding: { completed: true, completed_at: batch.generated_at, config_version: "demo" },
+      lock: null,
+      batch,
+    };
+  },
+
+  // Demo mode is read-only, but the review buttons are still interactive so
+  // screenshots/docs can show a decided state; the verdict only ever mutates
+  // the in-memory demo batch, matching the retired app/server/demo.ts's
+  // read-only demo API contract (demo responses never read/write app/.data/
+  // or private config).
+  async saveDecision({ kind = "", id = "", action = "", comment = "", edited_body = "" } = {}) {
+    const batch = demoBatch();
+    const list = kind === "signal" ? batch.signals : kind === "action" ? batch.actions : batch.drafts;
+    const item = list?.find((entry) => entry.id === id);
+    if (!item) return { ok: false, status: 404, error: `Unknown ${kind}: ${id}` };
+    const now = new Date().toISOString();
+    item.status =
+      action === "approve"
+        ? "approved"
+        : action === "block"
+          ? "blocked"
+          : action === "request_changes"
+            ? "changes_requested"
+            : "needs_review";
+    item.decision = { action, comment, decided_at: now };
+    if (kind === "draft" && action === "revise") {
+      item.edited_body = edited_body;
+      item.effective_body = edited_body || item.body;
+    }
+    batch.metrics = computeMetrics(batch);
+    return { ok: true, decision: { id, kind, action, comment, decided_at: now } };
+  },
+
+  async provisionResources() {
+    throw new Error("Demo mode is read-only.");
+  },
+};
