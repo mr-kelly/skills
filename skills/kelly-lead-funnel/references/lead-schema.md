@@ -1,62 +1,80 @@
-# Lead Schema — Deal Sourcing Funnel
+# Kelly Lead Funnel Schema
 
-Canonical shape of `app/.data/leads.json`: a flat array of leads. Read
-`lib/types.ts` for the authoritative TypeScript types (`Lead`, `ScoreFactor`,
-`StageChange`, `Note`).
+Use this schema when reading or writing Kelly Lead Funnel's Busabase Bases.
+Field slugs are kebab-case in Busabase and normalized to snake_case in app
+code (`app/app/js/providers/busabase-provider.js`,
+`app/app/js/lead-funnel-model.js`). `score`, `score_breakdown`, and
+`suggested_action` are computed client-side from the `leads` Base plus the
+`settings` Base's `scoring_criteria` on every read — they are never stored.
 
-```json
-[
-  {
-    "id": "lead-001",
-    "brand_name": "Golden Wok Kitchens",
-    "category": "food_beverage",
-    "city": "Austin",
-    "store_count": 18,
-    "est_monthly_revenue": 640000,
-    "lead_source": "outbound_sourcing",
-    "data_verifiable": true,
-    "stage": "term_sheet_ready",
-    "score": 87,
-    "score_breakdown": [
-      {
-        "factor": "chain_size_fit",
-        "weight": 30,
-        "contribution": 30,
-        "rationale": "18 stores is within the ideal 5-150 chain-size band."
-      }
-    ],
-    "suggested_action": "hand_off_to_underwriting",
-    "rejection_reason": null,
-    "notes": [
-      { "id": "note-1-1", "text": "Strong POS data.", "author": "sourcing-team", "created_at": "..." }
-    ],
-    "stage_history": [
-      { "from": null, "to": "new", "at": "..." },
-      { "from": "new", "to": "term_sheet_ready", "at": "..." }
-    ],
-    "created_at": "...",
-    "updated_at": "..."
-  }
-]
-```
+Funnel order: `new -> data_verified -> scored -> term_sheet_ready`;
+`rejected` is a terminal stage reachable from any prior stage.
 
-## Fields
+## Leads (`kelly-lead-funnel-leads-v1`)
 
-- `category`: one of `food_beverage | retail_discretionary | services | healthcare | ecommerce | other`.
-- `lead_source`: one of `referral | inbound_web | outbound_sourcing | event | partner`.
-- `stage` (funnel order): `new -> data_verified -> scored -> term_sheet_ready`; `rejected` is a terminal stage reachable from any prior stage.
-- `score`: 0-100, always the sum of `score_breakdown[].contribution`. Computed by `lib/scoring.ts` — a deterministic rule-based function, **never an LLM call**.
-- `score_breakdown`: exactly 4 factors whose `weight` values sum to 100 — `chain_size_fit` (30), `revenue_scale_fit` (30), `category_risk` (25), `data_verifiability` (15).
-- `suggested_action`: one of `advance_to_term_sheet | request_data_verification | advance_to_scored | flag_for_reject_review | hand_off_to_underwriting | closed_no_action`.
-- `rejection_reason`: required once `stage` is `rejected`.
-- `notes` / `stage_history`: append-only local handoff logs written by human actions in the app (move stage, reject with reason, add note). Every write also appends an entry to `app/.data/handoff_log.json`.
+One row per merchant/business lead.
 
-## Funnel summary
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `lead-id` | `id` | text | stable domain id, required |
+| `brand-name` | `brand_name` | text | required |
+| `category` | `category` | text | `food_beverage\|retail_discretionary\|services\|healthcare\|ecommerce\|other` |
+| `city` | `city` | text | |
+| `store-count` | `store_count` | number | |
+| `est-monthly-revenue` | `est_monthly_revenue` | number | |
+| `lead-source` | `lead_source` | text | `referral\|inbound_web\|outbound_sourcing\|event\|partner` |
+| `data-verifiable` | `data_verifiable` | text | `"true"\|"false"` (Busabase has no boolean field type) |
+| `stage` | `stage` | text | `new\|data_verified\|scored\|term_sheet_ready\|rejected` |
+| `rejection-reason` | `rejection_reason` | longtext | required once `stage` is `rejected` |
+| `notes` | `notes` | longtext | JSON array of `{id, text, author, created_at}`, append-only |
+| `stage-history` | `stage_history` | longtext | JSON array of `{from, to, at, reason?}`, append-only |
+| `created-at` | `created_at` | text | ISO timestamp |
+| `updated-at` | `updated_at` | text | ISO timestamp, set on every write |
 
-`GET /api/state` also returns `summary` (`lib/funnel-summary.ts`): per-stage
-counts, `conversion_from_new_pct` per stage, `overall_conversion_pct` (New →
-Term-Sheet-Ready), and `rejection_rate_pct`. Pure/derived — never stored.
+## Settings (`kelly-lead-funnel-settings-v1`)
 
-Run `scripts/validate_ui_schema.ts app/.data/leads.json` before relying on a
-seeded file in the UI; it checks required fields, enum values, weight sums,
-and rejection-reason consistency.
+One row per `kind`, looked up by `record-id`:
+
+| `record-id` | `kind` | `payload` (JSON) |
+| --- | --- | --- |
+| `kelly-lead-funnel-config` | `config` | `{base_currency, fund_profile: {display_name, product, target_check_size}, scoring_criteria: {ideal_store_count_min, ideal_store_count_max, ideal_monthly_revenue_min, ideal_monthly_revenue_max, low_risk_categories, medium_risk_categories, higher_risk_categories}}` |
+
+If no `config` row exists, the app falls back to `DEFAULT_SCORING_CRITERIA`
+(`app/app/js/lead-funnel-model.js`) and an empty `fund_profile` — the board
+still functions, just without a named fund profile.
+
+## Scoring (computed, never stored)
+
+`scoreLead(lead, criteria)` returns a deterministic 0-100 `score` and a
+`score_breakdown` of exactly 4 factors whose `weight` values sum to 100:
+
+- `chain_size_fit` (30): `store_count` vs `ideal_store_count_min`/`max`.
+- `revenue_scale_fit` (30): `est_monthly_revenue` vs
+  `ideal_monthly_revenue_min`/`max`.
+- `category_risk` (25): `category` vs `low_risk_categories` /
+  `medium_risk_categories` / `higher_risk_categories`.
+- `data_verifiability` (15): `data_verifiable`.
+
+`suggestNextAction(score, stage)` maps the score and stage to one of
+`advance_to_term_sheet | request_data_verification | advance_to_scored |
+flag_for_reject_review | hand_off_to_underwriting | closed_no_action`. A
+rejected lead's `suggested_action` is always `closed_no_action` regardless of
+score.
+
+## Direct Kanban Writes
+
+There is no decisions/approval bucket. Every human action writes straight
+onto the lead's own record via `records.changeRequest`:
+
+- **Move stage** (`moveStage`): sets `stage`, `updated_at`, and appends a
+  `stage_history` entry `{from, to, at, reason?}`.
+- **Reject** (`moveStage(id, "rejected", reason)`): same as a stage move,
+  plus `rejection_reason`. `reason` is required; moving off `rejected` clears
+  `rejection_reason` again.
+- **Add note** (`addNote`): appends `{id, text, author, created_at}` to
+  `notes` and updates `updated_at`.
+
+From a standalone local preview the write merges immediately (trusted
+operator); from the deployed AirApp it creates a pending ChangeRequest for
+the trusted process to merge, per the AirApp boundary in
+`$busabase-app-creator`.

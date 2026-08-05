@@ -1,0 +1,15 @@
+{
+  "appId": "kelly-lead-funnel",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-lead-funnel"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "leads", "slug": "kelly-lead-funnel-leads-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-lead-funnel-settings-v1", "schemaVersion": 1 }
+  ]
+}

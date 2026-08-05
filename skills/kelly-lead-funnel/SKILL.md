@@ -1,28 +1,47 @@
 ---
 name: kelly-lead-funnel
-description: Local App-in-Skill control panel / kanban board for a BD or sourcing team triaging merchant and business financing leads for a lender or investment fund. Use when the user invokes $kelly-lead-funnel or /kelly-lead-funnel, wants to review the deal sourcing pipeline, funnel, lead board, or asks to move a lead's stage, reject a lead, add a note, score a lead, or see funnel conversion rates. Deterministic rule-based lead scoring only — never an LLM call — and never sends outreach, signs term sheets, or moves money.
+description: Busabase-backed App-in-Skill control panel / kanban board for a BD or sourcing team triaging merchant and business financing leads for a lender or investment fund. Use when the user invokes $kelly-lead-funnel or /kelly-lead-funnel, wants to review the deal sourcing pipeline, funnel, lead board, or asks to move a lead's stage, reject a lead, add a note, score a lead, or see funnel conversion rates. Deterministic rule-based lead scoring only — never an LLM call — and never sends outreach, signs term sheets, or moves money.
 ---
 
 # Deal Sourcing Funnel
 
 ## Overview
 
-Use this skill as a generic BD/sourcing pipeline operator for any lender or
-investment fund sourcing SME financing candidates (merchant cash advance,
-revenue-based financing, or similar). It ingests a mock/local pipeline of
-merchant leads, computes a deterministic lead-quality score, and gives the
-sourcing team a kanban board plus a per-lead detail panel to move stages,
-reject with a reason, and leave notes — all written to local handoff files.
+Kelly Lead Funnel is a Busabase Cloud App-in-Skill. Its canonical product
+surface is the AirApp in Busabase, not a separate local-data product. The
+same Hono source supports an explicitly requested local preview with OAuth
+connection bootstrap. It gives a BD/sourcing team a kanban board plus a
+per-lead detail panel to triage merchant/business financing leads (merchant
+cash advance, revenue-based financing, or similar) for any lender or
+investment fund: move a lead's stage, reject with a reason, and leave notes —
+all direct, immediate writes to Busabase.
 
-This is a control-panel/kanban App-in-Skill, not a review queue: there is no
-AI-authored draft to approve. The score and suggested next action are
-computed by a documented rule-based function (`lib/scoring.ts`); the human
-makes the stage/reject/note decisions.
+This is a control-panel/kanban App-in-Skill, not a review-then-approve queue:
+there is no AI-authored draft to approve and no separate execute/decisions
+step. The score and suggested next action are computed by a documented
+rule-based function (`app/app/js/lead-funnel-model.js`, ported from the
+retired `lib/scoring.ts`); the human sourcing-team operator makes every
+stage/reject/note decision directly in the kanban UI, the same way
+`kelly-crm`'s kanban stage moves work.
 
-Default interaction mode: App UI. Unless the user explicitly asks for
-chat-only handling, check onboarding/config, seed the pipeline if empty, and
-start/reuse the local app with `app/start.sh`, giving the actual local URL.
-Use chat-only mode only when the user says "纯聊天", "chat only", or similar.
+Default behavior is AirApp-first. Unless the user explicitly asks only for
+explanation, give the user the clickable AirApp URL. Start localhost only
+when local preview/debugging is explicitly requested; it uses the same
+Busabase resources and never offers another data provider. Use chat-only mode
+only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
+
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
+   quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery,
+   ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
+   runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's artifact and product
+contracts, stop before the unavailable Busabase operation, and report the
+exact missing dependency. Do not invent a second data backend.
 
 ## App UI Screenshots
 
@@ -45,81 +64,87 @@ Use chat-only mode only when the user says "纯聊天", "chat only", or similar.
 
 ## Boundary
 
-- Deterministic, rule-based lead-quality score only (`lib/scoring.ts`). NEVER
-  call an LLM to score, rank, or auto-reject a lead.
-- The app reads and writes local files only (`app/.data/`). It never sends
+- Deterministic, rule-based lead-quality score only
+  (`app/app/js/lead-funnel-model.js`). NEVER call an LLM to score, rank, or
+  auto-reject a lead.
+- The AirApp reads and writes its own Busabase Bases only; it never sends
   outreach, emails, signs term sheets, disburses funds, or touches any
-  external system.
+  external system. There is no trusted execute/handoff script — the direct
+  kanban writes (stage move, reject, note) are the full extent of what
+  happens.
 - Generic, brand-neutral tool: never hardcode or reference a specific real
-  company, lender, or fund name in code, templates, or docs — only the
-  user's own private `config.local.json` may name their fund.
-- Treat lead financial data as sensitive. Do not commit `config.local.json`,
-  env files, `app/.data/`, or exports.
+  company, lender, or fund name in code, templates, or docs.
+- Treat lead financial data as sensitive. Never commit real lead data, a
+  local credential file, or Busabase secrets.
 
-## First Run And Onboarding
+## Busabase Resources
 
-On invocation, check `app/.data/onboarding.json`. If absent/incomplete, ask
-for non-secret setup only: fund display name, product description, target
-check size, and scoring-criteria bands (ideal store-count band, ideal
-monthly-revenue band, category risk tiers). Write these to
-`config.local.json` (never paste them into chat as secrets — there are no
-secrets in this skill's default config). When the user confirms, write
-`app/.data/onboarding.json`:
+Two Bases under one application Folder (`kelly-lead-funnel`), declared in
+`app/app/js/config.js` and `app/resource-map.json`:
 
-```json
-{ "completed": true, "completed_at": "ISO timestamp", "config_version": "1" }
-```
+- `leads`: one row per merchant/business lead — brand name, category, city,
+  store count, est. monthly revenue, lead source, data verifiability, funnel
+  `stage`, `rejection-reason`, `notes` (JSON array), and `stage-history`
+  (JSON array). `score`/`score_breakdown`/`suggested_action` are never
+  stored — they are pure/derived from these fields plus the fund's
+  `scoring_criteria` and recomputed on every read, so a criteria change is
+  reflected immediately with no staleness to manage. Stage moves,
+  rejections, and notes are written directly onto the lead's own record by
+  the human sourcing-team operator in the kanban board.
+- `settings`: sanitized fund profile and scoring-criteria config (no
+  secrets), one row keyed by `kind`.
 
-If `app/.data/leads.json` is empty or missing, run `scripts/seed_leads.ts` to
-write a deterministic 21-lead mock pipeline before opening the app.
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space; see `references/lead-schema.md` for exact
+field shapes.
 
-## Local App
+## Scoring
 
-Start the board with:
+`app/app/js/lead-funnel-model.js` (`scoreLead`) computes a deterministic
+0-100 score from four weighted, explainable factors — chain-size fit (30),
+revenue-scale fit (30), category risk (25), and data verifiability (15) —
+against the fund's `scoring_criteria` (ideal store-count band, ideal
+monthly-revenue band, category risk tiers). `suggestNextAction` maps the
+score and stage to a deterministic next step. Every point on the 0-100 scale
+is explained by a `score_breakdown` row (factor, weight, contribution,
+rationale) so the UI can show a transparent breakdown, never a bare number.
 
-```bash
-skills/kelly-lead-funnel/app/start.sh
-```
+## Direct Kanban Actions
 
-Local HTTP on `127.0.0.1`, preferring port `3000`-`4000`, or
-`KELLY_LEAD_FUNNEL_UI_PORT` when set. First run installs `hono` and
-`@hono/node-server`; the frontend is zero-build vanilla.
+All human actions write straight onto the lead's own Busabase record through
+`busabase-sdk`, exactly like `kelly-crm`'s kanban stage moves — there is no
+approval queue and no separate decisions bucket:
+
+- **Move stage**: advance a lead through New → Data-Verified → Scored →
+  Term-Sheet-Ready. Appends a `stage-history` entry.
+- **Reject**: move a lead to `rejected`. Always requires a `reason`, which is
+  stored on the lead and also recorded in `stage-history`.
+- **Add note**: append a timestamped note to the lead.
+
+From a standalone local preview the write merges immediately (trusted
+operator); from the deployed AirApp it creates a pending ChangeRequest for
+the trusted process to merge, per the AirApp boundary in
+`$busabase-app-creator`.
 
 ## Demo Mode
 
 - `?demo=1` or `?demo=board` opens a deterministic, fully offline mock
-  pipeline (21 leads across all 5 stages) for documentation and screenshots.
+  pipeline (21 leads across all 5 stages, ported verbatim from the retired
+  `lib/mock-leads.ts`) for documentation and screenshots.
 - `?demo=lead` opens the first lead's detail pane; `?demo=settings` opens
   Help & Settings.
 - `lang=en` or `lang=zh` forces UI chrome language for screenshots.
-- Demo API responses never read or write `app/.data/`.
+- Demo mode never reads or writes Busabase and never claims a real
+  connection; demo actions (move/reject/note) are read-only and raise an
+  error if attempted.
 
 UI language: English and Chinese chrome with `Auto` default.
 
-## Data Provider
+## Local App
 
-- Provider selector env: `KELLY_LEAD_FUNNEL_DATA_PROVIDER=local` (default).
-  Reserve `postgres`, `aitable`, `notion`, `busabase` as future provider
-  names — app/scripts only ever depend on `lib/data-provider/provider-interface.ts`.
-- `lib/scoring.ts`: pure, deterministic 0-100 score from `store_count`,
-  `est_monthly_revenue`, `category`, and `data_verifiable` — 4 weighted
-  factors (30/30/25/15) with a human-readable rationale per factor. Read this
-  file before changing scoring behavior.
-- `lib/funnel-summary.ts`: pure per-stage counts and conversion rates.
-
-Primary local files:
-
-- `app/.data/leads.json`: the pipeline (see `references/lead-schema.md`).
-- `app/.data/onboarding.json`: onboarding completion marker.
-- `app/.data/handoff_log.json`: append-only audit log of every stage move,
-  rejection, and note (the human-decision handoff record).
-- `app/.data/agent.lock`: temporary lock while the app is writing.
-- `config.local.json`: private fund profile / scoring criteria, ignored by git.
-
-Use `scripts/validate_ui_schema.ts app/.data/leads.json` before relying on a
-seeded pipeline in the UI. `scripts/seed_leads.ts` writes the 21-lead mock
-pipeline via `lib/mock-leads.ts` (shared with the demo API so both stay
-consistent).
+Default behavior is AirApp-first — give the user the clickable AirApp URL.
+Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+requested.
 
 ## Views
 
@@ -130,15 +155,24 @@ consistent).
   buttons, reject-with-reason.
 - `#/settings`: sanitized fund profile and scoring-criteria summary.
 
-## Safety
+## Completion Criteria
 
-- Read/write local files only; no outbound network calls of any kind.
-- Score and suggested_action are always explainable via `score_breakdown`;
-  never show a bare number without its factor rationale.
-- Rejections always require a `reason`; it is stored on the lead and appended
-  to the handoff log.
-- Keep local exports minimal and use stable lead ids so repeated seeds/syncs
-  stay idempotent.
-## Execution reports
+Finish only when:
 
-Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.
+- the skill contains the complete canonical `app/` project and
+  `pnpm --dir app dev` remains supported;
+- all persistent config, state, and domain data use `busabase-sdk` and the
+  declared resource map — no local JSON, browser storage, or provider
+  choice;
+- Vault values and API credentials never reach browser-visible surfaces;
+- local setup offers Cloud/custom URL OAuth plus the explicit Demo path,
+  while a deployed AirApp uses its ambient session;
+- Board, lead detail, and Help & Settings render on desktop and phone widths;
+- `pnpm --dir app run check` and `node --test` pass.
+
+## Stop Conditions
+
+Stop before consequential Busabase mutation when the target Space is
+ambiguous, the current user lacks permission, or a same-slug resource is not
+application-owned. Never send outreach, sign a term sheet, or move money from
+the AirApp.
