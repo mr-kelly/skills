@@ -1,13 +1,13 @@
 # Kelly Invoice Sheet
 
-Kelly Invoice Sheet turns invoices, receipts, credit notes, and statements into a reviewable local table. It is inspired by Lido's spreadsheet-first "Extract Data" flow: upload or hand off files, inspect extracted fields in a sheet-like workspace, fix low-confidence cells, approve rows, then export clean CSV/JSON for bookkeeping or audit.
+Kelly Invoice Sheet turns invoices, receipts, credit notes, and statements into a reviewable table backed by Busabase. It is inspired by Lido's spreadsheet-first "Extract Data" flow: upload or hand off files, inspect extracted fields in a sheet-like workspace, fix low-confidence cells, approve rows, then export clean CSV/JSON for bookkeeping or audit.
 
 ## What It Does
 
-- Converts invoice sources into a structured `invoices` table plus `line_items`.
+- Converts invoice sources into a structured `invoices` Base row with embedded line items.
 - Tracks confidence, source warnings, ambiguous OCR, missing fields, and money risks.
-- Gives the human a local spreadsheet-style review UI before anything is exported.
-- Exports approved rows to `invoices.csv`, `line_items.csv`, and `approved_invoices.json`.
+- Gives the human a spreadsheet-style review UI before anything is exported.
+- Exports approved rows to `invoices.csv`, `line_items.csv`, and `approved_invoices.json`, then marks them `done`.
 
 ## App UI Screenshots
 
@@ -30,39 +30,43 @@ Kelly Invoice Sheet turns invoices, receipts, credit notes, and statements into 
   </tr>
 </table>
 
-## Demo
+## Demo Mode
 
-Generate safe mock invoice data, then open the app:
+Run the app and open a safe mock-data scene:
 
 ```bash
-cd skills/kelly-invoice-sheet
-node scripts/generate_demo_batch.ts
-app/start.sh
+pnpm --dir skills/kelly-invoice-sheet/app dev
 ```
 
-Use the URL printed by the launcher. Demo data never reads real invoice files.
+Then open the printed URL with `/?demo=1#/invoices/all`. Demo mode never reads or writes Busabase; demo decisions are read-only.
 
 ## Real Workflow
 
 1. Ask the agent to extract invoice files into `/kelly-invoice-sheet`.
-2. The agent writes `app/.data/current_batch.json` using `references/invoice-batch-schema.md`.
-3. The app displays the batch for review and saves edits/decisions to `app/.data/decisions.json`.
+2. The agent writes a batch JSON file using `references/invoice-batch-schema.md`, then runs:
+
+   ```bash
+   node scripts/import_batch.mjs --file batch.json --apply
+   ```
+
+3. The app displays the batch for review and writes approve/request-changes/block/revise decisions straight onto each invoice's Busabase record.
 4. Run:
 
-```bash
-node scripts/export_decisions.ts
-```
+   ```bash
+   node scripts/export_decisions.mjs --apply
+   ```
 
-Approved rows are exported under `exports/<batch-id>/`.
+Approved rows are exported under `exports/<batch-id>/` and marked `done`.
 
-## File Contract
+## Busabase Resources
 
-- `app/.data/current_batch.json`: current invoice extraction batch.
-- `app/.data/decisions.json`: human decisions, field edits, and notes.
-- `app/.data/agent_tasks.json`: revision requests for the agent.
-- `app/.data/execution_report.json`: latest export result.
-- `app/.data/agent.lock`: temporary write lock.
+Two Bases under one application Folder (`kelly-invoice-sheet`):
+
+- `invoices`: one row per extracted invoice/receipt/credit note/statement, including embedded line items (JSON) and the reviewer's decision.
+- `settings`: sanitized config summary (default currency, extraction preferences, review policy, export preferences).
+
+See `references/invoice-batch-schema.md` for the exact Busabase field contract, and `SKILL.md` for the full workflow.
 
 ## Safety
 
-The local app never uploads invoice files, pays invoices, emails vendors, or writes to accounting software. Those actions require separate connectors and explicit approval.
+The app never uploads invoice files, pays invoices, emails vendors, or writes to accounting software. Those actions require separate connectors and explicit approval.

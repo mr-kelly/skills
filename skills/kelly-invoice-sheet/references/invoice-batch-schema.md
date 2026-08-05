@@ -1,98 +1,121 @@
 # Kelly Invoice Sheet Batch Schema
 
-Use this reference before writing `app/.data/current_batch.json` or changing the app, scripts, or validator.
+Use this schema when reading or writing Kelly Invoice Sheet's Busabase
+Bases, and before writing a batch JSON file for `scripts/import_batch.mjs`.
+Field slugs are kebab-case in Busabase and normalized to snake_case in app
+code (`app/app/js/providers/busabase-provider.js`,
+`app/app/js/invoice-model.js`).
 
-## Handoff Files
+Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 
-- `app/.data/current_batch.json`: agent/OCR-generated invoice extraction batch.
-- `app/.data/decisions.json`: human review decisions, field edits, and notes.
-- `app/.data/agent_tasks.json`: invoice rows where the human requested revision or mentioned `@ai`.
-- `app/.data/execution_report.json`: export result written by `scripts/export_decisions.ts`.
-- `app/.data/agent.lock`: temporary lock while the agent writes batch/report files.
+Decision actions: `approve`, `request_changes`, `block`, `revise` (a `revise`
+decision moves a `done` row back to `needs_review`; any other status is left
+unchanged, so an edit-only save on a row still under review does not change
+its status).
 
-## Batch Shape
+## Invoices (`kelly-invoice-sheet-invoices-v1`)
+
+One row per extracted invoice/receipt/credit note/statement.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `invoice-id` | `id` | text | stable domain id, e.g. `inv-001`, required |
+| `ref` | `ref` | text | stable display reference, e.g. `Review #1` |
+| `batch-id` | `batch_id` | text | id of the `scripts/import_batch.mjs` run that wrote this row |
+| `title` | `title` | text | |
+| `status` | `status` | text | workflow status |
+| `category` | `category` | text | `vendor_invoice\|receipt\|credit_note\|statement\|other` |
+| `source-file` | `source_file` | text | display filename |
+| `source-path` | `source_path` | text | local source path (never uploaded) |
+| `source-type` | `source_type` | text | `pdf\|image\|doc\|xls` |
+| `source-page` | `source_page` | number | |
+| `vendor-name` | `vendor_name` | text | required |
+| `vendor-tax-id` | `vendor_tax_id` | text | |
+| `invoice-number` | `invoice_number` | text | required |
+| `invoice-date` | `invoice_date` | text | ISO date when possible, required |
+| `due-date` | `due_date` | text | |
+| `currency` | `currency` | text | ISO code where possible, required |
+| `subtotal` | `subtotal` | number | |
+| `tax` | `tax` | number | |
+| `total` | `total` | number | required |
+| `amount-due` | `amount_due` | number | |
+| `payment-terms` | `payment_terms` | text | |
+| `bill-to` | `bill_to` | text | |
+| `purchase-order` | `purchase_order` | text | |
+| `iban-or-account-hint` | `iban_or_account_hint` | text | |
+| `confidence` | `confidence` | number | 0-1, required |
+| `field-confidence` | `field_confidence` | longtext | JSON object keyed by field name: `{value?, confidence?, source_text?}` |
+| `risk` | `risk` | longtext | JSON array of strings |
+| `warnings` | `warnings` | longtext | JSON array of strings |
+| `notes` | `notes` | longtext | reviewer/agent note |
+| `line-items` | `line_items` | longtext | JSON array, see below |
+| `proposed-action` | `proposed_action` | text | |
+| `reason` | `reason` | longtext | |
+| `decision-action` | `decision_action` | text | `approve\|request_changes\|block\|revise`, set by a human decision |
+| `decision-note` | `decision_note` | longtext | reviewer comment |
+| `decided-at` | `decided_at` | text | ISO timestamp |
+| `created-at` | `created_at` | text | ISO timestamp, set by `scripts/import_batch.mjs` |
+
+### Line item shape (inside the `line-items` JSON array)
+
+| Key | Type | Notes |
+| --- | --- | --- |
+| `line_id` | string | stable within the invoice |
+| `description` | string | |
+| `quantity` | number | |
+| `unit_price` | number | |
+| `amount` | number | |
+| `tax_rate` | number | |
+| `category` | string | |
+| `confidence` | number | 0-1 |
+| `notes` | string | |
+
+Line items are useful for accounting import and audit, but a missing line
+item is a warning, not a hard validation failure.
+
+## Settings (`kelly-invoice-sheet-settings-v1`)
+
+Sanitized config summary, one row keyed by `kind` (currently only `config`).
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | stable domain id, required |
+| `kind` | `kind` | text | required, e.g. `config` |
+| `payload` | `payload` | longtext | JSON object: `{default_currency, extraction: {preferred_ocr, low_confidence_threshold}, review_policy: {auto_approve_min_confidence, block_missing_fields[]}, export: {directory, include_line_items}}` |
+| `updated-at` | `updated_at` | text | ISO timestamp |
+
+## Batch File Shape (input to `scripts/import_batch.mjs`)
 
 ```json
 {
-  "schema_version": "1",
   "batch_id": "invoice-YYYYMMDD-HHMMSS",
-  "generated_at": "ISO timestamp",
-  "source": "kelly-invoice-sheet",
-  "mode": "app-in-skill",
-  "extractor": {
-    "name": "agent|ocr-engine|manual",
-    "model": "optional model/provider",
-    "notes": "optional extraction note"
-  },
-  "input_files": [
+  "invoices": [
     {
-      "path": "local/source/path.pdf",
-      "name": "source/path.pdf",
-      "type": "pdf|image|doc|xls",
-      "pages": 1
+      "id": "inv-001",
+      "ref": "Review #1",
+      "title": "human-readable title",
+      "status": "needs_review",
+      "category": "vendor_invoice",
+      "source_file": "source/path.pdf",
+      "vendor_name": "...",
+      "invoice_number": "...",
+      "invoice_date": "2026-06-30",
+      "currency": "USD",
+      "total": 1360.8,
+      "confidence": 0.94,
+      "risk": [],
+      "warnings": [],
+      "line_items": []
     }
-  ],
-  "metrics": {},
-  "invoices": []
+  ]
 }
 ```
 
-Run `node scripts/validate_ui_schema.ts app/.data/current_batch.json` after writing or editing a batch. The validator recomputes and checks required fields.
-
-## Invoice Fields
-
-Required invoice fields:
-
-- `id`: stable local id, e.g. `inv-001`.
-- `ref`: stable visible row reference, e.g. `Review #1`.
-- `title`: human-readable title.
-- `status`: `needs_review`, `changes_requested`, `approved`, `done`, or `blocked`.
-- `category`: `vendor_invoice`, `receipt`, `credit_note`, `statement`, or `other`.
-- `source_file`: display filename.
-- `vendor_name`
-- `invoice_number`
-- `invoice_date`: ISO date when possible.
-- `currency`: ISO code where possible.
-- `total`: number.
-- `confidence`: 0 to 1.
-- `risk`: string array.
-- `warnings`: string array.
-- `line_items`: array.
-
-Recommended optional fields:
-
-- `vendor_tax_id`
-- `due_date`
-- `subtotal`
-- `tax`
-- `amount_due`
-- `payment_terms`
-- `bill_to`
-- `purchase_order`
-- `iban_or_account_hint`
-- `source_path`
-- `source_type`
-- `source_page`
-- `field_confidence`: per-field confidence/source snippets.
-- `proposed_action`
-- `reason`
-- `notes`
-
-## Line Item Fields
-
-Each line item should include:
-
-- `line_id`
-- `description`
-- `quantity`
-- `unit_price`
-- `amount`
-- `tax_rate`
-- `category`
-- `confidence`
-- `notes`
-
-Line items are useful for accounting import and audit, but a missing line item is a warning, not a hard validation failure.
+A bare JSON array of invoice objects (no `batch_id`/`invoices` wrapper) is
+also accepted. `node scripts/import_batch.mjs --file <path>` validates the
+batch with `validateInvoicesShape()` (ported verbatim from the retired
+`lib/invoice-schema.ts`'s `validateBatchShape()`) before printing a dry run;
+add `--apply` to write to Busabase.
 
 ## Extraction Guidance
 

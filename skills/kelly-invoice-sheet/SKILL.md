@@ -1,15 +1,15 @@
 ---
 name: kelly-invoice-sheet
-description: Extract invoices, receipts, credit notes, statements, PDFs, images, docs, and spreadsheet-like invoice exports into a local reviewable table with field confidence, line items, approval decisions, and CSV/JSON export. Use when the user invokes /kelly-invoice-sheet or $kelly-invoice-sheet, asks for "Invoice转表格", invoice OCR, receipt-to-spreadsheet, invoice data extraction, bookkeeping import prep, or a Lido-style Extract Data workflow with a local App-in-Skill UI.
+description: Extract invoices, receipts, credit notes, statements, PDFs, images, docs, and spreadsheet-like invoice exports into a reviewable table with field confidence, line items, approval decisions, and CSV/JSON export. Use when the user invokes /kelly-invoice-sheet or $kelly-invoice-sheet, asks for "Invoice转表格", invoice OCR, receipt-to-spreadsheet, invoice data extraction, bookkeeping import prep, or a Lido-style Extract Data workflow with a Busabase-backed App-in-Skill UI.
 ---
 
 # Kelly Invoice Sheet
 
 ## Overview
 
-Use this skill to turn invoice files or extracted invoice text into a structured batch that the user can review in a local spreadsheet-style UI. The skill owns extraction, reasoning, validation, and export; the app only reads/writes local handoff files and records human decisions.
+Use this skill to turn invoice files or extracted invoice text into a structured batch that the user can review in a Busabase-backed spreadsheet-style UI. The skill owns extraction, reasoning, validation, and export; the AirApp only reads/writes its own Busabase Bases and records human decisions.
 
-Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, prepare or load a batch, start/reuse the local app with `app/start.sh`, and give the actual local URL.
+Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, ensure Busabase resources are provisioned (the AirApp does this lazily on first run), write extracted invoices with `scripts/import_batch.mjs`, and give the actual AirApp URL (or the local preview URL when local preview is explicitly requested).
 
 ## App UI Screenshots
 
@@ -26,29 +26,42 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
   </tr>
 </table>
 
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's artifact and product contracts, stop before the unavailable Busabase operation, and report the exact missing dependency. Do not invent a second data backend.
+
 ## Workflow
 
 1. Accept invoice source files or source text from the user. Supported workflow inputs include PDFs, images, Word docs, CSV/XLS/XLSX exports, OCR text, email attachments, and pasted invoice text.
 2. Extract invoice header fields, line items, totals, currency, dates, vendor identity, bill-to, payment terms, and source snippets. If OCR or document parsing needs another installed skill or tool, use it, then normalize the result into this skill's batch schema.
-3. Read `references/invoice-batch-schema.md` before writing `app/.data/current_batch.json`.
-4. Write a batch to `app/.data/current_batch.json`, keeping stable `id` and `ref` values such as `Review #1`.
-5. Run `node scripts/validate_ui_schema.ts app/.data/current_batch.json`.
-6. Launch or reuse the local app with `app/start.sh`, then send the user to the printed URL.
-7. After the user approves or edits rows, run `node scripts/export_decisions.ts` to export approved invoices to CSV and JSON.
+3. Read `references/invoice-batch-schema.md` before writing a batch file.
+4. Write a batch JSON file (an object with an `invoices` array, or a bare array of invoice objects), keeping stable `id` and `ref` values such as `Review #1`.
+5. Run `node scripts/import_batch.mjs --file <batch.json> --apply` to validate and write the batch into Busabase's `invoices` Base.
+6. Give the user the AirApp URL (or start local preview with `pnpm --dir app dev` if explicitly requested).
+7. After the user approves rows in the app, run `node scripts/export_decisions.mjs --apply` to export approved invoices to CSV and JSON and mark them `done`.
 
 Use chat-only mode only when the user says "chat only", "no UI", "纯聊天", "不要打开 UI", or similar.
 
-## App Contract
+## Boundary
 
-Local handoff files:
+- The AirApp reads and writes its own Busabase Bases only; it never mutates an external system, uploads an invoice file, pays a vendor, emails anyone, or imports into accounting software. Parent decisions (approve/request-changes/block/revise) write straight onto the invoice record through `busabase-sdk`.
+- The skill performs extraction, reasoning, and validation, then records the result to Busabase via `scripts/import_batch.mjs`. It never sends invoice files to an external service from the app itself — any external OCR/API use belongs to the skill workflow and should be explicit.
+- Export only happens through the trusted `scripts/export_decisions.mjs` after explicit approval in the UI or chat.
 
-- `app/.data/current_batch.json`: current invoice extraction batch.
-- `app/.data/decisions.json`: human review decisions, edits, and notes.
-- `app/.data/agent_tasks.json`: queued revision tasks from `request_changes` or `@ai` comments.
-- `app/.data/execution_report.json`: latest export report.
-- `app/.data/agent.lock`: temporary lock while the skill writes batch/report files.
+## Busabase Resources
 
-Workflow statuses:
+Two Bases under one application Folder (`kelly-invoice-sheet`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+
+- `invoices`: one row per extracted invoice/receipt/credit note/statement — header fields, field confidence (JSON), line items (JSON array, shares the invoice's own lifecycle), risk/warning flags (JSON arrays), and the reviewer's decision (`decision-action`/`decision-note`/`decided-at`) written directly onto the same row. Written by `scripts/import_batch.mjs` when the agent finishes extracting a batch; status is set directly by a human decision in the app.
+- `settings`: sanitized config summary (default currency, extraction preferences, review policy, export preferences — no secrets), one row keyed by `kind`.
+
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/invoice-batch-schema.md` for exact field shapes.
+
+## Workflow Statuses
 
 - `needs_review`: extracted row needs human review.
 - `changes_requested`: user asked the agent to revise extraction.
@@ -67,25 +80,29 @@ Workflow statuses:
 
 ## Scripts
 
-- `node scripts/generate_demo_batch.ts`
-  Writes a safe synthetic batch and onboarding marker for UI testing.
-- `node scripts/validate_ui_schema.ts [batch-path]`
-  Validates the invoice batch schema.
-- `node scripts/export_decisions.ts`
-  Exports approved or human-revised invoices to `exports/<batch-id>/invoices.csv`, `line_items.csv`, and `approved_invoices.json`, then writes `execution_report.json`.
+- `node scripts/import_batch.mjs --file <batch.json> [--apply]`
+  Validates a batch of extracted invoices and upserts each one into Busabase's `invoices` Base (matched by `invoice-id`, so re-running after a correction updates existing rows). Dry run by default.
+- `node scripts/export_decisions.mjs [--apply] [--out <dir>]`
+  Reads invoices with status `approved` from Busabase, grouped by `batch_id`, and exports each batch to `exports/<batch-id>/invoices.csv`, `line_items.csv`, and `approved_invoices.json`, then marks each exported invoice `done`. Dry run by default.
 
 ## Local App
 
-Start the UI:
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
 
-```bash
-skills/kelly-invoice-sheet/app/start.sh
-```
+## Demo Mode
 
-The app uses local HTTP on `127.0.0.1`, prefers ports `3000-4000`, and stores private runtime state under ignored `app/.data/`.
+`?demo=1#/invoices/all` opens the deterministic offline dataset (3 invoices: 2 `needs_review`, 1 `blocked`) for screenshots and review. Demo mode never reads or writes Busabase; demo decisions are read-only.
 
 ## Safety Defaults
 
-- Treat invoice data as sensitive. Do not commit `app/.data/`, source invoices, exports, `config.local.json`, or env files.
-- The app only edits local decision files. It does not upload invoices, import into accounting systems, send email, pay vendors, or mutate remote systems.
-- Export only after explicit approval in the UI or chat.
+- Treat invoice data as sensitive. Never commit a local credential file.
+- The app only edits its own Busabase records. It does not upload invoices, import into accounting systems, send email, pay vendors, or mutate remote systems.
+- Export only after explicit approval in the UI or chat, via `scripts/export_decisions.mjs`.
+
+## Useful Commands
+
+```bash
+node skills/kelly-invoice-sheet/scripts/import_batch.mjs --file batch.json --apply
+node skills/kelly-invoice-sheet/scripts/export_decisions.mjs --apply
+pnpm --dir skills/kelly-invoice-sheet/app dev
+```

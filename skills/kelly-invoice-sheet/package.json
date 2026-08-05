@@ -2,17 +2,17 @@
   "name": "kelly-invoice-sheet",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=23.6"
-  },
+  "version": "0.1.0",
+  "description": "Kelly Invoice Sheet Busabase Cloud skill and trusted batch-import/export scripts.",
   "scripts": {
-    "start": "node app/server/index.ts",
-    "demo": "node scripts/generate_demo_batch.ts",
-    "validate": "node scripts/validate_ui_schema.ts",
-    "export": "node scripts/export_decisions.ts"
+    "import": "node scripts/import_batch.mjs",
+    "export": "node scripts/export_decisions.mjs",
+    "app:check": "pnpm --dir app check"
   },
   "dependencies": {
-    "@hono/node-server": "^2.0.8",
-    "hono": "^4.12.28"
+    "busabase-sdk": "0.11.0"
+  },
+  "engines": {
+    "node": ">=24.18.0"
   }
 }

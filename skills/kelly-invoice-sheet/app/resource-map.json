@@ -1,0 +1,15 @@
+{
+  "appId": "kelly-invoice-sheet",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-invoice-sheet"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "invoices", "slug": "kelly-invoice-sheet-invoices-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-invoice-sheet-settings-v1", "schemaVersion": 1 }
+  ]
+}
