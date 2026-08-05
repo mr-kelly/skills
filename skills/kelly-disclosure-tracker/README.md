@@ -1,6 +1,6 @@
-# Cross-Entity Disclosure Tracker
+# Cross-Entity Disclosure Tracker (kelly-disclosure-tracker)
 
-Cross-Entity Disclosure Tracker is a local, file-backed App-in-Skill workspace
+Cross-Entity Disclosure Tracker is a Busabase App-in-Skill review workspace
 that helps a compliance/IR team assemble and track a standardized disclosure
 package per financing vehicle (fund/SPV), across three generic regulatory
 roles: an onshore **origination entity**, an offshore **fund-manager entity**,
@@ -18,8 +18,7 @@ never files anything and never calls any external system.
   fund-manager / listing venue), each showing its status and, when relevant,
   a cross-entity reconciliation banner.
 - **Item decision panel**: mark an item verified, needs-source, or flagged, and
-  add a reviewer note — written to local handoff files
-  (`app/.data/decisions.json`).
+  add a reviewer note — written directly onto the item's own Busabase record.
 - **Flagged view**: every reconciliation mismatch or reviewer-flagged
   inconsistency in one list, e.g. a figure that doesn't reconcile between the
   fund-manager's AUM statement and the listing venue's filing.
@@ -45,13 +44,11 @@ never files anything and never calls any external system.
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
-
 ```bash
-skills/kelly-disclosure-tracker/app/start.sh
+pnpm --dir skills/kelly-disclosure-tracker/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Use the printed URL, then add one of these demo paths:
 
 ```text
 /?demo=1&lang=en#/vehicles
@@ -60,24 +57,22 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=1&lang=zh#/vehicles
 ```
 
-Demo mode is fully offline and never reads or writes local handoff files.
+Demo mode is fully offline and never reads or writes Busabase.
 
-## Seed Real Local Data
+## Seeding And Executing A Real (Mock) Portfolio
 
 ```bash
-node scripts/generate_batch.ts
-node scripts/validate_ui_schema.ts app/.data/current_batch.json
+node scripts/generate_batch.mjs --apply     # seed 9 mock vehicles / 54 items into Busabase
+node scripts/execute_decisions.mjs --apply  # write an execution marker per item (no external side effect)
 ```
 
-This writes 9 synthetic vehicles with disclosure items across the three roles
-to `app/.data/current_batch.json` and `app/.data/decisions.json`, including a
-couple of pre-seeded cross-entity reconciliation mismatches so the Flagged view
-is populated on first run.
+Both scripts default to a dry run — pass `--apply` to actually write. This
+writes a synthetic 9-vehicle portfolio with disclosure items across the three
+roles, including a couple of pre-seeded cross-entity reconciliation
+mismatches so the Flagged view is populated on first run.
 
-## Private Config
+## Busabase Resources
 
-Copy `config.example.json` to `config.local.json` or
-`~/.config/kelly-disclosure-tracker/config.json`. There are no secrets in this
-skill's configuration — just the reviewer's display name and UI language
-preference. Never commit `app/.data/` (reviewer decisions and notes) or
-`config.local.json`.
+Three Bases (`vehicles`, `items`, `settings`) under one application Folder,
+provisioned lazily on first run. See `references/ui-schema.md` for the full
+field-slug schema.

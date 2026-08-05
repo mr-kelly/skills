@@ -179,6 +179,53 @@ html.ks-setup-active body {
 .ks-setup-loading {
   color: #667085;
 }
+.ks-connect-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ks-connect-option input {
+  flex: none;
+  margin: 0;
+}
+.ks-connect-option > span {
+  display: grid;
+  gap: 2px;
+}
+.ks-busabase-fields[hidden] {
+  display: none;
+}
+.ks-space-select {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ks-space-select select {
+  min-height: 38px;
+  padding: 8px 10px;
+  color: #101828;
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 400;
+}
+.ks-setup-footer-split {
+  justify-content: space-between;
+  align-items: center;
+}
+.ks-text-link {
+  color: #1570ef;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.ks-text-link:hover {
+  text-decoration: underline;
+}
 .ks-setup-footer {
   display: flex;
   justify-content: flex-end;

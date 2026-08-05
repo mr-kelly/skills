@@ -1,4 +1,6 @@
 import { messages } from "./i18n/messages.js";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
   batch: null,
@@ -116,29 +118,19 @@ function setRoute() {
 }
 
 async function loadState() {
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  if (state.lang) params.set("lang", state.lang);
-  const res = await fetch(`/api/state?${params}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`State request failed: ${res.status}`);
-  const data = await res.json();
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
   state.batch = data.batch;
   state.settings = data;
+  window.dispatchEvent(new CustomEvent("kelly-disclosure-tracker:state", { detail: data }));
   render();
 }
 
 async function saveDecision(itemId, action, comment, overrideReconciliation) {
-  const res = await fetch(`/api/items/${encodeURIComponent(itemId)}/decision`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ action, comment, override_reconciliation: Boolean(overrideReconciliation) }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Save failed: ${res.status}`);
-  }
-  const data = await res.json();
-  state.batch = data.batch;
+  const provider = await getProvider();
+  await provider.submitReview({ id: itemId, action, comment, overrideReconciliation: Boolean(overrideReconciliation) });
+  await loadState();
 }
 
 function applyI18n() {
@@ -528,7 +520,19 @@ els.language.addEventListener("change", () => {
   render();
 });
 
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+  } catch (error) {
+    if (String(error?.message || error).startsWith("SETUP_")) {
+      renderSetupRequired(error, boot);
+      return;
+    }
+    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+  }
+}
+
 syncResponsiveShell();
-loadState().catch((error) => {
-  els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-});
+boot();
