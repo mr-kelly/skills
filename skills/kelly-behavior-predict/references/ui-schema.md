@@ -1,135 +1,113 @@
-# Predictive Recommendation Analytics Desk — Data Schema
+# Kelly Behavior Predict Schema
 
-Use this schema for `app/.data/dataset.json` (written by `scripts/generate_batch.ts`,
-built from `lib/dataset.ts`) and `app/.data/decisions.json` (the human review
-handoff file). Keep the shape stable so the app, scripts, and `lib/` can
-evolve independently. This is a **dashboard** app type: read-mostly, with one
-narrow human-review surface (the trusted / needs-recalibration decision) — not
-a full review-queue lifecycle.
+Use this schema when reading or writing Kelly Behavior Predict's Busabase
+Bases. Field slugs are kebab-case in Busabase and normalized to snake_case in
+app code (`app/app/js/providers/busabase-provider.js`,
+`app/app/js/behavior-model.js`). `predicted_action`, rule `triggers`, the
+funnel, and the backtest are all computed client-side from the `sessions`
+Base on every read — they are never stored.
 
-## Dataset (`app/.data/dataset.json`)
+Funnel stages: `browse | search | compare | booking_attempt | complete`
+(fixed, ordered, generic consumer booking funnel).
 
-```json
-{
-  "schema_version": "1",
-  "seed": "predictive-recommendation-analytics-desk-v1",
-  "generated_at_note": "human-readable note",
-  "overall_funnel": { "...": "FunnelCounts, see below" },
-  "overall_backtest": { "...": "BacktestSummary, see below" },
-  "segments": [ { "...": "SegmentDatasetEntry, see below" } ]
-}
-```
+Predicted/actual actions: `send_discount_offer | show_urgency_banner |
+recommend_similar_items | send_reminder_email | no_action_needed`.
 
-Regenerate any time with `node scripts/generate_batch.ts [seed]`. The dataset
-is 100% deterministic: the same seed always produces byte-identical output
-(verified with `md5sum` in this skill's own test run).
+Decision statuses: `trusted | needs_recalibration`.
 
-### FunnelStage
+## Sessions (`kelly-behavior-predict-sessions-v1`)
 
-`"browse" | "search" | "compare" | "booking_attempt" | "complete"` — a fixed,
-ordered mock consumer booking funnel.
+One row per mock session — 100 rows total across 5 segments (scaled 0.4x
+from the retired `lib/segments.ts`'s 60/55/45/50/40 so the total stays within
+the Busabase `records.list` limit=100 cap; the per-segment seeded RNG stream
+is unaffected — the first N sessions kept per segment are bit-identical to
+the original uncapped run). `predicted-action` and the rule triggers are
+**not** stored — they are recomputed on every read from
+`evaluateRules()`/`predictNextAction()` in `app/app/js/behavior-model.js`,
+so the board is always fresh regardless of when a browser session loads it.
 
-### FunnelCounts
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `session-id` | `session_id` | text | e.g. `price_sensitive_browser-001`, required |
+| `segment-id` | `segment_id` | text | one of the 5 segment ids below, required |
+| `session-length` | `session_length` | number | minutes |
+| `cart-abandon-count` | `cart_abandon_count` | number | |
+| `price-check-count` | `price_check_count` | number | |
+| `days-since-last-visit` | `days_since_last_visit` | number | |
+| `coupon-clicks` | `coupon_clicks` | number | |
+| `reached-stage` | `reached_stage` | text | funnel stage, see above |
+| `actual-action` | `actual_action` | text | seeded mock "ground truth" (see Generation below) — NOT real outcome data, used only to make the backtest non-trivial |
 
-```json
-{
-  "segment_id": "price_sensitive_browser | \"overall\"",
-  "stage_counts": { "browse": 60, "search": 36, "compare": 22, "booking_attempt": 5, "complete": 3 },
-  "drop_off_pct": { "search": 40.0, "compare": 38.9, "booking_attempt": 77.3, "complete": 40.0 }
-}
-```
+## Segments (`kelly-behavior-predict-segments-v1`)
 
-`stage_counts[stage]` = sessions that reached at least that stage.
-`drop_off_pct[stage]` = `(stage_counts[prev] - stage_counts[stage]) / stage_counts[prev] * 100`.
+One row per segment archetype (5 rows: `price_sensitive_browser`,
+`repeat_traveler`, `last_minute_booker`, `deal_hunter`,
+`high_intent_planner` — full continuation-rate/range definitions live in the
+`SEGMENTS` constant in `app/app/js/behavior-model.js`, not in Busabase). The
+reviewer's verdict on a segment's prediction rule writes
+`decision-status`/`decision-note`/`decided-at` directly onto the same row —
+there is no separate decisions file.
 
-### SegmentDatasetEntry
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `segment-id` | `segment_id` | text | stable domain id, required |
+| `decision-status` | `decision_status` | text | `trusted\|needs_recalibration`, empty until decided |
+| `decision-note` | `decision_note` | longtext | written with the verdict |
+| `decided-at` | `decided_at` | text | ISO timestamp, written with the verdict |
 
-```json
-{
-  "segment_id": "price_sensitive_browser",
-  "session_count": 60,
-  "funnel": { "...": "FunnelCounts for this segment" },
-  "prediction_summary": {
-    "segment_id": "price_sensitive_browser",
-    "dominant_action": "recommend_similar_items",
-    "action_distribution": { "send_discount_offer": 18, "show_urgency_banner": 9, "recommend_similar_items": 33, "send_reminder_email": 0, "no_action_needed": 0 },
-    "sample_triggers": [ { "code": "...", "description": "...", "matched": false } ]
-  },
-  "backtest": { "...": "BacktestSummary for this segment" },
-  "sessions": [ { "...": "SessionResult, see below" } ]
-}
-```
+## Settings (`kelly-behavior-predict-settings-v1`)
 
-### SessionResult (mock, one row per synthetic session)
+One row, looked up by `record-id`/`kind = "config"`. A missing row means "not
+set yet" — the app falls back to documented defaults (mirrors the retired
+local-file provider's `summarizeConfig()` behavior).
 
-```json
-{
-  "session_id": "price_sensitive_browser-001",
-  "segment_id": "price_sensitive_browser",
-  "session_length": 6.4,
-  "cart_abandon_count": 2,
-  "price_check_count": 7,
-  "days_since_last_visit": 1,
-  "coupon_clicks": 3,
-  "reached_stage": "compare",
-  "predicted_action": "recommend_similar_items",
-  "actual_action": "send_discount_offer",
-  "triggers": [ { "...": "RuleTrigger" } ]
-}
-```
+| `record-id` | `kind` | `payload` (JSON) |
+| --- | --- | --- |
+| `config` | `config` | `{seed, product_name, vertical, target_precision}` |
 
-`predicted_action` comes from the deterministic rule in `lib/predict.ts` (see
-that file's header comment for the exact if/else priority order — every
-prediction is hand-recomputable from the four `session_length` /
-`cart_abandon_count` / `price_check_count` / `days_since_last_visit` inputs
-plus `reached_stage`). `actual_action` is a seeded mock "ground truth" (see
-`lib/sessions.ts`) used only to make the backtest view non-trivial; it is not
-real outcome data.
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `record-id` | `record_id` | text | `config`, required |
+| `kind` | `kind` | text | same value as `record-id`, required |
+| `payload` | `payload` | longtext | JSON, see table above |
+| `updated-at` | `updated_at` | text | ISO timestamp |
 
-### BacktestSummary
+## The Rule (not a model)
 
-```json
-{
-  "segment_id": "price_sensitive_browser | \"overall\"",
-  "total": 60,
-  "correct": 48,
-  "accuracy": 0.8,
-  "per_action": [
-    { "action": "send_discount_offer", "true_positive": 44, "false_positive": 17, "false_negative": 8, "precision": 0.721, "recall": 0.846, "f1": 0.779, "support": 52 }
-  ],
-  "macro_precision": 0.68,
-  "macro_recall": 0.7,
-  "macro_f1": 0.69
-}
-```
+`evaluateRules(features)` in `app/app/js/behavior-model.js` evaluates a
+short, ordered list of if/else triggers over `cart_abandon_count`,
+`price_check_count`, `days_since_last_visit`, `session_length`, and
+`reached_stage`. The first matching trigger (top to bottom) determines
+`predicted_action`; every trigger is still evaluated so the segment detail
+view can show the full list ("why this prediction"). This is a fixed,
+hand-recomputable rule — NOT a real ML/LLM model.
 
-Computed deterministically in `lib/backtest.ts` by comparing `predicted_action`
-against `actual_action` for every session — a standard multi-class confusion
-matrix with per-action precision/recall/F1 and macro averages.
+## Backtest (computed, never stored)
 
-## Decisions (`app/.data/decisions.json`)
+`computeBacktest(sessions, segmentId)` compares each session's
+`predicted_action` (recomputed) against its stored `actual_action` and
+returns a standard multi-class confusion matrix: per-action
+`true_positive`/`false_positive`/`false_negative`/`precision`/`recall`/`f1`/
+`support`, plus `accuracy`, `macro_precision`, `macro_recall`, `macro_f1`.
+Computed at both the overall level (all 100 sessions) and per segment.
 
-The one human-review surface in this dashboard: mark a segment's prediction
-rule "trusted" or "needs recalibration" with a note. Purely a local review
-record — it never changes the rule, the dataset, or any live system.
+## Generation (`scripts/generate_batch.mjs`)
 
-```json
-{
-  "price_sensitive_browser": {
-    "status": "trusted | needs_recalibration",
-    "note": "free-text reviewer note",
-    "decided_at": "ISO timestamp"
-  }
-}
-```
+The trusted seed step. Writes the fixed 100-session mock sample (ported
+verbatim from the retired `lib/sessions.ts`'s `generateSessionsForSegment()`/
+`generateAllSessions()`, now living in `app/app/js/behavior-model.js`) into
+the `sessions` Base, ensures a `segments` row exists for every segment
+**without touching any decision already recorded on it**, and refreshes the
+`settings` `config` row. `--apply` gated (default dry run); `--seed`,
+`--product-name`, `--vertical`, `--target-precision` override the `config`
+row (unset flags keep the existing value, falling back to documented
+defaults on first run).
 
-Keyed by `segment_id`; one entry per segment that has been reviewed. Written
-only via `POST /api/segments/:id/decision`.
-
-## Validation
-
-Run `node scripts/validate_ui_schema.ts [path/to/dataset.json]` before relying
-on a dataset in the UI. It checks required fields/types, that
-`backtest.total === session_count`, that `sessions.length === session_count`,
-and that per-segment `browse` counts sum to the overall funnel's `browse`
-count.
+The seeded PRNG (`mulberry32` + a string hash seed, in
+`app/app/js/behavior-model.js`) is deterministic: no `fs`, no network, no
+`Date.now()`, no `Math.random()`. The same seed always produces
+byte-identical session features, funnel placement, and mock `actual_action`
+— verified in `app/test/behavior-model.test.mjs` by calling
+`generateAllSessions()` twice and asserting a deep-equal result, and by
+pinning the first generated session's exact field values as a regression
+check.

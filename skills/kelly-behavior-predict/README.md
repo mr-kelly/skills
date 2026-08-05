@@ -1,7 +1,7 @@
 # Predictive Recommendation Analytics Desk
 
-Predictive Recommendation Analytics Desk is a local, read-mostly App-in-Skill
-dashboard over a fully deterministic **mock** user-behavior dataset for a
+Predictive Recommendation Analytics Desk is a Busabase-backed App-in-Skill
+dashboard over a fixed, deterministic **mock** user-behavior dataset for a
 generic, brand-free consumer booking product. It shows funnel drop-off,
 per-segment predicted next actions, and a prediction-accuracy backtest — all
 computed by a fixed, hand-recomputable rule, never a real ML/LLM model.
@@ -44,14 +44,7 @@ computed by a fixed, hand-recomputable rule, never a real ML/LLM model.
 
 ## Demo Mode
 
-Generate the mock dataset, run the app, and open a safe demo scene:
-
-```bash
-node skills/kelly-behavior-predict/scripts/generate_batch.ts
-skills/kelly-behavior-predict/app/start.sh
-```
-
-Use the URL printed by the launcher, then add one of these demo paths:
+Open a safe, fully offline demo scene (never reads or writes Busabase):
 
 ```text
 /?demo=1&lang=en#/overview
@@ -61,21 +54,31 @@ Use the URL printed by the launcher, then add one of these demo paths:
 ```
 
 Add `lang=zh` for the Chinese UI chrome, e.g.
-`/?demo=1&lang=zh#/overview`. Demo mode is fully offline — the dataset is
-mock data by construction, there is no live source to switch away from.
+`/?demo=1&lang=zh#/overview`. Demo mode regenerates the same fixed,
+deterministic 100-session mock sample in the browser — there is no live
+source to switch away from.
 
 ## The Rule (not a model)
 
 Every "predicted next action" comes from a short, explicit, ordered list of
-if/else rules over four mock session signals in `lib/predict.ts` — not a real
-ML/LLM model. Given the same session features it always returns the same
-prediction, which is what makes `lib/backtest.ts`'s precision/recall/F1
-summary reproducible. See `references/ui-schema.md` for the full schema and
-`SKILL.md` for the review workflow.
+if/else rules over four mock session signals in
+`app/app/js/behavior-model.js` — not a real ML/LLM model. Given the same
+session features it always returns the same prediction, which is what makes
+the backtest's precision/recall/F1 summary reproducible. See
+`references/ui-schema.md` for the full schema and `SKILL.md` for the review
+workflow.
 
-## Private Config
+## Busabase Resources
 
-Copy `config.example.json` to `config.local.json` to set a generic product
-name/vertical shown in Help & Settings. No credentials or live connection are
-needed — this skill only ever reads its own generated mock dataset. Never
-commit `config.local.json`, `app/.data/`, or local env files.
+Three Bases under one application Folder (`kelly-behavior-predict`):
+`sessions` (the fixed 100-row mock sample), `segments` (one row per
+archetype, holding the human trust decision), and `settings` (one row with
+the sanitized product profile and dataset seed). Regenerate the sample any
+time with:
+
+```bash
+node skills/kelly-behavior-predict/scripts/generate_batch.mjs --apply
+```
+
+No credentials or live connection are needed beyond the Busabase Space
+itself — this skill only ever reads/writes its own three Bases.
