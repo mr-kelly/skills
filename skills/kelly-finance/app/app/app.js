@@ -1,4 +1,6 @@
 import { messages } from "./i18n/messages.js";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
   data: null,
@@ -69,11 +71,11 @@ function checks() {
 }
 
 async function loadState() {
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  params.set("lang", activeLang());
-  const res = await fetch(`/api/state?${params}`, { cache: "no-store" });
-  state.data = await res.json();
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
+  state.data = data;
+  window.dispatchEvent(new CustomEvent("kelly-finance:state", { detail: data }));
   render();
 }
 
@@ -177,7 +179,7 @@ function renderWorkbook() {
   return `<section class="panel">
     <div class="panel-head"><h2>${t("workbook")}</h2><span>${snap.workbook?.last_generated_path || ""}</span></div>
     <div class="tabs">${(snap.workbook?.tabs || []).map((tab) => `<span>${tab}</span>`).join("")}</div>
-    <p class="muted">Approved export actions are recorded to execution_report.json; the app never sends files or mutates external systems.</p>
+    <p class="muted">Approved export actions are the agent's responsibility outside this app; the app never sends files or mutates external systems.</p>
   </section>`;
 }
 
@@ -220,29 +222,18 @@ function render() {
 async function submitDecision(action) {
   const selected = checks().find((item) => item.id === state.route.id) || checks()[0];
   if (!selected) return;
-  if (state.data?.demo) {
-    selected.status =
-      action === "approve"
-        ? "approved"
-        : action === "request_changes"
-          ? "changes_requested"
-          : action === "block"
-            ? "blocked"
-            : "done";
-    render();
-    return;
-  }
-  await fetch("/api/decision", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
+  const provider = await getProvider();
+  try {
+    await provider.submitReview({
       id: selected.id,
       action,
       comment: document.querySelector("#decisionComment")?.value || "",
       draft: document.querySelector("#decisionDraft")?.value || "",
-    }),
-  });
-  await loadState();
+    });
+    await loadState();
+  } catch (error) {
+    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${error.message}</div>`);
+  }
 }
 
 function setMobileSidebar(open) {
@@ -270,4 +261,18 @@ els.content.addEventListener("click", (event) => {
   if (button) submitDecision(button.dataset.action);
 });
 
-await loadState();
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+  } catch (error) {
+    if (String(error?.message || error).startsWith("SETUP_")) {
+      renderSetupRequired(error, boot);
+      return;
+    }
+    els.content.innerHTML = `<div class="empty">${error.message}</div>`;
+  }
+}
+
+boot();

@@ -1,0 +1,16 @@
+{
+  "appId": "kelly-finance",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-finance"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "model", "slug": "kelly-finance-model-v1", "schemaVersion": 1 },
+    { "key": "checks", "slug": "kelly-finance-checks-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-finance-settings-v1", "schemaVersion": 1 }
+  ]
+}
