@@ -1,15 +1,39 @@
 ---
 name: kelly-ppt-factory
-description: Project-based PPT production App-in-Skill. Use when the user invokes $kelly-ppt-factory or /kelly-ppt-factory, mentions PPT factory, 规模化 PPT, bulk PPTX, batch decks, reusable PowerPoint style systems, presentation production workflows, pitch decks, sales decks, training decks, report decks, slide-card/storyboard planning, style-consistent deck generation, PPTX QA, or wants to manage many PPTX files through project to deck to slide card to review to generate to render QA.
+description: Busabase-backed project-based PPT production App-in-Skill. Use when the user invokes $kelly-ppt-factory or /kelly-ppt-factory, mentions PPT factory, 规模化 PPT, bulk PPTX, batch decks, reusable PowerPoint style systems, presentation production workflows, pitch decks, sales decks, training decks, report decks, slide-card/storyboard planning, style-consistent deck generation, PPTX QA, or wants to manage many PPTX files through project to deck to slide card to review to generate to render QA.
 ---
 
 # Kelly PPT Factory
 
 ## Overview
 
-Use this skill as a scalable PPTX production factory. It manages a project-based workflow where each deck is planned as slide cards first, reviewed like storyboard shots, then generated into PPTX and rendered for QA. The default user is an operator producing many style-consistent decks across use cases such as pitch decks, sales materials, training decks, reports, proposals, and courseware.
+Kelly PPT Factory is a Busabase Cloud App-in-Skill. Its canonical product
+surface is the AirApp in Busabase, not a separate local-data product. The
+same Hono source supports an explicitly requested local preview with OAuth
+connection bootstrap. It manages a project-based workflow where each deck is
+planned as slide cards first, reviewed like storyboard shots, then generated
+into PPTX and rendered for QA. The default user is an operator producing
+many style-consistent decks across use cases such as pitch decks, sales
+materials, training decks, reports, proposals, and courseware.
 
-Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or create the PPT factory snapshot, start/reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
+Default behavior is AirApp-first. Unless the user explicitly asks only for
+explanation, give the user the clickable AirApp URL. Start localhost only
+when local preview/debugging is explicitly requested; it uses the same
+Busabase resources and never offers another data provider. Use chat-only
+mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
+
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
+   quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery,
+   ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
+   runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's artifact and product
+contracts, stop before the unavailable Busabase operation, and report the
+exact missing dependency. Do not invent a second data backend.
 
 ## App UI Screenshots
 
@@ -34,105 +58,152 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 ## Boundary
 
-- The skill may parse user-provided briefs, outlines, source documents, screenshots, reference decks, or structured content; draft slide cards; generate local PPTX files; render QA artifacts; and write local handoff files.
-- The app reads and writes local files only. It never contacts clients, uploads decks, publishes content, or mutates remote systems.
-- External delivery, client email, file uploads, paid image generation, or production publishing are approval-required and should be executed by another explicit skill after the user approves.
-- Treat client source materials, style references, and generated decks as private. Never commit `config.local.json`, env files, `app/.data/`, `app/.cache/`, or `exports/`.
+- The AirApp reads projects/decks/slide-cards/style-systems/QA/exports from
+  Busabase and lets a reviewer approve, request changes on, block, or revise
+  a slide card or deck — it never generates a PPTX file itself (the browser
+  cannot write a binary file to disk).
+- Generating the actual `.pptx` file is a trusted skill-root process
+  (`scripts/generate_pptx.mjs`), and only ever for a deck whose
+  `decision_action` is a genuine `approve` recorded by the review queue —
+  never bare status, which a spoofed import could otherwise set directly.
+- `scripts/execute_decisions.mjs` never generates a file or flips workflow
+  status itself; it only records a planned follow-up operation
+  (`execution_status`/`operation`/`target`/`detail`) on each decided row.
+- External delivery, client email, file uploads, paid image generation, or
+  production publishing are approval-required and should be executed by
+  another explicit skill after the user approves.
+- Treat client source materials, style references, and generated decks as
+  private. Never commit a local credential file, Busabase secrets, or the
+  gitignored `exports/` output directory.
 
-## First Run And Onboarding
+## Busabase Resources
 
-On invocation, check `app/.data/onboarding.json` and private config readiness. If onboarding is absent/incomplete, guide setup before real work.
+Seven Bases under one application Folder (`kelly-ppt-factory`), declared in
+`app/app/js/config.js` and `app/resource-map.json` — see
+`references/ppt-factory-schema.md` for exact field shapes:
 
-Private config priority:
+- `projects`: a client / use-case / theme batch.
+- `decks`: one PPTX deliverable under a project — status, slide counts,
+  style score, output paths, and the review-queue decision
+  (`decision-action`/`decision-note`/`decided-at`) on the same row.
+- `slideCards`: the storyboard unit for one PPTX page — objective, layout,
+  structured content, asset brief, style/QA checks, and the review-queue
+  decision on the same row.
+- `styleSystems`: reusable presentation style kits — palette, fonts,
+  visual/layout rules, component library.
+- `qaChecks`: deterministic or human QA evidence for a deck, slide, or
+  export.
+- `exports`: generated PPTX output records — path, render path, generation
+  status, QA summary.
+- `settings`: default client profile and export preferences, one row.
 
-1. `KELLY_PPT_FACTORY_CONFIG=/absolute/path/to/config.json`
-2. `skills/kelly-ppt-factory/config.local.json`
-3. `~/.config/kelly-ppt-factory/config.json`
-4. `skills/kelly-ppt-factory/config.example.json` as template only
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space.
 
-Env priority:
+## Review Queue
 
-1. Existing environment variables
-2. `KELLY_PPT_FACTORY_ENV_FILE=/absolute/path/to/.env`
-3. Repository root `.env`
-4. `skills/kelly-ppt-factory/.env.local`
-5. `~/.config/kelly-ppt-factory/.env`
-
-Onboarding asks, turn by turn: client/project profile, audience, deck use cases, style-kit source materials, slide families, export folder, whether render QA is required, and any PPTX template path. This skill needs no secrets by default. When setup is complete and the user confirms, write `app/.data/onboarding.json`:
-
-```json
-{
-  "completed": true,
-  "completed_at": "ISO timestamp",
-  "config_version": "1"
-}
-```
-
-## Local App
-
-Start the desk with:
-
-```bash
-skills/kelly-ppt-factory/app/start.sh
-```
-
-The app uses local HTTP on `127.0.0.1`, preferring ports `3000` through `4000`, or `KELLY_PPT_FACTORY_UI_PORT` when set. `/api/state` reports `app: "kelly-ppt-factory"`.
-
-Required app views:
-
-- `#/overview`: PPT factory dashboard — project/deck/slide totals, human attention summary, style-kit preview, recent review queue.
-- `#/projects`: project list — client/use case, stage, deck count, slide count, status.
-- `#/decks`: deck list — theme, level, slide counts, style score, PPTX/render paths.
-- `#/slides`: slide-card workbench — page objective, layout, copy, support layers, presenter notes, asset brief, style checks, QA flags.
-- `#/review`: review queue — workflow states (`needs_review` / `changes_requested` / `approved` / `generated` / `done` / `blocked`), stable refs, decision buttons, review note.
-- `#/style`: reusable style kit — palette, fonts, visual rules, layout rules, component library.
-- `#/exports`: generated output records — PPTX path, render path, QA summary.
-- `#/settings`: sanitized config — client profiles, style kits, export prefs, provider, onboarding state. Never expose secret values.
-
-Demo mode:
-
-- `?demo=overview`, `?demo=review`, `?demo=slides`, and `?demo=exports` open deterministic mock scenes for documentation and screenshots.
-- `lang=en` or `lang=zh` forces UI chrome language; with `lang=zh` the demo content is meaningfully localized.
-- Demo API responses never read or write files under `app/.data/`.
-
-## File Contract
-
-Read `references/ppt-factory-schema.md` before editing app files, scripts, or generated JSON.
-
-- `app/.data/ppt_factory_snapshot.json`: client profiles, style kits, projects, decks, slide cards, QA checks, exports, review items, metrics, activity log.
-- `app/.data/decisions.json`: user verdicts keyed by review id.
-- `app/.data/agent_tasks.json`: queued `revise_slide_card` or `revise_deck_plan` work for the agent.
-- `app/.data/execution_report.json`: latest executor results.
-- `app/.data/onboarding.json`: onboarding completion marker.
-- `app/.data/agent.lock`: temporary lock while the skill writes; review writes return HTTP 423 while it exists.
-
-Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
+A slide card or deck is "in the review queue" when it carries a non-empty
+`review-summary` (the agent's note on what needs a human look). The reviewer
+chooses `approve` / `request_changes` / `block` / `revise`; the decision and
+its resulting workflow `status` are written directly onto the slide card's
+or deck's own Busabase row (`app/app/js/providers/busabase-provider.js`'s
+`decideItem()`) — there is no separate decisions bucket, since Busabase
+reads are always live. From a standalone local preview the write merges
+immediately (trusted operator); from the deployed AirApp it creates a
+pending ChangeRequest for the trusted process to merge, per the AirApp
+boundary in `$busabase-app-creator`.
 
 ## PPT Factory Workflow
 
-1. Collect inputs: client style samples, old PPT screenshots/PPTX, briefs, outlines, source docs, target audience, deck count, page count, use case, and export deadline.
-2. Create or update the style kit first. Extract palette, fonts, slide families, image rules, component library, and density limits.
-3. Create projects and decks. One project is a client/use-case/theme batch; one deck is one PPTX deliverable.
-4. Draft slide cards before generating PPTX. Each card must include objective, layout, title/copy, support layers, presenter notes or interaction, asset brief, style checks, and QA flags.
-5. Send slide cards or whole decks to `#/review`. Only approved slide cards/decks should be generated.
-6. Generate PPTX with `node scripts/generate_pptx.ts --deck=<deck_id>` or a richer `pptx` skill pass.
-7. Render and visually QA the PPTX. Record QA evidence in the snapshot.
+1. Collect inputs: client style samples, old PPT screenshots/PPTX, briefs,
+   outlines, source docs, target audience, deck count, page count, use case,
+   and export deadline.
+2. Create or update the style kit first (`styleSystems`). Extract palette,
+   fonts, slide families, image rules, component library, and density
+   limits.
+3. Create projects and decks. One project is a client/use-case/theme batch;
+   one deck is one PPTX deliverable.
+4. Draft slide cards before generating PPTX. Each card must include
+   objective, layout, title/copy, support layers, presenter notes or
+   interaction, asset brief, style checks, and QA flags.
+5. Send slide cards or whole decks to `#/review`. Only a deck with a genuine
+   `approve` decision is generatable.
+6. Generate PPTX with `node scripts/generate_pptx.mjs --deck=<deck_id>` (the
+   real generation engine, using `pptxgenjs`) or a richer `pptx` skill pass.
+7. Render and visually QA the PPTX. Record QA evidence in `qaChecks`.
 8. Export completed PPTX paths and report exactly which files were written.
 
-## Useful Commands
+## Local App
+
+Default behavior is AirApp-first — give the user the clickable AirApp URL.
+Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+requested.
+
+## Views
+
+- `#/overview`: PPT factory dashboard — project/deck/slide totals, human
+  attention summary, style-kit preview, recent review queue.
+- `#/projects`: project list — client/use case, stage, deck count, slide
+  count, status.
+- `#/decks`: deck list — theme, level, slide counts, style score, PPTX/render
+  paths.
+- `#/slides`: slide-card workbench — page objective, layout, copy, support
+  layers, presenter notes, asset brief, style checks, QA flags.
+- `#/review`: review queue — workflow states (`needs_review` /
+  `changes_requested` / `approved` / `generated` / `done` / `blocked`),
+  decision buttons, review note.
+- `#/style`: reusable style kit — palette, fonts, visual rules, layout
+  rules, component library.
+- `#/exports`: generated output records — PPTX path, render path, QA
+  summary.
+- `#/settings`: sanitized config — default client profile, style default,
+  export prefs, onboarding state. Never expose secret values.
+
+## Demo Mode
+
+- `?demo=overview`, `?demo=projects`, `?demo=decks`, `?demo=slides`,
+  `?demo=review`, `?demo=style`, `?demo=exports`, `?demo=settings` open
+  deterministic mock scenes for documentation and screenshots. It never
+  reads or writes Busabase and never claims a real connection.
+- `lang=en` or `lang=zh` forces UI chrome language; with `lang=zh` the demo
+  content is meaningfully localized.
+
+## Trusted Scripts
 
 ```bash
-skills/kelly-ppt-factory/app/start.sh
-node skills/kelly-ppt-factory/scripts/generate_demo_snapshot.ts
-node skills/kelly-ppt-factory/scripts/validate_ui_schema.ts
-node skills/kelly-ppt-factory/scripts/generate_pptx.ts --deck=deck-seed-pitch
-node skills/kelly-ppt-factory/scripts/execute_decisions.ts --apply
+node skills/kelly-ppt-factory/scripts/generate_pptx.mjs --deck=<deck_id>
+node skills/kelly-ppt-factory/scripts/execute_decisions.mjs --apply
 ```
 
-## Safety Defaults
+Both connect with their own credentials (`BUSABASE_BASE_URL`,
+`BUSABASE_API_KEY`, `BUSABASE_SPACE_ID`), never the AirApp's ambient
+session. `generate_pptx.mjs` is the only script that writes an actual
+`.pptx` file (to `exports/`, gitignored) and is gated on a genuine
+`approve` decision. `execute_decisions.mjs` never generates a file or
+changes workflow status; it only records a planned follow-up.
 
-- Do not generate or deliver bulk PPTX directly from raw content without a slide-card review pass.
-- Do not shrink text to fit. Split the page or revise content.
-- Treat render QA as required for client-facing decks.
-- If style samples conflict, stop and ask which sample is canonical before scaling the system.
-- Keep local data minimal and ids stable so re-ingest and re-generation are idempotent.
+## Completion Criteria
+
+Finish only when:
+
+- the skill contains the complete canonical `app/` project and
+  `pnpm --dir app dev` remains supported;
+- all persistent config, state, and domain data use `busabase-sdk` and the
+  declared resource map — no local JSON, browser storage, or provider
+  choice;
+- Vault values and API credentials never reach browser-visible surfaces;
+- local setup offers Cloud/custom URL OAuth plus the explicit Demo path,
+  while a deployed AirApp uses its ambient session;
+- Overview, Projects, Decks, Slide cards, Review, Style, Exports, and
+  Settings render on desktop and phone widths;
+- `pnpm --dir app run check` and `node --test` pass.
+
+## Stop Conditions
+
+Stop before consequential Busabase mutation when the target Space is
+ambiguous, the current user lacks permission, or a same-slug resource is not
+application-owned. Never generate or deliver bulk PPTX directly from raw
+content without a slide-card review pass. Do not shrink text to fit — split
+the page or revise content. Treat render QA as required for client-facing
+decks. If style samples conflict, stop and ask which sample is canonical
+before scaling the system.

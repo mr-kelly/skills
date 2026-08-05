@@ -1,8 +1,14 @@
 # Kelly PPT Factory
 
-Kelly PPT Factory is a local App-in-Skill desk for producing many style-consistent PowerPoint decks. It turns a brief, source materials, and reference style into a managed workflow: project -> deck -> slide card -> review -> PPTX generation -> render QA -> export.
+Kelly PPT Factory is a Busabase-backed App-in-Skill desk for producing many
+style-consistent PowerPoint decks. It turns a brief, source materials, and
+reference style into a managed workflow: project -> deck -> slide card ->
+review -> PPTX generation -> render QA -> export.
 
-It is designed for repeatable deck production: pitch decks, sales decks, training materials, reports, proposals, courseware, or any workflow where the operator wants a reusable PPT style system and a visible approval queue before generation.
+It is designed for repeatable deck production: pitch decks, sales decks,
+training materials, reports, proposals, courseware, or any workflow where
+the operator wants a reusable PPT style system and a visible approval queue
+before generation.
 
 ## App UI Screenshots
 
@@ -41,38 +47,52 @@ It is designed for repeatable deck production: pitch decks, sales decks, trainin
 
 ## Workflow
 
-1. Configure the client, audience, style system, slide families, and export preferences.
+1. Configure the client, audience, style system, slide families, and export
+   preferences.
 2. Create projects and decks for each batch.
 3. Draft slide cards before generating any PPTX.
-4. Review slide cards and decks in the local UI.
-5. Generate PPTX from approved cards.
-6. Render and inspect the deck for overflow, crop, contrast, and style drift.
+4. Review slide cards and decks in the AirApp — approve / request changes /
+   block / revise.
+5. Generate PPTX from an approved deck with the trusted
+   `scripts/generate_pptx.mjs`.
+6. Render and inspect the deck for overflow, crop, contrast, and style
+   drift.
 7. Export final PPTX and QA records.
 
-## Run Locally
+## Demo Mode
+
+Run the app and open a safe, fully offline mock scene:
 
 ```bash
-skills/kelly-ppt-factory/app/start.sh
+pnpm --dir skills/kelly-ppt-factory/app dev
 ```
 
-Demo mode is deterministic and safe for screenshots:
+Use the printed local URL, then add one of these demo paths:
 
 ```text
-http://127.0.0.1:3000/?demo=overview#/overview
-http://127.0.0.1:3000/?demo=review#/review
-http://127.0.0.1:3000/?demo=slides#/slides/slide-why-now
-http://127.0.0.1:3000/?demo=exports#/exports
+/?demo=overview&lang=en#/overview
+/?demo=review&lang=en#/review
+/?demo=slides&lang=en#/slides
+/?demo=exports&lang=en#/exports
 ```
 
-Use `lang=zh` for Chinese screenshots. Demo mode never reads or writes files under `app/.data/`.
+Add `lang=zh` for the Chinese UI chrome. Demo mode is fully offline and
+never reads or writes Busabase.
 
-## Commands
+## Busabase Data
+
+The AirApp is Busabase-backed: projects, decks, slide cards, style systems,
+QA checks, exports, and settings all live in Busabase Bases declared in
+`app/app/js/config.js` (see `references/ppt-factory-schema.md`). Resources
+provision lazily on first run. There is no local file storage and no
+separate provider choice.
+
+## Trusted Scripts
 
 ```bash
-node skills/kelly-ppt-factory/scripts/generate_demo_snapshot.ts
-node skills/kelly-ppt-factory/scripts/validate_ui_schema.ts
-node skills/kelly-ppt-factory/scripts/generate_pptx.ts --deck=deck-seed-pitch
-node skills/kelly-ppt-factory/scripts/execute_decisions.ts --apply
+node skills/kelly-ppt-factory/scripts/generate_pptx.mjs --deck=<deck_id>
+node skills/kelly-ppt-factory/scripts/execute_decisions.mjs --apply
 ```
 
-Generated exports live under `skills/kelly-ppt-factory/exports/` by default and are gitignored.
+Generated exports live under `skills/kelly-ppt-factory/exports/` by default
+and are gitignored.
