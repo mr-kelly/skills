@@ -1,19 +1,27 @@
 ---
 name: kelly-legal-firm-radar
-description: Legal-firm radar App-in-Skill dashboard for anonymized casebase analytics, practice-area mix, case-quality indicators, lawyer capability profiles, brand proof points, and approval-gated management reports. Use when the user invokes $kelly-legal-firm-radar, mentions 律师画像, 律所经营分析, 业务布局分析, 案件质量评估, 专业人才梯队, 律师全息品牌, casebase analytics, law-firm management dashboard, or wants a local UI where partners review agent-prepared management insights before export.
+description: Legal-firm radar App-in-Skill (Busabase-backed) dashboard for anonymized casebase analytics, practice-area mix, case-quality indicators, lawyer capability profiles, brand proof points, and approval-gated management reports. Use when the user invokes $kelly-legal-firm-radar, mentions 律师画像, 律所经营分析, 业务布局分析, 案件质量评估, 专业人才梯队, 律师全息品牌, casebase analytics, law-firm management dashboard, or wants a Busabase-backed desk where partners review agent-prepared management insights before export.
 ---
 
 # Legal Firm Radar
 
 ## Overview
 
-Use this skill as a local App-in-Skill desk. It uses anonymized internal casebase metadata to prepare management insights: practice mix, local court outcomes, lawyer capability profiles, quality indicators, and approved brand or staffing reports.
+Use this skill as a Busabase Cloud App-in-Skill desk. It uses anonymized internal casebase metadata to prepare management insights: practice mix, local court outcomes, lawyer capability profiles, quality indicators, and approved brand or staffing reports. Reading raw casebase/practice-area/lawyer metrics is a genuine local-file operation a browser cannot perform: `scripts/import_metrics.mjs` is the only place a metric or insight enters the system. The AirApp itself only reads Busabase and writes review decisions (approve / request changes / revise / block); `scripts/execute_decisions.mjs` records the planned follow-up, and `scripts/export_management_report.mjs` is the only place an approved management report leaves the system.
 
-Default interaction mode: App UI. Unless the user explicitly asks for chat-only handling, check onboarding/config, refresh or generate the local snapshot, start or reuse the local app with `app/start.sh`, and give the actual local URL. Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present stable refs such as `Insight #1` and record verdicts in local decision files.
+Default behavior is AirApp-first. Unless the user explicitly asks only for explanation, import what's due and give the user the clickable AirApp URL (or the local preview URL when local preview is explicitly requested). Use chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar; in that mode present stable refs such as `Insight #1` and take verdicts in conversation.
 
 ## Business Role
 
 Use this as the partner review gate for firm-level analytics. It consumes anonymized casebase metadata and approved summaries to prepare practice mix, lawyer capability, quality, staffing, and brand proof insights with methodology notes. Do not use it for matter strategy, legal advice, raw document review, compensation decisions, or external marketing claims without separate approval.
+
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's local artifact and product contracts, stop before the unavailable Busabase operation, and report the exact missing dependency. Do not invent a second data backend.
 
 ## App UI Screenshots
 
@@ -34,62 +42,45 @@ Use this as the partner review gate for firm-level analytics. It consumes anonym
     <td><strong>Checks</strong><br>Analytics QA for anonymization, sample size, attribution, bias caveats, and external-use restrictions.</td>
     <td><strong>Workbench</strong><br>Detail pane for practice analytics, talent signals, quality indicators, and approved management report text.</td>
   </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/entities.webp" alt="Legal Firm Radar library"></td>
+  </tr>
+  <tr>
+    <td><strong>Library</strong><br>Practice-area and lawyer capability profile cards, grouped by review state.</td>
+  </tr>
 </table>
 
 ## Boundary
 
-- The skill reads user-authorized legal materials or metadata, reasons over them, drafts structured outputs, and writes local handoff files.
-- The app reads and writes local files only. It never files documents, sends client advice, contacts counterparties, changes a case system, publishes brand claims, or performs external side effects.
-- Every legal position, client-facing output, management report, external citation, filing step, or outbound message is approval-required and happens outside the app only after explicit human approval.
-- Treat legal work product, casebase data, client facts, personal data, trade secrets, and internal strategy as sensitive. Do not commit `config.local.json`, env files, `app/.data/`, exports, source documents, or privileged notes.
+- The AirApp reads and writes Busabase records only. It never files documents, sends client advice, contacts counterparties, changes a case system, publishes brand claims, or performs any other external side effect.
+- Importing metrics is a local-file-only operation: `scripts/import_metrics.mjs` reads a JSON payload file the agent prepares (from anonymized casebase/practice-area/lawyer metrics) and writes it to Busabase. It never fetches or reads a source casebase system itself.
+- Every legal position, client-facing output, management report, external citation, filing step, or outbound message is approval-required and happens outside the app only after explicit human approval; `scripts/execute_decisions.mjs` never performs the export or downstream handoff itself — it only writes an execution marker.
+- Treat legal work product, casebase data, client facts, personal data, trade secrets, and internal strategy as sensitive. Never commit local payload files, env files, or generated exports.
+
+## Busabase Resources
+
+Four Bases under one application Folder (`kelly-legal-firm-radar`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+
+- `items`: the management-insight workbench and review queue in one — practice mix/quality/talent/brand-proof analytics facts (sample size, reporting period, visibility, lawyer count, public-citable count, quality indicators), workflow status, and the human decision + execution marker on the same row.
+- `entities`: practice-area groupings and lawyer capability profile cards derived from anonymized casebase metadata — not raw case documents.
+- `checks`: deterministic analytics QA checks for anonymization, sample size, attribution, and unsupported claims, one row per check.
+- `settings`: one row (`record-id: "config"`) with the firm profile, analytics policy (anonymization/sample-size/external-brand-claim rules), practice taxonomy, optional outcome-trend series, and export preferences.
+
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/firm-radar-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`app/app/js/firm-radar-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last import/decision.
 
 ## First Run And Onboarding
 
-On invocation, check `app/.data/onboarding.json` and private config readiness. If onboarding is absent or incomplete, guide setup before doing real work.
+On invocation, check the `items` Base. If it is empty, guide setup before importing real metrics: ask, turn by turn, casebase metadata source, practice taxonomy and lawyer roster fields, allowed metrics for internal management versus external brand use, and management report export preferences. Write the answers onto the Settings row, then import:
 
-Private config priority:
-
-1. `KELLY_LEGAL_FIRM_RADAR_CONFIG=/absolute/path/to/config.json`
-2. `skills/kelly-legal-firm-radar/config.local.json`
-3. `~/.config/kelly-legal-firm-radar/config.json`
-4. `skills/kelly-legal-firm-radar/config.example.json` as template only
-
-Env priority:
-
-1. Existing environment variables
-2. `KELLY_LEGAL_FIRM_RADAR_ENV_FILE=/absolute/path/to/.env`
-3. Repository root `.env`
-4. `skills/kelly-legal-firm-radar/.env.local`
-5. `~/.config/kelly-legal-firm-radar/.env`
-
-Onboarding asks, turn by turn:
-
-- casebase metadata source
-- practice taxonomy and lawyer roster fields
-- allowed metrics for internal management versus external brand use
-- management report export preferences
-
-Never ask the user to paste secret values into chat. Secrets belong only in local env files. When setup is complete and the user confirms, write:
-
-```json
-{
-  "completed": true,
-  "completed_at": "ISO timestamp",
-  "config_version": "1"
-}
+```bash
+node skills/kelly-legal-firm-radar/scripts/import_metrics.mjs payload.json --apply
 ```
 
 ## Local App
 
-Start the desk with:
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
 
-```bash
-skills/kelly-legal-firm-radar/app/start.sh
-```
-
-The app uses local HTTP on `127.0.0.1`, preferring ports `3000` through `4000`, or `KELLY_LEGAL_FIRM_RADAR_UI_PORT` when set. `/api/state` reports `app: "kelly-legal-firm-radar"`.
-
-Required app views:
+Required app views (hash routes):
 
 - `#/overview`: firm analytics desk with practice mix, outcome trends, talent signals, and review queue.
 - `#/review`: approval queue for management insights, brand proof points, and staffing recommendations.
@@ -103,49 +94,43 @@ Demo mode:
 - `?demo=1` or `?demo=overview` opens deterministic mock legal data for documentation and testing.
 - `?demo=review`, `?demo=items`, `?demo=checks`, `?demo=entities`, and `?demo=detail` select named mock scenes.
 - `lang=en` or `lang=zh` forces UI chrome language.
-- Demo API responses never read or write files under `app/.data/`.
+- Demo mode never reads or writes Busabase. Decision buttons still render but act on in-memory state only.
 
-## File Contract
+## Import Workflow
 
-Read `references/firm-radar-schema.md` before editing the app, scripts, or generated JSON.
-
-- `app/.data/firm_radar_snapshot.json`: canonical snapshot with analytics cards, review items, checks, metrics, and activity log.
-- `app/.data/decisions.json`: reviewer verdicts keyed by review item id.
-- `app/.data/agent_tasks.json`: queued agent revision work from `request_changes` decisions.
-- `app/.data/execution_report.json`: dry-run/apply operations from approved decisions.
-- `app/.data/onboarding.json`: onboarding completion marker.
-- `app/.data/agent.lock`: temporary lock while the skill writes; write endpoints reject with HTTP 423 while it exists.
-
-Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
-
-## Inputs
-
-- anonymized casebase metadata and approved case summaries
-- lawyer roster and practice-area taxonomy
-- management questions such as business layout, quality review, or brand proof points
-- reporting period and visibility policy
-
-## Workflow
-
-1. Import anonymized metadata only: case type, court, outcome, lawyer/team, dates, and approved tags. Do not import raw confidential documents for management analytics.
+1. Collect anonymized metadata only: case type, court, outcome, lawyer/team, dates, and approved tags. Do not import raw confidential documents for management analytics.
 2. Prepare insight cards for business layout, quality review, talent planning, or brand proof points with methodology and caveats.
-3. Write or merge insight cards through scripts/import_metrics.ts, then validate with scripts/validate_ui_schema.ts.
-4. Send partners to #/review to approve, revise, request more data, or block insights before any report export.
-5. Run scripts/execute_decisions.ts and export approved reports with scripts/export_management_report.ts. External brand use needs separate explicit approval.
+3. Run the write path:
+
+```bash
+node skills/kelly-legal-firm-radar/scripts/import_metrics.mjs payload.json --apply
+```
+
+The script validates required fields and upserts entities/items/checks into Busabase by natural id, so re-imports are idempotent. Without `--apply` it is a dry run.
 
 ## Review Gates
 
 - Block or request changes when sample size is too small, anonymization is weak, methodology is unclear, lawyer attribution is unfair, or an external brand claim lacks public-citable proof.
 - Approve only when the report states period, sample size, taxonomy, caveats, visibility, and whether each proof point is internal-only or public-citable.
-- Export only approved or done reports. Keep internal management reports separate from external brand material unless partners explicitly approve the external use.
+- Export only genuinely approved reports (a real `decideItem` "approve" decision, not a spoofed import payload). Keep internal management reports separate from external brand material unless partners explicitly approve the external use.
+
+## Decisions And Execution Workflow
+
+1. The reviewer decides at `#/review` or the item workbench: approve, request changes (with a note), save an edited draft (revise), or block. Decisions write directly onto the item record. From a standalone local preview the write merges immediately (trusted operator); from the deployed AirApp it creates a pending ChangeRequest for the trusted process to merge.
+2. On explicit user request to execute, run `scripts/execute_decisions.mjs` (dry-run by default; `--apply` writes `execution-status: "ready_for_agent"` onto each decided item with the concrete operation — `export_management_report` (from `approve`) or `request_revision` (from `request_changes`) — and target). No external side effects either way; the item's workflow `status` never changes.
+3. The agent then performs the approved follow-up outside the app: for `export_management_report`, run `scripts/export_management_report.mjs`; for `request_revision`, redraft the insight per the review note and re-import.
+
+## Export Workflow
+
+1. `node skills/kelly-legal-firm-radar/scripts/export_management_report.mjs --out <dir>` reads items with a genuine human "approve" decision from Busabase and writes `approved-items.md`, `approved-items.json`, and `approved-items.csv` (default `exports/`, gitignored). Marks each exported item `status: "done"` in Busabase — this is the only write export performs, and it never happens for an item that merely has `status: "approved"` from a spoofed import payload without a real decision.
+2. External brand use happens only outside the app after explicit partner approval, through the user or a separate approved connector/skill.
+3. Keep exports out of git and report the concrete file paths.
 
 ## Scripts
 
-- `scripts/generate_demo_snapshot.ts`: write deterministic demo data into `app/.data/firm_radar_snapshot.json`.
-- `scripts/import_metrics.ts`: merge agent-prepared or imported domain payloads into the snapshot.
-- `scripts/validate_ui_schema.ts`: validate the local snapshot file contract.
-- `scripts/execute_decisions.ts [--apply]`: dry-run or apply approved reviewer decisions with no external side effects.
-- `scripts/export_management_report.ts --out <dir>`: export approved/done items as Markdown, JSON, and CSV handoff files.
+- `scripts/import_metrics.mjs [--apply]`: parse a JSON payload and upsert entities/items/checks into Busabase.
+- `scripts/execute_decisions.mjs [--apply]`: dry-run or apply a planned follow-up for approved/changes-requested items; never flips workflow status.
+- `scripts/export_management_report.mjs [--out <dir>]`: export genuinely approved items as Markdown, JSON, and CSV, and mark them done.
 
 ## Safety Defaults
 
@@ -153,3 +138,15 @@ Validate with `scripts/validate_ui_schema.ts` before relying on a snapshot.
 - Use anonymized metadata for analytics; keep client names, raw documents, private financials, and privileged notes out of the dashboard.
 - Treat talent, compensation, hiring, and external marketing claims as approval-required.
 - If metrics are incomplete or biased, mark the insight as needing more data rather than overstating conclusions.
+
+## Useful Commands
+
+```bash
+node skills/kelly-legal-firm-radar/scripts/import_metrics.mjs payload.json --apply
+node skills/kelly-legal-firm-radar/scripts/execute_decisions.mjs
+node skills/kelly-legal-firm-radar/scripts/execute_decisions.mjs --apply
+node skills/kelly-legal-firm-radar/scripts/export_management_report.mjs --out exports/
+pnpm --dir skills/kelly-legal-firm-radar/app dev
+```
+
+In normal use, invoke `/kelly-legal-firm-radar`, let the skill import what's due, and open the AirApp.

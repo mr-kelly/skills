@@ -3,18 +3,17 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Legal Firm Radar App-in-Skill local desk.",
+  "description": "Kelly Legal Firm Radar Busabase App-in-Skill and trusted import/execute/export scripts.",
   "scripts": {
-    "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts",
-    "demo": "node scripts/generate_demo_snapshot.ts",
-    "validate": "node scripts/validate_ui_schema.ts"
+    "import": "node scripts/import_metrics.mjs",
+    "execute": "node scripts/execute_decisions.mjs",
+    "export": "node scripts/export_management_report.mjs",
+    "app:check": "pnpm --dir app check"
   },
   "dependencies": {
-    "@hono/node-server": "^1.13.7",
-    "hono": "^4.6.14"
+    "busabase-sdk": "0.11.0"
   },
   "engines": {
-    "node": ">=23.6"
+    "node": ">=24.18.0"
   }
 }

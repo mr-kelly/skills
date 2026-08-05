@@ -1,6 +1,15 @@
 # Legal Firm Radar
 
-Uses anonymized internal casebase metadata to prepare management insights: practice mix, local court outcomes, lawyer capability profiles, quality indicators, and approved brand or staffing reports.
+Legal Firm Radar is a Busabase App-in-Skill firm-analytics desk over anonymized internal casebase metadata. The agent prepares management insights — practice mix, local court outcomes, lawyer capability profiles, quality indicators, and brand proof points; the human partner approves, revises, requests changes, or blocks every insight through the App-in-Skill review queue before it becomes an approved management report or brand handoff.
+
+## What It Shows
+
+- Overview: firm radar command desk with practice mix, outcome trends, talent signals, and review queue.
+- Workbench (`#/items`): management-insight methodology, evidence, suggested action, and visibility limits.
+- Review queue: approval-gated management insights with stable refs (`Insight #1`), evidence, review notes, and decision controls (approve / request changes / revise / block).
+- Checks: analytics QA checks for anonymization, sample size, attribution, and unsupported claims.
+- Library (`#/entities`): lawyer and practice-area profile cards from anonymized metadata.
+- Settings: sanitized firm profile, analytics policy, practice taxonomy, export preferences, and data-provider status.
 
 ## App UI Screenshots
 
@@ -25,21 +34,69 @@ Uses anonymized internal casebase metadata to prepare management insights: pract
     <td width="50%"><img src="assets/screenshots/entities.webp" alt="Legal Firm Radar library"></td>
   </tr>
   <tr>
-    <td><strong>Library</strong><br>Firm and entity library with competitor analytics, bucketed by review state.</td>
+    <td><strong>Library</strong><br>Practice-area and lawyer capability profile cards, grouped by review state.</td>
   </tr>
 </table>
 
-## Local App
+## Demo Mode
+
+Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-skills/kelly-legal-firm-radar/app/start.sh
+pnpm --dir skills/kelly-legal-firm-radar/app dev
 ```
 
-Views: overview, review queue, workbench, checks, entities, and settings. The app reads/writes local handoff files only.
+Then add one of these demo paths:
 
-## Safety
+```text
+/?demo=overview&lang=en#/overview
+/?demo=review&lang=en#/review
+/?demo=items&lang=en#/items
+/?demo=checks&lang=en#/checks
+/?demo=entities&lang=en#/entities
+/?demo=detail&lang=en
+```
 
-- Do not rank lawyers or publish brand claims from small samples without caveats and partner approval.
-- Use anonymized metadata for analytics; keep client names, raw documents, private financials, and privileged notes out of the dashboard.
-- Treat talent, compensation, hiring, and external marketing claims as approval-required.
-- If metrics are incomplete or biased, mark the insight as needing more data rather than overstating conclusions.
+Demo mode never reads or writes Busabase.
+
+## Payload Format
+
+`scripts/import_metrics.mjs` accepts a single item object or `{ "entities": [...], "items": [...], "checks": [...] }`:
+
+```json
+{
+  "items": [
+    {
+      "id": "insight-real-estate-growth",
+      "title": "Commercial lease dispute growth and staffing recommendation",
+      "category": "业务布局",
+      "status": "needs_review",
+      "owner": "Reviewer name",
+      "risk": ["management", "privacy"],
+      "summary": "One-paragraph review summary.",
+      "recommendation": "Approve for an internal briefing but drop win-rate language before any external use.",
+      "evidence": ["18 anonymized cases", "11 first-instance Shenzhen court samples"],
+      "fields": {
+        "sample_size": 18,
+        "period": "last_12_months",
+        "visibility": "internal_management",
+        "lawyer_count": 4,
+        "public_citable": 1,
+        "quality_indicators": ["Shenzhen first-instance sample concentration", "Reusable lease evidence checklist"]
+      }
+    }
+  ],
+  "entities": [{ "id": "profile-real-estate", "title": "Real estate and lease disputes", "summary": "..." }],
+  "checks": [{ "id": "chk-sample", "label": "Sample size", "status": "warn", "item_id": "insight-real-estate-growth" }]
+}
+```
+
+After importing, run `node scripts/execute_decisions.mjs --apply` once a reviewer has decided, and `node scripts/export_management_report.mjs --out <dir>` to export genuinely approved insights as Markdown + JSON + CSV. See `references/firm-radar-schema.md` for the full Busabase field contract.
+
+## Busabase Setup
+
+Legal Firm Radar provisions its own Folder and four Bases (`items`, `entities`, `checks`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
+
+## Boundary
+
+The AirApp reads and writes Busabase only — it never files documents, sends client advice, contacts counterparties, publishes brand claims, or performs other external side effects. Every management report, external citation, or outbound message is approval-required and happens outside the app only after explicit human approval. Importing metrics and exporting approved reports are local-file operations performed by the trusted `scripts/*.mjs` scripts, never by the browser. Never commit local payload files, env files, or generated exports (`exports/` is gitignored).

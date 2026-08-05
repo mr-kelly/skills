@@ -1,0 +1,17 @@
+{
+  "appId": "kelly-legal-firm-radar",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-legal-firm-radar"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "items", "slug": "kelly-legal-firm-radar-items-v1", "schemaVersion": 1 },
+    { "key": "entities", "slug": "kelly-legal-firm-radar-entities-v1", "schemaVersion": 1 },
+    { "key": "checks", "slug": "kelly-legal-firm-radar-checks-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-legal-firm-radar-settings-v1", "schemaVersion": 1 }
+  ]
+}
