@@ -1,4 +1,6 @@
 import { messages } from "./i18n/messages.js";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
   run: null,
@@ -111,50 +113,26 @@ function setRoute() {
 }
 
 async function loadState() {
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  if (state.lang) params.set("lang", state.lang);
-  const res = await fetch(`/api/state?${params}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`State request failed: ${res.status}`);
-  const data = await res.json();
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
   state.run = data.run;
   state.release = data.release_decision;
   state.settings = data;
+  window.dispatchEvent(new CustomEvent("kelly-agent-eval:state", { detail: data }));
   render();
 }
 
 async function submitReview(id, action, note) {
-  const res = await fetch("/api/review", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ id, action, note }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Review failed: ${res.status}`);
-  }
-  const data = await res.json();
-  state.run = data.run;
-  state.release = data.release_decision;
-  state.settings = data;
-  render();
+  const provider = await getProvider();
+  await provider.decideCase({ case_id: id, action, note });
+  await loadState();
 }
 
 async function submitReleaseDecision(decision, note) {
-  const res = await fetch("/api/release-decision", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ decision, note }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Release decision failed: ${res.status}`);
-  }
-  const data = await res.json();
-  state.run = data.run;
-  state.release = data.release_decision;
-  state.settings = data;
-  render();
+  const provider = await getProvider();
+  await provider.decideRelease({ decision, note });
+  await loadState();
 }
 
 function applyI18n() {
@@ -552,7 +530,7 @@ function renderSettings() {
       <section>
         <h2>${t("configuration")}</h2>
         <dl>
-          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "local")}</dd>
+          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "busabase")}</dd>
           <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
           <dt>${t("teamName")}</dt><dd>${escapeHtml(summary.team_name || "")}</dd>
           <dt>${t("baselineVersion")}</dt><dd>${escapeHtml(summary.baseline_version || "")}</dd>
@@ -611,10 +589,26 @@ els.language.value = state.lang;
 els.language.addEventListener("change", () => {
   state.lang = normalizeLang(els.language.value);
   localStorage.setItem("kelly-agent-eval-language", state.lang);
-  loadState().catch((error) => alert(error.message));
+  if (state.demo) {
+    loadState().catch((error) => alert(error.message));
+    return;
+  }
+  render();
 });
 
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+  } catch (error) {
+    if (String(error?.message || error).startsWith("SETUP_")) {
+      renderSetupRequired(error, boot);
+      return;
+    }
+    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+  }
+}
+
 syncResponsiveShell();
-loadState().catch((error) => {
-  els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-});
+boot();

@@ -1,6 +1,6 @@
 # Agent Eval & Regression Board
 
-Agent Eval & Regression Board is a local, file-backed App-in-Skill for teams
+Agent Eval & Regression Board is a Busabase App-in-Skill review board for teams
 shipping multiple LLM-agent workflows who need to catch quality regressions
 before a release. It runs a fixed suite of ~18 mock test cases against a
 **baseline** agent version and a **candidate** agent version, scores every
@@ -10,8 +10,8 @@ surfaces every case where the candidate scored meaningfully lower as a
 
 The rubric scores are deterministic mock values presented as if produced by an
 eval rubric — this is **not** a real LLM-judge call, and the app never
-deploys, publishes, or modifies anything. It only reads and writes local
-handoff files.
+deploys, publishes, or modifies anything. It only reads and writes Busabase
+records.
 
 ## What It Shows
 
@@ -29,10 +29,10 @@ handoff files.
   state, and the accent-color picker.
 
 Human actions — marking a regression blocking/acceptable with a note, and the
-overall approve/block release decision — are written to local handoff files
-(`app/.data/decisions.json`, `app/.data/release_decision.json`). A separate
-export script merges everything into `app/.data/release_report.json` and
-refuses to run while any regression is still undecided.
+overall approve/block release decision — write directly onto the `cases` /
+`settings` Busabase records (see `references/eval-schema.md`). A separate
+trusted export script merges everything into a local `release_report.json`
+handoff file and refuses to run while any regression is still undecided.
 
 ## App UI Screenshots
 
@@ -63,10 +63,10 @@ refuses to run while any regression is still undecided.
 
 ## Demo Mode
 
-Run the app and open a safe, fully offline mock scene:
+Start the local preview and open a safe, fully offline mock scene:
 
 ```bash
-skills/kelly-agent-eval/app/start.sh
+pnpm --dir skills/kelly-agent-eval/app dev
 ```
 
 Use the URL printed by the launcher, then add a demo path:
@@ -78,23 +78,36 @@ Use the URL printed by the launcher, then add a demo path:
 /?demo=1&lang=zh#/overview
 ```
 
-Demo mode never reads or writes `app/.data/` — it generates the same
+Demo mode never reads or writes Busabase — it generates the same
 deterministic mock suite in memory (with case titles/categories localized for
 `lang=zh`) purely for documentation and screenshots.
 
-## Local Workflow
+## Trusted Scripts
 
 ```bash
-skills/kelly-agent-eval/app/start.sh          # installs deps, generates the run if missing, starts the app
-node scripts/generate_eval_run.ts             # regenerate the fixed mock suite (clears prior decisions)
-node scripts/validate_ui_schema.ts            # validate app/.data/eval_run.json
-node scripts/export_release_report.ts         # merge run + decisions + release verdict into release_report.json
+node skills/kelly-agent-eval/scripts/generate_eval_run.mjs --apply     # (re)seed the fixed mock suite into Busabase, clearing prior decisions
+node skills/kelly-agent-eval/scripts/export_release_report.mjs --apply # merge cases + release verdict into a local release_report.json
 ```
+
+Both scripts are dry runs by default (print what they would do) and connect
+with their own Busabase credentials (`BUSABASE_BASE_URL`, `BUSABASE_API_KEY`,
+`BUSABASE_SPACE_ID`), never the AirApp's ambient session. `generate_eval_run.mjs`
+accepts `--team`, `--baseline`, `--candidate`, `--min-pass-rate`, and
+`--allow-blocking-release` to set the team/version/policy settings row; any
+flag left unset keeps the existing value, falling back to the documented
+defaults on first run. See `references/eval-schema.md`.
 
 ## Private Config
 
-Copy `config.example.json` to `config.local.json` or
-`~/.config/kelly-agent-eval/config.json` to set your team name, baseline/
-candidate version labels, and release policy (minimum candidate pass rate).
-There are no credentials — this skill never calls an external system. Never
-commit `config.local.json` or files under `app/.data/`.
+Team name, baseline/candidate version labels, and release policy (minimum
+candidate pass rate, whether a blocking regression blocks an "approve"
+release) live on the `settings` Base's `config` row in Busabase — set them
+via `scripts/generate_eval_run.mjs --team ... --baseline ... --candidate ...`.
+There are no credentials for the AirApp itself — this skill never calls an
+external system.
+
+## Boundary
+
+The AirApp reads and writes Busabase records only; it never deploys,
+publishes, or modifies anything outside its own two Bases. Rubric scores are
+deterministic mock values, never a real LLM-judge call.

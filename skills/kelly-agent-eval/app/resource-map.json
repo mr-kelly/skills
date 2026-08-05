@@ -1,0 +1,15 @@
+{
+  "appId": "kelly-agent-eval",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-agent-eval"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "cases", "slug": "kelly-agent-eval-cases-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-agent-eval-settings-v1", "schemaVersion": 1 }
+  ]
+}
