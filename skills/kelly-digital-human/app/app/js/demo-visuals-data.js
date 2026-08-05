@@ -1,15 +1,11 @@
-type DemoVisual = {
-  id: string;
-  title: string;
-  caption: string;
-  kind: string;
-  alt: string;
-  src: string;
-  image: string;
-  image_url: string;
-  simulated: true;
-};
-
+// Synthetic placeholder images for screenshot/demo tooling, ported verbatim
+// (same VISUAL_DEFS, same motif() SVG paths, same helper order) from the
+// retired app/server/demo-visuals.ts. Pure string generation, no network or
+// storage -- safe to run in the browser. The retired version's Hono
+// middleware (withDemoVisuals/attachDemoVisuals) is dropped: that existed
+// only to splice demo_visuals into a server-rendered JSON response, which no
+// longer exists now that demo-provider.js builds the payload directly (see
+// its getState()).
 const SKILL_NAME = "kelly-digital-human";
 const ACCENTS = ["#0ea5e9", "#8b5cf6"];
 const VISUAL_DEFS = [
@@ -33,24 +29,14 @@ const VISUAL_DEFS = [
   },
 ];
 
-function queryValue(query: unknown, key: string): string {
-  if (query instanceof URLSearchParams) return query.get(key) || "";
-  const value = (query as Record<string, unknown> | undefined)?.[key];
-  return Array.isArray(value) ? String(value[0] || "") : String(value || "");
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
-}
-
-function escapeXml(value: unknown): string {
+function escapeXml(value) {
   return String(value ?? "").replace(
     /[&<>"]/g,
     (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch] || ch,
   );
 }
 
-function motif(kind: string, accent: string, secondary: string): string {
+function motif(kind, accent, secondary) {
   if (kind === "mobile") {
     return `<rect x="368" y="74" width="264" height="392" rx="36" fill="#111827"/><rect x="388" y="112" width="224" height="310" rx="18" fill="#f8fafc"/><rect x="410" y="138" width="94" height="16" rx="8" fill="${accent}"/><rect x="410" y="174" width="168" height="46" rx="14" fill="#e2e8f0"/><rect x="456" y="240" width="122" height="46" rx="14" fill="${secondary}"/><rect x="410" y="306" width="178" height="72" rx="18" fill="#dbeafe"/><circle cx="500" cy="444" r="10" fill="#f8fafc"/>`;
   }
@@ -73,7 +59,7 @@ function motif(kind: string, accent: string, secondary: string): string {
     return `<rect x="142" y="82" width="300" height="348" rx="26" fill="#f8fafc"/><circle cx="292" cy="188" r="72" fill="${accent}"/><rect x="204" y="292" width="176" height="24" rx="12" fill="#cbd5e1"/><rect x="224" y="332" width="136" height="18" rx="9" fill="#e2e8f0"/><rect x="500" y="108" width="314" height="52" rx="16" fill="${secondary}"/><rect x="500" y="194" width="314" height="34" rx="12" fill="#e2e8f0"/><rect x="500" y="252" width="250" height="34" rx="12" fill="#e2e8f0"/><rect x="500" y="310" width="286" height="34" rx="12" fill="#e2e8f0"/>`;
   }
   if (kind === "receipt") {
-    return `<rect x="258" y="56" width="444" height="420" rx="18" fill="#f8fafc"/><path d="M258 56 h444 v420 l-34 -18 -34 18 -34 -18 -34 18 -34 -18 -34 18 -34 -18 -34 18 -34 -18 -34 18 -34 -18 -34 18 -34 -18 -34 18z" fill="#f8fafc"/><rect x="314" y="116" width="220" height="28" rx="10" fill="${accent}"/><rect x="314" y="184" width="330" height="18" rx="9" fill="#cbd5e1"/><rect x="314" y="228" width="298" height="18" rx="9" fill="#cbd5e1"/><rect x="314" y="272" width="330" height="18" rx="9" fill="#cbd5e1"/><rect x="314" y="348" width="170" height="34" rx="12" fill="${secondary}"/>`;
+    return `<rect x="258" y="56" width="444" height="420" rx="18" fill="#f8fafc"/><path d="M258 56 h444 v420 l-34 -18 -34 18 -34 -18 -34 18 -34 -18 -34 18 -34 -18 -34 18 -34 -18 -34 18 -34 -18 -34 18z" fill="#f8fafc"/><rect x="314" y="116" width="220" height="28" rx="10" fill="${accent}"/><rect x="314" y="184" width="330" height="18" rx="9" fill="#cbd5e1"/><rect x="314" y="228" width="298" height="18" rx="9" fill="#cbd5e1"/><rect x="314" y="272" width="330" height="18" rx="9" fill="#cbd5e1"/><rect x="314" y="348" width="170" height="34" rx="12" fill="${secondary}"/>`;
   }
   if (kind === "sheet") {
     return `<rect x="84" y="84" width="792" height="352" rx="22" fill="#f8fafc"/><rect x="84" y="84" width="792" height="54" rx="22" fill="${accent}"/><g stroke="#cbd5e1" stroke-width="3"><line x1="84" y1="190" x2="876" y2="190"/><line x1="84" y1="242" x2="876" y2="242"/><line x1="84" y1="294" x2="876" y2="294"/><line x1="84" y1="346" x2="876" y2="346"/><line x1="260" y1="138" x2="260" y2="436"/><line x1="444" y1="138" x2="444" y2="436"/><line x1="628" y1="138" x2="628" y2="436"/></g><rect x="294" y="210" width="104" height="18" rx="9" fill="${secondary}"/><rect x="662" y="314" width="128" height="18" rx="9" fill="${accent}"/>`;
@@ -84,7 +70,7 @@ function motif(kind: string, accent: string, secondary: string): string {
   return `<rect x="238" y="64" width="484" height="400" rx="22" fill="#f8fafc"/><rect x="292" y="126" width="256" height="30" rx="12" fill="${accent}"/><rect x="292" y="206" width="360" height="18" rx="9" fill="#cbd5e1"/><rect x="292" y="252" width="316" height="18" rx="9" fill="#cbd5e1"/><rect x="292" y="298" width="338" height="18" rx="9" fill="#cbd5e1"/><rect x="292" y="368" width="188" height="34" rx="12" fill="${secondary}"/>`;
 }
 
-function visualSvg(title: string, caption: string, kind: string, index: number): string {
+function visualSvg(title, caption, kind, index) {
   const accent = ACCENTS[index % ACCENTS.length] || "#2563eb";
   const secondary = ACCENTS[(index + 1) % ACCENTS.length] || "#0f766e";
   const safeTitle = escapeXml(title);
@@ -98,12 +84,11 @@ function visualSvg(title: string, caption: string, kind: string, index: number):
 </svg>`;
 }
 
-function imageDataUrl(title: string, caption: string, kind: string, index: number): string {
+function imageDataUrl(title, caption, kind, index) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(visualSvg(title, caption, kind, index))}`;
 }
 
-export function demoVisualsForApp(appName = SKILL_NAME, query: unknown = {}): DemoVisual[] {
-  const lang = queryValue(query, "lang").toLowerCase();
+export function demoVisualsForApp(appName = SKILL_NAME) {
   const displayApp = appName || SKILL_NAME;
   return VISUAL_DEFS.map((item, index) => {
     const src = imageDataUrl(item.title, item.caption, item.kind, index);
@@ -119,72 +104,4 @@ export function demoVisualsForApp(appName = SKILL_NAME, query: unknown = {}): De
       simulated: true,
     };
   });
-}
-
-function appNameFrom(payload: Record<string, unknown>): string {
-  const snapshot = isRecord(payload.snapshot) ? payload.snapshot : {};
-  return String(payload.app || snapshot.app || SKILL_NAME);
-}
-
-function looksLikeDemoPayload(payload: Record<string, unknown>): boolean {
-  const snapshot = isRecord(payload.snapshot) ? payload.snapshot : {};
-  const batch = isRecord(payload.batch) ? payload.batch : {};
-  return (
-    payload.demo === true ||
-    payload.data_provider === "demo" ||
-    String(payload.demo_scenario || "") !== "" ||
-    String(snapshot.source || "").includes("demo") ||
-    String(batch.batch_id || "").includes("demo") ||
-    String(batch.extractor && isRecord(batch.extractor) ? batch.extractor.name : "").includes("demo")
-  );
-}
-
-function wantsDemoVisuals(query: unknown, payload: Record<string, unknown>): boolean {
-  return Boolean(queryValue(query, "demo") || queryValue(query, "demo_visuals") || looksLikeDemoPayload(payload));
-}
-
-function attachToNested(payload: Record<string, unknown>, visuals: DemoVisual[]): void {
-  payload.demo_visuals = visuals;
-  for (const key of ["snapshot", "project", "batch"]) {
-    const target = payload[key];
-    if (isRecord(target)) target.demo_visuals = visuals;
-  }
-}
-
-export function withDemoVisuals(payload: unknown, query: unknown = {}): unknown {
-  if (!isRecord(payload) || !wantsDemoVisuals(query, payload)) return payload;
-  const visuals = demoVisualsForApp(appNameFrom(payload), query);
-  attachToNested(payload, visuals);
-  return payload;
-}
-
-function requestQuery(c: any): Record<string, string | string[]> {
-  try {
-    if (typeof c.req?.query === "function") return c.req.query();
-  } catch {}
-  try {
-    return Object.fromEntries(new URL(c.req.url).searchParams.entries());
-  } catch {
-    return {};
-  }
-}
-
-export async function attachDemoVisuals(c: any, next: () => Promise<void>): Promise<void> {
-  await next();
-  const response = c.res;
-  const contentType = response?.headers?.get("content-type") || "";
-  if (!contentType.includes("application/json")) return;
-  let payload: unknown;
-  try {
-    payload = await response.clone().json();
-  } catch {
-    return;
-  }
-  const query = requestQuery(c);
-  const augmented = withDemoVisuals(payload, query);
-  if (augmented === payload && (!isRecord(payload) || !wantsDemoVisuals(query, payload))) return;
-  const headers = new Headers(response.headers);
-  headers.set("content-type", "application/json; charset=utf-8");
-  headers.set("cache-control", "no-store");
-  c.res = new Response(JSON.stringify(augmented), { status: response.status, headers });
 }

@@ -1,3 +1,5 @@
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { bindContentEvents, renderReview, renderSettings, renderStudio, renderVendors } from "./js/studio-views.js";
 const messages = {
   en: {
@@ -59,14 +61,14 @@ const messages = {
     cost: "Cost",
     risks: "Risks",
     architecture: "Reference architecture",
-    localFilesOnly: "Local files only. No vendor upload, no camera, no microphone, and no external side effect.",
+    localFilesOnly:
+      "Reads and writes go straight to Busabase. No vendor upload, no camera, no microphone, and no other external side effect.",
     configuration: "Configuration",
     dataProvider: "Data provider",
-    handoffFiles: "Handoff files",
+    handoffFiles: "Busabase resources",
     safety: "Safety boundary",
-    demoNotice: "Demo mode: no local files were changed.",
-    lockedNotice: "An agent is writing to this data right now. Review actions are disabled until it finishes.",
-    saved: "Saved locally.",
+    demoNotice: "Demo mode: this is a read-only tour, nothing was saved.",
+    saved: "Saved.",
     search: "Search",
     empty: "No matching items.",
   },
@@ -129,14 +131,13 @@ const messages = {
     cost: "成本",
     risks: "风险",
     architecture: "参考架构",
-    localFilesOnly: "只读写本地文件。不上传服务商，不调用摄像头/麦克风，不产生外部副作用。",
+    localFilesOnly: "读写直接通过 Busabase 完成。不上传服务商，不调用摄像头/麦克风，无其他外部副作用。",
     configuration: "配置",
     dataProvider: "数据源",
-    handoffFiles: "交接文件",
+    handoffFiles: "Busabase 资源",
     safety: "安全边界",
-    demoNotice: "Demo 模式：没有改动本地文件。",
-    lockedNotice: "Agent 正在写入数据，审核操作暂时不可用，请稍后再试。",
-    saved: "已保存到本地。",
+    demoNotice: "Demo 模式：这是只读演示，没有保存任何内容。",
+    saved: "已保存。",
     search: "搜索",
     empty: "没有匹配项。",
   },
@@ -151,8 +152,9 @@ export const state = {
   selectedId: "",
   edits: {},
   notice: "",
+  busy: false,
   lang: new URLSearchParams(location.search).get("lang") === "zh" ? "zh" : "en",
-  demo: new URLSearchParams(location.search).get("demo") || "",
+  demo: new URLSearchParams(location.search).has("demo"),
 };
 
 export const streamStore = {
@@ -241,13 +243,13 @@ function syncResponsiveShell() {
 }
 
 async function loadState() {
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  if (state.lang) params.set("lang", state.lang);
-  const response = await fetch(`/api/state?${params}`, { cache: "no-store" });
-  state.settings = await response.json();
-  state.snapshot = state.settings.snapshot;
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
+  state.settings = data;
+  state.snapshot = data.snapshot;
   if (!state.selectedId) state.selectedId = filteredChecks()[0]?.id || state.snapshot?.qa_checks?.[0]?.id || "";
+  window.dispatchEvent(new CustomEvent("kelly-digital-human:state", { detail: data }));
   render();
   startAnimation();
 }
@@ -264,7 +266,7 @@ function applyI18n() {
 }
 
 export function decisionFor(id) {
-  return state.settings?.decisions?.decisions?.[id] || null;
+  return state.settings?.decisions?.[id] || null;
 }
 
 export function effectiveStatus(check) {
@@ -373,12 +375,8 @@ export function noticeBanner() {
   return state.notice ? `<div class="notice-banner">${esc(state.notice)}</div>` : "";
 }
 
-export function isLocked() {
-  return Boolean(state.settings?.locked);
-}
-
-export function lockBanner() {
-  return isLocked() ? `<div class="notice-banner">${esc(t("lockedNotice"))}</div>` : "";
+export function isBusy() {
+  return Boolean(state.busy);
 }
 
 function metric(label, value, percent) {
@@ -461,29 +459,25 @@ function pipelineCaption(stage) {
 
 export async function submitDecision(checkId, action, card) {
   const note = card.querySelector('[data-field="note"]')?.value || "";
-  if (state.settings?.demo) {
+  if (state.demo) {
     state.notice = t("demoNotice");
     render();
     return;
   }
-  if (isLocked()) {
-    state.notice = t("lockedNotice");
+  state.busy = true;
+  render();
+  try {
+    const provider = await getProvider();
+    await provider.saveDecision(checkId, action, note);
+    delete state.edits[checkId];
+    state.notice = t("saved");
+    await loadState();
+  } catch (error) {
+    state.notice = `Decision failed: ${error?.message || error}`;
     render();
-    return;
+  } finally {
+    state.busy = false;
   }
-  const response = await fetch("/api/decision", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ check_id: checkId, action, note }),
-  });
-  if (!response.ok) {
-    state.notice = `Decision failed: ${response.status}`;
-    render();
-    return;
-  }
-  delete state.edits[checkId];
-  state.notice = t("saved");
-  await loadState();
 }
 
 function startAnimation() {
@@ -555,4 +549,19 @@ els.language.addEventListener("change", () => {
 });
 
 syncResponsiveShell();
-await loadState();
+
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+  } catch (error) {
+    if (String(error?.message || error).startsWith("SETUP_")) {
+      renderSetupRequired(error, boot);
+      return;
+    }
+    els.content.innerHTML = `<div class="empty-inline">${esc(error.message || error)}</div>`;
+  }
+}
+
+boot();

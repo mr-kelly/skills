@@ -4,9 +4,8 @@ import {
   els,
   esc,
   filteredChecks,
-  isLocked,
+  isBusy,
   isMobileLayout,
-  lockBanner,
   noticeBanner,
   pathLabel,
   selectedCheck,
@@ -26,7 +25,6 @@ export function renderReview() {
   els.subtitle.textContent = t("reviewSubtitle");
   els.content.innerHTML = `
     ${noticeBanner()}
-    ${lockBanner()}
     <div class="review-layout">
       <section class="list-panel">
         <div class="list-head">
@@ -78,9 +76,9 @@ function renderCheckDetail(check) {
       <textarea data-field="note" rows="5" placeholder="${esc(t("notePlaceholder"))}">${esc(note)}</textarea>
     </section>
     <footer class="detail-actions">
-      <button class="approve" type="button" data-action="approve" ${isLocked() ? "disabled" : ""}>${t("approve")}</button>
-      <button type="button" data-action="request_changes" ${isLocked() ? "disabled" : ""}>${t("requestChanges")}</button>
-      <button class="danger" type="button" data-action="block" ${isLocked() ? "disabled" : ""}>${t("block")}</button>
+      <button class="approve" type="button" data-action="approve" ${isBusy() ? "disabled" : ""}>${t("approve")}</button>
+      <button type="button" data-action="request_changes" ${isBusy() ? "disabled" : ""}>${t("requestChanges")}</button>
+      <button class="danger" type="button" data-action="block" ${isBusy() ? "disabled" : ""}>${t("block")}</button>
     </footer>
     ${
       decision
@@ -277,8 +275,8 @@ export function renderSettings() {
       <section class="panel">
         <h2>${t("configuration")}</h2>
         <dl class="settings-list">
-          <dt>${t("dataProvider")}</dt><dd>local</dd>
-          <dt>${t("handoffFiles")}</dt><dd>app/.data/digital_human_snapshot.json<br>app/.data/decisions.json<br>app/.data/agent.lock</dd>
+          <dt>${t("dataProvider")}</dt><dd>${esc(state.settings?.data_provider || "")}</dd>
+          <dt>${t("handoffFiles")}</dt><dd>qa-decisions</dd>
           <dt>${t("currentPath")}</dt><dd>${pathLabel(state.snapshot.project.recommended_path)}</dd>
         </dl>
       </section>
@@ -301,6 +299,11 @@ export function bindContentEvents() {
       state.selectedId = button.dataset.select;
       if (isMobileLayout()) document.body.classList.add("mobile-detail-open");
       renderReview();
+      // renderReview() replaces #content's innerHTML, including the detail
+      // card -- rebind so the newly rendered note field / decision buttons
+      // are interactive (otherwise only the check selected at the last full
+      // render() has working listeners).
+      bindContentEvents();
     });
   });
   document.querySelector("[data-back]")?.addEventListener("click", () => {

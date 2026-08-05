@@ -7,34 +7,73 @@ description: "Digital-human implementation and demo skill for choosing, prototyp
 
 ## Overview
 
-Use this skill as Kelly's digital-human solution desk. It helps pick the right path, draft the integration plan, prepare scripts and QA gates, and open a local multimodal demo showing voice/text input, avatar rendering, lip-sync/video stream status, latency, and launch readiness.
+Kelly Digital Human is a Busabase Cloud App-in-Skill. Its canonical product
+surface is the AirApp in Busabase, not a separate local-data product. The same
+Hono source supports an explicitly requested local preview with OAuth
+connection bootstrap. It is Kelly's digital-human solution desk: pick the
+right path, review the vendor/architecture comparison, and run the launch QA
+gate before a real provider or engine build.
 
-Default to the local demo app when the user asks for a demo, prototype, vendor comparison, or "快上线". Use chat-only mode only when the user explicitly says "chat only", "纯聊天", "不要打开 UI", or similar.
+This skill is mostly curated reference content, not per-user data: the
+project overview, personas, pipeline routes, vendor comparison, and QA
+checklist itself are fixed (ported from the retired local app's demo
+dataset -- there was never a script or route that wrote different content).
+The one genuinely dynamic piece is the human verdict on each QA gate check
+(approve / request changes / block, with a note) -- that decision is written
+directly onto its own Busabase record, the same direct-field-write pattern
+`kelly-clm`'s approval queue uses. There is no separate decisions-log bucket.
 
 ## Two Implementation Paths
 
 ### 1. 2D photoreal digital human, low cost and fast launch
 
-Use this when the goal is an online demo, customer-service agent, product explainer, training host, livestream assistant, or any scene where speed and cost matter more than fully custom body motion.
+Use this when the goal is an online demo, customer-service agent, product
+explainer, training host, livestream assistant, or any scene where speed and
+cost matter more than fully custom body motion.
 
 Operating model:
 
-- Connect an existing digital-human service, for example Silicon Intelligence, Tencent Zhiying, ZEGO-style real-time avatar/RTC providers, or another vendor the user already has access to.
+- Connect an existing digital-human service, for example Silicon
+  Intelligence, Tencent Zhiying, ZEGO-style real-time avatar/RTC providers, or
+  another vendor the user already has access to.
 - Send text or a speech/audio stream into the service.
 - Receive a rendered video stream or clip with lip-sync and facial motion.
-- Keep all business logic, script review, safety wording, telemetry, and QA gates in Kelly's local workflow.
-- Best first milestone: one approved persona, one scene, one voice, one Chinese and one English demo script, one web demo page, and a latency/quality dashboard.
+- Keep all business logic, script review, safety wording, telemetry, and QA
+  gates in Kelly's local workflow.
+- Best first milestone: one approved persona, one scene, one voice, one
+  Chinese and one English demo script, one web demo page, and a
+  latency/quality dashboard.
 
 ### 2. 3D custom digital human, high freedom
 
-Use this when the brand needs a custom character, proprietary body motion, special clothing, stylized art direction, a stage/event scene, game-like interactivity, or reusable UE/Unity assets.
+Use this when the brand needs a custom character, proprietary body motion,
+special clothing, stylized art direction, a stage/event scene, game-like
+interactivity, or reusable UE/Unity assets.
 
 Operating model:
 
 - Use UE or Unity as the renderer.
-- Drive face, lip-sync, gaze, and body motion through a digital-human driving layer.
-- Treat the engine project as the final render surface; this skill owns the solution design, persona bible, QA checklist, demo script, and launch decision.
-- Best first milestone: one hero character, one calibrated voice, three production motions, one camera scene, and an executable or web-streamed demo.
+- Drive face, lip-sync, gaze, and body motion through a digital-human driving
+  layer.
+- Treat the engine project as the final render surface; this skill owns the
+  solution design, persona bible, QA checklist, demo script, and launch
+  decision.
+- Best first milestone: one hero character, one calibrated voice, three
+  production motions, one camera scene, and an executable or web-streamed
+  demo.
+
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
+   quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery,
+   ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
+   runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's artifact and product
+contracts, stop before the unavailable Busabase operation, and report the
+exact missing dependency. Do not invent a second data backend.
 
 ## App UI Screenshots
 
@@ -59,60 +98,114 @@ Operating model:
 
 ## Default Workflow
 
-1. Clarify the target scene: sales demo, AI host, customer support, livestream, training, product onboarding, event screen, or brand character.
+1. Clarify the target scene: sales demo, AI host, customer support,
+   livestream, training, product onboarding, event screen, or brand
+   character.
 2. Choose the path:
-   - choose **2D** when "低成本", "快上线", "先 demo", "真人感", "视频流", "语音驱动", or "客服/讲解员" is the priority.
-   - choose **3D** when "专属形象", "品牌 IP", "动作自由度", "UE", "Unity", "舞台", "互动", or "长期资产" is the priority.
-3. Open the local app with `app/start.sh` and use demo mode to show the concept before any vendor contract or engine work.
-4. Draft the persona bible: appearance, voice, tone, forbidden claims, supported languages, scene background, fallback lines, and consent requirements.
+   - choose **2D** when "低成本", "快上线", "先 demo", "真人感", "视频流",
+     "语音驱动", or "客服/讲解员" is the priority.
+   - choose **3D** when "专属形象", "品牌 IP", "动作自由度", "UE", "Unity",
+     "舞台", "互动", or "长期资产" is the priority.
+3. Open the AirApp (or `pnpm --dir app dev` for local preview) and use demo
+   mode (`?demo=1`) to show the concept before any vendor contract or engine
+   work.
+4. Draft the persona bible: appearance, voice, tone, forbidden claims,
+   supported languages, scene background, fallback lines, and consent
+   requirements.
 5. Draft the multimodal pipeline:
    - input: text, uploaded audio, live mic, or TTS output from another skill.
-   - cognition: LLM reply, retrieval answer, scripted explainer, or support macro.
+   - cognition: LLM reply, retrieval answer, scripted explainer, or support
+     macro.
    - voice: TTS or user-supplied audio.
    - renderer: 2D vendor service or UE/Unity.
    - transport: video clip, WebRTC/RTC stream, HLS, or embedded player.
-6. Create QA gates for lip sync, latency, identity consistency, pronunciation, unsafe content, disclosure, fallback, and device performance.
-7. Do not execute external calls, purchase vendor plans, upload identity assets, or stream live user audio unless the user explicitly approves that step.
+6. Walk the `#/qa` review queue and record approve / request changes / block
+   per check, with a note, for lip sync, latency, identity consistency,
+   pronunciation, unsafe content, disclosure, fallback, and device
+   performance.
+7. Do not execute external calls, purchase vendor plans, upload identity
+   assets, or stream live user audio unless the user explicitly approves that
+   step.
 
-## Local Demo
+## Boundary
 
-Start the demo:
+- This skill never calls Silicon Intelligence, Tencent Zhiying, ZEGO, UE,
+  Unity, TTS, STT, a camera, a microphone, or any other external model or
+  vendor API. It is a solution desk and QA gate, not a live rendering
+  pipeline.
+- Treat face images, voice samples, customer conversations, support
+  transcripts, and brand scripts as sensitive. Never upload identity assets,
+  voice samples, or live audio to a vendor without explicit approval.
+- Always include a visible or spoken AI disclosure in customer-facing
+  experiences unless the user has a legally reviewed policy saying otherwise.
+- For production, require a human approval gate before public launch and
+  before any live customer support flow.
+- Keep demo data, vendor credentials, SDK tokens, recordings, and generated
+  clips out of git. Use demo data for screenshots.
 
-```bash
-skills/kelly-digital-human/app/start.sh
-```
+## Busabase Resources
 
-The app prefers `127.0.0.1:3240`, falls through to the next free port, and honors `KELLY_DIGITAL_HUMAN_UI_PORT`.
+One Base under one application Folder (`kelly-digital-human`), declared in
+`app/app/js/config.js` and `app/resource-map.json`:
 
-Demo routes:
+- `qa-decisions`: one row per launch-QA-check decision, keyed by the curated
+  check id (`lip-sync`, `latency`, `ai-disclosure`, `voice-consent`,
+  `script-safety`, `fallback`, `privacy`, `mobile`). A row only exists once a
+  human has decided on that check. The project overview, personas, pipeline
+  routes, vendor comparison, and the QA checklist's own labels/owners/evidence
+  are curated reference content ported into
+  `app/app/js/digital-human-model.js` -- they are not stored in Busabase
+  because nothing in the retired local app ever made them editable.
 
-- `/?demo=overview#/overview`: path selection and readiness.
-- `/?demo=studio#/studio`: live multimodal avatar stream.
-- `/?demo=vendors#/vendors`: vendor and architecture comparison.
-- `/?demo=qa#/qa`: launch QA gate.
-- add `lang=zh` for Chinese UI chrome.
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space.
 
-The demo is deterministic and local. It does not call Silicon Intelligence, Tencent Zhiying, ZEGO, UE, Unity, TTS, STT, camera, microphone, or any external model. It simulates the stream so the concept can be reviewed safely.
+## Views
 
-## Safety Boundary
+- `#/overview`: recommended path, readiness score, latency/lip-sync/stability
+  metrics, and the primary pipeline.
+- `#/qa`: launch QA review queue; approve / request changes / block writes
+  the decision directly onto the check's Busabase record.
+- `#/studio`: simulated multimodal stream -- avatar, waveform, persona/route
+  selectors, route latency, and stream events. Entirely client-side; no
+  camera, microphone, or vendor call.
+- `#/vendors`: vendor and architecture comparison table plus reference
+  pipeline diagram.
+- `#/settings`: data provider, Busabase resources, and the safety boundary.
 
-- Treat face images, voice samples, customer conversations, support transcripts, and brand scripts as sensitive.
-- Never upload identity assets, voice samples, or live audio to a vendor without explicit approval.
-- Always include a visible or spoken AI disclosure in customer-facing experiences unless the user has a legally reviewed policy saying otherwise.
-- Keep demo data, vendor credentials, SDK tokens, recordings, and generated clips out of git. Store local-only state under `app/.data/`.
-- For production, require a human approval gate before public launch and before any live customer support flow.
+## Demo Mode
 
-## When To Read References
+- `?demo=1` opens a deterministic, fully offline tour of the same curated
+  project/persona/pipeline/vendor/QA content used in real mode. It never
+  reads or writes Busabase. A decision action in demo mode only shows a
+  notice ("Demo mode: this is a read-only tour, nothing was saved.") -- it
+  never applies, matching the retired local app's demo behavior.
+- `lang=en` or `lang=zh` forces UI chrome language for screenshots.
 
-- Read `references/digital-human-schema.md` before editing app JSON, validation scripts, or handoff files.
+## Local App
 
-## Useful Commands
+Default behavior is AirApp-first — give the user the clickable AirApp URL.
+Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+requested.
 
-```bash
-skills/kelly-digital-human/app/start.sh
-node skills/kelly-digital-human/scripts/generate_demo_snapshot.ts
-node skills/kelly-digital-human/scripts/validate_ui_schema.ts
-```
-## Execution reports
+## Completion Criteria
 
-Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.
+Finish only when:
+
+- the skill contains the complete canonical `app/` project and
+  `pnpm --dir app dev` remains supported;
+- all persistent state uses `busabase-sdk` and the declared resource map — no
+  local JSON, browser storage, or provider choice;
+- Vault values and API credentials never reach browser-visible surfaces;
+- local setup offers Cloud/custom URL OAuth plus the explicit Demo path,
+  while a deployed AirApp uses its ambient session;
+- Overview, QA review, Studio, Vendors, and Help & Settings render on desktop
+  and phone widths;
+- `pnpm --dir app run check` and `node --test` pass.
+
+## Stop Conditions
+
+Stop before consequential Busabase mutation when the target Space is
+ambiguous, the current user lacks permission, or a same-slug resource is not
+application-owned. Never call a real digital-human vendor, engine, TTS/STT
+service, camera, or microphone from the AirApp.

@@ -25,8 +25,13 @@ Digital-human implementation and demo desk for choosing between a fast 2D servic
 
 ## Run
 
+This is a Busabase Cloud App-in-Skill. The AirApp is the canonical surface; a
+local preview is available for explicit debugging:
+
 ```bash
-skills/kelly-digital-human/app/start.sh
+pnpm --dir skills/kelly-digital-human/app dev
 ```
 
-Views: overview, studio, vendors, and QA. Demo mode is local and deterministic; it does not call external digital-human providers or engines.
+Views: overview, QA review queue, studio, vendors, and settings. `?demo=1`
+opens a deterministic, fully offline tour that never calls Busabase or any
+external digital-human provider or engine.

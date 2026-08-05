@@ -1,0 +1,12 @@
+{
+  "appId": "kelly-digital-human",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-digital-human"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [{ "key": "qa-decisions", "slug": "kelly-digital-human-qa-decisions-v1", "schemaVersion": 1 }]
+}
