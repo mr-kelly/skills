@@ -4,7 +4,10 @@ import { store } from "./store.js";
 export function providerStatus() {
   const status = store.state.provider_status || {};
   const provider =
-    status.provider || store.state.email_accounts?.data_provider || store.state.email_accounts?.data_reader || "busabase";
+    status.provider ||
+    store.state.email_accounts?.data_provider ||
+    store.state.email_accounts?.data_reader ||
+    "busabase";
   return {
     ...status,
     provider,

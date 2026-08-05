@@ -6,10 +6,10 @@ import { withRuntimeRequest } from "../lib/runtime-context.ts";
 import { updateDetail, updateItems } from "./decisions.ts";
 import { attachDemoVisuals } from "./demo-visuals.ts";
 import { demoDecisionResponse, demoStatePayload, isDemoQuery } from "./demo.ts";
+import { installLocalBusabaseAuth } from "./local-auth.js";
 import { lockPayload } from "./lock.ts";
 import { APP_DIR } from "./paths.ts";
 import { statePayload } from "./state.ts";
-import { installLocalBusabaseAuth } from "./local-auth.js";
 
 // The AirApp server forwards its ambient Busabase session to busabase-sdk.
 

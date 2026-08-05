@@ -43,9 +43,10 @@ const localGateShell = (title, body, footer = "") => `
 
 const renderLocalConnection = (status) => {
   const oauthError = new URLSearchParams(window.location.search).get("oauth_error");
-  showLocalGate(localGateShell(
-    t("local.connect.title"),
-    `<form class="busabase-config-form" method="post" action="/auth/start">
+  showLocalGate(
+    localGateShell(
+      t("local.connect.title"),
+      `<form class="busabase-config-form" method="post" action="/auth/start">
       ${oauthError ? `<div class="local-setup-error" role="alert">${escapeHtml(oauthError)}</div>` : ""}
       ${status.expired ? `<div class="local-setup-error">${escapeHtml(t("local.connect.expired"))}</div>` : ""}
       <p>${escapeHtml(t("local.connect.body"))}</p>
@@ -57,8 +58,9 @@ const renderLocalConnection = (status) => {
       <input type="hidden" name="base_url" value="${escapeHtml(status.cloudBaseUrl || "https://busabase.com")}">
       <button type="submit" class="primary">${escapeHtml(t("local.connect.action"))}</button>
     </form>`,
-    `<span>${escapeHtml(t("local.connect.security"))}</span><a href="?demo=1">${escapeHtml(t("local.demo"))}</a>`,
-  ));
+      `<span>${escapeHtml(t("local.connect.security"))}</span><a href="?demo=1">${escapeHtml(t("local.demo"))}</a>`,
+    ),
+  );
   const form = document.querySelector(".busabase-config-form");
   const baseUrl = form.querySelector('input[name="base_url"]');
   const customRow = form.querySelector(".local-custom-url");
@@ -66,32 +68,38 @@ const renderLocalConnection = (status) => {
   form.querySelectorAll('input[name="server_mode"]').forEach((radio) => {
     radio.addEventListener("change", () => {
       const custom = radio.checked && radio.value === "custom";
-      form.querySelectorAll(".provider-choice-card").forEach((card) =>
-        card.classList.toggle("active", card.querySelector("input")?.checked),
-      );
+      form
+        .querySelectorAll(".provider-choice-card")
+        .forEach((card) => card.classList.toggle("active", card.querySelector("input")?.checked));
       customRow.classList.toggle("is-hidden", !custom);
       customInput.required = custom;
       baseUrl.value = custom ? customInput.value : status.cloudBaseUrl || "https://busabase.com";
       if (custom) customInput.focus();
     });
   });
-  customInput.addEventListener("input", () => { baseUrl.value = customInput.value; });
+  customInput.addEventListener("input", () => {
+    baseUrl.value = customInput.value;
+  });
 };
 
 const renderLocalSpaceSelector = (status) => {
   const options = status.spaces
-    .map((space) => `<option value="${escapeHtml(space.id)}">${escapeHtml(space.name)} · ${escapeHtml(space.id)}</option>`)
+    .map(
+      (space) => `<option value="${escapeHtml(space.id)}">${escapeHtml(space.name)} · ${escapeHtml(space.id)}</option>`,
+    )
     .join("");
-  showLocalGate(localGateShell(
-    t("local.space.title"),
-    `<form class="busabase-config-form" data-space-form>
+  showLocalGate(
+    localGateShell(
+      t("local.space.title"),
+      `<form class="busabase-config-form" data-space-form>
       <p>${escapeHtml(t("local.space.body", { server: status.baseUrl }))}</p>
       <label class="field-row"><span>Space</span><select class="field-input" name="space_id" required>${options}</select></label>
       <div class="local-setup-error is-hidden" data-space-error></div>
       <button type="submit" class="primary">${escapeHtml(t("local.space.action"))}</button>
     </form>`,
-    `<span>${escapeHtml(t("local.space.security"))}</span><a href="?demo=1">${escapeHtml(t("local.demo"))}</a>`,
-  ));
+      `<span>${escapeHtml(t("local.space.security"))}</span><a href="?demo=1">${escapeHtml(t("local.demo"))}</a>`,
+    ),
+  );
   document.querySelector("[data-space-form]").addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -117,7 +125,9 @@ const renderLocalSpaceSelector = (status) => {
 
 export async function ensureLocalBusabaseConnection() {
   if (store.params.has("demo") || !isStandaloneLocalPreview()) return true;
-  const status = await fetch("/auth/status", { headers: { accept: "application/json" } }).then((response) => response.json());
+  const status = await fetch("/auth/status", { headers: { accept: "application/json" } }).then((response) =>
+    response.json(),
+  );
   if (!status.connected) {
     renderLocalConnection(status);
     return false;
@@ -135,7 +145,7 @@ export function setupPrompt() {
   const status = providerStatus();
   const missing = setup.missing_env || [];
   if (status.ok === false) {
-    return `Open Kelly Email in the selected Busabase Space and initialize the declared resources.`;
+    return "Open Kelly Email in the selected Busabase Space and initialize the declared resources.";
   }
   if (missing.length) {
     return `Add the referenced mailbox secrets to Busabase Vault namespace kelly-email: ${missing.join(", ")}.`;
@@ -153,10 +163,18 @@ export function setupChecklistHtml() {
     [t("setup.check.connection"), status.ok !== false, connectionStatusText(status)],
     [t("setup.check.folder"), Boolean(connection.folder_exists), status.folder_slug || "kelly-email"],
     [t("setup.check.base"), Boolean(connection.base_exists), status.base_id || "kelly-email-reviews-v3"],
-    [t("setup.check.contacts"), Boolean(connection.contacts_base_exists), status.contacts_base_id || "kelly-email-contacts-v3"],
+    [
+      t("setup.check.contacts"),
+      Boolean(connection.contacts_base_exists),
+      status.contacts_base_id || "kelly-email-contacts-v3",
+    ],
     ["Settings Base", Boolean(connection.settings_base_exists), status.settings_base_id || "kelly-email-settings-v3"],
     [t("setup.check.drive"), Boolean(connection.drive_exists), status.drive_slug || "kelly-email-files-v3"],
-    [t("setup.check.config"), Boolean(onboarding.has_config), setup.recommended_config || "busabase:base/kelly-email-settings-v3"],
+    [
+      t("setup.check.config"),
+      Boolean(onboarding.has_config),
+      setup.recommended_config || "busabase:base/kelly-email-settings-v3",
+    ],
     [
       t("setup.check.secrets"),
       Boolean(onboarding.has_config && missingSecrets.length === 0),
@@ -164,13 +182,15 @@ export function setupChecklistHtml() {
     ],
   ];
   return rows
-    .map(([label, ok, detail]) => `
+    .map(
+      ([label, ok, detail]) => `
       <div class="setup-check">
         <span class="env-pill ${ok ? "ok" : "warn"}">${escapeHtml(ok ? t("setup.ready") : t("setup.todo"))}</span>
         <strong>${escapeHtml(label)}</strong>
         <small>${escapeHtml(detail || "")}</small>
       </div>
-    `)
+    `,
+    )
     .join("");
 }
 

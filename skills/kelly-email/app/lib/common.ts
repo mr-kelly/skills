@@ -1,17 +1,7 @@
 import { createHash } from "node:crypto";
 import { join } from "node:path";
-import {
-  createProvider,
-  loadConfig,
-  loadConfigWithMeta,
-  loadDotenv,
-  onboardingStatus,
-} from "./data-provider/index.ts";
-import {
-  APP_DIR,
-  ROOT_DIR,
-  SKILL_DIR,
-} from "./paths.ts";
+import { createProvider, loadConfig, loadConfigWithMeta, loadDotenv, onboardingStatus } from "./data-provider/index.ts";
+import { APP_DIR, ROOT_DIR, SKILL_DIR } from "./paths.ts";
 import type { Attachment, Brand, Config, ReviewItem } from "./types.ts";
 
 export const SCRIPTS_DIR = join(SKILL_DIR, "scripts");
@@ -20,12 +10,7 @@ export { APP_DIR, SKILL_DIR };
 
 export const CLASSIFICATION_PIPELINE_VERSION = "2026-06-16-app-in-skill-v2-node";
 
-export {
-  loadConfig,
-  loadConfigWithMeta,
-  loadDotenv,
-  onboardingStatus,
-};
+export { loadConfig, loadConfigWithMeta, loadDotenv, onboardingStatus };
 
 export function utcNow() {
   return new Date().toISOString();

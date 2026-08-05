@@ -78,9 +78,7 @@ export async function statePayload(query: StateQuery = {}) {
   const providerSelected = true;
   const setupState = providerUnavailable ? "provider_not_ready" : onboarding.state || "ready";
   const recommendedConfig =
-    onboarding.recommended_config ||
-    configMeta.recommended_config ||
-    "busabase:base/kelly-email-settings-v3";
+    onboarding.recommended_config || configMeta.recommended_config || "busabase:base/kelly-email-settings-v3";
   const recommendedEnv =
     onboarding.recommended_env ||
     configMeta.recommended_env ||

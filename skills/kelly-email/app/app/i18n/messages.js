@@ -115,8 +115,7 @@ export const I18N = {
     "setup.ready_title": "Kelly Email",
     "setup.state.needs_config":
       "Add a kelly-email-config record to Email Settings, then add the referenced secret values to Busabase Vault before scanning mail.",
-    "setup.state.missing_secrets":
-      "Configuration is present, but one or more required Vault references are not ready.",
+    "setup.state.missing_secrets": "Configuration is present, but one or more required Vault references are not ready.",
     "setup.state.ready": "Configuration is ready.",
     "setup.busabase.connected": "Connected to Busabase.",
     "setup.prompt_title": "Suggested prompt",
@@ -141,7 +140,8 @@ export const I18N = {
     "local.connect.security": "OAuth credentials stay in ~/.busabase/airapps",
     "local.demo": "Open read-only Demo",
     "local.space.title": "Choose Busabase Space",
-    "local.space.body": "Authentication to {server} is complete. Choose where Kelly Email should read and initialize resources.",
+    "local.space.body":
+      "Authentication to {server} is complete. Choose where Kelly Email should read and initialize resources.",
     "local.space.action": "Use this Space",
     "local.space.security": "Resources are not inspected or initialized until you confirm.",
     "local.space.error": "Could not select Space.",
@@ -436,8 +436,7 @@ export const I18N = {
     "theme.graphite": "石墨色",
     "config.title": "配置",
     "config.recommended": "Busabase 资源：",
-    "config.reader":
-      "Kelly Email 把配置和结构化审核状态放在 Base、文件资料放在 Drive、密钥值放在 Busabase Vault。",
+    "config.reader": "Kelly Email 把配置和结构化审核状态放在 Base、文件资料放在 Drive、密钥值放在 Busabase Vault。",
     "config.json":
       "Email Settings 保存账号、别名、身份、用户资料、品牌、官方链接、知识来源、风格、CTA 链接、风险关键词和 Vault 引用。",
     "provider.banner.title": "工作区未就绪",
@@ -505,8 +504,7 @@ export const I18N = {
     "bulk.more_label": "更多",
     "bulk.more_placeholder": "选择决策",
     "bulk.more_aria": "更多批量决策",
-    "bulk.approve.tooltip":
-      "为所选项目提交当前方案的 Busabase 变更请求。/kelly-email 真正碰邮箱前仍会做最终安全检查。",
+    "bulk.approve.tooltip": "为所选项目提交当前方案的 Busabase 变更请求。/kelly-email 真正碰邮箱前仍会做最终安全检查。",
     "bulk.review.tooltip": "把所选邮件交回 /kelly-email 等待人工查看；不会执行邮箱操作。",
     "bulk.no_action.tooltip": "在这个批次里记录所选邮件无需操作。",
     "detail.approve.tooltip": "批准这封邮件的建议方案。这只写入审核决定；/kelly-email 执行前仍会做安全检查。",

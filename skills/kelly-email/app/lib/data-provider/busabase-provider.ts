@@ -1,17 +1,11 @@
 import { appConfig } from "../../app/js/config.js";
-import type { Batch, Config, ConfigWithMeta } from "../types.ts";
 import { isAirAppRequest } from "../runtime-context.ts";
+import type { Batch, Config, ConfigWithMeta } from "../types.ts";
 import { createBusabaseClient } from "./busabase-client.ts";
 import { rowsFromContactsBatch } from "./email-contacts.ts";
 import { batchFromEmailRecords, emailRecordId, reviewItemToEmailRecordFields } from "./email-records.ts";
 import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
-import {
-  applyDetailUpdate,
-  applyItemsDecision,
-  decisionsFromBatch,
-  normalizeBatch,
-  utcNow,
-} from "./provider-utils.ts";
+import { applyDetailUpdate, applyItemsDecision, decisionsFromBatch, normalizeBatch, utcNow } from "./provider-utils.ts";
 
 const CONFIG_RECORD_ID = "kelly-email-config";
 const LOCK_RECORD_ID = "kelly-email-lock";
@@ -273,7 +267,12 @@ export function createBusabaseProvider() {
 
     async writeExecutionReport(batch: Batch, report: Record<string, unknown>, stamp = "") {
       await this.init();
-      const reportStamp = stamp || new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
+      const reportStamp =
+        stamp ||
+        new Date()
+          .toISOString()
+          .replace(/[-:T.Z]/g, "")
+          .slice(0, 14);
       const recordId = `execution-report-${batch.batch_id}-${reportStamp}`;
       const write = await (await client()).upsertRecord(
         recordId,
@@ -311,7 +310,9 @@ export function createBusabaseProvider() {
         const filename = String(attachment.filename || `attachment-${index + 1}.bin`).replaceAll("/", "-");
         const contentType = String(attachment.contentType || attachment.content_type || "application/octet-stream");
         const content = attachment.content;
-        const base64 = Buffer.isBuffer(content) ? content.toString("base64") : Buffer.from(String(content || "")).toString("base64");
+        const base64 = Buffer.isBuffer(content)
+          ? content.toString("base64")
+          : Buffer.from(String(content || "")).toString("base64");
         const pathname = `attachments/${batchId}/${itemId}/${filename}`;
         const write = await busabase.writeDriveFile(
           pathname,
@@ -332,7 +333,8 @@ export function createBusabaseProvider() {
         });
       }
       let html = htmlBody || "";
-      for (const [contentId, url] of cidUrls) html = html.replaceAll(`cid:${contentId}`, url).replaceAll(`CID:${contentId}`, url);
+      for (const [contentId, url] of cidUrls)
+        html = html.replaceAll(`cid:${contentId}`, url).replaceAll(`CID:${contentId}`, url);
       return { html, attachments: saved };
     },
 
@@ -407,7 +409,11 @@ export function createBusabaseProvider() {
     async ensureSchema(options: { apply?: boolean } = {}) {
       const busabase = await client();
       const resources = options.apply ? await busabase.provisionResources() : await busabase.inspectResources();
-      return { ok: Boolean(resources.folder && !resources.missing.length && resources.drive), resources, applied: Boolean(options.apply) };
+      return {
+        ok: Boolean(resources.folder && !resources.missing.length && resources.drive),
+        resources,
+        applied: Boolean(options.apply),
+      };
     },
 
     async verifyConnection() {

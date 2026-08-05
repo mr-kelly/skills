@@ -1,14 +1,10 @@
+import { createBusabaseOAuthRequest, exchangeBusabaseOAuthCode, parseBusabaseOAuthCallback } from "busabase-sdk/oauth";
 import {
   getBusabaseAirAppAccessToken,
   loadBusabaseAirAppOAuthCredential,
   revokeBusabaseAirAppOAuthCredential,
   storeBusabaseAirAppOAuthCredential,
 } from "busabase-sdk/oauth-node";
-import {
-  createBusabaseOAuthRequest,
-  exchangeBusabaseOAuthCode,
-  parseBusabaseOAuthCallback,
-} from "busabase-sdk/oauth";
 
 const CLOUD_BASE_URL = "https://busabase.com";
 const AIRAPP_CLIENT_ID = "busabase-airapp";
@@ -19,7 +15,10 @@ export function installLocalBusabaseAuth(app, { appId }) {
   const requestOrigin = (context) => new URL(context.req.url).origin;
 
   const normalizeBaseUrl = (raw) => {
-    const withoutApi = String(raw || CLOUD_BASE_URL).trim().replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+    const withoutApi = String(raw || CLOUD_BASE_URL)
+      .trim()
+      .replace(/\/+$/, "")
+      .replace(/\/api\/v1$/, "");
     const url = new URL(withoutApi);
     if (url.username || url.password || url.search || url.hash || (url.pathname !== "/" && url.pathname !== "")) {
       throw new Error("Busabase URL must be a server origin without credentials, query, or path.");
@@ -208,7 +207,8 @@ export function installLocalBusabaseAuth(app, { appId }) {
       const value = context.req.header(name);
       if (value) headers.set(name, value);
     }
-    const spaceId = process.env.BUSABASE_SPACE_ID || cookieValue(context, spaceCookie) || context.req.header("x-busabase-space");
+    const spaceId =
+      process.env.BUSABASE_SPACE_ID || cookieValue(context, spaceCookie) || context.req.header("x-busabase-space");
     if (!spaceId) return context.json({ error: "Busabase Space selection required" }, 409);
     headers.set("x-busabase-space", spaceId);
     if (target.accessToken) headers.set("authorization", `Bearer ${target.accessToken}`);

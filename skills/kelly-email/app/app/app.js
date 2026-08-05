@@ -7,12 +7,7 @@ import { activeHelpTab, closeHelp, isHelpOpen, openHelp, setHelpTab } from "./js
 import { applyTranslations, onLanguageChange, setLanguageMode, t } from "./js/i18n.js";
 import { decide, refresh, renderBulkActions, renderCounts, renderDetail, renderList } from "./js/list-detail.js";
 import { applyRouteFromHash, navigateTo, registerRouterHooks, syncRoute } from "./js/router.js";
-import {
-  applyProviderGate,
-  copySetupPrompt,
-  ensureLocalBusabaseConnection,
-  registerSetupHooks,
-} from "./js/setup.js";
+import { applyProviderGate, copySetupPrompt, ensureLocalBusabaseConnection, registerSetupHooks } from "./js/setup.js";
 import {
   applyLockState,
   closeDetailActionMenu,
