@@ -1,6 +1,6 @@
 # Kelly Tickets
 
-Kelly Tickets is a local App-in-Skill triage-and-dispatch desk for complaints and service requests. Intake arrives scattered across WeChat group exports, phone-call logs, front-desk forms, and email; the agent classifies each item, proposes a dispatch (crew, priority, SLA), and the human approves in a quiet review queue while a board tracks tickets to resolution.
+Kelly Tickets is a Busabase App-in-Skill triage-and-dispatch desk for complaints and service requests. Intake arrives scattered across WeChat group exports, phone-call logs, front-desk forms, and email; `scripts/ingest_intake.mjs` writes normalized rows into Busabase, the agent classifies each item and proposes a dispatch (crew, priority, SLA) via `scripts/apply_triage.mjs`, and the human approves in a quiet review queue while a board tracks tickets to resolution. `scripts/execute_decisions.mjs` prints the crew-notification plan for approved dispatches — the AirApp itself never sends a message or mutates a remote system.
 
 ## What It Shows
 
@@ -8,7 +8,7 @@ Kelly Tickets is a local App-in-Skill triage-and-dispatch desk for complaints an
 - Intake: the raw complaint stream with channel badges, urgency guesses, and triage state; detail views allow reclassifying, converting to a ticket, or ignoring.
 - Dispatch: the review queue (`needs_review / changes_requested / approved / done / blocked`) with stable refs like `Dispatch #1`, editable notes to the crew, and approve / request changes / block actions.
 - Board: tickets grouped by `open / assigned / in_progress / waiting / resolved` with age and color-coded SLA indicators; ticket detail shows the full auditable history timeline and a resolution note field.
-- Help & Settings: sanitized property profile, channels, categories, crews with contact-env readiness, and SLA rules.
+- Help & Settings: sanitized property profile, channels, categories, crews with `contact_env` names, and SLA rules, read live off Busabase.
 
 ## App UI Screenshots
 
@@ -33,10 +33,10 @@ Kelly Tickets is a local App-in-Skill triage-and-dispatch desk for complaints an
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene ("Riverside Gardens", a 3-building residential property):
+Start the local preview and open a safe mock-data scene ("Riverside Gardens", a 3-building residential property):
 
 ```bash
-skills/kelly-tickets/app/start.sh
+pnpm --dir skills/kelly-tickets/app dev
 ```
 
 Use the URL printed by the launcher, then add one of these demo paths:
@@ -49,14 +49,14 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=detail&lang=en#/board/T-1001
 ```
 
-Use `lang=zh` for Chinese screenshots — the demo content itself (小区名、投诉内容、班组、派单理由) is localized, e.g. `/?demo=dispatch&lang=zh#/dispatch`. Demo mode never reads or writes `app/.data/` or private config.
+Use `lang=zh` for Chinese screenshots — the demo content itself (小区名、投诉内容、班组、派单理由) is meaningfully localized, e.g. `/?demo=dispatch&lang=zh#/dispatch`. Demo mode never reads or writes Busabase and never persists decisions.
 
-## Intake Payload Format
+## Ingest And Triage
 
-The agent parses each channel export into a payload and runs the single write path:
+`scripts/ingest_intake.mjs` accepts a payload JSON file (`{ source, items: [] }`) and dedupes against the Intake Base by `channel + external_id` (falling back to a content hash):
 
 ```bash
-node skills/kelly-tickets/scripts/ingest_intake.ts payload.json
+node skills/kelly-tickets/scripts/ingest_intake.mjs payload.json --apply
 ```
 
 ```json
@@ -80,12 +80,12 @@ node skills/kelly-tickets/scripts/ingest_intake.ts payload.json
 }
 ```
 
-Items are deduped by `channel + external_id` (falling back to a content hash), and contacts are masked before they reach the snapshot. Classification and dispatch proposals merge through `scripts/apply_triage.ts` (SLA targets computed from config rules); approved dispatches become a concrete plan via `scripts/execute_decisions.ts` (dry-run by default). See `references/tickets-schema.md`.
+Contacts are masked before they reach Busabase. Classification and dispatch proposals merge through `node skills/kelly-tickets/scripts/apply_triage.mjs payload.json --apply` (SLA targets computed from the Settings row's `sla_rules`); approved dispatches become a concrete plan via `node skills/kelly-tickets/scripts/execute_decisions.mjs --apply` (dry-run by default). All three scripts are dry runs by default. See `references/tickets-schema.md`.
 
 ## Private Config
 
-Copy `config.example.json` to `config.local.json` or `~/.config/kelly-tickets/config.json` and describe your property, categories, crews, SLA rules, and channels. Crew contacts are env-var references (`contact_env`) only — put the values in local env files. Never commit real contacts, raw channel exports, or files under `app/.data/`.
+Property profile, categories, crews, SLA rules, and channels live on the Settings and Crews Bases in Busabase — set them up through onboarding on first run. Crew contacts are env-var references (`contact_env`) only; put the values in local env files. Never commit real contacts or raw channel exports.
 
 ## Boundary
 
-The app renders and edits local files only. Actual crew notifications and resident replies are executed by the agent outside the app, only after explicit approval in the dispatch queue, via other skills (messenger/email/WeChat). Resident PII stays local and masked in the UI.
+The AirApp reads and writes Busabase records only. Actual crew notifications and resident replies are executed by the agent outside the app, only after explicit approval in the dispatch queue, via other skills (messenger/email/WeChat). Resident PII stays masked in the UI.
