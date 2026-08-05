@@ -3,19 +3,15 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly Ecommerce Intel App-in-Skill industry intelligence cockpit.",
+  "description": "Kelly Ecommerce Intel Busabase Cloud skill and the trusted decision-execution script.",
   "scripts": {
-    "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts",
-    "generate:demo": "node scripts/generate_batch.ts --demo",
-    "validate": "node scripts/validate_ui_schema.ts app/.data/current_batch.json",
-    "execute:dry-run": "node scripts/execute_decisions.ts"
+    "execute-decisions": "node scripts/execute_decisions.mjs",
+    "app:check": "pnpm --dir app check"
   },
   "dependencies": {
-    "@hono/node-server": "^2.0.8",
-    "hono": "^4.12.28"
+    "busabase-sdk": "0.11.0"
   },
   "engines": {
-    "node": ">=23.6"
+    "node": ">=24.18.0"
   }
 }

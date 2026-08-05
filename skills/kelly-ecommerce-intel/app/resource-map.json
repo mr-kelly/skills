@@ -1,0 +1,18 @@
+{
+  "appId": "kelly-ecommerce-intel",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-ecommerce-intel"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "signals", "slug": "kelly-ecommerce-intel-signals-v1", "schemaVersion": 1 },
+    { "key": "actions", "slug": "kelly-ecommerce-intel-actions-v1", "schemaVersion": 1 },
+    { "key": "drafts", "slug": "kelly-ecommerce-intel-drafts-v1", "schemaVersion": 1 },
+    { "key": "sources", "slug": "kelly-ecommerce-intel-sources-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-ecommerce-intel-settings-v1", "schemaVersion": 1 }
+  ]
+}
