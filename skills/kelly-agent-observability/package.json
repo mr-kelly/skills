@@ -3,22 +3,15 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Agent Fleet Observability Desk App-in-Skill — local mock dashboard for a fleet of LLM agents behind a shared AI gateway (Hono server, zero-build vanilla frontend).",
-  "engines": {
-    "node": ">=23.6"
-  },
+  "description": "Kelly Agent Observability Busabase Cloud skill and the trusted mock-fleet seed script.",
   "scripts": {
-    "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts",
-    "seed": "node scripts/generate_fleet_data.ts",
-    "validate": "node scripts/validate_ui_schema.ts"
+    "generate": "node scripts/generate_fleet_data.mjs",
+    "app:check": "pnpm --dir app check"
   },
   "dependencies": {
-    "hono": "^4.6.14",
-    "@hono/node-server": "^1.13.7"
+    "busabase-sdk": "0.11.0"
   },
-  "devDependencies": {
-    "typescript": "^5.7.2",
-    "@types/node": "^22.10.2"
+  "engines": {
+    "node": ">=24.18.0"
   }
 }

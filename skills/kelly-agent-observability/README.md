@@ -1,10 +1,11 @@
 # Agent Fleet Observability Desk
 
-Agent Fleet Observability Desk is a local App-in-Skill dashboard that
-visualizes a MOCK fleet of LLM agents running behind a shared AI gateway for a
-generic organization. It is a demo/reference dashboard over generated mock
-telemetry — there is no real gateway, no real agents, and no external network
-calls anywhere in this skill.
+Agent Fleet Observability Desk is a Busabase-backed App-in-Skill dashboard
+that visualizes a generated MOCK fleet of LLM agents running behind a shared
+AI gateway for a generic organization. It is a demo/reference dashboard —
+there is no real gateway, no real agents, and no external network calls
+anywhere in this skill. The fleet snapshot is generated deterministically and
+seeded into Busabase by a trusted script; the AirApp only ever reads it.
 
 ## What It Shows
 
@@ -17,9 +18,9 @@ calls anywhere in this skill.
 - **Trace Detail**: an ordered step timeline (tool calls) for one trace, with
   the exact step where the chain broke visually flagged.
 - **Human-in-the-loop handoffs**: acknowledge an agent or trace, or flag it as
-  "needs investigation", with a free-text note. This is a real API call
-  (`POST /api/handoffs`) that appends to a local, gitignored
-  `app/.data/handoffs.jsonl` file — no external network calls.
+  "needs investigation", with a free-text note — written as a brand-new row
+  in the `handoffs` Busabase Base. This is the only Base the AirApp itself
+  ever writes to.
 
 The mock fleet includes 8 generic agent archetypes: Booking Assistant, Support
 Triage, Expense Approval, Itinerary Planner, Compliance Check, Vendor
@@ -42,7 +43,7 @@ Sourcing, Meeting Scheduler, and Contract Summarizer.
   </tr>
   <tr>
     <td><strong>Trace Detail</strong><br>Ordered step timeline for one trace; the step where the chain broke is visually flagged in red.</td>
-    <td><strong>Handoff</strong><br>Submitting a "needs investigation" note from the trace detail view; it is recorded locally.</td>
+    <td><strong>Handoff</strong><br>Submitting a "needs investigation" note from the trace detail view; it is recorded as a new row in Busabase.</td>
   </tr>
   <tr>
     <td width="50%"><img src="assets/screenshots/overview.zh-CN.webp" alt="Fleet overview in Chinese"></td>
@@ -57,24 +58,18 @@ Sourcing, Meeting Scheduler, and Contract Summarizer.
 ## Getting Started
 
 ```bash
-skills/kelly-agent-observability/app/start.sh
+node skills/kelly-agent-observability/scripts/generate_fleet_data.mjs --apply
+pnpm --dir skills/kelly-agent-observability/app dev
 ```
 
-First run installs `hono` and `@hono/node-server`, then seeds mock telemetry
-into `app/.data/fleet.json` if it doesn't exist yet. The frontend is
-zero-build vanilla JS/HTML/CSS. Open the URL the launcher prints (local host,
-port `3100`–`4100`).
-
-To regenerate mock telemetry at any time:
-
-```bash
-node skills/kelly-agent-observability/scripts/generate_fleet_data.ts
-```
+The seed script writes the mock fleet (agents + traces) into Busabase; the
+AirApp reads it on every load. Re-run the seed script any time to refresh the
+snapshot with a new "now" (the same seed still reproduces the same relative
+shape).
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene without touching
-`app/.data/fleet.json`:
+Run the app and open a safe mock-data scene without touching Busabase:
 
 ```text
 /?demo=1&lang=en#/overview
@@ -85,26 +80,21 @@ Run the app and open a safe mock-data scene without touching
 `lang=en` / `lang=zh` force the UI chrome language for screenshots or
 documentation; the language selector in the sidebar does the same at runtime,
 persisted in `localStorage`. Demo mode is fully offline and never reads or
-writes local files.
+writes Busabase.
 
-## Local Files
+## Busabase Data
 
-- `app/.data/fleet.json`: generated mock telemetry (agents, per-agent metrics,
-  hourly buckets, traces). Gitignored; regenerate any time via the seed
-  script.
-- `app/.data/handoffs.jsonl`: append-only human-in-the-loop handoff log
-  written by `POST /api/handoffs`. Gitignored.
+The AirApp is Busabase-backed: agents, traces, handoffs, and settings all
+live in Busabase Bases declared in `app/app/js/config.js` (see
+`references/fleet-schema.md`). Agents and traces are seeded only by the
+trusted `scripts/generate_fleet_data.mjs` script; the AirApp itself only ever
+writes new rows to the `handoffs` Base. Resources provision lazily on first
+run. There is no local file storage and no separate provider choice.
 
-See `references/fleet-schema.md` for the full data shapes.
+## API Surface (app-internal)
 
-## API
-
-- `GET /api/state` — bootstrap payload used by the frontend (fleet + summary
-  + handoffs, or the demo payload when `?demo=...` is set).
-- `GET /api/fleet/summary` — fleet-wide totals and status counts.
-- `GET /api/agents` — one row per agent with its latest metrics.
-- `GET /api/agents/:agentId` — agent detail, metrics, and recent traces.
-- `GET /api/traces/:traceId` — full step timeline for one trace.
-- `GET /api/handoffs` — handoff history.
-- `POST /api/handoffs` — record an acknowledge / needs-investigation note
-  (the only mutating endpoint; local file only, no network calls).
+- `busabaseProvider.getState()` — bootstrap payload used by the frontend
+  (fleet + summary + handoffs, or the demo payload when `?demo=...` is set).
+- `busabaseProvider.submitHandoff(...)` — record an acknowledge /
+  needs-investigation note as a new `handoffs` row (the only mutating call;
+  Busabase only, no network calls to any other system).

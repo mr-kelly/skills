@@ -1,4 +1,6 @@
-import { loadMessages, messages } from "./i18n/messages.js";
+import { messages } from "./i18n/messages.js";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
   fleet: null,
@@ -14,15 +16,10 @@ const state = {
       "auto",
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
+  busy: false,
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-agent-observability.sidebarCollapsed";
-
-const STATUS_COLORS = {
-  healthy: "#1f7a4d",
-  degraded: "#9c5a12",
-  critical: "#b33434",
-};
 
 const els = {
   title: document.querySelector("#page-title"),
@@ -142,21 +139,14 @@ function setRoute() {
 }
 
 async function loadState() {
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  if (state.lang) params.set("lang", state.lang);
-  const res = await fetch(`/api/state?${params}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`State request failed: ${res.status}`);
-  const data = await res.json();
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
   state.fleet = data.fleet;
   state.summary = data.summary;
+  state.handoffs = data.handoffs || [];
   state.bootstrap = data;
-  if (!state.demo) {
-    const handoffsRes = await fetch("/api/handoffs", { cache: "no-store" });
-    state.handoffs = handoffsRes.ok ? (await handoffsRes.json()).handoffs : [];
-  } else {
-    state.handoffs = [];
-  }
+  window.dispatchEvent(new CustomEvent("kelly-agent-observability:state", { detail: data }));
   applyDemoRoute();
   render();
 }
@@ -168,7 +158,7 @@ function applyDemoRoute() {
     scenario === "agents"
       ? "#/agents"
       : scenario === "trace"
-        ? `#/traces/${encodeURIComponent(state.fleet.traces.find((t) => t.status === "error")?.trace_id || "")}`
+        ? `#/traces/${encodeURIComponent(state.fleet.traces.find((tr) => tr.status === "error")?.trace_id || "")}`
         : "#/overview";
   history.replaceState(null, "", `${location.pathname}${location.search}${route}`);
   state.route = parseRoute();
@@ -440,13 +430,14 @@ function agentMetricCards(metrics) {
 }
 
 function handoffForm(targetType, targetId, agentId) {
+  const disabled = state.busy ? "disabled" : "";
   return `
     <form class="handoff-form" data-handoff-form data-target-type="${escapeHtml(targetType)}" data-target-id="${escapeHtml(targetId)}" data-agent-id="${escapeHtml(agentId)}">
       <label class="handoff-label" for="handoffNote">${t("handoffNote")}</label>
-      <textarea id="handoffNote" name="note" rows="3" placeholder="${escapeHtml(t("handoffNotePlaceholder"))}"></textarea>
+      <textarea id="handoffNote" name="note" rows="3" placeholder="${escapeHtml(t("handoffNotePlaceholder"))}" ${disabled}></textarea>
       <div class="handoff-actions">
-        <button type="submit" data-status="acknowledged">${t("acknowledge")}</button>
-        <button type="submit" data-status="needs_investigation" class="primary">${t("needsInvestigation")}</button>
+        <button type="submit" data-status="acknowledged" ${disabled}>${t("acknowledge")}</button>
+        <button type="submit" data-status="needs_investigation" class="primary" ${disabled}>${t("needsInvestigation")}</button>
       </div>
       <div class="handoff-form-message" data-handoff-message hidden></div>
     </form>
@@ -592,7 +583,7 @@ function renderSettings() {
       <section>
         <h2>${t("configuration")}</h2>
         <dl>
-          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.bootstrap?.data_provider || "local")}</dd>
+          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.bootstrap?.data_provider || "busabase")}</dd>
           <dt>${t("agentCount")}</dt><dd>${num(state.summary?.agent_count || 0)}</dd>
         </dl>
       </section>
@@ -609,6 +600,22 @@ function renderSettings() {
   `;
 }
 
+function render() {
+  renderShell();
+  if (state.route.view === "agents" && state.route.id) renderAgentDetail();
+  else if (state.route.view === "agents") renderAgents();
+  else if (state.route.view === "traces" && state.route.id) renderTraceDetail();
+  else if (state.route.view === "handoffs") renderHandoffs();
+  else if (state.route.view === "settings") renderSettings();
+  else renderOverview();
+}
+
+// Direct handoff write: acknowledge / needs-investigation, applied straight
+// through the active provider (Busabase or demo) — there is no separate
+// approval step, since a handoff is always a brand-new row (never an update
+// to the agent/trace's own record). Demo mode never writes anywhere; it only
+// reflects the note in the in-memory handoff list already rendered, mirroring
+// the retired app/server/demo.ts's read-only demoHandoffs().
 function bindHandoffForms() {
   document.querySelectorAll("[data-handoff-form]").forEach((form) => {
     form.addEventListener("submit", async (event) => {
@@ -617,22 +624,28 @@ function bindHandoffForms() {
       const status = submitter?.dataset.status || "acknowledged";
       const note = form.querySelector("textarea[name='note']").value.trim();
       const messageEl = form.querySelector("[data-handoff-message]");
+      const payload = {
+        target_type: form.dataset.targetType,
+        target_id: form.dataset.targetId,
+        agent_id: form.dataset.agentId,
+        status,
+        note,
+        created_by: "operator",
+      };
+      if (state.demo) {
+        state.handoffs.push({ handoff_id: crypto.randomUUID(), created_at: new Date().toISOString(), ...payload });
+        messageEl.hidden = false;
+        messageEl.textContent = t("handoffSubmitted");
+        messageEl.className = "handoff-form-message positive";
+        form.querySelector("textarea[name='note']").value = "";
+        if (els.handoffCount) els.handoffCount.textContent = num(state.handoffs.length);
+        return;
+      }
+      state.busy = true;
       try {
-        const res = await fetch("/api/handoffs", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            target_type: form.dataset.targetType,
-            target_id: form.dataset.targetId,
-            agent_id: form.dataset.agentId,
-            status,
-            note,
-            created_by: "operator",
-          }),
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        state.handoffs.push(data.handoff);
+        const provider = await getProvider();
+        const handoff = await provider.submitHandoff(payload);
+        state.handoffs.push(handoff);
         messageEl.hidden = false;
         messageEl.textContent = t("handoffSubmitted");
         messageEl.className = "handoff-form-message positive";
@@ -642,19 +655,11 @@ function bindHandoffForms() {
         messageEl.hidden = false;
         messageEl.textContent = t("handoffError");
         messageEl.className = "handoff-form-message negative";
+      } finally {
+        state.busy = false;
       }
     });
   });
-}
-
-function render() {
-  renderShell();
-  if (state.route.view === "agents" && state.route.id) renderAgentDetail();
-  else if (state.route.view === "agents") renderAgents();
-  else if (state.route.view === "traces" && state.route.id) renderTraceDetail();
-  else if (state.route.view === "handoffs") renderHandoffs();
-  else if (state.route.view === "settings") renderSettings();
-  else renderOverview();
 }
 
 function escapeHtml(value) {
@@ -701,8 +706,19 @@ els.language.addEventListener("change", () => {
 });
 
 syncResponsiveShell();
-loadMessages()
-  .then(() => loadState())
-  .catch((error) => {
+
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+  } catch (error) {
+    if (String(error?.message || error).startsWith("SETUP_")) {
+      renderSetupRequired(error, boot);
+      return;
+    }
     els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-  });
+  }
+}
+
+boot();

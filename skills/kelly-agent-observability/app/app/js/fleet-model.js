@@ -1,13 +1,22 @@
-// Deterministic mock-data generator for the Agent Fleet Observability Desk.
-// Produces a fake fleet of LLM agents running behind a shared AI gateway for a
-// generic organization, with hourly call volume, latency, error rate, cost, and
-// per-agent trace timelines (ordered tool-call steps) so a broken chain is
-// visible. Used by both the seed script (scripts/generate_fleet_data.ts) and the
-// server's demo mode (app/server/demo.ts) so both stay in sync.
+// Domain model for the Agent Fleet Observability Desk: a MOCK fleet of LLM
+// agents running behind a shared AI gateway for a generic organization. Ported
+// verbatim (same variable names, same order of operations, only TS types
+// stripped) from the retired lib/generate.ts and lib/types.ts. Read this file
+// before changing status thresholds, hourly-bucket shape, latency-percentile
+// math, or trace/chain-break generation.
+//
+// Architectural change from the retired local-file shape: there is no
+// per-request regeneration and no fleet.json snapshot file. A trusted
+// skill-root script (scripts/generate_fleet_data.mjs) runs generateFleetData()
+// once (or periodically) and writes the result into Busabase; the AirApp only
+// ever reads whatever was last generated. The human "acknowledge / needs
+// investigation" handoff note is a genuine write (unlike the read-only
+// precedent skills in this migration) — it is appended as a new row in the
+// handoffs Base, never a field update on the agent/trace row itself, since
+// this mirrors the retired POST /api/handoffs endpoint's append-only
+// app/.data/handoffs.jsonl file.
 
-import type { AgentDefinition, AgentMetrics, AgentStatus, FleetData, HourlyBucket, Trace, TraceStep } from "./types.ts";
-
-export const AGENTS: AgentDefinition[] = [
+export const AGENTS = [
   {
     agent_id: "booking-assistant",
     name: "Booking Assistant",
@@ -51,7 +60,7 @@ export const AGENTS: AgentDefinition[] = [
 ];
 
 // Tool-call step names an agent trace can be built from, per agent flavor.
-const STEP_LIBRARY: Record<string, string[]> = {
+const STEP_LIBRARY = {
   "booking-assistant": [
     "parse_request",
     "search_inventory",
@@ -77,9 +86,9 @@ const STEP_LIBRARY: Record<string, string[]> = {
 };
 
 // Small deterministic PRNG (mulberry32) so seeded output is stable across runs.
-function mulberry32(seed: number) {
+function mulberry32(seed) {
   let a = seed;
-  return function random(): number {
+  return function random() {
     a |= 0;
     a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
@@ -88,7 +97,7 @@ function mulberry32(seed: number) {
   };
 }
 
-function hashString(value: string): number {
+function hashString(value) {
   let h = 0;
   for (let i = 0; i < value.length; i += 1) {
     h = (Math.imul(31, h) + value.charCodeAt(i)) | 0;
@@ -96,23 +105,14 @@ function hashString(value: string): number {
   return h;
 }
 
-function round2(value: number): number {
+export function round2(value) {
   return Math.round(value * 100) / 100;
 }
 
 // Per-agent baseline "personality": volume scale, latency scale, error tendency,
 // and cost per call. Agent index picks a distinct profile so the fleet reads as
 // varied, not random noise.
-interface Profile {
-  volume: number; // avg calls per hour
-  latencyBase: number; // p50-ish base ms
-  latencyJitter: number;
-  errorBase: number; // 0..1 base error probability
-  costPerCall: number;
-  troubled: boolean; // biases this agent toward degraded/critical for demo realism
-}
-
-const PROFILES: Profile[] = [
+const PROFILES = [
   { volume: 42, latencyBase: 900, latencyJitter: 400, errorBase: 0.01, costPerCall: 0.018, troubled: false },
   { volume: 65, latencyBase: 650, latencyJitter: 300, errorBase: 0.02, costPerCall: 0.009, troubled: false },
   { volume: 28, latencyBase: 1200, latencyJitter: 500, errorBase: 0.09, costPerCall: 0.024, troubled: true },
@@ -123,14 +123,14 @@ const PROFILES: Profile[] = [
   { volume: 18, latencyBase: 2600, latencyJitter: 1200, errorBase: 0.02, costPerCall: 0.062, troubled: false },
 ];
 
-function statusFor(errorRatePct: number, p95: number): AgentStatus {
+export function statusFor(errorRatePct, p95) {
   if (errorRatePct >= 8 || p95 >= 8000) return "critical";
   if (errorRatePct >= 3 || p95 >= 4000) return "degraded";
   return "healthy";
 }
 
-function buildHourly(rng: () => number, profile: Profile, hours: number, nowMs: number): HourlyBucket[] {
-  const buckets: HourlyBucket[] = [];
+function buildHourly(rng, profile, hours, nowMs) {
+  const buckets = [];
   for (let i = hours - 1; i >= 0; i -= 1) {
     const hourStart = new Date(Math.floor(nowMs / 3600000) * 3600000 - i * 3600000);
     const dayPhase = hourStart.getUTCHours();
@@ -144,14 +144,14 @@ function buildHourly(rng: () => number, profile: Profile, hours: number, nowMs: 
   return buckets;
 }
 
-function percentile(sorted: number[], p: number): number {
+function percentile(sorted, p) {
   if (!sorted.length) return 0;
   const idx = Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length));
   return sorted[idx];
 }
 
-function buildLatencySamples(rng: () => number, profile: Profile, count: number): number[] {
-  const samples: number[] = [];
+function buildLatencySamples(rng, profile, count) {
+  const samples = [];
   for (let i = 0; i < count; i += 1) {
     // Rough log-normal-ish shape via sum of uniforms, biased by profile.
     const base = profile.latencyBase + rng() * profile.latencyJitter;
@@ -161,21 +161,21 @@ function buildLatencySamples(rng: () => number, profile: Profile, count: number)
   return samples.sort((a, b) => a - b);
 }
 
-function buildTraces(rng: () => number, agentId: string, profile: Profile, nowMs: number, count: number): Trace[] {
+function buildTraces(rng, agentId, profile, nowMs, count) {
   const steps = STEP_LIBRARY[agentId] || ["parse_request", "gateway.llm_call", "finalize"];
-  const traces: Trace[] = [];
+  const traces = [];
   for (let i = 0; i < count; i += 1) {
     const startedAt = new Date(nowMs - Math.round(rng() * 24 * 3600000));
     const isBroken = rng() < profile.errorBase * 2.2;
     const breakIndex = isBroken ? 1 + Math.floor(rng() * (steps.length - 1)) : -1;
     let cumulative = 0;
     let cost = 0;
-    const traceSteps: TraceStep[] = [];
+    const traceSteps = [];
     for (let s = 0; s < steps.length; s += 1) {
       if (isBroken && s > breakIndex) break;
       const duration = Math.round(60 + rng() * 500 + (steps[s].includes("llm_call") ? 400 + rng() * 900 : 0));
       cumulative += duration;
-      const status: "ok" | "error" = isBroken && s === breakIndex ? "error" : "ok";
+      const status = isBroken && s === breakIndex ? "error" : "ok";
       cost += steps[s].includes("llm_call") ? profile.costPerCall * (0.8 + rng() * 0.4) : 0;
       traceSteps.push({
         step_id: `${agentId}-t${i}-s${s}`,
@@ -200,7 +200,7 @@ function buildTraces(rng: () => number, agentId: string, profile: Profile, nowMs
   return traces.sort((a, b) => (a.started_at < b.started_at ? 1 : -1));
 }
 
-function errorDetailFor(stepName: string, rng: () => number): string {
+function errorDetailFor(stepName, rng) {
   const options = [
     `${stepName} timed out waiting on an upstream dependency.`,
     `${stepName} returned a validation error on the request payload.`,
@@ -211,17 +211,12 @@ function errorDetailFor(stepName: string, rng: () => number): string {
   return options[Math.floor(rng() * options.length)];
 }
 
-export interface GenerateOptions {
-  now?: Date;
-  seed?: number;
-  tracesPerAgent?: number;
-}
-
-export function generateFleetData(options: GenerateOptions = {}): FleetData {
+// options: { now?: Date, seed?: number, tracesPerAgent?: number }
+export function generateFleetData(options = {}) {
   const now = options.now || new Date();
   const nowMs = now.getTime();
-  const metrics: AgentMetrics[] = [];
-  const traces: Trace[] = [];
+  const metrics = [];
+  const traces = [];
 
   AGENTS.forEach((agent, index) => {
     const profile = PROFILES[index % PROFILES.length];
@@ -268,7 +263,7 @@ export function generateFleetData(options: GenerateOptions = {}): FleetData {
   };
 }
 
-export function summarizeFleet(fleet: FleetData) {
+export function summarizeFleet(fleet) {
   const totalCalls24h = fleet.metrics.reduce((sum, m) => sum + m.calls_24h, 0);
   const totalCostToday = fleet.metrics.reduce((sum, m) => sum + m.cost_today_usd, 0);
   const degraded = fleet.metrics.filter((m) => m.status === "degraded").length;
@@ -283,4 +278,224 @@ export function summarizeFleet(fleet: FleetData) {
     healthy_agent_count: healthy,
     agent_count: fleet.agents.length,
   };
+}
+
+// ---- Busabase row <-> domain object normalization ----
+// Every destructured parameter carries a default so checkJs never infers a
+// required-but-absent property (known false-positive with checkJs).
+
+function parseJsonValue(value, fallback) {
+  if (!value) return fallback;
+  try {
+    const parsed = JSON.parse(String(value));
+    return parsed ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+// One `agents` Base row carries both the AgentDefinition and its latest
+// AgentMetrics rollup (they are 1:1 by agent_id, so there is no reason to
+// split them across two Bases).
+export function normalizeAgentRow({
+  agent_id = "",
+  name = "",
+  description = "",
+  status = "healthy",
+  calls_24h = 0,
+  calls_48h = 0,
+  error_rate_pct = 0,
+  p50_latency_ms = 0,
+  p95_latency_ms = 0,
+  cost_per_call_usd = 0,
+  cost_today_usd = 0,
+  cost_7d_usd = 0,
+  hourly = "",
+  __recordId = undefined,
+  __headCommitId = undefined,
+} = {}) {
+  return {
+    agent_id,
+    name,
+    description,
+    status,
+    calls_24h: Number(calls_24h) || 0,
+    calls_48h: Number(calls_48h) || 0,
+    error_rate_pct: Number(error_rate_pct) || 0,
+    p50_latency_ms: Number(p50_latency_ms) || 0,
+    p95_latency_ms: Number(p95_latency_ms) || 0,
+    cost_per_call_usd: Number(cost_per_call_usd) || 0,
+    cost_today_usd: Number(cost_today_usd) || 0,
+    cost_7d_usd: Number(cost_7d_usd) || 0,
+    hourly: parseJsonValue(hourly, []),
+    __recordId,
+    __headCommitId,
+  };
+}
+
+export function baseAgentFields({
+  agent_id = "",
+  name = "",
+  description = "",
+  status = "healthy",
+  calls_24h = 0,
+  calls_48h = 0,
+  error_rate_pct = 0,
+  p50_latency_ms = 0,
+  p95_latency_ms = 0,
+  cost_per_call_usd = 0,
+  cost_today_usd = 0,
+  cost_7d_usd = 0,
+  hourly = [],
+} = {}) {
+  return {
+    agent_id,
+    name,
+    description,
+    status,
+    calls_24h: Number(calls_24h) || 0,
+    calls_48h: Number(calls_48h) || 0,
+    error_rate_pct: Number(error_rate_pct) || 0,
+    p50_latency_ms: Number(p50_latency_ms) || 0,
+    p95_latency_ms: Number(p95_latency_ms) || 0,
+    cost_per_call_usd: Number(cost_per_call_usd) || 0,
+    cost_today_usd: Number(cost_today_usd) || 0,
+    cost_7d_usd: Number(cost_7d_usd) || 0,
+    hourly: JSON.stringify(hourly || []),
+  };
+}
+
+export function normalizeTraceRow({
+  trace_id = "",
+  agent_id = "",
+  started_at = "",
+  duration_ms = 0,
+  status = "ok",
+  cost_usd = 0,
+  broke_at_step_id = "",
+  steps = "",
+  __recordId = undefined,
+  __headCommitId = undefined,
+} = {}) {
+  return {
+    trace_id,
+    agent_id,
+    started_at,
+    duration_ms: Number(duration_ms) || 0,
+    status,
+    cost_usd: Number(cost_usd) || 0,
+    broke_at_step_id: broke_at_step_id || undefined,
+    steps: parseJsonValue(steps, []),
+    __recordId,
+    __headCommitId,
+  };
+}
+
+export function baseTraceFields({
+  trace_id = "",
+  agent_id = "",
+  started_at = "",
+  duration_ms = 0,
+  status = "ok",
+  cost_usd = 0,
+  broke_at_step_id = "",
+  steps = [],
+} = {}) {
+  return {
+    trace_id,
+    agent_id,
+    started_at,
+    duration_ms: Number(duration_ms) || 0,
+    status,
+    cost_usd: Number(cost_usd) || 0,
+    broke_at_step_id: broke_at_step_id || "",
+    steps: JSON.stringify(steps || []),
+  };
+}
+
+export function normalizeHandoffRow({
+  handoff_id = "",
+  target_type = "agent",
+  target_id = "",
+  agent_id = "",
+  status = "acknowledged",
+  note = "",
+  created_at = "",
+  created_by = "operator",
+  __recordId = undefined,
+  __headCommitId = undefined,
+} = {}) {
+  return {
+    handoff_id,
+    target_type,
+    target_id,
+    agent_id,
+    status,
+    note,
+    created_at,
+    created_by,
+    __recordId,
+    __headCommitId,
+  };
+}
+
+export function baseHandoffFields({
+  handoff_id = "",
+  target_type = "agent",
+  target_id = "",
+  agent_id = "",
+  status = "acknowledged",
+  note = "",
+  created_at = "",
+  created_by = "operator",
+} = {}) {
+  return { handoff_id, target_type, target_id, agent_id, status, note, created_at, created_by };
+}
+
+// Builds the { schema_version, generated_at, agents, metrics, traces } shape
+// app.js renders, from already-read/normalized Busabase rows (or the demo
+// generator's raw output). Ported in spirit from hono.ts's fullState().
+export function buildFleetSnapshot({ agentRows = [], traceRows = [], generatedAt = "" } = {}) {
+  const agents = agentRows.map(({ agent_id, name, description }) => ({ agent_id, name, description }));
+  const metrics = agentRows.map(
+    ({
+      agent_id,
+      status,
+      calls_24h,
+      calls_48h,
+      error_rate_pct,
+      p50_latency_ms,
+      p95_latency_ms,
+      cost_per_call_usd,
+      cost_today_usd,
+      cost_7d_usd,
+      hourly,
+    }) => ({
+      agent_id,
+      status,
+      calls_24h,
+      calls_48h,
+      error_rate_pct,
+      p50_latency_ms,
+      p95_latency_ms,
+      cost_per_call_usd,
+      cost_today_usd,
+      cost_7d_usd,
+      hourly,
+    }),
+  );
+  const traces = traceRows.map(
+    ({ trace_id, agent_id, started_at, duration_ms, status, cost_usd, broke_at_step_id, steps }) => ({
+      trace_id,
+      agent_id,
+      started_at,
+      duration_ms,
+      status,
+      cost_usd,
+      broke_at_step_id,
+      steps,
+    }),
+  );
+  const generated_at = generatedAt || agentRows[0]?.generated_at || new Date(0).toISOString();
+  return { schema_version: "1", generated_at, agents, metrics, traces };
 }
