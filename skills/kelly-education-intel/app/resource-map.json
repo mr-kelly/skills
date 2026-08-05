@@ -1,0 +1,18 @@
+{
+  "appId": "kelly-education-intel",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-education-intel"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "signals", "slug": "kelly-education-intel-signals-v1", "schemaVersion": 1 },
+    { "key": "actions", "slug": "kelly-education-intel-actions-v1", "schemaVersion": 1 },
+    { "key": "drafts", "slug": "kelly-education-intel-drafts-v1", "schemaVersion": 1 },
+    { "key": "sources", "slug": "kelly-education-intel-sources-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-education-intel-settings-v1", "schemaVersion": 1 }
+  ]
+}
