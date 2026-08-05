@@ -1,30 +1,55 @@
 ---
 name: kelly-llm-gateway
-description: Generic, brand-free App-in-Skill dashboard for a shared LLM gateway's cost and model governance — daily spend trend, cost breakdown by service/model, a canary-rollout status board, and a deterministic cost/error anomaly list. Use when the user invokes $kelly-llm-gateway or /kelly-llm-gateway, or wants to review LLM gateway spend, model routing, canary rollouts, rollback readiness, or cost/error anomalies for services routed through one shared gateway to multiple LLM providers/models. Human actions (promote/rollback/hold a rollout, acknowledge an anomaly) write only local handoff files — this skill never changes a real routing config.
+description: Busabase-backed App-in-Skill dashboard for a shared LLM gateway's cost and model governance — daily spend trend, cost breakdown by service/model, a canary-rollout status board, and a deterministic cost/error anomaly list. Use when the user invokes $kelly-llm-gateway or /kelly-llm-gateway, or wants to review LLM gateway spend, model routing, canary rollouts, rollback readiness, or cost/error anomalies for services routed through one shared gateway to multiple LLM providers/models. Human actions (promote/rollback/hold a rollout, acknowledge an anomaly) write directly onto the route's own Busabase record — this skill never changes a real routing config.
 ---
 
 # LLM Gateway Cost & Governance Desk
 
 ## Overview
 
-Use this skill as a platform team's local operator dashboard over a shared LLM
-gateway: several consuming services (e.g. Support Bot, Search Ranking, Content
-Summarizer, Internal Copilot) routed through one gateway to a mix of internal
-and external models. It aggregates per-service/per-model call volume, cost, and
-error rate into one file-backed App-in-Skill: an Overview (spend trend,
-allocation-style rollout/anomaly summaries), a Cost Breakdown table, a Canary
-Rollout status board, and an Anomaly list.
+Kelly LLM Gateway is a Busabase Cloud App-in-Skill. Its canonical product
+surface is the AirApp in Busabase, not a separate local-data product. The
+same Hono source supports an explicitly requested local preview with OAuth
+connection bootstrap. It gives a platform team an operator dashboard over a
+shared LLM gateway: several consuming services (e.g. Support Bot, Search
+Ranking, Content Summarizer, Internal Copilot) routed through one gateway to
+a mix of internal and external models. It aggregates per-service/per-model
+call volume, cost, and error rate: an Overview (spend trend, rollout/anomaly
+summaries), a Cost Breakdown table, a Canary Rollout status board, and an
+Anomaly list.
 
 This is deliberately **generic and brand-free**: no real company, product, or
 model name appears anywhere in the code, config, or seed data — only role-based
 service names ("Support Bot") and generic provider/model labels ("Provider A /
 Model Large", "Internal Model v2").
 
-Default interaction mode: App UI. Unless the user explicitly asks for chat-only
-handling, check onboarding/config, seed or refresh the local snapshot, start/
-reuse the local app with `app/start.sh`, and give the actual local URL. Use
-chat-only mode only when the user says "纯聊天", "chat only", "不要打开 UI", or
-similar.
+This is a direct-manipulation operator dashboard, not a review-then-approve
+queue: there is no AI-authored draft to approve and no separate execute/
+decisions step. Anomalies are computed by a documented, deterministic
+rule-based function (`app/app/js/gateway-model.js`, ported from the retired
+`app/server/anomalies.ts`); the human platform operator makes every promote/
+rollback/hold and acknowledgement decision directly in the UI, writing
+straight onto the route's own Busabase record — the same way `kelly-lead-funnel`'s
+kanban stage moves work.
+
+Default behavior is AirApp-first. Unless the user explicitly asks only for
+explanation, give the user the clickable AirApp URL. Start localhost only
+when local preview/debugging is explicitly requested; it uses the same
+Busabase resources and never offers another data provider. Use chat-only mode
+only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
+
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
+   quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery,
+   ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
+   runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's artifact and product
+contracts, stop before the unavailable Busabase operation, and report the
+exact missing dependency. Do not invent a second data backend.
 
 ## App UI Screenshots
 
@@ -49,71 +74,72 @@ similar.
 
 ## Boundary
 
-- Local dashboard over a local snapshot only. The skill may read a gateway
-  usage/cost API (via `lib/data-provider/`), normalize it, and write local
-  handoff files.
-- Human actions here (`promote`, `rollback`, `hold`, anomaly acknowledgement)
-  write ONLY to `app/.data/decisions.json`. NEVER change a real routing config,
-  a real gateway, or any live traffic split. There is no execution/merge path
-  in this skill by design — a human still applies the decision in the real
-  system of record.
-- The app reads and writes local files only. It must not call a live gateway;
-  it only renders the normalized snapshot and the demo payload.
-- Treat cost/usage data as sensitive. Do not commit `config.local.json`, env
-  files, `app/.data/`, or raw gateway exports.
+- Deterministic, rule-based anomaly detection only
+  (`app/app/js/gateway-model.js`). NEVER call an LLM to detect, rank, or
+  auto-resolve an anomaly.
+- The AirApp reads and writes its own Busabase Bases only; it never calls a
+  live gateway API or touches a real routing config. There is no execution/
+  merge step beyond the direct write itself — a human still applies the
+  decision in the real system of record.
+- Routes/services/models are never created by the AirApp; they enter
+  Busabase through an external process (a future gateway usage-API adapter),
+  the same way `kelly-lead-funnel`'s leads enter through an upstream sourcing
+  process the app doesn't control. The AirApp only ever updates an existing
+  route's rollout status or anomaly-ack fields.
+- Generic, brand-neutral tool: never hardcode or reference a specific real
+  company, gateway, or model name in code, templates, or docs.
+- Treat cost/usage data as sensitive. Never commit a local credential file or
+  Busabase secrets.
 
-## First Run And Onboarding
+## Busabase Resources
 
-On invocation, check `app/.data/onboarding.json` and private config readiness.
-If onboarding is absent/incomplete, guide setup before syncing real gateway
-data; the seeded demo dataset works with no configuration at all.
+Four Bases under one application Folder (`kelly-llm-gateway`), declared in
+`app/app/js/config.js` and `app/resource-map.json`:
 
-Private config priority:
+- `routes`: one row per service→model route — canary `status`, `canary-pct`,
+  `rollback-ready`, a human decision `note`, a 14-day `daily` usage series
+  (JSON array of `{date, calls, cost, errors}`), and per-anomaly-kind
+  acknowledgement state (`cost-spike-ack`/`error-spike-ack`, JSON or empty).
+  Today's totals and each route's own rolling cost/error baseline are never
+  stored — they are pure/derived from `daily` and recomputed on every read.
+- `services`: one row per consuming service routed through the gateway.
+- `models`: one row per backing model/provider behind the gateway.
+- `settings`: sanitized config (base currency, anomaly thresholds, non-secret
+  gateway region/base URL/credential-env-var name), one row keyed by `kind`.
 
-1. `KELLY_LLM_GATEWAY_CONFIG=/absolute/path/to/config.json`
-2. `skills/kelly-llm-gateway/config.local.json`
-3. `~/.config/kelly-llm-gateway/config.json`
-4. `skills/kelly-llm-gateway/config.example.json` as template only
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space; see `references/gateway-schema.md` for
+exact field shapes.
 
-Env priority:
+## Anomaly Detection
 
-1. Existing environment variables
-2. `KELLY_LLM_GATEWAY_ENV_FILE=/absolute/path/to/.env`
-3. Repository root `.env`
-4. `skills/kelly-llm-gateway/.env.local`
-5. `~/.config/kelly-llm-gateway/.env`
+`app/app/js/gateway-model.js` (`computeAnomalies`) flags a cost spike and/or
+an error spike per route by comparing today's `cost`/`error_rate` against
+that route's own rolling baseline (mean of the preceding days in `daily`,
+excluding today). Default thresholds: `cost_spike_threshold_pct: 50`,
+`error_spike_threshold_pct: 100` (i.e. cost ≥1.5x baseline, or error rate
+≥2x baseline), each overridable via the `settings` Base. Severity is `high`
+at 2x the threshold, otherwise `watch`. No randomness, no ML — the same
+snapshot always produces the same anomalies.
 
-Ask for non-secret setup details only: region, base URL, base currency, and
-which env var name holds the gateway API key (`api_key_env`). Never ask the
-user to paste secret values into chat.
+## Direct Rollout & Anomaly Actions
 
-When setup is complete and the user confirms, write `app/.data/onboarding.json`:
+All human actions write straight onto the route's own Busabase record
+through `busabase-sdk`, exactly like `kelly-lead-funnel`'s kanban stage
+moves — there is no approval queue and no separate decisions bucket:
 
-```json
-{
-  "completed": true,
-  "completed_at": "ISO timestamp",
-  "config_version": "1"
-}
-```
+- **Promote**: sets `status: stable`, `canary-pct: 100`, `rollback-ready:
+  false`.
+- **Rollback**: sets `status: rollback`, `rollback-ready: false`.
+- **Hold**: sets `status: hold` only.
+- **Acknowledge an anomaly**: writes `{note, acknowledged_at}` onto the
+  route's `cost-spike-ack` or `error-spike-ack` field, whichever the
+  anomaly's `kind` refers to.
 
-## Local App
-
-Start the dashboard with:
-
-```bash
-skills/kelly-llm-gateway/app/start.sh
-```
-
-The app uses local HTTP on `127.0.0.1`, preferring port `3000` through `4000`,
-or `KELLY_LLM_GATEWAY_UI_PORT` when set. First run installs `hono` and
-`@hono/node-server`; the frontend is zero-build vanilla.
-
-Seed a deterministic local snapshot before first use (no config required):
-
-```bash
-node skills/kelly-llm-gateway/scripts/seed_snapshot.ts
-```
+From a standalone local preview the write merges immediately (trusted
+operator); from the deployed AirApp it creates a pending ChangeRequest for
+the trusted process to merge, per the AirApp boundary in
+`$busabase-app-creator`.
 
 ## Demo Mode
 
@@ -123,40 +149,17 @@ node skills/kelly-llm-gateway/scripts/seed_snapshot.ts
 - `?demo=spend`, `?demo=rollouts`, and `?demo=anomalies` select named mock
   scenes (their initial route).
 - `lang=en` or `lang=zh` forces UI chrome language for screenshots.
-- Demo API responses never read or write live gateway data or local private
-  files; rollout/ack actions in demo mode only update in-memory state in the
-  browser, never `app/.data/decisions.json`.
+- Demo mode never reads or writes Busabase and never claims a real
+  connection; demo rollout/ack actions only update the in-memory snapshot
+  already rendered in the browser tab, never Busabase.
 
 UI language: support English and Chinese chrome with `Auto` default.
 
-## Data Provider
+## Local App
 
-The skill reads a gateway usage/cost API; the app only ever reads the
-normalized snapshot.
-
-- Provider selector env: `KELLY_LLM_GATEWAY_DATA_PROVIDER=local` (default).
-  Reserve `postgres`, `aitable`, `notion`, `busabase` for future cloud-backed
-  providers (see `lib/data-provider/provider-interface.ts`).
-- The seed dataset lives in `lib/data-provider/seed-data.ts` — pure, no
-  `Math.random`, so re-seeding is byte-identical. Wire a real gateway adapter
-  behind the same `DataProvider` interface when one exists; keep it read-only
-  for usage/cost data.
-- Store secrets only via env; reference env var names in config
-  (`gateway.api_key_env`). Never hardcode credentials.
-
-Read `references/gateway-schema.md` before editing the app, scripts, or a
-future gateway adapter. Primary local files:
-
-- `app/.data/snapshot.json`: canonical normalized gateway snapshot.
-- `app/.data/onboarding.json`: onboarding completion marker.
-- `app/.data/decisions.json`: rollout decisions and anomaly acknowledgements
-  (the only human-write handoff file; no execution/merge step).
-- `app/.data/agent.lock`: temporary lock while a decision is being written.
-- `config.local.json`: private gateway configuration, ignored by git.
-
-Use `scripts/validate_ui_schema.ts app/.data/snapshot.json` before relying on a
-snapshot in the UI. `scripts/seed_snapshot.ts` writes a consistent seeded
-snapshot to `app/.data/snapshot.json`.
+Default behavior is AirApp-first — give the user the clickable AirApp URL.
+Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+requested.
 
 ## Views
 
@@ -169,15 +172,28 @@ snapshot to `app/.data/snapshot.json`.
 - `#/anomalies`: cost/error anomalies vs each route's own rolling baseline,
   with acknowledgement.
 - `#/settings`: sanitized setup summary — data provider, config path, gateway
-  region/base URL, credential-readiness booleans, and onboarding state. Never
+  region/base URL, credential env var name, and onboarding state. Never
   expose secret values.
 
-## Safety
+## Completion Criteria
 
-- This skill has no execution/merge step: `promote` / `rollback` / `hold` and
-  anomaly acknowledgement only ever update `app/.data/decisions.json`. A human
-  must still apply the decision in the real gateway/routing system — the app
-  is an operator surface, not a control plane.
-- Anomalies are deterministic and rule-based (rolling baseline comparison), not
-  ML-based or random; the same snapshot always produces the same anomalies.
-- Redact credential-like strings in logs, reports, and UI state.
+Finish only when:
+
+- the skill contains the complete canonical `app/` project and
+  `pnpm --dir app dev` remains supported;
+- all persistent config, state, and domain data use `busabase-sdk` and the
+  declared resource map — no local JSON, browser storage, or provider
+  choice;
+- Vault values and API credentials never reach browser-visible surfaces;
+- local setup offers Cloud/custom URL OAuth plus the explicit Demo path,
+  while a deployed AirApp uses its ambient session;
+- Overview, Cost Breakdown, Rollouts, Anomalies, and Help & Settings render
+  on desktop and phone widths;
+- `pnpm --dir app run check` and `node --test` pass.
+
+## Stop Conditions
+
+Stop before consequential Busabase mutation when the target Space is
+ambiguous, the current user lacks permission, or a same-slug resource is not
+application-owned. Never call a live gateway API or change a real routing
+config from the AirApp.

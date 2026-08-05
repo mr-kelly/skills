@@ -1,24 +1,27 @@
 # LLM Gateway Cost & Governance Desk
 
-A generic, brand-free App-in-Skill dashboard for a platform team routing many
-internal services through one shared LLM gateway to a mix of internal and
-external models. It aggregates cost, call volume, error rate, and canary
-rollout status into one local file-backed view, and lets a human record
-promote / rollback / hold decisions and acknowledge cost/error anomalies —
-all as local handoff files, never as a change to a real routing config.
+LLM Gateway Cost & Governance Desk is a Busabase-backed App-in-Skill operator
+dashboard for a platform team routing many internal services through one
+shared LLM gateway to a mix of internal and external models. It aggregates
+cost, call volume, error rate, and canary rollout status, computes
+deterministic cost/error anomalies, and lets a human record promote /
+rollback / hold decisions and acknowledge anomalies — all direct, immediate
+writes to Busabase. It never calls a live gateway API or changes a real
+routing config.
 
 ## What It Shows
 
-- Overview: total daily spend trend over 14 days, a canary-rollout summary,
-  and a preview of open cost/error anomalies.
-- Cost Breakdown: sortable service × model table (calls, cost, error rate,
-  canary %, status), broken down by consuming service and backing model.
-- Rollouts: canary rollout status board — canary percentage, rollback
+- **Overview**: total daily spend trend over 14 days, a canary-rollout
+  summary, and a preview of open cost/error anomalies.
+- **Cost Breakdown**: sortable service × model table (calls, cost, error
+  rate, canary %, status), broken down by consuming service and backing
+  model.
+- **Rollouts**: canary rollout status board — canary percentage, rollback
   readiness, an optional note, and `Promote to 100%` / `Rollback` / `Hold`
-  actions.
-- Anomalies: cost and error-rate spikes computed **deterministically** against
-  each route's own rolling baseline (mean of the preceding days) — no
-  randomness, no ML — with an acknowledgement action.
+  actions, written directly to Busabase.
+- **Anomalies**: cost and error-rate spikes computed **deterministically**
+  against each route's own rolling baseline (mean of the preceding days) —
+  no randomness, no ML — with a direct acknowledgement action.
 
 Services and models in the seed data are intentionally generic: role-based
 service names ("Support Bot", "Search Ranking") and generic provider/model
@@ -48,13 +51,13 @@ product name appears anywhere.
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Run the app and open a safe, fully offline mock scene:
 
 ```bash
-skills/kelly-llm-gateway/app/start.sh
+pnpm --dir skills/kelly-llm-gateway/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Use the printed local URL, then add one of these demo paths:
 
 ```text
 /?demo=1&lang=en#/overview
@@ -65,24 +68,14 @@ Use the URL printed by the launcher, then add one of these demo paths:
 
 Add `lang=zh` for the Chinese UI chrome, e.g. `/?demo=1&lang=zh#/overview`.
 
-Demo mode is fully offline: it never reads live gateway data or local private
-files, and rollout/acknowledge actions taken while `?demo=` is set only update
-in-memory state in the browser tab — they never write
-`app/.data/decisions.json`.
+Demo mode is fully offline (4 services, 5 models, 8 routes, 14 days of
+history, ported verbatim from the retired `lib/data-provider/seed-data.ts`)
+and never reads or writes Busabase; rollout/acknowledge actions taken while
+`?demo=` is set only update in-memory state in the browser tab.
 
-## Seeding Real Local Data
+## Busabase Data
 
-Without any config, seed a deterministic snapshot so the dashboard has
-something to render:
-
-```bash
-node skills/kelly-llm-gateway/scripts/seed_snapshot.ts
-node skills/kelly-llm-gateway/scripts/validate_ui_schema.ts skills/kelly-llm-gateway/app/.data/snapshot.json
-```
-
-## Private Config
-
-Copy `config.example.json` to `config.local.json` or
-`~/.config/kelly-llm-gateway/config.json`. Put a gateway API key in local env
-files only, referenced by env var name in config (`gateway.api_key_env`).
-Never commit real credentials, exports, or files under `app/.data/`.
+The AirApp is Busabase-backed: routes, services, models, and settings all
+live in Busabase Bases declared in `app/app/js/config.js` (see
+`references/gateway-schema.md`). Resources provision lazily on first run.
+There is no local file storage and no separate provider choice.
