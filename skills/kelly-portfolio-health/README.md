@@ -1,30 +1,29 @@
-# RBF Portfolio Health Dashboard (`kelly-portfolio-health`)
+# RBF Portfolio Health Dashboard
 
-A local, read-mostly App-in-Skill dashboard for a revenue-based-financing
-(RBF) fund or private-credit book made up of many small SME (small/medium
-enterprise) contracts. Each contract is a cash advance repaid as a share of
-the SME's future revenue, up to a repayment cap. This skill aggregates a
-portfolio of such contracts into a health summary, a repayment-progress
-view, a concentration breakdown, and a revenue-decline watchlist — with one
-lightweight human action: flag a contract for review, clear a flag, or leave
-a note.
+RBF Portfolio Health is a Busabase-backed App-in-Skill dashboard for a
+revenue-based-financing (RBF) fund or private-credit book made up of many
+small SME (small/medium enterprise) contracts. Each contract is a cash
+advance repaid as a share of the SME's future revenue, up to a repayment
+cap. The app aggregates a portfolio of such contracts into a health summary,
+a repayment-progress view, a concentration breakdown, and a revenue-decline
+watchlist — with one lightweight human action: flag a contract for review,
+clear a flag, or leave a note, written directly to Busabase.
 
 Generic and brand-free by design: the shipped dataset is a synthetic, seeded
 mock book (no real company, fund, or SME names).
 
 ## What It Shows
 
-- **Health summary** — total AUM, total collected, weighted-average
-  repayment progress, and an at-risk contract count.
-- **Repayment progress vs. time elapsed** — each contract's expected
-  repayment percentage (based on months since origination vs. its term)
-  against its actual percentage, surfacing contracts lagging the most.
-- **Concentration** — funding-amount concentration by industry/category and
+- **Overview**: total AUM, total collected, weighted-average repayment
+  progress, an at-risk contract count, a category allocation donut, and the
+  contracts most behind on expected repayment pace.
+- **Contracts**: sortable table (business, category, city, funding amount,
+  actual progress, lag, status).
+- **Concentration**: funding-amount concentration by industry/category and
   by city, so a fund can see if it is overexposed to one segment.
-- **Watchlist** — contracts whose most recent month's revenue dropped
-  materially below their trailing average, each with a revenue sparkline.
-- **Human action** — flag for review / clear flag / review note, written to
-  a local handoff file (`app/.data/decisions.json`), never sent anywhere.
+- **Watchlist**: contracts whose most recent month's revenue dropped
+  materially below their trailing average, each with a revenue sparkline and
+  a `Flag for review` / `Clear flag` action, written directly to Busabase.
 
 ## App UI Screenshots
 
@@ -53,30 +52,33 @@ mock book (no real company, fund, or SME names).
   </tr>
 </table>
 
-## Quick Start
-
-```bash
-cd skills/kelly-portfolio-health
-npm install
-node scripts/generate_demo_snapshot.ts   # seeds ~52 mock contracts
-app/start.sh                             # starts the local dashboard
-```
-
-Then open the printed `http://127.0.0.1:<port>` URL.
-
 ## Demo Mode
 
-For documentation/screenshots without touching any local state:
+Run the app and open a safe, fully offline mock scene:
 
-- `http://127.0.0.1:<port>/?demo=1#/overview` — deterministic, fully offline
-  mock portfolio (~52 contracts across 8 categories, 10 cities).
-- `?demo=overview`, `?demo=concentration`, `?demo=watchlist` select scenes.
-- `&lang=en` / `&lang=zh` force UI chrome language.
-- Demo responses never read or write `app/.data/` — safe to hit repeatedly.
+```bash
+pnpm --dir skills/kelly-portfolio-health/app dev
+```
 
-## Structure
+Use the printed local URL, then add one of these demo paths:
 
-See `SKILL.md` for the full operating contract (onboarding, data provider,
-views, safety boundary) and `references/portfolio-schema.md` for the
-snapshot/insights schema. `package.json` depends on nothing but `hono` and
-`@hono/node-server`; the frontend is zero-build vanilla JS/CSS.
+```text
+/?demo=1&lang=en#/overview
+/?demo=overview&lang=en#/overview
+/?demo=concentration&lang=en#/concentration
+/?demo=watchlist&lang=en#/watchlist
+```
+
+Add `lang=zh` for the Chinese UI chrome, e.g. `/?demo=1&lang=zh#/overview`.
+
+Demo mode is fully offline (~52 contracts across 8 categories and 10
+cities, ported verbatim from the retired `app/server/dataset.ts`) and never
+reads or writes Busabase; flag/note actions taken while `?demo=` is set only
+update in-memory state in the browser tab.
+
+## Busabase Data
+
+The AirApp is Busabase-backed: contracts and settings both live in Busabase
+Bases declared in `app/app/js/config.js` (see
+`references/portfolio-schema.md`). Resources provision lazily on first run.
+There is no local file storage and no separate provider choice.

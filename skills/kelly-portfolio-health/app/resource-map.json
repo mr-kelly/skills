@@ -1,0 +1,15 @@
+{
+  "appId": "kelly-portfolio-health",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-portfolio-health"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "contracts", "slug": "kelly-portfolio-health-contracts-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-portfolio-health-settings-v1", "schemaVersion": 1 }
+  ]
+}

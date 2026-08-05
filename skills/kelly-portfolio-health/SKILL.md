@@ -1,26 +1,56 @@
 ---
 name: kelly-portfolio-health
-description: Read-mostly App-in-Skill dashboard for a revenue-based-financing (RBF) fund or private-credit book of many small SME contracts. Use when the user invokes $kelly-portfolio-health or /kelly-portfolio-health, wants to check portfolio health, AUM, repayment progress, concentration risk, or a watchlist of contracts with declining revenue. Generic and brand-free — not tied to any specific company or fund.
+description: Busabase-backed App-in-Skill dashboard for a revenue-based-financing (RBF) fund or private-credit book of many small SME contracts. Use when the user invokes $kelly-portfolio-health or /kelly-portfolio-health, wants to check portfolio health, AUM, repayment progress, concentration risk, or a watchlist of contracts with declining revenue. Human actions (flag a contract for review, clear a flag, leave a note) write directly onto the contract's own Busabase record — this skill never moves money or changes contract terms. Generic and brand-free — not tied to any specific company or fund.
 ---
 
 # RBF Portfolio Health Dashboard
 
 ## Overview
 
-Use this skill as a local, mostly-read-only dashboard over a mock or
-real revenue-share / private-credit book: many small SME (small/medium
-enterprise) contracts, each an advance repaid as a share of the SME's future
-revenue up to a cap. The app aggregates the book into a top-line health
-summary, a repayment-progress-vs-time-elapsed view, an industry/city
-concentration breakdown, and a watchlist of contracts with a recent revenue
-decline. The only human action is lightweight: flag a contract for review,
-clear a flag, or leave a note — everything else is a read view.
+Kelly Portfolio Health is a Busabase Cloud App-in-Skill. Its canonical
+product surface is the AirApp in Busabase, not a separate local-data
+product. The same Hono source supports an explicitly requested local preview
+with OAuth connection bootstrap. It gives a fund/credit-desk operator a
+read-mostly dashboard over a revenue-share / private-credit book: many small
+SME (small/medium enterprise) contracts, each an advance repaid as a share
+of the SME's future revenue up to a cap. The app aggregates the book into a
+top-line health summary, a repayment-progress-vs-time-elapsed view, an
+industry/city concentration breakdown, and a watchlist of contracts with a
+recent revenue decline. The only human action is lightweight: flag a
+contract for review, clear a flag, or leave a note — everything else is a
+read view.
 
-Default interaction mode: App UI. Unless the user explicitly asks for
-chat-only handling, check onboarding, load/refresh the local portfolio
-snapshot, start/reuse the local app with `app/start.sh`, and give the actual
-local URL. Use chat-only mode only when the user says "纯聊天", "chat only",
-"不要打开 UI", or similar.
+This is deliberately **generic and brand-free**: no real company, fund, or
+SME name appears anywhere in the code, config, or seed data.
+
+This is a direct-manipulation dashboard, not a review-then-approve queue:
+there is no AI-authored draft to approve and no separate execute/decisions
+step. Totals, repayment lag, concentration, and the watchlist are computed
+by a documented, deterministic function
+(`app/app/js/portfolio-model.js`, ported from the retired
+`app/server/insights.ts`); the human flags/clears/annotates a contract
+directly in the UI, writing straight onto the contract's own Busabase record
+— the same way `kelly-llm-gateway`'s rollout promote/rollback/hold and
+`kelly-lead-funnel`'s kanban stage moves work.
+
+Default behavior is AirApp-first. Unless the user explicitly asks only for
+explanation, give the user the clickable AirApp URL. Start localhost only
+when local preview/debugging is explicitly requested; it uses the same
+Busabase resources and never offers another data provider. Use chat-only
+mode only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
+
+## Mandatory Dependencies
+
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
+   quality, responsive layout, and the complete canonical `app/` artifact.
+2. Read and follow `$busabase` for connection, target Space, node discovery,
+   ChangeRequests, review, and merge behavior.
+3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
+   runtime limits, security, validation, and deployment.
+
+If a dependency is unavailable, preserve this skill's artifact and product
+contracts, stop before the unavailable Busabase operation, and report the
+exact missing dependency. Do not invent a second data backend.
 
 ## App UI Screenshots
 
@@ -43,92 +73,95 @@ local URL. Use chat-only mode only when the user says "纯聊天", "chat only",
 
 ## Boundary
 
-- Read-mostly aggregation and human review flags only. The skill may read a
-  portfolio snapshot (mock or a future live source), compute health/risk
-  insights, and write local handoff files (`decisions.json`, `onboarding.json`).
-- NEVER contact any external system, brokerage, payment processor, or SME
-  directly. NEVER move money, disburse funds, or change contract terms. There
-  is no transaction path in this skill by design.
-- The app reads and writes local files only, and makes no network calls.
-- Treat contract-level revenue and repayment data as sensitive. Do not commit
-  `config.local.json`, env files, or `app/.data/`.
+- Read-mostly aggregation and human review flags only. NEVER contact any
+  external system, brokerage, payment processor, or SME directly. NEVER move
+  money, disburse funds, or change contract terms. There is no transaction
+  path in this skill by design.
+- The AirApp reads and writes its own Busabase Bases only; it never calls a
+  live portfolio-servicing API. There is no execution/merge step beyond the
+  direct write itself — a human still applies the decision in the real
+  system of record.
+- Contracts are never created by the AirApp; they enter Busabase through an
+  external portfolio-sync process, the same way `kelly-llm-gateway`'s routes
+  and `kelly-lead-funnel`'s leads enter through an upstream process the app
+  doesn't control. The AirApp only ever updates an existing contract's
+  `flagged`/`note`/`decision-updated-at` fields.
+- Generic, brand-neutral tool: never hardcode or reference a specific real
+  company, fund, or SME name in code, templates, or docs.
+- Treat contract-level revenue and repayment data as sensitive. Never commit
+  a local credential file or Busabase secrets.
 
-## First Run And Onboarding
+## Busabase Resources
 
-On invocation, check `app/.data/onboarding.json`. If absent/incomplete, this
-skill's onboarding is intentionally light because the default setup is a
-local mock book: confirm the fund name and risk-policy thresholds
-(`config.example.json` → `config.local.json`), then seed the demo book with
-`npm run seed` (`scripts/generate_demo_snapshot.ts`), which writes ~50
-contracts to `app/.data/snapshot.json`. When the user confirms, write
-`app/.data/onboarding.json`:
+Two Bases under one application Folder (`kelly-portfolio-health`), declared
+in `app/app/js/config.js` and `app/resource-map.json`:
 
-```json
-{ "completed": true, "completed_at": "ISO timestamp", "config_version": "1" }
-```
+- `contracts`: one row per RBF/private-credit contract — funding terms
+  (`funding-amount`, `cap-multiple`, `cap-amount`), `cumulative-repayment`, a
+  6-month `monthly-revenue` series (JSON array), `status`, and the human
+  review `flagged`/`note`/`decision-updated-at` fields written directly onto
+  the same row. Totals, repayment lag, concentration, and the
+  revenue-decline watchlist are never stored — they are pure/derived from
+  these rows and recomputed on every read.
+- `settings`: sanitized config (fund name, base currency, risk-policy
+  thresholds), one row keyed by `kind`.
 
-Private config priority:
+Resources provision lazily through an idempotent Busabase ChangeRequest the
+first time the app runs in a Space; see `references/portfolio-schema.md` for
+exact field shapes.
 
-1. `KELLY_PORTFOLIO_HEALTH_CONFIG=/absolute/path/to/config.json`
-2. `skills/kelly-portfolio-health/config.local.json`
-3. `~/.config/kelly-portfolio-health/config.json`
-4. `skills/kelly-portfolio-health/config.example.json` as template only
+## Portfolio Health Model
 
-## Local App
+`app/app/js/portfolio-model.js` (`computeInsights`) is ported verbatim from
+the retired `app/server/insights.ts`:
 
-Start the dashboard with:
+- **Repayment lag** — per contract, `expected_pct` (months elapsed / term)
+  vs. `actual_pct` (collected / cap); `lag_pp = expected_pct - actual_pct`,
+  with a `severity` of `ok | watch | high` driven by
+  `risk_policy.lag_watch_pp` / `lag_high_pp` (defaults 15 / 25 percentage
+  points).
+- **Concentration** — funding-amount concentration by category and by city,
+  as a percentage of active-contract AUM.
+- **Watchlist** — a contract qualifies when its most recent month's revenue
+  is at least `risk_policy.revenue_decline_pct` (default 10%) below the
+  average of its prior months (minimum 4 months of history).
+- **At-risk count** — any contract with a non-`ok` lag severity, or
+  `status: delinquent`.
 
-```bash
-skills/kelly-portfolio-health/app/start.sh
-```
+No randomness, no ML — the same snapshot always produces the same insights.
 
-The app uses local HTTP on `127.0.0.1`, preferring port `3000` through
-`4000`, or `KELLY_PORTFOLIO_HEALTH_UI_PORT` when set. First run installs
-`hono` and `@hono/node-server`; the frontend is zero-build vanilla.
+## Direct Contract Decision
 
-Seed or refresh the mock book at any time with:
+The human action writes straight onto the contract's own Busabase record
+through `busabase-sdk`, exactly like `kelly-llm-gateway`'s rollout writes —
+there is no approval queue and no separate decisions bucket:
 
-```bash
-node skills/kelly-portfolio-health/scripts/generate_demo_snapshot.ts [count]
-```
+- **Flag for review** / **Clear flag**: toggles `flagged` (`"true"`/`"false"`).
+- **Save note**: sets `note` (free text).
 
-and validate a snapshot before trusting it in the UI with:
-
-```bash
-node skills/kelly-portfolio-health/scripts/validate_ui_schema.ts app/.data/snapshot.json
-```
+Both stamp `decision-updated-at` with the current time. From a standalone
+local preview the write merges immediately (trusted operator); from the
+deployed AirApp it creates a pending ChangeRequest for the trusted process
+to merge, per the AirApp boundary in `$busabase-app-creator`.
 
 ## Demo Mode
 
 - `?demo=1` opens a deterministic, fully offline mock portfolio (~52
   contracts across 8 categories and 10 cities) with computed insights, for
-  documentation and screenshots. It never reads or writes local `.data`
-  files.
+  documentation and screenshots. It never reads or writes Busabase and never
+  claims a real connection; demo flag/note actions only update the
+  in-memory snapshot already rendered in the browser tab.
 - `?demo=overview`, `?demo=concentration`, `?demo=watchlist` select named
   demo scenes/routes.
 - `lang=en` or `lang=zh` forces UI chrome language for screenshots.
 
 UI language: support English and Chinese chrome with `Auto` default.
 
-## Data Provider
+## Local App
 
-- Provider selector env: `KELLY_PORTFOLIO_HEALTH_DATA_PROVIDER=local`
-  (default). Reserve `postgres` / `aitable` / `notion` / `busabase` as future
-  provider names. See `lib/data-provider/provider-interface.ts` for the
-  contract every provider must implement (`readSnapshot`, `readOnboarding`,
-  `readConfig`, `readDecisions`, `setDecision`, `readLock`).
-- The default `local` provider (`lib/data-provider/local-file-provider.ts`)
-  reads/writes local JSON files only.
-
-Read `references/portfolio-schema.md` before editing the app, scripts, or a
-new provider. Primary local files:
-
-- `app/.data/snapshot.json`: canonical normalized portfolio snapshot.
-- `app/.data/onboarding.json`: onboarding completion marker.
-- `app/.data/decisions.json`: per-contract flag/note handoff, written only by
-  the app's review action.
-- `app/.data/agent.lock`: temporary lock while a sync/seed is in progress.
-- `config.local.json`: private configuration (fund name, risk thresholds), ignored by git.
+Default behavior is AirApp-first — give the user the clickable AirApp URL.
+Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+requested.
 
 ## Views
 
@@ -143,16 +176,27 @@ new provider. Primary local files:
 - `#/watchlist`: contracts with a recent revenue decline, each with a
   sparkline and a flag-for-review / clear-flag action.
 - `#/settings`: sanitized configuration summary — data provider, fund name,
-  base currency, and risk-policy thresholds.
+  base currency, and risk-policy thresholds. Never expose secret values.
 
-## Safety
+## Completion Criteria
 
-- Read-mostly by design; the only writes are the human flag/note action and
-  the seed script's mock snapshot.
-- Do not invent real company names or real revenue data — this skill ships
-  with a synthetic, brand-free mock book only.
-- Keep local exports minimal and use stable contract ids so repeated
-  seeds/syncs stay idempotent for review state.
-## Execution reports
+Finish only when:
 
-Re-read the active provider's decisions immediately before any approved execution. Record each concrete operation, target, status, timestamp, and error in the provider-backed execution report; keep app actions local-only.
+- the skill contains the complete canonical `app/` project and
+  `pnpm --dir app dev` remains supported;
+- all persistent config, state, and domain data use `busabase-sdk` and the
+  declared resource map — no local JSON, browser storage, or provider
+  choice;
+- Vault values and API credentials never reach browser-visible surfaces;
+- local setup offers Cloud/custom URL OAuth plus the explicit Demo path,
+  while a deployed AirApp uses its ambient session;
+- Overview, Contracts, Concentration, Watchlist, and Help & Settings render
+  on desktop and phone widths;
+- `pnpm --dir app run check` and `node --test` pass.
+
+## Stop Conditions
+
+Stop before consequential Busabase mutation when the target Space is
+ambiguous, the current user lacks permission, or a same-slug resource is not
+application-owned. Never contact an external system, move money, or change
+contract terms from the AirApp.

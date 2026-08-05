@@ -1,9 +1,10 @@
 import { messages } from "./i18n/messages.js";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
   snapshot: null,
   settings: null,
-  decisions: {},
   route: parseRoute(),
   query: "",
   sort: { key: "lag_pp", dir: "desc" },
@@ -13,6 +14,7 @@ const state = {
       "auto",
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
+  busy: false,
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-portfolio-health.sidebarCollapsed";
@@ -123,27 +125,12 @@ function setRoute() {
 }
 
 async function loadState() {
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  if (state.lang) params.set("lang", state.lang);
-  const res = await fetch(`/api/state?${params}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`State request failed: ${res.status}`);
-  const data = await res.json();
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
-  state.decisions = data.decisions || {};
-  render();
-}
-
-async function saveDecision(id, patch) {
-  const res = await fetch(`/api/contracts/${encodeURIComponent(id)}/decision`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(patch),
-  });
-  if (!res.ok) return;
-  const body = await res.json();
-  state.decisions[id] = body.decision;
+  window.dispatchEvent(new CustomEvent("kelly-portfolio-health:state", { detail: data }));
   render();
 }
 
@@ -162,19 +149,23 @@ function applyI18n() {
   if (els.mobileRefresh) els.mobileRefresh.title = t("refresh");
 }
 
-function isConnected() {
-  return Boolean(state.snapshot?.contracts?.length);
+function hasSnapshot() {
+  return Boolean(state.snapshot);
 }
 
 function watchlistRows() {
   return state.snapshot?.insights?.watchlist || [];
 }
 
+function contractById(id) {
+  return (state.snapshot?.contracts || []).find((item) => item.id === id);
+}
+
 function renderShell() {
   applyI18n();
   const insights = state.snapshot?.insights;
   const contractCount = state.snapshot?.contracts?.length || 0;
-  const connected = isConnected();
+  const connected = hasSnapshot();
   els.syncStatus.textContent = connected
     ? state.snapshot?.generated_at
       ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
@@ -293,10 +284,6 @@ function renderOverview() {
   els.subtitle.textContent = state.snapshot?.generated_at
     ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
     : t("empty");
-  if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
-    return;
-  }
   els.content.innerHTML = `
     ${totalsMetricCards()}
     <section class="overview-grid">
@@ -355,11 +342,10 @@ function contractsTable(rows) {
         </thead>
         <tbody>
           ${sorted
-            .map((c) => {
-              const flagged = state.decisions[c.id]?.flagged;
-              return `
+            .map(
+              (c) => `
             <tr>
-              <td><a href="#/contracts/${encodeURIComponent(c.id)}"><span class="strong">${escapeHtml(c.business_name)}</span></a>${flagged ? `<div class="muted"><span class="badge sev-high">${escapeHtml(t("flagged"))}</span></div>` : ""}</td>
+              <td><a href="#/contracts/${encodeURIComponent(c.id)}"><span class="strong">${escapeHtml(c.business_name)}</span></a>${c.flagged ? `<div class="muted"><span class="badge sev-high">${escapeHtml(t("flagged"))}</span></div>` : ""}</td>
               <td>${escapeHtml(c.category)}</td>
               <td>${escapeHtml(c.city)}</td>
               <td class="num">${money(c.funding_amount, c.currency)}</td>
@@ -367,8 +353,8 @@ function contractsTable(rows) {
               <td class="num ${(c.lag_pp ?? 0) > 0 ? "negative" : ""}">${(c.lag_pp ?? 0).toFixed(1)}pp</td>
               <td><span class="badge">${escapeHtml(c.status)}</span></td>
             </tr>
-          `;
-            })
+          `,
+            )
             .join("")}
         </tbody>
       </table>
@@ -380,10 +366,6 @@ function renderContracts() {
   els.title.textContent = t("contractsTitle");
   const rows = contractRows();
   els.subtitle.textContent = `${rows.length} ${t("contracts")}`;
-  if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
-    return;
-  }
   els.content.innerHTML = `${totalsMetricCards()}${contractsTable(rows)}`;
 }
 
@@ -414,10 +396,6 @@ function concentrationTable(rows, labelKey) {
 function renderConcentration() {
   els.title.textContent = t("concentrationTitle");
   els.subtitle.textContent = t("localFilesOnly");
-  if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
-    return;
-  }
   const insights = state.snapshot?.insights || {};
   els.content.innerHTML = `
     <section class="overview-grid">
@@ -477,19 +455,16 @@ function renderWatchlist() {
   els.title.textContent = t("watchlistTitle");
   const rows = watchlistRows();
   els.subtitle.textContent = `${rows.length} ${t("contracts")}`;
-  if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
-    return;
-  }
   if (!rows.length) {
     els.content.innerHTML = `<div class="empty">${t("watchlistEmpty")}</div>`;
     return;
   }
+  const disabled = state.busy ? "disabled" : "";
   els.content.innerHTML = `
     <div class="watchlist-grid">
       ${rows
         .map((row) => {
-          const decision = state.decisions[row.id] || {};
+          const contract = contractById(row.id) || {};
           return `
         <div class="watchlist-card">
           <div class="row between">
@@ -500,7 +475,7 @@ function renderWatchlist() {
           <div class="spark-wrap negative">${sparkline(row.monthly_revenue)}</div>
           <div class="muted">${t("recentRevenue")}: ${money(row.recent_revenue)}</div>
           <div class="row watchlist-actions">
-            <button type="button" data-action="toggle-flag" data-id="${escapeHtml(row.id)}" class="${decision.flagged ? "primary" : ""}">${decision.flagged ? escapeHtml(t("clearFlag")) : escapeHtml(t("flagForReview"))}</button>
+            <button type="button" data-action="toggle-flag" data-id="${escapeHtml(row.id)}" class="${contract.flagged ? "primary" : ""}" ${disabled}>${contract.flagged ? escapeHtml(t("clearFlag")) : escapeHtml(t("flagForReview"))}</button>
           </div>
         </div>
       `;
@@ -511,15 +486,15 @@ function renderWatchlist() {
 }
 
 function renderContractDetail() {
-  const contract = (state.snapshot?.contracts || []).find((item) => item.id === state.route.id);
+  const contract = contractById(state.route.id);
   if (!contract) {
     renderContracts();
     return;
   }
   const progress = (state.snapshot?.insights?.progress || []).find((row) => row.id === contract.id) || {};
-  const decision = state.decisions[contract.id] || { flagged: false, note: "" };
   els.title.textContent = contract.business_name;
   els.subtitle.textContent = `${contract.category} · ${contract.city}`;
+  const disabled = state.busy ? "disabled" : "";
   els.content.innerHTML = `
     <section class="detail">
       <div class="detail-main">
@@ -536,10 +511,10 @@ function renderContractDetail() {
         </div>
         <div class="overview-panel review-panel">
           <h2>${t("reviewNote")}</h2>
-          <textarea id="reviewNote" rows="3" placeholder="${escapeHtml(t("reviewNote"))}">${escapeHtml(decision.note || "")}</textarea>
+          <textarea id="reviewNote" rows="3" placeholder="${escapeHtml(t("reviewNote"))}" ${disabled}>${escapeHtml(contract.note || "")}</textarea>
           <div class="row watchlist-actions">
-            <button type="button" data-action="toggle-flag" data-id="${escapeHtml(contract.id)}" class="${decision.flagged ? "primary" : ""}">${decision.flagged ? escapeHtml(t("clearFlag")) : escapeHtml(t("flagForReview"))}</button>
-            <button type="button" data-action="save-note" data-id="${escapeHtml(contract.id)}">${escapeHtml(t("saveNote"))}</button>
+            <button type="button" data-action="toggle-flag" data-id="${escapeHtml(contract.id)}" class="${contract.flagged ? "primary" : ""}" ${disabled}>${contract.flagged ? escapeHtml(t("clearFlag")) : escapeHtml(t("flagForReview"))}</button>
+            <button type="button" data-action="save-note" data-id="${escapeHtml(contract.id)}" ${disabled}>${escapeHtml(t("saveNote"))}</button>
           </div>
         </div>
       </div>
@@ -569,7 +544,7 @@ function renderSettings() {
       <section>
         <h2>${t("configuration")}</h2>
         <dl>
-          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "local")}</dd>
+          <dt>${t("dataProvider")}</dt><dd>${escapeHtml(state.settings?.data_provider || "busabase")}</dd>
           <dt>${t("configPath")}</dt><dd>${escapeHtml(summary.config_path || "")}</dd>
           <dt>${t("fundName")}</dt><dd>${escapeHtml(summary.fund_name || "")}</dd>
           <dt>${t("baseCurrency")}</dt><dd>${escapeHtml(summary.base_currency || "USD")}</dd>
@@ -596,6 +571,54 @@ function render() {
   else if (state.route.view === "watchlist") renderWatchlist();
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
+}
+
+// Direct decision write: flag-for-review / clear-flag / note, applied
+// straight through the active provider (Busabase or demo), the same way
+// kelly-llm-gateway's rollout promote/rollback/hold writes work — there is
+// no separate approval step, since the flag/note is written directly onto
+// the contract's own record. Demo mode never writes anywhere; it only
+// reflects the decision in the in-memory snapshot already rendered.
+async function submitToggleFlag(id) {
+  if (state.demo) {
+    const contract = contractById(id);
+    if (contract) contract.flagged = !contract.flagged;
+    render();
+    return;
+  }
+  const contract = contractById(id);
+  const nextFlagged = !contract?.flagged;
+  state.busy = true;
+  render();
+  try {
+    const provider = await getProvider();
+    await provider.decideContract(id, { flagged: nextFlagged });
+    await loadState();
+  } catch (error) {
+    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+  } finally {
+    state.busy = false;
+  }
+}
+
+async function submitSaveNote(id, note) {
+  if (state.demo) {
+    const contract = contractById(id);
+    if (contract) contract.note = note;
+    render();
+    return;
+  }
+  state.busy = true;
+  render();
+  try {
+    const provider = await getProvider();
+    await provider.decideContract(id, { note });
+    await loadState();
+  } catch (error) {
+    els.content.insertAdjacentHTML("afterbegin", `<div class="empty">${escapeHtml(error.message)}</div>`);
+  } finally {
+    state.busy = false;
+  }
 }
 
 function escapeHtml(value) {
@@ -637,11 +660,10 @@ els.content.addEventListener("click", (event) => {
   if (!actionButton) return;
   const id = actionButton.dataset.id;
   if (actionButton.dataset.action === "toggle-flag") {
-    const flagged = !state.decisions[id]?.flagged;
-    saveDecision(id, { flagged });
+    submitToggleFlag(id);
   } else if (actionButton.dataset.action === "save-note") {
     const note = document.querySelector("#reviewNote")?.value || "";
-    saveDecision(id, { note });
+    submitSaveNote(id, note);
   }
 });
 els.refresh.addEventListener("click", () => loadState());
@@ -654,6 +676,19 @@ els.language.addEventListener("change", () => {
 });
 
 syncResponsiveShell();
-loadState().catch((error) => {
-  els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-});
+
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+  } catch (error) {
+    if (String(error?.message || error).startsWith("SETUP_")) {
+      renderSetupRequired(error, boot);
+      return;
+    }
+    els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+  }
+}
+
+boot();
