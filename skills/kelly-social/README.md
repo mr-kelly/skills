@@ -26,16 +26,11 @@ Every draft is scored 0–100 (SQS) across brand voice, disclosure, and banned c
 
 ## Collection & Publishing Philosophy
 
-Most social platforms have hostile or expensive APIs, so collection is agent-driven: the AI agent gathers data using the method configured per account — browsing with the user's own logged-in session, parsing analytics exports the user downloads, or an official API when a token is configured — then writes everything through `scripts/ingest_snapshot.ts`. Publishing is human-gated: the agent drafts, the human approves in the review queue, and the skill performs the real platform action out of band. The app itself only renders and mutates local files and never touches any network beyond `127.0.0.1`. Own accounts only, no password storage, no fake engagement.
+Most social platforms have hostile or expensive APIs, so collection is agent-driven: the AI agent gathers data using the method configured per account — browsing with the user's own logged-in session, parsing analytics exports the user downloads, or an official API when a token is configured — then writes everything through `scripts/ingest_snapshot.mjs` directly into Busabase. Publishing is human-gated: the agent drafts, the human approves in the review queue, and the skill performs the real platform action out of band. Own accounts only, no password storage, no fake engagement.
 
-## Data Provider
+## Data
 
-The app reaches storage only through a data-provider seam (`lib/data-provider/`), so the same UI and scripts run against either backend:
-
-- `KELLY_SOCIAL_DATA_PROVIDER=local` (default) — JSON files in `app/.data/`.
-- `KELLY_SOCIAL_DATA_PROVIDER=busabase` — HTTP client to a Busabase base.
-
-Both implement the same interface, including `applyOperation()` for publishing-desk writes.
+Kelly Social is a Busabase-only App-in-Skill: the browser talks to `busabase-sdk` directly through a thin same-origin OAuth proxy (`server.js`), with lazy Folder/Base provisioning on first connect. There is no local-file persistence and no provider choice. A deterministic `?demo=1` read-only preview is available for exploring the UI without a Busabase connection.
 
 ## App UI Screenshots
 
