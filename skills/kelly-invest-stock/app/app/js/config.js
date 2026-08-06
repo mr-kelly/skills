@@ -111,7 +111,7 @@ export const appConfig = {
       description: "Dated research evidence, account snapshots, and manual maturity decisions",
       nodeId: "",
       baseId: "",
-      readLimit: 200,
+      readLimit: 100,
       fields: [
         { slug: "name", name: "记录名称", type: "text", required: true },
         { slug: "strategy-key", name: "策略标识", type: "text", required: true },

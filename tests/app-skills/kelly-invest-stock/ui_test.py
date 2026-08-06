@@ -61,7 +61,9 @@ def test_demo_ui(browser, base_url: str) -> None:
     assert page.get_by_role("columnheader", name="账本 NAV", exact=True).is_visible()
     assert page.get_by_role("columnheader", name="晋级阶段", exact=True).is_visible()
     assert page.get_by_role("columnheader", name="账本持仓", exact=True).is_visible()
-    assert page.get_by_text("贵州茅台", exact=True).first.is_visible()
+    # Holding names render joined in one cell ("贵州茅台 · 招商银行 · 中国神华"),
+    # not as an isolated exact-text node, so match as a substring.
+    assert page.get_by_text("贵州茅台").first.is_visible()
     assert "¥" in page.locator(".strategy-table").inner_text()
     assert page.locator(".filters", has_text="虚拟账本").count() == 0
     assert page.get_by_role("button", name="打开回归", exact=True).is_visible()
@@ -80,6 +82,10 @@ def test_demo_ui(browser, base_url: str) -> None:
     first_row = page.locator('.strategy-table-row[data-select-id="strategy-munger"] .strategy-col')
     first_row.click()
     assert "/strategy-" in page.url and page.url.endswith("/portfolio")
+    # The hash-route change re-renders asynchronously; is_visible() doesn't
+    # auto-retry like click()/wait_for() do, so wait for the panel to attach
+    # before asserting on it.
+    page.locator(".strategy-detail-view").wait_for()
     assert page.locator(".strategy-detail-view").is_visible()
     assert page.get_by_role("tab", name="组合持仓 3", exact=True).get_attribute("aria-selected") == "true"
     assert page.get_by_role("heading", name="组合持仓", exact=True).is_visible()
@@ -90,23 +96,33 @@ def test_demo_ui(browser, base_url: str) -> None:
     assert page.get_by_text("000333", exact=False).is_visible()
     page.get_by_role("tab", name="策略逻辑", exact=True).click()
     assert page.url.endswith("/logic")
-    assert page.get_by_role("heading", name="策略阶段", exact=True).is_visible()
+    heading = page.get_by_role("heading", name="策略阶段", exact=True)
+    heading.wait_for(state="visible")
+    assert heading.is_visible()
     page.get_by_role("tab", name="回测表现 1", exact=True).click()
     assert page.url.endswith("/backtest")
-    assert page.get_by_role("heading", name="历史回测", exact=True).is_visible()
+    heading = page.get_by_role("heading", name="历史回测", exact=True)
+    heading.wait_for(state="visible")
+    assert heading.is_visible()
     assert page.get_by_text("2024-08-05 → 2026-08-05", exact=True).is_visible()
     page.locator('.stage-control button[data-stage-value="L1"]').click()
     page.get_by_role("dialog", name="人工审批策略阶段").wait_for()
     page.get_by_label("人工理由").fill("研究证据已复核，本次降级用于验证人工审批记录。")
     page.get_by_role("checkbox").check()
     page.get_by_role("button", name="确认并提交", exact=True).click()
-    assert page.locator(".detail-heading .stage-badge", has_text="L1").is_visible()
+    stage_badge = page.locator(".detail-heading .stage-badge", has_text="L1")
+    stage_badge.wait_for(state="visible")
+    assert stage_badge.is_visible()
     page.get_by_role("tab", name="研究与审批 2", exact=True).click()
-    assert page.get_by_text("Demo 不持久化", exact=True).is_visible()
+    demo_note = page.get_by_text("Demo 不持久化", exact=True)
+    demo_note.wait_for(state="visible")
+    assert demo_note.is_visible()
     assert page.get_by_text("研究证据已复核，本次降级用于验证人工审批记录。", exact=True).is_visible()
 
     page.get_by_role("button", name="打开回归", exact=True).click()
-    assert page.get_by_role("heading", name="回归", exact=True).is_visible()
+    heading = page.get_by_role("heading", name="回归", exact=True)
+    heading.wait_for(state="visible")
+    assert heading.is_visible()
     assert page.get_by_text("策略回测（回归测试）", exact=True).is_visible()
     assert page.get_by_role("columnheader", name="报告日期", exact=True).is_visible()
     assert page.get_by_role("columnheader", name="回测区间", exact=True).is_visible()
@@ -141,11 +157,15 @@ def test_demo_ui(browser, base_url: str) -> None:
 
         page.locator('.strategy-table-row[data-select-id="strategy-munger"] .strategy-col').click()
         assert page.locator("body.mobile-detail-open").count() == 1
-        assert page.locator(".strategy-detail-view").is_visible()
+        detail_view = page.locator(".strategy-detail-view")
+        detail_view.wait_for(state="visible")
+        assert detail_view.is_visible()
         assert page.get_by_role("tab", name="组合持仓 3", exact=True).get_attribute("aria-selected") == "true"
         assert page.locator(".portfolio-table .portfolio-position-row").count() == 3
         page.get_by_role("tab", name="策略逻辑", exact=True).click()
-        assert page.get_by_role("heading", name="策略阶段", exact=True).is_visible()
+        heading = page.get_by_role("heading", name="策略阶段", exact=True)
+        heading.wait_for(state="visible")
+        assert heading.is_visible()
         page.get_by_role("tab", name="组合持仓 3", exact=True).click()
         page.locator("[data-back-to-list]").click()
         assert page.locator("body.mobile-detail-open").count() == 0
@@ -352,7 +372,9 @@ def test_busabase_provisioning(browser) -> None:
                     page.wait_for_load_state("networkidle")
                     page.locator(".detail-heading .stage-badge", has_text="L2").wait_for()
                     page.get_by_role("tab", name="研究与审批 2", exact=True).click()
-                    assert page.get_by_text("研究证据与虚拟账本已复核，同意进入进阶观察阶段。", exact=True).is_visible()
+                    evidence_note = page.get_by_text("研究证据与虚拟账本已复核，同意进入进阶观察阶段。", exact=True)
+                    evidence_note.wait_for(state="visible")
+                    assert evidence_note.is_visible()
                     assert_no_horizontal_overflow(page)
                     assert not unexpected_errors(errors), errors
                     context.close()
