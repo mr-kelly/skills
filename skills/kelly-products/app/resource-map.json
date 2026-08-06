@@ -1,0 +1,18 @@
+{
+  "appId": "kelly-products",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-products"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "products", "slug": "kelly-products-products-v1", "schemaVersion": 1 },
+    { "key": "channels", "slug": "kelly-products-channels-v1", "schemaVersion": 1 },
+    { "key": "inventory", "slug": "kelly-products-inventory-v1", "schemaVersion": 1 },
+    { "key": "review", "slug": "kelly-products-review-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-products-settings-v1", "schemaVersion": 1 }
+  ]
+}

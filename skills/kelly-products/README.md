@@ -1,6 +1,6 @@
 # Kelly Products
 
-Kelly Products is a local App-in-Skill product-management desk (商品管理台) for e-commerce sellers. It consolidates SKU master data, pricing, inventory, channel status, content assets, compliance notes, lifecycle state, and approval-gated operations in a visual local UI.
+Kelly Products is a Busabase App-in-Skill product-management desk (商品管理台) for e-commerce sellers. It consolidates SKU master data, pricing, inventory, channel status, content assets, compliance notes, lifecycle state, and an approval-gated review queue.
 
 ## What It Shows
 
@@ -42,13 +42,13 @@ Kelly Products is a local App-in-Skill product-management desk (商品管理台)
 
 ## Demo Mode
 
-Run the app and open a safe mock-data scene:
+Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-skills/kelly-products/app/start.sh
+pnpm --dir skills/kelly-products/app dev
 ```
 
-Use the URL printed by the launcher, then add one of these demo paths:
+Then add one of these demo paths:
 
 ```text
 /?demo=overview&lang=en#/overview
@@ -59,18 +59,15 @@ Use the URL printed by the launcher, then add one of these demo paths:
 /?demo=detail&lang=en#/products/prod-aurora-lamp
 ```
 
-Use `lang=zh` for Chinese screenshots. Demo mode uses local PNG product images under `assets/product-images/` and never reads or writes files under `app/.data/`.
+Use `lang=zh` for Chinese screenshots. Demo mode uses the same real static PNG product images shipped under `app/app/assets/product-images/` and never reads or writes Busabase.
 
-## Payload Format
+## Ingest Payload Format
 
-The UI snapshot lives at `app/.data/products_snapshot.json`:
+`scripts/ingest_products.mjs` accepts a payload shaped like the retired local app's `products_snapshot.json` contract:
 
 ```json
 {
-  "schema_version": "1",
-  "generated_at": "2026-07-07T09:00:00.000Z",
   "seller": { "brand": "Nimbus Home", "base_currency": "USD" },
-  "metrics": { "product_count": 5, "low_stock_count": 2 },
   "products": [
     {
       "product_id": "prod-aurora-lamp",
@@ -87,8 +84,12 @@ The UI snapshot lives at `app/.data/products_snapshot.json`:
 }
 ```
 
-Run `node scripts/validate_ui_schema.ts app/.data/products_snapshot.json` before relying on a snapshot. See `references/products-schema.md` for the full contract.
+Run `node scripts/ingest_products.mjs payload.json --apply` to write it to Busabase (dry run by default). See `references/products-schema.md` for the full Busabase field contract, and `scripts/execute_decisions.mjs` for recording the agent's approved follow-up (publish/price change/archive/quality hold) after a review decision.
+
+## Busabase Setup
+
+Kelly Products provisions its own Folder and five Bases (`products`, `channels`, `inventory`, `review`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
 
 ## Boundary
 
-The app renders local files only and never publishes listings, changes prices, archives SKUs, or lifts quality holds by itself. Those actions require approval in the review queue, then the agent executes them outside the app and records the result. Never commit seller data: `config.local.json`, `.env*`, `app/.data/`, and `exports/` are gitignored.
+The AirApp reads and writes Busabase only — it never publishes a channel listing, changes a price, archives a SKU, or lifts a quality hold by itself. Those actions require a human approval record in the review queue, then the agent executes them outside the app and reports the concrete result. Ingesting products/channels/inventory/review items is a local-file operation performed by the trusted `scripts/ingest_products.mjs` script, never by the browser. Never commit local payload files, env files, or generated exports.

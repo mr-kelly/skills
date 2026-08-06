@@ -1,4 +1,14 @@
 import { messages } from "./i18n/messages.js";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import {
+  channelsFor,
+  computeMetrics,
+  filteredProducts,
+  inventoryFor,
+  reviewFor,
+  statusForVerdict,
+} from "./js/products-model.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
   snapshot: null,
@@ -9,17 +19,12 @@ const state = {
   lang: normalizeLang(
     new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-products-language") || "auto",
   ),
-  demo: new URLSearchParams(location.search).get("demo") || "",
+  demo: new URLSearchParams(location.search).has("demo"),
+  busy: false,
 };
 
 const FEATURED_PRODUCT = "prod-aurora-lamp";
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-products.sidebarCollapsed";
-const DECISION_STATUS = {
-  approve: "approved",
-  request_changes: "changes_requested",
-  block: "blocked",
-  revise: "needs_review",
-};
 
 const els = {
   title: document.querySelector("#page-title"),
@@ -107,15 +112,13 @@ function setRoute() {
 }
 
 async function loadState() {
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  if (state.lang) params.set("lang", state.lang);
-  const res = await fetch(`/api/state?${params}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`State request failed: ${res.status}`);
-  const data = await res.json();
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
   applyDemoRoute();
+  window.dispatchEvent(new CustomEvent("kelly-products:state", { detail: data }));
   render();
 }
 
@@ -171,42 +174,6 @@ function productById(productId) {
   return products().find((product) => product.product_id === productId) || null;
 }
 
-function channelsFor(productId) {
-  return channels().filter((item) => item.product_id === productId);
-}
-
-function inventoryFor(productId) {
-  return inventory().find((item) => item.product_id === productId) || null;
-}
-
-function reviewFor(productId) {
-  return reviewItems().filter((item) => item.product_id === productId);
-}
-
-function decisionFor(itemId) {
-  return state.settings?.decisions?.decisions?.[itemId] || null;
-}
-
-function effectiveReviewStatus(item) {
-  const decision = decisionFor(item.item_id);
-  if (!decision) return item.status;
-  const generatedAt = Date.parse(state.snapshot?.generated_at || 0) || 0;
-  const decidedAt = Date.parse(decision.decided_at || 0) || 0;
-  if (decidedAt >= generatedAt && DECISION_STATUS[decision.action]) return DECISION_STATUS[decision.action];
-  return item.status;
-}
-
-function filteredProducts() {
-  const q = state.query.trim().toLowerCase();
-  if (!q) return products();
-  return products().filter((product) =>
-    [product.name, product.sku, product.category, product.owner, product.vendor, ...(product.tags || [])]
-      .join(" ")
-      .toLowerCase()
-      .includes(q),
-  );
-}
-
 function money(value, currency = "USD") {
   return new Intl.NumberFormat(activeLang() === "zh" ? "zh-CN" : "en-US", {
     style: "currency",
@@ -248,9 +215,7 @@ function esc(value) {
 function renderShell() {
   applyI18n();
   const metrics = state.snapshot?.metrics || {};
-  els.reviewCount.textContent = String(
-    reviewItems().filter((item) => effectiveReviewStatus(item) === "needs_review").length,
-  );
+  els.reviewCount.textContent = String(reviewItems().filter((item) => item.status === "needs_review").length);
   els.stockCount.textContent = String(metrics.low_stock_count || 0);
   els.channelCount.textContent = String(metrics.channel_issue_count || 0);
   els.syncStatus.textContent = state.settings?.demo
@@ -363,7 +328,7 @@ function renderOverview() {
 }
 
 function renderProducts() {
-  const list = filteredProducts();
+  const list = filteredProducts(products(), state.query);
   setPage(t("products"), `${list.length} ${t("products").toLowerCase()}`);
   els.content.innerHTML = `<div class="product-grid">${list.map((product) => productCard(product)).join("")}</div>`;
 }
@@ -375,9 +340,9 @@ function renderProductDetail(productId) {
     els.content.innerHTML = `<div class="empty">${t("empty")}</div>`;
     return;
   }
-  const inv = inventoryFor(product.product_id);
-  const channelRows = channelsFor(product.product_id);
-  const reviewRows = reviewFor(product.product_id);
+  const inv = inventoryFor(inventory(), product.product_id);
+  const channelRows = channelsFor(channels(), product.product_id);
+  const reviewRows = reviewFor(reviewItems(), product.product_id);
   const currency = state.snapshot?.seller?.base_currency || "USD";
   setPage(product.name, `${product.sku} · ${product.category}`);
   els.content.innerHTML = `
@@ -517,18 +482,17 @@ function renderChannels() {
 
 function reviewRow(item) {
   const product = productById(item.product_id);
-  const status = effectiveReviewStatus(item);
-  const decision = decisionFor(item.item_id);
+  const status = item.status;
   const actions =
     status === "needs_review"
       ? `<div class="review-actions">
-        <button data-action="approve" data-item="${esc(item.item_id)}">${t("approve")}</button>
-        <button class="secondary" data-action="request_changes" data-item="${esc(item.item_id)}">${t("requestChanges")}</button>
-        <button class="danger" data-action="block" data-item="${esc(item.item_id)}">${t("block")}</button>
+        <button data-action="approve" data-item="${esc(item.item_id)}" ${state.busy ? "disabled" : ""}>${t("approve")}</button>
+        <button class="secondary" data-action="request_changes" data-item="${esc(item.item_id)}" ${state.busy ? "disabled" : ""}>${t("requestChanges")}</button>
+        <button class="danger" data-action="block" data-item="${esc(item.item_id)}" ${state.busy ? "disabled" : ""}>${t("block")}</button>
       </div>`
       : `<div class="review-actions">
         ${badge(status)}
-        ${decision?.comment ? `<span class="muted">${esc(decision.comment)}</span>` : ""}
+        ${item.decision_note ? `<span class="muted">${esc(item.decision_note)}</span>` : ""}
       </div>`;
   return `<article class="review-item">
     <a class="review-image" href="#/products/${encodeURIComponent(item.product_id)}"><img src="${esc(product?.image || "")}" alt=""></a>
@@ -547,7 +511,7 @@ function reviewRow(item) {
 }
 
 function renderReview() {
-  const pending = reviewItems().filter((item) => effectiveReviewStatus(item) === "needs_review").length;
+  const pending = reviewItems().filter((item) => item.status === "needs_review").length;
   setPage(t("reviewQueue"), `${pending} ${t("needsReview")}`);
   els.content.innerHTML = `
     ${state.notice ? `<div class="notice">${esc(state.notice)}</div>` : ""}
@@ -572,7 +536,7 @@ function renderSettings() {
       ${(summary.platforms || [])
         .map(
           (platform) =>
-            `<div><strong>${enumLabel(platform.platform, "platform")}</strong><span>${esc(platform.store_name)} · ${platform.secrets_ready ? "ready" : "missing env"}</span></div>`,
+            `<div><strong>${enumLabel(platform.platform, "platform")}</strong><span>${esc(platform.store_name)}</span></div>`,
         )
         .join("")}
     </div>
@@ -586,25 +550,6 @@ function renderSettings() {
       ${state.settings?.onboarding?.completed_at ? `<div><span>${t("completed")}</span><strong>${esc(state.settings.onboarding.completed_at)}</strong></div>` : ""}
     </div>
   </section>`;
-}
-
-async function postDecision(action, itemId) {
-  const comment = window.prompt(t("reviewNote"), "");
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  const res = await fetch(`/api/decision?${params}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ action, item_id: itemId, comment: comment || "" }),
-  });
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    state.notice = data.error || `HTTP ${res.status}`;
-    render();
-    return;
-  }
-  state.notice = activeLang() === "zh" ? "决策已记录。" : "Decision recorded.";
-  await loadState();
 }
 
 function render() {
@@ -627,6 +572,55 @@ function render() {
   else renderOverview();
 }
 
+// ---- Direct write: record the operator's review decision straight through
+// the active provider (Busabase or demo) -- there is no separate
+// decisions.json-equivalent bucket, the status/decision-note/decided-at
+// fields are written directly onto the review item's own record. Demo mode
+// never reaches Busabase; it mutates the in-memory snapshot already
+// rendered so ?demo=1 stays fully interactive for screenshots/docs. ----
+
+function showError(error) {
+  state.notice = error?.message || String(error);
+  render();
+}
+
+async function postDecision(action, itemId) {
+  const comment = window.prompt(t("reviewNote"), "");
+  if (state.demo) {
+    const index = reviewItems().findIndex((item) => item.item_id === itemId);
+    if (index !== -1) {
+      const items = reviewItems();
+      const now = new Date().toISOString();
+      items[index] = {
+        ...items[index],
+        status: statusForVerdict(action, items[index].status),
+        decision_note: comment || "",
+        decided_at: now,
+        updated_at: now,
+      };
+      if (state.snapshot) {
+        state.snapshot.metrics = computeMetrics(products(), channels(), inventory());
+      }
+    }
+    state.notice =
+      activeLang() === "zh" ? "决策已记录（演示模式，不会保存）。" : "Decision recorded (demo mode, not saved).";
+    render();
+    return;
+  }
+  state.busy = true;
+  render();
+  try {
+    const provider = await getProvider();
+    await provider.decideReview(itemId, action, comment || "");
+    state.notice = activeLang() === "zh" ? "决策已记录。" : "Decision recorded.";
+    await loadState();
+  } catch (error) {
+    showError(error);
+  } finally {
+    state.busy = false;
+  }
+}
+
 function bindEvents() {
   window.addEventListener("hashchange", setRoute);
   window.addEventListener("resize", syncResponsiveShell);
@@ -635,8 +629,8 @@ function bindEvents() {
     if (state.route.view !== "products") location.hash = "#/products";
     else render();
   });
-  els.refresh.addEventListener("click", loadState);
-  els.mobileRefresh?.addEventListener("click", loadState);
+  els.refresh.addEventListener("click", () => loadState());
+  els.mobileRefresh?.addEventListener("click", () => loadState());
   els.sidebarToggle?.addEventListener("click", toggleSidebar);
   els.mobileSidebarToggle?.addEventListener("click", toggleSidebar);
   els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
@@ -656,8 +650,19 @@ function bindEvents() {
 
 syncResponsiveShell();
 bindEvents();
-loadState().catch((error) => {
-  console.error(error);
-  setPage("Error", "");
-  els.content.innerHTML = `<div class="empty">${esc(error.message)}</div>`;
-});
+
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+  } catch (error) {
+    if (String(error?.message || error).startsWith("SETUP_")) {
+      renderSetupRequired(error, boot);
+      return;
+    }
+    els.content.innerHTML = `<div class="empty">${esc(error.message)}</div>`;
+  }
+}
+
+boot();

@@ -3,22 +3,16 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly Products App-in-Skill — local product management desk for e-commerce catalog, inventory, channels, and approvals.",
+  "description": "Kelly Products Busabase App-in-Skill and trusted ingest/execute scripts.",
   "scripts": {
-    "start": "node app/server/launcher.ts",
-    "serve": "node app/server/index.ts",
-    "generate-demo-assets": "node scripts/generate_demo_assets.ts",
-    "generate-demo-snapshot": "node scripts/generate_demo_snapshot.ts",
-    "validate-ui-schema": "node scripts/validate_ui_schema.ts"
+    "ingest": "node scripts/ingest_products.mjs",
+    "execute": "node scripts/execute_decisions.mjs",
+    "app:check": "pnpm --dir app check"
   },
   "dependencies": {
-    "@hono/node-server": "^1.13.7",
-    "hono": "^4.6.14"
-  },
-  "devDependencies": {
-    "sharp": "^0.35.3"
+    "busabase-sdk": "0.11.0"
   },
   "engines": {
-    "node": ">=23.6"
+    "node": ">=24.18.0"
   }
 }

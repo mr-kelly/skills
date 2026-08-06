@@ -1,1 +1,0 @@
-// Reserved for the shared accent-theme rollout used by the docs site.

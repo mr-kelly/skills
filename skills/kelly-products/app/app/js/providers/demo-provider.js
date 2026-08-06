@@ -1,45 +1,19 @@
-const now = "2026-07-07T09:00:00.000Z";
+// Deterministic, fully offline demo payload for documentation/screenshots.
+// Never reads or writes Busabase, never persists anything -- matches the
+// ?demo=1 contract used across Kelly App-in-Skills. The five products, seven
+// channel rows, five inventory rows, three review items, and four activity
+// entries below are ported verbatim (same ids, same names, same numbers,
+// same bilingual copy) from the retired app/server/demo.ts.
+import { assembleSnapshot, computeMetrics } from "../products-model.js?v=0.1.0";
+
+const NOW = "2026-07-07T09:00:00.000Z";
 export const FEATURED_PRODUCT_ID = "prod-aurora-lamp";
 
-interface DemoQuery {
-  demo?: string | boolean;
-  lang?: string;
+function L(zh) {
+  return (en, zhText) => (zh ? zhText : en);
 }
 
-export function isDemoQuery(query: DemoQuery = {}) {
-  return Boolean(query.demo);
-}
-
-export function demoStatePayload(query: DemoQuery = {}) {
-  const scenario = String(query.demo || "overview");
-  const zh = String(query.lang || "")
-    .toLowerCase()
-    .startsWith("zh");
-  const snapshot = demoSnapshot(zh);
-  return {
-    demo: true,
-    demo_scenario: scenario,
-    app: "kelly-products",
-    data_provider: "demo",
-    onboarding: { completed: true, completed_at: "2026-06-22T02:00:00.000Z", config_version: "demo" },
-    lock: null,
-    config_summary: demoConfigSummary(zh),
-    decisions: { updated_at: "2026-07-07T08:10:00.000Z", decisions: {} },
-    agent_tasks: demoAgentTasks(zh),
-    execution_report: demoExecutionReport(zh),
-    snapshot,
-  };
-}
-
-function L(zh: boolean) {
-  return (en: string, zhText: string) => (zh ? zhText : en);
-}
-
-function money(value: number) {
-  return Math.round(value * 100) / 100;
-}
-
-function demoConfigSummary(zh: boolean) {
+function demoConfigSummary(zh) {
   const l = L(zh);
   return {
     config_path: "demo://kelly-products/config.json",
@@ -50,16 +24,10 @@ function demoConfigSummary(zh: boolean) {
       base_currency: "USD",
     },
     platforms: [
-      { platform: "amazon", enabled: true, store_name: "Nimbus Home US", secret_envs: [], secrets_ready: true },
-      { platform: "shopify", enabled: true, store_name: "Nimbus Home DTC", secret_envs: [], secrets_ready: true },
-      {
-        platform: "tiktok_shop",
-        enabled: true,
-        store_name: "Nimbus Home Studio",
-        secret_envs: [],
-        secrets_ready: true,
-      },
-      { platform: "ebay", enabled: true, store_name: "Nimbus Outlet", secret_envs: [], secrets_ready: true },
+      { platform: "amazon", enabled: true, store_name: "Nimbus Home US" },
+      { platform: "shopify", enabled: true, store_name: "Nimbus Home DTC" },
+      { platform: "tiktok_shop", enabled: true, store_name: "Nimbus Home Studio" },
+      { platform: "ebay", enabled: true, store_name: "Nimbus Outlet" },
     ],
     warehouses: [
       { warehouse_id: "wh-sz", name: l("Shenzhen 3PL", "深圳三方仓"), region: "CN-SZ" },
@@ -79,7 +47,7 @@ function demoConfigSummary(zh: boolean) {
   };
 }
 
-function demoProducts(zh: boolean) {
+function demoProducts(zh) {
   const l = L(zh);
   return [
     {
@@ -105,6 +73,7 @@ function demoProducts(zh: boolean) {
       vendor: l("Dongguan Lumenworks", "东莞流明工坊"),
       launch_date: "2026-07-18",
       updated_at: "2026-07-07T07:52:00.000Z",
+      created_at: "2026-06-20T02:00:00.000Z",
       pricing: {
         cogs: 11.8,
         landed_cost: 15.25,
@@ -155,6 +124,7 @@ function demoProducts(zh: boolean) {
       vendor: l("Foshan Foldware", "佛山折叠制品"),
       launch_date: "2026-05-12",
       updated_at: "2026-07-07T05:40:00.000Z",
+      created_at: "2026-05-01T02:00:00.000Z",
       pricing: {
         cogs: 5.2,
         landed_cost: 7.45,
@@ -202,6 +172,7 @@ function demoProducts(zh: boolean) {
       vendor: l("Ningbo Magnetics", "宁波磁性制品"),
       launch_date: "2026-04-03",
       updated_at: "2026-07-06T13:20:00.000Z",
+      created_at: "2026-03-15T02:00:00.000Z",
       pricing: {
         cogs: 8.6,
         landed_cost: 12.9,
@@ -252,6 +223,7 @@ function demoProducts(zh: boolean) {
       vendor: l("Anji Home Textile", "安吉家纺"),
       launch_date: "2026-08-02",
       updated_at: "2026-07-05T16:05:00.000Z",
+      created_at: "2026-06-10T02:00:00.000Z",
       pricing: {
         cogs: 7.1,
         landed_cost: 10.85,
@@ -299,6 +271,7 @@ function demoProducts(zh: boolean) {
       vendor: l("Shenzhen Weightek", "深圳称芯科技"),
       launch_date: "2025-11-08",
       updated_at: "2026-07-04T09:55:00.000Z",
+      created_at: "2025-10-20T02:00:00.000Z",
       pricing: {
         cogs: 6.4,
         landed_cost: 9.3,
@@ -333,10 +306,11 @@ function demoProducts(zh: boolean) {
   ];
 }
 
-function demoChannels(zh: boolean) {
+function demoChannels(zh) {
   const l = L(zh);
   return [
     {
+      channel_id: "prod-aurora-lamp__amazon",
       product_id: "prod-aurora-lamp",
       platform: "amazon",
       listing_id: "B0AURORA01",
@@ -349,6 +323,7 @@ function demoChannels(zh: boolean) {
       updated_at: "2026-07-07T07:51:00.000Z",
     },
     {
+      channel_id: "prod-aurora-lamp__shopify",
       product_id: "prod-aurora-lamp",
       platform: "shopify",
       listing_id: "aurora-gradient-desk-lamp",
@@ -361,6 +336,7 @@ function demoChannels(zh: boolean) {
       updated_at: "2026-07-07T07:49:00.000Z",
     },
     {
+      channel_id: "prod-lunchbox__amazon",
       product_id: "prod-lunchbox",
       platform: "amazon",
       listing_id: "B0LUNCHBOX1",
@@ -373,6 +349,7 @@ function demoChannels(zh: boolean) {
       updated_at: "2026-07-07T04:28:00.000Z",
     },
     {
+      channel_id: "prod-lunchbox__tiktok_shop",
       product_id: "prod-lunchbox",
       platform: "tiktok_shop",
       listing_id: "tk-nh-lb-01",
@@ -385,6 +362,7 @@ function demoChannels(zh: boolean) {
       updated_at: "2026-07-07T04:35:00.000Z",
     },
     {
+      channel_id: "prod-spice-rack__amazon",
       product_id: "prod-spice-rack",
       platform: "amazon",
       listing_id: "B0SPICE02",
@@ -397,6 +375,7 @@ function demoChannels(zh: boolean) {
       updated_at: "2026-07-06T13:18:00.000Z",
     },
     {
+      channel_id: "prod-laundry-basket__shopify",
       product_id: "prod-laundry-basket",
       platform: "shopify",
       listing_id: "fold-flat-laundry-basket",
@@ -409,6 +388,7 @@ function demoChannels(zh: boolean) {
       updated_at: "2026-07-05T16:00:00.000Z",
     },
     {
+      channel_id: "prod-scale__ebay",
       product_id: "prod-scale",
       platform: "ebay",
       listing_id: "nh-ks-04-clearance",
@@ -423,10 +403,11 @@ function demoChannels(zh: boolean) {
   ];
 }
 
-function demoInventory(zh: boolean) {
+function demoInventory(zh) {
   const l = L(zh);
   return [
     {
+      inventory_id: "prod-aurora-lamp__wh-sz",
       product_id: "prod-aurora-lamp",
       warehouse_id: "wh-sz",
       warehouse_name: l("Shenzhen 3PL", "深圳三方仓"),
@@ -439,6 +420,7 @@ function demoInventory(zh: boolean) {
       status: "low_stock",
     },
     {
+      inventory_id: "prod-lunchbox__wh-la",
       product_id: "prod-lunchbox",
       warehouse_id: "wh-la",
       warehouse_name: l("Los Angeles 3PL", "洛杉矶三方仓"),
@@ -451,6 +433,7 @@ function demoInventory(zh: boolean) {
       status: "healthy",
     },
     {
+      inventory_id: "prod-spice-rack__wh-la",
       product_id: "prod-spice-rack",
       warehouse_id: "wh-la",
       warehouse_name: l("Los Angeles 3PL", "洛杉矶三方仓"),
@@ -463,6 +446,7 @@ function demoInventory(zh: boolean) {
       status: "stockout_risk",
     },
     {
+      inventory_id: "prod-laundry-basket__wh-sz",
       product_id: "prod-laundry-basket",
       warehouse_id: "wh-sz",
       warehouse_name: l("Shenzhen 3PL", "深圳三方仓"),
@@ -475,6 +459,7 @@ function demoInventory(zh: boolean) {
       status: "test_cap",
     },
     {
+      inventory_id: "prod-scale__wh-de",
       product_id: "prod-scale",
       warehouse_id: "wh-de",
       warehouse_name: l("Bremen FBA prep", "不来梅 FBA 预处理仓"),
@@ -489,7 +474,7 @@ function demoInventory(zh: boolean) {
   ];
 }
 
-function demoReviewItems(zh: boolean) {
+function demoReviewItems(zh) {
   const l = L(zh);
   return [
     {
@@ -509,7 +494,10 @@ function demoReviewItems(zh: boolean) {
         l("Gross margin 51.4%, above 32% floor.", "毛利率 51.4%，高于 32% 红线。"),
         l("Inventory cover is only 16 days; reorder card is queued.", "库存覆盖仅 16 天，补货卡已入队。"),
       ],
+      decision_note: "",
+      decided_at: "",
       created_at: "2026-07-07T08:00:00.000Z",
+      updated_at: "2026-07-07T08:00:00.000Z",
     },
     {
       item_id: "review-spice-hold",
@@ -528,7 +516,10 @@ function demoReviewItems(zh: boolean) {
         l("Compliance score 62 with missing test report.", "合规分 62，缺少测试报告。"),
         l("Gross margin 28.3%, below 32% floor.", "毛利率 28.3%，低于 32% 红线。"),
       ],
+      decision_note: "",
+      decided_at: "",
       created_at: "2026-07-06T13:30:00.000Z",
+      updated_at: "2026-07-06T13:30:00.000Z",
     },
     {
       item_id: "review-scale-markdown",
@@ -547,12 +538,15 @@ function demoReviewItems(zh: boolean) {
         l("Still above MAP by $1.00.", "仍比 MAP 高 $1.00。"),
         l("No inbound inventory and archive lifecycle already set.", "无在途库存，生命周期已设为归档。"),
       ],
+      decision_note: "",
+      decided_at: "",
       created_at: "2026-07-04T10:05:00.000Z",
+      updated_at: "2026-07-04T10:05:00.000Z",
     },
   ];
 }
 
-function demoActivity(zh: boolean) {
+function demoActivity(zh) {
   const l = L(zh);
   return [
     {
@@ -591,92 +585,51 @@ function demoActivity(zh: boolean) {
   ];
 }
 
-function demoAgentTasks(zh: boolean) {
-  const l = L(zh);
-  return {
-    updated_at: "2026-07-07T08:12:00.000Z",
-    tasks: [
-      {
-        task_id: "task-reorder-aurora",
-        type: "prepare_reorder",
-        product_id: "prod-aurora-lamp",
-        status: "queued",
-        title: l("Prepare 2,200-unit Aurora Lamp reorder recommendation", "准备极光灯 2,200 件补货建议"),
-      },
-      {
-        task_id: "task-spice-copy",
-        type: "revise_listing_and_claims",
-        product_id: "prod-spice-rack",
-        status: "blocked",
-        title: l("Wait for magnet test report before relist copy revision", "等待磁力测试报告后再修订重新上架文案"),
-      },
-    ],
-  };
-}
+export const demoProvider = {
+  kind: "demo",
 
-function demoExecutionReport(zh: boolean) {
-  const l = L(zh);
-  return {
-    generated_at: "2026-07-07T08:00:00.000Z",
-    operations: [
-      {
-        operation_id: "op-sync-1",
-        type: "sync_channel_status",
-        status: "completed",
-        summary: l(
-          "Synced Amazon, Shopify, TikTok Shop, and eBay channel states.",
-          "已同步 Amazon、Shopify、TikTok Shop 和 eBay 渠道状态。",
-        ),
-      },
-    ],
-  };
-}
+  async getState() {
+    const params = new URLSearchParams(window.location.search);
+    const scenario = String(params.get("demo") || "overview");
+    const lang = String(params.get("lang") || "");
+    const zh = lang.toLowerCase().startsWith("zh");
+    const products = demoProducts(zh);
+    const channels = demoChannels(zh);
+    const inventory = demoInventory(zh);
+    const reviewItems = demoReviewItems(zh);
+    const configSummary = demoConfigSummary(zh);
+    const snapshot = assembleSnapshot({
+      products,
+      channel_matrix: channels,
+      inventory,
+      review_items: reviewItems,
+      activity_log: demoActivity(zh),
+      seller: configSummary.seller,
+      now: NOW,
+    });
+    return {
+      demo: true,
+      demo_scenario: scenario,
+      app: "kelly-products",
+      data_provider: "demo",
+      onboarding: { completed: true, completed_at: "2026-06-22T02:00:00.000Z", config_version: "demo" },
+      lock: null,
+      config_summary: configSummary,
+      snapshot,
+    };
+  },
 
-function metrics(
-  products: ReturnType<typeof demoProducts>,
-  channels: ReturnType<typeof demoChannels>,
-  inventory: ReturnType<typeof demoInventory>,
-) {
-  const active = products.filter((product) => ["active", "launch", "test"].includes(product.lifecycle)).length;
-  const needsReview = products.filter((product) => product.status === "needs_review").length;
-  const lowStock = inventory.filter((item) => ["low_stock", "stockout_risk"].includes(item.status)).length;
-  const channelIssues = channels.filter((item) => item.issue).length;
-  const marginAvg = products.reduce((sum, product) => sum + product.pricing.gross_margin_pct, 0) / products.length;
-  const inventoryValue = products.reduce(
-    (sum, product) => sum + product.inventory.available * product.pricing.landed_cost,
-    0,
-  );
-  return {
-    product_count: products.length,
-    active_count: active,
-    needs_review_count: needsReview,
-    low_stock_count: lowStock,
-    channel_issue_count: channelIssues,
-    avg_margin_pct: money(marginAvg),
-    inventory_value: money(inventoryValue),
-  };
-}
+  async decideReview() {
+    throw new Error("Demo mode is read-only.");
+  },
 
-function demoSnapshot(zh: boolean) {
-  const l = L(zh);
-  const products = demoProducts(zh);
-  const channelMatrix = demoChannels(zh);
-  const inventory = demoInventory(zh);
-  return {
-    schema_version: "1",
-    generated_at: now,
-    source: "demo",
-    seller: {
-      brand: "Nimbus Home",
-      entity: l("Nimbus Home Trading Co., Ltd. (Shenzhen)", "深圳临风家居贸易有限公司"),
-      base_currency: "USD",
-    },
-    metrics: metrics(products, channelMatrix, inventory),
-    products,
-    channel_matrix: channelMatrix,
-    inventory,
-    review_items: demoReviewItems(zh),
-    activity_log: demoActivity(zh),
-    warnings: [],
-  };
-}
+  async provisionResources() {
+    throw new Error("Demo mode is read-only.");
+  },
+};
+
+// Exported for app.js's demo-mode in-memory writes (mirrors
+// kelly-revshare-simulator's app.js special-casing state.demo before calling
+// the provider) so ?demo=1 stays fully interactive for the review-decision
+// buttons without ever touching Busabase.
+export { computeMetrics };
