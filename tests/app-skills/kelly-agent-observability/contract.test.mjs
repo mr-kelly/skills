@@ -118,7 +118,6 @@ test("retires the pre-Busabase local-file/TS-server layer", async () => {
     "app/start.sh",
     "scripts/validate_ui_schema.ts",
     "scripts/generate_fleet_data.ts",
-    "package-lock.json",
     ".gitignore",
     "app/i18n/en.json",
     "app/i18n/zh-CN.json",

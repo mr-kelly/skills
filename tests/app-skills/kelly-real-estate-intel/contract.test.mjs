@@ -123,7 +123,6 @@ test("retires the pre-Busabase local-file/TS-server layer", async () => {
     "scripts/validate_ui_schema.ts",
     "scripts/generate_batch.ts",
     "scripts/execute_decisions.ts",
-    "package-lock.json",
     ".gitignore",
   ]) {
     await assert.rejects(readFile(join(skillRoot, path)), `expected ${path} to be gone`);

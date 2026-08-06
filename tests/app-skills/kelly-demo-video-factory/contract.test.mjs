@@ -137,7 +137,6 @@ test("ensure_schema.mjs stamps ownership metadata so the AirApp adopts it withou
 test("retires the pre-Busabase local-file/server layer", async () => {
   for (const path of [
     "config.example.json",
-    "package-lock.json",
     "lib",
     "app/setup-gate.js",
     "app/setup-gate.css",

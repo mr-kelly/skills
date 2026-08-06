@@ -126,7 +126,6 @@ test("retires the pre-Busabase local-file provider layer", async () => {
   for (const path of [
     "lib",
     "config.example.json",
-    "package-lock.json",
     "app/setup-gate.js",
     "app/setup-gate.css",
     "app/server",

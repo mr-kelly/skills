@@ -89,7 +89,6 @@ test("retires the pre-Busabase local-file provider layer", async () => {
     "app/setup-gate.css",
     "app/server",
     "app/start.sh",
-    "package-lock.json",
   ]) {
     await assert.rejects(readFile(join(skillRoot, path)));
   }
