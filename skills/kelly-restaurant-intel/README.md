@@ -1,20 +1,20 @@
 # Kelly Restaurant Intel
 
-Kelly Restaurant Intel is a local App-in-Skill cockpit for restaurants, cafes, and F&B groups. It turns weather, events, competitor menus, review themes, booking demand, and delivery-platform activity into daily menu, staffing, and promotion actions.
+Kelly Restaurant Intel is a Busabase App-in-Skill cockpit for turning weather, event, competitor-menu, review, and delivery-platform movement into reviewable operating and marketing decisions. It is built for restaurant owners, cafe operators, F&B marketers, and group managers.
 
 ## What It Shows
 
 - Overview: today's demand trigger, meal-period focus, ready actions, blocked food-safety claims, and source freshness.
-- Signals: event, weather, transport, tourism, competitor menu, delivery, booking, and review movement.
-- Actions: shift briefs, hero-menu picks, delivery copy, review replies, booking scripts, and group-promo tasks.
-- Drafts: editable social posts, delivery blurbs, staff notes, and guest-recovery replies.
-- Sources: local event calendars, weather, delivery platforms, competitor menus, booking signals, and review themes.
+- Signals: weather, event, transport, tourism, competitor menu, delivery, booking, and review movement with evidence links, buyer-intent interpretation, confidence, and risk badges.
+- Actions: approved, watch-only, or blocked shift briefs, hero-menu picks, delivery copy, review replies, and booking scripts tied to a specific trigger.
+- Drafts: editable staff brief, IG post, and delivery blurb drafts that stay behind a review gate until approved.
+- Sources: monitored local-event/weather/competitor/trend/delivery source categories, freshness, missing coverage, and config readiness.
 
 ## How It Flows
 
-1. The agent converts local conditions into a concrete service-period or promotion decision.
-2. Kelly reviews menu, staffing, and guest-facing actions before anything goes to staff or channels.
-3. Approved items dry-run locally for Buda/Busabase or restaurant-ops handoff.
+1. The agent browses current public sources and writes only business-relevant movement directly into Busabase as signal/action/draft/source records.
+2. The app lets Kelly review signals, approve or block actions, and request changes to drafts — every decision writes straight onto the item's own Busabase record.
+3. `scripts/execute_decisions.mjs` dry-runs approved handoffs, then marks approved items done with `--apply` after the agent performs the real handoff outside the script.
 
 ## App UI Screenshots
 
@@ -33,18 +33,18 @@ Kelly Restaurant Intel is a local App-in-Skill cockpit for restaurants, cafes, a
   </tr>
   <tr>
     <td><strong>Actions</strong><br>Shift briefs, hero-menu picks, booking scripts, and delivery-copy actions ready for approval.</td>
-    <td><strong>Drafts</strong><br>Editable guest messages, review replies, and social copy with menu and safety boundaries.</td>
+    <td><strong>Drafts</strong><br>Editable staff brief, IG post, and delivery blurb drafts with menu and safety boundaries.</td>
   </tr>
 </table>
 
 ## Demo Mode
 
 ```bash
-skills/kelly-restaurant-intel/app/start.sh
+pnpm --dir skills/kelly-restaurant-intel/app dev
 ```
 
-Use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.
+Open the printed URL and use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.
 
 ## Boundary
 
-The skill blocks allergen or food-safety claims unless sourced, unconfirmed price/menu promises, and health or nutrition advice beyond approved copy.
+The AirApp reads and writes its own Busabase Bases only. It may prepare evidence-backed drafts and review decisions, but it never publishes, sends messages, mutates CRMs, spends money, or stores private customer data without explicit approval. The skill blocks allergen/food-safety claims unless sourced, price/menu promises without confirmation, and any health or nutrition advice beyond approved copy.
