@@ -7,8 +7,20 @@ const record = (id, baseKey, fields) => ({ id, baseKey, fields });
 
 test("groups strategies into L1, L2, and L3 and keeps the next-review order", () => {
   const desk = createStrategyDesk([
-    record("later", "strategies", { key: "later", name: "稍后复核", status: "L1", confidence: 76, next_review_at: "2026-08-20" }),
-    record("due", "strategies", { key: "due", name: "优先复核", status: "L1", confidence: 45, next_review_at: "2026-08-10" }),
+    record("later", "strategies", {
+      key: "later",
+      name: "稍后复核",
+      status: "L1",
+      confidence: 76,
+      next_review_at: "2026-08-20",
+    }),
+    record("due", "strategies", {
+      key: "due",
+      name: "优先复核",
+      status: "L1",
+      confidence: 45,
+      next_review_at: "2026-08-10",
+    }),
     record("advanced", "strategies", { key: "advanced", name: "进阶", status: "L2", confidence: 62 }),
     record("confidence", "strategies", { key: "confidence", name: "高置信", status: "L3", confidence: 80 }),
   ]);

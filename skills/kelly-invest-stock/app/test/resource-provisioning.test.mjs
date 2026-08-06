@@ -77,14 +77,22 @@ test("submits the declared structure once and reads materialized ids back", asyn
       id: "nod_root",
       type: "folder",
       slug: unmaterializedConfig.folder.slug,
-      metadata: { appId: unmaterializedConfig.appId, resourceKey: "app-root", schemaVersion: unmaterializedConfig.schemaVersion },
+      metadata: {
+        appId: unmaterializedConfig.appId,
+        resourceKey: "app-root",
+        schemaVersion: unmaterializedConfig.schemaVersion,
+      },
     },
     children: unmaterializedConfig.bases.map((base) => ({
       id: `nod_${base.key}`,
       baseId: `bse_${base.key}`,
       type: "base",
       slug: base.slug,
-      metadata: { appId: unmaterializedConfig.appId, resourceKey: base.key, schemaVersion: unmaterializedConfig.schemaVersion },
+      metadata: {
+        appId: unmaterializedConfig.appId,
+        resourceKey: base.key,
+        schemaVersion: unmaterializedConfig.schemaVersion,
+      },
     })),
   };
   let reads = 0;
@@ -335,7 +343,10 @@ test("adds only declared suffix fields when upgrading an owned older schema", as
       list: async () => [{ id: "nod_system_root", type: "folder", slug: "root", children: [materialized.node] }],
       get: async () => materialized,
       updateMetadata: async ({ nodeId, metadata }) => {
-        const node = nodeId === materialized.node.id ? materialized.node : materialized.children.find((item) => item.id === nodeId);
+        const node =
+          nodeId === materialized.node.id
+            ? materialized.node
+            : materialized.children.find((item) => item.id === nodeId);
         node.metadata = { ...node.metadata, ...metadata };
       },
     },

@@ -169,7 +169,10 @@ const fieldMatches = (actual, expected) =>
 
 const additiveFieldsFor = (actual, expected) => {
   const fields = actual?.fields || [];
-  if (fields.length > expected.fields.length || !fields.every((field, index) => fieldMatches(field, expected.fields[index]))) {
+  if (
+    fields.length > expected.fields.length ||
+    !fields.every((field, index) => fieldMatches(field, expected.fields[index]))
+  ) {
     throw setupError("SETUP_CONFLICT", `资源 ${expected.slug} 的结构与声明不一致，无法安全升级`);
   }
   return expected.fields.slice(fields.length);
@@ -179,7 +182,9 @@ let nodeMetadataUpdatesSupported;
 
 const validateRepairBase = (actual, expected, nodeId) => {
   const fields = actual?.fields || [];
-  const exactFields = fields.length === expected.fields.length && fields.every((field, index) => fieldMatches(field, expected.fields[index]));
+  const exactFields =
+    fields.length === expected.fields.length &&
+    fields.every((field, index) => fieldMatches(field, expected.fields[index]));
   if (
     actual?.nodeId !== nodeId ||
     actual?.slug !== expected.slug ||
@@ -238,9 +243,7 @@ async function repairResourceOwnership(client, config, current) {
   }
 
   if (additiveMigrations.some((migration) => migration.fields.length)) {
-    const upgradedDetails = await Promise.all(
-      baseRepairs.map((repair) => client.bases.get({ baseId: repair.baseId })),
-    );
+    const upgradedDetails = await Promise.all(baseRepairs.map((repair) => client.bases.get({ baseId: repair.baseId })));
     upgradedDetails.forEach((detail, index) => {
       const repair = baseRepairs[index];
       validateRepairBase(detail, baseByKey.get(repair.resourceKey), repair.nodeId);

@@ -168,13 +168,17 @@ export function createStrategyDesk(records) {
       const strategyPositions = positions.filter((position) => position.strategyKey === strategy.key);
       const strategyReviews = reviews.filter((review) => review.strategyKey === strategy.key);
       const account = strategyAccounts[0] || null;
-      const positionsComplete = strategyPositions.every((position) => position.hasCompleteQuote && position.marketValue !== null);
+      const positionsComplete = strategyPositions.every(
+        (position) => position.hasCompleteQuote && position.marketValue !== null,
+      );
       const calculatedNav =
         !account || account.cash === null || !positionsComplete
           ? null
           : account.cash + strategyPositions.reduce((sum, position) => sum + position.marketValue, 0);
-      const navDifference = calculatedNav === null || !account || account.nav === null ? null : account.nav - calculatedNav;
-      const reconciliationTolerance = !account || account.nav === null ? 1 : Math.max(1, Math.abs(account.nav) * 0.0001);
+      const navDifference =
+        calculatedNav === null || !account || account.nav === null ? null : account.nav - calculatedNav;
+      const reconciliationTolerance =
+        !account || account.nav === null ? 1 : Math.max(1, Math.abs(account.nav) * 0.0001);
       const latestResearch = strategyReviews.find((review) => review.reviewType === "research") || null;
       return {
         ...strategy,
@@ -223,9 +227,7 @@ export function createStrategyDesk(records) {
   const orphanBacktestIds = backtests
     .filter((backtest) => !strategyKeys.has(backtest.strategyKey))
     .map((backtest) => backtest.id);
-  const orphanReviewIds = reviews
-    .filter((review) => !strategyKeys.has(review.strategyKey))
-    .map((review) => review.id);
+  const orphanReviewIds = reviews.filter((review) => !strategyKeys.has(review.strategyKey)).map((review) => review.id);
   const missingBaselineStrategyKeys = strategies
     .filter((strategy) => strategy.account && !strategy.account.baselineDate)
     .map((strategy) => strategy.key);
@@ -242,10 +244,7 @@ export function createStrategyDesk(records) {
   ];
 
   const levels = Object.fromEntries(
-    STAGES.map((stage) => [
-      stage,
-      strategies.filter((strategy) => strategy.stage === stage),
-    ]),
+    STAGES.map((stage) => [stage, strategies.filter((strategy) => strategy.stage === stage)]),
   );
   const accountMetricsComplete =
     strategies.length > 0 &&
