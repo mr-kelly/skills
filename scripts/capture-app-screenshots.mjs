@@ -222,17 +222,6 @@ Options:
 `);
 }
 
-async function walk(dir) {
-  const out = [];
-  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await walk(full)));
-    else out.push(full);
-  }
-  return out;
-}
-
 function relPath(abs) {
   return path.relative(ROOT, abs).split(path.sep).join("/");
 }
@@ -269,11 +258,19 @@ async function screenshotFiles(args) {
   if (args.paths.length) {
     files = args.paths.map((p) => path.resolve(ROOT, p));
   } else {
-    const dirs = args.skills.length
-      ? args.skills.map((skill) => path.join(ROOT, "skills", skill, "assets", "screenshots"))
-      : [path.join(ROOT, "skills")];
+    let skillNames = args.skills;
+    if (!skillNames.length) {
+      const entries = await readdir(path.join(ROOT, "skills"), { withFileTypes: true });
+      skillNames = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+    }
+    const dirs = skillNames.map((skill) => path.join(ROOT, "skills", skill, "assets", "screenshots"));
     files = [];
-    for (const dir of dirs) files.push(...(await walk(dir)));
+    for (const dir of dirs) {
+      const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+      for (const entry of entries) {
+        if (entry.isFile()) files.push(path.join(dir, entry.name));
+      }
+    }
   }
 
   const filtered = [];
@@ -291,10 +288,6 @@ function screenshotOutputPath(file) {
   return file.replace(/\.(png|svg)$/i, ".webp");
 }
 
-function envPrefixFor(skill) {
-  return skill.toUpperCase().replace(/-/g, "_");
-}
-
 function routeFor(file) {
   const skill = skillNameFor(file);
   const cleanStem = routeStem(file);
@@ -302,10 +295,9 @@ function routeFor(file) {
 }
 
 function urlFor(file, port) {
-  const stem = routeStem(file);
   const lang = languageFor(file);
   const route = routeFor(file);
-  const params = new URLSearchParams({ demo: stem, lang });
+  const params = new URLSearchParams({ demo: "1", lang });
   return `http://${HOST}:${port}/?${params.toString()}#${route}`;
 }
 
@@ -352,11 +344,15 @@ async function nextPort(start) {
   throw new Error(`Could not find an open port from ${start}`);
 }
 
-function waitForReady(port, skill, timeoutMs = 15000) {
+function waitForReady(port, skill, timeoutMs = 30000) {
+  // kelly-email keeps a different (pre-Busabase-only) server shape with no /health route;
+  // it exposes readiness via /api/state instead.
+  const path = skill === "kelly-email" ? "/api/state?demo=overview" : "/health";
+  const isReady = (data) => (skill === "kelly-email" ? data.app === skill : Boolean(data.ok));
   const deadline = Date.now() + timeoutMs;
   return new Promise((resolve, reject) => {
     const tick = () => {
-      const req = http.get(`http://${HOST}:${port}/api/state?demo=overview`, { timeout: 700 }, (res) => {
+      const req = http.get(`http://${HOST}:${port}${path}`, { timeout: 700 }, (res) => {
         let body = "";
         res.setEncoding("utf8");
         res.on("data", (chunk) => {
@@ -365,7 +361,7 @@ function waitForReady(port, skill, timeoutMs = 15000) {
         res.on("end", () => {
           try {
             const data = JSON.parse(body);
-            if (res.statusCode >= 200 && res.statusCode < 300 && data.app === skill) {
+            if (res.statusCode >= 200 && res.statusCode < 300 && isReady(data)) {
               resolve();
               return;
             }
@@ -387,16 +383,12 @@ function waitForReady(port, skill, timeoutMs = 15000) {
 }
 
 async function startServer(skill, port) {
-  const serverDir = path.join(ROOT, "skills", skill, "app", "server");
-  const prefix = envPrefixFor(skill);
-  const child = spawn(process.execPath, ["index.ts"], {
-    cwd: serverDir,
+  const appDir = path.join(ROOT, "skills", skill, "app");
+  const child = spawn(process.execPath, ["server.js"], {
+    cwd: appDir,
     env: {
       ...process.env,
-      [`${prefix}_UI_HOST`]: HOST,
-      [`${prefix}_UI_PORT`]: String(port),
       PORT: String(port),
-      NODE_PATH: path.join(ROOT, "node_modules"),
     },
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
@@ -557,10 +549,46 @@ async function captureOne(tab, file, serverPort) {
     })()`,
   });
   await wait(100);
+  // Mobile shots show the full scrolled page (phone-bezel screenshots conventionally
+  // show all content, not just the above-the-fold slice); desktop shots show the
+  // app shell as a user would actually see it on first load, so they stay viewport-clipped.
+  let captureBeyondViewport = false;
+  if (isMobile(file)) {
+    await tab.send("Runtime.evaluate", {
+      expression: `(() => {
+        const style = document.createElement("style");
+        style.textContent = "html,body{height:auto!important;overflow:visible!important;}" +
+          "*{max-height:none!important;}";
+        document.head.appendChild(style);
+        document.querySelectorAll("*").forEach((el) => {
+          const cs = getComputedStyle(el);
+          if (cs.overflowY === "auto" || cs.overflowY === "scroll" || cs.height === "100vh") {
+            el.style.setProperty("overflow", "visible", "important");
+            el.style.setProperty("height", "auto", "important");
+            el.style.setProperty("max-height", "none", "important");
+          }
+        });
+      })()`,
+    });
+    await wait(100);
+    const heightResult = await tab.send("Runtime.evaluate", {
+      expression: "Math.min(document.documentElement.scrollHeight, 15000)",
+      returnByValue: true,
+    });
+    const fullHeight = Math.max(Number(heightResult.result?.value) || viewport.height, viewport.height);
+    await tab.send("Emulation.setDeviceMetricsOverride", {
+      width: viewport.width,
+      height: fullHeight,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    await wait(100);
+    captureBeyondViewport = true;
+  }
   const png = await tab.send("Page.captureScreenshot", {
     format: "png",
     fromSurface: true,
-    captureBeyondViewport: false,
+    captureBeyondViewport,
   });
   const pngBuffer = Buffer.from(png.data, "base64");
   const output =
@@ -606,19 +634,34 @@ async function main() {
 
   const chrome = await launchChrome();
   let next = BASE_PORT;
+  const failedSkills = [];
+  const succeededFiles = [];
   try {
     for (const [skill, skillFiles] of bySkill) {
       const port = await nextPort(next);
       next = port + 1;
       console.log(`\n[${skill}] starting on ${port} (${skillFiles.length} captures)`);
-      const server = await startServer(skill, port);
+      let server;
+      try {
+        server = await startServer(skill, port);
+      } catch (error) {
+        console.error(`  skipping ${skill}: ${error instanceof Error ? error.message : error}`);
+        failedSkills.push(skill);
+        continue;
+      }
       const tab = await newTab(chrome.port);
       try {
         for (const file of skillFiles) {
           const target = screenshotOutputPath(file);
-          const { viewport } = await captureOne(tab, target, port);
-          if (target !== file) await rm(file, { force: true });
-          console.log(`captured ${relPath(target)} ${viewport.width}x${viewport.height}`);
+          try {
+            const { viewport } = await captureOne(tab, target, port);
+            if (target !== file) await rm(file, { force: true });
+            console.log(`captured ${relPath(target)} ${viewport.width}x${viewport.height}`);
+            succeededFiles.push(target);
+          } catch (error) {
+            console.error(`  failed ${relPath(target)}: ${error instanceof Error ? error.message : error}`);
+            failedSkills.push(skill);
+          }
         }
       } finally {
         tab.close();
@@ -633,11 +676,16 @@ async function main() {
     await rmWithRetry(chrome.userDataDir);
   }
 
-  if (args.frame) {
+  if (args.frame && succeededFiles.length) {
     console.log("\nFraming screenshots...");
     const frameArgs = ["scripts/frame-screenshots.mjs", "--force"];
-    for (const file of files) frameArgs.push("--path", relPath(screenshotOutputPath(file)));
+    for (const file of succeededFiles) frameArgs.push("--path", relPath(file));
     await runCommand(process.execPath, frameArgs);
+  }
+
+  if (failedSkills.length) {
+    console.log(`\nFailed skills: ${[...new Set(failedSkills)].join(", ")}`);
+    process.exitCode = 1;
   }
 }
 

@@ -42,23 +42,20 @@ Options:
 `);
 }
 
-async function walk(dir) {
-  const out = [];
-  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await walk(full)));
-    else out.push(full);
-  }
-  return out;
-}
-
 async function screenshotPaths(args) {
-  const skillDirs = args.skills.length
-    ? args.skills.map((name) => path.join(ROOT, "skills", name, "assets", "screenshots"))
-    : [path.join(ROOT, "skills")];
+  let skillNames = args.skills;
+  if (!skillNames.length) {
+    const entries = await readdir(path.join(ROOT, "skills"), { withFileTypes: true });
+    skillNames = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  }
   const files = [];
-  for (const dir of skillDirs) files.push(...(await walk(dir)));
+  for (const skill of skillNames) {
+    const dir = path.join(ROOT, "skills", skill, "assets", "screenshots");
+    const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+    for (const entry of entries) {
+      if (entry.isFile()) files.push(path.join(dir, entry.name));
+    }
+  }
   return files
     .filter((file) => /\/assets\/screenshots\/[^/]+\.webp$/i.test(file))
     .filter((file) => !/\/thumbs\//i.test(file))
