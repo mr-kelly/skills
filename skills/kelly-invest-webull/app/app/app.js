@@ -1,4 +1,6 @@
 import { messages } from "./i18n/messages.js";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
   snapshot: null,
@@ -145,16 +147,24 @@ function setRoute() {
 }
 
 async function loadState() {
-  const params = new URLSearchParams();
-  if (state.demo) params.set("demo", state.demo);
-  if (state.lang) params.set("lang", state.lang);
-  const res = await fetch(`/api/state?${params}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`State request failed: ${res.status}`);
-  const data = await res.json();
+  const provider = await getProvider();
+  const data = await provider.getState();
+  closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
+  window.dispatchEvent(new CustomEvent("kelly-invest-webull:state", { detail: data }));
   applyDemoRoute();
   render();
+}
+
+async function boot() {
+  const ready = await passConnectGate({ onReady: boot });
+  if (!ready) return;
+  try {
+    await loadState();
+  } catch (error) {
+    renderSetupRequired(error, boot);
+  }
 }
 
 function applyDemoRoute() {
@@ -665,6 +675,4 @@ els.language.addEventListener("change", () => {
 });
 
 syncResponsiveShell();
-loadState().catch((error) => {
-  els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-});
+boot();

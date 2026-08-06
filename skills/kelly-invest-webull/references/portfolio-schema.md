@@ -1,11 +1,34 @@
 # Kelly Invest (Webull) Portfolio Schema
 
-Use this schema for `app/.data/snapshot.json`. Keep the shape stable so the local
-app, scripts, and the Webull data-provider adapter can evolve independently. The
-app is read-only: it renders this snapshot and the demo payload only. Skill-side
-code (the Webull adapter) reads the brokerage and writes this normalized file.
+This schema describes both the Busabase `accounts`/`positions`/`settings`
+Bases (declared in `app/app/js/config.js`) and the in-memory snapshot that
+`assembleSnapshot()` in `app/app/js/webull-model.js` computes from them at
+read time. Keep the shape stable so the app, `scripts/sync_webull.mjs`, and
+`app/app/js/webull-model.js` (the ported Webull field-mapping adapter) can
+evolve independently. The app is read-only: it renders this computed
+snapshot and the demo payload only. `scripts/sync_webull.mjs` is the only
+process that writes to Busabase — it reads Webull and writes the raw
+`accounts`/`positions` rows (see Busabase field mapping below); `weight_pct`,
+`totals`, and `allocation` are always derived at read time, never stored.
 
-## Snapshot
+## Busabase field mapping
+
+- `accounts` Base (slug `kelly-invest-webull-accounts-v1`): one row per
+  `mapAccount()` output — `account-id`, `account-type`, `display-name`,
+  `currency`, `net-liquidation`, `total-cash`, `buying-power`.
+- `positions` Base (slug `kelly-invest-webull-positions-v1`): one row per
+  `mapPosition()` output, keyed by `position-id` = `${account_id}:${symbol}`
+  — `symbol`, `name`, `asset-type`, `account-id`, `quantity`, `avg-cost`,
+  `last-price`, `market-value`, `cost-basis`, `unrealized-pnl`,
+  `unrealized-pnl-pct`, `day-change`, `day-change-pct`, `currency`.
+- `settings` Base (slug `kelly-invest-webull-settings-v1`): two rows keyed by
+  `record-id` — `config` (payload JSON: `base_currency`,
+  `target_allocation`, `snapshot_id`, `generated_at`, `source`, `warnings`,
+  `webull: { region, base_url, account_allowlist, secrets_ready }` — no
+  secret values) and `onboarding` (payload JSON: `completed`,
+  `completed_at`, `config_version`).
+
+## Computed snapshot (assembleSnapshot output)
 
 ```json
 {
