@@ -1,20 +1,20 @@
 # Kelly Retail Intel
 
-Kelly Retail Intel is a local App-in-Skill cockpit for stores and consumer brands. It turns weather, local events, competitor promotions, product trends, reviews, and inventory signals into the day's merchandising and sales-floor actions.
+Kelly Retail Intel is a Busabase App-in-Skill cockpit for turning weather, event, competitor promotion, and product-trend movement into reviewable, store-ready decisions. It is built for retail owners, brand operators, store managers, and merchandisers.
 
 ## What It Shows
 
-- Overview: today's footfall or hero-SKU trigger, ready store actions, blocked promises, and source freshness.
-- Signals: weather, event, mall/neighborhood, competitor promo, product trend, review, and supplier movement.
-- Actions: store briefing notes, signage copy, hero-product picks, replenishment checks, and staff scripts.
-- Drafts: editable signage, social captions, staff briefs, and customer-message copy.
-- Sources: event calendars, weather, competitor pages, review themes, and product trend sources.
+- Overview: today's footfall or hero-SKU trigger worth acting on, top source-backed signals, ready actions, blocked promises, and source freshness.
+- Signals: weather, event, holiday, traffic, mall/neighborhood, competitor promotion, product trend, and customer review movement with evidence links, buyer-intent interpretation, confidence, and risk badges.
+- Actions: approved, watch-only, or blocked store briefing notes, hero-product picks, signage copy, staff scripts, and replenishment checks tied to a specific trigger.
+- Drafts: editable staff brief, IG story, and store sign drafts that stay behind a review gate until approved.
+- Sources: monitored news/weather/event/competitor/trend source categories, freshness, missing coverage, and config readiness.
 
 ## How It Flows
 
-1. The agent turns local demand into a concrete retail operating choice for today.
-2. Kelly reviews the source trail, approves store actions, and blocks inventory or discount commitments that are not confirmed.
-3. Approved decisions dry-run into local handoffs for store teams or Buda/Busabase review.
+1. The agent browses current public sources and writes only business-relevant movement directly into Busabase as signal/action/draft/source records.
+2. The app lets Kelly review signals, approve or block actions, and request changes to drafts — every decision writes straight onto the item's own Busabase record.
+3. `scripts/execute_decisions.mjs` dry-runs approved handoffs, then marks approved items done with `--apply` after the agent performs the real handoff outside the script.
 
 ## App UI Screenshots
 
@@ -24,8 +24,8 @@ Kelly Retail Intel is a local App-in-Skill cockpit for stores and consumer brand
     <td width="50%"><img src="assets/screenshots/signals.webp" alt="Kelly Retail Intel signals"></td>
   </tr>
   <tr>
-    <td><strong>Overview</strong><br>Retail desk with local demand triggers, hero SKUs, ready store actions, and blocked promises.</td>
-    <td><strong>Signals</strong><br>Weather, events, competitor promotions, product trends, and review themes tied to merchandising decisions.</td>
+    <td><strong>Overview</strong><br>Retail desk with footfall/hero-SKU triggers, ready store actions, blocked promises, and source freshness.</td>
+    <td><strong>Signals</strong><br>Weather, event, competitor promotion, product trend, and review signals interpreted as merchandising reasons.</td>
   </tr>
   <tr>
     <td width="50%"><img src="assets/screenshots/actions.webp" alt="Kelly Retail Intel actions"></td>
@@ -33,18 +33,18 @@ Kelly Retail Intel is a local App-in-Skill cockpit for stores and consumer brand
   </tr>
   <tr>
     <td><strong>Actions</strong><br>Store briefs, signage, replenishment checks, and staff scripts queued for approval.</td>
-    <td><strong>Drafts</strong><br>Editable campaign, signage, and customer-message copy with local source context.</td>
+    <td><strong>Drafts</strong><br>Editable staff brief, IG story, and store sign drafts that avoid unconfirmed inventory or discount promises.</td>
   </tr>
 </table>
 
 ## Demo Mode
 
 ```bash
-skills/kelly-retail-intel/app/start.sh
+pnpm --dir skills/kelly-retail-intel/app dev
 ```
 
-Use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.
+Open the printed URL and use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.
 
 ## Boundary
 
-The skill blocks unconfirmed inventory promises, discount commitments, supplier claims, and private customer segmentation unless configured and approved.
+The AirApp reads and writes its own Busabase Bases only. It may prepare evidence-backed drafts and review decisions, but it never publishes, sends messages, mutates CRMs, spends money, or stores private customer data without explicit approval. The skill blocks unconfirmed inventory promises, discount commitments, supplier claims, and customer segmentation using private data unless explicitly configured.
