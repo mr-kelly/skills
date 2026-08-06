@@ -1,20 +1,20 @@
 # Kelly Insurance Intel
 
-Kelly Insurance Intel is a local App-in-Skill cockpit for agencies, brokers, and wealth-advisory teams. It turns regulator updates, insurer movement, health/cost-of-living news, and client lifecycle events into compliant review conversations.
+Kelly Insurance Intel is a Busabase App-in-Skill cockpit for turning regulator, insurer, product, health, and client-lifecycle movement into reviewable, compliant advisor decisions. It is built for insurance advisors, agency managers, and independent financial consultants.
 
 ## What It Shows
 
-- Overview: today's protection-gap or renewal trigger, ready client education, blocked advice, and source coverage.
-- Signals: regulator, insurer, product, claims, premium, health, travel, and cost-of-living movement.
-- Actions: compliant meeting agendas, client education notes, renewal scripts, and needs-review checklists.
-- Drafts: editable client memos, advisor talking points, and segmented follow-up drafts.
-- Sources: regulator pages, insurer announcements, market news, and approved client-question themes.
+- Overview: today's protection-gap or renewal trigger worth acting on, top source-backed signals, ready actions, blocked claims, and source freshness.
+- Signals: regulator, insurer, product, premium, claims, benefit, health, travel, and lifecycle movement with evidence links, buyer-intent interpretation, confidence, and risk badges.
+- Actions: approved, watch-only, or blocked meeting agendas, client education notes, renewal scripts, and needs-review checklists tied to a specific trigger.
+- Drafts: editable client WhatsApp, advisor email, and meeting agenda drafts that stay behind a review gate until approved.
+- Sources: monitored news/insurer/regulator/competitor/trend source categories, freshness, missing coverage, and config readiness.
 
 ## How It Flows
 
-1. The agent maps market movement to a review reason without making suitability conclusions.
-2. Kelly reviews client-facing language and blocks anything that crosses into advice or promises.
-3. Approved handoffs are dry-run locally before follow-up tasks or documents are exported.
+1. The agent browses current public sources and writes only business-relevant movement directly into Busabase as signal/action/draft/source records.
+2. The app lets Kelly review signals, approve or block actions, and request changes to drafts — every decision writes straight onto the item's own Busabase record.
+3. `scripts/execute_decisions.mjs` dry-runs approved handoffs, then marks approved items done with `--apply` after the agent performs the real handoff outside the script.
 
 ## App UI Screenshots
 
@@ -32,19 +32,19 @@ Kelly Insurance Intel is a local App-in-Skill cockpit for agencies, brokers, and
     <td width="50%"><img src="assets/screenshots/drafts.webp" alt="Kelly Insurance Intel drafts"></td>
   </tr>
   <tr>
-    <td><strong>Actions</strong><br>Meeting agendas, renewal checklists, and education tasks with compliance-aware approval status.</td>
-    <td><strong>Drafts</strong><br>Editable client education and advisor scripts that avoid suitability or return promises.</td>
+    <td><strong>Actions</strong><br>Meeting agendas, renewal checklists, and education tasks queued for approval.</td>
+    <td><strong>Drafts</strong><br>Editable client WhatsApp, advisor email, and meeting agenda drafts that avoid suitability or return promises.</td>
   </tr>
 </table>
 
 ## Demo Mode
 
 ```bash
-skills/kelly-insurance-intel/app/start.sh
+pnpm --dir skills/kelly-insurance-intel/app dev
 ```
 
-Use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.
+Open the printed URL and use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.
 
 ## Boundary
 
-The skill blocks personalized financial advice, product suitability conclusions, return promises, unsupported policy interpretation, and outbound claims without approval.
+The AirApp reads and writes its own Busabase Bases only. It may prepare evidence-backed drafts and review decisions, but it never publishes, sends messages, mutates CRMs, spends money, or stores private customer data without explicit approval. The skill blocks personalized financial advice, product suitability conclusions, return promises, policy interpretation beyond sourced text, and outbound claims without approval.

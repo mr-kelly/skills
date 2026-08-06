@@ -1,0 +1,18 @@
+{
+  "appId": "kelly-insurance-intel",
+  "schemaVersion": 1,
+  "appRoot": {
+    "slug": "kelly-insurance-intel"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"]
+  },
+  "resources": [
+    { "key": "signals", "slug": "kelly-insurance-intel-signals-v1", "schemaVersion": 1 },
+    { "key": "actions", "slug": "kelly-insurance-intel-actions-v1", "schemaVersion": 1 },
+    { "key": "drafts", "slug": "kelly-insurance-intel-drafts-v1", "schemaVersion": 1 },
+    { "key": "sources", "slug": "kelly-insurance-intel-sources-v1", "schemaVersion": 1 },
+    { "key": "settings", "slug": "kelly-insurance-intel-settings-v1", "schemaVersion": 1 }
+  ]
+}
