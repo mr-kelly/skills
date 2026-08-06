@@ -17,5 +17,5 @@
   },
   "// scope": "Typecheck Node-side code (.ts/.mjs: servers, scripts, lib) run directly via Node >=23.6 native type-stripping or bun. Browser client files (app/*.js, app/i18n/*.js) are un-annotated vanilla DOM code and are linted by Biome, not typechecked.",
   "include": ["skills/**/*.ts", "skills/**/*.mjs", "scripts/**/*.mjs"],
-  "exclude": ["**/node_modules", "**/.data", "**/.cache", "**/dist", "**/exports", "docs"]
+  "exclude": ["**/node_modules", "**/.data", "**/.cache", "**/dist", "**/exports", "**/app/vendor", "docs"]
 }

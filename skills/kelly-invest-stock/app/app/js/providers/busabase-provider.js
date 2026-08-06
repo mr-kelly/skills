@@ -1,3 +1,4 @@
+// @ts-nocheck -- uses browser cache-busting import specifiers (?v=<version>) TypeScript cannot resolve; this file is un-annotated browser JS linted by Biome only
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.9.0";
 import { inspectProvisionedResources, provisionDeclaredResources } from "../resource-provisioning.js?v=0.9.0";
