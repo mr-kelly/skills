@@ -2,6 +2,11 @@
 name: kelly-demo-video-factory
 license: MIT
 description: "Plan, verify, and track demo/marketing video production in Busabase — idea to hook/pain-point/storyboard, codebase claim verification, recording progress, post-production handoff, and HyperFrame (Remotion) linkage. Use when the user invokes $kelly-demo-video-factory or /kelly-demo-video-factory, wants to plan a product demo video, write a storyboard, verify a video script's product claims against the codebase, track which shots are recorded, or hand a finished storyboard off to editing/Remotion."
+metadata:
+  category: production
+  tags:
+    - risk:read-only
+    - surface:busabase
 ---
 
 # Kelly Demo Video Factory

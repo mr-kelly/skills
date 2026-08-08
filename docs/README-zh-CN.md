@@ -99,75 +99,132 @@
 
 `kelly-*` 是日常业务工具；`agent-rules`、`kelly-app-skill-creator`、`kelly-app-skill-creator-tests`、`publish-skills` 这类 helper skills 用来维护这个工作区本身。
 
+### 财务与后台
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-audit` | 导入订单、发票、回款三表并互相稽核：缺发票、金额不符、逾期应收（带账龄）、重复回款、无主回款，每条异常带证据链和催收草稿。 | 对账订单-发票-回款链条、催收应收账款、月底前 review 财务异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-audit.html?lang=zh) |
+| `kelly-finance` | 构建和审计财务三表模型、经营预测、预算、现金 runway、SaaS/unit economics 包，以及可交付的 Excel 财务输出。 | 做财务三表、融资预测、董事会财务包、情景分析、资产负债表检查、营运资本/资本开支/债务 schedule，或修三表勾稽错误时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html?lang=zh) |
+| `kelly-invoice-sheet` | 把发票、收据、红字/贷项通知单和 statement 抽取成类似 spreadsheet 的本地审阅表，带字段置信度、明细行、审批决定和 CSV/JSON 导出。 | 做 Invoice转表格、发票 OCR、收据转表格、记账导入准备，或需要类似 Lido Extract Data 的本地 App-in-Skill workflow 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invoice-sheet.html?lang=zh) |
+| `kelly-money` | 聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。 | 查看余额、付款、payout、手续费、退款、转账、provider sync 状态、发票和流水匹配时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-money.html?lang=zh) |
+
+### 投资与财富
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-family-fund` | 把两位老人的退休金汇入一个由管理人统一记账的统筹基金，按月记录养老院固定支出和大家庭共享开销（折算基准货币），让每个兄弟姐妹家庭都能看到分摊是公平的。只读——绝不动钱。 | 一家人共同赡养老人、统一管理退休金时使用：记录养老院费用，并把结余（交通、聚餐、生日礼物、人情）透明地分摊到各兄弟姐妹家庭。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-family-fund.html?lang=zh) |
+| `kelly-family-office` | 通过 CSV 导入和手工录入，把多个主体/成员的持仓合并成家族办公室 dashboard：以基准货币计的总资产管理规模（AUM），按主体、资产类别、机构的配置和业绩汇总。只读——绝不动钱。 | 汇总个人、信托、公司等多主体的家族办公室，查看合并 AUM、资产配置、机构敞口或未实现业绩时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-family-office.html?lang=zh) |
+| `kelly-invest-stock` | 构建本地 Hono、Busabase-backed、只读的中国股票持仓与研究台，使用固定版本、免 Key、纯 JavaScript 的 `stock-sdk` 行情数据；同一套源码可部署到 AirApp，绝不交易。 | 监控中国大陆 A 股持仓、相关指数或股票 ETF，刷新行情和 K 线，或查看盈亏、集中度、回撤、异常波动、研究假设与数据新鲜度时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invest-stock.html?lang=zh) |
+| `kelly-invest-webull` | 通过 Webull OpenAPI 把个人券商账户聚合成本地只读投资组合 dashboard：持仓、成本、市值、未实现盈亏、当日涨跌和按资产类别的配置。只读——绝不下单或撤单。 | 查看个人投资、持仓、组合市值、未实现盈亏、现金或资产配置时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html?lang=zh) |
+
+### 收益分成融资
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-deal-scorer` | 审核队列台，用可审计的确定性规则打分（营收稳定性、增长趋势、行业风险、本金比例、经营记录）给候选中小企融资项目打分——从不调用 LLM。 | 审阅尽调打分队列、查看分数拆解、获取建议分成比例区间，或记录批准/退回/拒绝决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-deal-scorer.html?lang=zh) |
+| `kelly-disclosure-tracker` | 合规/IR 工作台，跨发行地实体、基金管理人实体和挂牌交易场所三方，跟踪每个融资载体的标准化披露清单和跨方对账异常。 | 审阅披露清单进度、载体就绪状态，或申报前的对账异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-disclosure-tracker.html?lang=zh) |
+| `kelly-lead-funnel` | 面向 BD/获客团队的看板控制台，用确定性规则给商户融资线索打分，并跟踪各阶段转化率。 | 审阅获客漏斗、推进/驳回线索、或查看漏斗转化率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-lead-funnel.html?lang=zh) |
+| `kelly-portfolio-health` | 面向 RBF 基金或私募信贷组合的只读看板：总 AUM、加权回款进度、行业集中度风险，以及营收下滑合约的观察名单。 | 检查投资组合健康状况、标记合约待复核，或查看行业集中度和风险敞口时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-portfolio-health.html?lang=zh) |
+| `kelly-revshare-simulator` | 收益分成融资（RBF）合约模拟工作台：推算现金流和累计回款、计算 Cash-Flow Payout Multiple 和商户实际年化成本，并用纯确定性数学标记风险（回款上限未达标、成本过高）。 | 给收益分成/商户预付款交易做尽调、并排比较多个融资方案，或记录批准/需修改/拒绝决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-revshare-simulator.html?lang=zh) |
+
+### 法务与合同
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-clm` | 轻量合同生命周期台：合同库、生命周期阶段、负责人、义务、续约通知和简单审批提醒。 | 管一个简单合同台账、跟踪续约或通知截止日、分配合同负责人，或跟进合同义务但不做详细法务红线时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-clm.html?lang=zh) |
+| `kelly-legal-casebase-ingest` | 法律案例库入库与脱敏质检台：agent 把归档判决书、裁定书、仲裁裁决提取成结构化、脱敏案例记录，审核人批准/修改/拦截后才进入 canonical 案例库。 | 建内部智能案例库、处理裁判文书、复核脱敏、分类标注、案例审核或做数据质量验收时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-casebase-ingest.html?lang=zh) |
+| `kelly-legal-contracts` | 法务合同审阅台：覆盖 NDA、MSA、DPA、SOW，agent 准备条款风险项、fallback language、条款库检查和 issue list 导出，法务在本地 UI 审核批准。 | 审合同、分诊条款风险、维护 fallback playbook、批准红线立场，或导出法务 issue list 但不自动外发时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-contracts.html?lang=zh) |
+| `kelly-legal-firm-radar` | 律所经营画像台：基于脱敏案例库元数据做业务结构、案件质量、律师能力画像、人才信号、品牌 proof point 和管理报告审批。 | 合伙人需要业务布局分析、案件质量评估、律师画像、专业梯队建设，或从内部案例库提炼品牌证明时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-firm-radar.html?lang=zh) |
+| `kelly-legal-matter-strategy` | 案件策略与文书辅助台：agent 基于新案事实和内部类案生成争议焦点树、证据地图、风险判断、谈判选项和文书大纲，交由主办律师/合伙人审核。 | 准备诉讼、仲裁、咨询、证据或文书策略，且需要负责人复核后才能用于客户事项时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-matter-strategy.html?lang=zh) |
+| `kelly-legal-precedent-desk` | 内部类案检索与裁判尺度台：agent 检索已批准案例库，准备类案包、本地裁判尺度、引用片段和 AI 问答答案，律师复核后复用。 | 律师需要内部案例库检索、类案匹配、本地法院倾向、类案研究包，或导出基于本所经验的研究结论时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-precedent-desk.html?lang=zh) |
+
+### 销售与客户
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-crm` | 个人 CRM：联系人、公司、交易和互动记录，带 pipeline dashboard 和 agent 起草的跟进审批队列。 | 跟踪交易和人脉、查看 pipeline 健康度、批准/编辑跟进草稿（由 agent 经其他渠道发出）时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-crm.html?lang=zh) |
+| `kelly-feedback` | 聚合全渠道用户反馈，聚类成带权重的 feature requests，并运行带草稿回复和 changelog 的 roadmap 裁决队列。 | 分诊用户反馈、给需求排优先级、做有证据支撑的 roadmap 采纳/拒绝决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-feedback.html?lang=zh) |
+| `kelly-inquiry` | 把 WhatsApp、Instagram、Messenger、邮件询盘聚合成销售 pipeline：商品知识库、带底价护栏的报价单、审批制外发和跟进提醒。 | 处理外贸/跨境询盘、基于商品库起草准确回复和报价、防止商机逾期漏单时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html?lang=zh) |
+| `kelly-support` | 客服台：agent 把邮件、WhatsApp、网页在线、表单、微信来的工单分诊，基于知识库起草回复并提议动作；你在本地 UI review、编辑、批准后才发出，带 SLA 看板、CSAT 跟踪和 support-qa 门（未经批准的退款/承诺直接 BLOCK）。 | 跨渠道处理客服工单、基于知识库起草回复、跟踪 SLA 和 CSAT，或批准退款/升级等敏感动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-support.html?lang=zh) |
+| `kelly-tickets` | 把微信群导出、来电记录、表单、邮件里的投诉分类成工单，生成带 SLA 的派单建议供审批，并在看板上跟踪到解决。 | 管理物业/设施投诉、给班组派工单，或运行任何「接入-分类-派单-跟踪」流程时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-tickets.html?lang=zh) |
+
+### 沟通与协同
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
+| `kelly-messenger` | 把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。 | 在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html?lang=zh) |
+| `kelly-standup` | 团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。 | 异步开晨会、一眼看到每个人在干什么、跟踪阻塞和参与率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html?lang=zh) |
+
+### 品牌与营销
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-brand` | 品牌叙事唯一真源，跑 TALE 框架（Trace→Architect→Land→Evaluate）：agent 起草定位、message house、story bank、带证据的 proof point 和用词护栏，给叙事质量打分（NQS → SHIP/FIX/BLOCK），并标记跨渠道漂移；你决定哪些草稿升为 canonical。 | 定义或审计品牌定位和信息、维护 canonical 叙事和 story bank，或捕捉跨渠道跑偏时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-brand.html?lang=zh) |
+| `kelly-campaigns` | 外发邮件营销台，跑 SEND 生命周期（Setup→Engage→Nurture→Deliver）：agent 建分群，起草 campaign、newsletter 和序列，发送前跑送达率 + 主题行 QA，背后有 EQS 质量门（SHIP/FIX/BLOCK），排期或发送前先过审。 | 策划邮件 campaign、newsletter 或生命周期序列、检查送达率和 A/B 主题、审批群发时使用——与 `kelly-email` 收件箱清零区分开。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-campaigns.html?lang=zh) |
+| `kelly-creators` | 达人营销指挥台，跑 Discover→Plan→Activate→Measure 管道：agent 扫描并按 C³ ACE 给达人候选打匹配分，起草外联、brief 和合同，发布前质量门（SHIP/FIX/BLOCK）核查 FTC 披露与宣称真实性，全部在本地 UI 审阅，带 ROI 看板。 | 发现和筛选达人、审批外联和 brief、跑达人投放管道，或跟踪红人 ROI 与预算时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-creators.html?lang=zh) |
+| `kelly-launch` | 产品发布指挥台，跑 RAMP 框架（Research→Assemble→Mobilize→Prove）：agent 组装发布清单，起草素材、Product Hunt / Hacker News 提交、媒体推介和发布日 runbook，发布就绪门给出发布质量分（LQS → SHIP/FIX/BLOCK）。 | 策划和执行产品发布：搭清单、审批素材和渠道提交、把关发布就绪度，或指挥发布日时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-launch.html?lang=zh) |
+| `kelly-social` | 既监控又发布的社媒指挥台（Aaron 的 ECHO）：监控侧有统一时间线、账号数据、粉丝趋势和 share-of-voice；发布侧有内容日历、agent 起草的成稿台、短视频脚本、审批制互动收件箱和危机剧本——每条草稿都过 social-qa 的 SHIP/FIX/BLOCK 门。 | 查看社媒表现和 share-of-voice、排内容日历、审批帖子和短视频脚本，或跨平台分诊 mention 和回复时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-social.html?lang=zh) |
+| `kelly-writer` | 把一个想法、文章、 transcript、outline 或公告改写成适合小红书、公众号、newsletter、LinkedIn、X/Twitter、短视频、SEO 的内容包。 | 把长内容拆成多平台内容包，并在本地 review、编辑、批准、导出时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-writer.html?lang=zh) |
+
+### 增长与分析
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-behavior-predict` | 基于 mock 用户行为漏斗数据的看板，给每个用户分群提供预测下一步动作的启发式规则，并跑准确率回测。 | 查看漏斗流失、各分群预测结果，或回测规则式推荐启发式时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-behavior-predict.html?lang=zh) |
+| `kelly-radar` | 市场情报台：竞品信号监控（定价、changelog、发布、口碑 diff）+ 带 brief 审批和引用报告的研究课题工作台 + 关键词/话题趋势跟踪。 | 盯竞品、发起深度研究报告、把上升的搜索和社区趋势转成机会卡时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-radar.html?lang=zh) |
+| `kelly-seo` | 覆盖 SEO + GEO 的搜索台：Google Search Console 分析（点击/曝光/CTR/排名、机会）+ 生成式引擎优化侧——跨 ChatGPT/Perplexity/Gemini/Claude/Copilot 的 AI 可见度追踪、可引用性优化队列、品牌实体/知识面板就绪度，由 geo-qa 门把关。 | 分析搜索表现、追踪并提升 AI 引擎对品牌的引用、审批 GEO 内容改动，或修复知识图谱和实体信号时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-seo.html?lang=zh) |
+
+### 跨境电商
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-ads` | 投放指挥台：聚合 Amazon、Meta、TikTok、Google 广告到一块看板，跟踪 ACOS/ROAS，确定性异常检测，审批制调整卡（否定词、出价、预算）。 | 跨平台看广告花费、抓零转化烧钱和预算烧穿、带证据批准出价和关键词调整时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ads.html?lang=zh) |
+| `kelly-listing` | 上架工厂：生成各平台 listing（Amazon 标题/五点/描述/后台词/A+、Shopify、TikTok Shop、eBay）和多站点语言变体，跑平台合规检查，批准后导出。 | 写或本地化平台 listing、执行禁用词和字数规则、批量审核上架文案时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-listing.html?lang=zh) |
+| `kelly-picks` | 跨境选品雷达：agent 扫 BSR 飙升、TikTok 爆款、上升搜索词产出候选品，每个候选带可实时改数的利润卡（售价、到岸成本、费用、保本 ACOS）和竞争解读。 | 找品、上架前压测利润空间、带采购/上架 brief 做「立项/观察/放弃」决策时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-picks.html?lang=zh) |
+| `kelly-products` | 电商商品管理台：图文 SKU 商品库、价格、库存覆盖、渠道状态、素材资产、合规备注、生命周期，以及审批制商品操作。 | 管商品主数据、库存/补货风险、各平台渠道状态、调价、质检暂停、SKU 下架归档或发布审批时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-products.html?lang=zh) |
+
+### 行业情报
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-ai-newsroom` | AI/新闻源情报台：把平台、搜索、监管、企业软件和新闻源变化拆成真正影响采购的 buyer-trigger，而不是泛泛热点。 | 追踪 AI 新闻、Microsoft/Meta/OpenAI/Google/Perplexity 动向、新闻源变化，或寻找会影响产品采购的销售角度时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ai-newsroom.html?lang=zh) |
+| `kelly-beauty-intel` | 美容医美情报台：把竞品套餐、项目趋势、安全通知、评价主题和季节需求转成安全的咨询与营销动作。 | 门店或医美团队需要活动角度、咨询话术、差评修复、客户教育，且要避开医疗宣称风险时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-beauty-intel.html?lang=zh) |
+| `kelly-ecommerce-intel` | 电商卖家情报台：跟踪平台政策、竞品价格/listing、搜索趋势、广告、评价语言和 SKU 活动机会。 | 跨境/平台/DTC 卖家需要 listing 优化、广告角度、组合测试、评价回复、campaign brief 或政策风险检查时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ecommerce-intel.html?lang=zh) |
+| `kelly-education-intel` | 教育招生情报台：跟踪考试日期、升学政策、签证、学校通知、家长问题和竞品课程，转成招生动作。 | 学校、培训机构、留学/升学服务需要家长 FAQ、招生动作、课程推广角度、讲座主题或教育备忘录时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-education-intel.html?lang=zh) |
+| `kelly-financial-services-intel` | 金融服务情报台：跟踪监管、宏观、市场、组合主题、竞品和客户问题，生成可 review 的教育与客户经营动作。 | 顾问、家族办公室或金融服务团队需要内部 brief、客户教育 memo、会议议程或风险提醒，且不能给个性化投资建议时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-financial-services-intel.html?lang=zh) |
+| `kelly-insurance-intel` | 保险顾问情报台：跟踪监管、险司/产品、保费/理赔、生命周期事件和客户风险问题，生成合规跟进。 | 经纪人或代理团队需要会议议程、续保话术、客户教育、保障缺口 checklist，且不能越界做适配结论时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-insurance-intel.html?lang=zh) |
+| `kelly-insure-data` | 保险行业高质量数据录入与治理工作台，基于 Busabase：Drive node 文件 metadata、治理后的问答对、保险新闻资讯 Base 记录。 | 导入、审核、清洗保险文件、metadata 完整度、问答对或市场/新闻记录，在进入可信知识库前做数据治理时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-insure-data.html?lang=zh) |
+| `kelly-real-estate-intel` | 地产中介情报台：围绕 listing、成交、按揭、片区动态、竞品广告和客户跟进，生成可 review 的销售动作。 | 把地产市场变化转成业主更新、买家跟进、房源卖点、开放日话术或 agency review batch 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-real-estate-intel.html?lang=zh) |
+| `kelly-restaurant-intel` | 餐饮集团情报台：把天气、活动、菜单、外卖、订座和评价主题转成每日菜单、班次和促销动作。 | 餐厅、咖啡店或餐饮集团需要主推菜、班次 briefing、外卖文案、订座话术或客诉修复草稿时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-restaurant-intel.html?lang=zh) |
+| `kelly-retail-intel` | 零售运营情报台：把天气、活动、竞品促销、商品趋势、评价主题、供应变化转成门店陈列和销售动作。 | 门店或消费品牌需要主推 SKU、标牌文案、补货检查、店员 briefing 或本地需求动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-retail-intel.html?lang=zh) |
+
+### 内容制作与教学
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-demo-video-factory` | 端到端规划产品演示/营销视频：钩子/痛点/分镜起草、对照真实代码库核实产品说法、逐镜录制进度追踪，数据存在 Busabase 里，本地有一个只读审核 App 展示；再交接给后期/HyperFrame（Remotion）。 | 规划一条产品演示视频、写分镜表格、录制前核实脚本里的产品说法、追踪哪些镜头已录制，或把定稿分镜交给剪辑/Remotion 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-demo-video-factory.html?lang=zh) |
+| `kelly-digital-human` | 数字人方案台和多模态 demo：在低成本 2D 写实数字人服务与高自由度 UE/Unity 3D 定制数字人之间做选择，并用本地 Studio 展示语音/文本输入、唇形视频流、服务路由延迟和上线 QA。 | 规划 AI 主持人、客服数字人、产品讲解员、直播助理或数字人 demo；对比硅基智能、腾讯智影、即构/ZEGO 式实时服务；或设计 3D UE/Unity 数字人管线时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-digital-human.html?lang=zh) |
+| `kelly-drama` | 短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。 | 从策划到分镜管理短剧系列，写分集、建角色、管理 storyboard、review AI 生成图时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-drama.html?lang=zh) |
+| `kelly-homework-coach` | 小学生作业辅导台：agent 解释拍照上传的题目、分析错题、生成错题本，并在家长/老师审核后准备针对性试卷。 | 小学生需要拍照讲题、温柔分步讲解、错题复习、错因分析或按错题生成练习卷时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-homework-coach.html?lang=zh) |
+| `kelly-lesson` | 从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。 | 统一全校教案格式、检查教案合规性、批量审核批准教学计划时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-lesson.html?lang=zh) |
+| `kelly-mv` | 纯视觉 MV 工作台：上传 MP3、写 MV concept、建立角色和参考卡、生成/上传镜头图和视频，并围绕音乐做 storyboard。 | 做没有旁白/字幕的纯视觉 MV，用歌曲驱动镜头和画面规划时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-mv.html?lang=zh) |
+| `kelly-ppt-factory` | 项目制 PPTX 工厂：把 brief、源材料和风格样张变成可审核的页面卡，批量生成风格一致的 PowerPoint，并跟踪渲染 QA 和导出记录。 | 制作融资 PPT、销售 PPT、培训材料、报告、方案书、课件，或批量生成客户可交付 PPTX 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ppt-factory.html?lang=zh) |
+
+### Agent 与研发平台
+
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `agent-rules` | 让 Codex、Claude Code、Copilot、Kiro、Cursor、Gemini 等 agent 共享同一套规则和 skills。 | 设置多 agent repo、检查规则漂移、修复 rule/skill symlink 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/agent-rules.html?lang=zh) |
+| `kelly-agent-builder` | 低代码 agent 配置与治理控制台：维护一批 mock agent 配置的配额、审批和归属，未填齐字段前禁止上线。 | 管理 agent 目录、检查配额使用、把草稿激活为上线，或归档某个 agent 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-builder.html?lang=zh) |
+| `kelly-agent-eval` | 评测看板，跑固定测试集对比 baseline 与候选版本 agent，在发版前用打分规则揪出回归问题。 | 排查 agent 版本回归、对比 baseline 与候选质量，或记录发版批准/阻止决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-eval.html?lang=zh) |
+| `kelly-agent-observability` | 本地看板，展示运行在共享 AI 网关背后的一批 LLM agent：调用量、延迟、错误率、成本，以及链路级故障追踪。 | 审阅 agent 集群健康状况，或排查某条失败链路断在哪一步时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html?lang=zh) |
 | `kelly-app-skill-creator` | 围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 `app/`，用 `busabase-sdk` 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 `pnpm dev`，拥有响应式 Kelly 操作台 UI，把运行时约束委托给 `$busabase-app-creator`，把 conformance 验收委托给 `$kelly-app-skill-creator-tests`。旧名 `kelly-app-creator`、`app-in-skill-creator` 保留为兼容别名。 | 构建 Busabase 研究台、审阅队列、计划看板、行动控制台、运营概览、控制面板或协作工作区时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html?lang=zh) |
 | `kelly-app-skill-creator-tests` | 为规范 Kelly app skill 构建并运行可复用 conformance 测试，包括本地 server 与响应式浏览器检查、临时开源 Busabase provisioning 与持久化、环境变量门控的 Cloud OAuth，以及 AirApp parity；OSS 与 Cloud 始终分开报告。 | 给 `kelly-app-skill-creator` 生成的 skill 补测试、验收迁移后的 app skill、接入 app-skill CI，或诊断 SDK、OAuth、provisioning、持久化、AirApp 回归时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html?lang=zh) |
-| `publish-skills` | 把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 `gh skill` 校验、切版本、接 Claude `/plugin` 和 Codex marketplace，并准备 MCP Registry 和精选商店。 | 发布、上架、分发 skills、plugins 或 MCP servers 到 skills.sh、Claude Code、Codex 或 MCP Registry 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/publish-skills.html?lang=zh) |
-| `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
-| `kelly-finance` | 构建和审计财务三表模型、经营预测、预算、现金 runway、SaaS/unit economics 包，以及可交付的 Excel 财务输出。 | 做财务三表、融资预测、董事会财务包、情景分析、资产负债表检查、营运资本/资本开支/债务 schedule，或修三表勾稽错误时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-finance.html?lang=zh) |
-| `kelly-money` | 聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。 | 查看余额、付款、payout、手续费、退款、转账、provider sync 状态、发票和流水匹配时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-money.html?lang=zh) |
-| `kelly-invoice-sheet` | 把发票、收据、红字/贷项通知单和 statement 抽取成类似 spreadsheet 的本地审阅表，带字段置信度、明细行、审批决定和 CSV/JSON 导出。 | 做 Invoice转表格、发票 OCR、收据转表格、记账导入准备，或需要类似 Lido Extract Data 的本地 App-in-Skill workflow 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invoice-sheet.html?lang=zh) |
-| `kelly-invest-webull` | 通过 Webull OpenAPI 把个人券商账户聚合成本地只读投资组合 dashboard：持仓、成本、市值、未实现盈亏、当日涨跌和按资产类别的配置。只读——绝不下单或撤单。 | 查看个人投资、持仓、组合市值、未实现盈亏、现金或资产配置时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invest-webull.html?lang=zh) |
-| `kelly-invest-stock` | 构建本地 Hono、Busabase-backed、只读的中国股票持仓与研究台，使用固定版本、免 Key、纯 JavaScript 的 `stock-sdk` 行情数据；同一套源码可部署到 AirApp，绝不交易。 | 监控中国大陆 A 股持仓、相关指数或股票 ETF，刷新行情和 K 线，或查看盈亏、集中度、回撤、异常波动、研究假设与数据新鲜度时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-invest-stock.html?lang=zh) |
-| `kelly-family-office` | 通过 CSV 导入和手工录入，把多个主体/成员的持仓合并成家族办公室 dashboard：以基准货币计的总资产管理规模（AUM），按主体、资产类别、机构的配置和业绩汇总。只读——绝不动钱。 | 汇总个人、信托、公司等多主体的家族办公室，查看合并 AUM、资产配置、机构敞口或未实现业绩时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-family-office.html?lang=zh) |
-| `kelly-family-fund` | 把两位老人的退休金汇入一个由管理人统一记账的统筹基金，按月记录养老院固定支出和大家庭共享开销（折算基准货币），让每个兄弟姐妹家庭都能看到分摊是公平的。只读——绝不动钱。 | 一家人共同赡养老人、统一管理退休金时使用：记录养老院费用，并把结余（交通、聚餐、生日礼物、人情）透明地分摊到各兄弟姐妹家庭。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-family-fund.html?lang=zh) |
-| `kelly-crm` | 个人 CRM：联系人、公司、交易和互动记录，带 pipeline dashboard 和 agent 起草的跟进审批队列。 | 跟踪交易和人脉、查看 pipeline 健康度、批准/编辑跟进草稿（由 agent 经其他渠道发出）时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-crm.html?lang=zh) |
-| `kelly-messenger` | 把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。 | 在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html?lang=zh) |
-| `kelly-social` | 既监控又发布的社媒指挥台（Aaron 的 ECHO）：监控侧有统一时间线、账号数据、粉丝趋势和 share-of-voice；发布侧有内容日历、agent 起草的成稿台、短视频脚本、审批制互动收件箱和危机剧本——每条草稿都过 social-qa 的 SHIP/FIX/BLOCK 门。 | 查看社媒表现和 share-of-voice、排内容日历、审批帖子和短视频脚本，或跨平台分诊 mention 和回复时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-social.html?lang=zh) |
-| `kelly-support` | 客服台：agent 把邮件、WhatsApp、网页在线、表单、微信来的工单分诊，基于知识库起草回复并提议动作；你在本地 UI review、编辑、批准后才发出，带 SLA 看板、CSAT 跟踪和 support-qa 门（未经批准的退款/承诺直接 BLOCK）。 | 跨渠道处理客服工单、基于知识库起草回复、跟踪 SLA 和 CSAT，或批准退款/升级等敏感动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-support.html?lang=zh) |
-| `kelly-seo` | 覆盖 SEO + GEO 的搜索台：Google Search Console 分析（点击/曝光/CTR/排名、机会）+ 生成式引擎优化侧——跨 ChatGPT/Perplexity/Gemini/Claude/Copilot 的 AI 可见度追踪、可引用性优化队列、品牌实体/知识面板就绪度，由 geo-qa 门把关。 | 分析搜索表现、追踪并提升 AI 引擎对品牌的引用、审批 GEO 内容改动，或修复知识图谱和实体信号时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-seo.html?lang=zh) |
-| `kelly-feedback` | 聚合全渠道用户反馈，聚类成带权重的 feature requests，并运行带草稿回复和 changelog 的 roadmap 裁决队列。 | 分诊用户反馈、给需求排优先级、做有证据支撑的 roadmap 采纳/拒绝决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-feedback.html?lang=zh) |
-| `kelly-radar` | 市场情报台：竞品信号监控（定价、changelog、发布、口碑 diff）+ 带 brief 审批和引用报告的研究课题工作台 + 关键词/话题趋势跟踪。 | 盯竞品、发起深度研究报告、把上升的搜索和社区趋势转成机会卡时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-radar.html?lang=zh) |
-| `kelly-ai-newsroom` | AI/新闻源情报台：把平台、搜索、监管、企业软件和新闻源变化拆成真正影响采购的 buyer-trigger，而不是泛泛热点。 | 追踪 AI 新闻、Microsoft/Meta/OpenAI/Google/Perplexity 动向、新闻源变化，或寻找会影响产品采购的销售角度时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ai-newsroom.html?lang=zh) |
-| `kelly-real-estate-intel` | 地产中介情报台：围绕 listing、成交、按揭、片区动态、竞品广告和客户跟进，生成可 review 的销售动作。 | 把地产市场变化转成业主更新、买家跟进、房源卖点、开放日话术或 agency review batch 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-real-estate-intel.html?lang=zh) |
-| `kelly-education-intel` | 教育招生情报台：跟踪考试日期、升学政策、签证、学校通知、家长问题和竞品课程，转成招生动作。 | 学校、培训机构、留学/升学服务需要家长 FAQ、招生动作、课程推广角度、讲座主题或教育备忘录时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-education-intel.html?lang=zh) |
-| `kelly-beauty-intel` | 美容医美情报台：把竞品套餐、项目趋势、安全通知、评价主题和季节需求转成安全的咨询与营销动作。 | 门店或医美团队需要活动角度、咨询话术、差评修复、客户教育，且要避开医疗宣称风险时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-beauty-intel.html?lang=zh) |
-| `kelly-insurance-intel` | 保险顾问情报台：跟踪监管、险司/产品、保费/理赔、生命周期事件和客户风险问题，生成合规跟进。 | 经纪人或代理团队需要会议议程、续保话术、客户教育、保障缺口 checklist，且不能越界做适配结论时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-insurance-intel.html?lang=zh) |
-| `kelly-insure-data` | 保险行业高质量数据录入与治理工作台，基于 Busabase：Drive node 文件 metadata、治理后的问答对、保险新闻资讯 Base 记录。 | 导入、审核、清洗保险文件、metadata 完整度、问答对或市场/新闻记录，在进入可信知识库前做数据治理时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-insure-data.html?lang=zh) |
-| `kelly-retail-intel` | 零售运营情报台：把天气、活动、竞品促销、商品趋势、评价主题、供应变化转成门店陈列和销售动作。 | 门店或消费品牌需要主推 SKU、标牌文案、补货检查、店员 briefing 或本地需求动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-retail-intel.html?lang=zh) |
-| `kelly-ecommerce-intel` | 电商卖家情报台：跟踪平台政策、竞品价格/listing、搜索趋势、广告、评价语言和 SKU 活动机会。 | 跨境/平台/DTC 卖家需要 listing 优化、广告角度、组合测试、评价回复、campaign brief 或政策风险检查时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ecommerce-intel.html?lang=zh) |
-| `kelly-restaurant-intel` | 餐饮集团情报台：把天气、活动、菜单、外卖、订座和评价主题转成每日菜单、班次和促销动作。 | 餐厅、咖啡店或餐饮集团需要主推菜、班次 briefing、外卖文案、订座话术或客诉修复草稿时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-restaurant-intel.html?lang=zh) |
-| `kelly-financial-services-intel` | 金融服务情报台：跟踪监管、宏观、市场、组合主题、竞品和客户问题，生成可 review 的教育与客户经营动作。 | 顾问、家族办公室或金融服务团队需要内部 brief、客户教育 memo、会议议程或风险提醒，且不能给个性化投资建议时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-financial-services-intel.html?lang=zh) |
 | `kelly-devops` | 盯产品矩阵的运维面：服务可用性和延迟、SSL 证书和域名到期、API key 轮换、云支出异常，带 agent 提出的行动卡审批。 | 检查服务健康、避免域名/证书过期、review 云支出异常、批准续费和轮换动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html?lang=zh) |
-| `kelly-audit` | 导入订单、发票、回款三表并互相稽核：缺发票、金额不符、逾期应收（带账龄）、重复回款、无主回款，每条异常带证据链和催收草稿。 | 对账订单-发票-回款链条、催收应收账款、月底前 review 财务异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-audit.html?lang=zh) |
-| `kelly-tickets` | 把微信群导出、来电记录、表单、邮件里的投诉分类成工单，生成带 SLA 的派单建议供审批，并在看板上跟踪到解决。 | 管理物业/设施投诉、给班组派工单，或运行任何「接入-分类-派单-跟踪」流程时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-tickets.html?lang=zh) |
-| `kelly-homework-coach` | 小学生作业辅导台：agent 解释拍照上传的题目、分析错题、生成错题本，并在家长/老师审核后准备针对性试卷。 | 小学生需要拍照讲题、温柔分步讲解、错题复习、错因分析或按错题生成练习卷时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-homework-coach.html?lang=zh) |
-| `kelly-lesson` | 从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。 | 统一全校教案格式、检查教案合规性、批量审核批准教学计划时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-lesson.html?lang=zh) |
-| `kelly-ppt-factory` | 项目制 PPTX 工厂：把 brief、源材料和风格样张变成可审核的页面卡，批量生成风格一致的 PowerPoint，并跟踪渲染 QA 和导出记录。 | 制作融资 PPT、销售 PPT、培训材料、报告、方案书、课件，或批量生成客户可交付 PPTX 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ppt-factory.html?lang=zh) |
-| `kelly-demo-video-factory` | 端到端规划产品演示/营销视频：钩子/痛点/分镜起草、对照真实代码库核实产品说法、逐镜录制进度追踪，数据存在 Busabase 里，本地有一个只读审核 App 展示；再交接给后期/HyperFrame（Remotion）。 | 规划一条产品演示视频、写分镜表格、录制前核实脚本里的产品说法、追踪哪些镜头已录制，或把定稿分镜交给剪辑/Remotion 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-demo-video-factory.html?lang=zh) |
-| `kelly-inquiry` | 把 WhatsApp、Instagram、Messenger、邮件询盘聚合成销售 pipeline：商品知识库、带底价护栏的报价单、审批制外发和跟进提醒。 | 处理外贸/跨境询盘、基于商品库起草准确回复和报价、防止商机逾期漏单时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html?lang=zh) |
-| `kelly-picks` | 跨境选品雷达：agent 扫 BSR 飙升、TikTok 爆款、上升搜索词产出候选品，每个候选带可实时改数的利润卡（售价、到岸成本、费用、保本 ACOS）和竞争解读。 | 找品、上架前压测利润空间、带采购/上架 brief 做「立项/观察/放弃」决策时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-picks.html?lang=zh) |
-| `kelly-products` | 电商商品管理台：图文 SKU 商品库、价格、库存覆盖、渠道状态、素材资产、合规备注、生命周期，以及审批制商品操作。 | 管商品主数据、库存/补货风险、各平台渠道状态、调价、质检暂停、SKU 下架归档或发布审批时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-products.html?lang=zh) |
-| `kelly-listing` | 上架工厂：生成各平台 listing（Amazon 标题/五点/描述/后台词/A+、Shopify、TikTok Shop、eBay）和多站点语言变体，跑平台合规检查，批准后导出。 | 写或本地化平台 listing、执行禁用词和字数规则、批量审核上架文案时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-listing.html?lang=zh) |
-| `kelly-legal-casebase-ingest` | 法律案例库入库与脱敏质检台：agent 把归档判决书、裁定书、仲裁裁决提取成结构化、脱敏案例记录，审核人批准/修改/拦截后才进入 canonical 案例库。 | 建内部智能案例库、处理裁判文书、复核脱敏、分类标注、案例审核或做数据质量验收时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-casebase-ingest.html?lang=zh) |
-| `kelly-legal-precedent-desk` | 内部类案检索与裁判尺度台：agent 检索已批准案例库，准备类案包、本地裁判尺度、引用片段和 AI 问答答案，律师复核后复用。 | 律师需要内部案例库检索、类案匹配、本地法院倾向、类案研究包，或导出基于本所经验的研究结论时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-precedent-desk.html?lang=zh) |
-| `kelly-legal-matter-strategy` | 案件策略与文书辅助台：agent 基于新案事实和内部类案生成争议焦点树、证据地图、风险判断、谈判选项和文书大纲，交由主办律师/合伙人审核。 | 准备诉讼、仲裁、咨询、证据或文书策略，且需要负责人复核后才能用于客户事项时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-matter-strategy.html?lang=zh) |
-| `kelly-legal-firm-radar` | 律所经营画像台：基于脱敏案例库元数据做业务结构、案件质量、律师能力画像、人才信号、品牌 proof point 和管理报告审批。 | 合伙人需要业务布局分析、案件质量评估、律师画像、专业梯队建设，或从内部案例库提炼品牌证明时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-firm-radar.html?lang=zh) |
-| `kelly-clm` | 轻量合同生命周期台：合同库、生命周期阶段、负责人、义务、续约通知和简单审批提醒。 | 管一个简单合同台账、跟踪续约或通知截止日、分配合同负责人，或跟进合同义务但不做详细法务红线时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-clm.html?lang=zh) |
-| `kelly-legal-contracts` | 法务合同审阅台：覆盖 NDA、MSA、DPA、SOW，agent 准备条款风险项、fallback language、条款库检查和 issue list 导出，法务在本地 UI 审核批准。 | 审合同、分诊条款风险、维护 fallback playbook、批准红线立场，或导出法务 issue list 但不自动外发时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-legal-contracts.html?lang=zh) |
-| `kelly-ads` | 投放指挥台：聚合 Amazon、Meta、TikTok、Google 广告到一块看板，跟踪 ACOS/ROAS，确定性异常检测，审批制调整卡（否定词、出价、预算）。 | 跨平台看广告花费、抓零转化烧钱和预算烧穿、带证据批准出价和关键词调整时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ads.html?lang=zh) |
-| `kelly-standup` | 团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。 | 异步开晨会、一眼看到每个人在干什么、跟踪阻塞和参与率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html?lang=zh) |
-| `kelly-writer` | 把一个想法、文章、 transcript、outline 或公告改写成适合小红书、公众号、newsletter、LinkedIn、X/Twitter、短视频、SEO 的内容包。 | 把长内容拆成多平台内容包，并在本地 review、编辑、批准、导出时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-writer.html?lang=zh) |
-| `kelly-pr-review` | 通过 `gh` CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 `gh pr review`。 | review PR、批准/comment/request changes，或批量处理 PR review decision 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html?lang=zh) |
-| `kelly-drama` | 短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。 | 从策划到分镜管理短剧系列，写分集、建角色、管理 storyboard、review AI 生成图时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-drama.html?lang=zh) |
-| `kelly-mv` | 纯视觉 MV 工作台：上传 MP3、写 MV concept、建立角色和参考卡、生成/上传镜头图和视频，并围绕音乐做 storyboard。 | 做没有旁白/字幕的纯视觉 MV，用歌曲驱动镜头和画面规划时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-mv.html?lang=zh) |
-| `kelly-digital-human` | 数字人方案台和多模态 demo：在低成本 2D 写实数字人服务与高自由度 UE/Unity 3D 定制数字人之间做选择，并用本地 Studio 展示语音/文本输入、唇形视频流、服务路由延迟和上线 QA。 | 规划 AI 主持人、客服数字人、产品讲解员、直播助理或数字人 demo；对比硅基智能、腾讯智影、即构/ZEGO 式实时服务；或设计 3D UE/Unity 数字人管线时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-digital-human.html?lang=zh) |
-| `kelly-creators` | 达人营销指挥台，跑 Discover→Plan→Activate→Measure 管道：agent 扫描并按 C³ ACE 给达人候选打匹配分，起草外联、brief 和合同，发布前质量门（SHIP/FIX/BLOCK）核查 FTC 披露与宣称真实性，全部在本地 UI 审阅，带 ROI 看板。 | 发现和筛选达人、审批外联和 brief、跑达人投放管道，或跟踪红人 ROI 与预算时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-creators.html?lang=zh) |
-| `kelly-campaigns` | 外发邮件营销台，跑 SEND 生命周期（Setup→Engage→Nurture→Deliver）：agent 建分群，起草 campaign、newsletter 和序列，发送前跑送达率 + 主题行 QA，背后有 EQS 质量门（SHIP/FIX/BLOCK），排期或发送前先过审。 | 策划邮件 campaign、newsletter 或生命周期序列、检查送达率和 A/B 主题、审批群发时使用——与 `kelly-email` 收件箱清零区分开。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-campaigns.html?lang=zh) |
-| `kelly-launch` | 产品发布指挥台，跑 RAMP 框架（Research→Assemble→Mobilize→Prove）：agent 组装发布清单，起草素材、Product Hunt / Hacker News 提交、媒体推介和发布日 runbook，发布就绪门给出发布质量分（LQS → SHIP/FIX/BLOCK）。 | 策划和执行产品发布：搭清单、审批素材和渠道提交、把关发布就绪度，或指挥发布日时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-launch.html?lang=zh) |
-| `kelly-brand` | 品牌叙事唯一真源，跑 TALE 框架（Trace→Architect→Land→Evaluate）：agent 起草定位、message house、story bank、带证据的 proof point 和用词护栏，给叙事质量打分（NQS → SHIP/FIX/BLOCK），并标记跨渠道漂移；你决定哪些草稿升为 canonical。 | 定义或审计品牌定位和信息、维护 canonical 叙事和 story bank，或捕捉跨渠道跑偏时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-brand.html?lang=zh) |
-| `kelly-revshare-simulator` | 收益分成融资（RBF）合约模拟工作台：推算现金流和累计回款、计算 Cash-Flow Payout Multiple 和商户实际年化成本，并用纯确定性数学标记风险（回款上限未达标、成本过高）。 | 给收益分成/商户预付款交易做尽调、并排比较多个融资方案，或记录批准/需修改/拒绝决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-revshare-simulator.html?lang=zh) |
-| `kelly-deal-scorer` | 审核队列台，用可审计的确定性规则打分（营收稳定性、增长趋势、行业风险、本金比例、经营记录）给候选中小企融资项目打分——从不调用 LLM。 | 审阅尽调打分队列、查看分数拆解、获取建议分成比例区间，或记录批准/退回/拒绝决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-deal-scorer.html?lang=zh) |
-| `kelly-portfolio-health` | 面向 RBF 基金或私募信贷组合的只读看板：总 AUM、加权回款进度、行业集中度风险，以及营收下滑合约的观察名单。 | 检查投资组合健康状况、标记合约待复核，或查看行业集中度和风险敞口时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-portfolio-health.html?lang=zh) |
-| `kelly-lead-funnel` | 面向 BD/获客团队的看板控制台，用确定性规则给商户融资线索打分，并跟踪各阶段转化率。 | 审阅获客漏斗、推进/驳回线索、或查看漏斗转化率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-lead-funnel.html?lang=zh) |
-| `kelly-disclosure-tracker` | 合规/IR 工作台，跨发行地实体、基金管理人实体和挂牌交易场所三方，跟踪每个融资载体的标准化披露清单和跨方对账异常。 | 审阅披露清单进度、载体就绪状态，或申报前的对账异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-disclosure-tracker.html?lang=zh) |
-| `kelly-agent-observability` | 本地看板，展示运行在共享 AI 网关背后的一批 LLM agent：调用量、延迟、错误率、成本，以及链路级故障追踪。 | 审阅 agent 集群健康状况，或排查某条失败链路断在哪一步时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html?lang=zh) |
-| `kelly-agent-eval` | 评测看板，跑固定测试集对比 baseline 与候选版本 agent，在发版前用打分规则揪出回归问题。 | 排查 agent 版本回归、对比 baseline 与候选质量，或记录发版批准/阻止决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-eval.html?lang=zh) |
-| `kelly-agent-builder` | 低代码 agent 配置与治理控制台：维护一批 mock agent 配置的配额、审批和归属，未填齐字段前禁止上线。 | 管理 agent 目录、检查配额使用、把草稿激活为上线，或归档某个 agent 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-builder.html?lang=zh) |
-| `kelly-behavior-predict` | 基于 mock 用户行为漏斗数据的看板，给每个用户分群提供预测下一步动作的启发式规则，并跑准确率回测。 | 查看漏斗流失、各分群预测结果，或回测规则式推荐启发式时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-behavior-predict.html?lang=zh) |
 | `kelly-llm-gateway` | 共享 LLM 网关的成本与模型治理看板：花费趋势、按服务/模型的成本拆分、灰度发布状态板，以及确定性成本/错误异常检测。 | 查看 LLM 网关花费、灰度发布状态，或确认成本/错误异常时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html?lang=zh) |
+| `kelly-pr-review` | 通过 `gh` CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 `gh pr review`。 | review PR、批准/comment/request changes，或批量处理 PR review decision 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html?lang=zh) |
+| `publish-skills` | 把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 `gh skill` 校验、切版本、接 Claude `/plugin` 和 Codex marketplace，并准备 MCP Registry 和精选商店。 | 发布、上架、分发 skills、plugins 或 MCP servers 到 skills.sh、Claude Code、Codex 或 MCP Registry 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/publish-skills.html?lang=zh) |
 
 ---
 

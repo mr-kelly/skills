@@ -1,6 +1,12 @@
 ---
 name: kelly-invest-stock
 description: Build and operate a Busabase-backed mainland China A-share strategy experiment desk with a bundled local Hono App-in-Skill, evidence-backed strategy research, strategy-level L1/L2/L3 manual maturity approvals, one CNY virtual ledger per strategy, and dated strategy backtest reports. Use when the user invokes $kelly-invest-stock or /kelly-invest-stock, wants to define or compare A-share strategies, inspect a strategy and its virtual book, record research evidence, manually approve strategy maturity, or review dated backtests, drawdown, and contribution to the total book. It never connects to a brokerage, places orders, moves money, or presents generated analysis as personalized investment advice.
+metadata:
+  category: invest
+  tags:
+    - risk:read-only
+    - surface:busabase
+    - surface:a-share
 ---
 
 # Kelly Invest Stock

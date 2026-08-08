@@ -1,6 +1,12 @@
 ---
 name: kelly-family-office
 description: Busabase-backed family-office App-in-Skill that consolidates multi-entity investment holdings into one read-only dashboard. Use when the user invokes $kelly-family-office or /kelly-family-office, wants a consolidated family office view, multi-entity aggregation across an individual, trust, company, fund, or foundation, total AUM in a base currency, asset allocation by asset class, by entity/member, or by custodian/institution, multi-currency FX consolidation, CSV import of holdings, unrealized P/L, or read-only portfolio monitoring. It reads Busabase only and NEVER moves money or trades.
+metadata:
+  category: invest
+  tags:
+    - risk:read-only
+    - industry:family
+    - surface:busabase
 ---
 
 # Kelly Family Office

@@ -1,6 +1,12 @@
 ---
 name: kelly-pr-review
 description: GitHub pull request review desk (Busabase App-in-Skill) using the gh CLI for real GitHub access, an AirApp review UI for human approval, and a trusted gh pr review execution step. Use when the user invokes /kelly-pr-review or $kelly-pr-review, asks to review GitHub PRs, generate a PR review batch, approve/comment/request changes through the review UI, or execute approved GitHub reviews.
+metadata:
+  category: platform
+  tags:
+    - risk:gated-write
+    - surface:busabase
+    - surface:github
 ---
 
 # Kelly PR Review

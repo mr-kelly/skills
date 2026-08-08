@@ -1,6 +1,12 @@
 ---
 name: kelly-legal-precedent-desk
 description: Legal precedent App-in-Skill (Busabase-backed) desk for internal casebase search, local court-pattern analysis, similar-case packs, citations, and approval-gated research exports. Use when the user invokes $kelly-legal-precedent-desk, mentions 类案检索, 本地裁判尺度, 内部案例库查询, 案例查阅与收藏, precedent research, similar cases, legal research pack, or wants a Busabase-backed desk where lawyers review agent-prepared precedent findings before reuse.
+metadata:
+  category: legal
+  tags:
+    - risk:local-write
+    - industry:legal
+    - surface:busabase
 ---
 
 # Legal Precedent Desk

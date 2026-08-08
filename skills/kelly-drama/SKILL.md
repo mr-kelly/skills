@@ -1,6 +1,13 @@
 ---
 name: kelly-drama
 description: Short-drama and product-video development skill for planning drama projects through a bundled Busabase App-in-Skill UI, with each project linked to a specified HyperFrame project and each episode linked to a HyperFrame composition for final motion/video tuning. Use when the user asks to create, edit, organize, or review short-drama scripts, product explainer episodes, character consistency cards, series bibles, episode beat sheets, storyboard shots, HyperFrame project/composition links, production checklists, or a drama planning workbench.
+metadata:
+  category: production
+  tags:
+    - risk:local-write
+    - surface:busabase
+    - surface:moonrouter
+    - surface:byteplus-ark
 ---
 
 # Kelly Drama

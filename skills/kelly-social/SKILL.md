@@ -8,6 +8,11 @@ description: >-
   cross-platform account metrics and timelines, or needs a content calendar,
   draft review, engagement inbox, crisis playbook, share-of-voice, or
   pre-publish quality gate.
+metadata:
+  category: marketing
+  tags:
+    - risk:gated-write
+    - surface:busabase
 ---
 
 # Kelly Social

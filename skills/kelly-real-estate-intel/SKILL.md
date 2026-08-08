@@ -1,6 +1,12 @@
 ---
 name: kelly-real-estate-intel
 description: "Kelly Real Estate Intel: App-in-Skill daily industry intelligence cockpit for real estate and property agencies (Busabase App-in-Skill). Use when the user asks about real estate, property agencies, listings, transactions, competitor ads, client follow-up, or a地产/中介 intelligence workflow. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
+metadata:
+  category: industry-intel
+  tags:
+    - risk:gated-write
+    - industry:real-estate
+    - surface:busabase
 ---
 
 # Kelly Real Estate Intel

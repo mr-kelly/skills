@@ -1,6 +1,11 @@
 ---
 name: kelly-lead-funnel
 description: Busabase-backed App-in-Skill control panel / kanban board for a BD or sourcing team triaging merchant and business financing leads for a lender or investment fund. Use when the user invokes $kelly-lead-funnel or /kelly-lead-funnel, wants to review the deal sourcing pipeline, funnel, lead board, or asks to move a lead's stage, reject a lead, add a note, score a lead, or see funnel conversion rates. Deterministic rule-based lead scoring only — never an LLM call — and never sends outreach, signs term sheets, or moves money.
+metadata:
+  category: rbf
+  tags:
+    - risk:local-write
+    - surface:busabase
 ---
 
 # Deal Sourcing Funnel

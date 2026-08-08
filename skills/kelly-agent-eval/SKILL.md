@@ -1,6 +1,11 @@
 ---
 name: kelly-agent-eval
 description: Review board (Busabase App-in-Skill) that runs a fixed suite of mock test cases against a baseline vs candidate agent version and surfaces rubric-scored regressions before a release. Use when the user invokes $kelly-agent-eval or /kelly-agent-eval, wants to review agent-version regressions, compare baseline vs candidate quality, triage a release, or record a release approve/block decision. Deterministic mock rubric scores only — not a real LLM-judge call, and it never deploys anything.
+metadata:
+  category: platform
+  tags:
+    - risk:sandbox
+    - surface:busabase
 ---
 
 # Agent Eval & Regression Board

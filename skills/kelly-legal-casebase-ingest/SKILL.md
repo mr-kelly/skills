@@ -1,6 +1,12 @@
 ---
 name: kelly-legal-casebase-ingest
 description: Legal casebase App-in-Skill (Busabase-backed) intake and anonymization QA desk for law-firm judgment and award documents. Use when the user invokes $kelly-legal-casebase-ingest, mentions internal case database, 智能案例库, 裁判文书入库, 脱敏, 结构化, 分类标注, 案例审核, 质量验收, or wants a Busabase-backed desk where reviewers approve, revise, or block agent-prepared case records before they become searchable knowledge assets.
+metadata:
+  category: legal
+  tags:
+    - risk:local-write
+    - industry:legal
+    - surface:busabase
 ---
 
 # Legal Casebase Ingest

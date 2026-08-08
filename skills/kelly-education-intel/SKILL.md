@@ -1,6 +1,12 @@
 ---
 name: kelly-education-intel
 description: "Kelly Education Intel: App-in-Skill daily industry intelligence cockpit for education, training, tutoring, and admissions services (Busabase App-in-Skill). Use when the user asks about education, training centers, exams, study abroad, visas, school policy, parent FAQ,招生,升学, or教育机构 sales scenes. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
+metadata:
+  category: industry-intel
+  tags:
+    - risk:gated-write
+    - industry:education
+    - surface:busabase
 ---
 
 # Kelly Education Intel

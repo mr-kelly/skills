@@ -1,6 +1,12 @@
 ---
 name: kelly-legal-contracts
 description: Legal-contract review desk (Busabase App-in-Skill) for NDAs, MSAs, DPAs, and SOWs. Use when the user invokes $kelly-legal-contracts or /kelly-legal-contracts, mentions legal, 法务, contract review, 合同审阅, NDA, MSA, DPA, SOW, redlines, clause playbook, legal intake, issue list, or wants a Busabase-backed review desk where a human legal reviewer approves, revises, or blocks agent-prepared contract issues.
+metadata:
+  category: legal
+  tags:
+    - risk:gated-write
+    - industry:legal
+    - surface:busabase
 ---
 
 # Kelly Legal Contracts

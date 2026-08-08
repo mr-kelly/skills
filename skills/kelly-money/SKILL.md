@@ -1,6 +1,15 @@
 ---
 name: kelly-money
 description: Busabase-backed App-in-Skill money ledger for aggregating Mercury, Stripe, Airwallex, and Creem accounts into a read-only dashboard. Use when the user invokes $kelly-money or /kelly-money, wants a total cashflow ledger, account columns, Accounts sidebar, Account Detail views, finance onboarding, connector setup, transaction import/sync, reconciliation, balances, payouts, payments, fees, refunds, transfers, or a review of money movement across these providers.
+metadata:
+  category: finance
+  tags:
+    - risk:read-only
+    - surface:busabase
+    - surface:mercury
+    - surface:stripe
+    - surface:airwallex
+    - surface:creem
 ---
 
 # Kelly Money

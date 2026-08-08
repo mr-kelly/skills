@@ -1,6 +1,11 @@
 ---
 name: kelly-invoice-sheet
 description: Extract invoices, receipts, credit notes, statements, PDFs, images, docs, and spreadsheet-like invoice exports into a reviewable table with field confidence, line items, approval decisions, and CSV/JSON export. Use when the user invokes /kelly-invoice-sheet or $kelly-invoice-sheet, asks for "Invoice转表格", invoice OCR, receipt-to-spreadsheet, invoice data extraction, bookkeeping import prep, or a Lido-style Extract Data workflow with a Busabase-backed App-in-Skill UI.
+metadata:
+  category: finance
+  tags:
+    - risk:local-write
+    - surface:busabase
 ---
 
 # Kelly Invoice Sheet

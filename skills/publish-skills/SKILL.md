@@ -5,6 +5,11 @@ description: Publish agent skills AND MCP servers to every marketplace, plugin d
 disable-model-invocation: false
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python3:*), Bash(unzip:*), Bash(mcp-publisher:*), Bash(mcpb:*), Bash(codex:*), Bash(brew:*), Read, Write, Edit, Grep, Glob
 user-invocable: true
+metadata:
+  category: platform
+  tags:
+    - risk:gated-write
+    - surface:github
 ---
 
 # Publish Skills

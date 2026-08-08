@@ -1,6 +1,15 @@
 ---
 name: kelly-messenger
 description: Unified chat inbox (Busabase App-in-Skill) aggregating WhatsApp, Discord, Slack, and Telegram messages into one place with a reply queue. Use when the user invokes $kelly-messenger or /kelly-messenger, wants a unified inbox, chat aggregation, to read WhatsApp/Discord/Slack/Telegram messages in one place, review unanswered conversations, queue or approve replies, run connector sync, or manage the outgoing reply queue.
+metadata:
+  category: comms
+  tags:
+    - risk:gated-write
+    - surface:busabase
+    - surface:whatsapp
+    - surface:discord
+    - surface:slack
+    - surface:telegram
 ---
 
 # Kelly Messenger

@@ -1,6 +1,13 @@
 ---
 name: kelly-email
 description: Busabase AirApp-first email inbox-zero operator for reviewing unread mail, drafting replies, approving archive/mark-read/send actions, and executing only explicitly approved mailbox changes across configured accounts. Use when the user invokes $kelly-email, asks to process unread email, configure an email account, generate or review an approval batch, execute approved email decisions, or reach inbox zero.
+metadata:
+  category: comms
+  tags:
+    - risk:gated-write
+    - surface:busabase
+    - surface:imap
+    - surface:smtp
 ---
 
 # Kelly Email

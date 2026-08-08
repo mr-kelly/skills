@@ -1,6 +1,12 @@
 ---
 name: kelly-legal-firm-radar
 description: Legal-firm radar App-in-Skill (Busabase-backed) dashboard for anonymized casebase analytics, practice-area mix, case-quality indicators, lawyer capability profiles, brand proof points, and approval-gated management reports. Use when the user invokes $kelly-legal-firm-radar, mentions 律师画像, 律所经营分析, 业务布局分析, 案件质量评估, 专业人才梯队, 律师全息品牌, casebase analytics, law-firm management dashboard, or wants a Busabase-backed desk where partners review agent-prepared management insights before export.
+metadata:
+  category: legal
+  tags:
+    - risk:local-write
+    - industry:legal
+    - surface:busabase
 ---
 
 # Legal Firm Radar

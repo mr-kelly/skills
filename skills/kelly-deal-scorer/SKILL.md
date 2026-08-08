@@ -1,6 +1,11 @@
 ---
 name: kelly-deal-scorer
 description: Busabase App-in-Skill review queue that scores candidate SME financing deals (revenue-based/RBF-style credit) with a deterministic, fully auditable rule-based rubric — never an LLM or API call. Use when the user invokes $kelly-deal-scorer or /kelly-deal-scorer, wants to review a deal-underwriting queue, score financing candidates, compute a composite score breakdown, see a suggested revenue-share rate range, or record approve/send-back/reject decisions for a private-credit or RBF-style lending pipeline.
+metadata:
+  category: rbf
+  tags:
+    - risk:sandbox
+    - surface:busabase
 ---
 
 # Deal Scoring Desk

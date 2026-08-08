@@ -1,6 +1,11 @@
 ---
 name: kelly-portfolio-health
 description: Busabase-backed App-in-Skill dashboard for a revenue-based-financing (RBF) fund or private-credit book of many small SME contracts. Use when the user invokes $kelly-portfolio-health or /kelly-portfolio-health, wants to check portfolio health, AUM, repayment progress, concentration risk, or a watchlist of contracts with declining revenue. Human actions (flag a contract for review, clear a flag, leave a note) write directly onto the contract's own Busabase record — this skill never moves money or changes contract terms. Generic and brand-free — not tied to any specific company or fund.
+metadata:
+  category: rbf
+  tags:
+    - risk:local-write
+    - surface:busabase
 ---
 
 # RBF Portfolio Health Dashboard

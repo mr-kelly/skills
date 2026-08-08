@@ -1,6 +1,10 @@
 ---
 name: kelly-app-skill-creator-tests
 description: Build, maintain, and run conformance tests for canonical App-in-Skill projects created by kelly-app-skill-creator. Use when a Kelly app skill needs contract checks, local server smoke tests, responsive browser acceptance, temporary open-source Busabase integration, environment-gated Busabase Cloud OAuth verification, lazy provisioning checks, persistence tests, AirApp parity tests, or CI coverage. Keep app creation in kelly-app-skill-creator and own only the reusable test harness, per-skill fixtures, execution gates, diagnostics, and truthful pass/fail/skip reporting.
+metadata:
+  category: platform
+  tags:
+    - risk:local-write
 ---
 
 # Kelly App Skill Creator Tests

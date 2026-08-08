@@ -1,6 +1,12 @@
 ---
 name: kelly-products
 description: E-commerce product-management desk (Busabase App-in-Skill) for catalog master data, SKUs, pricing, inventory, channel status, content assets, compliance notes, lifecycle state, and approval-gated product operations. Use when the user invokes $kelly-products or /kelly-products, asks for 电商商品管理, 商品库, SKU 管理, inventory/reorder, product status across Amazon/Shopify/TikTok Shop/eBay, channel publishing approvals, price-change review, quality holds, product lifecycle/archive decisions, or a Busabase-backed product management desk.
+metadata:
+  category: ecommerce
+  tags:
+    - risk:local-write
+    - industry:ecommerce
+    - surface:busabase
 ---
 
 # Kelly Products

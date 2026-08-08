@@ -1,6 +1,11 @@
 ---
 name: kelly-agent-observability
 description: Busabase App-in-Skill dashboard visualizing a generated MOCK fleet of LLM agents running behind a shared AI gateway for a generic organization. Use when the user invokes $kelly-agent-observability or /kelly-agent-observability, wants to review agent health, call volume, latency, error rates, cost, or trace-level chain breaks across an agent fleet. This is a demo/reference dashboard over a generated mock fleet snapshot seeded into Busabase by a trusted script — never a live monitoring integration, never a real gateway or real agents.
+metadata:
+  category: platform
+  tags:
+    - risk:sandbox
+    - surface:busabase
 ---
 
 # Agent Fleet Observability Desk

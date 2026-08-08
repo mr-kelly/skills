@@ -1,6 +1,11 @@
 ---
 name: kelly-revshare-simulator
 description: Busabase-backed App-in-Skill control-panel/workspace for a deal analyst to model revenue-based-financing (RBF) deals for SME businesses (retail/F&B chain stores). Use when the user invokes $kelly-revshare-simulator or /kelly-revshare-simulator, wants to model a revenue-share or merchant-cash-advance deal, project cash flow and repayment, compute a Cash-Flow Payout Multiple, effective annualized merchant cost, or compare/underwrite multiple financing scenarios. Pure deterministic math, no external calls, no real trading/payment side effects. Scenario create/edit/delete and the underwriting decision are direct writes made by the analyst, not a review/approval queue.
+metadata:
+  category: rbf
+  tags:
+    - risk:sandbox
+    - surface:busabase
 ---
 
 # Revenue-Share Contract Simulator

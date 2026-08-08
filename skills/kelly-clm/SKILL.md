@@ -1,6 +1,12 @@
 ---
 name: kelly-clm
 description: Lightweight contract lifecycle management App-in-Skill (Busabase App-in-Skill) for contract inventory, lifecycle status, owners, obligations, renewal notices, and simple approval reminders. Use when the user invokes $kelly-clm or /kelly-clm, mentions CLM, contract lifecycle management, 合同管理, 合同台账, contract repository, obligation tracking, renewal reminders, notice deadlines, contract owners, signature readiness, or wants a simple UI to review contract status without doing detailed legal redlines.
+metadata:
+  category: legal
+  tags:
+    - risk:gated-write
+    - industry:legal
+    - surface:busabase
 ---
 
 # Kelly CLM

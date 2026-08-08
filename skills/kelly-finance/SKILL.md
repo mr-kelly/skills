@@ -1,6 +1,11 @@
 ---
 name: kelly-finance
 description: Build, analyze, repair, and audit finance three-statement models and operating forecasts. Use when the user invokes $kelly-finance, asks for 财务三表, 三表模型, income statement, balance sheet, cash flow statement, forecast model, budget model, financial projections, FP&A model, SaaS/unit economics forecast, fundraising model, board finance pack, investor model, model checks, balance-sheet balancing, cash runway, working capital, capex/depreciation schedules, debt schedules, scenario/sensitivity cases, or Excel/Sheets-ready finance outputs.
+metadata:
+  category: finance
+  tags:
+    - risk:local-write
+    - surface:busabase
 ---
 
 # Kelly Finance

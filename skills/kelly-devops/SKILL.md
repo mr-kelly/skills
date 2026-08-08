@@ -1,6 +1,12 @@
 ---
 name: kelly-devops
 description: Product-fleet ops desk (Busabase App-in-Skill) for uptime/service health, SSL certificate expiry, domain renewal, API key rotation, cloud spend anomalies, and a review queue of agent-proposed action cards. Use when the user invokes $kelly-devops or /kelly-devops, or asks about uptime, service health checks, SSL certificate expiry, domain renewal, domain expiry, API key rotation, token rotation reminders, cloud spend anomaly, billing spikes, ops desk, incident review, or reviewing agent-proposed action cards (renew domain, rotate key, investigate spend, restart service, acknowledge incident).
+metadata:
+  category: platform
+  tags:
+    - risk:gated-write
+    - surface:busabase
+    - surface:sendgrid
 ---
 
 # Kelly DevOps

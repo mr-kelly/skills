@@ -1,6 +1,11 @@
 ---
 name: kelly-ppt-factory
 description: Busabase-backed project-based PPT production App-in-Skill. Use when the user invokes $kelly-ppt-factory or /kelly-ppt-factory, mentions PPT factory, 规模化 PPT, bulk PPTX, batch decks, reusable PowerPoint style systems, presentation production workflows, pitch decks, sales decks, training decks, report decks, slide-card/storyboard planning, style-consistent deck generation, PPTX QA, or wants to manage many PPTX files through project to deck to slide card to review to generate to render QA.
+metadata:
+  category: production
+  tags:
+    - risk:local-write
+    - surface:busabase
 ---
 
 # Kelly PPT Factory

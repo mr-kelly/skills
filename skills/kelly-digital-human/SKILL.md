@@ -1,6 +1,11 @@
 ---
 name: kelly-digital-human
 description: "Digital-human implementation and demo skill for choosing, prototyping, and QA-ing low-cost 2D photoreal digital humans and high-control 3D custom digital humans. Use when the user wants a digital-human avatar, AI host, customer-service presenter, multimodal voice-to-lip-sync video stream, vendor comparison for services such as Silicon Intelligence / Tencent Zhiying / ZEGO-like real-time providers, or a UE/Unity 3D digital-human architecture and launch-ready demo."
+metadata:
+  category: production
+  tags:
+    - risk:local-write
+    - surface:busabase
 ---
 
 # Kelly Digital Human

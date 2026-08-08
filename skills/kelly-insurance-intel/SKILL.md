@@ -1,6 +1,12 @@
 ---
 name: kelly-insurance-intel
 description: "Kelly Insurance Intel: App-in-Skill daily industry intelligence cockpit for insurance and wealth advisory (Busabase App-in-Skill). Use when the user asks about insurance, wealth advisory, client risk reminders, market news, policyholder follow-up,保险, or financial-advisor sales scenes. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
+metadata:
+  category: industry-intel
+  tags:
+    - risk:gated-write
+    - industry:insurance
+    - surface:busabase
 ---
 
 # Kelly Insurance Intel

@@ -1,6 +1,11 @@
 ---
 name: kelly-behavior-predict
 description: Busabase App-in-Skill dashboard over a fixed, deterministic mock user-behavior funnel dataset (browse → search → compare → booking attempt/abandon → complete) for a generic consumer booking product. Use when the user invokes $kelly-behavior-predict or /kelly-behavior-predict, wants to review funnel drop-off, per-segment predicted next actions, or backtest a rule-based "predicted next action" heuristic against a mock historical sample. Fully deterministic mock data and a hand-recomputable rule — never a real ML/LLM model, never a live system.
+metadata:
+  category: growth
+  tags:
+    - risk:sandbox
+    - surface:busabase
 ---
 
 # Predictive Recommendation Analytics Desk

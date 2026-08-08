@@ -116,6 +116,24 @@ a:hover { text-decoration: underline; }
   border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 12.5px; cursor: pointer;
 }
 .category-chip.active { background: var(--text); color: #fff; border-color: var(--text); }
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag-button {
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+  border-radius: 999px; padding: 4px 9px; font: inherit; font-size: 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.tag-button:hover { background: #f4f4f5; }
+.tag-button.active { background: var(--text); color: #fff; border-color: var(--text); }
+.tag-button .count { opacity: .6; font-size: 11px; }
+.risk {
+  align-self: flex-start; margin-top: 10px; border-radius: 999px; padding: 2px 8px;
+  font-size: 11px; font-weight: 600; letter-spacing: .01em; border: 1px solid transparent;
+}
+.risk-sandbox { background: #f4f4f5; color: #52525b; border-color: #e4e4e7; }
+.risk-read-only { background: #ecfdf5; color: #047857; border-color: #a7f3d0; }
+.risk-local-write { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.risk-gated-write { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+.empty-state { margin: 44px 0; color: var(--muted); font-size: 14px; }
 h2.group {
   margin: 44px 0 16px; font-size: 15px; font-weight: 650; letter-spacing: .04em;
   text-transform: uppercase; color: var(--muted);
@@ -127,6 +145,8 @@ h2.group {
   border-radius: var(--radius); overflow: hidden; color: var(--text); transition: box-shadow .15s, transform .15s;
 }
 .card:hover { text-decoration: none; box-shadow: 0 8px 24px rgba(24,24,27,.08); transform: translateY(-2px); }
+/* .card sets display:flex, which outranks the UA stylesheet's [hidden] { display: none }. */
+.card[hidden] { display: none; }
 .card .thumb { aspect-ratio: 3 / 2; background: #eef0f3; overflow: hidden; border-bottom: 1px solid var(--border); }
 .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
 .card .thumb.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 26px; }
@@ -274,104 +294,58 @@ After installation, list the available skills and help me choose the right one f
   </div>
 </section>
   <nav class="category-chips" aria-label="Categories"><button class="category-chip active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All</span><span class="zh">全部</span></button>
-<button class="category-chip" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">经营台账</span></button>
-<button class="category-chip" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal Knowledge</span><span class="zh">法律知识库</span></button>
+<button class="category-chip" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">财务与后台</span></button>
 <button class="category-chip" type="button" data-category-filter="invest" onclick="mkSetCategory('invest')"><span class="en">Investing &amp; Wealth</span><span class="zh">投资与财富</span></button>
-<button class="category-chip" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span></button>
-<button class="category-chip" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Service</span><span class="zh">沟通与协作</span></button>
-<button class="category-chip" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Market</span><span class="zh">增长与市场</span></button>
-<button class="category-chip" type="button" data-category-filter="industry-intel" onclick="mkSetCategory('industry-intel')"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span></button>
-<button class="category-chip" type="button" data-category-filter="marketing" onclick="mkSetCategory('marketing')"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span></button>
-<button class="category-chip" type="button" data-category-filter="production" onclick="mkSetCategory('production')"><span class="en">Production &amp; Teaching</span><span class="zh">制作与教学</span></button>
-<button class="category-chip" type="button" data-category-filter="eng" onclick="mkSetCategory('eng')"><span class="en">Engineering &amp; Ops</span><span class="zh">工程与运维</span></button>
 <button class="category-chip" type="button" data-category-filter="rbf" onclick="mkSetCategory('rbf')"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span></button>
-<button class="category-chip" type="button" data-category-filter="agent-ops" onclick="mkSetCategory('agent-ops')"><span class="en">AI Agent Ops</span><span class="zh">AI Agent 运维</span></button>
-<button class="category-chip" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span></button></nav>
+<button class="category-chip" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal &amp; Contracts</span><span class="zh">法务与合同</span></button>
+<button class="category-chip" type="button" data-category-filter="sales-crm" onclick="mkSetCategory('sales-crm')"><span class="en">Sales &amp; Customer</span><span class="zh">销售与客户</span></button>
+<button class="category-chip" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Team</span><span class="zh">沟通与协同</span></button>
+<button class="category-chip" type="button" data-category-filter="marketing" onclick="mkSetCategory('marketing')"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span></button>
+<button class="category-chip" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span></button>
+<button class="category-chip" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span></button>
+<button class="category-chip" type="button" data-category-filter="industry-intel" onclick="mkSetCategory('industry-intel')"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span></button>
+<button class="category-chip" type="button" data-category-filter="production" onclick="mkSetCategory('production')"><span class="en">Production &amp; Teaching</span><span class="zh">内容制作与教学</span></button>
+<button class="category-chip" type="button" data-category-filter="platform" onclick="mkSetCategory('platform')"><span class="en">Agent &amp; Dev Platform</span><span class="zh">Agent 与研发平台</span></button></nav>
+  <nav class="category-chips" aria-label="Risk"><button class="category-chip active" type="button" data-tag-filter="risk:all" onclick="mkSetTag('risk:all')"><span class="en">Any risk</span><span class="zh">副作用不限</span></button>
+<button class="category-chip" type="button" data-tag-filter="risk:sandbox" onclick="mkSetTag('risk:sandbox')"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></button>
+<button class="category-chip" type="button" data-tag-filter="risk:read-only" onclick="mkSetTag('risk:read-only')"><span class="en">Read-only</span><span class="zh">只读</span></button>
+<button class="category-chip" type="button" data-tag-filter="risk:local-write" onclick="mkSetTag('risk:local-write')"><span class="en">Local only</span><span class="zh">仅本地</span></button>
+<button class="category-chip" type="button" data-tag-filter="risk:gated-write" onclick="mkSetTag('risk:gated-write')"><span class="en">Gated write</span><span class="zh">审批后写</span></button></nav>
 </div>
     </section>
     <section class="group-section" data-group-section="finance">
-<h2 class="group" id="finance"><span class="en">Finance &amp; Back Office</span><span class="zh">经营台账</span></h2>
+<h2 class="group" id="finance"><span class="en">Finance &amp; Back Office</span><span class="zh">财务与后台</span></h2>
 <div class="grid">
-<a class="card" href="s/kelly-finance.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-finance/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-finance/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-finance/assets/screenshots/thumbs/overview.webp" alt="kelly-finance UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-finance<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Builds and audits finance three-statement models, operating forecasts, budgets, cash runway models, SaaS/unit-economics packs, and Excel-ready finance outputs.</span><span class="zh">构建和审计财务三表模型、经营预测、预算、现金 runway、SaaS/unit economics 包，以及可交付的 Excel 财务输出。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-money.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-money/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-money/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-money/assets/screenshots/thumbs/overview.webp" alt="kelly-money UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-money<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Aggregates Mercury, Stripe, Airwallex, and Creem into a local money ledger dashboard with total cashflow, account health, and account detail views.</span><span class="zh">聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-invoice-sheet.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invoice-sheet/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invoice-sheet/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invoice-sheet/assets/screenshots/thumbs/overview.webp" alt="kelly-invoice-sheet UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-invoice-sheet<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Extracts invoices, receipts, credit notes, and statements into a spreadsheet-style local review table with field confidence, line items, approval decisions, and CSV/JSON export.</span><span class="zh">把发票、收据、红字/贷项通知单和 statement 抽取成类似 spreadsheet 的本地审阅表，带字段置信度、明细行、审批决定和 CSV/JSON 导出。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-audit.html">
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-audit.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-audit/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-audit/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-audit/assets/screenshots/thumbs/overview.webp" alt="kelly-audit UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-audit<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Imports orders, invoices, and payments from business exports and audits them against each other: missing invoices, amount mismatches, overdue receivables with aging, duplicates, and unmatched payments, each with an evidence chain and drafted follow-up.</span><span class="zh">导入订单、发票、回款三表并互相稽核：缺发票、金额不符、逾期应收（带账龄）、重复回款、无主回款，每条异常带证据链和催收草稿。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-crm.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-crm/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-crm/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-crm/assets/screenshots/thumbs/overview.webp" alt="kelly-crm UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-finance.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-finance/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-finance/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-finance/assets/screenshots/thumbs/overview.webp" alt="kelly-finance UI" loading="lazy"></div>
   <div class="body">
-    <span class="name">kelly-crm<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Runs a personal CRM over contacts, companies, deals, and interactions with a pipeline dashboard and an agent-drafted follow-up review queue.</span><span class="zh">个人 CRM：联系人、公司、交易和互动记录，带 pipeline dashboard 和 agent 起草的跟进审批队列。</span></span>
+    <span class="name">kelly-finance<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Builds and audits finance three-statement models, operating forecasts, budgets, cash runway models, SaaS/unit-economics packs, and Excel-ready finance outputs.</span><span class="zh">构建和审计财务三表模型、经营预测、预算、现金 runway、SaaS/unit economics 包，以及可交付的 Excel 财务输出。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-clm.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-clm/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-clm/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-clm/assets/screenshots/thumbs/overview.webp" alt="kelly-clm UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-invoice-sheet.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invoice-sheet/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invoice-sheet/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invoice-sheet/assets/screenshots/thumbs/overview.webp" alt="kelly-invoice-sheet UI" loading="lazy"></div>
   <div class="body">
-    <span class="name">kelly-clm<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Lightweight contract lifecycle desk for contract inventory, lifecycle stages, owners, obligations, renewal notices, and simple approval reminders.</span><span class="zh">轻量合同生命周期台：合同库、生命周期阶段、负责人、义务、续约通知和简单审批提醒。</span></span>
+    <span class="name">kelly-invoice-sheet<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Extracts invoices, receipts, credit notes, and statements into a spreadsheet-style local review table with field confidence, line items, approval decisions, and CSV/JSON export.</span><span class="zh">把发票、收据、红字/贷项通知单和 statement 抽取成类似 spreadsheet 的本地审阅表，带字段置信度、明细行、审批决定和 CSV/JSON 导出。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-legal-contracts.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-contracts/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-contracts/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-contracts/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-contracts UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:read-only surface:busabase surface:mercury surface:stripe surface:airwallex surface:creem" href="s/kelly-money.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-money/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-money/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-money/assets/screenshots/thumbs/overview.webp" alt="kelly-money UI" loading="lazy"></div>
   <div class="body">
-    <span class="name">kelly-legal-contracts<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Legal-contract review desk for NDAs, MSAs, DPAs, and SOWs: the agent prepares clause issues, fallback language, playbook checks, and issue-list exports; legal reviews and approves in a local UI.</span><span class="zh">法务合同审阅台：覆盖 NDA、MSA、DPA、SOW，agent 准备条款风险项、fallback language、条款库检查和 issue list 导出，法务在本地 UI 审核批准。</span></span>
-  </div>
-</a>
-</div>
-</section>
-<section class="group-section" data-group-section="legal">
-<h2 class="group" id="legal"><span class="en">Legal Knowledge</span><span class="zh">法律知识库</span></h2>
-<div class="grid">
-<a class="card" href="s/kelly-legal-casebase-ingest.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-casebase-ingest UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-legal-casebase-ingest<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Legal casebase intake and anonymization QA desk: the agent extracts archived judgments and awards into structured, redacted case records; reviewers approve, revise, or block before canonical ingest.</span><span class="zh">法律案例库入库与脱敏质检台：agent 把归档判决书、裁定书、仲裁裁决提取成结构化、脱敏案例记录，审核人批准/修改/拦截后才进入 canonical 案例库。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-legal-precedent-desk.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-precedent-desk/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-precedent-desk/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-precedent-desk/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-precedent-desk UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-legal-precedent-desk<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Internal precedent research desk: the agent searches approved casebase records, prepares similar-case packs, local court-pattern notes, citations, and AI Q&amp;A answers for reviewer approval.</span><span class="zh">内部类案检索与裁判尺度台：agent 检索已批准案例库，准备类案包、本地裁判尺度、引用片段和 AI 问答答案，律师复核后复用。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-legal-matter-strategy.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-matter-strategy/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-matter-strategy/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-matter-strategy/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-matter-strategy UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-legal-matter-strategy<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Matter-strategy desk: the agent turns new matter facts and internal precedents into issue trees, evidence maps, risk posture, negotiation options, and pleading or memo outlines for partner review.</span><span class="zh">案件策略与文书辅助台：agent 基于新案事实和内部类案生成争议焦点树、证据地图、风险判断、谈判选项和文书大纲，交由主办律师/合伙人审核。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-legal-firm-radar.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-firm-radar UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-legal-firm-radar<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Law-firm analytics and lawyer-profile radar over anonymized casebase metadata: practice mix, case-quality indicators, talent signals, brand proof points, and approval-gated management reports.</span><span class="zh">律所经营画像台：基于脱敏案例库元数据做业务结构、案件质量、律师能力画像、人才信号、品牌 proof point 和管理报告审批。</span></span>
+    <span class="name">kelly-money<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Aggregates Mercury, Stripe, Airwallex, and Creem into a local money ledger dashboard with total cashflow, account health, and account detail views.</span><span class="zh">聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。</span></span>
+    <span class="risk risk-read-only"><span class="en">Read-only</span><span class="zh">只读</span></span>
   </div>
 </a>
 </div>
@@ -379,333 +353,36 @@ After installation, list the available skills and help me choose the right one f
 <section class="group-section" data-group-section="invest">
 <h2 class="group" id="invest"><span class="en">Investing &amp; Wealth</span><span class="zh">投资与财富</span></h2>
 <div class="grid">
-<a class="card" href="s/kelly-invest-webull.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/thumbs/overview.webp" alt="kelly-invest-webull UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-invest-webull<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Aggregates a personal Webull brokerage account into a local read-only portfolio dashboard: holdings, cost basis, market value, unrealized P/L, day change, and allocation by asset type. Read-only — it never places or cancels orders.</span><span class="zh">通过 Webull OpenAPI 把个人券商账户聚合成本地只读投资组合 dashboard：持仓、成本、市值、未实现盈亏、当日涨跌和按资产类别的配置。只读——绝不下单或撤单。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-invest-stock.html">
-  <div class="thumb empty">⚙️</div>
-  <div class="body">
-    <span class="name">kelly-invest-stock<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Builds a local Hono, Busabase-backed, read-only China stock portfolio and research desk using exact-pinned, no-key JavaScript market data from stock-sdk; the same source deploys to AirApp and never trades.</span><span class="zh">构建本地 Hono、Busabase-backed、只读的中国股票持仓与研究台，使用固定版本、免 Key、纯 JavaScript 的 stock-sdk 行情数据；同一套源码可部署到 AirApp，绝不交易。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-family-office.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-family-office/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-family-office/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-family-office/assets/screenshots/thumbs/overview.webp" alt="kelly-family-office UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-family-office<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Consolidates multiple entities' and members' holdings from CSV import and manual entry into one family-office dashboard: total AUM in a base currency, plus roll-ups by entity, asset class, and institution, and performance. Read-only — it never moves money.</span><span class="zh">通过 CSV 导入和手工录入，把多个主体/成员的持仓合并成家族办公室 dashboard：以基准货币计的总资产管理规模（AUM），按主体、资产类别、机构的配置和业绩汇总。只读——绝不动钱。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-family-fund.html">
+<a class="card" data-skill-card data-tags="risk:read-only industry:family surface:busabase" href="s/kelly-family-fund.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-family-fund/assets/screenshots/thumbs/overview.webp" alt="kelly-family-fund UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-family-fund<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Pools elderly parents' pensions into one steward-managed fund and books the monthly care cost and shared-family spending in a base currency, so every sibling family can see the split is fair. Read-only — it never moves money.</span><span class="zh">把两位老人的退休金汇入一个由管理人统一记账的统筹基金，按月记录养老院固定支出和大家庭共享开销（折算基准货币），让每个兄弟姐妹家庭都能看到分摊是公平的。只读——绝不动钱。</span></span>
+    <span class="risk risk-read-only"><span class="en">Read-only</span><span class="zh">只读</span></span>
   </div>
 </a>
-</div>
-</section>
-<section class="group-section" data-group-section="ecommerce">
-<h2 class="group" id="ecommerce"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span></h2>
-<div class="grid">
-<a class="card" href="s/kelly-picks.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/thumbs/overview.webp" alt="kelly-picks UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:read-only industry:family surface:busabase" href="s/kelly-family-office.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-family-office/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-family-office/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-family-office/assets/screenshots/thumbs/overview.webp" alt="kelly-family-office UI" loading="lazy"></div>
   <div class="body">
-    <span class="name">kelly-picks<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read.</span><span class="zh">跨境选品雷达：agent 扫 BSR 飙升、TikTok 爆款、上升搜索词产出候选品，每个候选带可实时改数的利润卡（售价、到岸成本、费用、保本 ACOS）和竞争解读。</span></span>
+    <span class="name">kelly-family-office<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Consolidates multiple entities' and members' holdings from CSV import and manual entry into one family-office dashboard: total AUM in a base currency, plus roll-ups by entity, asset class, and institution, and performance. Read-only — it never moves money.</span><span class="zh">通过 CSV 导入和手工录入，把多个主体/成员的持仓合并成家族办公室 dashboard：以基准货币计的总资产管理规模（AUM），按主体、资产类别、机构的配置和业绩汇总。只读——绝不动钱。</span></span>
+    <span class="risk risk-read-only"><span class="en">Read-only</span><span class="zh">只读</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-products.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/thumbs/overview.webp" alt="kelly-products UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:read-only surface:busabase surface:a-share" href="s/kelly-invest-stock.html">
+  <div class="thumb empty">⚙️</div>
   <div class="body">
-    <span class="name">kelly-products<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">E-commerce product management desk: visual SKU catalog, pricing, inventory cover, channel status, content assets, compliance notes, lifecycle state, and approval-gated product operations.</span><span class="zh">电商商品管理台：图文 SKU 商品库、价格、库存覆盖、渠道状态、素材资产、合规备注、生命周期，以及审批制商品操作。</span></span>
+    <span class="name">kelly-invest-stock<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Builds a local Hono, Busabase-backed, read-only China stock portfolio and research desk using exact-pinned, no-key JavaScript market data from stock-sdk; the same source deploys to AirApp and never trades.</span><span class="zh">构建本地 Hono、Busabase-backed、只读的中国股票持仓与研究台，使用固定版本、免 Key、纯 JavaScript 的 stock-sdk 行情数据；同一套源码可部署到 AirApp，绝不交易。</span></span>
+    <span class="risk risk-read-only"><span class="en">Read-only</span><span class="zh">只读</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-listing.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-listing/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-listing/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-listing/assets/screenshots/thumbs/overview.webp" alt="kelly-listing UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:read-only surface:busabase surface:webull" href="s/kelly-invest-webull.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-invest-webull/assets/screenshots/thumbs/overview.webp" alt="kelly-invest-webull UI" loading="lazy"></div>
   <div class="body">
-    <span class="name">kelly-listing<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Listing factory: drafts platform-specific listings (Amazon title/bullets/description/backend terms/A+, Shopify, TikTok Shop, eBay) with locale variants, runs per-platform compliance checks, and exports approved copy.</span><span class="zh">上架工厂：生成各平台 listing（Amazon 标题/五点/描述/后台词/A+、Shopify、TikTok Shop、eBay）和多站点语言变体，跑平台合规检查，批准后导出。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-ads.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ads/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ads/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ads/assets/screenshots/thumbs/overview.webp" alt="kelly-ads UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-ads<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Ad-campaign command desk aggregating Amazon, Meta, TikTok, and Google ads into one board with ACOS/ROAS tracking, deterministic anomaly detection, and approval-gated adjustment cards (negative keywords, bids, budgets).</span><span class="zh">投放指挥台：聚合 Amazon、Meta、TikTok、Google 广告到一块看板，跟踪 ACOS/ROAS，确定性异常检测，审批制调整卡（否定词、出价、预算）。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-inquiry.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/thumbs/overview.webp" alt="kelly-inquiry UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-inquiry<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders.</span><span class="zh">把 WhatsApp、Instagram、Messenger、邮件询盘聚合成销售 pipeline：商品知识库、带底价护栏的报价单、审批制外发和跟进提醒。</span></span>
-  </div>
-</a>
-</div>
-</section>
-<section class="group-section" data-group-section="comms">
-<h2 class="group" id="comms"><span class="en">Comms &amp; Service</span><span class="zh">沟通与协作</span></h2>
-<div class="grid">
-<a class="card" href="s/kelly-email.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-email/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-email/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-email/assets/screenshots/thumbs/overview.webp" alt="kelly-email UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-email<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution.</span><span class="zh">AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-messenger.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/thumbs/overview.webp" alt="kelly-messenger UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-messenger<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Aggregates WhatsApp, Discord, Slack, and Telegram into one unified local inbox with full conversation transcripts and an approval-gated reply outbox.</span><span class="zh">把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-support.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-support/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-support/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-support/assets/screenshots/thumbs/overview.webp" alt="kelly-support UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-support<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Customer-support desk: the agent triages tickets from email, WhatsApp, web chat, forms, and WeChat, drafts replies grounded in a knowledge base, and proposes actions; you review, edit, and approve in a local UI before anything is sent, with an SLA board, CSAT tracking, and a support-qa gate that blocks refunds or commitments made without approval.</span><span class="zh">客服台：agent 把邮件、WhatsApp、网页在线、表单、微信来的工单分诊，基于知识库起草回复并提议动作；你在本地 UI review、编辑、批准后才发出，带 SLA 看板、CSAT 跟踪和 support-qa 门（未经批准的退款/承诺直接 BLOCK）。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-tickets.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-tickets/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-tickets/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-tickets/assets/screenshots/thumbs/overview.webp" alt="kelly-tickets UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-tickets<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Triages complaints and requests from WeChat exports, call logs, forms, and email into classified tickets, proposes crew dispatches with SLA targets for approval, and tracks everything on a resolution board.</span><span class="zh">把微信群导出、来电记录、表单、邮件里的投诉分类成工单，生成带 SLA 的派单建议供审批，并在看板上跟踪到解决。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-standup.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-standup/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-standup/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-standup/assets/screenshots/thumbs/overview.webp" alt="kelly-standup UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-standup<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Team standup board: the agent collects members' daily check-ins from chat channels on demand, structures them into yesterday/today/blockers cards with a team digest, and drafts approval-gated nudges for missing check-ins.</span><span class="zh">团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。</span></span>
-  </div>
-</a>
-</div>
-</section>
-<section class="group-section" data-group-section="growth">
-<h2 class="group" id="growth"><span class="en">Growth &amp; Market</span><span class="zh">增长与市场</span></h2>
-<div class="grid">
-<a class="card" href="s/kelly-social.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-social/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-social/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-social/assets/screenshots/thumbs/overview.webp" alt="kelly-social UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-social<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Social command desk that both monitors and publishes (Aaron's ECHO): unified timeline, account stats, follower trends, and share-of-voice on the monitoring side, plus a content calendar, an agent-drafted post composer, short-video scripts, an approval-gated engagement inbox, and a crisis playbook — every draft passes a social-qa SHIP/FIX/BLOCK gate.</span><span class="zh">既监控又发布的社媒指挥台（Aaron 的 ECHO）：监控侧有统一时间线、账号数据、粉丝趋势和 share-of-voice；发布侧有内容日历、agent 起草的成稿台、短视频脚本、审批制互动收件箱和危机剧本——每条草稿都过 social-qa 的 SHIP/FIX/BLOCK 门。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-seo.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-seo/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-seo/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-seo/assets/screenshots/thumbs/overview.webp" alt="kelly-seo UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-seo<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Search desk covering SEO + GEO: Google Search Console analytics (clicks/impressions/CTR/position, opportunities) plus a generative-engine-optimization side — an AI-visibility tracker across ChatGPT/Perplexity/Gemini/Claude/Copilot, a citability-optimization queue, and brand-entity / knowledge-panel readiness, gated by geo-qa.</span><span class="zh">覆盖 SEO + GEO 的搜索台：Google Search Console 分析（点击/曝光/CTR/排名、机会）+ 生成式引擎优化侧——跨 ChatGPT/Perplexity/Gemini/Claude/Copilot 的 AI 可见度追踪、可引用性优化队列、品牌实体/知识面板就绪度，由 geo-qa 门把关。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-feedback.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-feedback/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-feedback/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-feedback/assets/screenshots/thumbs/overview.webp" alt="kelly-feedback UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-feedback<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Aggregates user feedback from every channel, clusters it into weighted feature requests, and runs a roadmap decision queue with drafted replies and changelog notes.</span><span class="zh">聚合全渠道用户反馈，聚类成带权重的 feature requests，并运行带草稿回复和 changelog 的 roadmap 裁决队列。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-radar.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-radar/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-radar/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-radar/assets/screenshots/thumbs/overview.webp" alt="kelly-radar UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-radar<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Market-intelligence desk merging competitor signal monitoring (pricing, changelog, launch, review diffs), a research question workbench with brief approval and cited reports, and keyword/topic trend tracking.</span><span class="zh">市场情报台：竞品信号监控（定价、changelog、发布、口碑 diff）+ 带 brief 审批和引用报告的研究课题工作台 + 关键词/话题趋势跟踪。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-writer.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-writer/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-writer/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-writer/assets/screenshots/thumbs/overview.webp" alt="kelly-writer UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-writer<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Repurposes one source idea, article, transcript, outline, or announcement into channel-ready drafts for platforms like Xiaohongshu, WeChat, newsletters, LinkedIn, X/Twitter, short video, and SEO snippets.</span><span class="zh">把一个想法、文章、 transcript、outline 或公告改写成适合小红书、公众号、newsletter、LinkedIn、X/Twitter、短视频、SEO 的内容包。</span></span>
-  </div>
-</a>
-</div>
-</section>
-<section class="group-section" data-group-section="industry-intel">
-<h2 class="group" id="industry-intel"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span></h2>
-<div class="grid">
-<a class="card" href="s/kelly-ai-newsroom.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/thumbs/overview.webp" alt="kelly-ai-newsroom UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-ai-newsroom<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">AI/news-source intelligence cockpit that separates noisy attention from buyer-trigger signals and turns platform, search, regulator, and enterprise-software movement into approved sales actions.</span><span class="zh">AI/新闻源情报台：把平台、搜索、监管、企业软件和新闻源变化拆成真正影响采购的 buyer-trigger，而不是泛泛热点。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-real-estate-intel.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-real-estate-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-real-estate-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-real-estate-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-real-estate-intel UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-real-estate-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Property-agency intelligence desk for listings, transactions, mortgage movement, district updates, competitor ads, and buyer/seller follow-up scripts.</span><span class="zh">地产中介情报台：围绕 listing、成交、按揭、片区动态、竞品广告和客户跟进，生成可 review 的销售动作。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-education-intel.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-education-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-education-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-education-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-education-intel UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-education-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Education and enrollment intelligence desk for exam dates, admissions changes, visa news, school notices, parent questions, competitor courses, and advisor scripts.</span><span class="zh">教育招生情报台：跟踪考试日期、升学政策、签证、学校通知、家长问题和竞品课程，转成招生动作。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-beauty-intel.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-beauty-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-beauty-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-beauty-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-beauty-intel UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-beauty-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Beauty, wellness, and medical-aesthetic intelligence desk for competitor offers, treatment trends, safety notices, review themes, seasonal demand, and safe consultation copy.</span><span class="zh">美容医美情报台：把竞品套餐、项目趋势、安全通知、评价主题和季节需求转成安全的咨询与营销动作。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-insurance-intel.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-insurance-intel UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-insurance-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Insurance advisor intelligence desk for regulator updates, insurer/product movement, premium and claims news, lifecycle events, and compliant client-review prompts.</span><span class="zh">保险顾问情报台：跟踪监管、险司/产品、保费/理赔、生命周期事件和客户风险问题，生成合规跟进。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-insure-data.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insure-data/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insure-data/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insure-data/assets/screenshots/thumbs/overview.webp" alt="kelly-insure-data UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-insure-data<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Insurance data-entry and governance cockpit backed by Busabase: Drive-node file metadata, governed QA pairs, and insurance news Base records.</span><span class="zh">保险行业高质量数据录入与治理工作台，基于 Busabase：Drive node 文件 metadata、治理后的问答对、保险新闻资讯 Base 记录。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-retail-intel.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-retail-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-retail-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-retail-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-retail-intel UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-retail-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Retail operating intelligence desk for weather, events, competitor promotions, product trends, review themes, supplier movement, merchandising, and staff briefs.</span><span class="zh">零售运营情报台：把天气、活动、竞品促销、商品趋势、评价主题、供应变化转成门店陈列和销售动作。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-ecommerce-intel.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ecommerce-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ecommerce-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ecommerce-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-ecommerce-intel UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-ecommerce-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Ecommerce seller intelligence desk for marketplace policy, competitor price and listing movement, search trends, ads, review language, and SKU campaign actions.</span><span class="zh">电商卖家情报台：跟踪平台政策、竞品价格/listing、搜索趋势、广告、评价语言和 SKU 活动机会。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-restaurant-intel.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-restaurant-intel UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-restaurant-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Restaurant-group intelligence desk for weather, events, menus, delivery movement, booking signals, review themes, shift briefs, and daily promotion actions.</span><span class="zh">餐饮集团情报台：把天气、活动、菜单、外卖、订座和评价主题转成每日菜单、班次和促销动作。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-financial-services-intel.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-financial-services-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-financial-services-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-financial-services-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-financial-services-intel UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-financial-services-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Financial-services intelligence desk for regulatory, macro, market, portfolio-theme, competitor, and client-question signals with reviewable education drafts.</span><span class="zh">金融服务情报台：跟踪监管、宏观、市场、组合主题、竞品和客户问题，生成可 review 的教育与客户经营动作。</span></span>
-  </div>
-</a>
-</div>
-</section>
-<section class="group-section" data-group-section="marketing">
-<h2 class="group" id="marketing"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span></h2>
-<div class="grid">
-<a class="card" href="s/kelly-brand.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-brand/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-brand/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-brand/assets/screenshots/thumbs/overview.webp" alt="kelly-brand UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-brand<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Brand-narrative single source of truth on the TALE framework (Trace→Architect→Land→Evaluate): the agent drafts positioning, the message house, story bank, evidence-backed proof points, and vocabulary guardrails, scores narrative quality (NQS → SHIP/FIX/BLOCK), and flags cross-channel drift; you curate which drafts become canonical.</span><span class="zh">品牌叙事唯一真源，跑 TALE 框架（Trace→Architect→Land→Evaluate）：agent 起草定位、message house、story bank、带证据的 proof point 和用词护栏，给叙事质量打分（NQS → SHIP/FIX/BLOCK），并标记跨渠道漂移；你决定哪些草稿升为 canonical。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-creators.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-creators/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-creators/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-creators/assets/screenshots/thumbs/overview.webp" alt="kelly-creators UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-creators<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Influencer/creator-marketing command desk built on the Discover→Plan→Activate→Measure pipeline: the agent sweeps and fit-scores creator candidates (C³ ACE), drafts outreach, briefs, and contracts, and a pre-publish gate (SHIP/FIX/BLOCK) checks FTC disclosure and claim authenticity, all reviewed in a local UI with a ROI board.</span><span class="zh">达人营销指挥台，跑 Discover→Plan→Activate→Measure 管道：agent 扫描并按 C³ ACE 给达人候选打匹配分，起草外联、brief 和合同，发布前质量门（SHIP/FIX/BLOCK）核查 FTC 披露与宣称真实性，全部在本地 UI 审阅，带 ROI 看板。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-campaigns.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/thumbs/overview.webp" alt="kelly-campaigns UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-campaigns<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Outbound email-marketing desk on the SEND lifecycle (Setup→Engage→Nurture→Deliver): the agent builds segments, drafts campaigns, newsletters, and sequences, and runs pre-send deliverability + subject-line QA behind an EQS quality gate (SHIP/FIX/BLOCK) before anything is scheduled or sent.</span><span class="zh">外发邮件营销台，跑 SEND 生命周期（Setup→Engage→Nurture→Deliver）：agent 建分群，起草 campaign、newsletter 和序列，发送前跑送达率 + 主题行 QA，背后有 EQS 质量门（SHIP/FIX/BLOCK），排期或发送前先过审。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-launch.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-launch/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-launch/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-launch/assets/screenshots/thumbs/overview.webp" alt="kelly-launch UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-launch<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Product-launch command desk on the RAMP framework (Research→Assemble→Mobilize→Prove): the agent assembles the launch checklist, drafts assets, Product Hunt / Hacker News submissions, press pitches, and the launch-day runbook, with a readiness gate scoring launch quality (LQS → SHIP/FIX/BLOCK).</span><span class="zh">产品发布指挥台，跑 RAMP 框架（Research→Assemble→Mobilize→Prove）：agent 组装发布清单，起草素材、Product Hunt / Hacker News 提交、媒体推介和发布日 runbook，发布就绪门给出发布质量分（LQS → SHIP/FIX/BLOCK）。</span></span>
-  </div>
-</a>
-</div>
-</section>
-<section class="group-section" data-group-section="production">
-<h2 class="group" id="production"><span class="en">Production &amp; Teaching</span><span class="zh">制作与教学</span></h2>
-<div class="grid">
-<a class="card" href="s/kelly-drama.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-drama/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-drama/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-drama/assets/screenshots/thumbs/overview.webp" alt="kelly-drama UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-drama<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Produces short-drama series with a local workbench for series overview, character library, relationship map, episode table, and shot sheets. Generates storyboard images with character reference cards and coordinates AI and human tasks.</span><span class="zh">短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-mv.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-mv/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-mv/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-mv/assets/screenshots/thumbs/overview.webp" alt="kelly-mv UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-mv<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Builds a pure-visual music video workbench: upload an MP3, write the MV concept, build a cast of on-screen characters with reference cards, and create a shot-by-shot storyboard with generated or uploaded images and draft videos.</span><span class="zh">纯视觉 MV 工作台：上传 MP3、写 MV concept、建立角色和参考卡、生成/上传镜头图和视频，并围绕音乐做 storyboard。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-digital-human.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-digital-human/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-digital-human/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-digital-human/assets/screenshots/thumbs/overview.webp" alt="kelly-digital-human UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-digital-human<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Digital-human solution desk and multimodal demo for choosing between low-cost 2D photoreal avatar services and high-control UE/Unity 3D custom digital humans, with a local studio showing voice/text input, lip-sync video stream, vendor route latency, and launch QA.</span><span class="zh">数字人方案台和多模态 demo：在低成本 2D 写实数字人服务与高自由度 UE/Unity 3D 定制数字人之间做选择，并用本地 Studio 展示语音/文本输入、唇形视频流、服务路由延迟和上线 QA。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-homework-coach.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student.webp" alt="kelly-homework-coach UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-homework-coach<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Child-friendly homework tutoring desk: the agent explains photographed questions, analyzes wrong answers, builds a mistake notebook, and prepares practice papers behind parent/teacher review.</span><span class="zh">小学生作业辅导台：agent 解释拍照上传的题目、分析错题、生成错题本，并在家长/老师审核后准备针对性试卷。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-lesson.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview.webp" alt="kelly-lesson UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-lesson<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export.</span><span class="zh">从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-ppt-factory.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ppt-factory/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ppt-factory/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ppt-factory/assets/screenshots/thumbs/overview.webp" alt="kelly-ppt-factory UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-ppt-factory<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Project-based PPTX factory: turns briefs, source materials, and style samples into reviewed slide cards, generates style-consistent PowerPoint decks, and tracks render QA and exports.</span><span class="zh">项目制 PPTX 工厂：把 brief、源材料和风格样张变成可审核的页面卡，批量生成风格一致的 PowerPoint，并跟踪渲染 QA 和导出记录。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-demo-video-factory.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/thumbs/videos.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/thumbs/videos.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/thumbs/videos.webp" alt="kelly-demo-video-factory UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-demo-video-factory<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Plans product demo/marketing videos end to end: hook/pain-point/storyboard drafting, codebase claim verification against the actual product, and per-shot recording progress, tracked in Busabase and rendered in a local read-only review app; hands off to post-production/HyperFrame (Remotion).</span><span class="zh">端到端规划产品演示/营销视频：钩子/痛点/分镜起草、对照真实代码库核实产品说法、逐镜录制进度追踪，数据存在 Busabase 里，本地有一个只读审核 App 展示；再交接给后期/HyperFrame（Remotion）。</span></span>
-  </div>
-</a>
-</div>
-</section>
-<section class="group-section" data-group-section="eng">
-<h2 class="group" id="eng"><span class="en">Engineering &amp; Ops</span><span class="zh">工程与运维</span></h2>
-<div class="grid">
-<a class="card" href="s/kelly-devops.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-devops/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-devops/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-devops/assets/screenshots/thumbs/overview.webp" alt="kelly-devops UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-devops<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval.</span><span class="zh">盯产品矩阵的运维面：服务可用性和延迟、SSL 证书和域名到期、API key 轮换、云支出异常，带 agent 提出的行动卡审批。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-pr-review.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-pr-review/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-pr-review/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-pr-review/assets/screenshots/thumbs/overview.webp" alt="kelly-pr-review UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-pr-review<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Runs a GitHub PR review desk through gh CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved gh pr review actions.</span><span class="zh">通过 gh CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 gh pr review。</span></span>
+    <span class="name">kelly-invest-webull<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Aggregates a personal Webull brokerage account into a local read-only portfolio dashboard: holdings, cost basis, market value, unrealized P/L, day change, and allocation by asset type. Read-only — it never places or cancels orders.</span><span class="zh">通过 Webull OpenAPI 把个人券商账户聚合成本地只读投资组合 dashboard：持仓、成本、市值、未实现盈亏、当日涨跌和按资产类别的配置。只读——绝不下单或撤单。</span></span>
+    <span class="risk risk-read-only"><span class="en">Read-only</span><span class="zh">只读</span></span>
   </div>
 </a>
 </div>
@@ -713,117 +390,526 @@ After installation, list the available skills and help me choose the right one f
 <section class="group-section" data-group-section="rbf">
 <h2 class="group" id="rbf"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span></h2>
 <div class="grid">
-<a class="card" href="s/kelly-revshare-simulator.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-revshare-simulator/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-revshare-simulator/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-revshare-simulator/assets/screenshots/thumbs/overview.webp" alt="kelly-revshare-simulator UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-revshare-simulator<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Control-panel workspace for modeling revenue-based-financing (RBF) deals: projects cash flow and cumulative repayment, computes a Cash-Flow Payout Multiple and effective annualized merchant cost, and flags risk (cap not reached, cost too high) with pure deterministic math.</span><span class="zh">收益分成融资（RBF）合约模拟工作台：推算现金流和累计回款、计算 Cash-Flow Payout Multiple 和商户实际年化成本，并用纯确定性数学标记风险（回款上限未达标、成本过高）。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-deal-scorer.html">
+<a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-deal-scorer.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-deal-scorer/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-deal-scorer/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-deal-scorer/assets/screenshots/thumbs/overview.webp" alt="kelly-deal-scorer UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-deal-scorer<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Review-queue desk that scores candidate SME financing deals with a deterministic, fully auditable rule-based rubric (revenue stability, growth trend, category risk, principal ratio, track record) — never an LLM call.</span><span class="zh">审核队列台，用可审计的确定性规则打分（营收稳定性、增长趋势、行业风险、本金比例、经营记录）给候选中小企融资项目打分——从不调用 LLM。</span></span>
+    <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-portfolio-health.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-portfolio-health/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-portfolio-health/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-portfolio-health/assets/screenshots/thumbs/overview.webp" alt="kelly-portfolio-health UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-portfolio-health<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Read-mostly dashboard for an RBF fund or private-credit book: total AUM, weighted repayment progress, concentration risk by category, and a watchlist of contracts with declining revenue.</span><span class="zh">面向 RBF 基金或私募信贷组合的只读看板：总 AUM、加权回款进度、行业集中度风险，以及营收下滑合约的观察名单。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-lead-funnel.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lead-funnel/assets/screenshots/thumbs/kanban.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lead-funnel/assets/screenshots/thumbs/kanban.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lead-funnel/assets/screenshots/thumbs/kanban.webp" alt="kelly-lead-funnel UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-lead-funnel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Kanban control panel for a BD/sourcing team triaging merchant financing leads, with a deterministic rule-based lead-quality score and per-stage funnel conversion tracking.</span><span class="zh">面向 BD/获客团队的看板控制台，用确定性规则给商户融资线索打分，并跟踪各阶段转化率。</span></span>
-  </div>
-</a>
-<a class="card" href="s/kelly-disclosure-tracker.html">
+<a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-disclosure-tracker.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-disclosure-tracker/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-disclosure-tracker/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-disclosure-tracker/assets/screenshots/thumbs/overview.webp" alt="kelly-disclosure-tracker UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-disclosure-tracker<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Compliance/IR review workspace tracking a standardized disclosure package per financing vehicle across an origination entity, a fund-manager entity, and a listing venue, with cross-entity reconciliation flags.</span><span class="zh">合规/IR 工作台，跨发行地实体、基金管理人实体和挂牌交易场所三方，跟踪每个融资载体的标准化披露清单和跨方对账异常。</span></span>
+    <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-lead-funnel.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lead-funnel/assets/screenshots/thumbs/kanban.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lead-funnel/assets/screenshots/thumbs/kanban.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lead-funnel/assets/screenshots/thumbs/kanban.webp" alt="kelly-lead-funnel UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-lead-funnel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Kanban control panel for a BD/sourcing team triaging merchant financing leads, with a deterministic rule-based lead-quality score and per-stage funnel conversion tracking.</span><span class="zh">面向 BD/获客团队的看板控制台，用确定性规则给商户融资线索打分，并跟踪各阶段转化率。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-portfolio-health.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-portfolio-health/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-portfolio-health/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-portfolio-health/assets/screenshots/thumbs/overview.webp" alt="kelly-portfolio-health UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-portfolio-health<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Read-mostly dashboard for an RBF fund or private-credit book: total AUM, weighted repayment progress, concentration risk by category, and a watchlist of contracts with declining revenue.</span><span class="zh">面向 RBF 基金或私募信贷组合的只读看板：总 AUM、加权回款进度、行业集中度风险，以及营收下滑合约的观察名单。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-revshare-simulator.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-revshare-simulator/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-revshare-simulator/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-revshare-simulator/assets/screenshots/thumbs/overview.webp" alt="kelly-revshare-simulator UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-revshare-simulator<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Control-panel workspace for modeling revenue-based-financing (RBF) deals: projects cash flow and cumulative repayment, computes a Cash-Flow Payout Multiple and effective annualized merchant cost, and flags risk (cap not reached, cost too high) with pure deterministic math.</span><span class="zh">收益分成融资（RBF）合约模拟工作台：推算现金流和累计回款、计算 Cash-Flow Payout Multiple 和商户实际年化成本，并用纯确定性数学标记风险（回款上限未达标、成本过高）。</span></span>
+    <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
   </div>
 </a>
 </div>
 </section>
-<section class="group-section" data-group-section="agent-ops">
-<h2 class="group" id="agent-ops"><span class="en">AI Agent Ops</span><span class="zh">AI Agent 运维</span></h2>
+<section class="group-section" data-group-section="legal">
+<h2 class="group" id="legal"><span class="en">Legal &amp; Contracts</span><span class="zh">法务与合同</span></h2>
 <div class="grid">
-<a class="card" href="s/kelly-agent-observability.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-observability/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-observability/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-observability/assets/screenshots/thumbs/overview.webp" alt="kelly-agent-observability UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:legal surface:busabase" href="s/kelly-clm.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-clm/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-clm/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-clm/assets/screenshots/thumbs/overview.webp" alt="kelly-clm UI" loading="lazy"></div>
   <div class="body">
-    <span class="name">kelly-agent-observability<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Local dashboard visualizing a fleet of LLM agents behind a shared AI gateway: call volume, latency, error rates, cost, and trace-level chain breaks.</span><span class="zh">本地看板，展示运行在共享 AI 网关背后的一批 LLM agent：调用量、延迟、错误率、成本，以及链路级故障追踪。</span></span>
+    <span class="name">kelly-clm<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Lightweight contract lifecycle desk for contract inventory, lifecycle stages, owners, obligations, renewal notices, and simple approval reminders.</span><span class="zh">轻量合同生命周期台：合同库、生命周期阶段、负责人、义务、续约通知和简单审批提醒。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-agent-eval.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-eval/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-eval/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-eval/assets/screenshots/thumbs/overview.webp" alt="kelly-agent-eval UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:local-write industry:legal surface:busabase" href="s/kelly-legal-casebase-ingest.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-casebase-ingest UI" loading="lazy"></div>
   <div class="body">
-    <span class="name">kelly-agent-eval<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Review board that runs a fixed suite of mock test cases against baseline vs candidate agent versions, surfacing rubric-scored regressions before a release gate.</span><span class="zh">评测看板，跑固定测试集对比 baseline 与候选版本 agent，在发版前用打分规则揪出回归问题。</span></span>
+    <span class="name">kelly-legal-casebase-ingest<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Legal casebase intake and anonymization QA desk: the agent extracts archived judgments and awards into structured, redacted case records; reviewers approve, revise, or block before canonical ingest.</span><span class="zh">法律案例库入库与脱敏质检台：agent 把归档判决书、裁定书、仲裁裁决提取成结构化、脱敏案例记录，审核人批准/修改/拦截后才进入 canonical 案例库。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-agent-builder.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/thumbs/overview.webp" alt="kelly-agent-builder UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:legal surface:busabase" href="s/kelly-legal-contracts.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-contracts/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-contracts/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-contracts/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-contracts UI" loading="lazy"></div>
   <div class="body">
-    <span class="name">kelly-agent-builder<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Low-code agent configuration and governance console: a catalog of mock agent configs with quota, approval, and ownership tracking, blocking incomplete configs from going live.</span><span class="zh">低代码 agent 配置与治理控制台：维护一批 mock agent 配置的配额、审批和归属，未填齐字段前禁止上线。</span></span>
+    <span class="name">kelly-legal-contracts<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Legal-contract review desk for NDAs, MSAs, DPAs, and SOWs: the agent prepares clause issues, fallback language, playbook checks, and issue-list exports; legal reviews and approves in a local UI.</span><span class="zh">法务合同审阅台：覆盖 NDA、MSA、DPA、SOW，agent 准备条款风险项、fallback language、条款库检查和 issue list 导出，法务在本地 UI 审核批准。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-behavior-predict.html">
+<a class="card" data-skill-card data-tags="risk:local-write industry:legal surface:busabase" href="s/kelly-legal-firm-radar.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-firm-radar/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-firm-radar UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-legal-firm-radar<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Law-firm analytics and lawyer-profile radar over anonymized casebase metadata: practice mix, case-quality indicators, talent signals, brand proof points, and approval-gated management reports.</span><span class="zh">律所经营画像台：基于脱敏案例库元数据做业务结构、案件质量、律师能力画像、人才信号、品牌 proof point 和管理报告审批。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write industry:legal surface:busabase" href="s/kelly-legal-matter-strategy.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-matter-strategy/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-matter-strategy/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-matter-strategy/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-matter-strategy UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-legal-matter-strategy<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Matter-strategy desk: the agent turns new matter facts and internal precedents into issue trees, evidence maps, risk posture, negotiation options, and pleading or memo outlines for partner review.</span><span class="zh">案件策略与文书辅助台：agent 基于新案事实和内部类案生成争议焦点树、证据地图、风险判断、谈判选项和文书大纲，交由主办律师/合伙人审核。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write industry:legal surface:busabase" href="s/kelly-legal-precedent-desk.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-precedent-desk/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-precedent-desk/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-precedent-desk/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-precedent-desk UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-legal-precedent-desk<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Internal precedent research desk: the agent searches approved casebase records, prepares similar-case packs, local court-pattern notes, citations, and AI Q&amp;A answers for reviewer approval.</span><span class="zh">内部类案检索与裁判尺度台：agent 检索已批准案例库，准备类案包、本地裁判尺度、引用片段和 AI 问答答案，律师复核后复用。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="sales-crm">
+<h2 class="group" id="sales-crm"><span class="en">Sales &amp; Customer</span><span class="zh">销售与客户</span></h2>
+<div class="grid">
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-crm.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-crm/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-crm/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-crm/assets/screenshots/thumbs/overview.webp" alt="kelly-crm UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-crm<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Runs a personal CRM over contacts, companies, deals, and interactions with a pipeline dashboard and an agent-drafted follow-up review queue.</span><span class="zh">个人 CRM：联系人、公司、交易和互动记录，带 pipeline dashboard 和 agent 起草的跟进审批队列。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-feedback.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-feedback/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-feedback/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-feedback/assets/screenshots/thumbs/overview.webp" alt="kelly-feedback UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-feedback<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Aggregates user feedback from every channel, clusters it into weighted feature requests, and runs a roadmap decision queue with drafted replies and changelog notes.</span><span class="zh">聚合全渠道用户反馈，聚类成带权重的 feature requests，并运行带草稿回复和 changelog 的 roadmap 裁决队列。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:ecommerce surface:busabase surface:whatsapp surface:instagram surface:messenger" href="s/kelly-inquiry.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-inquiry/assets/screenshots/thumbs/overview.webp" alt="kelly-inquiry UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-inquiry<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders.</span><span class="zh">把 WhatsApp、Instagram、Messenger、邮件询盘聚合成销售 pipeline：商品知识库、带底价护栏的报价单、审批制外发和跟进提醒。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:whatsapp surface:wechat surface:webchat" href="s/kelly-support.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-support/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-support/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-support/assets/screenshots/thumbs/overview.webp" alt="kelly-support UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-support<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Customer-support desk: the agent triages tickets from email, WhatsApp, web chat, forms, and WeChat, drafts replies grounded in a knowledge base, and proposes actions; you review, edit, and approve in a local UI before anything is sent, with an SLA board, CSAT tracking, and a support-qa gate that blocks refunds or commitments made without approval.</span><span class="zh">客服台：agent 把邮件、WhatsApp、网页在线、表单、微信来的工单分诊，基于知识库起草回复并提议动作；你在本地 UI review、编辑、批准后才发出，带 SLA 看板、CSAT 跟踪和 support-qa 门（未经批准的退款/承诺直接 BLOCK）。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:property-management surface:busabase surface:wechat" href="s/kelly-tickets.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-tickets/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-tickets/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-tickets/assets/screenshots/thumbs/overview.webp" alt="kelly-tickets UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-tickets<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Triages complaints and requests from WeChat exports, call logs, forms, and email into classified tickets, proposes crew dispatches with SLA targets for approval, and tracks everything on a resolution board.</span><span class="zh">把微信群导出、来电记录、表单、邮件里的投诉分类成工单，生成带 SLA 的派单建议供审批，并在看板上跟踪到解决。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="comms">
+<h2 class="group" id="comms"><span class="en">Comms &amp; Team</span><span class="zh">沟通与协同</span></h2>
+<div class="grid">
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:imap surface:smtp" href="s/kelly-email.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-email/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-email/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-email/assets/screenshots/thumbs/overview.webp" alt="kelly-email UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-email<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution.</span><span class="zh">AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:whatsapp surface:discord surface:slack surface:telegram" href="s/kelly-messenger.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-messenger/assets/screenshots/thumbs/overview.webp" alt="kelly-messenger UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-messenger<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Aggregates WhatsApp, Discord, Slack, and Telegram into one unified local inbox with full conversation transcripts and an approval-gated reply outbox.</span><span class="zh">把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-standup.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-standup/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-standup/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-standup/assets/screenshots/thumbs/overview.webp" alt="kelly-standup UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-standup<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Team standup board: the agent collects members' daily check-ins from chat channels on demand, structures them into yesterday/today/blockers cards with a team digest, and drafts approval-gated nudges for missing check-ins.</span><span class="zh">团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="marketing">
+<h2 class="group" id="marketing"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span></h2>
+<div class="grid">
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-brand.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-brand/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-brand/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-brand/assets/screenshots/thumbs/overview.webp" alt="kelly-brand UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-brand<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Brand-narrative single source of truth on the TALE framework (Trace→Architect→Land→Evaluate): the agent drafts positioning, the message house, story bank, evidence-backed proof points, and vocabulary guardrails, scores narrative quality (NQS → SHIP/FIX/BLOCK), and flags cross-channel drift; you curate which drafts become canonical.</span><span class="zh">品牌叙事唯一真源，跑 TALE 框架（Trace→Architect→Land→Evaluate）：agent 起草定位、message house、story bank、带证据的 proof point 和用词护栏，给叙事质量打分（NQS → SHIP/FIX/BLOCK），并标记跨渠道漂移；你决定哪些草稿升为 canonical。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-campaigns.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-campaigns/assets/screenshots/thumbs/overview.webp" alt="kelly-campaigns UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-campaigns<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Outbound email-marketing desk on the SEND lifecycle (Setup→Engage→Nurture→Deliver): the agent builds segments, drafts campaigns, newsletters, and sequences, and runs pre-send deliverability + subject-line QA behind an EQS quality gate (SHIP/FIX/BLOCK) before anything is scheduled or sent.</span><span class="zh">外发邮件营销台，跑 SEND 生命周期（Setup→Engage→Nurture→Deliver）：agent 建分群，起草 campaign、newsletter 和序列，发送前跑送达率 + 主题行 QA，背后有 EQS 质量门（SHIP/FIX/BLOCK），排期或发送前先过审。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-creators.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-creators/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-creators/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-creators/assets/screenshots/thumbs/overview.webp" alt="kelly-creators UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-creators<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Influencer/creator-marketing command desk built on the Discover→Plan→Activate→Measure pipeline: the agent sweeps and fit-scores creator candidates (C³ ACE), drafts outreach, briefs, and contracts, and a pre-publish gate (SHIP/FIX/BLOCK) checks FTC disclosure and claim authenticity, all reviewed in a local UI with a ROI board.</span><span class="zh">达人营销指挥台，跑 Discover→Plan→Activate→Measure 管道：agent 扫描并按 C³ ACE 给达人候选打匹配分，起草外联、brief 和合同，发布前质量门（SHIP/FIX/BLOCK）核查 FTC 披露与宣称真实性，全部在本地 UI 审阅，带 ROI 看板。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-launch.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-launch/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-launch/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-launch/assets/screenshots/thumbs/overview.webp" alt="kelly-launch UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-launch<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Product-launch command desk on the RAMP framework (Research→Assemble→Mobilize→Prove): the agent assembles the launch checklist, drafts assets, Product Hunt / Hacker News submissions, press pitches, and the launch-day runbook, with a readiness gate scoring launch quality (LQS → SHIP/FIX/BLOCK).</span><span class="zh">产品发布指挥台，跑 RAMP 框架（Research→Assemble→Mobilize→Prove）：agent 组装发布清单，起草素材、Product Hunt / Hacker News 提交、媒体推介和发布日 runbook，发布就绪门给出发布质量分（LQS → SHIP/FIX/BLOCK）。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-social.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-social/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-social/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-social/assets/screenshots/thumbs/overview.webp" alt="kelly-social UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-social<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Social command desk that both monitors and publishes (Aaron's ECHO): unified timeline, account stats, follower trends, and share-of-voice on the monitoring side, plus a content calendar, an agent-drafted post composer, short-video scripts, an approval-gated engagement inbox, and a crisis playbook — every draft passes a social-qa SHIP/FIX/BLOCK gate.</span><span class="zh">既监控又发布的社媒指挥台（Aaron 的 ECHO）：监控侧有统一时间线、账号数据、粉丝趋势和 share-of-voice；发布侧有内容日历、agent 起草的成稿台、短视频脚本、审批制互动收件箱和危机剧本——每条草稿都过 social-qa 的 SHIP/FIX/BLOCK 门。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-writer.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-writer/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-writer/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-writer/assets/screenshots/thumbs/overview.webp" alt="kelly-writer UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-writer<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Repurposes one source idea, article, transcript, outline, or announcement into channel-ready drafts for platforms like Xiaohongshu, WeChat, newsletters, LinkedIn, X/Twitter, short video, and SEO snippets.</span><span class="zh">把一个想法、文章、 transcript、outline 或公告改写成适合小红书、公众号、newsletter、LinkedIn、X/Twitter、短视频、SEO 的内容包。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="growth">
+<h2 class="group" id="growth"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span></h2>
+<div class="grid">
+<a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-behavior-predict.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-behavior-predict/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-behavior-predict/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-behavior-predict/assets/screenshots/thumbs/overview.webp" alt="kelly-behavior-predict UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-behavior-predict<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Dashboard over mock user-behavior funnel data with per-segment predicted-next-action heuristics and a precision/recall backtest against historical sessions.</span><span class="zh">基于 mock 用户行为漏斗数据的看板，给每个用户分群提供预测下一步动作的启发式规则，并跑准确率回测。</span></span>
+    <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-llm-gateway.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-llm-gateway/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-llm-gateway/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-llm-gateway/assets/screenshots/thumbs/overview.webp" alt="kelly-llm-gateway UI" loading="lazy"></div>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-radar.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-radar/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-radar/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-radar/assets/screenshots/thumbs/overview.webp" alt="kelly-radar UI" loading="lazy"></div>
   <div class="body">
-    <span class="name">kelly-llm-gateway<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Dashboard for a shared LLM gateway's cost and model governance: spend trend, cost breakdown by service/model, canary-rollout status, and deterministic cost/error anomaly detection.</span><span class="zh">共享 LLM 网关的成本与模型治理看板：花费趋势、按服务/模型的成本拆分、灰度发布状态板，以及确定性成本/错误异常检测。</span></span>
+    <span class="name">kelly-radar<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Market-intelligence desk merging competitor signal monitoring (pricing, changelog, launch, review diffs), a research question workbench with brief approval and cited reports, and keyword/topic trend tracking.</span><span class="zh">市场情报台：竞品信号监控（定价、changelog、发布、口碑 diff）+ 带 brief 审批和引用报告的研究课题工作台 + 关键词/话题趋势跟踪。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase surface:gsc" href="s/kelly-seo.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-seo/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-seo/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-seo/assets/screenshots/thumbs/overview.webp" alt="kelly-seo UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-seo<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Search desk covering SEO + GEO: Google Search Console analytics (clicks/impressions/CTR/position, opportunities) plus a generative-engine-optimization side — an AI-visibility tracker across ChatGPT/Perplexity/Gemini/Claude/Copilot, a citability-optimization queue, and brand-entity / knowledge-panel readiness, gated by geo-qa.</span><span class="zh">覆盖 SEO + GEO 的搜索台：Google Search Console 分析（点击/曝光/CTR/排名、机会）+ 生成式引擎优化侧——跨 ChatGPT/Perplexity/Gemini/Claude/Copilot 的 AI 可见度追踪、可引用性优化队列、品牌实体/知识面板就绪度，由 geo-qa 门把关。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
 </div>
 </section>
-<section class="group-section" data-group-section="workspace">
-<h2 class="group" id="workspace"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span></h2>
+<section class="group-section" data-group-section="ecommerce">
+<h2 class="group" id="ecommerce"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span></h2>
 <div class="grid">
-<a class="card" href="s/agent-rules.html">
+<a class="card" data-skill-card data-tags="risk:gated-write industry:ecommerce surface:busabase" href="s/kelly-ads.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ads/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ads/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ads/assets/screenshots/thumbs/overview.webp" alt="kelly-ads UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-ads<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Ad-campaign command desk aggregating Amazon, Meta, TikTok, and Google ads into one board with ACOS/ROAS tracking, deterministic anomaly detection, and approval-gated adjustment cards (negative keywords, bids, budgets).</span><span class="zh">投放指挥台：聚合 Amazon、Meta、TikTok、Google 广告到一块看板，跟踪 ACOS/ROAS，确定性异常检测，审批制调整卡（否定词、出价、预算）。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:ecommerce surface:busabase" href="s/kelly-listing.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-listing/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-listing/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-listing/assets/screenshots/thumbs/overview.webp" alt="kelly-listing UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-listing<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Listing factory: drafts platform-specific listings (Amazon title/bullets/description/backend terms/A+, Shopify, TikTok Shop, eBay) with locale variants, runs per-platform compliance checks, and exports approved copy.</span><span class="zh">上架工厂：生成各平台 listing（Amazon 标题/五点/描述/后台词/A+、Shopify、TikTok Shop、eBay）和多站点语言变体，跑平台合规检查，批准后导出。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write industry:ecommerce surface:busabase" href="s/kelly-picks.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-picks/assets/screenshots/thumbs/overview.webp" alt="kelly-picks UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-picks<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Product-research radar for cross-border sellers: agent-swept trend candidates from BSR movers, TikTok virals, and rising queries, each with a live margin card (price, landed cost, fees, breakeven ACOS) and a competition read.</span><span class="zh">跨境选品雷达：agent 扫 BSR 飙升、TikTok 爆款、上升搜索词产出候选品，每个候选带可实时改数的利润卡（售价、到岸成本、费用、保本 ACOS）和竞争解读。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write industry:ecommerce surface:busabase" href="s/kelly-products.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-products/assets/screenshots/thumbs/overview.webp" alt="kelly-products UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-products<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">E-commerce product management desk: visual SKU catalog, pricing, inventory cover, channel status, content assets, compliance notes, lifecycle state, and approval-gated product operations.</span><span class="zh">电商商品管理台：图文 SKU 商品库、价格、库存覆盖、渠道状态、素材资产、合规备注、生命周期，以及审批制商品操作。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="industry-intel">
+<h2 class="group" id="industry-intel"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span></h2>
+<div class="grid">
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-ai-newsroom.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ai-newsroom/assets/screenshots/thumbs/overview.webp" alt="kelly-ai-newsroom UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-ai-newsroom<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">AI/news-source intelligence cockpit that separates noisy attention from buyer-trigger signals and turns platform, search, regulator, and enterprise-software movement into approved sales actions.</span><span class="zh">AI/新闻源情报台：把平台、搜索、监管、企业软件和新闻源变化拆成真正影响采购的 buyer-trigger，而不是泛泛热点。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:beauty surface:busabase" href="s/kelly-beauty-intel.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-beauty-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-beauty-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-beauty-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-beauty-intel UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-beauty-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Beauty, wellness, and medical-aesthetic intelligence desk for competitor offers, treatment trends, safety notices, review themes, seasonal demand, and safe consultation copy.</span><span class="zh">美容医美情报台：把竞品套餐、项目趋势、安全通知、评价主题和季节需求转成安全的咨询与营销动作。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:ecommerce surface:busabase" href="s/kelly-ecommerce-intel.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ecommerce-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ecommerce-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ecommerce-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-ecommerce-intel UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-ecommerce-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Ecommerce seller intelligence desk for marketplace policy, competitor price and listing movement, search trends, ads, review language, and SKU campaign actions.</span><span class="zh">电商卖家情报台：跟踪平台政策、竞品价格/listing、搜索趋势、广告、评价语言和 SKU 活动机会。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:education surface:busabase" href="s/kelly-education-intel.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-education-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-education-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-education-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-education-intel UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-education-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Education and enrollment intelligence desk for exam dates, admissions changes, visa news, school notices, parent questions, competitor courses, and advisor scripts.</span><span class="zh">教育招生情报台：跟踪考试日期、升学政策、签证、学校通知、家长问题和竞品课程，转成招生动作。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:financial-services surface:busabase" href="s/kelly-financial-services-intel.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-financial-services-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-financial-services-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-financial-services-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-financial-services-intel UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-financial-services-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Financial-services intelligence desk for regulatory, macro, market, portfolio-theme, competitor, and client-question signals with reviewable education drafts.</span><span class="zh">金融服务情报台：跟踪监管、宏观、市场、组合主题、竞品和客户问题，生成可 review 的教育与客户经营动作。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:insurance surface:busabase" href="s/kelly-insurance-intel.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insurance-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-insurance-intel UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-insurance-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Insurance advisor intelligence desk for regulator updates, insurer/product movement, premium and claims news, lifecycle events, and compliant client-review prompts.</span><span class="zh">保险顾问情报台：跟踪监管、险司/产品、保费/理赔、生命周期事件和客户风险问题，生成合规跟进。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:read-only industry:insurance surface:busabase" href="s/kelly-insure-data.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insure-data/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insure-data/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-insure-data/assets/screenshots/thumbs/overview.webp" alt="kelly-insure-data UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-insure-data<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Insurance data-entry and governance cockpit backed by Busabase: Drive-node file metadata, governed QA pairs, and insurance news Base records.</span><span class="zh">保险行业高质量数据录入与治理工作台，基于 Busabase：Drive node 文件 metadata、治理后的问答对、保险新闻资讯 Base 记录。</span></span>
+    <span class="risk risk-read-only"><span class="en">Read-only</span><span class="zh">只读</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:real-estate surface:busabase" href="s/kelly-real-estate-intel.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-real-estate-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-real-estate-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-real-estate-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-real-estate-intel UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-real-estate-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Property-agency intelligence desk for listings, transactions, mortgage movement, district updates, competitor ads, and buyer/seller follow-up scripts.</span><span class="zh">地产中介情报台：围绕 listing、成交、按揭、片区动态、竞品广告和客户跟进，生成可 review 的销售动作。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:restaurant surface:busabase" href="s/kelly-restaurant-intel.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-restaurant-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-restaurant-intel UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-restaurant-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Restaurant-group intelligence desk for weather, events, menus, delivery movement, booking signals, review themes, shift briefs, and daily promotion actions.</span><span class="zh">餐饮集团情报台：把天气、活动、菜单、外卖、订座和评价主题转成每日菜单、班次和促销动作。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:retail surface:busabase" href="s/kelly-retail-intel.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-retail-intel/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-retail-intel/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-retail-intel/assets/screenshots/thumbs/overview.webp" alt="kelly-retail-intel UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-retail-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Retail operating intelligence desk for weather, events, competitor promotions, product trends, review themes, supplier movement, merchandising, and staff briefs.</span><span class="zh">零售运营情报台：把天气、活动、竞品促销、商品趋势、评价主题、供应变化转成门店陈列和销售动作。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="production">
+<h2 class="group" id="production"><span class="en">Production &amp; Teaching</span><span class="zh">内容制作与教学</span></h2>
+<div class="grid">
+<a class="card" data-skill-card data-tags="risk:read-only surface:busabase" href="s/kelly-demo-video-factory.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/thumbs/videos.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/thumbs/videos.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/thumbs/videos.webp" alt="kelly-demo-video-factory UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-demo-video-factory<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Plans product demo/marketing videos end to end: hook/pain-point/storyboard drafting, codebase claim verification against the actual product, and per-shot recording progress, tracked in Busabase and rendered in a local read-only review app; hands off to post-production/HyperFrame (Remotion).</span><span class="zh">端到端规划产品演示/营销视频：钩子/痛点/分镜起草、对照真实代码库核实产品说法、逐镜录制进度追踪，数据存在 Busabase 里，本地有一个只读审核 App 展示；再交接给后期/HyperFrame（Remotion）。</span></span>
+    <span class="risk risk-read-only"><span class="en">Read-only</span><span class="zh">只读</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-digital-human.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-digital-human/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-digital-human/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-digital-human/assets/screenshots/thumbs/overview.webp" alt="kelly-digital-human UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-digital-human<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Digital-human solution desk and multimodal demo for choosing between low-cost 2D photoreal avatar services and high-control UE/Unity 3D custom digital humans, with a local studio showing voice/text input, lip-sync video stream, vendor route latency, and launch QA.</span><span class="zh">数字人方案台和多模态 demo：在低成本 2D 写实数字人服务与高自由度 UE/Unity 3D 定制数字人之间做选择，并用本地 Studio 展示语音/文本输入、唇形视频流、服务路由延迟和上线 QA。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase surface:moonrouter surface:byteplus-ark" href="s/kelly-drama.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-drama/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-drama/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-drama/assets/screenshots/thumbs/overview.webp" alt="kelly-drama UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-drama<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Produces short-drama series with a local workbench for series overview, character library, relationship map, episode table, and shot sheets. Generates storyboard images with character reference cards and coordinates AI and human tasks.</span><span class="zh">短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write industry:education surface:busabase" href="s/kelly-homework-coach.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student.webp" alt="kelly-homework-coach UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-homework-coach<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Child-friendly homework tutoring desk: the agent explains photographed questions, analyzes wrong answers, builds a mistake notebook, and prepares practice papers behind parent/teacher review.</span><span class="zh">小学生作业辅导台：agent 解释拍照上传的题目、分析错题、生成错题本，并在家长/老师审核后准备针对性试卷。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:education surface:busabase" href="s/kelly-lesson.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview.webp" alt="kelly-lesson UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-lesson<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export.</span><span class="zh">从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase surface:moonrouter" href="s/kelly-mv.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-mv/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-mv/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-mv/assets/screenshots/thumbs/overview.webp" alt="kelly-mv UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-mv<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Builds a pure-visual music video workbench: upload an MP3, write the MV concept, build a cast of on-screen characters with reference cards, and create a shot-by-shot storyboard with generated or uploaded images and draft videos.</span><span class="zh">纯视觉 MV 工作台：上传 MP3、写 MV concept、建立角色和参考卡、生成/上传镜头图和视频，并围绕音乐做 storyboard。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-ppt-factory.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ppt-factory/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ppt-factory/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-ppt-factory/assets/screenshots/thumbs/overview.webp" alt="kelly-ppt-factory UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-ppt-factory<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Project-based PPTX factory: turns briefs, source materials, and style samples into reviewed slide cards, generates style-consistent PowerPoint decks, and tracks render QA and exports.</span><span class="zh">项目制 PPTX 工厂：把 brief、源材料和风格样张变成可审核的页面卡，批量生成风格一致的 PowerPoint，并跟踪渲染 QA 和导出记录。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="platform">
+<h2 class="group" id="platform"><span class="en">Agent &amp; Dev Platform</span><span class="zh">Agent 与研发平台</span></h2>
+<div class="grid">
+<a class="card" data-skill-card data-tags="risk:local-write" href="s/agent-rules.html">
   <div class="thumb empty">⚙️</div>
   <div class="body">
     <span class="name">agent-rules</span>
     <span class="desc"><span class="en">Keeps rules and skills for Codex, Claude Code, Copilot, Kiro, Cursor, and Gemini aligned from one source of truth. It creates and verifies symlinks so agents share AGENTS.md and .agents/skills/.</span><span class="zh">让 Codex、Claude Code、Copilot、Kiro、Cursor、Gemini 等 agent 共享同一套规则和 skills。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-app-skill-creator.html">
+<a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-agent-builder.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-builder/assets/screenshots/thumbs/overview.webp" alt="kelly-agent-builder UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-agent-builder<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Low-code agent configuration and governance console: a catalog of mock agent configs with quota, approval, and ownership tracking, blocking incomplete configs from going live.</span><span class="zh">低代码 agent 配置与治理控制台：维护一批 mock agent 配置的配额、审批和归属，未填齐字段前禁止上线。</span></span>
+    <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-agent-eval.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-eval/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-eval/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-eval/assets/screenshots/thumbs/overview.webp" alt="kelly-agent-eval UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-agent-eval<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Review board that runs a fixed suite of mock test cases against baseline vs candidate agent versions, surfacing rubric-scored regressions before a release gate.</span><span class="zh">评测看板，跑固定测试集对比 baseline 与候选版本 agent，在发版前用打分规则揪出回归问题。</span></span>
+    <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-agent-observability.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-observability/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-observability/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-agent-observability/assets/screenshots/thumbs/overview.webp" alt="kelly-agent-observability UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-agent-observability<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Local dashboard visualizing a fleet of LLM agents behind a shared AI gateway: call volume, latency, error rates, cost, and trace-level chain breaks.</span><span class="zh">本地看板，展示运行在共享 AI 网关背后的一批 LLM agent：调用量、延迟、错误率、成本，以及链路级故障追踪。</span></span>
+    <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-app-skill-creator.html">
   <div class="thumb empty">⚙️</div>
   <div class="body">
     <span class="name">kelly-app-skill-creator</span>
     <span class="desc"><span class="en">Builds Busabase-backed App-in-Skill packages around Research, Plan, Action, and Retrospective. Each bundles a complete canonical app/, uses busabase-sdk for persistent config/state/data, deploys the same source to AirApp by default, starts pnpm dev only on explicit request, owns the responsive Kelly operator UI, delegates runtime rules to $busabase-app-creator, and delegates conformance acceptance to $kelly-app-skill-creator-tests. The previous names kelly-app-creator and app-in-skill-creator remain compatibility aliases.</span><span class="zh">围绕 Research、Plan、Action、Retrospective 构建 Busabase-backed App-in-Skill。每个 skill 都包含完整规范 app/，用 busabase-sdk 读写持久配置、状态和数据，默认把同一套源码部署到 AirApp，只有明确要求时才启动 pnpm dev，拥有响应式 Kelly 操作台 UI，把运行时约束委托给 $busabase-app-creator，把 conformance 验收委托给 $kelly-app-skill-creator-tests。旧名 kelly-app-creator、app-in-skill-creator 保留为兼容别名。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
-<a class="card" href="s/kelly-app-skill-creator-tests.html">
+<a class="card" data-skill-card data-tags="risk:local-write" href="s/kelly-app-skill-creator-tests.html">
   <div class="thumb empty">⚙️</div>
   <div class="body">
     <span class="name">kelly-app-skill-creator-tests</span>
     <span class="desc"><span class="en">Builds and runs reusable conformance tests for canonical Kelly app skills, including local server and responsive browser checks, temporary open-source Busabase provisioning and persistence, environment-gated Cloud OAuth, and AirApp parity. OSS and Cloud are always reported separately.</span><span class="zh">为规范 Kelly app skill 构建并运行可复用 conformance 测试，包括本地 server 与响应式浏览器检查、临时开源 Busabase provisioning 与持久化、环境变量门控的 Cloud OAuth，以及 AirApp parity；OSS 与 Cloud 始终分开报告。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
-<a class="card" href="s/publish-skills.html">
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:sendgrid" href="s/kelly-devops.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-devops/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-devops/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-devops/assets/screenshots/thumbs/overview.webp" alt="kelly-devops UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-devops<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval.</span><span class="zh">盯产品矩阵的运维面：服务可用性和延迟、SSL 证书和域名到期、API key 轮换、云支出异常，带 agent 提出的行动卡审批。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-llm-gateway.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-llm-gateway/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-llm-gateway/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-llm-gateway/assets/screenshots/thumbs/overview.webp" alt="kelly-llm-gateway UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-llm-gateway<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Dashboard for a shared LLM gateway's cost and model governance: spend trend, cost breakdown by service/model, canary-rollout status, and deterministic cost/error anomaly detection.</span><span class="zh">共享 LLM 网关的成本与模型治理看板：花费趋势、按服务/模型的成本拆分、灰度发布状态板，以及确定性成本/错误异常检测。</span></span>
+    <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:github" href="s/kelly-pr-review.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-pr-review/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-pr-review/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-pr-review/assets/screenshots/thumbs/overview.webp" alt="kelly-pr-review UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-pr-review<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Runs a GitHub PR review desk through gh CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved gh pr review actions.</span><span class="zh">通过 gh CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 gh pr review。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:github" href="s/publish-skills.html">
   <div class="thumb empty">⚙️</div>
   <div class="body">
     <span class="name">publish-skills</span>
     <span class="desc"><span class="en">Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with gh skill, cuts a release, wires the Claude /plugin and Codex marketplaces, and preps the MCP Registry and curated stores.</span><span class="zh">把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 gh skill 校验、切版本、接 Claude /plugin 和 Codex marketplace，并准备 MCP Registry 和精选商店。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
 </div>
 </section>
-
+    <p class="empty-state" data-empty-state hidden><span class="en">No skill matches these filters.</span><span class="zh">没有 skill 同时满足这些筛选条件。</span></p>
   </main>
   <aside class="home-sidebar">
   <section class="side-card install-card">
@@ -856,19 +942,45 @@ After installation, list the available skills and help me choose the right one f
   <section class="side-card">
     <h3><span class="en">Categories</span><span class="zh">分类</span></h3>
     <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">67</span></button>
-<button class="category-button" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">经营台账</span><span class="count">7</span></button>
-<button class="category-button" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal Knowledge</span><span class="zh">法律知识库</span><span class="count">4</span></button>
+<button class="category-button" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">财务与后台</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="invest" onclick="mkSetCategory('invest')"><span class="en">Investing &amp; Wealth</span><span class="zh">投资与财富</span><span class="count">4</span></button>
-<button class="category-button" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span><span class="count">5</span></button>
-<button class="category-button" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Service</span><span class="zh">沟通与协作</span><span class="count">5</span></button>
-<button class="category-button" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Market</span><span class="zh">增长与市场</span><span class="count">5</span></button>
-<button class="category-button" type="button" data-category-filter="industry-intel" onclick="mkSetCategory('industry-intel')"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span><span class="count">10</span></button>
-<button class="category-button" type="button" data-category-filter="marketing" onclick="mkSetCategory('marketing')"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span><span class="count">4</span></button>
-<button class="category-button" type="button" data-category-filter="production" onclick="mkSetCategory('production')"><span class="en">Production &amp; Teaching</span><span class="zh">制作与教学</span><span class="count">7</span></button>
-<button class="category-button" type="button" data-category-filter="eng" onclick="mkSetCategory('eng')"><span class="en">Engineering &amp; Ops</span><span class="zh">工程与运维</span><span class="count">2</span></button>
 <button class="category-button" type="button" data-category-filter="rbf" onclick="mkSetCategory('rbf')"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span><span class="count">5</span></button>
-<button class="category-button" type="button" data-category-filter="agent-ops" onclick="mkSetCategory('agent-ops')"><span class="en">AI Agent Ops</span><span class="zh">AI Agent 运维</span><span class="count">5</span></button>
-<button class="category-button" type="button" data-category-filter="workspace" onclick="mkSetCategory('workspace')"><span class="en">Workspace Helpers</span><span class="zh">工作区工具</span><span class="count">4</span></button></div>
+<button class="category-button" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal &amp; Contracts</span><span class="zh">法务与合同</span><span class="count">6</span></button>
+<button class="category-button" type="button" data-category-filter="sales-crm" onclick="mkSetCategory('sales-crm')"><span class="en">Sales &amp; Customer</span><span class="zh">销售与客户</span><span class="count">5</span></button>
+<button class="category-button" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Team</span><span class="zh">沟通与协同</span><span class="count">3</span></button>
+<button class="category-button" type="button" data-category-filter="marketing" onclick="mkSetCategory('marketing')"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span><span class="count">6</span></button>
+<button class="category-button" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span><span class="count">3</span></button>
+<button class="category-button" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span><span class="count">4</span></button>
+<button class="category-button" type="button" data-category-filter="industry-intel" onclick="mkSetCategory('industry-intel')"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span><span class="count">10</span></button>
+<button class="category-button" type="button" data-category-filter="production" onclick="mkSetCategory('production')"><span class="en">Production &amp; Teaching</span><span class="zh">内容制作与教学</span><span class="count">7</span></button>
+<button class="category-button" type="button" data-category-filter="platform" onclick="mkSetCategory('platform')"><span class="en">Agent &amp; Dev Platform</span><span class="zh">Agent 与研发平台</span><span class="count">10</span></button></div>
+  </section>
+  <section class="side-card">
+    <h3><span class="en">What it can touch</span><span class="zh">外部副作用</span></h3>
+    <div class="tag-list">
+      <button class="tag-button active" type="button" data-tag-filter="risk:all" onclick="mkSetTag('risk:all')"><span class="en">Any</span><span class="zh">不限</span></button>
+<button class="tag-button" type="button" data-tag-filter="risk:sandbox" onclick="mkSetTag('risk:sandbox')"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span><span class="count">8</span></button>
+<button class="tag-button" type="button" data-tag-filter="risk:read-only" onclick="mkSetTag('risk:read-only')"><span class="en">Read-only</span><span class="zh">只读</span><span class="count">7</span></button>
+<button class="tag-button" type="button" data-tag-filter="risk:local-write" onclick="mkSetTag('risk:local-write')"><span class="en">Local only</span><span class="zh">仅本地</span><span class="count">22</span></button>
+<button class="tag-button" type="button" data-tag-filter="risk:gated-write" onclick="mkSetTag('risk:gated-write')"><span class="en">Gated write</span><span class="zh">审批后写</span><span class="count">30</span></button>
+    </div>
+  </section>
+  <section class="side-card">
+    <h3><span class="en">Industry</span><span class="zh">行业</span></h3>
+    <div class="tag-list">
+      <button class="tag-button active" type="button" data-tag-filter="industry:all" onclick="mkSetTag('industry:all')"><span class="en">Any</span><span class="zh">不限</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:beauty" onclick="mkSetTag('industry:beauty')"><span class="en">Beauty</span><span class="zh">美业</span><span class="count">1</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:ecommerce" onclick="mkSetTag('industry:ecommerce')"><span class="en">E-commerce</span><span class="zh">电商</span><span class="count">6</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:education" onclick="mkSetTag('industry:education')"><span class="en">Education</span><span class="zh">教育</span><span class="count">3</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:family" onclick="mkSetTag('industry:family')"><span class="en">Family wealth</span><span class="zh">家族财富</span><span class="count">2</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:financial-services" onclick="mkSetTag('industry:financial-services')"><span class="en">Financial services</span><span class="zh">金融服务</span><span class="count">1</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:insurance" onclick="mkSetTag('industry:insurance')"><span class="en">Insurance</span><span class="zh">保险</span><span class="count">2</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:legal" onclick="mkSetTag('industry:legal')"><span class="en">Legal</span><span class="zh">法律</span><span class="count">6</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:property-management" onclick="mkSetTag('industry:property-management')"><span class="en">Property mgmt</span><span class="zh">物业</span><span class="count">1</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:real-estate" onclick="mkSetTag('industry:real-estate')"><span class="en">Real estate</span><span class="zh">房产</span><span class="count">1</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:restaurant" onclick="mkSetTag('industry:restaurant')"><span class="en">Restaurant</span><span class="zh">餐饮</span><span class="count">1</span></button>
+<button class="tag-button" type="button" data-tag-filter="industry:retail" onclick="mkSetTag('industry:retail')"><span class="en">Retail</span><span class="zh">零售</span><span class="count">1</span></button>
+    </div>
   </section>
 </aside>
 </div>
@@ -909,31 +1021,63 @@ After installation, list the available skills and help me choose the right one f
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") document.querySelectorAll(".lightbox").forEach(function (b) { b.remove(); });
   });
-  function setCategory(id, updateUrl) {
+  var mkFilters = { category: "all", risk: "all", industry: "all" };
+  function applyFilters(updateUrl) {
     var sections = Array.prototype.slice.call(document.querySelectorAll("[data-group-section]"));
     if (!sections.length) return;
-    var selected = id || "all";
-    var exists = selected === "all" || sections.some(function (section) {
-      return section.getAttribute("data-group-section") === selected;
+    var exists = mkFilters.category === "all" || sections.some(function (section) {
+      return section.getAttribute("data-group-section") === mkFilters.category;
     });
-    if (!exists) selected = "all";
+    if (!exists) mkFilters.category = "all";
+
+    var shown = 0;
     sections.forEach(function (section) {
-      var show = selected === "all" || section.getAttribute("data-group-section") === selected;
-      section.hidden = !show;
+      var inCategory = mkFilters.category === "all"
+        || section.getAttribute("data-group-section") === mkFilters.category;
+      var visible = 0;
+      section.querySelectorAll("[data-skill-card]").forEach(function (card) {
+        var tags = (card.getAttribute("data-tags") || "").split(" ");
+        var ok = ["risk", "industry"].every(function (ns) {
+          return mkFilters[ns] === "all" || tags.indexOf(ns + ":" + mkFilters[ns]) !== -1;
+        });
+        card.hidden = !ok;
+        if (ok) visible++;
+      });
+      section.hidden = !(inCategory && visible > 0);
+      if (inCategory) shown += visible;
     });
+    var empty = document.querySelector("[data-empty-state]");
+    if (empty) empty.hidden = shown > 0;
+
     document.querySelectorAll("[data-category-filter]").forEach(function (button) {
-      button.classList.toggle("active", button.getAttribute("data-category-filter") === selected);
+      button.classList.toggle("active", button.getAttribute("data-category-filter") === mkFilters.category);
     });
+    document.querySelectorAll("[data-tag-filter]").forEach(function (button) {
+      var value = button.getAttribute("data-tag-filter").split(":");
+      button.classList.toggle("active", mkFilters[value[0]] === value[1]);
+    });
+
     if (updateUrl && window.history && window.URL) {
       var url = new URL(window.location.href);
-      if (selected === "all") url.searchParams.delete("category");
-      else url.searchParams.set("category", selected);
+      ["category", "risk", "industry"].forEach(function (key) {
+        if (mkFilters[key] === "all") url.searchParams.delete(key);
+        else url.searchParams.set(key, mkFilters[key]);
+      });
       window.history.replaceState(null, "", url.pathname + url.search + url.hash);
     }
   }
-  window.mkSetCategory = function (id) { setCategory(id, true); };
+  window.mkSetCategory = function (id) { mkFilters.category = id || "all"; applyFilters(true); };
+  window.mkSetTag = function (tag) {
+    var parts = String(tag).split(":");
+    if (parts.length === 2 && mkFilters.hasOwnProperty(parts[0])) mkFilters[parts[0]] = parts[1];
+    applyFilters(true);
+  };
   document.addEventListener("DOMContentLoaded", function () {
-    setCategory(new URLSearchParams(location.search).get("category") || "all", false);
+    var params = new URLSearchParams(location.search);
+    ["category", "risk", "industry"].forEach(function (key) {
+      mkFilters[key] = params.get(key) || "all";
+    });
+    applyFilters(false);
   });
   document.addEventListener("click", function (e) {
     var button = e.target.closest ? e.target.closest("[data-copy]") : null;

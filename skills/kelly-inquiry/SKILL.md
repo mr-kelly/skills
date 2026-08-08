@@ -1,6 +1,15 @@
 ---
 name: kelly-inquiry
 description: Personal App-in-Skill inbound-inquiry reception desk (Busabase App-in-Skill) for cross-border/foreign-trade sellers, aggregating WhatsApp, Instagram, Messenger, and email inquiries into a pipeline with a product knowledge base, quote worksheet, approval queue, and follow-up reminders. Use when the user invokes $kelly-inquiry or /kelly-inquiry, mentions 询盘, inquiry desk, WhatsApp leads, quote management, 报价, foreign trade sales, follow-up reminders, or a lead pipeline, wants inquiries triaged into new/replied/quoted/negotiating/won/lost stages, agent-drafted replies and quotes reviewed before sending, or stale deals surfaced.
+metadata:
+  category: sales-crm
+  tags:
+    - risk:gated-write
+    - industry:ecommerce
+    - surface:busabase
+    - surface:whatsapp
+    - surface:instagram
+    - surface:messenger
 ---
 
 # Kelly Inquiry

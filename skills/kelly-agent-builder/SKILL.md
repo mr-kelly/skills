@@ -1,6 +1,11 @@
 ---
 name: kelly-agent-builder
 description: Busabase-backed App-in-Skill low-code agent configuration and governance console for a platform team. Use when the user invokes $kelly-agent-builder or /kelly-agent-builder, wants to review or edit a catalog of mock LLM agent configs, check quota usage, find configs that need attention, move a draft to live, pause a live agent, or archive an agent. Mock config/governance console only — it never provisions or calls any real agent.
+metadata:
+  category: platform
+  tags:
+    - risk:sandbox
+    - surface:busabase
 ---
 
 # Agent Builder & Governance Console

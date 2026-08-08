@@ -1,6 +1,11 @@
 ---
 name: kelly-disclosure-tracker
 description: Cross-Entity Disclosure Tracker App-in-Skill — a Busabase review workspace that helps a compliance/IR team assemble and track a standardized disclosure package per financing vehicle (fund/SPV), across a generic onshore origination entity, an offshore fund-manager entity, and a listing/exchange venue. Use when the user invokes $kelly-disclosure-tracker or /kelly-disclosure-tracker, wants to review disclosure checklists, vehicle readiness, cross-entity reconciliation flags, or reviewer notes across multiple financing vehicles. Review workspace only — it never files anything or calls any external system.
+metadata:
+  category: rbf
+  tags:
+    - risk:sandbox
+    - surface:busabase
 ---
 
 # Cross-Entity Disclosure Tracker

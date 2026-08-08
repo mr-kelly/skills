@@ -1,6 +1,12 @@
 ---
 name: kelly-insure-data
 description: Insurance-industry App-in-Skill for read-only data governance, backed by an operator-provisioned Busabase workspace (one Drive node for the file drive plus four Bases for QA pairs, featured information, insurer notices, and user feedback) and trusted export/restore/PDF-text-backfill scripts. Use when the user invokes $kelly-insure-data or /kelly-insure-data, wants an insurance data workspace with UI, needs to review insurance files, metadata completeness, QA pairs, featured information, insurer notices, or user feedback, wants to back up or restore a Kelly Insure Data Busabase workspace from local PDFs, or wants Busabase Drive/Base data surfaced for data quality review and ongoing data governance.
+metadata:
+  category: industry-intel
+  tags:
+    - risk:read-only
+    - industry:insurance
+    - surface:busabase
 ---
 
 # Kelly Insure Data

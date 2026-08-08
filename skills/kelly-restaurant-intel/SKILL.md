@@ -1,6 +1,12 @@
 ---
 name: kelly-restaurant-intel
 description: "Kelly Restaurant Intel: App-in-Skill daily industry intelligence cockpit for restaurants, cafes, and F&B groups (Busabase App-in-Skill). Use when the user asks about restaurants, cafes, food and beverage, menus, local events, daily offers,餐饮, or餐厅 scenes. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
+metadata:
+  category: industry-intel
+  tags:
+    - risk:gated-write
+    - industry:restaurant
+    - surface:busabase
 ---
 
 # Kelly Restaurant Intel

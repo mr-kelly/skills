@@ -1,6 +1,11 @@
 ---
 name: kelly-app-skill-creator
 description: Design and create Busabase-backed App-in-Skill packages with a canonical app project, Busabase-native setup and product onboarding, review/execution workflows, a standardized responsive UI, and AirApp-first delivery. Use when a user wants a Busabase research desk, review queue, planner, action console, operating dashboard, control panel, collaboration workspace, onboarding/readiness flow, or an existing Kelly App-based skill updated. Every generated skill contains a complete app/ project, deploys that source to Busabase AirApp by default, runs pnpm dev only when local preview is explicitly requested, follows the Kelly desktop and phone UI contract, delegates AirApp runtime, SDK, security, scaffolding, and deployment constraints to busabase-app-creator, and delegates repository-level conformance testing to kelly-app-skill-creator-tests.
+metadata:
+  category: platform
+  tags:
+    - risk:local-write
+    - surface:busabase
 ---
 
 # Kelly App Skill Creator

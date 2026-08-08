@@ -1,6 +1,12 @@
 ---
 name: kelly-ads
 description: Ad-campaign command desk (投放指挥台, Busabase App-in-Skill) for a cross-border e-commerce seller running Amazon Ads, Meta (FB/IG), TikTok Ads, and Google Ads. Use when the user invokes $kelly-ads or /kelly-ads, or asks about 投放, ad campaigns, ad spend, ACOS, ROAS, Amazon Ads, TikTok ads, Meta ads, Google Ads, search terms, negative keywords, bid adjustment, budget pacing, CPC spikes, rejected ads, ad anomaly detection, 广告优化, or reviewing agent-proposed adjustment cards (negative keyword, bid down/up, pause target, budget shift, creative refresh).
+metadata:
+  category: ecommerce
+  tags:
+    - risk:gated-write
+    - industry:ecommerce
+    - surface:busabase
 ---
 
 # Kelly Ads

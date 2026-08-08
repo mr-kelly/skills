@@ -5,6 +5,10 @@ description: Align all AI coding agents to single source of truth. AGENTS.md for
 disable-model-invocation: false
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash
 user-invocable: true
+metadata:
+  category: platform
+  tags:
+    - risk:local-write
 ---
 
 # Agent Rules - Single Source of Truth

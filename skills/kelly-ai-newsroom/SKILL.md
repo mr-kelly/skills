@@ -1,6 +1,11 @@
 ---
 name: kelly-ai-newsroom
 description: "Kelly AI Newsroom: App-in-Skill daily industry intelligence cockpit for AI/news-source intelligence (Busabase App-in-Skill). Use when the user asks for AI trend sourcing, news-source monitoring, buyer-intent analysis, or a reusable industry-intelligence cockpit. Prepares news/source signals, buyer-intent interpretation, approved sales actions, and channel drafts for review before any external handoff."
+metadata:
+  category: industry-intel
+  tags:
+    - risk:gated-write
+    - surface:busabase
 ---
 
 # Kelly AI Newsroom

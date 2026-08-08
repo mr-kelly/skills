@@ -1,6 +1,11 @@
 ---
 name: kelly-llm-gateway
 description: Busabase-backed App-in-Skill dashboard for a shared LLM gateway's cost and model governance — daily spend trend, cost breakdown by service/model, a canary-rollout status board, and a deterministic cost/error anomaly list. Use when the user invokes $kelly-llm-gateway or /kelly-llm-gateway, or wants to review LLM gateway spend, model routing, canary rollouts, rollback readiness, or cost/error anomalies for services routed through one shared gateway to multiple LLM providers/models. Human actions (promote/rollback/hold a rollout, acknowledge an anomaly) write directly onto the route's own Busabase record — this skill never changes a real routing config.
+metadata:
+  category: platform
+  tags:
+    - risk:sandbox
+    - surface:busabase
 ---
 
 # LLM Gateway Cost & Governance Desk
