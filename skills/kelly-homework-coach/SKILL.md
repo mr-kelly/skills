@@ -2,7 +2,7 @@
 name: kelly-homework-coach
 description: Friendly elementary-school homework tutoring App-in-Skill. Use when the user invokes $kelly-homework-coach or /kelly-homework-coach, mentions 小学生作业辅导, homework photo tutoring, 拍照讲题, 作业答疑, 错题本, error notebook, mistake-book review, practice paper generation, exam paper analysis, parent/teacher review of AI explanations, or wants a child-friendly UI for step-by-step homework help with parent/teacher review and safety boundaries.
 metadata:
-  category: production
+  category: education
   tags:
     - risk:local-write
     - industry:education

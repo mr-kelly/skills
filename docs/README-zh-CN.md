@@ -199,17 +199,22 @@
 | `kelly-restaurant-intel` | 餐饮集团情报台：把天气、活动、菜单、外卖、订座和评价主题转成每日菜单、班次和促销动作。 | 餐厅、咖啡店或餐饮集团需要主推菜、班次 briefing、外卖文案、订座话术或客诉修复草稿时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-restaurant-intel.html?lang=zh) |
 | `kelly-retail-intel` | 零售运营情报台：把天气、活动、竞品促销、商品趋势、评价主题、供应变化转成门店陈列和销售动作。 | 门店或消费品牌需要主推 SKU、标牌文案、补货检查、店员 briefing 或本地需求动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-retail-intel.html?lang=zh) |
 
-### 内容制作与教学
+### 内容制作
 
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `kelly-demo-video-factory` | 端到端规划产品演示/营销视频：钩子/痛点/分镜起草、对照真实代码库核实产品说法、逐镜录制进度追踪，数据存在 Busabase 里，本地有一个只读审核 App 展示；再交接给后期/HyperFrame（Remotion）。 | 规划一条产品演示视频、写分镜表格、录制前核实脚本里的产品说法、追踪哪些镜头已录制，或把定稿分镜交给剪辑/Remotion 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-demo-video-factory.html?lang=zh) |
 | `kelly-digital-human` | 数字人方案台和多模态 demo：在低成本 2D 写实数字人服务与高自由度 UE/Unity 3D 定制数字人之间做选择，并用本地 Studio 展示语音/文本输入、唇形视频流、服务路由延迟和上线 QA。 | 规划 AI 主持人、客服数字人、产品讲解员、直播助理或数字人 demo；对比硅基智能、腾讯智影、即构/ZEGO 式实时服务；或设计 3D UE/Unity 数字人管线时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-digital-human.html?lang=zh) |
 | `kelly-drama` | 短剧生产工作台：剧集概览、角色库、关系图、分集表、shot sheet，并协调角色参考图和 AI/人工任务。 | 从策划到分镜管理短剧系列，写分集、建角色、管理 storyboard、review AI 生成图时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-drama.html?lang=zh) |
-| `kelly-homework-coach` | 小学生作业辅导台：agent 解释拍照上传的题目、分析错题、生成错题本，并在家长/老师审核后准备针对性试卷。 | 小学生需要拍照讲题、温柔分步讲解、错题复习、错因分析或按错题生成练习卷时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-homework-coach.html?lang=zh) |
-| `kelly-lesson` | 从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。 | 统一全校教案格式、检查教案合规性、批量审核批准教学计划时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-lesson.html?lang=zh) |
 | `kelly-mv` | 纯视觉 MV 工作台：上传 MP3、写 MV concept、建立角色和参考卡、生成/上传镜头图和视频，并围绕音乐做 storyboard。 | 做没有旁白/字幕的纯视觉 MV，用歌曲驱动镜头和画面规划时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-mv.html?lang=zh) |
 | `kelly-ppt-factory` | 项目制 PPTX 工厂：把 brief、源材料和风格样张变成可审核的页面卡，批量生成风格一致的 PowerPoint，并跟踪渲染 QA 和导出记录。 | 制作融资 PPT、销售 PPT、培训材料、报告、方案书、课件，或批量生成客户可交付 PPTX 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-ppt-factory.html?lang=zh) |
+
+### 教育与教学
+
+| Skill | 做什么 | 什么时候用 | 详情 |
+| --- | --- | --- | --- |
+| `kelly-homework-coach` | 小学生作业辅导台：agent 解释拍照上传的题目、分析错题、生成错题本，并在家长/老师审核后准备针对性试卷。 | 小学生需要拍照讲题、温柔分步讲解、错题复习、错因分析或按错题生成练习卷时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-homework-coach.html?lang=zh) |
+| `kelly-lesson` | 从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。 | 统一全校教案格式、检查教案合规性、批量审核批准教学计划时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-lesson.html?lang=zh) |
 
 ### Agent 与研发平台
 

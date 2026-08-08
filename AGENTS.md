@@ -29,7 +29,7 @@ metadata, leaving other subkeys alone). Top-level custom keys have no such guara
 
 ### `category` — required, exactly one
 
-One of these twelve. They are mutually exclusive and decide which section a skill appears in.
+One of these thirteen. They are mutually exclusive and decide which section a skill appears in.
 Defined in `scripts/lib/skill-taxonomy.mjs`.
 
 | id | Section | Who it serves |
@@ -44,8 +44,14 @@ Defined in `scripts/lib/skill-taxonomy.mjs`.
 | `growth` | Growth & Analytics | search, competitors, behaviour data |
 | `ecommerce` | Cross-Border E-commerce | sourcing → listing → ads |
 | `industry-intel` | Industry Intelligence | per-vertical daily intelligence cockpits |
-| `production` | Production & Teaching | video, courseware, digital humans |
+| `production` | Production | video, decks, digital humans |
+| `education` | Education & Teaching | deans, teachers, parents |
 | `platform` | Agent & Dev Platform | building skills, running agents, ops |
+
+`production` and `education` used to be one bucket ("Production & Teaching") because both involve
+drafting content through a review queue. Split apart: `production` serves content producers
+(drama/MV/digital-human/demo-video/PPT), `education` serves school stakeholders (lesson plans,
+homework tutoring) — different audiences that only coincidentally shared a review-queue shape.
 
 Why one flat axis and not a Gartner-style three-level tree: the nine `*-intel` skills are **one
 capability applied across nine industries**. A tree forces a choice between collapsing them into a

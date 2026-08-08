@@ -1,5 +1,5 @@
 // Shared reader for the skill taxonomy that lives in each SKILL.md frontmatter.
-// See CLAUDE.md for the axes and the allowed values.
+// See AGENTS.md for the axes and the allowed values.
 //
 // Deliberately a tiny hand-rolled YAML reader: the repo's tooling stays zero-dependency
 // and the accepted shape is fixed:
@@ -25,7 +25,8 @@ export const GROUPS = [
   { id: "growth", en: "Growth & Analytics", zh: "增长与分析" },
   { id: "ecommerce", en: "Cross-Border E-commerce", zh: "跨境电商" },
   { id: "industry-intel", en: "Industry Intelligence", zh: "行业情报" },
-  { id: "production", en: "Production & Teaching", zh: "内容制作与教学" },
+  { id: "production", en: "Production", zh: "内容制作" },
+  { id: "education", en: "Education & Teaching", zh: "教育与教学" },
   { id: "platform", en: "Agent & Dev Platform", zh: "Agent 与研发平台" },
 ];
 
@@ -102,7 +103,7 @@ export async function listSkillDirs(root) {
 
 /**
  * The marketplace listing's tag set, derived from the skills themselves so it can never
- * drift from CLAUDE.md. Categories first, then the industries they cover.
+ * drift from AGENTS.md. Categories first, then the industries they cover.
  */
 export function deriveMarketplaceTags(metas) {
   const categories = new Set();

@@ -304,7 +304,8 @@ After installation, list the available skills and help me choose the right one f
 <button class="category-chip" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span></button>
 <button class="category-chip" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span></button>
 <button class="category-chip" type="button" data-category-filter="industry-intel" onclick="mkSetCategory('industry-intel')"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span></button>
-<button class="category-chip" type="button" data-category-filter="production" onclick="mkSetCategory('production')"><span class="en">Production &amp; Teaching</span><span class="zh">内容制作与教学</span></button>
+<button class="category-chip" type="button" data-category-filter="production" onclick="mkSetCategory('production')"><span class="en">Production</span><span class="zh">内容制作</span></button>
+<button class="category-chip" type="button" data-category-filter="education" onclick="mkSetCategory('education')"><span class="en">Education &amp; Teaching</span><span class="zh">教育与教学</span></button>
 <button class="category-chip" type="button" data-category-filter="platform" onclick="mkSetCategory('platform')"><span class="en">Agent &amp; Dev Platform</span><span class="zh">Agent 与研发平台</span></button></nav>
   <nav class="category-chips" aria-label="Risk"><button class="category-chip active" type="button" data-tag-filter="risk:all" onclick="mkSetTag('risk:all')"><span class="en">Any risk</span><span class="zh">副作用不限</span></button>
 <button class="category-chip" type="button" data-tag-filter="risk:sandbox" onclick="mkSetTag('risk:sandbox')"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></button>
@@ -764,7 +765,7 @@ After installation, list the available skills and help me choose the right one f
 </div>
 </section>
 <section class="group-section" data-group-section="production">
-<h2 class="group" id="production"><span class="en">Production &amp; Teaching</span><span class="zh">内容制作与教学</span></h2>
+<h2 class="group" id="production"><span class="en">Production</span><span class="zh">内容制作</span></h2>
 <div class="grid">
 <a class="card" data-skill-card data-tags="risk:read-only surface:busabase" href="s/kelly-demo-video-factory.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/thumbs/videos.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/thumbs/videos.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-demo-video-factory/assets/screenshots/thumbs/videos.webp" alt="kelly-demo-video-factory UI" loading="lazy"></div>
@@ -790,22 +791,6 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
-<a class="card" data-skill-card data-tags="risk:local-write industry:education surface:busabase" href="s/kelly-homework-coach.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student.webp" alt="kelly-homework-coach UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-homework-coach<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Child-friendly homework tutoring desk: the agent explains photographed questions, analyzes wrong answers, builds a mistake notebook, and prepares practice papers behind parent/teacher review.</span><span class="zh">小学生作业辅导台：agent 解释拍照上传的题目、分析错题、生成错题本，并在家长/老师审核后准备针对性试卷。</span></span>
-    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
-  </div>
-</a>
-<a class="card" data-skill-card data-tags="risk:gated-write industry:education surface:busabase" href="s/kelly-lesson.html">
-  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview.webp" alt="kelly-lesson UI" loading="lazy"></div>
-  <div class="body">
-    <span class="name">kelly-lesson<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
-    <span class="desc"><span class="en">Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export.</span><span class="zh">从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。</span></span>
-    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
-  </div>
-</a>
 <a class="card" data-skill-card data-tags="risk:local-write surface:busabase surface:moonrouter" href="s/kelly-mv.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-mv/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-mv/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-mv/assets/screenshots/thumbs/overview.webp" alt="kelly-mv UI" loading="lazy"></div>
   <div class="body">
@@ -820,6 +805,27 @@ After installation, list the available skills and help me choose the right one f
     <span class="name">kelly-ppt-factory<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Project-based PPTX factory: turns briefs, source materials, and style samples into reviewed slide cards, generates style-consistent PowerPoint decks, and tracks render QA and exports.</span><span class="zh">项目制 PPTX 工厂：把 brief、源材料和风格样张变成可审核的页面卡，批量生成风格一致的 PowerPoint，并跟踪渲染 QA 和导出记录。</span></span>
     <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+</div>
+</section>
+<section class="group-section" data-group-section="education">
+<h2 class="group" id="education"><span class="en">Education &amp; Teaching</span><span class="zh">教育与教学</span></h2>
+<div class="grid">
+<a class="card" data-skill-card data-tags="risk:local-write industry:education surface:busabase" href="s/kelly-homework-coach.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-homework-coach/assets/screenshots/thumbs/student.webp" alt="kelly-homework-coach UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-homework-coach<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Child-friendly homework tutoring desk: the agent explains photographed questions, analyzes wrong answers, builds a mistake notebook, and prepares practice papers behind parent/teacher review.</span><span class="zh">小学生作业辅导台：agent 解释拍照上传的题目、分析错题、生成错题本，并在家长/老师审核后准备针对性试卷。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write industry:education surface:busabase" href="s/kelly-lesson.html">
+  <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-lesson/assets/screenshots/thumbs/overview.webp" alt="kelly-lesson UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-lesson<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Drafts lesson plans from curriculum materials and the school template, runs a compliance checklist against school requirements, and gives the dean a review queue with teacher feedback drafts and document export.</span><span class="zh">从教材和校内模板生成教案草稿，按校内要求跑合规检查清单，给教导主任一个带教师反馈草稿和文档导出的审核队列。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
 </div>
@@ -952,7 +958,8 @@ After installation, list the available skills and help me choose the right one f
 <button class="category-button" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span><span class="count">3</span></button>
 <button class="category-button" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="industry-intel" onclick="mkSetCategory('industry-intel')"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span><span class="count">10</span></button>
-<button class="category-button" type="button" data-category-filter="production" onclick="mkSetCategory('production')"><span class="en">Production &amp; Teaching</span><span class="zh">内容制作与教学</span><span class="count">7</span></button>
+<button class="category-button" type="button" data-category-filter="production" onclick="mkSetCategory('production')"><span class="en">Production</span><span class="zh">内容制作</span><span class="count">5</span></button>
+<button class="category-button" type="button" data-category-filter="education" onclick="mkSetCategory('education')"><span class="en">Education &amp; Teaching</span><span class="zh">教育与教学</span><span class="count">2</span></button>
 <button class="category-button" type="button" data-category-filter="platform" onclick="mkSetCategory('platform')"><span class="en">Agent &amp; Dev Platform</span><span class="zh">Agent 与研发平台</span><span class="count">10</span></button></div>
   </section>
   <section class="side-card">

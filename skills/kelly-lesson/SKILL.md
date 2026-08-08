@@ -2,7 +2,7 @@
 name: kelly-lesson
 description: Lesson-plan generation and compliance-check desk (Busabase App-in-Skill) for a dean of studies or training-program lead. Use when the user invokes $kelly-lesson or /kelly-lesson, mentions lesson plan, 备课, 教案, teaching plan compliance, curriculum template, dean of studies, teacher training, wants lesson plans drafted from curriculum materials and the school template, teacher drafts imported and checked against quality standards, a review queue for approving plans, or a library of approved plans exported as documents.
 metadata:
-  category: production
+  category: education
   tags:
     - risk:gated-write
     - industry:education
