@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Feature Flag Governance & Rollout Safety Desk",
+    "slug": "kelly-feature-flag"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Feature Flag Governance & Rollout Safety Desk Records",
+      "slug": "kelly-feature-flag-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

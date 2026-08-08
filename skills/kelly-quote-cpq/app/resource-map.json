@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "CPQ Quote & Discount Approval Console",
+    "slug": "kelly-quote-cpq"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "CPQ Quote & Discount Approval Console Records",
+      "slug": "kelly-quote-cpq-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

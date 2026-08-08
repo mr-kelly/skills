@@ -258,8 +258,8 @@ h2.group {
         <span class="en">Agent skills for daily business operations. Each App-in-Skill pairs an operating procedure for the agent with a local browser UI where a human reviews, approves, edits, and hands work back — dashboards for money, CRM, chat, SEO, market intel, ops, and more.</span><span class="zh">服务日常业务的 agent skills。每个 App-in-Skill 都由两部分组成：给 agent 的操作规程 + 一个本地浏览器操作台，供人 review、批准、编辑并把任务交还给 agent —— 覆盖资金、CRM、聊天聚合、SEO、市场情报、运维等场景。</span>
       </p>
       <div class="stats">
-        <span><strong>67</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
-        <span><strong>63</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
+        <span><strong>104</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
+        <span><strong>100</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
         <span><strong>0</strong><span class="en">npm dependencies</span><span class="zh">npm 依赖</span></span>
       </div>
       <div class="audit-note">
@@ -317,11 +317,35 @@ After installation, list the available skills and help me choose the right one f
     <section class="group-section" data-group-section="finance">
 <h2 class="group" id="finance"><span class="en">Finance &amp; Back Office</span><span class="zh">财务与后台</span></h2>
 <div class="grid">
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-asset-lifecycle.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-asset-lifecycle<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Tracks fixed assets, depreciation schedules, and maintenance.</span><span class="zh">Tracks fixed assets, depreciation schedules, and maintenance.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-audit.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-audit/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-audit/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-audit/assets/screenshots/thumbs/overview.webp" alt="kelly-audit UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-audit<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Imports orders, invoices, and payments from business exports and audits them against each other: missing invoices, amount mismatches, overdue receivables with aging, duplicates, and unmatched payments, each with an evidence chain and drafted follow-up.</span><span class="zh">导入订单、发票、回款三表并互相稽核：缺发票、金额不符、逾期应收（带账龄）、重复回款、无主回款，每条异常带证据链和催收草稿。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-cashflow-forecast.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-cashflow-forecast<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Forecasts short-term cash flow and working capital liquidity.</span><span class="zh">Forecasts short-term cash flow and working capital liquidity.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-expense-audit.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-expense-audit<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Audits travel receipts and enforces corporate expense policies.</span><span class="zh">Audits travel receipts and enforces corporate expense policies.</span></span>
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
@@ -347,6 +371,30 @@ After installation, list the available skills and help me choose the right one f
     <span class="name">kelly-money<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Aggregates Mercury, Stripe, Airwallex, and Creem into a local money ledger dashboard with total cashflow, account health, and account detail views.</span><span class="zh">聚合 Mercury、Stripe、Airwallex、Creem，形成本地资金台账 dashboard、总流水、账户健康、发票匹配和对账详情。</span></span>
     <span class="risk risk-read-only"><span class="en">Read-only</span><span class="zh">只读</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-procurement-sourcing.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-procurement-sourcing<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Manages vendor sourcing, quotes, and PO approval workflows.</span><span class="zh">Manages vendor sourcing, quotes, and PO approval workflows.</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-saas-finops.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-saas-finops<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Tracks SaaS license usage and optimizes subscription spend.</span><span class="zh">Tracks SaaS license usage and optimizes subscription spend.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-treasury-desk.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-treasury-desk<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Consolidates multi-bank balances and manages FX exposure.</span><span class="zh">Consolidates multi-bank balances and manages FX exposure.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
 </div>
@@ -444,6 +492,22 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-contract-risk.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-contract-risk<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Inspects contract clauses for liability caps and indemnity risks.</span><span class="zh">Inspects contract clauses for liability caps and indemnity risks.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-gdpr-privacy.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-gdpr-privacy<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Manages GDPR/CCPA data subject access requests (DSAR).</span><span class="zh">Manages GDPR/CCPA data subject access requests (DSAR).</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:local-write industry:legal surface:busabase" href="s/kelly-legal-casebase-ingest.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-legal-casebase-ingest/assets/screenshots/thumbs/overview.webp" alt="kelly-legal-casebase-ingest UI" loading="lazy"></div>
   <div class="body">
@@ -484,11 +548,27 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-patent-radar.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-patent-radar<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Analyzes patent filings and evaluates Freedom-to-Operate risks.</span><span class="zh">Analyzes patent filings and evaluates Freedom-to-Operate risks.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
 </div>
 </section>
 <section class="group-section" data-group-section="sales-crm">
 <h2 class="group" id="sales-crm"><span class="en">Sales &amp; Customer</span><span class="zh">销售与客户</span></h2>
 <div class="grid">
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-convo-intel.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-convo-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Analyzes call transcripts and sales emails for customer intent.</span><span class="zh">Analyzes call transcripts and sales emails for customer intent.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-crm.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-crm/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-crm/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-crm/assets/screenshots/thumbs/overview.webp" alt="kelly-crm UI" loading="lazy"></div>
   <div class="body">
@@ -513,6 +593,38 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-lead-enrichment.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-lead-enrichment<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Enriches B2B leads with firmographics and tech stack data.</span><span class="zh">Enriches B2B leads with firmographics and tech stack data.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-nps-survey.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-nps-survey<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Automates CSAT/NPS surveys and aggregates customer sentiment.</span><span class="zh">Automates CSAT/NPS surveys and aggregates customer sentiment.</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-partner-portal.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-partner-portal<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Manages channel partner deal registrations and commissions.</span><span class="zh">Manages channel partner deal registrations and commissions.</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-quote-cpq.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-quote-cpq<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Generates multi-line product quotes and handles discount approvals.</span><span class="zh">Generates multi-line product quotes and handles discount approvals.</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:whatsapp surface:wechat surface:webchat" href="s/kelly-support.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-support/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-support/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-support/assets/screenshots/thumbs/overview.webp" alt="kelly-support UI" loading="lazy"></div>
   <div class="body">
@@ -529,16 +641,48 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-vendor-sla.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-vendor-sla<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Tracks vendor delivery timeliness and quality scorecards.</span><span class="zh">Tracks vendor delivery timeliness and quality scorecards.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
 </div>
 </section>
 <section class="group-section" data-group-section="comms">
 <h2 class="group" id="comms"><span class="en">Comms &amp; Team</span><span class="zh">沟通与协同</span></h2>
 <div class="grid">
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-ats-screener.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-ats-screener<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Parses resumes and evaluates applicant fit against JDs.</span><span class="zh">Parses resumes and evaluates applicant fit against JDs.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-dlp-audit.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-dlp-audit<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Audits documents and emails for sensitive PII or IP leaks.</span><span class="zh">Audits documents and emails for sensitive PII or IP leaks.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:imap surface:smtp" href="s/kelly-email.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-email/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-email/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-email/assets/screenshots/thumbs/overview.webp" alt="kelly-email UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-email<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution.</span><span class="zh">AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-hr-onboarding.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-hr-onboarding<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Manages employee onboarding checklists and system provisioning.</span><span class="zh">Manages employee onboarding checklists and system provisioning.</span></span>
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
@@ -550,11 +694,27 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-perf-360.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-perf-360<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Collects performance reviews and 360-degree peer feedback.</span><span class="zh">Collects performance reviews and 360-degree peer feedback.</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-standup.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-standup/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-standup/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-standup/assets/screenshots/thumbs/overview.webp" alt="kelly-standup UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-standup<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Team standup board: the agent collects members' daily check-ins from chat channels on demand, structures them into yesterday/today/blockers cards with a team digest, and drafts approval-gated nudges for missing check-ins.</span><span class="zh">团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-wfm-scheduler.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-wfm-scheduler<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Optimizes shift schedules and enforces workforce labor rules.</span><span class="zh">Optimizes shift schedules and enforces workforce labor rules.</span></span>
     <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
@@ -577,6 +737,14 @@ After installation, list the available skills and help me choose the right one f
     <span class="name">kelly-campaigns<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Outbound email-marketing desk on the SEND lifecycle (Setup→Engage→Nurture→Deliver): the agent builds segments, drafts campaigns, newsletters, and sequences, and runs pre-send deliverability + subject-line QA behind an EQS quality gate (SHIP/FIX/BLOCK) before anything is scheduled or sent.</span><span class="zh">外发邮件营销台，跑 SEND 生命周期（Setup→Engage→Nurture→Deliver）：agent 建分群，起草 campaign、newsletter 和序列，发送前跑送达率 + 主题行 QA，背后有 EQS 质量门（SHIP/FIX/BLOCK），排期或发送前先过审。</span></span>
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-content-governance.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-content-governance<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Audits marketing copy against brand guidelines and disclaimers.</span><span class="zh">Audits marketing copy against brand guidelines and disclaimers.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
 <a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-creators.html">
@@ -616,12 +784,28 @@ After installation, list the available skills and help me choose the right one f
 <section class="group-section" data-group-section="growth">
 <h2 class="group" id="growth"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span></h2>
 <div class="grid">
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-app-analytics.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-app-analytics<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Tracks app product telemetry, conversion funnels, and retention.</span><span class="zh">Tracks app product telemetry, conversion funnels, and retention.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-behavior-predict.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-behavior-predict/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-behavior-predict/assets/screenshots/thumbs/overview.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-behavior-predict/assets/screenshots/thumbs/overview.webp" alt="kelly-behavior-predict UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-behavior-predict<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Dashboard over mock user-behavior funnel data with per-segment predicted-next-action heuristics and a precision/recall backtest against historical sessions.</span><span class="zh">基于 mock 用户行为漏斗数据的看板，给每个用户分群提供预测下一步动作的启发式规则，并跑准确率回测。</span></span>
     <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-churn-predictor.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-churn-predictor<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Predicts customer churn risk and triggers retention tasks.</span><span class="zh">Predicts customer churn risk and triggers retention tasks.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
 <a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-radar.html">
@@ -653,11 +837,27 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-inventory-reorder.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-inventory-reorder<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Monitors stock levels and automates reorder workflows.</span><span class="zh">Monitors stock levels and automates reorder workflows.</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:gated-write industry:ecommerce surface:busabase" href="s/kelly-listing.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-listing/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-listing/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-listing/assets/screenshots/thumbs/overview.webp" alt="kelly-listing UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-listing<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Listing factory: drafts platform-specific listings (Amazon title/bullets/description/backend terms/A+, Shopify, TikTok Shop, eBay) with locale variants, runs per-platform compliance checks, and exports approved copy.</span><span class="zh">上架工厂：生成各平台 listing（Amazon 标题/五点/描述/后台词/A+、Shopify、TikTok Shop、eBay）和多站点语言变体，跑平台合规检查，批准后导出。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-order-fulfillment.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-order-fulfillment<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Tracks omnichannel order fulfillment and handles return requests.</span><span class="zh">Tracks omnichannel order fulfillment and handles return requests.</span></span>
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
@@ -760,6 +960,14 @@ After installation, list the available skills and help me choose the right one f
     <span class="name">kelly-retail-intel<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Retail operating intelligence desk for weather, events, competitor promotions, product trends, review themes, supplier movement, merchandising, and staff briefs.</span><span class="zh">零售运营情报台：把天气、活动、竞品促销、商品趋势、评价主题、供应变化转成门店陈列和销售动作。</span></span>
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-sustainability-esg.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-sustainability-esg<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Tracks corporate Scope 1/2/3 carbon footprint and ESG metrics.</span><span class="zh">Tracks corporate Scope 1/2/3 carbon footprint and ESG metrics.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
 </div>
@@ -865,6 +1073,22 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-sandbox"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span></span>
   </div>
 </a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-aiops-rootcause.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-aiops-rootcause<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Groups alerts and performs automated incident root cause analysis.</span><span class="zh">Groups alerts and performs automated incident root cause analysis.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-api-governance.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-api-governance<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Manages API schemas, breaking change detection, and rate limits.</span><span class="zh">Manages API schemas, breaking change detection, and rate limits.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-app-skill-creator.html">
   <div class="thumb empty">⚙️</div>
   <div class="body">
@@ -881,12 +1105,52 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-cloud-migration.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-cloud-migration<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Assesses cloud workloads for migration readiness and TCO.</span><span class="zh">Assesses cloud workloads for migration readiness and TCO.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-cspm-checker.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-cspm-checker<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Audits cloud security posture and misconfigurations.</span><span class="zh">Audits cloud security posture and misconfigurations.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:sendgrid" href="s/kelly-devops.html">
   <div class="thumb"><img data-shot-en="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-devops/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-devops/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://raw.githubusercontent.com/mr-kelly/skills/main/skills/kelly-devops/assets/screenshots/thumbs/overview.webp" alt="kelly-devops UI" loading="lazy"></div>
   <div class="body">
     <span class="name">kelly-devops<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval.</span><span class="zh">盯产品矩阵的运维面：服务可用性和延迟、SSL 证书和域名到期、API key 轮换、云支出异常，带 agent 提出的行动卡审批。</span></span>
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-feature-flag.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-feature-flag<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Manages feature flags, canary rollouts, and flag cleanups.</span><span class="zh">Manages feature flags, canary rollouts, and flag cleanups.</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-iam-audit.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-iam-audit<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Audits IAM roles, permissions, and excess privileges.</span><span class="zh">Audits IAM roles, permissions, and excess privileges.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-knowledge-ingest.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-knowledge-ingest<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Processes enterprise documents for RAG chunking and vector indexing.</span><span class="zh">Processes enterprise documents for RAG chunking and vector indexing.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
 <a class="card" data-skill-card data-tags="risk:sandbox surface:busabase" href="s/kelly-llm-gateway.html">
@@ -903,6 +1167,38 @@ After installation, list the available skills and help me choose the right one f
     <span class="name">kelly-pr-review<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Runs a GitHub PR review desk through gh CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved gh pr review actions.</span><span class="zh">通过 gh CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 gh pr review。</span></span>
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-secret-scanner.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-secret-scanner<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Scans codebases and logs for leaked secrets and API keys.</span><span class="zh">Scans codebases and logs for leaked secrets and API keys.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-service-mesh.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-service-mesh<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Inspects service mesh mTLS policies and microservice telemetry.</span><span class="zh">Inspects service mesh mTLS policies and microservice telemetry.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-slo-monitor.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-slo-monitor<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Tracks service SLOs and error budget burn rates.</span><span class="zh">Tracks service SLOs and error budget burn rates.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-vulnerability-center.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-vulnerability-center<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Consolidates CVE vulnerability scans and prioritizes patch fixes.</span><span class="zh">Consolidates CVE vulnerability scans and prioritizes patch fixes.</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
 <a class="card" data-skill-card data-tags="risk:gated-write surface:github" href="s/publish-skills.html">
@@ -947,20 +1243,20 @@ After installation, list the available skills and help me choose the right one f
 </section>
   <section class="side-card">
     <h3><span class="en">Categories</span><span class="zh">分类</span></h3>
-    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">67</span></button>
-<button class="category-button" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">财务与后台</span><span class="count">4</span></button>
+    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">104</span></button>
+<button class="category-button" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">财务与后台</span><span class="count">10</span></button>
 <button class="category-button" type="button" data-category-filter="invest" onclick="mkSetCategory('invest')"><span class="en">Investing &amp; Wealth</span><span class="zh">投资与财富</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="rbf" onclick="mkSetCategory('rbf')"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span><span class="count">5</span></button>
-<button class="category-button" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal &amp; Contracts</span><span class="zh">法务与合同</span><span class="count">6</span></button>
-<button class="category-button" type="button" data-category-filter="sales-crm" onclick="mkSetCategory('sales-crm')"><span class="en">Sales &amp; Customer</span><span class="zh">销售与客户</span><span class="count">5</span></button>
-<button class="category-button" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Team</span><span class="zh">沟通与协同</span><span class="count">3</span></button>
-<button class="category-button" type="button" data-category-filter="marketing" onclick="mkSetCategory('marketing')"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span><span class="count">6</span></button>
-<button class="category-button" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span><span class="count">3</span></button>
-<button class="category-button" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span><span class="count">4</span></button>
-<button class="category-button" type="button" data-category-filter="industry-intel" onclick="mkSetCategory('industry-intel')"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span><span class="count">10</span></button>
+<button class="category-button" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal &amp; Contracts</span><span class="zh">法务与合同</span><span class="count">9</span></button>
+<button class="category-button" type="button" data-category-filter="sales-crm" onclick="mkSetCategory('sales-crm')"><span class="en">Sales &amp; Customer</span><span class="zh">销售与客户</span><span class="count">11</span></button>
+<button class="category-button" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Team</span><span class="zh">沟通与协同</span><span class="count">8</span></button>
+<button class="category-button" type="button" data-category-filter="marketing" onclick="mkSetCategory('marketing')"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span><span class="count">7</span></button>
+<button class="category-button" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span><span class="count">5</span></button>
+<button class="category-button" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span><span class="count">6</span></button>
+<button class="category-button" type="button" data-category-filter="industry-intel" onclick="mkSetCategory('industry-intel')"><span class="en">Industry Intelligence</span><span class="zh">行业情报</span><span class="count">11</span></button>
 <button class="category-button" type="button" data-category-filter="production" onclick="mkSetCategory('production')"><span class="en">Production</span><span class="zh">内容制作</span><span class="count">5</span></button>
 <button class="category-button" type="button" data-category-filter="education" onclick="mkSetCategory('education')"><span class="en">Education &amp; Teaching</span><span class="zh">教育与教学</span><span class="count">2</span></button>
-<button class="category-button" type="button" data-category-filter="platform" onclick="mkSetCategory('platform')"><span class="en">Agent &amp; Dev Platform</span><span class="zh">Agent 与研发平台</span><span class="count">10</span></button></div>
+<button class="category-button" type="button" data-category-filter="platform" onclick="mkSetCategory('platform')"><span class="en">Agent &amp; Dev Platform</span><span class="zh">Agent 与研发平台</span><span class="count">21</span></button></div>
   </section>
   <section class="side-card">
     <h3><span class="en">What it can touch</span><span class="zh">外部副作用</span></h3>
@@ -968,8 +1264,8 @@ After installation, list the available skills and help me choose the right one f
       <button class="tag-button active" type="button" data-tag-filter="risk:all" onclick="mkSetTag('risk:all')"><span class="en">Any</span><span class="zh">不限</span></button>
 <button class="tag-button" type="button" data-tag-filter="risk:sandbox" onclick="mkSetTag('risk:sandbox')"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span><span class="count">8</span></button>
 <button class="tag-button" type="button" data-tag-filter="risk:read-only" onclick="mkSetTag('risk:read-only')"><span class="en">Read-only</span><span class="zh">只读</span><span class="count">7</span></button>
-<button class="tag-button" type="button" data-tag-filter="risk:local-write" onclick="mkSetTag('risk:local-write')"><span class="en">Local only</span><span class="zh">仅本地</span><span class="count">22</span></button>
-<button class="tag-button" type="button" data-tag-filter="risk:gated-write" onclick="mkSetTag('risk:gated-write')"><span class="en">Gated write</span><span class="zh">审批后写</span><span class="count">30</span></button>
+<button class="tag-button" type="button" data-tag-filter="risk:local-write" onclick="mkSetTag('risk:local-write')"><span class="en">Local only</span><span class="zh">仅本地</span><span class="count">49</span></button>
+<button class="tag-button" type="button" data-tag-filter="risk:gated-write" onclick="mkSetTag('risk:gated-write')"><span class="en">Gated write</span><span class="zh">审批后写</span><span class="count">40</span></button>
     </div>
   </section>
   <section class="side-card">

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Strategic Procurement & PO Approval Console",
+    "slug": "kelly-procurement-sourcing"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Strategic Procurement & PO Approval Console Records",
+      "slug": "kelly-procurement-sourcing-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Supplier SLA & Quality Performance Desk",
+    "slug": "kelly-vendor-sla"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Supplier SLA & Quality Performance Desk Records",
+      "slug": "kelly-vendor-sla-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

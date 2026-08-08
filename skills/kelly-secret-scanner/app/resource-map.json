@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Secret Scanner & Leakage Audit Desk",
+    "slug": "kelly-secret-scanner"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Secret Scanner & Leakage Audit Desk Records",
+      "slug": "kelly-secret-scanner-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

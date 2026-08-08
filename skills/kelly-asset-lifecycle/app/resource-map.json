@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Enterprise Fixed Asset Lifecycle Console",
+    "slug": "kelly-asset-lifecycle"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Enterprise Fixed Asset Lifecycle Console Records",
+      "slug": "kelly-asset-lifecycle-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

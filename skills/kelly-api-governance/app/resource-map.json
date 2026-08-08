@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "API Lifecycle & Schema Governance Console",
+    "slug": "kelly-api-governance"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "API Lifecycle & Schema Governance Console Records",
+      "slug": "kelly-api-governance-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

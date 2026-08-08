@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Customer Churn Predictor & Retention Desk",
+    "slug": "kelly-churn-predictor"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Customer Churn Predictor & Retention Desk Records",
+      "slug": "kelly-churn-predictor-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

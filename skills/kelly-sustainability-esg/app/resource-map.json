@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Corporate ESG & Carbon Footprint Tracker",
+    "slug": "kelly-sustainability-esg"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Corporate ESG & Carbon Footprint Tracker Records",
+      "slug": "kelly-sustainability-esg-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

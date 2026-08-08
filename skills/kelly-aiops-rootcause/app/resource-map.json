@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "AIOps Incident Alert & Root Cause Analyzer",
+    "slug": "kelly-aiops-rootcause"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "AIOps Incident Alert & Root Cause Analyzer Records",
+      "slug": "kelly-aiops-rootcause-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

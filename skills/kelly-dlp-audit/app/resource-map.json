@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Data Loss Prevention & PII Auditor",
+    "slug": "kelly-dlp-audit"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Data Loss Prevention & PII Auditor Records",
+      "slug": "kelly-dlp-audit-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

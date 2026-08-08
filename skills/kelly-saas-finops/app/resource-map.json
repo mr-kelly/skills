@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "SaaS License & Subscription FinOps Console",
+    "slug": "kelly-saas-finops"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "SaaS License & Subscription FinOps Console Records",
+      "slug": "kelly-saas-finops-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

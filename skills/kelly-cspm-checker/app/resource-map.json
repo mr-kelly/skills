@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Cloud Security Posture & CSPM Inspector",
+    "slug": "kelly-cspm-checker"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Cloud Security Posture & CSPM Inspector Records",
+      "slug": "kelly-cspm-checker-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

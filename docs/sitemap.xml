@@ -36,12 +36,37 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-aiops-rootcause.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-api-governance.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-app-analytics.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-app-skill-creator.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-asset-lifecycle.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-ats-screener.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -71,7 +96,37 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-cashflow-forecast.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-churn-predictor.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-clm.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-cloud-migration.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-content-governance.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-contract-risk.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-convo-intel.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -82,6 +137,11 @@
   </url>
   <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-crm.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-cspm-checker.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -111,6 +171,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-dlp-audit.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-drama.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -131,12 +196,22 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-expense-audit.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-family-fund.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-family-office.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-feature-flag.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -156,7 +231,22 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-gdpr-privacy.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-homework-coach.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-hr-onboarding.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-iam-audit.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -176,6 +266,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-inventory-reorder.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-invest-stock.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -191,7 +286,17 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-knowledge-ingest.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-launch.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-lead-enrichment.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -256,6 +361,31 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-nps-survey.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-order-fulfillment.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-partner-portal.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-patent-radar.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-perf-360.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-picks.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -276,7 +406,17 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-procurement-sourcing.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-products.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-quote-cpq.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -306,7 +446,27 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-saas-finops.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-secret-scanner.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-seo.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-service-mesh.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-slo-monitor.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -326,7 +486,32 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-sustainability-esg.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-tickets.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-treasury-desk.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-vendor-sla.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-vulnerability-center.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-wfm-scheduler.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

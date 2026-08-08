@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "IAM Privilege Audit & Identity Desk",
+    "slug": "kelly-iam-audit"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "IAM Privilege Audit & Identity Desk Records",
+      "slug": "kelly-iam-audit-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

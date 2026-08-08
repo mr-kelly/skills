@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Contract Clause Risk & Indemnity Inspector",
+    "slug": "kelly-contract-risk"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Contract Clause Risk & Indemnity Inspector Records",
+      "slug": "kelly-contract-risk-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

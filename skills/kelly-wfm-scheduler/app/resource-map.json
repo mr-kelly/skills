@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Workforce Management & Shift Scheduler",
+    "slug": "kelly-wfm-scheduler"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Workforce Management & Shift Scheduler Records",
+      "slug": "kelly-wfm-scheduler-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

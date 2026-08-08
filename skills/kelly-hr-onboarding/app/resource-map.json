@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "HR Employee Onboarding & Provisioning Desk",
+    "slug": "kelly-hr-onboarding"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "HR Employee Onboarding & Provisioning Desk Records",
+      "slug": "kelly-hr-onboarding-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

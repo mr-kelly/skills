@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Brand Guidelines & Content Compliance Desk",
+    "slug": "kelly-content-governance"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Brand Guidelines & Content Compliance Desk Records",
+      "slug": "kelly-content-governance-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}
