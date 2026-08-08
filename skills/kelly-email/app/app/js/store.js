@@ -37,7 +37,7 @@ function modeForDemo(value) {
   return "all";
 }
 
-const params = new URLSearchParams(window.location.search);
+const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
 const demoScenario = params.get("demo") || "";
 const queryLanguage = params.get("lang");
 
@@ -49,8 +49,13 @@ export const store = {
   refreshTimer: null,
   lockTimer: null,
   mode: modeForDemo(demoScenario),
-  languageMode: queryLanguage || localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto",
-  accentTheme: resolveAccentTheme(localStorage.getItem(ACCENT_THEME_STORAGE_KEY) || "blue"),
+  languageMode:
+    queryLanguage ||
+    (typeof localStorage !== "undefined" ? localStorage.getItem(LANGUAGE_STORAGE_KEY) : null) ||
+    "auto",
+  accentTheme: resolveAccentTheme(
+    (typeof localStorage !== "undefined" ? localStorage.getItem(ACCENT_THEME_STORAGE_KEY) : null) || "blue",
+  ),
   uiLanguage: "en",
   isApplyingRoute: false,
   routeNeedsReplace: false,

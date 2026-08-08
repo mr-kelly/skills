@@ -1,3 +1,4 @@
+// @ts-nocheck -- browser client code linted by Biome
 import { I18N } from "../i18n/messages.js";
 import { toast } from "./api.js";
 import { escapeHtml } from "./format.js";

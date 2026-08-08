@@ -91,6 +91,11 @@ const ROUTE_OVERRIDES = {
   "kelly-money": {
     detail: "/invoices/inv-render-20260625",
   },
+  "kelly-invest-stock": {
+    overview: "/strategies",
+    detail: "/strategies/buffett/portfolio",
+    regression: "/regression",
+  },
 };
 
 const GENERIC_ROUTE_MAP = {

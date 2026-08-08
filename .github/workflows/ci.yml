@@ -72,16 +72,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout with LFS
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      - name: Stage Pages site with LFS assets
+      - name: Stage Pages site with screenshots
         run: |
           node scripts/build-site.mjs
           site="$RUNNER_TEMP/pages"
