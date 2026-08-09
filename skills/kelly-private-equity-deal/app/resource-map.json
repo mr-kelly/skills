@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "PE / VC Deal Sourcing & LBO Valuation Desk",
+    "slug": "kelly-private-equity-deal"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "PE / VC Deal Sourcing & LBO Valuation Desk Records",
+      "slug": "kelly-private-equity-deal-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Contingent Workforce & VMS Vendor Desk",
+    "slug": "kelly-contractor-vms"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Contingent Workforce & VMS Vendor Desk Records",
+      "slug": "kelly-contractor-vms-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

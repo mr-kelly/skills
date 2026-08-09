@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMR Interoperability & HIPAA Audit Desk</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --accent: #38bdf8;
+      --text: #f9fafb;
+      --subtext: #9ca3af;
+      --border: #1f2937;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: var(--card-bg); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 700; font-size: 18px; color: var(--accent); }
+    .status-badge { background: rgba(56,189,248,0.15); color: var(--accent); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    main { flex: 1; padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+    .metric-title { font-size: 12px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 24px; font-weight: 700; margin-top: 8px; color: var(--text); }
+    .section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 24px; }
+    .section-title { font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { color: var(--subtext); padding: 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .btn { background: var(--accent); color: #000; font-weight: 600; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="logo">EMR Interoperability & HIPAA Audit Desk</div>
+      <div class="status-badge">System Active</div>
+    </header>
+    <main>
+      <div class="metrics">
+
+        <div class="metric-card">
+          <div class="metric-title">EHR Access Logs (24h)</div>
+          <div class="metric-value">48,290 Events</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">After-Hours Access</div>
+          <div class="metric-value">14 Alerts</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Unencrypted FHIR</div>
+          <div class="metric-value">0 Breaches</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">HIPAA Risk Rating</div>
+          <div class="metric-value">LOW_RISK (12)</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Domain Operational Workbench</div>
+        <p style="color: var(--subtext); font-size: 14px; margin-bottom: 16px;">Audit electronic medical record access logs, HL7/FHIR endpoint security, and HIPAA Privacy/Security Rule violations.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Audit ID</th><th>Accessor Role</th><th>Patient MRN</th><th>Access Time</th><th>Security Flags</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>EMR-9041</td><td>Nurse Practitioner</td><td>MRN-88201</td><td>23:14 UTC</td><td><span style='color:#facc15;'>AFTER_HOURS</span></td><td><button class="btn">Investigate Log</button></td></tr>
+<tr><td>EMR-9042</td><td>Attending Physician</td><td>MRN-10923</td><td>10:02 UTC</td><td><span style='color:#4ade80;'>ENCRYPTED_FHIR</span></td><td><button class="btn">View Trace</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

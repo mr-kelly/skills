@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Executive Succession & High-Po Talent Desk",
+    "slug": "kelly-talent-succession"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Executive Succession & High-Po Talent Desk Records",
+      "slug": "kelly-talent-succession-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

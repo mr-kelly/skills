@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Board Resolution & Minutes Governance Desk",
+    "slug": "kelly-board-governance"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Board Resolution & Minutes Governance Desk Records",
+      "slug": "kelly-board-governance-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

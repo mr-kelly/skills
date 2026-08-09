@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Dynamic Product Pricing & Margin Optimizer",
+    "slug": "kelly-pricing-margin"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Dynamic Product Pricing & Margin Optimizer Records",
+      "slug": "kelly-pricing-margin-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

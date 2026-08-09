@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "MES Quality Inspection & SPC Console",
+    "slug": "kelly-mes-quality"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "MES Quality Inspection & SPC Console Records",
+      "slug": "kelly-mes-quality-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

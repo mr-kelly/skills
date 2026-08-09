@@ -1,0 +1,11 @@
+{
+  "name": "kelly-global-payroll",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --dir app dev",
+    "start": "pnpm --dir app start",
+    "check": "pnpm --dir app check"
+  }
+}

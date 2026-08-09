@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Precision Agronomy & Crop Yield Desk",
+    "slug": "kelly-agriculture-crop-yield"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Precision Agronomy & Crop Yield Desk Records",
+      "slug": "kelly-agriculture-crop-yield-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

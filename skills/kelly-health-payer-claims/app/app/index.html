@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Insurance Claims Adjudication Desk</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --accent: #38bdf8;
+      --text: #f9fafb;
+      --subtext: #9ca3af;
+      --border: #1f2937;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: var(--card-bg); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 700; font-size: 18px; color: var(--accent); }
+    .status-badge { background: rgba(56,189,248,0.15); color: var(--accent); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    main { flex: 1; padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+    .metric-title { font-size: 12px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 24px; font-weight: 700; margin-top: 8px; color: var(--text); }
+    .section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 24px; }
+    .section-title { font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { color: var(--subtext); padding: 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .btn { background: var(--accent); color: #000; font-weight: 600; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="logo">Health Insurance Claims Adjudication Desk</div>
+      <div class="status-badge">System Active</div>
+    </header>
+    <main>
+      <div class="metrics">
+
+        <div class="metric-card">
+          <div class="metric-title">Adjudicated Claims</div>
+          <div class="metric-value">$2.4M Billed</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Approved Payouts</div>
+          <div class="metric-value">$1.92M (80.0%)</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Denied Claims</div>
+          <div class="metric-value">12 Claims</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Prior Auth Match</div>
+          <div class="metric-value">95.2%</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Domain Operational Workbench</div>
+        <p style="color: var(--subtext); font-size: 14px; margin-bottom: 16px;">Adjudicate medical billing claims, verify ICD-10/CPT coding alignment, and flag prior authorization denials.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Claim Ref</th><th>ICD-10 Code</th><th>Billed Amt</th><th>Approved</th><th>Denial Reason</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>CLM-9901</td><td>I10 (Essential Hypertension)</td><td>$1,250</td><td>$1,000</td><td><span style='color:#4ade80;'>NONE</span></td><td><button class="btn">Approve Claim</button></td></tr>
+<tr><td>CLM-9902</td><td>M54.5 (Lumbago)</td><td>$3,400</td><td>$0</td><td><span style='color:#f87171;'>MISSING_PRIOR_AUTH</span></td><td><button class="btn">Route Denial</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

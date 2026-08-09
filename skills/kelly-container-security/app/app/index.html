@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kubernetes Image Vulnerability Desk</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --accent: #38bdf8;
+      --text: #f9fafb;
+      --subtext: #9ca3af;
+      --border: #1f2937;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: var(--card-bg); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 700; font-size: 18px; color: var(--accent); }
+    .status-badge { background: rgba(56,189,248,0.15); color: var(--accent); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    main { flex: 1; padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+    .metric-title { font-size: 12px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 24px; font-weight: 700; margin-top: 8px; color: var(--text); }
+    .section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 24px; }
+    .section-title { font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { color: var(--subtext); padding: 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .btn { background: var(--accent); color: #000; font-weight: 600; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="logo">Kubernetes Image Vulnerability Desk</div>
+      <div class="status-badge">System Active</div>
+    </header>
+    <main>
+      <div class="metrics">
+
+        <div class="metric-card">
+          <div class="metric-title">Images Scanned</div>
+          <div class="metric-value">14,200 Scans</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Critical CVEs</div>
+          <div class="metric-value">0 Active</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">High Severity CVEs</div>
+          <div class="metric-value">24 Patched</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Registry Posture</div>
+          <div class="metric-value">PASSED_GATE</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Domain Operational Workbench</div>
+        <p style="color: var(--subtext); font-size: 14px; margin-bottom: 16px;">Audit container registry image vulnerabilities, CVE severity ratings, and Kyverno policy enforcement.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Image Tag</th><th>Base OS</th><th>Critical CVE</th><th>High CVE</th><th>Kyverno Policy</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>api-gateway:v2.4.1</td><td>Alpine 3.18</td><td>0</td><td>2</td><td><span style='color:#4ade80;'>PASSED</span></td><td><button class="btn">View SBOM</button></td></tr>
+<tr><td>legacy-worker:v1.0</td><td>Debian 10</td><td><span style='color:#f87171;'>4 (Log4j)</span></td><td>12</td><td><span style='color:#f87171;'>DEPLOY_BLOCKED</span></td><td><button class="btn">Force Patch</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

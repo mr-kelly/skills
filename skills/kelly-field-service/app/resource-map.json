@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Field Service Technician Dispatch Console",
+    "slug": "kelly-field-service"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Field Service Technician Dispatch Console Records",
+      "slug": "kelly-field-service-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

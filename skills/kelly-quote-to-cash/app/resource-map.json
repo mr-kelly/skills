@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Quote-to-Cash (Q2C) Deal Approval Desk",
+    "slug": "kelly-quote-to-cash"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Quote-to-Cash (Q2C) Deal Approval Desk Records",
+      "slug": "kelly-quote-to-cash-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

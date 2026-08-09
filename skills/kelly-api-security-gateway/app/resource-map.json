@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "API Security & Schema Violation Monitor",
+    "slug": "kelly-api-security-gateway"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "API Security & Schema Violation Monitor Records",
+      "slug": "kelly-api-security-gateway-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

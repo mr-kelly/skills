@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Creative Ad Variant Performance & Visual Tester",
+    "slug": "kelly-creative-ad-testing"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Creative Ad Variant Performance & Visual Tester Records",
+      "slug": "kelly-creative-ad-testing-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

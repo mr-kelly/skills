@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Hospital Pharmacy Formulary & Safety Desk",
+    "slug": "kelly-pharmacy-formulary"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Hospital Pharmacy Formulary & Safety Desk Records",
+      "slug": "kelly-pharmacy-formulary-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

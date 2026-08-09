@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Candidate Interview Scorecard Evaluation",
+    "slug": "kelly-ats-candidate-score"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Candidate Interview Scorecard Evaluation Records",
+      "slug": "kelly-ats-candidate-score-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

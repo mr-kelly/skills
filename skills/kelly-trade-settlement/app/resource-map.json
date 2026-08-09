@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Securities Trade Settlement & Fail Desk",
+    "slug": "kelly-trade-settlement"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Securities Trade Settlement & Fail Desk Records",
+      "slug": "kelly-trade-settlement-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

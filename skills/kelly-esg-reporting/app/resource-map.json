@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Corporate ESG Disclosure & Carbon Desk",
+    "slug": "kelly-esg-reporting"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Corporate ESG Disclosure & Carbon Desk Records",
+      "slug": "kelly-esg-reporting-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

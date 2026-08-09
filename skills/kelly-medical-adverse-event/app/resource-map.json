@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Medical Device & Drug Adverse Event Desk",
+    "slug": "kelly-medical-adverse-event"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Medical Device & Drug Adverse Event Desk Records",
+      "slug": "kelly-medical-adverse-event-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

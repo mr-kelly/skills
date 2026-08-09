@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Influencer Marketing & ROAS Tracking Desk",
+    "slug": "kelly-influencer-kol"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Influencer Marketing & ROAS Tracking Desk Records",
+      "slug": "kelly-influencer-kol-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

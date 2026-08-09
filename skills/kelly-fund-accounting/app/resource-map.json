@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Fund Accounting NAV & Audit Desk",
+    "slug": "kelly-fund-accounting"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Fund Accounting NAV & Audit Desk Records",
+      "slug": "kelly-fund-accounting-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

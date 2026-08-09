@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Export Control & Sanctions Screening Desk",
+    "slug": "kelly-trade-compliance"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Export Control & Sanctions Screening Desk Records",
+      "slug": "kelly-trade-compliance-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

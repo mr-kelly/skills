@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "IGA Access Certification Review Desk",
+    "slug": "kelly-identity-governance-iga"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "IGA Access Certification Review Desk Records",
+      "slug": "kelly-identity-governance-iga-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

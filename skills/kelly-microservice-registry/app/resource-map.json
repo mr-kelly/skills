@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Microservice Service Catalog & Graph Desk",
+    "slug": "kelly-microservice-registry"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Microservice Service Catalog & Graph Desk Records",
+      "slug": "kelly-microservice-registry-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

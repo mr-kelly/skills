@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Threat Intelligence & IOC Radar</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --accent: #38bdf8;
+      --text: #f9fafb;
+      --subtext: #9ca3af;
+      --border: #1f2937;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: var(--card-bg); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 700; font-size: 18px; color: var(--accent); }
+    .status-badge { background: rgba(56,189,248,0.15); color: var(--accent); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    main { flex: 1; padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+    .metric-title { font-size: 12px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 24px; font-weight: 700; margin-top: 8px; color: var(--text); }
+    .section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 24px; }
+    .section-title { font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { color: var(--subtext); padding: 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .btn { background: var(--accent); color: #000; font-weight: 600; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="logo">Cyber Threat Intelligence & IOC Radar</div>
+      <div class="status-badge">System Active</div>
+    </header>
+    <main>
+      <div class="metrics">
+
+        <div class="metric-card">
+          <div class="metric-title">IOCs Ingested (7d)</div>
+          <div class="metric-value">24.5K IOCs</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">High Confidence IOCs</div>
+          <div class="metric-value">420 Hashes</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">APT Campaigns</div>
+          <div class="metric-value">4 Active</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Global Threat Level</div>
+          <div class="metric-value">ELEVATED</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Domain Operational Workbench</div>
+        <p style="color: var(--subtext); font-size: 14px; margin-bottom: 16px;">Aggregate threat intelligence feeds, Indicator of Compromise (IOC) hashes, and APT actor attribution.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>IOC / Hash</th><th>Indicator Type</th><th>Confidence</th><th>APT Attribution</th><th>Firewall Block</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>0x4a2b...99f1</td><td>SHA-256 (Malware)</td><td>98 / 100</td><td>Lazarus Group</td><td><span style='color:#4ade80;'>BLOCKED</span></td><td><button class="btn">View MITRE</button></td></tr>
+<tr><td>103.45.xx.xx</td><td>C2 IP Address</td><td>85 / 100</td><td>Cozy Bear</td><td><span style='color:#facc15;'>NOT_BLOCKED</span></td><td><button class="btn">Push to WAF</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Database Sensitive Data Masking Desk",
+    "slug": "kelly-db-privacy-masking"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Database Sensitive Data Masking Desk Records",
+      "slug": "kelly-db-privacy-masking-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Hospital Medical Device Maintenance Desk",
+    "slug": "kelly-med-device-maintenance"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Hospital Medical Device Maintenance Desk Records",
+      "slug": "kelly-med-device-maintenance-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

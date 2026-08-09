@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Zero-Downtime DB Schema Migration Desk",
+    "slug": "kelly-db-migration"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Zero-Downtime DB Schema Migration Desk Records",
+      "slug": "kelly-db-migration-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

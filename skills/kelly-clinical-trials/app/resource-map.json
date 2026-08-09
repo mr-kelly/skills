@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Clinical Trial Protocol & Subject Desk",
+    "slug": "kelly-clinical-trials"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Clinical Trial Protocol & Subject Desk Records",
+      "slug": "kelly-clinical-trials-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

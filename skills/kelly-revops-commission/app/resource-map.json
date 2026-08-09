@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Sales Commission & Territory Plan Desk",
+    "slug": "kelly-revops-commission"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Sales Commission & Territory Plan Desk Records",
+      "slug": "kelly-revops-commission-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

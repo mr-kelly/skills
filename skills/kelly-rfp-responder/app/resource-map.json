@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Enterprise RFP Response Knowledge Desk",
+    "slug": "kelly-rfp-responder"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Enterprise RFP Response Knowledge Desk Records",
+      "slug": "kelly-rfp-responder-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

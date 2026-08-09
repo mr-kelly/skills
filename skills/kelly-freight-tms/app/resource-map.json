@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Freight Dispatch & Customs Clearance Desk",
+    "slug": "kelly-freight-tms"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Freight Dispatch & Customs Clearance Desk Records",
+      "slug": "kelly-freight-tms-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Merit Increase & Equity Bonus Planning Desk",
+    "slug": "kelly-compensation-planning"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Merit Increase & Equity Bonus Planning Desk Records",
+      "slug": "kelly-compensation-planning-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

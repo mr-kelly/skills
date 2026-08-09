@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "AI Prompt Regression & Cost Optimizer",
+    "slug": "kelly-prompt-regression"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "AI Prompt Regression & Cost Optimizer Records",
+      "slug": "kelly-prompt-regression-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

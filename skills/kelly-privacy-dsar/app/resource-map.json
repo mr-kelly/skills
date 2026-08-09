@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Privacy DSAR Right-to-be-Forgotten Desk",
+    "slug": "kelly-privacy-dsar"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Privacy DSAR Right-to-be-Forgotten Desk Records",
+      "slug": "kelly-privacy-dsar-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

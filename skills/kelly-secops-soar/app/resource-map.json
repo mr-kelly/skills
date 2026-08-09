@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "SOAR Security Playbook Orchestration Desk",
+    "slug": "kelly-secops-soar"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "SOAR Security Playbook Orchestration Desk Records",
+      "slug": "kelly-secops-soar-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

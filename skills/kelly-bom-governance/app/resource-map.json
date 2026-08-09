@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Manufacturing Bill of Materials (BOM) Desk",
+    "slug": "kelly-bom-governance"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Manufacturing Bill of Materials (BOM) Desk Records",
+      "slug": "kelly-bom-governance-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

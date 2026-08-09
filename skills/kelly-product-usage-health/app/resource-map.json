@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "PLG Product Usage Adoption & Health Desk",
+    "slug": "kelly-product-usage-health"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "PLG Product Usage Adoption & Health Desk Records",
+      "slug": "kelly-product-usage-health-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "CDP Audience Segmentation & Sync Desk",
+    "slug": "kelly-customer-cdp-segment"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "CDP Audience Segmentation & Sync Desk Records",
+      "slug": "kelly-customer-cdp-segment-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Multi-Cloud Reserved Instance Optimizer",
+    "slug": "kelly-cloud-finops-advisor"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Multi-Cloud Reserved Instance Optimizer Records",
+      "slug": "kelly-cloud-finops-advisor-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "App Store Optimization (ASO) & Review Desk",
+    "slug": "kelly-app-store-aso"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "App Store Optimization (ASO) & Review Desk Records",
+      "slug": "kelly-app-store-aso-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

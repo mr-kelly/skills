@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "PR Media Distribution & Share of Voice Desk",
+    "slug": "kelly-pr-media-monitoring"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "PR Media Distribution & Share of Voice Desk Records",
+      "slug": "kelly-pr-media-monitoring-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

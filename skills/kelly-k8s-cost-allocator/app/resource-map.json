@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Kubernetes Pod Cost & Right-Sizing Desk",
+    "slug": "kelly-k8s-cost-allocator"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Kubernetes Pod Cost & Right-Sizing Desk Records",
+      "slug": "kelly-k8s-cost-allocator-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

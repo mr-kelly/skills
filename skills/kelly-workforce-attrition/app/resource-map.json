@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Employee Retention Risk & Exit Analytics",
+    "slug": "kelly-workforce-attrition"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Employee Retention Risk & Exit Analytics Records",
+      "slug": "kelly-workforce-attrition-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

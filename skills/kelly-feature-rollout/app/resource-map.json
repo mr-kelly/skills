@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Feature Flag Canary & Guardrail Control Desk",
+    "slug": "kelly-feature-rollout"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Feature Flag Canary & Guardrail Control Desk Records",
+      "slug": "kelly-feature-rollout-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

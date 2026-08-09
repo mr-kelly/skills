@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "ER Workplace Grievance & Incident Desk",
+    "slug": "kelly-employee-relations"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "ER Workplace Grievance & Incident Desk Records",
+      "slug": "kelly-employee-relations-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

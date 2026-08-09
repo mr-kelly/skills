@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Restaurant POS, KDS & Recipe Costing Desk",
+    "slug": "kelly-restaurant-kitchen-kds"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Restaurant POS, KDS & Recipe Costing Desk Records",
+      "slug": "kelly-restaurant-kitchen-kds-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

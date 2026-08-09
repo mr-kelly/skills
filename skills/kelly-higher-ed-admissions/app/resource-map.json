@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "University Admissions Recruitment Desk",
+    "slug": "kelly-higher-ed-admissions"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "University Admissions Recruitment Desk Records",
+      "slug": "kelly-higher-ed-admissions-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Key Account Strategy & Org Chart Matrix",
+    "slug": "kelly-key-account-plan"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Key Account Strategy & Org Chart Matrix Records",
+      "slug": "kelly-key-account-plan-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

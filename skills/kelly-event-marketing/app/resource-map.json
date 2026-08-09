@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Summit Event Marketing & Badge Scan Desk",
+    "slug": "kelly-event-marketing"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Summit Event Marketing & Badge Scan Desk Records",
+      "slug": "kelly-event-marketing-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

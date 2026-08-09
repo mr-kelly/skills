@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "LLM Fine-Tuning & Model Evaluation Desk",
+    "slug": "kelly-llm-fine-tune"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "LLM Fine-Tuning & Model Evaluation Desk Records",
+      "slug": "kelly-llm-fine-tune-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

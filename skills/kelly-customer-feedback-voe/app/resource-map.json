@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Voice of Customer (VoC) Feature Router",
+    "slug": "kelly-customer-feedback-voe"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Voice of Customer (VoC) Feature Router Records",
+      "slug": "kelly-customer-feedback-voe-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

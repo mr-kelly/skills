@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Security & Schema Violation Monitor</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --accent: #38bdf8;
+      --text: #f9fafb;
+      --subtext: #9ca3af;
+      --border: #1f2937;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: var(--card-bg); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 700; font-size: 18px; color: var(--accent); }
+    .status-badge { background: rgba(56,189,248,0.15); color: var(--accent); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    main { flex: 1; padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+    .metric-title { font-size: 12px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 24px; font-weight: 700; margin-top: 8px; color: var(--text); }
+    .section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 24px; }
+    .section-title { font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { color: var(--subtext); padding: 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .btn { background: var(--accent); color: #000; font-weight: 600; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="logo">API Security & Schema Violation Monitor</div>
+      <div class="status-badge">System Active</div>
+    </header>
+    <main>
+      <div class="metrics">
+
+        <div class="metric-card">
+          <div class="metric-title">API Requests (1h)</div>
+          <div class="metric-value">14.2M Req</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Schema Violations</div>
+          <div class="metric-value">450 BOLA</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Rate Limit Breaches</div>
+          <div class="metric-value">1,200 Drops</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Gateway Health</div>
+          <div class="metric-value">ATTACK_DETECTED</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Domain Operational Workbench</div>
+        <p style="color: var(--subtext); font-size: 14px; margin-bottom: 16px;">Inspect API gateway traffic for OWASP API vulnerabilities, rate limit breaches, and credential stuffing.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Endpoint Route</th><th>Method</th><th>Anomaly Type</th><th>Source IP</th><th>Gateway Action</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>/api/v2/users/auth</td><td>POST</td><td>Credential Stuffing</td><td>192.168.x.x</td><td><span style='color:#4ade80;'>RATE_LIMITED</span></td><td><button class="btn">Ban Subnet</button></td></tr>
+<tr><td>/api/v1/payments</td><td>PUT</td><td>BOLA / IDOR Attempt</td><td>45.22.x.x</td><td><span style='color:#f87171;'>PASSED_THROUGH</span></td><td><button class="btn">Enforce Schema</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

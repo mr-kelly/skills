@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "B2B Customer Onboarding & TTV Desk",
+    "slug": "kelly-customer-onboarding"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "B2B Customer Onboarding & TTV Desk Records",
+      "slug": "kelly-customer-onboarding-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

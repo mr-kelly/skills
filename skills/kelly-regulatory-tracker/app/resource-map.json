@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Financial & Environmental Regulatory Tracker",
+    "slug": "kelly-regulatory-tracker"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Financial & Environmental Regulatory Tracker Records",
+      "slug": "kelly-regulatory-tracker-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

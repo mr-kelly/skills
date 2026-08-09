@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Mortgage Origination & Title Audit Desk",
+    "slug": "kelly-mortgage-origination"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Mortgage Origination & Title Audit Desk Records",
+      "slug": "kelly-mortgage-origination-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "FCPA Third-Party Anti-Bribery Audit Desk",
+    "slug": "kelly-anti-bribery-fcpa"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "FCPA Third-Party Anti-Bribery Audit Desk Records",
+      "slug": "kelly-anti-bribery-fcpa-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

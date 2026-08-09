@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Digital Asset Management (DAM) Governance",
+    "slug": "kelly-brand-asset-dam"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Digital Asset Management (DAM) Governance Records",
+      "slug": "kelly-brand-asset-dam-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Multi-Touch Marketing Attribution Desk",
+    "slug": "kelly-campaign-attribution"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Multi-Touch Marketing Attribution Desk Records",
+      "slug": "kelly-campaign-attribution-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

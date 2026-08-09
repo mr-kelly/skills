@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Warehouse Putaway, Picking & Cycle Count Desk",
+    "slug": "kelly-warehouse-wms"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Warehouse Putaway, Picking & Cycle Count Desk Records",
+      "slug": "kelly-warehouse-wms-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

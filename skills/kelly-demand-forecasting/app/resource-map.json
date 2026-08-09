@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Supply Chain Demand & S&OP Planning Desk",
+    "slug": "kelly-demand-forecasting"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Supply Chain Demand & S&OP Planning Desk Records",
+      "slug": "kelly-demand-forecasting-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

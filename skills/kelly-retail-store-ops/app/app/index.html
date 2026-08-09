@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retail Store Audit & Merchandising Desk</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --subtext: #94a3b8;
+      --border: #334155;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: var(--card-bg); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 700; font-size: 18px; color: var(--accent); }
+    .status-badge { background: rgba(56,189,248,0.15); color: var(--accent); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    main { flex: 1; padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+    .metric-title { font-size: 13px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 28px; font-weight: 700; margin-top: 8px; color: var(--text); }
+    .section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 24px; }
+    .section-title { font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { color: var(--subtext); padding: 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .btn { background: var(--accent); color: #000; font-weight: 600; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+    .btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="logo">Retail Store Audit & Merchandising Desk</div>
+      <div class="status-badge">System Active</div>
+    </header>
+    <main>
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-title">Active Items</div>
+          <div class="metric-value">142</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Pending Approvals</div>
+          <div class="metric-value">18</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Health Score</div>
+          <div class="metric-value">99.4%</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Operational Stream & Workflow Records</div>
+        <p style="color: var(--subtext); font-size: 14px;">Track chain store visual merchandising compliance, mystery shopper audit scores, and out-of-stock SKU alerts.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Resource Name</th>
+              <th>Workflow Stage</th>
+              <th>Updated</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>REC-8012</td>
+              <td>Retail Store Audit & Merchandising Desk Alpha Instance</td>
+              <td><span style="color: #4ade80;">Verified</span></td>
+              <td>Just now</td>
+              <td><button class="btn">Inspect</button></td>
+            </tr>
+            <tr>
+              <td>REC-8013</td>
+              <td>Retail Store Audit & Merchandising Desk Beta Record</td>
+              <td><span style="color: #facc15;">Pending Review</span></td>
+              <td>12 mins ago</td>
+              <td><button class="btn">Approve</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

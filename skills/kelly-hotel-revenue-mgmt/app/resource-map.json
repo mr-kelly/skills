@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Hotel Room Yield & RevPAR Management Desk",
+    "slug": "kelly-hotel-revenue-mgmt"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Hotel Room Yield & RevPAR Management Desk Records",
+      "slug": "kelly-hotel-revenue-mgmt-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

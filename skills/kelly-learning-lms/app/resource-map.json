@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Compliance Training & LMS Certification Desk",
+    "slug": "kelly-learning-lms"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Compliance Training & LMS Certification Desk Records",
+      "slug": "kelly-learning-lms-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

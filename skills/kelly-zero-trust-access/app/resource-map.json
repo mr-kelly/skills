@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Zero Trust Access & Device Trust Desk",
+    "slug": "kelly-zero-trust-access"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Zero Trust Access & Device Trust Desk Records",
+      "slug": "kelly-zero-trust-access-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

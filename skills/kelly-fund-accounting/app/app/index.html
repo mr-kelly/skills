@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fund Accounting NAV & Audit Desk</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --accent: #38bdf8;
+      --text: #f9fafb;
+      --subtext: #9ca3af;
+      --border: #1f2937;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    .layout { display: flex; flex-direction: column; min-height: 100vh; }
+    header { background: var(--card-bg); padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 700; font-size: 18px; color: var(--accent); }
+    .status-badge { background: rgba(56,189,248,0.15); color: var(--accent); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
+    main { flex: 1; padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .metric-card { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+    .metric-title { font-size: 12px; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-value { font-size: 24px; font-weight: 700; margin-top: 8px; color: var(--text); }
+    .section { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); padding: 20px; margin-bottom: 24px; }
+    .section-title { font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { color: var(--subtext); padding: 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .btn { background: var(--accent); color: #000; font-weight: 600; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div class="logo">Fund Accounting NAV & Audit Desk</div>
+      <div class="status-badge">System Active</div>
+    </header>
+    <main>
+      <div class="metrics">
+
+        <div class="metric-card">
+          <div class="metric-title">Total Net Assets</div>
+          <div class="metric-value">$4.2B</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Daily NAV/Share</div>
+          <div class="metric-value">$142.8450</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">Accrued Fees</div>
+          <div class="metric-value">$2.1M</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-title">NAV Status</div>
+          <div class="metric-value">CALCULATED</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Domain Operational Workbench</div>
+        <p style="color: var(--subtext); font-size: 14px; margin-bottom: 16px;">Calculate daily hedge fund and ETF Net Asset Value (NAV), fee accruals, hurdle rates, and investor subscriptions/redemptions.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Fund Name</th><th>Gross Assets</th><th>Liabilities</th><th>Net Assets</th><th>NAV/Share</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Global Macro Master</td><td>$4.25B</td><td>$50M</td><td>$4.20B</td><td><span style='color:#4ade80;'>$142.8450</span></td><td><button class="btn">Publish NAV</button></td></tr>
+<tr><td>Tech Equity Alpha</td><td>$850M</td><td>$12M</td><td>$838M</td><td><span style='color:#4ade80;'>$84.2100</span></td><td><button class="btn">Reconcile Cash</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

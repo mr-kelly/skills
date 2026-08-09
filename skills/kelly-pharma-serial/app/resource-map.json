@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Pharmaceutical Track & Trace Serialization Desk",
+    "slug": "kelly-pharma-serial"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Pharmaceutical Track & Trace Serialization Desk Records",
+      "slug": "kelly-pharma-serial-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

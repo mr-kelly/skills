@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Health Insurance Claims Adjudication Desk",
+    "slug": "kelly-health-payer-claims"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Health Insurance Claims Adjudication Desk Records",
+      "slug": "kelly-health-payer-claims-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

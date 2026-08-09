@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "E-Discovery Document Review Desk",
+    "slug": "kelly-litigation-discovery"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "E-Discovery Document Review Desk Records",
+      "slug": "kelly-litigation-discovery-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}

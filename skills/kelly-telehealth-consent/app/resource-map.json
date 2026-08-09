@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0.0",
+  "appRoot": {
+    "name": "Telehealth Informed Consent & Provider Desk",
+    "slug": "kelly-telehealth-consent"
+  },
+  "provisioning": {
+    "mode": "lazy",
+    "mutations": ["create-folder", "create-base"]
+  },
+  "resources": [
+    {
+      "key": "records",
+      "name": "Telehealth Informed Consent & Provider Desk Records",
+      "slug": "kelly-telehealth-consent-records",
+      "schemaVersion": "1.0.0"
+    }
+  ]
+}
