@@ -19,6 +19,12 @@ const matchesDeclaration = (node, declaration, type) =>
   node?.name === declaration.name &&
   node?.description === declaration.description;
 
+const matchesLegacyAirApp = (node, config) =>
+  hasEmptyMetadata(node) &&
+  node?.type === "airapp" &&
+  node?.slug === config.airApp?.slug &&
+  node?.name === config.airApp?.name;
+
 const resourceMetadata = (config, resourceKey) => ({
   appId: config.appId,
   resourceKey,
@@ -82,10 +88,21 @@ export function resolveProvisionedFolder(folder, config) {
     bases.push({ ...base, nodeId: node.id, baseId: node.baseId });
   }
 
+  const airApp = (folder.children || []).find(
+    (node) => hasResourceIdentity(node, config.appId, config.airApp?.resourceKey) || matchesLegacyAirApp(node, config),
+  );
+  if (airApp && !ownsResource(airApp, config.appId, config.airApp.resourceKey, config.schemaVersion)) {
+    repairs.push({
+      nodeId: airApp.id,
+      resourceKey: config.airApp.resourceKey,
+      metadata: resourceMetadata(config, config.airApp.resourceKey),
+    });
+  }
+
   if (legacyRoot) {
     const declaredSlugs = new Set(config.bases.map((base) => base.slug));
     const ambiguousExtra = (folder.children || []).find(
-      (node) => !declaredSlugs.has(node.slug) && node?.metadata?.appId !== config.appId,
+      (node) => !declaredSlugs.has(node.slug) && node.id !== airApp?.id && node?.metadata?.appId !== config.appId,
     );
     if (ambiguousExtra) {
       throw setupError("SETUP_CONFLICT", `旧版 Folder 包含无法确认归属的资源 ${ambiguousExtra.slug}，未执行任何修改`);

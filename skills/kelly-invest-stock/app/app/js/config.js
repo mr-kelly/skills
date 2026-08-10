@@ -12,6 +12,11 @@ export const appConfig = {
     nodeId: "nodms6x55yvfgahybw",
     slug: "kelly-invest-stock",
   },
+  airApp: {
+    name: "Kelly Invest Stock",
+    slug: "kelly-invest-stock-app",
+    resourceKey: "airapp",
+  },
   bases: [
     {
       key: "strategies",

@@ -71,6 +71,56 @@ test("refuses to reuse an unowned same-slug Folder", () => {
   );
 });
 
+test("repairs the declared AirApp inside an exact legacy Folder", () => {
+  const materialized = legacyFolder();
+  const folder = {
+    ...materialized,
+    children: [
+      ...materialized.children,
+      {
+        id: "nod_airapp",
+        type: "airapp",
+        slug: appConfig.airApp.slug,
+        name: appConfig.airApp.name,
+        metadata: {},
+      },
+    ],
+  };
+
+  const resolved = resolveProvisionedFolder(folder, appConfig);
+
+  assert.equal(resolved.missing.length, 0);
+  assert.equal(resolved.bases.length, 5);
+  assert.deepEqual(resolved.repairs.at(-1), {
+    nodeId: "nod_airapp",
+    resourceKey: "airapp",
+    metadata: {
+      appId: appConfig.appId,
+      resourceKey: "airapp",
+      schemaVersion: appConfig.schemaVersion,
+    },
+  });
+});
+
+test("still rejects an unrelated AirApp inside a legacy Folder", () => {
+  const materialized = legacyFolder();
+  const folder = {
+    ...materialized,
+    children: [
+      ...materialized.children,
+      {
+        id: "nod_other_airapp",
+        type: "airapp",
+        slug: "unrelated-airapp",
+        name: "Unrelated AirApp",
+        metadata: {},
+      },
+    ],
+  };
+
+  assert.throws(() => resolveProvisionedFolder(folder, appConfig), /无法确认归属的资源 unrelated-airapp/);
+});
+
 test("submits the declared structure once and reads materialized ids back", async () => {
   const materialized = {
     node: {
