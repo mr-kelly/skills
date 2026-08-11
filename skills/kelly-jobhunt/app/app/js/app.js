@@ -409,8 +409,10 @@ const approveCompany = async () => {
   );
   if (!result) return;
   draftEdits.delete(company.id);
-  showToast(writeNotice(result) || `已批准发送给 ${company.name}，运行发送脚本即可发出。`);
   await load({ keepRoute: true });
+  // load() replaces the whole shell, toast element included, so confirm after
+  // the re-render rather than before it.
+  showToast(writeNotice(result) || `已批准发送给 ${company.name}，运行发送脚本即可发出。`);
 };
 
 const saveDraft = async () => {
@@ -426,8 +428,8 @@ const saveDraft = async () => {
   );
   if (!result) return;
   draftEdits.delete(company.id);
-  showToast(writeNotice(result) || "草稿已保存。");
   await load({ keepRoute: true });
+  showToast(writeNotice(result) || "草稿已保存。");
 };
 
 const saveProfile = async () => {
@@ -444,8 +446,8 @@ const saveProfile = async () => {
   );
   if (!result) return;
   profileEdited = false;
-  showToast(writeNotice(result) || "资料已保存。");
   await load({ keepRoute: true });
+  showToast(writeNotice(result) || "资料已保存。");
 };
 
 const bindEvents = () => {

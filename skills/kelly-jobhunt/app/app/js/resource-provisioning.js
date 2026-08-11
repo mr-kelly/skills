@@ -19,6 +19,12 @@ const matchesDeclaration = (node, declaration, type) =>
   node?.name === declaration.name &&
   node?.description === declaration.description;
 
+const matchesLegacyAirApp = (node, config) =>
+  hasEmptyMetadata(node) &&
+  node?.type === "airapp" &&
+  node?.slug === config.airApp?.slug &&
+  node?.name === config.airApp?.name;
+
 const resourceMetadata = (config, resourceKey) => ({
   appId: config.appId,
   resourceKey,
@@ -82,10 +88,21 @@ export function resolveProvisionedFolder(folder, config) {
     bases.push({ ...base, nodeId: node.id, baseId: node.baseId });
   }
 
+  const airApp = (folder.children || []).find(
+    (node) => hasResourceIdentity(node, config.appId, config.airApp?.resourceKey) || matchesLegacyAirApp(node, config),
+  );
+  if (airApp && !ownsResource(airApp, config.appId, config.airApp.resourceKey, config.schemaVersion)) {
+    repairs.push({
+      nodeId: airApp.id,
+      resourceKey: config.airApp.resourceKey,
+      metadata: resourceMetadata(config, config.airApp.resourceKey),
+    });
+  }
+
   if (legacyRoot) {
     const declaredSlugs = new Set(config.bases.map((base) => base.slug));
     const ambiguousExtra = (folder.children || []).find(
-      (node) => !declaredSlugs.has(node.slug) && node?.metadata?.appId !== config.appId,
+      (node) => !declaredSlugs.has(node.slug) && node.id !== airApp?.id && node?.metadata?.appId !== config.appId,
     );
     if (ambiguousExtra) {
       throw setupError("SETUP_CONFLICT", `旧版 Folder 包含无法确认归属的资源 ${ambiguousExtra.slug}，未执行任何修改`);
@@ -144,9 +161,13 @@ const readFolder = async (client, config) => {
   if (!nodeId) nodeId = (await findTopLevelFolder(client, config))?.id;
   if (!nodeId) return null;
   try {
-    return await client.folders.get({ nodeId });
+    return await client.nodes.get({ nodeId, type: "folder" });
   } catch (error) {
-    if (isNotFound(error) && !config.folder.nodeId) return null;
+    if (isNotFound(error) && config.folder.nodeId) {
+      const discovered = await findTopLevelFolder(client, config);
+      return discovered ? client.nodes.get({ nodeId: discovered.id, type: "folder" }) : null;
+    }
+    if (isNotFound(error)) return null;
     throw error;
   }
 };
@@ -157,21 +178,30 @@ export async function inspectProvisionedResources(client, config) {
 
 const sameFieldName = (actual, expected) => JSON.stringify(actual) === JSON.stringify(expected);
 
+const fieldMatches = (actual, expected) =>
+  actual?.slug === expected.slug &&
+  actual?.type === expected.type &&
+  actual?.required === expected.required &&
+  sameFieldName(actual?.name, expected.name);
+
+const additiveFieldsFor = (actual, expected) => {
+  const fields = actual?.fields || [];
+  if (
+    fields.length > expected.fields.length ||
+    !fields.every((field, index) => fieldMatches(field, expected.fields[index]))
+  ) {
+    throw setupError("SETUP_CONFLICT", `资源 ${expected.slug} 的结构与声明不一致，无法安全升级`);
+  }
+  return expected.fields.slice(fields.length);
+};
+
 let nodeMetadataUpdatesSupported;
 
 const validateRepairBase = (actual, expected, nodeId) => {
   const fields = actual?.fields || [];
   const exactFields =
     fields.length === expected.fields.length &&
-    fields.every((field, index) => {
-      const declared = expected.fields[index];
-      return (
-        field.slug === declared.slug &&
-        field.type === declared.type &&
-        field.required === declared.required &&
-        sameFieldName(field.name, declared.name)
-      );
-    });
+    fields.every((field, index) => fieldMatches(field, expected.fields[index]));
   if (
     actual?.nodeId !== nodeId ||
     actual?.slug !== expected.slug ||
@@ -189,10 +219,58 @@ async function repairResourceOwnership(client, config, current) {
   const baseRepairs = current.repairs.filter((repair) => repair.baseId);
   const baseByKey = new Map(config.bases.map((base) => [base.key, base]));
   const details = await Promise.all(baseRepairs.map((repair) => client.bases.get({ baseId: repair.baseId })));
-  details.forEach((detail, index) => {
+  const additiveMigrations = details.map((detail, index) => {
     const repair = baseRepairs[index];
-    validateRepairBase(detail, baseByKey.get(repair.resourceKey), repair.nodeId);
+    const expected = baseByKey.get(repair.resourceKey);
+    if (
+      detail?.nodeId !== repair.nodeId ||
+      detail?.slug !== expected.slug ||
+      detail?.name !== expected.name ||
+      detail?.description !== expected.description
+    ) {
+      throw setupError("SETUP_CONFLICT", `资源 ${expected.slug} 的结构与声明不一致，无法安全升级`);
+    }
+    return { repair, expected, fields: additiveFieldsFor(detail, expected) };
   });
+
+  const pendingFieldRequests = [];
+  for (const migration of additiveMigrations) {
+    for (const field of migration.fields) {
+      const changeRequest = await client.bases.fieldChangeRequest({
+        operation: "create",
+        baseId: migration.repair.baseId,
+        slug: field.slug,
+        name: field.name,
+        type: field.type,
+        required: field.required,
+        message: `Upgrade ${config.appName}: add ${field.slug}`,
+        submittedBy: config.appId,
+      });
+      if (changeRequest?.status !== "merged" && changeRequest?.materialized !== true) {
+        pendingFieldRequests.push(changeRequest?.id || field.slug);
+      }
+    }
+  }
+
+  if (pendingFieldRequests.length) {
+    throw setupError(
+      "SETUP_PENDING",
+      `已提交 ${pendingFieldRequests.length} 个字段升级请求，等待 Space 管理员审批：${pendingFieldRequests.join("、")}`,
+    );
+  }
+
+  if (additiveMigrations.some((migration) => migration.fields.length)) {
+    const upgradedDetails = await Promise.all(baseRepairs.map((repair) => client.bases.get({ baseId: repair.baseId })));
+    upgradedDetails.forEach((detail, index) => {
+      const repair = baseRepairs[index];
+      validateRepairBase(detail, baseByKey.get(repair.resourceKey), repair.nodeId);
+    });
+  } else {
+    details.forEach((detail, index) => {
+      const repair = baseRepairs[index];
+      validateRepairBase(detail, baseByKey.get(repair.resourceKey), repair.nodeId);
+    });
+  }
 
   if (nodeMetadataUpdatesSupported === false) {
     return { ...current, repairs: [], compatibilityMode: "verified-legacy-fingerprint" };
@@ -223,6 +301,19 @@ async function repairResourceOwnership(client, config, current) {
 
 let provisionInFlight;
 
+const waitForMaterializedResources = async (client, config, attempts = 20) => {
+  let current;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    current = await inspectProvisionedResources(client, config);
+    current = await repairResourceOwnership(client, config, current);
+    if (current.folder && current.missing.length === 0) return current;
+    if (attempt < attempts - 1) {
+      await new Promise((resolve) => globalThis.setTimeout(resolve, 100));
+    }
+  }
+  throw setupError("SCHEMA_INCOMPLETE", "初始化已合并，但资源回读不完整");
+};
+
 async function provisionOnce(client, config) {
   let current = await inspectProvisionedResources(client, config);
   current = await repairResourceOwnership(client, config, current);
@@ -250,12 +341,7 @@ async function provisionOnce(client, config) {
     throw setupError("SETUP_PENDING", `初始化请求 ${changeRequest?.id || ""} 已提交，等待 Space 管理员审批`);
   }
 
-  current = await inspectProvisionedResources(client, config);
-  current = await repairResourceOwnership(client, config, current);
-  if (!current.folder || current.missing.length) {
-    throw setupError("SCHEMA_INCOMPLETE", "初始化已合并，但资源回读不完整");
-  }
-  return current;
+  return waitForMaterializedResources(client, config);
 }
 
 export function provisionDeclaredResources(client, config) {

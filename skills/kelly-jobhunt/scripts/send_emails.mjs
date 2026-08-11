@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 import nodemailer from "nodemailer";
 
-import { appConfig, createTrustedClient, dryRunBanner, parseFlags, readAll, resolveBases } from "./lib.mjs";
+import { appConfig, createTrustedClient, dryRunBanner, fail, parseFlags, readAll, resolveBases } from "./lib.mjs";
 
 const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const { apply } = parseFlags(process.argv.slice(2));
@@ -20,24 +20,32 @@ const client = createTrustedClient();
 const bases = await resolveBases(client);
 
 const profile = (await readAll(client, bases.get("profile")))[0];
-if (!profile) throw new Error("求职档案还没填，先在 AirApp 的「我的资料」里保存一次。");
+if (!profile) fail("求职档案还没填，先在 AirApp 的「我的资料」里保存一次。");
 
 const fromEmail = profile.fields.from_email;
-if (!fromEmail) throw new Error("求职档案缺少发件邮箱。");
+if (!fromEmail) fail("求职档案缺少发件邮箱。");
 
 const resumeName = profile.fields.resume_file;
-if (!resumeName) throw new Error("求职档案缺少简历文件名。");
+if (!resumeName) fail("求职档案缺少简历文件名。");
 const resumePath = path.join(skillRoot, "resume", resumeName);
-await access(resumePath).catch(() => {
-  throw new Error(`找不到简历附件 ${resumePath}。把 PDF 放到 skill 的 resume/ 目录再运行。`);
-});
+const resumeReady = await access(resumePath).then(
+  () => true,
+  () => false,
+);
 
 const queued = (await readAll(client, bases.get("companies"))).filter((row) => row.fields.status === "queued");
 
 process.stdout.write(dryRunBanner(apply));
-console.log(`发件人 ${fromEmail} · 附件 ${resumeName}`);
+console.log(`发件人 ${fromEmail} · 附件 ${resumeName}${resumeReady ? "" : "（缺失）"}`);
 console.log(`待发出 ${queued.length} 封`);
 for (const company of queued) console.log(`  → ${company.fields.name} <${company.fields.sent_to}>`);
+
+// A dry run exists to show the plan, so a missing attachment is a warning here
+// and a hard stop only when something would actually be sent.
+if (!resumeReady) {
+  if (apply) fail(`找不到简历附件 ${resumePath}。把 PDF 放到 skill 的 resume/ 目录再运行。`);
+  console.log(`\n注意：简历附件还不在 ${resumePath}，加 --apply 之前先放进去。`);
+}
 
 if (!apply || !queued.length) process.exit(0);
 

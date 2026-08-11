@@ -12,6 +12,11 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-jobhunt",
   },
+  airApp: {
+    name: "Kelly JobHunt",
+    slug: "kelly-jobhunt-app",
+    resourceKey: "airapp",
+  },
   bases: [
     {
       key: "profile",

@@ -5,9 +5,17 @@ import { inspectProvisionedResources } from "../app/app/js/resource-provisioning
 
 export { appConfig };
 
+// Operator mistakes (missing credential, missing file, workspace not ready) are
+// expected outcomes, not crashes. Print one line and exit; a stack trace here
+// only buries the sentence that says what to do.
+export function fail(message) {
+  console.error(message);
+  process.exit(1);
+}
+
 const required = (name) => {
   const value = process.env[name];
-  if (!value) throw new Error(`Missing ${name}. Trusted scripts need their own Busabase credentials.`);
+  if (!value) fail(`缺少环境变量 ${name}。可信脚本需要自己的 Busabase 凭据，不会借用 AirApp 会话。`);
   return value;
 };
 
@@ -25,7 +33,7 @@ export async function resolveBases(client) {
   const resources = await inspectProvisionedResources(client, appConfig);
   if (!resources.folder || resources.missing.length) {
     const names = resources.missing.map((base) => base.name).join("、");
-    throw new Error(`Busabase workspace is not ready: ${names || appConfig.folder.name}`);
+    fail(`Busabase 工作区还没就绪，缺少：${names || appConfig.folder.name}。先在 AirApp 里点一次「初始化工作区」。`);
   }
   return new Map(resources.bases.map((base) => [base.key, base]));
 }
@@ -53,10 +61,16 @@ export async function readAll(client, base) {
 // `bases.createBulkChangeRequest` has no autoMerge flag — a bulk import is
 // always proposed for review. Running this script with --apply IS the operator's
 // approval, so approve and merge it explicitly instead of leaving it pending.
+//
+// Both review and merge are batch endpoints keyed by `changeRequestIds`; there
+// is no per-id variant, and passing `changeRequestId` fails validation with
+// "expected array, received undefined".
 export async function mergeChangeRequest(client, changeRequest) {
   if (!changeRequest?.id || changeRequest.status === "merged") return changeRequest;
-  await client.changeRequests.review({ changeRequestId: changeRequest.id, verdict: "approved" });
-  const merged = await client.changeRequests.merge({ changeRequestId: changeRequest.id });
+  const changeRequestIds = [changeRequest.id];
+  await client.changeRequests.review({ changeRequestIds, verdict: "approved" });
+  const result = await client.changeRequests.merge({ changeRequestIds });
+  const merged = result?.results?.[0] || result?.[0] || result;
   return merged?.changeRequest || merged;
 }
 

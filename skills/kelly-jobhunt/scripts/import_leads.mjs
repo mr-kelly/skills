@@ -20,6 +20,7 @@ import {
   appConfig,
   createTrustedClient,
   dryRunBanner,
+  fail,
   mergeChangeRequest,
   parseFlags,
   readAll,
@@ -28,12 +29,11 @@ import {
 
 const { apply, positional } = parseFlags(process.argv.slice(2));
 const inputPath = positional[0];
-if (!inputPath) {
-  console.error("Usage: node scripts/import_leads.mjs <findings.json> [--apply]");
-  process.exit(1);
-}
+if (!inputPath) fail("用法：node scripts/import_leads.mjs <findings.json> [--apply]");
 
-const findings = JSON.parse(await readFile(inputPath, "utf8"));
+const findings = await readFile(inputPath, "utf8")
+  .then(JSON.parse)
+  .catch((error) => fail(`读不了 ${inputPath}：${error instanceof Error ? error.message : error}`));
 const companies = findings.companies || [];
 const leads = findings.leads || [];
 

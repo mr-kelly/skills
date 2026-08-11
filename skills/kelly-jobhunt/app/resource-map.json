@@ -13,6 +13,11 @@
     "slug": "kelly-jobhunt",
     "nodeId": ""
   },
+  "airApp": {
+    "kind": "airapp",
+    "slug": "kelly-jobhunt-app",
+    "resourceKey": "airapp"
+  },
   "resources": [
     {
       "key": "profile",
