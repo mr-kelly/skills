@@ -96,6 +96,7 @@ def test_demo_ui(browser, base_url: str) -> None:
     assert detail.locator("[data-approve]").is_disabled()
     assert detail.locator("[data-lead]").is_disabled()
     assert page.locator(".detail-note.warn").is_visible()
+    assert detail.locator('.command-chip[data-copy-command="/kelly-jobhunt research"]').is_visible()
 
     # An already-approved company is read-only, not editable.
     nav(page, "sent").click()
@@ -105,15 +106,23 @@ def test_demo_ui(browser, base_url: str) -> None:
     assert detail.locator("[data-subject]").count() == 0
     assert detail.locator("[data-approve]").count() == 0
     assert detail.locator(".status-pill", has_text="排队中").is_visible()
+    # Approved is not sent: the row says what actually sends it.
+    assert detail.locator('.command-chip[data-copy-command="node scripts/send_emails.mjs"]').is_visible()
 
     nav(page, "profile").click()
     page_title(page, "我的资料").wait_for()
     assert page.locator('[data-profile="targetRole"]').input_value() == "B 端产品经理"
     assert page.locator(".status-pill", has_text="已就绪").is_visible()
+    # Every screen names the command that maintains it.
+    assert page.locator('.command-chip[data-copy-command="/kelly-jobhunt profile"]').is_visible()
 
     page.locator("[data-open-help]").first.click()
     dialog = page.get_by_role("dialog")
     dialog.wait_for(state="visible")
+    # Help opens on the command list: the desk's whole job is telling you what to
+    # run next, so that is what a confused operator should land on.
+    assert dialog.get_by_role("heading", name="回到对话框能做什么").is_visible()
+    assert dialog.locator(".command-list .command-chip").count() == 5
     dialog.get_by_role("button", name="资源", exact=True).click()
     page.get_by_role("heading", name="Busabase 资源").wait_for(state="visible")
     page.keyboard.press("Escape")
@@ -138,6 +147,10 @@ def test_demo_ui(browser, base_url: str) -> None:
         page.goto(f"{base_url}/?demo=1#/to-send")
         page.wait_for_load_state("networkidle")
         assert_no_horizontal_overflow(page)
+
+        # The sidebar is a drawer here, so the next command is repeated in the
+        # shell itself — otherwise a phone operator never sees it.
+        assert page.locator(".mobile-next-step .command-chip").is_visible()
 
         page.locator("[data-mobile-sidebar]").click()
         assert page.locator("body.sidebar-open").count() == 1

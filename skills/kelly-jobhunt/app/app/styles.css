@@ -1581,3 +1581,111 @@ code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
 }
+
+/* Command chips — one component for every command the desk names. */
+.command-chip {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  color: #2d5f47;
+  text-align: left;
+  background: var(--green-soft);
+  border: 1px solid #cbe3d6;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.command-chip:hover {
+  border-color: #7fbb9c;
+}
+.command-chip code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  word-break: break-all;
+}
+.command-chip small {
+  display: block;
+  margin-top: 3px;
+  color: #5d7a6c;
+  font-size: 10px;
+  line-height: 1.55;
+}
+/* Inside the dark sidebar the same component needs the inverted palette. */
+.next-step .command-chip {
+  margin-top: 8px;
+  color: #cfe6da;
+  background-color: #131c23;
+  border-color: #384956;
+}
+.next-step .command-chip:hover {
+  border-color: #4d8f6d;
+}
+.next-step .command-chip small {
+  color: #8fa79a;
+}
+.detail-hint {
+  margin-top: 12px;
+}
+.detail-hint .command-chip {
+  margin-top: 7px;
+}
+.command-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.empty-state {
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  justify-items: center;
+  padding: 26px 22px;
+  text-align: center;
+}
+.empty-state p {
+  margin: 0;
+}
+.empty-state .empty-hint {
+  color: var(--muted);
+  font-size: 11px;
+}
+.empty-state .command-chip {
+  max-width: 320px;
+}
+.setup-next {
+  margin: 0 26px 4px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.setup-next .command-chip {
+  margin-top: 7px;
+}
+/* Phone shell repeats the next step under the top bar, because the sidebar
+   holding it is an off-canvas drawer. */
+.mobile-next-step {
+  display: none;
+}
+@media (max-width: 720px) {
+  .main {
+    grid-template-rows: 52px auto auto auto minmax(0, 1fr);
+  }
+  .mobile-next-step {
+    display: grid;
+    gap: 6px;
+    padding: 10px 14px;
+    background: var(--green-soft);
+    border-bottom: 1px solid #cbe3d6;
+  }
+  .mobile-next-step > span {
+    color: #2d5f47;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .mobile-next-step .command-chip {
+    background: #fff;
+  }
+  .mobile-detail-open .mobile-next-step {
+    display: none;
+  }
+}

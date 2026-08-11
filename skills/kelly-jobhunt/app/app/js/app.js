@@ -23,7 +23,7 @@ let desk;
 let contentRoute = { view: "to-send", id: null };
 let lastContentHash = "#/to-send";
 let sidebarCollapsed = false;
-let helpTab = "guide";
+let helpTab = "commands";
 let authStatus = null;
 // Unsaved edits survive re-renders and the refresh timer, keyed by company id.
 const draftEdits = new Map();
@@ -42,7 +42,10 @@ const today = () => new Date().toISOString().slice(0, 10);
 const parseHash = () => {
   const parts = window.location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   if (parts[0] === "settings") {
-    return { view: "settings", tab: ["guide", "resources", "connection"].includes(parts[1]) ? parts[1] : "guide" };
+    return {
+      view: "settings",
+      tab: ["commands", "guide", "resources", "connection"].includes(parts[1]) ? parts[1] : "commands",
+    };
   }
   return {
     view: viewMeta[parts[0]] ? parts[0] : "to-send",
@@ -118,7 +121,7 @@ const renderCompanyRow = (company, active) => {
 
 const renderRows = (items, selectedId) => {
   if (!items.length) {
-    return `<div class="empty-state">这里还没有公司。<br />回到对话框运行 <code>/kelly-jobhunt research</code>，它会把公司和联系邮箱写回这个列表。</div>`;
+    return `<div class="empty-state"><p>这里还没有公司。</p><p class="empty-hint">回到对话框运行下面这条，它会把公司和联系邮箱写回这个列表。</p>${commandChip("/kelly-jobhunt research")}</div>`;
   }
   return items.map((item) => renderCompanyRow(item, item.id === selectedId)).join("");
 };
@@ -161,11 +164,15 @@ const renderCompanyDetail = (company) => {
       <label class="field"><span>正文</span><textarea data-body rows="8">${escapeHtml(draft.body)}</textarea></label>
       <div class="attachment-line"><span>附件</span><strong>${escapeHtml(attachment)}</strong></div>
     </section>
+    ${
+      company.bestLead
+        ? ""
+        : `<div class="detail-hint warn"><p class="detail-note warn">这家公司还没有可用邮箱，下面的发送按钮先锁着。回到对话框补一次线索：</p>${commandChip("/kelly-jobhunt research", "补线索，已批准和已发出的公司不会被覆盖")}</div>`
+    }
     <div class="detail-actions">
       <button class="primary-button" type="button" data-approve ${company.bestLead ? "" : "disabled"}>批准并发送</button>
       <button class="ghost-button" type="button" data-save-draft>保存草稿</button>
-    </div>
-    ${company.bestLead ? "" : '<p class="detail-note warn">这家公司还没有可用邮箱，先让 Agent 补一次线索再发送。</p>'}`
+    </div>`
         : `<section class="detail-section">
       <h3>投递记录</h3>
       <dl class="detail-list">
@@ -173,6 +180,11 @@ const renderCompanyDetail = (company) => {
         <div><dt>批准时间</dt><dd>${escapeHtml(company.approvedAt || "--")}</dd></div>
         <div><dt>发出时间</dt><dd>${escapeHtml(company.sentAt || "尚未发出")}</dd></div>
       </dl>
+      ${
+        company.status === "queued"
+          ? `<div class="detail-hint"><p class="detail-note">你已经批准了，但信还没发——真正发信的是可信脚本，它拿得到授权码，这个页面拿不到。回到命令行：</p>${commandChip("node scripts/send_emails.mjs", "先预演看清单，确认后再加 --apply")}</div>`
+          : ""
+      }
     </section>
     <section class="detail-section"><h3>邮件主题</h3><p class="detail-copy">${escapeHtml(company.emailSubject)}</p></section>
     <section class="detail-section"><h3>邮件正文</h3><pre class="mail-body">${escapeHtml(company.emailBody)}</pre></section>`
@@ -197,7 +209,8 @@ const renderProfile = () => {
     `<label class="field"><span>${label}${hint ? `<small>${hint}</small>` : ""}</span><input type="text" data-profile="${key}" value="${escapeHtml(value)}" /></label>`;
   return `<div class="profile-pane"><div class="detail-scroll">
     <div class="detail-heading"><div><p class="eyebrow">PROFILE</p><h2>我的资料</h2></div>${profile.ready ? '<span class="status-pill status-sent">已就绪</span>' : `<span class="status-pill status-draft">缺 ${profile.missing.length} 项</span>`}</div>
-    <p class="detail-note">这份资料决定 Agent 搜什么公司、写什么邮件。改完记得保存。</p>
+    <p class="detail-note">这份资料决定 Agent 搜什么公司、写什么邮件。你可以在这里直接改，也可以把简历丢给 Agent 让它填。</p>
+    <div class="detail-hint">${commandChip("/kelly-jobhunt profile", "读你的简历自动填这一屏，并排版出 PDF 简历")}</div>
     ${profile.ready ? "" : `<div class="setup-notice">还缺：${escapeHtml(profile.missing.join("、"))}</div>`}
     <section class="detail-section compose">
       ${field("name", "求职人", profile.name)}
@@ -209,11 +222,10 @@ const renderProfile = () => {
       ${field("resumeFile", "简历文件", profile.resumeFile, "由 /kelly-jobhunt profile 排版生成，放在 skill 的 resume/ 目录")}
       ${field("fromEmail", "发件邮箱", profile.fromEmail, "发送脚本用这个邮箱发出")}
       <div class="attachment-line"><span>SMTP 凭据</span><strong>${
-        profile.mailReady
-          ? `已配置 · 存在 Vault（${escapeHtml(profile.smtpVaultKey)}）`
-          : "未配置 · 运行 /kelly-jobhunt send"
+        profile.mailReady ? `已配置 · 存在 Vault（${escapeHtml(profile.smtpVaultKey)}）` : "未配置"
       }</strong></div>
     </section>
+    ${profile.mailReady ? "" : `<div class="detail-hint">${commandChip("/kelly-jobhunt send", "配置发件邮箱，授权码写进 Vault")}</div>`}
     <p class="detail-note">授权码只存在 Busabase Vault 里，这个页面既读不到也不显示它。</p>
     <div class="detail-actions">
       <button class="primary-button" type="button" data-save-profile>保存资料</button>
@@ -238,6 +250,14 @@ const renderPipeline = () => {
   </div></section>`;
 };
 
+// Every command this desk names is rendered through one component: the operator
+// should never have to retype something the screen just told them to run, and a
+// command that appears as plain prose is a command that gets mistyped.
+const commandChip = (command, note = "") =>
+  `<button class="command-chip" type="button" data-copy-command="${escapeHtml(command)}" title="点一下复制">
+    <code>${escapeHtml(command)}</code>${note ? `<small>${escapeHtml(note)}</small>` : ""}
+  </button>`;
+
 // Everything this desk cannot do itself happens back in the conversation, so
 // the command to run next is part of the UI, not something to look up.
 const renderNextStep = () => {
@@ -246,8 +266,16 @@ const renderNextStep = () => {
   return `<section class="next-step" aria-label="下一步">
     <div class="next-step-title">${escapeHtml(step.title)}</div>
     <div class="next-step-detail">${escapeHtml(step.detail)}</div>
-    ${step.command ? `<button class="next-step-command" type="button" data-copy-command="${escapeHtml(step.command)}" title="点一下复制"><code>${escapeHtml(step.command)}</code></button>` : ""}
+    ${step.command ? commandChip(step.command) : ""}
   </section>`;
+};
+
+// The sidebar is an off-canvas drawer at phone widths, so a phone operator would
+// otherwise never see which command comes next.
+const renderMobileNextStep = () => {
+  const step = nextStep(desk);
+  if (!step?.command) return "";
+  return `<div class="mobile-next-step"><span>${escapeHtml(step.title)}</span>${commandChip(step.command)}</div>`;
 };
 
 const renderSidebar = () => {
@@ -273,8 +301,19 @@ const renderSidebar = () => {
 const renderHelp =
   () => `<div class="modal-backdrop" id="helpModal" aria-hidden="false"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
   <div class="modal-head"><div><div id="helpTitle" class="modal-title">帮助与设置</div><div class="modal-subtitle">Kelly 求职直投 · 目标公司直投台</div></div><button class="icon-button" type="button" data-close-help aria-label="关闭帮助">关闭</button></div>
-  <nav class="modal-tabs" aria-label="帮助与设置标签"><button class="${helpTab === "guide" ? "active" : ""}" type="button" data-help-tab="guide">指南</button><button class="${helpTab === "resources" ? "active" : ""}" type="button" data-help-tab="resources">资源</button><button class="${helpTab === "connection" ? "active" : ""}" type="button" data-help-tab="connection">连接</button></nav>
+  <nav class="modal-tabs" aria-label="帮助与设置标签"><button class="${helpTab === "commands" ? "active" : ""}" type="button" data-help-tab="commands">命令</button><button class="${helpTab === "guide" ? "active" : ""}" type="button" data-help-tab="guide">指南</button><button class="${helpTab === "resources" ? "active" : ""}" type="button" data-help-tab="resources">资源</button><button class="${helpTab === "connection" ? "active" : ""}" type="button" data-help-tab="connection">连接</button></nav>
   <div class="modal-body">
+    <section class="help-tab-panel ${helpTab === "commands" ? "active" : ""}"><h2>回到对话框能做什么</h2>
+      <p class="detail-note">这个页面负责让你看清楚和拍板。搜集、起草、发送这些活在对话框那边，点一下命令即可复制。</p>
+      <div class="command-list">
+        ${commandChip("/kelly-jobhunt profile", "读你的简历，填好这份档案，并排版出 PDF 简历")}
+        ${commandChip("/kelly-jobhunt research", "按你的招聘渠道找公司和邮箱，每家写一封定制信")}
+        ${commandChip("/kelly-jobhunt send", "配置发件邮箱，授权码写进 Vault，不进这个页面")}
+        ${commandChip("node scripts/send_emails.mjs", "把你批准的信发出去，默认预演，加 --apply 才真发")}
+        ${commandChip("node scripts/build_resume.mjs", "只重排简历 PDF，不动其他资料")}
+      </div>
+      <p class="detail-note">全部命令默认都是预演：先打印它要做什么，你看过再加 <code>--apply</code>。</p>
+    </section>
     <section class="help-tab-panel ${helpTab === "guide" ? "active" : ""}"><h2>三步走</h2><dl class="settings-list">
       <div><dt>1 填资料</dt><dd>目标岗位、自我介绍、简历文件名、发件邮箱。四项齐了才算就绪。</dd></div>
       <div><dt>2 找公司</dt><dd>让 Agent 按资料上网搜索，公司与邮箱会写回这里，一家公司可以有多个候选邮箱。</dd></div>
@@ -309,6 +348,7 @@ const renderApp = () => {
     : `<section class="content content-single">${renderProfile()}</section>`;
   root.innerHTML = `<div class="app-shell ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}">${renderSidebar()}<main class="main">
     <div class="mobile-topbar"><button class="mobile-sidebar-toggle" type="button" data-mobile-sidebar aria-controls="appSidebar" aria-label="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><div class="mobile-view-title">${meta.label}</div><div class="mobile-view-meta">${meta.list ? `${items.length} ${meta.noun}` : desk.profile.ready ? "已就绪" : `缺 ${desk.profile.missing.length} 项`}</div></div><button class="mobile-help-button" type="button" data-open-help aria-label="帮助与设置">帮助</button></div>
+    ${renderMobileNextStep()}
     <header class="workspace-head"><div><p class="eyebrow">${meta.eyebrow}</p><h1>${meta.label}</h1></div><div class="workspace-status">${statusChip}<span>${escapeHtml(currentState.provider.asOf || "Busabase 当前数据")}</span>${currentState.provider.pendingReview ? '<span class="read-only">写入待审</span>' : ""}<button type="button" data-refresh>刷新</button></div></header>
     ${renderPipeline()}
     ${content}
@@ -328,7 +368,7 @@ const renderSetup = (error) => {
   const body = canProvision
     ? `<p>将在当前 Space 的应用 Folder 下创建 ${escapeHtml(resources)} 三个 Base。</p><p class="detail-note">结构通过一个 Busabase ChangeRequest 幂等提交；旧版资源不会被删除或继续读取。</p>`
     : `<p>${escapeHtml(reason)}</p><p class="detail-note">应用不会要求你手工创建 Node/Base 或复制 ID，也不会切换到本地数据。</p>`;
-  root.innerHTML = `<div class="setup-shell"><section class="setup-modal" role="dialog" aria-labelledby="setupTitle"><div class="setup-head"><div class="brand-icon" aria-hidden="true">KJ</div><div><p class="eyebrow">WORKSPACE SETUP</p><h1 id="setupTitle">${title}</h1></div></div><div class="setup-body"><p><strong>${escapeHtml(authStatus?.baseUrl || "Busabase")}</strong> 鉴权已就绪。</p>${body}<div class="setup-notice" data-setup-status hidden></div></div><div class="setup-footer setup-footer-split">${canProvision ? '<button class="connect-button" type="button" data-provision>初始化工作区</button>' : retryOnly ? '<button class="connect-button" type="button" data-retry-setup>重新检查</button>' : ""}<a class="text-link" href="?demo=1#/to-send">进入演示数据</a></div></section></div>`;
+  root.innerHTML = `<div class="setup-shell"><section class="setup-modal" role="dialog" aria-labelledby="setupTitle"><div class="setup-head"><div class="brand-icon" aria-hidden="true">KJ</div><div><p class="eyebrow">WORKSPACE SETUP</p><h1 id="setupTitle">${title}</h1></div></div><div class="setup-body"><p><strong>${escapeHtml(authStatus?.baseUrl || "Busabase")}</strong> 鉴权已就绪。</p>${body}<div class="setup-notice" data-setup-status hidden></div></div>${canProvision ? `<div class="setup-next">初始化完成后，回到对话框运行 ${commandChip("/kelly-jobhunt profile", "把你的简历交给它")} 开始。</div>` : ""}<div class="setup-footer setup-footer-split">${canProvision ? '<button class="connect-button" type="button" data-provision>初始化工作区</button>' : retryOnly ? '<button class="connect-button" type="button" data-retry-setup>重新检查</button>' : ""}<a class="text-link" href="?demo=1#/to-send">进入演示数据</a></div></section></div>`;
   root.querySelector("[data-retry-setup]")?.addEventListener("click", load);
   root.querySelector("[data-provision]")?.addEventListener("click", async (event) => {
     const button = event.currentTarget;
@@ -501,7 +541,7 @@ const bindEvents = () => {
   root.querySelectorAll("[data-open-help]").forEach((button) =>
     button.addEventListener("click", () => {
       lastContentHash = routeHash(contentRoute);
-      window.location.hash = "#/settings/guide";
+      window.location.hash = "#/settings/commands";
     }),
   );
   root.querySelector("[data-close-help]")?.addEventListener("click", () => {
