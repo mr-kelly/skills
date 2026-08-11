@@ -153,6 +153,7 @@
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
+| `kelly-jobhunt` | 求职直投台：按你的资料搜索目标公司和公开的联系邮箱，为每家公司写一封定制邮件，人工逐条批准后才发出。一家公司只发一封；SMTP 授权码只在可信脚本里读取，永远不进页面。 | 不想走招聘平台海投、要直接投公司邮箱时使用；也用于收集招聘联系邮箱及其来源、发出前审阅和修改邮件、跟踪哪些公司已经投过。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-jobhunt.html?lang=zh) |
 | `kelly-messenger` | 把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。 | 在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html?lang=zh) |
 | `kelly-standup` | 团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。 | 异步开晨会、一眼看到每个人在干什么、跟踪阻塞和参与率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html?lang=zh) |
 
@@ -260,6 +261,27 @@
   <tr>
     <td><strong>需要 review</strong><br>需要人工判断语气、时机或下一步的邮件 review 场景。</td>
     <td><strong>高风险阻止</strong><br>遇到可疑或安全相关请求时，assistant 阻止处理而不是直接起草回复。</td>
+  </tr>
+</table>
+
+### `kelly-jobhunt`
+
+<table>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-jobhunt/assets/screenshots/to-send.webp" alt="Kelly 求职直投 待发送队列"></td>
+    <td width="50%"><img src="../skills/kelly-jobhunt/assets/screenshots/blocked.webp" alt="Kelly 求职直投 未找到邮箱"></td>
+  </tr>
+  <tr>
+    <td><strong>待发送队列</strong><br>公司按匹配度排序，每家带写好的邮件、候选邮箱池，以及一个「批准并发送」。</td>
+    <td><strong>缺邮箱</strong><br>官网和招聘页都没公开邮箱的公司：发送按钮保持禁用，等 Agent 补线索，而不是去猜邮箱格式。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-jobhunt/assets/screenshots/profile.webp" alt="Kelly 求职直投 我的资料"></td>
+    <td width="50%"><img src="../skills/kelly-jobhunt/assets/screenshots/sent.webp" alt="Kelly 求职直投 投递记录"></td>
+  </tr>
+  <tr>
+    <td><strong>我的资料</strong><br>目标岗位、意向城市行业、自我介绍、简历文件、发件邮箱；四项就绪条件缺哪项直接写出来。</td>
+    <td><strong>投递记录</strong><br>批准之后邮件转为只读：发给了哪个邮箱、什么时候批准的、什么时候真的发出去的。</td>
   </tr>
 </table>
 

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "provisioning": {
+    "mode": "lazy",
+    "trigger": "first-real-data-read-or-explicit-setup-action",
+    "mutations": ["nodes.createChangeRequest", "nodes.updateMetadata"],
+    "legacyRepair": "exact-resource-fingerprint-only",
+    "autoMergeApprovedStructure": true,
+    "schemaSource": "app/js/config.js"
+  },
+  "appRoot": {
+    "kind": "folder",
+    "slug": "kelly-jobhunt",
+    "nodeId": ""
+  },
+  "resources": [
+    {
+      "key": "profile",
+      "kind": "base",
+      "slug": "jobhunt-profile-v1",
+      "purpose": "Job seeker profile that drives search keywords and email drafting",
+      "nodeId": "",
+      "baseId": "",
+      "schemaVersion": 1,
+      "readLimit": 20
+    },
+    {
+      "key": "companies",
+      "kind": "base",
+      "slug": "jobhunt-companies-v1",
+      "purpose": "Target companies with match evidence, drafted email, and outreach status",
+      "nodeId": "",
+      "baseId": "",
+      "schemaVersion": 1,
+      "readLimit": 100
+    },
+    {
+      "key": "leads",
+      "kind": "base",
+      "slug": "jobhunt-leads-v1",
+      "purpose": "Contact addresses discovered per company, several per company",
+      "nodeId": "",
+      "baseId": "",
+      "schemaVersion": 1,
+      "readLimit": 100
+    }
+  ],
+  "vaultRequirements": [
+    {
+      "key": "smtp",
+      "purpose": "SMTP host, user, and app password used only by the trusted send script",
+      "readableBy": "trusted-script",
+      "browserVisible": false
+    }
+  ],
+  "trustedExecution": {
+    "leadImport": "scripts/import_leads.mjs — Agent writes discovered companies and contact addresses",
+    "emailSend": "scripts/send_emails.mjs — sends approved outreach over SMTP and marks it sent",
+    "browserWrites": ["profile fields", "outreach approval verdict and drafted email"]
+  }
+}

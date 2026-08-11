@@ -153,6 +153,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | Skill | What It Does | When To Use It | Details |
 | --- | --- | --- | --- |
 | `kelly-email` | Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution. | Use it when processing unread email, drafting support replies, archiving or marking messages read after approval, or managing email through an App-in-Skill UI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-email.html) |
+| `kelly-jobhunt` | Runs a job-search outreach desk: finds target companies and their published contact addresses, drafts one tailored application email per company, and sends only what the human approves. One company gets exactly one email; SMTP credentials stay in trusted execution. | Use it when applying to companies directly instead of through a job board, collecting hiring contact addresses with their sources, reviewing and editing application emails before they go out, or tracking which companies have already been contacted. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-jobhunt.html) |
 | `kelly-messenger` | Aggregates WhatsApp, Discord, Slack, and Telegram into one unified local inbox with full conversation transcripts and an approval-gated reply outbox. | Use it when reading messages across chat platforms in one place, drafting replies in a single composer, and approving queued outbound messages that the agent then sends via platform connectors. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html) |
 | `kelly-standup` | Team standup board: the agent collects members' daily check-ins from chat channels on demand, structures them into yesterday/today/blockers cards with a team digest, and drafts approval-gated nudges for missing check-ins. | Use it when running daily standups asynchronously, seeing what everyone is working on at a glance, or tracking blockers and participation across the team. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html) |
 
@@ -260,6 +261,27 @@ The common pattern is a local command desk: demo-safe data, status filters, deta
   <tr>
     <td><strong>Needs review</strong><br>Human-in-the-loop review scene for a partnership reply that needs tone and timing judgment.</td>
     <td><strong>Blocked security request</strong><br>Risk-heavy email scenario where the assistant blocks a suspicious request instead of drafting a reply.</td>
+  </tr>
+</table>
+
+### `kelly-jobhunt`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-jobhunt/assets/screenshots/to-send.webp" alt="Kelly JobHunt outreach queue"></td>
+    <td width="50%"><img src="skills/kelly-jobhunt/assets/screenshots/blocked.webp" alt="Kelly JobHunt company with no contact address"></td>
+  </tr>
+  <tr>
+    <td><strong>Outreach queue</strong><br>Companies sorted by match score, each with its drafted email, the address pool, and one approve-and-send action.</td>
+    <td><strong>No address yet</strong><br>A company whose pages published no address: send stays disabled until the search finds one, rather than guessing a pattern.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-jobhunt/assets/screenshots/profile.webp" alt="Kelly JobHunt profile"></td>
+    <td width="50%"><img src="skills/kelly-jobhunt/assets/screenshots/sent.webp" alt="Kelly JobHunt sent record"></td>
+  </tr>
+  <tr>
+    <td><strong>Profile</strong><br>Target role, cities, industries, self-introduction, resume file, and sender address — the four readiness items are named, not implied.</td>
+    <td><strong>Sent record</strong><br>Once approved, the letter is read-only: which address received it, when it was approved, and when it actually went out.</td>
   </tr>
 </table>
 

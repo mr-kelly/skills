@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly JobHunt"
+  short_description: "Find target companies, draft one email each, and send after review"
+  default_prompt: "Use $kelly-jobhunt to search target companies and contact addresses for my job hunt, draft one email per company, and let me approve each send."

@@ -191,6 +191,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-jobhunt.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-launch.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

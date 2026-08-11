@@ -96,6 +96,15 @@ const ROUTE_OVERRIDES = {
     detail: "/strategies/buffett/portfolio",
     regression: "/regression",
   },
+  "kelly-jobhunt": {
+    overview: "/to-send",
+    "to-send": "/to-send",
+    list: "/to-send",
+    detail: "/to-send/company-lanxi",
+    profile: "/profile",
+    sent: "/sent",
+    blocked: "/all/company-maimang",
+  },
 };
 
 const GENERIC_ROUTE_MAP = {
