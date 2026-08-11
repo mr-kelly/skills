@@ -153,7 +153,7 @@
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
-| `kelly-jobhunt` | 求职直投台：按你的资料搜索目标公司和公开的联系邮箱，为每家公司写一封定制邮件，人工逐条批准后才发出。一家公司只发一封；SMTP 授权码只在可信脚本里读取，永远不进页面。 | 不想走招聘平台海投、要直接投公司邮箱时使用；也用于收集招聘联系邮箱及其来源、发出前审阅和修改邮件、跟踪哪些公司已经投过。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-jobhunt.html?lang=zh) |
+| `kelly-jobhunt` | 求职直投台，三个子命令：`profile` 把你的简历提炼成结构化档案并排版出 PDF，`research` 按你指定的招聘渠道找目标公司和公开联系邮箱、为每家写一封定制邮件，`send` 把你自己的 SMTP 凭据存进 Busabase Vault 再发出你批准的信。一家公司只发一封。 | 不想走招聘平台海投、要直接投公司邮箱时使用；也用于用已有材料生成简历 PDF、收集招聘联系邮箱及其来源、发出前审阅和修改邮件、跟踪哪些公司已经投过。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-jobhunt.html?lang=zh) |
 | `kelly-messenger` | 把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。 | 在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html?lang=zh) |
 | `kelly-standup` | 团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。 | 异步开晨会、一眼看到每个人在干什么、跟踪阻塞和参与率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html?lang=zh) |
 

@@ -1,12 +1,13 @@
-import { appConfig } from "./config.js?v=0.1.0";
+import { appConfig } from "./config.js?v=0.2.0";
 import {
   buildApprovalFields,
   buildProfileFields,
   confidenceLabel,
   createJobhuntDesk,
+  nextStep,
   statusLabel,
-} from "./jobhunt-model.js?v=0.1.0";
-import { getProvider } from "./providers/index.js?v=0.1.0";
+} from "./jobhunt-model.js?v=0.2.0";
+import { getProvider } from "./providers/index.js?v=0.2.0";
 
 const root = document.querySelector("#app");
 
@@ -117,7 +118,7 @@ const renderCompanyRow = (company, active) => {
 
 const renderRows = (items, selectedId) => {
   if (!items.length) {
-    return '<div class="empty-state">这里还没有公司。让 Agent 运行一次公司搜索，结果会写回这个列表。</div>';
+    return `<div class="empty-state">这里还没有公司。<br />回到对话框运行 <code>/kelly-jobhunt research</code>，它会把公司和联系邮箱写回这个列表。</div>`;
   }
   return items.map((item) => renderCompanyRow(item, item.id === selectedId)).join("");
 };
@@ -204,9 +205,16 @@ const renderProfile = () => {
       ${field("locations", "意向城市", profile.locations)}
       ${field("industries", "意向行业", profile.industries)}
       <label class="field"><span>自我介绍<small>写实一点，邮件正文会引用它</small></span><textarea data-profile="highlights" rows="5">${escapeHtml(profile.highlights)}</textarea></label>
-      ${field("resumeFile", "简历文件", profile.resumeFile, "手工放到 skill 的 resume/ 目录，这里填文件名")}
-      ${field("fromEmail", "发件邮箱", profile.fromEmail, "发送脚本用这个邮箱发出，授权码存在 Vault")}
+      ${field("jobBoards", "招聘渠道", profile.jobBoards, "research 会优先在这些渠道上找线索")}
+      ${field("resumeFile", "简历文件", profile.resumeFile, "由 /kelly-jobhunt profile 排版生成，放在 skill 的 resume/ 目录")}
+      ${field("fromEmail", "发件邮箱", profile.fromEmail, "发送脚本用这个邮箱发出")}
+      <div class="attachment-line"><span>SMTP 凭据</span><strong>${
+        profile.mailReady
+          ? `已配置 · 存在 Vault（${escapeHtml(profile.smtpVaultKey)}）`
+          : "未配置 · 运行 /kelly-jobhunt send"
+      }</strong></div>
     </section>
+    <p class="detail-note">授权码只存在 Busabase Vault 里，这个页面既读不到也不显示它。</p>
     <div class="detail-actions">
       <button class="primary-button" type="button" data-save-profile>保存资料</button>
       <button class="ghost-button" type="button" data-view="to-send">去看待发送</button>
@@ -230,6 +238,18 @@ const renderPipeline = () => {
   </div></section>`;
 };
 
+// Everything this desk cannot do itself happens back in the conversation, so
+// the command to run next is part of the UI, not something to look up.
+const renderNextStep = () => {
+  const step = nextStep(desk);
+  if (!step) return "";
+  return `<section class="next-step" aria-label="下一步">
+    <div class="next-step-title">${escapeHtml(step.title)}</div>
+    <div class="next-step-detail">${escapeHtml(step.detail)}</div>
+    ${step.command ? `<button class="next-step-command" type="button" data-copy-command="${escapeHtml(step.command)}" title="点一下复制"><code>${escapeHtml(step.command)}</code></button>` : ""}
+  </section>`;
+};
+
 const renderSidebar = () => {
   const attention = desk.attention;
   const primary = attention.profileReady
@@ -238,6 +258,7 @@ const renderSidebar = () => {
   return `<aside class="sidebar ${sidebarCollapsed ? "collapsed" : ""}" id="appSidebar">
     <div class="brand"><div class="brand-icon" aria-hidden="true">KJ</div><div class="brand-copy"><div class="brand-title">Kelly 求职直投</div><div class="brand-subtitle">目标公司直投台</div></div><button class="sidebar-toggle" type="button" data-sidebar-toggle aria-controls="appSidebar" aria-expanded="${!sidebarCollapsed}" aria-label="切换侧栏" title="切换侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button></div>
     <section class="human-work" aria-labelledby="humanWorkTitle"><div class="human-work-eyebrow">需要你</div><div id="humanWorkTitle" class="human-work-title">今天的投递</div>${primary}<div class="human-work-secondary"><button type="button" data-view="all" title="缺邮箱，需要 Agent 补线索"><strong>${attention.blocked}</strong><span>缺邮箱</span></button><button type="button" data-view="sent" title="已批准或已发出"><strong>${desk.counts.sent}</strong><span>已发送</span></button></div></section>
+    ${renderNextStep()}
     <div class="sidebar-separator"></div>
     <nav class="filters" aria-label="工作流导航">${Object.entries(viewMeta)
       .map(
@@ -497,6 +518,15 @@ const bindEvents = () => {
   root.querySelector("[data-refresh]")?.addEventListener("click", async () => {
     if (currentState.provider.name === "demo") showToast("演示数据为 2026-08-11 固定快照。");
     else await load({ keepRoute: true });
+  });
+  root.querySelector("[data-copy-command]")?.addEventListener("click", async (event) => {
+    const command = event.currentTarget.dataset.copyCommand;
+    try {
+      await navigator.clipboard.writeText(command);
+      showToast(`已复制：${command}`);
+    } catch {
+      showToast(`回到对话框运行：${command}`);
+    }
   });
   root.querySelector("[data-approve]")?.addEventListener("click", approveCompany);
   root.querySelector("[data-save-draft]")?.addEventListener("click", saveDraft);

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "provisioning": {
     "mode": "lazy",
     "trigger": "first-real-data-read-or-explicit-setup-action",
@@ -26,8 +26,7 @@
       "purpose": "Job seeker profile that drives search keywords and email drafting",
       "nodeId": "",
       "baseId": "",
-      "schemaVersion": 1,
-      "readLimit": 20
+      "schemaVersion": 2
     },
     {
       "key": "companies",
@@ -36,8 +35,7 @@
       "purpose": "Target companies with match evidence, drafted email, and outreach status",
       "nodeId": "",
       "baseId": "",
-      "schemaVersion": 1,
-      "readLimit": 100
+      "schemaVersion": 2
     },
     {
       "key": "leads",
@@ -46,21 +44,40 @@
       "purpose": "Contact addresses discovered per company, several per company",
       "nodeId": "",
       "baseId": "",
-      "schemaVersion": 1,
-      "readLimit": 100
+      "schemaVersion": 2
     }
   ],
   "vaultRequirements": [
     {
-      "key": "smtp",
-      "purpose": "SMTP host, user, and app password used only by the trusted send script",
+      "key": "SMTP_HOST",
+      "purpose": "SMTP server host for the job seeker's own mailbox",
+      "readableBy": "trusted-script",
+      "browserVisible": false
+    },
+    {
+      "key": "SMTP_PORT",
+      "purpose": "SMTP port; 465 implies implicit TLS",
+      "readableBy": "trusted-script",
+      "browserVisible": false
+    },
+    {
+      "key": "SMTP_USER",
+      "purpose": "SMTP username, usually the sender address itself",
+      "readableBy": "trusted-script",
+      "browserVisible": false
+    },
+    {
+      "key": "SMTP_PASS",
+      "purpose": "SMTP app password / authorization code. Never an account password",
       "readableBy": "trusted-script",
       "browserVisible": false
     }
   ],
   "trustedExecution": {
+    "profile": "scripts/build_resume.mjs — renders the profile into a typeset PDF resume",
+    "smtpSetup": "scripts/configure_smtp.mjs — writes SMTP credentials into the Busabase Vault",
     "leadImport": "scripts/import_leads.mjs — Agent writes discovered companies and contact addresses",
-    "emailSend": "scripts/send_emails.mjs — sends approved outreach over SMTP and marks it sent",
+    "emailSend": "scripts/send_emails.mjs — resolves Vault credentials, sends approved outreach, marks it sent",
     "browserWrites": ["profile fields", "outreach approval verdict and drafted email"]
   }
 }

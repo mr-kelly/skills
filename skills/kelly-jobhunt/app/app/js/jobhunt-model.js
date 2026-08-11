@@ -53,9 +53,15 @@ export function normalizeProfile(record) {
     resumeFile: toText(fields.resume_file),
     fromEmail: toText(fields.from_email),
     updatedAt: toText(fields.updated_at),
+    jobBoards: toText(fields.job_boards),
+    resumeSource: toText(fields.resume_source),
+    smtpVaultKey: toText(fields.smtp_vault_key),
   };
   profile.missing = PROFILE_REQUIREMENTS.filter(([key]) => !profile[key]).map(([, label]) => label);
   profile.ready = profile.missing.length === 0;
+  // Mailbox readiness is deliberately separate: SMTP is only needed at send
+  // time, so a missing credential must not block searching or drafting.
+  profile.mailReady = Boolean(profile.smtpVaultKey);
   return profile;
 }
 
@@ -140,7 +146,12 @@ export function createJobhuntDesk(records) {
     companies,
     leads,
     buckets: { all: companies, "to-send": toSend, sent },
-    counts: { all: companies.length, "to-send": toSend.length, sent: sent.length },
+    counts: {
+      all: companies.length,
+      "to-send": toSend.length,
+      sent: sent.length,
+      queued: companies.filter((company) => company.status === "queued").length,
+    },
     attention: {
       toSend: toSend.length,
       blocked: blocked.length,
@@ -170,5 +181,55 @@ export function buildProfileFields(input, now) {
     "resume-file": toText(input.resumeFile),
     "from-email": toText(input.fromEmail),
     "updated-at": now,
+    "job-boards": toText(input.jobBoards),
   };
+}
+
+// The desk is one surface of a three-command skill, and the work it cannot do
+// itself always happens back in the conversation. Rather than leaving the
+// operator to guess which command comes next, derive it from the same state the
+// queue is rendered from.
+const NEXT_STEPS = [
+  {
+    when: (desk) => !desk.profile.ready,
+    command: "/kelly-jobhunt profile",
+    title: "先补全你的资料",
+    detail: (desk) => `还缺 ${desk.profile.missing.join("、")}。把简历丢给它，它读完帮你填。`,
+  },
+  {
+    when: (desk) => desk.counts.all === 0,
+    command: "/kelly-jobhunt research",
+    title: "去找目标公司",
+    detail: () => "它会先问你想用哪些招聘渠道，再把公司和联系邮箱写回这个列表。",
+  },
+  {
+    when: (desk) => desk.attention.blocked > 0,
+    command: "/kelly-jobhunt research",
+    title: "补齐缺邮箱的公司",
+    detail: (desk) => `${desk.attention.blocked} 家公司还没找到可用邮箱，让它再补一次线索。`,
+  },
+  {
+    when: (desk) => desk.counts.queued > 0 && !desk.profile.mailReady,
+    command: "/kelly-jobhunt send",
+    title: "配置发件邮箱",
+    detail: (desk) => `${desk.counts.queued} 封已批准等着发。授权码存进 Vault，不进这个页面。`,
+  },
+  {
+    when: (desk) => desk.counts.queued > 0,
+    command: "node scripts/send_emails.mjs",
+    title: "把已批准的发出去",
+    detail: (desk) => `${desk.counts.queued} 封在排队。脚本默认预演，确认后加 --apply。`,
+  },
+  {
+    when: (desk) => desk.counts["to-send"] > 0,
+    command: "",
+    title: "逐封审你的信",
+    detail: (desk) => `${desk.counts["to-send"]} 家等你看一眼、改一句、点批准。`,
+  },
+];
+
+export function nextStep(desk) {
+  const step = NEXT_STEPS.find((candidate) => candidate.when(desk));
+  if (!step) return null;
+  return { command: step.command, title: step.title, detail: step.detail(desk) };
 }

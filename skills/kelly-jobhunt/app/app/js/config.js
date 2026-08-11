@@ -5,7 +5,7 @@ export const appConfig = {
   locale: "zh-CN",
   readOnly: false,
   spaceId: "",
-  schemaVersion: 1,
+  schemaVersion: 2,
   folder: {
     name: "Kelly 求职直投",
     description: "Job-search profile, target companies, and outreach state",
@@ -25,7 +25,6 @@ export const appConfig = {
       description: "One job seeker profile that drives company search and email drafting",
       nodeId: "",
       baseId: "",
-      readLimit: 20,
       fields: [
         { slug: "name", name: "求职人", type: "text", required: true },
         { slug: "target-role", name: "目标岗位", type: "text", required: true },
@@ -35,6 +34,12 @@ export const appConfig = {
         { slug: "resume-file", name: "简历文件", type: "text", required: false },
         { slug: "from-email", name: "发件邮箱", type: "text", required: false },
         { slug: "updated-at", name: "更新时间", type: "date", required: false },
+        // Appended in schema v2. New fields must go after the existing ones so
+        // the additive migration in resource-provisioning.js can add them to a
+        // Base that was created at v1 without touching what is already there.
+        { slug: "job-boards", name: "招聘渠道", type: "text", required: false },
+        { slug: "resume-source", name: "简历原文", type: "longtext", required: false },
+        { slug: "smtp-vault-key", name: "SMTP 凭据引用", type: "text", required: false },
       ],
     },
     {
@@ -44,7 +49,6 @@ export const appConfig = {
       description: "One row per target company: match evidence, drafted email, and outreach status",
       nodeId: "",
       baseId: "",
-      readLimit: 100,
       fields: [
         { slug: "name", name: "公司名称", type: "text", required: true },
         { slug: "key", name: "公司标识", type: "text", required: true },
@@ -68,7 +72,6 @@ export const appConfig = {
       description: "Candidate contact addresses discovered for a company, several per company",
       nodeId: "",
       baseId: "",
-      readLimit: 100,
       fields: [
         { slug: "email", name: "邮箱", type: "text", required: true },
         { slug: "company-key", name: "所属公司", type: "text", required: true },
@@ -79,7 +82,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "folders.get", "bases.get", "records.list"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["bases.createChangeRequest", "records.changeRequest"],
   },

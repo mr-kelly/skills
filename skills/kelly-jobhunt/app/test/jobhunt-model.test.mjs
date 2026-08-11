@@ -5,6 +5,7 @@ import {
   buildApprovalFields,
   buildProfileFields,
   createJobhuntDesk,
+  nextStep,
   normalizeProfile,
   pickBestLead,
 } from "../app/js/jobhunt-model.js";
@@ -66,7 +67,7 @@ test("sorts companies by match score and assigns stable batch references", () =>
 
 test("buckets split on draft versus everything already approved", () => {
   const desk = createJobhuntDesk(sample);
-  assert.deepEqual(desk.counts, { all: 3, "to-send": 2, sent: 1 });
+  assert.deepEqual(desk.counts, { all: 3, "to-send": 2, sent: 1, queued: 0 });
   assert.deepEqual(
     desk.buckets["to-send"].map((company) => company.name),
     ["蓝汐科技", "麦芒零售"],
@@ -142,6 +143,54 @@ test("profile fields are written back with the Busabase field slugs", () => {
       "resume-file": "",
       "from-email": "a@example.com",
       "updated-at": "2026-08-11",
+      "job-boards": "",
     },
   );
+});
+
+test("the desk names the next subcommand for every state it can be in", () => {
+  // Profile first: with nothing filled in, searching or sending is pointless.
+  const empty = createJobhuntDesk([]);
+  assert.equal(nextStep(empty).command, "/kelly-jobhunt profile");
+
+  // Profile ready but no companies yet.
+  const readyProfile = createJobhuntDesk([profileRecord]);
+  assert.equal(nextStep(readyProfile).command, "/kelly-jobhunt research");
+
+  // A company with no address sends you back to research rather than letting
+  // you stare at a disabled button.
+  assert.equal(nextStep(createJobhuntDesk(sample)).command, "/kelly-jobhunt research");
+
+  // Approved mail with no SMTP configured points at the send setup.
+  const queued = [
+    profileRecord,
+    record("company-q", "companies", {
+      name: "潮汐云",
+      key: "chaoxi",
+      email_subject: "x",
+      email_body: "y",
+      status: "queued",
+      sent_to: "hr@chaoxi.example.com",
+    }),
+    record("lead-q", "leads", { email: "hr@chaoxi.example.com", company_key: "chaoxi", confidence: "high" }),
+  ];
+  assert.equal(nextStep(createJobhuntDesk(queued)).command, "/kelly-jobhunt send");
+
+  // Once SMTP is on the profile, the remaining step is the sender itself.
+  const withSmtp = [
+    record("profile-self", "profile", {
+      ...profileRecord.fields,
+      smtp_vault_key: "SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS",
+    }),
+    ...queued.slice(1),
+  ];
+  assert.equal(nextStep(createJobhuntDesk(withSmtp)).command, "node scripts/send_emails.mjs");
+});
+
+test("mail readiness is separate from profile readiness", () => {
+  // Needing SMTP must not block searching or drafting; it is only a send-time
+  // requirement.
+  const profile = normalizeProfile(profileRecord);
+  assert.equal(profile.ready, true);
+  assert.equal(profile.mailReady, false);
 });

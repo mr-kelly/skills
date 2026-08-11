@@ -1,8 +1,12 @@
 # Kelly JobHunt Schema
 
-Authoritative field slugs and status values. `app/app/js/config.js` is the
-executable copy — change both together, and bump `schemaVersion` in
+Authoritative field slugs, status values, and Vault keys. `app/app/js/config.js`
+is the executable copy — change both together, and bump `schemaVersion` in
 `config.js` and `app/resource-map.json` when a field is added or renamed.
+
+**Current: v2.** New fields must be appended after the existing ones so the
+additive migration in `resource-provisioning.js` can add them to a Base created
+at v1 without touching what is already there.
 
 Browser code reads fields in snake_case (`match_score`) because the provider
 normalizes `-` to `_` on read. Writes use the real kebab-case slugs
@@ -24,6 +28,9 @@ Busabase is the job seeker's name.
 | `resume-file` | text | no | File name only. The PDF lives in `resume/`. |
 | `from-email` | text | no | Sender address used by `send_emails.mjs`. |
 | `updated-at` | date | no | |
+| `job-boards` | text | no | v2. Which channels `research` should search. Free text. |
+| `resume-source` | longtext | no | v2. The tidied resume text `build_resume.mjs` typesets. Blank line = new block; a line ending in a colon becomes a section heading. |
+| `smtp-vault-key` | text | no | v2. Comma-separated Vault **reference names**, never values. Presence is what `mailReady` reads. |
 
 `target-role`, `highlights`, `resume-file`, and `from-email` are the four
 readiness requirements. Missing any of them makes the outreach queue
@@ -78,11 +85,36 @@ Address selection: the highest-confidence address wins, except that a company
 which already has `sent-to` keeps that address so the record of what was
 actually sent stays truthful even if a better address is discovered later.
 
+## Vault keys
+
+Written by `scripts/configure_smtp.mjs`, read only by `scripts/send_emails.mjs`.
+The profile stores the reference names; no Base ever stores a value.
+
+| Key | Kind | Notes |
+| --- | --- | --- |
+| `SMTP_HOST` | variable | |
+| `SMTP_PORT` | variable | 465 implies implicit TLS |
+| `SMTP_USER` | variable | usually the sender address itself |
+| `SMTP_PASS` | secret | app password / authorization code, `access.reveal: false` |
+
+Two things about the Vault API that are easy to get wrong:
+
+- **`PUT /vault` replaces the whole document.** It is not an upsert. Writing
+  only these four keys deletes every other item on the instance, so always read
+  first and merge by key (`upsertVaultItems` in `scripts/lib.mjs`).
+- **`busabase-sdk` strips the Vault from its cloud client on purpose**
+  (`const { vault: _localVault, ...cloudWorkbenchRoutes }`): it is a
+  local/self-hosted capability, not a Cloud API surface. The scripts call
+  `/api/v1/vault` directly and treat 404/403 as "this instance has no Vault",
+  falling back to `SMTP_*` environment variables rather than failing.
+
 ## Limits
 
-- Every `readLimit` must stay ≤ 100. The Busabase server rejects
-  `records.list({limit})` above 100 with `Input validation failed — limit: Too
-  big`, and neither unit tests nor demo mode will catch it.
+- **Transport pagination is owned by the provider, never declared per Base.**
+  The server caps `records.list({limit})` at 100; `research` routinely produces
+  more contact addresses than that. Both the browser provider and
+  `scripts/lib.mjs` follow `nextCursor` to exhaustion and guard against a
+  repeating cursor. A per-Base `readLimit` is rejected by `scripts/check.mjs`.
 - `bases.createBulkChangeRequest` accepts no `autoMerge`; it always produces a
   pending ChangeRequest that must be reviewed and merged explicitly.
 - Only `text`, `longtext`, `number`, and `date` types are used here. Richer

@@ -25,6 +25,19 @@ const records = [
     resume_file: "陈默-B端产品经理-2026.pdf",
     from_email: "chenmo.pm@example.com",
     updated_at: "2026-08-10",
+    job_boards: "BOSS 直聘、拉勾、公司官网招聘页、领英",
+    resume_source: `工作经历：
+2023-2026 某协作 SaaS · 高级产品经理，负责协作工作台与审批中台两条线
+2021-2023 某企业服务公司 · 产品经理，从 0 到 1 做出内部工单系统
+
+关键成绩：
+把跨部门审批链路从平均 3.4 天压到 9 小时，季度活跃团队数从 120 增至 460
+主导审批中台重构，接入 7 条业务线，上线后人工介入率下降 62%
+自建埋点看板，产品决策不再依赖分析师排期
+
+技能：
+需求拆解与流程建模、SQL 与埋点分析、B 端交互设计评审`,
+    smtp_vault_key: "SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS",
   }),
 
   record("company-lanxi", "companies", {

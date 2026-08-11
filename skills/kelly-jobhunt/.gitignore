@@ -1,3 +1,4 @@
 node_modules/
 resume/*
 !resume/.gitkeep
+.tmp/

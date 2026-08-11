@@ -41,19 +41,27 @@ export async function resolveBases(client) {
 const snakeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
 
+// Transport pagination is owned here, not declared per Base. The API caps a
+// page at 100 and `research` routinely produces more contact addresses than
+// that, so every read follows nextCursor to exhaustion.
+const BUSABASE_RECORD_PAGE_SIZE = 100;
+
 export async function readAll(client, base) {
   const rows = [];
+  const seenCursors = new Set();
   let cursor = null;
   do {
     const page = await client.records.list({
       baseId: base.baseId,
-      limit: base.readLimit,
+      limit: BUSABASE_RECORD_PAGE_SIZE,
       ...(cursor ? { cursor } : {}),
     });
     for (const record of page.records || []) {
       rows.push({ id: record.id, fields: snakeFields(record.headCommit?.fields || record.fields) });
     }
     cursor = page.nextCursor || null;
+    if (cursor && seenCursors.has(cursor)) throw new Error(`PAGINATION_LOOP: ${base.key}`);
+    if (cursor) seenCursors.add(cursor);
   } while (cursor);
   return rows;
 }
@@ -72,6 +80,63 @@ export async function mergeChangeRequest(client, changeRequest) {
   const result = await client.changeRequests.merge({ changeRequestIds });
   const merged = result?.results?.[0] || result?.[0] || result;
   return merged?.changeRequest || merged;
+}
+
+// busabase-sdk deliberately strips the Vault from its cloud client
+// (`const { vault: _localVault, ...cloudWorkbenchRoutes }`): the Vault is a
+// local/self-hosted Busabase capability, not a Cloud API surface. So talk to
+// /api/v1/vault directly, and treat "this server has no Vault" as a normal
+// answer rather than a crash.
+const vaultRequest = async (method, body) => {
+  const baseUrl = required("BUSABASE_BASE_URL").replace(/\/+$/, "");
+  const response = await fetch(`${baseUrl}/api/v1/vault`, {
+    method,
+    headers: {
+      "content-type": "application/json",
+      ...(process.env.BUSABASE_API_KEY ? { authorization: `Bearer ${process.env.BUSABASE_API_KEY}` } : {}),
+      ...(process.env.BUSABASE_SPACE_ID ? { "x-busabase-space": process.env.BUSABASE_SPACE_ID } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (response.status === 404 || response.status === 403) return null;
+  if (!response.ok) throw new Error(`VAULT_HTTP_${response.status}: ${await response.text()}`);
+  return response.json();
+};
+
+export const vaultUnavailableHint =
+  "这台 Busabase 没有 Vault（Busabase Cloud 不提供本地 Vault）。改用环境变量 SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS 运行发送脚本。";
+
+// The Vault API is a full-document PUT, not an upsert: sending only your own
+// keys deletes every other item on the instance. Always read, merge by key,
+// write the whole set back.
+export async function upsertVaultItems(items) {
+  const current = await vaultRequest("GET");
+  if (current === null) return null;
+  const byKey = new Map((current.items || []).map((item) => [item.key, item]));
+  for (const item of items) byKey.set(item.key, { ...(byKey.get(item.key) || {}), ...item });
+  const merged = [...byKey.values()].map(({ id, scopeId, createdAt, updatedAt, lastUsedAt, ...rest }) => {
+    void id;
+    void scopeId;
+    void createdAt;
+    void updatedAt;
+    void lastUsedAt;
+    return rest;
+  });
+  return vaultRequest("PUT", { items: merged });
+}
+
+// Reads secret values, so this may only ever run inside a trusted script.
+// Falls back to the process environment when the instance has no Vault.
+export async function readVaultValues(keys) {
+  const current = await vaultRequest("GET");
+  if (current === null) {
+    return { values: Object.fromEntries(keys.map((key) => [key, process.env[key] || ""])), source: "environment" };
+  }
+  const byKey = new Map((current.items || []).map((item) => [item.key, item.value]));
+  return {
+    values: Object.fromEntries(keys.map((key) => [key, byKey.get(key) || process.env[key] || ""])),
+    source: "vault",
+  };
 }
 
 export const parseFlags = (argv) => ({

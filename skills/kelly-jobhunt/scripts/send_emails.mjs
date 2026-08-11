@@ -2,16 +2,26 @@
 // Sends every outreach the operator approved in the AirApp, then marks it sent.
 // Usage: node scripts/send_emails.mjs [--apply]
 //
-// Credentials come from this process's own environment and never reach browser
-// code: BUSABASE_BASE_URL, BUSABASE_API_KEY, BUSABASE_SPACE_ID,
-// SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS.
+// Busabase credentials come from this process's own environment
+// (BUSABASE_BASE_URL / BUSABASE_API_KEY / BUSABASE_SPACE_ID). The mailbox
+// credentials come from the Busabase Vault, written once by
+// scripts/configure_smtp.mjs. Neither ever reaches browser code.
 import { access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import nodemailer from "nodemailer";
 
-import { appConfig, createTrustedClient, dryRunBanner, fail, parseFlags, readAll, resolveBases } from "./lib.mjs";
+import {
+  appConfig,
+  createTrustedClient,
+  dryRunBanner,
+  fail,
+  parseFlags,
+  readAll,
+  readVaultValues,
+  resolveBases,
+} from "./lib.mjs";
 
 const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const { apply } = parseFlags(process.argv.slice(2));
@@ -35,10 +45,32 @@ const resumeReady = await access(resumePath).then(
 
 const queued = (await readAll(client, bases.get("companies"))).filter((row) => row.fields.status === "queued");
 
+// Read readiness during a dry run too, so "你还没配邮箱" surfaces before the
+// operator commits to sending rather than after.
+const { values: smtp, source: smtpSource } = await readVaultValues([
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_USER",
+  "SMTP_PASS",
+]);
+const smtpReady = Boolean(smtp.SMTP_HOST && smtp.SMTP_USER && smtp.SMTP_PASS);
+
 process.stdout.write(dryRunBanner(apply));
 console.log(`发件人 ${fromEmail} · 附件 ${resumeName}${resumeReady ? "" : "（缺失）"}`);
+console.log(
+  `SMTP ${smtpReady ? `已配置（${smtp.SMTP_HOST}:${smtp.SMTP_PORT || 465}，凭据来自${smtpSource === "vault" ? " Vault" : "环境变量"}）` : "未配置"}`,
+);
 console.log(`待发出 ${queued.length} 封`);
 for (const company of queued) console.log(`  → ${company.fields.name} <${company.fields.sent_to}>`);
+
+if (!smtpReady) {
+  const hint =
+    smtpSource === "vault"
+      ? "先跑 node scripts/configure_smtp.mjs --host ... --user ... --pass ... --apply"
+      : "这台 Busabase 没有 Vault，请用环境变量 SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS 提供凭据";
+  if (apply) fail(`没有可用的 SMTP 凭据。${hint}`);
+  console.log(`\n注意：还没有可用的 SMTP 凭据。${hint}`);
+}
 
 // A dry run exists to show the plan, so a missing attachment is a warning here
 // and a hard stop only when something would actually be sent.
@@ -49,11 +81,12 @@ if (!resumeReady) {
 
 if (!apply || !queued.length) process.exit(0);
 
+const port = Number(smtp.SMTP_PORT || 465);
 const transport = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 465),
-  secure: Number(process.env.SMTP_PORT || 465) === 465,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  host: smtp.SMTP_HOST,
+  port,
+  secure: port === 465,
+  auth: { user: smtp.SMTP_USER, pass: smtp.SMTP_PASS },
 });
 
 const sentAt = new Date().toISOString().slice(0, 10);

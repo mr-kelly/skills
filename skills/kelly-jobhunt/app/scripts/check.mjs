@@ -55,8 +55,16 @@ if (
 ) {
   throw new Error("Lazy Busabase resource provisioning is incomplete");
 }
-for (const [, limit] of configSource.matchAll(/readLimit:\s*(\d+)/g)) {
-  if (Number(limit) > 100) throw new Error(`readLimit ${limit} exceeds the Busabase server maximum of 100`);
+// Transport pagination belongs to the provider. A per-Base readLimit is how a
+// desk ends up silently showing only the first page.
+if (/readLimit/.test(configSource) || /readLimit/.test(JSON.stringify(resourceMap))) {
+  throw new Error("Busabase transport pagination must not be configured per Base");
+}
+if (!providerSource.includes("BUSABASE_RECORD_PAGE_SIZE") || !providerSource.includes("readAllPages")) {
+  throw new Error("Provider must own the page size and follow nextCursor to exhaustion");
+}
+if (!providerSource.includes("PAGINATION_LOOP")) {
+  throw new Error("Pagination must guard against a repeating cursor");
 }
 if (/创建并审批|写入部署配置/.test(appSource)) {
   throw new Error("Setup UI must not delegate resource creation to the user");
@@ -91,9 +99,15 @@ const assertions = [
   { ok: !/\bBearer\b/i.test(source), message: "Browser source must not reference Bearer credentials" },
   { ok: !/\blocalStorage\b/.test(source), message: "Persistent browser storage is forbidden" },
   {
-    // The word "SMTP" is allowed in help copy; a mail transport is not.
-    ok: !/\bnodemailer\b|createTransport|sendMail|SMTP_PASS/i.test(source),
+    // The Vault key NAMES legitimately appear in browser code (the profile shows
+    // which references are configured). A transport or a credential value does not.
+    ok: !/\bnodemailer\b|createTransport|sendMail|process\.env\.SMTP/i.test(source),
     message: "Email sending must never run in browser code",
+  },
+  {
+    // vault.get returns plaintext values, so the browser must never call it.
+    ok: !/vault\.(get|update|clear)/.test(source),
+    message: "Browser code must never read or write the Busabase Vault",
   },
   { ok: !/\b(?:react|vite|jsx)\b/i.test(source), message: "Frontend build frameworks are forbidden" },
   {

@@ -5,6 +5,10 @@ import { inspectProvisionedResources, provisionDeclaredResources } from "../reso
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
+// Transport pagination belongs to the provider, never to a Base declaration.
+// The API caps a page at 100; a desk that stops after one page silently loses
+// every row past it — and `research` makes 100+ contact addresses routine.
+const BUSABASE_RECORD_PAGE_SIZE = 100;
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
@@ -20,14 +24,35 @@ const readPage = async (client, base, cursor) => {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const page = await client.records.list({
     baseId: base.baseId,
-    limit: base.readLimit,
+    limit: BUSABASE_RECORD_PAGE_SIZE,
     ...(cursor ? { cursor } : {}),
   });
   return {
     records: normalizeRecords(page.records, base.key),
     nextCursor: page.nextCursor || null,
-    limit: base.readLimit,
+    limit: BUSABASE_RECORD_PAGE_SIZE,
   };
+};
+
+export const readAllPages = async (client, base) => {
+  const records = [];
+  const seenCursors = new Set();
+  let cursor;
+  let pageCount = 0;
+
+  while (true) {
+    pageCount += 1;
+    const page = await readPage(client, base, cursor);
+    records.push(...page.records);
+    if (!page.nextCursor) {
+      return { records, nextCursor: null, limit: BUSABASE_RECORD_PAGE_SIZE, pageCount };
+    }
+    if (seenCursors.has(page.nextCursor)) {
+      throw new Error(`PAGINATION_LOOP: ${base.key}`);
+    }
+    seenCursors.add(page.nextCursor);
+    cursor = page.nextCursor;
+  }
 };
 
 let runtimeClient;
@@ -45,7 +70,7 @@ export const busabaseProvider = {
   async getState() {
     runtimeClient = createRuntimeClient();
     if (!allowedReads.has("nodes.list")) throw new Error("PROCEDURE_DENIED: nodes.list");
-    if (!allowedReads.has("folders.get")) throw new Error("PROCEDURE_DENIED: folders.get");
+    if (!allowedReads.has("nodes.get")) throw new Error("PROCEDURE_DENIED: nodes.get");
     let resources = await inspectProvisionedResources(runtimeClient, appConfig);
     if (resources.folder && resources.missing.length === 0 && resources.repairs.length) {
       if (!allowedReads.has("bases.get")) throw new Error("PROCEDURE_DENIED: bases.get");
@@ -60,7 +85,7 @@ export const busabaseProvider = {
     pendingSetupError = "";
     runtimeBases = new Map(resources.bases.map((base) => [base.key, base]));
     const pages = await Promise.all(
-      resources.bases.map(async (base) => [base.key, await readPage(runtimeClient, base)]),
+      resources.bases.map(async (base) => [base.key, await readAllPages(runtimeClient, base)]),
     );
     return {
       provider: {
