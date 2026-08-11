@@ -39,6 +39,7 @@ Before designing, creating, or changing the app:
 2. Read and follow `$busabase` for connection, target Space, API, ChangeRequest, review, merge, and Vault behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 4. Read `references/jobhunt-schema.md` before changing any Base, field slug, status value, or Vault key.
+5. Read `references/research-playbook.md` before running `/kelly-jobhunt research` for the first time — it is the working method behind the boundaries stated here.
 
 If a required skill is unavailable, continue safe local app work but stop before
 the unavailable Busabase or deployment operation and report the missing
@@ -123,6 +124,11 @@ Draft `email-subject` and `email-body` at import time so the queue is reviewable
 immediately. Tailor the opening paragraph to that company's specific evidence —
 a real posting line, a real product direction — and keep the rest consistent
 with `highlights`. Plain text, no HTML, no tracking pixel.
+
+`references/research-playbook.md` has the full method: where addresses actually
+come from and how to grade them, what separates a usable match reason from
+filler, how to calibrate `matchScore` so the sort keeps meaning something, and
+the six ways this step usually goes wrong.
 
 Then import:
 
