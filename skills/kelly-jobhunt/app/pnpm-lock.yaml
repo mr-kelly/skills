@@ -12,8 +12,8 @@ importers:
         specifier: 2.0.8
         version: 2.0.8(hono@4.12.29)
       busabase-sdk:
-        specifier: 0.11.0
-        version: 0.11.0
+        specifier: 0.15.0
+        version: 0.15.0
       hono:
         specifier: 4.12.29
         version: 4.12.29
@@ -59,8 +59,8 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  busabase-sdk@0.11.0:
-    resolution: {integrity: sha512-psDPMkI0dlKHMw/CnB30nsLheWzGiMCW6BljECD6bjYEYdULhlSmakMT3T0IgyLiuV6K+CIaoa4EqV+/D5Hgyw==}
+  busabase-sdk@0.15.0:
+    resolution: {integrity: sha512-Dg+C5qBQlQjU2uXESBp9Zwjvu7qVRLBkjYzKLqpjWpsFeFOU4wp7xoNGi/V9XvBOnyvYg7s/ts7IDbPj2JxOOA==}
     engines: {node: '>=24.18.0'}
 
   esbuild-wasm@0.28.1:
@@ -150,7 +150,7 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  busabase-sdk@0.11.0:
+  busabase-sdk@0.15.0:
     dependencies:
       '@orpc/client': 1.15.0
       '@orpc/contract': 1.15.0
