@@ -109,13 +109,10 @@ test("does not persist secrets or domain state in browser storage", async () => 
 test("local OAuth selects and validates a Space before proxying SDK requests", async () => {
   const server = await readFile(join(appRoot, "server.js"), "utf8");
   const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");
-  assert.match(server, /new URL\("\/api\/v1\/auth"/);
-  assert.match(server, /requiresSpace/);
-  assert.match(server, /spaceError/);
-  assert.match(server, /app\.post\("\/auth\/space"/);
-  assert.match(server, /HttpOnly; SameSite=Lax/);
-  assert.match(server, /cookieValue\(context, SPACE_COOKIE\)/);
-  assert.doesNotMatch(server, /cookieValue\(context, SPACE_COOKIE\) \|\| context\.req\.header\("x-busabase-space"\)/);
+  assert.match(server, /createBusabaseAirAppLocalGateway/);
+  assert.match(server, /gateway\.selectSpace\(context\.req\.raw\)/);
+  assert.match(server, /gateway\.proxy\(context\.req\.raw\)/);
+  assert.doesNotMatch(server, /context\.req\.header\("x-busabase-space"\)/);
   assert.match(app, /选择 Busabase Space/);
   assert.match(app, /authStatus\.requiresSpace/);
   assert.match(app, /fetch\("\/auth\/space"/);

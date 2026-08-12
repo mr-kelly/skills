@@ -1,3 +1,4 @@
+// @ts-nocheck
 // node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
 function normalizeBaseUrl(raw) {
   return raw.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
