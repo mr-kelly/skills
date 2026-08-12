@@ -2,8 +2,10 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { createBusabaseAirAppLocalGateway } from "./app/vendor/busabase-airapp-node.js";
+import { oauthCallbackCapability } from "./runtime-capabilities.js";
 
 const AIRAPP_ID = "kelly-jobhunt";
+const port = Number.parseInt(process.env.PORT || "3111", 10);
 
 const app = new Hono();
 
@@ -51,6 +53,7 @@ app.get("/__airapp/runtime", (context) =>
   context.json({
     runtime: airappRuntime || "standalone",
     hosted: AIRAPP_HOSTED_RUNTIMES.has(airappRuntime),
+    ...oauthCallbackCapability(context.req.raw),
   }),
 );
 
@@ -71,7 +74,6 @@ app.onError((error, context) => {
   return context.json({ error: "Internal server error" }, 500);
 });
 
-const port = Number.parseInt(process.env.PORT || "3111", 10);
 serve({ fetch: app.fetch, port }, () => {
   console.log(`AirApp listening on port ${port}`);
 });

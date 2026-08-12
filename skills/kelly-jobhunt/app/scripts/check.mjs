@@ -6,6 +6,7 @@ const required = [
   "package.json",
   "resource-map.json",
   "server.js",
+  "runtime-capabilities.js",
   "app/index.html",
   "app/styles.css",
   "app/js/app.js",
@@ -115,9 +116,18 @@ const assertions = [
     // AirApp is served from localhost on Desktop/OSS, and a standalone run is
     // routinely reached over a LAN IP or a signed dev tunnel.
     ok:
-      source.includes("shouldUseLocalGateway(await initRuntime())") &&
+      source.includes("const runtime = await initRuntime()") &&
+      source.includes("shouldUseLocalGateway(runtime)") &&
       source.includes("if (!demo && standaloneLocalRuntime)"),
     message: "OAuth connection UI must be gated on the injected runtime, not the URL",
+  },
+  {
+    ok:
+      serverSource.includes("oauthCallbackCapability") &&
+      appSource.includes("oauthCallbackSupported") &&
+      appSource.includes("data-connect-error") &&
+      appSource.includes('<button class="connect-button" type="submit">连接 Busabase</button>'),
+    message: "Unsupported OAuth callbacks must fail in place without changing the connect action",
   },
   {
     ok: !/location\s*\.\s*hostname|window\.self\s*!==\s*window\.top/.test(source),

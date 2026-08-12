@@ -10,13 +10,18 @@
  * This replaces a URL-shaped guess (loopback hostname + iframe nesting +
  * `/api/airapp-preview/` path), which misfires in both directions. A
  * Busabase-hosted AirApp is served from `localhost` on Desktop and OSS, and a
- * standalone `npm run dev` is routinely reached over a LAN IP or a signed dev
- * tunnel such as `https://3111-….dev.budaapps.com` — neither loopback nor a
- * hosted preview path, so the app skipped its own connect gate, called
- * `/api/v1` with no credential, and reported an error nobody could act on.
+ * standalone `npm run dev` is routinely reached over a LAN IP or a signed
+ * external preview URL — neither loopback nor a hosted preview path, so the
+ * app skipped its own connect gate, called `/api/v1` with no credential, and
+ * reported an error nobody could act on.
  */
 
-const UNKNOWN_RUNTIME = { runtime: "unknown", hosted: false, determined: false };
+const UNKNOWN_RUNTIME = {
+  runtime: "unknown",
+  hosted: false,
+  determined: false,
+  oauthCallbackSupported: false,
+};
 
 /**
  * The cache lives on a global slot, not in module scope, because this app
@@ -32,7 +37,12 @@ const store = globalThis[SLOT];
 
 const normalize = (body) => {
   if (!body || typeof body !== "object" || typeof body.runtime !== "string") return UNKNOWN_RUNTIME;
-  return { runtime: body.runtime, hosted: body.hosted === true, determined: true };
+  return {
+    runtime: body.runtime,
+    hosted: body.hosted === true,
+    determined: true,
+    oauthCallbackSupported: body.oauthCallbackSupported === true,
+  };
 };
 
 /**

@@ -472,7 +472,7 @@ const renderSpaceSetup = (status = {}) => {
 
 const renderConnectSetup = (status = {}) => {
   const oauthError = new URLSearchParams(window.location.search).get("oauth_error");
-  root.innerHTML = `<div class="setup-shell"><section class="setup-modal setup-connect" aria-labelledby="setupTitle"><div class="setup-head"><div class="brand-icon" aria-hidden="true">KJ</div><div><p class="eyebrow">KELLY 求职直投</p><h1 id="setupTitle">连接 Busabase</h1></div></div><form class="setup-body connection-form" method="post" action="/auth/start">${oauthError ? `<div class="setup-error" role="alert">${escapeHtml(oauthError)}</div>` : ""}${status.readiness === "needs_auth" ? '<div class="setup-notice">登录已过期，请重新连接。</div>' : ""}<fieldset class="connection-options"><legend>服务器</legend><label class="connection-option active"><input type="radio" name="server_mode" value="cloud" checked /><span><strong>Busabase Cloud</strong><small>busabase.com</small></span></label><label class="connection-option"><input type="radio" name="server_mode" value="custom" /><span><strong>自定义服务器</strong><small>自托管或企业地址</small></span></label></fieldset><label class="custom-url" hidden><span>Busabase URL</span><input type="url" name="custom_base_url" inputmode="url" placeholder="https://busabase.example.com" autocomplete="url" /></label><input type="hidden" name="base_url" value="${escapeHtml(status.cloudBaseUrl || "https://busabase.com")}" /><button class="connect-button" type="submit">连接 Busabase</button></form><div class="setup-footer setup-footer-split"><span class="setup-security">OAuth 凭证仅保存在本机 ~/.busabase/airapps</span><a class="text-link" href="?demo=1#/to-send">进入演示数据</a></div></section></div>`;
+  root.innerHTML = `<div class="setup-shell"><section class="setup-modal setup-connect" aria-labelledby="setupTitle"><div class="setup-head"><div class="brand-icon" aria-hidden="true">KJ</div><div><p class="eyebrow">KELLY 求职直投</p><h1 id="setupTitle">连接 Busabase</h1></div></div><form class="setup-body connection-form" method="post" action="/auth/start">${oauthError ? `<div class="setup-error" role="alert">${escapeHtml(oauthError)}</div>` : ""}${status.readiness === "needs_auth" ? '<div class="setup-notice">登录已过期，请重新连接。</div>' : ""}<div class="setup-error" data-connect-error role="alert" hidden></div><fieldset class="connection-options"><legend>服务器</legend><label class="connection-option active"><input type="radio" name="server_mode" value="cloud" checked /><span><strong>Busabase Cloud</strong><small>busabase.com</small></span></label><label class="connection-option"><input type="radio" name="server_mode" value="custom" /><span><strong>自定义服务器</strong><small>自托管或企业地址</small></span></label></fieldset><label class="custom-url" hidden><span>Busabase URL</span><input type="url" name="custom_base_url" inputmode="url" placeholder="https://busabase.example.com" autocomplete="url" /></label><input type="hidden" name="base_url" value="${escapeHtml(status.cloudBaseUrl || "https://busabase.com")}" /><button class="connect-button" type="submit">连接 Busabase</button></form><div class="setup-footer setup-footer-split"><span class="setup-security">OAuth 凭证仅保存在本机 ~/.busabase/airapps</span><a class="text-link" href="?demo=1#/to-send">进入演示数据</a></div></section></div>`;
   const form = root.querySelector(".connection-form");
   const hiddenBaseUrl = form?.querySelector('input[name="base_url"]');
   const customWrap = form?.querySelector(".custom-url");
@@ -492,6 +492,14 @@ const renderConnectSetup = (status = {}) => {
   customInput?.addEventListener("input", () => {
     hiddenBaseUrl.value = customInput.value;
   });
+  if (status.oauthCallbackSupported === false) {
+    form?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const error = form.querySelector("[data-connect-error]");
+      error.textContent = "当前预览环境无法完成 Busabase 登录回调，请从可登录的应用入口打开后重试。";
+      error.hidden = false;
+    });
+  }
 };
 
 const writeNotice = (result) => {
@@ -718,13 +726,14 @@ const load = async ({ keepRoute = false } = {}) => {
     // Resolved before anything asks where it runs. The local `/auth/*` gateway
     // exists only in a standalone run, so consult it only there — and decide
     // that from the runtime Busabase injected, never from the URL.
-    const standaloneLocalRuntime = shouldUseLocalGateway(await initRuntime());
+    const runtime = await initRuntime();
+    const standaloneLocalRuntime = shouldUseLocalGateway(runtime);
     if (!demo && standaloneLocalRuntime) {
       authStatus = await fetch("/auth/status", { headers: { accept: "application/json" } }).then((response) =>
         response.json(),
       );
       if (!authStatus.connected) {
-        renderConnectSetup(authStatus);
+        renderConnectSetup({ ...authStatus, ...runtime });
         return;
       }
       if (authStatus.requiresSpace) {
