@@ -444,8 +444,15 @@ def test_busabase_round_trip(browser) -> None:
                 # The generated file name is recorded back on the profile.
                 assert records_of(busabase_url, profile_base)[0]["resume-file"] == pdfs[0].name
 
-                # No SMTP in the Vault yet: the dry run says so instead of pretending.
-                assert "SMTP 未配置" in send_dry.stdout, send_dry.stdout
+                # No SMTP anywhere yet: the dry run names each missing item
+                # rather than collapsing four different causes into "未配置".
+                assert "SMTP 就绪状态" in send_dry.stdout, send_dry.stdout
+                for key in ("SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"):
+                    assert f"{key} 缺失" in " ".join(send_dry.stdout.split()), send_dry.stdout
+                # This instance HAS a Vault, so the fix is to write to it — the
+                # "start a new Session" advice belongs to Cloud only.
+                assert "configure_smtp" in send_dry.stdout, send_dry.stdout
+                assert "没有 Vault" not in send_dry.stdout, send_dry.stdout
 
                 # Applying without credentials stops cleanly instead of crashing.
                 send_apply = run_script(["scripts/send_emails.mjs", "--apply"], busabase_url)
@@ -486,6 +493,16 @@ def test_busabase_round_trip(browser) -> None:
                 vault_items = {item["key"]: item["value"] for item in read_json(f"{busabase_url}/api/v1/vault")["items"]}
                 assert len(vault_items) == 4, vault_items
                 assert vault_items["SMTP_HOST"] == "smtp2.example.com", vault_items
+
+                # Now every item resolves, and the dry run says where from —
+                # without echoing a single value back.
+                ready_dry = run_script(["scripts/send_emails.mjs"], busabase_url)
+                assert ready_dry.returncode == 0, ready_dry.stderr
+                collapsed = " ".join(ready_dry.stdout.split())
+                for key in ("SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"):
+                    assert f"{key} 就绪 · Vault" in collapsed, ready_dry.stdout
+                assert "app-password" not in ready_dry.stdout, "the password must never be printed"
+                assert "smtp2.example.com" not in ready_dry.stdout, ready_dry.stdout
 
                 # With credentials and attachment in place it really tries to send.
                 # The fixture host does not resolve, which is the interesting

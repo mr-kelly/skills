@@ -62,8 +62,16 @@ SQLite, or a file-backed provider.
   in the Busabase Vault, written by `scripts/configure_smtp.mjs` and read only
   by `scripts/send_emails.mjs`. Browser code has no mail transport, never calls
   `vault.get`, and never displays a credential value — only whether one exists.
+  Not even a masked one: a mask still leaks the length, and it lands in whatever
+  log captured the run.
 - **Never ask the user to paste a password into chat.** Take it through the
   script's `--pass` flag or the `SMTP_PASS` environment variable.
+- **Only ever approve this app's own ChangeRequests.** A Space's open-CR list is
+  shared by every app in it. Filter to the three JobHunt Base IDs from
+  `app/resource-map.json` — and, when approving one company, to that Record ID —
+  before reviewing or merging anything. Merging the whole list because it was
+  what the query returned is how an unrelated app's pending write gets approved
+  by someone who never read it.
 
 ## `/kelly-jobhunt profile`
 
@@ -92,9 +100,13 @@ on, plus a resume PDF worth attaching.
    ```
    The dry run exists so the user can look at the layout before committing.
    Layout is HTML + CSS printed by headless Chrome; edit the template in
-   `scripts/build_resume.mjs` if they want a different look. If Chrome is
-   missing, the script says so and leaves the HTML for them to print manually —
-   it does not fail silently.
+   `scripts/build_resume.mjs` if they want a different look. Rendering is
+   `scripts/render_pdf.mjs`: it tries every browser on the machine — including
+   the Chromium that Playwright installs into its cache — then the Playwright
+   library, and only then gives up. Giving up prints each attempt with its exit
+   code and stderr, because "Chrome 挂了" without a reason is not a diagnosis;
+   the HTML preview survives either way, so manual 打印 → 存为 PDF is always the
+   fallback. Do not report a missing PDF without pasting that list.
 5. Never put a claim in the PDF that was not in their material. Degrees, titles,
    dates, and numbers must survive a reference check.
 
@@ -152,22 +164,44 @@ Goal: the user's own mailbox sends the letters they approved.
    their own address, not a shared one. For QQ/163/Gmail this means an app
    password or authorization code, not the account password. Point them at their
    mail provider's settings page; do not walk them through disabling security.
-2. Store it:
-   ```bash
-   node scripts/configure_smtp.mjs --host smtp.qq.com --port 465 --user me@qq.com --pass <授权码> --apply
-   # or, to keep it out of shell history:
-   SMTP_PASS=xxx node scripts/configure_smtp.mjs --host smtp.qq.com --user me@qq.com --apply
-   ```
-   This writes four Vault items and records only their **reference names** on
-   the profile. The Vault API is a full-document PUT, so the script reads the
-   existing Vault and merges — never call `vault.update` with a partial set.
+   Only the password is ever required. `SMTP_HOST`, `SMTP_PORT`, and `SMTP_USER`
+   are derived from the sender address for the mailboxes people actually use
+   (QQ/Foxmail, 163, 126, yeah, Sina, Aliyun, Gmail, Outlook), so a QQ sender
+   needs nothing but their 授权码. An explicitly configured value always wins
+   over a derived one. Nothing is derived for a company domain — its MX is not
+   its submission host.
+2. Store it. **Where depends on which Busabase this is**, and the dry run in
+   step 3 tells you which:
+   - **Self-hosted / local** (`/api/v1/vault` answers): write it to the Vault.
+     ```bash
+     node scripts/configure_smtp.mjs --host smtp.qq.com --port 465 --user me@qq.com --pass <授权码> --apply
+     # or, to keep it out of shell history:
+     SMTP_PASS=xxx node scripts/configure_smtp.mjs --host smtp.qq.com --user me@qq.com --apply
+     ```
+     This writes four Vault items and records only their **reference names** on
+     the profile. The Vault API is a full-document PUT, so the script reads the
+     existing Vault and merges — never call `vault.update` with a partial set.
+   - **Busabase Cloud** (`/api/v1/vault` 404s): `configure_smtp.mjs` cannot help
+     and will say so. Cloud's Vault is account-level, reachable only through a
+     browser session (`vault.reveal` over `/api/rpc`); a workspace API key gets
+     401 there by design. Have the user add the items in Cloud → Vault under the
+     Space or Agent scope with **runtime** ticked, then **start a new Session** —
+     Cloud injects `access.runtime` items into a task's environment when that
+     task starts, so a session already running will not see them.
+
+   A 404 on `/api/v1/vault` means "this is Cloud", **not** "you have no Vault".
+   Never tell the user the feature is missing while they are looking at it.
 3. Send what was approved:
    ```bash
    node scripts/send_emails.mjs           # dry run: prints sender, attachment, and the exact list
    node scripts/send_emails.mjs --apply
    ```
-   A failed send leaves the row `queued` so another address from the pool can be
-   tried. Report failures per company; never silently drop one.
+   The dry run reports each of the four settings as 就绪 or 缺失 with where it
+   came from (环境变量注入 / Vault / 由发件地址推导) and never prints a value. Read
+   that list before guessing at a cause: "缺 SMTP_PASS" and "什么都没配" need
+   different answers. A failed send leaves the row `queued` so another address
+   from the pool can be tried. Report failures per company; never silently drop
+   one.
 
 ## Operating Loop
 
@@ -215,7 +249,7 @@ slugs, status values, and Vault keys are fixed by `references/jobhunt-schema.md`
 | `jobhunt-profile-v1` | One row. Identity, target role, channels, resume source text, resume file name, sender address, and the SMTP Vault reference names. |
 | `jobhunt-companies-v1` | One row per company: match evidence, drafted email, outreach status, the address actually used. |
 | `jobhunt-leads-v1` | Several rows per company: candidate addresses with role, source URL, and confidence. |
-| Vault `SMTP_*` | Host, port, user, app password. Values readable only by the trusted sender. |
+| Vault `SMTP_*` | Host, port, user, app password. Values readable only by the trusted sender — from the local Vault, or from the environment Cloud injects them into. |
 
 `company-key` is a plain text foreign key, not a Busabase relation field. Two
 mutually referencing Bases cannot be created in one ChangeRequest, and the

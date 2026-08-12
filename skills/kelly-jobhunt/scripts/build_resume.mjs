@@ -9,27 +9,15 @@
 // deliberate: Chrome already ships the CJK fonts a Chinese resume needs, so the
 // repo does not have to vendor a multi-megabyte font file, and the template
 // stays editable by anyone who can read CSS.
-import { spawn } from "node:child_process";
-import { statSync } from "node:fs";
-import { mkdir, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { appConfig, createTrustedClient, dryRunBanner, fail, parseFlags, readAll, resolveBases } from "./lib.mjs";
+import { renderPdf } from "./render_pdf.mjs";
 
 const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const { apply } = parseFlags(process.argv.slice(2));
-
-const CHROME_CANDIDATES = [
-  process.env.CHROME_PATH,
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  "/usr/bin/google-chrome",
-  "/usr/bin/google-chrome-stable",
-  "/usr/bin/chromium",
-  "/usr/bin/chromium-browser",
-  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-].filter(Boolean);
 
 const escapeHtml = (value) =>
   String(value ?? "")
@@ -105,56 +93,6 @@ const renderHtml = (profile) => `<!doctype html>
   <footer>更新于 ${escapeHtml(profile.updatedAt || new Date().toISOString().slice(0, 10))}</footer>
 </body></html>`;
 
-const findChrome = () =>
-  CHROME_CANDIDATES.find((candidate) => {
-    try {
-      return statSync(candidate).isFile();
-    } catch {
-      return false;
-    }
-  });
-
-// Chrome prints a PDF straight from the command line. Driving it over CDP would
-// need a WebSocket global and a live debugging port for no extra benefit here —
-// there is nothing to interact with, just one static page to typeset.
-async function printToPdf(htmlPath, pdfPath) {
-  const chromePath = findChrome();
-  if (!chromePath) {
-    fail(
-      `找不到 Chrome，无法排版 PDF。装一个 Chrome，或用 CHROME_PATH 指定路径。\nHTML 预览已经生成，你也可以自己打开它用「打印 → 存为 PDF」：${htmlPath}`,
-    );
-  }
-  const userDataDir = path.join(skillRoot, ".tmp", "resume-chrome");
-  await rm(userDataDir, { recursive: true, force: true });
-  await mkdir(userDataDir, { recursive: true });
-
-  const exitCode = await new Promise((resolve) => {
-    const child = spawn(
-      chromePath,
-      [
-        "--headless=new",
-        `--user-data-dir=${userDataDir}`,
-        "--disable-gpu",
-        "--no-first-run",
-        "--no-default-browser-check",
-        "--no-pdf-header-footer",
-        `--print-to-pdf=${pdfPath}`,
-        `file://${htmlPath}`,
-      ],
-      { stdio: "ignore" },
-    );
-    child.on("error", () => resolve(-1));
-    child.on("exit", (code) => resolve(code ?? -1));
-  });
-
-  await rm(userDataDir, { recursive: true, force: true }).catch(() => {});
-
-  const written = await stat(pdfPath).catch(() => null);
-  if (exitCode !== 0 || !written || written.size < 1000) {
-    fail(`Chrome 没能生成 PDF（退出码 ${exitCode}）。HTML 预览仍在 ${htmlPath}，可以自己打印成 PDF。`);
-  }
-}
-
 const client = createTrustedClient();
 const bases = await resolveBases(client);
 const row = (await readAll(client, bases.get("profile")))[0];
@@ -199,7 +137,14 @@ if (!apply) {
   process.exit(0);
 }
 
-await printToPdf(htmlPath, pdfPath);
+try {
+  await renderPdf(htmlPath, pdfPath, {
+    userDataDir: path.join(skillRoot, ".tmp", "resume-chrome"),
+    log: (line) => console.log(line),
+  });
+} catch (error) {
+  fail(error.message);
+}
 
 await client.records.changeRequest({
   recordId: profile.recordId,

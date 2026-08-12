@@ -83,10 +83,17 @@ export async function mergeChangeRequest(client, changeRequest) {
 }
 
 // busabase-sdk deliberately strips the Vault from its cloud client
-// (`const { vault: _localVault, ...cloudWorkbenchRoutes }`): the Vault is a
-// local/self-hosted Busabase capability, not a Cloud API surface. So talk to
-// /api/v1/vault directly, and treat "this server has no Vault" as a normal
-// answer rather than a crash.
+// (`const { vault: _localVault, ...cloudWorkbenchRoutes }`): /api/v1/vault is a
+// local/self-hosted Busabase route, not a Cloud API surface. So talk to it
+// directly, and treat "this server has no Vault route" as a normal answer
+// rather than a crash.
+//
+// A 404 here means "this is Cloud", NOT "you have no Vault". Cloud does have
+// one — account-level, behind a browser session (`vault.reveal` over /api/rpc);
+// a workspace API key gets 401 there by design. Cloud delivers those secrets a
+// different way: every item marked `access.runtime` is injected into the
+// environment of the task it starts, merging personal, Space, and API-key
+// scopes. That is why credentials are read from the environment first below.
 const vaultRequest = async (method, body) => {
   const baseUrl = required("BUSABASE_BASE_URL").replace(/\/+$/, "");
   const response = await fetch(`${baseUrl}/api/v1/vault`, {
@@ -103,8 +110,15 @@ const vaultRequest = async (method, body) => {
   return response.json();
 };
 
-export const vaultUnavailableHint =
-  "这台 Busabase 没有 Vault（Busabase Cloud 不提供本地 Vault）。改用环境变量 SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS 运行发送脚本。";
+// Cloud has a Vault; it just is not writable with a workspace API key. Say what
+// to do there instead of claiming the feature is missing.
+export const vaultWriteUnavailableHint = [
+  "这台 Busabase 没有本地 Vault 写入接口（/api/v1/vault），说明你连的是 Busabase Cloud。",
+  "Cloud 的 Vault 是账户级的，只能在网页里改，工作区 API Key 没有权限写：",
+  "  1. 打开 Busabase Cloud → Vault，在 Space 或 Agent 作用域新建 SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS；",
+  "  2. 四项都勾上 runtime（运行时注入），SMTP_PASS 建议关掉 reveal；",
+  "  3. 开一个新的 Session 再跑发送脚本——已经在跑的会话不会拿到新值。",
+].join("\n");
 
 // The Vault API is a full-document PUT, not an upsert: sending only your own
 // keys deletes every other item on the instance. Always read, merge by key,
@@ -125,18 +139,99 @@ export async function upsertVaultItems(items) {
   return vaultRequest("PUT", { items: merged });
 }
 
-// Reads secret values, so this may only ever run inside a trusted script.
-// Falls back to the process environment when the instance has no Vault.
-export async function readVaultValues(keys) {
-  const current = await vaultRequest("GET");
-  if (current === null) {
-    return { values: Object.fromEntries(keys.map((key) => [key, process.env[key] || ""])), source: "environment" };
+export const SMTP_KEYS = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"];
+
+// Host and port for the mailboxes a Chinese job seeker actually sends from.
+// Only the non-secret half of a config can be derived like this — a password is
+// never guessable, so it stays required.
+const SMTP_PROVIDERS = new Map([
+  ["qq.com", { host: "smtp.qq.com", port: "465" }],
+  ["foxmail.com", { host: "smtp.qq.com", port: "465" }],
+  ["163.com", { host: "smtp.163.com", port: "465" }],
+  ["126.com", { host: "smtp.126.com", port: "465" }],
+  ["yeah.net", { host: "smtp.yeah.net", port: "465" }],
+  ["sina.com", { host: "smtp.sina.com", port: "465" }],
+  ["aliyun.com", { host: "smtp.aliyun.com", port: "465" }],
+  ["gmail.com", { host: "smtp.gmail.com", port: "465" }],
+  ["outlook.com", { host: "smtp.office365.com", port: "587" }],
+  ["hotmail.com", { host: "smtp.office365.com", port: "587" }],
+]);
+
+export function deriveSmtpSettings(fromEmail) {
+  const domain = String(fromEmail || "")
+    .split("@")[1]
+    ?.trim()
+    .toLowerCase();
+  const provider = domain ? SMTP_PROVIDERS.get(domain) : null;
+  if (!provider) return {};
+  return { SMTP_HOST: provider.host, SMTP_PORT: provider.port, SMTP_USER: fromEmail };
+}
+
+// Resolves the four SMTP settings and reports where each one came from, so a
+// dry run can say which single item is missing instead of "未配置".
+//
+// Environment beats Vault on purpose. On Cloud the environment is the only
+// channel (runtime injection), and locally an explicitly exported value is the
+// more specific answer — it is how you override one mailbox for one run.
+//
+// Reads a secret value, so this may only ever run inside a trusted script.
+/** @param {{ fromEmail?: string }} [options] */
+export async function resolveSmtpSettings({ fromEmail } = {}) {
+  const derived = deriveSmtpSettings(fromEmail);
+  const resolved = new Map();
+
+  for (const key of SMTP_KEYS) {
+    if (process.env[key]) resolved.set(key, { value: process.env[key], source: "environment" });
   }
-  const byKey = new Map((current.items || []).map((item) => [item.key, item.value]));
+
+  // Only ask the Vault about what is still missing: when the environment
+  // already carries everything, this is Cloud and the round trip would 404.
+  let vaultAvailable = null;
+  if (resolved.size < SMTP_KEYS.length) {
+    const current = await vaultRequest("GET");
+    vaultAvailable = current !== null;
+    if (current) {
+      for (const item of current.items || []) {
+        if (SMTP_KEYS.includes(item.key) && item.value && !resolved.has(item.key)) {
+          resolved.set(item.key, { value: item.value, source: "vault" });
+        }
+      }
+    }
+  }
+
+  // A derived host never overrides a configured one; it only fills a blank.
+  for (const [key, value] of Object.entries(derived)) {
+    if (!resolved.has(key)) resolved.set(key, { value, source: "derived" });
+  }
+
+  const status = SMTP_KEYS.map((key) => ({
+    key,
+    ready: Boolean(resolved.get(key)?.value),
+    source: resolved.get(key)?.source || null,
+  }));
+
   return {
-    values: Object.fromEntries(keys.map((key) => [key, byKey.get(key) || process.env[key] || ""])),
-    source: "vault",
+    values: Object.fromEntries(SMTP_KEYS.map((key) => [key, resolved.get(key)?.value || ""])),
+    status,
+    missing: status.filter((item) => !item.ready).map((item) => item.key),
+    ready: status.every((item) => item.ready),
+    vaultAvailable,
   };
+}
+
+// What to do about the keys that are still missing. Which sentence is right
+// depends on whether this Busabase can store them at all.
+export function smtpMissingHint(missing, vaultAvailable) {
+  const keys = missing.join(" / ");
+  if (vaultAvailable) {
+    return `缺 ${keys}。跑 node scripts/configure_smtp.mjs --host ... --user ... --pass ... --apply 写进 Vault。`;
+  }
+  return [
+    `缺 ${keys}。这台是 Busabase Cloud，凭据只能靠运行时注入：`,
+    `  1. 在 Busabase Cloud → Vault 的 Space 或 Agent 作用域里配置 ${keys}，勾上 runtime；`,
+    "  2. 开一个新的 Session——配置发生在会话启动之后时，当前进程不会拿到新值；",
+    `  3. 或者临时用环境变量跑：${missing.map((key) => `${key}=...`).join(" ")} node scripts/send_emails.mjs --apply`,
+  ].join("\n");
 }
 
 export const parseFlags = (argv) => ({

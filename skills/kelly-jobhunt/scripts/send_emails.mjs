@@ -19,8 +19,9 @@ import {
   fail,
   parseFlags,
   readAll,
-  readVaultValues,
   resolveBases,
+  resolveSmtpSettings,
+  smtpMissingHint,
 } from "./lib.mjs";
 
 const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -47,29 +48,33 @@ const queued = (await readAll(client, bases.get("companies"))).filter((row) => r
 
 // Read readiness during a dry run too, so "你还没配邮箱" surfaces before the
 // operator commits to sending rather than after.
-const { values: smtp, source: smtpSource } = await readVaultValues([
-  "SMTP_HOST",
-  "SMTP_PORT",
-  "SMTP_USER",
-  "SMTP_PASS",
-]);
-const smtpReady = Boolean(smtp.SMTP_HOST && smtp.SMTP_USER && smtp.SMTP_PASS);
+const {
+  values: smtp,
+  status: smtpStatus,
+  missing: smtpMissing,
+  ready: smtpReady,
+  vaultAvailable,
+} = await resolveSmtpSettings({ fromEmail });
+
+const SOURCE_LABEL = { environment: "环境变量注入", vault: "Vault", derived: "由发件地址推导" };
 
 process.stdout.write(dryRunBanner(apply));
 console.log(`发件人 ${fromEmail} · 附件 ${resumeName}${resumeReady ? "" : "（缺失）"}`);
-console.log(
-  `SMTP ${smtpReady ? `已配置（${smtp.SMTP_HOST}:${smtp.SMTP_PORT || 465}，凭据来自${smtpSource === "vault" ? " Vault" : "环境变量"}）` : "未配置"}`,
-);
+
+// Per item, and existence only: a value printed here would end up in a log, and
+// one of these four is a password.
+console.log("SMTP 就绪状态");
+for (const item of smtpStatus) {
+  console.log(`  ${item.key.padEnd(9)} ${item.ready ? `就绪 · ${SOURCE_LABEL[item.source]}` : "缺失"}`);
+}
+
 console.log(`待发出 ${queued.length} 封`);
 for (const company of queued) console.log(`  → ${company.fields.name} <${company.fields.sent_to}>`);
 
 if (!smtpReady) {
-  const hint =
-    smtpSource === "vault"
-      ? "先跑 node scripts/configure_smtp.mjs --host ... --user ... --pass ... --apply"
-      : "这台 Busabase 没有 Vault，请用环境变量 SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS 提供凭据";
-  if (apply) fail(`没有可用的 SMTP 凭据。${hint}`);
-  console.log(`\n注意：还没有可用的 SMTP 凭据。${hint}`);
+  const hint = smtpMissingHint(smtpMissing, vaultAvailable);
+  if (apply) fail(`SMTP 还没准备好，没有发送任何邮件。\n${hint}`);
+  console.log(`\n注意：SMTP 还没准备好。\n${hint}`);
 }
 
 // A dry run exists to show the plan, so a missing attachment is a warning here

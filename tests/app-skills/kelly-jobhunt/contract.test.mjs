@@ -141,31 +141,54 @@ test("the Vault is written by a trusted script that merges rather than replaces"
   const send = await readFile(join(skillRoot, "scripts", "send_emails.mjs"), "utf8");
 
   // busabase-sdk strips the Vault from its cloud client on purpose, so the
-  // script talks to /api/v1/vault directly and treats a Vault-less instance as
+  // script talks to /api/v1/vault directly and treats a route-less instance as
   // a normal answer rather than a crash.
   assert.match(lib, /\/api\/v1\/vault/);
-  assert.match(lib, /vaultUnavailableHint/);
   // PUT /vault replaces the whole document; writing only our own keys would
   // delete every other item on the instance.
   assert.match(lib, /upsertVaultItems/);
   assert.match(configure, /upsertVaultItems/);
   assert.doesNotMatch(configure, /client\.vault\.update/);
-  // The sender resolves credentials from the Vault, not from its environment.
-  assert.match(send, /readVaultValues/);
-  assert.doesNotMatch(send, /process\.env\.SMTP_PASS/);
+
+  // A 404 on that route means "this is Cloud", not "you have no Vault" — Cloud
+  // keeps one and injects its runtime items into the task environment instead.
+  // Saying the feature is absent sent a real operator hunting for an hour.
+  assert.match(lib, /vaultWriteUnavailableHint/);
+  assert.doesNotMatch(lib, /没有 Vault（/);
+
+  // So the sender reads the environment as a first-class source, and reports
+  // readiness per key rather than as one "未配置".
+  assert.match(send, /resolveSmtpSettings/);
+  assert.match(send, /smtpMissingHint/);
+  // The sender hands the password to the transport but never prints one: no
+  // log line interpolates a resolved value, masked or otherwise, because this
+  // output ends up in whatever captured the run.
+  assert.doesNotMatch(send, /console\.log\([^)]*smtp\.SMTP/);
+  // Same for the writer, which used to print a mask. A mask still leaks length.
+  assert.doesNotMatch(configure, /"\*"\.repeat\(/);
+  assert.doesNotMatch(configure, /console\.log\([^)]*\bpass\b/);
 });
 
 test("the resume builder never invents a claim and degrades without Chrome", async () => {
   const builder = await readFile(join(skillRoot, "scripts", "build_resume.mjs"), "utf8");
+  const renderer = await readFile(join(skillRoot, "scripts", "render_pdf.mjs"), "utf8");
   // Everything printed comes from stored profile fields.
   assert.match(builder, /resume_source/);
   // Chrome prints from the command line; driving CDP would need a WebSocket
   // global that older Node builds do not have.
-  assert.match(builder, /--print-to-pdf=/);
-  assert.doesNotMatch(builder, /new WebSocket|webSocketDebuggerUrl/);
-  // No Chrome must leave the HTML behind rather than failing with nothing.
-  assert.match(builder, /HTML 预览/);
-  assert.match(builder, /CHROME_PATH/);
+  assert.match(renderer, /--print-to-pdf=/);
+  assert.doesNotMatch(renderer, /new WebSocket|webSocketDebuggerUrl/);
+  // One Chrome that will not start must not end the attempt: try every browser
+  // present — Playwright's cached Chromium counts — then Playwright itself.
+  assert.match(renderer, /playwrightChromiums/);
+  assert.match(renderer, /printWithPlaywright/);
+  // A failure names every renderer it tried and why. Chrome's stderr is kept
+  // for that reason, so an exit code alone is never the whole report.
+  assert.match(renderer, /child\.stderr/);
+  assert.match(renderer, /attempts/);
+  // No renderer must leave the HTML behind rather than failing with nothing.
+  assert.match(renderer, /HTML 预览/);
+  assert.match(renderer, /CHROME_PATH/);
 });
 
 test("browser writes only auto-merge on a standalone local runtime", async () => {

@@ -10,6 +10,7 @@
 // it never has to appear in shell history:
 //   SMTP_PASS=xxx node scripts/configure_smtp.mjs --host ... --user ... --apply
 import {
+  SMTP_KEYS,
   appConfig,
   createTrustedClient,
   dryRunBanner,
@@ -18,10 +19,10 @@ import {
   readAll,
   resolveBases,
   upsertVaultItems,
-  vaultUnavailableHint,
+  vaultWriteUnavailableHint,
 } from "./lib.mjs";
 
-const VAULT_KEYS = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"];
+const VAULT_KEYS = SMTP_KEYS;
 
 const flag = (name) => {
   const index = process.argv.indexOf(`--${name}`);
@@ -58,19 +59,20 @@ const items = [
   secret("SMTP_PASS", pass, `${appConfig.appName} SMTP app password`),
 ];
 
-const masked = `${pass.slice(0, 2)}${"*".repeat(Math.max(0, pass.length - 2))}`;
 process.stdout.write(dryRunBanner(apply));
 console.log(`将写入 Busabase Vault 的 ${VAULT_KEYS.length} 项（值不会打印，也不会写进任何 Base）：`);
 console.log(`  SMTP_HOST = ${host}`);
 console.log(`  SMTP_PORT = ${port}`);
 console.log(`  SMTP_USER = ${user}`);
-console.log(`  SMTP_PASS = ${masked}   ← 密文，仅发送脚本可读`);
+// Not even a masked password: a mask still leaks the length, and it would sit
+// in whatever log or transcript captured this run.
+console.log("  SMTP_PASS = 已提供（密文，不打印，仅发送脚本可读）");
 
 if (!apply) process.exit(0);
 
 const client = createTrustedClient();
 const stored = await upsertVaultItems(items);
-if (stored === null) fail(vaultUnavailableHint);
+if (stored === null) fail(vaultWriteUnavailableHint);
 
 // The Base records only the reference name, never the values.
 const bases = await resolveBases(client);
