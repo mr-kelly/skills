@@ -121,14 +121,21 @@ test("local OAuth selects and validates a Space before proxying SDK requests", a
   assert.match(app, /fetch\("\/auth\/space"/);
 });
 
-test("first-run product onboarding is versioned Busabase domain state", async () => {
+test("first-run product onboarding is versioned, skippable Busabase domain state", async () => {
   const { appConfig } = await import(join(browserRoot, "js", "config.js"));
   const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");
   const model = await readFile(join(browserRoot, "js", "jobhunt-model.js"), "utf8");
   assert.ok(Number.isInteger(appConfig.onboardingVersion) && appConfig.onboardingVersion > 0);
   assert.ok(appConfig.bases[0].fields.some((field) => field.slug === "onboarding-version"));
   assert.match(app, /renderOnboarding/);
-  assert.match(app, /desk\.profile\.onboardingVersion < appConfig\.onboardingVersion/);
+  assert.match(app, /data-skip-onboarding/);
+  assert.match(app, /skipOnboarding/);
+  assert.match(app, /onboardingDismissed = true/);
+  assert.match(app, /!onboardingDismissed/);
+  assert.doesNotMatch(
+    app,
+    /desk\.profile\.onboardingVersion < appConfig\.onboardingVersion \|\| !desk\.profile\.ready/,
+  );
   assert.match(model, /"onboarding-version"/);
 });
 

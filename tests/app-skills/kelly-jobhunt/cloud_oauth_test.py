@@ -171,9 +171,10 @@ def run_cloud_oauth(config: dict) -> None:
                     initialize = page.get_by_role("button", name="初始化工作区")
                     if config["allow_mutation"] and initialize.count():
                         initialize.click()
-                        page.get_by_role("heading", name="先确定你的求职方向", exact=True).wait_for(
+                        page.get_by_role("heading", name="先让 Agent 整理求职档案", exact=True).wait_for(
                             timeout=30_000
                         )
+                        page.locator(".onboarding-manual summary").click()
                         page.locator('[data-onboarding="name"]').fill("Cloud OAuth Test")
                         page.locator('[data-onboarding="targetRole"]').fill("Test Operator")
                         page.locator('[data-onboarding="highlights"]').fill(
@@ -181,7 +182,7 @@ def run_cloud_oauth(config: dict) -> None:
                         )
                         page.locator('[data-onboarding="resumeFile"]').fill("cloud-oauth-test.pdf")
                         page.locator('[data-onboarding="fromEmail"]').fill("cloud-oauth@example.com")
-                        page.get_by_role("button", name="完成并进入投递台").click()
+                        page.get_by_role("button", name="保存手动填写内容").click()
                         page.get_by_text("等待当前 Space 审批", exact=False).wait_for(timeout=20_000)
                     elif not config["allow_mutation"]:
                         print("PASS Cloud OAuth - authenticated without Cloud mutations")

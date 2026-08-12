@@ -329,17 +329,34 @@ def test_busabase_round_trip(browser) -> None:
                     page.get_by_role("button", name="初始化工作区").click()
                     try:
                         page.locator("[data-provision]").wait_for(state="detached", timeout=30_000)
-                        page_title(page, "待发送").wait_for(timeout=30_000)
+                        onboarding = page.get_by_role("dialog", name="先让 Agent 整理求职档案")
+                        onboarding.wait_for(timeout=30_000)
                     except Exception:
                         nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
                         raise AssertionError(
-                            "Lazy provisioning did not become ready.\n"
+                            "Lazy provisioning did not reach product onboarding.\n"
                             f"Page: {page.locator('body').inner_text()}\n"
                             f"Nodes: {json.dumps(nodes, ensure_ascii=False)}\n"
                             f"App logs: {''.join(app_logs[-100:])}\n"
                             f"Busabase logs: {''.join(busabase_logs[-100:])}"
                         )
+
+                    # JobHunt is Agent-first and skippable: the primary next
+                    # step is the profile command, while manual fields are a
+                    # collapsed fallback. Internal versions never reach copy.
+                    assert onboarding.locator(
+                        '.command-chip[data-copy-command="/kelly-jobhunt profile"]'
+                    ).is_visible()
+                    assert "FIRST RUN" not in onboarding.inner_text()
+                    assert page.locator("[data-complete-onboarding]").is_hidden()
+                    assert page.locator("[data-skip-onboarding]").is_visible()
+                    page.locator("[data-skip-onboarding]").click()
+                    page_title(page, "待发送").wait_for(timeout=30_000)
                     assert rows(page).count() == 0
+                    assert page.locator(".empty-state", has_text="资料还没准备好").is_visible()
+                    assert page.locator(
+                        '.empty-state .command-chip[data-copy-command="/kelly-jobhunt profile"]'
+                    ).is_visible()
 
                     nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
                     assert sorted(resource_keys(nodes)) == ["app-root", "companies", "leads", "profile"], nodes
@@ -357,7 +374,11 @@ def test_busabase_round_trip(browser) -> None:
                     companies_base = find_resource(nodes, "companies")["baseId"]
                     leads_base = find_resource(nodes, "leads")["baseId"]
 
-                    # Create the profile through the app (bases.createChangeRequest).
+                    # Skipping is presentation-only for this open app session.
+                    # It must not invent a profile row or readiness data.
+                    profile_rows = records_of(busabase_url, profile_base)
+                    assert profile_rows == [], profile_rows
+
                     nav(page, "profile").click()
                     page_title(page, "我的资料").wait_for()
                     for key, value in (
@@ -378,6 +399,8 @@ def test_busabase_round_trip(browser) -> None:
                     assert profile_rows[0]["target-role"] == "B 端产品经理", profile_rows
                     assert profile_rows[0]["from-email"] == "chenmo@example.com", profile_rows
                     assert profile_rows[0]["job-boards"] == "BOSS 直聘、公司官网招聘页", profile_rows
+                    assert profile_rows[0]["resume-file"] == "chenmo.pdf", profile_rows
+                    assert profile_rows[0]["onboarding-version"] == 1, profile_rows
 
                     # Editing again must update the same row (records.changeRequest).
                     page.reload()

@@ -29,6 +29,7 @@ let lastContentHash = "#/to-send";
 let sidebarCollapsed = false;
 let helpTab = "commands";
 let authStatus = null;
+let onboardingDismissed = false;
 // Unsaved edits survive re-renders and the refresh timer, keyed by company id.
 const draftEdits = new Map();
 let profileEdited = false;
@@ -143,7 +144,11 @@ const renderCompanyRow = (company, active) => {
 
 const renderRows = (items, selectedId) => {
   if (!items.length) {
-    return `<div class="empty-state"><p>这里还没有公司。</p><p class="empty-hint">回到对话框运行下面这条，它会把公司和联系邮箱写回这个列表。</p>${commandChip("/kelly-jobhunt research")}</div>`;
+    const step = nextStep(desk);
+    const hint = desk.profile.ready
+      ? "回到对话框运行下面这条，它会把公司和联系邮箱写回这个列表。"
+      : "资料还没准备好。先交给 Agent 整理，再开始找公司。";
+    return `<div class="empty-state"><p>这里还没有公司。</p><p class="empty-hint">${hint}</p>${commandChip(step.command)}</div>`;
   }
   return items.map((item) => renderCompanyRow(item, item.id === selectedId)).join("");
 };
@@ -166,6 +171,7 @@ const renderTextField = (attribute, key, label, value, hint = "") =>
 const renderCompanyDetail = (company) => {
   const draft = draftOf(company);
   const editable = company.status === "draft";
+  const approvalReady = Boolean(company.bestLead) && desk.profile.ready;
   const attachment = desk.profile.resumeFile || "尚未设置简历文件";
   const sourceLine = company.sourceUrl
     ? `<a class="text-link" href="${escapeHtml(company.sourceUrl)}" target="_blank" rel="noreferrer noopener">来源页面</a>`
@@ -192,11 +198,13 @@ const renderCompanyDetail = (company) => {
     </section>
     ${
       company.bestLead
-        ? ""
+        ? desk.profile.ready
+          ? ""
+          : `<div class="detail-hint warn"><p class="detail-note warn">求职档案还缺 ${escapeHtml(desk.profile.missing.join("、"))}，暂时不能批准发送。</p>${commandChip("/kelly-jobhunt profile", "交给 Agent 补齐资料后再回来确认")}</div>`
         : `<div class="detail-hint warn"><p class="detail-note warn">这家公司还没有可用邮箱，下面的发送按钮先锁着。回到对话框补一次线索：</p>${commandChip("/kelly-jobhunt research", "补线索，已批准和已发出的公司不会被覆盖")}</div>`
     }
     <div class="detail-actions">
-      <button class="primary-button" type="button" data-approve ${company.bestLead ? "" : "disabled"}>批准并发送</button>
+      <button class="primary-button" type="button" data-approve ${approvalReady ? "" : "disabled"}>批准并发送</button>
       <button class="ghost-button" type="button" data-save-draft>保存草稿</button>
     </div>`
         : `<section class="detail-section">
@@ -425,7 +433,7 @@ const profileInputFrom = (selector = "[data-onboarding]") => {
 const renderOnboarding = () => {
   const profile = desk.profile;
   const onboardingField = (key, label, value, hint = "") => renderTextField("data-onboarding", key, label, value, hint);
-  root.innerHTML = `<div class="setup-shell"><section class="setup-modal onboarding-modal" role="dialog" aria-labelledby="onboardingTitle"><div class="setup-head"><div class="brand-icon" aria-hidden="true">KJ</div><div><p class="eyebrow">下一步 · 交给 AGENT</p><h1 id="onboardingTitle">先让 Agent 整理求职档案</h1></div></div><form id="onboardingForm" class="setup-body onboarding-form" data-onboarding-form><div class="onboarding-agent-first"><p>把现有简历、个人主页或几段经历直接交给 Agent。它会提取真实信息、确认求职方向，并把结果写回这里，不需要你先填一遍表单。</p>${commandChip("/kelly-jobhunt profile", "读取你的材料，整理求职档案；需要时再生成 PDF 简历")}</div><details class="onboarding-manual"><summary>没有材料，改为手动补充</summary><div class="onboarding-manual-fields"><div class="onboarding-grid">${onboardingField("name", "怎么称呼你", profile.name)}${onboardingField("targetRole", "目标岗位", profile.targetRole, "必填，例如：B 端产品经理")}${onboardingField("locations", "意向城市", profile.locations)}${onboardingField("industries", "意向行业", profile.industries)}</div><label class="field"><span>经验亮点<small>必填，只写真实、可验证的经历</small></span><textarea data-onboarding="highlights" rows="5">${escapeHtml(profile.highlights)}</textarea></label>${onboardingField("jobBoards", "招聘渠道", profile.jobBoards, "例如：BOSS 直聘、公司官网")}${onboardingField("resumeFile", "简历文件（可选）", profile.resumeFile, "需要附件时填写 skill/resume/ 下的文件名")}${onboardingField("fromEmail", "发件邮箱", profile.fromEmail, "必填，只记录地址；授权码另存 Vault")}</div></details><div class="setup-error" data-onboarding-error role="alert" hidden></div></form><div class="setup-footer setup-footer-split"><span class="setup-security">Agent 写入和手动保存都进入当前 Busabase Space</span><button class="connect-button secondary-onboarding-action" type="submit" form="onboardingForm" data-complete-onboarding>保存手动填写内容</button></div></section></div>`;
+  root.innerHTML = `<div class="setup-shell"><section class="setup-modal onboarding-modal" role="dialog" aria-labelledby="onboardingTitle"><div class="setup-head"><div class="brand-icon" aria-hidden="true">KJ</div><div><p class="eyebrow">下一步 · 交给 AGENT</p><h1 id="onboardingTitle">先让 Agent 整理求职档案</h1></div></div><form id="onboardingForm" class="setup-body onboarding-form" data-onboarding-form><div class="onboarding-agent-first"><p>把现有简历、个人主页或几段经历直接交给 Agent。它会提取真实信息、确认求职方向，并把结果写回这里，不需要你先填一遍表单。</p>${commandChip("/kelly-jobhunt profile", "读取你的材料，整理求职档案；需要时再生成 PDF 简历")}</div><details class="onboarding-manual"><summary>没有材料，改为手动补充</summary><div class="onboarding-manual-fields"><div class="onboarding-grid">${onboardingField("name", "怎么称呼你", profile.name)}${onboardingField("targetRole", "目标岗位", profile.targetRole, "必填，例如：B 端产品经理")}${onboardingField("locations", "意向城市", profile.locations)}${onboardingField("industries", "意向行业", profile.industries)}</div><label class="field"><span>经验亮点<small>必填，只写真实、可验证的经历</small></span><textarea data-onboarding="highlights" rows="5">${escapeHtml(profile.highlights)}</textarea></label>${onboardingField("jobBoards", "招聘渠道", profile.jobBoards, "例如：BOSS 直聘、公司官网")}${onboardingField("resumeFile", "简历文件（可选）", profile.resumeFile, "需要附件时填写 skill/resume/ 下的文件名")}${onboardingField("fromEmail", "发件邮箱", profile.fromEmail, "必填，只记录地址；授权码另存 Vault")}</div></details><div class="setup-error" data-onboarding-error role="alert" hidden></div></form><div class="setup-footer onboarding-footer"><span class="setup-security">资料不完整也可以先进入，稍后再交给 Agent</span><div class="onboarding-footer-actions"><button class="ghost-button" type="button" data-skip-onboarding>暂时跳过</button><button class="connect-button secondary-onboarding-action" type="submit" form="onboardingForm" data-complete-onboarding>保存手动填写内容</button></div></div></section></div>`;
   root.querySelector("[data-copy-command]")?.addEventListener("click", async (event) => {
     const command = event.currentTarget.dataset.copyCommand;
     try {
@@ -435,6 +443,7 @@ const renderOnboarding = () => {
     }
   });
   root.querySelector("[data-onboarding-form]")?.addEventListener("submit", completeOnboarding);
+  root.querySelector("[data-skip-onboarding]")?.addEventListener("click", skipOnboarding);
 };
 
 const renderSpaceSetup = (status = {}) => {
@@ -579,10 +588,11 @@ const saveDraft = async () => {
 
 const saveProfile = async () => {
   const input = profileInputFrom("[data-profile]");
+  const onboardingVersion = missingProfileRequirements(input).length ? undefined : appConfig.onboardingVersion;
   const result = await runWrite((provider) =>
     provider.saveProfile({
       recordId: desk.profile.recordId,
-      fields: buildProfileFields(input, today()),
+      fields: buildProfileFields(input, today(), { onboardingVersion }),
       message: `Update job-search profile for ${input.targetRole || "job hunt"}`,
     }),
   );
@@ -625,6 +635,12 @@ const completeOnboarding = async (event) => {
   profileEdited = false;
   await load();
   showToast(writeNotice(result) || "求职方向已保存。");
+};
+
+const skipOnboarding = async () => {
+  onboardingDismissed = true;
+  await load();
+  showToast("已跳过引导，资料可以稍后补充。");
 };
 
 const bindEvents = () => {
@@ -737,7 +753,8 @@ const load = async ({ keepRoute = false } = {}) => {
     desk = createJobhuntDesk(currentState.records);
     if (
       currentState.provider.name !== "demo" &&
-      (desk.profile.onboardingVersion < appConfig.onboardingVersion || !desk.profile.ready)
+      !onboardingDismissed &&
+      desk.profile.onboardingVersion < appConfig.onboardingVersion
     ) {
       renderOnboarding();
       return;

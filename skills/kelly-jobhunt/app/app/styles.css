@@ -973,6 +973,17 @@ code {
 .onboarding-modal:not(:has(.onboarding-manual[open])) .secondary-onboarding-action {
   display: none;
 }
+.onboarding-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.onboarding-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .onboarding-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1036,6 +1047,13 @@ code {
   .setup-footer-split {
     align-items: stretch;
     flex-direction: column;
+  }
+  .onboarding-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .onboarding-footer-actions {
+    justify-content: flex-end;
   }
   .app-shell,
   .app-shell.sidebar-is-collapsed {
