@@ -1,6 +1,9 @@
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-const firstHeaderValue = (value) => String(value || "").split(",", 1)[0].trim();
+const firstHeaderValue = (value) =>
+  String(value || "")
+    .split(",", 1)[0]
+    .trim();
 
 const requestHostname = (request) => {
   const forwardedHost = firstHeaderValue(request.headers.get("x-forwarded-host"));
