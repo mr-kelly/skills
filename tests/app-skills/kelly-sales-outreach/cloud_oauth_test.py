@@ -25,14 +25,17 @@ REQUIRED_ENV = (
     "KELLY_APP_CLOUD_TEST_PASSWORD",
 )
 
-def chromium_path() -> str:
+def launch_chromium(playwright):
+    configured = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH", "").strip()
     candidates = sorted(
         Path("/opt/bunny-agent/pw-browsers").glob("chromium-*/chrome-linux64/chrome"),
         reverse=True,
     )
-    if not candidates:
-        raise AssertionError("No sandbox Chromium executable found")
-    return str(candidates[0])
+    executable = configured or (str(candidates[0]) if candidates else "")
+    options = {"headless": True}
+    if executable:
+        options["executable_path"] = executable
+    return playwright.chromium.launch(**options)
 
 
 def load_config():
@@ -141,7 +144,7 @@ def run_cloud_oauth(config: dict) -> None:
         }
         with managed_process(["node", "server.js"], APP_ROOT, env, f"{app_url}/health"):
             with sync_playwright() as playwright:
-                browser = playwright.chromium.launch(headless=True, executable_path=chromium_path())
+                browser = launch_chromium(playwright)
                 context = browser.new_context(viewport={"width": 1280, "height": 820})
                 page = context.new_page()
                 business_requests = []

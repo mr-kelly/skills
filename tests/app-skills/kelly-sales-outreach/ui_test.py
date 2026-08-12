@@ -21,14 +21,17 @@ APP_ROOT = SKILL_ROOT / "app"
 BUSABASE_VERSION = "0.11.0"
 
 
-def chromium_path() -> str:
+def launch_chromium(playwright):
+    configured = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH", "").strip()
     candidates = sorted(
         Path("/opt/bunny-agent/pw-browsers").glob("chromium-*/chrome-linux64/chrome"),
         reverse=True,
     )
-    if not candidates:
-        raise AssertionError("No sandbox Chromium executable found")
-    return str(candidates[0])
+    executable = configured or (str(candidates[0]) if candidates else "")
+    options = {"headless": True}
+    if executable:
+        options["executable_path"] = executable
+    return playwright.chromium.launch(**options)
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:
@@ -336,7 +339,7 @@ def main() -> None:
         ["node", "server.js"], APP_ROOT, {"PORT": str(app_port)}, f"{app_url}/health"
     ):
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True, executable_path=chromium_path())
+            browser = launch_chromium(playwright)
             test_demo_ui(browser, app_url)
             test_busabase_round_trip(browser)
             browser.close()
