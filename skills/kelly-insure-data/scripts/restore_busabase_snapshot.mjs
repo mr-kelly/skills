@@ -253,7 +253,7 @@ async function restoreFiles(client, driveNodeId, manifest) {
 
 async function restoreRecords(client, baseId, records, label) {
   if (!records?.length) return { restored: 0 };
-  const existingRecords = await client.listRecords(baseId, 1000).catch(() => []);
+  const existingRecords = await client.listRecords(baseId).catch(() => []);
   const existingSignatures = new Set(
     existingRecords.map((record) => stableJson(record.fields || record.headCommit?.fields || {})),
   );

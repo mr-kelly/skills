@@ -91,10 +91,10 @@ async function readSnapshot() {
   const resolvedDriveNodeId = driveResult?.node?.id || driveResult?.nodeId || driveResult?.id || "";
   const [driveFiles, featuredRecords, noticesRecords, qaRecords, feedbackRecords] = await Promise.all([
     resolvedDriveNodeId ? listDriveFiles(resolvedDriveNodeId) : [],
-    featuredBase ? listRecords(featuredBase.id, featured.readLimit) : [],
-    noticesBase ? listRecords(noticesBase.id, notices.readLimit) : [],
-    qaBase ? listRecords(qaBase.id, qa.readLimit) : [],
-    feedbackBase ? listRecords(feedbackBase.id, feedback.readLimit) : [],
+    featuredBase ? listRecords(featuredBase.id) : [],
+    noticesBase ? listRecords(noticesBase.id) : [],
+    qaBase ? listRecords(qaBase.id) : [],
+    feedbackBase ? listRecords(feedbackBase.id) : [],
   ]);
 
   const files = driveFiles.map((file) => normalizeFile(file, appConfig.taxonomy.file_metadata_fields));

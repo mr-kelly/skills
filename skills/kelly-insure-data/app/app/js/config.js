@@ -24,30 +24,29 @@ export const appConfig = {
     name: "港险资料库 Drive",
     slug: "hk-insurance-drive",
   },
+  // Transport page size is the reader's own concern (js/insure-client.js),
+  // not a per-Base declaration — a Base is read to exhaustion regardless of
+  // how many records it holds.
   bases: [
     {
       key: "featured",
       name: "资讯精选",
       slug: "featured-information",
-      readLimit: 100,
     },
     {
       key: "notices",
       name: "保司通知",
       slug: "insurance-news",
-      readLimit: 100,
     },
     {
       key: "qa",
       name: "问答",
       slug: "insurance-qa",
-      readLimit: 100,
     },
     {
       key: "feedback",
       name: "用户反馈",
       slug: "user-feedback",
-      readLimit: 100,
     },
   ],
   // Default Busabase field slugs per collection, ported from the retired

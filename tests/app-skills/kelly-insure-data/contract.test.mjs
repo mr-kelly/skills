@@ -45,8 +45,69 @@ test("declares an operator-provisioned resource map (not lazy provisioning)", as
     resourceMap.resources.map(({ key, slug }) => ({ key, slug })),
     appConfig.bases.map(({ key, slug }) => ({ key, slug })),
   );
+});
+
+test("transport page size is owned by the reader, not declared per Base", async () => {
+  // A per-Base `readLimit` used to double as "how many records total" inside
+  // listRecords's own loop condition, which silently dropped every row past
+  // it instead of reading to exhaustion. Neither the demo provider nor a unit
+  // test against a small fixture would ever catch that.
+  const { appConfig } = await import(join(browserRoot, "js", "config.js"));
   for (const base of appConfig.bases) {
-    assert.ok(base.readLimit <= 100, `${base.key} readLimit must be <= 100 (got ${base.readLimit})`);
+    assert.ok(!Object.hasOwn(base, "readLimit"), `${base.key} still declares readLimit`);
+  }
+
+  const clientSource = await readFile(join(browserRoot, "js", "insure-client.js"), "utf8");
+  assert.match(clientSource, /const RECORD_PAGE_SIZE = 100;/);
+  assert.doesNotMatch(clientSource, /while \(records\.length < limit\)/);
+  assert.match(clientSource, /PAGINATION_LOOP/);
+
+  const scriptClientSource = await readFile(join(skillRoot, "scripts", "lib", "busabase-client.mjs"), "utf8");
+  assert.match(scriptClientSource, /const RECORD_PAGE_SIZE = 100;/);
+  assert.doesNotMatch(scriptClientSource, /while \(records\.length < limit\)/);
+  assert.match(scriptClientSource, /PAGINATION_LOOP/);
+});
+
+test("reads a Base to exhaustion across multiple pages", async () => {
+  const { listRecords } = await import(join(browserRoot, "js", "insure-client.js"));
+  const total = 250;
+  const allRecords = Array.from({ length: total }, (_, index) => ({
+    id: `rec_${index}`,
+    baseId: "bse_x",
+    fields: { name: `第${index}条` },
+  }));
+
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (pathname) => {
+    const url = new URL(pathname, "http://localhost");
+    const cursor = url.searchParams.get("cursor");
+    const start = cursor ? Number(cursor) : 0;
+    const slice = allRecords.slice(start, start + 100);
+    const next = start + 100;
+    const body = JSON.stringify({ records: slice, nextCursor: next < total ? String(next) : null });
+    return new Response(body, { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    const records = await listRecords("bse_x");
+    assert.equal(records.length, total);
+    assert.equal(records.at(-1).fields.name, "第249条");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("a repeating cursor is reported instead of silently truncating", async () => {
+  const { listRecords } = await import(join(browserRoot, "js", "insure-client.js"));
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ records: [{ id: "rec_1", baseId: "bse_y" }], nextCursor: "same" }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  try {
+    await assert.rejects(() => listRecords("bse_y"), /PAGINATION_LOOP/);
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
 

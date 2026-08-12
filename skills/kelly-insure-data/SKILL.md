@@ -38,8 +38,9 @@ owns the way most other Kelly App-in-Skills do. There is nothing for a
 read-only reader to safely auto-create in someone else's canonical dataset,
 so:
 
-- `app/app/js/config.js` declares the Drive node and the four Bases (slug +
-  `readLimit`) for lookup only. It does **not** go through
+- `app/app/js/config.js` declares the Drive node and the four Bases (by slug)
+  for lookup only; page size is the reader's own concern, not a per-Base
+  declaration, so each Base is read to exhaustion. It does **not** go through
   `resource-provisioning.js`'s create-if-missing/ownership-metadata flow used
   by every other converted skill in this batch — that flow is the wrong model
   for "connect to an existing external workspace."

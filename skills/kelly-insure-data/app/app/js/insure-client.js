@@ -92,18 +92,26 @@ export async function listDriveFiles(nodeId) {
   return Array.isArray(detail?.files) ? detail.files : [];
 }
 
-export async function listRecords(baseId, limit = 100) {
+// Transport page size is fixed at the API's own maximum and owned here, not
+// by a caller-supplied `limit`. The previous version used that `limit` as a
+// ceiling on total records collected, so any Base past the ceiling was read
+// incomplete with no error. Follows `nextCursor` until the server reports
+// none left, with a guard against a repeating cursor.
+const RECORD_PAGE_SIZE = 100;
+
+export async function listRecords(baseId) {
   const records = [];
+  const seenCursors = new Set();
   let cursor = "";
-  while (records.length < limit) {
-    const pageLimit = Math.min(100, limit - records.length);
-    const query = new URLSearchParams({ baseId, limit: String(pageLimit) });
+  while (true) {
+    const query = new URLSearchParams({ baseId, limit: String(RECORD_PAGE_SIZE) });
     if (cursor) query.set("cursor", cursor);
     const page = await api("GET", `/api/v1/records?${query.toString()}`);
     const pageRecords = Array.isArray(page) ? page : Array.isArray(page?.records) ? page.records : [];
     records.push(...pageRecords.filter((record) => record.baseId === baseId));
     cursor = String(page?.nextCursor || "");
-    if (!cursor || pageRecords.length === 0) break;
+    if (!cursor || pageRecords.length === 0) return records;
+    if (seenCursors.has(cursor)) throw new Error(`PAGINATION_LOOP: ${baseId}`);
+    seenCursors.add(cursor);
   }
-  return records.slice(0, limit);
 }
