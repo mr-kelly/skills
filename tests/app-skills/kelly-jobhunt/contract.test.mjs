@@ -121,6 +121,24 @@ test("local OAuth selects and validates a Space before proxying SDK requests", a
   assert.match(app, /fetch\("\/auth\/space"/);
 });
 
+test("first-run product onboarding is versioned Busabase domain state", async () => {
+  const { appConfig } = await import(join(browserRoot, "js", "config.js"));
+  const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");
+  const model = await readFile(join(browserRoot, "js", "jobhunt-model.js"), "utf8");
+  assert.ok(Number.isInteger(appConfig.onboardingVersion) && appConfig.onboardingVersion > 0);
+  assert.ok(appConfig.bases[0].fields.some((field) => field.slug === "onboarding-version"));
+  assert.match(app, /renderOnboarding/);
+  assert.match(app, /desk\.profile\.onboardingVersion < appConfig\.onboardingVersion/);
+  assert.match(model, /"onboarding-version"/);
+});
+
+test("onboarding readiness reads only the profile before loading workflow queues", async () => {
+  const provider = await readFile(join(browserRoot, "js", "providers", "busabase-provider.js"), "utf8");
+  const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");
+  assert.match(provider, /getReadinessState\(\)[\s\S]*requireBase\("profile"\)/);
+  assert.match(app, /provider\.getReadinessState\(\)[\s\S]*renderOnboarding\(\)[\s\S]*provider\.getState\(\)/);
+});
+
 test("no mail transport can ever run in browser code", async () => {
   // The Vault key names legitimately appear in the profile screen, which shows
   // whether credentials are configured. A transport or a value does not.

@@ -5,6 +5,7 @@ import {
   buildApprovalFields,
   buildProfileFields,
   createJobhuntDesk,
+  missingProfileRequirements,
   nextStep,
   normalizeProfile,
   pickBestLead,
@@ -111,6 +112,15 @@ test("profile readiness lists exactly what is still missing", () => {
   assert.equal(normalizeProfile(profileRecord).ready, true);
 });
 
+test("product onboarding is versioned and validates all readiness fields", () => {
+  assert.equal(normalizeProfile(profileRecord).onboardingVersion, 0);
+  assert.equal(
+    normalizeProfile(record("p", "profile", { ...profileRecord.fields, onboarding_version: 1 })).onboardingVersion,
+    1,
+  );
+  assert.deepEqual(missingProfileRequirements({ targetRole: "产品经理" }), ["自我介绍", "简历附件", "发件邮箱"]);
+});
+
 test("approval refuses to queue a send without a contact or a drafted email", () => {
   const desk = createJobhuntDesk(sample);
   const lanxi = desk.companies.find((company) => company.key === "lanxi");
@@ -133,6 +143,7 @@ test("profile fields are written back with the Busabase field slugs", () => {
     buildProfileFields(
       { name: "陈默", targetRole: " 产品经理 ", locations: "杭州", fromEmail: "a@example.com" },
       "2026-08-11",
+      { onboardingVersion: 1 },
     ),
     {
       name: "陈默",
@@ -144,6 +155,7 @@ test("profile fields are written back with the Busabase field slugs", () => {
       "from-email": "a@example.com",
       "updated-at": "2026-08-11",
       "job-boards": "",
+      "onboarding-version": 1,
     },
   );
 });

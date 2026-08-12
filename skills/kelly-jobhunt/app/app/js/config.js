@@ -5,7 +5,8 @@ export const appConfig = {
   locale: "zh-CN",
   readOnly: false,
   spaceId: "",
-  schemaVersion: 3,
+  schemaVersion: 4,
+  onboardingVersion: 1,
   folder: {
     name: "Kelly 求职直投",
     description: "Job-search profile, target companies, and outreach state",
@@ -40,6 +41,9 @@ export const appConfig = {
         { slug: "job-boards", name: "招聘渠道", type: "text", required: false },
         { slug: "resume-source", name: "简历原文", type: "longtext", required: false },
         { slug: "smtp-vault-key", name: "SMTP 凭据引用", type: "text", required: false },
+        // Schema v4 makes product onboarding explicit and versioned. It is
+        // domain state in Busabase, never browser storage or an auth cookie.
+        { slug: "onboarding-version", name: "引导完成版本", type: "number", required: false },
       ],
     },
     {

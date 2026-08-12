@@ -45,6 +45,11 @@ enabled without a Space ID, fail configuration before opening the browser.
   domain-state filesystem fallback, or durable browser persistence.
 - Standalone-only OAuth routes and deployed ambient-session behavior remain
   separated.
+- `server.js` consumes `busabase-sdk/airapp-node`; it does not reimplement token,
+  Space, or proxy state and never trusts an inbound `x-busabase-space` header.
+- Blueprint onboarding declares a positive version, required fields, resource
+  ownership, validation, unlock rules, and completion resource, or an explicit
+  empty contract with rationale.
 
 ## Local And Demo Assertions
 
@@ -73,12 +78,28 @@ enabled without a Space ID, fail configuration before opening the browser.
 
 ## Cloud OAuth Assertions
 
+Run a deterministic fake-upstream suite before live Cloud OAuth:
+
+- zero Spaces returns `needs_space` with a concrete recovery message;
+- one Space is validated and selected automatically;
+- multiple Spaces returns `SPACE_SELECTION_REQUIRED`, renders the selector, and
+  makes no resource request before selection;
+- an unknown or stale selection returns `SPACE_NOT_ALLOWED` and is cleared;
+- proxy requests ignore a browser-supplied `x-busabase-space` and inject only
+  the validated server-side selection;
+- transient auth/network failure renders `retry`, not `needs_auth` or
+  `needs_resources`;
+- changing server and logout clear the validated selection.
+
 - Start the app with a temporary `HOME` and without `BUSABASE_BASE_URL` or an API
-  key so OAuth cannot be bypassed.
+  key or `BUSABASE_SPACE_ID` so OAuth and Space selection cannot be bypassed.
 - Select the configured Cloud origin, complete browser email/password login and
   consent when shown, and return through the local callback.
 - Verify `/auth/status` reports the sanitized Cloud origin and server-side OAuth
   source.
+- When the account has multiple Spaces, choose `KELLY_APP_CLOUD_TEST_SPACE_ID`
+  through the setup UI or `/auth/space`; never inject it into the app process.
+  Assert no Base/Node/resource request occurs before that choice.
 - Verify state/PKCE exchange succeeds, callback parameters contain no token, and
   local browser storage, DOM, URL, console, and screenshots contain no token.
 - In OAuth-only mode, do not click initialization or perform Cloud mutations.

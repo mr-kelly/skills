@@ -34,6 +34,20 @@ repeats. `setup` is optional in the sense that the desk provisions lazily on
 first use, but running it first turns "why is this empty" into one command with
 an answer.
 
+The first app run has two separate gates before that command loop begins:
+
+1. connect Busabase and explicitly select the target Space when the account has
+   more than one;
+2. initialize schema v3 resources, then complete product onboarding v1 with a
+   target role, truthful highlights, resume file, and sender address.
+
+Persist onboarding completion as `onboarding-version` on the profile record.
+Until version 1 is materialized, read only the Profile Base; do not load the
+Companies or Leads queues and do not run research or send actions. A deployed
+AirApp submits the onboarding update as a ChangeRequest and stays on the waiting
+state until that CR is merged. OAuth success alone never marks product
+onboarding complete.
+
 ## Mandatory Dependencies
 
 Before designing, creating, or changing the app:
@@ -291,7 +305,7 @@ slugs, status values, and Vault keys are fixed by `references/jobhunt-schema.md`
 
 | Resource | Purpose |
 | --- | --- |
-| `jobhunt-profile-v1` | One row. Identity, target role, channels, resume source text, resume file name, sender address, and the SMTP Vault reference names. |
+| `jobhunt-profile-v1` | One row. Identity, target role, channels, resume source text, resume file name, sender address, onboarding version, and the SMTP Vault reference names. |
 | `jobhunt-companies-v1` | One row per company: match evidence, drafted email, outreach status, the address actually used. |
 | `jobhunt-leads-v1` | Several rows per company: candidate addresses with role, source URL, and confidence. |
 | Vault `SMTP_*` | Host, port, user, app password. Values readable only by the trusted sender — from the local Vault, or from the environment Cloud injects them into. |

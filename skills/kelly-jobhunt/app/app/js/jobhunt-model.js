@@ -65,6 +65,9 @@ const PROFILE_REQUIREMENTS = [
   ["fromEmail", "发件邮箱"],
 ];
 
+const missingRequirementsFor = (profile) =>
+  PROFILE_REQUIREMENTS.filter(([key]) => !profile[key]).map(([, label]) => label);
+
 export function normalizeProfile(record) {
   const fields = record ? fieldsOf(record) : {};
   const profile = {
@@ -81,8 +84,9 @@ export function normalizeProfile(record) {
     jobBoards: toText(fields.job_boards),
     resumeSource: toText(fields.resume_source),
     smtpVaultKey: toText(fields.smtp_vault_key),
+    onboardingVersion: toNumber(fields.onboarding_version),
   };
-  profile.missing = PROFILE_REQUIREMENTS.filter(([key]) => !profile[key]).map(([, label]) => label);
+  profile.missing = missingRequirementsFor(profile);
   profile.ready = profile.missing.length === 0;
   // Mailbox readiness is deliberately separate: SMTP is only needed at send
   // time, so a missing credential must not block searching or drafting.
@@ -207,8 +211,10 @@ export function buildApprovalFields(company, email, now) {
   };
 }
 
-export function buildProfileFields(input, now) {
-  return {
+/** @param {{ onboardingVersion?: number }} [options] */
+export function buildProfileFields(input, now, options = {}) {
+  const { onboardingVersion } = options;
+  const fields = {
     name: toText(input.name, "我"),
     "target-role": toText(input.targetRole),
     locations: toText(input.locations),
@@ -219,6 +225,19 @@ export function buildProfileFields(input, now) {
     "updated-at": now,
     "job-boards": toText(input.jobBoards),
   };
+  if (Number.isInteger(onboardingVersion) && onboardingVersion > 0) {
+    fields["onboarding-version"] = onboardingVersion;
+  }
+  return fields;
+}
+
+export function missingProfileRequirements(input) {
+  return missingRequirementsFor({
+    targetRole: toText(input.targetRole),
+    highlights: toText(input.highlights),
+    resumeFile: toText(input.resumeFile),
+    fromEmail: toText(input.fromEmail),
+  });
 }
 
 // The desk is one surface of a three-command skill, and the work it cannot do

@@ -32,6 +32,28 @@ Persist onboarding fields and completion/version state in the app's approved
 Busabase Base/Doc resources. Never use `app/.data/onboarding.json`, local config,
 browser storage, or Demo fixtures as the completion marker.
 
+Declare the contract in the blueprint:
+
+```json
+{
+  "onboarding": {
+    "version": 1,
+    "required_fields": [
+      {
+        "key": "operator_profile",
+        "resource": "settings-base",
+        "validation": "non-empty",
+        "unlocks": ["research"]
+      }
+    ],
+    "completion_resource": "settings-base"
+  }
+}
+```
+
+Use a positive integer version. An intentionally configuration-free product
+uses `required_fields: []` plus a concise `rationale`; do not omit the contract.
+
 ## Stable State Contract
 
 Expose one sanitized state from the app's repository/service boundary. Adapt
@@ -130,6 +152,8 @@ Verify all applicable paths:
   after materialization;
 - incomplete readiness suppresses stale/live-looking workflow data;
 - product onboarding persists in Busabase and survives refresh/device changes;
+- onboarding version mismatch enters review/migration instead of silently
+  retaining a stale completion marker;
 - language changes update the complete gate;
 - reconfiguration preserves data unless a named destructive action was approved;
 - no secret value, OAuth token, or API key reaches browser-visible state.

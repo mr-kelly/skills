@@ -165,6 +165,13 @@ revoked session returns to the connection screen with a concise retry message.
 Demo never impersonates a successful connection and remains explicitly labeled
 read-only.
 
+Use the canonical `createBusabaseAirAppLocalGateway()` exported by
+`busabase-sdk/airapp-node`; do not copy PKCE, token refresh, Space persistence,
+or proxy code into each `server.js`. Browser-provided `x-busabase-space` is
+untrusted and must never override the gateway's validated server-side choice.
+Treat `SPACE_SELECTION_REQUIRED` and `SPACE_NOT_ALLOWED` as stable reasons;
+never parse a human error sentence to decide which setup screen to render.
+
 Apply `references/setup-onboarding.md` after authentication. Infrastructure
 readiness and product onboarding are separate: a connected, materialized AirApp
 may still need operator context, policies, sources, thresholds, schedules, or
@@ -374,6 +381,15 @@ Persist its fields and completion/version state in Busabase. Do not enable
 external reads or consequential actions whose product prerequisites are
 incomplete.
 
+Declare an onboarding contract in the Product Overlay and machine-readable
+blueprint with a positive integer `version`, explicit required fields, their
+owning Base/Doc resource keys, validation rules, and the actions each field
+unlocks. A product with no onboarding requirements must declare an explicit
+empty contract and rationale; omission is not equivalent to “none.” Persist
+`onboarding_version`, completion state, and materialized completion time in the
+declared Busabase resource. A version mismatch enters `needs_review` or
+`migration_needed`, never `complete`.
+
 For missing or expired authentication, apply the Connection UX Contract above;
 do not replace its OAuth action with CLI instructions or a credential input.
 
@@ -404,11 +420,15 @@ Finish only when:
 - local OAuth verifies accessible Spaces, auto-selects a single/open-source
   Space, requires an explicit selector choice for multiple Spaces, and performs
   no resource initialization before that choice;
+- the local Hono boundary consumes `busabase-sdk/airapp-node`, ignores inbound
+  Space headers, and branches on stable Space reasons;
 - Research, Plan, Action, and Retrospective are represented or intentionally
   omitted;
 - human attention, opt-out, review, and Agent claim rules are unambiguous;
 - runtime readiness, product onboarding, review verdicts, Agent revision,
   external execution, and recovery obey their selected reference contracts;
+- the blueprint declares onboarding version, required fields, Busabase storage,
+  validation, and unlock rules, or an explicit empty contract with rationale;
 - local and AirApp runs use the same application source and resource contract;
 - the default delivery produced a merged, verified AirApp and a clickable target
   URL; a local URL is reported only for an explicitly requested local preview;

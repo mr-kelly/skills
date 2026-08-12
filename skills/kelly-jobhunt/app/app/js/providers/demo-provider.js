@@ -38,6 +38,7 @@ const records = [
 技能：
 需求拆解与流程建模、SQL 与埋点分析、B 端交互设计评审`,
     smtp_vault_key: "SMTP_HOST,SMTP_PORT,SMTP_USER,SMTP_PASS",
+    onboarding_version: 1,
   }),
 
   record("company-lanxi", "companies", {
@@ -303,6 +304,9 @@ const applyFields = (target, fields) => {
 
 export const demoProvider = {
   name: "demo",
+  async getReadinessState() {
+    return this.getState();
+  },
   async getState() {
     return {
       provider: {

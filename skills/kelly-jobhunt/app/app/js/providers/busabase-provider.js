@@ -1,6 +1,6 @@
 import { createRuntimeClient, isStandaloneLocalRuntime } from "../busabase-client.js";
-import { appConfig } from "../config.js?v=0.1.0";
-import { inspectProvisionedResources, provisionDeclaredResources } from "../resource-provisioning.js?v=0.1.0";
+import { appConfig } from "../config.js?v=0.3.0";
+import { inspectProvisionedResources, provisionDeclaredResources } from "../resource-provisioning.js?v=0.3.0";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
@@ -67,7 +67,7 @@ const requireBase = (key) => {
 
 export const busabaseProvider = {
   name: "busabase",
-  async getState() {
+  async getReadinessState() {
     runtimeClient = createRuntimeClient();
     if (!allowedReads.has("nodes.list")) throw new Error("PROCEDURE_DENIED: nodes.list");
     if (!allowedReads.has("nodes.get")) throw new Error("PROCEDURE_DENIED: nodes.get");
@@ -84,8 +84,25 @@ export const busabaseProvider = {
     }
     pendingSetupError = "";
     runtimeBases = new Map(resources.bases.map((base) => [base.key, base]));
+    const profilePage = await readAllPages(runtimeClient, requireBase("profile"));
+    return {
+      provider: {
+        ok: true,
+        name: "busabase",
+        mode: "busabase_sdk_openapi",
+        readOnly: false,
+        pendingReview: !isStandaloneLocalRuntime(),
+      },
+      records: profilePage.records,
+      pageInfo: {
+        profile: { nextCursor: profilePage.nextCursor, limit: profilePage.limit },
+      },
+    };
+  },
+  async getState() {
+    if (!runtimeClient || !runtimeBases.size) await this.getReadinessState();
     const pages = await Promise.all(
-      resources.bases.map(async (base) => [base.key, await readAllPages(runtimeClient, base)]),
+      [...runtimeBases.values()].map(async (base) => [base.key, await readAllPages(runtimeClient, base)]),
     );
     return {
       provider: {

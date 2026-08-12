@@ -58,13 +58,18 @@ present. Do not invent a weaker replacement contract.
 7. Run Cloud OAuth as a separate suite only when every required credential
    variable is non-empty. Print an explicit skip with missing variable names
    otherwise. Never describe a skipped Cloud suite as validated.
-8. Permit Cloud mutations only when the dedicated test Space and explicit
+8. Before any live Cloud suite, run deterministic fake-upstream connection
+   conformance for zero, one, and multiple Spaces, invalid/stale selection,
+   inbound-header bypass, transient auth failure, server change, and logout.
+   These cases run on every PR and cannot be skipped because a Cloud account has
+   only one Space.
+9. Permit Cloud mutations only when the dedicated test Space and explicit
    mutation opt-in are both present. OAuth-only mode must not provision, seed,
    merge, or delete Cloud data.
-9. When AirApp credentials and a disposable target are available, run deployed
+10. When AirApp credentials and a disposable target are available, run deployed
    ambient-session and local-source parity acceptance separately from standalone
    Cloud OAuth.
-10. Report every required suite as pass, fail, or skip, including the exact
+11. Report every required suite as pass, fail, or skip, including the exact
     command and failure artifact location. Preserve a failing test when it
     reveals an app, SDK, Busabase, OAuth, or creator-contract defect.
 

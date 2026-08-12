@@ -128,13 +128,20 @@ def run_cloud_oauth(config: dict) -> None:
             "PORT": str(port),
             "BUSABASE_BASE_URL": "",
             "BUSABASE_API_KEY": "",
-            "BUSABASE_SPACE_ID": config["space_id"],
+            "BUSABASE_SPACE_ID": "",
         }
         with managed_process(["node", "server.js"], APP_ROOT, env, f"{app_url}/health"):
             with sync_playwright() as playwright:
                 browser = playwright.chromium.launch(headless=True)
                 context = browser.new_context(viewport={"width": 1280, "height": 820})
                 page = context.new_page()
+                business_requests = []
+                page.on(
+                    "request",
+                    lambda request: business_requests.append(request.url)
+                    if "/api/v1/" in request.url and not request.url.endswith("/api/v1/auth")
+                    else None,
+                )
                 connected = False
                 try:
                     complete_cloud_login(page, app_url, config)
@@ -143,6 +150,10 @@ def run_cloud_oauth(config: dict) -> None:
                     assert status.get("baseUrl") == config["base_url"], status
                     assert status.get("source") == "airapp-oauth-local", status
                     if status.get("requiresSpace"):
+                        assert business_requests == [], (
+                            "Business API was called before Space selection",
+                            business_requests,
+                        )
                         select = page.locator('select[name="space_id"]')
                         select.wait_for(state="visible")
                         if config["space_id"]:
@@ -160,11 +171,24 @@ def run_cloud_oauth(config: dict) -> None:
                     initialize = page.get_by_role("button", name="初始化工作区")
                     if config["allow_mutation"] and initialize.count():
                         initialize.click()
-                        page.get_by_role("heading", name="待发送", exact=True).wait_for(timeout=30_000)
+                        page.get_by_role("heading", name="先确定你的求职方向", exact=True).wait_for(
+                            timeout=30_000
+                        )
+                        page.locator('[data-onboarding="name"]').fill("Cloud OAuth Test")
+                        page.locator('[data-onboarding="targetRole"]').fill("Test Operator")
+                        page.locator('[data-onboarding="highlights"]').fill(
+                            "Dedicated automated test profile for the JobHunt onboarding gate."
+                        )
+                        page.locator('[data-onboarding="resumeFile"]').fill("cloud-oauth-test.pdf")
+                        page.locator('[data-onboarding="fromEmail"]').fill("cloud-oauth@example.com")
+                        page.get_by_role("button", name="完成并进入投递台").click()
+                        page.get_by_text("等待当前 Space 审批", exact=False).wait_for(timeout=20_000)
                     elif not config["allow_mutation"]:
                         print("PASS Cloud OAuth - authenticated without Cloud mutations")
                     if config["allow_mutation"]:
-                        print("PASS Cloud full - OAuth and lazy provisioning in dedicated test Space")
+                        print(
+                            "PASS Cloud full - OAuth, lazy provisioning, and onboarding CR in dedicated test Space"
+                        )
                 finally:
                     if connected:
                         result = page.evaluate(

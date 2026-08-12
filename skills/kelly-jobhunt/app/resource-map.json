@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "provisioning": {
     "mode": "lazy",
     "trigger": "first-real-data-read-or-explicit-setup-action",
@@ -26,7 +26,7 @@
       "purpose": "Job seeker profile that drives search keywords and email drafting",
       "nodeId": "",
       "baseId": "",
-      "schemaVersion": 3
+      "schemaVersion": 4
     },
     {
       "key": "companies",
@@ -35,7 +35,7 @@
       "purpose": "Target companies with match evidence, drafted email, and outreach status",
       "nodeId": "",
       "baseId": "",
-      "schemaVersion": 3
+      "schemaVersion": 4
     },
     {
       "key": "leads",
@@ -44,7 +44,7 @@
       "purpose": "Contact addresses discovered per company, several per company",
       "nodeId": "",
       "baseId": "",
-      "schemaVersion": 3
+      "schemaVersion": 4
     }
   ],
   "vaultRequirements": [
