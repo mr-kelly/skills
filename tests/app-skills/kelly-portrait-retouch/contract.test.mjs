@@ -30,7 +30,7 @@ test("contains a complete canonical app and frozen lockfile", async () => {
   await Promise.all(required.map((file) => readFile(join(appRoot, file))));
   const pkg = JSON.parse(await readFile(join(appRoot, "package.json"), "utf8"));
   assert.equal(pkg.engines.node, ">=24.18.0");
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.11.0");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.15.0");
   assert.equal(pkg.scripts.dev, "node server.js");
 });
 

@@ -72,38 +72,23 @@ app.all("/api/v1/*", (context) => gateway.proxy(context.req.raw));
 // route around; `/api/dev/*` is proxied too so a differently-configured or
 // future server that serves it (or does honor the `/api/storage/*` default)
 // still works without a code change here.
-const storageRelay = async (context) => {
-  let target;
-  try {
-    target = await authTarget();
-  } catch {
-    return context.json({ error: "Busabase OAuth session expired" }, 401);
-  }
-  if (!target) return context.json({ error: "Busabase connection required" }, 401);
-
-  const incoming = new URL(context.req.url);
-  const targetUrl = new URL(incoming.pathname + incoming.search, target.baseUrl);
-  const headers = new Headers();
-  const contentType = context.req.header("content-type");
-  if (contentType) headers.set("content-type", contentType);
-  if (target.accessToken) headers.set("authorization", `Bearer ${target.accessToken}`);
-
-  const hasBody = !["GET", "HEAD"].includes(context.req.method);
-  const upstream = await fetch(targetUrl, {
-    method: context.req.method,
-    headers,
-    body: hasBody ? await context.req.arrayBuffer() : undefined,
-    redirect: "manual",
-  });
-  const responseHeaders = new Headers();
-  const upstreamType = upstream.headers.get("content-type");
-  if (upstreamType) responseHeaders.set("content-type", upstreamType);
-  return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
-};
+// Reuses the same gateway.proxy() the /api/v1/* relay uses above, instead of
+// a second hand-rolled fetch. It used to call a local authTarget() helper
+// that lived in the pre-gateway server.js; that helper no longer exists post-
+// migration, and the try/catch around it was silently turning the resulting
+// ReferenceError into a misleading "Busabase OAuth session expired" for every
+// request. gateway.proxy() derives the upstream URL from the request's own
+// pathname (it isn't hardcoded to /api/v1), so it relays /api/storage/* and
+// /api/dev/* correctly, and its disconnected-state error ("Busabase
+// connection required") is exactly what this route contractually returns.
+// It also now attaches x-busabase-space, which the old hand-rolled version
+// never did — Busabase's Asset endpoints are Space-scoped like everything
+// else, so this was a gap the old code had, not a behavior worth preserving.
 // Hono's route matcher does not reliably multiplex a single `app.all(array,
 // ...)` registration across two independent wildcard patterns (confirmed
 // live: both patterns 404'd when registered together, but work individually)
 // — so this is two registrations sharing one handler, not one call.
+const storageRelay = (context) => gateway.proxy(context.req.raw);
 app.all("/api/storage/*", storageRelay);
 app.all("/api/dev/*", storageRelay);
 

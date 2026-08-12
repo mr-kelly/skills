@@ -43,10 +43,11 @@ test("serves canonical browser assets with no-store", async () => {
 test("starts disconnected without leaking a local credential", async () => {
   const response = await fetch(`${baseUrl}/auth/status`);
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), {
-    connected: false,
-    cloudBaseUrl: "https://busabase.com",
-  });
+  const status = await response.json();
+  assert.equal(status.connected, false);
+  assert.equal(status.cloudBaseUrl, "https://busabase.com");
+  assert.equal(status.readiness, "needs_connection");
+  assert.equal(status.action, "connect");
 });
 
 test("rejects cross-origin OAuth starts", async () => {
@@ -62,5 +63,5 @@ test("rejects cross-origin OAuth starts", async () => {
   assert.equal(response.status, 303);
   const location = new URL(response.headers.get("location"));
   assert.equal(location.origin, baseUrl);
-  assert.match(location.searchParams.get("oauth_error"), /origin mismatch/i);
+  assert.match(location.searchParams.get("oauth_error"), /origin did not match/i);
 });

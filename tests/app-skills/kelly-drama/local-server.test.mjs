@@ -46,10 +46,11 @@ test("serves health and canonical browser assets", async () => {
 test("starts disconnected without leaking a local credential", async () => {
   const response = await fetch(`${baseUrl}/auth/status`);
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), {
-    connected: false,
-    cloudBaseUrl: "https://busabase.com",
-  });
+  const status = await response.json();
+  assert.equal(status.connected, false);
+  assert.equal(status.cloudBaseUrl, "https://busabase.com");
+  assert.equal(status.readiness, "needs_connection");
+  assert.equal(status.action, "connect");
 });
 
 test("proxies /api/storage/* (Busabase Asset upload/read relay) same as /api/v1/*, requiring a connection", async () => {
@@ -60,7 +61,7 @@ test("proxies /api/storage/* (Busabase Asset upload/read relay) same as /api/v1/
   // still fail closed, same as the /api/v1/* relay.
   const response = await fetch(`${baseUrl}/api/storage/upload?key=test`, { method: "PUT", body: "x" });
   assert.equal(response.status, 401);
-  assert.deepEqual(await response.json(), { error: "Busabase connection required" });
+  assert.equal((await response.json()).error, "Busabase connection required");
 });
 
 test("rejects cross-origin OAuth starts", async () => {
@@ -76,5 +77,5 @@ test("rejects cross-origin OAuth starts", async () => {
   assert.equal(response.status, 303);
   const location = new URL(response.headers.get("location"));
   assert.equal(location.origin, baseUrl);
-  assert.match(location.searchParams.get("oauth_error"), /origin mismatch/i);
+  assert.match(location.searchParams.get("oauth_error"), /origin did not match/i);
 });

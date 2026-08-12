@@ -35,7 +35,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.11.0");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.15.0");
 });
 
 test("keeps resource-map and runtime declarations aligned", async () => {

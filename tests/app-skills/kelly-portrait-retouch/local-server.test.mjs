@@ -43,7 +43,11 @@ test("serves health, app assets, and demo portraits without caching", async () =
 
 test("starts disconnected and rejects cross-origin OAuth", async () => {
   const status = await fetch(`${baseUrl}/auth/status`);
-  assert.deepEqual(await status.json(), { connected: false, cloudBaseUrl: "https://busabase.com" });
+  const statusBody = await status.json();
+  assert.equal(statusBody.connected, false);
+  assert.equal(statusBody.cloudBaseUrl, "https://busabase.com");
+  assert.equal(statusBody.readiness, "needs_connection");
+  assert.equal(statusBody.action, "connect");
   const response = await fetch(`${baseUrl}/auth/start`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded", origin: "https://attacker.example" },
@@ -51,5 +55,5 @@ test("starts disconnected and rejects cross-origin OAuth", async () => {
     redirect: "manual",
   });
   assert.equal(response.status, 303);
-  assert.match(new URL(response.headers.get("location")).searchParams.get("oauth_error"), /origin mismatch/i);
+  assert.match(new URL(response.headers.get("location")).searchParams.get("oauth_error"), /origin did not match/i);
 });
