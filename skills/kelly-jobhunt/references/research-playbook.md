@@ -22,6 +22,8 @@ sends and a queue they abandon is decided almost entirely here.
       "industry": "企业协作 SaaS",
       "matchScore": 92,
       "matchReason": "招聘页在招 B 端产品经理，明确写了「有审批流经验优先」；团队 80 人，产品线单一。",
+      "evidenceType": "official-site",
+      "evidenceDate": "2026-08-12",
       "emailSubject": "应聘 B 端产品经理 — 陈默（协作工作台 / 审批中台）",
       "emailBody": "您好，\n\n我是陈默……"
     }
@@ -123,6 +125,27 @@ never be presented as one. A rough calibration:
 
 Keep the distribution honest. If every company scores above 90 the number stops
 carrying information and the operator starts ignoring the sort.
+
+## Evidence and freshness
+
+A score answers "does this fit". It cannot answer "is this still open", and the
+desk sorts on the second question first. Record both fields on every company:
+
+| `evidenceType` | Use when |
+| --- | --- |
+| `official-site` | You read the role, or the need, on the company's own site. |
+| `aggregator` | You found it on a job board. It may have closed; say so rather than laundering it. |
+| `business-match` | There is no posting. The match is your judgement about what they do. |
+
+`evidenceDate` is the day you **captured** it, in `YYYY-MM-DD` — not the day you
+run the import. They differ as soon as a research pass is reviewed the next
+morning, and staleness is the whole point of the field.
+
+Leave `evidenceType` blank if you genuinely do not know. Blank renders in amber
+as 未标注, next to anything older than 30 days, and both mean "check before
+sending" — which is true and useful. Labelling an aggregator find as
+`official-site` to clear the badge puts a possibly-dead role at the top of the
+queue, which is the exact failure this field exists to prevent.
 
 ## Drafting the email
 

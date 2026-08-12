@@ -5,7 +5,7 @@ export const appConfig = {
   locale: "zh-CN",
   readOnly: false,
   spaceId: "",
-  schemaVersion: 2,
+  schemaVersion: 3,
   folder: {
     name: "Kelly 求职直投",
     description: "Job-search profile, target companies, and outreach state",
@@ -63,6 +63,12 @@ export const appConfig = {
         { slug: "sent-to", name: "实发邮箱", type: "text", required: false },
         { slug: "approved-at", name: "批准时间", type: "date", required: false },
         { slug: "sent-at", name: "发送时间", type: "date", required: false },
+        // Appended in schema v3. A match score alone cannot say whether a role
+        // is still open: an aggregator listing from March and a role on the
+        // company's own careers page today score the same and are not the same
+        // lead. Must stay after the v2 fields for the additive migration.
+        { slug: "evidence-type", name: "证据类型", type: "text", required: false },
+        { slug: "evidence-date", name: "抓取日期", type: "date", required: false },
       ],
     },
     {

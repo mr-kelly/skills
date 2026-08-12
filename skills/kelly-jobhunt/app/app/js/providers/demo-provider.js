@@ -55,6 +55,8 @@ const records = [
     sent_to: "",
     approved_at: "",
     sent_at: "",
+    evidence_type: "official-site",
+    evidence_date: "2026-08-11",
   }),
   record("company-hetu", "companies", {
     name: "河图智能",
@@ -71,6 +73,8 @@ const records = [
     sent_to: "",
     approved_at: "",
     sent_at: "",
+    evidence_type: "official-site",
+    evidence_date: "2026-08-10",
   }),
   record("company-xingye", "companies", {
     name: "星野出行",
@@ -86,6 +90,8 @@ const records = [
     sent_to: "",
     approved_at: "",
     sent_at: "",
+    evidence_type: "aggregator",
+    evidence_date: "2026-08-09",
   }),
   record("company-muhe", "companies", {
     name: "木荷医疗",
@@ -102,6 +108,8 @@ const records = [
     sent_to: "",
     approved_at: "",
     sent_at: "",
+    evidence_type: "business-match",
+    evidence_date: "2026-08-08",
   }),
   record("company-chaoxi", "companies", {
     name: "潮汐云",
@@ -117,6 +125,8 @@ const records = [
     sent_to: "hr@chaoxi-cloud.example.com",
     approved_at: "2026-08-11",
     sent_at: "",
+    evidence_type: "official-site",
+    evidence_date: "2026-08-07",
   }),
   record("company-qingyou", "companies", {
     name: "青柚教育",
@@ -132,6 +142,8 @@ const records = [
     sent_to: "recruit@qingyou-edu.example.com",
     approved_at: "2026-08-09",
     sent_at: "2026-08-09",
+    evidence_type: "aggregator",
+    evidence_date: "2026-06-28",
   }),
   record("company-lanshan", "companies", {
     name: "岚山金融科技",
@@ -147,6 +159,8 @@ const records = [
     sent_to: "hr@lanshan-fintech.example.com",
     approved_at: "2026-08-08",
     sent_at: "2026-08-08",
+    evidence_type: "official-site",
+    evidence_date: "2026-08-05",
   }),
   record("company-maimang", "companies", {
     name: "麦芒零售",
@@ -162,6 +176,8 @@ const records = [
     sent_to: "",
     approved_at: "",
     sent_at: "",
+    evidence_type: "business-match",
+    evidence_date: "2026-08-04",
   }),
   record("company-xiliu", "companies", {
     name: "溪流传媒",
@@ -177,6 +193,8 @@ const records = [
     sent_to: "",
     approved_at: "",
     sent_at: "",
+    evidence_type: "",
+    evidence_date: "",
   }),
 
   record("lead-lanxi-hr", "leads", {

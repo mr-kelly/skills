@@ -20,6 +20,31 @@ export const statusLabel = (status) => ({ draft: "待发送", queued: "排队中
 
 export const confidenceLabel = (confidence) => ({ high: "高", medium: "中", low: "低" })[confidence] || "未知";
 
+// Where the match came from, strongest evidence first. A role on the company's
+// own careers page is a fact; the same role on an aggregator may have closed
+// months ago; "their business needs this" is a hypothesis worth sending but not
+// worth ranking above either.
+const EVIDENCE_TYPES = ["official-site", "aggregator", "business-match"];
+const EVIDENCE_RANK = { "official-site": 3, aggregator: 2, "business-match": 1 };
+
+export const evidenceLabel = (evidenceType) =>
+  ({ "official-site": "官网岗位", aggregator: "聚合岗位", "business-match": "业务匹配" })[evidenceType] || "未标注";
+
+const normalizeEvidenceType = (value) => {
+  const evidenceType = toText(value).toLowerCase();
+  return EVIDENCE_TYPES.includes(evidenceType) ? evidenceType : "";
+};
+
+// How stale the evidence is, in whole days. Null when undated — which is itself
+// worth showing, since an undated find cannot be judged for freshness at all.
+export function evidenceAgeDays(evidenceDate, today = new Date()) {
+  if (!evidenceDate) return null;
+  const captured = new Date(`${evidenceDate}T00:00:00Z`);
+  if (Number.isNaN(captured.getTime())) return null;
+  const midnight = new Date(`${today.toISOString().slice(0, 10)}T00:00:00Z`);
+  return Math.max(0, Math.round((midnight.getTime() - captured.getTime()) / 86_400_000));
+}
+
 const normalizeStatus = (value) => {
   const status = toText(value, "draft").toLowerCase();
   return STATUSES.includes(status) ? status : "draft";
@@ -96,6 +121,8 @@ export function normalizeCompany(record) {
     sentTo: toText(fields.sent_to),
     approvedAt: toText(fields.approved_at),
     sentAt: toText(fields.sent_at),
+    evidenceType: normalizeEvidenceType(fields.evidence_type),
+    evidenceDate: toText(fields.evidence_date),
   };
 }
 
@@ -120,9 +147,18 @@ export function createJobhuntDesk(records) {
     leadsByCompany.get(lead.companyKey).push(lead);
   }
 
+  // Evidence outranks score. Two companies that both score 90 are not equally
+  // worth an email if one role is posted on the company's own site and the
+  // other is an aggregator listing that may have closed — sorting on score
+  // alone puts the dead one first as often as not.
   const companies = recordsFor(records, "companies")
     .map(normalizeCompany)
-    .sort((left, right) => right.matchScore - left.matchScore || left.name.localeCompare(right.name, "zh-CN"))
+    .sort(
+      (left, right) =>
+        (EVIDENCE_RANK[right.evidenceType] || 0) - (EVIDENCE_RANK[left.evidenceType] || 0) ||
+        right.matchScore - left.matchScore ||
+        left.name.localeCompare(right.name, "zh-CN"),
+    )
     .map((company, index) => {
       const companyLeads = (leadsByCompany.get(company.key) || []).sort(
         (left, right) => CONFIDENCE_RANK[right.confidence] - CONFIDENCE_RANK[left.confidence],

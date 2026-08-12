@@ -4,6 +4,8 @@ import {
   buildProfileFields,
   confidenceLabel,
   createJobhuntDesk,
+  evidenceAgeDays,
+  evidenceLabel,
   nextStep,
   statusLabel,
 } from "./jobhunt-model.js?v=0.2.0";
@@ -99,6 +101,23 @@ const scoreClass = (score) => (score >= 85 ? "high" : score >= 70 ? "mid" : "low
 const statusPill = (company) =>
   `<span class="status-pill status-${company.status}">${statusLabel(company.status)}</span>`;
 
+// How old the evidence is, said plainly. An operator deciding whether a role is
+// still open needs "37 天前", not a date they have to subtract from today.
+const freshness = (company) => {
+  const days = evidenceAgeDays(company.evidenceDate);
+  if (days === null) return company.evidenceDate ? "" : "未记日期";
+  if (days === 0) return "今天";
+  if (days === 1) return "昨天";
+  return `${days} 天前`;
+};
+
+const evidencePill = (company) => {
+  const stale = evidenceAgeDays(company.evidenceDate);
+  const level = !company.evidenceType ? "unknown" : stale !== null && stale > 30 ? "stale" : company.evidenceType;
+  const age = freshness(company);
+  return `<span class="evidence-pill evidence-${level}">${evidenceLabel(company.evidenceType)}${age ? ` · ${age}` : ""}</span>`;
+};
+
 const renderCompanyRow = (company, active) => {
   const contact = company.bestLead ? `${escapeHtml(company.bestLead.email)}` : '<em class="row-warn">未找到邮箱</em>';
   const trailing =
@@ -112,6 +131,7 @@ const renderCompanyRow = (company, active) => {
     <span class="row-rank">${escapeHtml(company.ref)}</span>
     <span class="row-main">
       <span class="row-kicker">${escapeHtml(company.industry)} · ${statusLabel(company.status)}</span>
+      <span class="row-evidence">${evidencePill(company)}</span>
       <span class="row-title"><strong>${escapeHtml(company.name)}</strong>${company.leads.length > 1 ? `<span class="lead-count">${company.leads.length} 个邮箱</span>` : ""}</span>
       <span class="row-subtitle">${trailing}</span>
     </span>
@@ -155,6 +175,7 @@ const renderCompanyDetail = (company) => {
       <div class="detail-fact"><span>匹配度</span><strong class="score-${scoreClass(company.matchScore)}">${company.matchScore}</strong></div>
       <div class="detail-fact"><span>官网</span><strong>${escapeHtml(company.website || "--")}</strong></div>
       <div class="detail-fact"><span>线索来源</span><strong>${sourceLine}</strong></div>
+      <div class="detail-fact"><span>证据</span><strong>${evidencePill(company)}</strong></div>
     </div>
     ${
       editable
@@ -345,7 +366,7 @@ const renderApp = () => {
       ? '<span class="snapshot-badge">DEMO</span>'
       : '<span class="status-dot"></span>';
   const content = meta.list
-    ? `<section class="content"><div class="list-panel"><div class="list-head"><div><strong>${meta.label}</strong><span>${items.length} ${meta.noun}</span></div><span>按匹配度排序</span></div><div class="work-list">${renderRows(items, selected?.id)}</div></div><aside class="detail-panel">${selected ? renderCompanyDetail(selected) : '<div class="empty-detail">从左侧选择一家公司</div>'}</aside></section>`
+    ? `<section class="content"><div class="list-panel"><div class="list-head"><div><strong>${meta.label}</strong><span>${items.length} ${meta.noun}</span></div><span>按证据 · 匹配度排序</span></div><div class="work-list">${renderRows(items, selected?.id)}</div></div><aside class="detail-panel">${selected ? renderCompanyDetail(selected) : '<div class="empty-detail">从左侧选择一家公司</div>'}</aside></section>`
     : `<section class="content content-single">${renderProfile()}</section>`;
   root.innerHTML = `<div class="app-shell ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}">${renderSidebar()}<main class="main">
     <div class="mobile-topbar"><button class="mobile-sidebar-toggle" type="button" data-mobile-sidebar aria-controls="appSidebar" aria-label="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><div class="mobile-view-title">${meta.label}</div><div class="mobile-view-meta">${meta.list ? `${items.length} ${meta.noun}` : desk.profile.ready ? "已就绪" : `缺 ${desk.profile.missing.length} 项`}</div></div><button class="mobile-help-button" type="button" data-open-help aria-label="帮助与设置">帮助</button></div>

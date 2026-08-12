@@ -235,6 +235,8 @@ FINDINGS = {
             "industry": "企业协作 SaaS",
             "matchScore": 92,
             "matchReason": "招聘页写明有审批流经验优先。",
+            "evidenceType": "official-site",
+            "evidenceDate": "2026-08-11",
             "emailSubject": "应聘 B 端产品经理 — 陈默",
             "emailBody": "您好，\n\n我是陈默……",
         },
@@ -246,6 +248,8 @@ FINDINGS = {
             "industry": "零售数字化",
             "matchScore": 66,
             "matchReason": "官网与招聘页均未公开任何邮箱。",
+            "evidenceType": "aggregator",
+            "evidenceDate": "2026-06-20",
             "emailSubject": "应聘产品经理 — 陈默",
             "emailBody": "您好，\n\n我是陈默……",
         },
@@ -306,6 +310,15 @@ def test_busabase_round_trip(browser) -> None:
                     page = context.new_page()
                     errors = attach_error_capture(page)
 
+                    # Nothing exists yet, and the setup script says exactly that
+                    # rather than creating anything on a dry run.
+                    setup_dry = run_script(["scripts/setup.mjs"], busabase_url)
+                    assert setup_dry.returncode == 0, setup_dry.stderr
+                    for slug in ("jobhunt-profile-v1", "jobhunt-companies-v1", "jobhunt-leads-v1"):
+                        assert slug in setup_dry.stdout, setup_dry.stdout
+                    assert "缺失" in setup_dry.stdout, setup_dry.stdout
+                    assert resource_keys(read_json(f"{busabase_url}/api/v1/nodes?depth=2")) == [], "a dry run must not write"
+
                     page.goto(f"{app_url}/#/to-send")
                     page.wait_for_load_state("networkidle")
                     assert page.get_by_role("heading", name="初始化 Busabase 工作区").is_visible()
@@ -330,6 +343,16 @@ def test_busabase_round_trip(browser) -> None:
 
                     nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
                     assert sorted(resource_keys(nodes)) == ["app-root", "companies", "leads", "profile"], nodes
+
+                    # Re-running setup over a workspace the app just built must
+                    # adopt it, not build a second one beside it.
+                    nodes_before = json.dumps(nodes, sort_keys=True)
+                    setup_again = run_script(["scripts/setup.mjs", "--apply"], busabase_url)
+                    assert setup_again.returncode == 0, setup_again.stderr
+                    assert "已经就绪" in setup_again.stdout, setup_again.stdout
+                    assert "缺失" not in setup_again.stdout, setup_again.stdout
+                    after = json.dumps(read_json(f"{busabase_url}/api/v1/nodes?depth=2"), sort_keys=True)
+                    assert after == nodes_before, setup_again.stdout
                     profile_base = find_resource(nodes, "profile")["baseId"]
                     companies_base = find_resource(nodes, "companies")["baseId"]
                     leads_base = find_resource(nodes, "leads")["baseId"]
@@ -503,6 +526,28 @@ def test_busabase_round_trip(browser) -> None:
                     assert f"{key} 就绪 · Vault" in collapsed, ready_dry.stdout
                 assert "app-password" not in ready_dry.stdout, "the password must never be printed"
                 assert "smtp2.example.com" not in ready_dry.stdout, ready_dry.stdout
+
+                # A test send routes the letter elsewhere and leaves the research
+                # alone: no contact row rewritten, nothing marked sent. The
+                # fixture host does not resolve, so this exercises the failure
+                # path too — which must still write nothing.
+                companies_before = json.dumps(records_of(busabase_url, companies_base), sort_keys=True, ensure_ascii=False)
+                test_dry = run_script(["scripts/send_emails.mjs", "--test-to", "inbox@example.com"], busabase_url)
+                assert test_dry.returncode == 0, test_dry.stderr
+                assert "测试发送模式" in test_dry.stdout, test_dry.stdout
+                assert "inbox@example.com（原本 hr@lanxi-tech.example.com）" in test_dry.stdout, test_dry.stdout
+
+                test_apply = run_script(
+                    ["scripts/send_emails.mjs", "--test-to", "inbox@example.com", "--apply"], busabase_url
+                )
+                assert test_apply.returncode == 1, test_apply.stdout
+                after_test = json.dumps(records_of(busabase_url, companies_base), sort_keys=True, ensure_ascii=False)
+                assert after_test == companies_before, "a test send must not touch Busabase"
+
+                # A malformed --test-to stops before anything is read or sent.
+                bad = run_script(["scripts/send_emails.mjs", "--test-to", "not-an-address", "--apply"], busabase_url)
+                assert bad.returncode == 1, bad.stdout
+                assert "--test-to" in bad.stderr, bad.stderr
 
                 # With credentials and attachment in place it really tries to send.
                 # The fixture host does not resolve, which is the interesting

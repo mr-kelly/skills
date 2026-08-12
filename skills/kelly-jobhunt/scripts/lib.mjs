@@ -33,7 +33,9 @@ export async function resolveBases(client) {
   const resources = await inspectProvisionedResources(client, appConfig);
   if (!resources.folder || resources.missing.length) {
     const names = resources.missing.map((base) => base.name).join("、");
-    fail(`Busabase 工作区还没就绪，缺少：${names || appConfig.folder.name}。先在 AirApp 里点一次「初始化工作区」。`);
+    fail(
+      `Busabase 工作区还没就绪，缺少：${names || appConfig.folder.name}。\n先跑 node scripts/setup.mjs --apply，或在 AirApp 里点一次「初始化工作区」。`,
+    );
   }
   return new Map(resources.bases.map((base) => [base.key, base]));
 }

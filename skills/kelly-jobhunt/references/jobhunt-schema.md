@@ -55,6 +55,28 @@ One row per company. This is the unit of outreach and the unit of state.
 | `sent-to` | text | no | The address actually used, written at approval. |
 | `approved-at` | date | no | Written by the app. |
 | `sent-at` | date | no | Written by `send_emails.mjs`. |
+| `evidence-type` | text | no | `official-site` \| `aggregator` \| `business-match`. Blank when unknown — never inferred. |
+| `evidence-date` | date | no | When the evidence was **captured**, not when it was imported. |
+
+### Evidence
+
+`match-score` says how well a company fits. It cannot say whether the role is
+still open, and those are different questions. A role on the company's own
+careers page is a fact; the same role on an aggregator may have closed months
+ago; "their business needs this" is a hypothesis worth an email but not worth
+ranking above either. So the desk sorts on evidence first and score second, and
+shows the capture date as an age — `37 天前` is a decision, `2026-07-06` is
+arithmetic homework.
+
+| Value | Means |
+| --- | --- |
+| `official-site` | The role or the need was read on the company's own site. |
+| `aggregator` | Found on a job board or aggregator. May be stale; verify before sending. |
+| `business-match` | No posting; the match is a judgement about what they do. |
+
+Blank is a legitimate value and renders as 未标注 in amber, alongside anything
+older than 30 days. Both mean "look again before you send", which is exactly
+what an operator needs flagged. Do not guess a type to make the badge go away.
 
 ### Status transitions
 

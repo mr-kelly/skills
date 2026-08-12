@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "provisioning": {
     "mode": "lazy",
     "trigger": "first-real-data-read-or-explicit-setup-action",
@@ -26,7 +26,7 @@
       "purpose": "Job seeker profile that drives search keywords and email drafting",
       "nodeId": "",
       "baseId": "",
-      "schemaVersion": 2
+      "schemaVersion": 3
     },
     {
       "key": "companies",
@@ -35,7 +35,7 @@
       "purpose": "Target companies with match evidence, drafted email, and outreach status",
       "nodeId": "",
       "baseId": "",
-      "schemaVersion": 2
+      "schemaVersion": 3
     },
     {
       "key": "leads",
@@ -44,7 +44,7 @@
       "purpose": "Contact addresses discovered per company, several per company",
       "nodeId": "",
       "baseId": "",
-      "schemaVersion": 2
+      "schemaVersion": 3
     }
   ],
   "vaultRequirements": [
@@ -74,10 +74,11 @@
     }
   ],
   "trustedExecution": {
+    "setup": "scripts/setup.mjs — creates or adopts the Folder and Bases, then reads them back",
     "profile": "scripts/build_resume.mjs — renders the profile into a typeset PDF resume",
     "smtpSetup": "scripts/configure_smtp.mjs — writes SMTP credentials into the Busabase Vault",
     "leadImport": "scripts/import_leads.mjs — Agent writes discovered companies and contact addresses",
-    "emailSend": "scripts/send_emails.mjs — resolves Vault credentials, sends approved outreach, marks it sent",
+    "emailSend": "scripts/send_emails.mjs — resolves credentials from the runtime environment or the local Vault, sends approved outreach, marks it sent; --test-to rehearses without writing",
     "browserWrites": ["profile fields", "outreach approval verdict and drafted email"]
   }
 }

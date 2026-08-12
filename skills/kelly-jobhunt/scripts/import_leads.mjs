@@ -7,6 +7,8 @@
 //   "companies": [
 //     { "key": "lanxi-tech", "name": "蓝汐科技", "website": "...", "sourceUrl": "...",
 //       "industry": "...", "matchScore": 92, "matchReason": "...",
+//       "evidenceType": "official-site" | "aggregator" | "business-match",
+//       "evidenceDate": "2026-08-12",
 //       "emailSubject": "...", "emailBody": "..." }
 //   ],
 //   "leads": [
@@ -37,6 +39,17 @@ const findings = await readFile(inputPath, "utf8")
 const companies = findings.companies || [];
 const leads = findings.leads || [];
 
+const EVIDENCE_TYPES = ["official-site", "aggregator", "business-match"];
+
+// Evidence is recorded as given or left blank — never inferred. Guessing
+// "official-site" because a website was supplied would let a stale aggregator
+// listing sort to the top of the queue wearing the wrong badge.
+const evidenceType = (company) => (EVIDENCE_TYPES.includes(company.evidenceType) ? company.evidenceType : "");
+
+// When the finding was captured, not when it was imported: they differ once a
+// research pass is reviewed the next day, and the whole point is staleness.
+const evidenceDate = (company) => (/^\d{4}-\d{2}-\d{2}$/.test(company.evidenceDate || "") ? company.evidenceDate : "");
+
 const companyFields = (company) => ({
   name: company.name,
   key: company.key,
@@ -48,6 +61,8 @@ const companyFields = (company) => ({
   "email-subject": company.emailSubject || "",
   "email-body": company.emailBody || "",
   status: "draft",
+  "evidence-type": evidenceType(company),
+  "evidence-date": evidenceDate(company),
 });
 
 const leadFields = (lead) => ({
@@ -74,7 +89,17 @@ const newLeads = leads.filter((lead) => !existingLeads.has(`${lead.companyKey}|$
 process.stdout.write(dryRunBanner(apply));
 console.log(`公司：新增 ${newCompanies.length} 家，已存在跳过 ${skippedCompanies.length} 家`);
 console.log(`邮箱：新增 ${newLeads.length} 个，重复跳过 ${leads.length - newLeads.length} 个`);
-for (const company of newCompanies) console.log(`  + ${company.name} (${company.key}) 匹配度 ${company.matchScore}`);
+const unlabelled = newCompanies.filter((company) => !evidenceType(company)).length;
+for (const company of newCompanies) {
+  const evidence = evidenceType(company)
+    ? `${evidenceType(company)}${evidenceDate(company) ? ` @ ${evidenceDate(company)}` : "（无日期）"}`
+    : "无证据标注";
+  console.log(`  + ${company.name} (${company.key}) 匹配度 ${company.matchScore} · ${evidence}`);
+}
+if (unlabelled) {
+  console.log(`\n注意：${unlabelled} 家公司没有证据类型，审阅时无法判断岗位是否还有效。`);
+  console.log("补上 evidenceType（official-site / aggregator / business-match）与 evidenceDate 会更好用。");
+}
 for (const lead of newLeads) console.log(`  + ${lead.email} → ${lead.companyKey}`);
 
 if (!apply) process.exit(0);

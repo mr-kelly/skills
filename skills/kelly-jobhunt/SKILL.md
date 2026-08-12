@@ -1,6 +1,6 @@
 ---
 name: kelly-jobhunt
-description: Run a Busabase-backed job-search outreach desk with a bundled Hono App-in-Skill deployable to AirApp. Use when the user invokes $kelly-jobhunt or /kelly-jobhunt, wants to turn a resume into a structured profile and a typeset PDF, wants to find target companies and their contact addresses instead of applying through a job board, wants one tailored application email drafted per company, or wants to review and approve each send. Three subcommands - profile, research, send - plus the desk itself. One company receives exactly one email; mailbox credentials live in the Busabase Vault and never reach browser code.
+description: Run a Busabase-backed job-search outreach desk with a bundled Hono App-in-Skill deployable to AirApp. Use when the user invokes $kelly-jobhunt or /kelly-jobhunt, wants to turn a resume into a structured profile and a typeset PDF, wants to find target companies and their contact addresses instead of applying through a job board, wants one tailored application email drafted per company, or wants to review and approve each send. Four subcommands - setup, profile, research, send - plus the desk itself. One company receives exactly one email; mailbox credentials live in the Busabase Vault and never reach browser code.
 metadata:
   category: comms
   tags:
@@ -18,18 +18,21 @@ one email per company, and let the human approve each send.
 ## Subcommands
 
 The desk shows state and takes decisions. Everything it cannot do itself is one
-of three subcommands, and **the desk always names the next one on screen** — the
+of four subcommands, and **the desk always names the next one on screen** — the
 operator never has to remember which is which.
 
 | Invocation | What you do |
 | --- | --- |
+| `/kelly-jobhunt setup` | Create or adopt the Busabase Folder and three Bases, then read them back |
 | `/kelly-jobhunt profile` | Take the user's resume or raw notes, extract a structured profile, ask which job channels to search, and build a typeset PDF resume |
 | `/kelly-jobhunt research` | Find target companies and their contact addresses, draft one email each, import them |
 | `/kelly-jobhunt send` | Put the user's own SMTP credentials in the Busabase Vault, then send what they approved |
 | `/kelly-jobhunt` (no argument) | Open the desk and report where things stand |
 
 Run them in that order the first time. Afterwards `research` is the one that
-repeats.
+repeats. `setup` is optional in the sense that the desk provisions lazily on
+first use, but running it first turns "why is this empty" into one command with
+an answer.
 
 ## Mandatory Dependencies
 
@@ -73,9 +76,30 @@ SQLite, or a file-backed provider.
   what the query returned is how an unrelated app's pending write gets approved
   by someone who never read it.
 
+## `/kelly-jobhunt setup`
+
+Goal: the Busabase side exists and has been read back, before anyone types a
+resume into it.
+
+```bash
+node scripts/setup.mjs           # dry run: what exists, what is missing
+node scripts/setup.mjs --apply   # create what is missing, then verify
+```
+
+Confirm the Space first — with several, `BUSABASE_SPACE_ID` must be explicit;
+picking one silently is how an app lands in the wrong workspace. Then run it.
+Nobody copies a Node or Base ID anywhere: every script resolves them from the
+Folder by slug, and the script prints the IDs only so a human can recognise them
+in the Busabase UI.
+
+Re-running is safe. Provisioning inspects first and proposes only what is
+absent, so a second run reports 已就绪 and creates nothing. If a Space
+administrator has to approve the structure ChangeRequest, the script says which
+one is pending rather than hanging.
+
 ## `/kelly-jobhunt profile`
 
-Goal: turn whatever the user has into a profile the other two commands can rely
+Goal: turn whatever the user has into a profile the other commands can rely
 on, plus a resume PDF worth attaching.
 
 1. **Take their material as it comes.** A PDF, a Word file, a LinkedIn export, a
@@ -131,6 +155,16 @@ For each address record its role and where it came from, and grade confidence:
 - `high` — printed on the company's own careers or contact page;
 - `medium` — from a job posting or an aggregator that names the company;
 - `low` — an individual's public profile, or a general-purpose inbox.
+
+**Record `evidenceType` and `evidenceDate` on every company.** A score says how
+well a company fits; it cannot say whether the role is still open, and the desk
+sorts on the second question first — `official-site` above `aggregator` above
+`business-match`, score only breaking ties. `evidenceDate` is the day the
+evidence was captured, not the day of the import. Leave the type blank when you
+genuinely do not know: blank renders amber as 未标注 alongside anything older
+than 30 days, and both correctly mean "check before sending". Labelling an
+aggregator find as `official-site` to clear that badge puts a possibly-dead role
+at the top of the queue, which is the failure the field exists to prevent.
 
 Draft `email-subject` and `email-body` at import time so the queue is reviewable
 immediately. Tailor the opening paragraph to that company's specific evidence —
@@ -202,6 +236,17 @@ Goal: the user's own mailbox sends the letters they approved.
    different answers. A failed send leaves the row `queued` so another address
    from the pool can be tried. Report failures per company; never silently drop
    one.
+4. **Rehearse with `--test-to` before the first real send**, so SMTP auth, the
+   attachment, and the letter itself are proven against an inbox the user owns:
+   ```bash
+   node scripts/send_emails.mjs --test-to me@qq.com --apply
+   ```
+   It sends one queued letter — `--test-limit` for more — to that address with a
+   `[测试]` subject prefix, and **writes nothing to Busabase**: no contact row is
+   touched and every company stays `queued`, because no company was actually
+   contacted. Never rehearse by editing contact rows to a test address. That is
+   what the first live run did, and it overwrote 25 researched addresses to
+   prove one SMTP connection worked.
 
 ## Operating Loop
 

@@ -222,6 +222,32 @@ test("trusted scripts carry their own credentials and default to a dry run", asy
   assert.match(lib, /changeRequests\.merge/);
 });
 
+test("setup provisions the workspace and is safe to re-run", async () => {
+  const setup = await readFile(join(skillRoot, "scripts", "setup.mjs"), "utf8");
+  assert.match(setup, /parseFlags\(process\.argv\.slice\(2\)\)/);
+  assert.match(setup, /if \(!apply/);
+  // Reuses the app's declarations rather than a second copy of the schema, so a
+  // Base added to config.js cannot be missed here.
+  assert.match(setup, /provisionDeclaredResources/);
+  assert.match(setup, /inspectProvisionedResources/);
+  assert.doesNotMatch(setup, /slug: "jobhunt-/);
+  // Reads back after writing: "created" without a verify is how a half-merged
+  // structure ChangeRequest gets reported as success.
+  assert.match(setup, /provisioned\.missing\.length/);
+});
+
+test("a test send routes the mail without touching the research", async () => {
+  const send = await readFile(join(skillRoot, "scripts", "send_emails.mjs"), "utf8");
+  assert.match(send, /--test-to/);
+  // The recipient is swapped at send time only. Rehearsing by rewriting 25
+  // contact rows to a test address is what destroyed an hour of research.
+  assert.match(send, /const to = testTo \|\| company\.fields\.sent_to/);
+  assert.match(send, /\[测试\]/);
+  // No company was contacted, so none may be marked sent: the row belongs in
+  // the queue it is still in.
+  assert.match(send, /if \(!testTo\) \{\s*await client\.records\.changeRequest/);
+});
+
 test("a dry run never requires the resume attachment to exist", async () => {
   // The point of a dry run is to print the plan; crashing on a missing PDF
   // hides the very list the operator asked for.

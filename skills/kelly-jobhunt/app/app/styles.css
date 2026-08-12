@@ -1314,9 +1314,53 @@ code {
   border-color: #c7d9ea;
 }
 
+/* Where the match came from, and how old it is. Colour carries the same order
+   the list is sorted in, so a scan down the column reads as a ranking rather
+   than as decoration: verified green, second-hand blue, hypothesis grey, and
+   amber for anything stale or unlabelled — the two cases worth a second look. */
+.evidence-pill {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: #6b7780;
+  background: #f4f6f7;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+.evidence-pill.evidence-official-site {
+  color: #2f6a4f;
+  background: #edf5f0;
+  border-color: #cde1d5;
+}
+.evidence-pill.evidence-aggregator {
+  color: #2c5580;
+  background: var(--blue-soft);
+  border-color: #c7d9ea;
+}
+.evidence-pill.evidence-stale,
+.evidence-pill.evidence-unknown {
+  color: #7c5a12;
+  background: var(--amber-soft);
+  border-color: #ecd9b4;
+}
+.row-evidence {
+  display: block;
+  margin: 2px 0 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.detail-fact .evidence-pill {
+  font-size: 10px;
+}
+
 .detail-facts {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 18px 0 0;
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
