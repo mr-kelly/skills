@@ -4,12 +4,12 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// node_modules/.pnpm/busabase-sdk@0.11.0/node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
+// node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
 function normalizeBaseUrl(raw) {
   return raw.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
 }
 
-// node_modules/.pnpm/@orpc+shared@1.15.0/node_modules/@orpc/shared/dist/index.mjs
+// node_modules/@orpc/shared/dist/index.mjs
 function resolveMaybeOptionalOptions(rest) {
   return rest[0] ?? {};
 }
@@ -307,7 +307,7 @@ function tryDecodeURIComponent(value2) {
   }
 }
 
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/shared/client.CZlviB0y.mjs
+// node_modules/@orpc/client/dist/shared/client.CZlviB0y.mjs
 var ORPC_CLIENT_PACKAGE_NAME = "@orpc/client";
 var ORPC_CLIENT_PACKAGE_VERSION = "1.15.0";
 var RECURSIVE_CLIENT_UNWRAP_KEYS = /* @__PURE__ */ new Set([
@@ -494,7 +494,7 @@ function createORPCErrorFromJson(json2, options = {}) {
   });
 }
 
-// node_modules/.pnpm/@orpc+standard-server@1.15.0/node_modules/@orpc/standard-server/dist/index.mjs
+// node_modules/@orpc/standard-server/dist/index.mjs
 var EventEncoderError = class extends TypeError {
 };
 var EventDecoderError = class extends TypeError {
@@ -756,7 +756,7 @@ function mergeStandardHeaders(a, b) {
   return merged;
 }
 
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/shared/client.BLtwTQUg.mjs
+// node_modules/@orpc/client/dist/shared/client.BLtwTQUg.mjs
 function mapEventIterator(iterator, maps) {
   const mapError = async (error51) => {
     let mappedError = await maps.error(error51);
@@ -793,7 +793,7 @@ function mapEventIterator(iterator, maps) {
   });
 }
 
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/index.mjs
+// node_modules/@orpc/client/dist/index.mjs
 function resolveFriendlyClientOptions(options) {
   return {
     ...options,
@@ -820,7 +820,7 @@ function createORPCClient(link, options = {}) {
   return preventNativeAwait(recursive);
 }
 
-// node_modules/.pnpm/@orpc+standard-server-fetch@1.15.0/node_modules/@orpc/standard-server-fetch/dist/index.mjs
+// node_modules/@orpc/standard-server-fetch/dist/index.mjs
 function toEventIterator(stream, options = {}) {
   const eventStream = stream?.pipeThrough(new TextDecoderStream()).pipeThrough(new EventDecoderStream());
   const reader = eventStream?.getReader();
@@ -1092,7 +1092,7 @@ function toStandardLazyResponse(response, options = {}) {
   };
 }
 
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/shared/client.BtiuJPEa.mjs
+// node_modules/@orpc/client/dist/shared/client.BtiuJPEa.mjs
 var CompositeStandardLinkPlugin = class {
   plugins;
   constructor(plugins = []) {
@@ -1177,7 +1177,7 @@ function getMalformedResponseErrorCode(status) {
   return Object.entries(COMMON_ORPC_ERROR_DEFS).find(([, def]) => def.status === status)?.[0] ?? "MALFORMED_ORPC_ERROR_RESPONSE";
 }
 
-// node_modules/.pnpm/@orpc+client@1.15.0/node_modules/@orpc/client/dist/adapters/fetch/index.mjs
+// node_modules/@orpc/client/dist/adapters/fetch/index.mjs
 var CompositeLinkFetchPlugin = class extends CompositeStandardLinkPlugin {
   initRuntimeAdapter(options) {
     for (const plugin of this.plugins) {
@@ -1208,7 +1208,7 @@ var LinkFetchClient = class {
   }
 };
 
-// node_modules/.pnpm/@orpc+openapi-client@1.15.0/node_modules/@orpc/openapi-client/dist/shared/openapi-client.t9fCAe3x.mjs
+// node_modules/@orpc/openapi-client/dist/shared/openapi-client.t9fCAe3x.mjs
 var StandardBracketNotationSerializer = class {
   maxArrayIndex;
   constructor(options = {}) {
@@ -1352,7 +1352,7 @@ function pushStyleArrayToObject(array2) {
   return obj;
 }
 
-// node_modules/.pnpm/@orpc+contract@1.15.0/node_modules/@orpc/contract/dist/shared/contract.D_dZrO__.mjs
+// node_modules/@orpc/contract/dist/shared/contract.D_dZrO__.mjs
 var ValidationError = class extends Error {
   issues;
   data;
@@ -1387,7 +1387,7 @@ function isContractProcedure(item) {
   return (typeof item === "object" || typeof item === "function") && item !== null && "~orpc" in item && typeof item["~orpc"] === "object" && item["~orpc"] !== null && "errorMap" in item["~orpc"] && "route" in item["~orpc"] && "meta" in item["~orpc"];
 }
 
-// node_modules/.pnpm/@orpc+contract@1.15.0/node_modules/@orpc/contract/dist/index.mjs
+// node_modules/@orpc/contract/dist/index.mjs
 function mergeMeta(meta1, meta22) {
   return { ...meta1, ...meta22 };
 }
@@ -1635,7 +1635,7 @@ function eventIterator(yields, returns) {
   };
 }
 
-// node_modules/.pnpm/@orpc+openapi-client@1.15.0/node_modules/@orpc/openapi-client/dist/shared/openapi-client.B2Q9qU5m.mjs
+// node_modules/@orpc/openapi-client/dist/shared/openapi-client.B2Q9qU5m.mjs
 var StandardOpenAPIJsonSerializer = class {
   customSerializers;
   constructor(options = {}) {
@@ -1926,7 +1926,7 @@ var StandardOpenAPILink = class extends StandardLink {
   }
 };
 
-// node_modules/.pnpm/@orpc+openapi-client@1.15.0/node_modules/@orpc/openapi-client/dist/adapters/fetch/index.mjs
+// node_modules/@orpc/openapi-client/dist/adapters/fetch/index.mjs
 var OpenAPILink = class extends StandardOpenAPILink {
   constructor(contract, options) {
     const linkClient = new LinkFetchClient(options);
@@ -1934,7 +1934,7 @@ var OpenAPILink = class extends StandardOpenAPILink {
   }
 };
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
+// node_modules/zod/v4/classic/external.js
 var external_exports = {};
 __export(external_exports, {
   $brand: () => $brand,
@@ -2177,7 +2177,7 @@ __export(external_exports, {
   xor: () => xor
 });
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/index.js
+// node_modules/zod/v4/core/index.js
 var core_exports2 = {};
 __export(core_exports2, {
   $ZodAny: () => $ZodAny,
@@ -2456,7 +2456,7 @@ __export(core_exports2, {
   version: () => version
 });
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/core.js
+// node_modules/zod/v4/core/core.js
 var _a;
 var NEVER = /* @__PURE__ */ Object.freeze({
   status: "aborted"
@@ -2533,7 +2533,7 @@ function config(newConfig) {
   return globalConfig;
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/util.js
+// node_modules/zod/v4/core/util.js
 var util_exports = {};
 __export(util_exports, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -3229,7 +3229,7 @@ var Class = class {
   }
 };
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/errors.js
+// node_modules/zod/v4/core/errors.js
 var initializer = (inst, def) => {
   inst.name = "$ZodError";
   Object.defineProperty(inst, "_zod", {
@@ -3368,7 +3368,7 @@ function prettifyError(error51) {
   return lines.join("\n");
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/parse.js
+// node_modules/zod/v4/core/parse.js
 var _parse = (_Err) => (schema, value2, _ctx, _params) => {
   const ctx = _ctx ? { ..._ctx, async: false } : { async: false };
   const result = schema._zod.run({ value: value2, issues: [] }, ctx);
@@ -3456,7 +3456,7 @@ var _safeDecodeAsync = (_Err) => async (schema, value2, _ctx) => {
 };
 var safeDecodeAsync = /* @__PURE__ */ _safeDecodeAsync($ZodRealError);
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/regexes.js
+// node_modules/zod/v4/core/regexes.js
 var regexes_exports = {};
 __export(regexes_exports, {
   base64: () => base64,
@@ -3615,7 +3615,7 @@ var sha512_hex = /^[0-9a-fA-F]{128}$/;
 var sha512_base64 = /* @__PURE__ */ fixedBase64(86, "==");
 var sha512_base64url = /* @__PURE__ */ fixedBase64url(86);
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/checks.js
+// node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a3;
   inst._zod ?? (inst._zod = {});
@@ -4163,7 +4163,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/doc.js
+// node_modules/zod/v4/core/doc.js
 var Doc = class {
   constructor(args = []) {
     this.content = [];
@@ -4199,14 +4199,14 @@ var Doc = class {
   }
 };
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/versions.js
+// node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 4,
   patch: 3
 };
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/schemas.js
+// node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a3;
   inst ?? (inst = {});
@@ -6299,7 +6299,7 @@ function handleRefineResult(result, payload, input, inst) {
   }
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/index.js
+// node_modules/zod/v4/locales/index.js
 var locales_exports = {};
 __export(locales_exports, {
   ar: () => ar_default,
@@ -6356,7 +6356,7 @@ __export(locales_exports, {
   zhTW: () => zh_TW_default
 });
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ar.js
+// node_modules/zod/v4/locales/ar.js
 var error = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0641", verb: "\u0623\u0646 \u064A\u062D\u0648\u064A" },
@@ -6463,7 +6463,7 @@ function ar_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/az.js
+// node_modules/zod/v4/locales/az.js
 var error2 = () => {
   const Sizable = {
     string: { unit: "simvol", verb: "olmal\u0131d\u0131r" },
@@ -6569,7 +6569,7 @@ function az_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/be.js
+// node_modules/zod/v4/locales/be.js
 function getBelarusianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -6726,7 +6726,7 @@ function be_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/bg.js
+// node_modules/zod/v4/locales/bg.js
 var error4 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0430", verb: "\u0434\u0430 \u0441\u044A\u0434\u044A\u0440\u0436\u0430" },
@@ -6847,7 +6847,7 @@ function bg_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ca.js
+// node_modules/zod/v4/locales/ca.js
 var error5 = () => {
   const Sizable = {
     string: { unit: "car\xE0cters", verb: "contenir" },
@@ -6956,7 +6956,7 @@ function ca_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/cs.js
+// node_modules/zod/v4/locales/cs.js
 var error6 = () => {
   const Sizable = {
     string: { unit: "znak\u016F", verb: "m\xEDt" },
@@ -7068,7 +7068,7 @@ function cs_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/da.js
+// node_modules/zod/v4/locales/da.js
 var error7 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "havde" },
@@ -7184,7 +7184,7 @@ function da_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/de.js
+// node_modules/zod/v4/locales/de.js
 var error8 = () => {
   const Sizable = {
     string: { unit: "Zeichen", verb: "zu haben" },
@@ -7293,7 +7293,7 @@ function de_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/el.js
+// node_modules/zod/v4/locales/el.js
 var error9 = () => {
   const Sizable = {
     string: { unit: "\u03C7\u03B1\u03C1\u03B1\u03BA\u03C4\u03AE\u03C1\u03B5\u03C2", verb: "\u03BD\u03B1 \u03AD\u03C7\u03B5\u03B9" },
@@ -7403,7 +7403,7 @@ function el_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/en.js
+// node_modules/zod/v4/locales/en.js
 var error10 = () => {
   const Sizable = {
     string: { unit: "characters", verb: "to have" },
@@ -7516,7 +7516,7 @@ function en_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/eo.js
+// node_modules/zod/v4/locales/eo.js
 var error11 = () => {
   const Sizable = {
     string: { unit: "karaktrojn", verb: "havi" },
@@ -7626,7 +7626,7 @@ function eo_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/es.js
+// node_modules/zod/v4/locales/es.js
 var error12 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "tener" },
@@ -7759,7 +7759,7 @@ function es_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fa.js
+// node_modules/zod/v4/locales/fa.js
 var error13 = () => {
   const Sizable = {
     string: { unit: "\u06A9\u0627\u0631\u0627\u06A9\u062A\u0631", verb: "\u062F\u0627\u0634\u062A\u0647 \u0628\u0627\u0634\u062F" },
@@ -7874,7 +7874,7 @@ function fa_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fi.js
+// node_modules/zod/v4/locales/fi.js
 var error14 = () => {
   const Sizable = {
     string: { unit: "merkki\xE4", subject: "merkkijonon" },
@@ -7987,7 +7987,7 @@ function fi_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fr.js
+// node_modules/zod/v4/locales/fr.js
 var error15 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -8113,7 +8113,7 @@ function fr_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fr-CA.js
+// node_modules/zod/v4/locales/fr-CA.js
 var error16 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -8221,7 +8221,7 @@ function fr_CA_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/he.js
+// node_modules/zod/v4/locales/he.js
 var error17 = () => {
   const TypeNames = {
     string: { label: "\u05DE\u05D7\u05E8\u05D5\u05D6\u05EA", gender: "f" },
@@ -8416,7 +8416,7 @@ function he_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/hr.js
+// node_modules/zod/v4/locales/hr.js
 var error18 = () => {
   const Sizable = {
     string: { unit: "znakova", verb: "imati" },
@@ -8539,7 +8539,7 @@ function hr_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/hu.js
+// node_modules/zod/v4/locales/hu.js
 var error19 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "legyen" },
@@ -8648,7 +8648,7 @@ function hu_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/hy.js
+// node_modules/zod/v4/locales/hy.js
 function getArmenianPlural(count, one, many) {
   return Math.abs(count) === 1 ? one : many;
 }
@@ -8796,7 +8796,7 @@ function hy_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/id.js
+// node_modules/zod/v4/locales/id.js
 var error21 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "memiliki" },
@@ -8903,7 +8903,7 @@ function id_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/is.js
+// node_modules/zod/v4/locales/is.js
 var error22 = () => {
   const Sizable = {
     string: { unit: "stafi", verb: "a\xF0 hafa" },
@@ -9013,7 +9013,7 @@ function is_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/it.js
+// node_modules/zod/v4/locales/it.js
 var error23 = () => {
   const Sizable = {
     string: { unit: "caratteri", verb: "avere" },
@@ -9122,7 +9122,7 @@ function it_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ja.js
+// node_modules/zod/v4/locales/ja.js
 var error24 = () => {
   const Sizable = {
     string: { unit: "\u6587\u5B57", verb: "\u3067\u3042\u308B" },
@@ -9230,7 +9230,7 @@ function ja_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ka.js
+// node_modules/zod/v4/locales/ka.js
 var error25 = () => {
   const Sizable = {
     string: { unit: "\u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD", verb: "\u10E3\u10DC\u10D3\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D0\u10D5\u10D3\u10D4\u10E1" },
@@ -9343,7 +9343,7 @@ function ka_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/km.js
+// node_modules/zod/v4/locales/km.js
 var error26 = () => {
   const Sizable = {
     string: { unit: "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A", verb: "\u1782\u17BD\u179A\u1798\u17B6\u1793" },
@@ -9454,12 +9454,12 @@ function km_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/kh.js
+// node_modules/zod/v4/locales/kh.js
 function kh_default() {
   return km_default();
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ko.js
+// node_modules/zod/v4/locales/ko.js
 var error27 = () => {
   const Sizable = {
     string: { unit: "\uBB38\uC790", verb: "to have" },
@@ -9571,7 +9571,7 @@ function ko_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/lt.js
+// node_modules/zod/v4/locales/lt.js
 var capitalizeFirstCharacter = (text) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
@@ -9775,7 +9775,7 @@ function lt_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/mk.js
+// node_modules/zod/v4/locales/mk.js
 var error29 = () => {
   const Sizable = {
     string: { unit: "\u0437\u043D\u0430\u0446\u0438", verb: "\u0434\u0430 \u0438\u043C\u0430\u0430\u0442" },
@@ -9885,7 +9885,7 @@ function mk_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ms.js
+// node_modules/zod/v4/locales/ms.js
 var error30 = () => {
   const Sizable = {
     string: { unit: "aksara", verb: "mempunyai" },
@@ -9993,7 +9993,7 @@ function ms_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/nl.js
+// node_modules/zod/v4/locales/nl.js
 var error31 = () => {
   const Sizable = {
     string: { unit: "tekens", verb: "heeft" },
@@ -10104,7 +10104,7 @@ function nl_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/no.js
+// node_modules/zod/v4/locales/no.js
 var error32 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "\xE5 ha" },
@@ -10213,7 +10213,7 @@ function no_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ota.js
+// node_modules/zod/v4/locales/ota.js
 var error33 = () => {
   const Sizable = {
     string: { unit: "harf", verb: "olmal\u0131d\u0131r" },
@@ -10323,7 +10323,7 @@ function ota_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ps.js
+// node_modules/zod/v4/locales/ps.js
 var error34 = () => {
   const Sizable = {
     string: { unit: "\u062A\u0648\u06A9\u064A", verb: "\u0648\u0644\u0631\u064A" },
@@ -10438,7 +10438,7 @@ function ps_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/pl.js
+// node_modules/zod/v4/locales/pl.js
 var error35 = () => {
   const Sizable = {
     string: { unit: "znak\xF3w", verb: "mie\u0107" },
@@ -10548,7 +10548,7 @@ function pl_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/pt.js
+// node_modules/zod/v4/locales/pt.js
 var error36 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "ter" },
@@ -10657,7 +10657,7 @@ function pt_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ro.js
+// node_modules/zod/v4/locales/ro.js
 var error37 = () => {
   const Sizable = {
     string: { unit: "caractere", verb: "s\u0103 aib\u0103" },
@@ -10777,7 +10777,7 @@ function ro_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ru.js
+// node_modules/zod/v4/locales/ru.js
 function getRussianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -10934,7 +10934,7 @@ function ru_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/sl.js
+// node_modules/zod/v4/locales/sl.js
 var error39 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "imeti" },
@@ -11044,7 +11044,7 @@ function sl_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/sv.js
+// node_modules/zod/v4/locales/sv.js
 var error40 = () => {
   const Sizable = {
     string: { unit: "tecken", verb: "att ha" },
@@ -11155,7 +11155,7 @@ function sv_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ta.js
+// node_modules/zod/v4/locales/ta.js
 var error41 = () => {
   const Sizable = {
     string: { unit: "\u0B8E\u0BB4\u0BC1\u0BA4\u0BCD\u0BA4\u0BC1\u0B95\u0BCD\u0B95\u0BB3\u0BCD", verb: "\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BC1\u0B95\u0BCD\u0B95 \u0BB5\u0BC7\u0BA3\u0BCD\u0B9F\u0BC1\u0BAE\u0BCD" },
@@ -11266,7 +11266,7 @@ function ta_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/th.js
+// node_modules/zod/v4/locales/th.js
 var error42 = () => {
   const Sizable = {
     string: { unit: "\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23", verb: "\u0E04\u0E27\u0E23\u0E21\u0E35" },
@@ -11377,7 +11377,7 @@ function th_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/tr.js
+// node_modules/zod/v4/locales/tr.js
 var error43 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "olmal\u0131" },
@@ -11483,7 +11483,7 @@ function tr_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/uk.js
+// node_modules/zod/v4/locales/uk.js
 var error44 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0456\u0432", verb: "\u043C\u0430\u0442\u0438\u043C\u0435" },
@@ -11592,12 +11592,12 @@ function uk_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ua.js
+// node_modules/zod/v4/locales/ua.js
 function ua_default() {
   return uk_default();
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ur.js
+// node_modules/zod/v4/locales/ur.js
 var error45 = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0648\u0641", verb: "\u06C1\u0648\u0646\u0627" },
@@ -11708,7 +11708,7 @@ function ur_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/uz.js
+// node_modules/zod/v4/locales/uz.js
 var error46 = () => {
   const Sizable = {
     string: { unit: "belgi", verb: "bo\u2018lishi kerak" },
@@ -11819,7 +11819,7 @@ function uz_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/vi.js
+// node_modules/zod/v4/locales/vi.js
 var error47 = () => {
   const Sizable = {
     string: { unit: "k\xFD t\u1EF1", verb: "c\xF3" },
@@ -11928,7 +11928,7 @@ function vi_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/zh-CN.js
+// node_modules/zod/v4/locales/zh-CN.js
 var error48 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u7B26", verb: "\u5305\u542B" },
@@ -12038,7 +12038,7 @@ function zh_CN_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/zh-TW.js
+// node_modules/zod/v4/locales/zh-TW.js
 var error49 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u5143", verb: "\u64C1\u6709" },
@@ -12146,7 +12146,7 @@ function zh_TW_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/yo.js
+// node_modules/zod/v4/locales/yo.js
 var error50 = () => {
   const Sizable = {
     string: { unit: "\xE0mi", verb: "n\xED" },
@@ -12254,7 +12254,7 @@ function yo_default() {
   };
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/registries.js
+// node_modules/zod/v4/core/registries.js
 var _a2;
 var $output = /* @__PURE__ */ Symbol("ZodOutput");
 var $input = /* @__PURE__ */ Symbol("ZodInput");
@@ -12304,7 +12304,7 @@ function registry() {
 (_a2 = globalThis).__zod_globalRegistry ?? (_a2.__zod_globalRegistry = registry());
 var globalRegistry = globalThis.__zod_globalRegistry;
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/api.js
+// node_modules/zod/v4/core/api.js
 // @__NO_SIDE_EFFECTS__
 function _string(Class2, params) {
   return new Class2({
@@ -13343,7 +13343,7 @@ function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
   return inst;
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/to-json-schema.js
+// node_modules/zod/v4/core/to-json-schema.js
 function initializeContext(params) {
   let target = params?.target ?? "draft-2020-12";
   if (target === "draft-4")
@@ -13702,7 +13702,7 @@ var createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params) =
   return finalize(ctx, schema);
 };
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/json-schema-processors.js
+// node_modules/zod/v4/core/json-schema-processors.js
 var formatMap = {
   guid: "uuid",
   url: "uri",
@@ -14246,7 +14246,7 @@ function toJSONSchema(input, params) {
   return finalize(ctx, input);
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/json-schema-generator.js
+// node_modules/zod/v4/core/json-schema-generator.js
 var JSONSchemaGenerator = class {
   /** @deprecated Access via ctx instead */
   get metadataRegistry() {
@@ -14321,10 +14321,10 @@ var JSONSchemaGenerator = class {
   }
 };
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/json-schema.js
+// node_modules/zod/v4/core/json-schema.js
 var json_schema_exports = {};
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/schemas.js
+// node_modules/zod/v4/classic/schemas.js
 var schemas_exports2 = {};
 __export(schemas_exports2, {
   ZodAny: () => ZodAny,
@@ -14495,7 +14495,7 @@ __export(schemas_exports2, {
   xor: () => xor
 });
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/checks.js
+// node_modules/zod/v4/classic/checks.js
 var checks_exports2 = {};
 __export(checks_exports2, {
   endsWith: () => _endsWith,
@@ -14529,7 +14529,7 @@ __export(checks_exports2, {
   uppercase: () => _uppercase
 });
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/iso.js
+// node_modules/zod/v4/classic/iso.js
 var iso_exports = {};
 __export(iso_exports, {
   ZodISODate: () => ZodISODate,
@@ -14570,7 +14570,7 @@ function duration2(params) {
   return _isoDuration(ZodISODuration, params);
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/errors.js
+// node_modules/zod/v4/classic/errors.js
 var initializer2 = (inst, issues) => {
   $ZodError.init(inst, issues);
   inst.name = "ZodError";
@@ -14610,7 +14610,7 @@ var ZodRealError = /* @__PURE__ */ $constructor("ZodError", initializer2, {
   Parent: Error
 });
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/parse.js
+// node_modules/zod/v4/classic/parse.js
 var parse2 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse2 = /* @__PURE__ */ _safeParse(ZodRealError);
@@ -14624,7 +14624,7 @@ var safeDecode2 = /* @__PURE__ */ _safeDecode(ZodRealError);
 var safeEncodeAsync2 = /* @__PURE__ */ _safeEncodeAsync(ZodRealError);
 var safeDecodeAsync2 = /* @__PURE__ */ _safeDecodeAsync(ZodRealError);
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/schemas.js
+// node_modules/zod/v4/classic/schemas.js
 var _installedGroups = /* @__PURE__ */ new WeakMap();
 function _installLazyMethods(inst, group, methods) {
   const proto = Object.getPrototypeOf(inst);
@@ -15914,7 +15914,7 @@ function preprocess(fn, schema) {
   });
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/compat.js
+// node_modules/zod/v4/classic/compat.js
 var ZodIssueCode = {
   invalid_type: "invalid_type",
   too_big: "too_big",
@@ -15940,7 +15940,7 @@ var ZodFirstPartyTypeKind;
 /* @__PURE__ */ (function(ZodFirstPartyTypeKind2) {
 })(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/from-json-schema.js
+// node_modules/zod/v4/classic/from-json-schema.js
 var z = {
   ...schemas_exports2,
   ...checks_exports2,
@@ -16420,7 +16420,7 @@ function fromJSONSchema(schema, params) {
   return convertSchema(normalized, ctx);
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/coerce.js
+// node_modules/zod/v4/classic/coerce.js
 var coerce_exports = {};
 __export(coerce_exports, {
   bigint: () => bigint3,
@@ -16445,10 +16445,10 @@ function date4(params) {
   return _coercedDate(ZodDate, params);
 }
 
-// node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
+// node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// node_modules/.pnpm/busabase-sdk@0.11.0/node_modules/busabase-sdk/dist/index.js
+// node_modules/busabase-sdk/dist/index.js
 var toUnifiedFilesGrepInput = (input) => ({
   pattern: input.pattern,
   flags: input.flags,
@@ -16478,6 +16478,7 @@ var i18n = {
 var LocaleSchema = external_exports.enum(i18n.locales);
 var iStringRecordSchema = external_exports.partialRecord(LocaleSchema, external_exports.string());
 external_exports.union([external_exports.string(), iStringRecordSchema]).describe("i18n string");
+var autoMergeNotAccepted = (reason) => external_exports.literal(false, { error: `\`autoMerge: true\` is not accepted here: ${reason}` }).optional().describe(`Only \`false\` (or omitted) is accepted. ${reason}`);
 var fieldNameSchema = external_exports.union([
   external_exports.string().min(1),
   iStringRecordSchema.refine(
@@ -16633,14 +16634,21 @@ var createBaseFieldInputSchema = external_exports.object({
   required: external_exports.boolean().optional().default(false),
   options: fieldOptionsSchema.optional().default({})
 });
+var fieldAutoMergeSchema = external_exports.boolean().optional().describe(
+  "Whether to approve and merge this field change immediately. Omitted defaults to merging immediately if the actor has write access on the Base's node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access. Not accepted by the delete and convert operations, which always require review."
+);
 var createFieldChangeRequestInputSchema = createBaseFieldInputSchema.extend({
   message: external_exports.string().optional().default("Add field"),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: fieldAutoMergeSchema
 });
 var deleteFieldChangeRequestInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: autoMergeNotAccepted(
+    "deleting a field soft-deletes its stored values with it, so it always requires review. Omit the flag."
+  )
 });
 var updateFieldChangeRequestInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
@@ -16650,7 +16658,8 @@ var updateFieldChangeRequestInputSchema = external_exports.object({
     options: fieldOptionsSchema.optional()
   }),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: fieldAutoMergeSchema
 });
 var previewFieldConversionInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
@@ -16667,25 +16676,39 @@ var convertFieldChangeRequestInputSchema = external_exports.object({
   newType: fieldTypeSchema,
   selectChoiceMode: external_exports.enum(["auto_create", "null_on_missing"]).default("null_on_missing"),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: autoMergeNotAccepted(
+    "converting a field's type can drop values, so it always requires review. Run previewFieldConversion first to see what would change, then omit the flag."
+  )
 });
 var reorderFieldsChangeRequestInputSchema = external_exports.object({
   fieldIds: external_exports.array(external_exports.string()).min(1),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: fieldAutoMergeSchema
 });
 var archiveBaseInputSchema = external_exports.object({
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: autoMergeNotAccepted(
+    "archiving a Base removes it and every record in it from every listing at once, so it always requires review. Omit the flag."
+  )
 });
 var restoreBaseInputSchema = external_exports.object({
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  // Restoring an archived Base is the undo of a destructive act — nothing is at
+  // risk, so it takes the same permission-aware default as everything else.
+  // `archiveBaseInputSchema` above deliberately has no `autoMerge`: archiving
+  // takes a whole Base and every record in it out of every listing at once,
+  // which is strictly larger than the record `delete` that is already review-only.
+  autoMerge: external_exports.boolean().optional()
 });
 var restoreFieldChangeRequestInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: fieldAutoMergeSchema
 });
 var withBaseId = { baseId: external_exports.string().min(1) };
 var fieldChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
@@ -16695,6 +16718,10 @@ var fieldChangeRequestInputSchema = external_exports.discriminatedUnion("operati
   convertFieldChangeRequestInputSchema.extend({ operation: external_exports.literal("convert"), ...withBaseId }),
   reorderFieldsChangeRequestInputSchema.extend({ operation: external_exports.literal("reorder"), ...withBaseId }),
   restoreFieldChangeRequestInputSchema.extend({ operation: external_exports.literal("restore"), ...withBaseId })
+]);
+var baseLifecycleChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
+  archiveBaseInputSchema.extend({ operation: external_exports.literal("archive"), ...withBaseId }),
+  restoreBaseInputSchema.extend({ operation: external_exports.literal("restore"), ...withBaseId })
 ]);
 var fileTreeOperations = (type) => [
   {
@@ -16842,7 +16869,7 @@ var folderNodeType = {
 var formNodeType = {
   type: "form",
   label: "Form",
-  icon: "clipboard-list",
+  icon: "form",
   capabilities: { hasDetail: true, creatable: true },
   operations: []
 };
@@ -17019,7 +17046,11 @@ var updateNodeMetadataInputSchema = external_exports.object({
 });
 var searchNodesByNameInputSchema = external_exports.object({
   query: external_exports.string().min(1),
-  limit: external_exports.number().int().min(1).max(50).optional().default(20)
+  // GET route — query params arrive as strings, and oRPC's OpenAPI handler
+  // does not coerce them. A bare `z.number()` here rejected every real
+  // `?limit=` call with "expected number, received string"; every other
+  // limit/page field on a GET route in this file already uses `z.coerce`.
+  limit: external_exports.coerce.number().int().min(1).max(50).optional().default(20)
 });
 var nodeSearchResultSchema = external_exports.object({
   id: external_exports.string(),
@@ -17313,7 +17344,10 @@ var createDeleteChangeRequestInputSchema = external_exports.object({
   submittedBy: external_exports.string().optional().default("local-producer"),
   // Only "archive" is supported — hard delete after retention was never
   // implemented, so the API no longer accepts it (breaking change).
-  deleteMode: external_exports.enum(["archive"]).optional().default("archive")
+  deleteMode: external_exports.enum(["archive"]).optional().default("archive"),
+  autoMerge: autoMergeNotAccepted(
+    "archiving a record removes user content from every listing, so it always requires review. Omit the flag."
+  )
 });
 var reviseOperationInputSchema = external_exports.object({
   fields: external_exports.record(external_exports.string(), external_exports.unknown()).describe(
@@ -17354,6 +17388,19 @@ var listChangeRequestsPagedInputSchema = external_exports.object({
 var listChangeRequestsResponseSchema = external_exports.object({
   changeRequests: external_exports.array(changeRequestSchema),
   nextCursor: external_exports.string().nullable()
+});
+var listChangeRequestsPageInputSchema = external_exports.object({
+  page: external_exports.coerce.number().int().min(1).optional().default(1),
+  pageSize: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
+  status: external_exports.array(changeRequestStatusSchema).optional(),
+  mine: external_exports.boolean().optional()
+}).optional().default({ page: 1, pageSize: 50 });
+var listChangeRequestsPageResponseSchema = external_exports.object({
+  changeRequests: external_exports.array(changeRequestSchema),
+  total: external_exports.number().int().nonnegative(),
+  totalPages: external_exports.number().int().nonnegative(),
+  page: external_exports.number().int().min(1),
+  pageSize: external_exports.number().int().min(1).max(100)
 });
 var changeRequestCountsSchema = external_exports.object({
   review: external_exports.number().int().nonnegative(),
@@ -17437,6 +17484,9 @@ var fileTreeFileSchema = external_exports.object({
   assetId: external_exports.string(),
   displayName: external_exports.string().nullable()
 });
+var baseContentHashSchema = external_exports.string().regex(/^sha256:[a-f0-9]{64}$/, "must be sha256:<64 lowercase hex characters>").optional().describe(
+  "Optimistic-concurrency baseline hash of the file's current content, formatted exactly as `sha256:<64 lowercase hex characters>` (matches the `contentHash` on the file's backing Asset). Omit to skip the conflict check."
+);
 var assetFileInputSchema = external_exports.object({
   path: external_exports.string().min(1),
   assetId: external_exports.string().min(1),
@@ -17454,14 +17504,14 @@ var assetFileOperationInputSchema = external_exports.object({
   assetId: external_exports.string().min(1),
   displayName: external_exports.string().optional(),
   mimeType: external_exports.string().optional(),
-  baseContentHash: external_exports.string().optional()
+  baseContentHash: baseContentHashSchema
 }).strict();
 var textFileOperationInputSchema = external_exports.object({
   kind: external_exports.enum(["create", "update"]),
   path: external_exports.string().min(1),
   content: external_exports.string(),
   mimeType: external_exports.string().optional(),
-  baseContentHash: external_exports.string().optional()
+  baseContentHash: baseContentHashSchema
 }).strict();
 var fileTreeNodeSchema = external_exports.object({
   node: nodeSchema,
@@ -17506,7 +17556,7 @@ var fileTreeFileOperationInputSchema = external_exports.union([
   external_exports.object({
     kind: external_exports.literal("delete"),
     path: external_exports.string().min(1),
-    baseContentHash: external_exports.string().optional()
+    baseContentHash: baseContentHashSchema
   }).strict(),
   external_exports.object({
     kind: external_exports.literal("metadata_update"),
@@ -17522,7 +17572,16 @@ var createFileTreeChangeRequestInputSchema = external_exports.object({
     'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Rewrite README.md quickstart for the new auth flow".'
   ),
   submittedBy: external_exports.string().optional().default("local-producer"),
-  operations: external_exports.array(fileTreeFileOperationInputSchema).min(1)
+  operations: external_exports.array(fileTreeFileOperationInputSchema).min(1),
+  // Honoured only when EVERY operation in the batch is non-destructive
+  // (create / update / metadata_update). A batch containing a `delete` stays
+  // review-first no matter what this says, because deleting a mounted file
+  // destroys content — the same line that keeps record `delete` review-only.
+  // Server-side enforcement lives in the filetree handler, not here: the check
+  // is over the operations array, which a per-field schema cannot express.
+  autoMerge: external_exports.boolean().optional().describe(
+    "Whether to approve and merge these file changes immediately. Omitted defaults to merging immediately if the actor has write access on the node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access. IGNORED when any operation is a delete \u2014 those batches always require review."
+  )
 });
 var FILE_TREE_NODE_TYPES = ["skill", "drive", "airapp"];
 var fileTreeNodeTypeSchema = external_exports.enum(FILE_TREE_NODE_TYPES);
@@ -17804,7 +17863,10 @@ var EditAssetContentInputSchema = external_exports.object({
   message: external_exports.string().optional().default("Edit file content").describe(
     'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Fix typo in setup instructions".'
   ),
-  submittedBy: external_exports.string().optional().default("agent")
+  submittedBy: external_exports.string().optional().default("agent"),
+  autoMerge: autoMergeNotAccepted(
+    "editContent rewrites the real mounted file bytes, so it always requires review. Omit the flag."
+  )
 });
 var AssetDownloadInputSchema = external_exports.object({ assetId: external_exports.string() });
 var AssetDownloadVOSchema = external_exports.object({
@@ -18079,9 +18141,42 @@ var listRecordsPageResponseSchema = external_exports.object({
   page: external_exports.number().int().min(1),
   pageSize: external_exports.number().int().min(1).max(100)
 });
-var countRecordsInputSchema = external_exports.object({
-  baseId: external_exports.string().optional()
-}).optional().default({});
+var countRecordsShapeSchema = external_exports.object({
+  baseId: external_exports.string().optional(),
+  /**
+   * Count only the rows a saved View would display (the View's filters
+   * applied; its sort is ignored — a count doesn't need an order). A View
+   * belongs to exactly one Base, so this requires `baseId`.
+   */
+  viewId: external_exports.string().optional(),
+  /**
+   * Ad-hoc filter conditions — same shape `records.list`'s `filters` uses —
+   * for composing a condition set without a saved View (e.g. an AirApp
+   * summary tile like "main-branch PRs"). Combined with the View's own
+   * filters (AND) when `viewId` is also given. Requires `baseId`: a field
+   * slug is only unambiguous within one Base, and proving a filter exact
+   * (see `countRecords`) requires that Base's real field definitions —
+   * never the caller-supplied `fieldType` hint, which elsewhere is only a
+   * pushdown hint and isn't trustworthy enough for an exact count.
+   */
+  filters: external_exports.array(listRecordsFilterSchema).optional()
+}).superRefine((value2, ctx) => {
+  if (value2.viewId && !value2.baseId) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["baseId"],
+      message: "baseId is required when viewId is given"
+    });
+  }
+  if (value2.filters?.length && !value2.baseId) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["baseId"],
+      message: "baseId is required when filters is given"
+    });
+  }
+});
+var countRecordsInputSchema = countRecordsShapeSchema.optional().default({});
 var countRecordsResponseSchema = external_exports.object({
   /** Total active records in the space (optionally scoped to a base). */
   total: external_exports.number().int().nonnegative()
@@ -18116,7 +18211,13 @@ var createBulkChangeRequestInputSchema = external_exports.object({
   submittedBy: external_exports.string().optional().default("local-producer"),
   idempotencyKey: external_exports.string().optional().describe(
     "Optional client-supplied key that dedupes retries. Scoped per base + submitter: calling this endpoint again with the SAME idempotencyKey returns the bulk change request created by the first call instead of creating a duplicate. Omit for normal one-shot calls; only set it when you might retry."
-  )
+  ),
+  // Same permission-aware tri-state as the single-record endpoint above. N record
+  // CREATES are purely additive, so there is nothing here the review gate is
+  // protecting — and until now the published skill doc told agents to send N
+  // separate single-record calls precisely because this one could not merge,
+  // which is slower and produces N change requests instead of one.
+  autoMerge: external_exports.boolean().optional()
 });
 var recordFieldFilterInputSchema = external_exports.object({
   baseId: external_exports.string().optional(),
@@ -18137,7 +18238,10 @@ var recordGetInputSchema = external_exports.union([
 ]);
 var restoreRecordInputSchema = external_exports.object({
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: autoMergeNotAccepted(
+    "restoring a record brings archived content back into every listing, so it always requires review. Omit the flag."
+  )
 });
 var withRecordId = { recordId: external_exports.string().min(1) };
 var recordChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
@@ -18243,20 +18347,13 @@ var baseContract = {
     summary: "Preview field type conversion",
     successDescription: "Dry-run statistics for converting a field to a different type."
   }).input(previewFieldConversionInputSchema.extend({ baseId: external_exports.string() })).output(previewFieldConversionOutputSchema),
-  archiveChangeRequest: oc.route({
+  lifecycleChangeRequest: oc.route({
     method: "POST",
-    path: "/bases/{baseId}/archive/change-requests",
+    path: "/bases/{baseId}/lifecycle/change-requests",
     tags: ["Bases", "Change Requests"],
-    summary: "Archive base",
-    successDescription: "Created change request that archives a base."
-  }).input(archiveBaseInputSchema.extend({ baseId: external_exports.string() })).output(changeRequestSchema),
-  restoreChangeRequest: oc.route({
-    method: "POST",
-    path: "/bases/{baseId}/restore/change-requests",
-    tags: ["Bases", "Change Requests"],
-    summary: "Restore base",
-    successDescription: "Created change request that restores an archived base."
-  }).input(restoreBaseInputSchema.extend({ baseId: external_exports.string() })).output(changeRequestSchema)
+    summary: "Create Base lifecycle change request",
+    successDescription: "Created change request that moves a Base between its lifecycle states. `operation` selects the direction: `archive` (soft-delete a live Base) or `restore` (bring an archived Base back)."
+  }).input(baseLifecycleChangeRequestInputSchema).output(changeRequestSchema)
 };
 var recordContract = {
   // One listing for records: always keyset-paginated, `baseId` always honoured,
@@ -18282,7 +18379,8 @@ var recordContract = {
     path: "/records/count",
     tags: ["Records"],
     summary: "Count records",
-    successDescription: "Total active records in the space, optionally scoped to a base."
+    description: "A real SQL COUNT \u2014 always the exact total, never a partial or capped number, so it's safe to render as a canonical figure (e.g. a dashboard summary tile). Plain `baseId` scoping is always cheap. Adding `viewId` and/or `filters` is exact too \u2014 provably-exact conditions (e.g. text equals/contains, not_empty/is_empty, checkbox is_true/is_false) stay a cheap SQL COUNT; everything else falls back to evaluating every matching row server-side, which is exact but not free on a large Base. Both `viewId` and `filters` require `baseId`.",
+    successDescription: "Total active records matching the scope: the whole space, one Base, a saved View, an ad-hoc filter set, or a combination."
   }).input(countRecordsInputSchema).output(countRecordsResponseSchema),
   get: oc.route({
     method: "GET",
@@ -18375,7 +18473,12 @@ var createDocChangeRequestInputSchema = external_exports.object({
   message: external_exports.string().optional().default("Update doc").describe(
     'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Add rollback steps to the deploy runbook".'
   ),
-  submittedBy: external_exports.string().optional().default("local-producer")
+  submittedBy: external_exports.string().optional().default("local-producer"),
+  // A Doc body update is the Doc-domain twin of a record `update`, which has taken
+  // the permission-aware default since #5712 — and this node type already has a
+  // direct-write bypass (`PUT /docs/{nodeId}/body`), so review-first here was never
+  // an actual guarantee, just a slower path to the same place.
+  autoMerge: external_exports.boolean().optional()
 });
 var docContract = {
   create: oc.route({
@@ -18577,6 +18680,17 @@ var FormFieldBindingSchema = external_exports.object({
   label: external_exports.string().optional(),
   help: external_exports.string().optional()
 });
+var FormBoundFieldSchema = external_exports.object({
+  slug: external_exports.string(),
+  name: fieldNameSchema,
+  type: fieldTypeSchema,
+  choices: external_exports.array(
+    external_exports.object({
+      id: external_exports.string(),
+      name: external_exports.string()
+    })
+  ).default([])
+});
 var FormThemeSchema = external_exports.object({
   logoUrl: external_exports.string().optional(),
   coverUrl: external_exports.string().optional(),
@@ -18601,6 +18715,7 @@ var FormVOSchema = external_exports.object({
   name: external_exports.string(),
   description: external_exports.string(),
   bindings: external_exports.array(FormFieldBindingSchema),
+  boundFields: external_exports.array(FormBoundFieldSchema).default([]),
   page: FormPageSourceSchema,
   share: FormShareSchema,
   /** Accepted submissions so far — backs server-side `share.submitLimit`. */
@@ -18609,6 +18724,16 @@ var FormVOSchema = external_exports.object({
   createdBy: external_exports.string(),
   createdAt: external_exports.string(),
   updatedAt: external_exports.string()
+});
+var ListFormsInputSchema = external_exports.object({
+  targetBaseId: external_exports.string().min(1),
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
+  /** Opaque createdAt/id keyset cursor. */
+  cursor: external_exports.string().optional()
+});
+var ListFormsVOSchema = external_exports.object({
+  forms: external_exports.array(FormVOSchema),
+  nextCursor: external_exports.string().nullable()
 });
 var CreateFormInputSchema = external_exports.object({
   nodeId: external_exports.string().min(1),
@@ -18635,6 +18760,13 @@ var FormSubmitResultSchema = external_exports.object({
   status: external_exports.literal("pending_review")
 });
 var formContract = {
+  list: oc.route({
+    method: "GET",
+    path: "/forms",
+    tags: ["Forms"],
+    summary: "List forms bound to a Base",
+    successDescription: "A newest-first page of forms with a stable opaque cursor (null at the end)."
+  }).input(ListFormsInputSchema).output(ListFormsVOSchema),
   getByNode: oc.route({
     method: "GET",
     path: "/forms/{nodeId}",
@@ -19311,7 +19443,7 @@ var busabaseContractRoutes = {
       path: "/nodes/search",
       tags: ["Nodes", "Search"],
       summary: "Search nodes by name/slug (cheap, name-only quick-jump)",
-      successDescription: "Plain ilike match on name/slug across every registered node type, scoped by the same node-visibility ACL as `nodes.list`. No content scan and no full-text ranking \u2014 ordered exact-slug-match first, then by name. Backs the dashboard search dialog's 'Recent' tab cache-miss path (see apps/busabase/content/spec/search-quick-jump.md); the heavier `search` endpoint remains the dedicated full-text content search."
+      successDescription: "Plain ilike match on name/slug across every registered node type, scoped by the same node-visibility ACL as `nodes.list`. No content scan and no full-text ranking \u2014 ordered exact-slug-match first, then by name. Backs the dashboard search dialog's 'Recent' tab cache-miss path; the heavier `search` endpoint remains the dedicated full-text content search."
     }).input(searchNodesByNameInputSchema).output(external_exports.array(nodeSearchResultSchema)),
     isDescendant: oc.route({
       method: "GET",
@@ -19541,6 +19673,16 @@ var busabaseContractRoutes = {
       summary: "List change requests",
       successDescription: "A page of change requests plus an opaque nextCursor (null at the end). Filter with `status` and/or `mine`."
     }).input(listChangeRequestsPagedInputSchema).output(listChangeRequestsResponseSchema),
+    // Numbered paging alongside the cursor listing, mirroring records.listPage.
+    // Keyset is right for "keep scrolling"; a reviewer working a 2,000-item tab
+    // needs to jump to page 30 and to see how many pages there are at all.
+    listPage: oc.route({
+      method: "GET",
+      path: "/change-requests/page",
+      tags: ["Change Requests"],
+      summary: "List a numbered change request page",
+      successDescription: "A random-access page of change requests plus the total across the whole filter. Same `status` / `mine` filters as the cursor listing."
+    }).input(listChangeRequestsPageInputSchema).output(listChangeRequestsPageResponseSchema),
     counts: oc.route({
       method: "GET",
       path: "/change-requests/counts",
@@ -19814,9 +19956,9 @@ var cloudExtraRoutes = {
       })
     ).output(AgentTaskDetailSchema)
   },
-  // Relative-path twin of `embedLinksContract`
-  // (apps/busabase-cloud/src/domains/embed-links/contract.ts, served at the absolute
-  // `/api/v1/embed-links` paths) — same schemas imported from `./embed-link-schemas`, just
+  // Relative-path twin of the `embedLinksContract` the Busabase Cloud host
+  // serves at the absolute `/api/v1/embed-links` paths — same schemas
+  // imported from `./embed-link-schemas`, just
   // routed relative here so the shared `/api/v1` prefix below lands on the identical real path.
   embedLinks: {
     create: oc.route({

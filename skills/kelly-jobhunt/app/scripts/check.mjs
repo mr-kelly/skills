@@ -16,8 +16,7 @@ const required = [
   "app/js/runtime.js",
   "app/js/providers/busabase-provider.js",
   "app/js/providers/demo-provider.js",
-  "app/vendor/busabase-oauth.js",
-  "app/vendor/busabase-oauth-node.js",
+  "app/vendor/busabase-airapp-node.js",
   "app/vendor/busabase-sdk.js",
 ];
 
@@ -73,11 +72,8 @@ if (/创建并审批|写入部署配置/.test(appSource)) {
 if ((await stat(path.join(root, "app/vendor/busabase-sdk.js"))).size < 10_000) {
   throw new Error("Busabase browser SDK bundle is incomplete");
 }
-if ((await stat(path.join(root, "app/vendor/busabase-oauth.js"))).size < 1_000) {
-  throw new Error("Busabase OAuth bundle is incomplete");
-}
-if ((await stat(path.join(root, "app/vendor/busabase-oauth-node.js"))).size < 1_000) {
-  throw new Error("Busabase Node OAuth bundle is incomplete");
+if ((await stat(path.join(root, "app/vendor/busabase-airapp-node.js"))).size < 1_000) {
+  throw new Error("Busabase AirApp local gateway bundle is incomplete");
 }
 
 const browserFiles = [
@@ -144,15 +140,12 @@ const assertions = [
     message: "Outreach writes must go through Busabase ChangeRequests",
   },
   {
-    ok: serverSource.includes("assertOAuthSupported") && serverSource.includes('redirect: "manual"'),
-    message: "Local OAuth must preflight server compatibility before browser navigation",
+    ok: serverSource.includes("createBusabaseAirAppLocalGateway"),
+    message: "Local OAuth compatibility preflight is owned by the canonical gateway",
   },
   {
-    ok:
-      serverSource.includes('const AIRAPP_CLIENT_ID = "busabase-airapp"') &&
-      serverSource.includes("storeBusabaseAirAppOAuthCredential") &&
-      serverSource.includes('from "./app/vendor/busabase-oauth-node.js"'),
-    message: "Local OAuth must use the dedicated AirApp client and local credential registry",
+    ok: serverSource.includes("createBusabaseAirAppLocalGateway"),
+    message: "Local OAuth must use the canonical busabase-sdk/airapp-node gateway, not hand-rolled PKCE",
   },
   {
     ok: !/VaultSession|vault-session|OAuthVault|oauth-vault/i.test(serverSource),
