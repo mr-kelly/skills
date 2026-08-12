@@ -20,12 +20,12 @@ const allowedWrites = new Set(appConfig.permissions.writeProcedures);
 // made from a standalone local preview (the trusted operator's own machine)
 // merge immediately; writes made from the deployed AirApp create a pending
 // ChangeRequest for the trusted process to merge, per the AirApp boundary.
-export const isStandaloneLocalRuntime = () => {
-  const host = window.location.hostname;
-  const loopback = ["localhost", "127.0.0.1", "::1"].includes(host) || host.endsWith(".localhost");
-  const busabaseHosted = window.self !== window.top || window.location.pathname.startsWith("/api/airapp-preview/");
-  return loopback && !busabaseHosted;
-};
+// A deployed AirApp sits inside the Busabase review boundary; only a standalone
+// run may merge its own writes. That is far too consequential to infer from the
+// URL — see ../runtime.js.
+import { isStandaloneLocalRuntime } from "../runtime.js";
+
+export { isStandaloneLocalRuntime };
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));

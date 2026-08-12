@@ -17,13 +17,9 @@ export function registerSetupHooks(overrides) {
   Object.assign(hooks, overrides);
 }
 
-const isStandaloneLocalPreview = () => {
-  const loopback =
-    ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname) ||
-    window.location.hostname.endsWith(".localhost");
-  const hosted = window.self !== window.top || window.location.pathname.startsWith("/api/airapp-preview/");
-  return loopback && !hosted;
-};
+// The local gate applies when Busabase is NOT hosting this process — a fact the
+// host states through BUSABASE_AIRAPP_RUNTIME, not one the URL can reveal.
+import { shouldUseLocalGateway as isStandaloneLocalPreview } from "./runtime.js";
 
 const showLocalGate = (html) => {
   const gate = $("providerGate");

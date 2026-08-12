@@ -107,11 +107,21 @@ const assertions = [
   },
   { ok: !/\b(?:react|vite|jsx)\b/i.test(source), message: "Frontend build frameworks are forbidden" },
   {
-    ok:
-      source.includes("window.self !== window.top") &&
-      source.includes('window.location.pathname.startsWith("/api/airapp-preview/")') &&
-      source.includes("if (!demo && standaloneLocalRuntime)"),
-    message: "OAuth connection UI must be limited to standalone loopback development",
+    // The runtime comes from BUSABASE_AIRAPP_RUNTIME, which Busabase injects
+    // into the process it spawns — never from the URL. Hostname, iframe
+    // nesting, and preview-path tests all misfire in both directions: a hosted
+    // AirApp is served from localhost on Desktop/OSS, and a standalone run is
+    // routinely reached over a LAN IP or a signed dev tunnel.
+    ok: source.includes("shouldUseLocalGateway()") && source.includes("if (!demo && standaloneLocalRuntime)"),
+    message: "OAuth connection UI must be gated on the injected runtime, not the URL",
+  },
+  {
+    ok: !/location\s*\.\s*hostname|window\.self\s*!==\s*window\.top/.test(source),
+    message: "Runtime must not be inferred from the hostname or from iframe nesting",
+  },
+  {
+    ok: serverSource.includes("process.env.BUSABASE_AIRAPP_RUNTIME") && serverSource.includes('"/__airapp/runtime"'),
+    message: "Server must expose the injected runtime at /__airapp/runtime",
   },
   {
     ok: serverSource.includes("assertOAuthSupported") && serverSource.includes('redirect: "manual"'),

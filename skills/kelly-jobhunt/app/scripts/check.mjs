@@ -13,6 +13,7 @@ const required = [
   "app/js/jobhunt-model.js",
   "app/js/resource-provisioning.js",
   "app/js/busabase-client.js",
+  "app/js/runtime.js",
   "app/js/providers/busabase-provider.js",
   "app/js/providers/demo-provider.js",
   "app/vendor/busabase-oauth.js",
@@ -86,6 +87,7 @@ const browserFiles = [
   "app/js/jobhunt-model.js",
   "app/js/resource-provisioning.js",
   "app/js/busabase-client.js",
+  "app/js/runtime.js",
   "app/js/providers/busabase-provider.js",
   "app/js/providers/demo-provider.js",
 ];
@@ -111,11 +113,23 @@ const assertions = [
   },
   { ok: !/\b(?:react|vite|jsx)\b/i.test(source), message: "Frontend build frameworks are forbidden" },
   {
+    // The runtime comes from BUSABASE_AIRAPP_RUNTIME, which Busabase injects
+    // into the process it spawns — never from the URL. Hostname, iframe
+    // nesting, and preview-path tests all misfire in both directions: a hosted
+    // AirApp is served from localhost on Desktop/OSS, and a standalone run is
+    // routinely reached over a LAN IP or a signed dev tunnel.
     ok:
-      source.includes("window.self !== window.top") &&
-      source.includes('window.location.pathname.startsWith("/api/airapp-preview/")') &&
+      source.includes("shouldUseLocalGateway(await initRuntime())") &&
       source.includes("if (!demo && standaloneLocalRuntime)"),
-    message: "OAuth connection UI must be limited to standalone loopback development",
+    message: "OAuth connection UI must be gated on the injected runtime, not the URL",
+  },
+  {
+    ok: !/location\s*\.\s*hostname|window\.self\s*!==\s*window\.top/.test(source),
+    message: "Runtime must not be inferred from the hostname or from iframe nesting",
+  },
+  {
+    ok: serverSource.includes("process.env.BUSABASE_AIRAPP_RUNTIME") && serverSource.includes('"/__airapp/runtime"'),
+    message: "Server must expose the injected runtime at /__airapp/runtime",
   },
   {
     // A deployed AirApp sits inside the Busabase review boundary; only a local

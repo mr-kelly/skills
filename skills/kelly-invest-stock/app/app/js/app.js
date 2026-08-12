@@ -1,5 +1,6 @@
 import { appConfig } from "./config.js?v=0.9.2";
 import { getProvider } from "./providers/index.js?v=0.9.2";
+import { shouldUseLocalGateway } from "./runtime.js";
 import { createRegressionSnapshot, createStrategyDesk } from "./strategy-model.js?v=0.9.2";
 
 const root = document.querySelector("#app");
@@ -741,11 +742,9 @@ const load = async () => {
   root.innerHTML = '<div class="boot-state">正在读取策略实验台...</div>';
   try {
     const demo = new URLSearchParams(window.location.search).get("demo") === "1";
-    const loopbackHost =
-      ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname) ||
-      window.location.hostname.endsWith(".localhost");
-    const busabaseHosted = window.self !== window.top || window.location.pathname.startsWith("/api/airapp-preview/");
-    const standaloneLocalRuntime = loopbackHost && !busabaseHosted;
+    // The local /auth/* gateway exists only in a standalone run. Which run this
+    // is comes from the host, never from the URL — see ./runtime.js.
+    const standaloneLocalRuntime = shouldUseLocalGateway();
     if (!demo && standaloneLocalRuntime) {
       authStatus = await fetch("/auth/status", { headers: { accept: "application/json" } }).then((response) =>
         response.json(),

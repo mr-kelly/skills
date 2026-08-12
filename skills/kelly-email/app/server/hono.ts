@@ -55,6 +55,23 @@ app.use("*", async (c, next) => {
 });
 app.use("/api/state", attachDemoVisuals);
 
+/**
+ * The ONLY sanctioned way for browser code to learn where it is running.
+ * Busabase injects BUSABASE_AIRAPP_RUNTIME into the process it spawns; nobody
+ * else sets it, so its absence is the positive fact "standalone". Never
+ * classify this by hostname, iframe nesting, or path — a hosted AirApp is
+ * served from localhost on Desktop/OSS, and a standalone run is reached over
+ * LAN IPs and dev tunnels, so both directions of that guess are wrong.
+ */
+const AIRAPP_HOSTED_RUNTIMES = new Set(["nodepod", "local-node", "srt", "embed"]);
+const airappRuntime = (process.env.BUSABASE_AIRAPP_RUNTIME || "").trim();
+app.get("/__airapp/runtime", (c) =>
+  c.json({
+    runtime: airappRuntime || "standalone",
+    hosted: AIRAPP_HOSTED_RUNTIMES.has(airappRuntime),
+  }),
+);
+
 // ---- API ----
 app.get("/api/state", async (c) => {
   const query = c.req.query();

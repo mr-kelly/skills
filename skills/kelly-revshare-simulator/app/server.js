@@ -136,6 +136,23 @@ const assertOAuthSupported = async (oauthRequest) => {
 
 app.get("/health", (context) => context.json({ ok: true, app: "kelly-revshare-simulator" }));
 
+/**
+ * The ONLY sanctioned way for browser code to learn where it is running.
+ * Busabase injects BUSABASE_AIRAPP_RUNTIME into the process it spawns; nobody
+ * else sets it, so its absence is the positive fact "standalone". Never
+ * classify this by hostname, iframe nesting, or path — a hosted AirApp is
+ * served from localhost on Desktop/OSS, and a standalone run is reached over
+ * LAN IPs and dev tunnels, so both directions of that guess are wrong.
+ */
+const AIRAPP_HOSTED_RUNTIMES = new Set(["nodepod", "local-node", "srt", "embed"]);
+const airappRuntime = (process.env.BUSABASE_AIRAPP_RUNTIME || "").trim();
+app.get("/__airapp/runtime", (context) =>
+  context.json({
+    runtime: airappRuntime || "standalone",
+    hosted: AIRAPP_HOSTED_RUNTIMES.has(airappRuntime),
+  }),
+);
+
 app.get("/auth/status", async (context) => {
   try {
     const target = await authTarget();

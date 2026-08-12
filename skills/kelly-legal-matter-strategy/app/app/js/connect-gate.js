@@ -15,12 +15,13 @@ const escapeHtml = (value) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
-export function isStandaloneLocalRuntime() {
-  const host = window.location.hostname;
-  const loopback = ["localhost", "127.0.0.1", "::1"].includes(host) || host.endsWith(".localhost");
-  const busabaseHosted = window.self !== window.top || window.location.pathname.startsWith("/api/airapp-preview/");
-  return loopback && !busabaseHosted;
-}
+// Where this app runs is a fact its host states, not one the app infers — see
+// ./runtime.js. `shouldUseLocalGateway` drives the connect gate;
+// `isStandaloneLocalRuntime` drives whether writes may merge. They differ only
+// when the runtime is undetermined, where each falls to its own safe side.
+import { isStandaloneLocalRuntime, shouldUseLocalGateway } from "./runtime.js";
+
+export { isStandaloneLocalRuntime, shouldUseLocalGateway };
 
 function overlayRoot() {
   let root = document.querySelector("#connectGate");
@@ -140,7 +141,7 @@ function renderWorkspaceScreen(error, onRetry) {
 // operator; call again after onSelected() fires.
 export async function passConnectGate({ onReady } = {}) {
   const demo = new URLSearchParams(window.location.search).has("demo");
-  if (demo || !isStandaloneLocalRuntime()) return true;
+  if (demo || !shouldUseLocalGateway()) return true;
 
   const status = await fetchAuthStatus();
   if (!status.connected) {

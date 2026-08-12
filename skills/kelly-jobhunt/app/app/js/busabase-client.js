@@ -9,13 +9,13 @@ export function createRuntimeClient() {
   });
 }
 
-// A standalone loopback preview is the trusted operator's own machine, so its
-// writes merge immediately. A deployed AirApp is inside the Busabase review
-// boundary and must leave every write as a pending ChangeRequest.
-export function isStandaloneLocalRuntime() {
-  const loopbackHost =
-    ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname) ||
-    window.location.hostname.endsWith(".localhost");
-  const busabaseHosted = window.self !== window.top || window.location.pathname.startsWith("/api/airapp-preview/");
-  return loopbackHost && !busabaseHosted;
-}
+// A standalone preview is the trusted operator's own machine, so its writes
+// merge immediately. A deployed AirApp is inside the Busabase review boundary
+// and must leave every write as a pending ChangeRequest.
+//
+// Re-exported from `runtime.js`, which reads the runtime Busabase injected into
+// this process rather than inferring it from the URL. That inference used to
+// decide this: loopback hostname, minus iframe nesting and the preview path. A
+// decision this consequential should not rest on a guess that a dev tunnel or a
+// Desktop server on localhost can flip.
+export { isStandaloneLocalRuntime } from "./runtime.js";

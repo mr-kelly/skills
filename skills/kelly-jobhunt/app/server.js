@@ -144,6 +144,34 @@ const assertOAuthSupported = async (oauthRequest) => {
 
 app.get("/health", (context) => context.json({ ok: true, app: "kelly-jobhunt", mode: "outreach-desk" }));
 
+/**
+ * The ONLY sanctioned way for browser code to learn where it is running.
+ *
+ * Busabase spawns this very process when it hosts the app and injects
+ * `BUSABASE_AIRAPP_RUNTIME`; nobody else sets it, so its absence is the
+ * positive fact "standalone". The browser cannot read environment variables,
+ * so this route hands it over.
+ *
+ * Never classify the runtime by hostname, iframe nesting, or path. A
+ * Busabase-hosted AirApp is served from `localhost` on Desktop and OSS, and a
+ * standalone `npm run dev` is routinely reached over a LAN IP or a signed dev
+ * tunnel — so both directions of that guess are wrong, and two decisions ride
+ * on it here: whether to show the connect gate, and whether writes may merge
+ * instead of becoming ChangeRequests.
+ *
+ * Browser code must fetch this RELATIVELY (`__airapp/runtime`, no leading
+ * slash): under the Local Node engine the app lives on a sub-path of
+ * busabase's origin, where a leading slash resolves against the origin root.
+ */
+const AIRAPP_HOSTED_RUNTIMES = new Set(["nodepod", "local-node", "srt", "embed"]);
+const airappRuntime = (process.env.BUSABASE_AIRAPP_RUNTIME || "").trim();
+app.get("/__airapp/runtime", (context) =>
+  context.json({
+    runtime: airappRuntime || "standalone",
+    hosted: AIRAPP_HOSTED_RUNTIMES.has(airappRuntime),
+  }),
+);
+
 app.get("/auth/status", async (context) => {
   let target;
   try {
