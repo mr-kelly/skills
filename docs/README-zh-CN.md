@@ -145,6 +145,7 @@
 | `kelly-crm` | 个人 CRM：联系人、公司、交易和互动记录，带 pipeline dashboard 和 agent 起草的跟进审批队列。 | 跟踪交易和人脉、查看 pipeline 健康度、批准/编辑跟进草稿（由 agent 经其他渠道发出）时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-crm.html?lang=zh) |
 | `kelly-feedback` | 聚合全渠道用户反馈，聚类成带权重的 feature requests，并运行带草稿回复和 changelog 的 roadmap 裁决队列。 | 分诊用户反馈、给需求排优先级、做有证据支撑的 roadmap 采纳/拒绝决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-feedback.html?lang=zh) |
 | `kelly-inquiry` | 把 WhatsApp、Instagram、Messenger、邮件询盘聚合成销售 pipeline：商品知识库、带底价护栏的报价单、审批制外发和跟进提醒。 | 处理外贸/跨境询盘、基于商品库起草准确回复和报价、防止商机逾期漏单时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html?lang=zh) |
+| `kelly-sales-outreach` | 把产品或服务变成可持续的销售拓客台：推导可编辑 ICP，寻找有证据的目标客户和公开业务联系人，为每家公司起草一封个性化首触达，并在逐条审核后才发送。 | 根据产品建立目标客户清单、持续研究潜在客户与购买信号、审核个性化冷启动邮件，或通过自己的邮箱安全发送已批准首触达时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-sales-outreach.html?lang=zh) |
 | `kelly-support` | 客服台：agent 把邮件、WhatsApp、网页在线、表单、微信来的工单分诊，基于知识库起草回复并提议动作；你在本地 UI review、编辑、批准后才发出，带 SLA 看板、CSAT 跟踪和 support-qa 门（未经批准的退款/承诺直接 BLOCK）。 | 跨渠道处理客服工单、基于知识库起草回复、跟踪 SLA 和 CSAT，或批准退款/升级等敏感动作时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-support.html?lang=zh) |
 | `kelly-tickets` | 把微信群导出、来电记录、表单、邮件里的投诉分类成工单，生成带 SLA 的派单建议供审批，并在看板上跟踪到解决。 | 管理物业/设施投诉、给班组派工单，或运行任何「接入-分类-派单-跟踪」流程时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-tickets.html?lang=zh) |
 

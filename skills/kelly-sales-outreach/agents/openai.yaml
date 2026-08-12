@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly Sales Outreach"
+  short_description: "Find ideal customers, draft first-touch outreach, and send after review"
+  default_prompt: "Use $kelly-sales-outreach to understand my product or service, discover target customers and public business contacts, draft one evidence-based first-touch email per company, and let me approve every send."

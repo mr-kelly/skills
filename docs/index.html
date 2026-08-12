@@ -258,8 +258,8 @@ h2.group {
         <span class="en">Agent skills for daily business operations. Each App-in-Skill pairs an operating procedure for the agent with a local browser UI where a human reviews, approves, edits, and hands work back — dashboards for money, CRM, chat, SEO, market intel, ops, and more.</span><span class="zh">服务日常业务的 agent skills。每个 App-in-Skill 都由两部分组成：给 agent 的操作规程 + 一个本地浏览器操作台，供人 review、批准、编辑并把任务交还给 agent —— 覆盖资金、CRM、聊天聚合、SEO、市场情报、运维等场景。</span>
       </p>
       <div class="stats">
-        <span><strong>69</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
-        <span><strong>65</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
+        <span><strong>70</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
+        <span><strong>66</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
         <span><strong>0</strong><span class="en">npm dependencies</span><span class="zh">npm 依赖</span></span>
       </div>
       <div class="audit-note">
@@ -510,6 +510,14 @@ After installation, list the available skills and help me choose the right one f
   <div class="body">
     <span class="name">kelly-inquiry<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders.</span><span class="zh">把 WhatsApp、Instagram、Messenger、邮件询盘聚合成销售 pipeline：商品知识库、带底价护栏的报价单、审批制外发和跟进提醒。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:smtp" href="s/kelly-sales-outreach.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-sales-outreach<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Turns a product or service into a repeatable customer-prospecting desk: derives an editable ICP, finds evidence-backed target accounts and public business contacts, drafts one personalized first-touch email per company, and sends only after individual review.</span><span class="zh">把产品或服务变成可持续的销售拓客台：推导可编辑 ICP，寻找有证据的目标客户和公开业务联系人，为每家公司起草一封个性化首触达，并在逐条审核后才发送。</span></span>
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
@@ -963,12 +971,12 @@ After installation, list the available skills and help me choose the right one f
 </section>
   <section class="side-card">
     <h3><span class="en">Categories</span><span class="zh">分类</span></h3>
-    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">69</span></button>
+    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">70</span></button>
 <button class="category-button" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">财务与后台</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="invest" onclick="mkSetCategory('invest')"><span class="en">Investing &amp; Wealth</span><span class="zh">投资与财富</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="rbf" onclick="mkSetCategory('rbf')"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span><span class="count">5</span></button>
 <button class="category-button" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal &amp; Contracts</span><span class="zh">法务与合同</span><span class="count">6</span></button>
-<button class="category-button" type="button" data-category-filter="sales-crm" onclick="mkSetCategory('sales-crm')"><span class="en">Sales &amp; Customer</span><span class="zh">销售与客户</span><span class="count">5</span></button>
+<button class="category-button" type="button" data-category-filter="sales-crm" onclick="mkSetCategory('sales-crm')"><span class="en">Sales &amp; Customer</span><span class="zh">销售与客户</span><span class="count">6</span></button>
 <button class="category-button" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Team</span><span class="zh">沟通与协同</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="marketing" onclick="mkSetCategory('marketing')"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span><span class="count">6</span></button>
 <button class="category-button" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span><span class="count">3</span></button>
@@ -985,7 +993,7 @@ After installation, list the available skills and help me choose the right one f
 <button class="tag-button" type="button" data-tag-filter="risk:sandbox" onclick="mkSetTag('risk:sandbox')"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span><span class="count">8</span></button>
 <button class="tag-button" type="button" data-tag-filter="risk:read-only" onclick="mkSetTag('risk:read-only')"><span class="en">Read-only</span><span class="zh">只读</span><span class="count">7</span></button>
 <button class="tag-button" type="button" data-tag-filter="risk:local-write" onclick="mkSetTag('risk:local-write')"><span class="en">Local only</span><span class="zh">仅本地</span><span class="count">23</span></button>
-<button class="tag-button" type="button" data-tag-filter="risk:gated-write" onclick="mkSetTag('risk:gated-write')"><span class="en">Gated write</span><span class="zh">审批后写</span><span class="count">31</span></button>
+<button class="tag-button" type="button" data-tag-filter="risk:gated-write" onclick="mkSetTag('risk:gated-write')"><span class="en">Gated write</span><span class="zh">审批后写</span><span class="count">32</span></button>
     </div>
   </section>
   <section class="side-card">
