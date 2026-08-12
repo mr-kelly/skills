@@ -274,11 +274,12 @@ test("a test send routes the mail without touching the research", async () => {
   assert.match(send, /if \(!testTo\) \{\s*await client\.records\.changeRequest/);
 });
 
-test("a dry run never requires the resume attachment to exist", async () => {
-  // The point of a dry run is to print the plan; crashing on a missing PDF
-  // hides the very list the operator asked for.
+test("the resume attachment is optional and a missing configured file only blocks apply", async () => {
+  // No configured resume means an intentional no-attachment send. If a file is
+  // configured but missing, dry run still prints the plan and apply stops.
   const send = await readFile(join(skillRoot, "scripts", "send_emails.mjs"), "utf8");
-  assert.match(send, /if \(!resumeReady\)/);
+  assert.match(send, /attachments: resumeReady \? \[\{ filename: resumeName, path: resumePath \}\] : \[\]/);
+  assert.match(send, /if \(resumeName && !resumeReady\)/);
   assert.match(send, /if \(apply\) fail\(/);
 });
 

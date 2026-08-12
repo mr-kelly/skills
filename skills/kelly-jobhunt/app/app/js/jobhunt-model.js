@@ -55,13 +55,12 @@ const normalizeConfidence = (value) => {
   return CONFIDENCE_RANK[confidence] ? confidence : "medium";
 };
 
-// The profile drives both company search and email drafting. Any missing item
-// here makes the outreach queue meaningless, so it is an attention state, not a
-// silent default.
+// The profile drives both company search and email drafting. A resume can make
+// outreach stronger, but it is an optional attachment rather than a reason to
+// block research or sending.
 const PROFILE_REQUIREMENTS = [
   ["targetRole", "目标岗位"],
   ["highlights", "自我介绍"],
-  ["resumeFile", "简历附件"],
   ["fromEmail", "发件邮箱"],
 ];
 

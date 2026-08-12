@@ -31,16 +31,18 @@ Busabase is the job seeker's name.
 | `job-boards` | text | no | v2. Which channels `research` should search. Free text. |
 | `resume-source` | longtext | no | v2. The tidied resume text `build_resume.mjs` typesets. Blank line = new block; a line ending in a colon becomes a section heading. |
 | `smtp-vault-key` | text | no | v2. Comma-separated Vault **reference names**, never values. Presence is what `mailReady` reads. |
-| `onboarding-version` | number | no | v4. Positive version of the product onboarding contract that has materialized. Version 1 means all four readiness fields below were saved successfully. |
+| `onboarding-version` | number | no | v4. Positive version of the product onboarding contract that has materialized. Version 1 means all three readiness fields below were saved successfully. |
 
-`target-role`, `highlights`, `resume-file`, and `from-email` are the four
-readiness requirements. Missing any of them makes the outreach queue
-unactionable, so the app names them instead of defaulting them.
+`target-role`, `highlights`, and `from-email` are the three readiness
+requirements. Missing any of them makes the outreach queue unactionable, so the
+app names them instead of defaulting them. `resume-file` is optional: some
+outreach should be sent without an attachment, and `/kelly-jobhunt profile` may
+generate one when the user wants it.
 
 Before `onboarding-version` reaches the app's current version, the browser reads
 only this Profile Base and presents the onboarding gate. It must not load the
 Companies or Leads Bases yet. The marker is written in the same approved change
-as the four readiness fields; submitting a pending ChangeRequest is not
+as the three readiness fields; submitting a pending ChangeRequest is not
 completion, and the app keeps the gate visible until the record materializes.
 
 ## `jobhunt-companies-v1` — 目标公司

@@ -38,8 +38,9 @@ The first app run has two separate gates before that command loop begins:
 
 1. connect Busabase and explicitly select the target Space when the account has
    more than one;
-2. initialize schema v3 resources, then complete product onboarding v1 with a
-   target role, truthful highlights, resume file, and sender address.
+2. initialize schema v4 resources, then complete product onboarding v1 with a
+   target role, truthful highlights, and sender address. A generated resume file
+   is optional and must not block the desk.
 
 Persist onboarding completion as `onboarding-version` on the profile record.
 Until version 1 is materialized, read only the Profile Base; do not load the
@@ -131,12 +132,15 @@ on, plus a resume PDF worth attaching.
    104 / 1111 / CakeResume. English → LinkedIn / Indeed / Wellfound / company
    career pages. Always let them add their own. Store the answer in
    `job-boards`; `research` reads it.
-4. **Write the profile**, then build the resume:
+4. **Write the profile** and set `onboarding-version: 1` in the same approved
+   change once target role, truthful highlights, and sender address are ready.
+   When the user wants a PDF attachment, build the resume:
    ```bash
    node scripts/build_resume.mjs           # dry run: writes an HTML preview
    node scripts/build_resume.mjs --apply   # renders resume/<name>.pdf
    ```
-   The dry run exists so the user can look at the layout before committing.
+   Resume generation is optional; research and sending can proceed without a
+   `resume-file`. The dry run exists so the user can look at the layout before committing.
    Layout is HTML + CSS printed by headless Chrome; edit the template in
    `scripts/build_resume.mjs` if they want a different look. Rendering is
    `scripts/render_pdf.mjs`: it tries every browser on the machine — including

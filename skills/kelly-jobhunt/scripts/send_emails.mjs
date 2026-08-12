@@ -7,8 +7,9 @@
 // credentials come from the Busabase Vault, written once by
 // scripts/configure_smtp.mjs. Neither ever reaches browser code.
 //
-// --test-to proves the transport — SMTP auth, the attachment, the rendering of
-// a real letter — by delivering to one address you own. It changes nothing in
+// --test-to proves the transport — SMTP auth and the rendering of a real letter,
+// plus the attachment when one is configured — by delivering to one address
+// you own. It changes nothing in
 // Busabase: no contact row is rewritten, and every company stays `queued`,
 // because nobody at that company was actually written to. Rehearsing by editing
 // 25 contact rows to a test address, as the first live run did, destroys the
@@ -56,12 +57,13 @@ const fromEmail = profile.fields.from_email;
 if (!fromEmail) fail("求职档案缺少发件邮箱。");
 
 const resumeName = profile.fields.resume_file;
-if (!resumeName) fail("求职档案缺少简历文件名。");
-const resumePath = path.join(skillRoot, "resume", resumeName);
-const resumeReady = await access(resumePath).then(
-  () => true,
-  () => false,
-);
+const resumePath = resumeName ? path.join(skillRoot, "resume", resumeName) : "";
+const resumeReady = resumePath
+  ? await access(resumePath).then(
+      () => true,
+      () => false,
+    )
+  : false;
 
 const allQueued = (await readAll(client, bases.get("companies"))).filter((row) => row.fields.status === "queued");
 const queued = testTo ? allQueued.slice(0, testLimit) : allQueued;
@@ -79,7 +81,7 @@ const {
 const SOURCE_LABEL = { environment: "环境变量注入", vault: "Vault", derived: "由发件地址推导" };
 
 process.stdout.write(dryRunBanner(apply));
-console.log(`发件人 ${fromEmail} · 附件 ${resumeName}${resumeReady ? "" : "（缺失）"}`);
+console.log(`发件人 ${fromEmail} · 附件 ${resumeName ? `${resumeName}${resumeReady ? "" : "（缺失）"}` : "无"}`);
 
 // Per item, and existence only: a value printed here would end up in a log, and
 // one of these four is a password.
@@ -109,7 +111,7 @@ if (!smtpReady) {
 
 // A dry run exists to show the plan, so a missing attachment is a warning here
 // and a hard stop only when something would actually be sent.
-if (!resumeReady) {
+if (resumeName && !resumeReady) {
   if (apply) fail(`找不到简历附件 ${resumePath}。把 PDF 放到 skill 的 resume/ 目录再运行。`);
   console.log(`\n注意：简历附件还不在 ${resumePath}，加 --apply 之前先放进去。`);
 }
@@ -137,7 +139,7 @@ for (const company of queued) {
       // inbox by mistake is never mistaken for an actual application.
       subject: testTo ? `[测试] ${company.fields.email_subject}` : company.fields.email_subject,
       text: company.fields.email_body,
-      attachments: [{ filename: resumeName, path: resumePath }],
+      attachments: resumeReady ? [{ filename: resumeName, path: resumePath }] : [],
     });
   } catch (error) {
     // A bounced address leaves the row queued so the operator can pick another
@@ -167,7 +169,7 @@ if (testTo) {
   console.log(
     `测试发出 ${delivered} 封到 ${testTo}，失败 ${failures} 封。Busabase 没有任何改动，${allQueued.length} 封仍在队列里。`,
   );
-  if (!failures) console.log("去收件箱确认排版和附件，没问题就跑 node scripts/send_emails.mjs --apply 正式发送。");
+  if (!failures) console.log("去收件箱确认正文和可选附件，没问题就跑 node scripts/send_emails.mjs --apply 正式发送。");
 } else {
   console.log(`已发出 ${delivered} 封，失败 ${failures} 封。`);
 }
