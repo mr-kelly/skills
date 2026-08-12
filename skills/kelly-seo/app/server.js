@@ -258,7 +258,7 @@ app.all("/api/v1/*", async (context) => {
   const contentType = context.req.header("content-type");
   const accept = context.req.header("accept");
   const spaceId =
-    process.env.BUSABASE_SPACE_ID || cookieValue(context, SPACE_COOKIE) || context.req.header("x-busabase-space");
+    process.env.BUSABASE_SPACE_ID || cookieValue(context, SPACE_COOKIE);
   if (contentType) headers.set("content-type", contentType);
   if (accept) headers.set("accept", accept);
   if (!spaceId) return context.json({ error: "Busabase Space selection required" }, 409);
