@@ -132,6 +132,14 @@ test("first-run product onboarding is versioned Busabase domain state", async ()
   assert.match(model, /"onboarding-version"/);
 });
 
+test("first-run onboarding renders fields from a shared helper", async () => {
+  const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");
+  const onboarding = app.slice(app.indexOf("const renderOnboarding"), app.indexOf("const renderSpaceSetup"));
+  assert.match(app, /const renderTextField/);
+  assert.match(onboarding, /renderTextField\("data-onboarding"/);
+  assert.doesNotMatch(onboarding, /\bfield\(/);
+});
+
 test("onboarding readiness reads only the profile before loading workflow queues", async () => {
   const provider = await readFile(join(browserRoot, "js", "providers", "busabase-provider.js"), "utf8");
   const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");
