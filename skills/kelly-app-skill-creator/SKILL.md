@@ -173,21 +173,23 @@ never parse a human error sentence to decide which setup screen to render.
 
 ### "Standalone" is a fact the host states, not one the app infers
 
+**Copy `assets/runtime-detection/` — do not re-derive it.** Three files, and
+every generated App gets all three:
+
+| Asset | Goes to | Role |
+| --- | --- | --- |
+| `runtime.js` | `app/js/runtime.js` | the only module that answers "where am I" |
+| `server-route.js` | into `server.js`, beside `/health` | hands the injected fact to the browser |
+| `check-rules.mjs` | into `scripts/check.mjs` assertions | fails the build if the rule is broken |
+
+This is a copied asset rather than prose because prose did not hold: 65
+generated Apps had each independently reinvented the same loopback-hostname
+test, and one App's own check script had gone as far as *requiring* it.
+
 Busabase spawns the App's own process in every runtime it hosts, and injects
 `BUSABASE_AIRAPP_RUNTIME` (`nodepod` | `local-node` | `srt` | `embed`). Nobody
 else sets it, so **its absence is the positive fact "standalone"**. `server.js`
-re-exposes it — the browser cannot read environment variables:
-
-```js
-const AIRAPP_HOSTED_RUNTIMES = new Set(["nodepod", "local-node", "srt", "embed"]);
-const airappRuntime = (process.env.BUSABASE_AIRAPP_RUNTIME || "").trim();
-app.get("/__airapp/runtime", (context) =>
-  context.json({
-    runtime: airappRuntime || "standalone",
-    hosted: AIRAPP_HOSTED_RUNTIMES.has(airappRuntime),
-  }),
-);
-```
+re-exposes it — the browser cannot read environment variables.
 
 **Never derive this from the URL** — not the hostname, not `window.self !==
 window.top`, not a `/api/airapp-preview/` path prefix. Every such test misfires
@@ -203,6 +205,13 @@ Browser code probes `__airapp/runtime` **relatively** (no leading slash — unde
 the Local Node engine the App is served from a sub-path of busabase's origin)
 and must verify the response is JSON, since a hosted origin's catch-all route
 can answer `200` with an HTML shell.
+
+`runtime.js` resolves the probe with a **top-level `await`**, so its two
+predicates stay synchronous for their call sites. When a module both re-exports
+one of them and calls it, use `import` + `export`, never
+`export { … } from "./runtime.js"` — a re-export does not bind the name locally,
+and the App dies at runtime with `shouldUseLocalGateway is not defined` while
+every static check still passes.
 
 Resolve three states, never two — `hosted`, `standalone`, `unknown` — and let
 each decision fall to its own safe side when the runtime is undetermined:

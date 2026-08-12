@@ -17,12 +17,9 @@ const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
 
-const isStandaloneLocalRuntime = () => {
-  const host = window.location.hostname;
-  const loopback = ["localhost", "127.0.0.1", "::1"].includes(host) || host.endsWith(".localhost");
-  const busabaseHosted = window.self !== window.top || window.location.pathname.startsWith("/api/airapp-preview/");
-  return loopback && !busabaseHosted;
-};
+// Only a standalone run may merge its own writes; a deployed AirApp is inside
+// the Busabase review boundary. Too consequential to infer from the URL.
+import { isStandaloneLocalRuntime } from "../runtime.js";
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
