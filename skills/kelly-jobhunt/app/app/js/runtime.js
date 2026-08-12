@@ -82,5 +82,4 @@ export const shouldUseLocalGateway = (runtime = runtimeSnapshot()) => !runtime.h
  * reviewable can still be approved, but one that auto-merged by mistake has
  * already crossed the review boundary.
  */
-export const isStandaloneLocalRuntime = (runtime = runtimeSnapshot()) =>
-  runtime.determined && !runtime.hosted;
+export const isStandaloneLocalRuntime = (runtime = runtimeSnapshot()) => runtime.determined && !runtime.hosted;

@@ -153,7 +153,6 @@ app.get("/__airapp/runtime", (context) =>
   }),
 );
 
-
 app.get("/auth/status", async (context) => {
   try {
     const target = await authTarget();

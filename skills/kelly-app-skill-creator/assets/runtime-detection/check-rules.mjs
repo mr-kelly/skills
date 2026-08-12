@@ -24,9 +24,7 @@ export const runtimeDetectionAssertions = (source, serverSource) => [
     message: "Runtime probe must be relative (__airapp/runtime), without a leading slash",
   },
   {
-    ok:
-      serverSource.includes("process.env.BUSABASE_AIRAPP_RUNTIME") &&
-      serverSource.includes('"/__airapp/runtime"'),
+    ok: serverSource.includes("process.env.BUSABASE_AIRAPP_RUNTIME") && serverSource.includes('"/__airapp/runtime"'),
     message: "Server must expose the injected runtime at /__airapp/runtime",
   },
 ];

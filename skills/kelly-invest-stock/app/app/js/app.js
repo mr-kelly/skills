@@ -1,7 +1,7 @@
 import { appConfig } from "./config.js?v=0.9.2";
 import { getProvider } from "./providers/index.js?v=0.9.2";
-import { createRegressionSnapshot, createStrategyDesk } from "./strategy-model.js?v=0.9.2";
 import { shouldUseLocalGateway } from "./runtime.js";
+import { createRegressionSnapshot, createStrategyDesk } from "./strategy-model.js?v=0.9.2";
 
 const root = document.querySelector("#app");
 const money = new Intl.NumberFormat("zh-CN", {
