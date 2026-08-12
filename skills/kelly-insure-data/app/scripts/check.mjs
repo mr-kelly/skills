@@ -8,7 +8,7 @@ const index = await readFile(path.join(root, "app", "index.html"), "utf8");
 const providerText = await readFile(path.join(root, "app", "js", "providers", "busabase-provider.js"), "utf8");
 
 if (packageJson.scripts.start !== "node server.js") throw new Error("AirApp start must be node server.js");
-if (packageJson.dependencies["busabase-sdk"] !== "0.11.0") throw new Error("busabase-sdk must be exact-pinned");
+if (packageJson.dependencies["busabase-sdk"] !== "0.15.0") throw new Error("busabase-sdk must be exact-pinned");
 if (!configText.includes('deployment: "cloud"')) throw new Error("Kelly Insure Data must be Cloud-only");
 if (!configText.includes("readOnly: true")) throw new Error("Kelly Insure Data AirApp must declare readOnly: true");
 if (!configText.includes("writeProcedures: []"))

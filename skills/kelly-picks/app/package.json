@@ -7,7 +7,7 @@
     "node": ">=24.18.0"
   },
   "scripts": {
-    "build:sdk": "esbuild node_modules/busabase-sdk/dist/index.js --bundle --format=esm --platform=browser --outfile=app/vendor/busabase-sdk.js && esbuild node_modules/busabase-sdk/dist/oauth.js --bundle --format=esm --platform=browser --outfile=app/vendor/busabase-oauth.js && esbuild node_modules/busabase-sdk/dist/oauth-node.js --bundle --format=esm --platform=node --outfile=app/vendor/busabase-oauth-node.js",
+    "build:sdk": "esbuild node_modules/busabase-sdk/dist/index.js --bundle --format=esm --platform=browser --banner:js=\"// @ts-nocheck\" --outfile=app/vendor/busabase-sdk.js",
     "check": "node scripts/check.mjs && node --test",
     "dev": "node server.js",
     "start": "node server.js",
@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@hono/node-server": "2.0.8",
-    "busabase-sdk": "0.11.0",
+    "busabase-sdk": "0.15.0",
     "hono": "4.12.29"
   },
   "devDependencies": {

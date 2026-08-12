@@ -15,7 +15,6 @@ const required = [
   "app/js/busabase-client.js",
   "app/js/providers/busabase-provider.js",
   "app/js/providers/demo-provider.js",
-  "app/vendor/busabase-airapp-node.js",
   "app/vendor/busabase-sdk.js",
 ];
 
@@ -71,10 +70,6 @@ if (
 if ((await stat(path.join(root, "app/vendor/busabase-sdk.js"))).size < 10_000) {
   throw new Error("Busabase browser SDK bundle is incomplete");
 }
-if ((await stat(path.join(root, "app/vendor/busabase-airapp-node.js"))).size < 1_000) {
-  throw new Error("Busabase AirApp local gateway bundle is incomplete");
-}
-
 const browserFiles = [
   "app/index.html",
   "app/js/app.js",
@@ -117,11 +112,11 @@ const assertions = [
     message: "Server must expose the injected runtime at /__airapp/runtime",
   },
   {
-    ok: serverSource.includes("createBusabaseAirAppLocalGateway"),
+    ok: serverSource.includes('from "busabase-sdk/airapp-node"'),
     message: "Local OAuth compatibility preflight is owned by the canonical gateway",
   },
   {
-    ok: serverSource.includes("createBusabaseAirAppLocalGateway"),
+    ok: serverSource.includes('from "busabase-sdk/airapp-node"'),
     message: "Local OAuth must use the canonical busabase-sdk/airapp-node gateway, not hand-rolled PKCE",
   },
   {

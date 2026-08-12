@@ -7,7 +7,7 @@ const configText = await readFile(path.join(root, "app", "js", "config.js"), "ut
 const index = await readFile(path.join(root, "app", "index.html"), "utf8");
 
 if (packageJson.scripts.start !== "node server.js") throw new Error("AirApp start must be node server.js");
-if (packageJson.dependencies["busabase-sdk"] !== "0.11.0") throw new Error("busabase-sdk must be exact-pinned");
+if (packageJson.dependencies["busabase-sdk"] !== "0.15.0") throw new Error("busabase-sdk must be exact-pinned");
 if (!configText.includes('deployment: "cloud"')) throw new Error("Kelly Financial Services Intel must be Cloud-only");
 if (
   /KELLY_FINANCIAL_SERVICES_INTEL_UI_PORT|local-file-provider|config\.local\.json|config\.example\.json/.test(

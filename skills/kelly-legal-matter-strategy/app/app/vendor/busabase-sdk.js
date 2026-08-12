@@ -1,10 +1,11 @@
+// @ts-nocheck
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// node_modules/.pnpm/busabase-sdk@0.11.0/node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
+// node_modules/.pnpm/busabase-sdk@0.15.0/node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
 function normalizeBaseUrl(raw) {
   return raw.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
 }
@@ -16429,7 +16430,7 @@ function date4(params) {
 // node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// node_modules/.pnpm/busabase-sdk@0.11.0/node_modules/busabase-sdk/dist/index.js
+// node_modules/.pnpm/busabase-sdk@0.15.0/node_modules/busabase-sdk/dist/index.js
 var toUnifiedFilesGrepInput = (input) => ({
   pattern: input.pattern,
   flags: input.flags,
@@ -16459,6 +16460,7 @@ var i18n = {
 var LocaleSchema = external_exports.enum(i18n.locales);
 var iStringRecordSchema = external_exports.partialRecord(LocaleSchema, external_exports.string());
 external_exports.union([external_exports.string(), iStringRecordSchema]).describe("i18n string");
+var autoMergeNotAccepted = (reason) => external_exports.literal(false, { error: `\`autoMerge: true\` is not accepted here: ${reason}` }).optional().describe(`Only \`false\` (or omitted) is accepted. ${reason}`);
 var fieldNameSchema = external_exports.union([
   external_exports.string().min(1),
   iStringRecordSchema.refine(
@@ -16614,14 +16616,21 @@ var createBaseFieldInputSchema = external_exports.object({
   required: external_exports.boolean().optional().default(false),
   options: fieldOptionsSchema.optional().default({})
 });
+var fieldAutoMergeSchema = external_exports.boolean().optional().describe(
+  "Whether to approve and merge this field change immediately. Omitted defaults to merging immediately if the actor has write access on the Base's node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access. Not accepted by the delete and convert operations, which always require review."
+);
 var createFieldChangeRequestInputSchema = createBaseFieldInputSchema.extend({
   message: external_exports.string().optional().default("Add field"),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: fieldAutoMergeSchema
 });
 var deleteFieldChangeRequestInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: autoMergeNotAccepted(
+    "deleting a field soft-deletes its stored values with it, so it always requires review. Omit the flag."
+  )
 });
 var updateFieldChangeRequestInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
@@ -16631,7 +16640,8 @@ var updateFieldChangeRequestInputSchema = external_exports.object({
     options: fieldOptionsSchema.optional()
   }),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: fieldAutoMergeSchema
 });
 var previewFieldConversionInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
@@ -16648,25 +16658,39 @@ var convertFieldChangeRequestInputSchema = external_exports.object({
   newType: fieldTypeSchema,
   selectChoiceMode: external_exports.enum(["auto_create", "null_on_missing"]).default("null_on_missing"),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: autoMergeNotAccepted(
+    "converting a field's type can drop values, so it always requires review. Run previewFieldConversion first to see what would change, then omit the flag."
+  )
 });
 var reorderFieldsChangeRequestInputSchema = external_exports.object({
   fieldIds: external_exports.array(external_exports.string()).min(1),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: fieldAutoMergeSchema
 });
 var archiveBaseInputSchema = external_exports.object({
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: autoMergeNotAccepted(
+    "archiving a Base removes it and every record in it from every listing at once, so it always requires review. Omit the flag."
+  )
 });
 var restoreBaseInputSchema = external_exports.object({
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  // Restoring an archived Base is the undo of a destructive act — nothing is at
+  // risk, so it takes the same permission-aware default as everything else.
+  // `archiveBaseInputSchema` above deliberately has no `autoMerge`: archiving
+  // takes a whole Base and every record in it out of every listing at once,
+  // which is strictly larger than the record `delete` that is already review-only.
+  autoMerge: external_exports.boolean().optional()
 });
 var restoreFieldChangeRequestInputSchema = external_exports.object({
   fieldId: external_exports.string().min(1),
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: fieldAutoMergeSchema
 });
 var withBaseId = { baseId: external_exports.string().min(1) };
 var fieldChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
@@ -16676,6 +16700,10 @@ var fieldChangeRequestInputSchema = external_exports.discriminatedUnion("operati
   convertFieldChangeRequestInputSchema.extend({ operation: external_exports.literal("convert"), ...withBaseId }),
   reorderFieldsChangeRequestInputSchema.extend({ operation: external_exports.literal("reorder"), ...withBaseId }),
   restoreFieldChangeRequestInputSchema.extend({ operation: external_exports.literal("restore"), ...withBaseId })
+]);
+var baseLifecycleChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
+  archiveBaseInputSchema.extend({ operation: external_exports.literal("archive"), ...withBaseId }),
+  restoreBaseInputSchema.extend({ operation: external_exports.literal("restore"), ...withBaseId })
 ]);
 var fileTreeOperations = (type) => [
   {
@@ -16823,7 +16851,7 @@ var folderNodeType = {
 var formNodeType = {
   type: "form",
   label: "Form",
-  icon: "clipboard-list",
+  icon: "form",
   capabilities: { hasDetail: true, creatable: true },
   operations: []
 };
@@ -17000,7 +17028,11 @@ var updateNodeMetadataInputSchema = external_exports.object({
 });
 var searchNodesByNameInputSchema = external_exports.object({
   query: external_exports.string().min(1),
-  limit: external_exports.number().int().min(1).max(50).optional().default(20)
+  // GET route — query params arrive as strings, and oRPC's OpenAPI handler
+  // does not coerce them. A bare `z.number()` here rejected every real
+  // `?limit=` call with "expected number, received string"; every other
+  // limit/page field on a GET route in this file already uses `z.coerce`.
+  limit: external_exports.coerce.number().int().min(1).max(50).optional().default(20)
 });
 var nodeSearchResultSchema = external_exports.object({
   id: external_exports.string(),
@@ -17294,7 +17326,10 @@ var createDeleteChangeRequestInputSchema = external_exports.object({
   submittedBy: external_exports.string().optional().default("local-producer"),
   // Only "archive" is supported — hard delete after retention was never
   // implemented, so the API no longer accepts it (breaking change).
-  deleteMode: external_exports.enum(["archive"]).optional().default("archive")
+  deleteMode: external_exports.enum(["archive"]).optional().default("archive"),
+  autoMerge: autoMergeNotAccepted(
+    "archiving a record removes user content from every listing, so it always requires review. Omit the flag."
+  )
 });
 var reviseOperationInputSchema = external_exports.object({
   fields: external_exports.record(external_exports.string(), external_exports.unknown()).describe(
@@ -17335,6 +17370,19 @@ var listChangeRequestsPagedInputSchema = external_exports.object({
 var listChangeRequestsResponseSchema = external_exports.object({
   changeRequests: external_exports.array(changeRequestSchema),
   nextCursor: external_exports.string().nullable()
+});
+var listChangeRequestsPageInputSchema = external_exports.object({
+  page: external_exports.coerce.number().int().min(1).optional().default(1),
+  pageSize: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
+  status: external_exports.array(changeRequestStatusSchema).optional(),
+  mine: external_exports.boolean().optional()
+}).optional().default({ page: 1, pageSize: 50 });
+var listChangeRequestsPageResponseSchema = external_exports.object({
+  changeRequests: external_exports.array(changeRequestSchema),
+  total: external_exports.number().int().nonnegative(),
+  totalPages: external_exports.number().int().nonnegative(),
+  page: external_exports.number().int().min(1),
+  pageSize: external_exports.number().int().min(1).max(100)
 });
 var changeRequestCountsSchema = external_exports.object({
   review: external_exports.number().int().nonnegative(),
@@ -17418,6 +17466,9 @@ var fileTreeFileSchema = external_exports.object({
   assetId: external_exports.string(),
   displayName: external_exports.string().nullable()
 });
+var baseContentHashSchema = external_exports.string().regex(/^sha256:[a-f0-9]{64}$/, "must be sha256:<64 lowercase hex characters>").optional().describe(
+  "Optimistic-concurrency baseline hash of the file's current content, formatted exactly as `sha256:<64 lowercase hex characters>` (matches the `contentHash` on the file's backing Asset). Omit to skip the conflict check."
+);
 var assetFileInputSchema = external_exports.object({
   path: external_exports.string().min(1),
   assetId: external_exports.string().min(1),
@@ -17435,14 +17486,14 @@ var assetFileOperationInputSchema = external_exports.object({
   assetId: external_exports.string().min(1),
   displayName: external_exports.string().optional(),
   mimeType: external_exports.string().optional(),
-  baseContentHash: external_exports.string().optional()
+  baseContentHash: baseContentHashSchema
 }).strict();
 var textFileOperationInputSchema = external_exports.object({
   kind: external_exports.enum(["create", "update"]),
   path: external_exports.string().min(1),
   content: external_exports.string(),
   mimeType: external_exports.string().optional(),
-  baseContentHash: external_exports.string().optional()
+  baseContentHash: baseContentHashSchema
 }).strict();
 var fileTreeNodeSchema = external_exports.object({
   node: nodeSchema,
@@ -17487,7 +17538,7 @@ var fileTreeFileOperationInputSchema = external_exports.union([
   external_exports.object({
     kind: external_exports.literal("delete"),
     path: external_exports.string().min(1),
-    baseContentHash: external_exports.string().optional()
+    baseContentHash: baseContentHashSchema
   }).strict(),
   external_exports.object({
     kind: external_exports.literal("metadata_update"),
@@ -17503,7 +17554,16 @@ var createFileTreeChangeRequestInputSchema = external_exports.object({
     'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Rewrite README.md quickstart for the new auth flow".'
   ),
   submittedBy: external_exports.string().optional().default("local-producer"),
-  operations: external_exports.array(fileTreeFileOperationInputSchema).min(1)
+  operations: external_exports.array(fileTreeFileOperationInputSchema).min(1),
+  // Honoured only when EVERY operation in the batch is non-destructive
+  // (create / update / metadata_update). A batch containing a `delete` stays
+  // review-first no matter what this says, because deleting a mounted file
+  // destroys content — the same line that keeps record `delete` review-only.
+  // Server-side enforcement lives in the filetree handler, not here: the check
+  // is over the operations array, which a per-field schema cannot express.
+  autoMerge: external_exports.boolean().optional().describe(
+    "Whether to approve and merge these file changes immediately. Omitted defaults to merging immediately if the actor has write access on the node, otherwise falling back to a pending Change Request; pass explicit false to force review even with write access. IGNORED when any operation is a delete \u2014 those batches always require review."
+  )
 });
 var FILE_TREE_NODE_TYPES = ["skill", "drive", "airapp"];
 var fileTreeNodeTypeSchema = external_exports.enum(FILE_TREE_NODE_TYPES);
@@ -17785,7 +17845,10 @@ var EditAssetContentInputSchema = external_exports.object({
   message: external_exports.string().optional().default("Edit file content").describe(
     'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Fix typo in setup instructions".'
   ),
-  submittedBy: external_exports.string().optional().default("agent")
+  submittedBy: external_exports.string().optional().default("agent"),
+  autoMerge: autoMergeNotAccepted(
+    "editContent rewrites the real mounted file bytes, so it always requires review. Omit the flag."
+  )
 });
 var AssetDownloadInputSchema = external_exports.object({ assetId: external_exports.string() });
 var AssetDownloadVOSchema = external_exports.object({
@@ -18060,9 +18123,42 @@ var listRecordsPageResponseSchema = external_exports.object({
   page: external_exports.number().int().min(1),
   pageSize: external_exports.number().int().min(1).max(100)
 });
-var countRecordsInputSchema = external_exports.object({
-  baseId: external_exports.string().optional()
-}).optional().default({});
+var countRecordsShapeSchema = external_exports.object({
+  baseId: external_exports.string().optional(),
+  /**
+   * Count only the rows a saved View would display (the View's filters
+   * applied; its sort is ignored — a count doesn't need an order). A View
+   * belongs to exactly one Base, so this requires `baseId`.
+   */
+  viewId: external_exports.string().optional(),
+  /**
+   * Ad-hoc filter conditions — same shape `records.list`'s `filters` uses —
+   * for composing a condition set without a saved View (e.g. an AirApp
+   * summary tile like "main-branch PRs"). Combined with the View's own
+   * filters (AND) when `viewId` is also given. Requires `baseId`: a field
+   * slug is only unambiguous within one Base, and proving a filter exact
+   * (see `countRecords`) requires that Base's real field definitions —
+   * never the caller-supplied `fieldType` hint, which elsewhere is only a
+   * pushdown hint and isn't trustworthy enough for an exact count.
+   */
+  filters: external_exports.array(listRecordsFilterSchema).optional()
+}).superRefine((value2, ctx) => {
+  if (value2.viewId && !value2.baseId) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["baseId"],
+      message: "baseId is required when viewId is given"
+    });
+  }
+  if (value2.filters?.length && !value2.baseId) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["baseId"],
+      message: "baseId is required when filters is given"
+    });
+  }
+});
+var countRecordsInputSchema = countRecordsShapeSchema.optional().default({});
 var countRecordsResponseSchema = external_exports.object({
   /** Total active records in the space (optionally scoped to a base). */
   total: external_exports.number().int().nonnegative()
@@ -18097,7 +18193,13 @@ var createBulkChangeRequestInputSchema = external_exports.object({
   submittedBy: external_exports.string().optional().default("local-producer"),
   idempotencyKey: external_exports.string().optional().describe(
     "Optional client-supplied key that dedupes retries. Scoped per base + submitter: calling this endpoint again with the SAME idempotencyKey returns the bulk change request created by the first call instead of creating a duplicate. Omit for normal one-shot calls; only set it when you might retry."
-  )
+  ),
+  // Same permission-aware tri-state as the single-record endpoint above. N record
+  // CREATES are purely additive, so there is nothing here the review gate is
+  // protecting — and until now the published skill doc told agents to send N
+  // separate single-record calls precisely because this one could not merge,
+  // which is slower and produces N change requests instead of one.
+  autoMerge: external_exports.boolean().optional()
 });
 var recordFieldFilterInputSchema = external_exports.object({
   baseId: external_exports.string().optional(),
@@ -18118,7 +18220,10 @@ var recordGetInputSchema = external_exports.union([
 ]);
 var restoreRecordInputSchema = external_exports.object({
   message: external_exports.string().optional(),
-  submittedBy: external_exports.string().optional().default("local-editor")
+  submittedBy: external_exports.string().optional().default("local-editor"),
+  autoMerge: autoMergeNotAccepted(
+    "restoring a record brings archived content back into every listing, so it always requires review. Omit the flag."
+  )
 });
 var withRecordId = { recordId: external_exports.string().min(1) };
 var recordChangeRequestInputSchema = external_exports.discriminatedUnion("operation", [
@@ -18224,20 +18329,13 @@ var baseContract = {
     summary: "Preview field type conversion",
     successDescription: "Dry-run statistics for converting a field to a different type."
   }).input(previewFieldConversionInputSchema.extend({ baseId: external_exports.string() })).output(previewFieldConversionOutputSchema),
-  archiveChangeRequest: oc.route({
+  lifecycleChangeRequest: oc.route({
     method: "POST",
-    path: "/bases/{baseId}/archive/change-requests",
+    path: "/bases/{baseId}/lifecycle/change-requests",
     tags: ["Bases", "Change Requests"],
-    summary: "Archive base",
-    successDescription: "Created change request that archives a base."
-  }).input(archiveBaseInputSchema.extend({ baseId: external_exports.string() })).output(changeRequestSchema),
-  restoreChangeRequest: oc.route({
-    method: "POST",
-    path: "/bases/{baseId}/restore/change-requests",
-    tags: ["Bases", "Change Requests"],
-    summary: "Restore base",
-    successDescription: "Created change request that restores an archived base."
-  }).input(restoreBaseInputSchema.extend({ baseId: external_exports.string() })).output(changeRequestSchema)
+    summary: "Create Base lifecycle change request",
+    successDescription: "Created change request that moves a Base between its lifecycle states. `operation` selects the direction: `archive` (soft-delete a live Base) or `restore` (bring an archived Base back)."
+  }).input(baseLifecycleChangeRequestInputSchema).output(changeRequestSchema)
 };
 var recordContract = {
   // One listing for records: always keyset-paginated, `baseId` always honoured,
@@ -18263,7 +18361,8 @@ var recordContract = {
     path: "/records/count",
     tags: ["Records"],
     summary: "Count records",
-    successDescription: "Total active records in the space, optionally scoped to a base."
+    description: "A real SQL COUNT \u2014 always the exact total, never a partial or capped number, so it's safe to render as a canonical figure (e.g. a dashboard summary tile). Plain `baseId` scoping is always cheap. Adding `viewId` and/or `filters` is exact too \u2014 provably-exact conditions (e.g. text equals/contains, not_empty/is_empty, checkbox is_true/is_false) stay a cheap SQL COUNT; everything else falls back to evaluating every matching row server-side, which is exact but not free on a large Base. Both `viewId` and `filters` require `baseId`.",
+    successDescription: "Total active records matching the scope: the whole space, one Base, a saved View, an ad-hoc filter set, or a combination."
   }).input(countRecordsInputSchema).output(countRecordsResponseSchema),
   get: oc.route({
     method: "GET",
@@ -18356,7 +18455,12 @@ var createDocChangeRequestInputSchema = external_exports.object({
   message: external_exports.string().optional().default("Update doc").describe(
     'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Add rollback steps to the deploy runbook".'
   ),
-  submittedBy: external_exports.string().optional().default("local-producer")
+  submittedBy: external_exports.string().optional().default("local-producer"),
+  // A Doc body update is the Doc-domain twin of a record `update`, which has taken
+  // the permission-aware default since #5712 — and this node type already has a
+  // direct-write bypass (`PUT /docs/{nodeId}/body`), so review-first here was never
+  // an actual guarantee, just a slower path to the same place.
+  autoMerge: external_exports.boolean().optional()
 });
 var docContract = {
   create: oc.route({
@@ -18558,6 +18662,17 @@ var FormFieldBindingSchema = external_exports.object({
   label: external_exports.string().optional(),
   help: external_exports.string().optional()
 });
+var FormBoundFieldSchema = external_exports.object({
+  slug: external_exports.string(),
+  name: fieldNameSchema,
+  type: fieldTypeSchema,
+  choices: external_exports.array(
+    external_exports.object({
+      id: external_exports.string(),
+      name: external_exports.string()
+    })
+  ).default([])
+});
 var FormThemeSchema = external_exports.object({
   logoUrl: external_exports.string().optional(),
   coverUrl: external_exports.string().optional(),
@@ -18582,6 +18697,7 @@ var FormVOSchema = external_exports.object({
   name: external_exports.string(),
   description: external_exports.string(),
   bindings: external_exports.array(FormFieldBindingSchema),
+  boundFields: external_exports.array(FormBoundFieldSchema).default([]),
   page: FormPageSourceSchema,
   share: FormShareSchema,
   /** Accepted submissions so far — backs server-side `share.submitLimit`. */
@@ -18590,6 +18706,16 @@ var FormVOSchema = external_exports.object({
   createdBy: external_exports.string(),
   createdAt: external_exports.string(),
   updatedAt: external_exports.string()
+});
+var ListFormsInputSchema = external_exports.object({
+  targetBaseId: external_exports.string().min(1),
+  limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
+  /** Opaque createdAt/id keyset cursor. */
+  cursor: external_exports.string().optional()
+});
+var ListFormsVOSchema = external_exports.object({
+  forms: external_exports.array(FormVOSchema),
+  nextCursor: external_exports.string().nullable()
 });
 var CreateFormInputSchema = external_exports.object({
   nodeId: external_exports.string().min(1),
@@ -18616,6 +18742,13 @@ var FormSubmitResultSchema = external_exports.object({
   status: external_exports.literal("pending_review")
 });
 var formContract = {
+  list: oc.route({
+    method: "GET",
+    path: "/forms",
+    tags: ["Forms"],
+    summary: "List forms bound to a Base",
+    successDescription: "A newest-first page of forms with a stable opaque cursor (null at the end)."
+  }).input(ListFormsInputSchema).output(ListFormsVOSchema),
   getByNode: oc.route({
     method: "GET",
     path: "/forms/{nodeId}",
@@ -19292,7 +19425,7 @@ var busabaseContractRoutes = {
       path: "/nodes/search",
       tags: ["Nodes", "Search"],
       summary: "Search nodes by name/slug (cheap, name-only quick-jump)",
-      successDescription: "Plain ilike match on name/slug across every registered node type, scoped by the same node-visibility ACL as `nodes.list`. No content scan and no full-text ranking \u2014 ordered exact-slug-match first, then by name. Backs the dashboard search dialog's 'Recent' tab cache-miss path (see apps/busabase/content/spec/search-quick-jump.md); the heavier `search` endpoint remains the dedicated full-text content search."
+      successDescription: "Plain ilike match on name/slug across every registered node type, scoped by the same node-visibility ACL as `nodes.list`. No content scan and no full-text ranking \u2014 ordered exact-slug-match first, then by name. Backs the dashboard search dialog's 'Recent' tab cache-miss path; the heavier `search` endpoint remains the dedicated full-text content search."
     }).input(searchNodesByNameInputSchema).output(external_exports.array(nodeSearchResultSchema)),
     isDescendant: oc.route({
       method: "GET",
@@ -19522,6 +19655,16 @@ var busabaseContractRoutes = {
       summary: "List change requests",
       successDescription: "A page of change requests plus an opaque nextCursor (null at the end). Filter with `status` and/or `mine`."
     }).input(listChangeRequestsPagedInputSchema).output(listChangeRequestsResponseSchema),
+    // Numbered paging alongside the cursor listing, mirroring records.listPage.
+    // Keyset is right for "keep scrolling"; a reviewer working a 2,000-item tab
+    // needs to jump to page 30 and to see how many pages there are at all.
+    listPage: oc.route({
+      method: "GET",
+      path: "/change-requests/page",
+      tags: ["Change Requests"],
+      summary: "List a numbered change request page",
+      successDescription: "A random-access page of change requests plus the total across the whole filter. Same `status` / `mine` filters as the cursor listing."
+    }).input(listChangeRequestsPageInputSchema).output(listChangeRequestsPageResponseSchema),
     counts: oc.route({
       method: "GET",
       path: "/change-requests/counts",
@@ -19795,9 +19938,9 @@ var cloudExtraRoutes = {
       })
     ).output(AgentTaskDetailSchema)
   },
-  // Relative-path twin of `embedLinksContract`
-  // (apps/busabase-cloud/src/domains/embed-links/contract.ts, served at the absolute
-  // `/api/v1/embed-links` paths) — same schemas imported from `./embed-link-schemas`, just
+  // Relative-path twin of the `embedLinksContract` the Busabase Cloud host
+  // serves at the absolute `/api/v1/embed-links` paths — same schemas
+  // imported from `./embed-link-schemas`, just
   // routed relative here so the shared `/api/v1` prefix below lands on the identical real path.
   embedLinks: {
     create: oc.route({
