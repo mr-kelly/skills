@@ -11,6 +11,7 @@ import {
   statusLabel,
 } from "./jobhunt-model.js?v=0.3.0";
 import { getProvider } from "./providers/index.js?v=0.3.0";
+import { initRuntime, shouldUseLocalGateway } from "./runtime.js?v=0.3.0";
 
 const root = document.querySelector("#app");
 
@@ -715,11 +716,10 @@ const load = async ({ keepRoute = false } = {}) => {
   if (!keepRoute) root.innerHTML = '<div class="boot-state">正在读取投递台...</div>';
   try {
     const demo = new URLSearchParams(window.location.search).get("demo") === "1";
-    const loopbackHost =
-      ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname) ||
-      window.location.hostname.endsWith(".localhost");
-    const busabaseHosted = window.self !== window.top || window.location.pathname.startsWith("/api/airapp-preview/");
-    const standaloneLocalRuntime = loopbackHost && !busabaseHosted;
+    // Resolved before anything asks where it runs. The local `/auth/*` gateway
+    // exists only in a standalone run, so consult it only there — and decide
+    // that from the runtime Busabase injected, never from the URL.
+    const standaloneLocalRuntime = shouldUseLocalGateway(await initRuntime());
     if (!demo && standaloneLocalRuntime) {
       authStatus = await fetch("/auth/status", { headers: { accept: "application/json" } }).then((response) =>
         response.json(),

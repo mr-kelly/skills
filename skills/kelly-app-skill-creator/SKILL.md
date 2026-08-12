@@ -132,10 +132,9 @@ local preview, or local debugging.
 
 ## Connection UX Contract
 
-When `local-preview` was explicitly requested, every standalone loopback
-App-in-Skill must be usable without a CLI login or pasted API key. Only in that
-standalone local context, when no connection exists, show one focused setup
-screen with:
+When `local-preview` was explicitly requested, every standalone App-in-Skill must
+be usable without a CLI login or pasted API key. Only in that standalone
+context, when no connection exists, show one focused setup screen with:
 
 - a selected `Busabase Cloud` option using the canonical Cloud URL;
 - a `Custom server` option that reveals one URL field for self-hosted or
@@ -171,6 +170,50 @@ or proxy code into each `server.js`. Browser-provided `x-busabase-space` is
 untrusted and must never override the gateway's validated server-side choice.
 Treat `SPACE_SELECTION_REQUIRED` and `SPACE_NOT_ALLOWED` as stable reasons;
 never parse a human error sentence to decide which setup screen to render.
+
+### "Standalone" is a fact the host states, not one the app infers
+
+Busabase spawns the App's own process in every runtime it hosts, and injects
+`BUSABASE_AIRAPP_RUNTIME` (`nodepod` | `local-node` | `srt` | `embed`). Nobody
+else sets it, so **its absence is the positive fact "standalone"**. `server.js`
+re-exposes it — the browser cannot read environment variables:
+
+```js
+const AIRAPP_HOSTED_RUNTIMES = new Set(["nodepod", "local-node", "srt", "embed"]);
+const airappRuntime = (process.env.BUSABASE_AIRAPP_RUNTIME || "").trim();
+app.get("/__airapp/runtime", (context) =>
+  context.json({
+    runtime: airappRuntime || "standalone",
+    hosted: AIRAPP_HOSTED_RUNTIMES.has(airappRuntime),
+  }),
+);
+```
+
+**Never derive this from the URL** — not the hostname, not `window.self !==
+window.top`, not a `/api/airapp-preview/` path prefix. Every such test misfires
+in both directions. A Busabase-hosted App is served from `localhost` on Desktop
+and OSS (`http://localhost:15419`), so "loopback ⇒ standalone" is wrong; and a
+standalone `pnpm dev` is routinely reached over a LAN IP or a signed dev tunnel
+such as `https://3111-t14e66e832aa5e6a.dev.budaapps.com`, so "not loopback ⇒
+hosted" is wrong. The second direction is the damaging one: the App hides its
+own connect gate, calls `/api/v1` with no credential, and reports an error the
+operator cannot act on.
+
+Browser code probes `__airapp/runtime` **relatively** (no leading slash — under
+the Local Node engine the App is served from a sub-path of busabase's origin)
+and must verify the response is JSON, since a hosted origin's catch-all route
+can answer `200` with an HTML shell.
+
+Resolve three states, never two — `hosted`, `standalone`, `unknown` — and let
+each decision fall to its own safe side when the runtime is undetermined:
+
+| Decision | Safe default when `unknown` | Why |
+| --- | --- | --- |
+| Show the connect gate | show it | An unnecessary gate is closed by the operator; a missing one strands them. |
+| Merge writes instead of raising a ChangeRequest | do **not** merge | A reviewable write can still be approved; one that auto-merged has already crossed the review boundary. |
+
+`scripts/check.mjs` must fail on `location.hostname` and iframe-nesting tests,
+and must assert the server exposes `/__airapp/runtime`.
 
 Apply `references/setup-onboarding.md` after authentication. Infrastructure
 readiness and product onboarding are separate: a connected, materialized AirApp
