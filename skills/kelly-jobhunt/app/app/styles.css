@@ -941,6 +941,49 @@ code {
 .onboarding-form {
   min-width: 0;
 }
+.onboarding-agent-first {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.onboarding-manual {
+  min-width: 0;
+}
+.onboarding-manual summary {
+  padding: 0;
+  color: #68757f;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.onboarding-manual-fields {
+  display: grid;
+  gap: 14px;
+  padding-top: 14px;
+}
+.secondary-onboarding-action {
+  color: #2d5f47;
+  background: #fff;
+  border-color: #8fbea4;
+}
+.secondary-onboarding-action:hover {
+  background: #f0f7f3;
+}
+.onboarding-modal:not(:has(.onboarding-manual[open])) .secondary-onboarding-action {
+  display: none;
+}
+.onboarding-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.onboarding-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .onboarding-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1004,6 +1047,13 @@ code {
   .setup-footer-split {
     align-items: stretch;
     flex-direction: column;
+  }
+  .onboarding-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .onboarding-footer-actions {
+    justify-content: flex-end;
   }
   .app-shell,
   .app-shell.sidebar-is-collapsed {

@@ -38,14 +38,20 @@ The first app run has two separate gates before that command loop begins:
 
 1. connect Busabase and explicitly select the target Space when the account has
    more than one;
-2. initialize schema v3 resources, then complete product onboarding v1 with a
-   target role, truthful highlights, resume file, and sender address.
+2. initialize schema v4 resources, then show product onboarding v1 with
+   `/kelly-jobhunt profile` as the primary path. The user may skip it and enter
+   the desk; target role, truthful highlights, and sender address remain visible
+   readiness requirements for later operations. A generated resume file is
+   optional and must not block the desk.
 
-Persist onboarding completion as `onboarding-version` on the profile record.
-Until version 1 is materialized, read only the Profile Base; do not load the
-Companies or Leads queues and do not run research or send actions. A deployed
-AirApp submits the onboarding update as a ChangeRequest and stays on the waiting
-state until that CR is merged. OAuth success alone never marks product
+Persist completed onboarding as `onboarding-version` on the profile record. An
+explicit skip dismisses the prompt for the current open app session without
+writing placeholder profile data or browser storage. Until version 1 is
+materialized or the prompt is skipped, read only the Profile Base; do not load
+the Companies or Leads queues. After a skip, the desk may load, but `research`
+and `send` still stop on their own missing profile requirements. A deployed
+AirApp submits a completed onboarding update as a ChangeRequest and stays on the
+waiting state until that CR is merged. OAuth success alone never marks product
 onboarding complete.
 
 ## Mandatory Dependencies
@@ -131,12 +137,15 @@ on, plus a resume PDF worth attaching.
    104 / 1111 / CakeResume. English → LinkedIn / Indeed / Wellfound / company
    career pages. Always let them add their own. Store the answer in
    `job-boards`; `research` reads it.
-4. **Write the profile**, then build the resume:
+4. **Write the profile** and set `onboarding-version: 1` in the same approved
+   change once target role, truthful highlights, and sender address are ready.
+   When the user wants a PDF attachment, build the resume:
    ```bash
    node scripts/build_resume.mjs           # dry run: writes an HTML preview
    node scripts/build_resume.mjs --apply   # renders resume/<name>.pdf
    ```
-   The dry run exists so the user can look at the layout before committing.
+   Resume generation is optional; research and sending can proceed without a
+   `resume-file`. The dry run exists so the user can look at the layout before committing.
    Layout is HTML + CSS printed by headless Chrome; edit the template in
    `scripts/build_resume.mjs` if they want a different look. Rendering is
    `scripts/render_pdf.mjs`: it tries every browser on the machine — including

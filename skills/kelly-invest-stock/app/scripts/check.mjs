@@ -1,6 +1,5 @@
 import { access, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 
 const root = process.cwd();
 const required = [
@@ -26,7 +25,6 @@ for (const relative of required) {
 
 const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
 const resourceMap = JSON.parse(await readFile(path.join(root, "resource-map.json"), "utf8"));
-const { appConfig } = await import(pathToFileURL(path.join(root, "app/js/config.js")).href);
 const serverSource = await readFile(path.join(root, "server.js"), "utf8");
 const configSource = await readFile(path.join(root, "app/js/config.js"), "utf8");
 const provisioningSource = await readFile(path.join(root, "app/js/resource-provisioning.js"), "utf8");
@@ -46,8 +44,7 @@ if (packageJson.scripts?.start !== "node server.js") {
 if (resourceMap.resources?.length !== 5 || resourceMap.vaultRequirements?.length !== 0) {
   throw new Error("Resource map must declare five non-secret Busabase resources");
 }
-const readDeclarations = [...(appConfig.bases || []), ...(resourceMap.resources || [])];
-if (readDeclarations.some((declaration) => Object.hasOwn(declaration, "readLimit"))) {
+if (/\breadLimit\b/.test(configSource) || /\breadLimit\b/.test(JSON.stringify(resourceMap))) {
   throw new Error("Busabase transport pagination must not be configured per Base");
 }
 if (

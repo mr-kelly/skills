@@ -109,26 +109,30 @@ test("does not persist secrets or domain state in browser storage", async () => 
 test("local OAuth selects and validates a Space before proxying SDK requests", async () => {
   const server = await readFile(join(appRoot, "server.js"), "utf8");
   const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");
-  assert.match(server, /new URL\("\/api\/v1\/auth"/);
-  assert.match(server, /requiresSpace/);
-  assert.match(server, /spaceError/);
-  assert.match(server, /app\.post\("\/auth\/space"/);
-  assert.match(server, /HttpOnly; SameSite=Lax/);
-  assert.match(server, /cookieValue\(context, SPACE_COOKIE\)/);
-  assert.doesNotMatch(server, /cookieValue\(context, SPACE_COOKIE\) \|\| context\.req\.header\("x-busabase-space"\)/);
+  assert.match(server, /createBusabaseAirAppLocalGateway/);
+  assert.match(server, /gateway\.selectSpace\(context\.req\.raw\)/);
+  assert.match(server, /gateway\.proxy\(context\.req\.raw\)/);
+  assert.doesNotMatch(server, /context\.req\.header\("x-busabase-space"\)/);
   assert.match(app, /选择 Busabase Space/);
   assert.match(app, /authStatus\.requiresSpace/);
   assert.match(app, /fetch\("\/auth\/space"/);
 });
 
-test("first-run product onboarding is versioned Busabase domain state", async () => {
+test("first-run product onboarding is versioned, skippable Busabase domain state", async () => {
   const { appConfig } = await import(join(browserRoot, "js", "config.js"));
   const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");
   const model = await readFile(join(browserRoot, "js", "jobhunt-model.js"), "utf8");
   assert.ok(Number.isInteger(appConfig.onboardingVersion) && appConfig.onboardingVersion > 0);
   assert.ok(appConfig.bases[0].fields.some((field) => field.slug === "onboarding-version"));
   assert.match(app, /renderOnboarding/);
-  assert.match(app, /desk\.profile\.onboardingVersion < appConfig\.onboardingVersion/);
+  assert.match(app, /data-skip-onboarding/);
+  assert.match(app, /skipOnboarding/);
+  assert.match(app, /onboardingDismissed = true/);
+  assert.match(app, /!onboardingDismissed/);
+  assert.doesNotMatch(
+    app,
+    /desk\.profile\.onboardingVersion < appConfig\.onboardingVersion \|\| !desk\.profile\.ready/,
+  );
   assert.match(model, /"onboarding-version"/);
 });
 
@@ -274,11 +278,12 @@ test("a test send routes the mail without touching the research", async () => {
   assert.match(send, /if \(!testTo\) \{\s*await client\.records\.changeRequest/);
 });
 
-test("a dry run never requires the resume attachment to exist", async () => {
-  // The point of a dry run is to print the plan; crashing on a missing PDF
-  // hides the very list the operator asked for.
+test("the resume attachment is optional and a missing configured file only blocks apply", async () => {
+  // No configured resume means an intentional no-attachment send. If a file is
+  // configured but missing, dry run still prints the plan and apply stops.
   const send = await readFile(join(skillRoot, "scripts", "send_emails.mjs"), "utf8");
-  assert.match(send, /if \(!resumeReady\)/);
+  assert.match(send, /attachments: resumeReady \? \[\{ filename: resumeName, path: resumePath \}\] : \[\]/);
+  assert.match(send, /if \(resumeName && !resumeReady\)/);
   assert.match(send, /if \(apply\) fail\(/);
 });
 

@@ -47,10 +47,11 @@ test("serves health and canonical browser assets", async () => {
 test("starts disconnected without leaking a local credential", async () => {
   const response = await fetch(`${baseUrl}/auth/status`);
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), {
-    connected: false,
-    cloudBaseUrl: "https://busabase.com",
-  });
+  const status = await response.json();
+  assert.equal(status.connected, false);
+  assert.equal(status.cloudBaseUrl, "https://busabase.com");
+  assert.equal(status.readiness, "needs_connection");
+  assert.equal(status.action, "connect");
 });
 
 test("rejects cross-origin OAuth starts", async () => {
@@ -66,7 +67,7 @@ test("rejects cross-origin OAuth starts", async () => {
   assert.equal(response.status, 303);
   const location = new URL(response.headers.get("location"));
   assert.equal(location.origin, baseUrl);
-  assert.match(location.searchParams.get("oauth_error"), /来源不匹配/);
+  assert.match(location.searchParams.get("oauth_error"), /origin did not match/i);
 });
 
 test("requires an explicit valid Space before proxying a multi-Space account", async () => {
@@ -114,14 +115,15 @@ test("requires an explicit valid Space before proxying a multi-Space account", a
 
   try {
     const ambiguous = await fetch(`${connectedUrl}/auth/status`);
-    assert.deepEqual(await ambiguous.json(), {
-      connected: true,
-      baseUrl: `http://127.0.0.1:${upstreamPort}`,
-      source: "open-server",
-      requiresSpace: true,
-      space: null,
-      spaces,
-    });
+    const ambiguousStatus = await ambiguous.json();
+    assert.equal(ambiguousStatus.connected, true);
+    assert.equal(ambiguousStatus.baseUrl, `http://127.0.0.1:${upstreamPort}`);
+    assert.equal(ambiguousStatus.source, "open-server");
+    assert.equal(ambiguousStatus.readiness, "needs_space");
+    assert.equal(ambiguousStatus.action, "select_space");
+    assert.equal(ambiguousStatus.requiresSpace, true);
+    assert.equal(ambiguousStatus.space, null);
+    assert.deepEqual(ambiguousStatus.spaces, spaces);
 
     const bypass = await fetch(`${connectedUrl}/api/v1/nodes`, {
       headers: { "x-busabase-space": "spc_alpha" },
@@ -137,8 +139,8 @@ test("requires an explicit valid Space before proxying a multi-Space account", a
       },
       body: "space_id=spc_unknown",
     });
-    assert.equal(invalid.status, 400);
-    assert.match((await invalid.json()).error, /不属于当前账号/);
+    assert.equal(invalid.status, 403);
+    assert.match((await invalid.json()).error, /not accessible to this account/i);
 
     const selected = await fetch(`${connectedUrl}/auth/space`, {
       method: "POST",
@@ -149,18 +151,15 @@ test("requires an explicit valid Space before proxying a multi-Space account", a
       body: "space_id=spc_beta",
     });
     assert.equal(selected.status, 200);
-    const cookie = selected.headers.get("set-cookie");
-    assert.match(cookie, /kelly-jobhunt-space=spc_beta/);
-    assert.match(cookie, /HttpOnly/);
-    assert.match(cookie, /SameSite=Lax/);
+    assert.equal(selected.headers.get("set-cookie"), null);
 
-    const ready = await fetch(`${connectedUrl}/auth/status`, { headers: { cookie } });
+    const ready = await fetch(`${connectedUrl}/auth/status`);
     const readyStatus = await ready.json();
     assert.equal(readyStatus.requiresSpace, false);
     assert.equal(readyStatus.space.id, "spc_beta");
 
     const proxied = await fetch(`${connectedUrl}/api/v1/nodes`, {
-      headers: { cookie, "x-busabase-space": "spc_alpha" },
+      headers: { "x-busabase-space": "spc_alpha" },
     });
     assert.equal(proxied.status, 200);
     assert.deepEqual(proxiedSpaces, ["spc_beta"]);
@@ -170,19 +169,19 @@ test("requires an explicit valid Space before proxying a multi-Space account", a
     const singleStatus = await single.json();
     assert.equal(singleStatus.requiresSpace, false);
     assert.equal(singleStatus.space.id, "local");
-    assert.match(single.headers.get("set-cookie"), /kelly-jobhunt-space=local/);
+    assert.equal(single.headers.get("set-cookie"), null);
 
     spaces = [];
     const none = await fetch(`${connectedUrl}/auth/status`);
-    assert.deepEqual(await none.json(), {
-      connected: true,
-      baseUrl: `http://127.0.0.1:${upstreamPort}`,
-      source: "open-server",
-      requiresSpace: true,
-      space: null,
-      spaces: [],
-      spaceError: "当前账号没有可访问的 Busabase Space。",
-    });
+    const noneStatus = await none.json();
+    assert.equal(noneStatus.connected, true);
+    assert.equal(noneStatus.baseUrl, `http://127.0.0.1:${upstreamPort}`);
+    assert.equal(noneStatus.source, "open-server");
+    assert.equal(noneStatus.readiness, "needs_space");
+    assert.equal(noneStatus.action, "retry");
+    assert.equal(noneStatus.requiresSpace, true);
+    assert.equal(noneStatus.space, null);
+    assert.deepEqual(noneStatus.spaces, []);
   } finally {
     await connectedRuntime.stop();
     await new Promise((resolve, reject) => upstream.close((error) => (error ? reject(error) : resolve())));

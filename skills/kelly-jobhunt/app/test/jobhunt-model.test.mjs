@@ -104,21 +104,31 @@ test("an already-sent company keeps its recorded address even if a better one ap
 test("profile readiness lists exactly what is still missing", () => {
   const empty = normalizeProfile(undefined);
   assert.equal(empty.ready, false);
-  assert.deepEqual(empty.missing, ["目标岗位", "自我介绍", "简历附件", "发件邮箱"]);
+  assert.deepEqual(empty.missing, ["目标岗位", "自我介绍", "发件邮箱"]);
 
   const partial = normalizeProfile(record("p", "profile", { target_role: "产品经理", highlights: "五年经验" }));
-  assert.deepEqual(partial.missing, ["简历附件", "发件邮箱"]);
+  assert.deepEqual(partial.missing, ["发件邮箱"]);
 
   assert.equal(normalizeProfile(profileRecord).ready, true);
+  assert.equal(
+    normalizeProfile(
+      record("p", "profile", {
+        target_role: "产品经理",
+        highlights: "五年经验",
+        from_email: "a@example.com",
+      }),
+    ).ready,
+    true,
+  );
 });
 
-test("product onboarding is versioned and validates all readiness fields", () => {
+test("product onboarding is versioned and treats the resume as optional", () => {
   assert.equal(normalizeProfile(profileRecord).onboardingVersion, 0);
   assert.equal(
     normalizeProfile(record("p", "profile", { ...profileRecord.fields, onboarding_version: 1 })).onboardingVersion,
     1,
   );
-  assert.deepEqual(missingProfileRequirements({ targetRole: "产品经理" }), ["自我介绍", "简历附件", "发件邮箱"]);
+  assert.deepEqual(missingProfileRequirements({ targetRole: "产品经理" }), ["自我介绍", "发件邮箱"]);
 });
 
 test("approval refuses to queue a send without a contact or a drafted email", () => {
