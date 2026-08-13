@@ -645,6 +645,9 @@ input:focus-visible {
 }
 .detail-fact strong {
   font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .readiness-item.done i {
   background: var(--green);

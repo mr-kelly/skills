@@ -1678,6 +1678,27 @@ Cost and model-governance dashboard for a shared LLM gateway.
   </tr>
 </table>
 
+### `kelly-sales-outreach`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-sales-outreach/assets/screenshots/to-send.webp" alt="Kelly Sales Outreach review queue"></td>
+    <td width="50%"><img src="skills/kelly-sales-outreach/assets/screenshots/blocked.webp" alt="Kelly Sales Outreach company with no verified contact"></td>
+  </tr>
+  <tr>
+    <td><strong>Review queue</strong><br>Companies sorted by ICP match and evidence strength, each with its drafted first-touch email ready for approval.</td>
+    <td><strong>No contact yet</strong><br>A company with no verified business email: approval stays locked until research finds one, rather than guessing an address.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-sales-outreach/assets/screenshots/profile.webp" alt="Kelly Sales Outreach profile"></td>
+    <td width="50%"><img src="skills/kelly-sales-outreach/assets/screenshots/sent.webp" alt="Kelly Sales Outreach sent record"></td>
+  </tr>
+  <tr>
+    <td><strong>Profile</strong><br>Offer, value proposition, proof points, and ICP hypothesis derived from the product description.</td>
+    <td><strong>Sent record</strong><br>Once approved and sent, the message is read-only: recipient, approval time, and send time.</td>
+  </tr>
+</table>
+
 </details>
 
 ---

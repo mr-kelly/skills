@@ -105,6 +105,13 @@ const ROUTE_OVERRIDES = {
     sent: "/sent",
     blocked: "/all/company-maimang",
   },
+  "kelly-sales-outreach": {
+    overview: "/to-send",
+    "to-send": "/to-send",
+    profile: "/profile",
+    sent: "/sent",
+    blocked: "/all/company-yunhe",
+  },
 };
 
 const GENERIC_ROUTE_MAP = {
