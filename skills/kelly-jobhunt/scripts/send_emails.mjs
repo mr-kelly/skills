@@ -76,9 +76,15 @@ const {
   missing: smtpMissing,
   ready: smtpReady,
   vaultAvailable,
+  runtimeAvailable,
 } = await resolveSmtpSettings({ fromEmail });
 
-const SOURCE_LABEL = { environment: "环境变量注入", vault: "Vault", derived: "由发件地址推导" };
+const SOURCE_LABEL = {
+  environment: "环境变量注入",
+  vault: "Vault",
+  "vault-runtime": "Vault 运行时",
+  derived: "由发件地址推导",
+};
 
 process.stdout.write(dryRunBanner(apply));
 console.log(`发件人 ${fromEmail} · 附件 ${resumeName ? `${resumeName}${resumeReady ? "" : "（缺失）"}` : "无"}`);
@@ -104,7 +110,7 @@ for (const company of queued) {
 }
 
 if (!smtpReady) {
-  const hint = smtpMissingHint(smtpMissing, vaultAvailable);
+  const hint = smtpMissingHint(smtpMissing, { vaultAvailable, runtimeAvailable });
   if (apply) fail(`SMTP 还没准备好，没有发送任何邮件。\n${hint}`);
   console.log(`\n注意：SMTP 还没准备好。\n${hint}`);
 }

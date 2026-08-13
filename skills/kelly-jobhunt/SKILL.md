@@ -26,7 +26,7 @@ operator never has to remember which is which.
 | `/kelly-jobhunt setup` | Create or adopt the Busabase Folder and three Bases, then read them back |
 | `/kelly-jobhunt profile` | Take the user's resume or raw notes, extract a structured profile, ask which job channels to search, and build a typeset PDF resume |
 | `/kelly-jobhunt research` | Find target companies and their contact addresses, draft one email each, import them |
-| `/kelly-jobhunt send` | Put the user's own SMTP credentials in the Busabase Vault, then send what they approved |
+| `/kelly-jobhunt send` | Put the user's own SMTP credentials in the Busabase Vault, rehearse the transport, then send what they approved |
 | `/kelly-jobhunt` (no argument) | Open the desk and report where things stand |
 
 Run them in that order the first time. Afterwards `research` is the one that
@@ -227,39 +227,50 @@ Goal: the user's own mailbox sends the letters they approved.
    needs nothing but their 授权码. An explicitly configured value always wins
    over a derived one. Nothing is derived for a company domain — its MX is not
    its submission host.
-2. Store it. **Where depends on which Busabase this is**, and the dry run in
-   step 3 tells you which:
-   - **Self-hosted / local** (`/api/v1/vault` answers): write it to the Vault.
-     ```bash
-     node scripts/configure_smtp.mjs --host smtp.qq.com --port 465 --user me@qq.com --pass <授权码> --apply
-     # or, to keep it out of shell history:
-     SMTP_PASS=xxx node scripts/configure_smtp.mjs --host smtp.qq.com --user me@qq.com --apply
-     ```
-     This writes four Vault items and records only their **reference names** on
-     the profile. The Vault API is a full-document PUT, so the script reads the
-     existing Vault and merges — never call `vault.update` with a partial set.
-   - **Busabase Cloud** (`/api/v1/vault` 404s): `configure_smtp.mjs` cannot help
-     and will say so. Cloud's Vault is account-level, reachable only through a
-     browser session (`vault.reveal` over `/api/rpc`); a workspace API key gets
-     401 there by design. Have the user add the items in Cloud → Vault under the
-     Space or Agent scope with **runtime** ticked, then **start a new Session** —
-     Cloud injects `access.runtime` items into a task's environment when that
-     task starts, so a session already running will not see them.
+2. Store it. One command, on Cloud and self-hosted alike:
+   ```bash
+   node scripts/configure_smtp.mjs --host smtp.qq.com --port 465 --user me@qq.com --pass <授权码> --apply
+   # or, to keep it out of shell history:
+   SMTP_PASS=xxx node scripts/configure_smtp.mjs --host smtp.qq.com --user me@qq.com --apply
+   ```
+   This writes four Vault items and records only their **reference names** on
+   the profile. Two things about that write are load-bearing, both because the
+   Vault API is a **full-document PUT** rather than an upsert:
+   - the script reads the existing set and merges — never send a partial set;
+   - it writes back **only the personal scope**, and **keeps each item's `id`**.
+     On Cloud a read masks every secret to `""` and a blank secret means "keep
+     the stored value", matched by id. Strip the ids and that write blanks every
+     secret in the scope the script did not set itself. Echo back Space-scoped
+     items and the write is refused, because Cloud takes the target scope from
+     the items.
 
-   A 404 on `/api/v1/vault` means "this is Cloud", **not** "you have no Vault".
-   Never tell the user the feature is missing while they are looking at it.
-3. Send what was approved:
+   The user can equally add the items in the web app's Vault under a Space or
+   API-key scope, with **runtime** ticked. Either way no session restart is
+   needed — see step 3.
+3. Understand where a value can come from, because the dry run names it:
+   - **self-hosted** serves `/api/v1/vault` with real values;
+   - **Cloud** serves the same route with every secret masked to `""` — it can
+     only tell you an item exists — and serves `/api/v1/vault/runtime` with the
+     values of items marked `access.runtime`. That is the same set Cloud injects
+     into a task's environment at startup, so reading it over HTTP just removes
+     the requirement to have restarted since the item was saved.
+
+   Which routes answer is the only reliable way to tell the two apart. Never
+   infer it from the base URL, and never tell the user the Vault is missing —
+   that sentence was wrong even when the route 404'd.
+4. Send what was approved:
    ```bash
    node scripts/send_emails.mjs           # dry run: prints sender, attachment, and the exact list
    node scripts/send_emails.mjs --apply
    ```
    The dry run reports each of the four settings as 就绪 or 缺失 with where it
-   came from (环境变量注入 / Vault / 由发件地址推导) and never prints a value. Read
+   came from (环境变量注入 / Vault / Vault 运行时 / 由发件地址推导) and never
+   prints a value. Read
    that list before guessing at a cause: "缺 SMTP_PASS" and "什么都没配" need
    different answers. A failed send leaves the row `queued` so another address
    from the pool can be tried. Report failures per company; never silently drop
    one.
-4. **Rehearse with `--test-to` before the first real send**, so SMTP auth, the
+5. **Rehearse with `--test-to` before the first real send**, so SMTP auth, the
    attachment, and the letter itself are proven against an inbox the user owns:
    ```bash
    node scripts/send_emails.mjs --test-to me@qq.com --apply
@@ -317,7 +328,7 @@ slugs, status values, and Vault keys are fixed by `references/jobhunt-schema.md`
 | `jobhunt-profile-v1` | One row. Identity, target role, channels, resume source text, resume file name, sender address, onboarding version, and the SMTP Vault reference names. |
 | `jobhunt-companies-v1` | One row per company: match evidence, drafted email, outreach status, the address actually used. |
 | `jobhunt-leads-v1` | Several rows per company: candidate addresses with role, source URL, and confidence. |
-| Vault `SMTP_*` | Host, port, user, app password. Values readable only by the trusted sender — from the local Vault, or from the environment Cloud injects them into. |
+| Vault `SMTP_*` | Host, port, user, app password. Values readable only by the trusted sender — from a self-hosted Vault, from Cloud's `/api/v1/vault/runtime`, or from the environment. |
 
 `company-key` is a plain text foreign key, not a Busabase relation field. Two
 mutually referencing Bases cannot be created in one ChangeRequest, and the
