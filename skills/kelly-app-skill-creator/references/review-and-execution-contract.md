@@ -8,7 +8,7 @@ revision, claims work, prepares an external action, or reports execution.
 1. Responsibility boundary
 2. Lifecycle and verdicts
 3. Review record contract
-4. Execution contract
+4. Execution contract — including CR scoping, rehearsal, and external-tool failure
 5. Concurrency and recovery
 6. Verification
 
@@ -98,6 +98,44 @@ started/completed timestamps, status, canonical artifact/result references, and
 a sanitized error or blocked reason. Do not mark `done` merely because a job
 started or a draft was generated.
 
+### Approve only your own application's ChangeRequests
+
+A Space's open-CR list is shared by every app in it. Filter to this app's own
+resource ids from its resource map — and, when approving one item, to that
+record id — before reviewing or merging anything. Merging what the query
+returned is how an unrelated app's pending write gets approved by someone who
+never read it.
+
+### Rehearsal must not mutate the real data
+
+An operator will want to prove an outward channel works — credentials,
+attachment, rendering — before the first real send. Provide that as an explicit
+mode that **redirects the effect and writes nothing**: route to an address or
+target the operator owns, mark the artifact so a stray delivery cannot be
+mistaken for the real thing, and leave every record in its pre-execution state,
+because no real recipient was contacted.
+
+Without such a mode the operator invents one, and the obvious improvisation is
+to edit the real targets — which destroys the researched data the workflow
+exists to produce. One rehearsal is enough to prove a channel; repeating it
+across the whole queue proves the same thing many times.
+
+### External tools fail; make it diagnosable
+
+A renderer, browser, or converter that a workflow shells out to will be missing,
+or present and unable to start. Do not let one candidate's failure end the
+attempt, and do not discard its output:
+
+- try every candidate the machine may have, including the copies that other
+  tooling installs into its own cache;
+- then try a different driver for the same engine — a library launch often
+  survives an environment that breaks the CLI;
+- on failure, report **each attempt with its exit code and captured stderr**.
+  "It failed" is not a diagnosis, and a tool run with output suppressed cannot
+  produce one;
+- keep whatever intermediate artifact does exist, so the operator retains a
+  manual path.
+
 ## Concurrency And Recovery
 
 Use Busabase records, versions, atomic claims, or ChangeRequest state as the
@@ -124,4 +162,8 @@ Verify:
 - retries do not duplicate the side effect;
 - execution reports contain concrete operations, targets, results, and errors;
 - the AirApp cannot directly perform third-party side effects or read Vault
-  values.
+  values;
+- approval queries are scoped to this app's own resources, not the whole Space;
+- a rehearsal mode exists for every outward channel and provably writes nothing;
+- an external tool's failure names every candidate tried, with exit code and
+  stderr.
