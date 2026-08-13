@@ -64,7 +64,7 @@ the other selected references completely before acting:
 | --- | --- |
 | Busabase SDK, node selection, config, state, locks, readiness, secrets | `references/busabase-data-contract.md` |
 | Runtime readiness, product onboarding, setup UX, reconfiguration | `references/setup-onboarding.md` |
-| Human verdicts, Agent revision, claims, external execution, recovery | `references/review-and-execution-contract.md` |
+| Human verdicts, Agent revision, claims, external execution, rehearsal, recovery | `references/review-and-execution-contract.md` |
 | Product shape selection | `references/app-types.md` |
 | Research/Plan/Action/Retrospective patterns | `references/workflow-patterns.md` |
 | Attention UI, review actions, routing, settings, i18n | `references/ui-workflow-patterns.md` |
@@ -489,7 +489,32 @@ Finish only when:
 - 1280px desktop, 390px phone, and 360px narrow-phone workflows pass visual,
   interaction, and horizontal-overflow checks;
 - validation, deployment, and real-data checks required by dependency skills
-  pass.
+  pass, and were verified as described in "A Green Suite Is Not An Acceptance".
+
+## A Green Suite Is Not An Acceptance
+
+Passing tests say the cases you thought of hold. Before reporting a change as
+verified, exercise it the way a real caller will:
+
+- **Run the actual command against a real instance**, not only the unit cases.
+  A pure-assertion check of an integration is a statement about your assumptions.
+- **Confirm a new regression test fails without its fix.** A test written after
+  the diagnosis usually passes either way; one that cannot fail proves nothing.
+  Revert the fix, watch it go red, restore it.
+- **Ask which variant the existing test happened to take.** A round-trip test
+  that preserved server-owned ids stayed green through a bug that blanked every
+  secret in the scope, because the failing path was the variant nobody wrote.
+- **Suspect the environment before the diagnosis.** A stale local database, an
+  absent encryption key, or missing `node_modules` produces failures that look
+  exactly like a regression in the change under review. Establish which it is
+  before concluding anything.
+- **Re-check downstream assumptions after changing a shared surface.** A fix that
+  makes a previously-404 route work turns every client's untested error path into
+  a live code path. Ship the client-side follow-up with it, not after a user
+  finds it.
+
+Report what was actually executed and what was skipped. "Tests pass" without
+saying which environment they ran in is not a result.
 
 ## Stop Conditions
 
