@@ -90,15 +90,22 @@ export async function mergeChangeRequest(client, changeRequest) {
 // directly, and treat "this server has no Vault route" as a normal answer
 // rather than a crash.
 //
-// A 404 here means "this is Cloud", NOT "you have no Vault". Cloud does have
-// one — account-level, behind a browser session (`vault.reveal` over /api/rpc);
-// a workspace API key gets 401 there by design. Cloud delivers those secrets a
-// different way: every item marked `access.runtime` is injected into the
-// environment of the task it starts, merging personal, Space, and API-key
-// scopes. That is why credentials are read from the environment first below.
-const vaultRequest = async (method, body) => {
+// A 404 here means "this instance does not serve that route", NOT "you have no
+// Vault" — the two are easy to confuse and the confusion is expensive.
+//
+// Cloud serves both routes now. Its Vault is account-level and scoped per
+// personal / Space / API key, and it answers `/api/v1/vault` with every secret
+// masked to "" — existence, scope, and access policy, never a value. Values come
+// from `/api/v1/vault/runtime`, bounded to items marked `access.runtime`: the
+// same set Cloud injects into a task's environment at startup, minus the
+// requirement to have restarted since they were saved.
+//
+// A self-hosted instance serves `/api/v1/vault` with real values and has no
+// runtime route. Which routes answer is therefore the only reliable way to tell
+// the two apart — not a guess from the base URL.
+const vaultRequest = async (method, body, path = "/api/v1/vault") => {
   const baseUrl = required("BUSABASE_BASE_URL").replace(/\/+$/, "");
-  const response = await fetch(`${baseUrl}/api/v1/vault`, {
+  const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: {
       "content-type": "application/json",
@@ -112,27 +119,31 @@ const vaultRequest = async (method, body) => {
   return response.json();
 };
 
-// Cloud has a Vault; it just is not writable with a workspace API key. Say what
-// to do there instead of claiming the feature is missing.
 export const vaultWriteUnavailableHint = [
-  "这台 Busabase 没有本地 Vault 写入接口（/api/v1/vault），说明你连的是 Busabase Cloud。",
-  "Cloud 的 Vault 是账户级的，只能在网页里改，工作区 API Key 没有权限写：",
-  "  1. 打开 Busabase Cloud → Vault，在 Space 或 Agent 作用域新建 SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS；",
-  "  2. 四项都勾上 runtime（运行时注入），SMTP_PASS 建议关掉 reveal；",
-  "  3. 开一个新的 Session 再跑发送脚本——已经在跑的会话不会拿到新值。",
+  "这台 Busabase 没有 /api/v1/vault 写入接口。",
+  "改用环境变量运行发送脚本：SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS。",
 ].join("\n");
 
 // The Vault API is a full-document PUT, not an upsert: sending only your own
-// keys deletes every other item on the instance. Always read, merge by key,
-// write the whole set back.
+// keys deletes every other item in the scope. Always read, merge by key, write
+// the whole set back.
 export async function upsertVaultItems(items) {
   const current = await vaultRequest("GET");
   if (current === null) return null;
-  const byKey = new Map((current.items || []).map((item) => [item.key, item]));
+
+  // Two rules that only matter on Cloud, and both cost data when broken:
+  //
+  // Keep `id`. Cloud masks every secret to "" on read, and reads "blank secret"
+  // as "keep the stored value" — matched by id first. Strip it and this write
+  // blanks every secret in the scope that this script did not set itself.
+  //
+  // Write back only the personal scope. Cloud takes the target scope from the
+  // items, so echoing back Space-scoped items it also returned would either be
+  // refused as a mixed batch or relocate them. They are not ours to rewrite.
+  const mine = (current.items || []).filter((item) => (item.scopeType ?? "personal") === "personal");
+  const byKey = new Map(mine.map((item) => [item.key, item]));
   for (const item of items) byKey.set(item.key, { ...(byKey.get(item.key) || {}), ...item });
-  const merged = [...byKey.values()].map(({ id, scopeId, createdAt, updatedAt, lastUsedAt, ...rest }) => {
-    void id;
-    void scopeId;
+  const merged = [...byKey.values()].map(({ createdAt, updatedAt, lastUsedAt, ...rest }) => {
     void createdAt;
     void updatedAt;
     void lastUsedAt;
@@ -187,15 +198,33 @@ export async function resolveSmtpSettings({ fromEmail } = {}) {
   }
 
   // Only ask the Vault about what is still missing: when the environment
-  // already carries everything, this is Cloud and the round trip would 404.
+  // already carries everything, the round trip cannot change the answer.
   let vaultAvailable = null;
+  let runtimeAvailable = null;
   if (resolved.size < SMTP_KEYS.length) {
     const current = await vaultRequest("GET");
     vaultAvailable = current !== null;
     if (current) {
       for (const item of current.items || []) {
+        // On Cloud every secret here is masked to "", so this fills in the
+        // non-secret half and leaves the password to the runtime route below.
         if (SMTP_KEYS.includes(item.key) && item.value && !resolved.has(item.key)) {
           resolved.set(item.key, { value: item.value, source: "vault" });
+        }
+      }
+    }
+  }
+
+  // Cloud only. This is where a secret's value actually comes from there, and
+  // asking for it beats the alternative the operator would otherwise be told:
+  // save the item, then restart the session so the injection picks it up.
+  if (resolved.size < SMTP_KEYS.length) {
+    const runtime = await vaultRequest("GET", null, "/api/v1/vault/runtime");
+    runtimeAvailable = runtime !== null;
+    if (runtime) {
+      for (const key of SMTP_KEYS) {
+        if (runtime[key] && !resolved.has(key)) {
+          resolved.set(key, { value: runtime[key], source: "vault-runtime" });
         }
       }
     }
@@ -218,22 +247,35 @@ export async function resolveSmtpSettings({ fromEmail } = {}) {
     missing: status.filter((item) => !item.ready).map((item) => item.key),
     ready: status.every((item) => item.ready),
     vaultAvailable,
+    runtimeAvailable,
   };
 }
 
 // What to do about the keys that are still missing. Which sentence is right
-// depends on whether this Busabase can store them at all.
-export function smtpMissingHint(missing, vaultAvailable) {
+// depends on what this Busabase actually serves — not on a guess from the URL.
+/** @param {{ vaultAvailable?: boolean | null, runtimeAvailable?: boolean | null }} [capabilities] */
+export function smtpMissingHint(missing, capabilities = {}) {
+  const { vaultAvailable, runtimeAvailable } = capabilities;
   const keys = missing.join(" / ");
+  const envFallback = `或者临时用环境变量跑：${missing.map((key) => `${key}=...`).join(" ")} node scripts/send_emails.mjs --apply`;
+
   if (vaultAvailable) {
-    return `缺 ${keys}。跑 node scripts/configure_smtp.mjs --host ... --user ... --pass ... --apply 写进 Vault。`;
+    return [
+      `缺 ${keys}。写进 Vault：`,
+      "  node scripts/configure_smtp.mjs --host ... --user ... --pass ... --apply",
+      ...(runtimeAvailable
+        ? [
+            "  （这台是 Busabase Cloud：会写进你的个人作用域并标记 runtime，写完当场就能读到，不用重开 Session。",
+            "   也可以在网页 Vault 里配到 Space 或 API Key 作用域，同样勾上 runtime。）",
+          ]
+        : []),
+      envFallback,
+    ].join("\n");
   }
-  return [
-    `缺 ${keys}。这台是 Busabase Cloud，凭据只能靠运行时注入：`,
-    `  1. 在 Busabase Cloud → Vault 的 Space 或 Agent 作用域里配置 ${keys}，勾上 runtime；`,
-    "  2. 开一个新的 Session——配置发生在会话启动之后时，当前进程不会拿到新值；",
-    `  3. 或者临时用环境变量跑：${missing.map((key) => `${key}=...`).join(" ")} node scripts/send_emails.mjs --apply`,
-  ].join("\n");
+
+  // No writable Vault route at all: an older self-hosted build, or a credential
+  // that cannot reach it. The environment is the remaining channel.
+  return [`缺 ${keys}。这台 Busabase 没有可写的 Vault 接口。`, envFallback].join("\n");
 }
 
 export const parseFlags = (argv) => ({

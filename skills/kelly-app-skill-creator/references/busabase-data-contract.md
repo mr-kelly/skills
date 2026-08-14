@@ -117,6 +117,60 @@ Local AirApp OAuth tokens use the owner-only `~/.busabase/airapps` registration
 above; do not create a normal user-visible Vault item for them. Vault remains the
 correct boundary for application and third-party runtime secrets.
 
+#### The same route means different things per deployment
+
+`/api/v1/vault` is not one API. A self-hosted instance serves a single flat
+per-user set and returns real values. Cloud's Vault is account-level and scoped
+per personal / Space / API key; it serves the same route with **every secret
+masked to `""`** — existence, scope, and access policy, never a value — and
+serves values at `/api/v1/vault/runtime`, bounded to items marked
+`access.runtime`.
+
+**Probe which routes answer. Never infer the deployment from the base URL**, and
+never conclude from one 404 that a capability does not exist. A trusted script
+resolving credentials should fall through:
+
+1. the process environment — correct everywhere, and the only channel when a
+   runtime injected them at task start;
+2. the Vault list — fills in non-secret `variable` items;
+3. the runtime route — where a secret's value actually comes from on Cloud.
+
+An absent route is a fact about this endpoint, not about the user's account. A
+skill that reported "this Busabase has no Vault" while the operator was looking
+at their configured Vault cost an hour and shipped a wrong sentence to a user.
+
+#### A full-document PUT is not an upsert
+
+Writing only your own keys deletes every other item in the scope. Always read
+the current set, merge by key, write the whole set back — and when you do:
+
+- **Keep server-owned fields, especially `id`.** They look like disposable
+  bookkeeping and they are not. Cloud reads a blank secret as "keep the stored
+  value", matched by id, and reads mask every secret to blank. Strip the ids and
+  the first write blanks every secret in the scope that this script did not set
+  itself. This is a silent, total loss of credentials the app never knew about.
+- **Write back only the scope you own.** A read may span scopes; a write targets
+  exactly one, derived from the items. Echoing back items from another scope is
+  either refused as a mixed batch or relocates them.
+
+Both rules only bite on a scoped deployment, which means they pass every local
+test and fail the first time a real user runs it against Cloud.
+
+#### Report readiness per key, and never print a value
+
+"未配置" collapses four different causes into one unactionable word. Report each
+required key as ready or missing **with where it resolved from**, so "缺
+SMTP_PASS" and "什么都没配" get different answers.
+
+Print no value and **no mask** — a mask still leaks length, and this output ends
+up in whatever log or transcript captured the run. Existence and source are the
+answerable questions.
+
+Derive what is derivable and require only what is not. A password cannot be
+guessed; a well-known provider's host and port can. Deriving the mechanical
+three-quarters of a config turns "fill in four things" into "paste one secret",
+and an explicitly configured value must always beat a derived one.
+
 ### Doc
 
 Use Doc for long-form, human-editable content such as playbooks, research
