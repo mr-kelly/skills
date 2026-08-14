@@ -1709,7 +1709,7 @@ Cost and model-governance dashboard for a shared LLM gateway.
   </tr>
   <tr>
     <td><strong>Candidate list</strong><br>Every candidate sorted by status and score, with the one needing a scoring or qualify/reject decision surfaced first.</td>
-    <td><strong>Criteria &amp; rubric</strong><br>Search-criteria hypothesis and the three-axis scoring rubric (endorsement, expertise, teaching-service), editable in plain language.</td>
+    <td><strong>Criteria & rubric</strong><br>Search-criteria hypothesis and the three-axis scoring rubric (endorsement, expertise, teaching-service), editable in plain language.</td>
   </tr>
   <tr>
     <td width="50%"><img src="skills/kelly-instructor-sourcing/assets/screenshots/qualified.webp" alt="Kelly Instructor Sourcing qualified queue"></td>
