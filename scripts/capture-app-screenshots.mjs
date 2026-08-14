@@ -112,6 +112,12 @@ const ROUTE_OVERRIDES = {
     sent: "/sent",
     blocked: "/all/company-yunhe",
   },
+  "kelly-instructor-sourcing": {
+    all: "/all",
+    criteria: "/criteria",
+    qualified: "/qualified",
+    connected: "/connected",
+  },
 };
 
 const GENERIC_ROUTE_MAP = {

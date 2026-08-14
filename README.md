@@ -145,6 +145,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-crm` | Runs a personal CRM over contacts, companies, deals, and interactions with a pipeline dashboard and an agent-drafted follow-up review queue. | Use it when tracking deals and relationships, reviewing pipeline health, or approving and editing follow-up drafts before the agent sends them through other channels. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-crm.html) |
 | `kelly-feedback` | Aggregates user feedback from every channel, clusters it into weighted feature requests, and runs a roadmap decision queue with drafted replies and changelog notes. | Use it when triaging user feedback, prioritizing feature requests, or making evidence-backed roadmap promote/decline decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-feedback.html) |
 | `kelly-inquiry` | Aggregates WhatsApp, Instagram, Messenger, and email inquiries into a sales pipeline with a product knowledge base, quote worksheets with price guards, an approval-gated outbox, and follow-up reminders. | Use it when handling foreign-trade or DTC inquiries, drafting accurate replies and quotes from a product KB, or catching stale deals before they leak. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-inquiry.html) |
+| `kelly-instructor-sourcing` | Sandbox desk for sourcing course-instructor candidates found on a recruiting-style platform: capture a search-criteria hypothesis and a three-axis scoring rubric (background endorsement, expertise depth/breadth, teaching-service ability), score each candidate, and record the connection state once a human adds them on WeChat outside the app. All v1 data is deterministic mock data — no real platform or messaging account is ever connected. | Use it when triaging instructor/讲师 candidates against a consistent rubric instead of ad hoc judgment, or tracking qualify/reject and WeChat-connection outcomes without building a live-connected outreach tool. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-instructor-sourcing.html) |
 | `kelly-sales-outreach` | Turns a product or service into a repeatable customer-prospecting desk: derives an editable ICP, finds evidence-backed target accounts and public business contacts, drafts one personalized first-touch email per company, and sends only after individual review. | Use it when building a target-account list from an offer, continuously researching potential customers and buying signals, reviewing personalized cold outreach, or safely sending approved first touches from the seller's own mailbox. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-sales-outreach.html) |
 | `kelly-support` | Customer-support desk: the agent triages tickets from email, WhatsApp, web chat, forms, and WeChat, drafts replies grounded in a knowledge base, and proposes actions; you review, edit, and approve in a local UI before anything is sent, with an SLA board, CSAT tracking, and a support-qa gate that blocks refunds or commitments made without approval. | Use it when running a support inbox across channels, drafting KB-grounded replies, tracking SLA and CSAT, or approving sensitive actions like refunds and escalations. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-support.html) |
 | `kelly-tickets` | Triages complaints and requests from WeChat exports, call logs, forms, and email into classified tickets, proposes crew dispatches with SLA targets for approval, and tracks everything on a resolution board. | Use it when managing property or facilities complaints, dispatching work orders to crews, or running any intake-classify-dispatch-track workflow. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-tickets.html) |
@@ -1696,6 +1697,27 @@ Cost and model-governance dashboard for a shared LLM gateway.
   <tr>
     <td><strong>Profile</strong><br>Offer, value proposition, proof points, and ICP hypothesis derived from the product description.</td>
     <td><strong>Sent record</strong><br>Once approved and sent, the message is read-only: recipient, approval time, and send time.</td>
+  </tr>
+</table>
+
+### `kelly-instructor-sourcing`
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-instructor-sourcing/assets/screenshots/all.webp" alt="Kelly Instructor Sourcing candidate list"></td>
+    <td width="50%"><img src="skills/kelly-instructor-sourcing/assets/screenshots/criteria.webp" alt="Kelly Instructor Sourcing criteria and rubric"></td>
+  </tr>
+  <tr>
+    <td><strong>Candidate list</strong><br>Every candidate sorted by status and score, with the one needing a scoring or qualify/reject decision surfaced first.</td>
+    <td><strong>Criteria &amp; rubric</strong><br>Search-criteria hypothesis and the three-axis scoring rubric (endorsement, expertise, teaching-service), editable in plain language.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-instructor-sourcing/assets/screenshots/qualified.webp" alt="Kelly Instructor Sourcing qualified queue"></td>
+    <td width="50%"><img src="skills/kelly-instructor-sourcing/assets/screenshots/connected.webp" alt="Kelly Instructor Sourcing connected record"></td>
+  </tr>
+  <tr>
+    <td><strong>Qualified</strong><br>Candidates a human has marked qualified, ready for a real-world WeChat add that happens outside the app.</td>
+    <td><strong>Connected</strong><br>Candidates with a recorded real-world WeChat add — the trackable connection record the first-stage workflow asked for.</td>
   </tr>
 </table>
 
