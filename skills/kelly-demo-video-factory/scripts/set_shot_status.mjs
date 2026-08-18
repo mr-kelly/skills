@@ -29,7 +29,9 @@ async function main() {
   if (!shotsBase) throw new Error("Schema missing — run `node scripts/ensure_schema.mjs` first.");
 
   const record = await getRecord(cfg, recordId);
-  const fields = { ...record.headCommit.fields, "recording-status": status };
+  // Cloud renamed `commits.fields` to `commits.payload` (2026-08-17); read the
+  // new key first and fall back for a server still on the old shape.
+  const fields = { ...(record.headCommit.payload || record.headCommit.fields), "recording-status": status };
 
   const cr = await proposeRecordUpdate(cfg, recordId, fields, `Mark shot ${status} — ${fields.title}`);
   await approveAndMerge(cfg, cr.id, "Recording status update");

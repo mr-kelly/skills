@@ -57,7 +57,7 @@ async function main() {
 
   const results = [];
   for (const record of records) {
-    const fields = normalizeFields(record.headCommit?.fields || record.fields);
+    const fields = normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields);
     if (fields.status !== "approved") continue;
     const entry = {
       item_id: fields.item_id,

@@ -59,7 +59,10 @@ export async function readAll(client, base) {
       ...(cursor ? { cursor } : {}),
     });
     for (const record of page.records || []) {
-      rows.push({ id: record.id, fields: snakeFields(record.headCommit?.fields || record.fields) });
+      rows.push({
+        id: record.id,
+        fields: snakeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+      });
     }
     cursor = page.nextCursor || null;
     if (cursor && seenCursors.has(cursor)) throw new Error(`PAGINATION_LOOP: ${base.key}`);
@@ -68,9 +71,13 @@ export async function readAll(client, base) {
   return rows;
 }
 
-// `bases.createBulkChangeRequest` has no autoMerge flag — a bulk import is
-// always proposed for review. Running this script with --apply IS the operator's
-// approval, so approve and merge it explicitly instead of leaving it pending.
+// This script never passes `autoMerge` to `bases.createBulkChangeRequest` —
+// but the field exists on the API (`createBulkChangeRequestInputSchema`),
+// and omitting it does NOT mean "stays pending": with write permission the
+// server's permission-aware default (`shouldAutoMerge`) merges it
+// immediately anyway. Running this script with --apply IS the operator's
+// approval, so approve and merge it explicitly here too, so the outcome does
+// not depend on which permission the caller's credential happens to have.
 //
 // Both review and merge are batch endpoints keyed by `changeRequestIds`; there
 // is no per-id variant, and passing `changeRequestId` fails validation with
@@ -90,12 +97,13 @@ export async function mergeChangeRequest(client, changeRequest) {
 // directly, and treat "this server has no Vault route" as a normal answer
 // rather than a crash.
 //
-// A 404 here means "this is Cloud", NOT "you have no Vault". Cloud does have
-// one — account-level, behind a browser session (`vault.reveal` over /api/rpc);
-// a workspace API key gets 401 there by design. Cloud delivers those secrets a
-// different way: every item marked `access.runtime` is injected into the
-// environment of the task it starts, merging personal, Space, and API-key
-// scopes. That is why credentials are read from the environment first below.
+// Since 2026-08-13 (busabase-cloud abe3453a1a) Cloud also answers
+// GET/PUT /api/v1/vault with 200 — it no longer 404s here. A workspace API
+// key CAN list and write items, but every `.value` in the response is masked
+// to "" (see `maskVaultSettings` in apps/busabase-cloud), so this channel is
+// never a source of the real secret on Cloud. Real values for API-key
+// credentials come from `vaultRuntimeRequest` below, over the dedicated
+// /api/v1/vault/runtime surface Cloud added the same day.
 const vaultRequest = async (method, body) => {
   const baseUrl = required("BUSABASE_BASE_URL").replace(/\/+$/, "");
   const response = await fetch(`${baseUrl}/api/v1/vault`, {
@@ -112,14 +120,37 @@ const vaultRequest = async (method, body) => {
   return response.json();
 };
 
-// Cloud has a Vault; it just is not writable with a workspace API key. Say what
-// to do there instead of claiming the feature is missing.
+// Cloud-only surface (self-hosted Busabase has no such route, hence the 404
+// guard): returns the *unmasked* values a workbench API key is entitled to at
+// runtime — every item marked `access.runtime`, merged personal → Space →
+// API-key scope, exactly like the environment a Cloud-started task would get.
+// Unlike environment injection this is a live HTTP call, so a value saved in
+// the Vault after this process started is still visible on the next request
+// — no new Session required.
+const vaultRuntimeRequest = async () => {
+  const baseUrl = required("BUSABASE_BASE_URL").replace(/\/+$/, "");
+  const response = await fetch(`${baseUrl}/api/v1/vault/runtime`, {
+    headers: {
+      ...(process.env.BUSABASE_API_KEY ? { authorization: `Bearer ${process.env.BUSABASE_API_KEY}` } : {}),
+      ...(process.env.BUSABASE_SPACE_ID ? { "x-busabase-space": process.env.BUSABASE_SPACE_ID } : {}),
+    },
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`VAULT_RUNTIME_HTTP_${response.status}: ${await response.text()}`);
+  return response.json();
+};
+
+// vaultRequest("GET") answered 404/403 for /api/v1/vault. Since 2026-08-13
+// Cloud no longer 404s here (it answers 200 with masked values instead), so
+// this now means the write really is unreachable — a permission-restricted
+// API key, or a Busabase build without the Vault route — not "this is Cloud"
+// specifically. Point at the one place a write always works: the web UI.
 export const vaultWriteUnavailableHint = [
-  "这台 Busabase 没有本地 Vault 写入接口（/api/v1/vault），说明你连的是 Busabase Cloud。",
-  "Cloud 的 Vault 是账户级的，只能在网页里改，工作区 API Key 没有权限写：",
-  "  1. 打开 Busabase Cloud → Vault，在 Space 或 Agent 作用域新建 SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS；",
+  "这台 Busabase 拒绝了 Vault 写入接口（/api/v1/vault），本地脚本没法直接写密钥。",
+  "去 Busabase 网页会话里配置，工作区 API Key 写不了：",
+  "  1. 打开 Busabase → Vault，在 Space 或 Agent 作用域新建 SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS；",
   "  2. 四项都勾上 runtime（运行时注入），SMTP_PASS 建议关掉 reveal；",
-  "  3. 开一个新的 Session 再跑发送脚本——已经在跑的会话不会拿到新值。",
+  "  3. 存好之后直接重跑发送脚本——/api/v1/vault/runtime 是实时查询，不用重开 Session。",
 ].join("\n");
 
 // The Vault API is a full-document PUT, not an upsert: sending only your own
@@ -187,15 +218,36 @@ export async function resolveSmtpSettings({ fromEmail } = {}) {
   }
 
   // Only ask the Vault about what is still missing: when the environment
-  // already carries everything, this is Cloud and the round trip would 404.
+  // already carries everything there is no round trip to make.
+  //
+  // /api/v1/vault/runtime is a Cloud-only route (self-hosted Busabase 404s
+  // on it), so whether it answers at all doubles as the "is this Cloud"
+  // signal `smtpMissingHint` needs — `vaultAvailable` alone stopped meaning
+  // that once Cloud started answering plain /api/v1/vault with 200 (masked)
+  // instead of 404.
   let vaultAvailable = null;
+  let isCloud = false;
   if (resolved.size < SMTP_KEYS.length) {
-    const current = await vaultRequest("GET");
-    vaultAvailable = current !== null;
-    if (current) {
-      for (const item of current.items || []) {
-        if (SMTP_KEYS.includes(item.key) && item.value && !resolved.has(item.key)) {
-          resolved.set(item.key, { value: item.value, source: "vault" });
+    const runtimeValues = await vaultRuntimeRequest();
+    if (runtimeValues) {
+      vaultAvailable = true;
+      isCloud = true;
+      for (const key of SMTP_KEYS) {
+        if (runtimeValues[key] && !resolved.has(key)) {
+          resolved.set(key, { value: runtimeValues[key], source: "vault-runtime" });
+        }
+      }
+    }
+
+    if (resolved.size < SMTP_KEYS.length) {
+      const current = await vaultRequest("GET");
+      if (vaultAvailable === null) vaultAvailable = current !== null;
+      if (current) {
+        vaultAvailable = true;
+        for (const item of current.items || []) {
+          if (SMTP_KEYS.includes(item.key) && item.value && !resolved.has(item.key)) {
+            resolved.set(item.key, { value: item.value, source: "vault" });
+          }
         }
       }
     }
@@ -218,22 +270,30 @@ export async function resolveSmtpSettings({ fromEmail } = {}) {
     missing: status.filter((item) => !item.ready).map((item) => item.key),
     ready: status.every((item) => item.ready),
     vaultAvailable,
+    isCloud,
   };
 }
 
 // What to do about the keys that are still missing. Which sentence is right
 // depends on whether this Busabase can store them at all.
-export function smtpMissingHint(missing, vaultAvailable) {
+export function smtpMissingHint(missing, vaultAvailable, isCloud) {
   const keys = missing.join(" / ");
+  // `isCloud` — not `vaultAvailable` — is the write-path signal: since
+  // 2026-08-13 Cloud answers /api/v1/vault with 200 too, so `vaultAvailable`
+  // no longer tells local vs. Cloud on its own (see the comment on
+  // `vaultRequest` above). Whether /api/v1/vault/runtime answered does.
+  if (isCloud) {
+    return [
+      `缺 ${keys}。这台是 Busabase Cloud，工作区 API Key 写不了 Vault：`,
+      `  1. 在 Busabase Cloud → Vault 的 Space 或 Agent 作用域里配置 ${keys}，勾上 runtime；`,
+      "  2. 存好之后直接重跑这个脚本——/api/v1/vault/runtime 是实时查询，不用重开 Session；",
+      `  3. 或者临时用环境变量跑：${missing.map((key) => `${key}=...`).join(" ")} node scripts/send_emails.mjs --apply`,
+    ].join("\n");
+  }
   if (vaultAvailable) {
     return `缺 ${keys}。跑 node scripts/configure_smtp.mjs --host ... --user ... --pass ... --apply 写进 Vault。`;
   }
-  return [
-    `缺 ${keys}。这台是 Busabase Cloud，凭据只能靠运行时注入：`,
-    `  1. 在 Busabase Cloud → Vault 的 Space 或 Agent 作用域里配置 ${keys}，勾上 runtime；`,
-    "  2. 开一个新的 Session——配置发生在会话启动之后时，当前进程不会拿到新值；",
-    `  3. 或者临时用环境变量跑：${missing.map((key) => `${key}=...`).join(" ")} node scripts/send_emails.mjs --apply`,
-  ].join("\n");
+  return `缺 ${keys}。这台 Busabase 没有可用的 Vault，临时用环境变量跑：${missing.map((key) => `${key}=...`).join(" ")} node scripts/send_emails.mjs --apply`;
 }
 
 export const parseFlags = (argv) => ({

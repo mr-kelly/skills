@@ -78,7 +78,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -212,7 +212,9 @@ export const busabaseProvider = {
     if (status === "approved") assertDraftApprovable(draft);
     const now = new Date().toISOString();
     const existing = await findRecord("drafts", "draft-id", draftId);
-    const current = normalizeFields(existing?.headCommit?.fields || existing?.fields || {});
+    const current = normalizeFields(
+      existing?.headCommit?.payload || existing?.headCommit?.fields || existing?.fields || {},
+    );
     await upsert(
       "drafts",
       "draft-id",
@@ -229,7 +231,9 @@ export const busabaseProvider = {
     const now = new Date().toISOString();
     const existing = await findRecord("shorts", "short-id", shortId);
     if (!existing) throw new Error(`short not found: ${shortId}`);
-    const current = normalizeFields(existing.headCommit?.fields || existing.fields || {});
+    const current = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields || {},
+    );
     await upsert(
       "shorts",
       "short-id",
@@ -245,7 +249,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("engagement", "item-id", itemId);
     if (!existing) throw new Error(`engagement item not found: ${itemId}`);
-    const current = normalizeFields(existing.headCommit?.fields || existing.fields || {});
+    const current = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields || {},
+    );
     await upsert(
       "engagement",
       "item-id",
@@ -267,7 +273,9 @@ export const busabaseProvider = {
     assertDraftPublishable(draft);
     const now = new Date().toISOString();
     const existing = await findRecord("drafts", "draft-id", draftId);
-    const current = normalizeFields(existing?.headCommit?.fields || existing?.fields || {});
+    const current = normalizeFields(
+      existing?.headCommit?.payload || existing?.headCommit?.fields || existing?.fields || {},
+    );
     await upsert(
       "drafts",
       "draft-id",
@@ -286,7 +294,9 @@ export const busabaseProvider = {
     const linked = (snapshot.calendar || []).find((entry) => entry.draft_id === draftId);
     if (linked) {
       const existingEntry = await findRecord("calendar", "entry-id", linked.entry_id);
-      const currentEntry = normalizeFields(existingEntry?.headCommit?.fields || existingEntry?.fields || {});
+      const currentEntry = normalizeFields(
+        existingEntry?.headCommit?.payload || existingEntry?.headCommit?.fields || existingEntry?.fields || {},
+      );
       await upsert(
         "calendar",
         "entry-id",
@@ -312,7 +322,9 @@ export const busabaseProvider = {
     if (!item) throw new Error(`engagement item not found: ${itemId}`);
     assertReplySendable(item);
     const existing = await findRecord("engagement", "item-id", itemId);
-    const current = normalizeFields(existing?.headCommit?.fields || existing?.fields || {});
+    const current = normalizeFields(
+      existing?.headCommit?.payload || existing?.headCommit?.fields || existing?.fields || {},
+    );
     await upsert(
       "engagement",
       "item-id",

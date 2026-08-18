@@ -15,7 +15,7 @@ from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-restaurant-intel" / "app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-restaurant-intel"
-BUSABASE_VERSION = "0.11.0"
+BUSABASE_VERSION = "0.16.2"
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:
@@ -254,10 +254,10 @@ def test_busabase_provisioning(browser) -> None:
                 fixture = next(
                     r
                     for r in record_items
-                    if r.get("headCommit", {}).get("fields", {}).get("signal-id") == "fixture-signal"
+                    if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("signal-id") == "fixture-signal"
                 )
-                assert fixture["headCommit"]["fields"]["status"] == "approved", fixture
-                assert fixture["headCommit"]["fields"]["decision-verdict"] == "approve", fixture
+                assert (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["status"] == "approved", fixture
+                assert (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["decision-verdict"] == "approve", fixture
 
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
             keys = resource_keys(nodes)
@@ -285,7 +285,7 @@ def test_busabase_provisioning(browser) -> None:
             records = read_json(f"{busabase_url}/api/v1/records?baseId={signals_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
             assert any(
-                record.get("headCommit", {}).get("fields", {}).get("status") == "approved"
+                (record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("status") == "approved"
                 for record in record_items
             )
 

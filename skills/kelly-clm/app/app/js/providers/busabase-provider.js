@@ -80,7 +80,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -180,7 +180,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("contracts", "contract-id", id);
     if (!existing) throw new Error(`Unknown contract id: ${id}`);
-    const current = normalizeContractRow(normalizeFields(existing.headCommit?.fields || existing.fields));
+    const current = normalizeContractRow(
+      normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields),
+    );
     const next = buildContract({ ...current, ...input, id, created_at: current.created_at });
     await updateRecord(existing, contractToFields(next), `Update contract ${next.name || next.id}`);
     return next;
@@ -196,7 +198,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("obligations", "obligation-id", id);
     if (!existing) throw new Error(`Unknown obligation id: ${id}`);
-    const current = normalizeObligationRow(normalizeFields(existing.headCommit?.fields || existing.fields));
+    const current = normalizeObligationRow(
+      normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields),
+    );
     const next = { ...current, status: done ? "done" : "open", updated_at: new Date().toISOString() };
     await updateRecord(
       existing,
@@ -214,7 +218,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("contracts", "contract-id", contractId);
     if (!existing) throw new Error(`Unknown contract id: ${contractId}`);
-    const current = normalizeContractRow(normalizeFields(existing.headCommit?.fields || existing.fields));
+    const current = normalizeContractRow(
+      normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields),
+    );
     const next = { ...current, notice_acknowledged_at: new Date().toISOString(), updated_at: new Date().toISOString() };
     await updateRecord(existing, contractToFields(next), `Acknowledge renewal notice for ${next.name || next.id}`);
     return next;
@@ -230,7 +236,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("approvals", "approval-id", id);
     if (!existing) throw new Error(`Unknown approval id: ${id}`);
-    const current = normalizeApprovalRow(normalizeFields(existing.headCommit?.fields || existing.fields));
+    const current = normalizeApprovalRow(
+      normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields),
+    );
     const status = { approve: "approved", changes: "changes_requested", block: "blocked" }[action] || action;
     const next = {
       ...current,

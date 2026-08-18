@@ -255,7 +255,9 @@ async function restoreRecords(client, baseId, records, label) {
   if (!records?.length) return { restored: 0 };
   const existingRecords = await client.listRecords(baseId).catch(() => []);
   const existingSignatures = new Set(
-    existingRecords.map((record) => stableJson(record.fields || record.headCommit?.fields || {})),
+    existingRecords.map((record) =>
+      stableJson(record.fields || record.headCommit?.payload || record.headCommit?.fields || {}),
+    ),
   );
   const missingRecords = records.filter((record) => !existingSignatures.has(stableJson(record.fields || {})));
   if (!missingRecords.length)

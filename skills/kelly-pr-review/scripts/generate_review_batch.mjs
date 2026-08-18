@@ -400,7 +400,7 @@ const toBusabaseFields = (fields) =>
 // Mirrors busabase-provider.js's findRecord(): a missing record raises
 // NOT_FOUND rather than resolving to null.
 /** @param {any} record */
-const rawFieldsOf = (record) => record?.headCommit?.fields || record?.fields || {};
+const rawFieldsOf = (record) => record?.headCommit?.payload || record?.headCommit?.fields || record?.fields || {};
 async function findByFieldSlug(client, baseId, fieldSlug, valueText) {
   try {
     return await client.records.get({ baseId, fieldSlug, valueText });

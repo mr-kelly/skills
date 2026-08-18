@@ -62,7 +62,7 @@ export async function readAllRecords(client, declaredBase, { maxPages = 20 } = {
       // which then makes every `row.<field>` access downstream a false
       // "property does not exist" error. Assigning onto the object instead
       // keeps the index signature intact.
-      const fields = normalizeFields(record.headCommit?.fields || record.fields);
+      const fields = normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields);
       fields.__recordId = record.id;
       fields.__headCommitId = record.headCommitId || record.headCommit?.id;
       rows.push(fields);

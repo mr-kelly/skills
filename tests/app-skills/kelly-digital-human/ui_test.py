@@ -15,7 +15,7 @@ from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-digital-human" / "app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-digital-human"
-BUSABASE_VERSION = "0.11.0"
+BUSABASE_VERSION = "0.16.2"
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:
@@ -217,7 +217,7 @@ def test_busabase_provisioning(browser) -> None:
                 records = read_json(f"{busabase_url}/api/v1/records?baseId={decisions_base['baseId']}")
                 record_items = records if isinstance(records, list) else records.get("records", [])
                 assert len(record_items) == 1, record_items
-                fixture_fields = record_items[0]["headCommit"]["fields"]
+                fixture_fields = (record_items[0]["headCommit"].get("payload") or record_items[0]["headCommit"]["fields"])
                 assert fixture_fields["action"] == "approve", fixture_fields
                 assert fixture_fields["note"] == "Fixture reviewer note", fixture_fields
                 decided_check_id = fixture_fields["check-id"]
@@ -255,7 +255,7 @@ def test_busabase_provisioning(browser) -> None:
             decisions_base = find_resource(nodes, "qa-decisions")
             records = read_json(f"{busabase_url}/api/v1/records?baseId={decisions_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
-            assert any(record.get("headCommit", {}).get("fields", {}).get("action") == "approve" for record in record_items)
+            assert any((record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("action") == "approve" for record in record_items)
 
 
 def main() -> None:

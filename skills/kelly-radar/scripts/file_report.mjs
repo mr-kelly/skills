@@ -150,7 +150,9 @@ async function main() {
   /** @type {Record<string, any>} */
   let questionFields;
   if (existingQuestion) {
-    questionFields = normalizeFields(existingQuestion.headCommit?.fields || existingQuestion.fields);
+    questionFields = normalizeFields(
+      existingQuestion.headCommit?.payload || existingQuestion.headCommit?.fields || existingQuestion.fields,
+    );
   } else {
     if (typeof payload.question !== "string" || !payload.question) {
       fail(`question ${payload.question_id} not found; include payload.question to create it`);
@@ -205,7 +207,9 @@ async function main() {
     const report = payload.report;
     const existingReport = await findRecord(client, declared("reports"), "report-id", report.report_id);
     const currentReport = existingReport
-      ? normalizeFields(existingReport.headCommit?.fields || existingReport.fields)
+      ? normalizeFields(
+          existingReport.headCommit?.payload || existingReport.headCommit?.fields || existingReport.fields,
+        )
       : null;
     await upsert(
       client,

@@ -16,7 +16,7 @@ from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-revshare-simulator" / "app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-revshare-simulator"
-BUSABASE_VERSION = "0.11.0"
+BUSABASE_VERSION = "0.16.2"
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:
@@ -208,9 +208,9 @@ def test_busabase_provisioning(browser) -> None:
                 fixture = next(
                     r
                     for r in record_items
-                    if r.get("headCommit", {}).get("fields", {}).get("name") == "Fixture Bakery Chain"
+                    if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("name") == "Fixture Bakery Chain"
                 )
-                fields = fixture["headCommit"]["fields"]
+                fields = (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])
                 assert fields["business-type"] == "Bakery retail chain", fields
                 assert float(fields["principal"]) == 150000, fields
                 assert fields.get("decision-action", "") == "", fields
@@ -249,9 +249,9 @@ def test_busabase_provisioning(browser) -> None:
                 fixture = next(
                     r
                     for r in record_items
-                    if r.get("headCommit", {}).get("fields", {}).get("name") == "Fixture Bakery Chain"
+                    if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("name") == "Fixture Bakery Chain"
                 )
-                fields = fixture["headCommit"]["fields"]
+                fields = (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])
                 assert fields["decision-action"] == "approve_underwriting", fields
                 assert fields["decision-note"] == "Looks good, approving.", fields
 
@@ -294,7 +294,7 @@ def test_busabase_provisioning(browser) -> None:
             records = read_json(f"{busabase_url}/api/v1/records?baseId={scenarios_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
             assert not any(
-                r.get("headCommit", {}).get("fields", {}).get("name") == "Fixture Bakery Chain" for r in record_items
+                (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("name") == "Fixture Bakery Chain" for r in record_items
             ), record_items
 
         # Structure must survive a complete Busabase process restart.

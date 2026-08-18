@@ -103,7 +103,7 @@ async function readAll(client, declared) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });

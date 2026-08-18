@@ -78,7 +78,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -179,7 +179,7 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("reviews", "review-id", review_id);
     if (!existing) throw new Error(`Review not found: ${review_id}`);
-    const current = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     const now = new Date().toISOString();
     const nextStatus = statusForAction(action);
 
@@ -204,7 +204,9 @@ export const busabaseProvider = {
     if (targetBase && targetId) {
       const targetExisting = await findRecord(targetBase, targetIdField, targetId);
       if (targetExisting) {
-        const targetCurrent = normalizeFields(targetExisting.headCommit?.fields || targetExisting.fields);
+        const targetCurrent = normalizeFields(
+          targetExisting.headCommit?.payload || targetExisting.headCommit?.fields || targetExisting.fields,
+        );
         const fieldsBuilder = { questions: baseQuestionFields, mistakes: baseMistakeFields, papers: basePaperFields }[
           targetBase
         ];

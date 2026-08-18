@@ -15,7 +15,7 @@ from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-disclosure-tracker" / "app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-disclosure-tracker"
-BUSABASE_VERSION = "0.11.0"
+BUSABASE_VERSION = "0.16.2"
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:
@@ -320,11 +320,11 @@ def test_busabase_provisioning(browser) -> None:
                 fixture = next(
                     r
                     for r in record_items
-                    if r.get("headCommit", {}).get("fields", {}).get("item-id") == "fixture-item-001"
+                    if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("item-id") == "fixture-item-001"
                 )
-                assert fixture["headCommit"]["fields"]["decision-action"] == "verified", fixture
+                assert (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["decision-action"] == "verified", fixture
                 assert (
-                    fixture["headCommit"]["fields"]["decision-comment"]
+                    (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["decision-comment"]
                     == "Trusted: matches manual spot-check of the fixture."
                 ), fixture
 
@@ -345,7 +345,7 @@ def test_busabase_provisioning(browser) -> None:
             records = read_json(f"{busabase_url}/api/v1/records?baseId={items_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
             assert any(
-                record.get("headCommit", {}).get("fields", {}).get("decision-action") == "verified"
+                (record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("decision-action") == "verified"
                 for record in record_items
             )
 

@@ -13,11 +13,15 @@ async function main() {
   const videos = (await listRecords(cfg, videosBase.id, 100)).records;
   const shots = (await listRecords(cfg, shotsBase.id, 100)).records;
 
+  // Cloud renamed `commits.fields` to `commits.payload` (2026-08-17); read the
+  // new key first and fall back for a server still on the old shape.
+  const fieldsOf = (record) => record.headCommit.payload || record.headCommit.fields;
+
   for (const v of videos) {
-    const f = v.headCommit.fields;
-    const mine = shots.filter((s) => s.headCommit.fields.video === v.id);
+    const f = fieldsOf(v);
+    const mine = shots.filter((s) => fieldsOf(s).video === v.id);
     const byStatus = mine.reduce((acc, s) => {
-      const st = String(s.headCommit.fields["recording-status"] ?? "pending");
+      const st = String(fieldsOf(s)["recording-status"] ?? "pending");
       acc[st] = (acc[st] ?? 0) + 1;
       return acc;
     }, {});

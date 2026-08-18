@@ -36,7 +36,7 @@ async function rows(key) {
   const base = bases.get(key);
   const result = await client.records.list({ baseId: base.baseId, limit: base.readLimit });
   return (Array.isArray(result) ? result : result.records || []).map((record) => ({
-    ...normalize(record.headCommit?.fields || record.fields),
+    ...normalize(record.headCommit?.payload || record.headCommit?.fields || record.fields),
     __recordId: record.id,
     __headCommitId: record.headCommitId || record.headCommit?.id,
   }));
@@ -151,7 +151,9 @@ export const busabaseProvider = {
     await ensureResources();
     const record = await findRecord("candidates", "candidate-id", candidate_id);
     if (!record) throw new Error(`Unknown portrait candidate: ${candidate_id}`);
-    const current = candidateFromRow(normalize(record.headCommit?.fields || record.fields));
+    const current = candidateFromRow(
+      normalize(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    );
     const next = candidateFields({
       ...current,
       strength: Number.isFinite(strength) ? strength : current.strength,

@@ -92,7 +92,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -139,7 +139,9 @@ function findSettingsRow(rows = [], kind = "") {
 async function loadRouteRecord(routeId) {
   const existing = await findRecord("routes", "route-id", routeId);
   if (!existing) throw new Error(`Unknown route id: ${routeId}`);
-  const current = normalizeRouteRow(normalizeFields(existing.headCommit?.fields || existing.fields));
+  const current = normalizeRouteRow(
+    normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields),
+  );
   return { existing, current };
 }
 

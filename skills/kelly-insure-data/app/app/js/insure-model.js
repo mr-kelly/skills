@@ -25,7 +25,7 @@ export function text(value) {
 }
 
 export function fieldsOf(record) {
-  return record?.headCommit?.fields || record?.fields || record?.commit?.fields || {};
+  return record?.headCommit?.payload || record?.headCommit?.fields || record?.fields || record?.commit?.fields || {};
 }
 
 export function fieldName(field) {

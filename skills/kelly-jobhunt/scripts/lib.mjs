@@ -59,7 +59,10 @@ export async function readAll(client, base) {
       ...(cursor ? { cursor } : {}),
     });
     for (const record of page.records || []) {
-      rows.push({ id: record.id, fields: snakeFields(record.headCommit?.fields || record.fields) });
+      rows.push({
+        id: record.id,
+        fields: snakeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+      });
     }
     cursor = page.nextCursor || null;
     if (cursor && seenCursors.has(cursor)) throw new Error(`PAGINATION_LOOP: ${base.key}`);

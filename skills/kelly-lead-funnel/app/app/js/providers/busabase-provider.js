@@ -89,7 +89,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -166,7 +166,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("leads", "lead-id", id);
     if (!existing) throw new Error(`Unknown lead id: ${id}`);
-    const current = normalizeLeadRow(normalizeFields(existing.headCommit?.fields || existing.fields));
+    const current = normalizeLeadRow(
+      normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields),
+    );
     const next = applyStageMove(current, stage, reason);
     await updateLeadRecord(existing, next, `Move ${id} to ${stage}`);
     return next;
@@ -179,7 +181,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("leads", "lead-id", id);
     if (!existing) throw new Error(`Unknown lead id: ${id}`);
-    const current = normalizeLeadRow(normalizeFields(existing.headCommit?.fields || existing.fields));
+    const current = normalizeLeadRow(
+      normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields),
+    );
     const next = applyNote(current, String(text).trim(), author);
     await updateLeadRecord(existing, next, `Add note to ${id}`);
     return next;

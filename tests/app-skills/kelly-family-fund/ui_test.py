@@ -16,7 +16,7 @@ from runtime import free_port, managed_process
 SKILL_ROOT = REPO_ROOT / "skills" / "kelly-family-fund"
 APP_ROOT = SKILL_ROOT / "app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-family-fund"
-BUSABASE_VERSION = "0.11.0"
+BUSABASE_VERSION = "0.16.2"
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:
@@ -261,7 +261,7 @@ def test_busabase_provisioning(browser) -> None:
             records = read_json(f"{busabase_url}/api/v1/records?baseId={expenses_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
             assert any(
-                record.get("headCommit", {}).get("fields", {}).get("payee") == "Integration Fixture Reimbursement"
+                (record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("payee") == "Integration Fixture Reimbursement"
                 for record in record_items
             )
 

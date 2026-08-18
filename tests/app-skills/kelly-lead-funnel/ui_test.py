@@ -15,7 +15,7 @@ from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-lead-funnel" / "app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-lead-funnel"
-BUSABASE_VERSION = "0.11.0"
+BUSABASE_VERSION = "0.16.2"
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:
@@ -240,10 +240,10 @@ def test_busabase_provisioning(browser) -> None:
                 records = read_json(f"{busabase_url}/api/v1/records?baseId={leads_base['baseId']}")
                 record_items = records if isinstance(records, list) else records.get("records", [])
                 fixture = next(
-                    r for r in record_items if r.get("headCommit", {}).get("fields", {}).get("lead-id") == "lead-fixture"
+                    r for r in record_items if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("lead-id") == "lead-fixture"
                 )
-                assert fixture["headCommit"]["fields"]["stage"] == "data_verified", fixture
-                history = json.loads(fixture["headCommit"]["fields"]["stage-history"])
+                assert (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["stage"] == "data_verified", fixture
+                history = json.loads((fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["stage-history"])
                 assert any(entry.get("to") == "data_verified" for entry in history), history
 
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
@@ -263,7 +263,7 @@ def test_busabase_provisioning(browser) -> None:
             records = read_json(f"{busabase_url}/api/v1/records?baseId={leads_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
             assert any(
-                record.get("headCommit", {}).get("fields", {}).get("stage") == "data_verified"
+                (record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("stage") == "data_verified"
                 for record in record_items
             )
 

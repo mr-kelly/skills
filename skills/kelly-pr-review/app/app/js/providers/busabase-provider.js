@@ -73,7 +73,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -182,7 +182,7 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("reviews", "item-id", itemId);
     if (!existing) throw new Error("not_found");
-    const current = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     const now = new Date().toISOString();
     const fields = {
       ...current,
@@ -205,7 +205,7 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("reviews", "item-id", itemId);
     if (!existing) throw new Error("not_found");
-    const current = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     const fields = {
       ...current,
       item_id: itemId,
@@ -225,7 +225,7 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("reviews", "item-id", itemId);
     if (!existing) throw new Error("not_found");
-    const current = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     if (current.merged !== "true" && current.status !== "merged") {
       throw new Error("Only merged pull requests can enter test verification.");
     }

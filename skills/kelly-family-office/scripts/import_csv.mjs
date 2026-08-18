@@ -124,7 +124,8 @@ async function main() {
         ...(cursor ? { cursor } : {}),
       });
       const records = Array.isArray(result) ? result : result.records || [];
-      for (const record of records) rows.push(normalizeFields(record.headCommit?.fields || record.fields));
+      for (const record of records)
+        rows.push(normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields));
       cursor = Array.isArray(result) ? null : result.nextCursor;
       if (!cursor) break;
     }

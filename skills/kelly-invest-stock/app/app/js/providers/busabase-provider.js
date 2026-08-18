@@ -18,7 +18,7 @@ const normalizeRecords = (records, baseKey) =>
   (records || []).map((record) => ({
     ...record,
     baseKey,
-    fields: normalizeFields(record.headCommit?.fields || record.fields),
+    fields: normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
   }));
 
 const readLegacyPage = async (base, cursor) => {

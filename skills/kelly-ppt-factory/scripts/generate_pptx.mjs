@@ -70,7 +70,7 @@ async function readAll(client, declared) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -324,7 +324,7 @@ async function main() {
   if (!deckRecord) throw new Error(`No deck found for deck_id=${deckId}`);
   /** @type {Record<string, any>} */
   const deckRow = {
-    ...normalizeFields(deckRecord.headCommit?.fields || deckRecord.fields),
+    ...normalizeFields(deckRecord.headCommit?.payload || deckRecord.headCommit?.fields || deckRecord.fields),
     __recordId: deckRecord.id,
     __headCommitId: deckRecord.headCommitId || deckRecord.headCommit?.id,
   };

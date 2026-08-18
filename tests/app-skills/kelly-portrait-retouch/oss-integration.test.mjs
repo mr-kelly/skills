@@ -27,7 +27,7 @@ async function startBusabase() {
     command: "npx",
     args: [
       "--yes",
-      "busabase@0.11.4",
+      "busabase@0.16.2",
       "server",
       "--host",
       "127.0.0.1",
@@ -131,7 +131,7 @@ test("onboarding and one representative candidate persist through ChangeRequests
     fieldSlug: "record-id",
     valueText: "config",
   });
-  assert.equal(config.headCommit.fields["onboarding-version"], 1);
+  assert.equal((config.headCommit.payload || config.headCommit.fields)["onboarding-version"], 1);
 });
 
 test("resources and records survive Busabase restart and the app proxy", async () => {
@@ -145,7 +145,7 @@ test("resources and records survive Busabase restart and the app proxy", async (
     fieldSlug: "candidate-id",
     valueText: "candidate-oss-1",
   });
-  assert.equal(candidate.headCommit.fields.title, "OSS portrait");
+  assert.equal((candidate.headCommit.payload || candidate.headCommit.fields).title, "OSS portrait");
 
   const appPort = await getFreePort();
   const appUrl = `http://127.0.0.1:${appPort}`;

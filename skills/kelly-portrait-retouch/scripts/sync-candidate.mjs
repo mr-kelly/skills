@@ -76,7 +76,9 @@ async function main() {
 
   const { client, bases } = await connect();
   const settingsRecord = await findRecord(client, bases.get("settings"), "record-id", "config");
-  const settings = normalizeFields(settingsRecord?.headCommit?.fields || settingsRecord?.fields || {});
+  const settings = normalizeFields(
+    settingsRecord?.headCommit?.payload || settingsRecord?.headCommit?.fields || settingsRecord?.fields || {},
+  );
   if (Number(settings.onboarding_version) !== 1 || !settings.completed_at) {
     throw new Error("Product onboarding is incomplete; configure the AirApp before syncing candidates.");
   }

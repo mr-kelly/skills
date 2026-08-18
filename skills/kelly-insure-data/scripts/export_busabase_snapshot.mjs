@@ -41,7 +41,7 @@ function text(value) {
 }
 
 function fieldsOf(record) {
-  return record?.headCommit?.fields || record?.fields || record?.commit?.fields || {};
+  return record?.headCommit?.payload || record?.headCommit?.fields || record?.fields || record?.commit?.fields || {};
 }
 
 function sanitizeMetadata(value) {

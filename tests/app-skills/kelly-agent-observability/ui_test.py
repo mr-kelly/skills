@@ -18,7 +18,7 @@ from runtime import free_port, managed_process
 SKILL_ROOT = REPO_ROOT / "skills" / "kelly-agent-observability"
 APP_ROOT = SKILL_ROOT / "app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-agent-observability"
-BUSABASE_VERSION = "0.11.0"
+BUSABASE_VERSION = "0.16.2"
 
 
 def assert_no_horizontal_overflow(page: Page) -> None:
@@ -275,7 +275,7 @@ def test_busabase_provisioning(browser) -> None:
                     handoff_records if isinstance(handoff_records, list) else handoff_records.get("records", [])
                 )
                 assert len(handoff_items) == 1, handoff_items
-                fields = handoff_items[0]["headCommit"]["fields"]
+                fields = (handoff_items[0]["headCommit"].get("payload") or handoff_items[0]["headCommit"]["fields"])
                 assert fields["target-type"] == "agent"
                 assert fields["target-id"] == "booking-assistant"
                 assert fields["status"] == "needs_investigation"

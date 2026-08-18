@@ -15,7 +15,7 @@ from runtime import free_port, managed_process
 
 APP_ROOT = REPO_ROOT / "skills" / "kelly-mv" / "app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-mv"
-BUSABASE_VERSION = "0.11.0"
+BUSABASE_VERSION = "0.16.2"
 
 # Demo dataset counts below were read off the live DOM with a throwaway probe
 # before writing these selectors (per the migration recipe's gotcha list),
@@ -281,9 +281,9 @@ def test_busabase_provisioning(browser) -> None:
                 records = read_json(f"{busabase_url}/api/v1/records?baseId={shots_base['baseId']}")
                 record_items = records if isinstance(records, list) else records.get("records", [])
                 fixture = next(
-                    r for r in record_items if r.get("headCommit", {}).get("fields", {}).get("shot-id") == "shot-fixture"
+                    r for r in record_items if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("shot-id") == "shot-fixture"
                 )
-                assert fixture["headCommit"]["fields"]["title"] == "Integration Fixture Shot (edited)", fixture
+                assert (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["title"] == "Integration Fixture Shot (edited)", fixture
 
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
             keys = resource_keys(nodes)
@@ -302,7 +302,7 @@ def test_busabase_provisioning(browser) -> None:
             records = read_json(f"{busabase_url}/api/v1/records?baseId={shots_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
             assert any(
-                record.get("headCommit", {}).get("fields", {}).get("title") == "Integration Fixture Shot (edited)"
+                (record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("title") == "Integration Fixture Shot (edited)"
                 for record in record_items
             )
 

@@ -65,7 +65,7 @@ async function readAll(client, declared) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -223,7 +223,7 @@ async function main() {
   for (const entry of classifications) {
     const existing = await findRecord(client, declared("intake"), "intake-id", entry.intake_id);
     if (!existing) fail(`classification references unknown intake_id: ${entry.intake_id}`);
-    const item = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const item = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     item.intake_id = entry.intake_id;
 
     if (entry.action === "ignore") {
@@ -320,7 +320,9 @@ async function main() {
     if (typeof entry.reason !== "string" || !entry.reason) fail(`proposal reason required for ${entry.ticket_id}`);
 
     const ticketRecord = await findRecord(client, declared("tickets"), "ticket-id", entry.ticket_id);
-    const ticket = normalizeFields(ticketRecord.headCommit?.fields || ticketRecord.fields);
+    const ticket = normalizeFields(
+      ticketRecord.headCommit?.payload || ticketRecord.headCommit?.fields || ticketRecord.fields,
+    );
     ticket.ticket_id = entry.ticket_id;
 
     nextRef += 1;
@@ -384,7 +386,9 @@ async function main() {
   for (const entry of ticketUpdates) {
     const ticketRecord = await findRecord(client, declared("tickets"), "ticket-id", entry.ticket_id);
     if (!ticketRecord) fail(`ticket_update references unknown ticket_id: ${entry.ticket_id}`);
-    const ticket = normalizeFields(ticketRecord.headCommit?.fields || ticketRecord.fields);
+    const ticket = normalizeFields(
+      ticketRecord.headCommit?.payload || ticketRecord.headCommit?.fields || ticketRecord.fields,
+    );
     ticket.ticket_id = entry.ticket_id;
 
     if (entry.status) {

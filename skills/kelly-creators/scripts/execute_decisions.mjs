@@ -64,7 +64,7 @@ async function main() {
 
   const results = [];
   for (const record of records) {
-    const fields = normalizeFields(record.headCommit?.fields || record.fields);
+    const fields = normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields);
     if (fields.status !== "approved") continue;
     if (fields.item_type === "quality_gate") continue;
     const mapping = OPERATION_BY_ACTION[fields.proposed_action];

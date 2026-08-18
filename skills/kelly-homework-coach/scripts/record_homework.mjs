@@ -92,7 +92,7 @@ const toBusabaseFields = (fields) =>
 // fields fallback); accept it loosely here. Mirrors busabase-provider.js's
 // findRecord() and kelly-pr-review's execute_decisions.mjs rawFieldsOf().
 /** @param {any} record */
-const rawFieldsOf = (record) => record?.headCommit?.fields || record?.fields || {};
+const rawFieldsOf = (record) => record?.headCommit?.payload || record?.headCommit?.fields || record?.fields || {};
 
 async function readStdin() {
   const chunks = [];

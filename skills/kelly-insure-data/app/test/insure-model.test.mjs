@@ -60,7 +60,8 @@ test("compactArray splits comma/full-width-comma-separated strings and trims", (
   assert.deepEqual(compactArray(undefined), []);
 });
 
-test("fieldsOf reads headCommit.fields first, then fields, then commit.fields", () => {
+test("fieldsOf reads headCommit.payload first, then headCommit.fields, then fields, then commit.fields", () => {
+  assert.deepEqual(fieldsOf({ headCommit: { payload: { p: 0 }, fields: { a: 1 } } }), { p: 0 });
   assert.deepEqual(fieldsOf({ headCommit: { fields: { a: 1 } } }), { a: 1 });
   assert.deepEqual(fieldsOf({ fields: { b: 2 } }), { b: 2 });
   assert.deepEqual(fieldsOf({ commit: { fields: { c: 3 } } }), { c: 3 });

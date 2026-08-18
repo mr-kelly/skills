@@ -18,7 +18,7 @@ from runtime import free_port, managed_process
 
 SKILL_ROOT = REPO_ROOT / "skills" / "kelly-sales-outreach"
 APP_ROOT = SKILL_ROOT / "app"
-BUSABASE_VERSION = "0.11.0"
+BUSABASE_VERSION = "0.16.2"
 
 
 def launch_chromium(playwright):
@@ -92,7 +92,7 @@ def find_resource(nodes, key: str):
 def records_of(busabase_url: str, base_id: str) -> list[dict]:
     payload = read_json(f"{busabase_url}/api/v1/records?baseId={base_id}&limit=100")
     items = payload if isinstance(payload, list) else payload.get("records", [])
-    return [(item.get("headCommit") or {}).get("fields") or item.get("fields") or {} for item in items]
+    return [(item.get("headCommit") or {}).get("payload") or (item.get("headCommit") or {}).get("fields") or item.get("fields") or {} for item in items]
 
 
 def run_script(args: list[str], busabase_url: str) -> subprocess.CompletedProcess:

@@ -128,7 +128,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     });
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
-      const fields = normalizeFields(record.headCommit?.fields || record.fields);
+      const fields = normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields);
       fields.__recordId = record.id;
       fields.__headCommitId = record.headCommitId || record.headCommit?.id;
       rows.push(fields);
@@ -833,7 +833,9 @@ export const busabaseProvider = {
     if (!spec) throw new Error(`Unknown collection: ${kindKey}`);
     const existing = await findRecord(spec.baseKey, spec.idField, id);
     if (existing) {
-      const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+      const currentFields = normalizeFields(
+        existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+      );
       await upsert(
         spec.baseKey,
         spec.idField,
@@ -850,7 +852,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
     if (!existing) throw new Error(`Unknown shot: ${shotId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     const isVideo = kindOfAsset === "video";
     const candidates = parseJsonArray(currentFields[isVideo ? "video_candidates_json" : "image_candidates_json"]);
     const match = candidates.find((c) => c.assetId === assetId);
@@ -879,7 +883,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("characters", "character-id", characterId);
     if (!existing) throw new Error(`Unknown character: ${characterId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     const candidates = parseJsonArray(currentFields.voice_candidates_json);
     const match = candidates.find((c) => c.assetId === assetId);
     if (!match) throw new Error("该候选不存在，无法设为选用。");
@@ -900,7 +906,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
     if (!existing) throw new Error(`Unknown shot: ${shotId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     await upsert(
       "shots",
       "shot-id",
@@ -916,7 +924,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
     if (!existing) throw new Error(`Unknown shot: ${shotId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     await upsert(
       "shots",
       "shot-id",
@@ -932,7 +942,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("characters", "character-id", characterId);
     if (!existing) throw new Error(`Unknown character: ${characterId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     await upsert(
       "characters",
       "character-id",
@@ -948,7 +960,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("characters", "character-id", characterId);
     if (!existing) throw new Error(`Unknown character: ${characterId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     await upsert(
       "characters",
       "character-id",

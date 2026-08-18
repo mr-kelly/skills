@@ -68,7 +68,7 @@ async function main() {
   const records = Array.isArray(page) ? page : page.records || [];
   const settingsRecords = Array.isArray(settingsPage) ? settingsPage : settingsPage.records || [];
   const configRow = settingsRecords
-    .map((record) => normalizeFields(record.headCommit?.fields || record.fields))
+    .map((record) => normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields))
     .find((row) => row.kind === "config");
   let config = {};
   try {
@@ -80,7 +80,7 @@ async function main() {
 
   const results = [];
   for (const record of records) {
-    const fields = normalizeFields(record.headCommit?.fields || record.fields);
+    const fields = normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields);
     if (fields.status === "approved") {
       const score = computeScore(
         {

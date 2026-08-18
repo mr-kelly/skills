@@ -43,7 +43,7 @@ const toBusabaseFields = (fields) =>
 // fields fallback); accept it loosely here. Mirrors busabase-provider.js's
 // findRecord(): a missing record raises NOT_FOUND rather than resolving to null.
 /** @param {any} record */
-const rawFieldsOf = (record) => record?.headCommit?.fields || record?.fields || {};
+const rawFieldsOf = (record) => record?.headCommit?.payload || record?.headCommit?.fields || record?.fields || {};
 async function findByFieldSlug(client, baseId, fieldSlug, valueText) {
   try {
     return await client.records.get({ baseId, fieldSlug, valueText });
@@ -115,7 +115,7 @@ async function main() {
 
   const results = [];
   for (const record of records) {
-    const fields = normalizeFields(record.headCommit?.fields || record.fields);
+    const fields = normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields);
     if (fields.status !== "approved") continue;
     if (!REVIEW_ACTIONS.has(fields.decision_action)) continue;
 

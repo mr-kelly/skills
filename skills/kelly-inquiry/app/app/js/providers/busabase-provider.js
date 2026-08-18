@@ -72,7 +72,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -241,7 +241,7 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("inquiries", "inquiry-id", inquiry_id);
     if (!existing) throw new Error(`Unknown inquiry: ${inquiry_id}`);
-    const inquiry = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const inquiry = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     const now = new Date().toISOString();
     const itemId = `reply-${now.replace(/[-:.TZ]/g, "").slice(0, 14)}-${Math.random().toString(36).slice(2, 8)}`;
     const fields = {
@@ -275,7 +275,7 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("approvals", "item-id", item_id);
     if (!existing) throw new Error(`Unknown approval item: ${item_id}`);
-    const current = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     if (current.status === "done") {
       throw new Error(`Approval item ${item_id} was already executed and cannot be re-decided.`);
     }
@@ -303,7 +303,7 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("inquiries", "inquiry-id", inquiry_id);
     if (!existing) throw new Error(`Unknown inquiry: ${inquiry_id}`);
-    const current = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     const fields = {
       ...inquiryFields(current),
       inquiry_id,
@@ -320,7 +320,7 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("quotes", "quote-id", quote_id);
     if (!existing) throw new Error(`Unknown quote: ${quote_id}`);
-    const current = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     let currentItems;
     try {
       currentItems = JSON.parse(current.items || "[]");

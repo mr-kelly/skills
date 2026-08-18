@@ -105,7 +105,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -420,7 +420,9 @@ export const busabaseProvider = {
     const id = String(character.id || "");
     if (!id) throw new Error("Character id is required");
     const existing = await findRecord("cast", "character-id", id);
-    const currentFields = existing ? normalizeFields(existing.headCommit?.fields || existing.fields) : {};
+    const currentFields = existing
+      ? normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields)
+      : {};
     const visual = character.visual || {};
     const fields = {
       ...characterFields(currentFields),
@@ -447,7 +449,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("cast", "character-id", id);
     if (!existing) return { ok: true };
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     await upsert(
       "cast",
       "character-id",
@@ -464,7 +468,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("cast", "character-id", id);
     if (!existing) throw new Error(`Unknown character: ${id}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     await upsert(
       "cast",
       "character-id",
@@ -500,7 +506,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", id);
     if (!existing) return { ok: true };
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     await upsert(
       "shots",
       "shot-id",
@@ -515,7 +523,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
     if (!existing) throw new Error(`Unknown shot: ${shotId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     await upsert(
       "shots",
       "shot-id",
@@ -530,7 +540,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
     if (!existing) throw new Error(`Unknown shot: ${shotId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     await upsert(
       "shots",
       "shot-id",
@@ -546,7 +558,9 @@ export const busabaseProvider = {
     const { assetId } = await uploadAsset(runtimeClient, file, { context: `kelly-mv/shot-${kind}` });
     const existing = await findRecord("shots", "shot-id", shotId);
     if (!existing) throw new Error(`Unknown shot: ${shotId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     const generatedAt = new Date().toISOString();
     const generation = { mode: "upload", source: file.name || "" };
     const isVideo = kind === "video";
@@ -579,7 +593,9 @@ export const busabaseProvider = {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
     if (!existing) throw new Error(`Unknown shot: ${shotId}`);
-    const currentFields = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
     const isVideo = kind === "video";
     const candidates = parseJsonArray(currentFields[isVideo ? "video_candidates_json" : "image_candidates_json"]);
     const match = candidates.find((c) => c.assetId === assetId);

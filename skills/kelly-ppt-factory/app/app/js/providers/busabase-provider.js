@@ -79,7 +79,7 @@ async function readAllRecords(key, { maxPages = 20 } = {}) {
     const records = Array.isArray(result) ? result : result.records || [];
     for (const record of records) {
       rows.push({
-        ...normalizeFields(record.headCommit?.fields || record.fields),
+        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
         __recordId: record.id,
         __headCommitId: record.headCommitId || record.headCommit?.id,
       });
@@ -162,7 +162,7 @@ export const busabaseProvider = {
     const idFieldSlug = targetType === "deck" ? "deck-id" : "slide-id";
     const existing = await findRecord(baseKey, idFieldSlug, id);
     if (!existing) throw new Error(`Unknown ${targetType}: ${id}`);
-    const currentRaw = normalizeFields(existing.headCommit?.fields || existing.fields);
+    const currentRaw = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     const now = new Date().toISOString();
     const nextStatus = statusFromDecision(action);
     if (targetType === "deck") {
