@@ -56,7 +56,7 @@ This repo collects the skills Kelly uses repeatedly across email, money, content
 Most skill libraries are just prompts. **Kelly's skills are App-in-Skill workflows** — each pairs an agent operating procedure with a local browser UI, so there is always a calm place to review before anything happens:
 
 - **The agent operates** — it triages, drafts, reconciles, researches, and plans against your real accounts and exports.
-- **You review in a local UI** — a command desk with dashboards, editable drafts, detail panes, and status filters, running on `localhost` with demo-safe data by default.
+- **You review in a local UI** — a command desk with dashboards, editable drafts, detail panes, and status filters, running on `localhost` and connecting to real Busabase data by default. Deterministic Demo data is an explicit opt-in for screenshots, recordings, and requested UI validation.
 - **Nothing risky ships without approval** — safe actions are one click; risky ones are blocked at an explicit approval boundary, and you can always hand work back to the agent with notes.
 
 The result is agent speed with a human in the loop — not a black box.
@@ -91,7 +91,7 @@ The audit gate runs repository lint and type checks, validates every skill packa
    npx skills add mr-kelly/skills
    ```
 2. **Invoke a skill** — e.g. `$kelly-money` to review cashflow, or `$kelly-email` to reach inbox zero.
-3. **Open the local App UI** — the skill launches a review desk in your browser (demo-safe data by default) where you inspect dashboards, edit drafts, and approve or block actions.
+3. **Open the local App UI** — the skill launches the real Busabase-backed review desk in your browser, where you inspect dashboards, edit drafts, and approve or block actions. Demo mode opens only when you explicitly request it or when a separate UI-validation pass requires it.
 
 ---
 

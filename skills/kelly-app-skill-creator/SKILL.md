@@ -81,6 +81,11 @@ the other selected references completely before acting:
   runnable with `cd <skill-root>/app && pnpm dev` or
   `pnpm --dir <skill-root>/app dev`, but do not start it unless the user
   explicitly asks for local preview or local debugging.
+- When the user asks to start, open, or launch an existing local app, open the
+  bare production URL without `?demo=1` or any other Demo selector. The normal
+  launch path must exercise the Busabase connection and OAuth gate. Demo is an
+  explicit opt-in for a requested demo, screenshot, recording, or a separate UI
+  acceptance pass; never present its URL as the normally launched app.
 - Delegate the runtime language, framework, dependency, SDK bundle, server,
   Nodepod, validation, and deployable-file rules to `$busabase-app-creator`.
   Never restate or override those rules here or in a generated domain skill.
@@ -121,8 +126,10 @@ local preview, or local debugging.
   resource, and real-data acceptance there. Return the exact clickable AirApp
   URL; do not substitute a localhost URL.
 - Use `local-preview` only after an explicit user request. Then start `pnpm dev`,
-  apply the Connection UX Contract, report the local URL, and state plainly that
-  the process is standalone and has not uploaded or deployed an AirApp.
+  apply the Connection UX Contract, report the bare non-Demo local URL as the
+  primary user-facing URL, and state plainly that the process is standalone and
+  has not uploaded or deployed an AirApp. When acceptance also requires Demo,
+  exercise it as a separate validation route rather than the launch default.
 - A Folder or Base created in Busabase does not prove that the AirApp exists.
   Confirm an actual `airapp` node and its merged version before saying it was
   uploaded, deployed, or is running in Busabase.

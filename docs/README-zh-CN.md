@@ -56,7 +56,7 @@
 大多数 skill 库只是 prompt。**Kelly 的 skills 是 App-in-Skill 工作流** —— 每个都把一份 agent 操作手册和一个本地浏览器 UI 配在一起，让你在任何事情发生前，总有一个稳的地方可以 review：
 
 - **agent 干活** —— 对着你真实的账户和导出数据做 triage、起草、对账、调研和规划。
-- **你在本地 UI 里 review** —— 一个操作台，带 dashboard、可编辑草稿、详情面板和状态筛选，跑在 `localhost` 上，默认用 demo-safe 数据。
+- **你在本地 UI 里 review** —— 一个操作台，带 dashboard、可编辑草稿、详情面板和状态筛选，跑在 `localhost` 上，默认连接真实 Busabase 数据。确定性的 Demo 数据仅在明确要求截图、录屏或 UI 验收时使用。
 - **有风险的动作不经批准不执行** —— 安全动作一键通过；高风险动作卡在明确的审批边界上，你随时可以带备注把任务交回给 agent。
 
 结果是：agent 的速度 + 人在回路，而不是一个黑盒。
@@ -91,7 +91,7 @@
    npx skills add mr-kelly/skills
    ```
 2. **唤起一个 skill** —— 比如 `$kelly-money` 看现金流，或 `$kelly-email` 做 inbox zero。
-3. **打开本地 App UI** —— skill 会在浏览器里拉起一个审阅台（默认 demo-safe 数据），你在这里查看 dashboard、编辑草稿、批准或阻止动作。
+3. **打开本地 App UI** —— skill 会在浏览器里拉起真实的 Busabase-backed 审阅台，你在这里查看 dashboard、编辑草稿、批准或阻止动作。只有明确要求 Demo，或单独的 UI 验收流程需要时，才打开 Demo 模式。
 
 ---
 
