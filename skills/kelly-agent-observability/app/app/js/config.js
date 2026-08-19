@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-agent-observability",
   },
+  airApp: { name: "Kelly Agent Observability", slug: "kelly-agent-observability-app", resourceKey: "airapp" },
   bases: [
     {
       key: "agents",

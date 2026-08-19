@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       busabase-sdk:
-        specifier: 0.16.1
-        version: 0.16.1
+        specifier: 0.17.1
+        version: 0.17.1
       imapflow:
         specifier: ^1.6.5
         version: 1.7.0
@@ -67,8 +67,8 @@ packages:
     resolution: {integrity: sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==}
     engines: {node: '>=8.0.0'}
 
-  busabase-sdk@0.16.1:
-    resolution: {integrity: sha512-b5D73KrUlN5sxOzQYK/0qO+PnSk5kQNIcaz/WyUlSGxQNIbc8ZbNVpKGbGZFTfe2O9XgvjPVOQO789BAvvlLqA==}
+  busabase-sdk@0.17.1:
+    resolution: {integrity: sha512-xfCuox1MMYV+69xR2LEn+fPuwAQBgTIwbdr5kVyX/Oh+H8BNI334SwwbafO6LfPG9TrX80TCyQzozgVO1ZrmGg==}
     engines: {node: '>=24.18.0'}
 
   deepmerge-ts@7.1.6:
@@ -307,7 +307,7 @@ snapshots:
 
   atomic-sleep@1.0.0: {}
 
-  busabase-sdk@0.16.1:
+  busabase-sdk@0.17.1:
     dependencies:
       '@orpc/client': 1.15.0
       '@orpc/contract': 1.15.0

@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-ppt-factory",
   },
+  airApp: { name: "Kelly PPT Factory", slug: "kelly-ppt-factory-app", resourceKey: "airapp" },
   bases: [
     {
       key: "projects",

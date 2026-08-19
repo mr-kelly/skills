@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@hono/node-server": "2.0.8",
-    "busabase-sdk": "0.16.1",
+    "busabase-sdk": "0.17.1",
     "hono": "4.12.29"
   },
   "devDependencies": {

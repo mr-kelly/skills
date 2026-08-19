@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -32,7 +32,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.16.1");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.1");
 });
 
 test("keeps resource-map and runtime declarations aligned", async () => {
@@ -161,7 +161,12 @@ test("no skill-root trusted script: scripts/generate_batch.ts was purely a demo-
   // batch-scenario intake path, so it is not carried forward as a trusted
   // .mjs script.
   await assert.rejects(readFile(join(skillRoot, "scripts", "generate_batch.mjs")));
-  await assert.rejects(readFile(join(skillRoot, "package.json")));
+  // The skill-root package.json that does exist is scoped to publishing the
+  // AirApp, not to generating batch fixtures from outside it.
+  const pkg = JSON.parse(await readFile(join(skillRoot, "package.json"), "utf8"));
+  assert.deepEqual(Object.keys(pkg.dependencies), ["busabase-sdk"]);
+  const scripts = await readdir(join(skillRoot, "scripts")).catch(() => []);
+  assert.deepEqual(scripts.sort(), ["publish_airapp.mjs", "setup.mjs"]);
   const demoSource = await readFile(join(browserRoot, "js", "providers", "demo-provider.js"), "utf8");
   assert.match(demoSource, /Bubble Tea Chain/);
   assert.match(demoSource, /Discount Mart/);

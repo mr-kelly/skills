@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-llm-gateway",
   },
+  airApp: { name: "Kelly LLM Gateway", slug: "kelly-llm-gateway-app", resourceKey: "airapp" },
   bases: [
     {
       key: "routes",

@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-ai-newsroom",
   },
+  airApp: { name: "Kelly AI Newsroom", slug: "kelly-ai-newsroom-app", resourceKey: "airapp" },
   bases: [
     {
       key: "signals",

@@ -33,6 +33,7 @@ export const appConfig = {
     nodeId: "",
     slug: "video-factory",
   },
+  airApp: { name: "Kelly Demo Video Factory", slug: "video-factory-app", resourceKey: "airapp" },
   bases: [
     {
       key: "videos",

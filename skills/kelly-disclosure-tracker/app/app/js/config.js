@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-disclosure-tracker",
   },
+  airApp: { name: "Cross-Entity Disclosure Tracker", slug: "kelly-disclosure-tracker-app", resourceKey: "airapp" },
   bases: [
     {
       key: "vehicles",

@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-portfolio-health",
   },
+  airApp: { name: "Kelly Portfolio Health", slug: "kelly-portfolio-health-app", resourceKey: "airapp" },
   bases: [
     {
       key: "contracts",

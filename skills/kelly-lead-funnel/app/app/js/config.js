@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-lead-funnel",
   },
+  airApp: { name: "Kelly Lead Funnel", slug: "kelly-lead-funnel-app", resourceKey: "airapp" },
   bases: [
     {
       key: "leads",

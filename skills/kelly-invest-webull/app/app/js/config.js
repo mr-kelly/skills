@@ -12,6 +12,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-invest-webull",
   },
+  airApp: { name: "Kelly Invest (Webull)", slug: "kelly-invest-webull-app", resourceKey: "airapp" },
   bases: [
     {
       key: "accounts",

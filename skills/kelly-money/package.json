@@ -1,0 +1,13 @@
+{
+  "name": "kelly-money",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Trusted scripts for kelly-money: workspace setup and AirApp publish.",
+  "dependencies": {
+    "busabase-sdk": "0.17.1"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  }
+}

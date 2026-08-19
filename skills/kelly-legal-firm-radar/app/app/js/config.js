@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-legal-firm-radar",
   },
+  airApp: { name: "Legal Firm Radar", slug: "kelly-legal-firm-radar-app", resourceKey: "airapp" },
   bases: [
     {
       key: "items",

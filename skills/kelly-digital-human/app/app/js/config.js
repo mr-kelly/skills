@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-digital-human",
   },
+  airApp: { name: "Kelly Digital Human", slug: "kelly-digital-human-app", resourceKey: "airapp" },
   bases: [
     {
       key: "qa-decisions",

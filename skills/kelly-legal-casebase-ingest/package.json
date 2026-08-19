@@ -11,7 +11,7 @@
     "app:check": "pnpm --dir app check"
   },
   "dependencies": {
-    "busabase-sdk": "0.16.1"
+    "busabase-sdk": "0.17.1"
   },
   "engines": {
     "node": ">=24.18.0"

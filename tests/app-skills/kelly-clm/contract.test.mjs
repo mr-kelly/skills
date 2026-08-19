@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -32,7 +32,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.16.1");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.1");
 });
 
 test("keeps resource-map and runtime declarations aligned", async () => {
@@ -113,7 +113,6 @@ test("decisions/status are direct field writes on the owning record -- no decisi
 test("retires the pre-Busabase local-file/server layer", async () => {
   for (const path of [
     "config.example.json",
-    "package.json",
     "package-lock.json",
     ".gitignore",
     "app/setup-gate.js",
@@ -134,8 +133,11 @@ test("retires the pre-Busabase local-file/server layer", async () => {
   }
 });
 
-test("no skill-root trusted script: every action is a pure Busabase write with no external side effect", async () => {
-  await assert.rejects(readFile(join(skillRoot, "package.json")));
+test("the skill-root package.json exists only to publish the AirApp, not to run any external-side-effect script — every record write is still a pure Busabase write", async () => {
+  const pkg = JSON.parse(await readFile(join(skillRoot, "package.json"), "utf8"));
+  assert.deepEqual(Object.keys(pkg.dependencies), ["busabase-sdk"]);
+  const scripts = await readdir(join(skillRoot, "scripts")).catch(() => []);
+  assert.deepEqual(scripts.sort(), ["publish_airapp.mjs", "setup.mjs"]);
   const demoSource = await readFile(join(browserRoot, "js", "providers", "demo-provider.js"), "utf8");
   // The retired app/server/demo.ts's four contracts (Nimbus/Orbit/Luma/Acme)
   // are ported verbatim into the demo dataset.

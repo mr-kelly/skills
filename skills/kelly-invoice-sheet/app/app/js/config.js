@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-invoice-sheet",
   },
+  airApp: { name: "Kelly Invoice Sheet", slug: "kelly-invoice-sheet-app", resourceKey: "airapp" },
   bases: [
     {
       key: "invoices",

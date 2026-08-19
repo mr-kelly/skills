@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-behavior-predict",
   },
+  airApp: { name: "Kelly Behavior Predict", slug: "kelly-behavior-predict-app", resourceKey: "airapp" },
   bases: [
     {
       key: "sessions",

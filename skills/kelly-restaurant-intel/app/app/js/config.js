@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-restaurant-intel",
   },
+  airApp: { name: "Kelly Restaurant Intel", slug: "kelly-restaurant-intel-app", resourceKey: "airapp" },
   bases: [
     {
       key: "signals",

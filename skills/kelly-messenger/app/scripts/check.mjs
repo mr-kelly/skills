@@ -7,7 +7,7 @@ const configText = await readFile(path.join(root, "app", "js", "config.js"), "ut
 const index = await readFile(path.join(root, "app", "index.html"), "utf8");
 
 if (packageJson.scripts.start !== "node server.js") throw new Error("AirApp start must be node server.js");
-if (packageJson.dependencies["busabase-sdk"] !== "0.16.1") throw new Error("busabase-sdk must be exact-pinned");
+if (packageJson.dependencies["busabase-sdk"] !== "0.17.1") throw new Error("busabase-sdk must be exact-pinned");
 if (!configText.includes('deployment: "cloud"')) throw new Error("Kelly Messenger must be Cloud-only");
 if (/KELLY_MESSENGER_DATA_PROVIDER|local-file-provider|config\.local\.json/.test(configText)) {
   throw new Error("Retired provider/runtime contract remains in app config");

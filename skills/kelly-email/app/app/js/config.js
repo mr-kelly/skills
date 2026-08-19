@@ -119,6 +119,7 @@ export const appConfig = {
     name: "Kelly Email",
     description: "Mailbox triage, human review, trusted execution state, and account settings",
   },
+  airApp: { name: "Kelly Email", slug: "kelly-email-app", resourceKey: "airapp" },
   bases: [
     {
       key: "reviews",

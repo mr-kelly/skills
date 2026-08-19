@@ -13,5 +13,8 @@
   },
   "engines": {
     "node": ">=24.18.0"
+  },
+  "dependencies": {
+    "busabase-sdk": "0.17.1"
   }
 }

@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-revshare-simulator",
   },
+  airApp: { name: "Kelly Revenue-Share Simulator", slug: "kelly-revshare-simulator-app", resourceKey: "airapp" },
   bases: [
     {
       key: "scenarios",

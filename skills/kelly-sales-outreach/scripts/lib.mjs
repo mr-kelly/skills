@@ -1,9 +1,37 @@
+import { readFile, readdir } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
 import { appConfig } from "../app/app/js/config.js";
 
 export { appConfig };
+
+const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "app");
+
+// Everything the deployed AirApp needs to `npm install && npm run dev` — the
+// whole project except local/generated noise. publishAirApp only ever
+// creates/updates paths from this list (see buildAirAppFileOperations), so
+// omitting a directory here just means it never reaches the deployed AirApp,
+// not that anything gets deleted there.
+const SKIP_NAMES = new Set(["node_modules", ".git", ".DS_Store", "coverage", "test-results", "playwright-report"]);
+
+export async function readAirAppFiles(dir = appRoot, prefix = "") {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    if (SKIP_NAMES.has(entry.name)) continue;
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    const abs = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await readAirAppFiles(abs, rel)));
+    } else {
+      files.push({ path: rel, content: await readFile(abs, "utf8") });
+    }
+  }
+  return files;
+}
 
 // Operator mistakes (missing credential, missing file, workspace not ready) are
 // expected outcomes, not crashes. Print one line and exit; a stack trace here

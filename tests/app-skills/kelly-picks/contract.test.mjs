@@ -32,7 +32,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.16.1");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.1");
 });
 
 test("keeps resource-map and runtime declarations aligned", async () => {
@@ -106,7 +106,7 @@ test("ships all three trusted scripts, each writing with its own Busabase creden
     assert.match(source, /BUSABASE_BASE_URL/, name);
   }
   const pkg = await readJson(join(skillRoot, "package.json"));
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.16.1");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.1");
 });
 
 test("execute_decisions.mjs keeps its --apply dry-run gate and performs no external side effects", async () => {

@@ -10,7 +10,7 @@
     "app:check": "pnpm --dir app check"
   },
   "dependencies": {
-    "busabase-sdk": "0.16.1",
+    "busabase-sdk": "0.17.1",
     "pptxgenjs": "^3.12.0"
   },
   "engines": {

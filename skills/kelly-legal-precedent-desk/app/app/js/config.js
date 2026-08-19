@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-legal-precedent-desk",
   },
+  airApp: { name: "Legal Precedent Desk", slug: "kelly-legal-precedent-desk-app", resourceKey: "airapp" },
   bases: [
     {
       key: "items",

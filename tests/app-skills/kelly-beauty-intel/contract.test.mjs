@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -27,7 +27,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.16.1");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.1");
 });
 
 test("keeps resource-map and runtime declarations aligned", async () => {
@@ -58,7 +58,15 @@ test("does not persist secrets or a second data provider in browser storage", as
 
 test("retires the pre-Busabase local-file layer", async () => {
   const skillRoot = join(repoRoot, "skills", "kelly-beauty-intel");
-  for (const path of ["config.example.json", "app/setup-gate.js", "app/server", "app/start.sh", "package.json"]) {
+  for (const path of ["config.example.json", "app/setup-gate.js", "app/server", "app/start.sh"]) {
     await assert.rejects(readFile(join(skillRoot, path)));
   }
+});
+
+test("the skill-root package.json exists only to publish the AirApp, not to run any external-side-effect script", async () => {
+  const skillRoot = join(repoRoot, "skills", "kelly-beauty-intel");
+  const pkg = JSON.parse(await readFile(join(skillRoot, "package.json"), "utf8"));
+  assert.deepEqual(Object.keys(pkg.dependencies), ["busabase-sdk"]);
+  const scripts = await readdir(join(skillRoot, "scripts")).catch(() => []);
+  assert.deepEqual(scripts.sort(), ["publish_airapp.mjs", "setup.mjs"]);
 });

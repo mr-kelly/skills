@@ -13,6 +13,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-homework-coach",
   },
+  airApp: { name: "Kelly Homework Coach", slug: "kelly-homework-coach-app", resourceKey: "airapp" },
   bases: [
     {
       key: "questions",

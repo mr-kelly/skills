@@ -268,7 +268,10 @@ test("setup provisions the workspace and is safe to re-run", async () => {
   assert.doesNotMatch(setup, /slug: "jobhunt-/);
   // Reads back after writing: "created" without a verify is how a half-merged
   // structure ChangeRequest gets reported as success.
-  assert.match(setup, /provisioned\.missing\.length/);
+  assert.match(setup, /current\.missing\.length/);
+  // The AirApp is always a separate, always-review-first request from the
+  // data layer's autoMerge: true one — never the same call.
+  assert.match(setup, /publishAirApp/);
 });
 
 test("a test send routes the mail without touching the research", async () => {

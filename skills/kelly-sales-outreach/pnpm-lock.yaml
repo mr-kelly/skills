@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       busabase-sdk:
-        specifier: 0.16.1
-        version: 0.16.1
+        specifier: 0.17.1
+        version: 0.17.1
       nodemailer:
         specifier: 9.0.3
         version: 9.0.3
@@ -46,8 +46,8 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
-  busabase-sdk@0.16.1:
-    resolution: {integrity: sha512-b5D73KrUlN5sxOzQYK/0qO+PnSk5kQNIcaz/WyUlSGxQNIbc8ZbNVpKGbGZFTfe2O9XgvjPVOQO789BAvvlLqA==}
+  busabase-sdk@0.17.1:
+    resolution: {integrity: sha512-xfCuox1MMYV+69xR2LEn+fPuwAQBgTIwbdr5kVyX/Oh+H8BNI334SwwbafO6LfPG9TrX80TCyQzozgVO1ZrmGg==}
     engines: {node: '>=24.18.0'}
 
   nodemailer@9.0.3:
@@ -128,7 +128,7 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
-  busabase-sdk@0.16.1:
+  busabase-sdk@0.17.1:
     dependencies:
       '@orpc/client': 1.15.0
       '@orpc/contract': 1.15.0

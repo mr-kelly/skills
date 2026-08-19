@@ -12,6 +12,7 @@ export const appConfig = {
     nodeId: "",
     slug: "kelly-support",
   },
+  airApp: { name: "Kelly Support", slug: "kelly-support-app", resourceKey: "airapp" },
   bases: [
     {
       key: "accounts",

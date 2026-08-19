@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -362,14 +363,33 @@ def test_busabase_round_trip(browser) -> None:
                     assert sorted(resource_keys(nodes)) == ["app-root", "companies", "leads", "profile"], nodes
 
                     # Re-running setup over a workspace the app just built must
-                    # adopt it, not build a second one beside it.
+                    # adopt the data layer, not build a second one beside it —
+                    # and it must publish the AirApp exactly once: the browser's
+                    # lazy provisioning never touches the AirApp (it is always a
+                    # separate, always-review-first ChangeRequest), so the first
+                    # --apply here is expected to submit one.
                     nodes_before = json.dumps(nodes, sort_keys=True)
                     setup_again = run_script(["scripts/setup.mjs", "--apply"], busabase_url)
                     assert setup_again.returncode == 0, setup_again.stderr
-                    assert "已经就绪" in setup_again.stdout, setup_again.stdout
-                    assert "缺失" not in setup_again.stdout, setup_again.stdout
+                    for slug in ("jobhunt-profile-v1", "jobhunt-companies-v1", "jobhunt-leads-v1"):
+                        line = next((l for l in setup_again.stdout.splitlines() if slug in l), None)
+                        assert line and "已就绪" in line, setup_again.stdout
                     after = json.dumps(read_json(f"{busabase_url}/api/v1/nodes?depth=2"), sort_keys=True)
                     assert after == nodes_before, setup_again.stdout
+                    match = re.search(r"AirApp .{0,4}请求已提交：([a-zA-Z0-9]+)", setup_again.stdout)
+                    assert match, setup_again.stdout
+                    first_change_request_id = match.group(1)
+
+                    # Calling --apply again before that ChangeRequest is reviewed
+                    # must reuse it, never propose a second, duplicate create.
+                    setup_third = run_script(["scripts/setup.mjs", "--apply"], busabase_url)
+                    assert setup_third.returncode == 0, setup_third.stderr
+                    match_again = re.search(r"AirApp .{0,4}请求已提交：([a-zA-Z0-9]+)", setup_third.stdout)
+                    assert match_again, setup_third.stdout
+                    assert match_again.group(1) == first_change_request_id, (
+                        setup_again.stdout,
+                        setup_third.stdout,
+                    )
                     profile_base = find_resource(nodes, "profile")["baseId"]
                     companies_base = find_resource(nodes, "companies")["baseId"]
                     leads_base = find_resource(nodes, "leads")["baseId"]
@@ -586,10 +606,24 @@ def test_busabase_round_trip(browser) -> None:
                 assert not still_queued.get("sent-at"), still_queued
 
             change_requests = read_json(f"{busabase_url}/api/v1/change-requests")["changeRequests"]
-            structure_requests = [
+            node_tree_requests = [
                 item for item in change_requests if (item.get("sourceMeta") or {}).get("subject") == "node_tree"
             ]
+
+            def targets_airapp(item: dict) -> bool:
+                return any(
+                    ((op.get("headCommit") or {}).get("payload") or {}).get("nodeType") == "airapp"
+                    for op in item.get("operations") or []
+                )
+
+            # One Folder+Bases structure request from the browser's lazy
+            # provisioning, and — separately, always review-first, never
+            # folded into that request — exactly one AirApp request, reused
+            # (not duplicated) across the two setup.mjs --apply calls above.
+            structure_requests = [item for item in node_tree_requests if not targets_airapp(item)]
+            airapp_requests = [item for item in node_tree_requests if targets_airapp(item)]
             assert len(structure_requests) == 1, change_requests
+            assert len(airapp_requests) == 1, change_requests
 
         # The local PGlite data must survive a complete Busabase restart.
         with managed_process(busabase_command, REPO_ROOT, {}, f"{busabase_url}/api/health", timeout=90):
