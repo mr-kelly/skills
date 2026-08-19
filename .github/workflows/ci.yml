@@ -43,7 +43,7 @@ jobs:
       - name: Install skill deps (so module imports resolve for typecheck)
         run: |
           for pkg in skills/*/package.json; do
-            (cd "$(dirname "$pkg")" && npm install --no-audit --no-fund)
+            pnpm --dir "$(dirname "$pkg")" install --frozen-lockfile
           done
           for pkg in skills/*/app/package.json; do
             pnpm --dir "$(dirname "$pkg")" install --frozen-lockfile
