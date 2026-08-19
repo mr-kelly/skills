@@ -12,7 +12,7 @@
     "test": "node --test"
   },
   "dependencies": {
-    "busabase-sdk": "0.16.1",
+    "busabase-sdk": "0.17.2",
     "sharp": "0.35.3"
   }
 }

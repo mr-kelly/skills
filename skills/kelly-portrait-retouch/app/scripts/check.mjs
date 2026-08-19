@@ -8,7 +8,7 @@ const config = await readFile(path.join(root, "app", "js", "config.js"), "utf8")
 const index = await readFile(path.join(root, "app", "index.html"), "utf8");
 
 if (packageJson.scripts.start !== "node server.js") throw new Error("AirApp start must be node server.js");
-if (packageJson.dependencies["busabase-sdk"] !== "0.16.1") throw new Error("busabase-sdk must be exact-pinned");
+if (packageJson.dependencies["busabase-sdk"] !== "0.17.2") throw new Error("busabase-sdk must be exact-pinned");
 if (resourceMap.appId !== "kelly-portrait-retouch") throw new Error("resource map app id mismatch");
 if (!config.includes('deployment: "cloud"')) throw new Error("deployment must be cloud");
 if (/\b(?:href|src)="\/(?!api\/v1)/.test(index)) throw new Error("AirApp assets must use relative URLs");

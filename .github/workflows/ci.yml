@@ -40,10 +40,13 @@ jobs:
       - name: Biome (lint + format)
         run: npm run lint
 
+      - name: Audit SDK dependency policy
+        run: npm run audit:sdk-policy
+
       - name: Install skill deps (so module imports resolve for typecheck)
         run: |
           for pkg in skills/*/package.json; do
-            (cd "$(dirname "$pkg")" && npm install --no-audit --no-fund)
+            (cd "$(dirname "$pkg")" && npm install --no-audit --no-fund --no-package-lock)
           done
           for pkg in skills/*/app/package.json; do
             pnpm --dir "$(dirname "$pkg")" install --frozen-lockfile

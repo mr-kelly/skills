@@ -9,7 +9,7 @@ const setupText = await readFile(path.join(root, "app", "js", "setup.js"), "utf8
 const localAuthText = await readFile(path.join(root, "server", "local-auth.js"), "utf8");
 
 if (packageJson.scripts.start !== "node server.js") throw new Error("AirApp start must be node server.js");
-if (packageJson.dependencies["busabase-sdk"] !== "0.17.1") throw new Error("busabase-sdk must be exact-pinned");
+if (packageJson.dependencies["busabase-sdk"] !== "0.17.2") throw new Error("busabase-sdk must be exact-pinned");
 if (!configText.includes('deployment: "cloud"')) throw new Error("Kelly Email must be Cloud-only");
 if (/KELLY_EMAIL_DATA_PROVIDER|local-file-provider|folders\.get/.test(configText)) {
   throw new Error("Retired provider/runtime contract remains in app config");

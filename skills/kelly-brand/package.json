@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "description": "Kelly Brand skill-root trusted scripts (execute_decisions.mjs).",
   "dependencies": {
-    "busabase-sdk": "0.17.1"
+    "busabase-sdk": "0.17.2"
   },
   "engines": {
     "node": ">=24.18.0"

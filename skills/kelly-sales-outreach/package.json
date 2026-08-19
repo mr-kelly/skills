@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Trusted scripts for Kelly Sales Outreach: account import and approved first-touch sending.",
   "dependencies": {
-    "busabase-sdk": "0.17.1",
+    "busabase-sdk": "0.17.2",
     "nodemailer": "9.0.3"
   }
 }

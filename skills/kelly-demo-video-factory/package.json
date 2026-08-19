@@ -15,6 +15,6 @@
     "node": ">=24.18.0"
   },
   "dependencies": {
-    "busabase-sdk": "0.17.1"
+    "busabase-sdk": "0.17.2"
   }
 }

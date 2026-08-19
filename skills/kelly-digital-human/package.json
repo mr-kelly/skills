@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "description": "Trusted scripts for kelly-digital-human: workspace setup and AirApp publish.",
   "dependencies": {
-    "busabase-sdk": "0.17.1"
+    "busabase-sdk": "0.17.2"
   },
   "engines": {
     "node": ">=24.18.0"

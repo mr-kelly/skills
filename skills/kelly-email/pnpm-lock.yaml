@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       busabase-sdk:
-        specifier: 0.17.1
-        version: 0.17.1
+        specifier: 0.17.2
+        version: 0.17.2
       imapflow:
         specifier: ^1.6.5
-        version: 1.7.0
+        version: 1.7.1
       mailparser:
         specifier: ^3.9.14
         version: 3.9.15
@@ -67,8 +67,8 @@ packages:
     resolution: {integrity: sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==}
     engines: {node: '>=8.0.0'}
 
-  busabase-sdk@0.17.1:
-    resolution: {integrity: sha512-xfCuox1MMYV+69xR2LEn+fPuwAQBgTIwbdr5kVyX/Oh+H8BNI334SwwbafO6LfPG9TrX80TCyQzozgVO1ZrmGg==}
+  busabase-sdk@0.17.2:
+    resolution: {integrity: sha512-gLp88yonCWt45Oe42ywD5O3wdysfWyzeXzgo5kCR3fa/otq6G02FqgmJXlTnOWJQgkJhgu4CaDShUn59cU+1qg==}
     engines: {node: '>=24.18.0'}
 
   deepmerge-ts@7.1.6:
@@ -115,8 +115,8 @@ packages:
     resolution: {integrity: sha512-IKXpvIzjnC9XTAUbVBcMfGS0EPaIXtW6v+zr+RRp+hqULEpo0owZax6wyRwPOJbWbzjYspQwusTsfVr0ifh4uQ==}
     engines: {node: '>=0.10.0'}
 
-  imapflow@1.7.0:
-    resolution: {integrity: sha512-wWs6g5SBC7OEobQ82T3Jou/KlKl2f37mTCCuGkBrUB0irvYUodkUYMe36GSq1TLs/FM+j/hLmmAgm3CBZkVMyQ==}
+  imapflow@1.7.1:
+    resolution: {integrity: sha512-etpyRH7wOPQGawjl/5ChgaaX5NRK2fxJAi9EFFNwv0N3FXsvjsL3Qu5dJ4i/myH61Cq2RSTb6vI5T9rXDbXD+g==}
 
   ip-address@10.5.0:
     resolution: {integrity: sha512-R5SnVLJmgYYvf2F2ZgwSBnelz5G4q5AxIC277GDfUaNbrZKNANcBC7RHqYYePlszf4kBolVkJauG0ZjHHFh55g==}
@@ -307,7 +307,7 @@ snapshots:
 
   atomic-sleep@1.0.0: {}
 
-  busabase-sdk@0.17.1:
+  busabase-sdk@0.17.2:
     dependencies:
       '@orpc/client': 1.15.0
       '@orpc/contract': 1.15.0
@@ -363,7 +363,7 @@ snapshots:
     dependencies:
       safer-buffer: 2.1.2
 
-  imapflow@1.7.0:
+  imapflow@1.7.1:
     dependencies:
       '@zone-eu/mailsplit': 5.4.15
       encoding-japanese: 2.2.0
