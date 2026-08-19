@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-// node_modules/.pnpm/busabase-sdk@0.16.1/node_modules/busabase-sdk/dist/airapp.js
+// node_modules/.pnpm/busabase-sdk@0.17.1/node_modules/busabase-sdk/dist/airapp.js
 var AirAppSetupError = class extends Error {
   code;
   /** The human-readable half, without the `CODE: ` prefix. */
@@ -19,8 +19,9 @@ var ownsResource = (node, appId, resourceKey, schemaVersion) => node?.metadata?.
 var hasResourceIdentity = (node, appId, resourceKey) => node?.metadata?.appId === appId && node?.metadata?.resourceKey === resourceKey;
 var ownsAppRoot = (node, appId, schemaVersion) => hasResourceIdentity(node, appId, "app-root") && node?.metadata?.schemaVersion === schemaVersion;
 var hasEmptyMetadata = (node) => Object.keys(node?.metadata ?? {}).length === 0;
+var isUnclaimed = (node) => node?.metadata?.appId === void 0;
 var matchesDeclaration = (node, declaration, type) => node?.type === type && node?.slug === declaration.slug && node?.name === declaration.name && node?.description === (declaration.description ?? "");
-var matchesLegacyAirApp = (node, config) => hasEmptyMetadata(node) && node?.type === "airapp" && node?.slug === config.airApp?.slug && node?.name === config.airApp?.name;
+var matchesLegacyAirApp = (node, config) => isUnclaimed(node) && node?.type === "airapp" && node?.slug === config.airApp?.slug && node?.name === config.airApp?.name;
 var resourceMetadata = (config, resourceKey) => ({
   appId: config.appId,
   resourceKey,
@@ -28,7 +29,7 @@ var resourceMetadata = (config, resourceKey) => ({
 });
 function resolveProvisionedFolder(folder, config) {
   if (!folder) {
-    return { folder: null, bases: [], missing: [...config.bases], repairs: [] };
+    return { folder: null, bases: [], missing: [...config.bases], repairs: [], airApp: null };
   }
   if (folder.node?.type !== "folder" || folder.node?.slug !== config.folder.slug) {
     throw setupError(
@@ -121,7 +122,8 @@ function resolveProvisionedFolder(folder, config) {
     folder: { ...config.folder, nodeId: folder.node.id },
     bases,
     missing,
-    repairs
+    repairs,
+    airApp: airAppNode ? { nodeId: airAppNode.id } : null
   };
 }
 function buildProvisionOperations(config, folder, missingBases) {
@@ -361,11 +363,99 @@ function provisionDeclaredResources(client, config) {
   }
   return state.inFlight;
 }
+function buildAirAppFileOperations(localFiles, deployedPaths) {
+  const deployed = new Set(deployedPaths);
+  return localFiles.map(
+    (file) => ({
+      kind: deployed.has(file.path) ? "update" : "create",
+      path: file.path,
+      content: file.content,
+      ...file.mimeType ? { mimeType: file.mimeType } : {}
+    })
+  );
+}
+async function findPendingAirAppCreate(client, slug) {
+  let cursor;
+  for (let page = 0; page < 10; page += 1) {
+    const result = await client.changeRequests.list({
+      status: ["in_review"],
+      ...cursor ? { cursor } : {}
+    });
+    for (const changeRequest of result.changeRequests) {
+      const matches = (changeRequest.operations ?? []).some((operation) => {
+        const payload = operation.headCommit?.payload;
+        return payload?.kind === "create" && payload?.nodeType === "airapp" && payload?.slug === slug;
+      });
+      if (matches) return changeRequest.id;
+    }
+    if (!result.nextCursor) return null;
+    cursor = result.nextCursor;
+  }
+  return null;
+}
+async function publishAirApp(client, config, files) {
+  const airApp = config.airApp;
+  if (!airApp) {
+    throw setupError("SETUP_CONFLICT", "This app does not declare an airApp to publish");
+  }
+  const current = await inspectProvisionedResources(client, config);
+  if (!current.folder) {
+    throw setupError(
+      "SETUP_REQUIRED",
+      "Provision the Folder and Bases with provisionDeclaredResources before publishing the AirApp"
+    );
+  }
+  if (!current.airApp) {
+    const pendingChangeRequestId = await findPendingAirAppCreate(client, airApp.slug);
+    if (pendingChangeRequestId) {
+      return { status: "pending", changeRequestId: pendingChangeRequestId };
+    }
+    const changeRequest2 = await client.fileTrees.create({
+      type: "airapp",
+      parentNodeId: current.folder.nodeId,
+      slug: airApp.slug,
+      name: airApp.name,
+      description: airApp.description ?? "",
+      files,
+      mergeMode: "replace",
+      // Explicit even though this app's write-permission credential would
+      // otherwise auto-merge it: executable AirApp code always gets human
+      // review before it runs in a viewer's browser, no exceptions.
+      autoMerge: false
+    });
+    if (changeRequest2.materialized) {
+      throw setupError(
+        "SCHEMA_INCOMPLETE",
+        "AirApp create unexpectedly materialized despite autoMerge: false"
+      );
+    }
+    return { status: "created", changeRequestId: changeRequest2.id };
+  }
+  const deployedFiles = await client.fileTrees.listFiles({
+    nodeId: current.airApp.nodeId,
+    type: "airapp"
+  });
+  const operations = buildAirAppFileOperations(
+    files,
+    deployedFiles.map((file) => file.path)
+  );
+  const changeRequest = await client.fileTrees.createChangeRequest({
+    nodeId: current.airApp.nodeId,
+    type: "airapp",
+    operations,
+    message: `Publish ${config.appName} AirApp`,
+    submittedBy: config.appId,
+    autoMerge: false
+  });
+  return { status: "updated", changeRequestId: changeRequest.id };
+}
 export {
   AirAppSetupError,
+  buildAirAppFileOperations,
   buildProvisionOperations,
   inspectProvisionedResources,
   isNotFound,
   provisionDeclaredResources,
+  publishAirApp,
   resolveProvisionedFolder
 };

@@ -1,7 +1,7 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
+import { createBusabaseAirAppLocalGateway } from "busabase-sdk/airapp-node";
 import { Hono } from "hono";
-import { createBusabaseAirAppLocalGateway } from "./app/vendor/busabase-airapp-node.js";
 
 const AIRAPP_ID = "kelly-sales-outreach";
 

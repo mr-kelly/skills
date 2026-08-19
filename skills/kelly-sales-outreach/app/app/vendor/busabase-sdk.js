@@ -5,7 +5,7 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// node_modules/.pnpm/busabase-sdk@0.16.1/node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
+// node_modules/.pnpm/busabase-sdk@0.17.1/node_modules/busabase-sdk/dist/chunk-5NYQX65A.js
 function normalizeBaseUrl(raw) {
   return raw.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
 }
@@ -16449,7 +16449,7 @@ function date4(params) {
 // node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// node_modules/.pnpm/busabase-sdk@0.16.1/node_modules/busabase-sdk/dist/index.js
+// node_modules/.pnpm/busabase-sdk@0.17.1/node_modules/busabase-sdk/dist/index.js
 var toUnifiedFilesGrepInput = (input) => ({
   pattern: input.pattern,
   flags: input.flags,
@@ -16980,7 +16980,13 @@ var htmlNodeType = {
   label: "HTML",
   icon: "code-xml",
   capabilities: { hasDetail: true, creatable: true },
-  operations: []
+  operations: [
+    {
+      kind: "html_document_update",
+      label: "Update HTML",
+      tone: "border-blue-200 bg-blue-50 text-blue-800"
+    }
+  ]
 };
 var skillNodeType = makeFileTreeNodeType({
   type: "skill",
@@ -16992,14 +16998,26 @@ var whiteboardNodeType = {
   label: "Whiteboard",
   icon: "pen-tool",
   capabilities: { hasDetail: true, creatable: true },
-  operations: []
+  operations: [
+    {
+      kind: "whiteboard_document_update",
+      label: "Update whiteboard",
+      tone: "border-blue-200 bg-blue-50 text-blue-800"
+    }
+  ]
 };
 var workflowNodeType = {
   type: "workflow",
   label: "Workflow",
   icon: "workflow",
   capabilities: { hasDetail: true, creatable: true },
-  operations: []
+  operations: [
+    {
+      kind: "workflow_document_update",
+      label: "Update workflow",
+      tone: "border-blue-200 bg-blue-50 text-blue-800"
+    }
+  ]
 };
 var GENERIC_NODE_OPERATIONS = [
   {
@@ -17064,12 +17082,8 @@ var nodeSchema = external_exports.lazy(
     slug: external_exports.string(),
     name: external_exports.string(),
     description: external_exports.string(),
-    metadata: external_exports.object({
-      entryFile: external_exports.string().optional(),
-      visibility: external_exports.enum(["private", "workspace", "public"]).optional(),
-      version: external_exports.string().optional(),
-      assetId: external_exports.string().optional()
-    }).catchall(external_exports.unknown()).default({}),
+    metadata: external_exports.object({ version: external_exports.string().optional() }).catchall(external_exports.unknown()).default({}),
+    explicitVisibility: external_exports.enum(["private", "workspace", "public"]).nullable().default(null),
     position: external_exports.number(),
     createdAt: external_exports.string(),
     updatedAt: external_exports.string(),
@@ -17176,7 +17190,17 @@ var commitSchema = external_exports.object({
   nodeId: external_exports.string().nullable(),
   operationId: external_exports.string().nullable(),
   parentCommitId: external_exports.string().nullable(),
-  fields: external_exports.record(external_exports.string(), external_exports.unknown()),
+  // Deliberately loose (`z.record`), NOT a discriminated union keyed on `operation`.
+  //
+  // Do not "tighten" this. Commits already in the database were written before
+  // per-operation payload validation existed, so their shapes carry no guarantee.
+  // The write path (`insertCommit`) and the merge path (`parseCommitPayload`) are
+  // strict precisely because they only ever touch freshly-written payloads; this VO
+  // is also used to render *history* and approval detail pages, which read arbitrarily
+  // old commits. Making it strict would turn any legacy-shaped row into a 500 on a
+  // read-only screen. This is not a compatibility shim — it is the requirement not to
+  // break reading data that already exists.
+  payload: external_exports.record(external_exports.string(), external_exports.unknown()),
   operation: external_exports.enum(OPERATION_KINDS),
   message: external_exports.string(),
   author: external_exports.string(),
@@ -17743,6 +17767,14 @@ var airAppRunLocalNodeInputSchema = external_exports.object({
   /** Text files to mount into the sandbox workdir before installing, keyed by
    *  path (same shape `RunPanel` already assembles for `NodepodRunner.mount`). */
   files: external_exports.record(external_exports.string(), external_exports.string()),
+  /** Binary (asset-backed) files — images, fonts, sample data — keyed by the
+   *  same path, base64-encoded because this input crosses a JSON boundary that
+   *  `Uint8Array` cannot. Separate from `files` rather than a tagged union so
+   *  an older client that sends only `files` keeps working unchanged.
+   *
+   *  The in-browser Nodepod engine never uses this field: it hands raw bytes to
+   *  `Nodepod.boot({ files })` directly and skips the base64 round trip. */
+  binaryFiles: external_exports.record(external_exports.string(), external_exports.string()).optional().default({}),
   /** Server-side execution mode. `"local-node"` spawns a bare host Node.js
    *  process (previewable, data bridge via reverse proxy, NOT OS-isolated);
    *  `"srt"` wraps the same commands in the OS sandbox (isolated execution,
@@ -18567,21 +18599,6 @@ var createDocInputSchema = external_exports.object({
   // force review even with write access.
   autoMerge: external_exports.boolean().optional()
 });
-var updateDocInputSchema = external_exports.object({
-  body: external_exports.string()
-});
-var createDocChangeRequestInputSchema = external_exports.object({
-  body: external_exports.string(),
-  message: external_exports.string().optional().default("Update doc").describe(
-    'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Add rollback steps to the deploy runbook".'
-  ),
-  submittedBy: external_exports.string().optional().default("local-producer"),
-  // A Doc body update is the Doc-domain twin of a record `update`, which has taken
-  // the permission-aware default since #5712 — and this node type already has a
-  // direct-write bypass (`PUT /docs/{nodeId}/body`), so review-first here was never
-  // an actual guarantee, just a slower path to the same place.
-  autoMerge: external_exports.boolean().optional()
-});
 var docContract = {
   create: oc.route({
     method: "POST",
@@ -18601,21 +18618,7 @@ var docContract = {
     tags: ["Docs"],
     summary: "Read an exact line range from a Doc body",
     successDescription: "Lines [startLine, endLine] (range capped at 2000 lines / ~2MB response) sliced from the Doc's full body \u2014 Docs are KB-scale, so the whole body is read in memory; no byte-range/checkpoint machinery like assets.readTextLines uses for potentially multi-GB files. The Doc-domain follow-up to a Unified Grep match with `source: \"docs\"`, so an agent can read just the lines around a match instead of `nodes.get`'s entire body."
-  }).input(ReadDocLinesInputSchema).output(ReadLinesVOSchema),
-  updateBody: oc.route({
-    method: "PUT",
-    path: "/docs/{nodeId}/body",
-    tags: ["Docs"],
-    summary: "Update Doc body",
-    successDescription: "Updated the Doc body."
-  }).input(updateDocInputSchema.extend({ nodeId: external_exports.string() })).output(docSchema),
-  createChangeRequest: oc.route({
-    method: "POST",
-    path: "/docs/{nodeId}/change-requests",
-    tags: ["Docs", "Change Requests"],
-    summary: "Create Doc change request",
-    successDescription: "Created a change request that proposes a new Doc body."
-  }).input(createDocChangeRequestInputSchema.extend({ nodeId: external_exports.string() })).output(changeRequestSchema)
+  }).input(ReadDocLinesInputSchema).output(ReadLinesVOSchema)
 };
 var DumpTableSchema = external_exports.enum([
   "nodes",
@@ -19427,6 +19430,123 @@ var UnifiedGrepResultVOSchema = external_exports.object({
   /** True when any source truncated, or any source has `notReached > 0`. */
   truncated: external_exports.boolean()
 });
+var positionSchema = external_exports.object({
+  x: external_exports.number().finite(),
+  y: external_exports.number().finite()
+});
+var WhiteboardDocumentSchema = external_exports.object({
+  version: external_exports.literal(1),
+  elements: external_exports.array(external_exports.unknown()).default([]),
+  appState: external_exports.record(external_exports.string(), external_exports.unknown()).default({})
+});
+var workflowNodeBase = {
+  id: external_exports.string().min(1),
+  position: positionSchema,
+  label: external_exports.string().min(1).max(120),
+  description: external_exports.string().max(500).default("")
+};
+var WorkflowNodeSchema = external_exports.discriminatedUnion("kind", [
+  external_exports.object({
+    ...workflowNodeBase,
+    kind: external_exports.literal("trigger"),
+    eventName: external_exports.string().max(160).default("manual")
+  }),
+  external_exports.object({
+    ...workflowNodeBase,
+    kind: external_exports.literal("webhook"),
+    method: external_exports.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]).default("POST"),
+    url: external_exports.string().max(2e3).default("")
+  }),
+  external_exports.object({
+    ...workflowNodeBase,
+    kind: external_exports.literal("function"),
+    webhookRuleId: external_exports.string().max(160).default(""),
+    functionName: external_exports.string().max(160).default("")
+  }),
+  external_exports.object({
+    ...workflowNodeBase,
+    kind: external_exports.literal("condition"),
+    expression: external_exports.string().max(2e3).default("")
+  }),
+  external_exports.object({
+    ...workflowNodeBase,
+    kind: external_exports.literal("wait"),
+    duration: external_exports.number().int().min(0).max(525600).default(1),
+    unit: external_exports.enum(["minutes", "hours", "days"]).default("hours")
+  }),
+  external_exports.object({
+    ...workflowNodeBase,
+    kind: external_exports.literal("approval"),
+    approver: external_exports.string().max(160).default("")
+  }),
+  external_exports.object({
+    ...workflowNodeBase,
+    kind: external_exports.literal("action"),
+    actionName: external_exports.string().max(160).default("")
+  }),
+  external_exports.object({
+    ...workflowNodeBase,
+    kind: external_exports.literal("end"),
+    outcome: external_exports.string().max(160).default("completed")
+  })
+]);
+var GraphEdgeSchema = external_exports.object({
+  id: external_exports.string().min(1),
+  source: external_exports.string().min(1),
+  target: external_exports.string().min(1)
+});
+var WorkflowEdgeSchema = GraphEdgeSchema.extend({
+  label: external_exports.string().max(120).default(""),
+  outcome: external_exports.string().max(120).default("default")
+});
+var WorkflowSettingsSchema = external_exports.object({
+  executionMode: external_exports.enum(["manual", "event"]).default("manual"),
+  concurrency: external_exports.number().int().min(1).max(50).default(1),
+  timeoutMs: external_exports.number().int().min(1e3).max(3e5).default(3e4),
+  errorPolicy: external_exports.enum(["stop", "continue"]).default("stop")
+});
+var WorkflowDocumentSchema = external_exports.object({
+  version: external_exports.literal(2),
+  nodes: external_exports.array(WorkflowNodeSchema).default([]),
+  edges: external_exports.array(WorkflowEdgeSchema).default([]),
+  settings: WorkflowSettingsSchema.default({
+    executionMode: "manual",
+    concurrency: 1,
+    timeoutMs: 3e4,
+    errorPolicy: "stop"
+  })
+});
+var HtmlDocumentSchema = external_exports.object({
+  version: external_exports.literal(1),
+  source: external_exports.string().max(5e5)
+});
+var NODE_CONTENT_VARIANTS = {
+  doc: external_exports.object({ kind: external_exports.literal("doc"), body: external_exports.string() }),
+  whiteboard: external_exports.object({ kind: external_exports.literal("whiteboard"), document: WhiteboardDocumentSchema }),
+  workflow: external_exports.object({ kind: external_exports.literal("workflow"), document: WorkflowDocumentSchema }),
+  html: external_exports.object({ kind: external_exports.literal("html"), document: HtmlDocumentSchema })
+};
+var nodeContentInputSchema = external_exports.discriminatedUnion("kind", [
+  NODE_CONTENT_VARIANTS.doc,
+  NODE_CONTENT_VARIANTS.whiteboard,
+  NODE_CONTENT_VARIANTS.workflow,
+  NODE_CONTENT_VARIANTS.html
+]);
+var updateNodeContentInputSchema = external_exports.object({
+  nodeId: external_exports.string(),
+  content: nodeContentInputSchema,
+  message: external_exports.string().optional().default("Update content").describe(
+    'Explanation shown to the human reviewer. Write a conventional-commit style subject \u2014 imperative verb + what + why, e.g. "Add rollback steps to the deploy runbook".'
+  ),
+  submittedBy: external_exports.string().optional().default("local-producer"),
+  // Server-decided, not client-decided: `shouldAutoMerge(autoMerge, hasWrite) =
+  // autoMerge !== false && hasWrite`. Omitted/true merges immediately IF the
+  // actor holds `write` on the node; otherwise (or with explicit `false`) the
+  // content lands as a pending ChangeRequest instead. A `changeRequest`-level
+  // caller passing `autoMerge: true` still lands in review — the server never
+  // lets the client escalate past its own permission.
+  autoMerge: external_exports.boolean().optional()
+});
 var folderSchema = external_exports.object({
   node: nodeSchema,
   children: external_exports.array(nodeSchema)
@@ -19434,6 +19554,11 @@ var folderSchema = external_exports.object({
 var genericNodeDetailSchema = (type) => external_exports.object({
   type: external_exports.literal(type),
   node: nodeSchema
+});
+var richNodeDetailSchema = (type, documentSchema) => external_exports.object({
+  type: external_exports.literal(type),
+  node: nodeSchema,
+  document: documentSchema
 });
 var NODE_DETAIL_VARIANTS = {
   folder: folderSchema.extend({ type: external_exports.literal("folder") }),
@@ -19447,9 +19572,9 @@ var NODE_DETAIL_VARIANTS = {
   airapp: fileTreeNodeSchema.extend({ type: external_exports.literal("airapp") }),
   base: genericNodeDetailSchema("base"),
   form: genericNodeDetailSchema("form"),
-  whiteboard: genericNodeDetailSchema("whiteboard"),
-  workflow: genericNodeDetailSchema("workflow"),
-  html: genericNodeDetailSchema("html")
+  whiteboard: richNodeDetailSchema("whiteboard", WhiteboardDocumentSchema),
+  workflow: richNodeDetailSchema("workflow", WorkflowDocumentSchema),
+  html: richNodeDetailSchema("html", HtmlDocumentSchema)
 };
 var NodeDetailVOSchema = external_exports.discriminatedUnion("type", [
   NODE_DETAIL_VARIANTS.folder,
@@ -19530,7 +19655,7 @@ var busabaseContractRoutes = {
     path: "/grep",
     tags: ["Search"],
     summary: "Search files, Docs, and Base records with one pattern (unified grep)",
-    successDescription: "Streaming regex/literal matches across every in-scope source \u2014 Drive/Skill files, Doc bodies, and Base records (canonical headCommit.fields, never the truncated search projection) \u2014 with one shared pattern, one shared maxMatches/deadline budget (files scanned first, then docs, then whatever budget remains goes to records), and a per-source honest coverage report (files keeps its existing missing/stale/unsearchable/errored/notReached; docs and records report scanned/errored/notReached). truncated is set when any source truncated or has notReached > 0."
+    successDescription: "Streaming regex/literal matches across every in-scope source \u2014 Drive/Skill files, Doc bodies, and Base records (canonical headCommit.payload, never the truncated search projection) \u2014 with one shared pattern, one shared maxMatches/deadline budget (files scanned first, then docs, then whatever budget remains goes to records), and a per-source honest coverage report (files keeps its existing missing/stale/unsearchable/errored/notReached; docs and records report scanned/errored/notReached). truncated is set when any source truncated or has notReached > 0."
   }).input(UnifiedGrepInputSchema).output(UnifiedGrepResultVOSchema),
   nodes: {
     list: oc.route({
@@ -19573,8 +19698,15 @@ var busabaseContractRoutes = {
       path: "/nodes/{nodeId}/metadata",
       tags: ["Nodes"],
       summary: "Update node metadata",
-      successDescription: "Shallow-merged the supplied top-level keys into the active node's existing metadata. Requires write access on the node."
+      successDescription: "Shallow-merged the supplied top-level keys into the active node's existing metadata. Requires write access on the node. Node CONTENT (a Doc body, or a whiteboard/workflow/html document) does not go through here \u2014 use PUT /nodes/{nodeId}/content instead."
     }).input(updateNodeMetadataInputSchema).output(nodeSchema),
+    updateContent: oc.route({
+      method: "PUT",
+      path: "/nodes/{nodeId}/content",
+      tags: ["Nodes", "Change Requests"],
+      summary: "Update node content",
+      successDescription: "ChangeRequest carrying the proposed content. Merged immediately when the actor holds write access on the node and `autoMerge` was not explicitly `false`; otherwise left `in_review` for a human. Accepts doc, whiteboard, workflow, and html nodes \u2014 the types that own exactly one document."
+    }).input(updateNodeContentInputSchema).output(changeRequestSchema),
     purge: oc.route({
       method: "DELETE",
       path: "/nodes/{nodeId}",
@@ -20306,7 +20438,7 @@ var Busabase = class {
   /**
    * Unified grep — one regex/literal pattern scanned across every in-scope
    * source (Drive/Skill files, Doc bodies, and Base records — records read
-   * the canonical `headCommit.fields`, never the truncated search
+   * the canonical `headCommit.payload`, never the truncated search
    * projection), with a shared `maxMatches`/deadline budget and per-source
    * honest coverage. `bb.assets.grep` remains available as a files-only SDK
    * convenience and delegates here with `sources: ["files"]`.

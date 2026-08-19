@@ -16,7 +16,6 @@ const required = [
   "app/js/runtime.js",
   "app/js/providers/busabase-provider.js",
   "app/js/providers/demo-provider.js",
-  "app/vendor/busabase-airapp-node.js",
   "app/vendor/busabase-sdk.js",
   "app/vendor/busabase-airapp-gate.js",
   "app/vendor/busabase-airapp.js",
@@ -76,9 +75,6 @@ if (/创建并审批|写入部署配置/.test(appSource)) {
 }
 if ((await stat(path.join(root, "app/vendor/busabase-sdk.js"))).size < 10_000) {
   throw new Error("Busabase browser SDK bundle is incomplete");
-}
-if ((await stat(path.join(root, "app/vendor/busabase-airapp-node.js"))).size < 1_000) {
-  throw new Error("Busabase AirApp local gateway bundle is incomplete");
 }
 
 const browserFiles = [
@@ -151,6 +147,14 @@ const assertions = [
   {
     ok: serverSource.includes("createBusabaseAirAppLocalGateway"),
     message: "Local OAuth must use the canonical busabase-sdk/airapp-node gateway, not hand-rolled PKCE",
+  },
+  {
+    // A hand-vendored copy of the Node-only gateway module freezes at
+    // whatever busabase-sdk version it was cut from and silently misses
+    // every OAuth fix shipped after that — server.js runs in Node and can
+    // import node_modules directly, so it must never vendor this module.
+    ok: serverSource.includes('from "busabase-sdk/airapp-node"'),
+    message: "Server must import the OAuth gateway from node_modules (busabase-sdk/airapp-node), not a vendored copy",
   },
   {
     ok: !/VaultSession|vault-session|OAuthVault|oauth-vault/i.test(serverSource),

@@ -7,7 +7,7 @@
     "node": ">=24.18.0"
   },
   "scripts": {
-    "build:sdk": "esbuild node_modules/busabase-sdk/dist/index.js --bundle --format=esm --platform=browser --banner:js=\"// @ts-nocheck\" --outfile=app/vendor/busabase-sdk.js && esbuild node_modules/busabase-sdk/dist/airapp-node.js --bundle --format=esm --platform=node --banner:js=\"// @ts-nocheck\" --outfile=app/vendor/busabase-airapp-node.js && esbuild node_modules/busabase-sdk/dist/airapp.js --bundle --format=esm --platform=browser --banner:js=\"// @ts-nocheck\" --outfile=app/vendor/busabase-airapp.js && esbuild node_modules/busabase-sdk/dist/airapp-gate.js --bundle --format=esm --platform=browser --banner:js=\"// @ts-nocheck\" --outfile=app/vendor/busabase-airapp-gate.js && cp node_modules/busabase-sdk/dist/airapp-gate.css app/vendor/busabase-airapp-gate.css",
+    "build:sdk": "esbuild node_modules/busabase-sdk/dist/index.js --bundle --format=esm --platform=browser --banner:js=\"// @ts-nocheck\" --outfile=app/vendor/busabase-sdk.js && esbuild node_modules/busabase-sdk/dist/airapp.js --bundle --format=esm --platform=browser --banner:js=\"// @ts-nocheck\" --outfile=app/vendor/busabase-airapp.js && esbuild node_modules/busabase-sdk/dist/airapp-gate.js --bundle --format=esm --platform=browser --banner:js=\"// @ts-nocheck\" --outfile=app/vendor/busabase-airapp-gate.js && cp node_modules/busabase-sdk/dist/airapp-gate.css app/vendor/busabase-airapp-gate.css",
     "check": "node scripts/check.mjs && node --test",
     "dev": "node server.js",
     "start": "node server.js",
@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@hono/node-server": "2.0.8",
-    "busabase-sdk": "0.16.1",
+    "busabase-sdk": "0.17.1",
     "hono": "4.12.29"
   },
   "devDependencies": {

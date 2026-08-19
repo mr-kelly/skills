@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-// node_modules/.pnpm/busabase-sdk@0.16.1/node_modules/busabase-sdk/dist/airapp-gate.js
+// node_modules/.pnpm/busabase-sdk@0.17.1/node_modules/busabase-sdk/dist/airapp-gate.js
 function selectAirAppGateScreen(status) {
   if (!status) return "connect";
   switch (status.readiness) {
