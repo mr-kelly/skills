@@ -6,6 +6,7 @@
     <title>Kelly Demo Video Factory</title>
     <link rel="stylesheet" href="./styles.css">
     <link rel="stylesheet" href="./vendor/busabase-airapp-gate.css">
+    <link rel="stylesheet" href="./vendor/kelly-compact-shell.css" />
   </head>
   <body>
     <div id="app" class="app-shell">
@@ -23,7 +24,8 @@
         <div id="videoNav" class="video-nav"></div>
       </aside>
       <main class="main">
-        <header class="topbar">
+        <header class="topbar mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
           <div>
             <h1 id="page-title">Videos</h1>
             <p id="page-subtitle" class="muted"></p>
@@ -35,6 +37,7 @@
         <section id="content" class="content"></section>
       </main>
     </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
     <script type="module" src="./app.js"></script>
   </body>
 </html>

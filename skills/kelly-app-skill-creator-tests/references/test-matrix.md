@@ -60,6 +60,12 @@ enabled without a Space ID, fail configuration before opening the browser.
   URL validation, and Demo labeling.
 - At 1280x820, 390x844, and 360x740, verify navigation, list/detail, history,
   sidebar/drawer/scrim, modal, keyboard escape, and horizontal overflow.
+- Measure rendered top chrome at each viewport. Desktop title/status plus
+  workflow rows must be `<=96px` (`<=108px` to the content edge including the
+  gutter); phone list routes must be `<=104px`; phone detail routes must begin
+  immediately below the `52px` top bar. Fail duplicate stacked title, count,
+  status, attention, or next-step bands even when each band is individually
+  compact.
 
 ## OSS Assertions
 

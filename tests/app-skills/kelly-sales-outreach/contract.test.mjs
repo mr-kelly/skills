@@ -143,6 +143,19 @@ test("first-run onboarding renders fields from a shared helper", async () => {
   assert.doesNotMatch(onboarding, /\bfield\(/);
 });
 
+test("keeps top chrome within the Kelly operator-shell height budget", async () => {
+  const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");
+  const styles = await readFile(join(browserRoot, "styles.css"), "utf8");
+  assert.doesNotMatch(app, /renderMobileNextStep|class="mobile-next-step"/);
+  assert.match(styles, /\.workspace-head\s*\{[\s\S]*?min-height:\s*44px;/);
+  assert.match(styles, /\.workflow-band\s*\{[\s\S]*?min-height:\s*52px;/);
+  assert.match(
+    styles,
+    /@media \(max-width: 720px\)[\s\S]*?\.main\s*\{[\s\S]*?grid-template-rows:\s*52px 48px minmax\(0, 1fr\);/,
+  );
+  assert.match(styles, /@media \(max-width: 720px\)[\s\S]*?\.workspace-head\s*\{\s*display:\s*none;/);
+});
+
 test("onboarding readiness reads only the profile before loading workflow queues", async () => {
   const provider = await readFile(join(browserRoot, "js", "providers", "busabase-provider.js"), "utf8");
   const app = await readFile(join(browserRoot, "js", "app.js"), "utf8");

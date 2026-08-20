@@ -425,6 +425,7 @@ function wire() {
   $("reloadButton").addEventListener("click", () => loadState().catch((error) => toast(error.message)));
   $("refreshButton").addEventListener("click", () => loadState().catch((error) => toast(error.message)));
   $("helpButton").addEventListener("click", openHelp);
+  $("mobileHelpButton").addEventListener("click", openHelp);
   $("closeHelp").addEventListener("click", closeHelp);
   $("helpModal").addEventListener("click", (event) => {
     if (event.target === $("helpModal")) closeHelp();

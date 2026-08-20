@@ -218,7 +218,32 @@ def test_busabase_provisioning(browser) -> None:
                         notice_deadline="2026-07-20",
                     )
                     page.click("#contractForm button[type=submit]")
-                    page.wait_for_url(re.compile(r"#/contracts/ct-"), timeout=15_000)
+                    try:
+                        page.wait_for_url(re.compile(r"#/contracts/ct-"), timeout=15_000)
+                    except Exception as error:
+                        nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
+                        contracts = find_resource(nodes, "contracts")
+                        records = (
+                            read_json(f"{busabase_url}/api/v1/records?baseId={contracts['baseId']}")
+                            if contracts and contracts.get("baseId")
+                            else []
+                        )
+                        form_state = page.locator("#contractForm").evaluate(
+                            """form => ({
+                              name: form.elements.name.value,
+                              counterparty: form.elements.counterparty.value,
+                              disabled: form.querySelector('button[type=submit]').disabled,
+                            })"""
+                        )
+                        raise AssertionError(
+                            "Contract create did not navigate.\n"
+                            f"URL: {page.url}\n"
+                            f"Page: {page.locator('body').inner_text()}\n"
+                            f"Form: {form_state}\n"
+                            f"Records: {records}\n"
+                            f"Browser errors: {errors}\n"
+                            f"App logs: {''.join(app_logs[-100:])}"
+                        ) from error
                     page.wait_for_load_state("networkidle")
                     assert page.locator("#title").inner_text() == "Fixture Bakery MSA"
                     assert_no_horizontal_overflow(page)

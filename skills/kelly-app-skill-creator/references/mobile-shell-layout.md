@@ -4,6 +4,12 @@ Use this reference when creating or updating an App-in-Skill UI. It captures the
 
 ## Layout Taste
 
+Every canonical app copies
+`assets/compact-shell/kelly-compact-shell.css` to
+`app/vendor/kelly-compact-shell.css` and loads it last. Do not fork the shared
+height tokens in individual apps; add app-specific shell behavior before that
+final stylesheet.
+
 - Build the actual work surface first, not a landing page.
 - Prefer a restrained, operational layout: sidebar navigation, human-attention summary, list/workspace area, detail pane, and compact actions.
 - Use a neutral base palette with one accent, soft borders, low shadows, and 6-8px radii. Avoid decorative hero sections, nested cards, color-heavy gradients, and oversized marketing typography.
@@ -50,6 +56,9 @@ Desktop behavior:
 - Keep list headers and detail action bars sticky only within their scroll container.
 - Collapsing the sidebar should reduce it to an icon rail without hiding the main work.
 - Always include a small brand/skill icon in the sidebar's top-left brand area. Keep it visible in both expanded and collapsed sidebar states; hide only the text label when collapsed.
+- Keep the title/status row plus any workflow row within a combined `96px` at
+  `1280x820`. Prefer a `44px` title row and `52px` workflow row. Do not stack a
+  separate subtitle, status banner, and workflow band above the content.
 
 ## Sidebar Toggle Icon
 
@@ -149,6 +158,10 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
 
 - One-column app shell.
 - Top mobile bar with drawer button, current view or selected item title, item count, and one compact settings/help button.
+- Put a short next-step label in the top bar's secondary line when needed. Do
+  not repeat the full sidebar attention panel or command chip below the top bar.
+- Hide the desktop title/status header on phones. The top bar already owns the
+  current title and status context.
 - Sidebar becomes an off-canvas drawer with a scrim.
 - List and detail are separate full-height panes. Selecting a row opens detail; detail has a sticky back-to-list control.
 - Primary detail action stays sticky near the top. Secondary actions go into a compact menu.
@@ -179,9 +192,13 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
   }
 
   .main {
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: 52px 52px minmax(0, 1fr);
     height: 100dvh;
     min-height: 0;
+  }
+
+  .workspace-head {
+    display: none;
   }
 
   .mobile-topbar {
@@ -377,6 +394,11 @@ Run these checks before handing off:
 - Desktop viewport around `1280x820`: sidebar collapse works, no horizontal overflow, list/detail remain usable.
 - Phone viewport around `390x844`: top bar visible, drawer opens/closes, scrim only intercepts clicks while open, list rows are scannable, selecting a row opens detail, back returns to list.
 - Narrow phone viewport around `360x740`: no horizontal overflow.
+- Desktop title/status plus workflow chrome is `<=96px`; phone list chrome is
+  `<=104px`; phone detail content starts immediately below the `52px` top bar.
+- The work surface retains at least 75% of viewport height on desktop and 80%
+  on phone detail routes. Normal list routes may use one additional compact
+  workflow row.
 - Help/settings modal: every tab fits, long paths wrap, close button is visible, `document.documentElement.scrollWidth <= window.innerWidth`.
 - Hover/focus audit for dark buttons: global `button:hover` must not make icons disappear.
 
@@ -391,4 +413,13 @@ For modal panels, also check active tab content:
 ```js
 const panel = document.querySelector(".help-tab-panel.active");
 panel.scrollWidth <= panel.clientWidth;
+```
+
+Useful height-budget assertion:
+
+```js
+const main = document.querySelector(".main");
+const content = document.querySelector(".content");
+const topChrome = content.getBoundingClientRect().top - main.getBoundingClientRect().top;
+topChrome <= (innerWidth <= 720 ? 104 : 108); // desktop includes up to 12px gutter
 ```

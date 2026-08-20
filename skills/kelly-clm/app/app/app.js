@@ -164,7 +164,7 @@ async function loadState() {
   state.metrics = data.metrics || state.metrics;
   state.settings = data;
   window.dispatchEvent(new CustomEvent("kelly-clm:state", { detail: data }));
-  render();
+  if (!document.querySelector("#contractForm[data-dirty=true]")) render();
 }
 
 function recomputeDemoMetrics() {
@@ -323,11 +323,6 @@ function renderNewContract() {
   els.title.textContent = t("newContract");
   els.subtitle.textContent = "";
   els.content.innerHTML = `<div class="panel">${contractFormHtml()}</div>`;
-  document.querySelector("#contractForm")?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const contract = await submitCreateContract(readContractForm(event.target));
-    if (contract) location.hash = `#/contracts/${contract.id}`;
-  });
 }
 
 function renderContractDetail(id) {
@@ -351,10 +346,6 @@ function renderContractDetail(id) {
       </aside>
     </section>
   `;
-  document.querySelector("#contractForm")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    submitUpdateContract(id, readContractForm(event.target));
-  });
   bindObligationActions(els.content);
 }
 
@@ -616,6 +607,23 @@ els.mobileSidebarToggle?.addEventListener("click", toggleSidebar);
 els.sidebarScrim?.addEventListener("click", () => setMobileSidebarOpen(false));
 els.newContractBtn?.addEventListener("click", () => {
   location.hash = "#/contracts/new";
+});
+document.addEventListener("submit", async (event) => {
+  if (!(event.target instanceof HTMLFormElement) || event.target.id !== "contractForm") return;
+  event.preventDefault();
+  const input = readContractForm(event.target);
+  if (state.route.id && state.route.id !== "new") {
+    await submitUpdateContract(state.route.id, input);
+    return;
+  }
+  const contract = await submitCreateContract(input);
+  if (contract) location.hash = `#/contracts/${contract.id}`;
+});
+document.addEventListener("input", (event) => {
+  event.target.closest?.("#contractForm")?.setAttribute("data-dirty", "true");
+});
+document.addEventListener("change", (event) => {
+  event.target.closest?.("#contractForm")?.setAttribute("data-dirty", "true");
 });
 els.language.value = state.lang;
 els.language.addEventListener("change", () => {

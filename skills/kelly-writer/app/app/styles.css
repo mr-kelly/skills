@@ -447,8 +447,8 @@ textarea:disabled {
   min-width: 0;
   min-height: 0;
   height: 100vh;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -485,6 +485,7 @@ textarea:disabled {
 }
 
 .content {
+  flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
   padding: 16px 18px 24px;

@@ -325,13 +325,16 @@ input:focus-visible {
 }
 .workspace-head {
   display: flex;
-  min-height: 86px;
+  min-height: 44px;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 16px 26px;
+  gap: 18px;
+  padding: 6px 18px;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
+}
+.workspace-head .eyebrow {
+  display: none;
 }
 .eyebrow {
   margin: 0 0 5px;
@@ -343,8 +346,13 @@ input:focus-visible {
 .setup-head h1 {
   margin: 0;
   color: var(--ink);
-  font-size: 23px;
   line-height: 1.2;
+}
+.workspace-head h1 {
+  font-size: 17px;
+}
+.setup-head h1 {
+  font-size: 23px;
 }
 .workspace-status {
   display: flex;
@@ -371,7 +379,7 @@ input:focus-visible {
   font-weight: 800;
 }
 .workspace-status button {
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 10px;
   color: #41515d;
   background: #fff;
@@ -382,7 +390,7 @@ input:focus-visible {
 .workflow-band {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 70px;
+  min-height: 52px;
   background: #f8f9fa;
   border-bottom: 1px solid var(--line);
 }
@@ -391,7 +399,7 @@ input:focus-visible {
   grid-template-columns: minmax(360px, 42%) minmax(420px, 1fr);
   min-width: 0;
   min-height: 0;
-  margin: 16px 18px 18px;
+  margin: 10px 12px 12px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -1096,7 +1104,7 @@ code {
     background: rgba(11, 19, 25, 0.48);
   }
   .main {
-    grid-template-rows: 52px auto auto minmax(0, 1fr);
+    grid-template-rows: 52px 48px minmax(0, 1fr);
     height: 100dvh;
   }
   .mobile-topbar {
@@ -1136,25 +1144,11 @@ code {
     font-size: 10px;
   }
   .workspace-head {
-    min-height: 67px;
-    padding: 11px 14px;
-  }
-  .workspace-head h1 {
-    font-size: 18px;
-  }
-  .workspace-status > span:not(.status-dot):not(.read-only) {
     display: none;
-  }
-  .workspace-status {
-    gap: 7px;
-  }
-  .workspace-status button {
-    min-height: 29px;
-    padding: 0 8px;
-    font-size: 9px;
   }
   .workflow-band {
     grid-template-columns: minmax(0, 1fr);
+    min-height: 48px;
   }
   .content {
     position: relative;
@@ -1303,8 +1297,8 @@ code {
   align-items: center;
   gap: 10px;
   min-width: 0;
-  min-height: 70px;
-  padding: 0 16px;
+  min-height: 52px;
+  padding: 0 12px;
   text-align: left;
   background: transparent;
   border: 0;
@@ -1324,8 +1318,8 @@ code {
 .pipeline-step i {
   display: grid;
   flex: 0 0 auto;
-  width: 21px;
-  height: 21px;
+  width: 18px;
+  height: 18px;
   place-items: center;
   color: #6c7883;
   background: #fff;
@@ -1346,7 +1340,7 @@ code {
   gap: 2px;
 }
 .pipeline-step strong {
-  font-size: 12px;
+  font-size: 11px;
 }
 .pipeline-step small {
   overflow: hidden;
@@ -1643,15 +1637,15 @@ code {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .pipeline-step {
-    gap: 7px;
-    min-height: 58px;
-    padding: 0 9px;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 7px;
   }
   .pipeline-step b {
     display: none;
   }
   .pipeline-step small {
-    font-size: 8px;
+    display: none;
   }
   .detail-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1822,32 +1816,4 @@ code {
 }
 .setup-next .command-chip {
   margin-top: 7px;
-}
-/* Phone shell repeats the next step under the top bar, because the sidebar
-   holding it is an off-canvas drawer. */
-.mobile-next-step {
-  display: none;
-}
-@media (max-width: 720px) {
-  .main {
-    grid-template-rows: 52px auto auto auto minmax(0, 1fr);
-  }
-  .mobile-next-step {
-    display: grid;
-    gap: 6px;
-    padding: 10px 14px;
-    background: var(--green-soft);
-    border-bottom: 1px solid #cbe3d6;
-  }
-  .mobile-next-step > span {
-    color: #2d5f47;
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .mobile-next-step .command-chip {
-    background: #fff;
-  }
-  .mobile-detail-open .mobile-next-step {
-    display: none;
-  }
 }

@@ -55,6 +55,31 @@ Use task language, not data-model language:
 
 Avoid vague labels like `Pending`, `Queue`, or `Review required` without saying what action the human can take.
 
+## Viewport And Top-Chrome Budget
+
+Treat vertical workspace as a product constraint. The title, status, workflow
+summary, notices, and content margin must not accumulate into a dashboard-like
+header stack that pushes the work below the fold.
+
+- At `1280x820`, keep persistent chrome above the work surface at or below
+  `96px`, excluding at most `12px` of content gutter. A compact title/status row
+  plus one workflow row is the normal maximum.
+- At `390x844` and `360x740`, keep list-view chrome at or below `104px`: the
+  `52px` mobile top bar plus at most one `52px` workflow or attention row.
+- On phone detail routes, keep only the `52px` mobile top bar before detail
+  content. Put back navigation and primary actions inside the detail scroller.
+- Never repeat the current title, item count, status, or next-step command in
+  separate stacked bands. Merge short context into the mobile top bar's
+  secondary line; keep full commands and explanation in the sidebar drawer or
+  Help & Settings.
+- Hide desktop-only eyebrows and decorative metadata when they consume a row
+  without changing the operator's next decision.
+
+Measure rendered bounding boxes, not just declared `min-height`: wrapped copy,
+padding, banners, and grid auto rows all count toward the budget. Exceptions
+must be temporary blocking states such as connection or safety errors, not the
+normal operating shell.
+
 ## Workflow Filters
 
 Use workflow filters as primary navigation:
@@ -228,6 +253,7 @@ Verify at least one desktop viewport and a 390px-wide phone viewport before hand
 - back returns to list,
 - sticky actions do not cover content,
 - modals fit,
+- persistent top chrome stays within the desktop and phone height budgets,
 - no horizontal overflow (`document.documentElement.scrollWidth <= window.innerWidth`).
 
 Use `mobile-shell-layout.md` as the implementation checklist and patch template.

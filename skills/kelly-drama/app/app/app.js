@@ -58,6 +58,7 @@ $("backToList").addEventListener("click", () => {
 });
 window.addEventListener("resize", syncResponsiveShell);
 $("settingsButton").addEventListener("click", openSettings);
+$("mobileSettingsButton").addEventListener("click", openSettings);
 $("closeSettings").addEventListener("click", closeSettings);
 $("settingsModal").addEventListener("click", (event) => {
   if (event.target === $("settingsModal")) closeSettings();

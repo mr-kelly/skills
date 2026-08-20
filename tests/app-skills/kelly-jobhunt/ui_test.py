@@ -149,9 +149,11 @@ def test_demo_ui(browser, base_url: str) -> None:
         page.wait_for_load_state("networkidle")
         assert_no_horizontal_overflow(page)
 
-        # The sidebar is a drawer here, so the next command is repeated in the
-        # shell itself — otherwise a phone operator never sees it.
-        assert page.locator(".mobile-next-step .command-chip").is_visible()
+        # The phone topbar carries the short next-step context without stacking
+        # a second command band above the work surface. The full command remains
+        # available in the sidebar drawer.
+        assert "·" in page.locator(".mobile-view-meta").inner_text()
+        assert page.locator(".mobile-next-step").count() == 0
 
         page.locator("[data-mobile-sidebar]").click()
         assert page.locator("body.sidebar-open").count() == 1

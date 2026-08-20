@@ -303,14 +303,6 @@ const renderNextStep = () => {
   </section>`;
 };
 
-// The sidebar is an off-canvas drawer at phone widths, so a phone operator would
-// otherwise never see which command comes next.
-const renderMobileNextStep = () => {
-  const step = nextStep(desk);
-  if (!step?.command) return "";
-  return `<div class="mobile-next-step"><span>${escapeHtml(step.title)}</span>${commandChip(step.command)}</div>`;
-};
-
 const renderSidebar = () => {
   const attention = desk.attention;
   const primary = attention.profileReady
@@ -373,6 +365,14 @@ const renderApp = () => {
   const meta = viewMeta[contentRoute.view];
   const items = meta.list ? itemsForView(contentRoute.view) : [];
   const selected = meta.list ? items.find((item) => item.id === contentRoute.id) || items[0] || null : null;
+  const mobileNextStep = nextStep(desk);
+  const mobileMeta = mobileNextStep?.title
+    ? `${meta.list ? `${items.length} ${meta.noun} · ` : ""}${mobileNextStep.title}`
+    : meta.list
+      ? `${items.length} ${meta.noun}`
+      : desk.profile.ready
+        ? "已就绪"
+        : `缺 ${desk.profile.missing.length} 项`;
   const statusChip =
     currentState.provider.name === "demo"
       ? '<span class="snapshot-badge">DEMO</span>'
@@ -381,8 +381,7 @@ const renderApp = () => {
     ? `<section class="content"><div class="list-panel"><div class="list-head"><div><strong>${meta.label}</strong><span>${items.length} ${meta.noun}</span></div><span>按证据 · 匹配度排序</span></div><div class="work-list">${renderRows(items, selected?.id)}</div></div><aside class="detail-panel">${selected ? renderCompanyDetail(selected) : '<div class="empty-detail">从左侧选择一家公司</div>'}</aside></section>`
     : `<section class="content content-single">${renderProfile()}</section>`;
   root.innerHTML = `<div class="app-shell ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}">${renderSidebar()}<main class="main">
-    <div class="mobile-topbar"><button class="mobile-sidebar-toggle" type="button" data-mobile-sidebar aria-controls="appSidebar" aria-label="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><div class="mobile-view-title">${meta.label}</div><div class="mobile-view-meta">${meta.list ? `${items.length} ${meta.noun}` : desk.profile.ready ? "已就绪" : `缺 ${desk.profile.missing.length} 项`}</div></div><button class="mobile-help-button" type="button" data-open-help aria-label="帮助与设置">帮助</button></div>
-    ${renderMobileNextStep()}
+    <div class="mobile-topbar"><button class="mobile-sidebar-toggle" type="button" data-mobile-sidebar aria-controls="appSidebar" aria-label="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button><div class="mobile-topbar-copy"><div class="mobile-view-title">${meta.label}</div><div class="mobile-view-meta">${escapeHtml(mobileMeta)}</div></div><button class="mobile-help-button" type="button" data-open-help aria-label="帮助与设置">帮助</button></div>
     <header class="workspace-head"><div><p class="eyebrow">${meta.eyebrow}</p><h1>${meta.label}</h1></div><div class="workspace-status">${statusChip}<span>${escapeHtml(currentState.provider.asOf || "Busabase 当前数据")}</span>${currentState.provider.pendingReview ? '<span class="read-only">写入待审</span>' : ""}<button type="button" data-refresh>刷新</button></div></header>
     ${renderPipeline()}
     ${content}

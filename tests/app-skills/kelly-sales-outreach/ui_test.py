@@ -40,6 +40,33 @@ def assert_no_horizontal_overflow(page: Page) -> None:
     )
     assert sizes["content"] <= sizes["viewport"] + 1, sizes
 
+def assert_top_chrome(page: Page, *, mobile: bool, detail: bool = False) -> None:
+    metrics = page.evaluate(
+        """() => {
+          const rect = (selector) => document.querySelector(selector)?.getBoundingClientRect();
+          const main = rect('.main');
+          const content = rect('.content');
+          return {
+            topChrome: Math.round(content.top - main.top),
+            contentShare: content.height / innerHeight,
+            workspaceHeight: Math.round(rect('.workspace-head')?.height || 0),
+            workflowHeight: Math.round(rect('.workflow-band')?.height || 0),
+            topbarHeight: Math.round(rect('.mobile-topbar')?.height || 0),
+            duplicateNextSteps: document.querySelectorAll('.mobile-next-step').length,
+          };
+        }"""
+    )
+    assert metrics["duplicateNextSteps"] == 0, metrics
+    if mobile:
+        assert metrics["workspaceHeight"] == 0, metrics
+        assert metrics["topbarHeight"] == 52, metrics
+        assert metrics["topChrome"] == (52 if detail else 100), metrics
+    else:
+        assert metrics["workspaceHeight"] == 44, metrics
+        assert metrics["workspaceHeight"] + metrics["workflowHeight"] <= 97, metrics
+        assert metrics["topChrome"] <= 108, metrics
+        assert metrics["contentShare"] >= 0.75, metrics
+
 
 def attach_error_capture(page: Page) -> list[str]:
     errors: list[str] = []
@@ -172,6 +199,7 @@ def test_demo_ui(browser, base_url: str) -> None:
     assert rows(page).count() == 3
     assert page.locator(".human-work-primary", has_text="待你审核首触达").is_visible()
     assert_no_horizontal_overflow(page)
+    assert_top_chrome(page, mobile=False)
 
     detail = page.locator(".detail-panel")
     assert detail.locator("h2", has_text="秒购电商").is_visible()
@@ -214,6 +242,7 @@ def test_demo_ui(browser, base_url: str) -> None:
         page.goto(f"{base_url}/?demo=1#/to-send")
         page.wait_for_load_state("networkidle")
         assert_no_horizontal_overflow(page)
+        assert_top_chrome(page, mobile=True)
         page.locator("[data-mobile-sidebar]").click()
         assert page.locator("body.sidebar-open").count() == 1
         assert page.locator("#sidebarScrim").is_visible()
@@ -223,6 +252,7 @@ def test_demo_ui(browser, base_url: str) -> None:
         assert page.locator("body.mobile-detail-open").count() == 1
         assert page.locator(".detail-panel [data-approve]").is_visible()
         assert_no_horizontal_overflow(page)
+        assert_top_chrome(page, mobile=True, detail=True)
         page.locator("[data-back-to-list]").click()
         assert page.locator("body.mobile-detail-open").count() == 0
         assert not unexpected_errors(errors), errors
