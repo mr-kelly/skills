@@ -53,7 +53,8 @@ export async function auditCompactShell() {
     const browserFiles = (await collectFiles(join(appRoot, "app"))).filter((path) => /\.(?:html|js)$/.test(path));
     const browserSource = (await Promise.all(browserFiles.map((path) => readFile(path, "utf8")))).join("\n");
     if (!browserSource.includes("mobile-topbar")) failures.push(`${entry.name}: no standard mobile topbar marker`);
-    if (/mobile-next-step/.test(browserSource)) failures.push(`${entry.name}: duplicate mobile next-step band is forbidden`);
+    if (/mobile-next-step/.test(browserSource))
+      failures.push(`${entry.name}: duplicate mobile next-step band is forbidden`);
   }
 
   apps.sort();
