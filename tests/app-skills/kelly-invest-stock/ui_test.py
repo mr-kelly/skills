@@ -292,7 +292,7 @@ def test_busabase_provisioning(browser) -> None:
                     errors.clear()
                     page.reload()
                     page.wait_for_load_state("networkidle")
-                    assert page.get_by_role("heading", name="策略", exact=True).is_visible()
+                    assert page.locator(".mobile-view-title", has_text="策略").is_visible()
                     assert not unexpected_errors(errors), errors
                     context.close()
 
