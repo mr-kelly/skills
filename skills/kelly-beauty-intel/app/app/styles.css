@@ -113,12 +113,24 @@ nav {
 }
 .page-header > div:first-child {
   flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 2px 8px;
 }
 .page-header > button {
   flex: 0 0 auto;
 }
 .page-header .eyebrow {
-  display: none;
+  grid-column: 2;
+  grid-row: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.page-header h1 {
+  grid-column: 1;
+  grid-row: 1;
 }
 h1,
 h2 {
@@ -139,6 +151,9 @@ h2 {
   max-width: 900px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.page-header p:not(.eyebrow) {
+  grid-column: 1 / -1;
 }
 .summary-grid {
   display: grid;
