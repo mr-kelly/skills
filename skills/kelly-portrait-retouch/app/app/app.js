@@ -1,10 +1,5 @@
 import { messages, resolveLanguage } from "./i18n/messages.js";
-import {
-  closeConnectGate,
-  passConnectGate,
-  renderProductOnboarding,
-  renderSetupRequired,
-} from "./js/connect-gate.js?v=0.1.0";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const app = document.getElementById("app");
@@ -306,7 +301,7 @@ async function loadState() {
     return;
   }
   if (!state.data.demo && state.data.readiness?.onboarding !== "complete") {
-    renderProductOnboarding(state.data, loadState);
+    renderSetupRequired(new Error("PRODUCT_ONBOARDING_REQUIRED: portrait workspace preferences"), loadState);
     return;
   }
   closeConnectGate();

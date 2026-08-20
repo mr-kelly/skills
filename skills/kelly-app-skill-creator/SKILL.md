@@ -262,6 +262,14 @@ Build a quiet operator tool, not a landing page or generic dashboard. Apply
 `references/ui-workflow-patterns.md` and
 `references/mobile-shell-layout.md` as hard implementation and acceptance gates.
 
+Copy `assets/compact-shell/kelly-compact-shell.css` into
+`app/vendor/kelly-compact-shell.css` and load it after every app-owned
+stylesheet. The copied asset owns only shared height tokens and compact
+topbar typography; app-owned CSS still owns layout, color, workflow controls,
+and domain-specific responsive behavior. Keep every copied file byte-identical
+to the creator asset and run `node scripts/audit-compact-shell.mjs` before
+handoff.
+
 - Put the brand, human-attention summary, workflow navigation, and Help &
   Settings in a fixed desktop sidebar. Collapse it to an icon rail with a panel
   icon; keep the brand icon visible.

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./demo-visuals.css" />
     <link rel="stylesheet" href="./accent-theme.css">
     <link rel="stylesheet" href="./vendor/busabase-airapp-gate.css">
+    <link rel="stylesheet" href="./vendor/kelly-compact-shell.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -59,7 +60,11 @@
       </aside>
 
       <main class="main">
-        <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="打开侧栏" title="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="打开侧栏" title="打开侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+          <div class="mobile-topbar-copy"><strong>MV 工作台</strong><span>概念、角色与分镜</span></div>
+          <button id="mobileSettingsButton" class="mobile-settings-button" type="button" data-i18n="settings">设置</button>
+        </div>
         <div class="content-title">
           <div class="project-title" id="projectTitle" data-i18n="loading">加载中</div>
           <div class="project-meta" id="projectMeta">本地音乐视频项目</div>

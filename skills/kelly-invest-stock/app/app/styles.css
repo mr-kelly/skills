@@ -373,13 +373,16 @@ input:focus-visible {
 
 .workspace-head {
   display: flex;
-  min-height: 86px;
+  min-height: 44px;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 16px 26px;
+  gap: 18px;
+  padding: 6px 18px;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
+}
+.workspace-head .eyebrow {
+  display: none;
 }
 
 .eyebrow {
@@ -393,8 +396,13 @@ input:focus-visible {
 .setup-head h1 {
   margin: 0;
   color: var(--ink);
-  font-size: 23px;
   line-height: 1.2;
+}
+.workspace-head h1 {
+  font-size: 17px;
+}
+.setup-head h1 {
+  font-size: 23px;
 }
 
 .workspace-status {
@@ -425,7 +433,7 @@ input:focus-visible {
 }
 
 .workspace-status button {
-  min-height: 30px;
+  min-height: 28px;
   padding: 0 10px;
   color: #41515d;
   background: #fff;
@@ -437,7 +445,7 @@ input:focus-visible {
 .workflow-band {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 70px;
+  min-height: 52px;
   background: #f8f9fa;
   border-bottom: 1px solid var(--line);
 }
@@ -446,7 +454,7 @@ input:focus-visible {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   min-width: 0;
-  padding: 10px 0 10px 26px;
+  padding: 4px 0 4px 18px;
 }
 
 .funnel-step {
@@ -3030,7 +3038,7 @@ code {
   }
 
   .main {
-    grid-template-rows: 52px auto auto minmax(0, 1fr);
+    grid-template-rows: 52px 48px minmax(0, 1fr);
     height: 100dvh;
   }
 
@@ -3077,35 +3085,17 @@ code {
   }
 
   .workspace-head {
-    min-height: 67px;
-    padding: 11px 14px;
-  }
-
-  .workspace-head h1 {
-    font-size: 18px;
-  }
-
-  .workspace-status > span:not(.status-dot):not(.read-only) {
     display: none;
   }
 
-  .workspace-status {
-    gap: 7px;
-  }
-
-  .workspace-status button {
-    min-height: 29px;
-    padding: 0 8px;
-    font-size: 9px;
-  }
-
   .funnel {
-    min-height: 64px;
-    padding: 6px 8px;
+    min-height: 48px;
+    padding: 4px 6px;
   }
 
   .workflow-band {
     grid-template-columns: minmax(0, 1fr);
+    min-height: 48px;
   }
 
   .workflow-pulse {

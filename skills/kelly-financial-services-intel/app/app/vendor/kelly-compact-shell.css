@@ -1,0 +1,37 @@
+/* Copied into every canonical Kelly App-in-Skill. Load after app-owned CSS. */
+:root {
+  --kelly-shell-desktop-header: 44px;
+  --kelly-shell-mobile-header: 52px;
+  --kelly-shell-workflow-row: 52px;
+}
+
+@media (min-width: 721px) {
+  :is(.topbar, .workspace-head, .page-header) {
+    min-height: var(--kelly-shell-desktop-header);
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  :is(.topbar, .workspace-head, .page-header) h1 {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 17px;
+    line-height: 1.2;
+  }
+
+  :is(.topbar, .workspace-head, .page-header) :where(p, .eyebrow) {
+    margin-top: 2px;
+    margin-bottom: 0;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+}
+
+@media (max-width: 720px) {
+  .mobile-topbar {
+    min-height: var(--kelly-shell-mobile-header);
+    height: var(--kelly-shell-mobile-header);
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}

@@ -4,6 +4,12 @@ Use this reference when creating or updating an App-in-Skill UI. It captures the
 
 ## Layout Taste
 
+Every canonical app copies
+`assets/compact-shell/kelly-compact-shell.css` to
+`app/vendor/kelly-compact-shell.css` and loads it last. Do not fork the shared
+height tokens in individual apps; add app-specific shell behavior before that
+final stylesheet.
+
 - Build the actual work surface first, not a landing page.
 - Prefer a restrained, operational layout: sidebar navigation, human-attention summary, list/workspace area, detail pane, and compact actions.
 - Use a neutral base palette with one accent, soft borders, low shadows, and 6-8px radii. Avoid decorative hero sections, nested cards, color-heavy gradients, and oversized marketing typography.

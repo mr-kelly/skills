@@ -193,6 +193,7 @@ function wireChrome() {
   });
   const modal = document.getElementById("settingsModal");
   document.getElementById("settingsButton").addEventListener("click", () => openSettings());
+  document.getElementById("mobileSettingsButton").addEventListener("click", () => openSettings());
   document.getElementById("closeSettings").addEventListener("click", () => modal.classList.add("hidden"));
   modal.addEventListener("click", (e) => {
     if (e.target === modal) modal.classList.add("hidden");

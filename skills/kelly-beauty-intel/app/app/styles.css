@@ -98,15 +98,27 @@ nav {
   color: white;
 }
 .main {
-  padding: 24px;
+  padding: 10px 18px 18px;
   min-width: 0;
 }
 .page-header {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  align-items: flex-start;
-  margin-bottom: 18px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.page-header > * {
+  min-width: 0;
+}
+.page-header > div:first-child {
+  flex: 1 1 auto;
+}
+.page-header > button {
+  flex: 0 0 auto;
+}
+.page-header .eyebrow {
+  display: none;
 }
 h1,
 h2 {
@@ -121,9 +133,12 @@ h2 {
   margin-bottom: 10px;
 }
 .page-header p {
-  margin: 6px 0 0;
+  overflow: hidden;
+  margin: 2px 0 0;
   color: var(--muted);
   max-width: 900px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .summary-grid {
   display: grid;

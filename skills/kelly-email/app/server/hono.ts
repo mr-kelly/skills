@@ -107,6 +107,9 @@ app.get("/", (c) => sendFile(c, path.join(APP_DIR, "index.html")));
 app.get("/app.js", (c) => sendFile(c, path.join(APP_DIR, "app.js")));
 app.get("/demo-visuals.js", (c) => sendFile(c, path.join(APP_DIR, "demo-visuals.js")));
 app.get("/demo-visuals.css", (c) => sendFile(c, path.join(APP_DIR, "demo-visuals.css")));
+app.get("/vendor/kelly-compact-shell.css", (c) =>
+  sendFile(c, path.join(APP_DIR, "vendor", "kelly-compact-shell.css")),
+);
 // Split into cascade-layered files (base/components/shell/setup-wizard/
 // help-modal/list-detail) — see frontend-modules.md. @layer precedence
 // makes the <link> order below irrelevant to which rule wins.

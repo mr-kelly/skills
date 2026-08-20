@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="./demo-visuals.css" />
     <link rel="stylesheet" href="./accent-theme.css">
     <link rel="stylesheet" href="./vendor/busabase-airapp-gate.css">
+    <link rel="stylesheet" href="./vendor/kelly-compact-shell.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -55,7 +56,11 @@
       </aside>
 
       <main class="main">
-        <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+          <div class="mobile-topbar-copy"><strong>PR Review</strong><span>Review queue</span></div>
+          <button id="mobileHelpButton" class="mobile-help-button" type="button" aria-label="Help and settings">Help</button>
+        </div>
         <div id="lockBanner" class="lock-banner is-hidden">
           <strong data-i18n="locked">Locked</strong>
           <span id="lockMessage">Busabase is updating this record for a moment.</span>

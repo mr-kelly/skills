@@ -127,6 +127,7 @@
     display: none;
   }
 
+  .mobile-topbar,
   .mobile-sidebar-toggle,
   .back-to-list,
   .sidebar-scrim {

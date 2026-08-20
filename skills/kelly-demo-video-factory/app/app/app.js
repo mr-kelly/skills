@@ -189,5 +189,13 @@ window.addEventListener("hashchange", route);
 qs("#refresh").addEventListener("click", () => {
   loadState().catch((error) => renderSetupRequired(error, boot));
 });
+qs("#mobileSidebarToggle").addEventListener("click", () => {
+  document.body.classList.add("sidebar-open");
+  qs("#sidebarScrim").hidden = false;
+});
+qs("#sidebarScrim").addEventListener("click", () => {
+  document.body.classList.remove("sidebar-open");
+  qs("#sidebarScrim").hidden = true;
+});
 
 boot();
