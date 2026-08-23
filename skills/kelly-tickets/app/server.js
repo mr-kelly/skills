@@ -34,12 +34,17 @@ app.get("/health", (context) => context.json({ ok: true, app: "kelly-tickets" })
  * served from localhost on Desktop/OSS, and a standalone run is reached over
  * LAN IPs and dev tunnels, so both directions of that guess are wrong.
  */
-const AIRAPP_HOSTED_RUNTIMES = new Set(["nodepod", "local-node", "srt", "embed"]);
+// Any non-empty value means hosted. Deliberately NOT a check against a list of
+// known engine names: Busabase adds and renames engines, and an app pinned to
+// yesterday's list answers "standalone" inside a hosted preview — it shows its
+// own connection gate, calls /api/v1 with no credential, and leaves the
+// operator with nothing to act on. Absence is the signal, exactly as the
+// comment above says; the name itself is only ever informational.
 const airappRuntime = (process.env.BUSABASE_AIRAPP_RUNTIME || "").trim();
 app.get("/__airapp/runtime", (context) =>
   context.json({
     runtime: airappRuntime || "standalone",
-    hosted: AIRAPP_HOSTED_RUNTIMES.has(airappRuntime),
+    hosted: airappRuntime !== "",
   }),
 );
 
