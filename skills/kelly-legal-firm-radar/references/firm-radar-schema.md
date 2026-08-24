@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Legal Firm Radar's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/firm-radar-model.js`). Metrics and the recent-activity feed are
+code (`content/kelly-legal-firm-radar-app/app/js/providers/busabase-provider.js`,
+`content/kelly-legal-firm-radar-app/app/js/firm-radar-model.js`). Metrics and the recent-activity feed are
 computed client-side from the `items`/`entities`/`checks` (and, for optional
 outcome-trend display data, `settings`) Bases on every read
 (`buildSnapshot`/`assembleSnapshot` in `firm-radar-model.js`) — the only
@@ -20,7 +20,7 @@ verbatim from the retired `lib/common.ts` and confirmed against the retired
 
 Check results: `pass`, `warn`, `fail`.
 
-## Items (`kelly-legal-firm-radar-items-v1`)
+## Items (`kelly-legal-firm-radar-items`)
 
 An item record is both the management-insight workbench entry and its
 review-queue item — there is no separate review-item or decisions Base.
@@ -60,7 +60,7 @@ human in a standalone local preview) writes the `decision-*` fields;
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Entities (`kelly-legal-firm-radar-entities-v1`)
+## Entities (`kelly-legal-firm-radar-entities`)
 
 Practice-area groupings and lawyer capability profile cards, not raw case documents.
 
@@ -75,7 +75,7 @@ Practice-area groupings and lawyer capability profile cards, not raw case docume
 | `tags` | `tags` | longtext | JSON array of tags |
 | `metrics` | `metrics` | longtext | JSON object, e.g. `{"case_count":42,"lawyer_count":5,"public_citable":2}` |
 
-## Checks (`kelly-legal-firm-radar-checks-v1`)
+## Checks (`kelly-legal-firm-radar-checks`)
 
 Deterministic analytics QA checks for anonymization, sample size,
 attribution, and unsupported claims. `scripts/import_metrics.mjs` upserts
@@ -90,7 +90,7 @@ these alongside items/entities as part of the agent's payload.
 | `item-id` | `item_id` | text | references `items.item-id` |
 | `severity` | `severity` | text | optional severity label |
 
-## Settings (`kelly-legal-firm-radar-settings-v1`)
+## Settings (`kelly-legal-firm-radar-settings`)
 
 A single row, `record-id: "config"`:
 

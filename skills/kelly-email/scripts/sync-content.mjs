@@ -22,9 +22,7 @@ import { fileURLToPath } from "node:url";
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const check = process.argv.includes("--check");
 
-const { appConfig } = await import(
-  path.join(root, "content/kelly-email-app/app/js/config.js")
-);
+const { appConfig } = await import(path.join(root, "content/kelly-email-app/app/js/config.js"));
 
 const stale = [];
 

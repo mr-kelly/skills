@@ -43,7 +43,7 @@ Legal Firm Radar is a Busabase App-in-Skill firm-analytics desk over anonymized 
 Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-legal-firm-radar/app dev
+pnpm --dir skills/kelly-legal-firm-radar/content/kelly-legal-firm-radar-app dev
 ```
 
 Then add one of these demo paths:

@@ -1,0 +1,96 @@
+{
+  "name": "Settings",
+  "description": "Firm profile, search policy, and export preferences — a single settings row",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "firm-name",
+      "name": "Firm name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "branch",
+      "name": "Branch",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "default-jurisdictions",
+      "name": "Default jurisdictions (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "reviewer-role",
+      "name": "Reviewer role",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "default-jurisdiction",
+      "name": "Default jurisdiction",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "minimum-similarity-score",
+      "name": "Minimum similarity score",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "require-source-case-ids",
+      "name": "Require source case ids",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "quote-limit-words",
+      "name": "Quote limit words",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "export-format",
+      "name": "Export format",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "export-out-dir",
+      "name": "Export out dir",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": []
+}

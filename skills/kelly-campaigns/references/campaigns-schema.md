@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Campaigns' Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/campaigns-model.js`). Metrics, the pre-send deliverability-risk
+code (`content/kelly-campaigns-app/app/js/providers/busabase-provider.js`,
+`content/kelly-campaigns-app/app/js/campaigns-model.js`). Metrics, the pre-send deliverability-risk
 derivation, and the consent/suppression pre-send check are computed
 client-side from the `sends`/`suppression` Bases on every read — they are
 never stored.
@@ -18,7 +18,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise`.
 
-## Segments (`kelly-campaigns-segments-v1`)
+## Segments (`kelly-campaigns-segments`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -27,7 +27,7 @@ Decision actions: `approve`, `request_changes`, `block`, `revise`.
 | `description` | `description` | longtext | |
 | `audience-size` | `audience_size` | number | |
 
-## Sends (`kelly-campaigns-sends-v1`)
+## Sends (`kelly-campaigns-sends`)
 
 The review-queue rows — every campaign / newsletter / sequence step / cold
 outbound send.
@@ -64,9 +64,9 @@ outbound send.
 - `deliverability.risk` is derived, never stored: `high` when auth fails,
   `spam_score >= 5`, or `inbox_readiness < 0.6`; `medium` when
   `spam_score >= 3` or `inbox_readiness < 0.8`; else `low`. See
-  `deliverabilityInfo()` in `app/app/js/campaigns-model.js`.
+  `deliverabilityInfo()` in `content/kelly-campaigns-app/app/js/campaigns-model.js`.
 
-## Suppression (`kelly-campaigns-suppression-v1`)
+## Suppression (`kelly-campaigns-suppression`)
 
 The consent/suppression list: recipients or whole segments removed by
 unsubscribe, hard bounce, or complaint.
@@ -85,9 +85,9 @@ An address-level entry is global — it excludes that address from every send
 regardless of segment. A segment-level entry only excludes recipients of
 that segment. An explicitly-targeted suppressed address (a send's
 `target_addresses` includes a suppressed `address`) hard-blocks the send; see
-`checkSuppression()` in `app/app/js/campaigns-model.js`.
+`checkSuppression()` in `content/kelly-campaigns-app/app/js/campaigns-model.js`.
 
-## Settings (`kelly-campaigns-settings-v1`)
+## Settings (`kelly-campaigns-settings`)
 
 One row per `kind`, looked up by `record-id`:
 

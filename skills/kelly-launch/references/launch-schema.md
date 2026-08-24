@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Launch's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/launch-model.js`).
+(`content/kelly-launch-app/app/js/providers/busabase-provider.js`, `content/kelly-launch-app/app/js/launch-model.js`).
 The readiness gate (LQS + SHIP/FIX/BLOCK verdict), phase progress, and
 metrics are computed client-side from the `items` Base on every read — they
 are never stored.
@@ -11,7 +11,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise`.
 
-## Items (`kelly-launch-items-v1`)
+## Items (`kelly-launch-items`)
 
 Items are the review-queue rows — every launch task or asset. An item with a
 non-empty `draft` is treated as an **asset** and appears in the Assets
@@ -39,7 +39,7 @@ approval queue.
 Public submissions (`product_hunt`, `hacker_news`) and press outreach are
 always approval-required.
 
-## Channels (`kelly-launch-channels-v1`)
+## Channels (`kelly-launch-channels`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -48,7 +48,7 @@ always approval-required.
 | `display-name` | `display_name` | text | |
 | `submission-status` | `submission_status` | text | `queued\|drafting\|scheduled\|submitted\|live` |
 
-## Runbook (`kelly-launch-runbook-v1`)
+## Runbook (`kelly-launch-runbook`)
 
 The launch-day timeline, sorted by `step-id`.
 
@@ -61,7 +61,7 @@ The launch-day timeline, sorted by `step-id`.
 | `owner` | `owner` | text | on-call owner |
 | `note` | `note` | longtext | war-room note for this step |
 
-## Settings (`kelly-launch-settings-v1`)
+## Settings (`kelly-launch-settings`)
 
 One row per `kind`, looked up by `record-id`:
 

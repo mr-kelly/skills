@@ -1,0 +1,40 @@
+{
+  "name": "Models",
+  "description": "One row per backing model/provider behind the gateway",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "model-id",
+      "name": "Model ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "display-name",
+      "name": "Display name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "provider",
+      "name": "Provider",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "tier",
+      "name": "Tier",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    }
+  ],
+  "views": []
+}

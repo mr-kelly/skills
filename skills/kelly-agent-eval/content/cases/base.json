@@ -1,0 +1,144 @@
+{
+  "name": "Cases",
+  "description": "The fixed mock eval suite — one row per test case, with baseline/candidate transcripts, deterministic mock rubric scores, and the reviewer's decision",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "case-id",
+      "name": "Case ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "prompt",
+      "name": "Prompt",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "baseline-transcript",
+      "name": "Baseline transcript",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "baseline-helpfulness",
+      "name": "Baseline helpfulness",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "baseline-correctness",
+      "name": "Baseline correctness",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "baseline-safety",
+      "name": "Baseline safety",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "baseline-tone",
+      "name": "Baseline tone",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "candidate-transcript",
+      "name": "Candidate transcript",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "candidate-helpfulness",
+      "name": "Candidate helpfulness",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "candidate-correctness",
+      "name": "Candidate correctness",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "candidate-safety",
+      "name": "Candidate safety",
+      "type": "number",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "candidate-tone",
+      "name": "Candidate tone",
+      "type": "number",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "decision-action",
+      "name": "Decision action",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    }
+  ],
+  "views": []
+}

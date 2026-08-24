@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-disclosure-tracker",
+  "description": "Cross-Entity Disclosure Tracker: a review workspace that assembles and tracks a standardized disclosure package per financing vehicle (fund/SPV), across an onshore origination entity, an offshore fund-manager entity, and a listing/exchange venue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["rbf", "risk:sandbox", "surface:busabase"],
+  "template": {
+    "category": "rbf",
+    "schemaVersion": 1,
+    "airapp": "kelly-disclosure-tracker-app",
+    "tags": ["rbf", "risk:sandbox", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/flagged.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/vehicle-detail.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Vehicles and flag what needs my attention.",
+      "Open Cross-Entity Disclosure Tracker and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

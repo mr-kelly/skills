@@ -36,7 +36,7 @@ Kelly Homework Coach is a Busabase-backed App-in-Skill desk for elementary-schoo
 Run the app and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-homework-coach/app dev
+pnpm --dir skills/kelly-homework-coach/content/kelly-homework-coach-app dev
 ```
 
 Then open the printed URL with one of these demo paths:

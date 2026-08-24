@@ -10,6 +10,17 @@ metadata:
     - surface:stripe
     - surface:airwallex
     - surface:creem
+  busabase:
+    template: true
+    folderSlug: kelly-money
+    resources:
+      - accounts
+      - transactions
+      - invoices
+      - invoice-matches
+      - settings
+    risk: read-only
+
 ---
 
 # Kelly Money
@@ -34,7 +45,7 @@ offers another data provider. Use chat-only mode only when the user says
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-money-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -81,18 +92,18 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Five Bases under one application Folder (`kelly-money`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-money-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `accounts`: provider account inventory — balances, currency, status, totals, last sync.
 - `transactions`: normalized ledger entries across providers.
 - `invoices`: invoice metadata from provider exports, PDFs, or manual entry.
-- `invoice_matches`: invoice-to-transaction reconciliation results, including review status and audit trail.
+- `invoice-matches`: invoice-to-transaction reconciliation results, including review status and audit trail.
 - `settings`: one row per `kind` — `kelly-money-accounts` (configured account list, non-secret) and `kelly-money-lock`.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
 first time the app runs in a Space; see `references/ledger-schema.md` for
 exact field shapes. The AirApp never writes to `accounts`, `transactions`,
-`invoices`, or `invoice_matches` — only the trusted sync process does.
+`invoices`, or `invoice-matches` — only the trusted sync process does.
 
 ## First Run And Onboarding
 
@@ -108,7 +119,7 @@ authentication is ambient inside the deployed AirApp.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-money-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views:
@@ -138,10 +149,10 @@ process. Sync happens entirely outside the AirApp, in the trusted skill
 process:
 
 1. Propose a read-only sync scope first: providers, accounts, date window, currencies, and whether to include pending transactions.
-2. After approval, fetch or import provider data, normalize to the ledger schema, and write it to the `accounts`/`transactions`/`invoices`/`invoice_matches` Bases through `busabase-sdk`.
+2. After approval, fetch or import provider data, normalize to the ledger schema, and write it to the `accounts`/`transactions`/`invoices`/`invoice-matches` Bases through `busabase-sdk`.
 3. For discrepancies, write them as computed warnings (the app derives account-level warnings from `status`) and ask before any remote action.
 
-Invoice matching lives inside Kelly Money rather than a separate skill until it becomes a full invoice-generation or tax-export workflow. Write imported invoice metadata into the `invoices` Base and matching decisions into `invoice_matches`; do not store private invoice PDFs in git.
+Invoice matching lives inside Kelly Money rather than a separate skill until it becomes a full invoice-generation or tax-export workflow. Write imported invoice metadata into the `invoices` Base and matching decisions into `invoice-matches`; do not store private invoice PDFs in git.
 
 ## Provider Notes
 

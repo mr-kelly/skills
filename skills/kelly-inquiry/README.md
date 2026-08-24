@@ -47,8 +47,8 @@ queue in front of every outgoing reply and quote.
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-inquiry-app install
+pnpm --dir content/kelly-inquiry-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

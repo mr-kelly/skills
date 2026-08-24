@@ -13,8 +13,8 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { buildSnapshot, checkSuppression } from "../app/app/js/campaigns-model.js";
-import { appConfig } from "../app/app/js/config.js";
+import { buildSnapshot, checkSuppression } from "../content/kelly-campaigns-app/app/js/campaigns-model.js";
+import { appConfig } from "../content/kelly-campaigns-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]

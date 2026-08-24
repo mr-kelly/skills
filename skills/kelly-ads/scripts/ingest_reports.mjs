@@ -11,10 +11,10 @@
 // parseCsv/slugify/toNumber/normalizeDate/payloadFromCsv/validatePayload/
 // currencyRate/mergeCampaign are ported verbatim from the retired
 // scripts/ingest_reports.ts; only the storage target changed, from a
-// persisted app/.data/ads_snapshot.json to Busabase's platforms/campaigns/
+// persisted content/kelly-ads-app/.data/ads_snapshot.json to Busabase's platforms/campaigns/
 // sync_log Bases (derived totals_7d/trend/metrics are no longer written at
 // ingest time — the AirApp/scripts compute them at read time via
-// app/app/js/ads-model.js's buildSnapshot()/recomputeDerived(), so this
+// content/kelly-ads-app/app/js/ads-model.js's buildSnapshot()/recomputeDerived(), so this
 // importer only needs to write the raw normalized campaign/platform rows).
 //
 // Usage:
@@ -28,7 +28,7 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-ads-app/app/js/config.js";
 
 const PLATFORMS = new Set(["amazon", "meta", "tiktok", "google"]);
 const PLATFORM_NAMES = { amazon: "Amazon Ads", meta: "Meta Ads", tiktok: "TikTok Ads", google: "Google Ads" };
@@ -475,11 +475,11 @@ async function main() {
 
   const now = new Date().toISOString();
   const syncId = `sync-${payload.platform}-${now.slice(0, 10)}`;
-  const syncLogRows = await readAll(client, declared("sync_log"));
+  const syncLogRows = await readAll(client, declared("sync-log"));
   const syncLogByKey = new Map(syncLogRows.map((row) => [row.sync_id, row]));
   await upsertRow(
     client,
-    declared("sync_log"),
+    declared("sync-log"),
     syncLogByKey,
     syncId,
     {

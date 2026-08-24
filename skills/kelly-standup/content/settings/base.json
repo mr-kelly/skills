@@ -1,0 +1,56 @@
+{
+  "name": "Settings",
+  "description": "Team profile: name, timezone, workdays, standup questions, digest style",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "team-name",
+      "name": "Team name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "team-timezone",
+      "name": "Team timezone",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "team-workdays",
+      "name": "Team workdays",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "digest-style",
+      "name": "Digest style",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "standup-questions",
+      "name": "Standup questions",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -7,7 +7,7 @@
   "scripts": {
     "generate": "node scripts/generate_batch.mjs",
     "execute": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-disclosure-tracker-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

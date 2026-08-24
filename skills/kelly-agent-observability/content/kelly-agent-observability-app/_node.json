@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Agent Observability",
+  "description": "Agent Fleet Observability Desk: a generated-mock (never real) fleet of LLM agents behind a shared AI gateway for a generic organization — per-agent call volume/latency/error-rate/cost, hourly buckets, and trace-level chain-break detail. Agents and traces are seeded by a trusted script; the only human action, a handoff note (acknowledge / needs investigation) on an agent or trace, is appended to its own log. Generic and brand-free."
+}

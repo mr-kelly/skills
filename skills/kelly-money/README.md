@@ -40,8 +40,8 @@ Kelly Money is a Busabase-backed App-in-Skill dashboard for aggregating Mercury,
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-money-app install
+pnpm --dir content/kelly-money-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

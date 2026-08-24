@@ -1,0 +1,120 @@
+{
+  "name": "Actions",
+  "description": "Agent-proposed action cards: renew domain, rotate key, investigate spend, restart service, ack incident",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "action-id",
+      "name": "Action ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "Reason",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "evidence",
+      "name": "Evidence",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "plan",
+      "name": "Plan",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "target",
+      "name": "Target",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Note",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "decision-verdict",
+      "name": "Decision verdict",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    }
+  ],
+  "views": []
+}

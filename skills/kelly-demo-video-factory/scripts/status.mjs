@@ -1,11 +1,17 @@
 #!/usr/bin/env node
 // Pipeline overview: every video's status plus its shots' recording progress.
-import { findBase, listRecords, loadBusabaseConfig } from "./lib/busabase-client.mjs";
+import {
+  SHOTS_BASE_SLUG,
+  VIDEOS_BASE_SLUG,
+  findBase,
+  listRecords,
+  loadBusabaseConfig,
+} from "./lib/busabase-client.mjs";
 
 async function main() {
   const cfg = loadBusabaseConfig();
-  const videosBase = await findBase(cfg, "videos");
-  const shotsBase = await findBase(cfg, "video-shots");
+  const videosBase = await findBase(cfg, VIDEOS_BASE_SLUG);
+  const shotsBase = await findBase(cfg, SHOTS_BASE_SLUG);
   if (!videosBase || !shotsBase) {
     throw new Error("Schema missing — run `node scripts/ensure_schema.mjs` first.");
   }

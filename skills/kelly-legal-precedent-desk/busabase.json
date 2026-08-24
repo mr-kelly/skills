@@ -1,0 +1,28 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-legal-precedent-desk",
+  "description": "Precedent-research desk over internal casebase search, local court-pattern analysis, similar-case packs, citations, and approval-gated research exports (approve / request changes / revise / block) before a research pack becomes a matter-strategy input",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["legal", "risk:local-write", "industry:legal", "surface:busabase"],
+  "template": {
+    "category": "legal",
+    "schemaVersion": 1,
+    "airapp": "kelly-legal-precedent-desk-app",
+    "tags": ["legal", "risk:local-write", "industry:legal", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/checks.webp",
+      "assets/screenshots/entities.webp",
+      "assets/screenshots/needs-review.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/workbench.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Research Packs and flag what needs my attention.",
+      "Open Legal Precedent Desk and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

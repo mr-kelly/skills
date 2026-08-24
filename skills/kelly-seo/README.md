@@ -61,7 +61,7 @@ Kelly SEO is a Busabase App-in-Skill desk covering **SEO + GEO (AI-search) + bra
 Run the AirApp locally and open a safe mock-data scene:
 
 ```bash
-cd skills/kelly-seo/app && node server.js
+cd skills/kelly-seo/content/kelly-seo-app && node server.js
 ```
 
 Then add one of these demo paths:

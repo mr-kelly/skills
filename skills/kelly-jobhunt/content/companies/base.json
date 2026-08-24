@@ -1,0 +1,128 @@
+{
+  "name": "目标公司",
+  "description": "One row per target company: match evidence, drafted email, and outreach status",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "name",
+      "name": "公司名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "key",
+      "name": "公司标识",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "website",
+      "name": "官网",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "source-url",
+      "name": "来源链接",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "industry",
+      "name": "行业",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "match-score",
+      "name": "匹配度",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "match-reason",
+      "name": "匹配理由",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "email-subject",
+      "name": "邮件主题",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "email-body",
+      "name": "邮件正文",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "状态",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "sent-to",
+      "name": "实发邮箱",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "approved-at",
+      "name": "批准时间",
+      "type": "date",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "sent-at",
+      "name": "发送时间",
+      "type": "date",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "evidence-type",
+      "name": "证据类型",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "evidence-date",
+      "name": "抓取日期",
+      "type": "date",
+      "required": false,
+      "position": 14,
+      "options": {}
+    }
+  ],
+  "views": []
+}

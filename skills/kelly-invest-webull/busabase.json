@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-invest-webull",
+  "description": "Read-only Webull brokerage portfolio dashboard (accounts, positions, insights)",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["invest", "risk:read-only", "surface:busabase", "surface:webull"],
+  "template": {
+    "category": "invest",
+    "schemaVersion": 1,
+    "airapp": "kelly-invest-webull-app",
+    "tags": ["invest", "risk:read-only", "surface:busabase", "surface:webull"],
+    "screenshots": [
+      "assets/screenshots/accounts.webp",
+      "assets/screenshots/detail.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/positions.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Accounts and flag what needs my attention.",
+      "Open Kelly Invest (Webull) and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

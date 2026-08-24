@@ -10,6 +10,18 @@ metadata:
     - surface:discord
     - surface:slack
     - surface:telegram
+  busabase:
+    template: true
+    folderSlug: kelly-messenger
+    resources:
+      - accounts
+      - conversations
+      - messages
+      - sync-log
+      - replies
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Messenger
@@ -67,7 +79,7 @@ sends a real message — always after a human approval recorded in Busabase.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-messenger-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -88,12 +100,12 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Six Bases under one application Folder (`kelly-messenger`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-messenger-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `accounts`: connected accounts — platform, connector, channels to watch, and env-var *names* for tokens (never values), status, last sync.
 - `conversations`: one row per conversation across all accounts — title, kind, channel/workspace, participants, `unread`/`awaiting-reply` flags, the send target (`provider-conversation-id`), and an optional agent-suggested reply.
 - `messages`: one row per message, joined onto its conversation by `conversation-id`.
-- `sync_log`: append-only history of sync/ingest runs per account.
+- `sync-log`: append-only history of sync/ingest runs per account.
 - `replies`: the reply review queue — draft text, workflow `status`, the human verdict fields (`decision-action`/`decision-comment`/`decided-at`), and the execution result (`execution-status`/`execution-operation`/`execution-connector`/`execution-target`/`execution-detail`/`executed-at`) written by `scripts/send_outbox.mjs`.
 - `settings`: one row (`record-id: "config"`) with reply style and sync cadence.
 
@@ -134,7 +146,7 @@ Connector reality per platform (declare as `connector` on the account):
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-messenger-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -157,7 +169,7 @@ UI language: English and Chinese chrome with `Auto` default following the browse
 
 1. Detect mode. Default to AirApp-first.
 2. Check the `accounts` Base. If empty, enter onboarding.
-3. For API connectors (`slack`, `discord`, `telegram`, `whatsapp_cloud`), run `node scripts/sync_messages.mjs --apply`. It uses global fetch only, prints a clear friendly message when tokens are missing, merges into Busabase (accounts/conversations/messages) by stable message ids, and appends a `sync_log` entry per account. Omit `--apply` first to see a dry-run summary.
+3. For API connectors (`slack`, `discord`, `telegram`, `whatsapp_cloud`), run `node scripts/sync_messages.mjs --apply`. It uses global fetch only, prints a clear friendly message when tokens are missing, merges into Busabase (accounts/conversations/messages) by stable message ids, and appends a `sync-log` entry per account. Omit `--apply` first to see a dry-run summary.
 4. For `browser_agent` platforms, use the browser skill on the user's own session to read conversations, build an ingest payload (see `references/messenger-schema.md`), and run `node scripts/ingest_messages.mjs payload.json --apply` — the single write-path for collected messages. Same for `manual`.
 5. Give the user the AirApp URL (or local preview URL). Surface connector problems as printed warnings, not silent failures.
 
@@ -186,7 +198,7 @@ node skills/kelly-messenger/scripts/sync_messages.mjs --apply
 node skills/kelly-messenger/scripts/ingest_messages.mjs payload.json --apply
 node skills/kelly-messenger/scripts/send_outbox.mjs
 node skills/kelly-messenger/scripts/send_outbox.mjs --send
-pnpm --dir skills/kelly-messenger/app dev
+pnpm --dir skills/kelly-messenger/content/kelly-messenger-app dev
 ```
 
 In normal use, invoke `/kelly-messenger`, let the skill sync/ingest the

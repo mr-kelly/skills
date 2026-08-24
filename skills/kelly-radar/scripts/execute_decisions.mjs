@@ -21,8 +21,12 @@
 // BUSABASE_API_KEY / BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { operationForBrief, operationForOpportunity, operationForSignal } from "../app/app/js/radar-model.js";
+import { appConfig } from "../content/kelly-radar-app/app/js/config.js";
+import {
+  operationForBrief,
+  operationForOpportunity,
+  operationForSignal,
+} from "../content/kelly-radar-app/app/js/radar-model.js";
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
@@ -153,7 +157,7 @@ async function main() {
       );
     }
     await client.bases.createChangeRequest({
-      baseId: declared("sync_log").baseId,
+      baseId: declared("sync-log").baseId,
       fields: toBusabaseFields({
         log_id: `log-${Date.now().toString(36)}`,
         at: now,

@@ -1,0 +1,144 @@
+{
+  "name": "策略回测报告",
+  "description": "Dated backtest results and methodology by strategy",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "name",
+      "name": "报告名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "strategy-key",
+      "name": "策略标识",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "report-date",
+      "name": "报告日期",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "window-start",
+      "name": "回测起点",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "window-end",
+      "name": "回测截止",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "window-label",
+      "name": "回测窗口",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "method",
+      "name": "回测方法",
+      "type": "text",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "coverage",
+      "name": "数据覆盖",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "benchmark",
+      "name": "比较基准",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "total-return",
+      "name": "总回报",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "cagr",
+      "name": "年化收益",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "volatility",
+      "name": "年化波动",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "sharpe",
+      "name": "Sharpe",
+      "type": "number",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "max-drawdown",
+      "name": "最大回撤",
+      "type": "number",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "benchmark-return",
+      "name": "基准总回报",
+      "type": "number",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "excess-return",
+      "name": "相对基准",
+      "type": "number",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "source-note",
+      "name": "口径与偏差",
+      "type": "longtext",
+      "required": false,
+      "position": 16,
+      "options": {}
+    }
+  ],
+  "views": []
+}

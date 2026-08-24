@@ -1,0 +1,88 @@
+{
+  "name": "虚拟持仓",
+  "description": "Virtual positions used to validate strategy behavior",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "name",
+      "name": "证券名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "strategy-key",
+      "name": "策略标识",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "code",
+      "name": "证券代码",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "quantity",
+      "name": "虚拟数量",
+      "type": "number",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "entry-price",
+      "name": "虚拟成本",
+      "type": "number",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "latest-price",
+      "name": "参考价",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "market-value",
+      "name": "虚拟市值",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "weight",
+      "name": "账户权重",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "price-source",
+      "name": "参考价来源",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "price-as-of",
+      "name": "参考价时间",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": []
+}

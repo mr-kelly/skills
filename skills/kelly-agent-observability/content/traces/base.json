@@ -1,0 +1,72 @@
+{
+  "name": "Traces",
+  "description": "One row per mock trace (ordered tool-call chain) for one agent, capped to fit under the 100-record read limit. Steps (JSON array) carry the ordered timeline; broke-at-step-id flags exactly where a broken chain stopped. Written only by the trusted generator script.",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "trace-id",
+      "name": "Trace ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "agent-id",
+      "name": "Agent ID",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "started-at",
+      "name": "Started at",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "duration-ms",
+      "name": "Duration (ms)",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "cost-usd",
+      "name": "Cost (USD)",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "broke-at-step-id",
+      "name": "Broke at step ID",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "steps",
+      "name": "Steps (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    }
+  ],
+  "views": []
+}

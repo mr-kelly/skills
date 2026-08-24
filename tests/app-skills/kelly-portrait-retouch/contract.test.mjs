@@ -6,13 +6,15 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const skillRoot = join(repoRoot, "skills", "kelly-portrait-retouch");
-const appRoot = join(skillRoot, "app");
+const appRoot = join(skillRoot, "content", "kelly-portrait-retouch-app");
 const browserRoot = join(appRoot, "app");
+const readJson = async (file) => JSON.parse(await readFile(file, "utf8"));
 const required = [
   "package.json",
   "pnpm-lock.yaml",
   "server.js",
-  "resource-map.json",
+  "_node.json",
+  ".busabaseignore",
   "scripts/check.mjs",
   "app/index.html",
   "app/app.js",
@@ -34,17 +36,35 @@ test("contains a complete canonical app and frozen lockfile", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
 });
 
-test("aligns Base declarations with the resource map", async () => {
-  const map = JSON.parse(await readFile(join(appRoot, "resource-map.json"), "utf8"));
+test("keeps the package manifest and runtime declarations aligned", async () => {
+  const templateRoot = join(repoRoot, "skills", "kelly-portrait-retouch");
+  const manifest = await readJson(join(templateRoot, "busabase.json"));
   const { appConfig } = await import(join(browserRoot, "js", "config.js"));
-  const mappedBases = map.resources.filter((resource) => resource.type === "base");
-  assert.equal(map.appId, appConfig.appId);
-  assert.equal(map.schemaVersion, appConfig.schemaVersion);
-  assert.deepEqual(
-    map.resources.map(({ key, slug }) => ({ key, slug })),
-    appConfig.bases.map(({ key, slug }) => ({ key, slug })),
-  );
-  assert.equal(mappedBases.length, appConfig.bases.length);
+  assert.equal(manifest.name, appConfig.appId);
+  assert.equal(manifest.template.schemaVersion, appConfig.schemaVersion);
+  assert.equal(manifest.template.airapp, appConfig.airApp.slug);
+  assert.equal(appConfig.airApp.resourceKey, appConfig.airApp.slug);
+  for (const base of appConfig.bases) {
+    assert.equal(base.slug, `kelly-portrait-retouch-${base.key}`, base.key);
+    assert.equal("nodeId" in base, false, base.key);
+    assert.equal("baseId" in base, false, base.key);
+    const declared = await readJson(join(templateRoot, "content", base.key, "base.json"));
+    assert.equal(declared.name, base.name, base.key);
+    assert.equal(declared.fields.length, (base.fields ?? []).length, base.key);
+  }
+});
+
+test("declares itself a template and names only resources it ships", async () => {
+  const templateRoot = join(repoRoot, "skills", "kelly-portrait-retouch");
+  const skill = await readFile(join(templateRoot, "SKILL.md"), "utf8");
+  assert.match(skill, /^\s*template: true$/m);
+  const resources = [...skill.matchAll(/^\s{6}- (\S+)$/gm)].map((match) => match[1]);
+  assert.ok(resources.length > 0, "SKILL.md should list its resources");
+  for (const key of resources) await readFile(join(templateRoot, "content", key, "base.json"));
+});
+
+test("keeps portrait workflow fields in the generated template", async () => {
+  const { appConfig } = await import(join(browserRoot, "js", "config.js"));
   assert.deepEqual(
     appConfig.bases.map((base) => base.key),
     ["jobs", "candidates", "settings"],

@@ -59,7 +59,7 @@ Sourcing, Meeting Scheduler, and Contract Summarizer.
 
 ```bash
 node skills/kelly-agent-observability/scripts/generate_fleet_data.mjs --apply
-pnpm --dir skills/kelly-agent-observability/app dev
+pnpm --dir skills/kelly-agent-observability/content/kelly-agent-observability-app dev
 ```
 
 The seed script writes the mock fleet (agents + traces) into Busabase; the
@@ -85,7 +85,7 @@ writes Busabase.
 ## Busabase Data
 
 The AirApp is Busabase-backed: agents, traces, handoffs, and settings all
-live in Busabase Bases declared in `app/app/js/config.js` (see
+live in Busabase Bases declared in `content/kelly-agent-observability-app/app/js/config.js` (see
 `references/fleet-schema.md`). Agents and traces are seeded only by the
 trusted `scripts/generate_fleet_data.mjs` script; the AirApp itself only ever
 writes new rows to the `handoffs` Base. Resources provision lazily on first

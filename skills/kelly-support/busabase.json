@@ -1,0 +1,41 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-support",
+  "description": "Customer-support desk: tickets, knowledge base, and the support-qa quality gate",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": [
+    "sales-crm",
+    "risk:gated-write",
+    "surface:busabase",
+    "surface:whatsapp",
+    "surface:wechat",
+    "surface:webchat"
+  ],
+  "template": {
+    "category": "sales-crm",
+    "schemaVersion": 1,
+    "airapp": "kelly-support-app",
+    "tags": [
+      "sales-crm",
+      "risk:gated-write",
+      "surface:busabase",
+      "surface:whatsapp",
+      "surface:wechat",
+      "surface:webchat"
+    ],
+    "screenshots": [
+      "assets/screenshots/knowledge.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/sla.webp",
+      "assets/screenshots/tickets.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Accounts and flag what needs my attention.",
+      "Open Kelly Support and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

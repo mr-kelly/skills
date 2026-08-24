@@ -7,7 +7,7 @@
   "scripts": {
     "import": "node scripts/import_batch.mjs",
     "export": "node scripts/export_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-invoice-sheet-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

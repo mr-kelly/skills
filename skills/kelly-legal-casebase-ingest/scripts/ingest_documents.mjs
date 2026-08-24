@@ -18,8 +18,8 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { ITEM_LABEL_EN } from "../app/app/js/casebase-model.js";
-import { appConfig } from "../app/app/js/config.js";
+import { ITEM_LABEL_EN } from "../content/kelly-legal-casebase-ingest-app/app/js/casebase-model.js";
+import { appConfig } from "../content/kelly-legal-casebase-ingest-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_documents.mjs <payload.json> [more.json ...] [--apply]

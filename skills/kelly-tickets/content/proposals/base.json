@@ -1,0 +1,184 @@
+{
+  "name": "Dispatch Proposals",
+  "description": "The dispatch review queue — proposed crew/priority/SLA, the human decision, and the execution marker on the same row",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "proposal-id",
+      "name": "Proposal ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "ticket-id",
+      "name": "Ticket ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "summary",
+      "name": "Summary",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "proposed-crew-id",
+      "name": "Proposed crew ID",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "proposed-assignee",
+      "name": "Proposed assignee",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "priority",
+      "name": "Priority",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "sla-due-at",
+      "name": "SLA due at",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "sla-hours",
+      "name": "SLA hours",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "Reason",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "note-to-crew",
+      "name": "Note to crew",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "decision-action",
+      "name": "Decision action",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "decision-draft",
+      "name": "Decision draft",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "execution-status",
+      "name": "Execution status",
+      "type": "text",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "execution-operations",
+      "name": "Execution operations",
+      "type": "longtext",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "execution-detail",
+      "name": "Execution detail",
+      "type": "longtext",
+      "required": false,
+      "position": 19,
+      "options": {}
+    },
+    {
+      "slug": "executed-at",
+      "name": "Executed at",
+      "type": "text",
+      "required": false,
+      "position": 20,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 21,
+      "options": {}
+    }
+  ],
+  "views": []
+}

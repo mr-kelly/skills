@@ -16,7 +16,9 @@ export function playwrightChromiums() {
   try {
     return [
       ...globSync("chromium*/chrome-linux/chrome", { cwd: root }),
-      ...globSync("chromium*/chrome-mac/Chromium.app/Contents/MacOS/Chromium", { cwd: root }),
+      ...globSync("chromium*/chrome-mac/Chromium.content/kelly-sales-outreach-app/Contents/MacOS/Chromium", {
+        cwd: root,
+      }),
       ...globSync("chromium*/chrome-win/chrome.exe", { cwd: root }),
     ].map((relative) => path.join(root, relative));
   } catch {
@@ -27,7 +29,7 @@ export function playwrightChromiums() {
 export function chromeCandidates() {
   return [
     process.env.CHROME_PATH,
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Google Chrome.content/kelly-sales-outreach-app/Contents/MacOS/Google Chrome",
     "/usr/bin/google-chrome",
     "/usr/bin/google-chrome-stable",
     "/usr/bin/chromium",

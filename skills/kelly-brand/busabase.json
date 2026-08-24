@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-brand",
+  "description": "Brand-narrative single source of truth built on the TALE discipline",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["marketing", "risk:local-write", "surface:busabase"],
+  "template": {
+    "category": "marketing",
+    "schemaVersion": 1,
+    "airapp": "kelly-brand-app",
+    "tags": ["marketing", "risk:local-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/drift.webp",
+      "assets/screenshots/narrative.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/stories.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Narrative Items and flag what needs my attention.",
+      "Open Kelly Brand and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

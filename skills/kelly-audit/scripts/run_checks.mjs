@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Trusted hand-off step. Re-reads orders/invoices/payments straight from
-// Busabase, links and derives statuses/aging via app/app/js/audit-model.js's
+// Busabase, links and derives statuses/aging via content/kelly-audit-app/app/js/audit-model.js's
 // deriveSnapshot() (the same pure function the AirApp uses to render), then
 // runs the deterministic anomaly-detection rule set (detectAnomalies, also
 // in audit-model.js, ported verbatim from the retired scripts/run_checks.ts)
@@ -22,8 +22,8 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { DEFAULT_RULES, buildSnapshot, detectAnomalies } from "../app/app/js/audit-model.js";
-import { appConfig } from "../app/app/js/config.js";
+import { DEFAULT_RULES, buildSnapshot, detectAnomalies } from "../content/kelly-audit-app/app/js/audit-model.js";
+import { appConfig } from "../content/kelly-audit-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/run_checks.mjs [--apply]

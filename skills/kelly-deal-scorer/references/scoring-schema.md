@@ -2,12 +2,12 @@
 
 Use this schema when reading or writing Kelly Deal Scorer's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`, `app/app/js/scorer-model.js`).
+code (`content/kelly-deal-scorer-app/app/js/providers/busabase-provider.js`, `content/kelly-deal-scorer-app/app/js/scorer-model.js`).
 The composite score breakdown (`composite_score`/`factors`/
 `suggested_share_rate`) is computed client-side from the `candidates` Base's
 raw fields on every read — it is never stored.
 
-## Rubric (`app/app/js/scorer-model.js`'s `DEFAULT_RUBRIC`, overridable via the `settings` Base's `config` row)
+## Rubric (`content/kelly-deal-scorer-app/app/js/scorer-model.js`'s `DEFAULT_RUBRIC`, overridable via the `settings` Base's `config` row)
 
 Five sub-factors, each 0-100 before weighting, weights sum to 1.0:
 
@@ -37,7 +37,7 @@ band.
   revision loop; re-review once more data arrives).
 - `reject` → candidate `status` becomes `blocked`.
 
-## Candidates (`kelly-deal-scorer-candidates-v1`)
+## Candidates (`kelly-deal-scorer-candidates`)
 
 One row per candidate business (8 rows, seeded by
 `scripts/generate_batch.mjs`). The reviewer's decision writes
@@ -58,7 +58,7 @@ directly onto the same row — there is no separate decisions file.
 | `decision-comment` | `decision_comment` | longtext | written with the verdict |
 | `decided-at` | `decided_at` | text | ISO timestamp, written with the verdict |
 
-## Settings (`kelly-deal-scorer-settings-v1`)
+## Settings (`kelly-deal-scorer-settings`)
 
 Up to two rows, looked up by `record-id`/`kind`. A missing row means "not set
 yet" (mirrors the retired local-file provider's null-on-ENOENT behavior).
@@ -79,7 +79,7 @@ yet" (mirrors the retired local-file provider's null-on-ENOENT behavior).
 
 The trusted seed step. Writes the fixed 8-candidate mock queue (ported
 verbatim from the retired `lib/demo-candidates.ts`'s `CANDIDATE_SEEDS`, now
-living in `app/app/js/scorer-model.js`) into the `candidates` Base, resetting
+living in `content/kelly-deal-scorer-app/app/js/scorer-model.js`) into the `candidates` Base, resetting
 every candidate's decision fields to `needs_review`, and refreshes the `run`
 settings row. Seeds a default `config` row only if none exists yet (never
 overwrites a fund's tuned rubric). `--apply` gated (default dry run).

@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Retail Intel's
 Busabase Bases. Field slugs are kebab-case in Busabase and normalized to
-snake_case in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/retail-model.js`). The batch rollup metrics
+snake_case in app code (`content/kelly-retail-intel-app/app/js/providers/busabase-provider.js`,
+`content/kelly-retail-intel-app/app/js/retail-model.js`). The batch rollup metrics
 (`needs_review`/`approved`/`blocked` and their per-kind counts) are computed
 client-side from `signals`/`actions`/`drafts` on every read — they are never
 stored.
@@ -12,7 +12,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise` (`revise` is draft-only).
 
-## Signals (`kelly-retail-intel-signals-v1`)
+## Signals (`kelly-retail-intel-signals`)
 
 Source-backed weather, event, holiday, traffic, mall/neighborhood,
 competitor promotion, product trend, and customer review signals —
@@ -38,7 +38,7 @@ suggested action.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Actions (`kelly-retail-intel-actions-v1`)
+## Actions (`kelly-retail-intel-actions`)
 
 Approved/blocked/reviewable store briefing notes, hero-product picks,
 signage copy, staff scripts, or replenishment checks tied to today's
@@ -60,7 +60,7 @@ signals.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Drafts (`kelly-retail-intel-drafts-v1`)
+## Drafts (`kelly-retail-intel-drafts`)
 
 Editable channel drafts (staff brief / IG story / store sign), kept behind
 a review gate until approved.
@@ -84,7 +84,7 @@ A `revise` decision writes `edited-body` and leaves `status` at
 `needs_review` — the review still needs an explicit approve/request_changes/
 block after a revision.
 
-## Sources (`kelly-retail-intel-sources-v1`)
+## Sources (`kelly-retail-intel-sources`)
 
 Configured news/weather/event/competitor/trend source categories,
 freshness, and coverage gaps.
@@ -97,7 +97,7 @@ freshness, and coverage gaps.
 | `freshness` | `freshness` | text | e.g. "demo", "not connected" |
 | `coverage` | `coverage` | longtext | what this category covers or is missing |
 
-## Settings (`kelly-retail-intel-settings-v1`)
+## Settings (`kelly-retail-intel-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -117,7 +117,7 @@ and its review state.
 
 The trusted decision-execution step. Reads `signals`/`actions`/`drafts` with
 a non-empty `decision-verdict`, prints the concrete operation
-(`operationForDecision()` in `app/app/js/retail-model.js`) for every
+(`operationForDecision()` in `content/kelly-retail-intel-app/app/js/retail-model.js`) for every
 decided item, and with `--apply` writes `status: "done"` back onto every
 `approve`-verdict item once the agent has performed the real handoff
 outside this script. It performs no external side effect itself —

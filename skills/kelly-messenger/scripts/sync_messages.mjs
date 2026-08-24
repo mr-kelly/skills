@@ -5,7 +5,7 @@
 // platform calls). Ported from the retired scripts/sync_messages.ts:
 // syncSlack/syncDiscord/syncTelegram/syncWhatsappCloud and baseConversation()
 // are unchanged (same endpoints, same pagination, same id schemes); only the
-// write target changed, from app/.data/messages_snapshot.json to Busabase's
+// write target changed, from content/kelly-messenger-app/.data/messages_snapshot.json to Busabase's
 // accounts/conversations/messages/sync_log Bases. Browser-collected platforms
 // (WhatsApp Web, WeChat, iMessage) still go through scripts/ingest_messages.mjs.
 //
@@ -19,8 +19,8 @@
 // Writes are gated behind --apply (default dry run).
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { API_CONNECTORS, SECRET_ENV_KEYS } from "../app/app/js/messenger-model.js";
+import { appConfig } from "../content/kelly-messenger-app/app/js/config.js";
+import { API_CONNECTORS, SECRET_ENV_KEYS } from "../content/kelly-messenger-app/app/js/messenger-model.js";
 
 function help() {
   console.log(`Usage: node scripts/sync_messages.mjs [--apply]
@@ -421,7 +421,7 @@ async function main() {
     );
     await upsertRow(
       client,
-      declared("sync_log"),
+      declared("sync-log"),
       null,
       "sync-id",
       `sync-${account.account_id}-${Date.now()}`,

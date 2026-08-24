@@ -6,6 +6,16 @@ metadata:
   tags:
     - risk:gated-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-campaigns
+    resources:
+      - segments
+      - sends
+      - suppression
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Campaigns
@@ -39,7 +49,7 @@ This skill is an implementation of the **App-in-Skill** pattern — a Codex/agen
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-campaigns-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -76,7 +86,7 @@ Before any send can be scheduled, it passes the **SEND** framework, which produc
 - **N — Not spammy**: spam score, trigger words, link/image balance, working unsubscribe + physical address.
 - **D — Deliverability**: inbox readiness against policy floors, IP/domain warm-up, render and dark-mode.
 
-Verdicts: **SHIP** (ready to schedule), **FIX** (deliverable but revise first), **BLOCK** (hard stop — e.g. failing DKIM or a spam score above policy). The gate never sends; a human still approves. A send whose deliverability risk is `high` (SPF/DKIM/DMARC failing, spam score ≥ 5, or inbox readiness below 0.6 — see `deliverabilityInfo()` in `app/app/js/campaigns-model.js`) is refused scheduling even if it carries an `approved` status.
+Verdicts: **SHIP** (ready to schedule), **FIX** (deliverable but revise first), **BLOCK** (hard stop — e.g. failing DKIM or a spam score above policy). The gate never sends; a human still approves. A send whose deliverability risk is `high` (SPF/DKIM/DMARC failing, spam score ≥ 5, or inbox readiness below 0.6 — see `deliverabilityInfo()` in `content/kelly-campaigns-app/app/js/campaigns-model.js`) is refused scheduling even if it carries an `approved` status.
 
 ## App UI Screenshots
 
@@ -109,7 +119,7 @@ Verdicts: **SHIP** (ready to schedule), **FIX** (deliverable but revise first), 
 ## Busabase Resources
 
 Four Bases under one application Folder (`kelly-campaigns`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-campaigns-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `segments`: audience segments — id, name, description, audience size.
 - `sends`: the review queue — campaign/newsletter/sequence-step/cold-outbound sends: type, phase, subject/preview/body, segment + audience size, deliverability, subject A/B variants, the `quality-gate` (EQS + SHIP/FIX/BLOCK), workflow `status`, and the human verdict fields `decision-note` / `decided-at`.
@@ -134,7 +144,7 @@ Ask for non-secret setup details only: operator profile (name, role, company, ti
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-campaigns-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):

@@ -1,0 +1,48 @@
+{
+  "name": "Roadmap",
+  "description": "Roadmap lane items (now/next/later), read-only in the app; changed only via approved proposals",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "item-id",
+      "name": "Item ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "lane",
+      "name": "Lane",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "request-id",
+      "name": "Request ID",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Note",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

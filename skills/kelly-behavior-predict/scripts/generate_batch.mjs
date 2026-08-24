@@ -13,8 +13,12 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { DEFAULT_DATASET_SEED, SEGMENTS, generateAllSessions } from "../app/app/js/behavior-model.js";
-import { appConfig } from "../app/app/js/config.js";
+import {
+  DEFAULT_DATASET_SEED,
+  SEGMENTS,
+  generateAllSessions,
+} from "../content/kelly-behavior-predict-app/app/js/behavior-model.js";
+import { appConfig } from "../content/kelly-behavior-predict-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/generate_batch.mjs [--apply] [options]

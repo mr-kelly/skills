@@ -3,8 +3,8 @@
 Use this schema when reading or writing Kelly Invoice Sheet's Busabase
 Bases, and before writing a batch JSON file for `scripts/import_batch.mjs`.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/invoice-model.js`).
+code (`content/kelly-invoice-sheet-app/app/js/providers/busabase-provider.js`,
+`content/kelly-invoice-sheet-app/app/js/invoice-model.js`).
 
 Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 
@@ -13,7 +13,7 @@ decision moves a `done` row back to `needs_review`; any other status is left
 unchanged, so an edit-only save on a row still under review does not change
 its status).
 
-## Invoices (`kelly-invoice-sheet-invoices-v1`)
+## Invoices (`kelly-invoice-sheet-invoices`)
 
 One row per extracted invoice/receipt/credit note/statement.
 
@@ -73,7 +73,7 @@ One row per extracted invoice/receipt/credit note/statement.
 Line items are useful for accounting import and audit, but a missing line
 item is a warning, not a hard validation failure.
 
-## Settings (`kelly-invoice-sheet-settings-v1`)
+## Settings (`kelly-invoice-sheet-settings`)
 
 Sanitized config summary, one row keyed by `kind` (currently only `config`).
 

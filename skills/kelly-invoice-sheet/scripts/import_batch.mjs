@@ -8,7 +8,7 @@
 // the retired lib/types.ts InvoiceBatch shape (or a bare array of invoice
 // objects), validates it with validateInvoicesShape() (ported verbatim from
 // the retired lib/invoice-schema.ts's validateBatchShape(), see
-// app/app/js/invoice-model.js), and upserts each invoice as a Busabase
+// content/kelly-invoice-sheet-app/app/js/invoice-model.js), and upserts each invoice as a Busabase
 // `invoices` record (keyed by invoice-id, so re-running the same batch after
 // a correction updates the existing rows instead of duplicating them).
 //
@@ -20,8 +20,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { baseInvoiceFields, validateInvoicesShape } from "../app/app/js/invoice-model.js";
+import { appConfig } from "../content/kelly-invoice-sheet-app/app/js/config.js";
+import { baseInvoiceFields, validateInvoicesShape } from "../content/kelly-invoice-sheet-app/app/js/invoice-model.js";
 
 function help() {
   console.log(`Usage: node scripts/import_batch.mjs --file <batch.json> [--batch-id <id>] [--apply]

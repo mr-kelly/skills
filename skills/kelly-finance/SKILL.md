@@ -6,6 +6,15 @@ metadata:
   tags:
     - risk:local-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-finance
+    resources:
+      - model
+      - checks
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly Finance
@@ -49,7 +58,7 @@ mode only when the user says "纯聊天", "chat only", "不要打开 UI", or sim
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-finance-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -64,7 +73,7 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 ## Busabase Resources
 
 Three Bases under one application Folder (`kelly-finance`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-finance-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `model`: one row per model run (usually just the current run, `model-id`
   `current`) — company, currency, display unit, model purpose, the forecast
@@ -122,7 +131,7 @@ relevant operating schedules after the starter model is created.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-finance-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -175,11 +184,11 @@ Use `references/three-statement-modeling.md` for the review checklist, forecast-
    source-of-truth system.
 
 Read `references/finance-ui-schema.md` before editing the app, scripts, or
-`app/app/js/finance-model.js`.
+`content/kelly-finance-app/app/js/finance-model.js`.
 
 ## The Domain Model
 
-`app/app/js/finance-model.js` documents and implements the entire pure
+`content/kelly-finance-app/app/js/finance-model.js` documents and implements the entire pure
 domain model: the needs_review/approved/done/blocked rollup
 (`computeMetricsFromChecks()`), the decision -> status mapping
 (`statusForAction()`), simple derived arithmetic over an already-computed
@@ -188,8 +197,8 @@ a reimplementation of the real modeling math), and the deterministic demo
 dataset (`demoSnapshot()`). Every function is pure and deterministic — same
 inputs always produce the same output — so a human reviewer can audit every
 status and count by hand. It backs the live Busabase read path
-(`app/app/js/providers/busabase-provider.js`) and the offline `?demo=`
-scenario (`app/app/js/providers/demo-provider.js`), so both always agree on
+(`content/kelly-finance-app/app/js/providers/busabase-provider.js`) and the offline `?demo=`
+scenario (`content/kelly-finance-app/app/js/providers/demo-provider.js`), so both always agree on
 the snapshot shape.
 
 ## Modeling Standards
@@ -219,6 +228,6 @@ the snapshot shape.
 ```bash
 node skills/kelly-finance/scripts/build_three_statement_model.mjs --apply
 node skills/kelly-finance/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-finance/app dev
+pnpm --dir skills/kelly-finance/content/kelly-finance-app dev
 python3 skills/kelly-finance/scripts/build_three_statement_model.py --output /tmp/model.xlsx --company "ExampleCo"
 ```

@@ -1,0 +1,40 @@
+{
+  "name": "Segments",
+  "description": "One row per mock session archetype (5 rows) — the human review verdict (trusted / needs recalibration) on that segment's prediction rule, written directly onto the segment's own record",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "segment-id",
+      "name": "Segment ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "decision-status",
+      "name": "Decision status",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -1,0 +1,96 @@
+{
+  "name": "候选讲师",
+  "description": "One row per instructor candidate with per-axis scores, notes, review status, and connection timestamps",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "name",
+      "name": "候选人姓名",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "platform-headline",
+      "name": "平台公开简介",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "search-context",
+      "name": "搜索来源",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "endorsement-score",
+      "name": "背景背书分",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "expertise-score",
+      "name": "专业深广度分",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "teaching-score",
+      "name": "授课服务能力分",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "overall-score",
+      "name": "综合评分",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "match-notes",
+      "name": "评分依据",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "状态",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "wechat-added-at",
+      "name": "微信添加时间",
+      "type": "date",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "logged-at",
+      "name": "建联记录时间",
+      "type": "date",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -1,0 +1,40 @@
+{
+  "name": "Channels",
+  "description": "Launch channels and their submission status",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "channel-id",
+      "name": "Channel ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "display-name",
+      "name": "Display name",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "submission-status",
+      "name": "Submission status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -7,6 +7,17 @@ metadata:
     - risk:local-write
     - industry:education
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-homework-coach
+    resources:
+      - questions
+      - mistakes
+      - papers
+      - reviews
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly Homework Coach
@@ -19,7 +30,7 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-homework-coach-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -35,7 +46,7 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Five Bases under one application Folder (`kelly-homework-coach`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Five Bases under one application Folder (`kelly-homework-coach`), declared in `content/kelly-homework-coach-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `questions`: one row per homework question the agent has explained (from a photo, pasted text, or a paper) — prompt/answers, outcome, and the child-facing explanation (kid summary, steps, key concept, self check, next hint). Written by `scripts/record_homework.mjs`.
 - `mistakes`: one row per mistake-book entry (stable id so repeated review updates the same card) — root cause, misconception, fix strategy, similar practice prompt, parent note.
@@ -47,7 +58,7 @@ Resources provision lazily through an idempotent Busabase ChangeRequest the firs
 
 ## How A New Question/Mistake/Paper Enters The System
 
-There is no upload API and the AirApp's photo box never uploads a file anywhere — it only lets the student pick a local filename and copies a chat prompt asking the agent to analyze it (`app/app/app.js`'s `renderPhotoBox()`/`data-copy-prompt="photo"`). The agent does the actual work in the same chat session (OCR/vision reasoning, drafting the child-facing explanation, identifying the mistake) and then calls the trusted script below with its own Busabase credentials to record the result:
+There is no upload API and the AirApp's photo box never uploads a file anywhere — it only lets the student pick a local filename and copies a chat prompt asking the agent to analyze it (`content/kelly-homework-coach-app/app/app.js`'s `renderPhotoBox()`/`data-copy-prompt="photo"`). The agent does the actual work in the same chat session (OCR/vision reasoning, drafting the child-facing explanation, identifying the mistake) and then calls the trusted script below with its own Busabase credentials to record the result:
 
 ```bash
 node skills/kelly-homework-coach/scripts/record_homework.mjs --file payload.json --apply
@@ -57,7 +68,7 @@ Without `--apply` this is a dry run that only prints the planned upserts. The pa
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-homework-coach-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -87,7 +98,7 @@ Required app views (hash routes):
 1. Group mistakes by topic, error type, and review due date; keep stable ids so repeated analysis updates the same mistake instead of duplicating it.
 2. Use supportive language: "还差一步" / "try this check" rather than "careless" unless the evidence specifically supports a careless-slip label.
 3. For each mistake, store a "how to fix next time" rule and a similar practice prompt. Do not store excessive raw photo content.
-4. When a review's decision is `request_changes`, the linked review row's status stays `changes_requested`, which is exactly the retired app's "queued agent task" (see `pendingAgentTasks()` in `app/app/js/homework-model.js`). Redraft the explanation, mistake card, or paper plan, then re-run `scripts/record_homework.mjs` with the updated content and the same review id.
+4. When a review's decision is `request_changes`, the linked review row's status stays `changes_requested`, which is exactly the retired app's "queued agent task" (see `pendingAgentTasks()` in `content/kelly-homework-coach-app/app/js/homework-model.js`). Redraft the explanation, mistake card, or paper plan, then re-run `scripts/record_homework.mjs` with the updated content and the same review id.
 
 ## Practice Paper And Analysis Workflow
 
@@ -114,5 +125,5 @@ Required app views (hash routes):
 ```bash
 node skills/kelly-homework-coach/scripts/record_homework.mjs --file payload.json --apply
 node skills/kelly-homework-coach/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-homework-coach/app dev
+pnpm --dir skills/kelly-homework-coach/content/kelly-homework-coach-app dev
 ```

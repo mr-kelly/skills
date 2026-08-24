@@ -1,0 +1,64 @@
+{
+  "name": "Settings",
+  "description": "Seller profile, platform fee tables, freight rules, and ad-cost default, a single settings row",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "base-currency",
+      "name": "Base currency",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "seller-profile",
+      "name": "Seller profile",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "platforms",
+      "name": "Platforms",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "freight",
+      "name": "Freight",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "ad-cost-default-pct",
+      "name": "Ad cost default pct",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}

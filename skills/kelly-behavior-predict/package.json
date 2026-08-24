@@ -6,7 +6,7 @@
   "description": "Kelly Behavior Predict Busabase Cloud skill and the trusted mock-dataset seed script.",
   "scripts": {
     "generate": "node scripts/generate_batch.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-behavior-predict-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

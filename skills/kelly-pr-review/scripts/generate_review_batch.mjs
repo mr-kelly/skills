@@ -27,7 +27,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-pr-review-app/app/js/config.js";
 
 const execFile = promisify(execFileCallback);
 const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -303,7 +303,10 @@ function sampleItems() {
       reason: "Small CSS-only change; no risky files detected.",
       risk: [],
       labels: ["frontend"],
-      changed_files: ["app/dashboard/EmptyState.tsx", "app/dashboard/styles.css"],
+      changed_files: [
+        "content/kelly-pr-review-app/dashboard/EmptyState.tsx",
+        "content/kelly-pr-review-app/dashboard/styles.css",
+      ],
       additions: 22,
       deletions: 5,
       comments_count: 0,
@@ -325,7 +328,7 @@ function sampleItems() {
       reason: "Merged PR is waiting for human test verification.",
       risk: ["frontend"],
       labels: ["frontend"],
-      changed_files: ["app/profile/Settings.tsx"],
+      changed_files: ["content/kelly-pr-review-app/profile/Settings.tsx"],
       additions: 48,
       deletions: 9,
       comments_count: 1,

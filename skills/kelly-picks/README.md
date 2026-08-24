@@ -12,7 +12,7 @@ Kelly Picks is a Busabase App-in-Skill product-research (选品) desk for a cros
 
 ## How It Flows
 
-1. The agent sweeps sources (browser skills, exports, pasted research) and files everything through `node scripts/ingest_trends.mjs <payload.json>` — the single write path, which validates, dedupes (source + external id, content-hash fallback), and merges into the `candidates`/`trend_items`/`sources` Bases.
+1. The agent sweeps sources (browser skills, exports, pasted research) and files everything through `node scripts/ingest_trends.mjs <payload.json>` — the single write path, which validates, dedupes (source + external id, content-hash fallback), and merges into the `candidates`/`trend-items`/`sources` Bases.
 2. `node scripts/compute_margins.mjs` deterministically recomputes every margin card from the `settings` fee tables and flags candidates below the margin floor. It is idempotent.
 3. Kelly verdicts candidates and reviews proposals in the app — writes go straight to the candidate/proposal record through `busabase-sdk`; a standalone local preview merges immediately, a deployed AirApp creates a pending ChangeRequest.
 4. `node scripts/execute_decisions.mjs` (dry-run by default) prints the plan for approved proposals: `create_sourcing_brief` (export path), `handoff_listing_brief` (→ kelly-listing), `add_watch` (re-check criteria), `drop_candidate` (stage update). The agent performs the handoffs, then re-runs with `--apply` to mark them done.
@@ -43,7 +43,7 @@ Kelly Picks is a Busabase App-in-Skill product-research (选品) desk for a cros
 Run the app locally and open a safe mock-data scene (a home/kitchen gadget seller, "Nimbus Home"):
 
 ```bash
-pnpm --dir skills/kelly-picks/app dev
+pnpm --dir skills/kelly-picks/content/kelly-picks-app dev
 ```
 
 Use the printed URL, then add one of these demo paths:
@@ -70,7 +70,7 @@ With `lang=zh`, demo content (product names like 可折叠硅胶饭盒, reasons,
 
 ```json
 {
-  "trend_items": [
+  "trend-items": [
     {
       "source": "tiktok",
       "title": "Collapsible silicone lunch box — 2.1M views/week",

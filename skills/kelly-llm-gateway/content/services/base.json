@@ -1,0 +1,32 @@
+{
+  "name": "Services",
+  "description": "One row per consuming service routed through the shared gateway",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "service-id",
+      "name": "Service ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "display-name",
+      "name": "Display name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "team",
+      "name": "Team",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    }
+  ],
+  "views": []
+}

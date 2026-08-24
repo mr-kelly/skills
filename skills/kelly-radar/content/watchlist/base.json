@@ -1,0 +1,64 @@
+{
+  "name": "Watchlist",
+  "description": "Monitored competitors, categories, keywords, and communities, with per-source method",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "target-id",
+      "name": "Target ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "notes",
+      "name": "Notes",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "last-check-at",
+      "name": "Last check at",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "sources",
+      "name": "Sources",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}

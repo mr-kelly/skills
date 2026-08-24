@@ -17,7 +17,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-pr-review-app/app/js/config.js";
 
 const execFile = promisify(execFileCallback);
 

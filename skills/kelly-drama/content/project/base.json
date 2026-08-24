@@ -1,0 +1,192 @@
+{
+  "name": "Project",
+  "description": "Single-row series bible + visual bible + paired HyperFrame project link",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "logline",
+      "name": "Logline",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "genre",
+      "name": "Genre",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "platform",
+      "name": "Platform",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "format",
+      "name": "Format",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "tone",
+      "name": "Tone",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "audience",
+      "name": "Audience",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "hook-rules-json",
+      "name": "Hook rules JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "world-rules-json",
+      "name": "World rules JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "hyperframe-project-path",
+      "name": "HyperFrame project path",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "hyperframe-status-json",
+      "name": "HyperFrame status JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "hyperframe-status-updated-at",
+      "name": "HyperFrame status updated at",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "visual-format-note",
+      "name": "Visual format note",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "visual-realism-target",
+      "name": "Visual realism target",
+      "type": "longtext",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "visual-cinematography",
+      "name": "Visual cinematography",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "visual-color-palette",
+      "name": "Visual color palette",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "visual-period-detail",
+      "name": "Visual period detail",
+      "type": "longtext",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "visual-aspect-ratio",
+      "name": "Visual aspect ratio",
+      "type": "text",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "visual-orientation",
+      "name": "Visual orientation",
+      "type": "text",
+      "required": false,
+      "position": 19,
+      "options": {}
+    },
+    {
+      "slug": "visual-style-medium",
+      "name": "Visual style medium",
+      "type": "longtext",
+      "required": false,
+      "position": 20,
+      "options": {}
+    },
+    {
+      "slug": "visual-background-refs-json",
+      "name": "Visual background reference assets JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 21,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 22,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -6,7 +6,7 @@
   "description": "Kelly Family Office Busabase Cloud skill and trusted CSV-holdings importer.",
   "scripts": {
     "import": "node scripts/import_csv.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-family-office-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

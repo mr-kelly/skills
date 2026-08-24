@@ -1,0 +1,112 @@
+{
+  "name": "Settings",
+  "description": "Firm profile, analytics policy, practice taxonomy, and export preferences — a single settings row",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "firm-name",
+      "name": "Firm name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "branch",
+      "name": "Branch",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "default-jurisdictions",
+      "name": "Default jurisdictions (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "reviewer-role",
+      "name": "Reviewer role",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "require-anonymized-metadata",
+      "name": "Require anonymized metadata",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "minimum-sample-size-for-claim",
+      "name": "Minimum sample size for a claim",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "external-brand-claims-require-approval",
+      "name": "External brand claims require approval",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "allowed-views",
+      "name": "Allowed views (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "practice-areas",
+      "name": "Practice areas (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "outcome-trends",
+      "name": "Outcome trends (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "export-format",
+      "name": "Export format",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "export-out-dir",
+      "name": "Export out dir",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    }
+  ],
+  "views": []
+}

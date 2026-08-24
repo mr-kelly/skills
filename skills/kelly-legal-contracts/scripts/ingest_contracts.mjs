@@ -12,7 +12,7 @@
 // slugify/validateProduct/validateDraft/normalizeFields/SOURCES/STATUSES/
 // IMAGE_STATUSES are ported (renamed product->contract, draft->issue) from
 // the retired scripts/ingest_contracts.ts; only the write target changed,
-// from a persisted app/.data/contract_snapshot.json to Busabase's
+// from a persisted content/kelly-legal-contracts-app/.data/contract_snapshot.json to Busabase's
 // contracts/issues Bases.
 //
 // Usage: node scripts/ingest_contracts.mjs <payload.json> [--apply]
@@ -23,8 +23,12 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { PLATFORMS, PLATFORM_FIELD_SHAPES, configFromSettingsRow } from "../app/app/js/contracts-model.js";
+import { appConfig } from "../content/kelly-legal-contracts-app/app/js/config.js";
+import {
+  PLATFORMS,
+  PLATFORM_FIELD_SHAPES,
+  configFromSettingsRow,
+} from "../content/kelly-legal-contracts-app/app/js/contracts-model.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_contracts.mjs <payload.json> [--apply]

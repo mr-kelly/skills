@@ -13,6 +13,20 @@ metadata:
   tags:
     - risk:gated-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-social
+    resources:
+      - accounts
+      - posts
+      - sync-log
+      - calendar
+      - drafts
+      - shorts
+      - engagement
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Social
@@ -62,7 +76,7 @@ See the spec paper:
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-social-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -142,7 +156,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Eight Bases under one application Folder (`kelly-social`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-social-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `accounts`: connected social accounts — platform, handle, collection
   method, rolled-up metrics (JSON), follower series (JSON), traffic sources
@@ -151,13 +165,13 @@ Eight Bases under one application Folder (`kelly-social`), declared in
   warnings store.
 - `posts`: collected posts across every connected account, with per-post
   engagement metrics (JSON) and a stored `engagement-rate`.
-- `sync_log`: append-only history of collection runs per account, written
+- `sync-log`: append-only history of collection runs per account, written
   only by `scripts/ingest_snapshot.mjs`.
 - `calendar`: the content calendar — scheduled posts across channels by
   theme pillar and date, optionally linked to a `drafts` row.
 - `drafts`: the post composer / draft review queue. The social-qa quality
   gate is **recomputed live** from each draft's own copy on every read (see
-  `app/app/js/social-model.js`'s `evaluateGate()`) — it is never trusted as
+  `content/kelly-social-app/app/js/social-model.js`'s `evaluateGate()`) — it is never trusted as
   stale stored state, and a `BLOCK` verdict always forces the effective
   `status` to `blocked` regardless of what is stored.
 - `shorts`: short-video scripts (Reels / Shorts / TikTok / Douyin) with a
@@ -188,7 +202,7 @@ chat; secrets belong only in the trusted ingest process's own environment.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-social-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views — monitoring (Observe):
@@ -208,7 +222,7 @@ Required app views — publishing desk (Explore / Craft / Host):
 - `#/engagement`: engagement inbox. Incoming mentions/comments with agent-drafted replies (approval-gated). Approve to expose a **Send reply** action.
 - `#/crisis`: crisis playbook. A small incident-response checklist (triage, spokesperson, pause-publishing, holding statement, review) plus a live incident-status toggle (calm / watch / active) and a publishing-pause switch.
 
-The quality gate (⛩ `social-qa`, in `app/app/js/social-model.js`): every draft is scored 0–100 (SQS) across brand voice, disclosure, and banned claims, producing a **SHIP / FIX / BLOCK** verdict. A BLOCK forces the draft to `blocked` and disables approve/publish until it is revised.
+The quality gate (⛩ `social-qa`, in `content/kelly-social-app/app/js/social-model.js`): every draft is scored 0–100 (SQS) across brand voice, disclosure, and banned claims, producing a **SHIP / FIX / BLOCK** verdict. A BLOCK forces the draft to `blocked` and disables approve/publish until it is revised.
 
 A human verdict (`review_draft` / `review_short` / `review_engagement`)
 writes the new `status` and `review-note` directly onto the record through
@@ -241,7 +255,7 @@ ingest payload.
    - `browser_agent`: use a browser automation skill available in the session (for example a Stagehand/Playwright `browser` skill) with the user's own logged-in session. Read the user's profile page and their own posts' public/analytics metrics. Throttle politely: few pages, pauses between navigations, stop and report on rate-limit or captcha signals. Never enter credentials, never store cookies.
    - `manual_export`: ask the user for the platform's analytics export (e.g. Meta Business Suite CSV, X analytics CSV, TikTok/YouTube studio export), parse it locally, and note the export date. Warn when an export is older than 7 days.
    - `api`: call the official API with the token from the configured env var, read-only scopes only.
-5. Normalize the collected data into the payload shape documented in `references/social-schema.md`, write it to a temp file, then run `node scripts/ingest_snapshot.mjs <payload.json> --apply`. This is the single write path for monitoring data: it validates, merges by stable ids (`account_id`, `post_id`), appends per-account `sync_log` entries, and never touches the ECHO publishing-desk Bases (`calendar`/`drafts`/`shorts`/`engagement`/`settings`).
+5. Normalize the collected data into the payload shape documented in `references/social-schema.md`, write it to a temp file, then run `node scripts/ingest_snapshot.mjs <payload.json> --apply`. This is the single write path for monitoring data: it validates, merges by stable ids (`account_id`, `post_id`), appends per-account `sync-log` entries, and never touches the ECHO publishing-desk Bases (`calendar`/`drafts`/`shorts`/`engagement`/`settings`).
 6. Give Kelly the AirApp URL (or local preview URL) to review the fresh dashboard.
 7. Surface collection problems (stale exports, missing metrics, rate limits) by setting the affected account's `status` to `warning`/`error` with an explanatory `notes` string in the ingest payload's `warnings[]` — the app derives the visible warning from that, rather than guessing numbers.
 

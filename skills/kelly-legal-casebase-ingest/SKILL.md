@@ -7,6 +7,16 @@ metadata:
     - risk:local-write
     - industry:legal
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-legal-casebase-ingest
+    resources:
+      - items
+      - entities
+      - checks
+      - settings
+    risk: local-write
+
 ---
 
 # Legal Casebase Ingest
@@ -23,7 +33,7 @@ Use this as the upstream quality gate for the legal knowledge system. It convert
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-legal-casebase-ingest-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -59,14 +69,14 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Four Bases under one application Folder (`kelly-legal-casebase-ingest`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Four Bases under one application Folder (`kelly-legal-casebase-ingest`), declared in `content/kelly-legal-casebase-ingest-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `items`: the case-record workbench and review queue in one — anonymization/taxonomy facts (cause, court, procedure, outcome, source paragraphs, extraction confidence, duplicate score, redaction flags), workflow status, and the human decision + execution marker on the same row.
 - `entities`: the canonical case-library groupings by cause, court, lawyer, and status — not raw source documents.
 - `checks`: deterministic QA checks for PII leakage, missing metadata, source coverage, and tag confidence, one row per check.
 - `settings`: one row (`record-id: "config"`) with the firm profile, ingestion/anonymization/taxonomy policy, and export preferences.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/casebase-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`app/app/js/casebase-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/decision.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/casebase-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`content/kelly-legal-casebase-ingest-app/app/js/casebase-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/decision.
 
 ## First Run And Onboarding
 
@@ -78,7 +88,7 @@ node skills/kelly-legal-casebase-ingest/scripts/ingest_documents.mjs payload.jso
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-legal-casebase-ingest-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -147,7 +157,7 @@ node skills/kelly-legal-casebase-ingest/scripts/ingest_documents.mjs payload.jso
 node skills/kelly-legal-casebase-ingest/scripts/execute_decisions.mjs
 node skills/kelly-legal-casebase-ingest/scripts/execute_decisions.mjs --apply
 node skills/kelly-legal-casebase-ingest/scripts/export_case_records.mjs --out exports/
-pnpm --dir skills/kelly-legal-casebase-ingest/app dev
+pnpm --dir skills/kelly-legal-casebase-ingest/content/kelly-legal-casebase-ingest-app dev
 ```
 
 In normal use, invoke `/kelly-legal-casebase-ingest`, let the skill ingest what's due, and open the AirApp.

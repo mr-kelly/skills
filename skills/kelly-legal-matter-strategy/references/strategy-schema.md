@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Legal Matter Strategy's Busabase
 Bases. Field slugs are kebab-case in Busabase and normalized to snake_case
-in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/matter-strategy-model.js`). Metrics and the recent-activity feed
+in app code (`content/kelly-legal-matter-strategy-app/app/js/providers/busabase-provider.js`,
+`content/kelly-legal-matter-strategy-app/app/js/matter-strategy-model.js`). Metrics and the recent-activity feed
 are computed client-side from the `items`/`entities`/`checks` Bases on every
 read (`buildSnapshot`/`assembleSnapshot` in `matter-strategy-model.js`) — the
 only persisted state is what lives directly on those four Bases.
@@ -20,7 +20,7 @@ and confirmed against the retired `lib/data-provider/local-file-provider.ts`'s
 
 Check results: `pass`, `warn`, `fail`.
 
-## Items (`kelly-legal-matter-strategy-items-v1`)
+## Items (`kelly-legal-matter-strategy-items`)
 
 An item record is both the matter-strategy workbench entry and its
 review-queue item — there is no separate review-item or decisions Base.
@@ -62,7 +62,7 @@ fields; `scripts/execute_decisions.mjs` writes the `execution-*` fields.
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Entities (`kelly-legal-matter-strategy-entities-v1`)
+## Entities (`kelly-legal-matter-strategy-entities`)
 
 Matter families, issue clusters, or strategy lanes, not raw case documents.
 
@@ -77,7 +77,7 @@ Matter families, issue clusters, or strategy lanes, not raw case documents.
 | `tags` | `tags` | longtext | JSON array of tags |
 | `metrics` | `metrics` | longtext | JSON object, e.g. `{"evidence_gaps":2,"issue_count":3,"option_count":3}` |
 
-## Checks (`kelly-legal-matter-strategy-checks-v1`)
+## Checks (`kelly-legal-matter-strategy-checks`)
 
 Deterministic strategy QA checks for missing facts, evidence gaps, deadline
 caveats, precedent grounding, and unsupported legal positions.
@@ -93,7 +93,7 @@ part of the agent's payload.
 | `item-id` | `item_id` | text | references `items.item-id` |
 | `severity` | `severity` | text | optional severity label |
 
-## Settings (`kelly-legal-matter-strategy-settings-v1`)
+## Settings (`kelly-legal-matter-strategy-settings`)
 
 A single row, `record-id: "config"`:
 

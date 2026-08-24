@@ -1,0 +1,88 @@
+{
+  "name": "Proposals",
+  "description": "Agent-proposed develop/watch/drop verdicts per candidate, reviewed in the decision queue",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "proposal-id",
+      "name": "Proposal ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "candidate-id",
+      "name": "Candidate ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "verdict",
+      "name": "Verdict",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "Reason",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "brief",
+      "name": "Brief",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "proposed-at",
+      "name": "Proposed at",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "review-comment",
+      "name": "Review comment",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "review-decided-at",
+      "name": "Review decided at",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": []
+}

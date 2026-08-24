@@ -13,7 +13,7 @@
 // SKILL.md's Boundary section.
 //
 // draftExecution is ported/adapted from the retired scripts/execute_decisions.ts
-// (app/app/js/listing-model.js's doc comment explains the adaptation: one
+// (content/kelly-listing-app/app/js/listing-model.js's doc comment explains the adaptation: one
 // execution marker directly on the draft record instead of a separate
 // execution_report.json list, folding the retired "publish_via_api" entry's
 // detail into the same "export_listing" marker).
@@ -27,8 +27,8 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { draftExecution, normalizeProductRow } from "../app/app/js/listing-model.js";
+import { appConfig } from "../content/kelly-listing-app/app/js/config.js";
+import { draftExecution, normalizeProductRow } from "../content/kelly-listing-app/app/js/listing-model.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]

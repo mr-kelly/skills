@@ -20,7 +20,7 @@ strategy.
 ## Local Preview
 
 ```bash
-pnpm --dir skills/kelly-clm/app dev
+pnpm --dir skills/kelly-clm/content/kelly-clm-app dev
 ```
 
 Open the printed URL, then use:

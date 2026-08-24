@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly LLM Gateway",
+  "description": "Platform team's cost and model-governance dashboard over a shared LLM gateway: per-service/per-model call volume, cost, and error rate; a canary-rollout status board; and a deterministic cost/error anomaly list. Generic and brand-free — only role-based service names and generic provider/model labels. Human actions (promote/rollback/hold a rollout, acknowledge an anomaly) are written directly onto the route's own record — this app never changes a real routing config"
+}

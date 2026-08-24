@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Trusted hand-off step. Re-reads products + drafts + the claims registry
 // (claims/claim_rules) + per-platform rule sets (Settings row) off Busabase,
-// evaluates every draft via app/app/js/listing-model.js's evaluateDraft()
-// (ported verbatim from the retired app/server/rules.ts), upserts the Checks
+// evaluates every draft via content/kelly-listing-app/app/js/listing-model.js's evaluateDraft()
+// (ported verbatim from the retired content/kelly-listing-app/server/rules.ts), upserts the Checks
 // Base, and recomputes+writes each draft's compliance_score via
 // scoreChecks() (same POINTS table as the retired script). Re-running is
 // idempotent. Character caps count code points; byte caps use TextEncoder
@@ -15,7 +15,7 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-listing-app/app/js/config.js";
 import {
   configFromSettingsRow,
   evaluateDraft,
@@ -25,7 +25,7 @@ import {
   normalizeProductRow,
   ruleCatalog,
   scoreChecks,
-} from "../app/app/js/listing-model.js";
+} from "../content/kelly-listing-app/app/js/listing-model.js";
 
 function help() {
   console.log(`Usage: node scripts/run_checks.mjs [--apply]
@@ -154,7 +154,7 @@ async function main() {
     readAll(client, declared("drafts")),
     readAll(client, declared("checks")),
     readAll(client, declared("claims")),
-    readAll(client, declared("claim_rules")),
+    readAll(client, declared("claim-rules")),
     readAll(client, declared("settings")),
   ]);
   if (!draftRows.length) throw new Error("No drafts found. Run scripts/ingest_drafts.mjs first.");

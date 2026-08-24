@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Radar's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/radar-model.js`).
+(`content/kelly-radar-app/app/js/providers/busabase-provider.js`, `content/kelly-radar-app/app/js/radar-model.js`).
 `signals_7d` per watchlist target, the brief→question status join, and every
 metric are computed client-side from the live rows on every read — they are
 never stored twice.
@@ -17,7 +17,7 @@ Opportunity decision actions: `approve`, `ignore` (maps to `approved|done`).
 
 Report action: `approve` — a 0-5 confidence rating, no status change.
 
-## Watchlist (`kelly-radar-watchlist-v1`)
+## Watchlist (`kelly-radar-watchlist`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -34,7 +34,7 @@ Report action: `approve` — a 0-5 confidence rating, no status change.
 when `last_check_at` is older than the configured cadence; `paused` targets
 are kept but skipped by monitoring runs.
 
-## Signals (`kelly-radar-signals-v1`)
+## Signals (`kelly-radar-signals`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -60,7 +60,7 @@ are kept but skipped by monitoring runs.
 `handoff` and `diff` are optional. `scripts/ingest_signals.mjs` skips
 payload signals whose `content_hash` already exists.
 
-## Research Questions (`kelly-radar-questions-v1`)
+## Research Questions (`kelly-radar-questions`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -75,7 +75,7 @@ payload signals whose `content_hash` already exists.
 | `confidence` | `confidence` | number | mirrors the linked report's confidence once rated |
 | `followups` | `followups` | longtext | JSON array: `[{followup_id, question, status, asked_at}]` — appended by the app's follow-up box |
 
-## Research Briefs (`kelly-radar-briefs-v1`)
+## Research Briefs (`kelly-radar-briefs`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -97,7 +97,7 @@ it. An approved brief moves its linked question to `researching`; a blocked
 brief closes the question — both derived client-side, never written back
 onto the question record.
 
-## Research Reports (`kelly-radar-reports-v1`)
+## Research Reports (`kelly-radar-reports`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -116,7 +116,7 @@ Citation rule enforced by `scripts/file_report.mjs`: every `sections[].source_id
 entry must resolve to a `sources[].source_id`, and every source needs a
 non-empty `title` and `url`.
 
-## Trend Movers (`kelly-radar-movers-v1`)
+## Trend Movers (`kelly-radar-movers`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -133,7 +133,7 @@ non-empty `title` and `url`.
 Dedupe key for `scripts/ingest_trends.mjs` is `keyword` + `source` (keyword
 compared case-insensitively).
 
-## Opportunities (`kelly-radar-opportunities-v1`)
+## Opportunities (`kelly-radar-opportunities`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -148,7 +148,7 @@ compared case-insensitively).
 | `decision-comment` | `decision_comment` | longtext | written with the verdict |
 | `decided-at` | `decided_at` | text | written with the verdict |
 
-## Sync Log (`kelly-radar-sync-log-v1`)
+## Sync Log (`kelly-radar-sync-log`)
 
 Append-only; the app shows the most recent 50 entries sorted by `at` descending.
 
@@ -160,7 +160,7 @@ Append-only; the app shows the most recent 50 entries sorted by `at` descending.
 | `action` | `action` | text | `ingest_signals\|ingest_trends\|file_report\|execute_decisions` |
 | `detail` | `detail` | longtext | short human-readable result |
 
-## Settings (`kelly-radar-settings-v1`)
+## Settings (`kelly-radar-settings`)
 
 One row, `record-id: "config"`.
 

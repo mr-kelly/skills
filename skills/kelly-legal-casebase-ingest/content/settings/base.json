@@ -1,0 +1,112 @@
+{
+  "name": "Settings",
+  "description": "Firm profile, ingestion/anonymization/taxonomy policy, and export preferences — a single settings row",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "firm-name",
+      "name": "Firm name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "branch",
+      "name": "Branch",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "default-jurisdictions",
+      "name": "Default jurisdictions (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "reviewer-role",
+      "name": "Reviewer role",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "allowed-document-types",
+      "name": "Allowed document types (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "anonymization-standard",
+      "name": "Anonymization standard",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "require-party-redaction",
+      "name": "Require party redaction",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "require-business-secret-review",
+      "name": "Require business-secret review",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "sample-rate",
+      "name": "Reviewer sample rate",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "required-taxonomy-fields",
+      "name": "Required taxonomy fields (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "export-format",
+      "name": "Export format",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "export-out-dir",
+      "name": "Export out dir",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    }
+  ],
+  "views": []
+}

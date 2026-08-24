@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Trusted hand-off step. Re-reads contracts + issues + the clause playbook
 // (claims/claim_rules) + workstream rule sets (Settings row) off Busabase,
-// evaluates every issue via app/app/js/contracts-model.js's evaluateIssue()
-// (ported verbatim from the retired app/server/rules.ts), upserts the Checks
+// evaluates every issue via content/kelly-legal-contracts-app/app/js/contracts-model.js's evaluateIssue()
+// (ported verbatim from the retired content/kelly-legal-contracts-app/server/rules.ts), upserts the Checks
 // Base, and recomputes+writes each issue's compliance_score via
 // scoreChecks() (same POINTS table as the retired script). Re-running is
 // idempotent. Character caps count code points; byte caps use TextEncoder
@@ -15,7 +15,7 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-legal-contracts-app/app/js/config.js";
 import {
   configFromSettingsRow,
   evaluateIssue,
@@ -25,7 +25,7 @@ import {
   normalizeIssueRow,
   ruleCatalog,
   scoreChecks,
-} from "../app/app/js/contracts-model.js";
+} from "../content/kelly-legal-contracts-app/app/js/contracts-model.js";
 
 function help() {
   console.log(`Usage: node scripts/run_checks.mjs [--apply]
@@ -154,7 +154,7 @@ async function main() {
     readAll(client, declared("issues")),
     readAll(client, declared("checks")),
     readAll(client, declared("claims")),
-    readAll(client, declared("claim_rules")),
+    readAll(client, declared("claim-rules")),
     readAll(client, declared("settings")),
   ]);
   if (!issueRows.length) throw new Error("No issues found. Run scripts/ingest_contracts.mjs first.");

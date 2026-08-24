@@ -3,7 +3,7 @@
 Schema v1 owns two Bases under the `kelly-instructor-sourcing` Folder. Field
 slugs are stable API identifiers.
 
-## `instructor-sourcing-criteria-v1`
+## `kelly-instructor-sourcing-criteria`
 
 One record. Required onboarding fields are `role-keywords` and
 `qualify-threshold`. Other fields can be proposed by the Agent and edited by
@@ -21,7 +21,7 @@ the operator.
 | `updated-at` | date | Last edit date. |
 | `onboarding-version` | number | Completed onboarding contract version. |
 
-## `instructor-sourcing-candidates-v1`
+## `kelly-instructor-sourcing-candidates`
 
 One record per candidate.
 

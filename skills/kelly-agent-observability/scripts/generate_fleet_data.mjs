@@ -21,8 +21,13 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { baseAgentFields, baseTraceFields, generateFleetData, summarizeFleet } from "../app/app/js/fleet-model.js";
+import { appConfig } from "../content/kelly-agent-observability-app/app/js/config.js";
+import {
+  baseAgentFields,
+  baseTraceFields,
+  generateFleetData,
+  summarizeFleet,
+} from "../content/kelly-agent-observability-app/app/js/fleet-model.js";
 
 const DEFAULT_TRACES_PER_AGENT = 10;
 const DEFAULT_SEED = 7;

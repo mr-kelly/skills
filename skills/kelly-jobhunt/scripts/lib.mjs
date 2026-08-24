@@ -4,11 +4,11 @@ import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-jobhunt-app/app/js/config.js";
 
 export { appConfig };
 
-const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "app");
+const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "content", "kelly-jobhunt-app");
 
 // Everything the deployed AirApp needs to `npm install && npm run dev` — the
 // whole project except local/generated noise. publishAirApp only ever

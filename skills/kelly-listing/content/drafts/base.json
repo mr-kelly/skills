@@ -1,0 +1,256 @@
+{
+  "name": "Drafts",
+  "description": "Platform listing drafts — structured fields, workflow status, and the review-queue decision on the same row",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "draft-id",
+      "name": "Draft ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "product-id",
+      "name": "Product ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "platform",
+      "name": "Platform",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "locale",
+      "name": "Locale",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "variant-group",
+      "name": "Variant group",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "compliance-score",
+      "name": "Compliance score",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "keyword-strategy",
+      "name": "Keyword strategy",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "subtitle",
+      "name": "Subtitle",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "bullets",
+      "name": "Bullet points",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "description",
+      "name": "Description",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "search-terms",
+      "name": "Backend search terms",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "seo-title",
+      "name": "SEO title",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "seo-description",
+      "name": "SEO description",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "selling-points",
+      "name": "Selling points",
+      "type": "longtext",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "aplus-outline",
+      "name": "A+ content outline",
+      "type": "longtext",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "item-specifics",
+      "name": "Item specifics",
+      "type": "longtext",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "compliance-summary",
+      "name": "Compliance summary",
+      "type": "longtext",
+      "required": false,
+      "position": 19,
+      "options": {}
+    },
+    {
+      "slug": "suggestions",
+      "name": "Agent suggestions",
+      "type": "longtext",
+      "required": false,
+      "position": 20,
+      "options": {}
+    },
+    {
+      "slug": "decision-action",
+      "name": "Decision action",
+      "type": "text",
+      "required": false,
+      "position": 21,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 22,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 23,
+      "options": {}
+    },
+    {
+      "slug": "execution-status",
+      "name": "Execution status",
+      "type": "text",
+      "required": false,
+      "position": 24,
+      "options": {}
+    },
+    {
+      "slug": "execution-operation",
+      "name": "Execution operation",
+      "type": "text",
+      "required": false,
+      "position": 25,
+      "options": {}
+    },
+    {
+      "slug": "execution-target",
+      "name": "Execution target",
+      "type": "text",
+      "required": false,
+      "position": 26,
+      "options": {}
+    },
+    {
+      "slug": "execution-detail",
+      "name": "Execution detail",
+      "type": "longtext",
+      "required": false,
+      "position": 27,
+      "options": {}
+    },
+    {
+      "slug": "executed-at",
+      "name": "Executed at",
+      "type": "text",
+      "required": false,
+      "position": 28,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 29,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 30,
+      "options": {}
+    }
+  ],
+  "views": []
+}

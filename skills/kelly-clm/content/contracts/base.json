@@ -1,0 +1,144 @@
+{
+  "name": "Contracts",
+  "description": "One row per contract: counterparty, type, lifecycle stage, owner, business owner, value, start/end dates, renewal date, notice deadline, next action, risk, and renewal-notice acknowledgement. Created/edited directly by the operator.",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "contract-id",
+      "name": "Contract ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "counterparty",
+      "name": "Counterparty",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "stage",
+      "name": "Stage",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "business-owner",
+      "name": "Business owner",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "value",
+      "name": "Value",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "start-date",
+      "name": "Start date",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "end-date",
+      "name": "End date",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "renewal-date",
+      "name": "Renewal date",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "notice-deadline",
+      "name": "Notice deadline",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "notice-acknowledged-at",
+      "name": "Notice acknowledged at",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "next-action",
+      "name": "Next action",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "risk",
+      "name": "Risk",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -6,6 +6,15 @@ metadata:
   tags:
     - risk:local-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-brand
+    resources:
+      - items
+      - drift-alerts
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly Brand
@@ -34,7 +43,7 @@ provider. Use chat-only mode only when the user says "纯聊天", "chat only", "
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-brand-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -113,22 +122,22 @@ Ask for non-secret setup details only: brand profile (name, category, audience, 
 ## Busabase Resources
 
 Three Bases under one application Folder (`kelly-brand`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-brand-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `items`: every narrative asset under review — positioning, message pillars, story bank, proof points, vocabulary, and guardrails — with `type`, TALE `phase`, `sub_skill`, editable `draft`, NQS (`nqs-score`/`nqs-gate`), evidence (`evidence-source`/`evidence-stat`/`evidence-url`, proof points only), `risk`, workflow `status`, and the human verdict fields `decision-note` / `decided-at`.
-- `drift_alerts`: cross-channel off-brand usage the drift monitor flagged — offending usage vs. canonical guidance, severity, and the same verdict fields.
+- `drift-alerts`: cross-channel off-brand usage the drift monitor flagged — offending usage vs. canonical guidance, severity, and the same verdict fields.
 - `settings`: one row per `kind` — `kelly-brand-profile` (brand profile, style/tone, official URLs, risk policy, monitored channels) and `kelly-brand-lock`.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
 first time the app runs in a Space; see `references/brand-schema.md` for
 exact field shapes. The **overall NQS** and every metric on the overview are
-computed client-side from the `items`/`drift_alerts` Bases on every read —
+computed client-side from the `items`/`drift-alerts` Bases on every read —
 they are never stored.
 
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-brand-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -164,7 +173,7 @@ pending ChangeRequest for the trusted process to merge.
 ## Normal Workflow
 
 1. Detect mode. Default to App UI.
-2. When the user feeds material (positioning inputs, existing copy, channel exports): write narrative items to Busabase — draft/upsert by stable `item_id` across the six `type`s, tag each with its TALE `phase` and `sub_skill`, run the **narrative-quality-auditor** to set each item's `nqs-score`/`nqs-gate`, and run the **narrative-drift-monitor** over monitored channels to (re)populate `drift_alerts`. The overview's overall NQS and every count recompute automatically on every read.
+2. When the user feeds material (positioning inputs, existing copy, channel exports): write narrative items to Busabase — draft/upsert by stable `item_id` across the six `type`s, tag each with its TALE `phase` and `sub_skill`, run the **narrative-quality-auditor** to set each item's `nqs-score`/`nqs-gate`, and run the **narrative-drift-monitor** over monitored channels to (re)populate `drift-alerts`. The overview's overall NQS and every count recompute automatically on every read.
 3. Give the user the AirApp URL (or local preview URL) to review the message house, the story bank, and the drift alerts.
 4. For an item moved to `changes_requested`, re-draft it per the review comment and write it back to `needs_review`.
 5. On "adopt" / "promote approved narrative": run `node scripts/execute_decisions.mjs --apply` to re-read approved items from Busabase and mark them `done`. Then, only for those promoted assets, update the canonical narrative and — if asked — `export_narrative` to a markdown file.

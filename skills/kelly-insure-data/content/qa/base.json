@@ -1,0 +1,48 @@
+{
+  "name": "问答",
+  "description": "Insurance questions with reviewed answers and sources",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "question",
+      "name": "Question",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "answer",
+      "name": "Answer",
+      "type": "longtext",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "carrier",
+      "name": "Carrier",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "source_path",
+      "name": "Source Path",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

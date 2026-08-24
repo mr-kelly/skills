@@ -2,7 +2,7 @@
 // Trusted hand-off step. Kelly Products's AirApp never ingests a product
 // itself -- the browser cannot read an arbitrary local file path, a
 // marketplace export, or an inventory CSV. This script reads a JSON payload
-// file shaped like the retired app/.data/products_snapshot.json contract
+// file shaped like the retired content/kelly-products-app/.data/products_snapshot.json contract
 // ({ seller, products: [...], channel_matrix: [...], inventory: [...],
 // review_items: [...] }) and upserts every row into Busabase by natural key
 // (product_id, channel_id, inventory_id, item_id) so re-ingests are
@@ -18,8 +18,13 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { channelToFields, inventoryToFields, productToFields, reviewToFields } from "../app/app/js/products-model.js";
+import { appConfig } from "../content/kelly-products-app/app/js/config.js";
+import {
+  channelToFields,
+  inventoryToFields,
+  productToFields,
+  reviewToFields,
+} from "../content/kelly-products-app/app/js/products-model.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_products.mjs <payload.json> [--apply]

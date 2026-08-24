@@ -1,0 +1,88 @@
+{
+  "name": "Payments",
+  "description": "Normalized payments / receipts (回款) imported from CSV/JSON exports",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "payment-id",
+      "name": "Payment ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "payment-ref",
+      "name": "Payment ref",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "invoice-no",
+      "name": "Invoice no",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "order-no",
+      "name": "Order no",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "payer",
+      "name": "Payer",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "paid-date",
+      "name": "Paid date",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "amount",
+      "name": "Amount",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "currency",
+      "name": "Currency",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "method",
+      "name": "Method",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "source-file",
+      "name": "Source file",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": []
+}

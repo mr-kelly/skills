@@ -1,0 +1,200 @@
+{
+  "name": "Adjustments",
+  "description": "Agent-proposed adjustment cards: negative keyword, bid down/up, pause target, budget shift, creative refresh",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "adjustment-id",
+      "name": "Adjustment ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "campaign-id",
+      "name": "Campaign ID",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "platform",
+      "name": "Platform",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "Reason",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "evidence",
+      "name": "Evidence",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "target",
+      "name": "Target",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "current-value",
+      "name": "Current value",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "proposed-value",
+      "name": "Proposed value",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "expected-impact",
+      "name": "Expected impact",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "anomaly-id",
+      "name": "Anomaly ID",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Note",
+      "type": "longtext",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "decision-verdict",
+      "name": "Decision verdict",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "execution-status",
+      "name": "Execution status",
+      "type": "text",
+      "required": false,
+      "position": 19,
+      "options": {}
+    },
+    {
+      "slug": "execution-operation",
+      "name": "Execution operation",
+      "type": "text",
+      "required": false,
+      "position": 20,
+      "options": {}
+    },
+    {
+      "slug": "execution-target",
+      "name": "Execution target",
+      "type": "longtext",
+      "required": false,
+      "position": 21,
+      "options": {}
+    },
+    {
+      "slug": "execution-detail",
+      "name": "Execution detail",
+      "type": "longtext",
+      "required": false,
+      "position": 22,
+      "options": {}
+    },
+    {
+      "slug": "executed-at",
+      "name": "Executed at",
+      "type": "text",
+      "required": false,
+      "position": 23,
+      "options": {}
+    }
+  ],
+  "views": []
+}

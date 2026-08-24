@@ -13,7 +13,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 
 from runtime import free_port, managed_process
 
-APP_ROOT = REPO_ROOT / "skills" / "kelly-seo" / "app"
+APP_ROOT = REPO_ROOT / "skills" / "kelly-seo" / "content" / "kelly-seo-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-seo"
 BUSABASE_VERSION = "0.16.2"
 
@@ -282,9 +282,9 @@ def test_busabase_provisioning(browser) -> None:
                     "queries",
                     "pages",
                     "opportunities",
-                    "geo_opportunities",
-                    "ai_visibility",
-                    "entity_signals",
+                    "geo-opportunities",
+                    "ai-visibility",
+                    "entity-signals",
                     "settings",
                 ]
             ), nodes

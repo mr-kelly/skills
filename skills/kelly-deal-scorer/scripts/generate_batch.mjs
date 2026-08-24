@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 // Trusted seed step. Writes the fixed 8-candidate mock queue (ported verbatim
 // from the retired lib/demo-candidates.ts, now living in
-// app/app/js/scorer-model.js's CANDIDATE_SEEDS) into the Busabase
+// content/kelly-deal-scorer-app/app/js/scorer-model.js's CANDIDATE_SEEDS) into the Busabase
 // `candidates` Base, scoring each with the same deterministic rubric the
 // live app uses, and resets every candidate's decision fields so a fresh
 // queue starts clean for review. Also (re)writes the `settings` Base's `run`
 // row (batch id + generated-at) and, on first run only, seeds a `config` row
 // with the default rubric so it can be tuned per fund policy later. Ported
 // from the retired scripts/generate_batch.ts, which wrote the same shape to
-// app/.data/current_batch.json.
+// content/kelly-deal-scorer-app/.data/current_batch.json.
 //
 // Connects with the trusted process's own credentials (BUSABASE_BASE_URL,
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { CANDIDATE_SEEDS, DEFAULT_RUBRIC, computeScore } from "../app/app/js/scorer-model.js";
+import { appConfig } from "../content/kelly-deal-scorer-app/app/js/config.js";
+import { CANDIDATE_SEEDS, DEFAULT_RUBRIC, computeScore } from "../content/kelly-deal-scorer-app/app/js/scorer-model.js";
 
 function help() {
   console.log(`Usage: node scripts/generate_batch.mjs [--apply]

@@ -34,9 +34,9 @@ Kelly MV is a Busabase-backed App-in-Skill workbench for turning an existing MP3
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app run build:sdk
-pnpm --dir app dev
+pnpm --dir content/kelly-mv-app install
+pnpm --dir content/kelly-mv-app run build:sdk
+pnpm --dir content/kelly-mv-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

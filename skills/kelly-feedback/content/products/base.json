@@ -1,0 +1,32 @@
+{
+  "name": "Products",
+  "description": "Products feedback can be about",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "product-id",
+      "name": "Product ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "display-name",
+      "name": "Display name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "tagline",
+      "name": "Tagline",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    }
+  ],
+  "views": []
+}

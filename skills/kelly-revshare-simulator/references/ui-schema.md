@@ -2,13 +2,13 @@
 
 Use this schema when reading or writing Kelly Revenue-Share Simulator's
 Busabase Bases. Field slugs are kebab-case in Busabase and normalized to
-snake_case in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/simulator-model.js`). `result` (the monthly cash-flow projection,
+snake_case in app code (`content/kelly-revshare-simulator-app/app/js/providers/busabase-provider.js`,
+`content/kelly-revshare-simulator-app/app/js/simulator-model.js`). `result` (the monthly cash-flow projection,
 Cash-Flow Payout Multiple, effective annualized cost, and risk flags) is
 computed client-side from a scenario's `scenarios` row on every read — it is
 never stored. This is a generic, brand-free dataset: no real company names.
 
-## Scenarios (`kelly-revshare-simulator-scenarios-v1`)
+## Scenarios (`kelly-revshare-simulator-scenarios`)
 
 One row per saved revenue-share deal scenario. This is a **control-panel /
 workspace** App-in-Skill: each row carries a saved deal scenario rather than
@@ -42,7 +42,7 @@ rejected server-side for deletes); a standalone local preview reviews and
 merges its own delete request immediately, a deployed AirApp leaves it
 pending for a human to review directly in Busabase.
 
-## Settings (`kelly-revshare-simulator-settings-v1`)
+## Settings (`kelly-revshare-simulator-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -51,14 +51,14 @@ One row per `kind`, looked up by `record-id`:
 | `kelly-revshare-simulator-config` | `config` | `{base_currency, underwriting_policy: {max_effective_annual_cost_pct, min_cap_multiple, max_cap_multiple, max_term_months}}` |
 
 If no `config` row exists, the app falls back to defaults
-(`app/app/js/simulator-model.js`'s `DEFAULT_POLICY`
+(`content/kelly-revshare-simulator-app/app/js/simulator-model.js`'s `DEFAULT_POLICY`
 `{max_effective_annual_cost_pct: 40, min_cap_multiple: 1.2, max_cap_multiple: 2.5, max_term_months: 36}`,
 and `base_currency: "USD"`) — the simulator still functions, just without a
 configured underwriting policy summary.
 
 ## Derived Result (computed, never stored)
 
-`simulateScenario(input)` in `app/app/js/simulator-model.js`, ported
+`simulateScenario(input)` in `content/kelly-revshare-simulator-app/app/js/simulator-model.js`, ported
 verbatim from the retired `lib/simulate.ts`:
 
 - `monthly[]`: month-by-month revenue (held flat at `avg_monthly_revenue`),
@@ -96,7 +96,7 @@ the same result.
 ## Direct Scenario Writes
 
 There is no decisions/approval bucket. Every scenario action writes straight
-onto Busabase via `app/app/js/providers/busabase-provider.js`:
+onto Busabase via `content/kelly-revshare-simulator-app/app/js/providers/busabase-provider.js`:
 
 - **Create**: `bases.createChangeRequest` with a new `scenario-id`.
 - **Update** (edit inputs, rename): `records.changeRequest` with

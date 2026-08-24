@@ -10,7 +10,7 @@
 // operations for the agent to deliver (kelly-email drafts, or the user's own
 // web session). planFor/sendVia/postJson are ported verbatim from the
 // retired scripts/send_approved.ts; only the read/write target changed, from
-// app/.data/inquiry_snapshot.json + execution_report.json to Busabase's
+// content/kelly-inquiry-app/.data/inquiry_snapshot.json + execution_report.json to Busabase's
 // approvals/inquiries/accounts Bases plus a console-printed report (matching
 // kelly-messenger's send_outbox.mjs — there is no execution_report Base).
 //
@@ -18,7 +18,7 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-inquiry-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/send_approved.mjs [--send]

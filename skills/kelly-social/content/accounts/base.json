@@ -1,0 +1,104 @@
+{
+  "name": "Accounts",
+  "description": "Connected social accounts: platform, handle, collection method, and rolled-up metrics",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "account-id",
+      "name": "Account ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "platform",
+      "name": "Platform",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "handle",
+      "name": "Handle",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "display-name",
+      "name": "Display name",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "profile-url",
+      "name": "Profile URL",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "collection",
+      "name": "Collection method",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "notes",
+      "name": "Notes",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "metrics",
+      "name": "Metrics",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "follower-series",
+      "name": "Follower series",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "traffic-sources",
+      "name": "Traffic sources",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "last-sync-at",
+      "name": "Last sync at",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    }
+  ],
+  "views": []
+}

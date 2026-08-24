@@ -20,7 +20,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-writer-app/app/js/config.js";
 import { packageMarkdownAssets } from "./lib/content-assets.mjs";
 import { slugify } from "./lib/text.mjs";
 import { writeZipFile } from "./lib/zip.mjs";

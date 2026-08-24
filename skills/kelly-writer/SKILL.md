@@ -6,6 +6,14 @@ metadata:
   tags:
     - risk:gated-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-writer
+    resources:
+      - drafts
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Writer
@@ -48,7 +56,7 @@ See the spec paper: <https://mr-kelly.github.io/research/app-in-skill-specificat
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-writer-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -76,7 +84,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Two Bases under one application Folder (`kelly-writer`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-writer-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `drafts`: the review queue — one record per channel draft (title, body,
   hook, cta, hashtags, title options, media brief, source notes, risk,
@@ -101,7 +109,7 @@ unit of work — the per-channel draft record — as the review queue.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-writer-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):

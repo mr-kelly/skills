@@ -7,6 +7,17 @@ metadata:
     - risk:gated-write
     - industry:beauty
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-beauty-intel
+    resources:
+      - signals
+      - actions
+      - drafts
+      - sources
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Beauty Intel
@@ -36,7 +47,7 @@ provider. Use chat-only mode only when the user says "纯聊天", "chat only", "
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-beauty-intel-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -82,7 +93,7 @@ Actions should become consultation scripts, non-diagnostic FAQs, campaign angles
 ## Busabase Resources
 
 Five Bases under one application Folder (`kelly-beauty-intel`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-beauty-intel-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `signals`: source-backed signals — title, summary, why it matters, buyer
   intent, confidence, risk badges, source name/URL, workflow `status`, and
@@ -121,7 +132,7 @@ ambient inside the deployed AirApp.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-beauty-intel-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required views:

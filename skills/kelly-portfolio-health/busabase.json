@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-portfolio-health",
+  "description": "Read-mostly dashboard over a revenue-based-financing (RBF) fund or private-credit book of many small SME contracts: portfolio health, AUM, repayment progress, industry/city concentration risk, and a watchlist of contracts with declining revenue. The only human action — flag a contract for review, clear a flag, or leave a note — is written directly onto the contract's own record; there is no separate approval queue and no transaction path. Generic and brand-free.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["rbf", "risk:local-write", "surface:busabase"],
+  "template": {
+    "category": "rbf",
+    "schemaVersion": 1,
+    "airapp": "kelly-portfolio-health-app",
+    "tags": ["rbf", "risk:local-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/concentration.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/watchlist.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Contracts and flag what needs my attention.",
+      "Open Kelly Portfolio Health and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "name": "Anomalies",
+  "description": "Deterministic anomaly feed: ACOS breaches, budget burnouts, zero-conversion spend, CPC spikes, rejections",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "anomaly-id",
+      "name": "Anomaly ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "severity",
+      "name": "Severity",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "state",
+      "name": "State",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "campaign-id",
+      "name": "Campaign ID",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "platform",
+      "name": "Platform",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "target-id",
+      "name": "Target ID",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "evidence",
+      "name": "Evidence",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "detected-at",
+      "name": "Detected at",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "first-seen-at",
+      "name": "First seen at",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "adjustment-id",
+      "name": "Adjustment ID",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": []
+}

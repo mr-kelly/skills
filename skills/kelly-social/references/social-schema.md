@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Social's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/social-model.js`).
+(`content/kelly-social-app/app/js/providers/busabase-provider.js`, `content/kelly-social-app/app/js/social-model.js`).
 Monitoring rollups (`metrics`), the derived `warnings` list, and every
 draft's social-qa gate are computed client-side from these Bases on every
 read — they are never stored.
@@ -17,7 +17,7 @@ changes_requested | approved | done | blocked`.
 
 Social-qa gate verdicts: `SHIP | FIX | BLOCK`.
 
-## Accounts (`kelly-social-accounts-v1`)
+## Accounts (`kelly-social-accounts`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -39,7 +39,7 @@ impressions_28d, engagements_7d, engagement_rate_7d, profile_visits_7d,
 followers_delta_7d, followers_delta_28d}`. Rates are 0-1 fractions, not
 percentages.
 
-## Posts (`kelly-social-posts-v1`)
+## Posts (`kelly-social-posts`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -63,7 +63,7 @@ Facebook comments/shares, Instagram comments/shares map onto
 `replies`/`reposts`; views/impressions/plays map onto `views`. Missing
 metrics are `0`, never absent.
 
-## Sync Log (`kelly-social-sync-log-v1`)
+## Sync Log (`kelly-social-sync-log`)
 
 Append-only, written only by `scripts/ingest_snapshot.mjs`.
 
@@ -79,7 +79,7 @@ Append-only, written only by `scripts/ingest_snapshot.mjs`.
 | `message` | `message` | longtext | short human-readable note; never credentials, cookies, or session tokens |
 | `actor` | `actor` | text | agent or collector id |
 
-## Calendar (`kelly-social-calendar-v1`)
+## Calendar (`kelly-social-calendar`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -96,7 +96,7 @@ Append-only, written only by `scripts/ingest_snapshot.mjs`.
 `publish_post` sets a linked entry's `status` to `scheduled` and its
 `scheduled-for` to the approved schedule time.
 
-## Drafts (`kelly-social-drafts-v1`)
+## Drafts (`kelly-social-drafts`)
 
 The post composer / draft review queue.
 
@@ -117,11 +117,11 @@ The post composer / draft review queue.
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
 There is no stored `gate` field: `evaluateGate({hook, body, hashtags, cta,
-channels})` in `app/app/js/social-model.js` recomputes the social-qa
+channels})` in `content/kelly-social-app/app/js/social-model.js` recomputes the social-qa
 `{verdict, score, checks, summary}` live from the draft's own copy on every
 read, so an edited draft is always judged by its current text.
 
-## Shorts (`kelly-social-shorts-v1`)
+## Shorts (`kelly-social-shorts`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -140,7 +140,7 @@ read, so an edited draft is always judged by its current text.
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Engagement (`kelly-social-engagement-v1`)
+## Engagement (`kelly-social-engagement`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -158,7 +158,7 @@ read, so an edited draft is always judged by its current text.
 | `review-note` | `review_note` | longtext | optional |
 | `permalink` | `permalink` | text | optional |
 
-## Settings (`kelly-social-settings-v1`)
+## Settings (`kelly-social-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -190,7 +190,7 @@ The trusted collector-write path. Reads a payload JSON file (see the header
 comment in the script for the exact shape), validates it, and upserts
 `accounts` (metrics/follower-series/traffic-sources merge, `status`/`notes`
 set from any per-account `warnings[]` entry in the payload), upserts `posts`
-by `post-id`, and appends one `sync_log` row per account. It never touches
+by `post-id`, and appends one `sync-log` row per account. It never touches
 the ECHO publishing-desk Bases (`calendar`/`drafts`/`shorts`/`engagement`/
 `settings`) — those are compose/approval state the AirApp itself owns.
 Connects with its own credentials (`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` /

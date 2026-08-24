@@ -7,7 +7,7 @@
   "scripts": {
     "execute": "node scripts/execute_decisions.mjs",
     "validate": "node scripts/validate_snapshot.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-crm-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

@@ -56,15 +56,17 @@ function sanitizeMetadata(value) {
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = parseArgs();
-const output = String(args.output || path.join(skillDir, "app", ".data", "busabase_restore_manifest.json"));
-const folderSlug = String(args.folderSlug || args["folder-slug"] || "hk-insurance-company-folders");
-const driveSlug = String(args.driveSlug || args["drive-slug"] || "hk-insurance-drive");
-const featuredSlug = String(args.featuredSlug || args["featured-slug"] || "featured-information");
-const noticesSlug = String(
-  args.noticesSlug || args["notices-slug"] || args.newsSlug || args["news-slug"] || "insurance-news",
+const output = String(
+  args.output || path.join(skillDir, "content", "kelly-insure-data-app", ".data", "busabase_restore_manifest.json"),
 );
-const qaSlug = String(args.qaSlug || args["qa-slug"] || "insurance-qa");
-const feedbackSlug = String(args.feedbackSlug || args["feedback-slug"] || "user-feedback");
+const folderSlug = String(args.folderSlug || args["folder-slug"] || "hk-insurance-company-folders");
+const driveSlug = String(args.driveSlug || args["drive-slug"] || "kelly-insure-data-files");
+const featuredSlug = String(args.featuredSlug || args["featured-slug"] || "kelly-insure-data-featured");
+const noticesSlug = String(
+  args.noticesSlug || args["notices-slug"] || args.newsSlug || args["news-slug"] || "kelly-insure-data-notices",
+);
+const qaSlug = String(args.qaSlug || args["qa-slug"] || "kelly-insure-data-qa");
+const feedbackSlug = String(args.feedbackSlug || args["feedback-slug"] || "kelly-insure-data-feedback");
 const concurrency = Number.parseInt(String(args.concurrency || "8"), 10);
 
 function flatten(nodes) {

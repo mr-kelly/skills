@@ -36,8 +36,8 @@ This is launch **operations** — the checklist, assets, submissions, and runboo
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-launch-app install
+pnpm --dir content/kelly-launch-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

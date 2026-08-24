@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Picks's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/picks-model.js`).
+(`content/kelly-picks-app/app/js/providers/busabase-provider.js`, `content/kelly-picks-app/app/js/picks-model.js`).
 Metrics (`avg_margin_approved_pct`, `below_margin_floor`, per-view counts,
 ...) are recomputed client-side from the stored rows on every read — they
 are never stored, so the desk is always fresh regardless of when a browser
@@ -16,7 +16,7 @@ Candidate verdict actions: `develop`, `watch`, `drop`. Proposal review actions: 
 
 Source kinds: `amazon_bsr`, `tiktok`, `temu`, `aliexpress`, `trends`, `competitor`.
 
-## Candidates (`kelly-picks-candidates-v1`)
+## Candidates (`kelly-picks-candidates`)
 
 A product under research. The margin card and competition read are
 JSON-encoded on the same row — they share the candidate's lifecycle, not a
@@ -56,7 +56,7 @@ separate one.
 }
 ```
 
-Margin math (ported verbatim into `app/app/js/picks-model.js`'s `computeMarginCard()`, used by both `scripts/compute_margins.mjs` and the browser's live what-if panel):
+Margin math (ported verbatim into `content/kelly-picks-app/app/js/picks-model.js`'s `computeMarginCard()`, used by both `scripts/compute_margins.mjs` and the browser's live what-if panel):
 
 - `platform_fee = price * referral_fee_pct/100 + fulfillment_flat` (from `settings.platforms[]`; stored back as an effective `platform_fee_pct`)
 - `margin = price − cogs − freight − platform_fee − ad_cost`
@@ -68,7 +68,7 @@ Freight resolution: keep an agent-quoted `freight` when `freight_quoted` is
 true; otherwise use the `settings.freight.rules[]` entry for the candidate's
 category; otherwise `settings.freight.default_per_unit`.
 
-## Trend Items (`kelly-picks-trend-items-v1`)
+## Trend Items (`kelly-picks-trend-items`)
 
 Raw signal from a sweep. Deduped by `source + external_id`, falling back to
 `content_hash` (sha256 of `source::title::url`, first 16 hex chars). A
@@ -94,7 +94,7 @@ lifecycle and can exist without ever becoming one.
 | `promotion-comment` | `promotion_comment` | longtext | written with the promotion |
 | `promotion-decided-at` | `promotion_decided_at` | text | written with the promotion |
 
-## Proposals (`kelly-picks-proposals-v1`)
+## Proposals (`kelly-picks-proposals`)
 
 A candidate verdict proposal from the agent, reviewed in `#/decisions`. Its
 own five-state review workflow, independent of the candidate's `stage`.
@@ -121,7 +121,7 @@ concrete operations (see `scripts/execute_decisions.mjs`):
 - `watch` → `add_watch` (target candidate id, summary carries the re-check criteria)
 - `drop` → `drop_candidate` (candidate stage update only)
 
-## Sources (`kelly-picks-sources-v1`)
+## Sources (`kelly-picks-sources`)
 
 One entry per configured trend source; sweep freshness feeds the overview.
 
@@ -135,7 +135,7 @@ One entry per configured trend source; sweep freshness feeds the overview.
 | `items-7d` | `items_7d` | number | |
 | `status` | `status` | text | `ok\|stale` |
 
-## Sync Log (`kelly-picks-sync-log-v1`)
+## Sync Log (`kelly-picks-sync-log`)
 
 Append-only feed, newest-first, capped at 50 entries in the UI.
 
@@ -147,7 +147,7 @@ Append-only feed, newest-first, capped at 50 entries in the UI.
 | `action` | `action` | text | `ingest_trends\|compute_margins\|execute_decisions` |
 | `detail` | `detail` | longtext | short human-readable summary |
 
-## Settings (`kelly-picks-settings-v1`)
+## Settings (`kelly-picks-settings`)
 
 One row, `record-id: "config"`:
 
@@ -168,7 +168,7 @@ read by the AirApp):
 
 ```json
 {
-  "trend_items": [
+  "trend-items": [
     {
       "trend_id": "tr-example",
       "source": "tiktok",

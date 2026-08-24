@@ -1,0 +1,72 @@
+{
+  "name": "Handoffs",
+  "description": "Append-only human-in-the-loop handoff log: an acknowledge / needs-investigation note recorded against one agent or trace. The only Base the AirApp itself ever writes to — always a new record, never an update to an agent/trace row.",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "handoff-id",
+      "name": "Handoff ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "target-type",
+      "name": "Target type",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "target-id",
+      "name": "Target ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "agent-id",
+      "name": "Agent ID",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Note",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "created-by",
+      "name": "Created by",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    }
+  ],
+  "views": []
+}

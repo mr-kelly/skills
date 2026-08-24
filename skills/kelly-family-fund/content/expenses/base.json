@@ -1,0 +1,88 @@
+{
+  "name": "Expenses",
+  "description": "Care cost and family-benefiting expenses",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "expense-id",
+      "name": "Expense ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "month",
+      "name": "Month",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "date",
+      "name": "Date",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "amount",
+      "name": "Amount",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "payee",
+      "name": "Payee",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "occasion",
+      "name": "Occasion",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "family-id",
+      "name": "Family ID",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "shared",
+      "name": "Shared",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Note",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": []
+}

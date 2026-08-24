@@ -6,6 +6,20 @@ metadata:
   tags:
     - risk:gated-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-feedback
+    resources:
+      - products
+      - sources
+      - feedback
+      - requests
+      - roadmap
+      - proposals
+      - sync-log
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Feedback
@@ -61,7 +75,7 @@ This skill is an implementation of the **App-in-Skill** pattern — a Codex/agen
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-feedback-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -81,7 +95,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Eight Bases under one application Folder (`kelly-feedback`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-feedback-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `products`: products feedback can be about (id, display name, tagline).
 - `sources`: feedback channels — email, Discord, Slack, X, app-store, survey, interview — with collection method, env-var *names* for tokens (never values), freshness, and item count.
@@ -89,7 +103,7 @@ Eight Bases under one application Folder (`kelly-feedback`), declared in
 - `requests`: clustered feature requests (title, product, status, trend, effort estimate, problem statement, spec summary, representative feedback ids, decision history). `frequency`/`weighted-score` are **not stored** — they are always recomputed client-side from `feedback` by `recomputeDerived()`.
 - `roadmap`: roadmap lane items (`now`/`next`/`later`), read-only in the app; changed only via approved proposals executed by `scripts/execute_decisions.mjs`.
 - `proposals`: the decision queue — agent-proposed promote/decline/merge/publish-changelog changes with reason, evidence, an editable draft, the human verdict (`status`/`review-note`/`decided-at`), written directly onto the proposal record.
-- `sync_log`: append-only history of ingest/cluster/execute runs.
+- `sync-log`: append-only history of ingest/cluster/execute runs.
 - `settings`: one row (`record-id: "config"`) with plan-weight scoring and roadmap lane names.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
@@ -121,7 +135,7 @@ weights/roadmap lanes are written directly into the `settings` Base's single
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-feedback-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -156,7 +170,7 @@ notes — hands feedback to Kelly Feedback the same way:
 
 1. Write a payload JSON file (shape in `references/feedback-schema.md`): a `source` block (`source_id`, `channel`, `name`, `collection`) plus `items[]` with stable `external_id`s, text, user context, and timestamps. Optionally include `products[]` to register/update product catalog entries.
 2. Run `node skills/kelly-feedback/scripts/ingest_feedback.mjs <payload.json> [more.json ...] --apply`.
-3. The script validates, dedupes by `fb-<source_id>-<external_id>` (idempotent re-ingest), upserts the source/products, and appends a `sync_log` entry — all directly against Busabase. Omit `--apply` first to see a dry-run summary.
+3. The script validates, dedupes by `fb-<source_id>-<external_id>` (idempotent re-ingest), upserts the source/products, and appends a `sync-log` entry — all directly against Busabase. Omit `--apply` first to see a dry-run summary.
 
 Typical handoffs: kelly-email exports support threads mentioning features;
 kelly-messenger exports Discord/Slack community posts; kelly-social exports
@@ -179,7 +193,7 @@ deterministic write path.
 1. Kelly reviews `#/roadmap`: edits drafts, writes review notes, and clicks Approve / Request changes / Block. The app writes the verdict directly onto the proposal record (`status`/`review-note`/`draft`/`decided-at`) through `busabase-sdk` — never a separate decisions file. From a standalone local preview the write merges immediately (trusted operator); from the deployed AirApp it creates a pending ChangeRequest for the trusted process to merge.
 2. Before executing, run `node skills/kelly-feedback/scripts/execute_decisions.mjs` (dry-run) to see the plan for every `approved` proposal: `update_roadmap` (target lane) and `merge_requests` are LOCAL operations; `publish_changelog_note` (draft id) and `send_decline_reply` (handoff to kelly-messenger/kelly-email) are always `handoff_ready` — this script never publishes a changelog, edits a roadmap doc, or sends a reply itself.
 3. Show Kelly the dry-run summary. After confirmation, run with `--apply`: LOCAL operations (roadmap lanes, merges) are applied directly to Busabase and the proposal's status is set `done`; outbound operations remain `handoff_ready` only.
-4. Execute `handoff_ready` operations as the agent via the appropriate skill (send the decline reply through kelly-messenger/kelly-email, update the changelog/roadmap document), then log the outcome as a `sync_log` entry.
+4. Execute `handoff_ready` operations as the agent via the appropriate skill (send the decline reply through kelly-messenger/kelly-email, update the changelog/roadmap document), then log the outcome as a `sync-log` entry.
 5. For a proposal moved to `changes_requested`, revise the draft per the `review-note` and write it back to `needs_review` directly via `busabase-sdk`.
 
 ## Safety Defaults
@@ -197,7 +211,7 @@ node skills/kelly-feedback/scripts/ingest_feedback.mjs payload.json --apply
 node skills/kelly-feedback/scripts/apply_clusters.mjs assignments.json --apply
 node skills/kelly-feedback/scripts/execute_decisions.mjs
 node skills/kelly-feedback/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-feedback/app dev
+pnpm --dir skills/kelly-feedback/content/kelly-feedback-app dev
 ```
 
 In normal use, invoke `/kelly-feedback`, let the skill ingest/cluster

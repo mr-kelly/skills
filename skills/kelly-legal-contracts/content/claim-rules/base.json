@@ -1,0 +1,64 @@
+{
+  "name": "Claim Rules",
+  "description": "Clause playbook — hard-stop / restricted-phrase rules",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "rule-id",
+      "name": "Rule ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "phrase",
+      "name": "Term",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "severity",
+      "name": "Severity",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "Why it matters",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "alternative",
+      "name": "Fallback",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}

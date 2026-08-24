@@ -2,15 +2,15 @@
 
 Use this schema when reading or writing Kelly Lead Funnel's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/lead-funnel-model.js`). `score`, `score_breakdown`, and
+code (`content/kelly-lead-funnel-app/app/js/providers/busabase-provider.js`,
+`content/kelly-lead-funnel-app/app/js/lead-funnel-model.js`). `score`, `score_breakdown`, and
 `suggested_action` are computed client-side from the `leads` Base plus the
 `settings` Base's `scoring_criteria` on every read — they are never stored.
 
 Funnel order: `new -> data_verified -> scored -> term_sheet_ready`;
 `rejected` is a terminal stage reachable from any prior stage.
 
-## Leads (`kelly-lead-funnel-leads-v1`)
+## Leads (`kelly-lead-funnel-leads`)
 
 One row per merchant/business lead.
 
@@ -31,7 +31,7 @@ One row per merchant/business lead.
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp, set on every write |
 
-## Settings (`kelly-lead-funnel-settings-v1`)
+## Settings (`kelly-lead-funnel-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -40,7 +40,7 @@ One row per `kind`, looked up by `record-id`:
 | `kelly-lead-funnel-config` | `config` | `{base_currency, fund_profile: {display_name, product, target_check_size}, scoring_criteria: {ideal_store_count_min, ideal_store_count_max, ideal_monthly_revenue_min, ideal_monthly_revenue_max, low_risk_categories, medium_risk_categories, higher_risk_categories}}` |
 
 If no `config` row exists, the app falls back to `DEFAULT_SCORING_CRITERIA`
-(`app/app/js/lead-funnel-model.js`) and an empty `fund_profile` — the board
+(`content/kelly-lead-funnel-app/app/js/lead-funnel-model.js`) and an empty `fund_profile` — the board
 still functions, just without a named fund profile.
 
 ## Scoring (computed, never stored)

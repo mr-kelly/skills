@@ -9,7 +9,7 @@
     "sync-domains": "node scripts/sync_domains.mjs",
     "ingest-spend": "node scripts/ingest_spend.mjs",
     "execute-decisions": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-devops-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

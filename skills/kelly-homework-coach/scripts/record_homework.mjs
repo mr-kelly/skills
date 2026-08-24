@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // Trusted hand-off step for how a new homework question/mistake/paper
 // actually enters this skill. Kelly Homework Coach has no upload API route
-// (grep of the retired app/server/hono.ts confirms it: only /api/state,
+// (grep of the retired content/kelly-homework-coach-app/server/hono.ts confirms it: only /api/state,
 // /api/provider, /api/onboarding/complete, /api/decision) and the retired
-// browser's "photo box" (app/app.js renderPhotoBox()) never uploaded a file
+// browser's "photo box" (content/kelly-homework-coach-app/app.js renderPhotoBox()) never uploaded a file
 // anywhere — it only let the student pick a local filename and copied a
 // chat prompt asking the agent to analyze it. The retired SKILL.md's
 // "Homework Photo Workflow" confirms who actually wrote the data: the agent
 // itself, in the same chat session, merged the analyzed question straight
-// into the local snapshot file (with a temporary app/.data/agent.lock).
+// into the local snapshot file (with a temporary content/kelly-homework-coach-app/.data/agent.lock).
 // There is no local snapshot file anymore, so this script is the agent's
 // replacement write path: after explaining a photographed/pasted question,
 // the agent calls this script with its own trusted Busabase credentials to
@@ -42,7 +42,7 @@
 import { readFile } from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-homework-coach-app/app/js/config.js";
 import {
   baseMistakeFields,
   basePaperFields,
@@ -52,7 +52,7 @@ import {
   computePaperFromRow,
   computeQuestionFromRow,
   computeReviewFromRow,
-} from "../app/app/js/homework-model.js";
+} from "../content/kelly-homework-coach-app/app/js/homework-model.js";
 
 function help() {
   console.log(`Usage: node scripts/record_homework.mjs [--file payload.json] [--apply]

@@ -7,6 +7,17 @@ metadata:
     - risk:gated-write
     - industry:real-estate
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-real-estate-intel
+    resources:
+      - signals
+      - actions
+      - drafts
+      - sources
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Real Estate Intel
@@ -38,7 +49,7 @@ preview is explicitly requested). Use chat-only mode only when the user says
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-real-estate-intel-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -83,7 +94,7 @@ Actions should become call scripts, owner update notes, listing-page angles, ope
 ## Busabase Resources
 
 Five Bases under one application Folder (`kelly-real-estate-intel`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-real-estate-intel-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `signals`: source-backed transaction, listing, mortgage, district, and competitor signals — evidence link, why-it-matters, buyer-intent interpretation, confidence, risk badges, a suggested action, and the human decision verdict.
 - `actions`: approved/blocked/reviewable listing angles, owner-update notes, open-house talking points, or operating actions linked to signals, with owner, priority, reason, next step, and the human decision verdict.
@@ -109,7 +120,7 @@ Busabase gate.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-real-estate-intel-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -168,5 +179,5 @@ Demo mode:
 ```bash
 node skills/kelly-real-estate-intel/scripts/execute_decisions.mjs
 node skills/kelly-real-estate-intel/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-real-estate-intel/app dev
+pnpm --dir skills/kelly-real-estate-intel/content/kelly-real-estate-intel-app dev
 ```

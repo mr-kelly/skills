@@ -1,0 +1,216 @@
+{
+  "name": "Decks",
+  "description": "One PPTX deliverable under a project — approval, style score, and output paths on the same row",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "deck-id",
+      "name": "Deck ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "theme",
+      "name": "Theme",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "level",
+      "name": "Level",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "audience",
+      "name": "Audience",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "target-slide-count",
+      "name": "Target slide count",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "approved-slide-count",
+      "name": "Approved slide count",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "generated-slide-count",
+      "name": "Generated slide count",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "style-score",
+      "name": "Style score",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "pptx-path",
+      "name": "PPTX path",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "render-path",
+      "name": "Render path",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "review-summary",
+      "name": "Review summary",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "review-suggestions",
+      "name": "Review suggestions (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "review-draft-note",
+      "name": "Review draft note",
+      "type": "longtext",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "decision-action",
+      "name": "Decision action",
+      "type": "text",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 19,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 20,
+      "options": {}
+    },
+    {
+      "slug": "execution-status",
+      "name": "Execution status",
+      "type": "text",
+      "required": false,
+      "position": 21,
+      "options": {}
+    },
+    {
+      "slug": "execution-operation",
+      "name": "Execution operation",
+      "type": "text",
+      "required": false,
+      "position": 22,
+      "options": {}
+    },
+    {
+      "slug": "execution-target",
+      "name": "Execution target",
+      "type": "text",
+      "required": false,
+      "position": 23,
+      "options": {}
+    },
+    {
+      "slug": "execution-detail",
+      "name": "Execution detail",
+      "type": "longtext",
+      "required": false,
+      "position": 24,
+      "options": {}
+    },
+    {
+      "slug": "executed-at",
+      "name": "Executed at",
+      "type": "text",
+      "required": false,
+      "position": 25,
+      "options": {}
+    }
+  ],
+  "views": []
+}

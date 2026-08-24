@@ -1,0 +1,22 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-demo-video-factory",
+  "description": "Demo/marketing video planning pipeline: idea -> storyboard -> verified claims -> recording -> post-production.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["production", "risk:read-only", "surface:busabase"],
+  "template": {
+    "category": "production",
+    "schemaVersion": 1,
+    "airapp": "kelly-demo-video-factory-app",
+    "tags": ["production", "risk:read-only", "surface:busabase"],
+    "screenshots": ["assets/screenshots/video-shots.webp", "assets/screenshots/videos.webp"],
+    "agentPrompts": [
+      "Summarize the latest Videos and flag what needs my attention.",
+      "Open Kelly Demo Video Factory and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

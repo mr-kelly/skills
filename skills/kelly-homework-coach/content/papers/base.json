@@ -1,0 +1,120 @@
+{
+  "name": "Papers",
+  "description": "One row per practice paper plan or completed-paper analysis — focus topics, linked mistakes, difficulty mix, items, and (once analyzed) wrong-question count/strengths/review plan. Written by scripts/record_homework.mjs; export to a real file happens outside this app after parent/teacher approval",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "paper-id",
+      "name": "Paper ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "subject",
+      "name": "Subject",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "grade",
+      "name": "Grade",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "generated-at",
+      "name": "Generated at",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "focus-topics",
+      "name": "Focus topics (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "linked-mistakes",
+      "name": "Linked mistakes (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "question-count",
+      "name": "Question count",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "estimated-minutes",
+      "name": "Estimated minutes",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "difficulty-mix",
+      "name": "Difficulty mix (JSON object)",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "items",
+      "name": "Items (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "analysis",
+      "name": "Analysis (JSON object)",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -36,7 +36,7 @@ Kelly Lesson is a Busabase App-in-Skill desk for a dean of studies (教导主任
 Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-lesson/app dev
+pnpm --dir skills/kelly-lesson/content/kelly-lesson-app dev
 ```
 
 Then add one of these demo paths:

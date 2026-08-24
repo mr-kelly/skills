@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Standup's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/standup-model.js`).
+(`content/kelly-standup-app/app/js/providers/busabase-provider.js`, `content/kelly-standup-app/app/js/standup-model.js`).
 Streaks, per-day participation, 30-day participation, and the missing-
 today/open-blockers metrics are all computed client-side from these Bases on
 every read — they are never stored.
@@ -16,7 +16,7 @@ Reminder channels: `slack`, `wecom`, `discord`, `whatsapp`, `email`.
 Reminder statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 Decision actions: `approve`, `request_changes`, `revise`, `block`.
 
-## Members (`kelly-standup-members-v1`)
+## Members (`kelly-standup-members`)
 
 The team roster.
 
@@ -35,7 +35,7 @@ The team roster.
 never stored on this record — `recomputeDerived()` computes them from
 `days`/`checkins`/`blockers` on every read.
 
-## Days (`kelly-standup-days-v1`)
+## Days (`kelly-standup-days`)
 
 One row per recorded standup day, unique by `date`.
 
@@ -48,7 +48,7 @@ One row per recorded standup day, unique by `date`.
 `participation` (`submitted`/`expected`/`on_leave` counts) is derived, never
 stored.
 
-## Check-ins (`kelly-standup-checkins-v1`)
+## Check-ins (`kelly-standup-checkins`)
 
 One row per member per day; unique by `checkin-id` (`"<member_id>|<date>"`).
 Re-ingesting the same member + date replaces the existing row (idempotent).
@@ -66,7 +66,7 @@ Re-ingesting the same member + date replaces the existing row (idempotent).
 | `source` | `source` | text | `slack\|wecom\|discord\|whatsapp\|doc\|manual` |
 | `raw-excerpt` | `raw_excerpt` | longtext | short verbatim excerpt of the original message, provenance only — never a whole chat log |
 
-## Blockers (`kelly-standup-blockers-v1`)
+## Blockers (`kelly-standup-blockers`)
 
 The top-level registry, deduplicating blockers across days by content hash.
 Unique by `blocker-id` (`"bl-<sha1(member|normalized text)[0:10]>"`). When an
@@ -85,7 +85,7 @@ to open if a later day reports it open again).
 | `suggested-action` | `suggested_action` | longtext | agent-written advice for the team lead, not an executed action |
 | `resolved-date` | `resolved_date` | text | `YYYY-MM-DD` or empty |
 
-## Reminders (`kelly-standup-reminders-v1`)
+## Reminders (`kelly-standup-reminders`)
 
 The review-queue: approval-gated nudges for missing check-ins and blocker
 escalations. Unique by `reminder-id` (`"rem-<sha1(type|member|date)[0:10]>"`),
@@ -118,7 +118,7 @@ updates `draft`/`decision-note`/`decided-at`. `approve`/`request_changes`/
 `block` map to `status` `approved`/`changes_requested`/`blocked` via
 `statusForAction()` in `standup-model.js`.
 
-## Settings (`kelly-standup-settings-v1`)
+## Settings (`kelly-standup-settings`)
 
 One row, `record-id: "team"`.
 

@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Tickets' Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/tickets-model.js`).
+(`content/kelly-tickets-app/app/js/providers/busabase-provider.js`, `content/kelly-tickets-app/app/js/tickets-model.js`).
 SLA state and crew load are computed client-side from the stored rows on
 every read (`buildSnapshot`) — they are never stored, so the desk is always
 fresh regardless of when a browser session loads it relative to the last
@@ -24,7 +24,7 @@ Priorities: `P1`, `P2`, `P3`, `P4`.
 
 Decision actions: intake `convert_to_ticket`/`ignore`; proposal `approve`/`request_changes`/`revise`/`block`.
 
-## Crews (`kelly-tickets-crews-v1`)
+## Crews (`kelly-tickets-crews`)
 
 Crews that tickets can be dispatched to.
 
@@ -39,7 +39,7 @@ Crews that tickets can be dispatched to.
 
 The browser cannot read the agent's environment, so the UI shows `contact_env` as a name only, never whether it is actually set — that check happens in `scripts/execute_decisions.mjs`, which runs with the trusted process's own env.
 
-## Intake (`kelly-tickets-intake-v1`)
+## Intake (`kelly-tickets-intake`)
 
 One raw complaint/request as it arrived on a channel, before or after triage. The human decision (convert to ticket / ignore) lives on the same row.
 
@@ -69,7 +69,7 @@ Dedupe key: `channel + external_id` when `external_id` exists, otherwise `channe
 
 An intake row with `decision_action: "convert_to_ticket"` and `triage_state` not yet `"ticketed"` is the Busabase-only equivalent of the retired local-file store's `agent_tasks.json` "convert_intake" queue entry — the agent polls for these and classifies via `scripts/apply_triage.mjs`.
 
-## Tickets (`kelly-tickets-tickets-v1`)
+## Tickets (`kelly-tickets-tickets`)
 
 Tickets tracked from classification through resolution, with an append-only history timeline.
 
@@ -96,7 +96,7 @@ Tickets tracked from classification through resolution, with an append-only hist
 
 `history` events: `intake`, `classified`, `dispatch_proposed`, `dispatch_approved`, `crew_notified`, `crew_update`, `sla_breach`, `resolved`, `resolution_note`. Never rewrite past events — the timeline is the audit trail. `sla_state` (`ok|at_risk|breached|met`) is derived by `computeSlaState()` (at_risk when 25% or less of the SLA window remains) and never stored.
 
-## Dispatch Proposals (`kelly-tickets-proposals-v1`)
+## Dispatch Proposals (`kelly-tickets-proposals`)
 
 The review queue. Stable refs render as `Dispatch #<ref>`. Decision and execution live on the same row — there is no separate decisions or execution-report bucket.
 
@@ -129,7 +129,7 @@ The review queue. Stable refs render as `Dispatch #<ref>`. Decision and executio
 
 `approve` -> `status: "approved"`. `request_changes` -> `status: "changes_requested"`. `block` -> `status: "blocked"`. `revise` only edits `note_to_crew`/`decision_draft` — `status` is unchanged. `scripts/execute_decisions.mjs` promotes an already-`ready_for_agent` proposal to `status: "done"` only on a second `--apply` run that confirms the agent already acted on it — never on the first run.
 
-## Sync Log (`kelly-tickets-sync-log-v1`)
+## Sync Log (`kelly-tickets-sync-log`)
 
 Append-only history of ingest/triage/execute runs.
 
@@ -142,7 +142,7 @@ Append-only history of ingest/triage/execute runs.
 | `detail` | `detail` | longtext | human-readable summary |
 | `count` | `count` | number | |
 
-## Settings (`kelly-tickets-settings-v1`)
+## Settings (`kelly-tickets-settings`)
 
 One row (`record-id: "config"`) with property profile, channels, categories, and SLA rules.
 

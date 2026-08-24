@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Products's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/products-model.js`). Metrics and the recent-activity feed are
+code (`content/kelly-products-app/app/js/providers/busabase-provider.js`,
+`content/kelly-products-app/app/js/products-model.js`). Metrics and the recent-activity feed are
 computed client-side from the `products`/`channels`/`inventory`/`review`/
 `settings` Bases on every read (`buildSnapshot`/`assembleSnapshot` in
 `products-model.js`) — the only persisted state is what lives directly on
@@ -25,7 +25,7 @@ lifecycle/archive decision.
 Decision actions (the only three buttons the review queue exposes):
 `approve`, `request_changes`, `block`.
 
-## Products (`kelly-products-products-v1`)
+## Products (`kelly-products-products`)
 
 Products, channel rows, inventory rows, and review items enter Busabase only
 through `scripts/ingest_products.mjs` (or the operator editing Busabase
@@ -54,7 +54,7 @@ directly) — the AirApp itself never creates one.
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Channels (`kelly-products-channels-v1`)
+## Channels (`kelly-products-channels`)
 
 One row per product × marketplace channel, keyed by
 `channel-id = <product_id>__<platform>`.
@@ -73,7 +73,7 @@ One row per product × marketplace channel, keyed by
 | `next-step` | `next-step` | text | e.g. `approve_publish`, `add_asset` |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Inventory (`kelly-products-inventory-v1`)
+## Inventory (`kelly-products-inventory`)
 
 One row per product × warehouse, keyed by
 `inventory-id = <product_id>__<warehouse_id>`.
@@ -93,7 +93,7 @@ One row per product × warehouse, keyed by
 | `status` | `status` | text | `healthy\|low_stock\|stockout_risk\|test_cap\|retiring` |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Review (`kelly-products-review-v1`)
+## Review (`kelly-products-review`)
 
 Approval-gated review queue: channel publish approvals, price-change review,
 quality holds, and lifecycle/archive decisions. The operator's decision is
@@ -121,7 +121,7 @@ fields after a decision has been recorded.
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Settings (`kelly-products-settings-v1`)
+## Settings (`kelly-products-settings`)
 
 A single row, `record-id: "config"`:
 
@@ -189,5 +189,5 @@ clobbers a human decision already recorded on a review item — `status`/
 
 - Keep `product_id`, `channel_id`, `inventory_id`, and `item_id` stable across re-ingests.
 - Treat external marketplace publishing, price changes, SKU archival, and quality holds as approval-required.
-- Product images ship as static files under `app/app/assets/product-images/` (served by `server.js`), referenced by relative URL from `products.image`/`gallery` — never depend on external image URLs.
+- Product images ship as static files under `content/kelly-products-app/app/assets/product-images/` (served by `server.js`), referenced by relative URL from `products.image`/`gallery` — never depend on external image URLs.
 - Do not commit real seller exports, credentials, `.env*`, or `exports/`.

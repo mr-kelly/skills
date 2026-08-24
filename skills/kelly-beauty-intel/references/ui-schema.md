@@ -4,13 +4,13 @@ This skill uses a Busabase-backed review-first data contract. The AirApp
 reads/writes Busabase records only; the skill performs external reads and
 approved handoffs outside the AirApp. Field slugs are kebab-case in Busabase
 and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/intel-model.js`).
+(`content/kelly-beauty-intel-app/app/js/providers/busabase-provider.js`, `content/kelly-beauty-intel-app/app/js/intel-model.js`).
 
 Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
 
 Decision actions: `approve`, `request_changes`, `revise`, `block`.
 
-## Signals (`kelly-beauty-intel-signals-v1`)
+## Signals (`kelly-beauty-intel-signals`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ Decision actions: `approve`, `request_changes`, `revise`, `block`.
 | `decision-note` | `decision_note` | longtext | written with the verdict |
 | `decided-at` | `decided_at` | text | written with the verdict |
 
-## Actions (`kelly-beauty-intel-actions-v1`)
+## Actions (`kelly-beauty-intel-actions`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -47,7 +47,7 @@ Decision actions: `approve`, `request_changes`, `revise`, `block`.
 | `decision-note` | `decision_note` | longtext | written with the verdict |
 | `decided-at` | `decided_at` | text | written with the verdict |
 
-## Drafts (`kelly-beauty-intel-drafts-v1`)
+## Drafts (`kelly-beauty-intel-drafts`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -62,7 +62,7 @@ Decision actions: `approve`, `request_changes`, `revise`, `block`.
 | `decision-note` | `decision_note` | longtext | written with the verdict |
 | `decided-at` | `decided_at` | text | written with the verdict |
 
-## Sources (`kelly-beauty-intel-sources-v1`)
+## Sources (`kelly-beauty-intel-sources`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -72,7 +72,7 @@ Decision actions: `approve`, `request_changes`, `revise`, `block`.
 | `freshness` | `freshness` | text | |
 | `coverage` | `coverage` | longtext | |
 
-## Settings (`kelly-beauty-intel-settings-v1`)
+## Settings (`kelly-beauty-intel-settings`)
 
 One row per `kind`, looked up by `record-id`:
 

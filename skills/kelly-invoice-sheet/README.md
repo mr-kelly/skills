@@ -35,7 +35,7 @@ Kelly Invoice Sheet turns invoices, receipts, credit notes, and statements into 
 Run the app and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-invoice-sheet/app dev
+pnpm --dir skills/kelly-invoice-sheet/content/kelly-invoice-sheet-app dev
 ```
 
 Then open the printed URL with `/?demo=1#/invoices/all`. Demo mode never reads or writes Busabase; demo decisions are read-only.

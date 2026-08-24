@@ -45,9 +45,9 @@ configuration ChangeRequest remains `needs_review` until it materializes.
 | Resource | Type | Stable slug | Purpose | Writer | Mutation path | Version |
 | --- | --- | --- | --- | --- | --- | --- |
 | App root | Folder | `kelly-portrait-retouch` | Ownership and discovery | AirApp setup | Node ChangeRequest | 1 |
-| Jobs | Base | `kelly-portrait-retouch-jobs-v1` | Idempotent processing runs | Trusted Agent | Base/record ChangeRequest | 1 |
-| Candidates | Base | `kelly-portrait-retouch-candidates-v1` | Provenance, checks, versions, verdicts | Agent + reviewer | Base/record ChangeRequest | 1 |
-| Settings | Base | `kelly-portrait-retouch-settings-v1` | Structured onboarding and defaults | Reviewer | Base/record ChangeRequest | 1 |
+| Jobs | Base | `kelly-portrait-retouch-jobs` | Idempotent processing runs | Trusted Agent | Base/record ChangeRequest | 1 |
+| Candidates | Base | `kelly-portrait-retouch-candidates` | Provenance, checks, versions, verdicts | Agent + reviewer | Base/record ChangeRequest | 1 |
+| Settings | Base | `kelly-portrait-retouch-settings` | Structured onboarding and defaults | Reviewer | Base/record ChangeRequest | 1 |
 | Portrait files | Busabase Assets | content-addressed asset IDs | Source, candidate, comparison binaries | Trusted Agent | Assets upload contract | 1 |
 
 No Vault requirement exists because image processing is local. The browser sees
@@ -59,7 +59,7 @@ The AirApp uses the queue, approved, exported, and blocked views; a desktop
 list/detail workbench; a separate phone detail flow; and Help & Settings. Native
 Views are not required because the human decision depends on an image comparison
 surface unavailable in a generic table/gallery. The canonical project is
-`app/`; local Hono preview and AirApp deployment use the same source. Demo mode
+`content/kelly-portrait-retouch-app/`; local Hono preview and AirApp deployment use the same source. Demo mode
 is deterministic, explicitly labeled, read-only, and never establishes runtime
 readiness for live data.
 

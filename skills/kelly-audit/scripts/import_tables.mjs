@@ -11,10 +11,10 @@
 // normalizeAmount/slugId/parseCsv/csvToRecords/mapRecord/normalizeOrder/
 // normalizeInvoice/normalizePayment are ported verbatim from the retired
 // scripts/import_tables.ts; only the write target changed, from a
-// persisted app/.data/audit_snapshot.json to Busabase's orders/invoices/
+// persisted content/kelly-audit-app/.data/audit_snapshot.json to Busabase's orders/invoices/
 // payments/import_log Bases (derived statuses/matches/aging are no longer
 // written at import time — the AirApp/scripts compute them at read time via
-// app/app/js/audit-model.js's deriveSnapshot(), so this importer only needs
+// content/kelly-audit-app/app/js/audit-model.js's deriveSnapshot(), so this importer only needs
 // to write the raw normalized rows).
 //
 // Usage:
@@ -29,7 +29,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-audit-app/app/js/config.js";
 
 const CANONICAL_COLUMNS = {
   orders: ["order_no", "customer", "order_date", "amount", "currency"],
@@ -461,7 +461,7 @@ async function main() {
   const logId = `imp-${now.replace(/[-:TZ.]/g, "").slice(0, 12)}`;
   if (apply) {
     await client.bases.createChangeRequest({
-      baseId: declared("import_log").baseId,
+      baseId: declared("import-log").baseId,
       fields: toBusabaseFields({
         log_id: logId,
         imported_at: now,

@@ -1,0 +1,40 @@
+{
+  "name": "Segments",
+  "description": "Audience segments and their size",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "segment-id",
+      "name": "Segment ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "description",
+      "name": "Description",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "audience-size",
+      "name": "Audience size",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    }
+  ],
+  "views": []
+}

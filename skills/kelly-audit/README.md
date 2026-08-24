@@ -36,7 +36,7 @@ Kelly Audit is a Busabase App-in-Skill finance anomaly review desk: import order
 Start the local preview and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-audit/app dev
+pnpm --dir skills/kelly-audit/content/kelly-audit-app dev
 ```
 
 Use the URL printed by the launcher, then add one of these demo paths:

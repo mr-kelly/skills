@@ -21,8 +21,8 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { buildSnapshot } from "../app/app/js/support-model.js";
+import { appConfig } from "../content/kelly-support-app/app/js/config.js";
+import { buildSnapshot } from "../content/kelly-support-app/app/js/support-model.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]
@@ -137,7 +137,7 @@ async function main() {
     readAll(client, declared("accounts")),
     readAll(client, declared("tickets")),
     readAll(client, declared("messages")),
-    readAll(client, declared("knowledge_base")),
+    readAll(client, declared("knowledge-base")),
     readAll(client, declared("settings")),
   ]);
   const settingsRow = settingsRows.find((row) => row.record_id === "config") || {};

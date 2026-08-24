@@ -1,0 +1,32 @@
+{
+  "name": "Days",
+  "description": "One row per recorded standup day: digest paragraph and who is on leave",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "date",
+      "name": "Date",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "digest",
+      "name": "Digest",
+      "type": "longtext",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "on-leave",
+      "name": "On leave",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -1,0 +1,28 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-devops",
+  "description": "Product-fleet ops desk: service health, SSL/domain/key expiries, cloud spend, and an action review queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["platform", "risk:gated-write", "surface:busabase", "surface:sendgrid"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 1,
+    "airapp": "kelly-devops-app",
+    "tags": ["platform", "risk:gated-write", "surface:busabase", "surface:sendgrid"],
+    "screenshots": [
+      "assets/screenshots/actions.webp",
+      "assets/screenshots/expiries.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/services.webp",
+      "assets/screenshots/spend.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Services and flag what needs my attention.",
+      "Open Kelly DevOps and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

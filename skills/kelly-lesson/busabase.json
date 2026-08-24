@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-lesson",
+  "description": "Lesson-plan generation and compliance-check desk: plan library, compliance checks, and a review queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["education", "risk:gated-write", "industry:education", "surface:busabase"],
+  "template": {
+    "category": "education",
+    "schemaVersion": 1,
+    "airapp": "kelly-lesson-app",
+    "tags": ["education", "risk:gated-write", "industry:education", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/checks.webp",
+      "assets/screenshots/needs-review.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/plans.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Teachers and flag what needs my attention.",
+      "Open Kelly Lesson and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

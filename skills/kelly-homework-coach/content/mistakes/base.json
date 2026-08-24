@@ -1,0 +1,104 @@
+{
+  "name": "Mistakes",
+  "description": "One row per mistake-book entry (grouped by stable id so repeated review updates the same card instead of duplicating it) — root cause, misconception, fix strategy, similar practice prompt, and parent note. Written by scripts/record_homework.mjs alongside the question it came from",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "mistake-id",
+      "name": "Mistake ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "question-id",
+      "name": "Question ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "subject",
+      "name": "Subject",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "topic",
+      "name": "Topic",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "mistake-type",
+      "name": "Mistake type",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "last-seen",
+      "name": "Last seen",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "next-review-at",
+      "name": "Next review at",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "attempts",
+      "name": "Attempts",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "review-history",
+      "name": "Review history (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "analysis",
+      "name": "Analysis (JSON object)",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    }
+  ],
+  "views": []
+}

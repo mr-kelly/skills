@@ -1,0 +1,80 @@
+{
+  "name": "Calendar",
+  "description": "Content calendar: scheduled posts across channels by theme pillar and date",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "entry-id",
+      "name": "Entry ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "date",
+      "name": "Date",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "channel",
+      "name": "Channel",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "pillar",
+      "name": "Pillar",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "draft-id",
+      "name": "Draft ID",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "scheduled-for",
+      "name": "Scheduled for",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "notes",
+      "name": "Notes",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

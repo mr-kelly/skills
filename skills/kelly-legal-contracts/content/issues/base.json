@@ -1,0 +1,256 @@
+{
+  "name": "Issues",
+  "description": "Clause issues — structured fields, workflow status, and the review-queue decision on the same row",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "issue-id",
+      "name": "Issue ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "contract-id",
+      "name": "Contract ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "platform",
+      "name": "Workstream",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "locale",
+      "name": "Jurisdiction",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "variant-group",
+      "name": "Variant group",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "compliance-score",
+      "name": "Risk score",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "keyword-strategy",
+      "name": "Reviewer rationale",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Issue title",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "subtitle",
+      "name": "Short issue",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "bullets",
+      "name": "Risk notes",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "description",
+      "name": "Fallback language",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "search-terms",
+      "name": "Negotiation notes",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "seo-title",
+      "name": "Memo title",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "seo-description",
+      "name": "Memo summary",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "selling-points",
+      "name": "Business ask",
+      "type": "longtext",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "aplus-outline",
+      "name": "Redline / memo outline",
+      "type": "longtext",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "item-specifics",
+      "name": "Structured facts",
+      "type": "longtext",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "compliance-summary",
+      "name": "Risk summary",
+      "type": "longtext",
+      "required": false,
+      "position": 19,
+      "options": {}
+    },
+    {
+      "slug": "suggestions",
+      "name": "Agent suggestions",
+      "type": "longtext",
+      "required": false,
+      "position": 20,
+      "options": {}
+    },
+    {
+      "slug": "decision-action",
+      "name": "Decision action",
+      "type": "text",
+      "required": false,
+      "position": 21,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 22,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 23,
+      "options": {}
+    },
+    {
+      "slug": "execution-status",
+      "name": "Execution status",
+      "type": "text",
+      "required": false,
+      "position": 24,
+      "options": {}
+    },
+    {
+      "slug": "execution-operation",
+      "name": "Execution operation",
+      "type": "text",
+      "required": false,
+      "position": 25,
+      "options": {}
+    },
+    {
+      "slug": "execution-target",
+      "name": "Execution target",
+      "type": "text",
+      "required": false,
+      "position": 26,
+      "options": {}
+    },
+    {
+      "slug": "execution-detail",
+      "name": "Execution detail",
+      "type": "longtext",
+      "required": false,
+      "position": 27,
+      "options": {}
+    },
+    {
+      "slug": "executed-at",
+      "name": "Executed at",
+      "type": "text",
+      "required": false,
+      "position": 28,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 29,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 30,
+      "options": {}
+    }
+  ],
+  "views": []
+}

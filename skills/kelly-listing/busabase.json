@@ -1,0 +1,29 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-listing",
+  "description": "Listing factory desk: product library, platform drafts, compliance checks, claims registry, and a review queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["ecommerce", "risk:gated-write", "industry:ecommerce", "surface:busabase"],
+  "template": {
+    "category": "ecommerce",
+    "schemaVersion": 1,
+    "airapp": "kelly-listing-app",
+    "tags": ["ecommerce", "risk:gated-write", "industry:ecommerce", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/checks.webp",
+      "assets/screenshots/claims.webp",
+      "assets/screenshots/drafts.webp",
+      "assets/screenshots/needs-review.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/products.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Products and flag what needs my attention.",
+      "Open Kelly Listing and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "name": "Sources",
+  "description": "Configured news/weather/event/competitor/trend source categories, freshness, and coverage gaps.",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "source-id",
+      "name": "Source ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "label",
+      "name": "Label",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "freshness",
+      "name": "Freshness",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "coverage",
+      "name": "Coverage",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

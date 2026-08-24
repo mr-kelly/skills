@@ -22,8 +22,12 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { normalizeProductRow, reviewExecution, reviewToFields } from "../app/app/js/products-model.js";
+import { appConfig } from "../content/kelly-products-app/app/js/config.js";
+import {
+  normalizeProductRow,
+  reviewExecution,
+  reviewToFields,
+} from "../content/kelly-products-app/app/js/products-model.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]

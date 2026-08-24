@@ -6,7 +6,7 @@
 // issueMarkdown()/csvCell()/PLATFORM_LABELS/slugify() are ported verbatim
 // (same headings, same table shape, same CSV columns, same footer) from the
 // retired scripts/export_issues.ts; only the read source changed, from a
-// persisted app/.data/contract_snapshot.json + decisions.json to Busabase's
+// persisted content/kelly-legal-contracts-app/.data/contract_snapshot.json + decisions.json to Busabase's
 // contracts/issues Bases.
 //
 // An issue is exportable only when its decision_action is a genuine
@@ -27,8 +27,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { normalizeContractRow, normalizeIssueRow } from "../app/app/js/contracts-model.js";
+import { appConfig } from "../content/kelly-legal-contracts-app/app/js/config.js";
+import {
+  normalizeContractRow,
+  normalizeIssueRow,
+} from "../content/kelly-legal-contracts-app/app/js/contracts-model.js";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 

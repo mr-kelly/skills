@@ -1,0 +1,96 @@
+{
+  "name": "联系人",
+  "description": "People, their relationship strength, and next follow-up",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "contact-id",
+      "name": "联系人 ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "姓名",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "company-id",
+      "name": "所属公司",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "role",
+      "name": "职位",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "email",
+      "name": "邮箱",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "relationship",
+      "name": "关系强度",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "tags",
+      "name": "标签",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "last-touch-at",
+      "name": "最近联系时间",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "next-followup-at",
+      "name": "下次跟进日期",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "agent-notes",
+      "name": "Agent 备注",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "channels",
+      "name": "触达渠道",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Insurance Intel",
+  "description": "Daily industry-intelligence cockpit for insurance and wealth advisory: source-backed signals, buyer-intent interpretation, approved sales/operating actions, and channel drafts (client WhatsApp / advisor email / meeting agenda) for review before any external handoff. Signals/actions/drafts enter Busabase only through the agent's own browsing-and-writing workflow (see SKILL.md); the AirApp itself is read/decision-only."
+}

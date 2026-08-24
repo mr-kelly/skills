@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Trusted hand-off step. Kelly Family Fund's AirApp is read-only (see
-// app/app/js/config.js — writeProcedures: []); this script is the only
+// content/kelly-family-fund-app/app/js/config.js — writeProcedures: []); this script is the only
 // process that ever adds ledger rows. It reads a documented ledger CSV (see
 // references/ledger-csv-template.csv), resolves beneficiary/family references
 // against Busabase (creating a new family record on the fly if the CSV names
@@ -13,7 +13,7 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-family-fund-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/import_csv.mjs <path/to/ledger.csv> [--apply]

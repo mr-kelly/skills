@@ -1,0 +1,64 @@
+{
+  "name": "Tasks",
+  "description": "Freeform human/agent review tasks (@ai notes, missing-field follow-ups)",
+  "position": 6,
+  "fields": [
+    {
+      "slug": "task-id",
+      "name": "Task ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "kind",
+      "name": "Kind",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "target-id",
+      "name": "Target ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Note",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "deleted",
+      "name": "Deleted",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}

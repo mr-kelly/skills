@@ -8,7 +8,7 @@
     "sync": "node scripts/sync_messages.mjs",
     "ingest": "node scripts/ingest_messages.mjs",
     "send": "node scripts/send_outbox.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-messenger-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

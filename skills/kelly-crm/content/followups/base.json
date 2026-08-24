@@ -1,0 +1,136 @@
+{
+  "name": "跟进队列",
+  "description": "Agent-drafted follow-ups under human review before handoff",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "followup-id",
+      "name": "跟进 ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "序号",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "contact-id",
+      "name": "联系人",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "deal-id",
+      "name": "关联交易",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "channel-id",
+      "name": "渠道 ID",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "channel-type",
+      "name": "渠道类型",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "subject",
+      "name": "主题",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "触发原因",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "risk",
+      "name": "风险标签",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "due-at",
+      "name": "截止日期",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "状态",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "suggested-reply",
+      "name": "草稿",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "decision-comment",
+      "name": "复核意见",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "决定时间",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "decided-by",
+      "name": "决定人",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "创建时间",
+      "type": "text",
+      "required": false,
+      "position": 15,
+      "options": {}
+    }
+  ],
+  "views": []
+}

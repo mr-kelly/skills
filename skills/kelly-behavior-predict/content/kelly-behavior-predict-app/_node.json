@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Behavior Predict",
+  "description": "Predictive Recommendation Analytics Desk: a deterministic mock user-behavior funnel dataset (browse -> search -> compare -> booking attempt -> complete) with a rule-based predicted-next-action heuristic, a precision/recall backtest, and a per-segment trust review"
+}

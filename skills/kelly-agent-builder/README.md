@@ -36,15 +36,15 @@ writes an `agents` record in Busabase.
   </tr>
   <tr>
     <td><strong>Agent detail / edit</strong><br>Tool checklist, quota, approval toggle, owning team, and lifecycle actions.</td>
-    <td><strong>Overview (中文)</strong><br>Full zh-CN UI parity via <code>app/app/i18n/messages.js</code>.</td>
+    <td><strong>Overview (中文)</strong><br>Full zh-CN UI parity via <code>content/kelly-agent-builder-app/app/i18n/messages.js</code>.</td>
   </tr>
 </table>
 
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-agent-builder-app install
+pnpm --dir content/kelly-agent-builder-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

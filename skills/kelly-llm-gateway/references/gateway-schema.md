@@ -2,15 +2,15 @@
 
 Use this schema when reading or writing Kelly LLM Gateway's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/gateway-model.js`). `calls_today`, `cost_today`,
+code (`content/kelly-llm-gateway-app/app/js/providers/busabase-provider.js`,
+`content/kelly-llm-gateway-app/app/js/gateway-model.js`). `calls_today`, `cost_today`,
 `error_rate_today`, `cost_baseline`, and `error_rate_baseline` are computed
 client-side from a route's own `daily` field on every read — they are never
 stored. This is a generic, brand-free dataset: no real company/product names
 for services or models, only role-based service names and generic
 provider/model labels ("Provider A / Model Large", "Internal Model v2").
 
-## Routes (`kelly-llm-gateway-routes-v1`)
+## Routes (`kelly-llm-gateway-routes`)
 
 One row per service→model route.
 
@@ -33,7 +33,7 @@ usage-API adapter) — the AirApp never creates a route record, only updates
 an existing one's rollout/ack fields, the same way `kelly-lead-funnel`'s
 leads enter through an upstream sourcing process the app doesn't control.
 
-## Services (`kelly-llm-gateway-services-v1`)
+## Services (`kelly-llm-gateway-services`)
 
 One row per consuming service routed through the shared gateway.
 
@@ -43,7 +43,7 @@ One row per consuming service routed through the shared gateway.
 | `display-name` | `display_name` | text | e.g. `Support Bot` |
 | `team` | `team` | text | owning team, e.g. `Customer Ops` |
 
-## Models (`kelly-llm-gateway-models-v1`)
+## Models (`kelly-llm-gateway-models`)
 
 One row per backing model/provider behind the gateway.
 
@@ -54,7 +54,7 @@ One row per backing model/provider behind the gateway.
 | `provider` | `provider` | text | e.g. `Provider A`, `Internal` |
 | `tier` | `tier` | text | `internal\|external` |
 
-## Settings (`kelly-llm-gateway-settings-v1`)
+## Settings (`kelly-llm-gateway-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -63,7 +63,7 @@ One row per `kind`, looked up by `record-id`:
 | `kelly-llm-gateway-config` | `config` | `{base_currency, cost_spike_threshold_pct, error_spike_threshold_pct, gateway: {region, base_url, api_key_env}}` |
 
 If no `config` row exists, the app falls back to defaults
-(`app/app/js/gateway-model.js`'s `DEFAULT_COST_SPIKE_THRESHOLD_PCT` (50),
+(`content/kelly-llm-gateway-app/app/js/gateway-model.js`'s `DEFAULT_COST_SPIKE_THRESHOLD_PCT` (50),
 `DEFAULT_ERROR_SPIKE_THRESHOLD_PCT` (100), and `base_currency: "USD"`) — the
 dashboard still functions, just without a configured gateway summary.
 `gateway.api_key_env` is informational only (the name of the env var a
@@ -89,7 +89,7 @@ calendar date across all routes' `daily` series.
 ## Anomalies (computed, never stored)
 
 `computeAnomalies(routes, costThresholdPct, errorThresholdPct)` in
-`app/app/js/gateway-model.js` flags a `cost_spike` and/or `error_spike` per
+`content/kelly-llm-gateway-app/app/js/gateway-model.js` flags a `cost_spike` and/or `error_spike` per
 route: today's `cost`/`error_rate` compared against that route's own rolling
 baseline. No randomness; re-computing from the same `daily` data always
 produces the same anomalies. Default thresholds (overridable via

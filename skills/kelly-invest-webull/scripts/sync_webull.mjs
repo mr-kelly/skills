@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Trusted hand-off step. Kelly Invest (Webull)'s AirApp is read-only (see
-// app/app/js/config.js — readOnly: true, writeProcedures: []); this script is
+// content/kelly-invest-webull-app/app/js/config.js — readOnly: true, writeProcedures: []); this script is
 // the only process that ever writes account/position rows. It reads Webull
 // holdings via the official webull-openapi-python-sdk (Node has no
 // first-party Webull SDK, so this shells out to scripts/webull_bridge.py —
 // see that file's header for why), maps them with the exact field-mapping
 // logic ported verbatim from the retired lib/data-provider/webull.ts into
-// app/app/js/webull-model.js (mapAccount/mapPosition/resolveWebullCredentials),
+// content/kelly-invest-webull-app/app/js/webull-model.js (mapAccount/mapPosition/resolveWebullCredentials),
 // and writes normalized Accounts/Positions rows plus a sanitized Settings
 // config summary to Busabase.
 //
@@ -31,8 +31,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { mapAccount, mapPosition, resolveWebullCredentials } from "../app/app/js/webull-model.js";
+import { appConfig } from "../content/kelly-invest-webull-app/app/js/config.js";
+import {
+  mapAccount,
+  mapPosition,
+  resolveWebullCredentials,
+} from "../content/kelly-invest-webull-app/app/js/webull-model.js";
 
 const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -41,7 +45,7 @@ function fail(message) {
   process.exit(1);
 }
 
-// ── Local config/env discovery, ported from the retired app/server/store.ts ──
+// ── Local config/env discovery, ported from the retired content/kelly-invest-webull-app/server/store.ts ──
 
 async function readJson(file, fallback = null) {
   try {

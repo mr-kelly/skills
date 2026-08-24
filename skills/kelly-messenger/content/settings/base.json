@@ -1,0 +1,48 @@
+{
+  "name": "Settings",
+  "description": "Reply style and sync cadence, a single settings row",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "reply-style-tone",
+      "name": "Reply style tone",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "reply-style-language",
+      "name": "Reply style language",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "sync-default-limit",
+      "name": "Sync default limit",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "sync-cadence-minutes",
+      "name": "Sync cadence minutes",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

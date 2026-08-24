@@ -1,0 +1,64 @@
+{
+  "name": "Sync Log",
+  "description": "Append-only history of ticket collection runs per account",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "sync-id",
+      "name": "Sync ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "account-id",
+      "name": "Account ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "method",
+      "name": "Method",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "at",
+      "name": "At",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "message",
+      "name": "Message",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "new-messages",
+      "name": "New messages",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}

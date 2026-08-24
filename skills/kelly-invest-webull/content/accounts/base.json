@@ -1,0 +1,64 @@
+{
+  "name": "Accounts",
+  "description": "Webull cash and margin accounts with cash, buying power, and net liquidation",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "account-id",
+      "name": "Account ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "account-type",
+      "name": "Account type",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "display-name",
+      "name": "Display name",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "currency",
+      "name": "Currency",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "net-liquidation",
+      "name": "Net liquidation",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "total-cash",
+      "name": "Total cash",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "buying-power",
+      "name": "Buying power",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}

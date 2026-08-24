@@ -1,0 +1,96 @@
+{
+  "name": "Products",
+  "description": "The product knowledge base: SKU, MOQ, price floors/ceilings, lead time, specs, and FAQ",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "product-id",
+      "name": "Product ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "sku",
+      "name": "SKU",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "moq",
+      "name": "MOQ",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "price-min",
+      "name": "Price min",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "price-max",
+      "name": "Price max",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "currency",
+      "name": "Currency",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "lead-time-days",
+      "name": "Lead time days",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "specs",
+      "name": "Specs",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "faq",
+      "name": "FAQ",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": []
+}

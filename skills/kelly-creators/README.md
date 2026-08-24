@@ -34,8 +34,8 @@ Kelly Creators is a Busabase-backed App-in-Skill command desk for influencer / c
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-creators-app install
+pnpm --dir content/kelly-creators-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

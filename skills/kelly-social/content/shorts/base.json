@@ -1,0 +1,120 @@
+{
+  "name": "Shorts",
+  "description": "Short-video scripts for Reels / Shorts / TikTok / Douyin, same five-state review model",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "short-id",
+      "name": "Short ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "channels",
+      "name": "Channels",
+      "type": "longtext",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "pillar",
+      "name": "Pillar",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "hook",
+      "name": "Hook",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "duration-s",
+      "name": "Duration (s)",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "shots",
+      "name": "Shots",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "caption",
+      "name": "Caption",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "hashtags",
+      "name": "Hashtags",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "agent-notes",
+      "name": "Agent notes",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "review-note",
+      "name": "Review note",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    }
+  ],
+  "views": []
+}

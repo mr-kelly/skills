@@ -6,7 +6,7 @@
 // resolve to a declared source), creates the linked question if it does not
 // exist yet, and flips the question to brief_needs_review/report_ready —
 // same rules as the retired local-file version, just against Busabase
-// records instead of app/.data/radar_snapshot.json.
+// records instead of content/kelly-radar-app/.data/radar_snapshot.json.
 //
 // Usage: node scripts/file_report.mjs <payload.json>
 // Payload: { "question_id": "...", "question": "... (optional, creates the question)",
@@ -17,7 +17,7 @@
 import { readFile } from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-radar-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/file_report.mjs <payload.json>
@@ -250,7 +250,7 @@ async function main() {
     actor,
   );
   await client.bases.createChangeRequest({
-    baseId: declared("sync_log").baseId,
+    baseId: declared("sync-log").baseId,
     fields: toBusabaseFields({
       log_id: `log-${Date.now().toString(36)}`,
       at: now,

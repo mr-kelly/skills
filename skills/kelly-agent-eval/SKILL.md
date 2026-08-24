@@ -6,6 +6,14 @@ metadata:
   tags:
     - risk:sandbox
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-agent-eval
+    resources:
+      - cases
+      - settings
+    risk: sandbox
+
 ---
 
 # Agent Eval & Regression Board
@@ -56,7 +64,7 @@ with a **review queue** (regressions needing a human verdict).
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-agent-eval-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -75,7 +83,7 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 ## Busabase Resources
 
 Two Bases under one application Folder (`kelly-agent-eval`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-agent-eval-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `cases`: one row per fixed mock test case — baseline/candidate transcripts,
   the four rubric scores for each, and the reviewer's decision
@@ -88,7 +96,7 @@ Resources provision lazily through an idempotent Busabase ChangeRequest the
 first time the app runs in a Space; see `references/eval-schema.md` for exact
 field shapes. `overall`/`pass`/`regression`/`improvement`/`status` are never
 stored — they are recomputed client-side from the raw rubric scores on every
-read (`app/app/js/eval-model.js`), so the board is always fresh regardless of
+read (`content/kelly-agent-eval-app/app/js/eval-model.js`), so the board is always fresh regardless of
 when a browser session loads it.
 
 ## First Run And Onboarding
@@ -108,7 +116,7 @@ defaults apply if omitted).
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-agent-eval-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -159,7 +167,7 @@ UI language: supports English and Chinese chrome with `Auto` default.
    release policy blocks an "approve" while a regression is still "blocking".
 
 Read `references/eval-schema.md` before editing the app, scripts, or
-`app/app/js/eval-model.js`.
+`content/kelly-agent-eval-app/app/js/eval-model.js`.
 
 ## Safety
 
@@ -167,7 +175,7 @@ Read `references/eval-schema.md` before editing the app, scripts, or
   verdict to the user; call them out as rubric-based mock scoring.
 - Refuse to export a release report while a regression has no decision.
 - Do not invent scores outside the fixed suite; if the user wants a different
-  case, add it to `app/app/js/eval-model.js`'s `RAW_CASES` and regenerate the
+  case, add it to `content/kelly-agent-eval-app/app/js/eval-model.js`'s `RAW_CASES` and regenerate the
   run.
 
 ## Useful Commands
@@ -175,5 +183,5 @@ Read `references/eval-schema.md` before editing the app, scripts, or
 ```bash
 node skills/kelly-agent-eval/scripts/generate_eval_run.mjs --apply
 node skills/kelly-agent-eval/scripts/export_release_report.mjs --apply
-pnpm --dir skills/kelly-agent-eval/app dev
+pnpm --dir skills/kelly-agent-eval/content/kelly-agent-eval-app dev
 ```

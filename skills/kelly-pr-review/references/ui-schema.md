@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly PR Review's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/pr-review-model.js`). Workflow-status bucketing, decision-status
+code (`content/kelly-pr-review-app/app/js/providers/busabase-provider.js`,
+`content/kelly-pr-review-app/app/js/pr-review-model.js`). Workflow-status bucketing, decision-status
 mapping, and the review-ref numbering are computed client-side from the
 `reviews` Base on every read — they are never stored.
 
@@ -16,7 +16,7 @@ Workflow statuses: `needs_review`, `to_approve`, `approved`, `done`, `blocked`, 
 
 Decision actions: `approve`, `comment`, `request_changes`, `no_action`, `needs_review`, `block`.
 
-## Reviews (`kelly-pr-review-reviews-v1`)
+## Reviews (`kelly-pr-review-reviews`)
 
 The review-queue rows — every pull request gathered by
 `scripts/generate_review_batch.mjs`.
@@ -68,7 +68,7 @@ The review-queue rows — every pull request gathered by
   `test-evidence` — those persist across regeneration exactly like the
   retired local-file provider's separate `tested.json` cache did.
 
-## Settings (`kelly-pr-review-settings-v1`)
+## Settings (`kelly-pr-review-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -95,7 +95,7 @@ its review state.
 
 `needs_review`, `to_approve`, `approved` (excludes anything already
 `execution-status: executed`), `done`, `blocked`, `needs_test`, `tested`. See
-`countByWorkflow()` in `app/app/js/pr-review-model.js`.
+`countByWorkflow()` in `content/kelly-pr-review-app/app/js/pr-review-model.js`.
 
 ## Ingestion (`scripts/generate_review_batch.mjs`)
 

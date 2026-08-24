@@ -4,7 +4,7 @@ import path from "node:path";
 import { createBusabaseClient } from "busabase-sdk";
 
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../../app/app/js/config.js";
+import { appConfig } from "../../content/kelly-portrait-retouch-app/app/js/config.js";
 
 export function clientFromEnv() {
   const baseUrl = process.env.BUSABASE_BASE_URL;

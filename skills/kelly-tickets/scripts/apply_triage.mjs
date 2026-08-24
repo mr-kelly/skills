@@ -5,13 +5,13 @@
 // intake, computes SLA targets from the Settings row's sla_rules, assigns
 // stable dispatch-proposal refs, appends ticket history, and applies
 // crew/board updates from ticket_updates[]. sla_state and crew open-ticket
-// load are never written — app/app/js/tickets-model.js's buildSnapshot()
+// load are never written — content/kelly-tickets-app/app/js/tickets-model.js's buildSnapshot()
 // computes both fresh on every read, exactly like busabase-provider.js does
 // for the AirApp.
 //
 // The validation/id-generation/SLA logic below is ported verbatim from the
 // retired scripts/apply_triage.ts; only the write target changed, from a
-// persisted app/.data/tickets_snapshot.json to Busabase's intake/tickets/
+// persisted content/kelly-tickets-app/.data/tickets_snapshot.json to Busabase's intake/tickets/
 // proposals/sync_log Bases.
 //
 // Usage: node scripts/apply_triage.mjs <payload.json> [--apply]
@@ -23,8 +23,8 @@ import crypto from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { slaHoursFor } from "../app/app/js/tickets-model.js";
+import { appConfig } from "../content/kelly-tickets-app/app/js/config.js";
+import { slaHoursFor } from "../content/kelly-tickets-app/app/js/tickets-model.js";
 
 const URGENCIES = new Set(["urgent", "high", "normal", "low"]);
 const TICKET_STATUSES = new Set(["open", "assigned", "in_progress", "waiting", "resolved"]);
@@ -415,7 +415,7 @@ async function main() {
   const logId = `log-${now.replace(/[-:TZ.]/g, "").slice(0, 14)}-triage`;
   await createRow(
     client,
-    declared("sync_log"),
+    declared("sync-log"),
     {
       log_id: logId,
       at: now,

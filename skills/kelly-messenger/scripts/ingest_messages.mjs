@@ -10,7 +10,7 @@
 // Ported from the retired scripts/ingest_messages.ts: same validation rules,
 // same conversation_id derivation, same message dedup-by-message_id
 // semantics — only the storage target changed, from
-// app/.data/messages_snapshot.json to Busabase records. The retired script
+// content/kelly-messenger-app/.data/messages_snapshot.json to Busabase records. The retired script
 // required the account to already exist in config.accounts[]; since there is
 // no local config file anymore, this script's optional `payload.account`
 // field now plays that role (upserted into the accounts Base first), mirroring
@@ -23,7 +23,7 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-messenger-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_messages.mjs <payload.json> [more-payloads.json...] [--apply]
@@ -292,7 +292,7 @@ async function main() {
     );
     await upsertRow(
       client,
-      declared("sync_log"),
+      declared("sync-log"),
       null,
       "sync-id",
       `ingest-${account.account_id}-${Date.now()}`,

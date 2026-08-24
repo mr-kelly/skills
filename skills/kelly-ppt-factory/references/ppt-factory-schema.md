@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly PPT Factory's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`, `app/app/js/ppt-model.js`).
+code (`content/kelly-ppt-factory-app/app/js/providers/busabase-provider.js`, `content/kelly-ppt-factory-app/app/js/ppt-model.js`).
 Metrics, the review queue, activity log, and warnings are computed
 client-side from the rows below on every read — they are never stored.
 
@@ -11,7 +11,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`,
 
 Decision actions: `approve`, `request_changes`, `block`, `revise`.
 
-## Projects (`kelly-ppt-factory-projects-v1`)
+## Projects (`kelly-ppt-factory-projects`)
 
 A client / use-case / theme batch, e.g. Demo Studio / Pitch Deck / Seed Round.
 
@@ -30,7 +30,7 @@ A client / use-case / theme batch, e.g. Demo Studio / Pitch Deck / Seed Round.
 | `due-at` | `due_at` | text | ISO date |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Decks (`kelly-ppt-factory-decks-v1`)
+## Decks (`kelly-ppt-factory-decks`)
 
 One PPTX deliverable under a project. The review-queue decision lives on the
 same row: a deck with a non-empty `review-summary` is in the review queue,
@@ -66,7 +66,7 @@ reviewer's verdict.
 | `execution-detail` | `execution_detail` | longtext | |
 | `executed-at` | `executed_at` | text | |
 
-## Slide Cards (`kelly-ppt-factory-slide-cards-v1`)
+## Slide Cards (`kelly-ppt-factory-slideCards`)
 
 The storyboard unit for one PPTX page. `content-*` fields mirror the retired
 `SlideContent` shape; the review-queue decision lives on the same row, same
@@ -107,7 +107,7 @@ as decks.
 | `execution-detail` | `execution_detail` | longtext | |
 | `executed-at` | `executed_at` | text | |
 
-## Style Systems (`kelly-ppt-factory-style-systems-v1`)
+## Style Systems (`kelly-ppt-factory-styleSystems`)
 
 Reusable presentation style kits.
 
@@ -124,9 +124,9 @@ Reusable presentation style kits.
 | `component-library` | `component_library` | longtext | JSON array, e.g. `["title rail","metric callout"]` |
 
 If no style system rows exist, the app falls back to
-`app/app/js/ppt-model.js`'s `defaultStyleSystem()`.
+`content/kelly-ppt-factory-app/app/js/ppt-model.js`'s `defaultStyleSystem()`.
 
-## QA Checks (`kelly-ppt-factory-qa-checks-v1`)
+## QA Checks (`kelly-ppt-factory-qaChecks`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -138,7 +138,7 @@ If no style system rows exist, the app falls back to
 | `evidence` | `evidence` | longtext | |
 | `checked-at` | `checked_at` | text | ISO timestamp |
 
-## Exports (`kelly-ppt-factory-exports-v1`)
+## Exports (`kelly-ppt-factory-exports`)
 
 Generated PPTX output records — created/updated by
 `scripts/generate_pptx.mjs`.
@@ -153,7 +153,7 @@ Generated PPTX output records — created/updated by
 | `generated-at` | `generated_at` | text | ISO timestamp |
 | `qa-summary` | `qa_summary` | longtext | |
 
-## Settings (`kelly-ppt-factory-settings-v1`)
+## Settings (`kelly-ppt-factory-settings`)
 
 One row, looked up by `record-id: "config"`:
 
@@ -164,19 +164,19 @@ One row, looked up by `record-id: "config"`:
 | `brand-name` | `brand_name` | text | |
 | `brand-audience` | `brand_audience` | text | |
 | `brand-language-mode` | `brand_language_mode` | text | e.g. `presentation` |
-| `brand-style-system-id` | `brand_style_system_id` | text | which `styleSystems` row is the default |
+| `brand-style-system-id` | `brand_style_system_id` | text | which `style-systems` row is the default |
 | `export-out-dir` | `export_out_dir` | text | default `exports` |
 | `export-render-dir` | `export_render_dir` | text | default `exports/rendered` |
 | `export-pptx-template` | `export_pptx_template` | text | optional template path |
 | `export-require-render-qa` | `export_require_render_qa` | text | `"true"\|"false"` (Busabase has no boolean field type) |
 
 If no settings row exists, the app falls back to
-`app/app/js/ppt-model.js`'s `buildConfigSummary()` defaults.
+`content/kelly-ppt-factory-app/app/js/ppt-model.js`'s `buildConfigSummary()` defaults.
 
 ## Review Queue (computed, never stored)
 
 A deck or slide card is "in the review queue" when its own `review-summary`
-is non-empty (`deriveReviewItems()` in `app/app/js/ppt-model.js`). The
+is non-empty (`deriveReviewItems()` in `content/kelly-ppt-factory-app/app/js/ppt-model.js`). The
 reviewer's verdict writes `status`, `decision-action`, `decision-note`, and
 `decided-at` directly onto that same row — there is no separate
 `review_items`/`decisions.json` bucket, since Busabase reads are always
@@ -191,7 +191,7 @@ live.
 - `activity_log`: derived from each decided deck's/slide's own
   `decided-at`/`decision-action`/`decision-note`, newest first
   (`deriveActivityLog()`).
-- `warnings`: derived from `qaChecks` rows with `result: "warn"` or
+- `warnings`: derived from `qa-checks` rows with `result: "warn"` or
   `"fail"` (`deriveWarnings()`).
 
 ## Execution (`scripts/execute_decisions.mjs`)

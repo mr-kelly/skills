@@ -4,14 +4,14 @@
 // (BUSABASE_BASE_URL / BUSABASE_API_KEY / BUSABASE_SPACE_ID) — never the
 // AirApp's ambient session. Mirrors Kelly MV's scripts/lib/mv-busabase.mjs
 // (this skill's closest architectural twin) one-for-one: import appConfig +
-// inspectProvisionedResources straight from app/app/js/ (pure ESM, no
+// inspectProvisionedResources straight from content/kelly-drama-app/app/js/ (pure ESM, no
 // `window` global, safe in Node), construct the client via busabase-sdk's
 // own createBusabaseClient.
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../../app/app/js/config.js";
+import { appConfig } from "../../content/kelly-drama-app/app/js/config.js";
 
 export function clientFromEnv() {
   const baseUrl = process.env.BUSABASE_BASE_URL;

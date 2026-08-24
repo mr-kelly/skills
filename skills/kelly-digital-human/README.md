@@ -29,7 +29,7 @@ This is a Busabase Cloud App-in-Skill. The AirApp is the canonical surface; a
 local preview is available for explicit debugging:
 
 ```bash
-pnpm --dir skills/kelly-digital-human/app dev
+pnpm --dir skills/kelly-digital-human/content/kelly-digital-human-app dev
 ```
 
 Views: overview, QA review queue, studio, vendors, and settings. `?demo=1`

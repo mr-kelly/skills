@@ -1,0 +1,80 @@
+{
+  "name": "Trend Movers",
+  "description": "Rising keyword/topic demand signals: search queries, community topic volume, category interest",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "mover-id",
+      "name": "Mover ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "keyword",
+      "name": "Keyword",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "source",
+      "name": "Source",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "volume-proxy",
+      "name": "Volume proxy",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "delta-pct",
+      "name": "Delta pct",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "momentum",
+      "name": "Momentum",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "first-seen",
+      "name": "First seen",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "last-updated",
+      "name": "Last updated",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "opportunity-id",
+      "name": "Opportunity ID",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

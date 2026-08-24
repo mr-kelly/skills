@@ -146,7 +146,7 @@ async function skillAccentFor(file) {
   const skill = skillNameFor(file);
   if (!skill) return DEFAULT_ACCENT;
 
-  const cssPath = path.join(ROOT, "skills", skill, "app", "styles.css");
+  const cssPath = path.join(ROOT, "skills", skill, "content", `${skill}-app`, "app", "styles.css");
   const css = await readFile(cssPath, "utf8").catch(() => "");
   const accent = css.match(/--accent:\s*(#[0-9a-f]{3,8})\s*;/i)?.[1];
   return normalizeHexColor(accent) || DEFAULT_ACCENT;

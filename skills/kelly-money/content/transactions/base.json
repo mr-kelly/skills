@@ -1,0 +1,152 @@
+{
+  "name": "Transactions",
+  "description": "Normalized ledger entries across providers",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "transaction-id",
+      "name": "Transaction ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "provider",
+      "name": "Provider",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "account-id",
+      "name": "Account ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "provider-account-id",
+      "name": "Provider account ID",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "provider-transaction-id",
+      "name": "Provider transaction ID",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "occurred-at",
+      "name": "Occurred at",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "available-at",
+      "name": "Available at",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "description",
+      "name": "Description",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "counterparty",
+      "name": "Counterparty",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "currency",
+      "name": "Currency",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "gross",
+      "name": "Gross",
+      "type": "number",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "fee",
+      "name": "Fee",
+      "type": "number",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "net",
+      "name": "Net",
+      "type": "number",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "direction",
+      "name": "Direction",
+      "type": "text",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "source-url",
+      "name": "Source URL",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "tags",
+      "name": "Tags",
+      "type": "text",
+      "required": false,
+      "position": 17,
+      "options": {}
+    }
+  ],
+  "views": []
+}

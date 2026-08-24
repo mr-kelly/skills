@@ -23,8 +23,16 @@
     ],
     "vaultNamespace": "kelly-email",
     "secrets": [
-      { "key": "KELLY_EMAIL_IMAP_PASSWORD_PRIMARY", "description": "IMAP password for the primary mailbox", "required": true },
-      { "key": "KELLY_EMAIL_SMTP_PASSWORD_PRIMARY", "description": "SMTP password for the primary mailbox", "required": false }
+      {
+        "key": "KELLY_EMAIL_IMAP_PASSWORD_PRIMARY",
+        "description": "IMAP password for the primary mailbox",
+        "required": true
+      },
+      {
+        "key": "KELLY_EMAIL_SMTP_PASSWORD_PRIMARY",
+        "description": "SMTP password for the primary mailbox",
+        "required": false
+      }
     ],
     "requires": { "airapp": true }
   }

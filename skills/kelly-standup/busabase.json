@@ -1,0 +1,28 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-standup",
+  "description": "Team standup board: check-ins, blockers, and missing-check-in reminders",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["comms", "risk:local-write", "surface:busabase"],
+  "template": {
+    "category": "comms",
+    "schemaVersion": 1,
+    "airapp": "kelly-standup-app",
+    "tags": ["comms", "risk:local-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/blockers.webp",
+      "assets/screenshots/history.webp",
+      "assets/screenshots/members.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/reminders.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Members and flag what needs my attention.",
+      "Open Kelly Standup and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

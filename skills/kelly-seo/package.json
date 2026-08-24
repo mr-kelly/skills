@@ -7,7 +7,7 @@
   "scripts": {
     "sync": "node scripts/sync_gsc.mjs",
     "execute": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-seo-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

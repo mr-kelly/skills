@@ -1,0 +1,29 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-legal-casebase-ingest",
+  "description": "Casebase intake and anonymization QA desk for law-firm judgment and arbitral award documents: agent-prepared case records, canonical case-library groupings, deterministic QA checks, and a review queue (approve / request changes / revise / block) before a record becomes a searchable knowledge asset",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["legal", "risk:local-write", "industry:legal", "surface:busabase"],
+  "template": {
+    "category": "legal",
+    "schemaVersion": 1,
+    "airapp": "kelly-legal-casebase-ingest-app",
+    "tags": ["legal", "risk:local-write", "industry:legal", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/checks.webp",
+      "assets/screenshots/entities.webp",
+      "assets/screenshots/mobile-detail.webp",
+      "assets/screenshots/needs-review.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/workbench.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Case Records and flag what needs my attention.",
+      "Open Legal Casebase Ingest and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

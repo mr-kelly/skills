@@ -1,0 +1,48 @@
+{
+  "name": "Settings",
+  "description": "Thresholds for expiry warnings, degraded latency, and spend anomaly detection, a single settings row",
+  "position": 6,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "expiry-warning-days",
+      "name": "Expiry warning days",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "expiry-critical-days",
+      "name": "Expiry critical days",
+      "type": "number",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "degraded-latency-ms",
+      "name": "Degraded latency ms",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "spend-anomaly-pct",
+      "name": "Spend anomaly pct",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

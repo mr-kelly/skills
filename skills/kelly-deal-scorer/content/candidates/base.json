@@ -1,0 +1,96 @@
+{
+  "name": "Candidates",
+  "description": "One row per candidate business — raw underwriting fields (category, city, requested principal, monthly revenue history, red flags) plus the reviewer's decision, written directly onto the same row. The composite score breakdown is never stored; it is recomputed client-side from these raw fields on every read",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "candidate-id",
+      "name": "Candidate ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "business-name",
+      "name": "Business name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "city",
+      "name": "City",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "requested-principal",
+      "name": "Requested principal",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "monthly-revenue",
+      "name": "Monthly revenue (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "red-flags",
+      "name": "Red flags (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "decision-action",
+      "name": "Decision action",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "decision-comment",
+      "name": "Decision comment",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": []
+}

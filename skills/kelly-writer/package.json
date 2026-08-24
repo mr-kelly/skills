@@ -7,7 +7,7 @@
   "scripts": {
     "generate": "node scripts/generate_batch.mjs",
     "export": "node scripts/export_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-writer-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

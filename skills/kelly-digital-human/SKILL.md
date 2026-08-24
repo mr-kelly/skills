@@ -6,6 +6,13 @@ metadata:
   tags:
     - risk:local-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-digital-human
+    resources:
+      - qa-decisions
+    risk: local-write
+
 ---
 
 # Kelly Digital Human
@@ -70,7 +77,7 @@ Operating model:
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-digital-human-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -111,7 +118,7 @@ exact missing dependency. Do not invent a second data backend.
      "语音驱动", or "客服/讲解员" is the priority.
    - choose **3D** when "专属形象", "品牌 IP", "动作自由度", "UE", "Unity",
      "舞台", "互动", or "长期资产" is the priority.
-3. Open the AirApp (or `pnpm --dir app dev` for local preview) and use demo
+3. Open the AirApp (or `pnpm --dir content/kelly-digital-human-app dev` for local preview) and use demo
    mode (`?demo=1`) to show the concept before any vendor contract or engine
    work.
 4. Draft the persona bible: appearance, voice, tone, forbidden claims,
@@ -151,7 +158,7 @@ exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 One Base under one application Folder (`kelly-digital-human`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-digital-human-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `qa-decisions`: one row per launch-QA-check decision, keyed by the curated
   check id (`lip-sync`, `latency`, `ai-disclosure`, `voice-consent`,
@@ -159,7 +166,7 @@ One Base under one application Folder (`kelly-digital-human`), declared in
   human has decided on that check. The project overview, personas, pipeline
   routes, vendor comparison, and the QA checklist's own labels/owners/evidence
   are curated reference content ported into
-  `app/app/js/digital-human-model.js` -- they are not stored in Busabase
+  `content/kelly-digital-human-app/app/js/digital-human-model.js` -- they are not stored in Busabase
   because nothing in the retired local app ever made them editable.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
@@ -190,15 +197,15 @@ first time the app runs in a Space.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-digital-human-app dev` only when local preview/debugging is explicitly
 requested.
 
 ## Completion Criteria
 
 Finish only when:
 
-- the skill contains the complete canonical `app/` project and
-  `pnpm --dir app dev` remains supported;
+- the skill contains the complete canonical `content/kelly-digital-human-app/` project and
+  `pnpm --dir content/kelly-digital-human-app dev` remains supported;
 - all persistent state uses `busabase-sdk` and the declared resource map — no
   local JSON, browser storage, or provider choice;
 - Vault values and API credentials never reach browser-visible surfaces;
@@ -206,7 +213,7 @@ Finish only when:
   while a deployed AirApp uses its ambient session;
 - Overview, QA review, Studio, Vendors, and Help & Settings render on desktop
   and phone widths;
-- `pnpm --dir app run check` and `node --test` pass.
+- `pnpm --dir content/kelly-digital-human-app run check` and `node --test` pass.
 
 ## Stop Conditions
 

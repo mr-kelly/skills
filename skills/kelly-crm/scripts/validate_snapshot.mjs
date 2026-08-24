@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Structural sanity check for a Kelly CRM snapshot object (the shape
-// app/app/js/crm-model.js#buildSnapshot() returns). Useful before writing
+// content/kelly-crm-app/app/js/crm-model.js#buildSnapshot() returns). Useful before writing
 // drafted records to Busabase. Usage:
 //   node scripts/validate_snapshot.mjs path/to/snapshot.json
 import fs from "node:fs/promises";

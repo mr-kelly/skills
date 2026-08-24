@@ -6,7 +6,7 @@
   "description": "Kelly Restaurant Intel Busabase Cloud skill and the trusted decision-execution script.",
   "scripts": {
     "execute-decisions": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-restaurant-intel-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

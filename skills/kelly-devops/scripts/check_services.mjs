@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 // and read TLS certificate expiry via node:tls — the AirApp browser cannot do
 // this (no outbound network probes). probeHttp/probeTls/uptimeFrom are
 // ported verbatim from the retired scripts/check_services.ts; only the write
-// target changed, from app/.data/ops_snapshot.json to Busabase's
+// target changed, from content/kelly-devops-app/.data/ops_snapshot.json to Busabase's
 // services/expiries/events Bases.
 //
 // The service (and key-rotation) roster used to live in config.local.json;
@@ -29,7 +29,7 @@ import { readFile } from "node:fs/promises";
 import tls from "node:tls";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-devops-app/app/js/config.js";
 
 const HISTORY_CAP = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;

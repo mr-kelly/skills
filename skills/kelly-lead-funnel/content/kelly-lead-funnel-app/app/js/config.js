@@ -1,0 +1,60 @@
+export const appConfig = {
+  appId: "kelly-lead-funnel",
+  appName: "Kelly Lead Funnel",
+  deployment: "cloud",
+  locale: "auto",
+  readOnly: false,
+  spaceId: "",
+  schemaVersion: 1,
+  folder: {
+    name: "Kelly Lead Funnel",
+    description:
+      "Deal sourcing pipeline for a BD/sourcing team triaging merchant and business financing leads: a kanban board across new/data-verified/scored/term-sheet-ready/rejected stages with deterministic rule-based lead scoring, notes, and stage history — never outreach, term sheets, or money movement",
+    slug: "kelly-lead-funnel",
+  },
+  airApp: { name: "Kelly Lead Funnel", slug: "kelly-lead-funnel-app", resourceKey: "kelly-lead-funnel-app" },
+  bases: [
+    {
+      key: "leads",
+      name: "Leads",
+      slug: "kelly-lead-funnel-leads",
+      description:
+        "One row per merchant/business lead: brand, category, city, store count, est. monthly revenue, lead source, data verifiability, funnel stage, rejection reason, notes (JSON array), and stage history (JSON array). Score/score_breakdown/suggested_action are never stored — they are pure/derived from these fields plus the fund's scoring_criteria and recomputed on every read. Stage moves, rejections, and notes are written directly by the human sourcing-team operator in the kanban board — this is a direct-manipulation control panel, not a review/approval queue",
+      readLimit: 100,
+      fields: [
+        { slug: "lead-id", name: "Lead ID", type: "text", required: true },
+        { slug: "brand-name", name: "Brand name", type: "text", required: true },
+        { slug: "category", name: "Category", type: "text", required: false },
+        { slug: "city", name: "City", type: "text", required: false },
+        { slug: "store-count", name: "Store count", type: "number", required: false },
+        { slug: "est-monthly-revenue", name: "Est. monthly revenue", type: "number", required: false },
+        { slug: "lead-source", name: "Lead source", type: "text", required: false },
+        { slug: "data-verifiable", name: "Data verifiable", type: "text", required: false },
+        { slug: "stage", name: "Stage", type: "text", required: false },
+        { slug: "rejection-reason", name: "Rejection reason", type: "longtext", required: false },
+        { slug: "notes", name: "Notes (JSON array)", type: "longtext", required: false },
+        { slug: "stage-history", name: "Stage history (JSON array)", type: "longtext", required: false },
+        { slug: "created-at", name: "Created at", type: "text", required: false },
+        { slug: "updated-at", name: "Updated at", type: "text", required: false },
+      ],
+    },
+    {
+      key: "settings",
+      name: "Settings",
+      slug: "kelly-lead-funnel-settings",
+      description: "Sanitized fund profile and scoring-criteria config (no secrets), one row keyed by kind",
+      readLimit: 20,
+      fields: [
+        { slug: "record-id", name: "Record ID", type: "text", required: true },
+        { slug: "kind", name: "Kind", type: "text", required: true },
+        { slug: "payload", name: "Payload (JSON object)", type: "longtext", required: false },
+        { slug: "updated-at", name: "Updated at", type: "text", required: false },
+      ],
+    },
+  ],
+  permissions: {
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
+    writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
+  },
+};

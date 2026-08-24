@@ -2,10 +2,10 @@
 
 Use this schema when reading or writing Kelly Legal Contracts's Busabase
 Bases. Field slugs are kebab-case in Busabase and normalized to snake_case in
-app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/contracts-model.js`). Risk checks, per-issue risk scores,
+app code (`content/kelly-legal-contracts-app/app/js/providers/busabase-provider.js`,
+`content/kelly-legal-contracts-app/app/js/contracts-model.js`). Risk checks, per-issue risk scores,
 review-item content, the recent-activity feed, and metrics are all computed
-client-side from the `contracts`/`issues`/`checks`/`claims`/`claim_rules`/
+client-side from the `contracts`/`issues`/`checks`/`claims`/`claim-rules`/
 `settings` Bases on every read (`buildSnapshot`/`assembleSnapshot` in
 `contracts-model.js`) — the only persisted state is what lives directly on
 those six Bases.
@@ -23,7 +23,7 @@ display as NDA/MSA/DPA/SOW respectively.
 
 Check results: `pass`, `warn`, `fail`.
 
-## Contracts (`kelly-legal-contracts-contracts-v1`)
+## Contracts (`kelly-legal-contracts-contracts`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -43,7 +43,7 @@ Check results: `pass`, `warn`, `fail`.
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Issues (`kelly-legal-contracts-issues-v1`)
+## Issues (`kelly-legal-contracts-issues`)
 
 An issue record is both the clause issue and its review-queue item — there
 is no separate review-item or decisions Base. `scripts/ingest_contracts.mjs`
@@ -95,7 +95,7 @@ populated for a given issue:
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Checks (`kelly-legal-contracts-checks-v1`)
+## Checks (`kelly-legal-contracts-checks`)
 
 One row per issue × risk rule, keyed by `check-id = chk-<issue without
 "d-" prefix>-<rule-id>`. `scripts/run_checks.mjs` upserts every row.
@@ -112,7 +112,7 @@ One row per issue × risk rule, keyed by `check-id = chk-<issue without
 | `ref-claims` | `ref_claims` | longtext | JSON array of `claims.claim-id` referenced by `claims_registry` |
 | `checked-at` | `checked_at` | text | ISO timestamp |
 
-## Claims (`kelly-legal-contracts-claims-v1`)
+## Claims (`kelly-legal-contracts-claims`)
 
 Approved fallback clauses or rejected positions, referenced by the
 `claims_registry` check.
@@ -131,7 +131,7 @@ Approved fallback clauses or rejected positions, referenced by the
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Claim Rules (`kelly-legal-contracts-claim-rules-v1`)
+## Claim Rules (`kelly-legal-contracts-claim-rules`)
 
 Hard-stop / restricted-phrase rules, referenced by the `claims_registry`
 check.
@@ -146,7 +146,7 @@ check.
 | `alternative` | `alternative` | longtext | suggested fallback language |
 | `created-at` | `created_at` | text | ISO timestamp |
 
-## Settings (`kelly-legal-contracts-settings-v1`)
+## Settings (`kelly-legal-contracts-settings`)
 
 A single row, `record-id: "config"`:
 
@@ -171,7 +171,7 @@ A single row, `record-id: "config"`:
 
 Evaluated by `evaluateIssue()` in `contracts-model.js` (same logic in the
 AirApp's demo provider and `scripts/run_checks.mjs`), ported verbatim from
-the retired `app/server/rules.ts`:
+the retired `content/kelly-legal-contracts-app/server/rules.ts`:
 
 - `required_fields` — every field in the workstream's `default_required` list (or `platforms[].rules.required_fields` override) must be present.
 - `title_length` — the issue title must not exceed the workstream's character cap (`platforms[].rules.title_max_chars`, default per workstream).
@@ -184,7 +184,7 @@ the retired `app/server/rules.ts`:
 - `all_caps_words` — flags ASCII all-caps words of 3+ letters not in `allowed-all-caps` (or the built-in default list).
 - `keyword_stuffing` — flags a contract watch term (`contracts.keywords`) repeated beyond `keyword-stuffing-max-repeats` in the visible field corpus.
 - `image_checklist` — every entry in the contract's `images` (required-document checklist) must be `ready`.
-- `claims_registry` — flags a `claim_rules` hard-stop/restricted phrase, or a non-approved (`pending`/`rejected`) `claims` position, referenced in the field corpus; empty playbook passes trivially.
+- `claims_registry` — flags a `claim-rules` hard-stop/restricted phrase, or a non-approved (`pending`/`rejected`) `claims` position, referenced in the field corpus; empty playbook passes trivially.
 
 ## Decisions
 

@@ -29,22 +29,22 @@ export function busabaseMeta({ envPrefix = "KELLY_INSURE_DATA" } = {}) {
   const noticesBaseId = String(
     env(envPrefix, "BUSABASE_NOTICES_BASE_ID") || env(envPrefix, "BUSABASE_NEWS_BASE_ID") || "",
   );
-  const noticesBaseSlug = "insurance-news";
+  const noticesBaseSlug = "kelly-insure-data-notices";
   return {
     baseUrl: cleanUrl(env(envPrefix, "BUSABASE_URL") || process.env.BUSABASE_BASE_URL || ""),
     spaceId: String(env(envPrefix, "BUSABASE_SPACE_ID") || process.env.BUSABASE_SPACE_ID || ""),
     driveNodeId: String(env(envPrefix, "BUSABASE_DRIVE_NODE_ID") || ""),
-    driveNodeSlug: "hk-insurance-drive",
+    driveNodeSlug: "kelly-insure-data-files",
     featuredBaseId: String(env(envPrefix, "BUSABASE_FEATURED_BASE_ID") || ""),
-    featuredBaseSlug: "featured-information",
+    featuredBaseSlug: "kelly-insure-data-featured",
     noticesBaseId,
     noticesBaseSlug,
     newsBaseId: noticesBaseId,
     newsBaseSlug: noticesBaseSlug,
     qaBaseId: String(env(envPrefix, "BUSABASE_QA_BASE_ID") || ""),
-    qaBaseSlug: "insurance-qa",
+    qaBaseSlug: "kelly-insure-data-qa",
     feedbackBaseId: String(env(envPrefix, "BUSABASE_FEEDBACK_BASE_ID") || ""),
-    feedbackBaseSlug: "user-feedback",
+    feedbackBaseSlug: "kelly-insure-data-feedback",
     apiKey: process.env[apiKeyEnv] || process.env.BUSABASE_API_KEY || "",
   };
 }

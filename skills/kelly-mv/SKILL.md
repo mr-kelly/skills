@@ -7,6 +7,16 @@ metadata:
     - risk:local-write
     - surface:busabase
     - surface:moonrouter
+  busabase:
+    template: true
+    folderSlug: kelly-mv
+    resources:
+      - project
+      - settings
+      - cast
+      - shots
+    risk: local-write
+
 ---
 
 # Kelly MV
@@ -40,11 +50,11 @@ An MV here is **pure picture — no voiceover, no dialogue, no on-screen lyrics*
 
 The app has exactly four areas: **概括 (Concept)**, **Song**, **角色 (Cast)**, **分镜 (Storyboard)**. Keep it that simple — don't reintroduce song sections, timeline tiling, or large per-shot production sheets.
 
-Default to the AirApp for ongoing creative work — give the user the clickable AirApp URL, or run `pnpm --dir app dev` for a local preview. Use chat-only mode only when the user explicitly asks for "chat only", "no UI", "纯聊天", or similar.
+Default to the AirApp for ongoing creative work — give the user the clickable AirApp URL, or run `pnpm --dir content/kelly-mv-app dev` for a local preview. Use chat-only mode only when the user explicitly asks for "chat only", "no UI", "纯聊天", or similar.
 
 ## Default Flow
 
-1. Open the AirApp (or `pnpm --dir app dev` for local preview, which asks you to connect Busabase and select a Space — never an API key).
+1. Open the AirApp (or `pnpm --dir content/kelly-mv-app dev` for local preview, which asks you to connect Busabase and select a Space — never an API key).
 2. On first run the workspace is empty; provision it from the app's setup screen, then seed the bundled starter (a 静夜思 sample MV) with `node scripts/create_sample_project.mjs --apply`, or start from scratch.
 3. Use the app, following the sidebar **下一步 (next step)**:
    - **概括 (Concept)**: one-line summary of what the MV is and its tonality, a one-line visual `look`, and aspect ratio. That's it.
@@ -79,8 +89,8 @@ Caveat: cloning a *singing* voice needs a singing reference clip; a spoken sampl
 
 ## Busabase Resources
 
-One Folder (`kelly-mv`), four Bases, declared in `app/app/js/config.js` and
-`app/resource-map.json`:
+One Folder (`kelly-mv`), four Bases, declared in `content/kelly-mv-app/app/js/config.js` and
+the generated template sidecars under `content/`:
 
 - `project`: single-row MV project meta — song title/artist/asset-id/duration/source and the concept (`treatment_summary`/`treatment_look`/`treatment_aspect_ratio`).
 - `settings`: one row (`record-id: "config"`) with the image-generation backend (base URL/model/size — the API key itself is an env var, never stored) and the song/video generation backend names.
@@ -107,7 +117,7 @@ is no destructive record delete in the write surface.
 ## Useful Commands
 
 ```bash
-pnpm --dir skills/kelly-mv/app dev
+pnpm --dir skills/kelly-mv/content/kelly-mv-app dev
 node skills/kelly-mv/scripts/create_sample_project.mjs --apply
 node skills/kelly-mv/scripts/validate_shot_readiness.mjs
 node skills/kelly-mv/scripts/export_story_bible.mjs

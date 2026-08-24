@@ -2,10 +2,10 @@
 
 Use this schema when reading or writing Kelly Drama's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`). Completeness, attention
+(`content/kelly-drama-app/app/js/providers/busabase-provider.js`). Completeness, attention
 counts, and shot readiness are computed client-side from
 `project`/`characters`/`relationships`/`episodes`/`shots`/`tasks` on every
-read (`app/app/js/drama-model.js`) — they are never stored.
+read (`content/kelly-drama-app/app/js/drama-model.js`) — they are never stored.
 
 One workspace = exactly one drama project (series bible + characters +
 relationships + episodes + storyboard shots + review tasks). The retired
@@ -42,7 +42,7 @@ standalone CLI every converted skill's integration test targets:
 route 404s ("Not available in production") under the CLI's own production
 `NODE_ENV` gate — so a real Asset upload does not complete against that
 specific packaged CLI today, independent of anything this AirApp does (see
-`app/server.js` and `app/app/js/drama-client.js` for the full trace). The
+`content/kelly-drama-app/server.js` and `content/kelly-drama-app/app/js/drama-client.js` for the full trace). The
 code is written against the documented SDK contract and mirrors Busabase's
 own product usage (the Doc editor's image-paste upload); it is correct and
 will start working the moment the upstream package serves what it
@@ -50,7 +50,7 @@ advertises. The OSS integration test (`tests/app-skills/kelly-drama/ui_test.py`)
 scopes its live-write coverage to a plain text field for exactly this
 reason, mirroring kelly-mv's identical precedent.
 
-## project (`kelly-drama-project-v1`)
+## project (`kelly-drama-project`)
 
 Single row (there is exactly one; look up the first record).
 
@@ -66,7 +66,7 @@ Single row (there is exactly one; look up the first record).
 | `visual-background-refs-json` | `visual_background_refs_json` | longtext | JSON array `[{id, title, scene, assetId, generated_at, model, size}]` — background reference images |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## settings (`kelly-drama-settings-v1`)
+## settings (`kelly-drama-settings`)
 
 One row (`record-id: "config"`). API keys themselves are never stored
 here — they're env vars read only by the trusted generation script
@@ -83,7 +83,7 @@ here — they're env vars read only by the trusted generation script
 | `video-prod-watermark` / `video-generate-audio` | same | text | `"true"`/`"false"` |
 | `tts-backend` / `tts-model` | same | text | e.g. `qwen3-tts-mlx` / `mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit` |
 
-## characters (`kelly-drama-characters-v1`)
+## characters (`kelly-drama-characters`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -107,7 +107,7 @@ here — they're env vars read only by the trusted generation script
 The reference card, once generated, is fed as real input pixels into
 storyboard image-to-image for consistency.
 
-## relationships (`kelly-drama-relationships-v1`)
+## relationships (`kelly-drama-relationships`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -120,7 +120,7 @@ storyboard image-to-image for consistency.
 | `evidence-json` | `evidence_json` | longtext | JSON array of episode ids/notes |
 | `deleted` | `deleted` | text | `"true"`/`"false"` soft-delete tombstone |
 
-## episodes (`kelly-drama-episodes-v1`)
+## episodes (`kelly-drama-episodes`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -132,7 +132,7 @@ storyboard image-to-image for consistency.
 | `beats-json` | `beats_json` | longtext | JSON array of `{id, label, hook, conflict, turn, emotion, canon_update, characters}` |
 | `deleted` | `deleted` | text | `"true"`/`"false"` soft-delete tombstone |
 
-## shots (`kelly-drama-shots-v1`)
+## shots (`kelly-drama-shots`)
 
 An ordered list within an episode — `position` (not array order, since
 Busabase gives no ordering guarantee) carries the sequence.
@@ -163,10 +163,10 @@ Busabase gives no ordering guarantee) carries the sequence.
 | `deleted` | `deleted` | text | `"true"`/`"false"` soft-delete tombstone |
 
 Every image/video generation appends a non-destructive candidate; the human
-picks the active one (`app/app/js/providers/busabase-provider.js`'s
+picks the active one (`content/kelly-drama-app/app/js/providers/busabase-provider.js`'s
 `setShotActive`).
 
-## tasks (`kelly-drama-tasks-v1`)
+## tasks (`kelly-drama-tasks`)
 
 Freeform human/agent review tasks — a **different** thing from a generation
 request (see below): a task is a note about a character/relationship/

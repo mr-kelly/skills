@@ -9,7 +9,7 @@
 //
 // slugify/validatePlan/normalizeSections/ARRAY_SECTIONS/STRING_SECTIONS/
 // SOURCES/STATUSES are ported verbatim from the retired scripts/ingest_plan.ts;
-// only the write target changed, from a persisted app/.data/lesson_snapshot.json
+// only the write target changed, from a persisted content/kelly-lesson-app/.data/lesson_snapshot.json
 // to Busabase's teachers/plans/checks Bases.
 //
 // Usage: node scripts/ingest_plan.mjs <payload.json> [--apply]
@@ -20,7 +20,7 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-lesson-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_plan.mjs <payload.json> [--apply]

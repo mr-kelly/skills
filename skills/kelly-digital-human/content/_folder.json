@@ -1,0 +1,4 @@
+{
+  "name": "Kelly Digital Human",
+  "description": "Digital-human solution desk: a fast 2D vendor-service path and a high-control 3D UE/Unity path, plus a launch QA gate. The project overview, personas, pipeline routes, vendor comparison, and QA checklist are curated reference content, not per-user data -- the only genuinely dynamic state is the human review verdict (approve / request changes / block) recorded against each QA gate check, written as a direct field write on its own record, mirroring kelly-clm's approvals."
+}

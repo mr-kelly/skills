@@ -6,7 +6,7 @@
 // retired lib/data-provider/local-file-provider.ts's contentHash()), and
 // auto-creates/updates the watchlist target + source entry on the fly —
 // same rules as the retired local-file version, just against Busabase
-// records instead of app/.data/radar_snapshot.json.
+// records instead of content/kelly-radar-app/.data/radar_snapshot.json.
 //
 // Usage: node scripts/ingest_signals.mjs <payload.json>
 // Payload: { "collected_at": "ISO", "signals": [ { target_id, source_id, source_kind, headline, summary, ... } ] }
@@ -17,8 +17,8 @@ import crypto from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { SEVERITIES, SOURCE_KINDS } from "../app/app/js/radar-model.js";
+import { appConfig } from "../content/kelly-radar-app/app/js/config.js";
+import { SEVERITIES, SOURCE_KINDS } from "../content/kelly-radar-app/app/js/radar-model.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_signals.mjs <payload.json>
@@ -230,7 +230,7 @@ async function main() {
 
   await create(
     client,
-    declared("sync_log"),
+    declared("sync-log"),
     {
       log_id: `log-${Date.now().toString(36)}`,
       at: now,

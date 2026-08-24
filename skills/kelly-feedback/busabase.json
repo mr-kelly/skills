@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-feedback",
+  "description": "Voice-of-customer desk: raw feedback, clustered feature requests, and the roadmap decision queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["sales-crm", "risk:gated-write", "surface:busabase"],
+  "template": {
+    "category": "sales-crm",
+    "schemaVersion": 1,
+    "airapp": "kelly-feedback-app",
+    "tags": ["sales-crm", "risk:gated-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/inbox.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/requests.webp",
+      "assets/screenshots/roadmap.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Products and flag what needs my attention.",
+      "Open Kelly Feedback and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

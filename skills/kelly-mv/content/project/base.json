@@ -1,0 +1,96 @@
+{
+  "name": "Project",
+  "description": "Single-row MV project meta: song metadata + concept (treatment)",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "song-title",
+      "name": "Song title",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "song-artist",
+      "name": "Song artist",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "song-audio-asset-id",
+      "name": "Song audio asset ID",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "song-duration-seconds",
+      "name": "Song duration seconds",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "song-source",
+      "name": "Song source",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "song-uploaded-at",
+      "name": "Song uploaded at",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "treatment-summary",
+      "name": "Treatment summary",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "treatment-look",
+      "name": "Treatment look",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "treatment-aspect-ratio",
+      "name": "Treatment aspect ratio",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": []
+}

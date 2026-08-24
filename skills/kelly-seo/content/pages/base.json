@@ -1,0 +1,104 @@
+{
+  "name": "Pages",
+  "description": "Top Search Console pages with deltas, issues, top queries, and a trend series",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "page-id",
+      "name": "Page ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "site-id",
+      "name": "Site ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "url",
+      "name": "URL",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "clicks",
+      "name": "Clicks",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "impressions",
+      "name": "Impressions",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "ctr",
+      "name": "CTR",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "position",
+      "name": "Position",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "previous",
+      "name": "Previous metrics (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "issues",
+      "name": "Issues (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "top-queries",
+      "name": "Top queries (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "trend",
+      "name": "Trend (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "agent-notes",
+      "name": "Agent notes",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    }
+  ],
+  "views": []
+}

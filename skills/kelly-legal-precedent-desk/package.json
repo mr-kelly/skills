@@ -8,7 +8,7 @@
     "create": "node scripts/create_research_batch.mjs",
     "execute": "node scripts/execute_decisions.mjs",
     "export": "node scripts/export_research_pack.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-legal-precedent-desk-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-beauty-intel",
+  "description": "Daily beauty, wellness, and medical-aesthetics intelligence cockpit",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["industry-intel", "risk:gated-write", "industry:beauty", "surface:busabase"],
+  "template": {
+    "category": "industry-intel",
+    "schemaVersion": 1,
+    "airapp": "kelly-beauty-intel-app",
+    "tags": ["industry-intel", "risk:gated-write", "industry:beauty", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/actions.webp",
+      "assets/screenshots/drafts.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/signals.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Signals and flag what needs my attention.",
+      "Open Kelly Beauty Intel and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

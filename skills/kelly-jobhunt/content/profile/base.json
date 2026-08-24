@@ -1,0 +1,104 @@
+{
+  "name": "求职档案",
+  "description": "One job seeker profile that drives company search and email drafting",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "name",
+      "name": "求职人",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "target-role",
+      "name": "目标岗位",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "locations",
+      "name": "意向城市",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "industries",
+      "name": "意向行业",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "highlights",
+      "name": "自我介绍",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "resume-file",
+      "name": "简历文件",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "from-email",
+      "name": "发件邮箱",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "更新时间",
+      "type": "date",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "job-boards",
+      "name": "招聘渠道",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "resume-source",
+      "name": "简历原文",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "smtp-vault-key",
+      "name": "SMTP 凭据引用",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-version",
+      "name": "引导完成版本",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    }
+  ],
+  "views": []
+}

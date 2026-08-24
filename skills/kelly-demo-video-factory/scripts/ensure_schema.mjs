@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Idempotent: creates the video-factory Folder + videos/video-shots Bases only if missing.
+// Idempotent: creates the kelly-demo-video-factory Folder + videos/video-shots Bases only if missing.
 // Structure changes use autoMerge — only run this after the human has approved the schema
 // shape once (see SKILL.md). Safe to re-run: it no-ops if bases exist.
 //
@@ -7,13 +7,15 @@
 // (which fixes several REST call shapes that predate verification against the real
 // busabase-sdk 0.11.0 contract — see that file's header comment). One deliberate
 // addition beyond a faithful port: every created node gets a `metadata:
-// {appId, resourceKey, schemaVersion}` stamp matching app/app/js/config.js's
+// {appId, resourceKey, schemaVersion}` stamp matching content/kelly-demo-video-factory-app/app/js/config.js's
 // declarations, so the AirApp's generic resource-provisioning.js (which expects that
 // stamp, or a "legacy" exact slug/name/description match, to treat a Folder/Base as
 // already provisioned) adopts these resources immediately with no repair step —
 // same convention every other Busabase-only Kelly skill's browser-side provisioning
 // already uses for resources it creates itself.
 import {
+  SHOTS_BASE_SLUG,
+  VIDEOS_BASE_SLUG,
   approveAndMerge,
   createFieldChangeRequest,
   createNodeChangeRequest,
@@ -34,8 +36,8 @@ function meta(resourceKey) {
 }
 
 async function main() {
-  const existingVideos = await findBase(cfg, "videos");
-  const existingShots = await findBase(cfg, "video-shots");
+  const existingVideos = await findBase(cfg, VIDEOS_BASE_SLUG);
+  const existingShots = await findBase(cfg, SHOTS_BASE_SLUG);
 
   if (existingVideos && existingShots) {
     console.log("Schema already present:");
@@ -55,7 +57,7 @@ async function main() {
           kind: "create",
           ref: "folder",
           nodeType: "folder",
-          slug: "video-factory",
+          slug: "kelly-demo-video-factory",
           name: "Video Factory",
           description:
             "Demo/marketing video planning pipeline: idea -> storyboard -> verified claims -> recording -> post-production.",
@@ -65,7 +67,7 @@ async function main() {
           kind: "create",
           parentNodeRef: "folder",
           nodeType: "base",
-          slug: "videos",
+          slug: VIDEOS_BASE_SLUG,
           name: "Videos",
           description:
             "One row per video: purpose, hook, pain point, concept, status, verified claims, HyperFrame path, final video URL, owner.",
@@ -109,15 +111,15 @@ async function main() {
           ],
         },
       ],
-      "Create video-factory folder + videos Base",
+      "Create kelly-demo-video-factory folder + videos Base",
     );
     folderNodeId = r.mergeSummary.mergedNodeIds[0];
-    videosBaseId = (await findBase(cfg, "videos")).id;
+    videosBaseId = (await findBase(cfg, VIDEOS_BASE_SLUG)).id;
     console.log("Created folder", folderNodeId, "and videos base", videosBaseId);
   } else {
     videosBaseId = existingVideos.id;
     const bases = await listBases(cfg);
-    const videosNode = bases.find((b) => b.slug === "videos");
+    const videosNode = bases.find((b) => b.slug === VIDEOS_BASE_SLUG);
     // parent folder id: fetch node tree ancestor — fall back to re-deriving via node get.
     const node = await getNode(cfg, videosNode.nodeId);
     folderNodeId = node.parentNodeId ?? node.parentId ?? node.node?.parentId;
@@ -131,7 +133,7 @@ async function main() {
           kind: "create",
           parentNodeId: folderNodeId,
           nodeType: "base",
-          slug: "video-shots",
+          slug: SHOTS_BASE_SLUG,
           name: "Video Shots",
           description:
             "One row per shot: linked video, shot number, timecode, scene, code reference, script line, note, recording status, asset.",
@@ -174,7 +176,7 @@ async function main() {
     // Field ChangeRequests have no autoMerge option (unlike node/record CRs — see
     // createFieldChangeRequest's comment), so both steps below explicitly
     // approveAndMerge after proposing.
-    const shotsBase = await findBase(cfg, "video-shots");
+    const shotsBase = await findBase(cfg, SHOTS_BASE_SLUG);
     const shotsBaseId = shotsBase.id;
     const videoField = shotsBase.fields.find((f) => f.slug === "video");
     const shotsFieldCr = await createFieldChangeRequest(
@@ -190,7 +192,7 @@ async function main() {
     );
     await approveAndMerge(cfg, shotsFieldCr.id, "Schema setup — inverse relation");
 
-    const shotsField = (await findBase(cfg, "videos")).fields.find((f) => f.slug === "shots");
+    const shotsField = (await findBase(cfg, VIDEOS_BASE_SLUG)).fields.find((f) => f.slug === "shots");
     const videoFieldUpdateCr = await updateFieldChangeRequest(
       cfg,
       shotsBaseId,

@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-campaigns",
+  "description": "Outbound email-marketing desk built on the SEND discipline",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+  "template": {
+    "category": "marketing",
+    "schemaVersion": 1,
+    "airapp": "kelly-campaigns-app",
+    "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/campaigns.webp",
+      "assets/screenshots/deliverability.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/performance.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Segments and flag what needs my attention.",
+      "Open Kelly Campaigns and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

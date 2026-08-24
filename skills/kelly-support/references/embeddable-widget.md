@@ -28,6 +28,6 @@ The script mounts a shadow-DOM chat bubble that talks to a small public **widget
 
 - `channel: "webchat"` and `connector: "webchat_widget"` are first-class in the schema and config today; the desk renders and reviews such tickets already.
 - `provider_conversation_id` uses `wc:<session>` for web-chat targets, which maps cleanly onto a visitor session id.
-- `app/app/js/support-model.js`'s pure functions (`runQualityGate`, `buildSnapshot`) and the `tickets`/`messages` Busabase Bases (see `references/support-schema.md`) are the exact shapes and write path a gateway would target.
+- `content/kelly-support-app/app/js/support-model.js`'s pure functions (`runQualityGate`, `buildSnapshot`) and the `tickets`/`messages` Busabase Bases (see `references/support-schema.md`) are the exact shapes and write path a gateway would target.
 
 When the widget is built, it is a new package (a gateway service + a bundled `support.js`), not a change to this desk.

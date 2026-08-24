@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly SEO's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/seo-model.js`).
+(`content/kelly-seo-app/app/js/providers/busabase-provider.js`, `content/kelly-seo-app/app/js/seo-model.js`).
 Nested/array shapes (totals, badges, top pages, trend points, grounding,
 claims, mentions, warnings) are JSON-encoded into `longtext` fields; there is
 no array/object field type in Busabase.
@@ -11,7 +11,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise`.
 
-## Sites (`kelly-seo-sites-v1`)
+## Sites (`kelly-seo-sites`)
 
 Configured Search Console properties, synced by `scripts/sync_gsc.mjs`.
 
@@ -28,7 +28,7 @@ Configured Search Console properties, synced by `scripts/sync_gsc.mjs`.
 | `previous` | `previous` | longtext | JSON, same shape, previous 28d window |
 | `daily` | `daily` | longtext | JSON array of `{date, clicks, impressions, ctr, position}`, both windows |
 
-## Queries (`kelly-seo-queries-v1`)
+## Queries (`kelly-seo-queries`)
 
 Top Search Console queries (capped at 100 rows by clicks, since
 `records.list` caps `limit` at 100 — see `MAX_WRITTEN_ROWS` in
@@ -49,11 +49,11 @@ Top Search Console queries (capped at 100 rows by clicks, since
 | `trend` | `trend` | longtext | JSON array of `{date, clicks, impressions, position}` |
 | `agent-notes` | `agent_notes` | longtext | optional agent analysis |
 
-`badges` are computed by `badgesFor()` in `app/app/js/seo-model.js`:
+`badges` are computed by `badgesFor()` in `content/kelly-seo-app/app/js/seo-model.js`:
 `striking_distance` for average position 8-15, `low_ctr` when CTR is well
 below the expected curve for the position (`expectedCtr()`).
 
-## Pages (`kelly-seo-pages-v1`)
+## Pages (`kelly-seo-pages`)
 
 Top Search Console pages (same 100-row cap as Queries).
 
@@ -72,7 +72,7 @@ Top Search Console pages (same 100-row cap as Queries).
 | `trend` | `trend` | longtext | JSON array of `{date, clicks, impressions, position}` |
 | `agent-notes` | `agent_notes` | longtext | optional |
 
-## Opportunities (`kelly-seo-opportunities-v1`)
+## Opportunities (`kelly-seo-opportunities`)
 
 Agent-proposed SEO actions reviewed in `#/opportunities`.
 
@@ -101,11 +101,11 @@ Agent-proposed SEO actions reviewed in `#/opportunities`.
 | `execution-detail` | `execution_detail` | longtext | what was or will be done |
 | `executed-at` | `executed_at` | text | ISO timestamp |
 
-## GEO Opportunities (`kelly-seo-geo-opportunities-v1`)
+## GEO Opportunities (`kelly-seo-geo-opportunities`)
 
 Agent-proposed GEO (Generative Engine Optimization) content optimizations
 reviewed in `#/optimize`, gated by `geo-qa` (`evaluateGeoGate()` in
-`app/app/js/seo-model.js`) — recomputed live on every read from `draft` +
+`content/kelly-seo-app/app/js/seo-model.js`) — recomputed live on every read from `draft` +
 `claims` + `has-schema` + `has-qa-block`, never stored. The gate is a hard
 gate: a `BLOCK` verdict forces the effective `status` to `blocked` regardless
 of the stored `status` field, unless the change is already `executed`
@@ -144,7 +144,7 @@ throws before any write (`busabase-provider.js`'s `decideGeoOpportunity`) —
 resolve the failing checks (usually: ground the stat with a `source`, or
 remove it) before it can ship.
 
-## AI Visibility (`kelly-seo-ai-visibility-v1`)
+## AI Visibility (`kelly-seo-ai-visibility`)
 
 Tracked AI-answer-engine prompts, rendered as the `#/geo` engines × prompts
 matrix. The overall score is computed live (`aiVisibilityScore()`): the
@@ -161,7 +161,7 @@ delta) is not derivable from the current prompts, so it lives on the
 | `mentions` | `mentions` | longtext | JSON array, one entry per engine: `{engine, mentioned, position, sentiment, cited_url, note}` |
 | `trend` | `trend` | longtext | JSON array of `{date, visibility}`, 0-1 share of engines mentioning the brand |
 
-## Entity Signals (`kelly-seo-entity-signals-v1`)
+## Entity Signals (`kelly-seo-entity-signals`)
 
 Brand-entity / knowledge-panel readiness checklist, rendered as `#/entity`.
 The overall score is computed live (`entityReadinessScore()`): weights
@@ -176,7 +176,7 @@ The overall score is computed live (`entityReadinessScore()`): weights
 | `detail` | `detail` | longtext | what was found |
 | `fix` | `fix` | longtext | agent-proposed fix when partial/missing, else empty |
 
-## Settings (`kelly-seo-settings-v1`)
+## Settings (`kelly-seo-settings`)
 
 One row, looked up by `record-id: "config"`.
 
@@ -215,8 +215,8 @@ The trusted GSC-sync step. Reads site/auth config from
 (see `SKILL.md`), authenticates with a service-account JWT or a plain OAuth
 access token (read-only `webmasters.readonly` scope), pulls Search Analytics
 per site, and upserts `sites`/`queries`/`pages` plus the sync-owned
-`settings` fields. It never touches `opportunities`, `geo_opportunities`,
-`ai_visibility`, or `entity_signals` — those are agent-prepared, not GSC
+`settings` fields. It never touches `opportunities`, `geo-opportunities`,
+`ai-visibility`, or `entity-signals` — those are agent-prepared, not GSC
 data, and are preserved automatically since sync never writes those Bases.
 
 ## Execution (`scripts/execute_decisions.mjs`)
@@ -232,7 +232,7 @@ marks the opportunity `done` (writing `status` directly, same as any other
 decision).
 
 Execution semantics by `type` (`operationForOpportunity()` in
-`app/app/js/seo-model.js`):
+`content/kelly-seo-app/app/js/seo-model.js`):
 
 - `title_meta_rewrite` → `rewrite_title`
 - `internal_links` → `add_internal_links`

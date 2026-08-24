@@ -6,6 +6,14 @@ metadata:
   tags:
     - risk:sandbox
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-deal-scorer
+    resources:
+      - candidates
+      - settings
+    risk: sandbox
+
 ---
 
 # Deal Scoring Desk
@@ -21,7 +29,7 @@ breakdown: each sub-factor's raw score, weight, and contribution, plus a
 suggested revenue-share rate range. This is a generic, brand-free tool — it
 does not reference any specific real company, lender, or fund.
 
-**The scoring rubric is plain arithmetic in `app/app/js/scorer-model.js`, not
+**The scoring rubric is plain arithmetic in `content/kelly-deal-scorer-app/app/js/scorer-model.js`, not
 an LLM or API call.** Every number the app shows can be recomputed with a
 calculator from the candidate's raw fields and the rubric weights in the
 `settings` Base.
@@ -56,7 +64,7 @@ similar.
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-deal-scorer-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -79,7 +87,7 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 ## Busabase Resources
 
 Two Bases under one application Folder (`kelly-deal-scorer`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-deal-scorer-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `candidates`: one row per candidate business — raw underwriting fields
   (category, city, requested principal, monthly revenue history, red flags)
@@ -112,7 +120,7 @@ omitted).
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-deal-scorer-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -156,11 +164,11 @@ UI language: English and Chinese chrome with `Auto` default.
    contacting the business.
 
 Read `references/scoring-schema.md` before editing the app, scripts, or
-`app/app/js/scorer-model.js`.
+`content/kelly-deal-scorer-app/app/js/scorer-model.js`.
 
 ## The Rubric (not a model)
 
-`app/app/js/scorer-model.js` documents and implements the entire scoring
+`content/kelly-deal-scorer-app/app/js/scorer-model.js` documents and implements the entire scoring
 rubric: five weighted 0-100 sub-factors (revenue stability, growth trend,
 category risk tier, principal-to-revenue ratio, track record & scale), each
 with a human-readable arithmetic trace in `detail`. `computeScore()` is a
@@ -168,18 +176,18 @@ pure function — same inputs always produce the same composite score and
 suggested revenue-share range, so a human reviewer can check every number
 with a calculator. It backs the trusted seed script
 (`scripts/generate_batch.mjs`), the live Busabase read path
-(`app/app/js/providers/busabase-provider.js`), and the offline `?demo=`
-scenario (`app/app/js/providers/demo-provider.js`), so all three always
+(`content/kelly-deal-scorer-app/app/js/providers/busabase-provider.js`), and the offline `?demo=`
+scenario (`content/kelly-deal-scorer-app/app/js/providers/demo-provider.js`), so all three always
 agree on scoring.
 
 ## Safety
 
 - Deterministic scoring only: never call an LLM or external API to produce a
-  candidate's score — `app/app/js/scorer-model.js` is plain arithmetic so
+  candidate's score — `content/kelly-deal-scorer-app/app/js/scorer-model.js` is plain arithmetic so
   every number is auditable.
 - Never auto-execute a decision the human has not made.
 - Do not invent candidates outside the fixed seed set; if the user wants a
-  different queue, add to `app/app/js/scorer-model.js`'s `CANDIDATE_SEEDS`
+  different queue, add to `content/kelly-deal-scorer-app/app/js/scorer-model.js`'s `CANDIDATE_SEEDS`
   and re-run the seed script.
 
 ## Useful Commands
@@ -187,5 +195,5 @@ agree on scoring.
 ```bash
 node skills/kelly-deal-scorer/scripts/generate_batch.mjs --apply
 node skills/kelly-deal-scorer/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-deal-scorer/app dev
+pnpm --dir skills/kelly-deal-scorer/content/kelly-deal-scorer-app dev
 ```

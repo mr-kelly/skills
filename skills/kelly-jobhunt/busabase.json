@@ -1,0 +1,52 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-jobhunt",
+  "description": "Job-search profile, target companies, and outreach state",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["comms", "risk:gated-write", "surface:busabase", "surface:smtp"],
+  "template": {
+    "category": "comms",
+    "schemaVersion": 4,
+    "airapp": "kelly-jobhunt-app",
+    "tags": ["comms", "risk:gated-write", "surface:busabase", "surface:smtp"],
+    "screenshots": [
+      "assets/screenshots/blocked.webp",
+      "assets/screenshots/mobile-detail.webp",
+      "assets/screenshots/mobile-list.webp",
+      "assets/screenshots/profile.webp",
+      "assets/screenshots/sent.webp",
+      "assets/screenshots/to-send.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest 求职档案 and flag what needs my attention.",
+      "Open Kelly JobHunt and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    },
+    "vaultNamespace": "kelly-jobhunt",
+    "secrets": [
+      {
+        "key": "SMTP_HOST",
+        "description": "SMTP server host for the job seeker's own mailbox",
+        "required": true
+      },
+      {
+        "key": "SMTP_PORT",
+        "description": "SMTP port; 465 implies implicit TLS",
+        "required": true
+      },
+      {
+        "key": "SMTP_USER",
+        "description": "SMTP username, usually the sender address itself",
+        "required": true
+      },
+      {
+        "key": "SMTP_PASS",
+        "description": "SMTP app password / authorization code. Never an account password",
+        "required": true
+      }
+    ]
+  }
+}

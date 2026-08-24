@@ -1,0 +1,296 @@
+{
+  "name": "Characters",
+  "description": "Character library: card, three-view visual notes, voice profile, reference card + voice assets",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "character-id",
+      "name": "Character ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "role",
+      "name": "Role",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "actor-profile",
+      "name": "Actor profile",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "card-identity",
+      "name": "Card identity",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "card-motivation",
+      "name": "Card motivation",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "card-wound",
+      "name": "Card wound",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "card-secret",
+      "name": "Card secret",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "card-arc",
+      "name": "Card arc",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "card-voice",
+      "name": "Card voice",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "visual-front",
+      "name": "Visual front",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "visual-side",
+      "name": "Visual side",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "visual-back",
+      "name": "Visual back",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "visual-wardrobe",
+      "name": "Visual wardrobe",
+      "type": "longtext",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "visual-anchors-json",
+      "name": "Visual anchors JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "visual-forbidden-drift-json",
+      "name": "Visual forbidden drift JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "voice-type",
+      "name": "Voice type",
+      "type": "text",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "voice-pace",
+      "name": "Voice pace",
+      "type": "text",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "voice-accent",
+      "name": "Voice accent",
+      "type": "text",
+      "required": false,
+      "position": 19,
+      "options": {}
+    },
+    {
+      "slug": "voice-signature",
+      "name": "Voice signature",
+      "type": "text",
+      "required": false,
+      "position": 20,
+      "options": {}
+    },
+    {
+      "slug": "voice-casting-reference",
+      "name": "Voice casting reference",
+      "type": "text",
+      "required": false,
+      "position": 21,
+      "options": {}
+    },
+    {
+      "slug": "voice-sample-script",
+      "name": "Voice sample script",
+      "type": "longtext",
+      "required": false,
+      "position": 22,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-status",
+      "name": "Reference card status",
+      "type": "text",
+      "required": false,
+      "position": 23,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-purpose",
+      "name": "Reference card purpose",
+      "type": "text",
+      "required": false,
+      "position": 24,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-prompt",
+      "name": "Reference card prompt",
+      "type": "longtext",
+      "required": false,
+      "position": 25,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-asset-id",
+      "name": "Reference card asset ID",
+      "type": "text",
+      "required": false,
+      "position": 26,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-generated-at",
+      "name": "Reference card generated at",
+      "type": "text",
+      "required": false,
+      "position": 27,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-generation-json",
+      "name": "Reference card generation JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 28,
+      "options": {}
+    },
+    {
+      "slug": "voice-reference-status",
+      "name": "Voice reference status",
+      "type": "text",
+      "required": false,
+      "position": 29,
+      "options": {}
+    },
+    {
+      "slug": "voice-reference-provider",
+      "name": "Voice reference provider",
+      "type": "text",
+      "required": false,
+      "position": 30,
+      "options": {}
+    },
+    {
+      "slug": "voice-reference-asset-id",
+      "name": "Voice reference asset ID",
+      "type": "text",
+      "required": false,
+      "position": 31,
+      "options": {}
+    },
+    {
+      "slug": "voice-reference-generated-at",
+      "name": "Voice reference generated at",
+      "type": "text",
+      "required": false,
+      "position": 32,
+      "options": {}
+    },
+    {
+      "slug": "voice-reference-generation-json",
+      "name": "Voice reference generation JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 33,
+      "options": {}
+    },
+    {
+      "slug": "voice-candidates-json",
+      "name": "Voice candidates JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 34,
+      "options": {}
+    },
+    {
+      "slug": "deleted",
+      "name": "Deleted",
+      "type": "text",
+      "required": false,
+      "position": 35,
+      "options": {}
+    }
+  ],
+  "views": []
+}

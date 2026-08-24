@@ -2,11 +2,11 @@
 
 Use this schema when reading or writing Kelly Listing's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/listing-model.js`). Compliance checks, per-draft compliance
+code (`content/kelly-listing-app/app/js/providers/busabase-provider.js`,
+`content/kelly-listing-app/app/js/listing-model.js`). Compliance checks, per-draft compliance
 scores, review-item content, the recent-activity feed, and metrics are all
 computed client-side from the `products`/`drafts`/`checks`/`claims`/
-`claim_rules`/`settings` Bases on every read (`buildSnapshot`/
+`claim-rules`/`settings` Bases on every read (`buildSnapshot`/
 `assembleSnapshot` in `listing-model.js`) — the only persisted state is what
 lives directly on those six Bases.
 
@@ -20,7 +20,7 @@ Platforms: `amazon`, `shopify`, `tiktok_shop`, `ebay`.
 
 Check results: `pass`, `warn`, `fail`.
 
-## Products (`kelly-listing-products-v1`)
+## Products (`kelly-listing-products`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ Check results: `pass`, `warn`, `fail`.
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Drafts (`kelly-listing-drafts-v1`)
+## Drafts (`kelly-listing-drafts`)
 
 A draft record is both the platform listing draft and its review-queue item
 — there is no separate review-item or decisions Base.
@@ -93,7 +93,7 @@ draft:
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Checks (`kelly-listing-checks-v1`)
+## Checks (`kelly-listing-checks`)
 
 One row per draft × compliance rule, keyed by `check-id = chk-<draft without
 "d-" prefix>-<rule-id>`. `scripts/run_checks.mjs` upserts every row.
@@ -110,7 +110,7 @@ One row per draft × compliance rule, keyed by `check-id = chk-<draft without
 | `ref-claims` | `ref_claims` | longtext | JSON array of `claims.claim-id` referenced by `claims_registry` |
 | `checked-at` | `checked_at` | text | ISO timestamp |
 
-## Claims (`kelly-listing-claims-v1`)
+## Claims (`kelly-listing-claims`)
 
 Approved marketing claims or rejected claims, referenced by the
 `claims_registry` check.
@@ -129,7 +129,7 @@ Approved marketing claims or rejected claims, referenced by the
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Claim Rules (`kelly-listing-claim-rules-v1`)
+## Claim Rules (`kelly-listing-claim-rules`)
 
 Banned-word / restricted-phrase rules, referenced by the `claims_registry`
 check.
@@ -144,7 +144,7 @@ check.
 | `alternative` | `alternative` | longtext | suggested replacement copy |
 | `created-at` | `created_at` | text | ISO timestamp |
 
-## Settings (`kelly-listing-settings-v1`)
+## Settings (`kelly-listing-settings`)
 
 A single row, `record-id: "config"`:
 
@@ -169,7 +169,7 @@ A single row, `record-id: "config"`:
 
 Evaluated by `evaluateDraft()` in `listing-model.js` (same logic in the
 AirApp's demo provider and `scripts/run_checks.mjs`), ported verbatim from
-the retired `app/server/rules.ts`:
+the retired `content/kelly-listing-app/server/rules.ts`:
 
 - `required_fields` — every field in the platform's `default_required` list (or `platforms[].rules.required_fields` override) must be present.
 - `title_length` — the title must not exceed the platform's character cap (`platforms[].rules.title_max_chars`, default 200 Amazon / 70 Shopify / 255 TikTok Shop / 80 eBay).
@@ -182,7 +182,7 @@ the retired `app/server/rules.ts`:
 - `all_caps_words` — flags ASCII all-caps words of 3+ letters not in `allowed-all-caps` (or the built-in default list).
 - `keyword_stuffing` — flags a product target keyword (`products.keywords`) repeated beyond `keyword-stuffing-max-repeats` in the visible field corpus.
 - `image_checklist` — every entry in the product's `images` (image checklist) must be `ready`.
-- `claims_registry` — flags a `claim_rules` banned-word/restricted phrase, or a non-approved (`pending`/`rejected`) `claims` claim, referenced in the field corpus; empty registry passes trivially.
+- `claims_registry` — flags a `claim-rules` banned-word/restricted phrase, or a non-approved (`pending`/`rejected`) `claims` claim, referenced in the field corpus; empty registry passes trivially.
 
 ## Decisions
 

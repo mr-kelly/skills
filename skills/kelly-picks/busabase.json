@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-picks",
+  "description": "Product-research (选品) desk: trend sweeps, margin cards, competition reads, and a develop/watch/drop review queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["ecommerce", "risk:local-write", "industry:ecommerce", "surface:busabase"],
+  "template": {
+    "category": "ecommerce",
+    "schemaVersion": 1,
+    "airapp": "kelly-picks-app",
+    "tags": ["ecommerce", "risk:local-write", "industry:ecommerce", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/candidates.webp",
+      "assets/screenshots/decisions.webp",
+      "assets/screenshots/detail.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Candidates and flag what needs my attention.",
+      "Open Kelly Picks and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

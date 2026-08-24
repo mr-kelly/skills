@@ -6,7 +6,7 @@
   "description": "Kelly Family Fund Busabase Cloud skill and trusted CSV-ledger importer.",
   "scripts": {
     "import": "node scripts/import_csv.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-family-fund-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

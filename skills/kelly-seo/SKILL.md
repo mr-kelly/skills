@@ -7,6 +7,20 @@ metadata:
     - risk:local-write
     - surface:busabase
     - surface:gsc
+  busabase:
+    template: true
+    folderSlug: kelly-seo
+    resources:
+      - sites
+      - queries
+      - pages
+      - opportunities
+      - geo-opportunities
+      - ai-visibility
+      - entity-signals
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly SEO
@@ -82,7 +96,7 @@ or similar.
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-seo-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -102,7 +116,7 @@ If a dependency is unavailable, preserve this skill's artifact and product contr
   GEO content changes follow the same rule: approved in `#/optimize`,
   published by the agent outside the app.
 - AI-visibility data is observational: the agent gathers whether engines
-  cite the brand and writes it into the `ai_visibility` Base directly (via
+  cite the brand and writes it into the `ai-visibility` Base directly (via
   `busabase-sdk`, following `references/seo-schema.md`'s field slugs). Never
   fabricate a citation, an answer position, or a stat — the `geo-qa` gate
   BLOCKs ungrounded claims for exactly this reason.
@@ -114,22 +128,22 @@ If a dependency is unavailable, preserve this skill's artifact and product contr
 ## Busabase Resources
 
 Eight Bases under one application Folder (`kelly-seo`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-seo-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `sites`: configured Search Console properties with 28d totals and a daily trend series, synced by `scripts/sync_gsc.mjs`.
 - `queries`: top queries with deltas, opportunity badges, top pages, and a trend series (capped at 100 rows by clicks).
 - `pages`: top pages with deltas, indexing/canonical issues, top queries, and a trend series (capped at 100 rows by clicks).
 - `opportunities`: the SEO review queue — title/meta rewrite, internal links, content brief, or page-issue fix, with the human decision and execution marker on the same row.
-- `geo_opportunities`: the GEO content-optimization review queue — citable rewrite, quotable stats, Q&A block, or schema markup, gated by `geo-qa` (recomputed live from the draft on every read).
-- `ai_visibility`: tracked AI-answer-engine prompts with per-engine mentions and a visibility trend.
-- `entity_signals`: the brand-entity / knowledge-panel readiness checklist.
+- `geo-opportunities`: the GEO content-optimization review queue — citable rewrite, quotable stats, Q&A block, or schema markup, gated by `geo-qa` (recomputed live from the draft on every read).
+- `ai-visibility`: tracked AI-answer-engine prompts with per-engine mentions and a visibility trend.
+- `entity-signals`: the brand-entity / knowledge-panel readiness checklist.
 - `settings`: one row (`record-id: "config"`) with the brand, GSC sync window/read-only config, last-sync range, warnings, and the AI-visibility score baseline.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
 first time the app runs in a Space; see `references/seo-schema.md` for exact
 field shapes. Metrics, the AI-visibility score, and the entity-readiness
 score are recomputed client-side from the stored rows on every read
-(`app/app/js/seo-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the
+(`content/kelly-seo-app/app/js/seo-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the
 desk is always fresh regardless of when a browser session loads it relative
 to the last sync.
 
@@ -165,7 +179,7 @@ Auth methods (choose one):
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-seo-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -194,7 +208,7 @@ UI language: support English and Chinese chrome with `Auto` default. Keep querie
 1. Detect mode. Default to AirApp.
 2. Load private config. If `config.local.json` is missing, enter onboarding.
 3. If the user asks to sync, confirm the scope: which properties and the date window (default last 28 days plus the previous 28 days for deltas).
-4. Run `node skills/kelly-seo/scripts/sync_gsc.mjs`. The script pulls Search Analytics dimensioned by query, by page, and by date for both windows, normalizes and upserts `sites`/`queries`/`pages` into Busabase (capped at the top 100 queries/pages by clicks — `records.list`'s server-side limit), and merges the sync-owned fields (window/row-limit/range/warnings) onto the `settings` row. It never touches `opportunities`, `geo_opportunities`, `ai_visibility`, or `entity_signals`.
+4. Run `node skills/kelly-seo/scripts/sync_gsc.mjs`. The script pulls Search Analytics dimensioned by query, by page, and by date for both windows, normalizes and upserts `sites`/`queries`/`pages` into Busabase (capped at the top 100 queries/pages by clicks — `records.list`'s server-side limit), and merges the sync-owned fields (window/row-limit/range/warnings) onto the `settings` row. It never touches `opportunities`, `geo-opportunities`, `ai-visibility`, or `entity-signals`.
 5. Give the user the AirApp URL.
 6. GSC data lags about two days; the sync window ends two days before today. Surface API errors and missing-property warnings in `settings.warnings`, never as silent failures.
 
@@ -209,10 +223,10 @@ UI language: support English and Chinese chrome with `Auto` default. Keep querie
 
 ## GEO (AI-search) Workflow
 
-1. GEO state lives in the `ai_visibility` (tracked prompts × engines with position + sentiment + trend), `geo_opportunities` (agent-proposed citable rewrites), and `entity_signals` (the readiness checklist) Bases. Route all reads/writes through `busabase-sdk` — never bypass it.
-2. For each agent-proposed GEO change written to `geo_opportunities`, the `geo-qa` gate (`evaluateGeoGate()` in `app/app/js/seo-model.js`) is recomputed live from `draft`/`claims`/`has-schema`/`has-qa-block` on every read — it returns SHIP / FIX / BLOCK with a GEO Quality Score and per-check notes. The primary failure is an ungrounded/fabricated stat — a number in the copy with no matching entry in `claims` carrying a `source`. A BLOCK is a hard gate: the app rejects an approve before any write until the change is fixed.
+1. GEO state lives in the `ai-visibility` (tracked prompts × engines with position + sentiment + trend), `geo-opportunities` (agent-proposed citable rewrites), and `entity-signals` (the readiness checklist) Bases. Route all reads/writes through `busabase-sdk` — never bypass it.
+2. For each agent-proposed GEO change written to `geo-opportunities`, the `geo-qa` gate (`evaluateGeoGate()` in `content/kelly-seo-app/app/js/seo-model.js`) is recomputed live from `draft`/`claims`/`has-schema`/`has-qa-block` on every read — it returns SHIP / FIX / BLOCK with a GEO Quality Score and per-check notes. The primary failure is an ungrounded/fabricated stat — a number in the copy with no matching entry in `claims` carrying a `source`. A BLOCK is a hard gate: the app rejects an approve before any write until the change is fixed.
 3. Send the user to `#/optimize` to review. Approvals write `status`/`decision-*` directly onto the GEO opportunity record. Execution semantics: `operation: publish_geo_change` — the agent publishes the approved citable content in the site's repo/CMS OUTSIDE the app, then marks the item `done` by writing the field directly.
-4. Entity-readiness edits from `#/entity` write `status`/`detail` directly onto the `entity_signals` record. The agent then earns the real signal (create the Wikidata item, add the sameAs links, standardize the brand name) outside the app.
+4. Entity-readiness edits from `#/entity` write `status`/`detail` directly onto the `entity-signals` record. The agent then earns the real signal (create the Wikidata item, add the sameAs links, standardize the brand name) outside the app.
 5. Never invent an AI-visibility number, a citation, or a stat. If a claim in a GEO draft is not grounded in a real source, the gate must BLOCK it — do not ship content that an AI engine would then quote verbatim.
 
 ## Safety Defaults

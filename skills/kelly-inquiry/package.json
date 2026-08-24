@@ -8,7 +8,7 @@
     "ingest": "node scripts/ingest_inquiries.mjs",
     "sync-products": "node scripts/sync_products.mjs",
     "send": "node scripts/send_approved.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-inquiry-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

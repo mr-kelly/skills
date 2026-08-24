@@ -3,13 +3,13 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly Demo Video Factory — trusted Busabase schema/record scripts (idea -> storyboard -> verified claims -> recording -> post-production -> HyperFrame) plus its read-only AirApp under app/.",
+  "description": "Kelly Demo Video Factory — trusted Busabase schema/record scripts (idea -> storyboard -> verified claims -> recording -> post-production -> HyperFrame) plus its read-only AirApp under content/kelly-demo-video-factory-app/.",
   "scripts": {
     "ensure-schema": "node scripts/ensure_schema.mjs",
     "propose-video": "node scripts/propose_video.mjs",
     "status": "node scripts/status.mjs",
     "set-shot-status": "node scripts/set_shot_status.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-demo-video-factory-app check"
   },
   "engines": {
     "node": ">=24.18.0"

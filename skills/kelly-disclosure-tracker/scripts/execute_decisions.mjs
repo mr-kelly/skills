@@ -21,8 +21,8 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { computeItemFromRow } from "../app/app/js/tracker-model.js";
+import { appConfig } from "../content/kelly-disclosure-tracker-app/app/js/config.js";
+import { computeItemFromRow } from "../content/kelly-disclosure-tracker-app/app/js/tracker-model.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]

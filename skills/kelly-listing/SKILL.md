@@ -7,6 +7,18 @@ metadata:
     - risk:gated-write
     - industry:ecommerce
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-listing
+    resources:
+      - products
+      - drafts
+      - checks
+      - claims
+      - claim-rules
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Listing
@@ -40,7 +52,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-listing-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -56,16 +68,16 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Six Bases under one application Folder (`kelly-listing`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Six Bases under one application Folder (`kelly-listing`), declared in `content/kelly-listing-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `products`: the product source-material library — SKU, category, source (`manual`/`kelly_picks` handoff), specs, feature list, target keywords, and the image checklist.
 - `drafts`: the draft workbench and review queue in one — per-platform fields (title/bullets/description/search terms/SEO meta/selling points/A+ outline/item specifics), workflow status, compliance score, and the human decision + execution marker on the same row.
 - `checks`: per-draft, per-rule compliance check results (required fields, title length, banned words, competitor brands, bullet/selling-point counts, SEO meta length, all-caps noise, keyword stuffing, image checklist, claims-registry violations).
 - `claims`: the compliance registry's approved marketing claims and rejected claims.
-- `claim_rules`: the compliance registry's banned-word / restricted-phrase rules.
+- `claim-rules`: the compliance registry's banned-word / restricted-phrase rules.
 - `settings`: one row (`record-id: "config"`) with the seller profile, per-platform rule sets, banned/competitor terms, and export preferences.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/listing-schema.md` for exact field shapes. Compliance scores, the review queue, the recent-activity feed, and metrics are recomputed client-side from the stored rows on every read (`app/app/js/listing-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/checks run.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/listing-schema.md` for exact field shapes. Compliance scores, the review queue, the recent-activity feed, and metrics are recomputed client-side from the stored rows on every read (`content/kelly-listing-app/app/js/listing-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/checks run.
 
 ## First Run And Onboarding
 
@@ -78,7 +90,7 @@ node skills/kelly-listing/scripts/run_checks.mjs --apply
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-listing-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -115,7 +127,7 @@ The script validates the payload against the per-platform field shapes and the r
 
 ## Check Workflow
 
-1. Run `node skills/kelly-listing/scripts/run_checks.mjs --apply`. Deterministic rules (title length caps — 200 Amazon / 70 Shopify / 255 TikTok Shop / 80 eBay, exactly 5 bullets, backend search terms ≤ 249 bytes, banned words and competitor brands, required fields, Shopify SEO meta lengths, no all-caps shouting words, a keyword-stuffing heuristic, the product image checklist, and claims-registry violations) are computed from the per-platform rule sets on the Settings row and the compliance registry (`claims`/`claim_rules` Bases); per-draft compliance scores are recomputed idempotently.
+1. Run `node skills/kelly-listing/scripts/run_checks.mjs --apply`. Deterministic rules (title length caps — 200 Amazon / 70 Shopify / 255 TikTok Shop / 80 eBay, exactly 5 bullets, backend search terms ≤ 249 bytes, banned words and competitor brands, required fields, Shopify SEO meta lengths, no all-caps shouting words, a keyword-stuffing heuristic, the product image checklist, and claims-registry violations) are computed from the per-platform rule sets on the Settings row and the compliance registry (`claims`/`claim-rules` Bases); per-draft compliance scores are recomputed idempotently.
 2. Summarize failures for the seller by ingesting `compliance_summary`/`suggestions` onto the draft record.
 3. Give the user the AirApp URL and send them to `#/review`.
 
@@ -146,7 +158,7 @@ node skills/kelly-listing/scripts/run_checks.mjs --apply
 node skills/kelly-listing/scripts/execute_decisions.mjs
 node skills/kelly-listing/scripts/execute_decisions.mjs --apply
 node skills/kelly-listing/scripts/export_listings.mjs --out exports/
-pnpm --dir skills/kelly-listing/app dev
+pnpm --dir skills/kelly-listing/content/kelly-listing-app dev
 ```
 
 In normal use, invoke `/kelly-listing`, let the skill ingest/check what's due, and open the AirApp.

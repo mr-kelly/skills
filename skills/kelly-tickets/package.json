@@ -8,7 +8,7 @@
     "ingest": "node scripts/ingest_intake.mjs",
     "triage": "node scripts/apply_triage.mjs",
     "execute": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-tickets-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

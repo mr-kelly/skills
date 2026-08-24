@@ -1,0 +1,56 @@
+{
+  "name": "Runbook",
+  "description": "Ordered launch-day timeline",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "step-id",
+      "name": "Step ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "offset",
+      "name": "Offset",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "at",
+      "name": "At",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "War-room note",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

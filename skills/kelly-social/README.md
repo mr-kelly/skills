@@ -22,7 +22,7 @@ Publishing desk (Explore / Craft / Host):
 
 ## The Quality Gate (⛩ social-qa)
 
-Every draft is scored 0–100 (SQS) across brand voice, disclosure, and banned claims, producing a **SHIP / FIX / BLOCK** verdict. A BLOCK forces the draft to `blocked` and disables approve/publish until it's revised. The logic lives in `app/app/js/social-model.js` and is recomputed live from each draft's own copy on every read — never trusted as stale stored state.
+Every draft is scored 0–100 (SQS) across brand voice, disclosure, and banned claims, producing a **SHIP / FIX / BLOCK** verdict. A BLOCK forces the draft to `blocked` and disables approve/publish until it's revised. The logic lives in `content/kelly-social-app/app/js/social-model.js` and is recomputed live from each draft's own copy on every read — never trusted as stale stored state.
 
 ## Collection & Publishing Philosophy
 
@@ -78,7 +78,7 @@ Kelly Social is a Busabase-only App-in-Skill: the browser talks to `busabase-sdk
 ## Data Provider
 
 Kelly Social is a Busabase Cloud App-in-Skill: the AirApp reads and writes
-Busabase records directly through `busabase-sdk` (`app/app/js/providers/busabase-provider.js`),
+Busabase records directly through `busabase-sdk` (`content/kelly-social-app/app/js/providers/busabase-provider.js`),
 never a local-file backend. `scripts/ingest_snapshot.mjs` is the trusted
 collector-write path — it connects with its own credentials
 (`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID`), never the
@@ -89,7 +89,7 @@ AirApp's ambient session.
 Start a local preview and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-social/app dev
+pnpm --dir skills/kelly-social/content/kelly-social-app dev
 ```
 
 Use the printed URL, then add one of these demo paths:
@@ -141,7 +141,7 @@ Kelly Social 是一个 Busabase Cloud App-in-Skill **指挥台**，既**监控**
 
 ## 质量闸（⛩ social-qa）
 
-每条草稿在品牌语气、信息披露、违规主张三个维度上打 0–100 分（SQS），给出 **放行 / 待修 / 拦截** 判定。判定为「拦截」会把草稿强制置为 `blocked`，在修改前禁用批准与发布。逻辑见 `app/app/js/social-model.js`，且每次读取都会用草稿自身文案实时重新计算，从不信任过期的存量数据。
+每条草稿在品牌语气、信息披露、违规主张三个维度上打 0–100 分（SQS），给出 **放行 / 待修 / 拦截** 判定。判定为「拦截」会把草稿强制置为 `blocked`，在修改前禁用批准与发布。逻辑见 `content/kelly-social-app/app/js/social-model.js`，且每次读取都会用草稿自身文案实时重新计算，从不信任过期的存量数据。
 
 ## 采集与发布理念
 
@@ -149,14 +149,14 @@ Kelly Social 是一个 Busabase Cloud App-in-Skill **指挥台**，既**监控**
 
 ## 数据提供方
 
-Kelly Social 是 Busabase Cloud App-in-Skill：AirApp 通过 `busabase-sdk`（`app/app/js/providers/busabase-provider.js`）直接读写 Busabase 记录，不再有本地文件后端。`scripts/ingest_snapshot.mjs` 是受信任的采集写入路径——它使用自己的凭据连接（`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID`），而非 AirApp 的环境态会话。
+Kelly Social 是 Busabase Cloud App-in-Skill：AirApp 通过 `busabase-sdk`（`content/kelly-social-app/app/js/providers/busabase-provider.js`）直接读写 Busabase 记录，不再有本地文件后端。`scripts/ingest_snapshot.mjs` 是受信任的采集写入路径——它使用自己的凭据连接（`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID`），而非 AirApp 的环境态会话。
 
 ## 演示模式
 
 启动本地预览并打开安全的模拟数据场景：
 
 ```bash
-pnpm --dir skills/kelly-social/app dev
+pnpm --dir skills/kelly-social/content/kelly-social-app dev
 ```
 
 使用打印出的 URL，再追加以下演示路径之一：

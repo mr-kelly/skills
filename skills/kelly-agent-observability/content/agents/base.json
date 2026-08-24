@@ -1,0 +1,112 @@
+{
+  "name": "Agents",
+  "description": "One row per mock agent archetype (8 rows): identity plus the latest rolled-up health metrics (status, call volume, p50/p95 latency, error rate, cost) and a 48h hourly call/error series (JSON array). Written only by the trusted generator script; the AirApp never writes here.",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "agent-id",
+      "name": "Agent ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "description",
+      "name": "Description",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "calls-24h",
+      "name": "Calls (24h)",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "calls-48h",
+      "name": "Calls (48h)",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "error-rate-pct",
+      "name": "Error rate %",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "p50-latency-ms",
+      "name": "p50 latency (ms)",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "p95-latency-ms",
+      "name": "p95 latency (ms)",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "cost-per-call-usd",
+      "name": "Cost per call (USD)",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "cost-today-usd",
+      "name": "Cost today (USD)",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "cost-7d-usd",
+      "name": "Cost 7d (USD)",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "hourly",
+      "name": "Hourly buckets (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    }
+  ],
+  "views": []
+}

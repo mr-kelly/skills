@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-launch",
+  "description": "Product-launch command desk built on the RAMP discipline",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+  "template": {
+    "category": "marketing",
+    "schemaVersion": 1,
+    "airapp": "kelly-launch-app",
+    "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/assets.webp",
+      "assets/screenshots/checklist.webp",
+      "assets/screenshots/launchday.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Launch Items and flag what needs my attention.",
+      "Open Kelly Launch and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

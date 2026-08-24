@@ -7,6 +7,18 @@ metadata:
     - risk:gated-write
     - industry:legal
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-legal-contracts
+    resources:
+      - contracts
+      - issues
+      - checks
+      - claims
+      - claim-rules
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Legal Contracts
@@ -40,7 +52,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-legal-contracts-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -57,16 +69,16 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Six Bases under one application Folder (`kelly-legal-contracts`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Six Bases under one application Folder (`kelly-legal-contracts`), declared in `content/kelly-legal-contracts-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `contracts`: the contract library — counterparty, matter type, governing-law/deal facts, key obligations, watch terms, and the required-document checklist.
 - `issues`: the clause-issue workbench and review queue in one — workstream-specific fields (risk notes, fallback language, negotiation notes, memo, business ask, structured facts), workflow status, risk score, and the human decision + execution marker on the same row.
 - `checks`: per-issue, per-rule risk-check results (required fields, title length, hard-stop terms, restricted positions, risk-note/business-ask counts, memo length, all-caps noise, watch-term repetition, document checklist, clause-playbook violations).
 - `claims`: the clause playbook's approved fallback clauses and rejected positions.
-- `claim_rules`: the clause playbook's hard-stop / restricted-phrase rules.
+- `claim-rules`: the clause playbook's hard-stop / restricted-phrase rules.
 - `settings`: one row (`record-id: "config"`) with the legal profile, per-workstream rule sets, hard-stop/restricted terms, and export preferences.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/contracts-schema.md` for exact field shapes. Risk scores, the review queue, the recent-activity feed, and metrics are recomputed client-side from the stored rows on every read (`app/app/js/contracts-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/checks run.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/contracts-schema.md` for exact field shapes. Risk scores, the review queue, the recent-activity feed, and metrics are recomputed client-side from the stored rows on every read (`content/kelly-legal-contracts-app/app/js/contracts-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/checks run.
 
 ## First Run And Onboarding
 
@@ -79,7 +91,7 @@ node skills/kelly-legal-contracts/scripts/run_checks.mjs --apply
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-legal-contracts-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -114,7 +126,7 @@ The script validates the payload against the workstream field shapes and the req
 
 ## Check Workflow
 
-1. Run `node skills/kelly-legal-contracts/scripts/run_checks.mjs --apply`. Deterministic rules (required fields, title length, hard-stop terms, restricted positions, risk-note/business-ask counts, memo length, all-caps noise, watch-term repetition, document checklist, clause-playbook violations) are computed from the workstream rule sets on the Settings row and the clause playbook (`claims`/`claim_rules` Bases); per-issue risk scores are recomputed idempotently.
+1. Run `node skills/kelly-legal-contracts/scripts/run_checks.mjs --apply`. Deterministic rules (required fields, title length, hard-stop terms, restricted positions, risk-note/business-ask counts, memo length, all-caps noise, watch-term repetition, document checklist, clause-playbook violations) are computed from the workstream rule sets on the Settings row and the clause playbook (`claims`/`claim-rules` Bases); per-issue risk scores are recomputed idempotently.
 2. Summarize failures for the reviewer by ingesting `compliance_summary`/`suggestions` onto the issue record.
 3. Give the user the AirApp URL and send them to `#/review`.
 
@@ -146,7 +158,7 @@ node skills/kelly-legal-contracts/scripts/run_checks.mjs --apply
 node skills/kelly-legal-contracts/scripts/execute_decisions.mjs
 node skills/kelly-legal-contracts/scripts/execute_decisions.mjs --apply
 node skills/kelly-legal-contracts/scripts/export_issues.mjs --out exports/
-pnpm --dir skills/kelly-legal-contracts/app dev
+pnpm --dir skills/kelly-legal-contracts/content/kelly-legal-contracts-app dev
 ```
 
 In normal use, invoke `/kelly-legal-contracts`, let the skill ingest/check what's due, and open the AirApp.

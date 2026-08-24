@@ -1,0 +1,80 @@
+{
+  "name": "Checks",
+  "description": "Per-draft, per-rule compliance check results",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "check-id",
+      "name": "Check ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "draft-id",
+      "name": "Draft ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "rule-id",
+      "name": "Rule ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "severity",
+      "name": "Severity",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "result",
+      "name": "Result",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "evidence",
+      "name": "Evidence",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "ref-rules",
+      "name": "Referenced banned-word rules",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "ref-claims",
+      "name": "Referenced claims",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "checked-at",
+      "name": "Checked at",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

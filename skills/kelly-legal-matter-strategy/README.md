@@ -43,7 +43,7 @@ Legal Matter Strategy is a Busabase App-in-Skill matter-strategy desk for new-ca
 Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-legal-matter-strategy/app dev
+pnpm --dir skills/kelly-legal-matter-strategy/content/kelly-legal-matter-strategy-app dev
 ```
 
 Then add one of these demo paths:

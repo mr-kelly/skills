@@ -1,0 +1,56 @@
+{
+  "name": "Entity Signals",
+  "description": "Brand-entity / knowledge-panel readiness checklist",
+  "position": 6,
+  "fields": [
+    {
+      "slug": "signal-id",
+      "name": "Signal ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "label",
+      "name": "Label",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "detail",
+      "name": "Detail",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "fix",
+      "name": "Proposed fix",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

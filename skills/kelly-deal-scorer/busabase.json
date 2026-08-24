@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-deal-scorer",
+  "description": "Deal Scoring Desk: a review queue that scores candidate SME financing deals (revenue-based/RBF-style credit) with a deterministic, fully auditable rule-based rubric and records approve/send-back/reject decisions",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["rbf", "risk:sandbox", "surface:busabase"],
+  "template": {
+    "category": "rbf",
+    "schemaVersion": 1,
+    "airapp": "kelly-deal-scorer-app",
+    "tags": ["rbf", "risk:sandbox", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/candidate-detail.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/score-breakdown.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Candidates and flag what needs my attention.",
+      "Open Kelly Deal Scorer and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

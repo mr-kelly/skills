@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Family Fund's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/fund-model.js`, `scripts/import_csv.mjs`). The fund snapshot
+code (`content/kelly-family-fund-app/app/js/providers/busabase-provider.js`,
+`content/kelly-family-fund-app/app/js/fund-model.js`, `scripts/import_csv.mjs`). The fund snapshot
 (months, totals, by_category, by_family, insights) is computed client-side
 from `beneficiaries`/`families`/`income`/`expenses` on every read — it is
 never stored. Every amount is in the fund's `base_currency` (CNY, ¥). This is
@@ -12,7 +12,7 @@ a read-only bookkeeping dashboard: it never moves money.
 Category union: `care` (养老院) · `transport` (交通) · `meal` (聚餐) · `gift`
 (生日礼物) · `renqing` (人情) · `medical` (医疗) · `misc` (其他).
 
-## Beneficiaries (`kelly-family-fund-beneficiaries-v1`)
+## Beneficiaries (`kelly-family-fund-beneficiaries`)
 
 The elders whose pensions are pooled.
 
@@ -23,7 +23,7 @@ The elders whose pensions are pooled.
 | `relation` | `relation` | text | e.g. `祖父`, `祖母` |
 | `pension-monthly` | `pension_monthly` | number | |
 
-## Families (`kelly-family-fund-families-v1`)
+## Families (`kelly-family-fund-families`)
 
 The sibling families that share the fund surplus.
 
@@ -35,7 +35,7 @@ The sibling families that share the fund surplus.
 | `members-count` | `members_count` | number | |
 | `note` | `note` | text | optional |
 
-## Income (`kelly-family-fund-income-v1`)
+## Income (`kelly-family-fund-income`)
 
 Monthly pension inflow per beneficiary.
 
@@ -47,7 +47,7 @@ Monthly pension inflow per beneficiary.
 | `amount` | `amount` | number | |
 | `note` | `note` | text | optional |
 
-## Expenses (`kelly-family-fund-expenses-v1`)
+## Expenses (`kelly-family-fund-expenses`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -65,7 +65,7 @@ Monthly pension inflow per beneficiary.
 `care` rows are the parents' cost: `family-id` MUST be empty and `shared`
 MUST be `"false"`. They are excluded from family benefit.
 
-## Settings (`kelly-family-fund-settings-v1`)
+## Settings (`kelly-family-fund-settings`)
 
 One row per `kind`.
 

@@ -8,6 +8,18 @@ metadata:
     - industry:property-management
     - surface:busabase
     - surface:wechat
+  busabase:
+    template: true
+    folderSlug: kelly-tickets
+    resources:
+      - crews
+      - intake
+      - tickets
+      - proposals
+      - sync-log
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Tickets
@@ -41,7 +53,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-tickets-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -57,16 +69,16 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Six Bases under one application Folder (`kelly-tickets`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Six Bases under one application Folder (`kelly-tickets`), declared in `content/kelly-tickets-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `crews`: crews that tickets can be dispatched to (name, skills, `contact_env`).
 - `intake`: raw complaints/requests as they arrived on a channel, before or after triage, plus the human decision (convert to ticket / ignore) on the same row.
 - `tickets`: tickets tracked from classification through resolution, with an append-only history timeline.
 - `proposals`: the dispatch review queue — proposed crew/priority/SLA, the human decision, and the execution marker on the same row.
-- `sync_log`: append-only history of ingest/triage/execute runs.
+- `sync-log`: append-only history of ingest/triage/execute runs.
 - `settings`: one row (`record-id: "config"`) with property profile, channels, categories, and SLA rules.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/tickets-schema.md` for exact field shapes. SLA state and crew load are recomputed client-side from the stored rows on every read (`app/app/js/tickets-model.js`'s `buildSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/triage run. The browser has no access to the agent's environment variables, so the Settings view shows each crew's `contact_env` name only, not a live readiness boolean.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/tickets-schema.md` for exact field shapes. SLA state and crew load are recomputed client-side from the stored rows on every read (`content/kelly-tickets-app/app/js/tickets-model.js`'s `buildSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/triage run. The browser has no access to the agent's environment variables, so the Settings view shows each crew's `contact_env` name only, not a live readiness boolean.
 
 ## First Run And Onboarding
 
@@ -78,7 +90,7 @@ node skills/kelly-tickets/scripts/ingest_intake.mjs /path/payload.json --apply
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-tickets-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -121,7 +133,7 @@ UI language: English and Chinese chrome with `Auto` default (browser language), 
 - `waiting`: blocked on residents, parts, weather, or vendors — not on the crew.
 - `resolved`: work confirmed done; `resolved_at` set and a resolution note recorded.
 
-SLA states are derived, never hand-set: `ok`, `at_risk` (under 25% of the SLA window left), `breached`, and `met` for resolved tickets — computed fresh on every read by `app/app/js/tickets-model.js`'s `computeSlaState`. History events are append-only — the timeline is the audit trail; never rewrite past events.
+SLA states are derived, never hand-set: `ok`, `at_risk` (under 25% of the SLA window left), `breached`, and `met` for resolved tickets — computed fresh on every read by `content/kelly-tickets-app/app/js/tickets-model.js`'s `computeSlaState`. History events are append-only — the timeline is the audit trail; never rewrite past events.
 
 ## Decisions And Execution Workflow
 
@@ -144,7 +156,7 @@ node skills/kelly-tickets/scripts/ingest_intake.mjs payload.json --apply
 node skills/kelly-tickets/scripts/apply_triage.mjs payload.json --apply
 node skills/kelly-tickets/scripts/execute_decisions.mjs
 node skills/kelly-tickets/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-tickets/app dev
+pnpm --dir skills/kelly-tickets/content/kelly-tickets-app dev
 ```
 
 In normal use, invoke `/kelly-tickets`, let the skill ingest/triage what's due, and open the AirApp.

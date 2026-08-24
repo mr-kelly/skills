@@ -1,0 +1,73 @@
+export const appConfig = {
+  appId: "kelly-behavior-predict",
+  appName: "Kelly Behavior Predict",
+  deployment: "cloud",
+  locale: "auto",
+  readOnly: false,
+  spaceId: "",
+  schemaVersion: 1,
+  folder: {
+    name: "Kelly Behavior Predict",
+    description:
+      "Predictive Recommendation Analytics Desk: a deterministic mock user-behavior funnel dataset (browse -> search -> compare -> booking attempt -> complete) with a rule-based predicted-next-action heuristic, a precision/recall backtest, and a per-segment trust review",
+    slug: "kelly-behavior-predict",
+  },
+  airApp: {
+    name: "Kelly Behavior Predict",
+    slug: "kelly-behavior-predict-app",
+    resourceKey: "kelly-behavior-predict-app",
+  },
+  bases: [
+    {
+      key: "sessions",
+      name: "Sessions",
+      slug: "kelly-behavior-predict-sessions",
+      description:
+        "The fixed mock session sample (100 rows across 5 segments) — raw behavior features, the funnel stage reached, and the seeded mock 'actual' next action used only to make the backtest non-trivial",
+      readLimit: 100,
+      fields: [
+        { slug: "session-id", name: "Session ID", type: "text", required: true },
+        { slug: "segment-id", name: "Segment ID", type: "text", required: true },
+        { slug: "session-length", name: "Session length", type: "number", required: false },
+        { slug: "cart-abandon-count", name: "Cart abandon count", type: "number", required: false },
+        { slug: "price-check-count", name: "Price check count", type: "number", required: false },
+        { slug: "days-since-last-visit", name: "Days since last visit", type: "number", required: false },
+        { slug: "coupon-clicks", name: "Coupon clicks", type: "number", required: false },
+        { slug: "reached-stage", name: "Reached stage", type: "text", required: false },
+        { slug: "actual-action", name: "Actual action (mock ground truth)", type: "text", required: false },
+      ],
+    },
+    {
+      key: "segments",
+      name: "Segments",
+      slug: "kelly-behavior-predict-segments",
+      description:
+        "One row per mock session archetype (5 rows) — the human review verdict (trusted / needs recalibration) on that segment's prediction rule, written directly onto the segment's own record",
+      readLimit: 20,
+      fields: [
+        { slug: "segment-id", name: "Segment ID", type: "text", required: true },
+        { slug: "decision-status", name: "Decision status", type: "text", required: false },
+        { slug: "decision-note", name: "Decision note", type: "longtext", required: false },
+        { slug: "decided-at", name: "Decided at", type: "text", required: false },
+      ],
+    },
+    {
+      key: "settings",
+      name: "Settings",
+      slug: "kelly-behavior-predict-settings",
+      description: "Sanitized product-profile/config summary, one row keyed by record-id/kind",
+      readLimit: 20,
+      fields: [
+        { slug: "record-id", name: "Record ID", type: "text", required: true },
+        { slug: "kind", name: "Kind", type: "text", required: true },
+        { slug: "payload", name: "Payload", type: "longtext", required: false },
+        { slug: "updated-at", name: "Updated at", type: "text", required: false },
+      ],
+    },
+  ],
+  permissions: {
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
+    writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
+  },
+};

@@ -2,11 +2,11 @@
 
 Use this schema when reading or writing Kelly Agent Observability's Busabase
 Bases. Field slugs are kebab-case in Busabase and normalized to snake_case in
-app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/fleet-model.js`). This is a generic, brand-free mock fleet: no
+app code (`content/kelly-agent-observability-app/app/js/providers/busabase-provider.js`,
+`content/kelly-agent-observability-app/app/js/fleet-model.js`). This is a generic, brand-free mock fleet: no
 real company, gateway, or agent product appears anywhere.
 
-## Agents (`kelly-agent-observability-agents-v1`)
+## Agents (`kelly-agent-observability-agents`)
 
 One row per mock agent archetype (8 rows). Written only by
 `scripts/generate_fleet_data.mjs`; the AirApp never writes here.
@@ -27,7 +27,7 @@ One row per mock agent archetype (8 rows). Written only by
 | `cost-7d-usd` | `cost_7d_usd` | number | rough 7-day extrapolation |
 | `hourly` | `hourly` | longtext | JSON array of 48 `{hour, calls, errors}` buckets |
 
-## Traces (`kelly-agent-observability-traces-v1`)
+## Traces (`kelly-agent-observability-traces`)
 
 One row per mock trace (an ordered tool-call chain for one agent), capped to
 fit under the 100-record read limit — 8 agents × 10 traces/agent = 80 rows by
@@ -45,7 +45,7 @@ by the trusted generator script.
 | `broke-at-step-id` | `broke_at_step_id` | text | set only when `status = error`; matches the last step's `step_id` |
 | `steps` | `steps` | longtext | JSON array of `{step_id, name, duration_ms, status, detail?}`, in order |
 
-## Handoffs (`kelly-agent-observability-handoffs-v1`)
+## Handoffs (`kelly-agent-observability-handoffs`)
 
 Append-only human-in-the-loop log. The only Base the AirApp itself ever
 writes to — always a brand-new row (`bases.createChangeRequest`), never an
@@ -66,7 +66,7 @@ From a standalone local preview the write merges immediately (trusted
 operator); from the deployed AirApp it creates a pending ChangeRequest for
 the trusted process to merge, per the AirApp boundary.
 
-## Settings (`kelly-agent-observability-settings-v1`)
+## Settings (`kelly-agent-observability-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -84,7 +84,7 @@ node scripts/generate_fleet_data.mjs --apply
 ```
 
 Without `--apply` this is a dry run that only prints what would be written.
-`generateFleetData()` (`app/app/js/fleet-model.js`) is deterministic for a
+`generateFleetData()` (`content/kelly-agent-observability-app/app/js/fleet-model.js`) is deterministic for a
 given `{now, seed, tracesPerAgent}` — the same inputs always produce
 bit-identical output. Re-running with the same `--seed` (default `7`) but a
 new `--now` produces a fresh 48h window without changing the overall shape of

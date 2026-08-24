@@ -7,6 +7,15 @@ metadata:
     - risk:read-only
     - surface:busabase
     - surface:webull
+  busabase:
+    template: true
+    folderSlug: kelly-invest-webull
+    resources:
+      - accounts
+      - positions
+      - settings
+    risk: read-only
+
 ---
 
 # Kelly Invest (Webull)
@@ -33,7 +42,7 @@ decisions workflow.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-invest-webull-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -79,7 +88,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Three Bases under one application Folder (`kelly-invest-webull`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-invest-webull-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `accounts`: Webull cash and margin accounts (`account_id`, `account_type`,
   `display_name`, `currency`, `net_liquidation`, `total_cash`,
@@ -89,7 +98,7 @@ Three Bases under one application Folder (`kelly-invest-webull`), declared in
   `last_price`, `market_value`, `cost_basis`, `unrealized_pnl`,
   `unrealized_pnl_pct`, `day_change`, `day_change_pct`, `currency`). Weights,
   totals, and allocation are computed at read time by
-  `app/app/js/webull-model.js` (`assembleSnapshot`), never stored.
+  `content/kelly-invest-webull-app/app/js/webull-model.js` (`assembleSnapshot`), never stored.
 - `settings`: two rows — `config` (sanitized Webull region/base URL/account
   allowlist, base currency, target allocation, generated_at, warnings — no
   secrets) and `onboarding`.
@@ -107,7 +116,7 @@ snapshot.
 - `lib/data-provider/webull.ts`'s field-mapping and credential-resolution
   logic (`mapAccount`, `mapPosition`, `normalizeAssetType`,
   `resolveWebullCredentials`) was ported **verbatim** into
-  `app/app/js/webull-model.js`, shared by both the browser (for
+  `content/kelly-invest-webull-app/app/js/webull-model.js`, shared by both the browser (for
   `assembleSnapshot`/`computeInsights`) and the trusted sync script (for the
   Webull-specific mapping).
 - `scripts/sync_webull.mjs` is the only process that writes to Busabase. It
@@ -172,7 +181,7 @@ by name (`app_key_env`, `app_secret_env`).
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-invest-webull-app dev` only when local preview/debugging is explicitly
 requested. UI language supports English and Chinese chrome with an `Auto`
 default; the user is Chinese, keep symbols and provider values in their
 original form.
@@ -195,8 +204,8 @@ original form.
 ## Insights
 
 Read-only, deterministic observations computed by `computeInsights` in
-`app/app/js/webull-model.js` (ported verbatim from the retired
-`app/server/insights.ts`): `single_position_concentration`,
+`content/kelly-invest-webull-app/app/js/webull-model.js` (ported verbatim from the retired
+`content/kelly-invest-webull-app/server/insights.ts`): `single_position_concentration`,
 `crypto_concentration`, `allocation_drift`, `cash_drag`, `negative_cash`,
 `top_gainer`, `top_laggard`. Neutral facts/flags, never advice or actions —
 no buy/sell/rebalance suggestions.
@@ -204,7 +213,7 @@ no buy/sell/rebalance suggestions.
 ## File Contract
 
 Read `references/portfolio-schema.md` before editing the app,
-`app/app/js/config.js`, `app/app/js/webull-model.js`, or
+`content/kelly-invest-webull-app/app/js/config.js`, `content/kelly-invest-webull-app/app/js/webull-model.js`, or
 `scripts/sync_webull.mjs`.
 
 ## Safety

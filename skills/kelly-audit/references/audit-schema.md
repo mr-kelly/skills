@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Audit's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/audit-model.js`).
+(`content/kelly-audit-app/app/js/providers/busabase-provider.js`, `content/kelly-audit-app/app/js/audit-model.js`).
 Links (order → invoice → payment), statuses, receivable aging, and every
 metric are computed client-side from the stored rows on every read
 (`deriveSnapshot`/`buildSnapshot`) — they are never stored, so the desk is
@@ -17,7 +17,7 @@ Decision actions: `approve`, `request_changes`, `revise`, `block`, `dismiss`.
 
 Proposed/execution operations: `chase_receivable`, `reissue_invoice`, `flag_to_accountant`.
 
-## Orders (`kelly-audit-orders-v1`)
+## Orders (`kelly-audit-orders`)
 
 Normalized sales orders imported from CSV/JSON exports.
 
@@ -35,7 +35,7 @@ Derived client-side (never stored): `invoice_ids`, `payment_ids`,
 `anomaly_ids`, `invoice_status` (`invoiced\|missing\|mismatch`),
 `payment_status` (`paid\|partial\|unpaid`).
 
-## Invoices (`kelly-audit-invoices-v1`)
+## Invoices (`kelly-audit-invoices`)
 
 Normalized invoices and credit notes.
 
@@ -58,7 +58,7 @@ excluded from receivable/aging totals. Derived client-side: `order_id`,
 `payment_ids`, `anomaly_ids`, `paid_amount`, `outstanding`, `days_overdue`,
 `status` (`open\|partial\|paid\|overdue\|credit_note`).
 
-## Payments (`kelly-audit-payments-v1`)
+## Payments (`kelly-audit-payments`)
 
 Normalized payments / receipts (回款).
 
@@ -77,7 +77,7 @@ Normalized payments / receipts (回款).
 
 Derived client-side: `invoice_id`, `order_id`, `match_status` (`matched\|unmatched`).
 
-## Anomalies (`kelly-audit-anomalies-v1`)
+## Anomalies (`kelly-audit-anomalies`)
 
 The review queue. Stable id `anom-<rule>-<primary key>` so
 `scripts/run_checks.mjs` re-runs upsert instead of duplicating. Decision and
@@ -131,7 +131,7 @@ execution-report bucket.
 - `done`: dismissed, or auto-resolved (condition cleared on a `run_checks.mjs` re-run). `execute_decisions.mjs` never sets this itself — the real follow-up happening outside the app is what resolves the anomaly.
 - `blocked`: cannot proceed without new information (e.g. a missing contract).
 
-## Import Log (`kelly-audit-import-log-v1`)
+## Import Log (`kelly-audit-import-log`)
 
 Append-only history of import runs, written by `scripts/import_tables.mjs`.
 
@@ -144,7 +144,7 @@ Append-only history of import runs, written by `scripts/import_tables.mjs`.
 | `updated` | `updated` | longtext | JSON `{orders, invoices, payments}` counts |
 | `warnings` | `warnings` | longtext | JSON array of short strings (skipped rows, unmatched references) |
 
-## Settings (`kelly-audit-settings-v1`)
+## Settings (`kelly-audit-settings`)
 
 One row (`record-id: "config"`) with company profile, tolerance rules, and
 import column mappings.

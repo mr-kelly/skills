@@ -4,10 +4,10 @@
 // source + external_id (falling back to a content hash), dedupes candidates
 // by candidate_id or name+source, merges, refreshes source sweep freshness,
 // and appends a sync_log entry — same rules as the retired local-file
-// version, just against Busabase records instead of app/.data/picks_snapshot.json.
+// version, just against Busabase records instead of content/kelly-picks-app/.data/picks_snapshot.json.
 //
 // Usage: node scripts/ingest_trends.mjs <payload.json>
-// Payload: { "trend_items": [...], "candidates": [...], "source_sweeps": [{ source_id, swept_at }] }
+// Payload: { "trend-items": [...], "candidates": [...], "source_sweeps": [{ source_id, swept_at }] }
 //
 // Connects with the trusted process's own credentials (BUSABASE_BASE_URL /
 // BUSABASE_API_KEY / BUSABASE_SPACE_ID), never the AirApp's ambient session.
@@ -15,8 +15,8 @@ import crypto from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { SOURCE_KINDS, STAGES } from "../app/app/js/picks-model.js";
+import { appConfig } from "../content/kelly-picks-app/app/js/config.js";
+import { SOURCE_KINDS, STAGES } from "../content/kelly-picks-app/app/js/picks-model.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_trends.mjs <payload.json>
@@ -157,7 +157,7 @@ async function main() {
 
   const now = new Date().toISOString();
   const [trendRows, candidateRows, sourceRows] = await Promise.all([
-    readAll(client, declared("trend_items")),
+    readAll(client, declared("trend-items")),
     readAll(client, declared("candidates")),
     readAll(client, declared("sources")),
   ]);
@@ -218,7 +218,7 @@ async function main() {
       const trend_id = normalized.trend_id || `tr-${slugify(normalized.title)}-${normalized.source}`;
       await create(
         client,
-        declared("trend_items"),
+        declared("trend-items"),
         {
           trend_id,
           source: normalized.source,
@@ -384,7 +384,7 @@ async function main() {
   const detail = `${trendsAdded} trend items added, ${trendsUpdated} updated, ${trendsSkipped} duplicates skipped; ${candidatesAdded} candidates added, ${candidatesUpdated} updated.`;
   await create(
     client,
-    declared("sync_log"),
+    declared("sync-log"),
     { log_id: `log-${Date.now().toString(36)}`, at: now, actor: "kelly-picks-agent", action: "ingest_trends", detail },
     "Ingest sync log",
   );

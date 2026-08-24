@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Real Estate Intel",
+  "description": "Daily industry-intelligence cockpit for real estate and property agencies: source-backed signals, buyer-intent interpretation, approved sales/operating actions, and channel drafts (WhatsApp follow-up / agent朋友圈 / listing pitch) for review before any external handoff. Signals/actions/drafts enter Busabase only through the agent's own browsing-and-writing workflow (see SKILL.md); the AirApp itself is read/decision-only."
+}

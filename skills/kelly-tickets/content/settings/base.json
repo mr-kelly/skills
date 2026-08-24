@@ -1,0 +1,72 @@
+{
+  "name": "Settings",
+  "description": "Property profile, channels, categories, and SLA rules, a single settings row",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "property-name",
+      "name": "Property name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "buildings",
+      "name": "Buildings",
+      "type": "number",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "timezone",
+      "name": "Timezone",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "channels",
+      "name": "Channels",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "categories",
+      "name": "Categories",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "sla-rules",
+      "name": "SLA rules",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "sla-default-hours",
+      "name": "SLA default hours",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    }
+  ],
+  "views": []
+}

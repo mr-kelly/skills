@@ -2,7 +2,7 @@
 // Domain expiry sync via RDAP (https://rdap.org/domain/<name>) — the AirApp
 // browser cannot make this outbound lookup itself. rdapExpiration is ported
 // verbatim from the retired scripts/sync_domains.ts; only the write target
-// changed, from app/.data/ops_snapshot.json to Busabase's Expiries Base.
+// changed, from content/kelly-devops-app/.data/ops_snapshot.json to Busabase's Expiries Base.
 //
 // The domain roster (registrar, auto-renew) used to live in config.local.json;
 // in the Busabase-only shape the roster IS the Expiries Base row itself
@@ -22,7 +22,7 @@
 import { readFile } from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-devops-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/sync_domains.mjs [roster.json] [--apply]

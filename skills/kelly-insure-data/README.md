@@ -37,7 +37,7 @@ The app is read-only. It surfaces quality gaps and review targets; it never muta
 ## Running the App
 
 ```bash
-cd skills/kelly-insure-data/app
+cd skills/kelly-insure-data/content/kelly-insure-data-app
 pnpm install
 pnpm run build:sdk
 pnpm run dev
@@ -60,10 +60,10 @@ Demo mode never reads Busabase, tokens, or local production data.
 
 ## Busabase Workspace
 
-The Drive node and the four Bases are an existing production insurance dataset, not something this AirApp creates or owns. `app/app/js/config.js` declares their slugs for lookup only:
+The Drive node and the four Bases are an existing production insurance dataset, not something this AirApp creates or owns. `content/kelly-insure-data-app/app/js/config.js` declares their slugs for lookup only:
 
-- Drive: `hk-insurance-drive`
-- Bases: `featured-information`, `insurance-news` (legacy alias `news`), `insurance-qa`, `user-feedback`
+- Drive: `kelly-insure-data-files`
+- Bases: `kelly-insure-data-featured`, `kelly-insure-data-notices` (legacy alias `news`), `kelly-insure-data-qa`, `kelly-insure-data-feedback`
 
 A missing Drive node or Base degrades to a visible warning in the Overview; the app never blocks behind a setup/provisioning screen the way most other Kelly App-in-Skills do, because there is nothing for a read-only reader to safely auto-create in someone else's canonical dataset.
 
@@ -75,9 +75,9 @@ Run from the skill root with the operator's own Busabase credentials:
 cd skills/kelly-insure-data
 npm install
 BUSABASE_BASE_URL=... BUSABASE_API_KEY=... BUSABASE_SPACE_ID=... \
-  npm run busabase:export -- --output app/.data/busabase_restore_manifest.json
+  npm run busabase:export -- --output content/kelly-insure-data-app/.data/busabase_restore_manifest.json
 BUSABASE_BASE_URL=... BUSABASE_API_KEY=... BUSABASE_SPACE_ID=... \
-  npm run busabase:restore -- --manifest app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run
+  npm run busabase:restore -- --manifest content/kelly-insure-data-app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run
 BUSABASE_BASE_URL=... BUSABASE_API_KEY=... BUSABASE_SPACE_ID=... \
   npm run busabase:backfill-pdf-text -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5
 ```
@@ -86,7 +86,7 @@ BUSABASE_BASE_URL=... BUSABASE_API_KEY=... BUSABASE_SPACE_ID=... \
 - `busabase:restore` previews restoration after a Busabase reset; add `--apply` only when ready to recreate missing folder, Drive files, Bases, and records.
 - `busabase:backfill-pdf-text` parses local PDFs and previews the Asset text slot write and generated metadata; add `--apply` to write. The extracted text goes to the Asset text slot only (`PUT /api/v1/assets/{assetId}/text`) — `Asset.metadata` gets parser details, structured file fields, and a short `extraction_summary`, never the full PDF body. `busabase:backfill-pdf-metadata` remains available as a compatibility alias.
 
-Keep real tokens in environment variables only. Never commit real insurance files, PDF backups, tokens, or anything under `app/.data/`.
+Keep real tokens in environment variables only. Never commit real insurance files, PDF backups, tokens, or anything under `content/kelly-insure-data-app/.data/`.
 
 ---
 

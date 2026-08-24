@@ -3,9 +3,9 @@
 Use this schema for the Busabase `agents` Base. The app reads and writes this
 Base only; it never provisions or calls a real agent. Field slugs are
 kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`).
+(`content/kelly-agent-builder-app/app/js/providers/busabase-provider.js`).
 
-## Agent config (`kelly-agent-builder-agents-v1`)
+## Agent config (`kelly-agent-builder-agents`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -22,13 +22,13 @@ kebab-case in Busabase and normalized to snake_case in app code
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
 `allowed_tools` must be a subset of the fixed tool catalog in
-`app/app/js/tool-catalog.js`: `web_search`, `code_exec`, `file_read`,
+`content/kelly-agent-builder-app/app/js/tool-catalog.js`: `web_search`, `code_exec`, `file_read`,
 `file_write`, `send_email`, `calendar`, `crm_lookup`, `db_query`,
 `slack_post`, `http_request`.
 
 ## Derived fields (computed, never persisted)
 
-`app/app/js/agent-model.js#deriveAgent` computes a read-only `derived` view
+`content/kelly-agent-builder-app/app/js/agent-model.js#deriveAgent` computes a read-only `derived` view
 for every agent:
 
 - `is_quota_reached`: `status === "live" && calls_this_month >= monthly_quota &&
@@ -60,7 +60,7 @@ Only allowed when `missing_required_fields` is empty, i.e. all of:
 4. `owning_team` is a non-empty string.
 5. `monthly_quota` is a number greater than `0`.
 
-Enforced in `app/app/js/providers/busabase-provider.js#activateAgent` — the
+Enforced in `content/kelly-agent-builder-app/app/js/providers/busabase-provider.js#activateAgent` — the
 browser form also disables the button, but the provider is the source of
 truth and rejects the write (`status: 422`, `missing_fields`) when the gate
 fails.
@@ -75,7 +75,7 @@ is rejected (`status: 409`).
 
 Only allowed from `live`.
 
-## Settings Base (`kelly-agent-builder-settings-v1`)
+## Settings Base (`kelly-agent-builder-settings`)
 
 One row per `kind`, looked up by `record-id`:
 

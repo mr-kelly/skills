@@ -7,7 +7,7 @@
   "scripts": {
     "ingest": "node scripts/ingest_products.mjs",
     "execute": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-products-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

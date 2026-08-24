@@ -40,7 +40,7 @@ Kelly Education Intel is a Busabase App-in-Skill cockpit for turning exam, admis
 ## Demo Mode
 
 ```bash
-pnpm --dir skills/kelly-education-intel/app dev
+pnpm --dir skills/kelly-education-intel/content/kelly-education-intel-app dev
 ```
 
 Open the printed URL and use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.

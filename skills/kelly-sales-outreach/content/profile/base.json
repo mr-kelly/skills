@@ -1,0 +1,128 @@
+{
+  "name": "产品与 ICP",
+  "description": "One offer profile and the ideal-customer hypothesis that drives research and messaging",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "seller-name",
+      "name": "发起人",
+      "type": "text",
+      "required": false,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "offer-name",
+      "name": "产品或服务",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "offer-summary",
+      "name": "产品服务说明",
+      "type": "longtext",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "value-proposition",
+      "name": "价值主张",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "proof-points",
+      "name": "案例与证据",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "target-industries",
+      "name": "目标行业",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "target-regions",
+      "name": "目标地区",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "buyer-roles",
+      "name": "决策角色",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "ideal-customer",
+      "name": "理想客户画像",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "research-channels",
+      "name": "研究渠道",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "collateral-file",
+      "name": "销售资料附件",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "from-email",
+      "name": "发件邮箱",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "smtp-vault-key",
+      "name": "SMTP 凭据引用",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "更新时间",
+      "type": "date",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-version",
+      "name": "引导完成版本",
+      "type": "number",
+      "required": false,
+      "position": 14,
+      "options": {}
+    }
+  ],
+  "views": []
+}

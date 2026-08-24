@@ -1,0 +1,29 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-pr-review",
+  "description": "GitHub pull request review desk backed by the gh CLI",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["platform", "risk:gated-write", "surface:busabase", "surface:github"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 1,
+    "airapp": "kelly-pr-review-app",
+    "tags": ["platform", "risk:gated-write", "surface:busabase", "surface:github"],
+    "screenshots": [
+      "assets/screenshots/blocked-security.webp",
+      "assets/screenshots/needs-review.webp",
+      "assets/screenshots/needs-test.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/ready.webp",
+      "assets/screenshots/tested.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Reviews and flag what needs my attention.",
+      "Open Kelly PR Review and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

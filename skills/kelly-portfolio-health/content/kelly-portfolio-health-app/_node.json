@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Portfolio Health",
+  "description": "Read-mostly dashboard over a revenue-based-financing (RBF) fund or private-credit book of many small SME contracts: portfolio health, AUM, repayment progress, industry/city concentration risk, and a watchlist of contracts with declining revenue. The only human action — flag a contract for review, clear a flag, or leave a note — is written directly onto the contract's own record; there is no separate approval queue and no transaction path. Generic and brand-free."
+}

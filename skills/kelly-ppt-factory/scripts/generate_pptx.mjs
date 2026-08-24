@@ -12,7 +12,7 @@
 //
 // Only approved decks are generated: a deck is generatable when its own
 // decision_action is a genuine "approve" (written exclusively by the
-// review queue's decideItem() in app/app/js/providers/busabase-provider.js)
+// review queue's decideItem() in content/kelly-ppt-factory-app/app/js/providers/busabase-provider.js)
 // — not merely because status happens to read "approved"/"generated". This
 // mirrors kelly-legal-precedent-desk's export_research_pack.mjs precedent:
 // closing the gap where a spoofed status could otherwise be enough to
@@ -29,7 +29,7 @@ import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
 import pptxgen from "pptxgenjs";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-ppt-factory-app/app/js/config.js";
 import {
   baseDeckFields,
   baseExportFields,
@@ -37,7 +37,7 @@ import {
   normalizeExportRow,
   normalizeSlideRow,
   normalizeStyleRow,
-} from "../app/app/js/ppt-model.js";
+} from "../content/kelly-ppt-factory-app/app/js/ppt-model.js";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -315,8 +315,8 @@ async function main() {
     throw new Error("Kelly PPT Factory Busabase resources are not provisioned yet; run the AirApp setup first.");
   }
   const decksBase = resources.bases.find((base) => base.key === "decks");
-  const slideCardsBase = resources.bases.find((base) => base.key === "slideCards");
-  const styleSystemsBase = resources.bases.find((base) => base.key === "styleSystems");
+  const slideCardsBase = resources.bases.find((base) => base.key === "slide-cards");
+  const styleSystemsBase = resources.bases.find((base) => base.key === "style-systems");
   const exportsBase = resources.bases.find((base) => base.key === "exports");
   const settingsBase = resources.bases.find((base) => base.key === "settings");
 

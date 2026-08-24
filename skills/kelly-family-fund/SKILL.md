@@ -7,6 +7,17 @@ metadata:
     - risk:read-only
     - industry:family
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-family-fund
+    resources:
+      - beneficiaries
+      - families
+      - income
+      - expenses
+      - settings
+    risk: read-only
+
 ---
 
 # Kelly Family Fund
@@ -20,7 +31,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-family-fund-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -61,7 +72,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Five Bases under one application Folder (`kelly-family-fund`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-family-fund-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `beneficiaries`: the elders whose pensions are pooled (`id`, `name`, `relation`, `pension_monthly`).
 - `families`: the sibling families that share the surplus (`id`, `name`, `head`, `members_count`, `note`).
@@ -127,7 +138,7 @@ always treated as the parents' cost (`family_id` empty, not shared).
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-family-fund-app dev` only when local preview/debugging is explicitly
 requested. UI language supports Chinese (primary) and English chrome with an
 `Auto` default.
 
@@ -145,7 +156,7 @@ Read-only, deterministic observations rendered from `{ code, severity, params }`
 
 ## File Contract
 
-Read `references/fund-schema.md` before editing the app, `app/app/js/config.js`,
+Read `references/fund-schema.md` before editing the app, `content/kelly-family-fund-app/app/js/config.js`,
 or `scripts/import_csv.mjs`.
 
 ## Safety Defaults

@@ -7,6 +7,19 @@ metadata:
     - risk:gated-write
     - surface:busabase
     - surface:sendgrid
+  busabase:
+    template: true
+    folderSlug: kelly-devops
+    resources:
+      - services
+      - expiries
+      - spend-providers
+      - spend-products
+      - actions
+      - events
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly DevOps
@@ -65,7 +78,7 @@ is the only place billing data enters the system.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-devops-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -86,12 +99,12 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Seven Bases under one application Folder (`kelly-devops`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-devops-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `services`: monitored endpoints — roster (name, product, url) and the latest HTTP/TLS check result (status, latency, uptime, SSL issuer/expiry, history, warnings) in the same row.
 - `expiries`: one ledger row per domain, API key rotation, or plan renewal (registrar/auto-renew for domains, rotation policy detail for keys). SSL certificate expiry rows are derived client-side from `services`, never stored twice.
-- `spend_providers`: per cloud/billing provider month-to-date vs last-month spend.
-- `spend_products`: per-product spend allocation for the same billing period.
+- `spend-providers`: per cloud/billing provider month-to-date vs last-month spend.
+- `spend-products`: per-product spend allocation for the same billing period.
 - `actions`: the review queue — agent-proposed action cards (`renew_domain`/`rotate_key`/`investigate_spend`/`restart_service`/`ack_incident`) with reason, evidence, plan, target, and the human verdict.
 - `events`: append-only feed of check runs, incidents, expiry warnings, spend anomalies, and action decisions.
 - `settings`: one row (`record-id: "config"`) with expiry-warning/critical days, degraded-latency threshold, and spend-anomaly percentage.
@@ -124,7 +137,7 @@ node skills/kelly-devops/scripts/sync_domains.mjs roster.json --apply
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-devops-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -181,7 +194,7 @@ node skills/kelly-devops/scripts/sync_domains.mjs roster.json --apply
 node skills/kelly-devops/scripts/ingest_spend.mjs payload.json --apply
 node skills/kelly-devops/scripts/execute_decisions.mjs
 node skills/kelly-devops/scripts/execute_decisions.mjs --complete <action_id> --note "..."
-pnpm --dir skills/kelly-devops/app dev
+pnpm --dir skills/kelly-devops/content/kelly-devops-app dev
 ```
 
 In normal use, invoke `/kelly-devops`, let the skill run the checks that are

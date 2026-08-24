@@ -23,9 +23,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources, provisionDeclaredResources, publishAirApp } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-revshare-simulator-app/app/js/config.js";
 
-const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "app");
+const appRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "content",
+  "kelly-revshare-simulator-app",
+);
 
 function fail(message) {
   console.error(message);

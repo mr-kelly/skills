@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-homework-coach",
+  "description": "Kelly Homework Coach: a child-friendly homework desk — questions the agent explained (with the gentle step-by-step explanation), the mistake notebook, practice papers, the parent/teacher review queue, and sanitized settings",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["education", "risk:local-write", "industry:education", "surface:busabase"],
+  "template": {
+    "category": "education",
+    "schemaVersion": 1,
+    "airapp": "kelly-homework-coach-app",
+    "tags": ["education", "risk:local-write", "industry:education", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/mistakes.webp",
+      "assets/screenshots/papers.webp",
+      "assets/screenshots/review.webp",
+      "assets/screenshots/student.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Questions and flag what needs my attention.",
+      "Open Kelly Homework Coach and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

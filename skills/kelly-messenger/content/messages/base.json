@@ -1,0 +1,64 @@
+{
+  "name": "Messages",
+  "description": "One row per message, joined onto its conversation by conversation-id",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "message-id",
+      "name": "Message ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "conversation-id",
+      "name": "Conversation ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "direction",
+      "name": "Direction",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "sender",
+      "name": "Sender",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "text",
+      "name": "Text",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "sent-at",
+      "name": "Sent at",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "attachment",
+      "name": "Attachment",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}

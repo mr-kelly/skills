@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Deal Scorer",
+  "description": "Deal Scoring Desk: a review queue that scores candidate SME financing deals (revenue-based/RBF-style credit) with a deterministic, fully auditable rule-based rubric and records approve/send-back/reject decisions"
+}

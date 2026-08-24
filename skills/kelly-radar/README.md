@@ -49,7 +49,7 @@ Kelly Radar is a Busabase App-in-Skill market-intelligence desk. One app merges 
 Run the app locally:
 
 ```bash
-pnpm --dir skills/kelly-radar/app dev
+pnpm --dir skills/kelly-radar/content/kelly-radar-app dev
 ```
 
 Open the printed URL, then add one of these demo paths:

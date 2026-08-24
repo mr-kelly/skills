@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Trusted hand-off step. Re-reads plans + the compliance rules/template
 // sections off Busabase's plans/settings Bases, evaluates every deterministic
-// rule via app/app/js/lesson-model.js's evaluateCheck() (ported verbatim from
+// rule via content/kelly-lesson-app/app/js/lesson-model.js's evaluateCheck() (ported verbatim from
 // the retired scripts/run_checks.ts), preserves agent-judged agent_review
 // verdicts, upserts the Checks Base, and recomputes+writes each plan's
 // compliance_score via computeComplianceScore() (same POINTS table as the
@@ -14,8 +14,8 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { computeComplianceScore, evaluateCheck } from "../app/app/js/lesson-model.js";
+import { appConfig } from "../content/kelly-lesson-app/app/js/config.js";
+import { computeComplianceScore, evaluateCheck } from "../content/kelly-lesson-app/app/js/lesson-model.js";
 
 function help() {
   console.log(`Usage: node scripts/run_checks.mjs [--apply]

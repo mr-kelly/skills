@@ -8,7 +8,7 @@
     "ingest": "node scripts/ingest_documents.mjs",
     "execute": "node scripts/execute_decisions.mjs",
     "export": "node scripts/export_case_records.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-legal-casebase-ingest-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

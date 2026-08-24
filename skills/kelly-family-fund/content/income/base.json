@@ -1,0 +1,48 @@
+{
+  "name": "Income",
+  "description": "Monthly pension inflow per beneficiary",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "income-id",
+      "name": "Income ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "month",
+      "name": "Month",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "beneficiary-id",
+      "name": "Beneficiary ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "amount",
+      "name": "Amount",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Note",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

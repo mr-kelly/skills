@@ -1,0 +1,80 @@
+{
+  "name": "Sessions",
+  "description": "The fixed mock session sample (100 rows across 5 segments) — raw behavior features, the funnel stage reached, and the seeded mock 'actual' next action used only to make the backtest non-trivial",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "session-id",
+      "name": "Session ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "segment-id",
+      "name": "Segment ID",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "session-length",
+      "name": "Session length",
+      "type": "number",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "cart-abandon-count",
+      "name": "Cart abandon count",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "price-check-count",
+      "name": "Price check count",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "days-since-last-visit",
+      "name": "Days since last visit",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "coupon-clicks",
+      "name": "Coupon clicks",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "reached-stage",
+      "name": "Reached stage",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "actual-action",
+      "name": "Actual action (mock ground truth)",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

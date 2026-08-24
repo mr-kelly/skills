@@ -1,0 +1,28 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-legal-firm-radar",
+  "description": "Firm-level radar desk over anonymized casebase analytics: practice-area mix, case-quality indicators, lawyer capability profiles, brand proof points, and approval-gated management insights (approve / request changes / revise / block) before a report becomes a management or brand handoff",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["legal", "risk:local-write", "industry:legal", "surface:busabase"],
+  "template": {
+    "category": "legal",
+    "schemaVersion": 1,
+    "airapp": "kelly-legal-firm-radar-app",
+    "tags": ["legal", "risk:local-write", "industry:legal", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/checks.webp",
+      "assets/screenshots/entities.webp",
+      "assets/screenshots/needs-review.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/workbench.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Management Insights and flag what needs my attention.",
+      "Open Legal Firm Radar and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

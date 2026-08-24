@@ -1,0 +1,83 @@
+export const appConfig = {
+  appId: "kelly-llm-gateway",
+  appName: "Kelly LLM Gateway",
+  deployment: "cloud",
+  locale: "auto",
+  readOnly: false,
+  spaceId: "",
+  schemaVersion: 1,
+  folder: {
+    name: "Kelly LLM Gateway",
+    description:
+      "Platform team's cost and model-governance dashboard over a shared LLM gateway: per-service/per-model call volume, cost, and error rate; a canary-rollout status board; and a deterministic cost/error anomaly list. Generic and brand-free — only role-based service names and generic provider/model labels. Human actions (promote/rollback/hold a rollout, acknowledge an anomaly) are written directly onto the route's own record — this app never changes a real routing config",
+    slug: "kelly-llm-gateway",
+  },
+  airApp: { name: "Kelly LLM Gateway", slug: "kelly-llm-gateway-app", resourceKey: "kelly-llm-gateway-app" },
+  bases: [
+    {
+      key: "routes",
+      name: "Routes",
+      slug: "kelly-llm-gateway-routes",
+      description:
+        "One row per service→model route: canary status, canary %, rollback readiness, a human decision note, a 14-day daily usage series (JSON array of {date, calls, cost, errors}), and per-anomaly-kind acknowledgement state (JSON or empty). Today's totals and each route's own rolling cost/error baseline are never stored — they are pure/derived from the daily series and recomputed on every read. Routes enter Busabase through an external gateway usage-ingestion process (not the AirApp itself, matching kelly-lead-funnel's leads precedent); the AirApp only ever updates status/canary_pct/rollback_ready/note (a rollout decision) or the ack fields (an anomaly acknowledgement) directly on an existing row",
+      readLimit: 50,
+      fields: [
+        { slug: "route-id", name: "Route ID", type: "text", required: true },
+        { slug: "service-id", name: "Service ID", type: "text", required: true },
+        { slug: "model-id", name: "Model ID", type: "text", required: true },
+        { slug: "status", name: "Status", type: "text", required: false },
+        { slug: "canary-pct", name: "Canary %", type: "number", required: false },
+        { slug: "rollback-ready", name: "Rollback ready", type: "text", required: false },
+        { slug: "note", name: "Decision note", type: "longtext", required: false },
+        { slug: "daily", name: "Daily usage (JSON array)", type: "longtext", required: false },
+        { slug: "cost-spike-ack", name: "Cost-spike ack (JSON)", type: "longtext", required: false },
+        { slug: "error-spike-ack", name: "Error-spike ack (JSON)", type: "longtext", required: false },
+        { slug: "updated-at", name: "Updated at", type: "text", required: false },
+      ],
+    },
+    {
+      key: "services",
+      name: "Services",
+      slug: "kelly-llm-gateway-services",
+      description: "One row per consuming service routed through the shared gateway",
+      readLimit: 20,
+      fields: [
+        { slug: "service-id", name: "Service ID", type: "text", required: true },
+        { slug: "display-name", name: "Display name", type: "text", required: false },
+        { slug: "team", name: "Team", type: "text", required: false },
+      ],
+    },
+    {
+      key: "models",
+      name: "Models",
+      slug: "kelly-llm-gateway-models",
+      description: "One row per backing model/provider behind the gateway",
+      readLimit: 20,
+      fields: [
+        { slug: "model-id", name: "Model ID", type: "text", required: true },
+        { slug: "display-name", name: "Display name", type: "text", required: false },
+        { slug: "provider", name: "Provider", type: "text", required: false },
+        { slug: "tier", name: "Tier", type: "text", required: false },
+      ],
+    },
+    {
+      key: "settings",
+      name: "Settings",
+      slug: "kelly-llm-gateway-settings",
+      description:
+        "Sanitized config summary (base currency, anomaly thresholds, non-secret gateway region/base URL/credential-env-var name), one row keyed by kind",
+      readLimit: 20,
+      fields: [
+        { slug: "record-id", name: "Record ID", type: "text", required: true },
+        { slug: "kind", name: "Kind", type: "text", required: true },
+        { slug: "payload", name: "Payload (JSON object)", type: "longtext", required: false },
+        { slug: "updated-at", name: "Updated at", type: "text", required: false },
+      ],
+    },
+  ],
+  permissions: {
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
+    writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
+  },
+};

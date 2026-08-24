@@ -8,15 +8,15 @@
 // operations for the agent to deliver through the user's own session.
 // planFor/sendVia/postJson are ported verbatim from the retired
 // scripts/send_outbox.ts; only the read/write target changed, from
-// app/.data/outbox.json + app/.data/messages_snapshot.json to Busabase's
+// content/kelly-messenger-app/.data/outbox.json + content/kelly-messenger-app/.data/messages_snapshot.json to Busabase's
 // replies/conversations/accounts Bases.
 //
 // Connects with the trusted process's own credentials (BUSABASE_BASE_URL,
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { API_CONNECTORS } from "../app/app/js/messenger-model.js";
+import { appConfig } from "../content/kelly-messenger-app/app/js/config.js";
+import { API_CONNECTORS } from "../content/kelly-messenger-app/app/js/messenger-model.js";
 
 function help() {
   console.log(`Usage: node scripts/send_outbox.mjs [--send]

@@ -35,7 +35,7 @@ never moves money.
 Run the app locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-invest-webull/app dev
+pnpm --dir skills/kelly-invest-webull/content/kelly-invest-webull-app dev
 ```
 
 Then add one of these demo paths:
@@ -69,7 +69,7 @@ It reads Webull App Key / App Secret from env vars named in local config,
 fetches live holdings via the official `webull-openapi-python-sdk` (through
 `scripts/webull_bridge.py`, since Webull has no first-party Node SDK), maps
 them with the field-mapping logic ported verbatim from the retired
-`lib/data-provider/webull.ts` into `app/app/js/webull-model.js`, and upserts
+`lib/data-provider/webull.ts` into `content/kelly-invest-webull-app/app/js/webull-model.js`, and upserts
 Accounts/Positions/Settings rows via Busabase ChangeRequests. Pass
 `--fixture path/to/raw.json` for a credential-free dry run against a local
 JSON payload shaped like `{ "accounts": [...], "positions": [...] }`.

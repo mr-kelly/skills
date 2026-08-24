@@ -6,6 +6,18 @@ metadata:
   tags:
     - risk:gated-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-crm
+    resources:
+      - companies
+      - contacts
+      - deals
+      - interactions
+      - followups
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly CRM
@@ -34,7 +46,7 @@ through Busabase.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-crm-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -81,7 +93,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Six Bases under one application Folder (`kelly-crm`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-crm-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `companies`: name, domain, industry, size, location, notes.
 - `contacts`: name, company, role, email, relationship strength, tags, last
@@ -143,7 +155,7 @@ AirApp boundary in `$busabase-app-creator`.
 ## Demo Mode
 
 `?demo=1` opens a deterministic, read-only mock CRM for documentation and
-screenshots (`app/app/js/providers/demo-provider.js`). `?demo=overview`,
+screenshots (`content/kelly-crm-app/app/js/providers/demo-provider.js`). `?demo=overview`,
 `?demo=deals`, `?demo=contacts`, `?demo=followups`, and `?demo=detail` select
 named mock scenes; `detail` deep-links to a deal detail. `lang=en` or
 `lang=zh` forces UI chrome language. Demo mode never reads or writes
@@ -153,8 +165,8 @@ Busabase and never claims a real connection.
 
 Finish only when:
 
-- the skill contains the complete canonical `app/` project and
-  `pnpm --dir app dev` remains supported;
+- the skill contains the complete canonical `content/kelly-crm-app/` project and
+  `pnpm --dir content/kelly-crm-app dev` remains supported;
 - all persistent config, state, decisions, and domain data use `busabase-sdk`
   and the declared resource map — no local JSON, browser storage, or
   provider choice;
@@ -163,7 +175,7 @@ Finish only when:
   while a deployed AirApp uses its ambient session;
 - Overview, Deals, Contacts, Follow-ups, and Help & Settings render on
   desktop and phone widths;
-- `pnpm --dir app run check` and `node --test` pass.
+- `pnpm --dir content/kelly-crm-app run check` and `node --test` pass.
 
 ## Stop Conditions
 

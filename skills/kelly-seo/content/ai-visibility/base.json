@@ -1,0 +1,56 @@
+{
+  "name": "AI Visibility",
+  "description": "Tracked AI-answer-engine prompts with per-engine mentions and a visibility trend",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "prompt-id",
+      "name": "Prompt ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "prompt",
+      "name": "Prompt",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "intent",
+      "name": "Intent",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "mentions",
+      "name": "Mentions (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "trend",
+      "name": "Trend (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

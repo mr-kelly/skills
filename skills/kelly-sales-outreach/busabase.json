@@ -1,0 +1,50 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-sales-outreach",
+  "description": "Product positioning, ideal-customer profile, target accounts, contacts, and reviewed outreach",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["sales-crm", "risk:gated-write", "surface:busabase", "surface:smtp"],
+  "template": {
+    "category": "sales-crm",
+    "schemaVersion": 1,
+    "airapp": "kelly-sales-outreach-app",
+    "tags": ["sales-crm", "risk:gated-write", "surface:busabase", "surface:smtp"],
+    "screenshots": [
+      "assets/screenshots/blocked.webp",
+      "assets/screenshots/profile.webp",
+      "assets/screenshots/sent.webp",
+      "assets/screenshots/to-send.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest 产品与 ICP and flag what needs my attention.",
+      "Open Kelly Sales Outreach and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    },
+    "vaultNamespace": "kelly-sales-outreach",
+    "secrets": [
+      {
+        "key": "SMTP_HOST",
+        "description": "SMTP server for the seller's mailbox",
+        "required": true
+      },
+      {
+        "key": "SMTP_PORT",
+        "description": "SMTP submission port",
+        "required": true
+      },
+      {
+        "key": "SMTP_USER",
+        "description": "SMTP username",
+        "required": true
+      },
+      {
+        "key": "SMTP_PASS",
+        "description": "SMTP app password or authorization code",
+        "required": true
+      }
+    ]
+  }
+}

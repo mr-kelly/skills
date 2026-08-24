@@ -7,6 +7,17 @@ metadata:
     - risk:gated-write
     - industry:restaurant
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-restaurant-intel
+    resources:
+      - signals
+      - actions
+      - drafts
+      - sources
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Restaurant Intel
@@ -38,7 +49,7 @@ preview is explicitly requested). Use chat-only mode only when the user says
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-restaurant-intel-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -83,7 +94,7 @@ Actions should become shift briefs, hero-menu picks, delivery copy, review repli
 ## Busabase Resources
 
 Five Bases under one application Folder (`kelly-restaurant-intel`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-restaurant-intel-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `signals`: source-backed weather, event, transport, tourism, competitor-menu, delivery, booking, and review signals — evidence link, why-it-matters, buyer-intent interpretation, confidence, risk badges, a suggested action, and the human decision verdict.
 - `actions`: approved/blocked/reviewable shift briefs, hero-menu picks, delivery copy, review replies, booking scripts, or operating actions linked to signals, with owner, priority, reason, next step, and the human decision verdict.
@@ -109,7 +120,7 @@ Busabase gate.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-restaurant-intel-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -168,5 +179,5 @@ Demo mode:
 ```bash
 node skills/kelly-restaurant-intel/scripts/execute_decisions.mjs
 node skills/kelly-restaurant-intel/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-restaurant-intel/app dev
+pnpm --dir skills/kelly-restaurant-intel/content/kelly-restaurant-intel-app dev
 ```

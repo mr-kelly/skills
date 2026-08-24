@@ -6,6 +6,14 @@ metadata:
   tags:
     - risk:local-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-invoice-sheet
+    resources:
+      - invoices
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly Invoice Sheet
@@ -33,7 +41,7 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-invoice-sheet-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -46,7 +54,7 @@ If a dependency is unavailable, preserve this skill's artifact and product contr
 3. Read `references/invoice-batch-schema.md` before writing a batch file.
 4. Write a batch JSON file (an object with an `invoices` array, or a bare array of invoice objects), keeping stable `id` and `ref` values such as `Review #1`.
 5. Run `node scripts/import_batch.mjs --file <batch.json> --apply` to validate and write the batch into Busabase's `invoices` Base.
-6. Give the user the AirApp URL (or start local preview with `pnpm --dir app dev` if explicitly requested).
+6. Give the user the AirApp URL (or start local preview with `pnpm --dir content/kelly-invoice-sheet-app dev` if explicitly requested).
 7. After the user approves rows in the app, run `node scripts/export_decisions.mjs --apply` to export approved invoices to CSV and JSON and mark them `done`.
 
 Use chat-only mode only when the user says "chat only", "no UI", "纯聊天", "不要打开 UI", or similar.
@@ -59,7 +67,7 @@ Use chat-only mode only when the user says "chat only", "no UI", "纯聊天", "�
 
 ## Busabase Resources
 
-Two Bases under one application Folder (`kelly-invoice-sheet`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Two Bases under one application Folder (`kelly-invoice-sheet`), declared in `content/kelly-invoice-sheet-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `invoices`: one row per extracted invoice/receipt/credit note/statement — header fields, field confidence (JSON), line items (JSON array, shares the invoice's own lifecycle), risk/warning flags (JSON arrays), and the reviewer's decision (`decision-action`/`decision-note`/`decided-at`) written directly onto the same row. Written by `scripts/import_batch.mjs` when the agent finishes extracting a batch; status is set directly by a human decision in the app.
 - `settings`: sanitized config summary (default currency, extraction preferences, review policy, export preferences — no secrets), one row keyed by `kind`.
@@ -92,7 +100,7 @@ Resources provision lazily through an idempotent Busabase ChangeRequest the firs
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-invoice-sheet-app dev` only when local preview/debugging is explicitly requested.
 
 ## Demo Mode
 
@@ -109,5 +117,5 @@ Default behavior is AirApp-first — give the user the clickable AirApp URL. Sta
 ```bash
 node skills/kelly-invoice-sheet/scripts/import_batch.mjs --file batch.json --apply
 node skills/kelly-invoice-sheet/scripts/export_decisions.mjs --apply
-pnpm --dir skills/kelly-invoice-sheet/app dev
+pnpm --dir skills/kelly-invoice-sheet/content/kelly-invoice-sheet-app dev
 ```

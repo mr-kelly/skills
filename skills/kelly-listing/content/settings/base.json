@@ -1,0 +1,120 @@
+{
+  "name": "Settings",
+  "description": "Seller profile, per-platform rule sets, banned words, and export preferences — a single settings row",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "seller-brand",
+      "name": "Brand",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "seller-entity",
+      "name": "Entity",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "seller-tone",
+      "name": "Tone",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "locales",
+      "name": "Locales",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "platforms",
+      "name": "Platforms",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "banned-words",
+      "name": "Banned words",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "competitor-brands",
+      "name": "Competitor brands",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "keyword-stuffing-max-repeats",
+      "name": "Keyword repeat threshold",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "allowed-all-caps",
+      "name": "Allowed all-caps terms",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "export-format",
+      "name": "Export format",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "export-out-dir",
+      "name": "Export out dir",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "publish-handoff-to-agent",
+      "name": "Handoff to agent",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "publish-requires-approval",
+      "name": "Requires approval",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    }
+  ],
+  "views": []
+}

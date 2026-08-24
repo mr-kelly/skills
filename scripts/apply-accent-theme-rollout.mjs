@@ -36,7 +36,7 @@ const changed = [];
 for (const dir of kellySkillDirs()) {
   const name = path.basename(dir);
   if (name === "kelly-email") continue;
-  const appDir = path.join(dir, "app");
+  const appDir = path.join(dir, "content", `${name}-app`, "app");
   const indexPath = path.join(appDir, "index.html");
   if (!fs.existsSync(indexPath)) continue;
 

@@ -4,7 +4,7 @@
 // Dedupes movers by keyword+source (case-insensitive keyword), updates
 // volume/delta/momentum for existing movers, and can add opportunity cards
 // — same rules as the retired local-file version, just against Busabase
-// records instead of app/.data/radar_snapshot.json.
+// records instead of content/kelly-radar-app/.data/radar_snapshot.json.
 //
 // Usage: node scripts/ingest_trends.mjs <payload.json> [kelly-seo-snapshot.json]
 // Payload: { "movers": [ { keyword, source, volume_proxy, delta_pct, momentum[] } ], "opportunities": [ ... ] }
@@ -14,8 +14,8 @@
 import { readFile } from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { MOVER_SOURCES } from "../app/app/js/radar-model.js";
+import { appConfig } from "../content/kelly-radar-app/app/js/config.js";
+import { MOVER_SOURCES } from "../content/kelly-radar-app/app/js/radar-model.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_trends.mjs <payload.json> [kelly-seo-snapshot.json]
@@ -249,7 +249,7 @@ async function main() {
   const detail = `${added} movers added, ${updated} updated, ${opportunitiesAdded} opportunities added${seoImported.length ? `, ${seoImported.length} rising queries imported from kelly-seo` : ""}.`;
   await create(
     client,
-    declared("sync_log"),
+    declared("sync-log"),
     { log_id: `log-${Date.now().toString(36)}`, at: now, actor: "kelly-radar-agent", action: "ingest_trends", detail },
     "Ingest trends sync log",
   );

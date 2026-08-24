@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Products",
+  "description": "E-commerce product-management desk: catalog/SKU master data, pricing, inventory, channel status (Amazon/Shopify/TikTok Shop/eBay), content readiness, compliance notes, lifecycle state, and an approval-gated review queue (channel publish approvals, price-change review, quality holds, lifecycle decisions). Products, channel rows, inventory rows, and review items enter Busabase only through the agent's own ingest workflow (see SKILL.md); the AirApp itself only ever decides on a review item (approve/request_changes/block) directly onto its own record -- it never creates a product, channel row, or inventory row."
+}

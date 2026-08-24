@@ -1,0 +1,80 @@
+{
+  "name": "互动记录",
+  "description": "Email, meeting, call, chat, social, and note touchpoints",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "interaction-id",
+      "name": "互动 ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "contact-id",
+      "name": "联系人",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "company-id",
+      "name": "所属公司",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "deal-id",
+      "name": "关联交易",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "类型",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "occurred-at",
+      "name": "发生时间",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "direction",
+      "name": "方向",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "summary",
+      "name": "摘要",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "source",
+      "name": "来源",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Restaurant Intel's
 Busabase Bases. Field slugs are kebab-case in Busabase and normalized to
-snake_case in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/restaurant-model.js`). The batch rollup metrics
+snake_case in app code (`content/kelly-restaurant-intel-app/app/js/providers/busabase-provider.js`,
+`content/kelly-restaurant-intel-app/app/js/restaurant-model.js`). The batch rollup metrics
 (`needs_review`/`approved`/`blocked` and their per-kind counts) are computed
 client-side from `signals`/`actions`/`drafts` on every read — they are never
 stored.
@@ -12,7 +12,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise` (`revise` is draft-only).
 
-## Signals (`kelly-restaurant-intel-signals-v1`)
+## Signals (`kelly-restaurant-intel-signals`)
 
 Source-backed weather, event, transport, tourism, competitor-menu,
 delivery, booking, and review signals — evidence, buyer-intent
@@ -37,7 +37,7 @@ interpretation, confidence, risk badges, and a suggested action.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Actions (`kelly-restaurant-intel-actions-v1`)
+## Actions (`kelly-restaurant-intel-actions`)
 
 Approved/blocked/reviewable shift briefs, hero-menu picks, delivery copy,
 review replies, booking scripts, or operating actions tied to today's
@@ -59,7 +59,7 @@ signals.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Drafts (`kelly-restaurant-intel-drafts-v1`)
+## Drafts (`kelly-restaurant-intel-drafts`)
 
 Editable channel drafts (staff brief / IG post / delivery blurb), kept
 behind a review gate until approved.
@@ -83,7 +83,7 @@ A `revise` decision writes `edited-body` and leaves `status` at
 `needs_review` — the review still needs an explicit approve/request_changes/
 block after a revision.
 
-## Sources (`kelly-restaurant-intel-sources-v1`)
+## Sources (`kelly-restaurant-intel-sources`)
 
 Configured local-event/weather/competitor/trend/delivery source
 categories, freshness, and coverage gaps.
@@ -96,7 +96,7 @@ categories, freshness, and coverage gaps.
 | `freshness` | `freshness` | text | e.g. "demo", "not connected" |
 | `coverage` | `coverage` | longtext | what this category covers or is missing |
 
-## Settings (`kelly-restaurant-intel-settings-v1`)
+## Settings (`kelly-restaurant-intel-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -116,7 +116,7 @@ and its review state.
 
 The trusted decision-execution step. Reads `signals`/`actions`/`drafts` with
 a non-empty `decision-verdict`, prints the concrete operation
-(`operationForDecision()` in `app/app/js/restaurant-model.js`) for every
+(`operationForDecision()` in `content/kelly-restaurant-intel-app/app/js/restaurant-model.js`) for every
 decided item, and with `--apply` writes `status: "done"` back onto every
 `approve`-verdict item once the agent has performed the real handoff
 outside this script. It performs no external side effect itself —

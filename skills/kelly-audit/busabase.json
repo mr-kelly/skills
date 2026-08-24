@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-audit",
+  "description": "Finance anomaly review desk: imported orders/invoices/payments, deterministic anomaly rules, and a human review queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["finance", "risk:gated-write", "surface:busabase"],
+  "template": {
+    "category": "finance",
+    "schemaVersion": 1,
+    "airapp": "kelly-audit-app",
+    "tags": ["finance", "risk:gated-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/anomalies.webp",
+      "assets/screenshots/invoices.webp",
+      "assets/screenshots/orders.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Orders and flag what needs my attention.",
+      "Open Kelly Audit and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

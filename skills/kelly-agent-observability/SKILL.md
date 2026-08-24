@@ -6,6 +6,16 @@ metadata:
   tags:
     - risk:sandbox
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-agent-observability
+    resources:
+      - agents
+      - traces
+      - handoffs
+      - settings
+    risk: sandbox
+
 ---
 
 # Agent Fleet Observability Desk
@@ -47,7 +57,7 @@ appears anywhere in the code, config, or seed data.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-agent-observability-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -97,7 +107,7 @@ exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Four Bases under one application Folder (`kelly-agent-observability`),
-declared in `app/app/js/config.js` and `app/resource-map.json`:
+declared in `content/kelly-agent-observability-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `agents`: one row per mock agent archetype (8 rows) — identity plus the
   latest rolled-up health metrics (status, call volume, p50/p95 latency,
@@ -133,7 +143,7 @@ system, so onboarding is just running the seed script once.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-agent-observability-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -164,7 +174,7 @@ UI language: support English and Chinese chrome with `Auto` default.
 
 ## Fleet Generation Model
 
-`app/app/js/fleet-model.js` (`generateFleetData`/`summarizeFleet`) is ported
+`content/kelly-agent-observability-app/app/js/fleet-model.js` (`generateFleetData`/`summarizeFleet`) is ported
 verbatim from the retired `lib/generate.ts`:
 
 - **Per-agent profile** — a fixed "personality" (volume, latency base/jitter,
@@ -209,7 +219,7 @@ itself:
 
 ```bash
 node skills/kelly-agent-observability/scripts/generate_fleet_data.mjs --apply
-pnpm --dir skills/kelly-agent-observability/app dev
+pnpm --dir skills/kelly-agent-observability/content/kelly-agent-observability-app dev
 ```
 
 ## Execution reports

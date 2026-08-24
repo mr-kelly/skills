@@ -7,6 +7,15 @@ metadata:
     - risk:gated-write
     - surface:busabase
     - surface:smtp
+  busabase:
+    template: true
+    folderSlug: kelly-jobhunt
+    resources:
+      - profile
+      - companies
+      - leads
+    risk: gated-write
+
 ---
 
 # Kelly JobHunt
@@ -58,7 +67,7 @@ onboarding complete.
 
 Before designing, creating, or changing the app:
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete local `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete local `content/kelly-jobhunt-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, API, ChangeRequest, review, merge, and Vault behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 4. Read `references/jobhunt-schema.md` before changing any Base, field slug, status value, or Vault key.
@@ -91,7 +100,7 @@ SQLite, or a file-backed provider.
   script's `--pass` flag or the `SMTP_PASS` environment variable.
 - **Only ever approve this app's own ChangeRequests.** A Space's open-CR list is
   shared by every app in it. Filter to the three JobHunt Base IDs from
-  `app/resource-map.json` — and, when approving one company, to that Record ID —
+  the generated template sidecars under `content/` — and, when approving one company, to that Record ID —
   before reviewing or merging anything. Merging the whole list because it was
   what the query returned is how an unrelated app's pending write gets approved
   by someone who never read it.
@@ -297,7 +306,7 @@ Goal: the user's own mailbox sends the letters they approved.
 
 ## App Artifact
 
-- Keep the complete canonical project under `<skill-root>/app/` and provide a
+- Keep the complete canonical project under `<skill-root>/content/kelly-jobhunt-app/` and provide a
   working `pnpm --dir <skill-root>/app dev` command.
 - Follow the UI and product contract from `$kelly-app-skill-creator`; delegate
   the runtime, SDK, security, validation, and deployment contract to
@@ -325,9 +334,9 @@ slugs, status values, and Vault keys are fixed by `references/jobhunt-schema.md`
 
 | Resource | Purpose |
 | --- | --- |
-| `jobhunt-profile-v1` | One row. Identity, target role, channels, resume source text, resume file name, sender address, onboarding version, and the SMTP Vault reference names. |
-| `jobhunt-companies-v1` | One row per company: match evidence, drafted email, outreach status, the address actually used. |
-| `jobhunt-leads-v1` | Several rows per company: candidate addresses with role, source URL, and confidence. |
+| `kelly-jobhunt-profile` | One row. Identity, target role, channels, resume source text, resume file name, sender address, onboarding version, and the SMTP Vault reference names. |
+| `kelly-jobhunt-companies` | One row per company: match evidence, drafted email, outreach status, the address actually used. |
+| `kelly-jobhunt-leads` | Several rows per company: candidate addresses with role, source URL, and confidence. |
 | Vault `SMTP_*` | Host, port, user, app password. Values readable only by the trusted sender — from a self-hosted Vault, from Cloud's `/api/v1/vault/runtime`, or from the environment. |
 
 `company-key` is a plain text foreign key, not a Busabase relation field. Two

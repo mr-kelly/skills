@@ -3,9 +3,9 @@
 Use this schema for the Busabase ledger Bases. The AirApp reads these Bases
 only; the trusted sync process is the only writer. Field slugs are
 kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/money-model.js`).
+(`content/kelly-money-app/app/js/providers/busabase-provider.js`, `content/kelly-money-app/app/js/money-model.js`).
 
-## Accounts (`kelly-money-accounts-v1`)
+## Accounts (`kelly-money-accounts`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ kebab-case in Busabase and normalized to snake_case in app code
 The app derives a `warning` for any account with `status` `warning` or
 `error` — do not also store a duplicate warning row.
 
-## Transactions (`kelly-money-transactions-v1`)
+## Transactions (`kelly-money-transactions`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -53,7 +53,7 @@ The app derives a `warning` for any account with `status` `warning` or
 | `source-url` | `source_url` | text | optional provider dashboard URL |
 | `tags` | `tags` | text | JSON array |
 
-## Invoices (`kelly-money-invoices-v1`)
+## Invoices (`kelly-money-invoices`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -74,7 +74,7 @@ The app derives a `warning` for any account with `status` `warning` or
 | `file-path` | `file_path` | text | keep raw PDFs outside git; store only a safe reference |
 | `notes` | `notes` | longtext | |
 
-## Invoice Matches (`kelly-money-invoice-matches-v1`)
+## Invoice Matches (`kelly-money-invoice-matches`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -102,7 +102,7 @@ invoice totals that do not equal the transaction amount. Use `needs_review`
 when a human should choose between candidates. Keep tolerances explicit and
 append to `audit_events` rather than overwriting the history of a match.
 
-## Settings (`kelly-money-settings-v1`)
+## Settings (`kelly-money-settings`)
 
 One row per `kind`, looked up by `record-id`:
 

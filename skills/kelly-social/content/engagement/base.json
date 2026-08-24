@@ -1,0 +1,112 @@
+{
+  "name": "Engagement",
+  "description": "Incoming mentions/comments with agent-drafted replies, approval-gated",
+  "position": 6,
+  "fields": [
+    {
+      "slug": "item-id",
+      "name": "Item ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "platform",
+      "name": "Platform",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "account-id",
+      "name": "Account ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "kind",
+      "name": "Kind",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "author-handle",
+      "name": "Author handle",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "incoming-text",
+      "name": "Incoming text",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "received-at",
+      "name": "Received at",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "sentiment",
+      "name": "Sentiment",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "priority",
+      "name": "Priority",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "draft-reply",
+      "name": "Draft reply",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "review-note",
+      "name": "Review note",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "permalink",
+      "name": "Permalink",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    }
+  ],
+  "views": []
+}

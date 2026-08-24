@@ -1,0 +1,328 @@
+{
+  "name": "Tickets",
+  "description": "The approval queue: triaged ticket, KB-grounded draft reply, decision, and execution result",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "ticket-id",
+      "name": "Ticket ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "account-id",
+      "name": "Account ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "channel",
+      "name": "Channel",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "customer-name",
+      "name": "Customer name",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "customer-company",
+      "name": "Customer company",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "customer-email",
+      "name": "Customer email",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "customer-handle",
+      "name": "Customer handle",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "customer-country",
+      "name": "Customer country",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "customer-plan",
+      "name": "Customer plan",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "subject",
+      "name": "Subject",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "body",
+      "name": "Body",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "priority",
+      "name": "Priority",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "proposed-action",
+      "name": "Proposed action",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "Reason",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "suggested-reply",
+      "name": "Suggested reply",
+      "type": "longtext",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "kb-refs",
+      "name": "KB refs",
+      "type": "longtext",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "sla-policy",
+      "name": "SLA policy",
+      "type": "text",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "sla-due-by",
+      "name": "SLA due by",
+      "type": "text",
+      "required": false,
+      "position": 19,
+      "options": {}
+    },
+    {
+      "slug": "sla-first-response-at",
+      "name": "SLA first response at",
+      "type": "text",
+      "required": false,
+      "position": 20,
+      "options": {}
+    },
+    {
+      "slug": "csat-score",
+      "name": "CSAT score",
+      "type": "number",
+      "required": false,
+      "position": 21,
+      "options": {}
+    },
+    {
+      "slug": "csat-comment",
+      "name": "CSAT comment",
+      "type": "longtext",
+      "required": false,
+      "position": 22,
+      "options": {}
+    },
+    {
+      "slug": "csat-rated-at",
+      "name": "CSAT rated at",
+      "type": "text",
+      "required": false,
+      "position": 23,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "text",
+      "required": false,
+      "position": 24,
+      "options": {}
+    },
+    {
+      "slug": "unread",
+      "name": "Unread",
+      "type": "text",
+      "required": false,
+      "position": 25,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 26,
+      "options": {}
+    },
+    {
+      "slug": "provider-conversation-id",
+      "name": "Provider conversation ID",
+      "type": "text",
+      "required": false,
+      "position": 27,
+      "options": {}
+    },
+    {
+      "slug": "decision-action",
+      "name": "Decision action",
+      "type": "text",
+      "required": false,
+      "position": 28,
+      "options": {}
+    },
+    {
+      "slug": "decision-comment",
+      "name": "Decision comment",
+      "type": "longtext",
+      "required": false,
+      "position": 29,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 30,
+      "options": {}
+    },
+    {
+      "slug": "execution-status",
+      "name": "Execution status",
+      "type": "text",
+      "required": false,
+      "position": 31,
+      "options": {}
+    },
+    {
+      "slug": "execution-operation",
+      "name": "Execution operation",
+      "type": "text",
+      "required": false,
+      "position": 32,
+      "options": {}
+    },
+    {
+      "slug": "execution-connector",
+      "name": "Execution connector",
+      "type": "text",
+      "required": false,
+      "position": 33,
+      "options": {}
+    },
+    {
+      "slug": "execution-target",
+      "name": "Execution target",
+      "type": "text",
+      "required": false,
+      "position": 34,
+      "options": {}
+    },
+    {
+      "slug": "execution-tier",
+      "name": "Execution tier",
+      "type": "text",
+      "required": false,
+      "position": 35,
+      "options": {}
+    },
+    {
+      "slug": "execution-amount",
+      "name": "Execution amount",
+      "type": "number",
+      "required": false,
+      "position": 36,
+      "options": {}
+    },
+    {
+      "slug": "execution-detail",
+      "name": "Execution detail",
+      "type": "longtext",
+      "required": false,
+      "position": 37,
+      "options": {}
+    },
+    {
+      "slug": "executed-at",
+      "name": "Executed at",
+      "type": "text",
+      "required": false,
+      "position": 38,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 39,
+      "options": {}
+    }
+  ],
+  "views": []
+}

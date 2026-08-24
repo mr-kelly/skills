@@ -1,0 +1,40 @@
+{
+  "name": "Teachers",
+  "description": "Teachers referenced by lesson plans",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "teacher-id",
+      "name": "Teacher ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "subject",
+      "name": "Subject",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "grades",
+      "name": "Grades",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    }
+  ],
+  "views": []
+}

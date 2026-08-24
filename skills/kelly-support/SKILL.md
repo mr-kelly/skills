@@ -9,6 +9,18 @@ metadata:
     - surface:whatsapp
     - surface:wechat
     - surface:webchat
+  busabase:
+    template: true
+    folderSlug: kelly-support
+    resources:
+      - accounts
+      - tickets
+      - messages
+      - knowledge-base
+      - sync-log
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Support
@@ -39,7 +51,7 @@ This skill is an implementation of the **App-in-Skill** pattern — a Codex/agen
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-support-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -81,20 +93,20 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Six Bases under one application Folder (`kelly-support`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-support-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `accounts`: channel accounts — email, WhatsApp, web chat, contact form, WeChat — with connector and env-var *names* for tokens (never values).
 - `tickets`: the approval queue — customer, subject/body, category/priority, workflow `status`, `proposed-action`, the KB-grounded `suggested-reply` and its `kb-refs`, SLA fields, an optional CSAT score, the human verdict (`decision-action`/`decision-comment`/`decided-at`), and the execution marker written by `scripts/execute_decisions.mjs`.
 - `messages`: one row per conversation message, joined onto its ticket by `ticket-id`.
-- `knowledge_base`: articles and canned macros the agent cites when drafting replies.
-- `sync_log`: append-only history of ticket-collection runs per account.
+- `knowledge-base`: articles and canned macros the agent cites when drafting replies.
+- `sync-log`: append-only history of ticket-collection runs per account.
 - `settings`: one row (`record-id: "config"`) with SLA policy, risk policy, reply style, and the KB source path.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
 first time the app runs in a Space; see `references/support-schema.md` for
 exact field shapes. Per-ticket rollups (`last_message_at`, `last_incoming_at`,
 `sla.breached`) and the `support-qa` `quality_gate` verdict are all
-recomputed client-side from `tickets`/`messages`/`knowledge_base` on every
+recomputed client-side from `tickets`/`messages`/`knowledge-base` on every
 read — **never stored**, so a stale record can never carry a stale verdict.
 
 ## First Run And Onboarding
@@ -105,7 +117,7 @@ collecting real tickets.
 Onboarding asks, turn by turn:
 
 1. Which channels receive tickets (email / WhatsApp / web chat / form / WeChat) and the connector per account (see Collection Workflow). Ask for non-secret details only: channel, display name, handle, and which env var names hold the tokens. Never ask the user to paste secret values into chat; secrets belong only in local env files.
-2. Knowledge base import: articles and macros (title, body, tags, category). The agent writes them directly into the `knowledge_base` Base via `busabase-sdk`.
+2. Knowledge base import: articles and macros (title, body, tags, category). The agent writes them directly into the `knowledge-base` Base via `busabase-sdk`.
 3. SLA policy: first-response targets per priority (defaults: urgent 2h, high 4h, normal 8h, low 24h) and business hours.
 4. Risk policy: whether refunds require approval (default yes), the max auto-refund (default 0), and whether ungrounded replies and unapproved commitments are blocked (default yes).
 5. Reply style: tone, language policy, signature, and "do not say" guardrails.
@@ -117,7 +129,7 @@ where structured) via `busabase-sdk`.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-support-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -152,7 +164,7 @@ logic.
    - `form_intake` — a contact form writes submissions the agent ingests.
    - `wechat_work` — WeChat Work (`corp_secret_env`).
    - `manual` — the user or agent prepares a ticket by hand.
-4. All collected data enters through one write path: the agent merges it directly into the `tickets`/`messages` Bases via `busabase-sdk` (`bases.createChangeRequest` for a new ticket, `records.changeRequest` to append messages or update an existing one) — dedupe by stable ticket/message ids, derive SLA due-by, run `support-qa` on any drafted reply, and append a `sync_log` entry per account. There is no separate ingest script; this mirrors the same write path a human decision uses.
+4. All collected data enters through one write path: the agent merges it directly into the `tickets`/`messages` Bases via `busabase-sdk` (`bases.createChangeRequest` for a new ticket, `records.changeRequest` to append messages or update an existing one) — dedupe by stable ticket/message ids, derive SLA due-by, run `support-qa` on any drafted reply, and append a `sync-log` entry per account. There is no separate ingest script; this mirrors the same write path a human decision uses.
 5. While triaging, the agent classifies each ticket (`category`, `priority`), drafts a `suggested_reply` grounded in the knowledge base with the `kb_refs` it used, and sets a `proposed_action`. It never promises a refund or makes a commitment unless the action is an approved refund.
 
 ## Triage & Reply Workflow
@@ -164,7 +176,7 @@ logic.
 
 ## The Quality Gate — `support-qa` ⛩
 
-Before any send, each drafted reply passes `support-qa`, a CSAT-risk / policy gate producing a score (0–100) and a **SHIP / FIX / BLOCK** verdict (see `runQualityGate()` in `app/app/js/support-model.js`):
+Before any send, each drafted reply passes `support-qa`, a CSAT-risk / policy gate producing a score (0–100) and a **SHIP / FIX / BLOCK** verdict (see `runQualityGate()` in `content/kelly-support-app/app/js/support-model.js`):
 
 - **Grounding** — a substantive reply must cite at least one real KB article; a short acknowledgement is exempt.
 - **KB refs resolve** — every cited `kb_ref` must resolve to a real article (a dangling ref is a FIX).
@@ -202,7 +214,7 @@ Verdicts: **SHIP** (grounded and within policy), **FIX** (deliverable but revise
 ```bash
 node skills/kelly-support/scripts/execute_decisions.mjs
 node skills/kelly-support/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-support/app dev
+pnpm --dir skills/kelly-support/content/kelly-support-app dev
 ```
 
 In normal use, invoke `/kelly-support`, let the skill triage tickets into

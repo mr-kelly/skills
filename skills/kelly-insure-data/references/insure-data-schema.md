@@ -1,9 +1,9 @@
 # Kelly Insure Data UI Schema
 
 This schema powers the AirApp UI for insurance data governance. It is the
-`snapshot` object returned by `app/app/js/providers/busabase-provider.js`
+`snapshot` object returned by `content/kelly-insure-data-app/app/js/providers/busabase-provider.js`
 (read from the operator-provisioned Busabase workspace) and
-`app/app/js/providers/demo-provider.js` (deterministic offline fixture) —
+`content/kelly-insure-data-app/app/js/providers/demo-provider.js` (deterministic offline fixture) —
 there is no local snapshot file anymore.
 
 ## Snapshot
@@ -16,7 +16,7 @@ there is no local snapshot file anymore.
   "drive": {
     "node_id": "Busabase Drive node id",
     "name": "港险资料库",
-    "slug": "hk-insurance-drive",
+    "slug": "kelly-insure-data-files",
     "metadata": {},
     "metadata_fields": [{ "key": "owner", "value": "Kelly" }]
   },
@@ -24,25 +24,25 @@ there is no local snapshot file anymore.
     "featured": {
       "base_id": "bse_...",
       "name": "资讯精选",
-      "slug": "featured-information",
+      "slug": "kelly-insure-data-featured",
       "fields": [{ "key": "title", "value": "Title (text)" }]
     },
     "notices": {
       "base_id": "bse_...",
       "name": "保司通知",
-      "slug": "insurance-news",
+      "slug": "kelly-insure-data-notices",
       "fields": [{ "key": "title", "value": "Title (text)" }]
     },
     "qa": {
       "base_id": "bse_...",
       "name": "问答",
-      "slug": "insurance-qa",
+      "slug": "kelly-insure-data-qa",
       "fields": [{ "key": "question", "value": "Question (text)" }]
     },
     "feedback": {
       "base_id": "bse_...",
       "name": "用户反馈",
-      "slug": "user-feedback",
+      "slug": "kelly-insure-data-feedback",
       "fields": [{ "key": "content", "value": "反馈内容 (longtext)" }]
     }
   },
@@ -118,7 +118,7 @@ Required:
 - `fields`
 - `governance`
 
-Both Featured Information (`featured-information`) and Insurer Notices (`insurance-news`) share the same canonical Busabase fields: `title`, `content`, `source_url`, `published_at`, `carrier`, `status`, `content_html`, `content_type` (`information`/`knowledge`), `category`, `attachments`, `lifebee_key`. Only `title` is required for governance scoring; `summary`, `source`, and `tags` are not required fields in the actual Bases.
+Both Featured Information (`kelly-insure-data-featured`) and Insurer Notices (`kelly-insure-data-notices`) share the same canonical Busabase fields: `title`, `content`, `source_url`, `published_at`, `carrier`, `status`, `content_html`, `content_type` (`information`/`knowledge`), `category`, `attachments`, `lifebee_key`. Only `title` is required for governance scoring; `summary`, `source`, and `tags` are not required fields in the actual Bases.
 
 ## Feedback Item
 
@@ -144,7 +144,7 @@ The feedback item corresponds to one record in the configured user feedback Base
 
 `insurance-prompts` (预置提示词) sits in the same workspace folder as the four
 Bases above, but it belongs to the insure miniapp, which reads it read-only for
-its home prompt rows. This AirApp does not declare it in `app/app/js/config.js`,
+its home prompt rows. This AirApp does not declare it in `content/kelly-insure-data-app/app/js/config.js`,
 does not read it, and it is absent from the snapshot — there is no
 `prompt_items` array. It is documented here because an operator rebuilding this
 workspace must recreate it with the schema the miniapp expects.

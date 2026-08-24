@@ -1,0 +1,128 @@
+{
+  "name": "Scenarios",
+  "description": "One row per saved revenue-share deal scenario: the analyst's raw inputs (business type, revenue, principal, share rates, cap multiple, term) and the underwriting decision. The projected cash-flow/repayment result (Cash-Flow Payout Multiple, effective annualized cost, risk flags) is never stored -- it is pure/derived from these inputs and recomputed on every read",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "scenario-id",
+      "name": "Scenario ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "business-type",
+      "name": "Business type",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "avg-monthly-revenue",
+      "name": "Avg monthly revenue",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "revenue-volatility-pct",
+      "name": "Revenue volatility (%)",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "principal",
+      "name": "Proposed principal",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "initial-share-rate-pct",
+      "name": "Initial share rate (%)",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "step-down-share-rate-pct",
+      "name": "Step-down share rate (%)",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "repayment-cap-multiple",
+      "name": "Repayment cap multiple",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "term-months",
+      "name": "Term (months)",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "decision-action",
+      "name": "Decision action",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "decided-at",
+      "name": "Decided at",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    }
+  ],
+  "views": []
+}

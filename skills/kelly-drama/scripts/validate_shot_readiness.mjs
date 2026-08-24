@@ -12,7 +12,7 @@
 //   node scripts/validate_shot_readiness.mjs [--episode ep-001] [--strict]
 //
 // Exit code 1 if any shot fails a hard rule (use --strict to also fail on warnings).
-import { dialogueCps, shotReadiness } from "../app/app/js/drama-model.js";
+import { dialogueCps, shotReadiness } from "../content/kelly-drama-app/app/js/drama-model.js";
 import { connect, parseJsonArray, parseJsonObject, readAllRecords } from "./lib/drama-busabase.mjs";
 
 function help() {

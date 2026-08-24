@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-drama",
+  "description": "Short-drama workspace: series bible, characters, relationships, episodes, and storyboard shots",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["production", "risk:local-write", "surface:busabase", "surface:moonrouter", "surface:byteplus-ark"],
+  "template": {
+    "category": "production",
+    "schemaVersion": 1,
+    "airapp": "kelly-drama-app",
+    "tags": ["production", "risk:local-write", "surface:busabase", "surface:moonrouter", "surface:byteplus-ark"],
+    "screenshots": [
+      "assets/screenshots/characters.webp",
+      "assets/screenshots/episodes.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/relationships.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Project and flag what needs my attention.",
+      "Open Kelly Drama and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

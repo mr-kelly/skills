@@ -10,7 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 from runtime import free_port, managed_process
 
-APP_ROOT = REPO_ROOT / "skills" / "kelly-portrait-retouch" / "app"
+APP_ROOT = REPO_ROOT / "skills" / "kelly-portrait-retouch" / "content" / "kelly-portrait-retouch-app"
 
 
 def assert_no_overflow(page: Page) -> None:

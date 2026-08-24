@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-restaurant-intel",
+  "description": "Daily industry-intelligence cockpit for restaurants, cafes, and F&B groups: source-backed signals, buyer-intent interpretation, approved operating/sales actions, and channel drafts (staff brief / IG post / delivery blurb) for review before any external handoff. Signals/actions/drafts enter Busabase only through the agent's own browsing-and-writing workflow (see SKILL.md); the AirApp itself is read/decision-only.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["industry-intel", "risk:gated-write", "industry:restaurant", "surface:busabase"],
+  "template": {
+    "category": "industry-intel",
+    "schemaVersion": 1,
+    "airapp": "kelly-restaurant-intel-app",
+    "tags": ["industry-intel", "risk:gated-write", "industry:restaurant", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/actions.webp",
+      "assets/screenshots/drafts.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/signals.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Signals and flag what needs my attention.",
+      "Open Kelly Restaurant Intel and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

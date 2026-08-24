@@ -9,7 +9,7 @@
 // same zero-dependency CSV parser (RFC 4180-ish, quoted-field support), same
 // specs/faq cell encodings ("Power=40W|CRI=>80" and "Q1?=>A1|Q2?=>A2"), same
 // price_min/price_max validation and min-price-guard warning — only the
-// storage target changed, from app/.data/inquiry_snapshot.json to a Busabase
+// storage target changed, from content/kelly-inquiry-app/.data/inquiry_snapshot.json to a Busabase
 // ChangeRequest per product.
 //
 // Connects with the trusted process's own credentials (BUSABASE_BASE_URL,
@@ -18,7 +18,7 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-inquiry-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/sync_products.mjs <products.json|products.csv> [--apply]
@@ -319,7 +319,7 @@ async function main() {
 
   await upsertRow(
     client,
-    declared("sync_log"),
+    declared("sync-log"),
     null,
     {
       sync_id: `products-${Date.now()}`,

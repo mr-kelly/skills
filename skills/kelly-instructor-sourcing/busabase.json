@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-instructor-sourcing",
+  "description": "Search-criteria hypothesis, scoring rubric, and candidate screening for course instructor sourcing",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["sales-crm", "risk:sandbox", "surface:busabase", "industry:education"],
+  "template": {
+    "category": "sales-crm",
+    "schemaVersion": 1,
+    "airapp": "kelly-instructor-sourcing-app",
+    "tags": ["sales-crm", "risk:sandbox", "surface:busabase", "industry:education"],
+    "screenshots": [
+      "assets/screenshots/all.webp",
+      "assets/screenshots/connected.webp",
+      "assets/screenshots/criteria.webp",
+      "assets/screenshots/qualified.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest 筛选标准 and flag what needs my attention.",
+      "Open Kelly Instructor Sourcing and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

@@ -33,6 +33,9 @@
 //     a top-level `options.maxFiles`.
 import { createHash } from "node:crypto";
 
+export const VIDEOS_BASE_SLUG = "kelly-demo-video-factory-videos";
+export const SHOTS_BASE_SLUG = "kelly-demo-video-factory-video-shots";
+
 function cleanUrl(value) {
   return String(value || "").replace(/\/$/, "");
 }

@@ -1,0 +1,88 @@
+{
+  "name": "Sites",
+  "description": "Configured Search Console properties with 28d totals and a daily trend series",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "site-id",
+      "name": "Site ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "property-url",
+      "name": "Property URL",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "verification-type",
+      "name": "Verification type",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "permission-level",
+      "name": "Permission level",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "last-sync-at",
+      "name": "Last sync at",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "totals",
+      "name": "Totals (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "previous",
+      "name": "Previous totals (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "daily",
+      "name": "Daily series (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": []
+}

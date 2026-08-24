@@ -28,8 +28,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { APP_TITLE, normalizeItemRow } from "../app/app/js/matter-strategy-model.js";
+import { appConfig } from "../content/kelly-legal-matter-strategy-app/app/js/config.js";
+import {
+  APP_TITLE,
+  normalizeItemRow,
+} from "../content/kelly-legal-matter-strategy-app/app/js/matter-strategy-model.js";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 

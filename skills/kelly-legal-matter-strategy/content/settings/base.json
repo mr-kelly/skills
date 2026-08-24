@@ -1,0 +1,104 @@
+{
+  "name": "Settings",
+  "description": "Firm profile, strategy policy, drafting templates, and export preferences — a single settings row",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "firm-name",
+      "name": "Firm name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "branch",
+      "name": "Branch",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "default-jurisdictions",
+      "name": "Default jurisdictions (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "reviewer-role",
+      "name": "Reviewer role",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "require-precedent-links",
+      "name": "Require precedent links",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "require-evidence-map",
+      "name": "Require evidence map",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "default-risk-scale",
+      "name": "Default risk scale (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "approval-required-for-client-facing",
+      "name": "Approval required for client-facing output",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "templates-enabled",
+      "name": "Enabled templates (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "export-format",
+      "name": "Export format",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "export-out-dir",
+      "name": "Export out dir",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    }
+  ],
+  "views": []
+}

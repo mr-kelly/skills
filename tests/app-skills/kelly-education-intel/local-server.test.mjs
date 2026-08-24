@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { getFreePort, startProcess } from "../harness/process.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
-const appRoot = join(repoRoot, "skills", "kelly-education-intel", "app");
+const appRoot = join(repoRoot, "skills", "kelly-education-intel", "content", "kelly-education-intel-app");
 let baseUrl;
 let runtime;
 let home;

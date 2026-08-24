@@ -13,7 +13,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 
 from runtime import free_port, managed_process
 
-APP_ROOT = REPO_ROOT / "skills" / "kelly-llm-gateway" / "app"
+APP_ROOT = REPO_ROOT / "skills" / "kelly-llm-gateway" / "content" / "kelly-llm-gateway-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-llm-gateway"
 BUSABASE_VERSION = "0.16.2"
 

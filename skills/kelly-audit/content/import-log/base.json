@@ -1,0 +1,56 @@
+{
+  "name": "Import Log",
+  "description": "Append-only history of import runs: files, added/updated counts, and row warnings",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "log-id",
+      "name": "Log ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "imported-at",
+      "name": "Imported at",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "files",
+      "name": "Files",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "added",
+      "name": "Added",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "updated",
+      "name": "Updated",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "warnings",
+      "name": "Warnings",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

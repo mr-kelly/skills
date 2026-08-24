@@ -6,6 +6,14 @@ metadata:
   tags:
     - risk:gated-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-creators
+    resources:
+      - creators
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Creators
@@ -35,7 +43,7 @@ provider. Use chat-only mode only when the user says "纯聊天", "chat only", "
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-creators-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -106,7 +114,7 @@ Ask for non-secret setup details only: operator profile (name, role, company, ti
 ## Busabase Resources
 
 Two Bases under one application Folder (`kelly-creators`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-creators-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `creators`: every creator candidate/engagement plus every content-reviewer quality gate under review — `handle`, `platform`, `niche`, `followers`, `engagement_rate`, the C³ ACE `fit_score`/`fit_breakdown`, `stage`, workflow `status`, `proposed_action`, `est_rate`, `risk`, `channel`, `reason`, `audience_note`, editable `suggested_reply`, `est_value`, `spend`, the quality-gate fields (`gate_verdict`, `gate_checks`), and the human verdict fields `decision_note` / `decided_at`.
 - `settings`: one row per `kind` — `kelly-creators-profile` (operator profile, brand(s), program budget/currency/niches, style tone, platforms) and `kelly-creators-lock`.
@@ -120,7 +128,7 @@ never stored.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-creators-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):

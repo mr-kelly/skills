@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-creators",
+  "description": "Influencer/creator marketing command desk — discovery, outreach, briefs, contracts, and ROI",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+  "template": {
+    "category": "marketing",
+    "schemaVersion": 1,
+    "airapp": "kelly-creators-app",
+    "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/creators.webp",
+      "assets/screenshots/outreach.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/roi.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Creator Engagements and flag what needs my attention.",
+      "Open Kelly Creators and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

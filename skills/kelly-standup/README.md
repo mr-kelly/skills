@@ -37,7 +37,7 @@ Kelly Standup is a Busabase App-in-Skill standup board for team leads: see at a 
 Start the local preview and open a safe mock-data scene ("Nimbus team", an 8-person product team with 10 workdays of history):
 
 ```bash
-pnpm --dir skills/kelly-standup/app dev
+pnpm --dir skills/kelly-standup/content/kelly-standup-app dev
 ```
 
 Use the URL printed by the launcher, then add one of these demo paths:

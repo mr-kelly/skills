@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly AI Newsroom",
+  "description": "Daily industry-intelligence cockpit for AI/news-source intelligence: source-backed signals, buyer-intent interpretation, approved sales/operating actions, and channel drafts (sales opener / LinkedIn post / client memo) for review before any external handoff. Signals/actions/drafts enter Busabase only through the agent's own browsing-and-writing workflow (see SKILL.md); the AirApp itself is read/decision-only."
+}

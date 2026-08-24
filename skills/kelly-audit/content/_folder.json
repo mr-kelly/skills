@@ -1,0 +1,4 @@
+{
+  "name": "Kelly Audit",
+  "description": "Finance anomaly review desk: imported orders/invoices/payments, deterministic anomaly rules, and a human review queue"
+}

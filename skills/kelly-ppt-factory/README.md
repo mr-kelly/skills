@@ -64,7 +64,7 @@ before generation.
 Run the app and open a safe, fully offline mock scene:
 
 ```bash
-pnpm --dir skills/kelly-ppt-factory/app dev
+pnpm --dir skills/kelly-ppt-factory/content/kelly-ppt-factory-app dev
 ```
 
 Use the printed local URL, then add one of these demo paths:
@@ -83,7 +83,7 @@ never reads or writes Busabase.
 
 The AirApp is Busabase-backed: projects, decks, slide cards, style systems,
 QA checks, exports, and settings all live in Busabase Bases declared in
-`app/app/js/config.js` (see `references/ppt-factory-schema.md`). Resources
+`content/kelly-ppt-factory-app/app/js/config.js` (see `references/ppt-factory-schema.md`). Resources
 provision lazily on first run. There is no local file storage and no
 separate provider choice.
 

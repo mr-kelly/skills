@@ -48,7 +48,7 @@ jobs:
           for pkg in skills/*/package.json; do
             (cd "$(dirname "$pkg")" && npm install --no-audit --no-fund --no-package-lock)
           done
-          for pkg in skills/*/app/package.json; do
+          for pkg in skills/*/content/*-app/package.json; do
             pnpm --dir "$(dirname "$pkg")" install --frozen-lockfile
           done
 

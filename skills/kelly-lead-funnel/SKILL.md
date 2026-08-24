@@ -6,6 +6,14 @@ metadata:
   tags:
     - risk:local-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-lead-funnel
+    resources:
+      - leads
+      - settings
+    risk: local-write
+
 ---
 
 # Deal Sourcing Funnel
@@ -24,7 +32,7 @@ all direct, immediate writes to Busabase.
 This is a control-panel/kanban App-in-Skill, not a review-then-approve queue:
 there is no AI-authored draft to approve and no separate execute/decisions
 step. The score and suggested next action are computed by a documented
-rule-based function (`app/app/js/lead-funnel-model.js`, ported from the
+rule-based function (`content/kelly-lead-funnel-app/app/js/lead-funnel-model.js`, ported from the
 retired `lib/scoring.ts`); the human sourcing-team operator makes every
 stage/reject/note decision directly in the kanban UI, the same way
 `kelly-crm`'s kanban stage moves work.
@@ -38,7 +46,7 @@ only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-lead-funnel-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -70,7 +78,7 @@ exact missing dependency. Do not invent a second data backend.
 ## Boundary
 
 - Deterministic, rule-based lead-quality score only
-  (`app/app/js/lead-funnel-model.js`). NEVER call an LLM to score, rank, or
+  (`content/kelly-lead-funnel-app/app/js/lead-funnel-model.js`). NEVER call an LLM to score, rank, or
   auto-reject a lead.
 - The AirApp reads and writes its own Busabase Bases only; it never sends
   outreach, emails, signs term sheets, disburses funds, or touches any
@@ -85,7 +93,7 @@ exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Two Bases under one application Folder (`kelly-lead-funnel`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-lead-funnel-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `leads`: one row per merchant/business lead — brand name, category, city,
   store count, est. monthly revenue, lead source, data verifiability, funnel
@@ -105,7 +113,7 @@ field shapes.
 
 ## Scoring
 
-`app/app/js/lead-funnel-model.js` (`scoreLead`) computes a deterministic
+`content/kelly-lead-funnel-app/app/js/lead-funnel-model.js` (`scoreLead`) computes a deterministic
 0-100 score from four weighted, explainable factors — chain-size fit (30),
 revenue-scale fit (30), category risk (25), and data verifiability (15) —
 against the fund's `scoring_criteria` (ideal store-count band, ideal
@@ -148,7 +156,7 @@ UI language: English and Chinese chrome with `Auto` default.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-lead-funnel-app dev` only when local preview/debugging is explicitly
 requested.
 
 ## Views
@@ -164,8 +172,8 @@ requested.
 
 Finish only when:
 
-- the skill contains the complete canonical `app/` project and
-  `pnpm --dir app dev` remains supported;
+- the skill contains the complete canonical `content/kelly-lead-funnel-app/` project and
+  `pnpm --dir content/kelly-lead-funnel-app dev` remains supported;
 - all persistent config, state, and domain data use `busabase-sdk` and the
   declared resource map — no local JSON, browser storage, or provider
   choice;
@@ -173,7 +181,7 @@ Finish only when:
 - local setup offers Cloud/custom URL OAuth plus the explicit Demo path,
   while a deployed AirApp uses its ambient session;
 - Board, lead detail, and Help & Settings render on desktop and phone widths;
-- `pnpm --dir app run check` and `node --test` pass.
+- `pnpm --dir content/kelly-lead-funnel-app run check` and `node --test` pass.
 
 ## Stop Conditions
 

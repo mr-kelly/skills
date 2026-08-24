@@ -1,0 +1,30 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-ppt-factory",
+  "description": "Project-based PPTX production desk — project, deck, slide card, style system, QA checks, and generated exports, with a review queue (approve / request changes / block / revise) gating PPTX generation",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["production", "risk:local-write", "surface:busabase"],
+  "template": {
+    "category": "production",
+    "schemaVersion": 1,
+    "airapp": "kelly-ppt-factory-app",
+    "tags": ["production", "risk:local-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/decks.webp",
+      "assets/screenshots/exports.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/projects.webp",
+      "assets/screenshots/review.webp",
+      "assets/screenshots/slides.webp",
+      "assets/screenshots/style.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Projects and flag what needs my attention.",
+      "Open Kelly PPT Factory and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

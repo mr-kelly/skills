@@ -1,0 +1,120 @@
+{
+  "name": "Leads",
+  "description": "One row per merchant/business lead: brand, category, city, store count, est. monthly revenue, lead source, data verifiability, funnel stage, rejection reason, notes (JSON array), and stage history (JSON array). Score/score_breakdown/suggested_action are never stored — they are pure/derived from these fields plus the fund's scoring_criteria and recomputed on every read. Stage moves, rejections, and notes are written directly by the human sourcing-team operator in the kanban board — this is a direct-manipulation control panel, not a review/approval queue",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "lead-id",
+      "name": "Lead ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "brand-name",
+      "name": "Brand name",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "city",
+      "name": "City",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "store-count",
+      "name": "Store count",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "est-monthly-revenue",
+      "name": "Est. monthly revenue",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "lead-source",
+      "name": "Lead source",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "data-verifiable",
+      "name": "Data verifiable",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "stage",
+      "name": "Stage",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "rejection-reason",
+      "name": "Rejection reason",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "notes",
+      "name": "Notes (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "stage-history",
+      "name": "Stage history (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    }
+  ],
+  "views": []
+}

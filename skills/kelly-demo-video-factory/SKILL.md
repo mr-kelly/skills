@@ -7,6 +7,14 @@ metadata:
   tags:
     - risk:read-only
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-demo-video-factory
+    resources:
+      - videos
+      - video-shots
+    risk: read-only
+
 ---
 
 # Kelly Demo Video Factory
@@ -17,16 +25,16 @@ This skill plans product demo/marketing videos end to end: capture the idea (hoo
 point, concept), build a shot-by-shot storyboard, verify every product claim against the
 real codebase, track recording progress per shot, and hand off to post-production /
 Remotion (HyperFrame). It follows the standard App-in-Skill shape: a read-only AirApp
-(`app/`) renders the pipeline for a human, while **Busabase is the system of record** —
+(`content/kelly-demo-video-factory-app/`) renders the pipeline for a human, while **Busabase is the system of record** —
 `videos` and `video-shots` are real Bases, editable directly in the Busabase web app or
 through this skill's scripts. The browser talks to Busabase directly (via `busabase-sdk`
-through a same-origin OAuth proxy, `app/server.js`) — there is no server-side JS/TS data
+through a same-origin OAuth proxy, `content/kelly-demo-video-factory-app/server.js`) — there is no server-side JS/TS data
 layer holding credentials. The AirApp never writes to Busabase itself; it is a dashboard,
 not an editor (see Boundary).
 
-Default interaction mode: App UI. Start it with `pnpm --dir app start` (or `node
-app/server.js`) and report the actual local URL — the first run on a fresh machine needs
-`pnpm --dir app install && pnpm --dir app run build:sdk` first. All record writes
+Default interaction mode: App UI. Start it with `pnpm --dir content/kelly-demo-video-factory-app start` (or `node
+content/kelly-demo-video-factory-app/server.js`) and report the actual local URL — the first run on a fresh machine needs
+`pnpm --dir content/kelly-demo-video-factory-app install && pnpm --dir content/kelly-demo-video-factory-app run build:sdk` first. All record writes
 (proposing videos/shots, marking recording status) go through `scripts/*.mjs`, not the
 app.
 
@@ -48,9 +56,9 @@ app.
 - The skill drafts video outlines and shot scripts, verifies claims against the repo,
   proposes Busabase records, and updates recording/production status on explicit
   instruction.
-- The app (`app/`) is read-only: it renders `videos`/`video-shots` from Busabase for
+- The app (`content/kelly-demo-video-factory-app/`) is read-only: it renders `videos`/`video-shots` from Busabase for
   human review and has no write API (`readOnly: true`, empty `writeProcedures` in
-  `app/app/js/config.js`). All writes go through `scripts/*.mjs` (or the human editing
+  `content/kelly-demo-video-factory-app/app/js/config.js`). All writes go through `scripts/*.mjs` (or the human editing
   directly in the Busabase web app), never through the browser.
 - The skill never merges a records ChangeRequest on its own initiative. Every
   `videos`/`video-shots` record write is a ChangeRequest; merging requires either an
@@ -67,8 +75,8 @@ app.
 
 ## Data Model
 
-Two related Busabase Bases under a `video-factory` Folder — see
-`app/app/js/config.js` for the machine-readable manifest (field slugs/types the AirApp
+Two related Busabase Bases under a `kelly-demo-video-factory` Folder — see
+`content/kelly-demo-video-factory-app/app/js/config.js` for the machine-readable manifest (field slugs/types the AirApp
 reads) and `references/outline-schema.md` for the JSON shape `scripts/propose_video.mjs`
 consumes.
 
@@ -99,7 +107,7 @@ Base must already exist, and the two Bases here reference each other).
 Then start the AirApp:
 
 ```bash
-cd skills/kelly-demo-video-factory/app && pnpm install && pnpm run build:sdk && pnpm start
+cd skills/kelly-demo-video-factory/content/kelly-demo-video-factory-app && pnpm install && pnpm run build:sdk && pnpm start
 ```
 
 The first Connect screen asks for a Busabase Space (Cloud or self-hosted); after that it

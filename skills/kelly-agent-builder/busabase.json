@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-agent-builder",
+  "description": "Mock agent config catalog and governance console",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["platform", "risk:sandbox", "surface:busabase"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 1,
+    "airapp": "kelly-agent-builder-app",
+    "tags": ["platform", "risk:sandbox", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/agent-detail.webp",
+      "assets/screenshots/catalog.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Agent Configs and flag what needs my attention.",
+      "Open Agent Builder & Governance Console and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

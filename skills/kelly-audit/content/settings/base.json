@@ -1,0 +1,104 @@
+{
+  "name": "Settings",
+  "description": "Company profile, tolerance rules, and import column mappings, a single settings row",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "company-name",
+      "name": "Company name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "contact-email",
+      "name": "Contact email",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "base-currency",
+      "name": "Base currency",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "fx-rates",
+      "name": "FX rates",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "days-to-invoice",
+      "name": "Days to invoice",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "amount-tolerance-pct",
+      "name": "Amount tolerance pct",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "aging-buckets",
+      "name": "Aging buckets",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "duplicate-window-days",
+      "name": "Duplicate window days",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "import-orders-columns",
+      "name": "Import orders columns",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "import-invoices-columns",
+      "name": "Import invoices columns",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "import-payments-columns",
+      "name": "Import payments columns",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    }
+  ],
+  "views": []
+}

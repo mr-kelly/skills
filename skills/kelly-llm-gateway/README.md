@@ -54,7 +54,7 @@ product name appears anywhere.
 Run the app and open a safe, fully offline mock scene:
 
 ```bash
-pnpm --dir skills/kelly-llm-gateway/app dev
+pnpm --dir skills/kelly-llm-gateway/content/kelly-llm-gateway-app dev
 ```
 
 Use the printed local URL, then add one of these demo paths:
@@ -76,6 +76,6 @@ and never reads or writes Busabase; rollout/acknowledge actions taken while
 ## Busabase Data
 
 The AirApp is Busabase-backed: routes, services, models, and settings all
-live in Busabase Bases declared in `app/app/js/config.js` (see
+live in Busabase Bases declared in `content/kelly-llm-gateway-app/app/js/config.js` (see
 `references/gateway-schema.md`). Resources provision lazily on first run.
 There is no local file storage and no separate provider choice.

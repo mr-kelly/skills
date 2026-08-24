@@ -6,6 +6,16 @@ metadata:
   tags:
     - risk:gated-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-launch
+    resources:
+      - items
+      - channels
+      - runbook
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Launch
@@ -36,7 +46,7 @@ provider. Use chat-only mode only when the user says "纯聊天", "chat only", "
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-launch-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -102,7 +112,7 @@ The boundary is the point: a launch is a burst of irreversible public actions, s
 ## Busabase Resources
 
 Four Bases under one application Folder (`kelly-launch`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-launch-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `items`: the RAMP checklist/review queue — phase, title, owner, channel, readiness (SHIP/FIX/BLOCK), proposed action, workflow `status`, editable `draft`, reason, format, risk, and the human verdict fields `decision-note` / `decided-at`.
 - `channels`: launch channels and their submission status.
@@ -125,7 +135,7 @@ Ask for non-secret setup details only: product profile (name, tagline, homepage,
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-launch-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):

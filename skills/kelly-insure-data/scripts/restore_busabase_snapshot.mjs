@@ -50,7 +50,9 @@ function normalizeManifest(manifest) {
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = parseArgs();
-const manifestPath = String(args.manifest || path.join(skillDir, "app", ".data", "busabase_restore_manifest.json"));
+const manifestPath = String(
+  args.manifest || path.join(skillDir, "content", "kelly-insure-data-app", ".data", "busabase_restore_manifest.json"),
+);
 const filesRoot = path.resolve(String(args.filesRoot || args["files-root"] || process.cwd()));
 const apply = Boolean(args.apply);
 const dryRun = Boolean(args["dry-run"] || !apply);

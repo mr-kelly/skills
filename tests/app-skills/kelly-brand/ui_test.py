@@ -13,7 +13,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 
 from runtime import free_port, managed_process
 
-APP_ROOT = REPO_ROOT / "skills" / "kelly-brand" / "app"
+APP_ROOT = REPO_ROOT / "skills" / "kelly-brand" / "content" / "kelly-brand-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-brand"
 BUSABASE_VERSION = "0.16.2"
 
@@ -242,7 +242,7 @@ def test_busabase_provisioning(browser) -> None:
 
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
             keys = resource_keys(nodes)
-            assert sorted(keys) == sorted(["app-root", "items", "drift_alerts", "settings"]), nodes
+            assert sorted(keys) == sorted(["app-root", "items", "drift-alerts", "settings"]), nodes
             change_requests = read_json(f"{busabase_url}/api/v1/change-requests")["changeRequests"]
             structure_requests = [
                 item for item in change_requests if (item.get("sourceMeta") or {}).get("subject") == "node_tree"

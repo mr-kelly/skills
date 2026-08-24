@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-insurance-intel",
+  "description": "Daily industry-intelligence cockpit for insurance and wealth advisory: source-backed signals, buyer-intent interpretation, approved sales/operating actions, and channel drafts (client WhatsApp / advisor email / meeting agenda) for review before any external handoff. Signals/actions/drafts enter Busabase only through the agent's own browsing-and-writing workflow (see SKILL.md); the AirApp itself is read/decision-only.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["industry-intel", "risk:gated-write", "industry:insurance", "surface:busabase"],
+  "template": {
+    "category": "industry-intel",
+    "schemaVersion": 1,
+    "airapp": "kelly-insurance-intel-app",
+    "tags": ["industry-intel", "risk:gated-write", "industry:insurance", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/actions.webp",
+      "assets/screenshots/drafts.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/signals.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Signals and flag what needs my attention.",
+      "Open Kelly Insurance Intel and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

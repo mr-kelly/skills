@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-behavior-predict",
+  "description": "Predictive Recommendation Analytics Desk: a deterministic mock user-behavior funnel dataset (browse -> search -> compare -> booking attempt -> complete) with a rule-based predicted-next-action heuristic, a precision/recall backtest, and a per-segment trust review",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["growth", "risk:sandbox", "surface:busabase"],
+  "template": {
+    "category": "growth",
+    "schemaVersion": 1,
+    "airapp": "kelly-behavior-predict-app",
+    "tags": ["growth", "risk:sandbox", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/funnel.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/segment-detail.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Sessions and flag what needs my attention.",
+      "Open Kelly Behavior Predict and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

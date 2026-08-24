@@ -5,7 +5,7 @@ candidate SME financing deals (private-credit / revenue-based financing
 style). It is a generic, brand-free tool — it does not reference any specific
 real lender or company. For each candidate it computes a deterministic, fully
 auditable composite score (0-100) from a rule-based weighted rubric — **plain
-arithmetic in `app/app/js/scorer-model.js`, never an LLM or API call** — so
+arithmetic in `content/kelly-deal-scorer-app/app/js/scorer-model.js`, never an LLM or API call** — so
 every number can be recomputed by hand.
 
 ## What It Shows
@@ -49,7 +49,7 @@ every number can be recomputed by hand.
 ## Demo Mode
 
 ```bash
-pnpm --dir skills/kelly-deal-scorer/app dev
+pnpm --dir skills/kelly-deal-scorer/content/kelly-deal-scorer-app dev
 ```
 
 Use the printed URL, then add one of these demo paths:

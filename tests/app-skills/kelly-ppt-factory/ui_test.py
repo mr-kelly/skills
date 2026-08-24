@@ -13,7 +13,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 
 from runtime import free_port, managed_process
 
-APP_ROOT = REPO_ROOT / "skills" / "kelly-ppt-factory" / "app"
+APP_ROOT = REPO_ROOT / "skills" / "kelly-ppt-factory" / "content" / "kelly-ppt-factory-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-ppt-factory"
 BUSABASE_VERSION = "0.16.2"
 
@@ -201,7 +201,7 @@ def test_busabase_provisioning(browser) -> None:
                     context.close()
 
                 nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
-                slide_cards_base = find_resource(nodes, "slideCards")
+                slide_cards_base = find_resource(nodes, "slide-cards")
                 settings_base = find_resource(nodes, "settings")
                 assert slide_cards_base and slide_cards_base.get("baseId"), nodes
                 assert settings_base and settings_base.get("baseId"), nodes
@@ -265,7 +265,7 @@ def test_busabase_provisioning(browser) -> None:
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
             keys = resource_keys(nodes)
             assert sorted(keys) == sorted(
-                ["app-root", "projects", "decks", "slideCards", "styleSystems", "qaChecks", "exports", "settings"]
+                ["app-root", "projects", "decks", "slide-cards", "style-systems", "qa-checks", "exports", "settings"]
             ), nodes
             change_requests = read_json(f"{busabase_url}/api/v1/change-requests")["changeRequests"]
             structure_requests = [
@@ -277,7 +277,7 @@ def test_busabase_provisioning(browser) -> None:
         with managed_process(busabase_command, REPO_ROOT, {}, f"{busabase_url}/api/health", timeout=90):
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
             assert len(resource_keys(nodes)) == 8, nodes
-            slide_cards_base = find_resource(nodes, "slideCards")
+            slide_cards_base = find_resource(nodes, "slide-cards")
             records = read_json(f"{busabase_url}/api/v1/records?baseId={slide_cards_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
             assert any(

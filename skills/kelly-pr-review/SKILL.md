@@ -7,6 +7,14 @@ metadata:
     - risk:gated-write
     - surface:busabase
     - surface:github
+  busabase:
+    template: true
+    folderSlug: kelly-pr-review
+    resources:
+      - reviews
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly PR Review
@@ -66,7 +74,7 @@ is the one place that actually calls `gh pr review` for an approved item.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-pr-review-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -109,7 +117,7 @@ writes that row itself.
 ## Busabase Resources
 
 Two Bases under one application Folder (`kelly-pr-review`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-pr-review-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `reviews`: the pull request review queue — GitHub PR metadata, risk,
   proposed action, workflow `status`, editable `review-body`, the human
@@ -189,7 +197,7 @@ node skills/kelly-pr-review/scripts/generate_review_batch.mjs --apply
 node skills/kelly-pr-review/scripts/generate_review_batch.mjs --sample
 node skills/kelly-pr-review/scripts/execute_decisions.mjs
 node skills/kelly-pr-review/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-pr-review/app dev
+pnpm --dir skills/kelly-pr-review/content/kelly-pr-review-app dev
 ```
 
 In normal use, invoke `/kelly-pr-review`, let the skill generate/refresh the

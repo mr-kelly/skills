@@ -1,0 +1,112 @@
+{
+  "name": "Settings",
+  "description": "Brand, sync window/read-only config, last sync range, warnings, and AI-visibility baseline — a single settings row",
+  "position": 7,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "brand",
+      "name": "Brand",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "locale",
+      "name": "Locale",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "sync-window-days",
+      "name": "Sync window (days)",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "sync-row-limit",
+      "name": "Sync row limit",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "sync-read-only",
+      "name": "Sync read-only",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "range-current-start",
+      "name": "Current range start",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "range-current-end",
+      "name": "Current range end",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "range-previous-start",
+      "name": "Previous range start",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "range-previous-end",
+      "name": "Previous range end",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "warnings",
+      "name": "Warnings (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "ai-visibility-prev-score",
+      "name": "AI visibility previous score",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "ai-visibility-engines",
+      "name": "AI visibility engines (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    }
+  ],
+  "views": []
+}

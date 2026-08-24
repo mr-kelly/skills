@@ -1,0 +1,117 @@
+{
+  "name": "Video Shots",
+  "description": "One row per shot: linked video, shot number, timecode, scene, code reference, script line, note, recording status, asset.",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "video",
+      "name": "Video",
+      "type": "relation",
+      "required": false,
+      "position": 1,
+      "options": {
+        "multiple": false,
+        "targetBaseSlug": "videos"
+      }
+    },
+    {
+      "slug": "shot-number",
+      "name": "Shot Number",
+      "type": "number",
+      "required": false,
+      "position": 2,
+      "options": {
+        "number": {
+          "format": "plain"
+        }
+      }
+    },
+    {
+      "slug": "timecode",
+      "name": "Timecode",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "scene",
+      "name": "Scene",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "code-reference",
+      "name": "Code Reference",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "script-line",
+      "name": "Script Line",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Note",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "recording-status",
+      "name": "Recording Status",
+      "type": "select",
+      "required": false,
+      "position": 8,
+      "options": {
+        "choices": [
+          {
+            "id": "pending",
+            "name": "pending",
+            "color": "gray"
+          },
+          {
+            "id": "recorded",
+            "name": "recorded",
+            "color": "green"
+          },
+          {
+            "id": "needs_reshoot",
+            "name": "needs_reshoot",
+            "color": "red"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "asset",
+      "name": "Asset",
+      "type": "attachment",
+      "required": false,
+      "position": 9,
+      "options": {
+        "attachment": {
+          "maxFiles": 10
+        }
+      }
+    }
+  ],
+  "views": []
+}

@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Restaurant Intel",
+  "description": "Daily industry-intelligence cockpit for restaurants, cafes, and F&B groups: source-backed signals, buyer-intent interpretation, approved operating/sales actions, and channel drafts (staff brief / IG post / delivery blurb) for review before any external handoff. Signals/actions/drafts enter Busabase only through the agent's own browsing-and-writing workflow (see SKILL.md); the AirApp itself is read/decision-only."
+}

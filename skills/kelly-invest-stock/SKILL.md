@@ -7,6 +7,17 @@ metadata:
     - risk:read-only
     - surface:busabase
     - surface:a-share
+  busabase:
+    template: true
+    folderSlug: kelly-invest-stock
+    resources:
+      - strategies
+      - ledger-accounts
+      - ledger-positions
+      - strategy-backtests
+      - strategy-reviews
+    risk: read-only
+
 ---
 
 # Kelly Invest Stock
@@ -21,7 +32,7 @@ strategy and ledger detail.
 Before changing the app:
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, responsive UI,
-   and the canonical local `app/` artifact.
+   and the canonical local `content/kelly-invest-stock-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, ChangeRequests,
    review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime,
@@ -195,7 +206,7 @@ rules.
 
 Finish only when:
 
-- `pnpm --dir app dev` remains supported and deterministic checks pass;
+- `pnpm --dir content/kelly-invest-stock-app dev` remains supported and deterministic checks pass;
 - Strategy overview/detail, L1/L2/L3 strategy filters, manual stage marking, and
   Regression work on desktop and mobile;
 - every strategy has one virtual account plus explicit selection and invalidation

@@ -1,5 +1,12 @@
 #!/usr/bin/env node
-import { decisionAction, executionStatus, isApproved, isBlocked, isDone, isNeedsReview } from "../content/kelly-email-app/lib/common.ts";
+import {
+  decisionAction,
+  executionStatus,
+  isApproved,
+  isBlocked,
+  isDone,
+  isNeedsReview,
+} from "../content/kelly-email-app/lib/common.ts";
 import { createProvider } from "../content/kelly-email-app/lib/data-provider/index.ts";
 
 const VALID_STATUS = new Set(["prepared", "needs_review", "draft_requested", "drafted", "executed"]);

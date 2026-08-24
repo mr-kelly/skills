@@ -1,0 +1,64 @@
+{
+  "name": "Exports",
+  "description": "Generated PPTX output records — path, render path, generation status, and QA summary",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "export-id",
+      "name": "Export ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "deck-id",
+      "name": "Deck ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "format",
+      "name": "Format",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "path",
+      "name": "Path",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "generated-at",
+      "name": "Generated at",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "qa-summary",
+      "name": "QA summary",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}

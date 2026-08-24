@@ -1,8 +1,8 @@
 # Kelly JobHunt Schema
 
-Authoritative field slugs, status values, and Vault keys. `app/app/js/config.js`
+Authoritative field slugs, status values, and Vault keys. `content/kelly-jobhunt-app/app/js/config.js`
 is the executable copy — change both together, and bump `schemaVersion` in
-`config.js` and `app/resource-map.json` when a field is added or renamed.
+`config.js` and the generated template sidecars under `content/` when a field is added or renamed.
 
 **Current: v4.** New fields must be appended after the existing ones so the
 additive migration in `resource-provisioning.js` can add them to a Base created
@@ -13,7 +13,7 @@ normalizes `-` to `_` on read. Writes use the real kebab-case slugs
 (`match-score`). Getting this backwards silently writes a new field instead of
 updating the intended one.
 
-## `jobhunt-profile-v1` — 求职档案
+## `kelly-jobhunt-profile` — 求职档案
 
 Exactly one row. Its primary field is `name`, so the row's display title in
 Busabase is the job seeker's name.
@@ -48,14 +48,14 @@ gate for the current open app session without writing placeholder profile data
 or browser storage. The three readiness fields remain missing and the desk
 continues to name `/kelly-jobhunt profile` as the next step.
 
-## `jobhunt-companies-v1` — 目标公司
+## `kelly-jobhunt-companies` — 目标公司
 
 One row per company. This is the unit of outreach and the unit of state.
 
 | Slug | Type | Required | Notes |
 | --- | --- | --- | --- |
 | `name` | text | yes | Primary field. |
-| `key` | text | yes | Stable domain key; `jobhunt-leads-v1.company-key` points at it. |
+| `key` | text | yes | Stable domain key; `kelly-jobhunt-leads.company-key` points at it. |
 | `website` | text | no | |
 | `source-url` | text | no | Where the company was found. |
 | `industry` | text | no | |
@@ -103,14 +103,14 @@ letter cannot be rewritten after the operator committed to it. A failed send
 deliberately leaves the row `queued` rather than reverting to `draft`, so the
 operator sees it in 已发送 and can retry with another address from the pool.
 
-## `jobhunt-leads-v1` — 联系邮箱
+## `kelly-jobhunt-leads` — 联系邮箱
 
 Several rows per company. A pool of candidate addresses, not a send list.
 
 | Slug | Type | Required | Notes |
 | --- | --- | --- | --- |
 | `email` | text | yes | Primary field. |
-| `company-key` | text | yes | Plain text foreign key into `jobhunt-companies-v1.key`. |
+| `company-key` | text | yes | Plain text foreign key into `kelly-jobhunt-companies.key`. |
 | `role` | text | no | `HR 邮箱` / `招聘通用` / a named department / `通用`. |
 | `source-url` | text | no | Where the address was published. Required in practice — an address with no source is a guess. |
 | `confidence` | text | no | `high` \| `medium` \| `low`. Defaults to `medium`. |

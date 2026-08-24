@@ -25,8 +25,8 @@ Kelly Writer is a Busabase-backed App-in-Skill review desk for repurposing one s
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-writer-app install
+pnpm --dir content/kelly-writer-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

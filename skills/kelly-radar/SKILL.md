@@ -6,6 +6,21 @@ metadata:
   tags:
     - risk:local-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-radar
+    resources:
+      - watchlist
+      - signals
+      - questions
+      - briefs
+      - reports
+      - movers
+      - opportunities
+      - sync-log
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly Radar
@@ -70,7 +85,7 @@ take verdicts in chat.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-radar-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -99,7 +114,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Nine Bases under one application Folder (`kelly-radar`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-radar-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `watchlist`: monitored competitors, categories, keywords, and communities, with per-source method (`browser_agent`/`manual`) JSON-encoded on each row. `signals_7d` is computed client-side from `signals`, never stored twice.
 - `signals`: normalized competitor-monitoring signals — headline, change summary, why-it-matters, severity, evidence, optional before→after diff, proposed action, and the human triage verdict.
@@ -108,7 +123,7 @@ Nine Bases under one application Folder (`kelly-radar`), declared in
 - `reports`: cited research reports — sections with citation chips, sources, annotations, and Kelly's 0-5 confidence rating.
 - `movers`: rising keyword/topic trend movers with a momentum series for the sparkline.
 - `opportunities`: opportunity cards turned from sustained movers, with a proposed next-step handoff (`handoff_content_brief` → kelly-writer, `handoff_roadmap_candidate` → kelly-feedback) and the human verdict.
-- `sync_log`: append-only history of ingest/file-report/execute-decisions runs.
+- `sync-log`: append-only history of ingest/file-report/execute-decisions runs.
 - `settings`: one row (`record-id: "config"`) with product profile, cadence, research defaults, and trend sources.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
@@ -136,7 +151,7 @@ see the Monitoring Workflow below).
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-radar-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -176,7 +191,7 @@ UI language: English and Chinese chrome with `Auto` default (`navigator.language
 ## Trends Workflow
 
 1. Cadence from `settings.cadence_trends` (default weekly). Collect keyword/topic movers from the configured trend sources: rising search queries, community topic volume, category interest.
-2. Optionally cross-read a kelly-seo snapshot (read-only): `node scripts/ingest_trends.mjs <payload.json> /path/to/kelly-seo/app/.data/<snapshot>.json` imports rising queries when present and degrades gracefully when absent.
+2. Optionally cross-read a kelly-seo snapshot (read-only): `node scripts/ingest_trends.mjs <payload.json> /path/to/kelly-seo/content/kelly-radar-app/.data/<snapshot>.json` imports rising queries when present and degrades gracefully when absent.
 3. `ingest_trends.mjs` dedupes movers by keyword+source, updates volume/delta/momentum for existing movers, and can add opportunity cards.
 4. Turn sustained movers into opportunity cards with a `proposed_next_step` (content brief → kelly-writer, roadmap candidate → kelly-feedback). Kelly approves or ignores each card in `#/trends`.
 
@@ -215,7 +230,7 @@ node skills/kelly-radar/scripts/ingest_trends.mjs payload.json [kelly-seo-snapsh
 node skills/kelly-radar/scripts/file_report.mjs payload.json
 node skills/kelly-radar/scripts/execute_decisions.mjs
 node skills/kelly-radar/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-radar/app dev
+pnpm --dir skills/kelly-radar/content/kelly-radar-app dev
 ```
 
 In normal use, invoke `/kelly-radar`, let the skill collect/research what's

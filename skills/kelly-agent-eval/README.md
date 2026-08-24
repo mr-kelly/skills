@@ -66,7 +66,7 @@ handoff file and refuses to run while any regression is still undecided.
 Start the local preview and open a safe, fully offline mock scene:
 
 ```bash
-pnpm --dir skills/kelly-agent-eval/app dev
+pnpm --dir skills/kelly-agent-eval/content/kelly-agent-eval-app dev
 ```
 
 Use the URL printed by the launcher, then add a demo path:

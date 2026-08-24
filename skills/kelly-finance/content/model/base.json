@@ -1,0 +1,136 @@
+{
+  "name": "Model",
+  "description": "One row per model run (usually just the current run, record-id 'current') — company, currency, display unit, model purpose, the forecast periods array, headline metrics, warnings, and the generated workbook's path/tab contract. Written by scripts/build_three_statement_model.mjs after the Python starter-model script runs, or by an agent that has reviewed a real workbook",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "model-id",
+      "name": "Model ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "snapshot-id",
+      "name": "Snapshot ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "generated-at",
+      "name": "Generated at",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "source",
+      "name": "Source",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "company",
+      "name": "Company",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "currency",
+      "name": "Currency",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "display-unit",
+      "name": "Display unit",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "model-purpose",
+      "name": "Model purpose",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "periods",
+      "name": "Periods (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "revenue-cagr",
+      "name": "Revenue CAGR",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "ending-cash",
+      "name": "Ending cash",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "free-cash-flow",
+      "name": "Free cash flow",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "balance-check",
+      "name": "Balance check",
+      "type": "number",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "warnings",
+      "name": "Warnings (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "workbook-path",
+      "name": "Workbook path",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "workbook-tabs",
+      "name": "Workbook tabs (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    }
+  ],
+  "views": []
+}

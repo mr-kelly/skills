@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly AI Newsroom's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/newsroom-model.js`). The batch rollup metrics
+code (`content/kelly-ai-newsroom-app/app/js/providers/busabase-provider.js`,
+`content/kelly-ai-newsroom-app/app/js/newsroom-model.js`). The batch rollup metrics
 (`needs_review`/`approved`/`blocked` and their per-kind counts) are computed
 client-side from `signals`/`actions`/`drafts` on every read — they are never
 stored.
@@ -12,7 +12,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise` (`revise` is draft-only).
 
-## Signals (`kelly-ai-newsroom-signals-v1`)
+## Signals (`kelly-ai-newsroom-signals`)
 
 Source-backed AI/news-source signals — evidence, buyer-intent
 interpretation, confidence, risk badges, and a suggested action.
@@ -36,7 +36,7 @@ interpretation, confidence, risk badges, and a suggested action.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Actions (`kelly-ai-newsroom-actions-v1`)
+## Actions (`kelly-ai-newsroom-actions`)
 
 Approved/blocked/reviewable sales or operating actions tied to today's signals.
 
@@ -56,7 +56,7 @@ Approved/blocked/reviewable sales or operating actions tied to today's signals.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Drafts (`kelly-ai-newsroom-drafts-v1`)
+## Drafts (`kelly-ai-newsroom-drafts`)
 
 Editable channel drafts (sales opener / LinkedIn post / client memo), kept
 behind a review gate until approved.
@@ -80,7 +80,7 @@ A `revise` decision writes `edited-body` and leaves `status` at
 `needs_review` — the review still needs an explicit approve/request_changes/
 block after a revision.
 
-## Sources (`kelly-ai-newsroom-sources-v1`)
+## Sources (`kelly-ai-newsroom-sources`)
 
 Configured news/source categories, freshness, and coverage gaps.
 
@@ -92,7 +92,7 @@ Configured news/source categories, freshness, and coverage gaps.
 | `freshness` | `freshness` | text | e.g. "demo", "not connected" |
 | `coverage` | `coverage` | longtext | what this category covers or is missing |
 
-## Settings (`kelly-ai-newsroom-settings-v1`)
+## Settings (`kelly-ai-newsroom-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -112,7 +112,7 @@ and its review state.
 
 The trusted decision-execution step. Reads `signals`/`actions`/`drafts` with
 a non-empty `decision-verdict`, prints the concrete operation
-(`operationForDecision()` in `app/app/js/newsroom-model.js`) for every
+(`operationForDecision()` in `content/kelly-ai-newsroom-app/app/js/newsroom-model.js`) for every
 decided item, and with `--apply` writes `status: "done"` back onto every
 `approve`-verdict item once the agent has performed the real handoff
 outside this script. It performs no external side effect itself —

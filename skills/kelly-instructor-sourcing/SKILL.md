@@ -7,6 +7,14 @@ metadata:
     - risk:sandbox
     - surface:busabase
     - industry:education
+  busabase:
+    template: true
+    folderSlug: kelly-instructor-sourcing
+    resources:
+      - criteria
+      - candidates
+    risk: sandbox
+
 ---
 
 # Kelly Instructor Sourcing
@@ -36,7 +44,7 @@ happened, it never performs it.
 
 Before changing the app:
 
-1. Read `$kelly-app-skill-creator` for product behavior, responsive UI, and the canonical `app/` artifact.
+1. Read `$kelly-app-skill-creator` for product behavior, responsive UI, and the canonical `content/kelly-instructor-sourcing-app/` artifact.
 2. Read `$busabase` for target Space, ChangeRequests, review, merge, and Vault behavior.
 3. Read `$busabase-app-creator` for runtime, SDK, security, validation, and AirApp deployment.
 4. Read `references/instructor-sourcing-schema.md` before changing fields, statuses, or the scoring rubric shape.
@@ -94,7 +102,7 @@ exists. In demo mode (`?demo=1`) no Busabase connection happens at all.
 
 ## `/kelly-instructor-sourcing criteria`
 
-Capture or update, in the `instructor-sourcing-criteria-v1` record:
+Capture or update, in the `kelly-instructor-sourcing-criteria` record:
 
 - the search-keyword and experience/activity filter hypotheses;
 - plain-language "what good looks like" text for each of the three rubric
@@ -107,7 +115,7 @@ confirmed platform capability.
 
 ## `/kelly-instructor-sourcing review`
 
-For every candidate record in `instructor-sourcing-candidates-v1`:
+For every candidate record in `kelly-instructor-sourcing-candidates`:
 
 - name, public platform headline, and which search context surfaced them;
 - a 0-100 score per rubric axis, with `match-notes` explaining the evidence;
@@ -124,8 +132,8 @@ this app, `review` records `wechat-added-at` and then `connected` with
 
 | Resource | Purpose |
 | --- | --- |
-| `instructor-sourcing-criteria-v1` | One search-criteria hypothesis and the three-axis scoring rubric text, plus the qualify threshold. |
-| `instructor-sourcing-candidates-v1` | One row per candidate with headline, search context, per-axis and overall scores, notes, status, and connection timestamps. |
+| `kelly-instructor-sourcing-criteria` | One search-criteria hypothesis and the three-axis scoring rubric text, plus the qualify threshold. |
+| `kelly-instructor-sourcing-candidates` | One row per candidate with headline, search context, per-axis and overall scores, notes, status, and connection timestamps. |
 
 See `references/instructor-sourcing-schema.md` for exact field slugs and
 status transitions.
@@ -153,7 +161,7 @@ scope for v1.
 
 ## App Contract
 
-- Keep the canonical Hono project in `<skill-root>/app/`; use the same source
+- Keep the canonical Hono project in `<skill-root>/content/kelly-instructor-sourcing-app/`; use the same source
   locally and in AirApp.
 - Store criteria and candidates only in Busabase through `busabase-sdk`.
 - Demo data (`?demo=1`) is explicit, deterministic, non-persistent, and

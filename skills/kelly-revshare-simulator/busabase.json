@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-revshare-simulator",
+  "description": "Revenue-Share Contract Simulator: a control-panel/workspace for a deal analyst to model revenue-based-financing (RBF) deals for SME businesses -- project cash flow and repayment, compute a Cash-Flow Payout Multiple and effective annualized merchant cost, and record an underwriting decision per named scenario. Pure deterministic math, no external calls, no real trading/payment side effects; scenario create/edit/delete and decisions are direct writes made by the analyst, not a review/approval queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["rbf", "risk:sandbox", "surface:busabase"],
+  "template": {
+    "category": "rbf",
+    "schemaVersion": 1,
+    "airapp": "kelly-revshare-simulator-app",
+    "tags": ["rbf", "risk:sandbox", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/comparison.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/scenario-detail.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Scenarios and flag what needs my attention.",
+      "Open Kelly Revenue-Share Simulator and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

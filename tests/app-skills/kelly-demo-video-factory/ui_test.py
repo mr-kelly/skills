@@ -16,7 +16,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 from runtime import free_port, managed_process
 
 SKILL_ROOT = REPO_ROOT / "skills" / "kelly-demo-video-factory"
-APP_ROOT = SKILL_ROOT / "app"
+APP_ROOT = SKILL_ROOT / "content" / "kelly-demo-video-factory-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-demo-video-factory"
 BUSABASE_VERSION = "0.16.2"
 
@@ -156,8 +156,8 @@ def test_busabase_provisioning(browser) -> None:
             assert "Wired bidirectional relation" in result.stdout, result.stdout
 
             bases = read_json(f"{busabase_url}/api/v1/bases")
-            videos_base = next(b for b in bases if b["slug"] == "videos")
-            shots_base = next(b for b in bases if b["slug"] == "video-shots")
+            videos_base = next(b for b in bases if b["slug"] == "kelly-demo-video-factory-videos")
+            shots_base = next(b for b in bases if b["slug"] == "kelly-demo-video-factory-video-shots")
             field_types = {f["slug"]: f["type"] for f in videos_base["fields"]}
             assert field_types["series"] == "select", field_types
             assert field_types["status"] == "select", field_types

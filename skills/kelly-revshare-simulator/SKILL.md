@@ -6,6 +6,14 @@ metadata:
   tags:
     - risk:sandbox
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-revshare-simulator
+    resources:
+      - scenarios
+      - settings
+    risk: sandbox
+
 ---
 
 # Revenue-Share Contract Simulator
@@ -36,7 +44,7 @@ stage moves and `kelly-agent-builder`'s agent-config CRUD work. There is no
 AI-authored draft to approve and no separate execute/decisions step; the
 projected result (`cash_flow_payout_multiple`, `effective_annual_cost_pct`,
 risk flags) is pure/derived from a scenario's saved inputs and recomputed on
-every read (`app/app/js/simulator-model.js`, ported from the retired
+every read (`content/kelly-revshare-simulator-app/app/js/simulator-model.js`, ported from the retired
 `lib/simulate.ts`).
 
 Default behavior is AirApp-first. Unless the user explicitly asks only for
@@ -48,7 +56,7 @@ mode only when the user says "纯聊天", "chat only", "不要打开 UI", or sim
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-revshare-simulator-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -97,7 +105,7 @@ exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Two Bases under one application Folder (`kelly-revshare-simulator`),
-declared in `app/app/js/config.js` and `app/resource-map.json`:
+declared in `content/kelly-revshare-simulator-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `scenarios`: one row per saved deal scenario — the analyst's raw inputs
   (business type, average monthly revenue, revenue volatility, principal,
@@ -116,7 +124,7 @@ field shapes.
 
 ## Domain Model
 
-Inputs per scenario (`app/app/js/simulator-model.js` `simulateScenario`,
+Inputs per scenario (`content/kelly-revshare-simulator-app/app/js/simulator-model.js` `simulateScenario`,
 ported verbatim from the retired `lib/simulate.ts`):
 
 - `business_type`, `avg_monthly_revenue`, `revenue_volatility_pct`
@@ -141,12 +149,12 @@ Computed, always fresh, never stored:
 
 No randomness, no ML — the same scenario input always produces the same
 result. Read `references/ui-schema.md` before editing the app or
-`app/app/js/simulator-model.js`.
+`content/kelly-revshare-simulator-app/app/js/simulator-model.js`.
 
 ## Direct Scenario Writes
 
 There is no decisions/approval bucket. Every scenario action writes straight
-through `busabase-sdk` from the browser (`app/app/js/providers/busabase-provider.js`):
+through `busabase-sdk` from the browser (`content/kelly-revshare-simulator-app/app/js/providers/busabase-provider.js`):
 
 - **Create** / **Update**: `bases.createChangeRequest` / `records.changeRequest`
   with the analyst's saved inputs.
@@ -184,7 +192,7 @@ UI language: support English and Chinese chrome with `Auto` default.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-revshare-simulator-app dev` only when local preview/debugging is explicitly
 requested.
 
 ## Views
@@ -203,8 +211,8 @@ requested.
 
 Finish only when:
 
-- the skill contains the complete canonical `app/` project and
-  `pnpm --dir app dev` remains supported;
+- the skill contains the complete canonical `content/kelly-revshare-simulator-app/` project and
+  `pnpm --dir content/kelly-revshare-simulator-app dev` remains supported;
 - all persistent config, state, and domain data use `busabase-sdk` and the
   declared resource map — no local JSON, browser storage, or provider
   choice;
@@ -213,7 +221,7 @@ Finish only when:
   while a deployed AirApp uses its ambient session;
 - Overview, Scenarios, Comparison, and Help & Settings render on desktop and
   phone widths;
-- `pnpm --dir app run check` and `node --test` pass.
+- `pnpm --dir content/kelly-revshare-simulator-app run check` and `node --test` pass.
 
 ## Stop Conditions
 

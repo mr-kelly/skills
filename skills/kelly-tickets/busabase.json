@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-tickets",
+  "description": "Complaint/ticket triage-and-dispatch desk: intake stream, ticket board, and a dispatch review queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["sales-crm", "risk:gated-write", "industry:property-management", "surface:busabase", "surface:wechat"],
+  "template": {
+    "category": "sales-crm",
+    "schemaVersion": 1,
+    "airapp": "kelly-tickets-app",
+    "tags": ["sales-crm", "risk:gated-write", "industry:property-management", "surface:busabase", "surface:wechat"],
+    "screenshots": [
+      "assets/screenshots/board.webp",
+      "assets/screenshots/dispatch.webp",
+      "assets/screenshots/intake.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Crews and flag what needs my attention.",
+      "Open Kelly Tickets and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

@@ -13,7 +13,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 
 from runtime import free_port, managed_process
 
-APP_ROOT = REPO_ROOT / "skills" / "kelly-crm" / "app"
+APP_ROOT = REPO_ROOT / "skills" / "kelly-crm" / "content" / "kelly-crm-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-crm"
 BUSABASE_VERSION = "0.16.2"
 

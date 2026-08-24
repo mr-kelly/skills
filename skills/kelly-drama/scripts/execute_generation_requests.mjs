@@ -39,7 +39,7 @@ import {
   storyboardPrompt,
   voiceInstruct,
   voiceScript,
-} from "../app/app/js/drama-model.js";
+} from "../content/kelly-drama-app/app/js/drama-model.js";
 import { generateDraftVideo } from "./gen_draft_video.mjs";
 import {
   connect,

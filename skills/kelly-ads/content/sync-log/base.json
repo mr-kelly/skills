@@ -1,0 +1,56 @@
+{
+  "name": "Sync Log",
+  "description": "Append-only feed: ingest runs, anomaly checks, and execution plans",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "sync-id",
+      "name": "Sync ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "at",
+      "name": "At",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "platform",
+      "name": "Platform",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "kind",
+      "name": "Kind",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "message",
+      "name": "Message",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "rows",
+      "name": "Rows",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

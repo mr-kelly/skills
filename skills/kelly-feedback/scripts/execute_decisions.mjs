@@ -21,7 +21,7 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-feedback-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]
@@ -335,7 +335,7 @@ async function main() {
   if (apply) {
     await createRow(
       client,
-      declared("sync_log"),
+      declared("sync-log"),
       {
         sync_id: `execute-${Date.now()}`,
         at: now,

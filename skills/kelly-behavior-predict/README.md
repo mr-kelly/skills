@@ -62,7 +62,7 @@ source to switch away from.
 
 Every "predicted next action" comes from a short, explicit, ordered list of
 if/else rules over four mock session signals in
-`app/app/js/behavior-model.js` — not a real ML/LLM model. Given the same
+`content/kelly-behavior-predict-app/app/js/behavior-model.js` — not a real ML/LLM model. Given the same
 session features it always returns the same prediction, which is what makes
 the backtest's precision/recall/F1 summary reproducible. See
 `references/ui-schema.md` for the full schema and `SKILL.md` for the review

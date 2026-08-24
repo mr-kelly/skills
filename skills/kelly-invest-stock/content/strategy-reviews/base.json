@@ -1,0 +1,152 @@
+{
+  "name": "策略研究与审批",
+  "description": "Dated research evidence, account snapshots, and manual maturity decisions",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "name",
+      "name": "记录名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "strategy-key",
+      "name": "策略标识",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "review-date",
+      "name": "记录时间",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "review-type",
+      "name": "记录类型",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "source-note",
+      "name": "来源说明",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "source-as-of",
+      "name": "来源时间",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "supporting-evidence",
+      "name": "支持证据",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "counter-evidence",
+      "name": "反方证据",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "data-freshness",
+      "name": "数据新鲜度",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "snapshot-nav",
+      "name": "复查净值",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "snapshot-benchmark-return",
+      "name": "复查基准收益",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "snapshot-max-drawdown",
+      "name": "复查最大回撤",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "from-stage",
+      "name": "原阶段",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "to-stage",
+      "name": "目标阶段",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "decision",
+      "name": "人工决定",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "reason",
+      "name": "人工理由",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "reviewer",
+      "name": "审批人",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "change-request-id",
+      "name": "变更请求",
+      "type": "text",
+      "required": false,
+      "position": 17,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -1,0 +1,56 @@
+{
+  "name": "Events",
+  "description": "Append-only feed: check runs, incidents, expiry warnings, spend anomalies, action decisions",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "event-id",
+      "name": "Event ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "at",
+      "name": "At",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "severity",
+      "name": "Severity",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "kind",
+      "name": "Kind",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "message",
+      "name": "Message",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "service-id",
+      "name": "Service ID",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

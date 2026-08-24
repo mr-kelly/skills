@@ -1,0 +1,144 @@
+{
+  "name": "Cast",
+  "description": "On-screen characters with three-view visual notes and a reference-card image",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "character-id",
+      "name": "Character ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "role",
+      "name": "Role",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "actor-profile",
+      "name": "Actor profile",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "visual-front",
+      "name": "Visual front",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "visual-side",
+      "name": "Visual side",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "visual-back",
+      "name": "Visual back",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "wardrobe",
+      "name": "Wardrobe",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "anchors-json",
+      "name": "Anchors JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "forbidden-drift-json",
+      "name": "Forbidden drift JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-status",
+      "name": "Reference card status",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-prompt",
+      "name": "Reference card prompt",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-asset-id",
+      "name": "Reference card asset ID",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-generated-at",
+      "name": "Reference card generated at",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "reference-card-generation-json",
+      "name": "Reference card generation JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "deleted",
+      "name": "Deleted",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    }
+  ],
+  "views": []
+}

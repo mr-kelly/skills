@@ -1,0 +1,28 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-invoice-sheet",
+  "description": "Kelly Invoice Sheet: invoice/receipt/credit-note/statement extraction batches under human review, with field confidence, line items, and export-ready approved rows",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["finance", "risk:local-write", "surface:busabase"],
+  "template": {
+    "category": "finance",
+    "schemaVersion": 1,
+    "airapp": "kelly-invoice-sheet-app",
+    "tags": ["finance", "risk:local-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/detail-mobile.webp",
+      "assets/screenshots/detail.webp",
+      "assets/screenshots/extract-data.webp",
+      "assets/screenshots/overview-mobile.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Invoices and flag what needs my attention.",
+      "Open Kelly Invoice Sheet and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

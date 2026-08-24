@@ -13,6 +13,8 @@
 // Outline shape — see references/outline-schema.md.
 import { readFileSync } from "node:fs";
 import {
+  SHOTS_BASE_SLUG,
+  VIDEOS_BASE_SLUG,
   approveAndMerge,
   findBase,
   loadBusabaseConfig,
@@ -30,8 +32,8 @@ async function main() {
   const outline = JSON.parse(readFileSync(outlinePath, "utf8"));
 
   const cfg = loadBusabaseConfig();
-  const videosBase = await findBase(cfg, "videos");
-  const shotsBase = await findBase(cfg, "video-shots");
+  const videosBase = await findBase(cfg, VIDEOS_BASE_SLUG);
+  const shotsBase = await findBase(cfg, SHOTS_BASE_SLUG);
   if (!videosBase || !shotsBase) {
     throw new Error("Schema missing — run `node scripts/ensure_schema.mjs` first.");
   }
@@ -89,7 +91,7 @@ async function main() {
   // the Videos side in the Busabase UI (the inverse field only displays what was
   // written on the video record itself; it is not computed live from the shots'
   // `video` field — see busabase-schema.md's manifest comment, ported into
-  // app/app/js/config.js). The AirApp's own read path never depends on this
+  // content/kelly-demo-video-factory-app/app/js/config.js). The AirApp's own read path never depends on this
   // (busabase-provider.js joins shots to their video client-side by filtering on
   // shot.video === video id), but this keeps the Busabase web UI usable too.
   if (shouldMerge && videoRecordId && shotRecordIds.length > 0) {

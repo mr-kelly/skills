@@ -36,7 +36,7 @@ Kelly Tickets is a Busabase App-in-Skill triage-and-dispatch desk for complaints
 Start the local preview and open a safe mock-data scene ("Riverside Gardens", a 3-building residential property):
 
 ```bash
-pnpm --dir skills/kelly-tickets/app dev
+pnpm --dir skills/kelly-tickets/content/kelly-tickets-app dev
 ```
 
 Use the URL printed by the launcher, then add one of these demo paths:

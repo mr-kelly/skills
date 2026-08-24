@@ -1,0 +1,22 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-portrait-retouch",
+  "description": "Natural portrait retouch jobs, reviewable candidates, and non-secret workflow settings",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["production", "risk:local-write", "industry:beauty", "surface:busabase"],
+  "template": {
+    "category": "production",
+    "schemaVersion": 1,
+    "airapp": "kelly-portrait-retouch-app",
+    "tags": ["production", "risk:local-write", "industry:beauty", "surface:busabase"],
+    "screenshots": ["assets/screenshots/overview.webp"],
+    "agentPrompts": [
+      "Summarize the latest Retouch Jobs and flag what needs my attention.",
+      "Open Kelly Portrait Retouch and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

@@ -6,6 +6,15 @@ metadata:
   tags:
     - risk:sandbox
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-disclosure-tracker
+    resources:
+      - vehicles
+      - items
+      - settings
+    risk: sandbox
+
 ---
 
 # Cross-Entity Disclosure Tracker
@@ -59,7 +68,7 @@ App-in-Skill review model used elsewhere in this batch.
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-disclosure-tracker-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -78,7 +87,7 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 ## Busabase Resources
 
 Three Bases under one application Folder (`kelly-disclosure-tracker`),
-declared in `app/app/js/config.js` and `app/resource-map.json`:
+declared in `content/kelly-disclosure-tracker-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `vehicles`: one row per financing vehicle (fund/SPV) — the origination
   entity, fund-manager entity, listing venue, base currency, and target close
@@ -115,7 +124,7 @@ row (defaults to "Unassigned reviewer" if omitted).
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-disclosure-tracker-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -166,11 +175,11 @@ UI language: support English and Chinese (zh-CN) chrome with `Auto` default.
    no transmission to a regulator, fund administrator, or exchange.
 
 Read `references/ui-schema.md` before editing the app, scripts, or
-`app/app/js/tracker-model.js`.
+`content/kelly-disclosure-tracker-app/app/js/tracker-model.js`.
 
 ## The Domain Model (not a filing system)
 
-`app/app/js/tracker-model.js` documents and implements the entire domain
+`content/kelly-disclosure-tracker-app/app/js/tracker-model.js` documents and implements the entire domain
 model: the fixed seed portfolio (`buildSeedData()`), the per-item decision ->
 status mapping (`computeItemStatus()`, including the reconciliation-mismatch
 guardrail), and the per-vehicle/portfolio rollups
@@ -178,8 +187,8 @@ guardrail), and the per-vehicle/portfolio rollups
 Every function is pure and deterministic — same inputs always produce the
 same output — so a human reviewer can audit every status and count by hand.
 It backs the trusted seed script (`scripts/generate_batch.mjs`), the live
-Busabase read path (`app/app/js/providers/busabase-provider.js`), and the
-offline `?demo=` scenario (`app/app/js/providers/demo-provider.js`), so all
+Busabase read path (`content/kelly-disclosure-tracker-app/app/js/providers/busabase-provider.js`), and the
+offline `?demo=` scenario (`content/kelly-disclosure-tracker-app/app/js/providers/demo-provider.js`), so all
 three always agree on the portfolio and its statuses.
 
 ## Safety
@@ -202,5 +211,5 @@ three always agree on the portfolio and its statuses.
 ```bash
 node skills/kelly-disclosure-tracker/scripts/generate_batch.mjs --apply
 node skills/kelly-disclosure-tracker/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-disclosure-tracker/app dev
+pnpm --dir skills/kelly-disclosure-tracker/content/kelly-disclosure-tracker-app dev
 ```

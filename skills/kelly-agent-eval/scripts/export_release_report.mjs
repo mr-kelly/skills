@@ -20,14 +20,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-agent-eval-app/app/js/config.js";
 import {
   buildConfigSummary,
   buildReleaseDecision,
   computeCase,
   computeMetrics,
   evaluateReleaseGate,
-} from "../app/app/js/eval-model.js";
+} from "../content/kelly-agent-eval-app/app/js/eval-model.js";
 
 const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 

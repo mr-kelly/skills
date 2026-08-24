@@ -1,0 +1,144 @@
+{
+  "name": "交易",
+  "description": "Pipeline deals with stage, amount, and next step",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "deal-id",
+      "name": "交易 ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "交易名称",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "company-id",
+      "name": "所属公司",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "primary-contact-id",
+      "name": "主要联系人",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "contact-ids",
+      "name": "关联联系人",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "stage",
+      "name": "阶段",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "amount",
+      "name": "金额",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "currency",
+      "name": "币种",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "probability",
+      "name": "赢单概率",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "next-step",
+      "name": "下一步",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "负责人",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "opened-at",
+      "name": "开始日期",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "expected-close",
+      "name": "预计成交日期",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "last-activity-at",
+      "name": "最近活动时间",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "状态",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "agent-next-action",
+      "name": "Agent 建议动作",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "notes",
+      "name": "备注",
+      "type": "longtext",
+      "required": false,
+      "position": 16,
+      "options": {}
+    }
+  ],
+  "views": []
+}

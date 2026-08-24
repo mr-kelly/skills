@@ -1,0 +1,48 @@
+{
+  "name": "Families",
+  "description": "The sibling families that share the fund surplus",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "family-id",
+      "name": "Family ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "head",
+      "name": "Head",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "members-count",
+      "name": "Members count",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Note",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

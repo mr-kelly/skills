@@ -6,7 +6,7 @@
 // it only ever records a planned operation ("planned"/"ready_for_agent")
 // directly onto the decided row and NEVER flips workflow `status` itself
 // (the decision write already did that via
-// app/app/js/providers/busabase-provider.js's decideItem()), matching
+// content/kelly-ppt-factory-app/app/js/providers/busabase-provider.js's decideItem()), matching
 // kelly-legal-precedent-desk's, kelly-legal-casebase-ingest's, and
 // kelly-legal-firm-radar's execute_decisions.mjs precedent. The retired
 // scripts/execute_decisions.ts only ever wrote a local
@@ -25,14 +25,14 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-ppt-factory-app/app/js/config.js";
 import {
   baseDeckFields,
   baseSlideFields,
   itemExecution,
   normalizeDeckRow,
   normalizeSlideRow,
-} from "../app/app/js/ppt-model.js";
+} from "../content/kelly-ppt-factory-app/app/js/ppt-model.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]
@@ -93,7 +93,7 @@ async function main() {
     throw new Error("Kelly PPT Factory Busabase resources are not provisioned yet; run the AirApp setup first.");
   }
   const decksBase = resources.bases.find((base) => base.key === "decks");
-  const slideCardsBase = resources.bases.find((base) => base.key === "slideCards");
+  const slideCardsBase = resources.bases.find((base) => base.key === "slide-cards");
 
   const [deckRows, slideRows] = await Promise.all([readAll(client, decksBase), readAll(client, slideCardsBase)]);
   const decidedDecks = deckRows.filter((row) => row.decision_action);

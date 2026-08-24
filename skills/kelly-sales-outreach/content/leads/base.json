@@ -1,0 +1,56 @@
+{
+  "name": "业务联系人",
+  "description": "Public business contact candidates for each target account, each with provenance and confidence",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "email",
+      "name": "邮箱",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "company-key",
+      "name": "所属公司",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "contact-name",
+      "name": "联系人",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "role",
+      "name": "业务角色",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "source-url",
+      "name": "来源链接",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "confidence",
+      "name": "置信度",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

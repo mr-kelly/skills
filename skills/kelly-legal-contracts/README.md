@@ -46,7 +46,7 @@ Kelly Legal Contracts is a Busabase App-in-Skill contract review desk for NDAs, 
 Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-legal-contracts/app dev
+pnpm --dir skills/kelly-legal-contracts/content/kelly-legal-contracts-app dev
 ```
 
 Then add one of these demo paths:
@@ -105,7 +105,7 @@ After ingesting, run `node scripts/run_checks.mjs --apply` to refresh risk check
 
 ## Busabase Setup
 
-Kelly Legal Contracts provisions its own Folder and six Bases (`contracts`, `issues`, `checks`, `claims`, `claim_rules`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
+Kelly Legal Contracts provisions its own Folder and six Bases (`contracts`, `issues`, `checks`, `claims`, `claim-rules`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
 
 ## Boundary
 

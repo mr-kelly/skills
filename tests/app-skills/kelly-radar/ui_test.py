@@ -13,7 +13,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 
 from runtime import free_port, managed_process
 
-APP_ROOT = REPO_ROOT / "skills" / "kelly-radar" / "app"
+APP_ROOT = REPO_ROOT / "skills" / "kelly-radar" / "content" / "kelly-radar-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-radar"
 BUSABASE_VERSION = "0.16.2"
 
@@ -266,7 +266,7 @@ def test_busabase_provisioning(browser) -> None:
                     "reports",
                     "movers",
                     "opportunities",
-                    "sync_log",
+                    "sync-log",
                     "settings",
                 ]
             ), nodes

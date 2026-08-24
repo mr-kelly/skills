@@ -1,0 +1,72 @@
+{
+  "name": "Sources",
+  "description": "Feedback channels: email, Discord, Slack, X, app-store, survey, interview",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "source-id",
+      "name": "Source ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "channel",
+      "name": "Channel",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "collection",
+      "name": "Collection",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "secret-envs",
+      "name": "Secret envs",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "last-ingest-at",
+      "name": "Last ingest at",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "item-count",
+      "name": "Item count",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    }
+  ],
+  "views": []
+}

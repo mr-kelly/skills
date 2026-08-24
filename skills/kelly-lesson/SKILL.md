@@ -7,6 +7,16 @@ metadata:
     - risk:gated-write
     - industry:education
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-lesson
+    resources:
+      - teachers
+      - plans
+      - checks
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Lesson
@@ -40,7 +50,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-lesson-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -55,14 +65,14 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Four Bases under one application Folder (`kelly-lesson`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Four Bases under one application Folder (`kelly-lesson`), declared in `content/kelly-lesson-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `teachers`: teachers referenced by lesson plans.
 - `plans`: the plan library and review queue in one — structured sections, workflow status, compliance score, and the human decision + execution marker on the same row.
 - `checks`: per-plan, per-rule compliance check results.
 - `settings`: one row (`record-id: "config"`) with school profile, template sections, compliance rules, and export/feedback preferences.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/lesson-schema.md` for exact field shapes. Compliance scores, the review queue, the recent-activity feed, and metrics are recomputed client-side from the stored rows on every read (`app/app/js/lesson-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/checks run.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/lesson-schema.md` for exact field shapes. Compliance scores, the review queue, the recent-activity feed, and metrics are recomputed client-side from the stored rows on every read (`content/kelly-lesson-app/app/js/lesson-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/checks run.
 
 ## First Run And Onboarding
 
@@ -75,7 +85,7 @@ node skills/kelly-lesson/scripts/run_checks.mjs --apply
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-lesson-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -141,7 +151,7 @@ node skills/kelly-lesson/scripts/run_checks.mjs --apply
 node skills/kelly-lesson/scripts/execute_decisions.mjs
 node skills/kelly-lesson/scripts/execute_decisions.mjs --apply
 node skills/kelly-lesson/scripts/export_plans.mjs --out exports/
-pnpm --dir skills/kelly-lesson/app dev
+pnpm --dir skills/kelly-lesson/content/kelly-lesson-app dev
 ```
 
 In normal use, invoke `/kelly-lesson`, let the skill ingest/check what's due, and open the AirApp.

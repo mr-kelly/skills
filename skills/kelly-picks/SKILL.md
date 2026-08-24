@@ -7,6 +7,18 @@ metadata:
     - risk:local-write
     - industry:ecommerce
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-picks
+    resources:
+      - candidates
+      - trend-items
+      - proposals
+      - sources
+      - sync-log
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly Picks
@@ -48,7 +60,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-picks-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -63,13 +75,13 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Six Bases under one application Folder (`kelly-picks`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Six Bases under one application Folder (`kelly-picks`), declared in `content/kelly-picks-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `candidates`: products under research — one row per candidate, with the margin card and competition read JSON-encoded on the row (they share the candidate's lifecycle, not a separate one).
-- `trend_items`: raw source-tagged trend signals from a sweep, optionally linked to a candidate; a genuinely distinct entity with its own promote-to-candidate lifecycle.
+- `trend-items`: raw source-tagged trend signals from a sweep, optionally linked to a candidate; a genuinely distinct entity with its own promote-to-candidate lifecycle.
 - `proposals`: agent-proposed develop/watch/drop verdicts per candidate, with their own five-state review workflow (`needs_review|changes_requested|approved|done|blocked`).
 - `sources`: configured trend sources — kind, collection method, and sweep freshness.
-- `sync_log`: append-only history of ingest/compute/execute runs.
+- `sync-log`: append-only history of ingest/compute/execute runs.
 - `settings`: one row (`record-id: "config"`) with the seller profile, platform fee tables, freight rules, and ad-cost default.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/picks-schema.md` for exact field shapes. A candidate's `develop`/`watch`/`drop` verdict and a proposal's `approve`/`request_changes`/`revise`/`block` review are both written directly onto the item record — the human verdict IS the field write, merged immediately from a standalone local preview or as a pending ChangeRequest from a deployed AirApp.
@@ -80,7 +92,7 @@ On invocation, check the `candidates` and `sources` Bases. If both are empty, gu
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-picks-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -106,7 +118,7 @@ Sweeps run on demand — when Kelly asks for a sweep or invokes the skill for fr
 1. Iterate the configured sources with method `browser_agent` using browser skills or web search in the agent session; `manual` sources are supplied by Kelly as pasted research or export files.
 2. For each finding, build a normalized trend item: source kind, one-line title, 1-3 sentence summary, evidence URL, a metric (`metric_label` + `metric_value`), `delta_pct`, and a short `momentum` series. Give it a stable `external_id` when the source has one.
 3. When a signal is strong enough, file a candidate in the same payload: name, category, target platform, est. price, best-known margin inputs, a competition read (top-10 review counts, head share, entrant velocity), evidence links, and a `why_it_matters` note that states demand, wedge, margin, and window.
-4. Write through the single write path: save the payload JSON, then run `node scripts/ingest_trends.mjs <payload.json>`. The script validates, dedupes trend items by source + external id (content hash fallback) and candidates by id or name+source, merges, refreshes source freshness, and appends a `sync_log` entry.
+4. Write through the single write path: save the payload JSON, then run `node scripts/ingest_trends.mjs <payload.json>`. The script validates, dedupes trend items by source + external id (content hash fallback) and candidates by id or name+source, merges, refreshes source freshness, and appends a `sync-log` entry.
 5. Dedupe rules: a re-observed trend with unchanged numbers is skipped; changed numbers update the existing row. One row per signal, not per crawl.
 
 ## Margin Workflow
@@ -138,7 +150,7 @@ node skills/kelly-picks/scripts/ingest_trends.mjs payload.json
 node skills/kelly-picks/scripts/compute_margins.mjs
 node skills/kelly-picks/scripts/execute_decisions.mjs
 node skills/kelly-picks/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-picks/app dev
+pnpm --dir skills/kelly-picks/content/kelly-picks-app dev
 ```
 
 In normal use, invoke `/kelly-picks`, let the skill sweep and ingest what's due, and open the AirApp.

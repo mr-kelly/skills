@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Agent Eval",
+  "description": "Agent Eval & Regression Board: a fixed mock test suite scored baseline vs candidate, with a regression review queue and a release approve/block decision"
+}

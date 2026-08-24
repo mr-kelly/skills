@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Trusted hand-off step. Re-reads campaigns straight from Busabase, runs the
 // deterministic anomaly-detection rule set (detectAnomalies, ported verbatim
-// from the retired scripts/run_checks.ts into app/app/js/ads-model.js — the
+// from the retired scripts/run_checks.ts into content/kelly-ads-app/app/js/ads-model.js — the
 // same pure function the AirApp could call to preview), and upserts the
 // Anomalies Base. New critical anomalies without a linked adjustment card
 // get a skeleton adjustment card (skeletonAdjustment, also ported verbatim)
@@ -21,8 +21,13 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { configFromSettings, detectAnomalies, normalizeCampaign, skeletonAdjustment } from "../app/app/js/ads-model.js";
-import { appConfig } from "../app/app/js/config.js";
+import {
+  configFromSettings,
+  detectAnomalies,
+  normalizeCampaign,
+  skeletonAdjustment,
+} from "../content/kelly-ads-app/app/js/ads-model.js";
+import { appConfig } from "../content/kelly-ads-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/run_checks.mjs [--apply]
@@ -243,11 +248,11 @@ async function main() {
     (item) => item.state === "open" && item.severity === "critical",
   ).length;
   const syncId = `sync-checks-${now.slice(0, 10)}`;
-  const syncLogRows = await readAll(client, declared("sync_log"));
+  const syncLogRows = await readAll(client, declared("sync-log"));
   const existingSyncRow = syncLogRows.find((row) => row.sync_id === syncId) || null;
   await upsert(
     client,
-    declared("sync_log"),
+    declared("sync-log"),
     existingSyncRow,
     {
       sync_id: syncId,

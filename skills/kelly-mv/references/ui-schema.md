@@ -2,9 +2,9 @@
 
 Use this schema when reading or writing Kelly MV's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`). Checklist completeness,
+(`content/kelly-mv-app/app/js/providers/busabase-provider.js`). Checklist completeness,
 "next step" guidance, and status counts are computed client-side from
-`project`/`cast`/`shots` on every read (`app/app/js/mv-model.js`) — they are
+`project`/`cast`/`shots` on every read (`content/kelly-mv-app/app/js/mv-model.js`) — they are
 never stored.
 
 One workspace = exactly one MV project (song + concept + cast + storyboard).
@@ -35,12 +35,12 @@ standalone CLI every converted skill's integration test targets:
 route 404s ("Not available in production") under the CLI's own production
 `NODE_ENV` gate — so a real Asset upload does not complete against that
 specific packaged CLI today, independent of anything this AirApp does (see
-`app/server.js` and `app/app/js/mv-client.js` for the full trace). The code
+`content/kelly-mv-app/server.js` and `content/kelly-mv-app/app/js/mv-client.js` for the full trace). The code
 is written against the documented SDK contract and mirrors Busabase's own
 product usage (the Doc editor's image-paste upload); it is correct and will
 start working the moment the upstream package serves what it advertises.
 
-## project (`kelly-mv-project-v1`)
+## project (`kelly-mv-project`)
 
 Single row (there is exactly one; look up the first record).
 
@@ -62,7 +62,7 @@ There are **no** genre/mood/bpm/key/lyrics/section fields, and no
 `realism_target`/`color_palette`/`background_reference_assets` — those were
 retired-app fields never surfaced by the current UI.
 
-## settings (`kelly-mv-settings-v1`)
+## settings (`kelly-mv-settings`)
 
 One row (`record-id: "config"`). The image-API key itself is never stored
 here — it's the `KELLY_MV_IMAGE_API_KEY` env var read by the trusted
@@ -78,7 +78,7 @@ generation script.
 | `video-draft-backend` | `video_draft_backend` | text | e.g. `ltx-video-mps` |
 | `video-width` / `video-height` / `video-fps` / `video-max-frames` | same | number | local LTX draft render settings |
 
-## cast (`kelly-mv-cast-v1`)
+## cast (`kelly-mv-cast`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -101,7 +101,7 @@ generation script.
 The reference card, once generated, is fed as real input pixels into
 storyboard image-to-image for consistency.
 
-## shots (`kelly-mv-shots-v1`)
+## shots (`kelly-mv-shots`)
 
 An ordered list — `position` (not array order, since Busabase gives no
 ordering guarantee) carries the sequence.
@@ -127,7 +127,7 @@ ordering guarantee) carries the sequence.
 
 Each shot's image and video can be **generated** or **uploaded**; both
 append non-destructive candidates and the human picks the active one
-(`app/app/js/providers/busabase-provider.js`'s `setShotActive`).
+(`content/kelly-mv-app/app/js/providers/busabase-provider.js`'s `setShotActive`).
 
 There are **no** `song_start`/`song_end`/`section_id`/`shot_type`/
 camera-spec/`music_cue`/`lyric_lines` fields — those were removed to keep

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Push this skill's current local app/ code to its deployed AirApp: creates it
+// Push this skill's current local content/kelly-sales-outreach-app/ code to its deployed AirApp: creates it
 // if this Space has never had one, or proposes an update if it does. Always a
 // pending, always-review-first ChangeRequest — merge it in Busabase before the
-// change takes effect. Use this after editing app/ files; scripts/setup.mjs
+// change takes effect. Use this after editing content/kelly-sales-outreach-app/ files; scripts/setup.mjs
 // only ever creates the AirApp once and does not re-push edits.
 //
 // Usage: node scripts/publish_airapp.mjs

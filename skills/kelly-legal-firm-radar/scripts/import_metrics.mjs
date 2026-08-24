@@ -18,8 +18,8 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { ITEM_LABEL_EN } from "../app/app/js/firm-radar-model.js";
+import { appConfig } from "../content/kelly-legal-firm-radar-app/app/js/config.js";
+import { ITEM_LABEL_EN } from "../content/kelly-legal-firm-radar-app/app/js/firm-radar-model.js";
 
 function help() {
   console.log(`Usage: node scripts/import_metrics.mjs <payload.json> [more.json ...] [--apply]

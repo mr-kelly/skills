@@ -7,6 +7,16 @@ metadata:
     - risk:local-write
     - industry:legal
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-legal-firm-radar
+    resources:
+      - items
+      - entities
+      - checks
+      - settings
+    risk: local-write
+
 ---
 
 # Legal Firm Radar
@@ -23,7 +33,7 @@ Use this as the partner review gate for firm-level analytics. It consumes anonym
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-legal-firm-radar-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -65,14 +75,14 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Four Bases under one application Folder (`kelly-legal-firm-radar`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Four Bases under one application Folder (`kelly-legal-firm-radar`), declared in `content/kelly-legal-firm-radar-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `items`: the management-insight workbench and review queue in one — practice mix/quality/talent/brand-proof analytics facts (sample size, reporting period, visibility, lawyer count, public-citable count, quality indicators), workflow status, and the human decision + execution marker on the same row.
 - `entities`: practice-area groupings and lawyer capability profile cards derived from anonymized casebase metadata — not raw case documents.
 - `checks`: deterministic analytics QA checks for anonymization, sample size, attribution, and unsupported claims, one row per check.
 - `settings`: one row (`record-id: "config"`) with the firm profile, analytics policy (anonymization/sample-size/external-brand-claim rules), practice taxonomy, optional outcome-trend series, and export preferences.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/firm-radar-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`app/app/js/firm-radar-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last import/decision.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/firm-radar-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`content/kelly-legal-firm-radar-app/app/js/firm-radar-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last import/decision.
 
 ## First Run And Onboarding
 
@@ -84,7 +94,7 @@ node skills/kelly-legal-firm-radar/scripts/import_metrics.mjs payload.json --app
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-legal-firm-radar-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -152,7 +162,7 @@ node skills/kelly-legal-firm-radar/scripts/import_metrics.mjs payload.json --app
 node skills/kelly-legal-firm-radar/scripts/execute_decisions.mjs
 node skills/kelly-legal-firm-radar/scripts/execute_decisions.mjs --apply
 node skills/kelly-legal-firm-radar/scripts/export_management_report.mjs --out exports/
-pnpm --dir skills/kelly-legal-firm-radar/app dev
+pnpm --dir skills/kelly-legal-firm-radar/content/kelly-legal-firm-radar-app dev
 ```
 
 In normal use, invoke `/kelly-legal-firm-radar`, let the skill import what's due, and open the AirApp.

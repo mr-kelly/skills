@@ -1,0 +1,88 @@
+{
+  "name": "Check-ins",
+  "description": "One row per member per day: yesterday/today/blockers/mood",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "checkin-id",
+      "name": "Check-in ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "member-id",
+      "name": "Member ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "date",
+      "name": "Date",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "yesterday",
+      "name": "Yesterday",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "today",
+      "name": "Today",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "blockers",
+      "name": "Blockers",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "mood",
+      "name": "Mood",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "submitted-at",
+      "name": "Submitted at",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "source",
+      "name": "Source",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "raw-excerpt",
+      "name": "Raw excerpt",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": []
+}

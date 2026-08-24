@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Insurance Intel's
 Busabase Bases. Field slugs are kebab-case in Busabase and normalized to
-snake_case in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/insurance-model.js`). The batch rollup metrics
+snake_case in app code (`content/kelly-insurance-intel-app/app/js/providers/busabase-provider.js`,
+`content/kelly-insurance-intel-app/app/js/insurance-model.js`). The batch rollup metrics
 (`needs_review`/`approved`/`blocked` and their per-kind counts) are computed
 client-side from `signals`/`actions`/`drafts` on every read — they are never
 stored.
@@ -12,7 +12,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise` (`revise` is draft-only).
 
-## Signals (`kelly-insurance-intel-signals-v1`)
+## Signals (`kelly-insurance-intel-signals`)
 
 Source-backed regulator, insurer, product, premium, claims, benefit,
 health, travel, and lifecycle signals — evidence, buyer-intent
@@ -37,7 +37,7 @@ interpretation, confidence, risk badges, and a suggested action.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Actions (`kelly-insurance-intel-actions-v1`)
+## Actions (`kelly-insurance-intel-actions`)
 
 Approved/blocked/reviewable compliant meeting agendas, client education
 notes, renewal scripts, or operating actions tied to today's signals.
@@ -58,7 +58,7 @@ notes, renewal scripts, or operating actions tied to today's signals.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Drafts (`kelly-insurance-intel-drafts-v1`)
+## Drafts (`kelly-insurance-intel-drafts`)
 
 Editable channel drafts (client WhatsApp / advisor email / meeting
 agenda), kept behind a review gate until approved.
@@ -82,7 +82,7 @@ A `revise` decision writes `edited-body` and leaves `status` at
 `needs_review` — the review still needs an explicit approve/request_changes/
 block after a revision.
 
-## Sources (`kelly-insurance-intel-sources-v1`)
+## Sources (`kelly-insurance-intel-sources`)
 
 Configured news/insurer/regulator/competitor/trend source categories,
 freshness, and coverage gaps.
@@ -95,7 +95,7 @@ freshness, and coverage gaps.
 | `freshness` | `freshness` | text | e.g. "demo", "not connected" |
 | `coverage` | `coverage` | longtext | what this category covers or is missing |
 
-## Settings (`kelly-insurance-intel-settings-v1`)
+## Settings (`kelly-insurance-intel-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -115,7 +115,7 @@ and its review state.
 
 The trusted decision-execution step. Reads `signals`/`actions`/`drafts` with
 a non-empty `decision-verdict`, prints the concrete operation
-(`operationForDecision()` in `app/app/js/insurance-model.js`) for every
+(`operationForDecision()` in `content/kelly-insurance-intel-app/app/js/insurance-model.js`) for every
 decided item, and with `--apply` writes `status: "done"` back onto every
 `approve`-verdict item once the agent has performed the real handoff
 outside this script. It performs no external side effect itself —

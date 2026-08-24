@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Legal Precedent Desk's Busabase
 Bases. Field slugs are kebab-case in Busabase and normalized to snake_case
-in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/precedent-model.js`). Metrics and the recent-activity feed are
+in app code (`content/kelly-legal-precedent-desk-app/app/js/providers/busabase-provider.js`,
+`content/kelly-legal-precedent-desk-app/app/js/precedent-model.js`). Metrics and the recent-activity feed are
 computed client-side from the `items`/`entities`/`checks` Bases on every
 read (`buildSnapshot`/`assembleSnapshot` in `precedent-model.js`) — the only
 persisted state is what lives directly on those four Bases.
@@ -20,7 +20,7 @@ verbatim from the retired `lib/common.ts` and confirmed against the retired
 
 Check results: `pass`, `warn`, `fail`.
 
-## Items (`kelly-legal-precedent-desk-items-v1`)
+## Items (`kelly-legal-precedent-desk-items`)
 
 An item record is both the precedent-research workbench entry and its
 review-queue item — there is no separate review-item or decisions Base.
@@ -62,7 +62,7 @@ fields; `scripts/execute_decisions.mjs` writes the `execution-*` fields.
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Entities (`kelly-legal-precedent-desk-entities-v1`)
+## Entities (`kelly-legal-precedent-desk-entities`)
 
 Issue clusters, court-pattern groups, or precedent collections, not raw case documents.
 
@@ -77,7 +77,7 @@ Issue clusters, court-pattern groups, or precedent collections, not raw case doc
 | `tags` | `tags` | longtext | JSON array of tags |
 | `metrics` | `metrics` | longtext | JSON object, e.g. `{"case_count":4,"avg_similarity":0.81,"citation_count":9}` |
 
-## Checks (`kelly-legal-precedent-desk-checks-v1`)
+## Checks (`kelly-legal-precedent-desk-checks`)
 
 Deterministic precedent QA checks for citation traceability, similarity
 rationale, jurisdiction fit, and confidentiality limits.
@@ -93,7 +93,7 @@ as part of the agent's payload.
 | `item-id` | `item_id` | text | references `items.item-id` |
 | `severity` | `severity` | text | optional severity label |
 
-## Settings (`kelly-legal-precedent-desk-settings-v1`)
+## Settings (`kelly-legal-precedent-desk-settings`)
 
 A single row, `record-id: "config"`:
 

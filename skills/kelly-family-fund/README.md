@@ -35,7 +35,7 @@ Kelly Family Fund (家庭统筹基金) is a Busabase Cloud App-in-Skill dashboar
 Run the app locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-family-fund/app dev
+pnpm --dir skills/kelly-family-fund/content/kelly-family-fund-app dev
 ```
 
 Then add one of these demo paths:

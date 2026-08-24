@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Financial Services Intel's
 Busabase Bases. Field slugs are kebab-case in Busabase and normalized to
-snake_case in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/financial-model.js`). The batch rollup metrics
+snake_case in app code (`content/kelly-financial-services-intel-app/app/js/providers/busabase-provider.js`,
+`content/kelly-financial-services-intel-app/app/js/financial-model.js`). The batch rollup metrics
 (`needs_review`/`approved`/`blocked` and their per-kind counts) are computed
 client-side from `signals`/`actions`/`drafts` on every read — they are never
 stored.
@@ -12,7 +12,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise` (`revise` is draft-only).
 
-## Signals (`kelly-financial-services-intel-signals-v1`)
+## Signals (`kelly-financial-services-intel-signals`)
 
 Source-backed regulatory, macro, market, portfolio-theme, and buyer-intent
 signals — evidence, buyer-intent interpretation, confidence, risk badges,
@@ -37,7 +37,7 @@ and a suggested action.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Actions (`kelly-financial-services-intel-actions-v1`)
+## Actions (`kelly-financial-services-intel-actions`)
 
 Approved/blocked/reviewable internal brief, client education, or operating
 actions tied to today's signals.
@@ -58,7 +58,7 @@ actions tied to today's signals.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Drafts (`kelly-financial-services-intel-drafts-v1`)
+## Drafts (`kelly-financial-services-intel-drafts`)
 
 Editable channel drafts (client memo / internal brief / advisor script),
 kept behind a review gate until approved.
@@ -82,7 +82,7 @@ A `revise` decision writes `edited-body` and leaves `status` at
 `needs_review` — the review still needs an explicit approve/request_changes/
 block after a revision.
 
-## Sources (`kelly-financial-services-intel-sources-v1`)
+## Sources (`kelly-financial-services-intel-sources`)
 
 Configured regulator/exchange/market-news/competitor/trend source
 categories, freshness, and coverage gaps.
@@ -95,7 +95,7 @@ categories, freshness, and coverage gaps.
 | `freshness` | `freshness` | text | e.g. "demo", "not connected" |
 | `coverage` | `coverage` | longtext | what this category covers or is missing |
 
-## Settings (`kelly-financial-services-intel-settings-v1`)
+## Settings (`kelly-financial-services-intel-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -115,7 +115,7 @@ and its review state.
 
 The trusted decision-execution step. Reads `signals`/`actions`/`drafts` with
 a non-empty `decision-verdict`, prints the concrete operation
-(`operationForDecision()` in `app/app/js/financial-model.js`) for every
+(`operationForDecision()` in `content/kelly-financial-services-intel-app/app/js/financial-model.js`) for every
 decided item, and with `--apply` writes `status: "done"` back onto every
 `approve`-verdict item once the agent has performed the real handoff
 outside this script. It performs no external side effect itself —

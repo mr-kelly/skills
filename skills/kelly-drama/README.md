@@ -35,9 +35,9 @@ Kelly Drama is a Busabase-backed App-in-Skill workbench for planning short-drama
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app run build:sdk
-pnpm --dir app dev
+pnpm --dir content/kelly-drama-app install
+pnpm --dir content/kelly-drama-app run build:sdk
+pnpm --dir content/kelly-drama-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

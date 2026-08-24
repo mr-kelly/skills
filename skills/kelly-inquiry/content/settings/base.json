@@ -1,0 +1,48 @@
+{
+  "name": "Settings",
+  "description": "One row (record-id: config) with quote defaults, follow-up SLA, reply style, and the product KB source",
+  "position": 7,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "quote-defaults",
+      "name": "Quote defaults",
+      "type": "longtext",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "follow-up",
+      "name": "Follow-up",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "reply-style",
+      "name": "Reply style",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "kb-source-path",
+      "name": "KB source path",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

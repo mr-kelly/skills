@@ -6,7 +6,7 @@
   "description": "Kelly Support Busabase Cloud skill and trusted execution-report writer.",
   "scripts": {
     "execute": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-support-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

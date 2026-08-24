@@ -14,7 +14,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 from runtime import free_port, managed_process
 
 SKILL_ROOT = REPO_ROOT / "skills" / "kelly-insure-data"
-APP_ROOT = SKILL_ROOT / "app"
+APP_ROOT = SKILL_ROOT / "content" / "kelly-insure-data-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-insure-data"
 BUSABASE_VERSION = "0.16.2"
 
@@ -59,7 +59,7 @@ def fixture_manifest() -> dict:
         },
         "drive": {
             "node_id": "",
-            "slug": "hk-insurance-drive",
+            "slug": "kelly-insure-data-files",
             "name": "港险资料库 Drive",
             "description": "港险资料库文件盘",
             "metadata": {"owner": "Kelly"},
@@ -69,7 +69,7 @@ def fixture_manifest() -> dict:
             "featured": {
                 "id": "",
                 "node_id": "",
-                "slug": "featured-information",
+                "slug": "kelly-insure-data-featured",
                 "name": "资讯精选",
                 "description": "",
                 "fields": info_fields(),
@@ -88,7 +88,7 @@ def fixture_manifest() -> dict:
             "notices": {
                 "id": "",
                 "node_id": "",
-                "slug": "insurance-news",
+                "slug": "kelly-insure-data-notices",
                 "name": "保司通知",
                 "description": "",
                 "fields": info_fields(),
@@ -107,7 +107,7 @@ def fixture_manifest() -> dict:
             "qa": {
                 "id": "",
                 "node_id": "",
-                "slug": "insurance-qa",
+                "slug": "kelly-insure-data-qa",
                 "name": "问答",
                 "description": "",
                 "fields": [
@@ -132,7 +132,7 @@ def fixture_manifest() -> dict:
             "feedback": {
                 "id": "",
                 "node_id": "",
-                "slug": "user-feedback",
+                "slug": "kelly-insure-data-feedback",
                 "name": "用户反馈",
                 "description": "",
                 "fields": [
@@ -206,7 +206,7 @@ def test_demo_ui(browser, base_url: str) -> None:
 
     page.goto(f"{base_url}/?demo=1#/settings")
     page.wait_for_load_state("networkidle")
-    assert page.get_by_text("hk-insurance-drive").is_visible()
+    assert page.get_by_text("kelly-insure-data-files").is_visible()
     assert not errors, errors
     desktop.close()
 

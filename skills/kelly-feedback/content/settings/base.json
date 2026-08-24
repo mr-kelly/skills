@@ -1,0 +1,48 @@
+{
+  "name": "Settings",
+  "description": "One row (record-id: config) with scoring weights and roadmap lane names",
+  "position": 7,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "plan-weights",
+      "name": "Plan weights",
+      "type": "longtext",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "default-weight",
+      "name": "Default weight",
+      "type": "number",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "recency-half-life-days",
+      "name": "Recency half-life days",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "roadmap-lanes",
+      "name": "Roadmap lanes",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Push this skill's current local app/ code to its deployed AirApp: creates it
+// Push this skill's current local content/kelly-legal-contracts-app/ code to its deployed AirApp: creates it
 // if this Space has never had one, or proposes an update if it does. Always a
 // pending, always-review-first ChangeRequest — merge it in Busabase before the
-// change takes effect. Use this after editing app/ files; scripts/setup.mjs
+// change takes effect. Use this after editing content/kelly-legal-contracts-app/ files; scripts/setup.mjs
 // only ever creates the AirApp once and does not re-push edits.
 //
 // Usage: node scripts/publish_airapp.mjs
@@ -15,9 +15,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { publishAirApp } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-legal-contracts-app/app/js/config.js";
 
-const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "app");
+const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "content", "kelly-legal-contracts-app");
 
 function fail(message) {
   console.error(message);

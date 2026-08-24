@@ -1,0 +1,44 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-money",
+  "description": "Aggregated money ledger across Mercury, Stripe, Airwallex, and Creem",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": [
+    "finance",
+    "risk:read-only",
+    "surface:busabase",
+    "surface:mercury",
+    "surface:stripe",
+    "surface:airwallex",
+    "surface:creem"
+  ],
+  "template": {
+    "category": "finance",
+    "schemaVersion": 1,
+    "airapp": "kelly-money-app",
+    "tags": [
+      "finance",
+      "risk:read-only",
+      "surface:busabase",
+      "surface:mercury",
+      "surface:stripe",
+      "surface:airwallex",
+      "surface:creem"
+    ],
+    "screenshots": [
+      "assets/screenshots/accounts.webp",
+      "assets/screenshots/detail.webp",
+      "assets/screenshots/invoices.webp",
+      "assets/screenshots/ledger.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Accounts and flag what needs my attention.",
+      "Open Kelly Money and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

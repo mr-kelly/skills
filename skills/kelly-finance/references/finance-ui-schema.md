@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Finance's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/finance-model.js`). The needs_review/approved/done/blocked
+code (`content/kelly-finance-app/app/js/providers/busabase-provider.js`,
+`content/kelly-finance-app/app/js/finance-model.js`). The needs_review/approved/done/blocked
 *counts* shown on the dashboard are computed client-side from the `checks`
 Base on every read — they are never stored. A check's own `status` is
 different: it IS stored directly, set by the reviewer's decision action.
@@ -12,7 +12,7 @@ Check statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocke
 
 Decision actions: `approve`, `request_changes`, `block`, `dismiss`.
 
-## Model (`kelly-finance-model-v1`)
+## Model (`kelly-finance-model`)
 
 One row per model run — in practice usually just the current run,
 `model-id` `current`. Written by `scripts/build_three_statement_model.mjs`
@@ -38,7 +38,7 @@ a real workbook and knows the real computed figures.
 | `workbook-path` | `workbook_path` | text | local path to the generated `.xlsx` |
 | `workbook-tabs` | `workbook_tabs` | longtext | JSON array of tab names, e.g. `["Assumptions","Income Statement","Balance Sheet","Cash Flow","Checks"]` |
 
-## Checks (`kelly-finance-checks-v1`)
+## Checks (`kelly-finance-checks`)
 
 One row per model-audit check (formula ties, model-quality issues, delivery
 notes) — the raw check fields plus the reviewer's decision, written directly
@@ -62,7 +62,7 @@ onto the same row.
 | `execution-detail` | `execution_detail` | text | written by `scripts/execute_decisions.mjs` |
 | `executed-at` | `executed_at` | text | ISO timestamp, written by `scripts/execute_decisions.mjs` |
 
-## Settings (`kelly-finance-settings-v1`)
+## Settings (`kelly-finance-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -79,7 +79,7 @@ the single source of truth for both the draft and its review state.
 
 ## Model Metrics (simple derived math, never real modeling logic)
 
-`deriveModelMetrics(periods)` in `app/app/js/finance-model.js` computes
+`deriveModelMetrics(periods)` in `content/kelly-finance-app/app/js/finance-model.js` computes
 `revenue_cagr` (CAGR across the first/last period), `ending_cash`, and
 `free_cash_flow` (the last period's own values) from an already-computed
 `periods` array. This is universally-defined arithmetic, not a

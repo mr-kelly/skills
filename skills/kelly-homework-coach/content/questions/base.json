@@ -1,0 +1,160 @@
+{
+  "name": "Questions",
+  "description": "One row per homework question the agent has explained (from a photo, pasted text, or a paper) — prompt/answers, outcome, and the child-facing explanation (kid summary, steps, key concept, self check, next hint). Written by scripts/record_homework.mjs when the agent finishes explaining a question in chat; status is stored directly, set by the parent/teacher's review decision on the linked review row",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "question-id",
+      "name": "Question ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "ref",
+      "name": "Ref",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "subject",
+      "name": "Subject",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "grade",
+      "name": "Grade",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "topic",
+      "name": "Topic",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "source",
+      "name": "Source",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "difficulty",
+      "name": "Difficulty",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "photo-label",
+      "name": "Photo label",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "prompt-text",
+      "name": "Prompt text",
+      "type": "longtext",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "student-answer",
+      "name": "Student answer",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "correct-answer",
+      "name": "Correct answer",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "outcome",
+      "name": "Outcome",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "confidence",
+      "name": "Confidence",
+      "type": "number",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "tags",
+      "name": "Tags (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "explanation",
+      "name": "Explanation (JSON object)",
+      "type": "longtext",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "mistake-id",
+      "name": "Mistake ID",
+      "type": "text",
+      "required": false,
+      "position": 18,
+      "options": {}
+    }
+  ],
+  "views": []
+}

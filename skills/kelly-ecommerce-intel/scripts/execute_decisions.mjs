@@ -22,8 +22,8 @@
 // BUSABASE_API_KEY / BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { operationForDecision } from "../app/app/js/ecommerce-model.js";
+import { appConfig } from "../content/kelly-ecommerce-intel-app/app/js/config.js";
+import { operationForDecision } from "../content/kelly-ecommerce-intel-app/app/js/ecommerce-model.js";
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));

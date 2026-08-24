@@ -1,0 +1,136 @@
+{
+  "name": "Trend Items",
+  "description": "Raw source-tagged trend signals from a sweep, optionally linked to a candidate",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "trend-id",
+      "name": "Trend ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "source",
+      "name": "Source",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "summary",
+      "name": "Summary",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "url",
+      "name": "URL",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "metric-label",
+      "name": "Metric label",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "metric-value",
+      "name": "Metric value",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "delta-pct",
+      "name": "Delta pct",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "momentum",
+      "name": "Momentum",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "observed-at",
+      "name": "Observed at",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "candidate-id",
+      "name": "Candidate ID",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "external-id",
+      "name": "External ID",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "content-hash",
+      "name": "Content hash",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "promotion-action",
+      "name": "Promotion action",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "promotion-comment",
+      "name": "Promotion comment",
+      "type": "longtext",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "promotion-decided-at",
+      "name": "Promotion decided at",
+      "type": "text",
+      "required": false,
+      "position": 15,
+      "options": {}
+    }
+  ],
+  "views": []
+}

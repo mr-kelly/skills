@@ -131,8 +131,8 @@ async function skillTaxonomy(dir) {
 
 async function hasAppDirectory(dir) {
   try {
-    const stat = await fs.stat(path.join(ROOT, "skills", dir, "app"));
-    return stat.isDirectory();
+    const stat = await fs.stat(path.join(ROOT, "skills", dir, "content", `${dir}-app`, "package.json"));
+    return stat.isFile();
   } catch {
     return false;
   }

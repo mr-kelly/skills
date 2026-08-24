@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-ads",
+  "description": "Ad-campaign command desk: Amazon/Meta/TikTok/Google spend and performance, deterministic anomaly detection, and an adjustment-card review queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["ecommerce", "risk:gated-write", "industry:ecommerce", "surface:busabase"],
+  "template": {
+    "category": "ecommerce",
+    "schemaVersion": 1,
+    "airapp": "kelly-ads-app",
+    "tags": ["ecommerce", "risk:gated-write", "industry:ecommerce", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/adjustments.webp",
+      "assets/screenshots/alerts.webp",
+      "assets/screenshots/campaigns.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Platforms and flag what needs my attention.",
+      "Open Kelly Ads and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

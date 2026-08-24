@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Invoice Sheet",
+  "description": "Kelly Invoice Sheet: invoice/receipt/credit-note/statement extraction batches under human review, with field confidence, line items, and export-ready approved rows"
+}

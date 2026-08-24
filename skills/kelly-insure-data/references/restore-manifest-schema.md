@@ -19,7 +19,7 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
   },
   "drive": {
     "node_id": "nod_...",
-    "slug": "hk-insurance-drive",
+    "slug": "kelly-insure-data-files",
     "name": "港险资料库 Drive",
     "description": "港险资料库文件盘",
     "metadata": {},
@@ -46,7 +46,7 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
     "featured": {
       "id": "bse_...",
       "node_id": "nod_...",
-      "slug": "featured-information",
+      "slug": "kelly-insure-data-featured",
       "name": "资讯精选",
       "description": "",
       "fields": [
@@ -73,7 +73,7 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
     "notices": {
       "id": "bse_...",
       "node_id": "nod_...",
-      "slug": "insurance-news",
+      "slug": "kelly-insure-data-notices",
       "name": "保司通知",
       "description": "",
       "fields": [],
@@ -82,7 +82,7 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
     "qa": {
       "id": "bse_...",
       "node_id": "nod_...",
-      "slug": "insurance-qa",
+      "slug": "kelly-insure-data-qa",
       "name": "问答",
       "description": "",
       "fields": [
@@ -107,7 +107,7 @@ It stores the workspace tree shape, Drive files, Base schemas, record values, an
     "feedback": {
       "id": "bse_...",
       "node_id": "nod_...",
-      "slug": "user-feedback",
+      "slug": "kelly-insure-data-feedback",
       "name": "用户反馈",
       "description": "",
       "fields": [

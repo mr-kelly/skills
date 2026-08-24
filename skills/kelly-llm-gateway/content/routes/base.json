@@ -1,0 +1,96 @@
+{
+  "name": "Routes",
+  "description": "One row per service→model route: canary status, canary %, rollback readiness, a human decision note, a 14-day daily usage series (JSON array of {date, calls, cost, errors}), and per-anomaly-kind acknowledgement state (JSON or empty). Today's totals and each route's own rolling cost/error baseline are never stored — they are pure/derived from the daily series and recomputed on every read. Routes enter Busabase through an external gateway usage-ingestion process (not the AirApp itself, matching kelly-lead-funnel's leads precedent); the AirApp only ever updates status/canary_pct/rollback_ready/note (a rollout decision) or the ack fields (an anomaly acknowledgement) directly on an existing row",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "route-id",
+      "name": "Route ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "service-id",
+      "name": "Service ID",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "model-id",
+      "name": "Model ID",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "canary-pct",
+      "name": "Canary %",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "rollback-ready",
+      "name": "Rollback ready",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "daily",
+      "name": "Daily usage (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "cost-spike-ack",
+      "name": "Cost-spike ack (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "error-spike-ack",
+      "name": "Error-spike ack (JSON)",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": []
+}

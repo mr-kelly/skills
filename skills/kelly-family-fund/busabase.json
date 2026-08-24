@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-family-fund",
+  "description": "Household pooled-pension / elder-care fund ledger and fairness dashboard",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["invest", "risk:read-only", "industry:family", "surface:busabase"],
+  "template": {
+    "category": "invest",
+    "schemaVersion": 1,
+    "airapp": "kelly-family-fund-app",
+    "tags": ["invest", "risk:read-only", "industry:family", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/category.webp",
+      "assets/screenshots/family.webp",
+      "assets/screenshots/ledger.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Beneficiaries and flag what needs my attention.",
+      "Open Kelly Family Fund and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

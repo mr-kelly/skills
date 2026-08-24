@@ -1,0 +1,136 @@
+{
+  "name": "Invoice Matches",
+  "description": "Invoice-to-transaction reconciliation results",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "match-id",
+      "name": "Match ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "invoice-id",
+      "name": "Invoice ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "transaction-id",
+      "name": "Transaction ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "amount-delta",
+      "name": "Amount delta",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "date-delta-days",
+      "name": "Date delta days",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "confidence",
+      "name": "Confidence",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "matching-method",
+      "name": "Matching method",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "matching-rule",
+      "name": "Matching rule",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "review-status",
+      "name": "Review status",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "amount-tolerance",
+      "name": "Amount tolerance",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "date-tolerance-days",
+      "name": "Date tolerance days",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "candidate-transaction-ids",
+      "name": "Candidate transaction IDs",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "matched-at",
+      "name": "Matched at",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "audit-events",
+      "name": "Audit events",
+      "type": "longtext",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "notes",
+      "name": "Notes",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    }
+  ],
+  "views": []
+}

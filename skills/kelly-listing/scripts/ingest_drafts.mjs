@@ -10,7 +10,7 @@
 // slugify/validateProduct/validateDraft/normalizeFields/SOURCES/STATUSES/
 // IMAGE_STATUSES are ported verbatim from the retired
 // scripts/ingest_drafts.ts; only the write target changed, from a persisted
-// app/.data/listing_snapshot.json to Busabase's products/drafts Bases.
+// content/kelly-listing-app/.data/listing_snapshot.json to Busabase's products/drafts Bases.
 //
 // Usage: node scripts/ingest_drafts.mjs <payload.json> [--apply]
 // Without --apply this is a dry run that only prints what would be written.
@@ -20,8 +20,12 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { PLATFORMS, PLATFORM_FIELD_SHAPES, configFromSettingsRow } from "../app/app/js/listing-model.js";
+import { appConfig } from "../content/kelly-listing-app/app/js/config.js";
+import {
+  PLATFORMS,
+  PLATFORM_FIELD_SHAPES,
+  configFromSettingsRow,
+} from "../content/kelly-listing-app/app/js/listing-model.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_drafts.mjs <payload.json> [--apply]

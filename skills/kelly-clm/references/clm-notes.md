@@ -42,10 +42,10 @@ Keep the app safer and simpler than SaaS CLM:
 
 Use this schema when reading or writing Kelly CLM's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/clm-model.js`).
+(`content/kelly-clm-app/app/js/providers/busabase-provider.js`, `content/kelly-clm-app/app/js/clm-model.js`).
 There is no delete operation anywhere in this skill.
 
-### Contracts (`kelly-clm-contracts-v1`)
+### Contracts (`kelly-clm-contracts`)
 
 One row per contract. Created/edited directly by the operator through the browser.
 
@@ -69,7 +69,7 @@ One row per contract. Created/edited directly by the operator through the browse
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp, set on every edit |
 
-### Obligations (`kelly-clm-obligations-v1`)
+### Obligations (`kelly-clm-obligations`)
 
 One row per contract obligation/milestone. Obligations enter Busabase
 through an external process (the operator or an agent workflow adding them
@@ -88,7 +88,7 @@ done/reopen), it never creates an obligation row.
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp, set on every status change |
 
-### Approvals (`kelly-clm-approvals-v1`)
+### Approvals (`kelly-clm-approvals`)
 
 One row per approval/reminder handoff linked to a contract. Like
 obligations, approval rows enter Busabase externally; the browser only
@@ -111,7 +111,7 @@ Decision actions map to `status` as: `approve` → `approved`, `changes` →
 
 ## Computed Rollups (never stored)
 
-`app/app/js/clm-model.js`'s `computeMetrics(contracts, obligations,
+`content/kelly-clm-app/app/js/clm-model.js`'s `computeMetrics(contracts, obligations,
 approvals, now)`, shared by the live Busabase read path and the offline
 `?demo=1` dataset:
 
@@ -120,10 +120,10 @@ approvals, now)`, shared by the live Busabase read path and the offline
   `notice_deadline` falls within 90 days of `now` (`isRenewalDueSoon`,
   matching the retired `config.example.json`'s `alerts.renewal_notice_days`).
 - `metrics.obligations_at_risk`: obligations with `status === "at_risk"`
-  (strict — matches the retired `app/server/demo.ts`'s inline metric).
+  (strict — matches the retired `content/kelly-clm-app/server/demo.ts`'s inline metric).
 - `metrics.approvals`: approvals with `status === "needs_review"`.
 
 The sidebar/overview panel counts are deliberately broader than the metric
-tile above, ported verbatim from the retired `app/app.js`:
+tile above, ported verbatim from the retired `content/kelly-clm-app/app.js`:
 `renewalWatchCount` (any contract with either date present, regardless of
 window) and `atRiskObligationsCount` (`at_risk` OR `blocked`).

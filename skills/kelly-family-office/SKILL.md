@@ -7,6 +7,16 @@ metadata:
     - risk:read-only
     - industry:family
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-family-office
+    resources:
+      - entities
+      - accounts
+      - holdings
+      - settings
+    risk: read-only
+
 ---
 
 # Kelly Family Office
@@ -20,7 +30,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-family-office-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -67,7 +77,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Four Bases under one application Folder (`kelly-family-office`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-family-office-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `entities`: the individuals, trusts, companies, funds, and foundations being consolidated (`entity_id`, `name`, `type`, `member`).
 - `accounts`: custodian/institution accounts held by each entity (`account_id`, `entity_id`, `institution`, `account_type`, `currency`, `display_name`, `as_of`). Institutions are just a field on accounts — there is no separate Institutions Base.
@@ -131,7 +141,7 @@ then writes `holdings` rows via Busabase ChangeRequests.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-family-office-app dev` only when local preview/debugging is explicitly
 requested. UI language supports English and Chinese chrome with an `Auto`
 default.
 
@@ -150,7 +160,7 @@ Read-only, deterministic observations rendered from `{ code, severity, params }`
 
 ## File Contract
 
-Read `references/portfolio-schema.md` before editing the app, `app/app/js/config.js`,
+Read `references/portfolio-schema.md` before editing the app, `content/kelly-family-office-app/app/js/config.js`,
 or `scripts/import_csv.mjs`.
 
 ## Safety Defaults

@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Inquiry's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/inquiry-model.js`). Per-inquiry/per-account rollups
+code (`content/kelly-inquiry-app/app/js/providers/busabase-provider.js`,
+`content/kelly-inquiry-app/app/js/inquiry-model.js`). Per-inquiry/per-account rollups
 (`last_message_at`, `last_incoming_at`, the new→replied stage heuristic,
 quote totals, the min-price guard, follow-up staleness, `metrics`) are
 computed client-side from `inquiries`/`messages`/`products`/`quotes` on
@@ -17,7 +17,7 @@ Approval workflow statuses: `needs_review`, `changes_requested`, `approved`, `do
 
 Decision actions: `approve`, `request_changes`, `revise`, `block`.
 
-## Accounts (`kelly-inquiry-accounts-v1`)
+## Accounts (`kelly-inquiry-accounts`)
 
 Connected inquiry channels: channel, connector, and the **names** of the
 env vars holding tokens — never the token values themselves.
@@ -44,7 +44,7 @@ The connector vocabulary is shared with kelly-messenger so the two skills
 compose. `email_agent` marks an account whose collection and sending are
 handed off to kelly-email.
 
-## Inquiries (`kelly-inquiry-inquiries-v1`)
+## Inquiries (`kelly-inquiry-inquiries`)
 
 The sales pipeline: one row per inquiry. `stage` may be overridden by the
 new→replied heuristic (`refreshInquiryDerived`) computed live from the
@@ -78,7 +78,7 @@ Stage heuristic (`refreshInquiryDerived`, applied on every read and by
 outgoing message is promoted to `replied`; an explicit non-`new` `stage`
 always wins.
 
-## Messages (`kelly-inquiry-messages-v1`)
+## Messages (`kelly-inquiry-messages`)
 
 One row per message, joined onto its inquiry by `inquiry-id`. Store only
 the minimum excerpt needed for review — never credentials, QR payloads, or
@@ -94,7 +94,7 @@ raw session tokens.
 | `sent-at` | `sent_at` | text | ISO timestamp |
 | `attachment` | `attachment` | text | optional short note, e.g. `file: specs.pdf` |
 
-## Products (`kelly-inquiry-products-v1`)
+## Products (`kelly-inquiry-products`)
 
 The product knowledge base. `price-min` is the margin-guard floor the agent
 must never quote below without explicit human approval.
@@ -118,7 +118,7 @@ Written by `scripts/sync_products.mjs`, which accepts a products JSON file
 parser (quoted-field support); CSV `specs` cells use `Key=Value\|Key=Value`
 and `faq` cells use `Question?=>Answer\|Question?=>Answer`.
 
-## Quotes (`kelly-inquiry-quotes-v1`)
+## Quotes (`kelly-inquiry-quotes`)
 
 Quote worksheets. `subtotal`/`total` and `pricing-alerts` are recomputed
 live by `recomputeQuoteTotals`/`applyMinPriceGuard` on every read and every
@@ -146,7 +146,7 @@ live by `recomputeQuoteTotals`/`applyMinPriceGuard` on every read and every
 Only `draft` quotes are editable in the UI; every `updateQuote` write
 recomputes line totals and re-runs the guard against the current `products`.
 
-## Approvals (`kelly-inquiry-approvals-v1`)
+## Approvals (`kelly-inquiry-approvals`)
 
 The review batch: every outgoing reply AND quote waits here for a human
 verdict. This is the decisions file — a human verdict writes `status`,
@@ -192,7 +192,7 @@ be sent without new information. `revise` (the composer's "Save edit"
 button) only saves an edited draft — it never changes `status`. A `done`
 item is terminal and cannot be re-decided.
 
-## Sync Log (`kelly-inquiry-sync-log-v1`)
+## Sync Log (`kelly-inquiry-sync-log`)
 
 Append-only history of ingest/sync runs, written by
 `scripts/ingest_inquiries.mjs` / `scripts/sync_products.mjs`.
@@ -207,7 +207,7 @@ Append-only history of ingest/sync runs, written by
 | `message` | `message` | longtext | short human-readable result |
 | `new-messages` | `new_messages` | number | |
 
-## Settings (`kelly-inquiry-settings-v1`)
+## Settings (`kelly-inquiry-settings`)
 
 A single row, `record-id: "config"`.
 

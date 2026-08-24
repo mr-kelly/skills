@@ -7,7 +7,7 @@
   "scripts": {
     "generate": "node scripts/generate_eval_run.mjs",
     "export": "node scripts/export_release_report.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-agent-eval-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

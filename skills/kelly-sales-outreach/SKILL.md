@@ -7,6 +7,15 @@ metadata:
     - risk:gated-write
     - surface:busabase
     - surface:smtp
+  busabase:
+    template: true
+    folderSlug: kelly-sales-outreach
+    resources:
+      - profile
+      - companies
+      - leads
+    risk: gated-write
+
 ---
 
 # Kelly Sales Outreach
@@ -34,7 +43,7 @@ is already `queued`, `sent`, or `opted-out`.
 
 Before changing the app:
 
-1. Read `$kelly-app-skill-creator` for product behavior, responsive UI, and the canonical `app/` artifact.
+1. Read `$kelly-app-skill-creator` for product behavior, responsive UI, and the canonical `content/kelly-sales-outreach-app/` artifact.
 2. Read `$busabase` for target Space, ChangeRequests, review, merge, and Vault behavior.
 3. Read `$busabase-app-creator` for runtime, SDK, security, validation, and AirApp deployment.
 4. Read `references/sales-outreach-schema.md` before changing fields, statuses, or Vault keys.
@@ -195,7 +204,7 @@ reply ingestion are out of scope for v1.
 
 ## App Contract
 
-- Keep the canonical Hono project in `<skill-root>/app/`; use the same source
+- Keep the canonical Hono project in `<skill-root>/content/kelly-sales-outreach-app/`; use the same source
   locally and in AirApp.
 - Store persistent profile, accounts, contacts, decisions, and execution state
   only in Busabase through `busabase-sdk`.
@@ -211,9 +220,9 @@ reply ingestion are out of scope for v1.
 
 | Resource | Purpose |
 | --- | --- |
-| `sales-outreach-profile-v1` | One offer, ICP hypothesis, proof, research channels, optional collateral, sender address, onboarding version, and Vault reference names. |
-| `sales-outreach-companies-v1` | Target accounts with source evidence, pain signals, first-touch draft, review state, recipient, and send/opt-out timestamps. |
-| `sales-outreach-leads-v1` | Public business contacts with company key, name/role, source URL, and confidence. |
+| `kelly-sales-outreach-profile` | One offer, ICP hypothesis, proof, research channels, optional collateral, sender address, onboarding version, and Vault reference names. |
+| `kelly-sales-outreach-companies` | Target accounts with source evidence, pain signals, first-touch draft, review state, recipient, and send/opt-out timestamps. |
+| `kelly-sales-outreach-leads` | Public business contacts with company key, name/role, source URL, and confidence. |
 | Vault `SMTP_*` | Mail transport values readable only by trusted execution. |
 
 ## Screens

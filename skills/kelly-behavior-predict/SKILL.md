@@ -6,6 +6,15 @@ metadata:
   tags:
     - risk:sandbox
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-behavior-predict
+    resources:
+      - sessions
+      - segments
+      - settings
+    risk: sandbox
+
 ---
 
 # Predictive Recommendation Analytics Desk
@@ -54,7 +63,7 @@ edits the rule, the dataset, or any live system — it is a review record only.
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-behavior-predict-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -65,7 +74,7 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 - Fully mock, fully deterministic. There is no real user data, no live
   product integration, and no real ML/LLM call anywhere in this skill —
   every "predicted next action" comes from a fixed if/else rule in
-  `app/app/js/behavior-model.js` (`evaluateRules()`/`predictNextAction()`).
+  `content/kelly-behavior-predict-app/app/js/behavior-model.js` (`evaluateRules()`/`predictNextAction()`).
 - The AirApp reads and writes its own three Busabase Bases only.
 - The one human action (mark trusted / needs recalibration + note) writes
   the `segments` Base's own row for that segment only. It never changes the
@@ -76,7 +85,7 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 ## Busabase Resources
 
 Three Bases under one application Folder (`kelly-behavior-predict`), declared
-in `app/app/js/config.js` and `app/resource-map.json`:
+in `content/kelly-behavior-predict-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `sessions`: the fixed mock sample — 100 rows across 5 segments (raw
   behavior features, the funnel stage reached, and the seeded mock
@@ -109,7 +118,7 @@ system, so onboarding is just the optional product-profile labels below
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-behavior-predict-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -155,11 +164,11 @@ Required app views (hash routes):
    record.
 
 Read `references/ui-schema.md` before editing the app, scripts, or
-`app/app/js/behavior-model.js`.
+`content/kelly-behavior-predict-app/app/js/behavior-model.js`.
 
 ## The Rule (not a model)
 
-`app/app/js/behavior-model.js` documents and implements the entire
+`content/kelly-behavior-predict-app/app/js/behavior-model.js` documents and implements the entire
 prediction rule: a short, ordered list of if/else triggers over four mock
 session signals (`cart_abandon_count`, `price_check_count`,
 `days_since_last_visit`, `session_length`) plus `reached_stage`. The first
@@ -173,7 +182,7 @@ is what the Backtest view renders, at both the overall and per-segment level.
 ## Safety
 
 - Deterministic mock rule and sample only — never present them as a real
-  ML/LLM prediction to the user; keep `app/app/js/behavior-model.js` the
+  ML/LLM prediction to the user; keep `content/kelly-behavior-predict-app/app/js/behavior-model.js` the
   single source of truth for every prediction shown.
 - Do not invent real user data or a real ML/LLM call.
 - The decision panel is a review record only — it must never regenerate the
@@ -183,7 +192,7 @@ is what the Backtest view renders, at both the overall and per-segment level.
 
 ```bash
 node skills/kelly-behavior-predict/scripts/generate_batch.mjs --apply
-pnpm --dir skills/kelly-behavior-predict/app dev
+pnpm --dir skills/kelly-behavior-predict/content/kelly-behavior-predict-app dev
 ```
 ## Execution reports
 

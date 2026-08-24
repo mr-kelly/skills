@@ -6,7 +6,7 @@
   "description": "Kelly Invest (Webull) Busabase Cloud AirApp and trusted Webull-sync script.",
   "scripts": {
     "sync": "node scripts/sync_webull.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-invest-webull-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

@@ -1,0 +1,48 @@
+{
+  "name": "联系邮箱",
+  "description": "Candidate contact addresses discovered for a company, several per company",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "email",
+      "name": "邮箱",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "company-key",
+      "name": "所属公司",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "role",
+      "name": "角色",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "source-url",
+      "name": "来源链接",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "confidence",
+      "name": "置信度",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

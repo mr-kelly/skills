@@ -5,7 +5,7 @@
 // Search Analytics query shape (dimensions/rowLimit/dataState), and the GSC
 // site-permission check. Only the storage layer changed — this now writes
 // normalized site/query/page records into Busabase (sites/queries/pages/
-// settings Bases) instead of app/.data/seo_snapshot.json.
+// settings Bases) instead of content/kelly-seo-app/.data/seo_snapshot.json.
 //
 // Connects with the trusted process's own credentials (BUSABASE_BASE_URL /
 // BUSABASE_API_KEY / BUSABASE_SPACE_ID), never the AirApp's ambient session.
@@ -18,8 +18,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { badgesFor, ratio, round1 } from "../app/app/js/seo-model.js";
+import { appConfig } from "../content/kelly-seo-app/app/js/config.js";
+import { badgesFor, ratio, round1 } from "../content/kelly-seo-app/app/js/seo-model.js";
 
 const SKILL_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 

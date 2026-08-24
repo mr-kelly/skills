@@ -1,0 +1,28 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-family-office",
+  "description": "Multi-entity family-office consolidation dashboard",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["invest", "risk:read-only", "industry:family", "surface:busabase"],
+  "template": {
+    "category": "invest",
+    "schemaVersion": 1,
+    "airapp": "kelly-family-office-app",
+    "tags": ["invest", "risk:read-only", "industry:family", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/assets.webp",
+      "assets/screenshots/entities.webp",
+      "assets/screenshots/institutions.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/performance.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Entities and flag what needs my attention.",
+      "Open Kelly Family Office and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

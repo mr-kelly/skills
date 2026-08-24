@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-finance",
+  "description": "Kelly Finance: a review workspace for a three-statement financial model — the current model snapshot (company/currency/periods/workbook), its model-quality check queue (balance-sheet ties, cash roll-forward, formula reviews), and sanitized settings",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["finance", "risk:local-write", "surface:busabase"],
+  "template": {
+    "category": "finance",
+    "schemaVersion": 1,
+    "airapp": "kelly-finance-app",
+    "tags": ["finance", "risk:local-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/checks.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/workbook.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Model and flag what needs my attention.",
+      "Open Kelly Finance and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

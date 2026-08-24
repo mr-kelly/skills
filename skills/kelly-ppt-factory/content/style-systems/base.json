@@ -1,0 +1,80 @@
+{
+  "name": "Style Systems",
+  "description": "Reusable presentation style kits — palette, fonts, visual/layout rules, and component library",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "style-system-id",
+      "name": "Style system ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "palette",
+      "name": "Palette (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "font-heading",
+      "name": "Font: heading",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "font-body",
+      "name": "Font: body",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "font-chinese",
+      "name": "Font: chinese",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "visual-rules",
+      "name": "Visual rules (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "layout-rules",
+      "name": "Layout rules (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "component-library",
+      "name": "Component library (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

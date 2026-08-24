@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-agent-eval",
+  "description": "Agent Eval & Regression Board: a fixed mock test suite scored baseline vs candidate, with a regression review queue and a release approve/block decision",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["platform", "risk:sandbox", "surface:busabase"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 1,
+    "airapp": "kelly-agent-eval-app",
+    "tags": ["platform", "risk:sandbox", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/case-detail.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/regressions.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Cases and flag what needs my attention.",
+      "Open Kelly Agent Eval and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

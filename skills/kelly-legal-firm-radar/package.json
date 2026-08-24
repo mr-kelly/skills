@@ -8,7 +8,7 @@
     "import": "node scripts/import_metrics.mjs",
     "execute": "node scripts/execute_decisions.mjs",
     "export": "node scripts/export_management_report.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-legal-firm-radar-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

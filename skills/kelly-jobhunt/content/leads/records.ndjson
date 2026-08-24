@@ -1,0 +1,3 @@
+{"key":"kelly-jobhunt-sample-01","fields":{"email":"sample-1@example.com","company-key":"Needs review sample","role":"Needs review sample","source-url":"https://example.com/kelly-jobhunt/sample-1","confidence":"Needs review sample"}}
+{"key":"kelly-jobhunt-sample-02","fields":{"email":"sample-2@example.com","company-key":"Approved sample","role":"Approved sample","source-url":"https://example.com/kelly-jobhunt/sample-2","confidence":"Approved sample"}}
+{"key":"kelly-jobhunt-sample-03","fields":{"email":"sample-3@example.com","company-key":"Completed sample","role":"Completed sample","source-url":"https://example.com/kelly-jobhunt/sample-3","confidence":"Completed sample"}}

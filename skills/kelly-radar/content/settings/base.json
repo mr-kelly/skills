@@ -1,0 +1,80 @@
+{
+  "name": "Settings",
+  "description": "Product profile, research defaults, trend sources, and cadence, a single settings row",
+  "position": 8,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "products",
+      "name": "Products",
+      "type": "longtext",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "cadence-monitor",
+      "name": "Cadence monitor",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "cadence-trends",
+      "name": "Cadence trends",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "research-default-depth",
+      "name": "Research default depth",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "research-source-policy",
+      "name": "Research source policy",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "research-require-citations",
+      "name": "Research require citations",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "research-max-sources",
+      "name": "Research max sources",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "trend-sources",
+      "name": "Trend sources",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

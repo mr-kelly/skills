@@ -2,12 +2,12 @@
 
 Use this schema when reading or writing Kelly CRM's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/crm-model.js`, `app/app/js/providers/busabase-provider.js`).
+(`content/kelly-crm-app/app/js/crm-model.js`, `content/kelly-crm-app/app/js/providers/busabase-provider.js`).
 Keep the shapes stable so the app, scripts, and skill can evolve
 independently. Validate a drafted snapshot with
 `node scripts/validate_snapshot.mjs path/to/snapshot.json` before writing it.
 
-## Companies (`kelly-crm-companies-v1`)
+## Companies (`kelly-crm-companies`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -19,7 +19,7 @@ independently. Validate a drafted snapshot with
 | `location` | `location` | text | |
 | `notes` | `notes` | longtext | |
 
-## Contacts (`kelly-crm-contacts-v1`)
+## Contacts (`kelly-crm-contacts`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -35,7 +35,7 @@ independently. Validate a drafted snapshot with
 | `agent-notes` | `agent_notes` | longtext | short agent-maintained context |
 | `channels` | `channels` | text | JSON array, e.g. `["email"]` |
 
-## Deals (`kelly-crm-deals-v1`)
+## Deals (`kelly-crm-deals`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -59,7 +59,7 @@ independently. Validate a drafted snapshot with
 
 Won/lost deals keep their `stage` (`won`/`lost`) and set `status` accordingly.
 
-## Interactions (`kelly-crm-interactions-v1`)
+## Interactions (`kelly-crm-interactions`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -73,7 +73,7 @@ Won/lost deals keep their `stage` (`won`/`lost`) and set `status` accordingly.
 | `summary` | `summary` | longtext | one or two sentences; never raw email bodies |
 | `source` | `source` | text | `email\|meeting notes\|call notes\|linkedin\|note` |
 
-## Follow-ups (`kelly-crm-followups-v1`)
+## Follow-ups (`kelly-crm-followups`)
 
 The review-queue items. `status` uses the standard workflow states.
 
@@ -102,7 +102,7 @@ reviewer edited the draft — `suggested-reply`, all in one record write. There
 is no separate decisions file: the followup record is the single source of
 truth for both the draft and its review state.
 
-## Settings (`kelly-crm-settings-v1`)
+## Settings (`kelly-crm-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -117,7 +117,7 @@ renders the follow-up queue read-only.
 
 ## Warnings
 
-Computed in `app/app/js/crm-model.js`, not stored in Busabase:
+Computed in `content/kelly-crm-app/app/js/crm-model.js`, not stored in Busabase:
 
 ```json
 {

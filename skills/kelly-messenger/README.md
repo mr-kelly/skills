@@ -42,7 +42,7 @@ Kelly Messenger is a Busabase App-in-Skill unified chat inbox: WhatsApp, Discord
 Start the local preview and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-messenger/app dev
+pnpm --dir skills/kelly-messenger/content/kelly-messenger-app dev
 ```
 
 Use the URL printed by the launcher, then add one of these demo paths:

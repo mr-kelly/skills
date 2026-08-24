@@ -10,6 +10,20 @@ metadata:
     - surface:whatsapp
     - surface:instagram
     - surface:messenger
+  busabase:
+    template: true
+    folderSlug: kelly-inquiry
+    resources:
+      - accounts
+      - inquiries
+      - messages
+      - products
+      - quotes
+      - approvals
+      - sync-log
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Inquiry
@@ -68,7 +82,7 @@ recorded in Busabase.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-inquiry-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -89,7 +103,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Eight Bases under one application Folder (`kelly-inquiry`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-inquiry-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `accounts`: connected channels — WhatsApp/Instagram/Messenger/email, connector, and env-var *names* for tokens (never values), status, last sync.
 - `inquiries`: the sales pipeline — customer (name/company/country/source), product interest, linked `product-ids`/`quote-ids`, `stage`, value estimate, owner, `next-follow-up`, the send target (`provider-conversation-id`), and an optional agent-suggested reply.
@@ -97,7 +111,7 @@ Eight Bases under one application Folder (`kelly-inquiry`), declared in
 - `products`: the product knowledge base — SKU, MOQ, `price-min`/`price-max`, lead time, `specs` and `faq` (JSON-encoded).
 - `quotes`: quote worksheets — line items (JSON-encoded), currency, validity, terms, pricing notes, and the min-price-guard `pricing-alerts` (recomputed live, never trusted from storage).
 - `approvals`: the review queue — outgoing reply/quote drafts, workflow `status`, the human verdict fields (`decision-action`/`decision-comment`/`decided-at`), and the execution result (`execution-status`/`execution-operation`/`execution-connector`/`execution-target`/`execution-detail`/`executed-at`) written by `scripts/send_approved.mjs`.
-- `sync_log`: append-only history of ingest/sync runs per account.
+- `sync-log`: append-only history of ingest/sync runs per account.
 - `settings`: one row (`record-id: "config"`) with quote defaults (currency, validity days, incoterm, payment terms, min-price guard), follow-up SLA days per stage, reply style, and the product KB source path.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
@@ -136,7 +150,7 @@ run).
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-inquiry-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -170,7 +184,7 @@ Read `references/inquiry-schema.md` before editing the app, scripts, or Busabase
    - `email_agent` — hand off to the kelly-email skill: it collects inquiry emails, the agent normalizes them into an ingest payload; sends go back through kelly-email drafts.
    - `browser_agent` — the agent drives the user's own already-authenticated web session (e.g. WhatsApp Web, Instagram web) with the browser skill, then writes a payload. No passwords or QR secrets are ever stored.
    - `manual` — the user or agent prepares an ingest payload by hand.
-4. All collected data enters through one write path: `node scripts/ingest_inquiries.mjs payload.json --apply`. It validates the payload, dedupes by stable inquiry/message ids, merges into Busabase, applies the stage heuristic (an outgoing reply promotes `new` → `replied`), upserts the account, and appends a `sync_log` entry. Omit `--apply` first to see a dry-run summary.
+4. All collected data enters through one write path: `node scripts/ingest_inquiries.mjs payload.json --apply`. It validates the payload, dedupes by stable inquiry/message ids, merges into Busabase, applies the stage heuristic (an outgoing reply promotes `new` → `replied`), upserts the account, and appends a `sync-log` entry. Omit `--apply` first to see a dry-run summary.
 5. While drafting, the agent may attach a `suggested-reply` per inquiry (prefilled in the composer) and queue reply/quote drafts into the `approvals` Base with `suggested-by: "agent"` and a clear `reason` — always grounded in the product KB and reply style, never below `price_min`.
 6. Give the user the AirApp URL (or local preview URL). Surface connector problems as printed warnings, not silent failures.
 
@@ -218,7 +232,7 @@ node skills/kelly-inquiry/scripts/ingest_inquiries.mjs payload.json --apply
 node skills/kelly-inquiry/scripts/sync_products.mjs products.csv --apply
 node skills/kelly-inquiry/scripts/send_approved.mjs
 node skills/kelly-inquiry/scripts/send_approved.mjs --send
-pnpm --dir skills/kelly-inquiry/app dev
+pnpm --dir skills/kelly-inquiry/content/kelly-inquiry-app dev
 ```
 
 In normal use, invoke `/kelly-inquiry`, let the skill ingest the configured

@@ -1,0 +1,56 @@
+{
+  "name": "Checks",
+  "description": "Deterministic strategy QA checks for missing facts, evidence gaps, deadline caveats, precedent grounding, and unsupported legal positions",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "check-id",
+      "name": "Check ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "label",
+      "name": "Label",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "detail",
+      "name": "Detail",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "item-id",
+      "name": "Item ID",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "severity",
+      "name": "Severity",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

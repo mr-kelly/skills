@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-lead-funnel",
+  "description": "Deal sourcing pipeline for a BD/sourcing team triaging merchant and business financing leads: a kanban board across new/data-verified/scored/term-sheet-ready/rejected stages with deterministic rule-based lead scoring, notes, and stage history — never outreach, term sheets, or money movement",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["rbf", "risk:local-write", "surface:busabase"],
+  "template": {
+    "category": "rbf",
+    "schemaVersion": 1,
+    "airapp": "kelly-lead-funnel-app",
+    "tags": ["rbf", "risk:local-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/kanban.webp",
+      "assets/screenshots/lead-detail.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Leads and flag what needs my attention.",
+      "Open Kelly Lead Funnel and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

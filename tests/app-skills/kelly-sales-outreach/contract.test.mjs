@@ -6,13 +6,14 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const skillRoot = join(repoRoot, "skills", "kelly-sales-outreach");
-const appRoot = join(skillRoot, "app");
+const appRoot = join(skillRoot, "content", "kelly-sales-outreach-app");
 const browserRoot = join(appRoot, "app");
 const requiredFiles = [
   "package.json",
   "pnpm-lock.yaml",
   "server.js",
-  "resource-map.json",
+  "_node.json",
+  ".busabaseignore",
   "scripts/check.mjs",
   "app/index.html",
   "app/js/app.js",
@@ -45,17 +46,31 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.match(pkg.scripts.check, /node --test/);
 });
 
-test("keeps resource-map and runtime declarations aligned", async () => {
-  const resourceMap = await readJson(join(appRoot, "resource-map.json"));
+test("keeps the package manifest and runtime declarations aligned", async () => {
+  const templateRoot = join(repoRoot, "skills", "kelly-sales-outreach");
+  const manifest = await readJson(join(templateRoot, "busabase.json"));
   const { appConfig } = await import(join(browserRoot, "js", "config.js"));
-  assert.equal(resourceMap.schemaVersion, appConfig.schemaVersion);
-  assert.equal(resourceMap.appRoot.slug, appConfig.folder.slug);
-  assert.equal(resourceMap.provisioning.mode, "lazy");
-  assert.deepEqual(resourceMap.provisioning.mutations, appConfig.permissions.setupProcedures);
-  assert.deepEqual(
-    resourceMap.resources.map(({ key, slug, schemaVersion }) => ({ key, slug, schemaVersion })),
-    appConfig.bases.map(({ key, slug }) => ({ key, slug, schemaVersion: appConfig.schemaVersion })),
-  );
+  assert.equal(manifest.name, appConfig.appId);
+  assert.equal(manifest.template.schemaVersion, appConfig.schemaVersion);
+  assert.equal(manifest.template.airapp, appConfig.airApp.slug);
+  assert.equal(appConfig.airApp.resourceKey, appConfig.airApp.slug);
+  for (const base of appConfig.bases) {
+    assert.equal(base.slug, `kelly-sales-outreach-${base.key}`, base.key);
+    assert.equal("nodeId" in base, false, base.key);
+    assert.equal("baseId" in base, false, base.key);
+    const declared = await readJson(join(templateRoot, "content", base.key, "base.json"));
+    assert.equal(declared.name, base.name, base.key);
+    assert.equal(declared.fields.length, (base.fields ?? []).length, base.key);
+  }
+});
+
+test("declares itself a template and names only resources it ships", async () => {
+  const templateRoot = join(repoRoot, "skills", "kelly-sales-outreach");
+  const skill = await readFile(join(templateRoot, "SKILL.md"), "utf8");
+  assert.match(skill, /^\s*template: true$/m);
+  const resources = [...skill.matchAll(/^\s{6}- (\S+)$/gm)].map((match) => match[1]);
+  assert.ok(resources.length > 0, "SKILL.md should list its resources");
+  for (const key of resources) await readFile(join(templateRoot, "content", key, "base.json"));
 });
 
 test("transport pagination is owned by the provider, not declared per Base", async () => {
@@ -63,8 +78,7 @@ test("transport pagination is owned by the provider, not declared per Base", asy
   // page: research routinely produces more than 100 contact addresses, and
   // neither demo mode nor a unit test would ever notice the truncation.
   const { appConfig } = await import(join(browserRoot, "js", "config.js"));
-  const resourceMap = await readJson(join(appRoot, "resource-map.json"));
-  for (const declaration of [...appConfig.bases, ...resourceMap.resources]) {
+  for (const declaration of appConfig.bases) {
     assert.ok(!Object.hasOwn(declaration, "readLimit"), `${declaration.slug} still declares readLimit`);
   }
 

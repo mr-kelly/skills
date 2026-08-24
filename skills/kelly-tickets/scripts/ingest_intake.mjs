@@ -11,7 +11,7 @@
 //
 // sha1/dedupeKey/maskContact-driven validation is ported verbatim from the
 // retired scripts/ingest_intake.ts; only the write target changed, from a
-// persisted app/.data/tickets_snapshot.json to Busabase's intake/sync_log
+// persisted content/kelly-tickets-app/.data/tickets_snapshot.json to Busabase's intake/sync_log
 // Bases.
 //
 // Usage:
@@ -25,8 +25,8 @@ import crypto from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { maskContact } from "../app/app/js/tickets-model.js";
+import { appConfig } from "../content/kelly-tickets-app/app/js/config.js";
+import { maskContact } from "../content/kelly-tickets-app/app/js/tickets-model.js";
 
 const CHANNELS = new Set(["wechat", "phone", "form", "email", "walk_in"]);
 const URGENCIES = new Set(["urgent", "high", "normal", "low"]);
@@ -172,7 +172,7 @@ async function main() {
     const logId = `log-${now.replace(/[-:TZ.]/g, "").slice(0, 14)}-${sha1(file).slice(0, 6)}`;
     if (apply) {
       await client.bases.createChangeRequest({
-        baseId: declared("sync_log").baseId,
+        baseId: declared("sync-log").baseId,
         fields: toBusabaseFields({
           log_id: logId,
           at: now,

@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Real Estate Intel's
 Busabase Bases. Field slugs are kebab-case in Busabase and normalized to
-snake_case in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/real-estate-model.js`). The batch rollup metrics
+snake_case in app code (`content/kelly-real-estate-intel-app/app/js/providers/busabase-provider.js`,
+`content/kelly-real-estate-intel-app/app/js/real-estate-model.js`). The batch rollup metrics
 (`needs_review`/`approved`/`blocked` and their per-kind counts) are computed
 client-side from `signals`/`actions`/`drafts` on every read — they are never
 stored.
@@ -12,7 +12,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise` (`revise` is draft-only).
 
-## Signals (`kelly-real-estate-intel-signals-v1`)
+## Signals (`kelly-real-estate-intel-signals`)
 
 Source-backed transaction, listing, mortgage, district, and competitor
 signals — evidence, buyer-intent interpretation, confidence, risk badges,
@@ -37,7 +37,7 @@ and a suggested action.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Actions (`kelly-real-estate-intel-actions-v1`)
+## Actions (`kelly-real-estate-intel-actions`)
 
 Approved/blocked/reviewable listing angles, owner-update notes, open-house
 talking points, or operating actions tied to today's signals.
@@ -58,7 +58,7 @@ talking points, or operating actions tied to today's signals.
 | `decision-comment` | `decision_comment` | longtext | written with the decision |
 | `decided-at` | `decided_at` | text | written with the decision |
 
-## Drafts (`kelly-real-estate-intel-drafts-v1`)
+## Drafts (`kelly-real-estate-intel-drafts`)
 
 Editable channel drafts (WhatsApp follow-up / agent朋友圈 / listing
 pitch), kept behind a review gate until approved.
@@ -82,7 +82,7 @@ A `revise` decision writes `edited-body` and leaves `status` at
 `needs_review` — the review still needs an explicit approve/request_changes/
 block after a revision.
 
-## Sources (`kelly-real-estate-intel-sources-v1`)
+## Sources (`kelly-real-estate-intel-sources`)
 
 Configured news/listing-portal/competitor/trend source categories,
 freshness, and coverage gaps.
@@ -95,7 +95,7 @@ freshness, and coverage gaps.
 | `freshness` | `freshness` | text | e.g. "demo", "not connected" |
 | `coverage` | `coverage` | longtext | what this category covers or is missing |
 
-## Settings (`kelly-real-estate-intel-settings-v1`)
+## Settings (`kelly-real-estate-intel-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -115,7 +115,7 @@ and its review state.
 
 The trusted decision-execution step. Reads `signals`/`actions`/`drafts` with
 a non-empty `decision-verdict`, prints the concrete operation
-(`operationForDecision()` in `app/app/js/real-estate-model.js`) for every
+(`operationForDecision()` in `content/kelly-real-estate-intel-app/app/js/real-estate-model.js`) for every
 decided item, and with `--apply` writes `status: "done"` back onto every
 `approve`-verdict item once the agent has performed the real handoff
 outside this script. It performs no external side effect itself —

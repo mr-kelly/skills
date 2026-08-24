@@ -9,7 +9,7 @@
     "checks": "node scripts/run_checks.mjs",
     "execute": "node scripts/execute_decisions.mjs",
     "export": "node scripts/export_issues.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-legal-contracts-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

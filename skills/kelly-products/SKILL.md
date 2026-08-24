@@ -7,6 +7,17 @@ metadata:
     - risk:local-write
     - industry:ecommerce
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-products
+    resources:
+      - products
+      - channels
+      - inventory
+      - review
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly Products
@@ -40,7 +51,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-products-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -56,7 +67,7 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Five Bases under one application Folder (`kelly-products`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Five Bases under one application Folder (`kelly-products`), declared in `content/kelly-products-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `products`: catalog/SKU master data — lifecycle, status, owner, vendor, image/gallery, tags, and JSON-encoded pricing/inventory-rollup/content-readiness/compliance blocks.
 - `channels`: one row per product × marketplace channel (Amazon/Shopify/TikTok Shop/eBay) — listing id, status, price, buybox, content score, and channel issue note.
@@ -64,7 +75,7 @@ Five Bases under one application Folder (`kelly-products`), declared in `app/app
 - `review`: the approval-gated review queue — channel publish approvals, price-change review, quality holds, and lifecycle/archive decisions, with the human decision and execution marker on the same row.
 - `settings`: one row (`record-id: "config"`) with the seller profile, platform connectors, warehouses, and review policy.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/products-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`app/app/js/products-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest run.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/products-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`content/kelly-products-app/app/js/products-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest run.
 
 ## First Run And Onboarding
 
@@ -76,7 +87,7 @@ node skills/kelly-products/scripts/ingest_products.mjs payload.json --apply
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-products-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -92,7 +103,7 @@ Demo mode:
 - `?demo=overview`, `?demo=products`, `?demo=inventory`, `?demo=channels`, `?demo=review`, and `?demo=detail` open deterministic mock scenes for documentation and screenshots.
 - `lang=en` or `lang=zh` forces UI chrome language; demo product names and agent notes localize with the chrome.
 - Demo mode never reads or writes Busabase. Decision buttons still work in the UI but act on in-memory state only.
-- Demo product images are the same real static PNG assets shipped under `app/app/assets/product-images/` that the live app uses.
+- Demo product images are the same real static PNG assets shipped under `content/kelly-products-app/app/assets/product-images/` that the live app uses.
 
 ## Ingest Workflow
 
@@ -126,7 +137,7 @@ The script upserts every row into Busabase by natural key (`product_id`, `channe
 node skills/kelly-products/scripts/ingest_products.mjs payload.json --apply
 node skills/kelly-products/scripts/execute_decisions.mjs
 node skills/kelly-products/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-products/app dev
+pnpm --dir skills/kelly-products/content/kelly-products-app dev
 ```
 
 In normal use, invoke `/kelly-products`, let the skill ingest what's due, and open the AirApp.

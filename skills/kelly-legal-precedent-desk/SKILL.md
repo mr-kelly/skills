@@ -7,6 +7,16 @@ metadata:
     - risk:local-write
     - industry:legal
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-legal-precedent-desk
+    resources:
+      - items
+      - entities
+      - checks
+      - settings
+    risk: local-write
+
 ---
 
 # Legal Precedent Desk
@@ -23,7 +33,7 @@ Use this as the research gate between the approved internal casebase and matter 
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-legal-precedent-desk-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -65,14 +75,14 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Four Bases under one application Folder (`kelly-legal-precedent-desk`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Four Bases under one application Folder (`kelly-legal-precedent-desk`), declared in `content/kelly-legal-precedent-desk-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `items`: the precedent research workbench and review queue in one — matched similar cases, similarity scores, local court-pattern notes, citations (research question, jurisdiction, match count and high-match count, top/average similarity, court pattern, citation count), workflow status, and the human decision + execution marker on the same row.
 - `entities`: issue clusters, court-pattern groups, or precedent collections grouped by issue, court, outcome, and lawyer.
 - `checks`: deterministic precedent QA checks for citation traceability, similarity rationale, jurisdiction fit, and confidentiality limits, one row per check.
 - `settings`: one row (`record-id: "config"`) with the firm profile, search policy (default jurisdiction, minimum similarity score, require source case ids, quote limit words), and export preferences.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/precedent-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`app/app/js/precedent-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/decision.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/precedent-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`content/kelly-legal-precedent-desk-app/app/js/precedent-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/decision.
 
 ## First Run And Onboarding
 
@@ -84,7 +94,7 @@ node skills/kelly-legal-precedent-desk/scripts/create_research_batch.mjs payload
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-legal-precedent-desk-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -152,7 +162,7 @@ node skills/kelly-legal-precedent-desk/scripts/create_research_batch.mjs payload
 node skills/kelly-legal-precedent-desk/scripts/execute_decisions.mjs
 node skills/kelly-legal-precedent-desk/scripts/execute_decisions.mjs --apply
 node skills/kelly-legal-precedent-desk/scripts/export_research_pack.mjs --out exports/
-pnpm --dir skills/kelly-legal-precedent-desk/app dev
+pnpm --dir skills/kelly-legal-precedent-desk/content/kelly-legal-precedent-desk-app dev
 ```
 
 In normal use, invoke `/kelly-legal-precedent-desk`, let the skill ingest what's due, and open the AirApp.

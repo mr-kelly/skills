@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Trusted hand-off step. Kelly Family Office's AirApp is read-only (see
-// app/app/js/config.js — writeProcedures: []); this script is the only
+// content/kelly-family-office-app/app/js/config.js — writeProcedures: []); this script is the only
 // process that ever adds entity/account/holding rows. It reads a documented
 // holdings CSV (see references/holdings-csv-template.csv), resolves
 // entity/account references against Busabase (creating a new entity or
@@ -14,7 +14,7 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-family-office-app/app/js/config.js";
 
 function help() {
   console.log(`Usage: node scripts/import_csv.mjs <path/to/holdings.csv> [--apply]

@@ -7,7 +7,7 @@
   "scripts": {
     "record": "node scripts/record_homework.mjs",
     "execute": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-homework-coach-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

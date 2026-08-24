@@ -16,7 +16,7 @@ outreach, signs term sheets, or moves money.
   conversion rates from New, overall New → Term-Sheet-Ready conversion, and
   the rejection rate.
 - **Deterministic lead-quality score** (0-100,
-  `app/app/js/lead-funnel-model.js`, not an LLM call) from four weighted,
+  `content/kelly-lead-funnel-app/app/js/lead-funnel-model.js`, not an LLM call) from four weighted,
   explainable factors: chain-size fit (30), revenue-scale fit (30), category
   risk (25), and data verifiability (15).
 - **Lead detail panel**: full score breakdown with a rationale per factor,
@@ -52,7 +52,7 @@ Chinese (zh-CN) screenshots are also bundled: `overview-zh-CN.png`,
 Run the app and open a safe, fully offline mock scene:
 
 ```bash
-pnpm --dir skills/kelly-lead-funnel/app dev
+pnpm --dir skills/kelly-lead-funnel/content/kelly-lead-funnel-app dev
 ```
 
 Use the printed local URL, then add one of these demo paths:
@@ -71,6 +71,6 @@ Busabase.
 ## Busabase Data
 
 The AirApp is Busabase-backed: leads, notes, stage history, and fund
-settings all live in Busabase Bases declared in `app/app/js/config.js` (see
+settings all live in Busabase Bases declared in `content/kelly-lead-funnel-app/app/js/config.js` (see
 `references/lead-schema.md`). Resources provision lazily on first run. There
 is no local file storage and no separate provider choice.

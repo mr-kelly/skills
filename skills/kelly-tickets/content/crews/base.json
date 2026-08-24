@@ -1,0 +1,56 @@
+{
+  "name": "Crews",
+  "description": "Crews that tickets can be dispatched to",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "crew-id",
+      "name": "Crew ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "skills",
+      "name": "Skills",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "members",
+      "name": "Members",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "contact-env",
+      "name": "Contact env",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "active",
+      "name": "Active",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    }
+  ],
+  "views": []
+}

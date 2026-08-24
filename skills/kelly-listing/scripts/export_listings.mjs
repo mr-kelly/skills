@@ -6,7 +6,7 @@
 // listings.csv. listingMarkdown()/csvCell()/PLATFORM_LABELS/slugify() are
 // ported verbatim (same headings, same table shape, same CSV columns, same
 // footer) from the retired scripts/export_listings.ts; only the read source
-// changed, from a persisted app/.data/listing_snapshot.json + decisions.json
+// changed, from a persisted content/kelly-listing-app/.data/listing_snapshot.json + decisions.json
 // to Busabase's products/drafts Bases.
 //
 // A draft is exportable only when its decision_action is a genuine "approve"
@@ -27,8 +27,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { normalizeDraftRow, normalizeProductRow } from "../app/app/js/listing-model.js";
+import { appConfig } from "../content/kelly-listing-app/app/js/config.js";
+import { normalizeDraftRow, normalizeProductRow } from "../content/kelly-listing-app/app/js/listing-model.js";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 

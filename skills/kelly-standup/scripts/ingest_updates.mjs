@@ -12,7 +12,7 @@
 // re-ingest), and upserts the day's digest/on_leave list. Ported from the
 // retired scripts/ingest_updates.ts: same validation rules, same blocker_id /
 // reminder_id hashing, same idempotent-merge semantics — only the storage
-// target changed, from app/.data/standup_snapshot.json to Busabase records.
+// target changed, from content/kelly-standup-app/.data/standup_snapshot.json to Busabase records.
 //
 // The retired script also seeded the roster from a private config.json; that
 // role now belongs to this same script's optional payload.team/payload.members
@@ -26,7 +26,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-standup-app/app/js/config.js";
 import {
   BLOCKER_STATUSES,
   MOODS,
@@ -35,7 +35,7 @@ import {
   REMINDER_TYPES,
   SEVERITIES,
   UPDATE_SOURCES,
-} from "../app/app/js/standup-model.js";
+} from "../content/kelly-standup-app/app/js/standup-model.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_updates.mjs <payload.json> [more-payloads.json...] [--apply]

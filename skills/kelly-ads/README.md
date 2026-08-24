@@ -35,7 +35,7 @@ Kelly Ads is a Busabase App-in-Skill ad-campaign command desk (投放指挥台) 
 Run the local preview and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-ads/app dev
+pnpm --dir skills/kelly-ads/content/kelly-ads-app dev
 ```
 
 Use the printed URL, then add one of these demo paths:
@@ -86,7 +86,7 @@ CSV mode maps columns via the Settings row's `csv_mappings.<platform>` (campaign
 
 ## Busabase Resources
 
-Six Bases under one application Folder (`kelly-ads`): `platforms`, `campaigns`, `anomalies`, `adjustments`, `sync_log`, `settings`. See `references/ads-schema.md` for exact field shapes. Provisioning is lazy and idempotent the first time the app runs in a Space.
+Six Bases under one application Folder (`kelly-ads`): `platforms`, `campaigns`, `anomalies`, `adjustments`, `sync-log`, `settings`. See `references/ads-schema.md` for exact field shapes. Provisioning is lazy and idempotent the first time the app runs in a Space.
 
 ## Boundary
 

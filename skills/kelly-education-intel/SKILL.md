@@ -7,6 +7,17 @@ metadata:
     - risk:gated-write
     - industry:education
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-education-intel
+    resources:
+      - signals
+      - actions
+      - drafts
+      - sources
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Education Intel
@@ -38,7 +49,7 @@ preview is explicitly requested). Use chat-only mode only when the user says
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-education-intel-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -82,7 +93,7 @@ Actions should become parent FAQ answers, course launch angles, admissions check
 ## Busabase Resources
 
 Five Bases under one application Folder (`kelly-education-intel`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-education-intel-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `signals`: source-backed exam, admissions, visa, and buyer-intent signals — evidence link, why-it-matters, buyer-intent interpretation, confidence, risk badges, a suggested action, and the human decision verdict.
 - `actions`: approved/blocked/reviewable parent FAQ, admissions, or operating actions linked to signals, with owner, priority, reason, next step, and the human decision verdict.
@@ -108,7 +119,7 @@ Busabase gate.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-education-intel-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -167,5 +178,5 @@ Demo mode:
 ```bash
 node skills/kelly-education-intel/scripts/execute_decisions.mjs
 node skills/kelly-education-intel/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-education-intel/app dev
+pnpm --dir skills/kelly-education-intel/content/kelly-education-intel-app dev
 ```

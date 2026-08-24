@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly PR Review",
+  "description": "GitHub pull request review desk backed by the gh CLI"
+}

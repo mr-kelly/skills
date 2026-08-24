@@ -9,7 +9,7 @@
     "busabase:restore": "node scripts/restore_busabase_snapshot.mjs",
     "busabase:backfill-pdf-text": "node scripts/backfill_pdf_metadata.mjs",
     "busabase:backfill-pdf-metadata": "node scripts/backfill_pdf_metadata.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-insure-data-app check"
   },
   "engines": {
     "node": ">=24.18.0"

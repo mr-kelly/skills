@@ -6,7 +6,7 @@
   "description": "Kelly Agent Observability Busabase Cloud skill and the trusted mock-fleet seed script.",
   "scripts": {
     "generate": "node scripts/generate_fleet_data.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-agent-observability-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

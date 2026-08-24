@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Disclosure Tracker's Busabase
 Bases. Field slugs are kebab-case in Busabase and normalized to snake_case in
-app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/tracker-model.js`). Per-vehicle/per-portfolio metrics and every
+app code (`content/kelly-disclosure-tracker-app/app/js/providers/busabase-provider.js`,
+`content/kelly-disclosure-tracker-app/app/js/tracker-model.js`). Per-vehicle/per-portfolio metrics and every
 item's `status` are computed client-side from the `vehicles`/`items` Bases'
 raw fields on every read — they are never stored.
 
@@ -22,8 +22,8 @@ and checks off a standardized disclosure package per financing vehicle
 
 ## Decision verdicts and the derived `status`
 
-Ported verbatim from `computeItemStatus()` in `app/app/js/tracker-model.js`
-(originally `applyDecisions()` in the retired `app/server/store.ts`):
+Ported verbatim from `computeItemStatus()` in `content/kelly-disclosure-tracker-app/app/js/tracker-model.js`
+(originally `applyDecisions()` in the retired `content/kelly-disclosure-tracker-app/server/store.ts`):
 
 - no decision yet → `needs_review`
 - `verified` → `done`
@@ -46,7 +46,7 @@ Ported verbatim from `computeReadiness()`:
 - `blocked` — at least one item is `blocked` (flagged inconsistency).
 - `in_progress` — otherwise.
 
-## Vehicles (`kelly-disclosure-tracker-vehicles-v1`)
+## Vehicles (`kelly-disclosure-tracker-vehicles`)
 
 One row per financing vehicle (9 rows, seeded by
 `scripts/generate_batch.mjs`). Metrics/readiness are never stored — they are
@@ -63,7 +63,7 @@ recomputed client-side from the `items` Base on every read.
 | `base-currency` | `base_currency` | text | e.g. `USD` |
 | `target-close-date` | `target_close_date` | text | e.g. `2026-09-30` |
 
-## Disclosure Items (`kelly-disclosure-tracker-items-v1`)
+## Disclosure Items (`kelly-disclosure-tracker-items`)
 
 One row per standardized disclosure checklist item (54 rows: 9 vehicles x 6
 item templates, seeded by `scripts/generate_batch.mjs`). The reviewer's
@@ -93,7 +93,7 @@ decisions file. `scripts/execute_decisions.mjs` writes the
 | `execution-detail` | `execution_detail` | text | human-readable detail, written only by `scripts/execute_decisions.mjs` |
 | `executed-at` | `executed_at` | text | ISO timestamp, written only by `scripts/execute_decisions.mjs` |
 
-## Settings (`kelly-disclosure-tracker-settings-v1`)
+## Settings (`kelly-disclosure-tracker-settings`)
 
 Up to two rows, looked up by `record-id`/`kind`. A missing row means "not set
 yet" (mirrors the retired local-file provider's null-on-ENOENT behavior).
@@ -114,7 +114,7 @@ yet" (mirrors the retired local-file provider's null-on-ENOENT behavior).
 
 The trusted seed step. Writes the fixed 9-vehicle / 54-item mock portfolio
 (ported verbatim from the retired `scripts/generate_batch.ts`/
-`app/server/demo.ts`, now living in `app/app/js/tracker-model.js`'s
+`content/kelly-disclosure-tracker-app/server/demo.ts`, now living in `content/kelly-disclosure-tracker-app/app/js/tracker-model.js`'s
 `buildSeedData()`) into the `vehicles` and `items` Bases, upserting by
 `vehicle-id`/`item-id` so repeated runs stay idempotent, and refreshes the
 `run` settings row. Seeds a default `config` row only if none exists yet.

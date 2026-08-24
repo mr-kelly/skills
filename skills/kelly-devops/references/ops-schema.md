@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly DevOps's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/devops-model.js`).
+(`content/kelly-devops-app/app/js/providers/busabase-provider.js`, `content/kelly-devops-app/app/js/devops-model.js`).
 `days_left` for every expiry row, SSL certificate expiry rows, spend
 `delta_pct`/`anomaly`/`share_pct`, and every metric are computed client-side
 from the stored rows on every read — they are never stored, so the ledger is
@@ -17,7 +17,7 @@ Action types: `renew_domain`, `rotate_key`, `investigate_spend`, `restart_servic
 
 Expiry types: `domain`, `ssl_cert`, `api_key_rotation`, `plan_renewal`.
 
-## Services (`kelly-devops-services-v1`)
+## Services (`kelly-devops-services`)
 
 Roster (name, product, url) and the latest HTTP/TLS check result share one
 row per service — there is no separate config store.
@@ -46,7 +46,7 @@ An `ssl_cert` row is synthesized into the Expiries ledger (client-side, from
 `ssl-issuer`/`ssl-valid-to`) whenever a service has a certificate — it is
 never written into the Expiries Base directly.
 
-## Expiries (`kelly-devops-expiries-v1`)
+## Expiries (`kelly-devops-expiries`)
 
 One ledger row per domain, API key rotation, or plan renewal. Roster fields
 (registrar, auto-renew) and the live check result share the same row.
@@ -72,7 +72,7 @@ check exists for them). `action_id` linking an expiry to its action card is
 computed client-side by matching `action.target.kind`/`target.id` against
 the expiry's `type`/`item` — never stored on the expiry row itself.
 
-## Spend Providers (`kelly-devops-spend-providers-v1`)
+## Spend Providers (`kelly-devops-spend-providers`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -89,7 +89,7 @@ the expiry's `type`/`item` — never stored on the expiry row itself.
 for) `anomaly: true` when `mtd > last_month * (1 + thresholds.spend_anomaly_pct / 100)`
 and `last_month` is non-zero.
 
-## Spend Products (`kelly-devops-spend-products-v1`)
+## Spend Products (`kelly-devops-spend-products`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -103,7 +103,7 @@ and `last_month` is non-zero.
 `share_pct` (this product's percentage of total MTD spend across all
 providers) is computed client-side.
 
-## Actions (`kelly-devops-actions-v1`)
+## Actions (`kelly-devops-actions`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -126,7 +126,7 @@ providers) is computed client-side.
 process that sets it, only for a card already `approved`, only after the
 agent reports the real external action succeeded.
 
-## Events (`kelly-devops-events-v1`)
+## Events (`kelly-devops-events`)
 
 Append-only feed, newest-first, capped at 50 entries in the UI.
 
@@ -139,7 +139,7 @@ Append-only feed, newest-first, capped at 50 entries in the UI.
 | `message` | `message` | longtext | short human-readable message |
 | `service-id` | `service_id` | text | optional related service |
 
-## Settings (`kelly-devops-settings-v1`)
+## Settings (`kelly-devops-settings`)
 
 One row, `record-id: "config"`:
 

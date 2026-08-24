@@ -1,0 +1,80 @@
+{
+  "name": "筛选标准",
+  "description": "One search-criteria hypothesis and the three-axis scoring rubric that drives candidate screening",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "role-keywords",
+      "name": "搜索关键词",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "experience-filter",
+      "name": "经验筛选假设",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "activity-filter",
+      "name": "活跃度筛选假设",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "endorsement-rubric",
+      "name": "背景背书标准",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "expertise-rubric",
+      "name": "专业深广度标准",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "teaching-rubric",
+      "name": "授课服务能力标准",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "qualify-threshold",
+      "name": "合格分数线",
+      "type": "number",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "更新时间",
+      "type": "date",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-version",
+      "name": "引导完成版本",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

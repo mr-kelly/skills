@@ -42,7 +42,7 @@ Kelly DevOps is a Busabase App-in-Skill ops desk for a multi-product SaaS fleet:
 Start the local preview and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-devops/app dev
+pnpm --dir skills/kelly-devops/content/kelly-devops-app dev
 ```
 
 Use the URL printed by the launcher, then add one of these demo paths:

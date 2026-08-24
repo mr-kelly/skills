@@ -1,0 +1,32 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-social",
+  "description": "Social media command desk: cross-platform monitoring plus an ECHO publishing desk",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+  "template": {
+    "category": "marketing",
+    "schemaVersion": 1,
+    "airapp": "kelly-social-app",
+    "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/accounts.webp",
+      "assets/screenshots/calendar.webp",
+      "assets/screenshots/compose.webp",
+      "assets/screenshots/crisis.webp",
+      "assets/screenshots/detail.webp",
+      "assets/screenshots/engagement.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/shorts.webp",
+      "assets/screenshots/timeline.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Accounts and flag what needs my attention.",
+      "Open Kelly Social and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

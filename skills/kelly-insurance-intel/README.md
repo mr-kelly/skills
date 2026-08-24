@@ -40,7 +40,7 @@ Kelly Insurance Intel is a Busabase App-in-Skill cockpit for turning regulator, 
 ## Demo Mode
 
 ```bash
-pnpm --dir skills/kelly-insurance-intel/app dev
+pnpm --dir skills/kelly-insurance-intel/content/kelly-insurance-intel-app dev
 ```
 
 Open the printed URL and use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.

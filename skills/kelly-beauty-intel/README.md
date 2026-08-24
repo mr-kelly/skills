@@ -40,8 +40,8 @@ Kelly Beauty Intel is a Busabase-backed App-in-Skill cockpit for beauty, wellnes
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-beauty-intel-app install
+pnpm --dir content/kelly-beauty-intel-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

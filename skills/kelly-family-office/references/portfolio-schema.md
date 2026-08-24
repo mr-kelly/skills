@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Family Office's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/office-model.js`, `scripts/import_csv.mjs`). The consolidated
+code (`content/kelly-family-office-app/app/js/providers/busabase-provider.js`,
+`content/kelly-family-office-app/app/js/office-model.js`, `scripts/import_csv.mjs`). The consolidated
 snapshot (totals, by_entity, by_asset_class, by_institution, insights) is
 computed client-side from `entities`/`accounts`/`holdings`/`settings` on
 every read — it is never stored. Every consolidated figure is in the
@@ -15,7 +15,7 @@ Entity type union: `INDIVIDUAL` · `TRUST` · `COMPANY` · `FUND` · `FOUNDATION
 Asset class union: `EQUITY` · `BOND` · `CASH` · `CRYPTO` · `REAL_ESTATE` ·
 `PRIVATE_EQUITY` · `ALTERNATIVE`.
 
-## Entities (`kelly-family-office-entities-v1`)
+## Entities (`kelly-family-office-entities`)
 
 The individuals, trusts, companies, funds, and foundations being consolidated.
 
@@ -26,7 +26,7 @@ The individuals, trusts, companies, funds, and foundations being consolidated.
 | `type` | `type` | text | `INDIVIDUAL\|TRUST\|COMPANY\|FUND\|FOUNDATION` |
 | `member` | `member` | text | owner or family member, optional |
 
-## Accounts (`kelly-family-office-accounts-v1`)
+## Accounts (`kelly-family-office-accounts`)
 
 Custodian/institution accounts held by each entity. There is no separate
 Institutions Base — an institution is just a field on an account, and the
@@ -42,7 +42,7 @@ Institutions Base — an institution is just a field on an account, and the
 | `display-name` | `display_name` | text | optional label |
 | `as-of` | `as_of` | text | ISO timestamp or date, optional |
 
-## Holdings (`kelly-family-office-holdings-v1`)
+## Holdings (`kelly-family-office-holdings`)
 
 Individual holdings across every account.
 
@@ -66,7 +66,7 @@ client-side via `fx_rates` on every read — they are never stored.
 currency has no configured `fx_rates` entry, it is valued at a 1:1 fallback
 rate and a warning is surfaced rather than an invented rate.
 
-## Settings (`kelly-family-office-settings-v1`)
+## Settings (`kelly-family-office-settings`)
 
 One row per `kind`.
 

@@ -12,7 +12,7 @@
 // user approval, matching SKILL.md's Boundary section.
 //
 // planExecution is ported/adapted from the retired scripts/execute_decisions.ts
-// (app/app/js/lesson-model.js's doc comment explains the adaptation: one
+// (content/kelly-lesson-app/app/js/lesson-model.js's doc comment explains the adaptation: one
 // execution marker directly on the plan record instead of a separate
 // execution_report.json list).
 //
@@ -25,8 +25,8 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { planExecution } from "../app/app/js/lesson-model.js";
+import { appConfig } from "../content/kelly-lesson-app/app/js/config.js";
+import { planExecution } from "../content/kelly-lesson-app/app/js/lesson-model.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]

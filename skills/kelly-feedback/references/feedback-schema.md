@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Feedback's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`, `app/app/js/feedback-model.js`).
+code (`content/kelly-feedback-app/app/js/providers/busabase-provider.js`, `content/kelly-feedback-app/app/js/feedback-model.js`).
 Request `frequency`/`weighted_score` and every snapshot metric are computed
 client-side from `feedback`/`requests`/`proposals` on every read via
 `recomputeDerived()` — they are never stored.
@@ -21,7 +21,7 @@ Proposal statuses: `needs_review`, `changes_requested`, `approved`, `done`,
 `blocked`. Proposal types: `promote_request`, `decline_request`,
 `merge_requests`, `publish_changelog`.
 
-## Products (`kelly-feedback-products-v1`)
+## Products (`kelly-feedback-products`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ Proposal statuses: `needs_review`, `changes_requested`, `approved`, `done`,
 | `display-name` | `display_name` | text | |
 | `tagline` | `tagline` | text | optional one-liner |
 
-## Sources (`kelly-feedback-sources-v1`)
+## Sources (`kelly-feedback-sources`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -42,7 +42,7 @@ Proposal statuses: `needs_review`, `changes_requested`, `approved`, `done`,
 | `item-count` | `item_count` | number | |
 | `status` | `status` | text | `ok\|warning\|error` |
 
-## Feedback (`kelly-feedback-feedback-v1`)
+## Feedback (`kelly-feedback-feedback`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -65,7 +65,7 @@ Proposal statuses: `needs_review`, `changes_requested`, `approved`, `done`,
 `weighted_score` on the linked request is the sum of linked feedback
 weights, so weighted score = frequency × average user weight.
 
-## Requests (`kelly-feedback-requests-v1`)
+## Requests (`kelly-feedback-requests`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -86,7 +86,7 @@ weights, so weighted score = frequency × average user weight.
 derived client-side from `feedback` by `recomputeDerived()` every time the
 snapshot is built, so the numbers always agree after any merge.
 
-## Roadmap (`kelly-feedback-roadmap-v1`)
+## Roadmap (`kelly-feedback-roadmap`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -99,7 +99,7 @@ snapshot is built, so the numbers always agree after any merge.
 Read-only in the app; lanes change only through an approved proposal
 executed by `scripts/execute_decisions.mjs --apply`.
 
-## Proposals (`kelly-feedback-proposals-v1`)
+## Proposals (`kelly-feedback-proposals`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -123,7 +123,7 @@ client-side by `feedback-model.js`'s `withProposalRefs()`, a stable
 `created-at`-ascending sort, so refs stay put across reloads regardless of
 `records.list` page order.
 
-## Sync Log (`kelly-feedback-sync-log-v1`)
+## Sync Log (`kelly-feedback-sync-log`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -134,7 +134,7 @@ client-side by `feedback-model.js`'s `withProposalRefs()`, a stable
 | `detail` | `detail` | longtext | short human-readable description |
 | `count` | `count` | number | |
 
-## Settings (`kelly-feedback-settings-v1`)
+## Settings (`kelly-feedback-settings`)
 
 One row, `record-id: "config"`:
 

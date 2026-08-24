@@ -10,6 +10,7 @@
 // on-the-spot decision made while operating this script — not agent-authored
 // content that needs a separate review step.
 import {
+  SHOTS_BASE_SLUG,
   approveAndMerge,
   findBase,
   getRecord,
@@ -25,7 +26,7 @@ async function main() {
   }
 
   const cfg = loadBusabaseConfig();
-  const shotsBase = await findBase(cfg, "video-shots");
+  const shotsBase = await findBase(cfg, SHOTS_BASE_SLUG);
   if (!shotsBase) throw new Error("Schema missing — run `node scripts/ensure_schema.mjs` first.");
 
   const record = await getRecord(cfg, recordId);

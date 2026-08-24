@@ -18,7 +18,7 @@ For production-quality decks, combine this skill with the `pptx` skill:
 4. Generate PPTX with `scripts/generate_pptx.mjs` (real `pptxgenjs`
    generation logic) or a richer `pptx` skill pass.
 5. Render to images/PDF and inspect for text overflow, low contrast, crop issues, and style drift.
-6. Record QA checks (the `qaChecks` Base) and export paths (the `exports`
+6. Record QA checks (the `qa-checks` Base) and export paths (the `exports`
    Base) back into Busabase.
 
 Never skip slide-card review for large batches. The page card is the audit surface that keeps bulk output manageable.

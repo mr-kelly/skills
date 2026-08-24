@@ -1,0 +1,80 @@
+{
+  "name": "虚拟账户",
+  "description": "One virtual capital account per strategy",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "name",
+      "name": "账户名称",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "strategy-key",
+      "name": "策略标识",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "nominal-capital",
+      "name": "名义本金",
+      "type": "number",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "nav",
+      "name": "净值",
+      "type": "number",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "cash",
+      "name": "现金",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "benchmark-return",
+      "name": "基准收益",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "max-drawdown",
+      "name": "最大回撤",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "更新时间",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "baseline-date",
+      "name": "收益起算日",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

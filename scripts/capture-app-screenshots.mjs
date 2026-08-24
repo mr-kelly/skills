@@ -410,7 +410,7 @@ function waitForReady(port, skill, timeoutMs = 30000) {
 }
 
 async function startServer(skill, port) {
-  const appDir = path.join(ROOT, "skills", skill, "app");
+  const appDir = path.join(ROOT, "skills", skill, "content", `${skill}-app`);
   const child = spawn(process.execPath, ["server.js"], {
     cwd: appDir,
     env: {

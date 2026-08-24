@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-writer",
+  "description": "Channel-ready content drafting and review desk",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+  "template": {
+    "category": "marketing",
+    "schemaVersion": 1,
+    "airapp": "kelly-writer-app",
+    "tags": ["marketing", "risk:gated-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/distribution.webp",
+      "assets/screenshots/main.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/topics.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Drafts and flag what needs my attention.",
+      "Open Kelly Writer and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

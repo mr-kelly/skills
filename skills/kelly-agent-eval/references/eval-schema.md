@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Agent Eval's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`, `app/app/js/eval-model.js`).
+code (`content/kelly-agent-eval-app/app/js/providers/busabase-provider.js`, `content/kelly-agent-eval-app/app/js/eval-model.js`).
 `overall`/`pass`/`regression`/`improvement`/`status` are computed client-side
 from the `cases` Base on every read — they are never stored.
 
@@ -23,7 +23,7 @@ and not a regression.
 Decision actions: `mark_blocking`, `mark_acceptable`. Release decisions:
 `approve`, `block`.
 
-## Cases (`kelly-agent-eval-cases-v1`)
+## Cases (`kelly-agent-eval-cases`)
 
 One row per fixed mock test case (~18 rows, seeded by
 `scripts/generate_eval_run.mjs`). The reviewer's verdict on a regression
@@ -50,7 +50,7 @@ row — there is no separate decisions file.
 | `decision-note` | `decision_note` | longtext | written with the verdict |
 | `decided-at` | `decided_at` | text | ISO timestamp, written with the verdict |
 
-## Settings (`kelly-agent-eval-settings-v1`)
+## Settings (`kelly-agent-eval-settings`)
 
 Up to three rows, looked up by `record-id`/`kind`. A missing row means "not
 set yet" (mirrors the retired local-file provider's null-on-ENOENT behavior).
@@ -72,7 +72,7 @@ set yet" (mirrors the retired local-file provider's null-on-ENOENT behavior).
 
 The trusted seed step. Writes the fixed ~18-case mock suite (ported verbatim
 from the retired `lib/eval-data.ts`'s `RAW_CASES`, now living in
-`app/app/js/eval-model.js`) into the `cases` Base, resetting every case's
+`content/kelly-agent-eval-app/app/js/eval-model.js`) into the `cases` Base, resetting every case's
 decision fields, and refreshes the `run`/`config` settings rows. Clears any
 prior `release` row. `--apply` gated (default dry run); `--team`,
 `--baseline`, `--candidate`, `--min-pass-rate`, `--allow-blocking-release`

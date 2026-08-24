@@ -6,6 +6,16 @@ metadata:
   tags:
     - risk:sandbox
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-llm-gateway
+    resources:
+      - routes
+      - services
+      - models
+      - settings
+    risk: sandbox
+
 ---
 
 # LLM Gateway Cost & Governance Desk
@@ -31,8 +41,8 @@ Model Large", "Internal Model v2").
 This is a direct-manipulation operator dashboard, not a review-then-approve
 queue: there is no AI-authored draft to approve and no separate execute/
 decisions step. Anomalies are computed by a documented, deterministic
-rule-based function (`app/app/js/gateway-model.js`, ported from the retired
-`app/server/anomalies.ts`); the human platform operator makes every promote/
+rule-based function (`content/kelly-llm-gateway-app/app/js/gateway-model.js`, ported from the retired
+`content/kelly-llm-gateway-app/server/anomalies.ts`); the human platform operator makes every promote/
 rollback/hold and acknowledgement decision directly in the UI, writing
 straight onto the route's own Busabase record — the same way `kelly-lead-funnel`'s
 kanban stage moves work.
@@ -46,7 +56,7 @@ only when the user says "纯聊天", "chat only", "不要打开 UI", or similar.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-llm-gateway-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -80,7 +90,7 @@ exact missing dependency. Do not invent a second data backend.
 ## Boundary
 
 - Deterministic, rule-based anomaly detection only
-  (`app/app/js/gateway-model.js`). NEVER call an LLM to detect, rank, or
+  (`content/kelly-llm-gateway-app/app/js/gateway-model.js`). NEVER call an LLM to detect, rank, or
   auto-resolve an anomaly.
 - The AirApp reads and writes its own Busabase Bases only; it never calls a
   live gateway API or touches a real routing config. There is no execution/
@@ -99,7 +109,7 @@ exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Four Bases under one application Folder (`kelly-llm-gateway`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-llm-gateway-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `routes`: one row per service→model route — canary `status`, `canary-pct`,
   `rollback-ready`, a human decision `note`, a 14-day `daily` usage series
@@ -118,7 +128,7 @@ exact field shapes.
 
 ## Anomaly Detection
 
-`app/app/js/gateway-model.js` (`computeAnomalies`) flags a cost spike and/or
+`content/kelly-llm-gateway-app/app/js/gateway-model.js` (`computeAnomalies`) flags a cost spike and/or
 an error spike per route by comparing today's `cost`/`error_rate` against
 that route's own rolling baseline (mean of the preceding days in `daily`,
 excluding today). Default thresholds: `cost_spike_threshold_pct: 50`,
@@ -163,7 +173,7 @@ UI language: support English and Chinese chrome with `Auto` default.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-llm-gateway-app dev` only when local preview/debugging is explicitly
 requested.
 
 ## Views
@@ -184,8 +194,8 @@ requested.
 
 Finish only when:
 
-- the skill contains the complete canonical `app/` project and
-  `pnpm --dir app dev` remains supported;
+- the skill contains the complete canonical `content/kelly-llm-gateway-app/` project and
+  `pnpm --dir content/kelly-llm-gateway-app dev` remains supported;
 - all persistent config, state, and domain data use `busabase-sdk` and the
   declared resource map — no local JSON, browser storage, or provider
   choice;
@@ -194,7 +204,7 @@ Finish only when:
   while a deployed AirApp uses its ambient session;
 - Overview, Cost Breakdown, Rollouts, Anomalies, and Help & Settings render
   on desktop and phone widths;
-- `pnpm --dir app run check` and `node --test` pass.
+- `pnpm --dir content/kelly-llm-gateway-app run check` and `node --test` pass.
 
 ## Stop Conditions
 

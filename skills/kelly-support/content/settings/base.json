@@ -1,0 +1,48 @@
+{
+  "name": "Settings",
+  "description": "One row (record-id: config) with SLA policy, risk policy, reply style, and the KB source path",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "sla-policy",
+      "name": "SLA policy",
+      "type": "longtext",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "risk-policy",
+      "name": "Risk policy",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "reply-style",
+      "name": "Reply style",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "kb-source-path",
+      "name": "KB source path",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -1,0 +1,168 @@
+{
+  "name": "Shots",
+  "description": "Ordered storyboard shots, each with a scene description and image + video candidates",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "shot-id",
+      "name": "Shot ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "position",
+      "name": "Position",
+      "type": "number",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "description",
+      "name": "Description",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "negative-prompt",
+      "name": "Negative prompt",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "video-prompt",
+      "name": "Video prompt",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "duration-seconds",
+      "name": "Duration seconds",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "characters-json",
+      "name": "Characters JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "image-asset-id",
+      "name": "Image asset ID",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "image-status",
+      "name": "Image status",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "image-generated-at",
+      "name": "Image generated at",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "image-generation-json",
+      "name": "Image generation JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "image-candidates-json",
+      "name": "Image candidates JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "video-asset-id",
+      "name": "Video asset ID",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "video-status",
+      "name": "Video status",
+      "type": "text",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "video-generated-at",
+      "name": "Video generated at",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "video-generation-json",
+      "name": "Video generation JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 17,
+      "options": {}
+    },
+    {
+      "slug": "video-candidates-json",
+      "name": "Video candidates JSON",
+      "type": "longtext",
+      "required": false,
+      "position": 18,
+      "options": {}
+    },
+    {
+      "slug": "deleted",
+      "name": "Deleted",
+      "type": "text",
+      "required": false,
+      "position": 19,
+      "options": {}
+    }
+  ],
+  "views": []
+}

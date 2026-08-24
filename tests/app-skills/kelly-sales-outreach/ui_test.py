@@ -17,7 +17,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 from runtime import free_port, managed_process
 
 SKILL_ROOT = REPO_ROOT / "skills" / "kelly-sales-outreach"
-APP_ROOT = SKILL_ROOT / "app"
+APP_ROOT = SKILL_ROOT / "content" / "kelly-sales-outreach-app"
 BUSABASE_VERSION = "0.16.2"
 
 
@@ -264,9 +264,9 @@ def test_busabase_round_trip(browser) -> None:
                     setup_dry = run_script(["scripts/setup.mjs"], busabase_url)
                     assert setup_dry.returncode == 0, setup_dry.stderr
                     for slug in (
-                        "sales-outreach-profile-v1",
-                        "sales-outreach-companies-v1",
-                        "sales-outreach-leads-v1",
+                        "kelly-sales-outreach-profile",
+                        "kelly-sales-outreach-companies",
+                        "kelly-sales-outreach-leads",
                     ):
                         assert slug in setup_dry.stdout, setup_dry.stdout
                     assert resource_keys(read_json(f"{busabase_url}/api/v1/nodes?depth=2")) == []

@@ -2,13 +2,13 @@
 
 Use this schema when reading or writing Kelly Portfolio Health's Busabase
 Bases. Field slugs are kebab-case in Busabase and normalized to snake_case
-in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/portfolio-model.js`). `insights` (totals, per-contract repayment
+in app code (`content/kelly-portfolio-health-app/app/js/providers/busabase-provider.js`,
+`content/kelly-portfolio-health-app/app/js/portfolio-model.js`). `insights` (totals, per-contract repayment
 lag, concentration, and the revenue-decline watchlist) is computed
 client-side from the `contracts` rows on every read — it is never stored.
 This is a generic, brand-free dataset: no real company, fund, or SME names.
 
-## Contracts (`kelly-portfolio-health-contracts-v1`)
+## Contracts (`kelly-portfolio-health-contracts`)
 
 One row per RBF (revenue-based-financing) / private-credit contract.
 
@@ -38,7 +38,7 @@ AirApp never creates a contract record, only updates an existing one's
 `kelly-llm-gateway`'s routes and `kelly-lead-funnel`'s leads enter through an
 upstream process the app doesn't control.
 
-## Settings (`kelly-portfolio-health-settings-v1`)
+## Settings (`kelly-portfolio-health-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -47,14 +47,14 @@ One row per `kind`, looked up by `record-id`:
 | `kelly-portfolio-health-config` | `config` | `{base_currency, fund_name, risk_policy: {lag_watch_pp, lag_high_pp, revenue_decline_pct}}` |
 
 If no `config` row exists, the app falls back to defaults
-(`app/app/js/portfolio-model.js`'s `DEFAULT_RISK_POLICY`
+(`content/kelly-portfolio-health-app/app/js/portfolio-model.js`'s `DEFAULT_RISK_POLICY`
 `{lag_watch_pp: 15, lag_high_pp: 25, revenue_decline_pct: 10}`, and
 `base_currency: "USD"`, `fund_name: "Sample RBF Fund"`) — the dashboard
 still functions, just without a configured fund summary.
 
 ## Derived Insights (computed, never stored)
 
-`computeInsights(contracts, riskPolicy)` in `app/app/js/portfolio-model.js`:
+`computeInsights(contracts, riskPolicy)` in `content/kelly-portfolio-health-app/app/js/portfolio-model.js`:
 
 - `totals`: total AUM (funding outstanding on active — non-`completed` —
   contracts), total collected, weighted-average repayment progress, and an
@@ -78,7 +78,7 @@ No randomness, no ML — the same snapshot always produces the same insights.
 There is no decisions/approval bucket. The human flag/clear-flag/note action
 writes straight onto the contract's own record via `records.changeRequest`
 (`decideContract(contractId, patch)` in
-`app/app/js/providers/busabase-provider.js`, using
+`content/kelly-portfolio-health-app/app/js/providers/busabase-provider.js`, using
 `applyContractDecision` from `portfolio-model.js`):
 
 - **Flag for review** / **Clear flag**: sets `flagged` (`"true"`/`"false"`).

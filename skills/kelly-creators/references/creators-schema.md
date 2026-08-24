@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Creators' Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/creators-model.js`). `phase`, `cpm`, and every rollup metric are
+code (`content/kelly-creators-app/app/js/providers/busabase-provider.js`,
+`content/kelly-creators-app/app/js/creators-model.js`). `phase`, `cpm`, and every rollup metric are
 computed client-side from the `creators` Base on every read — they are never
 stored.
 
@@ -14,7 +14,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 
 Decision actions: `approve`, `request_changes`, `block`, `revise`.
 
-## Creators (`kelly-creators-creators-v1`)
+## Creators (`kelly-creators-creators`)
 
 Rows are the review-queue items — every creator engagement plus every
 content-reviewer quality gate. `item-type: "quality_gate"` rows are excluded
@@ -69,7 +69,7 @@ BLOCK** by checking FTC disclosure placement and claim authenticity before
 the post publishes. `est-rate`, `est-value`, and `followers` on a gate row
 are informational only and excluded from metric rollups.
 
-## Settings (`kelly-creators-settings-v1`)
+## Settings (`kelly-creators-settings`)
 
 One row per `kind`, looked up by `record-id`:
 

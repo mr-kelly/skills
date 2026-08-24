@@ -20,7 +20,7 @@ from runtime import free_port, managed_process
 
 
 SKILL_ROOT = REPO_ROOT / "skills" / "kelly-jobhunt"
-APP_ROOT = SKILL_ROOT / "app"
+APP_ROOT = SKILL_ROOT / "content" / "kelly-jobhunt-app"
 RESULTS_ROOT = REPO_ROOT / "test-results" / "kelly-jobhunt"
 BUSABASE_VERSION = "0.16.2"
 
@@ -315,7 +315,7 @@ def test_busabase_round_trip(browser) -> None:
                     # rather than creating anything on a dry run.
                     setup_dry = run_script(["scripts/setup.mjs"], busabase_url)
                     assert setup_dry.returncode == 0, setup_dry.stderr
-                    for slug in ("jobhunt-profile-v1", "jobhunt-companies-v1", "jobhunt-leads-v1"):
+                    for slug in ("kelly-jobhunt-profile", "kelly-jobhunt-companies", "kelly-jobhunt-leads"):
                         assert slug in setup_dry.stdout, setup_dry.stdout
                     assert "缺失" in setup_dry.stdout, setup_dry.stdout
                     assert resource_keys(read_json(f"{busabase_url}/api/v1/nodes?depth=2")) == [], "a dry run must not write"
@@ -371,7 +371,7 @@ def test_busabase_round_trip(browser) -> None:
                     nodes_before = json.dumps(nodes, sort_keys=True)
                     setup_again = run_script(["scripts/setup.mjs", "--apply"], busabase_url)
                     assert setup_again.returncode == 0, setup_again.stderr
-                    for slug in ("jobhunt-profile-v1", "jobhunt-companies-v1", "jobhunt-leads-v1"):
+                    for slug in ("kelly-jobhunt-profile", "kelly-jobhunt-companies", "kelly-jobhunt-leads"):
                         line = next((l for l in setup_again.stdout.splitlines() if slug in l), None)
                         assert line and "已就绪" in line, setup_again.stdout
                     after = json.dumps(read_json(f"{busabase_url}/api/v1/nodes?depth=2"), sort_keys=True)

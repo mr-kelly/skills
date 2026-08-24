@@ -31,7 +31,7 @@ This is intentionally NOT wired yet. Recommended local backends (Apple Silicon):
       pass `voice_ref` as the timbre reference clip).
   * YuE / DiffRhythm — full-length song-from-lyrics alternates.
 
-To enable: create a venv at app/.data/song/venv, install the chosen backend,
+To enable: create a venv at content/kelly-mv-app/.data/song/venv, install the chosen backend,
 replace the body of main() with a real inference call that writes `output`,
 then flip `draft_ready` in song-service.songConfigPayload().
 

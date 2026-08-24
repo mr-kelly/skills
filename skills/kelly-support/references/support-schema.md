@@ -2,10 +2,10 @@
 
 Use this schema when reading or writing Kelly Support's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/support-model.js`).
+(`content/kelly-support-app/app/js/providers/busabase-provider.js`, `content/kelly-support-app/app/js/support-model.js`).
 Per-ticket rollups (`last_message_at`, `last_incoming_at`, `sla.breached`)
 and the `support-qa` `quality_gate` verdict are computed client-side on every
-read from `tickets`/`messages`/`knowledge_base` — they are **never stored**,
+read from `tickets`/`messages`/`knowledge-base` — they are **never stored**,
 so an edited reply always reflects the current verdict.
 
 Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blocked`.
@@ -16,7 +16,7 @@ Channels: `email`, `whatsapp`, `webchat`, `form`, `wechat`.
 
 Connectors: `email_agent`, `whatsapp_cloud`, `webchat_widget`, `form_intake`, `wechat_work`, `manual`.
 
-## Accounts (`kelly-support-accounts-v1`)
+## Accounts (`kelly-support-accounts`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -33,7 +33,7 @@ Connectors: `email_agent`, `whatsapp_cloud`, `webchat_widget`, `form_intake`, `w
 
 `ticket_count`/`unread_count` are rollups computed client-side from `tickets`, never stored.
 
-## Tickets (`kelly-support-tickets-v1`)
+## Tickets (`kelly-support-tickets`)
 
 The approval-queue rows — one per support ticket, combining the triaged
 content, the KB-grounded draft reply, the human decision, and the execution
@@ -90,7 +90,7 @@ returns. `sla.breached` is derived, never trusted from input: a ticket
 breaches when it is still open (`status` not `done`/`blocked`), has no first
 response, and `sla_due_by` has passed relative to the current time.
 
-## Messages (`kelly-support-messages-v1`)
+## Messages (`kelly-support-messages`)
 
 One row per conversation message, joined onto its ticket by `ticket-id`.
 
@@ -106,7 +106,7 @@ One row per conversation message, joined onto its ticket by `ticket-id`.
 
 Store only the minimum excerpt needed for review. Never store credentials, QR payloads, or session tokens.
 
-## Knowledge Base (`kelly-support-knowledge-base-v1`)
+## Knowledge Base (`kelly-support-knowledge-base`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -122,7 +122,7 @@ A ticket's `kb_refs` reference `article_id`s. The `support-qa` gate requires
 a substantive reply to cite at least one real article and flags any dangling
 `kb_ref`.
 
-## Sync Log (`kelly-support-sync-log-v1`)
+## Sync Log (`kelly-support-sync-log`)
 
 Append-only history of ticket-collection runs per account.
 
@@ -136,7 +136,7 @@ Append-only history of ticket-collection runs per account.
 | `message` | `message` | longtext | human-readable summary |
 | `new-messages` | `new_messages` | number | |
 
-## Settings (`kelly-support-settings-v1`)
+## Settings (`kelly-support-settings`)
 
 One row, `record-id: "config"`:
 
@@ -162,7 +162,7 @@ pending ChangeRequest for the trusted process to merge.
 ## The Quality Gate (`support-qa`, computed, never stored)
 
 `runQualityGate(ticket, knowledge_base, risk_policy)` in
-`app/app/js/support-model.js` returns `{verdict, score, summary, checks}`:
+`content/kelly-support-app/app/js/support-model.js` returns `{verdict, score, summary, checks}`:
 
 - **`grounding`** — a substantive reply (≥40 chars) must cite at least one KB article that resolves; a short acknowledgement is exempt.
 - **`kb_refs_resolve`** — every cited `kb_ref` must resolve to a real article (a dangling ref is a FIX, not a BLOCK).

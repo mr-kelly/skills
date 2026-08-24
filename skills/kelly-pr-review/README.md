@@ -51,8 +51,8 @@ default to a dry run; pass `--apply` after reviewing the dry-run output.
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-pr-review-app install
+pnpm --dir content/kelly-pr-review-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

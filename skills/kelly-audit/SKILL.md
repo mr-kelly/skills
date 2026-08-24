@@ -6,6 +6,18 @@ metadata:
   tags:
     - risk:gated-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-audit
+    resources:
+      - orders
+      - invoices
+      - payments
+      - anomalies
+      - import-log
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Audit
@@ -41,7 +53,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-audit-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -56,16 +68,16 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Six Bases under one application Folder (`kelly-audit`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Six Bases under one application Folder (`kelly-audit`), declared in `content/kelly-audit-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `orders`: normalized sales orders imported from CSV/JSON exports.
 - `invoices`: normalized invoices and credit notes.
 - `payments`: normalized payments / receipts (回款).
 - `anomalies`: the review queue — rule-flagged anomalies with severity, evidence, a drafted follow-up, and the human decision + execution marker on the same row.
-- `import_log`: append-only history of import runs (files, added/updated counts, row warnings).
+- `import-log`: append-only history of import runs (files, added/updated counts, row warnings).
 - `settings`: one row (`record-id: "config"`) with company profile, tolerance rules, and import column mappings.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/audit-schema.md` for exact field shapes. Links (order → invoice → payment), statuses, receivable aging, and metrics are recomputed client-side from the stored rows on every read (`app/app/js/audit-model.js`'s `deriveSnapshot`/`buildSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last import/checks run.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/audit-schema.md` for exact field shapes. Links (order → invoice → payment), statuses, receivable aging, and metrics are recomputed client-side from the stored rows on every read (`content/kelly-audit-app/app/js/audit-model.js`'s `deriveSnapshot`/`buildSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last import/checks run.
 
 ## First Run And Onboarding
 
@@ -79,7 +91,7 @@ node skills/kelly-audit/scripts/run_checks.mjs --apply
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-audit-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -110,7 +122,7 @@ node skills/kelly-audit/scripts/import_tables.mjs \
   --orders /path/orders.csv --invoices /path/invoices.csv --payments /path/payments.csv --apply
 ```
 
-The script parses CSV (quoted fields included) or JSON arrays, applies the column mapping from Settings, normalizes dates/amounts/currencies, and upserts each row into Busabase by natural key (`order_no` / `invoice_no` / `payment_ref`) so re-imports are idempotent. It appends an entry to the `import_log` Base with per-file added/updated counts and row warnings. Without `--apply` it is a dry run.
+The script parses CSV (quoted fields included) or JSON arrays, applies the column mapping from Settings, normalizes dates/amounts/currencies, and upserts each row into Busabase by natural key (`order_no` / `invoice_no` / `payment_ref`) so re-imports are idempotent. It appends an entry to the `import-log` Base with per-file added/updated counts and row warnings. Without `--apply` it is a dry run.
 
 5. Surface import warnings (skipped rows, payments referencing unknown invoices) to the user instead of silently dropping them.
 
@@ -148,7 +160,7 @@ node skills/kelly-audit/scripts/import_tables.mjs --orders orders.csv --invoices
 node skills/kelly-audit/scripts/run_checks.mjs --apply
 node skills/kelly-audit/scripts/execute_decisions.mjs
 node skills/kelly-audit/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-audit/app dev
+pnpm --dir skills/kelly-audit/content/kelly-audit-app dev
 ```
 
 In normal use, invoke `/kelly-audit`, let the skill import/check what's due, and open the AirApp.

@@ -6,7 +6,7 @@
   "description": "Kelly Social Busabase Cloud skill and trusted collector ingest script.",
   "scripts": {
     "ingest": "node scripts/ingest_snapshot.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-social-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

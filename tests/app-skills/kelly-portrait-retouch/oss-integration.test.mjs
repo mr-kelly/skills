@@ -5,16 +5,16 @@ import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { appConfig } from "../../../skills/kelly-portrait-retouch/app/app/js/config.js";
+import { appConfig } from "../../../skills/kelly-portrait-retouch/content/kelly-portrait-retouch-app/app/js/config.js";
 import {
   inspectProvisionedResources,
   provisionDeclaredResources,
-} from "../../../skills/kelly-portrait-retouch/app/app/js/resource-provisioning.js";
-import { createBusabaseClient } from "../../../skills/kelly-portrait-retouch/app/node_modules/busabase-sdk/dist/index.js";
+} from "../../../skills/kelly-portrait-retouch/content/kelly-portrait-retouch-app/app/js/resource-provisioning.js";
+import { createBusabaseClient } from "../../../skills/kelly-portrait-retouch/content/kelly-portrait-retouch-app/node_modules/busabase-sdk/dist/index.js";
 import { getFreePort, startProcess } from "../harness/process.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
-const appRoot = join(repoRoot, "skills", "kelly-portrait-retouch", "app");
+const appRoot = join(repoRoot, "skills", "kelly-portrait-retouch", "content", "kelly-portrait-retouch-app");
 let dataDir;
 let busabasePort;
 let busabaseUrl;

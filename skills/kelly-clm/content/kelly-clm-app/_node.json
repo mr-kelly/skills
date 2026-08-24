@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly CLM",
+  "description": "Lightweight contract lifecycle desk: contract inventory, lifecycle stage, owners, obligations, renewal/notice dates, and a simple approval reminder queue. Not a legal redline/clause-review product -- see kelly-legal-contracts for that. Contract records, obligation status, renewal acknowledgements, and approval decisions are all direct writes made by the operator in the browser, not a review/approval pipeline."
+}

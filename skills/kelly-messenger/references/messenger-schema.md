@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Messenger's Busabase Bases.
 Field slugs are kebab-case in Busabase and normalized to snake_case in app
-code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/messenger-model.js`). Per-conversation/per-account rollups
+code (`content/kelly-messenger-app/app/js/providers/busabase-provider.js`,
+`content/kelly-messenger-app/app/js/messenger-model.js`). Per-conversation/per-account rollups
 (`unread_count`, `conversation_count`, `last_message_at`, `last_incoming_at`,
 `metrics`) are computed client-side from `conversations`/`messages` on every
 read — they are never stored.
@@ -12,7 +12,7 @@ Reply workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`
 
 Decision actions: `approve`, `request_changes`, `revise`, `block`.
 
-## Accounts (`kelly-messenger-accounts-v1`)
+## Accounts (`kelly-messenger-accounts`)
 
 Connected messaging accounts: platform, connector, channels to watch, and
 the **names** of the env vars holding tokens — never the token values
@@ -37,7 +37,7 @@ payload field.
 | `phone-number-id` | `phone_number_id` | text | non-secret fallback if no env var is used |
 | `last-sync-at` | `last_sync_at` | text | ISO timestamp |
 
-## Conversations (`kelly-messenger-conversations-v1`)
+## Conversations (`kelly-messenger-conversations`)
 
 One row per conversation across all connected accounts. `unread` and
 `awaiting_reply` are real state (not purely derived from the last message's
@@ -59,7 +59,7 @@ direction) — they are written by `scripts/sync_messages.mjs` /
 | `unread` | `unread` | text | `"true"\|"false"` |
 | `awaiting-reply` | `awaiting_reply` | text | `"true"\|"false"` — the newest meaningful message is incoming and a reply decision is still owed |
 
-## Messages (`kelly-messenger-messages-v1`)
+## Messages (`kelly-messenger-messages`)
 
 One row per message, joined onto its conversation by `conversation-id`.
 Store only the minimum text needed for review — never credentials, QR
@@ -75,7 +75,7 @@ payloads, or raw session tokens.
 | `sent-at` | `sent_at` | text | ISO timestamp |
 | `attachment` | `attachment` | text | optional short note, e.g. `file: report.csv` |
 
-## Sync Log (`kelly-messenger-sync-log-v1`)
+## Sync Log (`kelly-messenger-sync-log`)
 
 Append-only history of sync/ingest runs, written by
 `scripts/sync_messages.mjs` / `scripts/ingest_messages.mjs`.
@@ -90,7 +90,7 @@ Append-only history of sync/ingest runs, written by
 | `message` | `message` | longtext | short human-readable result |
 | `new-messages` | `new_messages` | number | |
 
-## Replies (`kelly-messenger-replies-v1`)
+## Replies (`kelly-messenger-replies`)
 
 The outgoing reply review queue: every message is queued here as
 `needs_review` until it is sent. This is the decisions file — a human
@@ -133,7 +133,7 @@ Workflow: `needs_review` (human verdict needed) → `approved` (ready for
 sent without new information. `revise` (the composer's "Save edit" button)
 only saves an edited draft — it never changes `status`.
 
-## Settings (`kelly-messenger-settings-v1`)
+## Settings (`kelly-messenger-settings`)
 
 A single row, `record-id: "config"`.
 

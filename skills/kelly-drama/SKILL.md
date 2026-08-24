@@ -8,6 +8,19 @@ metadata:
     - surface:busabase
     - surface:moonrouter
     - surface:byteplus-ark
+  busabase:
+    template: true
+    folderSlug: kelly-drama
+    resources:
+      - project
+      - settings
+      - characters
+      - relationships
+      - episodes
+      - shots
+      - tasks
+    risk: local-write
+
 ---
 
 # Kelly Drama
@@ -39,11 +52,11 @@ Use this skill as a short-drama and product-video planning workspace. Keep the a
 
 Kelly Drama is **not** the final motion editor. For final video tuning, each Kelly Drama project should point to a concrete HyperFrame project path, and each episode should point to a concrete HyperFrame composition. Kelly Drama manages the creative plan, canonical beats, storyboard metadata, review state, and asset index; HyperFrame owns the final composition, animation, captions, audio timing, render, and publish pass.
 
-Default to the AirApp for ongoing creative work — give the user the clickable AirApp URL, or run `pnpm --dir app dev` for a local preview. Use chat-only mode only when the user explicitly asks for "chat only", "no UI", "纯聊天", or similar.
+Default to the AirApp for ongoing creative work — give the user the clickable AirApp URL, or run `pnpm --dir content/kelly-drama-app dev` for a local preview. Use chat-only mode only when the user explicitly asks for "chat only", "no UI", "纯聊天", or similar.
 
 ## Default Flow
 
-1. Open the AirApp (or `pnpm --dir app dev` for local preview, which asks you to connect Busabase and select a Space — never an API key).
+1. Open the AirApp (or `pnpm --dir content/kelly-drama-app dev` for local preview, which asks you to connect Busabase and select a Space — never an API key).
 2. On first run the workspace is empty; provision it from the app's setup screen, then seed the bundled starter with `node scripts/create_sample_project.mjs --apply` (a short-drama adaptation of 《三国演义》, one episode per original chapter), or start from scratch.
 3. Use the app to maintain:
    - Series bible: logline, genre, platform, target audience, episode format, hook rules, world rules.
@@ -139,7 +152,7 @@ Turning storyboards into an actual short drama (continuous episode with characte
 
 ## Busabase Resources
 
-One Folder (`kelly-drama`), seven Bases, declared in `app/app/js/config.js` and `app/resource-map.json`:
+One Folder (`kelly-drama`), seven Bases, declared in `content/kelly-drama-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `project`: single-row series bible + visual bible + the paired HyperFrame project path and its cached status (`hyperframe_status_json`, refreshed by `scripts/read_hyperframe_status.mjs`).
 - `settings`: one row (`record-id: "config"`) with the image/video/TTS generation backend settings (base URL/model/size, LTX draft params, Seedance/Ark prod params, TTS model — API keys themselves are env vars for the trusted scripts, never stored).
@@ -176,7 +189,7 @@ record delete in the write surface.
 ## Useful Commands
 
 ```bash
-pnpm --dir skills/kelly-drama/app dev
+pnpm --dir skills/kelly-drama/content/kelly-drama-app dev
 node skills/kelly-drama/scripts/create_sample_project.mjs --apply
 node skills/kelly-drama/scripts/read_hyperframe_status.mjs --apply
 node skills/kelly-drama/scripts/validate_shot_readiness.mjs --episode ep-001

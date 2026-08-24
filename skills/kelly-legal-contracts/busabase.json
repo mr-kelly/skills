@@ -1,0 +1,29 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-legal-contracts",
+  "description": "Legal-contract review desk: contract library, clause issues, risk checks, clause playbook, and a review queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["legal", "risk:gated-write", "industry:legal", "surface:busabase"],
+  "template": {
+    "category": "legal",
+    "schemaVersion": 1,
+    "airapp": "kelly-legal-contracts-app",
+    "tags": ["legal", "risk:gated-write", "industry:legal", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/checks.webp",
+      "assets/screenshots/contracts.webp",
+      "assets/screenshots/issues.webp",
+      "assets/screenshots/needs-review.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/playbook.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Contracts and flag what needs my attention.",
+      "Open Kelly Legal Contracts and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

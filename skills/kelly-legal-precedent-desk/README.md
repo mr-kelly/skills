@@ -43,7 +43,7 @@ Legal Precedent Desk is a Busabase App-in-Skill precedent-research desk for inte
 Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-legal-precedent-desk/app dev
+pnpm --dir skills/kelly-legal-precedent-desk/content/kelly-legal-precedent-desk-app dev
 ```
 
 Then add one of these demo paths:

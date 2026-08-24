@@ -1,0 +1,28 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-legal-matter-strategy",
+  "description": "Matter-strategy desk over new-case strategy, issue trees, evidence checklists, risk analysis, pleading outlines, and approval-gated drafting packs grounded in internal precedents (approve / request changes / revise / block) before a strategy pack becomes a drafting handoff",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["legal", "risk:local-write", "industry:legal", "surface:busabase"],
+  "template": {
+    "category": "legal",
+    "schemaVersion": 1,
+    "airapp": "kelly-legal-matter-strategy-app",
+    "tags": ["legal", "risk:local-write", "industry:legal", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/checks.webp",
+      "assets/screenshots/entities.webp",
+      "assets/screenshots/needs-review.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/workbench.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Strategy Packs and flag what needs my attention.",
+      "Open Legal Matter Strategy and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

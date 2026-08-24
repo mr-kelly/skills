@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Ads' Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/ads-model.js`).
+(`content/kelly-ads-app/app/js/providers/busabase-provider.js`, `content/kelly-ads-app/app/js/ads-model.js`).
 Campaign totals (`totals_7d`, `trend`), platform rollups (`spend_14d`,
 `revenue_14d`, `roas`, `acos_pct`), and top-level `metrics` are computed
 client-side from the `campaigns` Base on every read — they are never stored.
@@ -13,7 +13,7 @@ Decision verdicts: `approve`, `request_changes`, `block`, `note`.
 
 Anomaly states: `open`, `actioned`, `dismissed`, `resolved`.
 
-## Platforms (`kelly-ads-platforms-v1`)
+## Platforms (`kelly-ads-platforms`)
 
 The connected ad-platform roster. Rollup fields below are recomputed client-side from `campaigns`, never stored here.
 
@@ -26,7 +26,7 @@ The connected ad-platform roster. Rollup fields below are recomputed client-side
 | `currency` | `currency` | text | |
 | `last-sync-at` | `last_sync_at` | text | ISO timestamp, written by `scripts/ingest_reports.mjs` |
 
-## Campaigns (`kelly-ads-campaigns-v1`)
+## Campaigns (`kelly-ads-campaigns`)
 
 One row per campaign. `daily` and `targets` are JSON-encoded (Busabase has no array field type).
 
@@ -48,7 +48,7 @@ One row per campaign. `daily` and `targets` are JSON-encoded (Busabase has no ar
 
 `totals_7d` (`{spend, impressions, clicks, conversions, revenue, roas, acos_pct, cpc}`) and `trend` (`up\|down\|flat`) are derived from `daily` by `totalsForDays()`/`trendFor()` on every read.
 
-## Anomalies (`kelly-ads-anomalies-v1`)
+## Anomalies (`kelly-ads-anomalies`)
 
 Deterministic anomaly feed, upserted by `scripts/run_checks.mjs` with stable ids so re-detection refreshes evidence instead of duplicating.
 
@@ -68,7 +68,7 @@ Deterministic anomaly feed, upserted by `scripts/run_checks.mjs` with stable ids
 
 A cleared condition auto-resolves `open|actioned` to `resolved`; `dismissed` stays dismissed (dismissal is a manual field edit, not exposed in the review UI yet).
 
-## Adjustments (`kelly-ads-adjustments-v1`)
+## Adjustments (`kelly-ads-adjustments`)
 
 Agent-proposed adjustment cards under review-before-execute.
 
@@ -101,7 +101,7 @@ Agent-proposed adjustment cards under review-before-execute.
 
 `status: "done"` and the real `execution` result are recorded by the agent after it performs the mutation outside the app via the platform APIs — `execute_decisions.mjs` only ever plans (`execution-status: "planned"`) and never sets `status` to `done` itself.
 
-## Sync Log (`kelly-ads-sync-log-v1`)
+## Sync Log (`kelly-ads-sync-log`)
 
 Append-only feed, upserted by `sync-id` so a same-day re-ingest/re-check updates its own entry instead of duplicating.
 
@@ -114,7 +114,7 @@ Append-only feed, upserted by `sync-id` so a same-day re-ingest/re-check updates
 | `message` | `message` | longtext | short human-readable line |
 | `rows` | `rows` | number | |
 
-## Settings (`kelly-ads-settings-v1`)
+## Settings (`kelly-ads-settings`)
 
 A single row, `record-id: "config"`.
 
@@ -136,7 +136,7 @@ A single row, `record-id: "config"`.
 | `csv-mappings` | `csv_mappings` | longtext | JSON map `{<platform_id>: {campaign, date, spend, impressions, clicks, conversions, revenue, currency}}`, read by `scripts/ingest_reports.mjs --csv` |
 | `spend-last-month` | `spend_last_month` | number | last calendar month's total spend, for the overview KPI card's month-over-month comparison |
 
-The effective ACOS target for a campaign resolves per-product override (by SKU) beats per-platform override (by platform id) beats `default-acos-pct` — the only place `per-platform-targets`/`per-product-targets` are read (`resolveAcosTarget()` in `app/app/js/ads-model.js`).
+The effective ACOS target for a campaign resolves per-product override (by SKU) beats per-platform override (by platform id) beats `default-acos-pct` — the only place `per-platform-targets`/`per-product-targets` are read (`resolveAcosTarget()` in `content/kelly-ads-app/app/js/ads-model.js`).
 
 ## Decisions
 

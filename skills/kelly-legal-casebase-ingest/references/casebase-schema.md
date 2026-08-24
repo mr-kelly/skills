@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Legal Casebase Ingest's Busabase
 Bases. Field slugs are kebab-case in Busabase and normalized to snake_case in
-app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/casebase-model.js`). Metrics and the recent-activity feed are
+app code (`content/kelly-legal-casebase-ingest-app/app/js/providers/busabase-provider.js`,
+`content/kelly-legal-casebase-ingest-app/app/js/casebase-model.js`). Metrics and the recent-activity feed are
 computed client-side from the `items`/`entities`/`checks` Bases on every read
 (`buildSnapshot`/`assembleSnapshot` in `casebase-model.js`) — the only
 persisted state is what lives directly on those four Bases.
@@ -17,7 +17,7 @@ an edited draft/note returns the record to the queue), not "unchanged" — see
 
 Check results: `pass`, `warn`, `fail`.
 
-## Items (`kelly-legal-casebase-ingest-items-v1`)
+## Items (`kelly-legal-casebase-ingest-items`)
 
 An item record is both the case-record workbench entry and its review-queue
 item — there is no separate review-item or decisions Base.
@@ -62,7 +62,7 @@ a human in a standalone local preview) writes the `decision-*` fields;
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Entities (`kelly-legal-casebase-ingest-entities-v1`)
+## Entities (`kelly-legal-casebase-ingest-entities`)
 
 Canonical case-library groupings, not raw source documents.
 
@@ -77,7 +77,7 @@ Canonical case-library groupings, not raw source documents.
 | `tags` | `tags` | longtext | JSON array of tags |
 | `metrics` | `metrics` | longtext | JSON object, e.g. `{"case_count":18,"pii_flags":1,"source_refs":14}` |
 
-## Checks (`kelly-legal-casebase-ingest-checks-v1`)
+## Checks (`kelly-legal-casebase-ingest-checks`)
 
 Deterministic QA checks for PII leakage, missing metadata, source coverage,
 and tag confidence. `scripts/ingest_documents.mjs` upserts these alongside
@@ -92,7 +92,7 @@ items/entities as part of the agent's payload.
 | `item-id` | `item_id` | text | references `items.item-id` |
 | `severity` | `severity` | text | optional severity label |
 
-## Settings (`kelly-legal-casebase-ingest-settings-v1`)
+## Settings (`kelly-legal-casebase-ingest-settings`)
 
 A single row, `record-id: "config"`:
 

@@ -36,8 +36,8 @@ This is outbound marketing to a subscriber list — distinct from `kelly-email`,
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-campaigns-app install
+pnpm --dir content/kelly-campaigns-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

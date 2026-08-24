@@ -5,7 +5,7 @@
 // retired scripts/ingest_feedback.ts: same validation rules, same
 // `fb-<source_id>-<external_id>` feedback_id derivation, same dedupe-by-id
 // idempotent re-ingest semantics — only the storage target changed, from
-// app/.data/feedback_snapshot.json to Busabase's products/sources/feedback
+// content/kelly-feedback-app/.data/feedback_snapshot.json to Busabase's products/sources/feedback
 // Bases. The retired script's source registration is now folded into this
 // script's `payload.source` field (always present, upserted first); an
 // optional `payload.products[]` field additionally upserts product catalog
@@ -19,7 +19,7 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-feedback-app/app/js/config.js";
 
 const CHANNELS = ["email", "discord", "slack", "x", "appstore", "survey", "interview"];
 const SENTIMENTS = ["positive", "neutral", "negative"];
@@ -242,7 +242,7 @@ async function main() {
 
     await upsertRow(
       client,
-      declared("sync_log"),
+      declared("sync-log"),
       null,
       {
         sync_id: `ingest-${sourceId}-${Date.now()}`,

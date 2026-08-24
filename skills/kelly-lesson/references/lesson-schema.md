@@ -2,7 +2,7 @@
 
 Use this schema when reading or writing Kelly Lesson's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/lesson-model.js`).
+(`content/kelly-lesson-app/app/js/providers/busabase-provider.js`, `content/kelly-lesson-app/app/js/lesson-model.js`).
 Compliance checks, per-plan compliance scores, review-item content, the
 recent-activity feed, and metrics are all computed client-side from the
 `teachers`/`plans`/`checks`/`settings` Bases on every read (`buildSnapshot`/
@@ -17,7 +17,7 @@ Plan sources: `agent_draft`, `teacher_import`.
 
 Check results: `pass`, `warn`, `fail`, `agent_review`.
 
-## Teachers (`kelly-lesson-teachers-v1`)
+## Teachers (`kelly-lesson-teachers`)
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -26,7 +26,7 @@ Check results: `pass`, `warn`, `fail`, `agent_review`.
 | `subject` | `subject` | text | |
 | `grades` | `grades` | longtext | JSON array, e.g. `["Grade 7","Grade 8"]` |
 
-## Plans (`kelly-lesson-plans-v1`)
+## Plans (`kelly-lesson-plans`)
 
 A plan record is both the lesson plan and its review-queue item — there is
 no separate review-item or decisions Base. `scripts/ingest_plan.mjs` writes
@@ -74,7 +74,7 @@ the AirApp (or a human in a standalone local preview) writes the
 | `created-at` | `created_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
-## Checks (`kelly-lesson-checks-v1`)
+## Checks (`kelly-lesson-checks`)
 
 One row per plan × compliance rule, keyed by `check-id = chk-<plan without
 "plan-" prefix>-<rule-id>`. `scripts/run_checks.mjs` upserts every row;
@@ -93,7 +93,7 @@ ingest payload's `check_results` (marking `judged-by: "agent"`, which
 | `judged-by` | `judged_by` | text | `agent`, only set for agent-judged `agent_review` rules |
 | `checked-at` | `checked_at` | text | ISO timestamp |
 
-## Settings (`kelly-lesson-settings-v1`)
+## Settings (`kelly-lesson-settings`)
 
 A single row, `record-id: "config"`:
 

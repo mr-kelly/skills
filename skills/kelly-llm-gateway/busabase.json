@@ -1,0 +1,31 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-llm-gateway",
+  "description": "Platform team's cost and model-governance dashboard over a shared LLM gateway: per-service/per-model call volume, cost, and error rate; a canary-rollout status board; and a deterministic cost/error anomaly list. Generic and brand-free — only role-based service names and generic provider/model labels. Human actions (promote/rollback/hold a rollout, acknowledge an anomaly) are written directly onto the route's own record — this app never changes a real routing config",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["platform", "risk:sandbox", "surface:busabase"],
+  "template": {
+    "category": "platform",
+    "schemaVersion": 1,
+    "airapp": "kelly-llm-gateway-app",
+    "tags": ["platform", "risk:sandbox", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/anomalies.webp",
+      "assets/screenshots/anomalies.zh-CN.webp",
+      "assets/screenshots/cost-breakdown.webp",
+      "assets/screenshots/cost-breakdown.zh-CN.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/overview.zh-CN.webp",
+      "assets/screenshots/rollouts.webp",
+      "assets/screenshots/rollouts.zh-CN.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Routes and flag what needs my attention.",
+      "Open Kelly LLM Gateway and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

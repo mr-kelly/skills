@@ -7,7 +7,7 @@
   "scripts": {
     "generate": "node scripts/generate_review_batch.mjs",
     "execute": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-pr-review-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

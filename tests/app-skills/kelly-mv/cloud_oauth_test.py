@@ -16,7 +16,7 @@ sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
 
 from runtime import free_port, managed_process
 
-APP_ROOT = REPO_ROOT / "skills" / "kelly-mv" / "app"
+APP_ROOT = REPO_ROOT / "skills" / "kelly-mv" / "content" / "kelly-mv-app"
 REQUIRED_ENV = (
     "KELLY_APP_CLOUD_BASE_URL",
     "KELLY_APP_CLOUD_TEST_EMAIL",

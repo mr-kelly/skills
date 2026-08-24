@@ -8,7 +8,7 @@
     "ingest": "node scripts/ingest_feedback.mjs",
     "cluster": "node scripts/apply_clusters.mjs",
     "execute": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-feedback-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

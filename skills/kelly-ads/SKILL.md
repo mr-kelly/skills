@@ -7,6 +7,18 @@ metadata:
     - risk:gated-write
     - industry:ecommerce
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-ads
+    resources:
+      - platforms
+      - campaigns
+      - anomalies
+      - adjustments
+      - sync-log
+      - settings
+    risk: gated-write
+
 ---
 
 # Kelly Ads
@@ -66,7 +78,7 @@ place performance data enters the system.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-ads-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -88,13 +100,13 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Six Bases under one application Folder (`kelly-ads`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-ads-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `platforms`: connected ad-platform roster (Amazon Ads, Meta, TikTok Ads, Google Ads) — display-safe account id, status, currency, last sync. Rollups (spend/revenue/ROAS/ACOS/campaign count) are derived client-side from `campaigns`, never stored.
 - `campaigns`: one row per campaign — budget, status, ACOS target, and the daily spend/impressions/clicks/conversions/revenue series plus the search-term/audience/creative/asset-group targets (both JSON-encoded).
 - `anomalies`: the deterministic anomaly feed (`acos_breach`/`budget_exhausted`/`zero_conversion_spend`/`cpc_spike`/`rejected`) with evidence, severity, state, and a link to the adjustment card when one exists.
 - `adjustments`: the review queue — agent-proposed adjustment cards (`negative_keyword`/`bid_down`/`bid_up`/`pause_target`/`budget_shift`/`creative_refresh`) with reason, evidence, current/proposed value, expected impact, and the human verdict.
-- `sync_log`: append-only feed of ingest runs, anomaly checks, and execution plans.
+- `sync-log`: append-only feed of ingest runs, anomaly checks, and execution plans.
 - `settings`: one row (`record-id: "config"`) with ACOS/ROAS targets (default plus per-platform/per-product overrides), anomaly thresholds, currency rates, and CSV column mappings.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
@@ -123,7 +135,7 @@ node skills/kelly-ads/scripts/ingest_reports.mjs payload.json --apply
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-ads-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -195,7 +207,7 @@ node skills/kelly-ads/scripts/ingest_reports.mjs payload.json --apply
 node skills/kelly-ads/scripts/ingest_reports.mjs --csv report.csv --platform amazon --apply
 node skills/kelly-ads/scripts/run_checks.mjs --apply
 node skills/kelly-ads/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-ads/app dev
+pnpm --dir skills/kelly-ads/content/kelly-ads-app dev
 ```
 
 In normal use, invoke `/kelly-ads`, let the skill ingest and check what's

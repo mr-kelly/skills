@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Legal Casebase Ingest",
+  "description": "Casebase intake and anonymization QA desk for law-firm judgment and arbitral award documents: agent-prepared case records, canonical case-library groupings, deterministic QA checks, and a review queue (approve / request changes / revise / block) before a record becomes a searchable knowledge asset"
+}

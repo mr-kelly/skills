@@ -42,7 +42,7 @@ Kelly Family Office is a Busabase Cloud App-in-Skill dashboard that consolidates
 Run the app locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-family-office/app dev
+pnpm --dir skills/kelly-family-office/content/kelly-family-office-app dev
 ```
 
 Then add one of these demo paths:

@@ -6,6 +6,18 @@ metadata:
   tags:
     - risk:local-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-standup
+    resources:
+      - members
+      - days
+      - checkins
+      - blockers
+      - reminders
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly Standup
@@ -70,7 +82,7 @@ via kelly-messenger / kelly-email, after human approval.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-standup-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -91,7 +103,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Six Bases under one application Folder (`kelly-standup`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-standup-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `members`: team roster — name, role, timezone, channel, active, `contact-env` (an env var *name*, never a value), notes.
 - `days`: one row per recorded standup day — digest paragraph and who is on leave.
@@ -128,7 +140,7 @@ can be empty on this first run). See `references/standup-schema.md`.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-standup-app dev` only when local preview/debugging is explicitly
 requested.
 
 Required app views (hash routes):
@@ -182,7 +194,7 @@ node skills/kelly-standup/scripts/ingest_updates.mjs payload.json
 node skills/kelly-standup/scripts/ingest_updates.mjs payload.json --apply
 node skills/kelly-standup/scripts/execute_decisions.mjs
 node skills/kelly-standup/scripts/execute_decisions.mjs --apply
-pnpm --dir skills/kelly-standup/app dev
+pnpm --dir skills/kelly-standup/content/kelly-standup-app dev
 ```
 
 In normal use, invoke `/kelly-standup`, let the skill ingest today's updates, and open the AirApp.

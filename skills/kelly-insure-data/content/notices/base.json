@@ -1,0 +1,64 @@
+{
+  "name": "保司通知",
+  "description": "Carrier notices and operational announcements",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "content",
+      "name": "Content",
+      "type": "longtext",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "source_url",
+      "name": "Source URL",
+      "type": "url",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "carrier",
+      "name": "Carrier",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "published_at",
+      "name": "Published At",
+      "type": "date",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}

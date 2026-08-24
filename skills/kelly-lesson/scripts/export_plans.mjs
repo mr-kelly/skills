@@ -5,7 +5,7 @@
 // each as a clean Markdown document. planMarkdown()/listBlock()/slugify() are
 // ported verbatim (same headings, same table shape, same footer) from the
 // retired scripts/export_plans.ts; only the read source changed, from a
-// persisted app/.data/lesson_snapshot.json to Busabase's teachers/plans
+// persisted content/kelly-lesson-app/.data/lesson_snapshot.json to Busabase's teachers/plans
 // Bases. DOCX or PDF conversion is delegated to the agent's document skills
 // per SKILL.md — this script produces Markdown only and has no other
 // external effects (it never writes back to Busabase).
@@ -19,7 +19,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-lesson-app/app/js/config.js";
 
 const skillDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 

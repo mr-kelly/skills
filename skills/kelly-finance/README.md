@@ -39,7 +39,7 @@ or written back to the source-of-truth books.
 Run the app and open a safe mock-data model:
 
 ```bash
-pnpm --dir skills/kelly-finance/app dev
+pnpm --dir skills/kelly-finance/content/kelly-finance-app dev
 ```
 
 Then open `http://127.0.0.1:<port>/?demo=1#/overview` (add `lang=zh` for the

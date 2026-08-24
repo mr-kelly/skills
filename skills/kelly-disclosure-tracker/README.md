@@ -45,7 +45,7 @@ never files anything and never calls any external system.
 ## Demo Mode
 
 ```bash
-pnpm --dir skills/kelly-disclosure-tracker/app dev
+pnpm --dir skills/kelly-disclosure-tracker/content/kelly-disclosure-tracker-app dev
 ```
 
 Use the printed URL, then add one of these demo paths:

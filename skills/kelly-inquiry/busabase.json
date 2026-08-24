@@ -1,0 +1,44 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-inquiry",
+  "description": "Inbound-inquiry reception desk: WhatsApp/Instagram/Messenger/email accounts, inquiries, product KB, quotes, and the reply/quote approval queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": [
+    "sales-crm",
+    "risk:gated-write",
+    "industry:ecommerce",
+    "surface:busabase",
+    "surface:whatsapp",
+    "surface:instagram",
+    "surface:messenger"
+  ],
+  "template": {
+    "category": "sales-crm",
+    "schemaVersion": 1,
+    "airapp": "kelly-inquiry-app",
+    "tags": [
+      "sales-crm",
+      "risk:gated-write",
+      "industry:ecommerce",
+      "surface:busabase",
+      "surface:whatsapp",
+      "surface:instagram",
+      "surface:messenger"
+    ],
+    "screenshots": [
+      "assets/screenshots/approvals.webp",
+      "assets/screenshots/inquiries.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/products.webp",
+      "assets/screenshots/quotes.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Accounts and flag what needs my attention.",
+      "Open Kelly Inquiry and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

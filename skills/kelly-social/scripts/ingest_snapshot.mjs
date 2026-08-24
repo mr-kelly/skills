@@ -9,7 +9,7 @@
 //
 // Ported from the retired scripts/ingest_snapshot.ts: same payload shape,
 // same validation rules, same account/post merge-by-stable-id semantics —
-// only the storage target changed, from app/.data/social_snapshot.json to
+// only the storage target changed, from content/kelly-social-app/.data/social_snapshot.json to
 // Busabase records. Connects with the trusted process's own credentials
 // (BUSABASE_BASE_URL, BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the
 // AirApp's ambient session. Writes are gated behind --apply (default dry run).
@@ -29,7 +29,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
+import { appConfig } from "../content/kelly-social-app/app/js/config.js";
 
 const PLATFORMS = ["x", "facebook", "instagram", "linkedin", "youtube", "threads", "tiktok", "xiaohongshu", "manual"];
 const COLLECTION_METHODS = ["browser_agent", "api", "manual_export"];
@@ -279,7 +279,7 @@ async function main() {
     const syncId = `sync-${incoming.account_id}-${Date.now()}`;
     await upsertRow(
       client,
-      declared("sync_log"),
+      declared("sync-log"),
       null,
       {
         sync_id: syncId,

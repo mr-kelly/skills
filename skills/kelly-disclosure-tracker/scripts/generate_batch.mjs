@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Trusted seed step. Writes the fixed 9-vehicle / 6-item-per-vehicle mock
 // batch (ported verbatim from the retired scripts/generate_batch.ts, now
-// living in app/app/js/tracker-model.js's buildSeedData()) into the
+// living in content/kelly-disclosure-tracker-app/app/js/tracker-model.js's buildSeedData()) into the
 // Busabase `vehicles` and `items` Bases, resetting every item's decision
 // fields to a fresh pre-populated mix (verified / needs-source / flagged /
 // needs-review) exactly like the retired script did for
-// app/.data/current_batch.json. Also (re)writes the `settings` Base's `run`
+// content/kelly-disclosure-tracker-app/.data/current_batch.json. Also (re)writes the `settings` Base's `run`
 // row (batch id + generated-at) and, on first run only, seeds a default
 // `config` row (reviewer name) so it can be set once per install. No
 // external calls — all vehicle/entity names are generic placeholders.
@@ -14,8 +14,8 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { buildSeedData } from "../app/app/js/tracker-model.js";
+import { appConfig } from "../content/kelly-disclosure-tracker-app/app/js/config.js";
+import { buildSeedData } from "../content/kelly-disclosure-tracker-app/app/js/tracker-model.js";
 
 function help() {
   console.log(`Usage: node scripts/generate_batch.mjs [--apply]

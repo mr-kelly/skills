@@ -6,7 +6,7 @@ import {
   evidenceAgeDays,
   evidenceLabel,
   normalizeCompany,
-} from "../../../skills/kelly-sales-outreach/app/app/js/sales-outreach-model.js";
+} from "../../../skills/kelly-sales-outreach/content/kelly-sales-outreach-app/app/js/sales-outreach-model.js";
 
 const company = (id, fields) => ({ id, baseKey: "companies", fields: { key: id, name: id, ...fields } });
 

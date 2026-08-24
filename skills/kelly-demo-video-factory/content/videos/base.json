@@ -1,0 +1,155 @@
+{
+  "name": "Videos",
+  "description": "One row per video: purpose, hook, pain point, concept, status, verified claims, HyperFrame path, final video URL, owner.",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "series",
+      "name": "Series",
+      "type": "select",
+      "required": false,
+      "position": 1,
+      "options": {
+        "choices": []
+      }
+    },
+    {
+      "slug": "purpose",
+      "name": "Purpose",
+      "type": "longtext",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "hook",
+      "name": "Hook",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "pain-point",
+      "name": "Pain Point",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "concept",
+      "name": "Concept",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "select",
+      "required": false,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "idea",
+            "name": "idea",
+            "color": "gray"
+          },
+          {
+            "id": "needs_review",
+            "name": "needs_review",
+            "color": "yellow"
+          },
+          {
+            "id": "approved",
+            "name": "approved",
+            "color": "blue"
+          },
+          {
+            "id": "recording",
+            "name": "recording",
+            "color": "orange"
+          },
+          {
+            "id": "post_production",
+            "name": "post_production",
+            "color": "purple"
+          },
+          {
+            "id": "done",
+            "name": "done",
+            "color": "green"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "verified-claims",
+      "name": "Verified Claims",
+      "type": "markdown",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "hyperframe-path",
+      "name": "Hyperframe Path",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "final-video-url",
+      "name": "Final Video URL",
+      "type": "url",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "select",
+      "required": false,
+      "position": 10,
+      "options": {
+        "choices": [
+          {
+            "id": "kelly",
+            "name": "kelly",
+            "color": "pink"
+          },
+          {
+            "id": "ai",
+            "name": "ai",
+            "color": "cyan"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "shots",
+      "name": "Shots",
+      "type": "relation",
+      "required": false,
+      "position": 11,
+      "options": {
+        "multiple": true,
+        "targetBaseSlug": "video-shots"
+      }
+    }
+  ],
+  "views": []
+}

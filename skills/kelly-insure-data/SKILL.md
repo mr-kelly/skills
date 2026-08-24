@@ -7,6 +7,16 @@ metadata:
     - risk:read-only
     - industry:insurance
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-insure-data
+    resources:
+      - featured
+      - notices
+      - qa
+      - feedback
+    risk: read-only
+
 ---
 
 # Kelly Insure Data
@@ -20,7 +30,7 @@ Default behavior is AirApp-first. Unless the user explicitly asks only for expla
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-insure-data-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -38,14 +48,14 @@ owns the way most other Kelly App-in-Skills do. There is nothing for a
 read-only reader to safely auto-create in someone else's canonical dataset,
 so:
 
-- `app/app/js/config.js` declares the Drive node and the four Bases (by slug)
+- `content/kelly-insure-data-app/app/js/config.js` declares the Drive node and the four Bases (by slug)
   for lookup only; page size is the reader's own concern, not a per-Base
   declaration, so each Base is read to exhaustion. It does **not** go through
   `resource-provisioning.js`'s create-if-missing/ownership-metadata flow used
   by every other converted skill in this batch — that flow is the wrong model
   for "connect to an existing external workspace."
-- `app/app/js/providers/busabase-provider.js` resolves the Drive node and
-  each Base by slug (via `app/app/js/insure-client.js`, a raw-fetch client —
+- `content/kelly-insure-data-app/app/js/providers/busabase-provider.js` resolves the Drive node and
+  each Base by slug (via `content/kelly-insure-data-app/app/js/insure-client.js`, a raw-fetch client —
   see below) and degrades a missing resource to a `snapshot.warnings` entry,
   exactly like the retired `lib/data-provider/busabase-provider.ts` did. It
   never shows an "Initialize workspace" setup screen and never creates a
@@ -61,8 +71,8 @@ so:
 Bases/records reads) only wraps `/api/v1/nodes`, `/api/v1/bases`, and
 `/api/v1/records`. It has no equivalent for the Drive/Asset REST surface
 (`/api/v1/drives/*`, `/api/v1/assets/*`) this skill's file drive needs.
-`app/app/js/insure-client.js` is therefore a small browser module that talks
-straight to the same-origin `/api/v1/*` proxy in `app/server.js` with plain
+`content/kelly-insure-data-app/app/js/insure-client.js` is therefore a small browser module that talks
+straight to the same-origin `/api/v1/*` proxy in `content/kelly-insure-data-app/server.js` with plain
 `fetch` — a port of the read paths (`resolveDrive`, `resolveBase`,
 `listDriveFiles`, `listRecords`) from the retired
 `lib/data-provider/busabase-client.ts`, with two endpoint paths corrected
@@ -117,20 +127,20 @@ node/drive/record ChangeRequests) that
 
 ## Busabase Resources
 
-Declared in `app/app/js/config.js` and `app/resource-map.json`, resolved by
+Declared in `content/kelly-insure-data-app/app/js/config.js` and the generated template sidecars under `content/`, resolved by
 slug (IDs are never required):
 
-- `drive` (`hk-insurance-drive`): the file drive — insurance PDFs/docs with
+- `drive` (`kelly-insure-data-files`): the file drive — insurance PDFs/docs with
   governance metadata (`policy_type`, `carrier`, `region`, `effective_date`,
   `status`, ...).
-- `featured` (`featured-information`) and `notices` (`insurance-news`,
+- `featured` (`kelly-insure-data-featured`) and `notices` (`kelly-insure-data-notices`,
   legacy alias `news`): combined in the `#/news` route, each item tagged
   `featured` or `notice`.
-- `qa` (`insurance-qa`): canonical insurance question/answer pairs.
-- `feedback` (`user-feedback`): user feedback records.
+- `qa` (`kelly-insure-data-qa`): canonical insurance question/answer pairs.
+- `feedback` (`kelly-insure-data-feedback`): user feedback records.
 - `prompts` (`insurance-prompts`, 预置提示词): the preset prompt library read by
   the insure miniapp, **not** by this AirApp. It is not declared in
-  `app/app/js/config.js` and never appears in the snapshot, but it lives in the
+  `content/kelly-insure-data-app/app/js/config.js` and never appears in the snapshot, but it lives in the
   same workspace folder as the four Bases above, so an operator provisioning or
   repairing this workspace must keep it — with the field contract in
   `references/insure-data-schema.md`.
@@ -162,8 +172,8 @@ They read local PDF bytes from disk, which a browser AirApp cannot do.
 
 ```bash
 cd skills/kelly-insure-data
-npm run busabase:export -- --output app/.data/busabase_restore_manifest.json
-npm run busabase:restore -- --manifest app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run
+npm run busabase:export -- --output content/kelly-insure-data-app/.data/busabase_restore_manifest.json
+npm run busabase:restore -- --manifest content/kelly-insure-data-app/.data/busabase_restore_manifest.json --files-root /path/to/local/pdf-backup --dry-run
 npm run busabase:backfill-pdf-text -- --drive-node-id <node-id> --files-root /path/to/local/pdf-backup --limit 5
 ```
 
@@ -192,7 +202,7 @@ npm run busabase:backfill-pdf-text -- --drive-node-id <node-id> --files-root /pa
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-insure-data-app dev` only when local preview/debugging is explicitly
 requested. UI language supports Chinese (primary) and English chrome with an
 `Auto` default.
 
@@ -200,7 +210,7 @@ requested. UI language supports Chinese (primary) and English chrome with an
 
 The workspace already contains a deployed AirApp node, `hk-insurance-workbench`
 (港险资料库工作台), sitting at the space root beside the 港险公司资料库 folder. It
-is **not** a deployment of this skill's `app/` artifact — it is an older
+is **not** a deployment of this skill's `content/kelly-insure-data-app/` artifact — it is an older
 hand-written five-file viewer (`package.json`, `server.js`, `index.html`,
 `app.js`, `styles.css`) that predates the AirApp migration. Treat it as a second,
 much smaller surface on the same dataset: a read-only tile row of record counts
@@ -243,14 +253,14 @@ above; and a hardcoded three-Base id list that had gone stale. Bases are now res
 plus a warning instead of failing the page.
 
 Open question for the operator, deliberately left open: whether to keep this
-node as a thin viewer or replace its contents with this skill's `app/` artifact.
+node as a thin viewer or replace its contents with this skill's `content/kelly-insure-data-app/` artifact.
 Keeping both means two divergent readers of one dataset; replacing means
-uploading the full `app/` tree, including the vendored SDK, into the node.
+uploading the full `content/kelly-insure-data-app/` tree, including the vendored SDK, into the node.
 
 ## File Contract
 
 Read `references/insure-data-schema.md` before editing the app or
-`app/app/js/config.js`, and `references/restore-manifest-schema.md` before
+`content/kelly-insure-data-app/app/js/config.js`, and `references/restore-manifest-schema.md` before
 changing the trusted export/restore scripts.
 
 ## Safety Defaults
@@ -260,6 +270,6 @@ changing the trusted export/restore scripts.
   operator's own credentials and an explicit `--apply`.
 - Keep real tokens in environment variables only; never commit
   `config.local.json`-style files, local PDF backups, or anything under
-  `app/.data/`.
+  `content/kelly-insure-data-app/.data/`.
 - A missing Drive node or Base degrades to a visible warning, never a
   blocked or broken view.

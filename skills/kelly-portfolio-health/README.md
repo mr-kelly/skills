@@ -57,7 +57,7 @@ mock book (no real company, fund, or SME names).
 Run the app and open a safe, fully offline mock scene:
 
 ```bash
-pnpm --dir skills/kelly-portfolio-health/app dev
+pnpm --dir skills/kelly-portfolio-health/content/kelly-portfolio-health-app dev
 ```
 
 Use the printed local URL, then add one of these demo paths:
@@ -72,13 +72,13 @@ Use the printed local URL, then add one of these demo paths:
 Add `lang=zh` for the Chinese UI chrome, e.g. `/?demo=1&lang=zh#/overview`.
 
 Demo mode is fully offline (~52 contracts across 8 categories and 10
-cities, ported verbatim from the retired `app/server/dataset.ts`) and never
+cities, ported verbatim from the retired `content/kelly-portfolio-health-app/server/dataset.ts`) and never
 reads or writes Busabase; flag/note actions taken while `?demo=` is set only
 update in-memory state in the browser tab.
 
 ## Busabase Data
 
 The AirApp is Busabase-backed: contracts and settings both live in Busabase
-Bases declared in `app/app/js/config.js` (see
+Bases declared in `content/kelly-portfolio-health-app/app/js/config.js` (see
 `references/portfolio-schema.md`). Resources provision lazily on first run.
 There is no local file storage and no separate provider choice.

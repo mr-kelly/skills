@@ -6,14 +6,14 @@
 // `settings` rows for `run` metadata and `config` (team/version/policy), and
 // clears any prior `release` verdict. Ported from the retired
 // scripts/generate_eval_run.ts, which wrote the same shape to
-// app/.data/eval_run.json/decisions.json/release_decision.json.
+// content/kelly-agent-eval-app/.data/eval_run.json/decisions.json/release_decision.json.
 //
 // Connects with the trusted process's own credentials (BUSABASE_BASE_URL,
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { RAW_CASES, computeMetrics, toRun } from "../app/app/js/eval-model.js";
+import { appConfig } from "../content/kelly-agent-eval-app/app/js/config.js";
+import { RAW_CASES, computeMetrics, toRun } from "../content/kelly-agent-eval-app/app/js/eval-model.js";
 
 function help() {
   console.log(`Usage: node scripts/generate_eval_run.mjs [--apply] [options]

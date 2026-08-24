@@ -51,7 +51,7 @@ review/approval queue.
 Run the app and open a safe, fully offline mock scene:
 
 ```bash
-pnpm --dir skills/kelly-revshare-simulator/app dev
+pnpm --dir skills/kelly-revshare-simulator/content/kelly-revshare-simulator-app dev
 ```
 
 Use the printed local URL, then add one of these demo paths:
@@ -66,13 +66,13 @@ Use the printed local URL, then add one of these demo paths:
 Add `lang=zh` for the Chinese UI chrome, e.g. `/?demo=1&lang=zh#/overview`.
 
 Demo mode is fully offline (four scenarios ported verbatim from the retired
-`app/server/demo.ts`) and never reads or writes Busabase; create/edit/delete/
+`content/kelly-revshare-simulator-app/server/demo.ts`) and never reads or writes Busabase; create/edit/delete/
 decision actions taken while `?demo=` is set only update in-memory state in
 the browser tab.
 
 ## Busabase Data
 
 The AirApp is Busabase-backed: scenarios and settings both live in Busabase
-Bases declared in `app/app/js/config.js` (see `references/ui-schema.md`).
+Bases declared in `content/kelly-revshare-simulator-app/app/js/config.js` (see `references/ui-schema.md`).
 Resources provision lazily on first run. There is no local file storage and
 no separate provider choice.

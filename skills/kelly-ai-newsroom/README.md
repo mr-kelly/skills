@@ -40,7 +40,7 @@ Kelly AI Newsroom is a Busabase App-in-Skill cockpit for turning AI and news-sou
 ## Demo Mode
 
 ```bash
-pnpm --dir skills/kelly-ai-newsroom/app dev
+pnpm --dir skills/kelly-ai-newsroom/content/kelly-ai-newsroom-app dev
 ```
 
 Open the printed URL and use `?demo=overview&lang=en#/overview`, `?demo=signals&lang=en#/signals`, `?demo=actions&lang=en#/actions`, or `?demo=drafts&lang=en#/drafts`.

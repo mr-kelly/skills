@@ -1,0 +1,88 @@
+{
+  "name": "Research Questions",
+  "description": "Research questions moving through brief_needs_review -> researching -> report_ready -> closed",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "question-id",
+      "name": "Question ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "question",
+      "name": "Question",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "asked-at",
+      "name": "Asked at",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "depth",
+      "name": "Depth",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "cost-note",
+      "name": "Cost note",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "brief-id",
+      "name": "Brief ID",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "report-id",
+      "name": "Report ID",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "confidence",
+      "name": "Confidence",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "followups",
+      "name": "Follow-ups",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -1,0 +1,28 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-radar",
+  "description": "Market-intelligence desk: competitor signals, research briefs/reports, trend movers/opportunities, and a triage review queue",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["growth", "risk:local-write", "surface:busabase"],
+  "template": {
+    "category": "growth",
+    "schemaVersion": 1,
+    "airapp": "kelly-radar-app",
+    "tags": ["growth", "risk:local-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/research.webp",
+      "assets/screenshots/signals.webp",
+      "assets/screenshots/trends.webp",
+      "assets/screenshots/watchlist.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Watchlist and flag what needs my attention.",
+      "Open Kelly Radar and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

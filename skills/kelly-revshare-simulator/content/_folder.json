@@ -1,0 +1,4 @@
+{
+  "name": "Kelly Revenue-Share Simulator",
+  "description": "Revenue-Share Contract Simulator: a control-panel/workspace for a deal analyst to model revenue-based-financing (RBF) deals for SME businesses -- project cash flow and repayment, compute a Cash-Flow Payout Multiple and effective annualized merchant cost, and record an underwriting decision per named scenario. Pure deterministic math, no external calls, no real trading/payment side effects; scenario create/edit/delete and decisions are direct writes made by the analyst, not a review/approval queue"
+}

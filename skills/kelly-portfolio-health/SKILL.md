@@ -6,6 +6,14 @@ metadata:
   tags:
     - risk:local-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-portfolio-health
+    resources:
+      - contracts
+      - settings
+    risk: local-write
+
 ---
 
 # RBF Portfolio Health Dashboard
@@ -32,8 +40,8 @@ This is a direct-manipulation dashboard, not a review-then-approve queue:
 there is no AI-authored draft to approve and no separate execute/decisions
 step. Totals, repayment lag, concentration, and the watchlist are computed
 by a documented, deterministic function
-(`app/app/js/portfolio-model.js`, ported from the retired
-`app/server/insights.ts`); the human flags/clears/annotates a contract
+(`content/kelly-portfolio-health-app/app/js/portfolio-model.js`, ported from the retired
+`content/kelly-portfolio-health-app/server/insights.ts`); the human flags/clears/annotates a contract
 directly in the UI, writing straight onto the contract's own Busabase record
 — the same way `kelly-llm-gateway`'s rollout promote/rollback/hold and
 `kelly-lead-funnel`'s kanban stage moves work.
@@ -47,7 +55,7 @@ mode only when the user says "纯聊天", "chat only", "不要打开 UI", or sim
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-portfolio-health-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -99,7 +107,7 @@ exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Two Bases under one application Folder (`kelly-portfolio-health`), declared
-in `app/app/js/config.js` and `app/resource-map.json`:
+in `content/kelly-portfolio-health-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `contracts`: one row per RBF/private-credit contract — funding terms
   (`funding-amount`, `cap-multiple`, `cap-amount`), `cumulative-repayment`, a
@@ -117,8 +125,8 @@ exact field shapes.
 
 ## Portfolio Health Model
 
-`app/app/js/portfolio-model.js` (`computeInsights`) is ported verbatim from
-the retired `app/server/insights.ts`:
+`content/kelly-portfolio-health-app/app/js/portfolio-model.js` (`computeInsights`) is ported verbatim from
+the retired `content/kelly-portfolio-health-app/server/insights.ts`:
 
 - **Repayment lag** — per contract, `expected_pct` (months elapsed / term)
   vs. `actual_pct` (collected / cap); `lag_pp = expected_pct - actual_pct`,
@@ -165,7 +173,7 @@ UI language: support English and Chinese chrome with `Auto` default.
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-portfolio-health-app dev` only when local preview/debugging is explicitly
 requested.
 
 ## Views
@@ -187,8 +195,8 @@ requested.
 
 Finish only when:
 
-- the skill contains the complete canonical `app/` project and
-  `pnpm --dir app dev` remains supported;
+- the skill contains the complete canonical `content/kelly-portfolio-health-app/` project and
+  `pnpm --dir content/kelly-portfolio-health-app dev` remains supported;
 - all persistent config, state, and domain data use `busabase-sdk` and the
   declared resource map — no local JSON, browser storage, or provider
   choice;
@@ -197,7 +205,7 @@ Finish only when:
   while a deployed AirApp uses its ambient session;
 - Overview, Contracts, Concentration, Watchlist, and Help & Settings render
   on desktop and phone widths;
-- `pnpm --dir app run check` and `node --test` pass.
+- `pnpm --dir content/kelly-portfolio-health-app run check` and `node --test` pass.
 
 ## Stop Conditions
 

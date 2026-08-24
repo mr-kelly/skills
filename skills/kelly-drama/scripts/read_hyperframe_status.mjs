@@ -2,7 +2,7 @@
 // Read the paired HyperFrame project's status from the local filesystem and
 // cache it onto the Kelly Drama project record (`hyperframe_status_json` +
 // `hyperframe_status_updated_at`). Ported verbatim from the retired
-// app/server/hyperframe-service.ts's hyperframeProjectStatus() — this was
+// content/kelly-drama-app/server/hyperframe-service.ts's hyperframeProjectStatus() — this was
 // ALREADY a local-filesystem-only operation in the pre-migration app (the
 // HyperFrame project lives on the operator's machine, never inside the
 // AirApp), so it becomes a trusted skill-root script rather than a browser

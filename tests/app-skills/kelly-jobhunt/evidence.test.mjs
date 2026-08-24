@@ -9,7 +9,7 @@ import {
   evidenceAgeDays,
   evidenceLabel,
   normalizeCompany,
-} from "../../../skills/kelly-jobhunt/app/app/js/jobhunt-model.js";
+} from "../../../skills/kelly-jobhunt/content/kelly-jobhunt-app/app/js/jobhunt-model.js";
 
 const company = (id, fields) => ({ id, baseKey: "companies", fields: { key: id, name: id, ...fields } });
 

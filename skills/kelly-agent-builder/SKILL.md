@@ -6,6 +6,14 @@ metadata:
   tags:
     - risk:sandbox
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-agent-builder
+    resources:
+      - agents
+      - settings
+    risk: sandbox
+
 ---
 
 # Agent Builder & Governance Console
@@ -32,7 +40,7 @@ provider.
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-agent-builder-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -67,7 +75,7 @@ the exact missing dependency. Do not invent a second data backend.
 
 - This is a **mock** governance console. It never provisions, deploys, or
   calls any real agent, model, or external tool. The "allowed tools"
-  checklist is a fixed local catalog (`app/app/js/tool-catalog.js`) used only
+  checklist is a fixed local catalog (`content/kelly-agent-builder-app/app/js/tool-catalog.js`) used only
   for governance bookkeeping — selecting a tool here does not grant or invoke
   it anywhere.
 - The AirApp reads and writes Busabase records only; it must not call any
@@ -77,7 +85,7 @@ the exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Two Bases under one application Folder (`kelly-agent-builder`), declared in
-`app/app/js/config.js` and `app/resource-map.json`:
+`content/kelly-agent-builder-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `agents`: `agent-id`, `name`, `trigger-description`, `allowed-tools` (JSON
   array), `approval-required`, `monthly-quota`, `calls-this-month`,
@@ -114,7 +122,7 @@ domain logic. In short:
 - **Draft → live** is only allowed when `name`, `trigger_description`, at
   least one `allowed_tools` entry, non-empty `owning_team`, and
   `monthly_quota > 0` are all present. This is enforced in
-  `app/app/js/providers/busabase-provider.js#activateAgent` — the browser
+  `content/kelly-agent-builder-app/app/js/providers/busabase-provider.js#activateAgent` — the browser
   form disables the button too, but the provider is the source of truth.
 - **Archive** is allowed from any status. Archived agents become read-only.
 - **Pause** is only allowed from `live`.
@@ -129,18 +137,18 @@ domain logic. In short:
 
 ## Local App
 
-- `app/app/index.html` + `app/app/app.js` + `app/app/styles.css` +
-  `app/app/i18n/messages.js`: zero-build vanilla frontend with hash routing
+- `content/kelly-agent-builder-app/app/index.html` + `content/kelly-agent-builder-app/app/app.js` + `content/kelly-agent-builder-app/app/styles.css` +
+  `content/kelly-agent-builder-app/app/i18n/messages.js`: zero-build vanilla frontend with hash routing
   (`#/overview`, `#/catalog`, `#/agent/:id`, `#/agent/new`, `#/settings`).
-- `app/app/js/agent-model.js`: pure governance rules
+- `content/kelly-agent-builder-app/app/js/agent-model.js`: pure governance rules
   (`missingRequiredFields`, `isQuotaReached`, `deriveAgent`, `summarize`,
   lifecycle transitions) shared by the busabase and demo providers.
-- `app/app/js/providers/`: `busabase-provider.js` (reads/writes via
+- `content/kelly-agent-builder-app/app/js/providers/`: `busabase-provider.js` (reads/writes via
   `busabase-sdk`) and `demo-provider.js` (deterministic, read-only).
-- `app/app/js/tool-catalog.js`: the fixed tool catalog (`web_search`,
+- `content/kelly-agent-builder-app/app/js/tool-catalog.js`: the fixed tool catalog (`web_search`,
   `code_exec`, `file_read`, `file_write`, `send_email`, `calendar`,
   `crm_lookup`, `db_query`, `slack_post`, `http_request`).
-- `app/server.js`: thin Hono OAuth bootstrap + same-origin `/api/v1` proxy to
+- `content/kelly-agent-builder-app/server.js`: thin Hono OAuth bootstrap + same-origin `/api/v1` proxy to
   Busabase — no business logic.
 
 ## Safety
@@ -154,12 +162,12 @@ domain logic. In short:
 
 Finish only when:
 
-- the skill contains the complete canonical `app/` project and
-  `pnpm --dir app dev` remains supported;
+- the skill contains the complete canonical `content/kelly-agent-builder-app/` project and
+  `pnpm --dir content/kelly-agent-builder-app dev` remains supported;
 - all persistent config and agent data use `busabase-sdk` and the declared
   resource map — no local JSON, browser storage, or provider choice;
 - local setup offers Cloud/custom URL OAuth plus the explicit Demo path,
   while a deployed AirApp uses its ambient session;
 - Overview, Catalog, Agent detail, and Help & Settings render on desktop and
   phone widths;
-- `pnpm --dir app run check` and `node --test` pass.
+- `pnpm --dir content/kelly-agent-builder-app run check` and `node --test` pass.

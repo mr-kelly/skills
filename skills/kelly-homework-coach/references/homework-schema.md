@@ -2,8 +2,8 @@
 
 Use this schema when reading or writing Kelly Homework Coach's Busabase
 Bases. Field slugs are kebab-case in Busabase and normalized to snake_case
-in app code (`app/app/js/providers/busabase-provider.js`,
-`app/app/js/homework-model.js`). `active_questions`/`mistakes_total`/
+in app code (`content/kelly-homework-coach-app/app/js/providers/busabase-provider.js`,
+`content/kelly-homework-coach-app/app/js/homework-model.js`). `active_questions`/`mistakes_total`/
 `due_reviews`/`papers_generated` are computed client-side from the
 `questions`/`mistakes`/`papers` Bases on every read — they are never
 stored. `mastery_score`/`questions_analyzed` are an all-time aggregate
@@ -17,7 +17,7 @@ review UI only ever sends the first three; `revise` falls back to
 `needs_review` like any unrecognized action, ported verbatim from the
 retired `nextStatusForDecision()`).
 
-## Questions (`kelly-homework-coach-questions-v1`)
+## Questions (`kelly-homework-coach-questions`)
 
 One row per homework question the agent has explained.
 
@@ -43,7 +43,7 @@ One row per homework question the agent has explained.
 | `explanation` | `explanation` | longtext | JSON object: `{kid_summary, steps[], key_concept, self_check, next_hint}` |
 | `mistake-id` | `mistake_id` | text | optional link into `mistakes` |
 
-## Mistakes (`kelly-homework-coach-mistakes-v1`)
+## Mistakes (`kelly-homework-coach-mistakes`)
 
 One row per mistake-book entry, keyed by a stable id so repeated review
 updates the same card instead of duplicating it.
@@ -63,7 +63,7 @@ updates the same card instead of duplicating it.
 | `review-history` | `review_history` | longtext | JSON array of date strings |
 | `analysis` | `analysis` | longtext | JSON object: `{root_cause, misconception, fix_strategy, similar_prompt, parent_note}` |
 
-## Papers (`kelly-homework-coach-papers-v1`)
+## Papers (`kelly-homework-coach-papers`)
 
 One row per practice paper plan or completed-paper analysis.
 
@@ -86,7 +86,7 @@ One row per practice paper plan or completed-paper analysis.
 
 Approved paper exports happen locally, outside this app, after parent/teacher review.
 
-## Reviews (`kelly-homework-coach-reviews-v1`)
+## Reviews (`kelly-homework-coach-reviews`)
 
 One row per parent/teacher review item, targeting a question, mistake, or
 paper. The reviewer's decision and, once `scripts/execute_decisions.mjs`
@@ -117,9 +117,9 @@ no separate decisions bucket.
 A decision (`approve` → `approved`, `request_changes` → `changes_requested`,
 `block` → `blocked`) also mirrors the resulting status onto the linked
 question/mistake/paper's own `status` field
-(`submitReview()` in `app/app/js/providers/busabase-provider.js`).
+(`submitReview()` in `content/kelly-homework-coach-app/app/js/providers/busabase-provider.js`).
 
-## Settings (`kelly-homework-coach-settings-v1`)
+## Settings (`kelly-homework-coach-settings`)
 
 One row per `kind`, looked up by `record-id`:
 

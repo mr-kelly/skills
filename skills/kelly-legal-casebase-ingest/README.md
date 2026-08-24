@@ -43,7 +43,7 @@ Legal Casebase Ingest is a Busabase App-in-Skill casebase intake and anonymizati
 Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-legal-casebase-ingest/app dev
+pnpm --dir skills/kelly-legal-casebase-ingest/content/kelly-legal-casebase-ingest-app dev
 ```
 
 Then add one of these demo paths:

@@ -46,7 +46,7 @@ Kelly Listing is a Busabase App-in-Skill listing factory (上架工作台) for a
 Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-listing/app dev
+pnpm --dir skills/kelly-listing/content/kelly-listing-app dev
 ```
 
 Then add one of these demo paths:
@@ -110,7 +110,7 @@ Per-platform rules live on the Settings row's `platforms[]` — title caps (200 
 
 ## Busabase Setup
 
-Kelly Listing provisions its own Folder and six Bases (`products`, `drafts`, `checks`, `claims`, `claim_rules`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
+Kelly Listing provisions its own Folder and six Bases (`products`, `drafts`, `checks`, `claims`, `claim-rules`, `settings`) lazily on first run in a Busabase Space — no manual setup required. See `SKILL.md`'s Busabase Resources section.
 
 ## Boundary
 

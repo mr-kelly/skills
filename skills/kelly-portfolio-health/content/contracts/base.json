@@ -1,0 +1,144 @@
+{
+  "name": "Contracts",
+  "description": "One row per RBF/private-credit contract: funding terms, cumulative repayment, a 6-month monthly-revenue series (JSON array), status, and the human review flag/note/decision timestamp written directly onto the same row. Totals, repayment lag, concentration, and the revenue-decline watchlist are never stored — they are pure/derived from these rows and recomputed on every read.",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "contract-id",
+      "name": "Contract ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "business-name",
+      "name": "Business name",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "city",
+      "name": "City",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "origination-date",
+      "name": "Origination date",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "months-since-origination",
+      "name": "Months since origination",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "expected-term-months",
+      "name": "Expected term (months)",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "funding-amount",
+      "name": "Funding amount",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "cap-multiple",
+      "name": "Cap multiple",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "cap-amount",
+      "name": "Cap amount",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "cumulative-repayment",
+      "name": "Cumulative repayment",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "monthly-revenue",
+      "name": "Monthly revenue (JSON array)",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "currency",
+      "name": "Currency",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "flagged",
+      "name": "Flagged for review",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "note",
+      "name": "Review note",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "decision-updated-at",
+      "name": "Decision updated at",
+      "type": "text",
+      "required": false,
+      "position": 16,
+      "options": {}
+    }
+  ],
+  "views": []
+}

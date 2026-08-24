@@ -1,0 +1,128 @@
+{
+  "name": "Settings",
+  "description": "ACOS/ROAS targets and anomaly-detection thresholds, a single settings row",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "currency",
+      "name": "Currency",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "default-acos-pct",
+      "name": "Default ACOS pct",
+      "type": "number",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "default-roas",
+      "name": "Default ROAS",
+      "type": "number",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "per-platform-targets",
+      "name": "Per platform targets",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "per-product-targets",
+      "name": "Per product targets",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "acos-breach-days",
+      "name": "ACOS breach days",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "budget-exhausted-pct",
+      "name": "Budget exhausted pct",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "budget-risk-pct",
+      "name": "Budget risk pct",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "zero-conversion-spend-floor",
+      "name": "Zero conversion spend floor",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "cpc-spike-pct",
+      "name": "CPC spike pct",
+      "type": "number",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "cpc-trailing-days",
+      "name": "CPC trailing days",
+      "type": "number",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "currency-rates",
+      "name": "Currency rates",
+      "type": "longtext",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "csv-mappings",
+      "name": "CSV mappings",
+      "type": "longtext",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "spend-last-month",
+      "name": "Spend last month",
+      "type": "number",
+      "required": false,
+      "position": 14,
+      "options": {}
+    }
+  ],
+  "views": []
+}

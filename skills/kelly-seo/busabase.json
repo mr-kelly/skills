@@ -1,0 +1,31 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-seo",
+  "description": "SEO + GEO (AI-search) + brand-entity desk: Search Console analytics, an SEO opportunities review queue, an AI-visibility tracker, a geo-qa-gated GEO content queue, and an entity/knowledge-panel readiness checklist",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["growth", "risk:local-write", "surface:busabase", "surface:gsc"],
+  "template": {
+    "category": "growth",
+    "schemaVersion": 1,
+    "airapp": "kelly-seo-app",
+    "tags": ["growth", "risk:local-write", "surface:busabase", "surface:gsc"],
+    "screenshots": [
+      "assets/screenshots/entity.webp",
+      "assets/screenshots/geo.webp",
+      "assets/screenshots/opportunities.webp",
+      "assets/screenshots/optimize.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/pages.webp",
+      "assets/screenshots/queries.webp",
+      "assets/screenshots/sites.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Sites and flag what needs my attention.",
+      "Open Kelly SEO and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

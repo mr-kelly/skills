@@ -26,8 +26,8 @@
 import { readFile } from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { round2 } from "../app/app/js/devops-model.js";
+import { appConfig } from "../content/kelly-devops-app/app/js/config.js";
+import { round2 } from "../content/kelly-devops-app/app/js/devops-model.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_spend.mjs /path/to/spend_payload.json [--apply]
@@ -144,8 +144,8 @@ async function main() {
   const declared = (key) => resources.bases.find((base) => base.key === key);
 
   const [providerRows, productRows, actionRows, settingsRows] = await Promise.all([
-    readAll(client, declared("spend_providers")),
-    readAll(client, declared("spend_products")),
+    readAll(client, declared("spend-providers")),
+    readAll(client, declared("spend-products")),
     readAll(client, declared("actions")),
     readAll(client, declared("settings")),
   ]);
@@ -167,7 +167,7 @@ async function main() {
     const existing = providerById.get(providerId);
     const outcome = await upsertRow(
       client,
-      declared("spend_providers"),
+      declared("spend-providers"),
       existing,
       "provider-id",
       providerId,
@@ -259,7 +259,7 @@ async function main() {
     const lastMonth = round2(row.last_month);
     const outcome = await upsertRow(
       client,
-      declared("spend_products"),
+      declared("spend-products"),
       productById.get(productId),
       "product-id",
       productId,

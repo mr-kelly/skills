@@ -2,10 +2,10 @@
 
 Use this schema when reading or writing Kelly Brand's Busabase Bases. Field
 slugs are kebab-case in Busabase and normalized to snake_case in app code
-(`app/app/js/providers/busabase-provider.js`, `app/app/js/brand-model.js`).
+(`content/kelly-brand-app/app/js/providers/busabase-provider.js`, `content/kelly-brand-app/app/js/brand-model.js`).
 Every metric on the overview — the aggregate NQS, canonical/needs-review
 counts, and the open drift-alert count — is computed client-side from the
-`items`/`drift_alerts` Bases on every read; they are never stored.
+`items`/`drift-alerts` Bases on every read; they are never stored.
 
 Everything is organized around the **TALE** framework — every narrative
 asset carries a `phase` (`trace` / `architect` / `land` / `evaluate`) and a
@@ -16,7 +16,7 @@ Workflow statuses: `needs_review`, `changes_requested`, `approved`, `done`, `blo
 Decision actions (narrative items): `approve`, `request_changes`, `block`, `revise`.
 Decision actions (drift alerts): `resolve_drift`, `dismiss_drift`.
 
-## Items (`kelly-brand-items-v1`)
+## Items (`kelly-brand-items`)
 
 Items are the review-queue rows — every narrative asset across all six
 `type`s. `status` uses the standard workflow states; `approved` means
@@ -47,7 +47,7 @@ A proof point with no `evidence-source` is `blocked` by the NQS gate; do not
 adopt or publish it. `ref` lets chat comments like "adopt #2" resolve
 unambiguously — never renumber refs when regenerating, retire ids instead.
 
-## Drift Alerts (`kelly-brand-drift-alerts-v1`)
+## Drift Alerts (`kelly-brand-drift-alerts`)
 
 Cross-channel off-brand usage flagged by the narrative-drift-monitor.
 
@@ -65,7 +65,7 @@ Cross-channel off-brand usage flagged by the narrative-drift-monitor.
 | `decision-note` | `decision_note` | longtext | written with the verdict |
 | `decided-at` | `decided_at` | text | written with the verdict |
 
-## Settings (`kelly-brand-settings-v1`)
+## Settings (`kelly-brand-settings`)
 
 One row per `kind`, looked up by `record-id`:
 
@@ -85,7 +85,7 @@ onto the record — approving an edited narrative draft also writes the new
 source of truth for both the draft/copy and its review state.
 
 - Narrative item verdicts (`approve`/`request_changes`/`block`/`revise`) write onto the matching `items` row (looked up by `item-id`).
-- Drift verdicts (`resolve_drift`/`dismiss_drift`) write onto the matching `drift_alerts` row (looked up by `alert-id`).
+- Drift verdicts (`resolve_drift`/`dismiss_drift`) write onto the matching `drift-alerts` row (looked up by `alert-id`).
 
 ## Metrics (computed, never stored)
 

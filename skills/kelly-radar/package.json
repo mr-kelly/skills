@@ -9,7 +9,7 @@
     "ingest-trends": "node scripts/ingest_trends.mjs",
     "file-report": "node scripts/file_report.mjs",
     "execute-decisions": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-radar-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

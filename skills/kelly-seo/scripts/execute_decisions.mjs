@@ -18,8 +18,8 @@
 
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { operationForOpportunity } from "../app/app/js/seo-model.js";
+import { appConfig } from "../content/kelly-seo-app/app/js/config.js";
+import { operationForOpportunity } from "../content/kelly-seo-app/app/js/seo-model.js";
 
 const normalizeFields = (fields) =>
   Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));

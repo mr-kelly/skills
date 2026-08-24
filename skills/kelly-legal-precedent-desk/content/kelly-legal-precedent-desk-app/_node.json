@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Legal Precedent Desk",
+  "description": "Precedent-research desk over internal casebase search, local court-pattern analysis, similar-case packs, citations, and approval-gated research exports (approve / request changes / revise / block) before a research pack becomes a matter-strategy input"
+}

@@ -1,0 +1,104 @@
+{
+  "name": "Inventory",
+  "description": "One row per product x warehouse: on-hand/available/reserved/inbound units, inbound ETA, days of cover, and stock-risk status. Created and updated only by the agent's ingest workflow.",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "inventory-id",
+      "name": "Inventory ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "product-id",
+      "name": "Product ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "warehouse-id",
+      "name": "Warehouse ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "warehouse-name",
+      "name": "Warehouse name",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "on-hand",
+      "name": "On hand",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "available",
+      "name": "Available",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "reserved",
+      "name": "Reserved",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "inbound",
+      "name": "Inbound",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "inbound-eta",
+      "name": "Inbound ETA",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "days-cover",
+      "name": "Days cover",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    }
+  ],
+  "views": []
+}

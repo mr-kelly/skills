@@ -45,8 +45,8 @@ Every narrative asset carries a TALE phase and names the sub-skill that produced
 ## Running Locally
 
 ```bash
-pnpm --dir app install
-pnpm --dir app dev
+pnpm --dir content/kelly-brand-app install
+pnpm --dir content/kelly-brand-app dev
 ```
 
 Open the printed URL. A standalone local preview asks you to connect

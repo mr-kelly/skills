@@ -29,7 +29,7 @@ for (const entry of entries) {
   if (!entry.isDirectory()) continue;
   const skillRoot = path.join(skillsRoot, entry.name);
 
-  for (const relativeRoot of ["", "app"]) {
+  for (const relativeRoot of ["", path.join("content", `${entry.name}-app`), "app"]) {
     const packageRoot = path.join(skillRoot, relativeRoot);
     const packageText = await readOptional(path.join(packageRoot, "package.json"));
     if (!packageText) continue;
@@ -57,15 +57,20 @@ for (const entry of entries) {
     }
   }
 
-  const server = await readOptional(path.join(skillRoot, "app", "server.js"));
+  const appRoot = path.join(skillRoot, "content", `${entry.name}-app`);
+  const server = await readOptional(path.join(appRoot, "server.js"));
   if (server.includes("createBusabaseAirAppLocalGateway")) {
-    const appPackage = JSON.parse(await readOptional(path.join(skillRoot, "app", "package.json")));
+    const appPackage = JSON.parse(await readOptional(path.join(appRoot, "package.json")));
     const appSdkVersion = appPackage.dependencies?.["busabase-sdk"] || "0.0.0";
     if (!server.includes('from "busabase-sdk/airapp-node"')) {
-      findings.push(`${entry.name}/app: AirApp gateway must import busabase-sdk/airapp-node directly`);
+      findings.push(
+        `${entry.name}/content/${entry.name}-app: AirApp gateway must import busabase-sdk/airapp-node directly`,
+      );
     }
     if (!versionAtLeast(appSdkVersion, MIN_PROXY_AWARE_GATEWAY_VERSION)) {
-      findings.push(`${entry.name}/app: AirApp gateway requires busabase-sdk >= ${MIN_PROXY_AWARE_GATEWAY_VERSION}`);
+      findings.push(
+        `${entry.name}/content/${entry.name}-app: AirApp gateway requires busabase-sdk >= ${MIN_PROXY_AWARE_GATEWAY_VERSION}`,
+      );
     }
   }
 }

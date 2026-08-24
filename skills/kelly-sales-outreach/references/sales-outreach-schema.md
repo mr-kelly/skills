@@ -4,7 +4,7 @@ Schema v1 owns three Bases under the `kelly-sales-outreach` Folder. Field slugs
 are stable API identifiers. `company-key` is a plain-text foreign key so all
 three resources can be provisioned in one ChangeRequest.
 
-## `sales-outreach-profile-v1`
+## `kelly-sales-outreach-profile`
 
 One record. Required onboarding fields are `offer-name`, `offer-summary`, and
 `onboarding-version >= 1`. Other fields can be proposed by the Agent and edited
@@ -28,7 +28,7 @@ by the operator.
 | `updated-at` | date | Profile materialization date. |
 | `onboarding-version` | number | Completed onboarding contract version. |
 
-## `sales-outreach-companies-v1`
+## `kelly-sales-outreach-companies`
 
 One record per company and initial outreach thread.
 
@@ -57,7 +57,7 @@ draft|queued|sent --recorded request--> opted-out
 `sent` and `opted-out` cannot return to `draft` through import. A bounced send
 stays `queued` so the operator can review a different verified contact.
 
-## `sales-outreach-leads-v1`
+## `kelly-sales-outreach-leads`
 
 | Slug | Type | Meaning |
 | --- | --- | --- |

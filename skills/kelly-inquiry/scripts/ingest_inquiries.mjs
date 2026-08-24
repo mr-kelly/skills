@@ -10,9 +10,9 @@
 // Ported from the retired scripts/ingest_inquiries.ts: same validation
 // rules, same inquiry_id derivation, same message dedup-by-message_id
 // semantics, and the same stage heuristic (refreshInquiryDerived, imported
-// from app/app/js/inquiry-model.js so this script and the browser never
+// from content/kelly-inquiry-app/app/js/inquiry-model.js so this script and the browser never
 // drift apart) — only the storage target changed, from
-// app/.data/inquiry_snapshot.json to Busabase records. The retired script
+// content/kelly-inquiry-app/.data/inquiry_snapshot.json to Busabase records. The retired script
 // required the account to already exist in config.accounts[]; since there is
 // no local config file anymore, this script's optional `payload.account`
 // field now plays that role (upserted into the accounts Base first),
@@ -25,8 +25,8 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { CONNECTORS, STAGES, refreshInquiryDerived } from "../app/app/js/inquiry-model.js";
+import { appConfig } from "../content/kelly-inquiry-app/app/js/config.js";
+import { CONNECTORS, STAGES, refreshInquiryDerived } from "../content/kelly-inquiry-app/app/js/inquiry-model.js";
 
 function help() {
   console.log(`Usage: node scripts/ingest_inquiries.mjs <payload.json> [more-payloads.json...] [--apply]
@@ -323,7 +323,7 @@ async function main() {
     );
     await upsertRow(
       client,
-      declared("sync_log"),
+      declared("sync-log"),
       null,
       "sync-id",
       `ingest-${account.account_id}-${Date.now()}`,

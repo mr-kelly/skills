@@ -8,6 +8,15 @@ metadata:
     - risk:local-write
     - industry:beauty
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-portrait-retouch
+    resources:
+      - jobs
+      - candidates
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly Portrait Retouch
@@ -108,7 +117,7 @@ structural edit, processing a minor's portrait, or using an external image model
 
 ## App Contract
 
-The canonical App source is in `app/`. It provides a quiet list/detail review
+The canonical App source is in `content/kelly-portrait-retouch-app/`. It provides a quiet list/detail review
 desk with hash routes, before/after inspection, strength and preset metadata,
 approve/change/block decisions, bilingual chrome, phone navigation, and Help &
 Settings. `?demo=queue` opens deterministic read-only data.
@@ -134,7 +143,7 @@ Run:
 
 ```bash
 pnpm test
-pnpm --dir app check
+pnpm --dir content/kelly-portrait-retouch-app check
 node scripts/retouch.mjs --help
 node scripts/sync-candidate.mjs --help
 ```

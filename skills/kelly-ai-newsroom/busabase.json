@@ -1,0 +1,27 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-ai-newsroom",
+  "description": "Daily industry-intelligence cockpit for AI/news-source intelligence: source-backed signals, buyer-intent interpretation, approved sales/operating actions, and channel drafts (sales opener / LinkedIn post / client memo) for review before any external handoff. Signals/actions/drafts enter Busabase only through the agent's own browsing-and-writing workflow (see SKILL.md); the AirApp itself is read/decision-only.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["industry-intel", "risk:gated-write", "surface:busabase"],
+  "template": {
+    "category": "industry-intel",
+    "schemaVersion": 1,
+    "airapp": "kelly-ai-newsroom-app",
+    "tags": ["industry-intel", "risk:gated-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/actions.webp",
+      "assets/screenshots/drafts.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/signals.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest Signals and flag what needs my attention.",
+      "Open Kelly AI Newsroom and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

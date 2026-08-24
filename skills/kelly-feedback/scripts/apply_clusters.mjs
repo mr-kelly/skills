@@ -7,7 +7,7 @@
 // patched and a decision_history entry appended; new requests are created
 // with a "created" entry), same feedback assignment semantics (empty
 // request_id unassigns; combine with `triage` to mark ignored/insight) —
-// only the storage target changed, from app/.data/feedback_snapshot.json to
+// only the storage target changed, from content/kelly-feedback-app/.data/feedback_snapshot.json to
 // Busabase's requests/feedback Bases. request.frequency/weighted_score are
 // derived client-side by feedback-model.js's recomputeDerived(), so this
 // script never writes them.
@@ -21,8 +21,8 @@
 import fs from "node:fs/promises";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { REQUEST_STATUSES, TRENDS } from "../app/app/js/feedback-model.js";
+import { appConfig } from "../content/kelly-feedback-app/app/js/config.js";
+import { REQUEST_STATUSES, TRENDS } from "../content/kelly-feedback-app/app/js/feedback-model.js";
 
 function help() {
   console.log(`Usage: node scripts/apply_clusters.mjs <assignments.json> [--apply]
@@ -232,7 +232,7 @@ async function main() {
 
   await upsertRow(
     client,
-    declared("sync_log"),
+    declared("sync-log"),
     null,
     {
       sync_id: `cluster-${Date.now()}`,

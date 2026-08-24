@@ -1,0 +1,72 @@
+{
+  "name": "Vehicles",
+  "description": "One row per financing vehicle (fund/SPV) — the origination entity, fund-manager entity, listing venue, base currency, and target close date. Per-vehicle checklist completeness/readiness is never stored; it is recomputed client-side from the items Base on every read",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "vehicle-id",
+      "name": "Vehicle ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "vehicle-type",
+      "name": "Vehicle type",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "origination-entity",
+      "name": "Origination entity",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "fund-manager-entity",
+      "name": "Fund-manager entity",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "listing-venue",
+      "name": "Listing venue",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "base-currency",
+      "name": "Base currency",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "target-close-date",
+      "name": "Target close date",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    }
+  ],
+  "views": []
+}

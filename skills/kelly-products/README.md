@@ -45,7 +45,7 @@ Kelly Products is a Busabase App-in-Skill product-management desk (商品管理�
 Start the AirApp locally and open a safe mock-data scene:
 
 ```bash
-pnpm --dir skills/kelly-products/app dev
+pnpm --dir skills/kelly-products/content/kelly-products-app dev
 ```
 
 Then add one of these demo paths:
@@ -59,7 +59,7 @@ Then add one of these demo paths:
 /?demo=detail&lang=en#/products/prod-aurora-lamp
 ```
 
-Use `lang=zh` for Chinese screenshots. Demo mode uses the same real static PNG product images shipped under `app/app/assets/product-images/` and never reads or writes Busabase.
+Use `lang=zh` for Chinese screenshots. Demo mode uses the same real static PNG product images shipped under `content/kelly-products-app/app/assets/product-images/` and never reads or writes Busabase.
 
 ## Ingest Payload Format
 

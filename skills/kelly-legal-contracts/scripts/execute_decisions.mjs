@@ -13,7 +13,7 @@
 // section.
 //
 // issueExecution is ported/adapted from the retired scripts/execute_decisions.ts
-// (app/app/js/contracts-model.js's doc comment explains the adaptation: one
+// (content/kelly-legal-contracts-app/app/js/contracts-model.js's doc comment explains the adaptation: one
 // execution marker directly on the issue record instead of a separate
 // execution_report.json list, folding the retired "handoff_redline" entry's
 // detail into the same "export_issue_list" marker).
@@ -27,8 +27,8 @@
 // BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../app/app/js/config.js";
-import { issueExecution, normalizeContractRow } from "../app/app/js/contracts-model.js";
+import { appConfig } from "../content/kelly-legal-contracts-app/app/js/config.js";
+import { issueExecution, normalizeContractRow } from "../content/kelly-legal-contracts-app/app/js/contracts-model.js";
 
 function help() {
   console.log(`Usage: node scripts/execute_decisions.mjs [--apply]

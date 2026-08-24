@@ -7,6 +7,16 @@ metadata:
     - risk:local-write
     - industry:legal
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-legal-matter-strategy
+    resources:
+      - items
+      - entities
+      - checks
+      - settings
+    risk: local-write
+
 ---
 
 # Legal Matter Strategy
@@ -23,7 +33,7 @@ Use this as the responsible-lawyer strategy gate for an active matter. It consum
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-legal-matter-strategy-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -65,14 +75,14 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Busabase Resources
 
-Four Bases under one application Folder (`kelly-legal-matter-strategy`), declared in `app/app/js/config.js` and `app/resource-map.json`:
+Four Bases under one application Folder (`kelly-legal-matter-strategy`), declared in `content/kelly-legal-matter-strategy-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `items`: the matter-strategy workbench and review queue in one — issue tree, evidence map, risk posture, negotiation options, and pleading outline (matter stage, evidence gap count and list, negotiation options, posture, pleading outline, deadline), workflow status, and the human decision + execution marker on the same row.
 - `entities`: matter families, issue clusters, or strategy lanes grouped by cause, stage, and responsible lawyer.
 - `checks`: deterministic strategy QA checks for missing facts, evidence gaps, deadline caveats, precedent grounding, and unsupported legal positions, one row per check.
 - `settings`: one row (`record-id: "config"`) with the firm profile, strategy policy (precedent-link/evidence-map/risk-scale/client-facing-approval rules), enabled drafting templates, and export preferences.
 
-Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/strategy-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`app/app/js/matter-strategy-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/decision.
+Resources provision lazily through an idempotent Busabase ChangeRequest the first time the app runs in a Space; see `references/strategy-schema.md` for exact field shapes. Metrics and the recent-activity feed are recomputed client-side from the stored rows on every read (`content/kelly-legal-matter-strategy-app/app/js/matter-strategy-model.js`'s `buildSnapshot`/`assembleSnapshot`), so the desk is always fresh regardless of when a browser session loads it relative to the last ingest/decision.
 
 ## First Run And Onboarding
 
@@ -84,7 +94,7 @@ node skills/kelly-legal-matter-strategy/scripts/create_strategy_batch.mjs payloa
 
 ## Local App
 
-Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir app dev` only when local preview/debugging is explicitly requested.
+Default behavior is AirApp-first — give the user the clickable AirApp URL. Start `pnpm --dir content/kelly-legal-matter-strategy-app dev` only when local preview/debugging is explicitly requested.
 
 Required app views (hash routes):
 
@@ -152,7 +162,7 @@ node skills/kelly-legal-matter-strategy/scripts/create_strategy_batch.mjs payloa
 node skills/kelly-legal-matter-strategy/scripts/execute_decisions.mjs
 node skills/kelly-legal-matter-strategy/scripts/execute_decisions.mjs --apply
 node skills/kelly-legal-matter-strategy/scripts/export_strategy_pack.mjs --out exports/
-pnpm --dir skills/kelly-legal-matter-strategy/app dev
+pnpm --dir skills/kelly-legal-matter-strategy/content/kelly-legal-matter-strategy-app dev
 ```
 
 In normal use, invoke `/kelly-legal-matter-strategy`, let the skill ingest what's due, and open the AirApp.

@@ -8,7 +8,7 @@
     "import": "node scripts/import_tables.mjs",
     "checks": "node scripts/run_checks.mjs",
     "execute": "node scripts/execute_decisions.mjs",
-    "app:check": "pnpm --dir app check"
+    "app:check": "pnpm --dir content/kelly-audit-app check"
   },
   "dependencies": {
     "busabase-sdk": "0.17.2"

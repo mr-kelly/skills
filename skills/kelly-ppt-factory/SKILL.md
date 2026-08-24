@@ -6,6 +6,19 @@ metadata:
   tags:
     - risk:local-write
     - surface:busabase
+  busabase:
+    template: true
+    folderSlug: kelly-ppt-factory
+    resources:
+      - projects
+      - decks
+      - slide-cards
+      - style-systems
+      - qa-checks
+      - exports
+      - settings
+    risk: local-write
+
 ---
 
 # Kelly PPT Factory
@@ -30,7 +43,7 @@ mode only when the user says "纯聊天", "chat only", "不要打开 UI", or sim
 ## Mandatory Dependencies
 
 1. Read and follow `$kelly-app-skill-creator` for product behavior, visual
-   quality, responsive layout, and the complete canonical `app/` artifact.
+   quality, responsive layout, and the complete canonical `content/kelly-ppt-factory-app/` artifact.
 2. Read and follow `$busabase` for connection, target Space, node discovery,
    ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp
@@ -84,19 +97,19 @@ exact missing dependency. Do not invent a second data backend.
 ## Busabase Resources
 
 Seven Bases under one application Folder (`kelly-ppt-factory`), declared in
-`app/app/js/config.js` and `app/resource-map.json` — see
+`content/kelly-ppt-factory-app/app/js/config.js` and the generated template sidecars under `content/` — see
 `references/ppt-factory-schema.md` for exact field shapes:
 
 - `projects`: a client / use-case / theme batch.
 - `decks`: one PPTX deliverable under a project — status, slide counts,
   style score, output paths, and the review-queue decision
   (`decision-action`/`decision-note`/`decided-at`) on the same row.
-- `slideCards`: the storyboard unit for one PPTX page — objective, layout,
+- `slide-cards`: the storyboard unit for one PPTX page — objective, layout,
   structured content, asset brief, style/QA checks, and the review-queue
   decision on the same row.
-- `styleSystems`: reusable presentation style kits — palette, fonts,
+- `style-systems`: reusable presentation style kits — palette, fonts,
   visual/layout rules, component library.
-- `qaChecks`: deterministic or human QA evidence for a deck, slide, or
+- `qa-checks`: deterministic or human QA evidence for a deck, slide, or
   export.
 - `exports`: generated PPTX output records — path, render path, generation
   status, QA summary.
@@ -111,7 +124,7 @@ A slide card or deck is "in the review queue" when it carries a non-empty
 `review-summary` (the agent's note on what needs a human look). The reviewer
 chooses `approve` / `request_changes` / `block` / `revise`; the decision and
 its resulting workflow `status` are written directly onto the slide card's
-or deck's own Busabase row (`app/app/js/providers/busabase-provider.js`'s
+or deck's own Busabase row (`content/kelly-ppt-factory-app/app/js/providers/busabase-provider.js`'s
 `decideItem()`) — there is no separate decisions bucket, since Busabase
 reads are always live. From a standalone local preview the write merges
 immediately (trusted operator); from the deployed AirApp it creates a
@@ -123,7 +136,7 @@ boundary in `$busabase-app-creator`.
 1. Collect inputs: client style samples, old PPT screenshots/PPTX, briefs,
    outlines, source docs, target audience, deck count, page count, use case,
    and export deadline.
-2. Create or update the style kit first (`styleSystems`). Extract palette,
+2. Create or update the style kit first (`style-systems`). Extract palette,
    fonts, slide families, image rules, component library, and density
    limits.
 3. Create projects and decks. One project is a client/use-case/theme batch;
@@ -135,13 +148,13 @@ boundary in `$busabase-app-creator`.
    `approve` decision is generatable.
 6. Generate PPTX with `node scripts/generate_pptx.mjs --deck=<deck_id>` (the
    real generation engine, using `pptxgenjs`) or a richer `pptx` skill pass.
-7. Render and visually QA the PPTX. Record QA evidence in `qaChecks`.
+7. Render and visually QA the PPTX. Record QA evidence in `qa-checks`.
 8. Export completed PPTX paths and report exactly which files were written.
 
 ## Local App
 
 Default behavior is AirApp-first — give the user the clickable AirApp URL.
-Start `pnpm --dir app dev` only when local preview/debugging is explicitly
+Start `pnpm --dir content/kelly-ppt-factory-app dev` only when local preview/debugging is explicitly
 requested.
 
 ## Views
@@ -191,8 +204,8 @@ changes workflow status; it only records a planned follow-up.
 
 Finish only when:
 
-- the skill contains the complete canonical `app/` project and
-  `pnpm --dir app dev` remains supported;
+- the skill contains the complete canonical `content/kelly-ppt-factory-app/` project and
+  `pnpm --dir content/kelly-ppt-factory-app dev` remains supported;
 - all persistent config, state, and domain data use `busabase-sdk` and the
   declared resource map — no local JSON, browser storage, or provider
   choice;
@@ -201,7 +214,7 @@ Finish only when:
   while a deployed AirApp uses its ambient session;
 - Overview, Projects, Decks, Slide cards, Review, Style, Exports, and
   Settings render on desktop and phone widths;
-- `pnpm --dir app run check` and `node --test` pass.
+- `pnpm --dir content/kelly-ppt-factory-app run check` and `node --test` pass.
 
 ## Stop Conditions
 

@@ -1,0 +1,26 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-invest-stock",
+  "description": "Strategy screening and virtual ledger workspace",
+  "version": "0.9.2",
+  "license": "MIT",
+  "tags": ["invest", "risk:read-only", "surface:busabase", "surface:a-share"],
+  "template": {
+    "category": "invest",
+    "schemaVersion": 4,
+    "airapp": "kelly-invest-stock-app",
+    "tags": ["invest", "risk:read-only", "surface:busabase", "surface:a-share"],
+    "screenshots": [
+      "assets/screenshots/detail.webp",
+      "assets/screenshots/mobile-overview.webp",
+      "assets/screenshots/overview.webp"
+    ],
+    "agentPrompts": [
+      "Summarize the latest 策略 and flag what needs my attention.",
+      "Open Kelly Invest Stock and show me the items that need review."
+    ],
+    "requires": {
+      "airapp": true
+    }
+  }
+}

@@ -22,7 +22,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { collectShotReferences, storyboardPrompt } from "../app/app/js/mv-model.js";
+import { collectShotReferences, storyboardPrompt } from "../content/kelly-mv-app/app/js/mv-model.js";
 import { generateDraftVideo } from "./gen_draft_video.mjs";
 import {
   connect,
