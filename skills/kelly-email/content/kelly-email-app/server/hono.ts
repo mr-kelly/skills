@@ -63,12 +63,16 @@ app.use("/api/state", attachDemoVisuals);
  * served from localhost on Desktop/OSS, and a standalone run is reached over
  * LAN IPs and dev tunnels, so both directions of that guess are wrong.
  */
-const AIRAPP_HOSTED_RUNTIMES = new Set(["nodepod", "local-node", "srt", "embed"]);
 const airappRuntime = (process.env.BUSABASE_AIRAPP_RUNTIME || "").trim();
 app.get("/__airapp/runtime", (c) =>
   c.json({
     runtime: airappRuntime || "standalone",
-    hosted: AIRAPP_HOSTED_RUNTIMES.has(airappRuntime),
+    // Any non-empty value means hosted. Deliberately NOT a check against a list of
+    // engine names: an app carrying yesterday's list answers "standalone" inside a
+    // hosted preview — it shows its own connection gate, calls /api/v1 with no
+    // credential, and reports an error the user cannot act on. #127 removed that
+    // shape fleet-wide; the move to the content/ layout brought this copy back.
+    hosted: airappRuntime !== "",
   }),
 );
 
