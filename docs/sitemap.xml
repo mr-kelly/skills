@@ -251,6 +251,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-messenger.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

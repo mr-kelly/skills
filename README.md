@@ -233,6 +233,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-app-skill-creator-tests` | Builds and runs reusable conformance tests for canonical Kelly app skills, including local server and responsive browser checks, temporary open-source Busabase provisioning and persistence, environment-gated Cloud OAuth, and AirApp parity. OSS and Cloud are always reported separately. | Use it when adding tests to a skill created by `kelly-app-skill-creator`, validating a migrated app skill, wiring app-skill CI, or diagnosing SDK, OAuth, provisioning, persistence, or AirApp regressions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-app-skill-creator-tests.html) |
 | `kelly-devops` | Watches the product fleet: service uptime and latency, SSL certificate and domain expiry, API key rotation, and cloud spend anomalies, with agent-proposed action cards for approval. | Use it when checking service health, catching expiring domains and certificates, reviewing cloud spend spikes, or approving renewal and rotation actions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-devops.html) |
 | `kelly-llm-gateway` | Dashboard for a shared LLM gateway's cost and model governance: spend trend, cost breakdown by service/model, canary-rollout status, and deterministic cost/error anomaly detection. | Use it when reviewing LLM gateway spend, canary rollouts, or acknowledging a cost/error anomaly. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-llm-gateway.html) |
+| `kelly-local-model-lab` | Busabase-backed control plane for curating training examples, running local Apple Silicon LoRA/QLoRA fine-tunes with MLX-LM, comparing locked baseline and adapter evaluations, and registering approved adapters. | Use it when training, evaluating, promoting, or managing a local language-model adapter with Busabase as the workflow source of truth. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html) |
 | `kelly-pr-review` | Runs a GitHub PR review desk through `gh` CLI. It gathers review-requested pull requests, prepares review notes, uses a local UI for approval, and executes approved `gh pr review` actions. | Use it when reviewing GitHub pull requests, approving/commenting/requesting changes from a local queue, or batching PR review decisions. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html) |
 | `publish-skills` | Publishes agent skills and MCP servers to marketplaces and registries: security-scans for private data, validates with `gh skill`, cuts a release, wires the Claude `/plugin` and Codex marketplaces, and preps the MCP Registry and curated stores. | Use it when publishing, releasing, or listing skills, plugins, or MCP servers to skills.sh, Claude Code, Codex, or the MCP Registry. | [View ↗](https://mr-kelly.github.io/skills/s/publish-skills.html) |
 
@@ -1698,6 +1699,29 @@ Cost and model-governance dashboard for a shared LLM gateway.
   <tr>
     <td><strong>Overview</strong><br>Total daily spend trend and cost breakdown by service/model.</td>
     <td><strong>Rollouts</strong><br>Canary-rollout status board with promote/rollback/hold decisions.</td>
+  </tr>
+</table>
+
+### `kelly-local-model-lab`
+
+Local Apple Silicon fine-tuning control plane: curate examples, claim reproducible MLX runs, compare a locked baseline with its adapter, and retain complete model lineage in Busabase.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-local-model-lab-overview.png" alt="Kelly Local Model Lab overview"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-local-model-lab-dataset.png" alt="Kelly Local Model Lab dataset review"></td>
+  </tr>
+  <tr>
+    <td><strong>Training overview</strong><br>Approved split counts, work needing attention, the Busabase-to-MLX pipeline, and the latest locked evaluation gain.</td>
+    <td><strong>Dataset review</strong><br>Prompt and ideal-response provenance, stable sample ids, split membership, and explicit approve/request-changes/block decisions.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/kelly-local-model-lab-evaluations.png" alt="Kelly Local Model Lab baseline and adapter evaluation"></td>
+    <td width="50%"><img src="docs/screenshots/kelly-local-model-lab-registry.png" alt="Kelly Local Model Lab model registry"></td>
+  </tr>
+  <tr>
+    <td><strong>Locked evaluation</strong><br>Baseline and adapter JSON/schema/exact-field metrics with an honest hold verdict before promotion.</td>
+    <td><strong>Model registry</strong><br>Base revision, training run, adapter artifact, dataset lineage, and active/candidate lifecycle in one reviewable surface.</td>
   </tr>
 </table>
 
