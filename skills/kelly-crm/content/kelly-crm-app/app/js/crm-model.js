@@ -32,8 +32,18 @@ function parseJsonList(value) {
   }
 }
 
-export function buildSnapshot({ companies = [], contacts = [], deals = [], interactions = [], followups = [] } = {}) {
-  const normalizedCompanies = companies.map((row) => ({
+// One normalizer per Base, each exported so a page fetched later --
+// "load more" appending to an already-normalized snapshot, not rebuilding it
+// -- runs the exact same shape coercion the first page went through inside
+// buildSnapshot below. A second, hand-copied normalizer for incremental pages
+// is exactly how this kind of bug happens: it silently diverges the moment
+// either one gains a field the other doesn't, and the failure mode is a type
+// error deep in a render function for whichever row is unlucky enough to
+// still carry a raw, un-normalized field (found for real: tags arrives as
+// the JSON string "[]", not an array, until parseJsonList runs on it -- a
+// page appended without going through this normalizer keeps that string).
+export function normalizeCompanyRow(row) {
+  return {
     company_id: row.company_id || "",
     name: row.name || "",
     domain: row.domain || "",
@@ -41,9 +51,11 @@ export function buildSnapshot({ companies = [], contacts = [], deals = [], inter
     size: row.size || "",
     location: row.location || "",
     notes: row.notes || "",
-  }));
+  };
+}
 
-  const normalizedContacts = contacts.map((row) => ({
+export function normalizeContactRow(row) {
+  return {
     contact_id: row.contact_id || "",
     name: row.name || "",
     company_id: row.company_id || "",
@@ -55,9 +67,11 @@ export function buildSnapshot({ companies = [], contacts = [], deals = [], inter
     next_followup_at: row.next_followup_at || "",
     agent_notes: row.agent_notes || "",
     channels: parseJsonList(row.channels),
-  }));
+  };
+}
 
-  const normalizedDeals = deals.map((row) => ({
+export function normalizeDealRow(row) {
+  return {
     deal_id: row.deal_id || "",
     name: row.name || "",
     company_id: row.company_id || "",
@@ -77,9 +91,11 @@ export function buildSnapshot({ companies = [], contacts = [], deals = [], inter
     status: row.status || "open",
     agent_next_action: row.agent_next_action || "",
     notes: row.notes || "",
-  }));
+  };
+}
 
-  const normalizedInteractions = interactions.map((row) => ({
+export function normalizeInteractionRow(row) {
+  return {
     interaction_id: row.interaction_id || "",
     contact_id: row.contact_id || "",
     company_id: row.company_id || "",
@@ -89,9 +105,11 @@ export function buildSnapshot({ companies = [], contacts = [], deals = [], inter
     direction: row.direction || "internal",
     summary: row.summary || "",
     source: row.source || "note",
-  }));
+  };
+}
 
-  const normalizedFollowups = followups.map((row) => ({
+export function normalizeFollowupRow(row) {
+  return {
     followup_id: row.followup_id || "",
     ref: Number(row.ref || 0),
     contact_id: row.contact_id || "",
@@ -108,7 +126,27 @@ export function buildSnapshot({ companies = [], contacts = [], deals = [], inter
     decided_at: row.decided_at || "",
     decided_by: row.decided_by || "",
     created_at: row.created_at || "",
-  }));
+  };
+}
+
+// Dispatches by the same Base key the provider and app.js's pagination state
+// already use, so a page fetched by key alone -- "load more" doesn't know or
+// care which fields a Base has -- normalizes correctly without a switch
+// statement at every call site.
+export const NORMALIZE_ROW_BY_KEY = {
+  companies: normalizeCompanyRow,
+  contacts: normalizeContactRow,
+  deals: normalizeDealRow,
+  interactions: normalizeInteractionRow,
+  followups: normalizeFollowupRow,
+};
+
+export function buildSnapshot({ companies = [], contacts = [], deals = [], interactions = [], followups = [] } = {}) {
+  const normalizedCompanies = companies.map(normalizeCompanyRow);
+  const normalizedContacts = contacts.map(normalizeContactRow);
+  const normalizedDeals = deals.map(normalizeDealRow);
+  const normalizedInteractions = interactions.map(normalizeInteractionRow);
+  const normalizedFollowups = followups.map(normalizeFollowupRow);
 
   const openDeals = normalizedDeals.filter((item) => item.status === "open");
   const metrics = {
