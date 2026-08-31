@@ -1,4 +1,6 @@
 import {
+  pagerControl,
+  recordCountLabel,
   checks,
   date,
   els,
@@ -32,7 +34,7 @@ import { getProvider } from "./providers/index.js?v=0.1.0";
 export function renderPlans() {
   els.title.textContent = t("plans");
   const items = filteredPlans();
-  els.subtitle.textContent = `${items.length} ${t("plans")} · ${state.snapshot?.school?.name || ""}`;
+  els.subtitle.textContent = `${recordCountLabel("plans", items.length, Boolean(state.query))} ${t("plans")} · ${state.snapshot?.school?.name || ""}`;
   els.content.innerHTML = `
     ${metricCards()}
     ${warnings()}
@@ -70,6 +72,7 @@ export function renderPlans() {
     `
         : `<div class="empty">${t("noPlans")}</div>`
     }
+    ${pagerControl("plans")}
   `;
 }
 
@@ -210,11 +213,12 @@ export function renderChecks() {
   const passCount = all.filter((item) => item.result === "pass").length;
   const warnCount = all.filter((item) => item.result === "warn").length;
   const failCount = all.filter((item) => item.result === "fail").length;
-  els.subtitle.textContent = `${all.length} ${t("checksTotal")} · ${failCount} ${t("failedChecks")}`;
+  const checkTotal = recordCountLabel("checks", all.length);
+  els.subtitle.textContent = `${checkTotal} ${t("checksTotal")} · ${failCount} ${t("failedChecks")}`;
   els.content.innerHTML = `
     ${warnings()}
     <div class="metrics">
-      <div class="metric"><span>${t("checks")}</span><strong>${all.length}</strong></div>
+      <div class="metric"><span>${t("checks")}</span><strong>${checkTotal}</strong></div>
       <div class="metric"><span>${enumLabel("pass", "result")}</span><strong>${passCount}</strong></div>
       <div class="metric"><span>${enumLabel("warn", "result")}</span><strong>${warnCount}</strong></div>
       <div class="metric"><span>${enumLabel("fail", "result")}</span><strong>${failCount}</strong></div>
@@ -276,6 +280,7 @@ export function renderChecks() {
     `
         : `<div class="empty">${t("noChecks")}</div>`
     }
+    ${pagerControl("checks")}
   `;
   els.content.querySelector("#ruleFilter")?.addEventListener("change", (event) => {
     state.checkRuleFilter = event.target.value;
@@ -364,6 +369,7 @@ export function renderReview() {
           .join("") || `<div class="empty">${t("noReviewItems")}</div>`
       }
     </div>
+    ${pagerControl("plans")}
   `;
   bindReviewEvents();
 }

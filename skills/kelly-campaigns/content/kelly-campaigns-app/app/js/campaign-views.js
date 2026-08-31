@@ -1,4 +1,6 @@
 import {
+  pagerControl,
+  recordCountLabel,
   atRiskCount,
   campaignFilters,
   count,
@@ -91,6 +93,7 @@ export function renderCampaigns() {
           .join("") || `<div class="empty">${t("noSends")}</div>`
       }
     </div>
+    ${pagerControl("sends")}
   `;
   bindCampaignEvents();
 }
@@ -228,6 +231,7 @@ export function renderDeliverability() {
         </tbody>
       </table>
     </div>
+    ${pagerControl("sends")}
   `;
 }
 
@@ -237,7 +241,7 @@ export function renderPerformance() {
     .filter((item) => item.performance)
     .filter(matchesQuery);
   els.subtitle.textContent = `${items.length} ${t("done")}`;
-  els.content.innerHTML = items.length
+  els.content.innerHTML = `${items.length
     ? `
     <div class="table-wrap">
       <table>
@@ -268,7 +272,8 @@ export function renderPerformance() {
       </table>
     </div>
   `
-    : `<div class="empty">${t("noSends")}</div>`;
+    : `<div class="empty">${t("noSends")}</div>`}
+    ${pagerControl("sends")}`;
 }
 
 function bindCampaignEvents() {

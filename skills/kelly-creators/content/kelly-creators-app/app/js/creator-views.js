@@ -1,4 +1,6 @@
 import {
+  pagerControl,
+  recordCountLabel,
   compactNumber,
   creatorById,
   creators,
@@ -75,6 +77,7 @@ export function renderCreators() {
     </div>`
         : `<div class="empty">${t("empty")}</div>`
     }
+    ${pagerControl("creators")}
   `;
   els.content.querySelectorAll(".queue-filter[data-sort]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -243,6 +246,7 @@ export function renderOutreach() {
           .join("") || `<div class="empty">${t("noCreators")}</div>`
       }
     </div>
+    ${pagerControl("creators")}
   `;
   bindOutreachEvents();
 }
@@ -347,6 +351,7 @@ export function renderRoi() {
     `
         : `<div class="empty">${t("empty")}</div>`
     }
+    ${pagerControl("creators")}
   `;
 }
 

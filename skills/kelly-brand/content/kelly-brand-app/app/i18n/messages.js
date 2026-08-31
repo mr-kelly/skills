@@ -1,5 +1,9 @@
 export const messages = {
   en: {
+    pagination: "Pagination",
+    prevPage: "Prev",
+    nextPage: "Next",
+    pageOf: "Page {current} of {total}",
     all: "All",
     adopt: "Adopt as canonical",
     approve: "Adopt as canonical",
@@ -133,6 +137,10 @@ export const messages = {
     },
   },
   zh: {
+    pagination: "分页",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    pageOf: "第 {current} / {total} 页",
     all: "全部",
     adopt: "采纳为正式",
     approve: "采纳为正式",

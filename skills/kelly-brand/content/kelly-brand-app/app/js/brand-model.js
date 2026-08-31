@@ -57,7 +57,7 @@ function parseJsonList(value) {
   }
 }
 
-function normalizeItem(row = {}) {
+export function normalizeItemRow(row = {}) {
   const hasNqs = row.nqs_score !== undefined && row.nqs_score !== null && row.nqs_score !== "";
   const evidenceSource = row.evidence_source || "";
   return {
@@ -81,7 +81,7 @@ function normalizeItem(row = {}) {
   };
 }
 
-function normalizeDriftAlert(row = {}) {
+export function normalizeDriftAlertRow(row = {}) {
   return {
     alert_id: row.alert_id || "",
     channel_id: row.channel_id || "",
@@ -98,8 +98,8 @@ function normalizeDriftAlert(row = {}) {
 }
 
 export function buildSnapshot({ items = [], driftAlerts = [] } = {}) {
-  const normalizedItems = items.map(normalizeItem);
-  const normalizedDrift = driftAlerts.map(normalizeDriftAlert);
+  const normalizedItems = items.map(normalizeItemRow);
+  const normalizedDrift = driftAlerts.map(normalizeDriftAlertRow);
 
   const positioningItem = normalizedItems.find((entry) => entry.type === "positioning") || null;
   const canonical = normalizedItems.filter((entry) => entry.status === "approved");

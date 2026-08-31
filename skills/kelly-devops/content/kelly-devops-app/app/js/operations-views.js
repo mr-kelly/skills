@@ -1,4 +1,6 @@
 import {
+  pagerControl,
+  recordCountLabel,
   actionById,
   actions,
   date,
@@ -30,7 +32,7 @@ import { getProvider } from "./providers/index.js?v=0.1.0";
 export function renderServices() {
   els.title.textContent = t("services");
   const rows = filteredServices();
-  els.subtitle.textContent = `${rows.length} ${t("configured")}`;
+  els.subtitle.textContent = `${recordCountLabel("services", rows.length, Boolean(state.query))} ${t("configured")}`;
   els.content.innerHTML = `
     ${notice()}
     ${warnings()}
@@ -62,6 +64,7 @@ export function renderServices() {
       </table>
     </div>
     ${rows.length ? "" : `<div class="empty">${t("empty")}</div>`}
+    ${pagerControl("services")}
   `;
 }
 
@@ -153,7 +156,7 @@ export function renderExpiries() {
   els.title.textContent = t("expiries");
   const rows = filteredExpiries();
   const expiring = rows.filter((item) => Number(item.days_left) <= 30).length;
-  els.subtitle.textContent = `${rows.length} ${t("expiries").toLowerCase()} · ${expiring} ${t("expiring")}`;
+  els.subtitle.textContent = `${recordCountLabel("expiries", rows.length, Boolean(state.query))} ${t("expiries").toLowerCase()} · ${expiring} ${t("expiring")}`;
   els.content.innerHTML = `
     ${notice()}
     <div class="table-wrap">
@@ -183,6 +186,7 @@ export function renderExpiries() {
       </table>
     </div>
     ${rows.length ? "" : `<div class="empty">${t("empty")}</div>`}
+    ${pagerControl("expiries")}
   `;
 }
 
@@ -298,7 +302,7 @@ export function renderActions() {
   els.title.textContent = t("actionsQueue");
   const rows = filteredActions();
   const review = rows.filter((item) => item.status === "needs_review").length;
-  els.subtitle.textContent = `${rows.length} ${t("actions").toLowerCase()} · ${review} ${t("needDecision")}`;
+  els.subtitle.textContent = `${recordCountLabel("actions", rows.length, Boolean(state.query))} ${t("actions").toLowerCase()} · ${review} ${t("needDecision")}`;
   els.content.innerHTML = `
     ${notice()}
     ${lockBanner()}
@@ -321,6 +325,7 @@ export function renderActions() {
         .join("")}
     </div>
     ${rows.length ? "" : `<div class="empty">${t("empty")}</div>`}
+    ${pagerControl("actions")}
   `;
 }
 

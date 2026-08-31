@@ -73,7 +73,7 @@ export function calcRoi(spend = 0, est_value = 0) {
   return spend > 0 ? (Number(est_value || 0) / Number(spend || 0) - 1) * 100 : null;
 }
 
-function normalizeCreator(row = {}) {
+export function normalizeCreatorRow(row = {}) {
   const stage = row.stage || "discovery";
   const followers = Number(row.followers || 0);
   const est_rate = Number(row.est_rate || 0);
@@ -117,7 +117,7 @@ function normalizeCreator(row = {}) {
 // gates are informational and excluded from those rollups per
 // references/creators-schema.md).
 export function buildSnapshot({ creators = [] } = {}) {
-  const normalized = creators.map(normalizeCreator);
+  const normalized = creators.map(normalizeCreatorRow);
   const doneStatuses = new Set(["approved", "done", "live"]);
   const engagements = normalized.filter((item) => item.item_type !== "quality_gate");
 
