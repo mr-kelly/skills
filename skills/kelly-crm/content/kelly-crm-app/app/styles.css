@@ -527,6 +527,12 @@ textarea:disabled {
   font-size: 20px;
 }
 
+.load-more {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+
 /* Tables */
 .table-wrap {
   overflow: auto;

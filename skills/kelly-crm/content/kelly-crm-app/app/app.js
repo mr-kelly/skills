@@ -9,10 +9,17 @@ import {
   renderSettings,
 } from "./js/crm-views.js";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { NORMALIZE_ROW_BY_KEY } from "./js/crm-model.js";
 
 export const state = {
   snapshot: null,
   settings: null,
+  // Cursor for the NEXT page of each paginated Base, or null/undefined when
+  // there is no more (or the active provider -- e.g. the static demo
+  // provider -- doesn't page at all). Absence is what hides the "load more"
+  // button; see loadMorePage() and crm-views.js.
+  pagination: {},
+  loadingMore: {},
   route: parseRoute(),
   query: "",
   followupFilter: "all",
@@ -146,9 +153,37 @@ export async function loadState() {
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
+  state.pagination = data.pagination || {};
   window.dispatchEvent(new CustomEvent("kelly-crm:state", { detail: data }));
   applyDemoRoute();
   render();
+}
+
+// Fetches one more page for `key` and appends it -- called from a "load
+// more" button, never on its own initiative, so a page is always the direct
+// result of a user action. Re-renders once, after the page lands, so the new
+// rows and the updated cursor (or its absence, hiding the button) show up
+// together.
+export async function loadMorePage(key) {
+  const cursor = state.pagination[key];
+  if (!cursor || state.loadingMore[key]) return;
+  state.loadingMore[key] = true;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.loadMorePage !== "function") return;
+    const { rows, nextCursor } = await provider.loadMorePage(key, cursor);
+    // Same per-row normalization buildSnapshot() ran on page 1 -- without
+    // it, appended rows keep raw field shapes (e.g. tags as a JSON string
+    // instead of an array) and crash the first render that touches them.
+    const normalize = NORMALIZE_ROW_BY_KEY[key];
+    const normalizedRows = normalize ? rows.map(normalize) : rows;
+    state.snapshot[key] = [...(state.snapshot[key] || []), ...normalizedRows];
+    state.pagination[key] = nextCursor;
+  } finally {
+    state.loadingMore[key] = false;
+    render();
+  }
 }
 
 function applyDemoRoute() {
@@ -459,6 +494,21 @@ export function render() {
   else renderOverview();
 }
 
+// One page per user action, per the same rule readPage's own comment states:
+// rendered only when the provider actually reported a next cursor, so a
+// fully-loaded (or non-paginating, e.g. demo) list shows nothing here.
+export function loadMoreControl(key) {
+  if (!state.pagination[key]) return "";
+  const loading = Boolean(state.loadingMore[key]);
+  return `
+    <div class="load-more">
+      <button type="button" data-load-more="${escapeHtml(key)}" ${loading ? "disabled" : ""}>
+        ${loading ? t("loading") : t("loadMore")}
+      </button>
+    </div>
+  `;
+}
+
 export function escapeHtml(value) {
   return String(value ?? "").replace(
     /[&<>"']/g,
@@ -473,6 +523,10 @@ export function escapeHtml(value) {
   );
 }
 
+els.content.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-load-more]");
+  if (button) loadMorePage(button.dataset.loadMore);
+});
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
 els.sidebarToggle?.addEventListener("click", toggleSidebar);

@@ -14,6 +14,7 @@ import {
   filteredFollowups,
   followups,
   interactions,
+  loadMoreControl,
   loadState,
   lockBanner,
   metricCards,
@@ -72,6 +73,7 @@ export function renderDeals() {
     `
         : `<div class="empty">${t("empty")}</div>`
     }
+    ${loadMoreControl("deals")}
   `;
 }
 
@@ -163,8 +165,10 @@ export function renderContacts() {
   els.title.textContent = t("contacts");
   const items = filteredContacts();
   els.subtitle.textContent = `${items.length} ${t("contactsLower")}`;
-  els.content.innerHTML = items.length
-    ? `
+  els.content.innerHTML = `
+    ${
+      items.length
+        ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -192,7 +196,10 @@ export function renderContacts() {
       </table>
     </div>
   `
-    : `<div class="empty">${t("empty")}</div>`;
+        : `<div class="empty">${t("empty")}</div>`
+    }
+    ${loadMoreControl("contacts")}
+  `;
 }
 
 export function renderContactDetail() {
