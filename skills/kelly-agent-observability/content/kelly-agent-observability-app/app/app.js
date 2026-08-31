@@ -661,6 +661,7 @@ function bindHandoffForms() {
         const provider = await getProvider();
         const handoff = await provider.submitHandoff(payload);
         state.handoffs.push(handoff);
+        if (state.totals.handoffs != null) state.totals.handoffs += 1;
         messageEl.hidden = false;
         messageEl.textContent = t("handoffSubmitted");
         messageEl.className = "handoff-form-message positive";
