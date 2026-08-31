@@ -177,7 +177,9 @@ async function loadState() {
   state.metrics = data.metrics || state.metrics;
   state.settings = data;
   window.dispatchEvent(new CustomEvent("kelly-clm:state", { detail: data }));
-  render();
+  const isEditingNewContract =
+    state.route.view === "contracts" && state.route.id === "new" && document.querySelector("#contractForm");
+  if (!isEditingNewContract) render();
 }
 
 function recomputeDemoMetrics() {
