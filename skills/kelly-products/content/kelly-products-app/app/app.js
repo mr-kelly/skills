@@ -1,5 +1,7 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import {
   channelsFor,
   computeMetrics,
@@ -44,6 +46,26 @@ const els = {
   channelCount: document.querySelector("#count-channel"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["products", "channels", "inventory", "review"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    const snapshotKey = { channels: "channel_matrix", review: "review_items" }[key] || key;
+    state.snapshot[snapshotKey] = rows;
+    state.snapshot.metrics = computeMetrics(
+      state.snapshot.products,
+      state.snapshot.channel_matrix,
+      state.snapshot.inventory,
+    );
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 760px)").matches;
@@ -114,6 +136,7 @@ function setRoute() {
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -280,7 +303,7 @@ function renderOverview() {
   const review = reviewItems().slice(0, 3);
   els.content.innerHTML = `
     <section class="metrics-grid">
-      ${metricCard(t("products"), String(metrics.product_count || 0), t("allProducts"))}
+      ${metricCard(t("products"), String(pagination.total("products", metrics.product_count || 0)), t("allProducts"))}
       ${metricCard(t("activeProducts"), String(metrics.active_count || 0), t("lifecycle"))}
       ${metricCard(t("avgMargin"), pct(metrics.avg_margin_pct), t("grossMargin"))}
       ${metricCard(t("inventoryValue"), money(metrics.inventory_value, currency), t("localFilesOnly"))}
@@ -329,7 +352,7 @@ function renderOverview() {
 
 function renderProducts() {
   const list = filteredProducts(products(), state.query);
-  setPage(t("products"), `${list.length} ${t("products").toLowerCase()}`);
+  setPage(t("products"), `${pagination.total("products", list.length)} ${t("products").toLowerCase()}`);
   els.content.innerHTML = `<div class="product-grid">${list.map((product) => productCard(product)).join("")}</div>`;
 }
 
@@ -552,6 +575,11 @@ function renderSettings() {
   </section>`;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 function render() {
   renderShell();
   if (!state.snapshot) {
@@ -564,10 +592,10 @@ function render() {
     return;
   }
   if (state.route.view === "products" && state.route.id) renderProductDetail(state.route.id);
-  else if (state.route.view === "products") renderProducts();
-  else if (state.route.view === "inventory") renderInventory();
-  else if (state.route.view === "channels") renderChannels();
-  else if (state.route.view === "review") renderReview();
+  else if (state.route.view === "products") renderPagedList(renderProducts, "products");
+  else if (state.route.view === "inventory") renderPagedList(renderInventory, "inventory");
+  else if (state.route.view === "channels") renderPagedList(renderChannels, "channels");
+  else if (state.route.view === "review") renderPagedList(renderReview, "review");
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
 }
@@ -622,7 +650,9 @@ async function postDecision(action, itemId) {
 }
 
 function bindEvents() {
-  window.addEventListener("hashchange", setRoute);
+pagination.bind(els.content);
+
+window.addEventListener("hashchange", setRoute);
   window.addEventListener("resize", syncResponsiveShell);
   els.search.addEventListener("input", () => {
     state.query = els.search.value;

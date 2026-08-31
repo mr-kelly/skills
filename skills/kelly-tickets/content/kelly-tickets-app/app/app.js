@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { computeMetrics } from "./js/tickets-model.js?v=0.1.0";
 import {
   renderBoard,
   renderBoardDetail,
@@ -59,6 +62,25 @@ export const els = {
   slaCount: document.querySelector("#count-sla"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["intake","proposals","tickets"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot[key === "proposals" ? "dispatch_proposals" : key] = rows;
+    state.snapshot.metrics = computeMetrics(state.snapshot);
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
+
+export function recordTotal(key, fallback = 0) {
+  return pagination.total(key, fallback);
+}
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -157,6 +179,7 @@ function setRoute() {
 export async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -319,7 +342,7 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = reviewCount
       ? `${reviewCount} ${t("dispatchToApprove")}`
-      : `${tickets().length} ${t("tickets")}`;
+      : `${pagination.total("tickets", tickets().length)} ${t("tickets")}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -508,13 +531,18 @@ function renderOverview() {
   `;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 export function render() {
   renderShell();
   if (state.route.view === "intake" && state.route.id) renderIntakeDetail();
-  else if (state.route.view === "intake") renderIntake();
-  else if (state.route.view === "dispatch") renderDispatch();
+  else if (state.route.view === "intake") renderPagedList(renderIntake, "intake");
+  else if (state.route.view === "dispatch") renderPagedList(renderDispatch, "proposals");
   else if (state.route.view === "board" && state.route.id) renderBoardDetail();
-  else if (state.route.view === "board") renderBoard();
+  else if (state.route.view === "board") renderPagedList(renderBoard, "tickets");
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
 }
@@ -536,6 +564,8 @@ export function escapeHtml(value) {
 function escapeText(value) {
   return String(value ?? "");
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

@@ -1,5 +1,7 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { renderEntity, renderGeo, renderOptimize, submitEntitySignal, submitGeoDecision } from "./js/geo-views.js";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { renderOpportunities, renderSettings, renderSites, submitDecision } from "./js/seo-ops-views.js";
@@ -43,6 +45,24 @@ export const els = {
   site: document.querySelector("#site"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["sites", "queries", "pages", "opportunities", "geo-opportunities"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot[key === "geo-opportunities" ? "geo_opportunities" : key] = rows;
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
+
+export function recordTotal(key, fallback = 0) {
+  return pagination.total(key, fallback);
+}
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -153,6 +173,7 @@ function setRoute() {
 export async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -231,8 +252,8 @@ function renderShell() {
   const reviewCount = opps.filter((item) => item.status === "needs_review").length;
   const approvedCount = opps.filter((item) => item.status === "approved").length;
   const blockedCount = opps.filter((item) => item.status === "blocked").length;
-  const queryCount = snapshot?.queries?.length || 0;
-  els.syncStatus.textContent = snapshot && queryCount ? `${n(queryCount)} ${t("queries").toLowerCase()}` : t("empty");
+  const queryCount = pagination.total("queries", snapshot?.queries?.length || 0);
+  els.syncStatus.textContent = snapshot && queryCount ? `${queryCount} ${t("queries").toLowerCase()}` : t("empty");
   if (els.reviewCount) els.reviewCount.textContent = reviewCount;
   if (els.approvedCount) els.approvedCount.textContent = approvedCount;
   if (els.blockedCount) els.blockedCount.textContent = blockedCount;
@@ -509,7 +530,7 @@ function moverRow(item) {
 function renderQueries() {
   els.title.textContent = t("queries");
   const items = filteredQueries().sort((a, b) => b.clicks - a.clicks);
-  els.subtitle.textContent = `${items.length} ${t("queries").toLowerCase()} · ${state.site ? escapeHtml(siteName(state.site)) : t("allSites")}`;
+  els.subtitle.textContent = `${pagination.total("queries", items.length)} ${t("queries").toLowerCase()} · ${state.site ? escapeHtml(siteName(state.site)) : t("allSites")}`;
   els.content.innerHTML = metricRowAnd(queriesTable(items));
 }
 
@@ -587,7 +608,7 @@ function renderQueryDetail() {
 function renderPages() {
   els.title.textContent = t("pages");
   const items = filteredPages().sort((a, b) => b.clicks - a.clicks);
-  els.subtitle.textContent = `${items.length} ${t("pages").toLowerCase()} · ${state.site ? escapeHtml(siteName(state.site)) : t("allSites")}`;
+  els.subtitle.textContent = `${pagination.total("pages", items.length)} ${t("pages").toLowerCase()} · ${state.site ? escapeHtml(siteName(state.site)) : t("allSites")}`;
   els.content.innerHTML = metricRowAnd(`
     <div class="table-wrap">
       <table>
@@ -697,17 +718,22 @@ export function displayPath(url) {
   }
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 export function render() {
   renderShell();
   if (state.route.view === "queries" && state.route.id) renderQueryDetail();
-  else if (state.route.view === "queries") renderQueries();
+  else if (state.route.view === "queries") renderPagedList(renderQueries, "queries");
   else if (state.route.view === "pages" && state.route.id) renderPageDetail();
-  else if (state.route.view === "pages") renderPages();
-  else if (state.route.view === "opportunities") renderOpportunities();
-  else if (state.route.view === "geo") renderGeo();
+  else if (state.route.view === "pages") renderPagedList(renderPages, "pages");
+  else if (state.route.view === "opportunities") renderPagedList(renderOpportunities, "opportunities");
+  else if (state.route.view === "geo") renderPagedList(renderGeo, "geo-opportunities");
   else if (state.route.view === "optimize") renderOptimize();
   else if (state.route.view === "entity") renderEntity();
-  else if (state.route.view === "sites") renderSites();
+  else if (state.route.view === "sites") renderPagedList(renderSites, "sites");
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
 }
@@ -725,6 +751,8 @@ export function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

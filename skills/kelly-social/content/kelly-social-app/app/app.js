@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { buildSnapshot } from "./js/social-model.js?v=0.1.0";
 import {
   renderAccountDetail,
   renderAccounts,
@@ -54,6 +57,24 @@ export const els = {
   accountCount: document.querySelector("#count-accounts"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["accounts", "posts", "calendar", "drafts", "shorts", "engagement"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot = buildSnapshot({ ...state.snapshot, [key]: rows });
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
+
+export function recordTotal(key, fallback = 0) {
+  return pagination.total(key, fallback);
+}
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -166,6 +187,7 @@ function setRoute() {
 export async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -288,8 +310,8 @@ function renderShell() {
   const snapshot = state.snapshot;
   const warningCount = snapshot?.warnings?.length || 0;
   const staleCount = accounts().filter(isStaleAccount).length;
-  const configuredCount = state.settings?.config_summary?.accounts?.length || 0;
-  const postCount = posts().length;
+  const configuredCount = pagination.total("accounts", state.settings?.config_summary?.accounts?.length || 0);
+  const postCount = pagination.total("posts", posts().length);
   const reviewCount =
     openReview(drafts()).length +
     shorts().filter((s) => s.status === "needs_review" || s.status === "changes_requested").length;
@@ -361,7 +383,7 @@ function metricCards() {
       <div class="metric"><span>${t("totalFollowers")}</span><strong>${num(metrics.total_followers)}</strong><small>${delta(metrics.followers_delta_7d)} ${t("delta7d")} · ${delta(metrics.followers_delta_28d)} ${t("delta28d")}</small></div>
       <div class="metric"><span>${t("impressions7d")}</span><strong>${num(metrics.impressions_7d)}</strong></div>
       <div class="metric"><span>${t("engagementRate7d")}</span><strong>${pct(metrics.engagement_rate_7d)}</strong></div>
-      <div class="metric"><span>${t("postsTrackedTitle")}</span><strong>${num(metrics.post_count)}</strong></div>
+      <div class="metric"><span>${t("postsTrackedTitle")}</span><strong>${pagination.total("posts", metrics.post_count)}</strong></div>
     </div>
   `;
 }
@@ -667,18 +689,23 @@ function shareOfVoicePanel() {
   `;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 function render() {
   renderShell();
   if (state.route.view === "accounts" && state.route.id) renderAccountDetail();
-  else if (state.route.view === "accounts") renderAccounts();
+  else if (state.route.view === "accounts") renderPagedList(renderAccounts, "accounts");
   else if (state.route.view === "timeline" && state.route.id) renderPostDetail();
-  else if (state.route.view === "timeline") renderTimeline();
+  else if (state.route.view === "timeline") renderPagedList(renderTimeline, "posts");
   else if (state.route.view === "settings") renderSettings();
-  else if (state.route.view === "calendar") renderCalendar();
-  else if (state.route.view === "compose") renderCompose();
-  else if (state.route.view === "shorts") renderShorts();
-  else if (state.route.view === "engagement") renderEngagement();
-  else if (state.route.view === "crisis") renderCrisis();
+  else if (state.route.view === "calendar") renderPagedList(renderCalendar, "calendar");
+  else if (state.route.view === "compose") renderPagedList(renderCompose, "drafts");
+  else if (state.route.view === "shorts") renderPagedList(renderShorts, "shorts");
+  else if (state.route.view === "engagement") renderPagedList(renderEngagement, "engagement");
+  else if (state.route.view === "crisis") renderPagedList(renderCrisis, "engagement");
   else renderOverview();
 }
 
@@ -700,6 +727,8 @@ export function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

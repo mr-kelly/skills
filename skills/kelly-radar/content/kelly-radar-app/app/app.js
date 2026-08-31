@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { computeMetrics } from "./js/radar-model.js?v=0.1.0";
 import {
   bindDecisionButtons,
   renderResearch,
@@ -41,6 +44,27 @@ export const els = {
   reportsCount: document.querySelector("#count-reports"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["watchlist", "signals", "questions", "opportunities"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    if (key === "questions") state.snapshot.research.questions = rows;
+    else if (key === "opportunities") state.snapshot.trends.opportunities = rows;
+    else state.snapshot[key] = rows;
+    state.snapshot.metrics = computeMetrics(state.snapshot);
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
+
+export function recordTotal(key, fallback = 0) {
+  return pagination.total(key, fallback);
+}
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -134,6 +158,7 @@ function setRoute() {
 export async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -226,7 +251,7 @@ function renderShell() {
   const counts = attentionCounts();
   els.syncStatus.textContent =
     state.snapshot?.generated_at && Date.parse(state.snapshot.generated_at) > 0
-      ? `${signals().length} ${t("signals").toLowerCase()} · ${watchlist().length} ${t("watchTargets")}`
+      ? `${pagination.total("signals", signals().length)} ${t("signals").toLowerCase()} · ${pagination.total("watchlist", watchlist().length)} ${t("watchTargets")}`
       : t("empty");
   if (els.triageCount) els.triageCount.textContent = counts.triage;
   if (els.briefsCount) els.briefsCount.textContent = counts.briefs;
@@ -235,7 +260,7 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = counts.triage
       ? `${counts.triage} ${t("signalsToTriage")}`
-      : `${signals().length} ${t("signals").toLowerCase()}`;
+      : `${pagination.total("signals", signals().length)} ${t("signals").toLowerCase()}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -428,7 +453,7 @@ function renderSignals() {
   els.title.textContent = t("signals");
   const items = filteredSignals();
   const triage = items.filter((item) => item.status === "needs_review").length;
-  els.subtitle.textContent = `${items.length} ${t("signals").toLowerCase()} · ${triage} ${t("signalsToTriage")}`;
+  els.subtitle.textContent = `${pagination.total("signals", items.length)} ${t("signals").toLowerCase()} · ${triage} ${t("signalsToTriage")}`;
   els.content.innerHTML = `
     ${demoBanner()}
     ${lockBanner()}
@@ -548,7 +573,7 @@ function renderSignalDetail() {
 
 function renderWatchlist() {
   els.title.textContent = t("watchlist");
-  els.subtitle.textContent = `${watchlist().length} ${t("watchTargets")}`;
+  els.subtitle.textContent = `${pagination.total("watchlist", watchlist().length)} ${t("watchTargets")}`;
   const query = state.query.trim().toLowerCase();
   const items = watchlist().filter(
     (item) =>
@@ -660,15 +685,20 @@ function renderWatchTargetDetail() {
 
 /* ---------- Render ---------- */
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 export function render() {
   renderShell();
   if (state.route.view === "signals" && state.route.id) renderSignalDetail();
-  else if (state.route.view === "signals") renderSignals();
+  else if (state.route.view === "signals") renderPagedList(renderSignals, "signals");
   else if (state.route.view === "watchlist" && state.route.id) renderWatchTargetDetail();
-  else if (state.route.view === "watchlist") renderWatchlist();
+  else if (state.route.view === "watchlist") renderPagedList(renderWatchlist, "watchlist");
   else if (state.route.view === "research" && state.route.id) renderResearchDetail();
-  else if (state.route.view === "research") renderResearch();
-  else if (state.route.view === "trends") renderTrends();
+  else if (state.route.view === "research") renderPagedList(renderResearch, "questions");
+  else if (state.route.view === "trends") renderPagedList(renderTrends, "opportunities");
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
 }
@@ -686,6 +716,8 @@ export function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

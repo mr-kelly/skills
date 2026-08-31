@@ -1,7 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
-import { buildScenario } from "./js/simulator-model.js?v=0.1.0";
+import { buildBatch, buildScenario } from "./js/simulator-model.js?v=0.1.0";
 
 const state = {
   batch: null,
@@ -39,6 +41,20 @@ const els = {
   language: document.querySelector("#language"),
   newScenarioBtn: document.querySelector("#newScenarioBtn"),
 };
+
+const PAGINATED_KEYS = ["scenarios"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.batch = buildBatch(rows, { batchId: state.batch?.batch_id, generatedAt: state.batch?.generated_at });
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -131,6 +147,7 @@ function setRoute() {
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.batch = data.batch;
   state.settings = data;
@@ -216,7 +233,7 @@ function renderShell() {
   if (els.countApproved) els.countApproved.textContent = approved;
   if (els.countRejected) els.countRejected.textContent = rejected;
   if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
-  if (els.mobileViewMeta) els.mobileViewMeta.textContent = `${list.length} ${t("scenarios")}`;
+  if (els.mobileViewMeta) els.mobileViewMeta.textContent = `${pagination.total("scenarios", list.length)} ${t("scenarios")}`;
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
   });
@@ -248,7 +265,7 @@ function escapeHtml(value) {
 function renderOverview() {
   els.title.textContent = t("overview");
   const list = scenarios();
-  els.subtitle.textContent = `${list.length} ${t("scenarios")}`;
+  els.subtitle.textContent = `${pagination.total("scenarios", list.length)} ${t("scenarios")}`;
   if (!list.length) {
     els.content.innerHTML = `<div class="empty">${t("empty")}</div>`;
     return;
@@ -678,11 +695,16 @@ function renderSettings() {
   `;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 function render() {
   renderShell();
   if (state.route.view === "scenarios" && state.route.id === "new") renderNewScenario();
   else if (state.route.view === "scenarios" && state.route.id) renderScenarioDetail();
-  else if (state.route.view === "scenarios") renderScenarios();
+  else if (state.route.view === "scenarios") renderPagedList(renderScenarios, "scenarios");
   else if (state.route.view === "comparison") renderComparison();
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
@@ -786,6 +808,8 @@ async function submitDeleteScenario(id) {
     state.busy = false;
   }
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

@@ -12,6 +12,7 @@ import {
   loadState,
   lockBanner,
   reportById,
+  recordTotal,
   research,
   sparkline,
   state,
@@ -33,7 +34,7 @@ export function renderResearch() {
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(query)),
   );
-  els.subtitle.textContent = `${items.length} ${t("questions").toLowerCase()}`;
+  els.subtitle.textContent = `${recordTotal("questions", items.length)} ${t("questions").toLowerCase()}`;
   els.content.innerHTML = `
     ${demoBanner()}
     ${lockBanner()}
@@ -215,7 +216,7 @@ export function renderTrends() {
   const items = movers.filter(
     (item) => !query || [item.keyword, item.source].some((value) => String(value).toLowerCase().includes(query)),
   );
-  els.subtitle.textContent = `${items.length} ${t("topMovers").toLowerCase()} · ${opportunities.length} ${t("opportunityCards").toLowerCase()}`;
+  els.subtitle.textContent = `${items.length} ${t("topMovers").toLowerCase()} · ${recordTotal("opportunities", opportunities.length)} ${t("opportunityCards").toLowerCase()}`;
   const opportunityById = new Map(opportunities.map((item) => [item.opportunity_id, item]));
   const disabled = isLocked() || state.saving ? "disabled" : "";
   els.content.innerHTML = `

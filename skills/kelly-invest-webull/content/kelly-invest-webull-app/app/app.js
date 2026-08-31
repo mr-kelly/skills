@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { assembleSnapshot, computeInsights } from "./js/webull-model.js?v=0.1.0";
 
 const state = {
   snapshot: null,
@@ -43,6 +46,26 @@ const els = {
   accountCount: document.querySelector("#count-accounts"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["accounts", "positions"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    const snapshot = assembleSnapshot(
+      key === "accounts" ? rows : state.snapshot.accounts,
+      key === "positions" ? rows : state.snapshot.positions,
+      state.snapshot,
+    );
+    snapshot.insights = computeInsights(snapshot, state.settings?.config_summary?.target_allocation);
+    state.snapshot = snapshot;
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -149,6 +172,7 @@ function setRoute() {
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -205,8 +229,8 @@ function renderShell() {
   applyI18n();
   const snapshot = state.snapshot;
   const totals = snapshot?.totals || {};
-  const positionCount = snapshot?.positions?.length || 0;
-  const accountCount = snapshot?.accounts?.length || 0;
+  const positionCount = pagination.total("positions", snapshot?.positions?.length || 0);
+  const accountCount = pagination.total("accounts", snapshot?.accounts?.length || 0);
   const connected = isConnected();
   els.syncStatus.textContent = connected
     ? snapshot?.generated_at
@@ -447,7 +471,7 @@ function positionsTable(positions) {
 function renderPositions() {
   els.title.textContent = t("positionsTitle");
   const positions = filteredPositions();
-  els.subtitle.textContent = `${positions.length} ${t("positions")}`;
+  els.subtitle.textContent = `${pagination.total("positions", positions.length)} ${t("positions")}`;
   if (!isConnected()) {
     els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
     return;
@@ -462,7 +486,7 @@ function accountName(accountId) {
 function renderAccounts() {
   els.title.textContent = t("accountsTitle");
   const accounts = state.snapshot?.accounts || [];
-  els.subtitle.textContent = `${accounts.length} ${t("accounts")}`;
+  els.subtitle.textContent = `${pagination.total("accounts", accounts.length)} ${t("accounts")}`;
   els.content.innerHTML = accounts.length
     ? `
     <div class="account-grid">
@@ -621,12 +645,17 @@ function warnings(accountId = "") {
     .join("")}</div>`;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 function render() {
   renderShell();
   if (state.route.view === "accounts" && state.route.id) renderAccountDetail();
-  else if (state.route.view === "accounts") renderAccounts();
+  else if (state.route.view === "accounts") renderPagedList(renderAccounts, "accounts");
   else if (state.route.view === "positions" && state.route.id) renderPositionDetail();
-  else if (state.route.view === "positions") renderPositions();
+  else if (state.route.view === "positions") renderPagedList(renderPositions, "positions");
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
 }
@@ -644,6 +673,8 @@ function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

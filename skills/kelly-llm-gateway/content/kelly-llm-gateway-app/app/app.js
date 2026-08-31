@@ -1,5 +1,8 @@
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { buildSnapshot } from "./js/gateway-model.js?v=0.1.0";
 
 const state = {
   snapshot: null,
@@ -35,6 +38,25 @@ const els = {
   readyPromoteCount: document.querySelector("#count-ready-promote"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["routes"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot = buildSnapshot({
+      services: state.snapshot.services,
+      models: state.snapshot.models,
+      routes: rows,
+      configSummary: state.settings?.config_summary,
+    });
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -150,6 +172,7 @@ function setRoute() {
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -478,7 +501,7 @@ function spendTable(routes) {
 function renderSpend() {
   els.title.textContent = t("spend");
   const routes = filteredRoutes();
-  els.subtitle.textContent = `${routes.length} ${t("service").toLowerCase()} × ${t("model").toLowerCase()}`;
+  els.subtitle.textContent = `${pagination.total("routes", routes.length)} ${t("service").toLowerCase()} × ${t("model").toLowerCase()}`;
   els.content.innerHTML = `
     ${totalsMetricCards()}
     ${warnings()}
@@ -644,11 +667,16 @@ function warnings() {
     .join("")}</div>`;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 function render() {
   renderShell();
-  if (state.route.view === "spend") renderSpend();
-  else if (state.route.view === "rollouts") renderRollouts();
-  else if (state.route.view === "anomalies") renderAnomalies();
+  if (state.route.view === "spend") renderPagedList(renderSpend, "routes");
+  else if (state.route.view === "rollouts") renderPagedList(renderRollouts, "routes");
+  else if (state.route.view === "anomalies") renderPagedList(renderAnomalies, "routes");
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
 }
@@ -717,6 +745,8 @@ function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

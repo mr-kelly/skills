@@ -1,5 +1,7 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { computeMetrics } from "./js/retail-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
@@ -12,6 +14,11 @@ const state = {
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
   saving: false,
+  pageError: "",
+  pageCursors: {},
+  currentPage: {},
+  pageLoading: {},
+  totals: {},
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-retail-intel.sidebarCollapsed";
@@ -114,9 +121,92 @@ async function loadState() {
   closeConnectGate();
   state.batch = data.batch;
   state.bootstrap = data;
+  state.pageCursors = {};
+  state.currentPage = {};
+  state.totals = data.totals || {};
+  for (const [key, nextCursor] of Object.entries(data.pagination || {})) {
+    state.pageCursors[key] = [undefined, nextCursor];
+    state.currentPage[key] = 1;
+  }
   window.dispatchEvent(new CustomEvent("kelly-retail-intel:state", { detail: data }));
   applyDemoRoute();
   render();
+}
+
+function pageSize(key) {
+  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 100;
+}
+
+function pageCount(key) {
+  const total = state.totals[key];
+  return total == null ? null : Math.max(1, Math.ceil(total / pageSize(key)));
+}
+
+function recordTotal(key, loaded) {
+  if (state.totals[key] != null) return state.totals[key];
+  return `${loaded}${state.pageCursors[key]?.[1] ? "+" : ""}`;
+}
+
+async function goToPage(key, targetPage) {
+  if (state.pageLoading[key] || !state.pageCursors[key]) return;
+  const totalPages = pageCount(key);
+  const page = totalPages == null ? Math.max(1, targetPage) : Math.min(Math.max(1, targetPage), totalPages);
+  if (page === state.currentPage[key]) return;
+  state.pageLoading[key] = true;
+  state.pageError = "";
+  render();
+  try {
+    const provider = await getProvider();
+    let result;
+    for (let next = state.pageCursors[key].length; next <= page; next += 1) {
+      const cursor = state.pageCursors[key][next - 1];
+      if (next > 1 && !cursor) return;
+      result = await provider.fetchPage(key, cursor);
+      state.pageCursors[key][next] = result.nextCursor;
+    }
+    if (!result || state.pageCursors[key].length > page + 1) {
+      result = await provider.fetchPage(key, state.pageCursors[key][page - 1]);
+      state.pageCursors[key][page] = result.nextCursor;
+    }
+    state.batch[key] = result.rows;
+    state.batch.metrics = computeMetrics(state.batch);
+    state.currentPage[key] = page;
+  } catch (error) {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  } finally {
+    state.pageLoading[key] = false;
+    render();
+  }
+}
+
+function pagerControl(key) {
+  if (!state.pageCursors[key]) return "";
+  const total = pageCount(key);
+  const current = state.currentPage[key] || 1;
+  const loading = Boolean(state.pageLoading[key]);
+  const hasNext = total == null ? Boolean(state.pageCursors[key][current]) : current < total;
+  if ((total === 1 || total == null) && current === 1 && !hasNext) return "";
+  const pages =
+    total == null
+      ? []
+      : total <= 7
+        ? Array.from({ length: total }, (_, index) => index + 1)
+        : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort(
+            (a, b) => a - b,
+          );
+  const items = [];
+  let previous = 0;
+  for (const page of pages) {
+    if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
+    items.push(`<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`);
+    previous = page;
+  }
+  return `<nav class="pager" aria-label="${t("pagination")}">
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
+    ${items.join("")}
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${t("nextPage")}</button>
+    ${total == null ? "" : `<span class="pager-summary">${t("pageOf").replace("{current}", current).replace("{total}", total)}</span>`}
+  </nav>`;
 }
 
 function applyDemoRoute() {
@@ -253,9 +343,9 @@ function renderOverview() {
   els.content.innerHTML = `
     ${demoBanner()}
     <div class="metrics">
-      <a class="metric" href="#/signals"><span>${t("signals")}</span><strong>${b.signals.length}</strong></a>
-      <a class="metric" href="#/actions"><span>${t("actions")}</span><strong>${b.actions.length}</strong></a>
-      <a class="metric" href="#/drafts"><span>${t("drafts")}</span><strong>${b.drafts.length}</strong></a>
+      <a class="metric" href="#/signals"><span>${t("signals")}</span><strong>${recordTotal("signals", b.signals.length)}</strong></a>
+      <a class="metric" href="#/actions"><span>${t("actions")}</span><strong>${recordTotal("actions", b.actions.length)}</strong></a>
+      <a class="metric" href="#/drafts"><span>${t("drafts")}</span><strong>${recordTotal("drafts", b.drafts.length)}</strong></a>
       <div class="metric"><span>${t("buyer")}</span><strong class="muted">${escapeHtml(b.buyer || "")}</strong></div>
     </div>
     <section class="overview-grid">
@@ -291,8 +381,10 @@ function renderList(view) {
   els.subtitle.textContent = `${items.length} ${viewLabel(view).toLowerCase()} · ${needs} ${t("needsReview")}`;
   els.content.innerHTML = `
     ${demoBanner()}
+    ${state.pageError ? `<div class="warnings"><div class="warning"><strong>${escapeHtml(state.pageError)}</strong></div></div>` : ""}
     <div class="item-list">${items.map((item) => itemRow(view, item)).join("")}</div>
     ${items.length ? "" : `<div class="empty">${t("empty")}</div>`}
+    ${pagerControl(view)}
   `;
 }
 
@@ -497,6 +589,13 @@ function escapeHtml(value) {
       })[char],
   );
 }
+
+els.content.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-goto-page]");
+  if (!button) return;
+  const [key, page] = button.dataset.gotoPage.split(":");
+  goToPage(key, Number(page));
+});
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

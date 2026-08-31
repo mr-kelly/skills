@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { buildSnapshot } from "./js/money-model.js?v=0.1.0";
 
 const state = {
   snapshot: null,
@@ -35,6 +38,25 @@ const els = {
   accountCount: document.querySelector("#count-accounts"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["accounts", "transactions", "invoices"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot = buildSnapshot({
+      accounts: key === "accounts" ? rows : state.snapshot.accounts,
+      transactions: key === "transactions" ? rows : state.snapshot.transactions,
+      invoices: key === "invoices" ? rows : state.snapshot.invoices,
+      invoiceMatches: state.snapshot.invoice_matches,
+    });
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -127,6 +149,7 @@ function setRoute() {
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -172,8 +195,8 @@ function renderShell() {
   const snapshot = state.snapshot;
   const warningCount = snapshot?.warnings?.length || 0;
   const reviewCount = invoiceMatches().filter((match) => match.status !== "matched").length;
-  const configuredCount = state.settings?.config_summary?.accounts?.length || 0;
-  const txCount = snapshot?.transactions?.length || 0;
+  const configuredCount = pagination.total("accounts", state.settings?.config_summary?.accounts?.length || 0);
+  const txCount = pagination.total("transactions", snapshot?.transactions?.length || 0);
   els.syncStatus.textContent = snapshot ? `${txCount} ${t("tx")}` : t("empty");
   if (els.reviewCount) els.reviewCount.textContent = reviewCount + warningCount;
   if (els.txCount) els.txCount.textContent = txCount;
@@ -330,7 +353,7 @@ function renderOverview() {
 
 function renderAccounts() {
   els.title.textContent = t("accounts");
-  els.subtitle.textContent = `${state.snapshot?.accounts?.length || 0} ${t("configured")}`;
+  els.subtitle.textContent = `${pagination.total("accounts", state.snapshot?.accounts?.length || 0)} ${t("configured")}`;
   const accounts = state.snapshot?.accounts || [];
   els.content.innerHTML = accounts.length
     ? `
@@ -363,7 +386,7 @@ function renderInvoices() {
   const invoices = filteredInvoices();
   const matches = invoiceMatches();
   const needsReview = matches.filter((match) => match.status !== "matched").length;
-  els.subtitle.textContent = `${invoices.length} ${t("invoices")} · ${needsReview} ${t("invoiceNeedsReview")}`;
+  els.subtitle.textContent = `${pagination.total("invoices", invoices.length)} ${t("invoices")} · ${needsReview} ${t("invoiceNeedsReview")}`;
   els.content.innerHTML = `
     <div class="metrics invoice-metrics">
       ${invoiceSummaryCards()}
@@ -656,15 +679,20 @@ function warnings(accountId = "") {
     .join("")}</div>`;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 function render() {
   renderShell();
   if (state.route.view === "accounts" && state.route.id) renderAccountDetail();
-  else if (state.route.view === "accounts") renderAccounts();
+  else if (state.route.view === "accounts") renderPagedList(renderAccounts, "accounts");
   else if (state.route.view === "invoices" && state.route.id) renderInvoiceDetail();
-  else if (state.route.view === "invoices") renderInvoices();
+  else if (state.route.view === "invoices") renderPagedList(renderInvoices, "invoices");
   else if (state.route.view === "settings") renderSettings();
   else if (state.route.view === "overview") renderOverview();
-  else renderLedger();
+  else renderPagedList(renderLedger, "transactions");
 }
 
 function escapeHtml(value) {
@@ -680,6 +708,8 @@ function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

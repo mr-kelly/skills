@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { buildSnapshot, computeInsights } from "./js/fund-model.js?v=0.1.0";
 
 const state = {
   snapshot: null,
@@ -37,6 +40,22 @@ const els = {
   entryCount: document.querySelector("#count-entries"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["families", "expenses"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    const snapshot = buildSnapshot({ ...state.snapshot, [key]: rows });
+    snapshot.insights = computeInsights(snapshot, state.settings?.config_summary?.deviation_threshold_pct);
+    state.snapshot = snapshot;
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -133,6 +152,7 @@ function setRoute() {
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -249,8 +269,12 @@ function syncMonthSelect() {
 function renderShell() {
   applyI18n();
   const balance = totals().balance || 0;
-  const familyCount = families().length;
-  const entries = incomeRows().length + expenseRows().length;
+  const familyCount = pagination.total("families", families().length);
+  const expenseCount = pagination.total("expenses", expenseRows().length);
+  const entries =
+    typeof expenseCount === "number"
+      ? incomeRows().length + expenseCount
+      : `${incomeRows().length + expenseRows().length}${String(expenseCount).endsWith("+") ? "+" : ""}`;
   els.syncStatus.textContent = hasData() ? `${entries} ${t("entryCount")}` : t("needsEntry");
   if (els.balanceCount) els.balanceCount.textContent = money(balance);
   if (els.familyCount) els.familyCount.textContent = familyCount;
@@ -546,7 +570,7 @@ function renderLedger() {
 
 function renderFamily() {
   els.title.textContent = t("fairnessTitle");
-  els.subtitle.textContent = `${t("avgBenefit")} ${money(totals().avg_family_benefit)} · ${families().length} ${t("familyCount")}`;
+  els.subtitle.textContent = `${t("avgBenefit")} ${money(totals().avg_family_benefit)} · ${pagination.total("families", families().length)} ${t("familyCount")}`;
   const rows = byFamily();
   const maxBenefit = Math.max(...rows.map((row) => row.benefit_total || 0), 1);
   els.content.innerHTML = `
@@ -738,12 +762,17 @@ function renderSettings() {
   `;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 function render() {
   renderShell();
   if (state.route.view === "family" && state.route.id) renderFamilyDetail();
-  else if (state.route.view === "family") renderFamily();
-  else if (state.route.view === "ledger") renderLedger();
-  else if (state.route.view === "category") renderCategory();
+  else if (state.route.view === "family") renderPagedList(renderFamily, "families");
+  else if (state.route.view === "ledger") renderPagedList(renderLedger, "expenses");
+  else if (state.route.view === "category") renderPagedList(renderCategory, "expenses");
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
 }
@@ -761,6 +790,8 @@ function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

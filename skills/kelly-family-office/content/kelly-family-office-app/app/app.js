@@ -1,5 +1,7 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
@@ -35,6 +37,20 @@ const els = {
   accountCount: document.querySelector("#count-accounts"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["entities"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot[key] = rows;
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -149,6 +165,7 @@ function setRoute() {
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -221,7 +238,7 @@ function hasData() {
 function renderShell() {
   applyI18n();
   const snapshot = state.snapshot;
-  const entityCount = entities().length;
+  const entityCount = pagination.total("entities", entities().length);
   const accountCount = accounts().length;
   const aum = totals().aum_base || 0;
   els.syncStatus.textContent = hasData() ? `${holdings().length} ${t("holdingCount")}` : t("needsImport");
@@ -405,7 +422,7 @@ function renderOverview() {
 
 function renderEntities() {
   els.title.textContent = t("entities");
-  els.subtitle.textContent = `${entities().length} ${t("entityCount")} · ${money(totals().aum_base)}`;
+  els.subtitle.textContent = `${pagination.total("entities", entities().length)} ${t("entityCount")} · ${money(totals().aum_base)}`;
   const byEntity = new Map((state.snapshot?.by_entity || []).map((row) => [row.entity_id, row]));
   const list = entities();
   els.content.innerHTML = list.length
@@ -701,10 +718,15 @@ function warnings(entityId = "") {
     .join("")}</div>`;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 function render() {
   renderShell();
   if (state.route.view === "entities" && state.route.id) renderEntityDetail();
-  else if (state.route.view === "entities") renderEntities();
+  else if (state.route.view === "entities") renderPagedList(renderEntities, "entities");
   else if (state.route.view === "assets") renderAssets();
   else if (state.route.view === "institutions") renderInstitutions();
   else if (state.route.view === "performance") renderPerformance();
@@ -725,6 +747,8 @@ function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

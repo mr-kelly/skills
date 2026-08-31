@@ -26,6 +26,7 @@ import {
   pct,
   platformBadge,
   platformChips,
+  recordTotal,
   posts,
   reviewActions,
   reviewBadge,
@@ -124,7 +125,7 @@ export function renderShorts() {
   els.title.textContent = t("shortScripts");
   const all = shorts();
   const list = byWorkflow(all);
-  els.subtitle.textContent = `${all.length} ${t("shorts")}`;
+  els.subtitle.textContent = `${recordTotal("shorts", all.length)} ${t("shorts")}`;
   els.content.innerHTML = `
     ${workflowChips(all)}
     ${list.length ? `<div class="desk-list">${list.map(shortCard).join("")}</div>` : `<div class="empty">${t("noItems")}</div>`}
@@ -254,7 +255,7 @@ export function renderCrisis() {
 export function renderTimeline() {
   els.title.textContent = t("timeline");
   const list = filteredPosts();
-  els.subtitle.textContent = `${list.length} ${t("posts")}`;
+  els.subtitle.textContent = `${recordTotal("posts", list.length)} ${t("posts")}`;
   els.content.innerHTML = `
     ${platformChips()}
     ${warnings()}
@@ -314,7 +315,7 @@ export function renderPostDetail() {
 
 export function renderAccounts() {
   els.title.textContent = t("accounts");
-  els.subtitle.textContent = `${accounts().length} ${t("configured")}`;
+  els.subtitle.textContent = `${recordTotal("accounts", accounts().length)} ${t("configured")}`;
   const list = accounts();
   els.content.innerHTML = list.length
     ? `

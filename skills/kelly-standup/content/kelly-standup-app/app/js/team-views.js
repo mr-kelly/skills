@@ -22,6 +22,7 @@ import {
   moodDot,
   participationBar,
   reminders,
+  recordTotal,
   render,
   severityBadge,
   state,
@@ -34,7 +35,7 @@ import { getProvider } from "./providers/index.js?v=0.1.0";
 export function renderMembers() {
   const rows = members().filter((member) => matchesQuery([member.name, member.role, member.timezone, member.channel]));
   els.title.textContent = t("members");
-  els.subtitle.textContent = `${rows.length} ${t("members").toLowerCase()}`;
+  els.subtitle.textContent = `${recordTotal("members", rows.length)} ${t("members").toLowerCase()}`;
   els.content.innerHTML = rows.length
     ? `
     <div class="table-wrap">

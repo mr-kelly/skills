@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { recomputeMetrics } from "./js/support-model.js?v=0.1.0";
 import {
   decideAction,
   renderKbDetail,
@@ -53,6 +56,25 @@ export const els = {
   blockedCount: document.querySelector("#count-blocked"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["tickets","knowledge-base"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot[key === "knowledge-base" ? "knowledge_base" : key] = rows;
+    recomputeMetrics(state.snapshot);
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
+
+export function recordTotal(key, fallback = 0) {
+  return pagination.total(key, fallback);
+}
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -179,6 +201,7 @@ function setRoute() {
 export async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -261,8 +284,10 @@ function renderShell() {
   const needsReview = tickets().filter((item) => item.status === "needs_review").length;
   const breaching = breachingTickets().length;
   const blocked = gateBlockedTickets().length;
+  const ticketCount = pagination.total("tickets", tickets().length);
+  const knowledgeCount = pagination.total("knowledge-base", knowledge().length);
   els.syncStatus.textContent = tickets().length
-    ? `${tickets().length} ${t("ticketCount")} · ${knowledge().length} KB`
+    ? `${ticketCount} ${t("ticketCount")} · ${knowledgeCount} KB`
     : t("empty");
   if (els.approvalsCount) els.approvalsCount.textContent = needsReview;
   if (els.slaCount) els.slaCount.textContent = breaching;
@@ -274,7 +299,7 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = needsReview
       ? `${needsReview} ${t("awaitingApproval")}`
-      : `${tickets().length} ${t("ticketCount")}`;
+      : `${ticketCount} ${t("ticketCount")}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -511,7 +536,7 @@ function renderTickets() {
   els.title.textContent = filter === "all" ? t("tickets") : `${t("tickets")} · ${enumLabel(filter)}`;
   const list = filteredTickets();
   const needsReview = tickets().filter((item) => item.status === "needs_review").length;
-  els.subtitle.textContent = `${list.length} ${t("ticketCount")} · ${needsReview} ${t("needsReviewFilter")}`;
+  els.subtitle.textContent = `${pagination.total("tickets", list.length)} ${t("ticketCount")} · ${needsReview} ${t("needsReviewFilter")}`;
   els.content.innerHTML = list.length
     ? `
     <div class="table-wrap">
@@ -709,13 +734,18 @@ export function csatStars(score) {
   return `<span class="csat-stars" title="${full}/5">${"★".repeat(full)}${"☆".repeat(5 - full)}</span>`;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 export function render() {
   renderShell();
   if (state.route.view === "tickets" && state.route.id && !WORKFLOW_FILTERS.includes(state.route.id))
     renderTicketDetail();
-  else if (state.route.view === "tickets") renderTickets();
+  else if (state.route.view === "tickets") renderPagedList(renderTickets, "tickets");
   else if (state.route.view === "knowledge" && state.route.id) renderKbDetail();
-  else if (state.route.view === "knowledge") renderKnowledge();
+  else if (state.route.view === "knowledge") renderPagedList(renderKnowledge, "knowledge-base");
   else if (state.route.view === "sla") renderSla();
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
@@ -734,6 +764,8 @@ export function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

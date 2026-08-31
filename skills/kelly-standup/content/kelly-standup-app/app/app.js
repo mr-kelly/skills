@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { computeMetrics } from "./js/standup-model.js?v=0.1.0";
 import {
   renderBlockers,
   renderHistory,
@@ -47,6 +50,25 @@ export const els = {
   blockerCount: document.querySelector("#count-blockers"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["members","blockers","reminders"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot[key] = rows;
+    state.snapshot.metrics = computeMetrics(state.snapshot);
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
+
+export function recordTotal(key, fallback = 0) {
+  return pagination.total(key, fallback);
+}
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -185,6 +207,7 @@ function setRoute() {
 export async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -550,12 +573,17 @@ function renderToday() {
   `;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 export function render() {
   renderShell();
   if (state.route.view === "members" && state.route.id) renderMemberDetail();
-  else if (state.route.view === "members") renderMembers();
-  else if (state.route.view === "blockers") renderBlockers();
-  else if (state.route.view === "reminders") renderReminders();
+  else if (state.route.view === "members") renderPagedList(renderMembers, "members");
+  else if (state.route.view === "blockers") renderPagedList(renderBlockers, "blockers");
+  else if (state.route.view === "reminders") renderPagedList(renderReminders, "reminders");
   else if (state.route.view === "history" && state.route.id) renderHistoryDetail();
   else if (state.route.view === "history") renderHistory();
   else if (state.route.view === "settings") renderSettings();
@@ -575,6 +603,8 @@ export function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

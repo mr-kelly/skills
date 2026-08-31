@@ -6,6 +6,9 @@ import {
   DRAFT_ACTIONS,
   REVIEW_ACTIONS,
   buildSnapshot,
+  normalizeAction,
+  normalizeDraft,
+  normalizeSignal,
   parseBatchMeta,
   statusForAction,
 } from "../retail-model.js?v=0.1.0";
@@ -65,29 +68,34 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters ? { filters } : {}),
     });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -129,7 +137,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readBatchMeta() {
-  const rows = await readAllRecords("settings");
+  const { rows } = await readPage("settings");
   const row = rows.find((item) => item.kind === "batch");
   return parseBatchMeta(row?.payload || "");
 }
@@ -155,18 +163,22 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [signalRows, actionRows, draftRows, sourceRows, meta] = await Promise.all([
-      readAllRecords("signals"),
-      readAllRecords("actions"),
-      readAllRecords("drafts"),
-      readAllRecords("sources"),
+    const [signalsPage, actionsPage, draftsPage, sourcesPage, meta, signalCount, actionCount, draftCount] =
+      await Promise.all([
+      readPage("signals"),
+      readPage("actions"),
+      readPage("drafts"),
+      readPage("sources"),
       readBatchMeta(),
+      countRecords("signals"),
+      countRecords("actions"),
+      countRecords("drafts"),
     ]);
     const batch = buildSnapshot({
-      signals: signalRows,
-      actions: actionRows,
-      drafts: draftRows,
-      sources: sourceRows,
+      signals: signalsPage.rows,
+      actions: actionsPage.rows,
+      drafts: draftsPage.rows,
+      sources: sourcesPage.rows,
       meta,
     });
     return {
@@ -176,7 +188,20 @@ export const busabaseProvider = {
       onboarding: { completed: Boolean(meta.batch_id), config_version: "1" },
       lock: null,
       batch,
+      totals: { signals: signalCount, actions: actionCount, drafts: draftCount },
+      pagination: {
+        signals: signalsPage.nextCursor,
+        actions: actionsPage.nextCursor,
+        drafts: draftsPage.nextCursor,
+      },
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    const normalize = { signals: normalizeSignal, actions: normalizeAction, drafts: normalizeDraft }[key];
+    return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
   },
 
   // Human verdict on a signal/action/draft (approve/request_changes/block,

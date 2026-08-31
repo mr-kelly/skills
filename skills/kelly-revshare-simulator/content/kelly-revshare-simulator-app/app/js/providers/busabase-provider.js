@@ -13,6 +13,7 @@ import {
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
+const BROWSED_KEYS = ["scenarios"];
 
 // A deployed AirApp is served through the ambient Busabase session (a Busabase
 // iframe/preview host, or same-origin proxy under /api/airapp-preview/); a
@@ -64,29 +65,42 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+const initialCursors = new Map();
+
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function readPageRows(key) {
+  const page = await readPage(key);
+  initialCursors.set(key, page.nextCursor);
+  return page.rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters ? { filters } : {}),
     });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -125,12 +139,12 @@ async function updateScenarioRecord(existing, scenario, message) {
 }
 
 async function readScenarios() {
-  const rows = await readAllRecords("scenarios");
+  const rows = await readPageRows("scenarios");
   return rows.map(normalizeScenarioRow);
 }
 
 async function readSettingsRows() {
-  return readAllRecords("settings");
+  return readPageRows("settings");
 }
 
 export const busabaseProvider = {
@@ -138,12 +152,17 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
+    initialCursors.clear();
+    const recordCountsPromise = Promise.all(BROWSED_KEYS.map((key) => countRecords(key)));
     const [scenarios, settingsRows] = await Promise.all([readScenarios(), readSettingsRows()]);
     const configRow = settingsRows.find((row) => row.kind === "config");
+    const recordCounts = await recordCountsPromise;
     return {
       app: "kelly-revshare-simulator",
       demo: false,
       data_provider: "busabase",
+      pagination: Object.fromEntries(BROWSED_KEYS.map((key) => [key, initialCursors.get(key) || null])),
+      totals: Object.fromEntries(BROWSED_KEYS.map((key, index) => [key, recordCounts[index]])),
       onboarding: { completed: Boolean(configRow), config_version: "1" },
       lock: null,
       config_summary: buildConfigSummary(settingsRows),
@@ -230,6 +249,12 @@ export const busabaseProvider = {
     await runtimeClient.changeRequests.review({ changeRequestIds: [changeRequestId], verdict: "approved" });
     await runtimeClient.changeRequests.merge({ changeRequestIds: [changeRequestId] });
     return { ok: true, pending: false };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+return { ...page, rows: page.rows.map(normalizeScenarioRow) };
   },
 
   async provisionResources() {

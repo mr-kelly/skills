@@ -1,6 +1,9 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { buildSnapshot } from "./js/writer-model.js?v=0.1.0";
 
 const state = {
   snapshot: null,
@@ -37,6 +40,20 @@ const els = {
   blockedCount: document.querySelector("#count-blocked"),
   language: document.querySelector("#language"),
 };
+
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (_key, rows) => {
+    const page = buildSnapshot({ drafts: rows });
+    state.snapshot = { ...state.snapshot, drafts: page.drafts, metrics: page.metrics, channels: page.channels };
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.notice = error instanceof Error ? error.message : String(error);
+  },
+});
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -116,6 +133,7 @@ async function loadState() {
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
+  pagination.reset(data.pagination, data.totals);
   window.dispatchEvent(new CustomEvent("kelly-writer:state", { detail: data }));
   applyDemoRoute();
   render();
@@ -162,7 +180,7 @@ function renderShell() {
   const approvedCount = drafts().filter((item) => item.status === "approved").length;
   const blockedCount = drafts().filter((item) => item.status === "blocked").length;
   const source = state.settings?.snapshot?.source || "";
-  els.syncStatus.textContent = drafts().length ? `${drafts().length} ${t("drafts")}` : t("empty");
+  els.syncStatus.textContent = drafts().length ? `${pagination.total("drafts", drafts().length)} ${t("drafts")}` : t("empty");
   if (els.reviewCount) els.reviewCount.textContent = reviewCount;
   if (els.approvedCount) els.approvedCount.textContent = approvedCount;
   if (els.blockedCount) els.blockedCount.textContent = blockedCount;
@@ -334,6 +352,7 @@ function renderDrafts() {
           .join("") || `<div class="empty">${t("noItems")}</div>`
       }
     </div>
+    ${pagination.control("drafts")}
   `;
   bindDraftEvents();
 }
@@ -454,6 +473,8 @@ function escapeHtml(value) {
 function escapeAttr(value) {
   return escapeHtml(value).replace(/\n/g, " ");
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
