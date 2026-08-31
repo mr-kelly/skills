@@ -65,29 +65,43 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
+}
+
+const countStatus = (key, status) =>
+  countRecords(key, [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
+
+async function countReviewRecords(status) {
+  const filters = [
+    { fieldSlug: "review-summary", fieldType: "longtext", operator: "not_empty" },
+    ...(status ? [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }] : []),
+  ];
+  const counts = await Promise.all(["decks", "slide-cards"].map((key) => countRecords(key, filters)));
+  return counts.some((value) => value === null) ? null : counts[0] + counts[1];
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -101,7 +115,7 @@ async function findRecord(key, idFieldSlug, idValue) {
 }
 
 async function readSettingsRow() {
-  const rows = await readAllRecords("settings");
+  const { rows } = await readPage("settings");
   return rows.find((row) => row.record_id === "config") || {};
 }
 
@@ -110,21 +124,65 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [projects, decks, slideCards, styleSystems, qaChecks, exportsList, settings] = await Promise.all([
-      readAllRecords("projects"),
-      readAllRecords("decks"),
-      readAllRecords("slide-cards"),
-      readAllRecords("style-systems"),
-      readAllRecords("qa-checks"),
-      readAllRecords("exports"),
+    const keys = ["projects", "decks", "slide-cards", "style-systems", "qa-checks", "exports"];
+    const [
+      projects,
+      decks,
+      slideCards,
+      styleSystems,
+      qaChecks,
+      exportsList,
+      settings,
+      counts,
+      slidesNeedsReview,
+      slidesChangesRequested,
+      decksApproved,
+      decksGenerated,
+      reviewTotal,
+      reviewNeeds,
+      reviewChanges,
+      reviewApproved,
+    ] = await Promise.all([
+      readPage("projects"),
+      readPage("decks"),
+      readPage("slide-cards"),
+      readPage("style-systems"),
+      readPage("qa-checks"),
+      readPage("exports"),
       readSettingsRow(),
+      Promise.all(keys.map((key) => countRecords(key))),
+      countStatus("slide-cards", "needs_review"),
+      countStatus("slide-cards", "changes_requested"),
+      countStatus("decks", "approved"),
+      countStatus("decks", "generated"),
+      countReviewRecords(),
+      countReviewRecords("needs_review"),
+      countReviewRecords("changes_requested"),
+      countReviewRecords("approved"),
     ]);
-    const snapshot = buildSnapshot({ projects, decks, slideCards, styleSystems, qaChecks, exportsList, settings });
+    const snapshot = buildSnapshot({
+      projects: projects.rows,
+      decks: decks.rows,
+      slideCards: slideCards.rows,
+      styleSystems: styleSystems.rows,
+      qaChecks: qaChecks.rows,
+      exportsList: exportsList.rows,
+      settings,
+    });
+    if (counts[0] !== null) snapshot.metrics.project_count = counts[0];
+    if (counts[1] !== null) snapshot.metrics.deck_count = counts[1];
+    if (counts[2] !== null) snapshot.metrics.slide_count = counts[2];
+    if (slidesNeedsReview !== null && slidesChangesRequested !== null)
+      snapshot.metrics.slides_needs_review = slidesNeedsReview + slidesChangesRequested;
+    if (decksGenerated !== null) snapshot.metrics.decks_generated = decksGenerated;
     return {
       app: appConfig.appId,
       demo: false,
       data_provider: "busabase",
-      onboarding: { completed: projects.length > 0 || decks.length > 0, config_version: "1" },
+      onboarding: {
+        completed: (counts[0] ?? projects.rows.length) > 0 || (counts[1] ?? decks.rows.length) > 0,
+        config_version: "1",
+      },
       lock: null,
       config_summary: {
         config_path: "busabase",
@@ -142,7 +200,29 @@ export const busabaseProvider = {
           : {},
       },
       snapshot,
+      pagination: Object.fromEntries(
+        [
+          ["projects", projects],
+          ["decks", decks],
+          ["slide-cards", slideCards],
+          ["style-systems", styleSystems],
+          ["qa-checks", qaChecks],
+          ["exports", exportsList],
+        ].map(([key, page]) => [key, page.nextCursor]),
+      ),
+      totalCount: Object.fromEntries(keys.map((key, index) => [key, counts[index]])),
+      reviewTotal,
+      workflowCount: {
+        needsReview: reviewNeeds !== null && reviewChanges !== null ? reviewNeeds + reviewChanges : null,
+        approved: reviewApproved,
+        ready: decksApproved !== null && decksGenerated !== null ? decksApproved + decksGenerated : null,
+      },
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    return readPage(key, cursor);
   },
 
   // Human verdict on a slide card or deck, written directly onto its own

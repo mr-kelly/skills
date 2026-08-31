@@ -18,7 +18,9 @@ import {
   lockBanner,
   money,
   notice,
+  pagerControl,
   platformBadge,
+  recordCountLabel,
   render,
   state,
   statusBadge,
@@ -32,7 +34,7 @@ import { getProvider } from "./providers/index.js?v=0.1.0";
 export function renderCampaigns() {
   els.title.textContent = t("campaigns");
   const rows = filteredCampaigns();
-  els.subtitle.textContent = `${rows.length} ${t("configured")}`;
+  els.subtitle.textContent = `${recordCountLabel("campaigns", rows.length, Boolean(state.query))} ${t("configured")}`;
   els.content.innerHTML = `
     ${notice()}
     ${warnings()}
@@ -64,6 +66,7 @@ export function renderCampaigns() {
       </table>
     </div>
     ${rows.length ? "" : `<div class="empty">${t("empty")}</div>`}
+    ${pagerControl("campaigns")}
   `;
 }
 
@@ -227,7 +230,7 @@ export function renderAlerts() {
   els.title.textContent = t("alertsFeed");
   const rows = filteredAnomalies();
   const open = rows.filter((item) => item.state === "open").length;
-  els.subtitle.textContent = `${rows.length} ${t("alerts").toLowerCase()} · ${open} ${t("openAlerts")}`;
+  els.subtitle.textContent = `${recordCountLabel("anomalies", rows.length, Boolean(state.query))} ${t("alerts").toLowerCase()} · ${open} ${t("openAlerts")}`;
   els.content.innerHTML = `
     ${notice()}
     ${warnings()}
@@ -260,6 +263,7 @@ export function renderAlerts() {
       </table>
     </div>
     ${rows.length ? "" : `<div class="empty">${t("empty")}</div>`}
+    ${pagerControl("anomalies")}
   `;
 }
 
@@ -279,7 +283,7 @@ export function renderAdjustments() {
   els.title.textContent = t("adjustmentsQueue");
   const rows = filteredAdjustments();
   const review = rows.filter((item) => item.status === "needs_review").length;
-  els.subtitle.textContent = `${rows.length} ${t("adjustments").toLowerCase()} · ${review} ${t("needReview")}`;
+  els.subtitle.textContent = `${recordCountLabel("adjustments", rows.length, Boolean(state.query))} ${t("adjustments").toLowerCase()} · ${review} ${t("needReview")}`;
   els.content.innerHTML = `
     ${notice()}
     ${lockBanner()}
@@ -287,6 +291,7 @@ export function renderAdjustments() {
       ${rows.map((item) => adjustmentCard(item)).join("")}
     </div>
     ${rows.length ? "" : `<div class="empty">${t("empty")}</div>`}
+    ${pagerControl("adjustments")}
   `;
 }
 

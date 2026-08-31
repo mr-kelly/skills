@@ -5,6 +5,7 @@ __pycache__/
 
 # App-in-Skill local state
 skills/*/.cache/
+skills/*/.venv/
 skills/*/app/.cache/
 skills/*/app/.data/
 skills/*/exports/

@@ -1,8 +1,13 @@
+import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { shotsForVideo } from "./js/video-model.js?v=0.1.0";
 
 const state = {
+  pageCursors: {},
+  currentPage: {},
+  pageLoading: {},
+  totals: {},
   data: null,
 };
 
@@ -56,10 +61,12 @@ function renderVideoList() {
   qs("#page-title").textContent = "Videos";
   const content = qs("#content");
   const list = videos();
-  qs("#page-subtitle").textContent = `${list.length} video${list.length === 1 ? "" : "s"}`;
+  const total = recordCountLabel("videos", list.length);
+  qs("#page-subtitle").textContent = `${total} video${total === 1 ? "" : "s"}`;
   renderNav(list, null);
   if (list.length === 0) {
-    content.innerHTML = '<div class="empty-state">No videos yet. Propose one with scripts/propose_video.mjs.</div>';
+    content.innerHTML = `${'<div class="empty-state">No videos yet. Propose one with scripts/propose_video.mjs.</div>'}
+    ${pagerControl("videos")}`;
     return;
   }
   const rows = list
@@ -163,12 +170,22 @@ function route() {
 }
 
 function renderSyncStatus() {
-  qs("#sync-status").textContent = state.data ? `Busabase: ${state.data.videoCount} video(s)` : "Loading";
+  qs("#sync-status").textContent = state.data
+    ? `Busabase: ${recordCountLabel("videos", state.data.videoCount)} video(s)`
+    : "Loading";
 }
 
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  state.pageCursors = {};
+  state.currentPage = {};
+  state.pageLoading = {};
+  state.totals = data.totals || {};
+  for (const [key, nextCursor] of Object.entries(data.pagination || {})) {
+    state.pageCursors[key] = [undefined, nextCursor];
+    state.currentPage[key] = 1;
+  }
   closeConnectGate();
   state.data = data;
   renderSyncStatus();
@@ -188,6 +205,112 @@ async function boot() {
 window.addEventListener("hashchange", route);
 qs("#refresh").addEventListener("click", () => {
   loadState().catch((error) => renderSetupRequired(error, boot));
+});
+
+const PAGE_BINDINGS = {
+  videos: { key: "videos", path: "data.videos" },
+};
+
+function pageSize(key) {
+  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 100;
+}
+
+function pageCount(key) {
+  const total = state.totals?.[key];
+  return total == null ? null : Math.max(1, Math.ceil(total / pageSize(key)));
+}
+
+function replacePageRows(path, rows) {
+  const parts = path.split(".");
+  let target = state;
+  for (const part of parts.slice(0, -1)) {
+    target = target?.[part];
+    if (!target) return;
+  }
+  target[parts.at(-1)] = rows;
+}
+
+async function goToPage(key, targetPage) {
+  if (state.pageLoading[key] || !state.pageCursors[key]) return;
+  const binding = Object.values(PAGE_BINDINGS).find((entry) => entry.key === key);
+  if (!binding) return;
+  const totalPages = pageCount(key);
+  const page = totalPages == null ? Math.max(1, targetPage) : Math.min(Math.max(1, targetPage), totalPages);
+  if (page === state.currentPage[key]) return;
+  state.pageLoading[key] = true;
+  if (typeof render === "function") render();
+  else route();
+  try {
+    const provider = await getProvider();
+    let result;
+    for (let next = state.pageCursors[key].length; next <= page; next += 1) {
+      const cursor = state.pageCursors[key][next - 1];
+      if (next > 1 && !cursor) return;
+      result = await provider.fetchPage(key, cursor);
+      state.pageCursors[key][next] = result.nextCursor;
+    }
+    if (!result || state.pageCursors[key].length > page + 1) {
+      result = await provider.fetchPage(key, state.pageCursors[key][page - 1]);
+      state.pageCursors[key][page] = result.nextCursor;
+    }
+    replacePageRows(binding.path, result.rows);
+    state.currentPage[key] = page;
+  } finally {
+    state.pageLoading[key] = false;
+    if (typeof render === "function") render();
+    else route();
+  }
+}
+
+function pagerMessage(key, fallback) {
+  return typeof t === "function" ? t(key) : fallback;
+}
+
+export function recordCountLabel(key, loadedCount, filtered = false) {
+  if (filtered) return loadedCount;
+  const total = state.totals?.[key];
+  if (total != null) return total;
+  const current = state.currentPage?.[key] || 1;
+  return `${loadedCount}${state.pageCursors?.[key]?.[current] ? "+" : ""}`;
+}
+
+export function pagerControl(key) {
+  if (!state.pageCursors[key]) return "";
+  const total = pageCount(key);
+  const current = state.currentPage[key] || 1;
+  const loading = Boolean(state.pageLoading[key]);
+  const hasNext = total == null ? Boolean(state.pageCursors[key][current]) : current < total;
+  if ((total === 1 || total == null) && current === 1 && !hasNext) return "";
+  const pages =
+    total == null
+      ? []
+      : total <= 7
+        ? Array.from({ length: total }, (_, index) => index + 1)
+        : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort(
+            (a, b) => a - b,
+          );
+  const items = [];
+  let previous = 0;
+  for (const page of pages) {
+    if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
+    items.push(
+      `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
+    );
+    previous = page;
+  }
+  return `<nav class="pager" aria-label="${pagerMessage("pagination", "Pagination")}">
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${pagerMessage("prevPage", "Prev")}</button>
+    ${items.join("")}
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${pagerMessage("nextPage", "Next")}</button>
+    ${total == null ? "" : `<span class="pager-summary">${pagerMessage("pageOf", "Page {current} of {total}").replace("{current}", current).replace("{total}", total)}</span>`}
+  </nav>`;
+}
+
+document.querySelector("#content")?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-goto-page]");
+  if (!button) return;
+  const [key, page] = button.dataset.gotoPage.split(":");
+  goToPage(key, Number(page));
 });
 
 boot();

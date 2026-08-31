@@ -75,29 +75,48 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+const initialPageCursors = {};
+const initialTotalCounts = {};
+
+async function readFirstPage(key) {
+  const [{ rows, nextCursor }, total] = await Promise.all([readPage(key), countRecords(key)]);
+  initialPageCursors[key] = nextCursor;
+  initialTotalCounts[key] = total;
   return rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  const declared = base(key);
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: declared.baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+function normalizePageRows(key, rows) {
+  const normalizers = { agents: normalizeAgentRow, traces: normalizeTraceRow, handoffs: normalizeHandoffRow };
+  const normalize = normalizers[key];
+  return normalize ? rows.map(normalize) : rows;
 }
 
 function findSettingsRow(rows = [], kind = "") {
@@ -109,16 +128,26 @@ function findSettingsRow(rows = [], kind = "") {
 // "contracts enter through an external sync process" precedent); the browser
 // provider only ever reads those two Bases, never writes them. The only Base
 // this provider writes to is `handoffs`, and only ever by creating a new row.
+function withPagination(data) {
+  return {
+    ...data,
+    pagination: { ...initialPageCursors },
+    totals: { ...initialTotalCounts },
+  };
+}
+
 export const busabaseProvider = {
   kind: "busabase",
 
   async getState() {
+    for (const key of Object.keys(initialPageCursors)) delete initialPageCursors[key];
+    for (const key of Object.keys(initialTotalCounts)) delete initialTotalCounts[key];
     await ensureResources();
     const [agentRows, traceRows, handoffRows, settingsRows] = await Promise.all([
-      readAllRecords("agents"),
-      readAllRecords("traces"),
-      readAllRecords("handoffs"),
-      readAllRecords("settings"),
+      readFirstPage("agents"),
+      readFirstPage("traces"),
+      readFirstPage("handoffs"),
+      readFirstPage("settings"),
     ]);
     const metaRow = findSettingsRow(settingsRows, "fleet_meta");
     const meta = parsePayload(metaRow?.payload);
@@ -126,7 +155,7 @@ export const busabaseProvider = {
     const traces = traceRows.map(normalizeTraceRow);
     const fleet = buildFleetSnapshot({ agentRows: agents, traceRows: traces, generatedAt: meta.generated_at || "" });
     const handoffs = handoffRows.map(normalizeHandoffRow);
-    return {
+    return withPagination({
       app: "kelly-agent-observability",
       demo: false,
       data_provider: "busabase",
@@ -135,7 +164,7 @@ export const busabaseProvider = {
       fleet,
       summary: summarizeFleet(fleet),
       handoffs,
-    };
+    });
   },
 
   // Human "acknowledge" / "needs investigation" handoff note, appended as a
@@ -176,6 +205,12 @@ export const busabaseProvider = {
       autoMerge: isStandaloneLocalRuntime(),
     });
     return handoff;
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    return { ...page, rows: normalizePageRows(key, page.rows) };
   },
 
   async provisionResources() {

@@ -1,5 +1,6 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { computeCheckFromRow } from "./js/finance-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
@@ -10,6 +11,10 @@ const state = {
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
   selectedAction: "approve",
+  pagination: {},
+  totalCount: {},
+  loadingMore: false,
+  loadMoreError: false,
 };
 
 const els = {
@@ -75,6 +80,8 @@ async function loadState() {
   const data = await provider.getState();
   closeConnectGate();
   state.data = data;
+  state.pagination = data.pagination || {};
+  state.totalCount = data.totalCount || {};
   window.dispatchEvent(new CustomEvent("kelly-finance:state", { detail: data }));
   render();
 }
@@ -94,7 +101,7 @@ function setShell() {
   els.syncStatus.textContent = state.data?.demo ? t("demo_notice") : t("ready");
   els.attentionMain.textContent = `${metrics.needs_review || 0} ${t("needs_review")}`;
   els.attentionMeta.textContent = `${metrics.approved || 0} ${t("approved")} · ${metrics.blocked || 0} ${t("blocked")}`;
-  els.mobileMeta.textContent = `${checks().length} ${t("model_checks").toLowerCase()}`;
+  els.mobileMeta.textContent = `${state.totalCount.checks ?? `${checks().length}${state.pagination.checks ? "+" : ""}`} ${t("model_checks").toLowerCase()}`;
   document.querySelectorAll(".nav a").forEach((link) => {
     link.classList.toggle("active", link.dataset.view === state.route.view);
   });
@@ -119,7 +126,7 @@ function renderOverview() {
     ${renderTable(snap.periods || [])}
   </section>
   <section class="panel">
-    <div class="panel-head"><h2>${t("model_checks")}</h2><a href="#/checks">${checks().length}</a></div>
+    <div class="panel-head"><h2>${t("model_checks")}</h2><a href="#/checks">${state.totalCount.checks ?? `${checks().length}${state.pagination.checks ? "+" : ""}`}</a></div>
     ${renderCheckList(checks().slice(0, 4))}
   </section>`;
 }
@@ -156,9 +163,35 @@ function renderCheckList(items) {
 function renderChecks() {
   const selected = checks().find((item) => item.id === state.route.id) || checks()[0];
   return `<div class="split">
-    <section class="panel list-panel">${renderCheckList(checks())}</section>
+    <section class="panel list-panel">${renderCheckList(checks())}${loadMoreControl()}</section>
     <section class="panel detail-panel">${selected ? renderCheckDetail(selected) : `<p class="empty">${t("no_checks")}</p>`}</section>
   </div>`;
+}
+
+function loadMoreControl() {
+  if (!state.pagination.checks) return "";
+  return `<div class="load-more"><button type="button" data-load-more ${state.loadingMore ? "disabled" : ""}>${state.loadingMore ? t("loading") : t("load_more")}</button>${state.loadMoreError ? `<span role="alert">${t("load_more_failed")}</span>` : ""}</div>`;
+}
+
+async function loadMoreChecks() {
+  const cursor = state.pagination.checks;
+  if (!cursor || state.loadingMore) return;
+  state.loadingMore = true;
+  state.loadMoreError = false;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage("checks", cursor);
+    const known = new Set(checks().map((item) => item.id));
+    snapshot().checks.push(...page.rows.map(computeCheckFromRow).filter((item) => !known.has(item.id)));
+    state.pagination.checks = page.nextCursor;
+  } catch {
+    state.loadMoreError = true;
+  } finally {
+    state.loadingMore = false;
+    render();
+  }
 }
 
 function renderCheckDetail(item) {
@@ -257,6 +290,10 @@ els.sidebarToggle.addEventListener("click", () => document.body.classList.toggle
 els.mobileSidebarToggle.addEventListener("click", () => setMobileSidebar(true));
 els.sidebarScrim.addEventListener("click", () => setMobileSidebar(false));
 els.content.addEventListener("click", (event) => {
+  if (event.target.closest("[data-load-more]")) {
+    loadMoreChecks();
+    return;
+  }
   const button = event.target.closest("[data-action]");
   if (button) submitDecision(button.dataset.action);
 });

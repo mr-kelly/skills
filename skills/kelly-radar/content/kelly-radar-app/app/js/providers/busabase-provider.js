@@ -9,12 +9,17 @@ import {
   SIGNAL_ACTIONS,
   buildConfigSummary,
   buildSnapshot,
+  normalizeOpportunity,
+  normalizeQuestion,
+  normalizeSignal,
+  normalizeWatchTarget,
   statusForAction,
 } from "../radar-model.js?v=0.1.0";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
+const BROWSED_KEYS = ["watchlist", "signals", "questions", "opportunities"];
 
 // A deployed AirApp sits inside the Busabase review boundary; only a standalone
 // run may merge its own writes. That is far too consequential to infer from the
@@ -60,29 +65,42 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+const initialCursors = new Map();
+
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function readPageRows(key) {
+  const page = await readPage(key);
+  initialCursors.set(key, page.nextCursor);
+  return page.rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters ? { filters } : {}),
     });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -124,7 +142,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readSettingsRow() {
-  const rows = await readAllRecords("settings");
+  const rows = await readPageRows("settings");
   return rows.find((row) => row.record_id === "config") || {};
 }
 
@@ -142,16 +160,18 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
+    initialCursors.clear();
+    const recordCountsPromise = Promise.all(BROWSED_KEYS.map((key) => countRecords(key)));
     const [watchlist, signals, questions, briefs, reports, movers, opportunities, sync_log, settings] =
       await Promise.all([
-        readAllRecords("watchlist"),
-        readAllRecords("signals"),
-        readAllRecords("questions"),
-        readAllRecords("briefs"),
-        readAllRecords("reports"),
-        readAllRecords("movers"),
-        readAllRecords("opportunities"),
-        readAllRecords("sync-log"),
+        readPageRows("watchlist"),
+        readPageRows("signals"),
+        readPageRows("questions"),
+        readPageRows("briefs"),
+        readPageRows("reports"),
+        readPageRows("movers"),
+        readPageRows("opportunities"),
+        readPageRows("sync-log"),
         readSettingsRow(),
       ]);
     const snapshot = buildSnapshot({
@@ -165,10 +185,13 @@ export const busabaseProvider = {
       sync_log,
     });
     const config_summary = buildConfigSummary({ watchlist: snapshot.watchlist, settings });
+    const recordCounts = await recordCountsPromise;
     return {
       app: "kelly-radar",
       demo: false,
       data_provider: "busabase",
+      pagination: Object.fromEntries(BROWSED_KEYS.map((key) => [key, initialCursors.get(key) || null])),
+      totals: Object.fromEntries(BROWSED_KEYS.map((key, index) => [key, recordCounts[index]])),
       onboarding: { completed: watchlist.length > 0 || signals.length > 0, config_version: "1" },
       lock: null,
       config_summary,
@@ -303,6 +326,18 @@ export const busabaseProvider = {
     } catch (error) {
       return { ok: false, status: 400, error: error instanceof Error ? error.message : String(error) };
     }
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    const normalize = {
+      watchlist: normalizeWatchTarget,
+      signals: normalizeSignal,
+      questions: normalizeQuestion,
+      opportunities: normalizeOpportunity,
+    }[key];
+    return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
   },
 
   async provisionResources() {

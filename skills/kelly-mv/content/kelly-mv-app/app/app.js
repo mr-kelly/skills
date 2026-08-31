@@ -17,6 +17,9 @@ export const state = {
   search: "",
   lang: URL_LANG || localStorage.getItem("kmv_lang") || "auto",
   toast: null,
+  loadingMore: {},
+  loadMoreError: {},
+  hasLoadedMore: false,
 };
 
 const VIEWS = ["concept", "song", "cast", "storyboard"];
@@ -160,7 +163,31 @@ async function pollLock() {
   const active = document.activeElement;
   if (active && ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName)) return;
   if (state.data?.demo) return;
+  if (state.hasLoadedMore) return;
   await refresh();
+}
+
+export async function loadMore(key) {
+  const cursor = state.data?.pagination?.[key];
+  if (!cursor || state.loadingMore[key]) return;
+  state.loadingMore[key] = true;
+  state.loadMoreError[key] = false;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage(key, cursor);
+    const target = key === "cast" ? project().characters : project().shots;
+    const known = new Set(target.map((item) => item.id));
+    target.push(...page.items.filter((item) => !known.has(item.id)));
+    state.data.pagination[key] = page.nextCursor;
+    state.hasLoadedMore = true;
+  } catch {
+    state.loadMoreError[key] = true;
+  } finally {
+    state.loadingMore[key] = false;
+    render();
+  }
 }
 
 window.addEventListener("hashchange", () => {

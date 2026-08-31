@@ -14,8 +14,8 @@ function parseJsonList(value) {
   }
 }
 
-export function buildSnapshot({ accounts = [], transactions = [], invoices = [], invoiceMatches = [] } = {}) {
-  const normalizedAccounts = accounts.map((row) => ({
+export function normalizeAccountRow(row = {}) {
+  return {
     account_id: row.account_id || "",
     provider: row.provider || "",
     display_name: row.display_name || "",
@@ -37,9 +37,11 @@ export function buildSnapshot({ accounts = [], transactions = [], invoices = [],
     last_sync_at: row.last_sync_at || "",
     provider_account_id: row.provider_account_id || "",
     notes: row.notes || "",
-  }));
+  };
+}
 
-  const normalizedTransactions = transactions.map((row) => ({
+export function normalizeTransactionRow(row = {}) {
+  return {
     transaction_id: row.transaction_id || "",
     provider: row.provider || "",
     account_id: row.account_id || "",
@@ -58,9 +60,11 @@ export function buildSnapshot({ accounts = [], transactions = [], invoices = [],
     direction: row.direction || "neutral",
     source_url: row.source_url || "",
     tags: parseJsonList(row.tags),
-  }));
+  };
+}
 
-  const normalizedInvoices = invoices.map((row) => ({
+export function normalizeInvoiceRow(row = {}) {
+  return {
     invoice_id: row.invoice_id || "",
     invoice_number: row.invoice_number || "",
     direction: row.direction || "incoming",
@@ -77,7 +81,15 @@ export function buildSnapshot({ accounts = [], transactions = [], invoices = [],
     source_url: row.source_url || "",
     file_path: row.file_path || "",
     notes: row.notes || "",
-  }));
+  };
+}
+
+export function buildSnapshot({ accounts = [], transactions = [], invoices = [], invoiceMatches = [] } = {}) {
+  const normalizedAccounts = accounts.map(normalizeAccountRow);
+
+  const normalizedTransactions = transactions.map(normalizeTransactionRow);
+
+  const normalizedInvoices = invoices.map(normalizeInvoiceRow);
 
   const normalizedMatches = invoiceMatches.map((row) => ({
     match_id: row.match_id || "",

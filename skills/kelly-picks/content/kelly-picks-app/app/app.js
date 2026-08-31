@@ -1,6 +1,8 @@
 import { messages } from "./i18n/messages.js";
+import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
-import { SOURCE_KINDS } from "./js/picks-model.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
+import { SOURCE_KINDS, computeMetrics } from "./js/picks-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import {
   renderCandidateDetail,
@@ -45,6 +47,25 @@ export const els = {
   watchCount: document.querySelector("#count-watch"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["candidates", "trend-items", "proposals"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot[key.replaceAll("-", "_")] = rows;
+    state.snapshot.metrics = computeMetrics(state.snapshot);
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
+
+export function recordTotal(key, fallback = 0) {
+  return pagination.total(key, fallback);
+}
 
 /* ---------- Shell ---------- */
 
@@ -161,6 +182,7 @@ function setRoute() {
 export async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -250,7 +272,7 @@ function renderShell() {
   const counts = attentionCounts();
   const hasData = state.snapshot?.generated_at && state.snapshot.generated_at !== new Date(0).toISOString();
   els.syncStatus.textContent = hasData
-    ? `${candidates().length} ${t("candidates").toLowerCase()} · ${trendItems().length} ${t("trends").toLowerCase()}`
+    ? `${pagination.total("candidates", candidates().length)} ${t("candidates").toLowerCase()} · ${pagination.total("trend-items", trendItems().length)} ${t("trends").toLowerCase()}`
     : t("empty");
   if (els.reviewCount) els.reviewCount.textContent = counts.review;
   if (els.developCount) els.developCount.textContent = counts.develop;
@@ -259,7 +281,7 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = counts.review
       ? `${counts.review} ${t("proposalsToReview")}`
-      : `${candidates().length} ${t("candidates").toLowerCase()}`;
+      : `${pagination.total("candidates", candidates().length)} ${t("candidates").toLowerCase()}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -456,12 +478,17 @@ export function filteredCandidates() {
 
 /* ---------- Render ---------- */
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 export function render() {
   renderShell();
   if (state.route.view === "candidates" && state.route.id) renderCandidateDetail();
-  else if (state.route.view === "candidates") renderCandidates();
-  else if (state.route.view === "trends") renderTrends();
-  else if (state.route.view === "decisions") renderDecisions();
+  else if (state.route.view === "candidates") renderPagedList(renderCandidates, "candidates");
+  else if (state.route.view === "trends") renderPagedList(renderTrends, "trend-items");
+  else if (state.route.view === "decisions") renderPagedList(renderDecisions, "proposals");
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
 }
@@ -479,6 +506,8 @@ export function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

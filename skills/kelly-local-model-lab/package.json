@@ -1,0 +1,17 @@
+{
+  "name": "kelly-local-model-lab",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Trusted scripts for Kelly Local Model Lab setup, MLX smoke training, and AirApp publishing.",
+  "scripts": {
+    "check": "node scripts/validate-fixture.mjs && node scripts/sync-content.mjs --check && pnpm --dir content/kelly-local-model-lab-app check",
+    "train:smoke": ".venv/bin/python scripts/mlx_smoke.py"
+  },
+  "dependencies": {
+    "busabase-sdk": "0.17.2"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  }
+}

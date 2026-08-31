@@ -411,6 +411,15 @@ body.sidebar-collapsed .setup-card {
   min-height: 0;
 }
 
+.load-more {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .pr-row {
   width: 100%;
   min-height: 78px;

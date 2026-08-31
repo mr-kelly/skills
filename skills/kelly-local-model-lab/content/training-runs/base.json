@@ -1,0 +1,152 @@
+{
+  "name": "Training Runs",
+  "description": "Reviewable local training jobs with immutable inputs, claims, heartbeat, status, and result references.",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "run-id",
+      "name": "Run ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Title",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "base-model",
+      "name": "Base model",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "base-revision",
+      "name": "Base revision",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "method",
+      "name": "Method",
+      "type": "text",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": true,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "dataset-snapshot",
+      "name": "Dataset snapshot file",
+      "type": "text",
+      "required": true,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "dataset-hash",
+      "name": "Dataset hash",
+      "type": "text",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "config",
+      "name": "Training config JSON",
+      "type": "longtext",
+      "required": true,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "claimant",
+      "name": "Claimant",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "claimed-at",
+      "name": "Claimed at",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "heartbeat-at",
+      "name": "Heartbeat at",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "attempt",
+      "name": "Attempt",
+      "type": "number",
+      "required": false,
+      "position": 12,
+      "options": {}
+    },
+    {
+      "slug": "adapter-file",
+      "name": "Adapter file",
+      "type": "text",
+      "required": false,
+      "position": 13,
+      "options": {}
+    },
+    {
+      "slug": "report-file",
+      "name": "Report file",
+      "type": "text",
+      "required": false,
+      "position": 14,
+      "options": {}
+    },
+    {
+      "slug": "error",
+      "name": "Sanitized error",
+      "type": "longtext",
+      "required": false,
+      "position": 15,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": true,
+      "position": 16,
+      "options": {}
+    },
+    {
+      "slug": "completed-at",
+      "name": "Completed at",
+      "type": "text",
+      "required": false,
+      "position": 17,
+      "options": {}
+    }
+  ],
+  "views": []
+}

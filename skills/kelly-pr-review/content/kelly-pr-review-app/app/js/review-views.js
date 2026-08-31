@@ -4,6 +4,7 @@ import {
   escapeHtml,
   isMobileLayout,
   languageMode,
+  loadMoreReviews,
   loadState,
   navigateTo,
   renderLock,
@@ -23,7 +24,8 @@ import { getProvider } from "./providers/index.js?v=0.1.0";
 export function renderList() {
   const list = $("prList");
   if (!state.items.length) {
-    list.innerHTML = `<div class="empty-detail">${escapeHtml(t("empty.list"))}</div>`;
+    list.innerHTML = `<div class="empty-detail">${escapeHtml(t("empty.list"))}</div>${loadMoreControl()}`;
+    list.querySelector("[data-load-more]")?.addEventListener("click", loadMoreReviews);
     renderDetail();
     return;
   }
@@ -31,9 +33,10 @@ export function renderList() {
     reviewStore.selectedId = state.items[0].id;
     syncRoute({ push: false });
   }
-  list.innerHTML = state.items
-    .map(
-      (item) => `
+  list.innerHTML =
+    state.items
+      .map(
+        (item) => `
     <button class="pr-row ${item.id === reviewStore.selectedId ? "active" : ""}" data-id="${escapeHtml(item.id)}">
       <a class="pr-open-button" href="${escapeHtml(item.url)}" target="_blank" rel="noopener" title="${escapeHtml(t("open_pr"))}" aria-label="${escapeHtml(t("open_pr"))} ${escapeHtml(item.repo)} #${escapeHtml(item.number)}">↗</a>
       <span>
@@ -45,8 +48,8 @@ export function renderList() {
       <span class="muted">${escapeHtml(timeAgo(item.updated_at))}</span>
     </button>
   `,
-    )
-    .join("");
+      )
+      .join("") + loadMoreControl();
   list.querySelectorAll(".pr-row").forEach((row) => {
     row.addEventListener("click", () => {
       if (isMobileLayout()) setMobileDetailOpen(true);
@@ -58,7 +61,13 @@ export function renderList() {
       event.stopPropagation();
     });
   });
+  list.querySelector("[data-load-more]")?.addEventListener("click", loadMoreReviews);
   renderDetail();
+}
+
+function loadMoreControl() {
+  if (!state.pagination.reviews) return "";
+  return `<div class="load-more"><button type="button" data-load-more ${state.loadingMore ? "disabled" : ""}>${escapeHtml(state.loadingMore ? t("loading_more") : t("load_more"))}</button>${state.loadMoreError ? `<span role="alert">${escapeHtml(t("load_more_failed"))}</span>` : ""}</div>`;
 }
 
 function selectedItem() {

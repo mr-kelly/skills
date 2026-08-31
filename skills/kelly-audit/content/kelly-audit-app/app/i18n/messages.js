@@ -1,5 +1,9 @@
 export const messages = {
   en: {
+    pagination: "Pagination",
+    prevPage: "Prev",
+    nextPage: "Next",
+    pageOf: "Page {current} of {total}",
     agingTitle: "Receivable Aging",
     amount: "Amount",
     anomalies: "Anomalies",
@@ -150,6 +154,10 @@ export const messages = {
     },
   },
   zh: {
+    pagination: "分页",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    pageOf: "第 {current} / {total} 页",
     agingTitle: "应收账龄",
     amount: "金额",
     anomalies: "异常",

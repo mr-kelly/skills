@@ -64,6 +64,9 @@ export const messages = {
     closeSidebar: "Close sidebar",
     back: "Back",
     search: "Search projects, decks, slides",
+    loadMore: "Load more",
+    loadingMore: "Loading...",
+    loadMoreFailed: "Couldn't load more. Try again.",
     status: {
       _label: "Status",
       needs_review: "needs review",
@@ -160,6 +163,9 @@ export const messages = {
     closeSidebar: "关闭侧边栏",
     back: "返回",
     search: "搜索项目、PPT、页面",
+    loadMore: "加载更多",
+    loadingMore: "加载中...",
+    loadMoreFailed: "无法加载更多，请重试。",
     status: {
       _label: "状态",
       needs_review: "待确认",

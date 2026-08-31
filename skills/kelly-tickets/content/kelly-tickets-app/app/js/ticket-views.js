@@ -17,6 +17,7 @@ import {
   intakeItems,
   loadState,
   proposals,
+  recordTotal,
   render,
   slaBadge,
   state,
@@ -31,7 +32,7 @@ import { getProvider } from "./providers/index.js?v=0.1.0";
 export function renderIntake() {
   const items = filteredIntake();
   els.title.textContent = t("intake");
-  els.subtitle.textContent = `${items.length} ${t("intakeItems")}`;
+  els.subtitle.textContent = `${recordTotal("intake", items.length)} ${t("intakeItems")}`;
   els.content.innerHTML = items.length
     ? `
     <div class="table-wrap">
@@ -266,7 +267,7 @@ function boardTable(items) {
 export function renderBoard() {
   const items = filteredTickets();
   els.title.textContent = t("board");
-  els.subtitle.textContent = `${items.length} ${t("tickets")}`;
+  els.subtitle.textContent = `${recordTotal("tickets", items.length)} ${t("tickets")}`;
   els.content.innerHTML =
     BOARD_STATUSES.map((status) => {
       const group = items.filter((ticket) => ticket.status === status);
