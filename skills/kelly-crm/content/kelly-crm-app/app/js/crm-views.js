@@ -14,12 +14,12 @@ import {
   filteredFollowups,
   followups,
   interactions,
-  loadMoreControl,
   loadState,
   lockBanner,
   metricCards,
   money,
   noticeBanner,
+  pagerControl,
   relationshipBadge,
   render,
   riskBadges,
@@ -73,7 +73,7 @@ export function renderDeals() {
     `
         : `<div class="empty">${t("empty")}</div>`
     }
-    ${loadMoreControl("deals")}
+    ${pagerControl("deals")}
   `;
 }
 
@@ -198,7 +198,7 @@ export function renderContacts() {
   `
         : `<div class="empty">${t("empty")}</div>`
     }
-    ${loadMoreControl("contacts")}
+    ${pagerControl("contacts")}
   `;
 }
 

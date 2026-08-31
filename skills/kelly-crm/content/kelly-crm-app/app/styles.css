@@ -527,10 +527,36 @@ textarea:disabled {
   font-size: 20px;
 }
 
-.load-more {
+.pager {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
   padding: 16px 0;
+}
+
+.pager-page {
+  min-width: 34px;
+  padding: 0 8px;
+}
+
+.pager-page.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  cursor: default;
+}
+
+.pager-ellipsis {
+  color: var(--muted-soft);
+  padding: 0 2px;
+}
+
+.pager-summary {
+  color: var(--muted);
+  font-size: 12px;
+  margin-left: 8px;
 }
 
 /* Tables */

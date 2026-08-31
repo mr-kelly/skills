@@ -61,13 +61,13 @@ function base(key) {
 // multi-page scan behind a single loading state instead of fetching a page
 // per user action; the cap only bounds how bad that gets, it doesn't fix the
 // shape. Base-level lists (contacts, deals) surface the returned nextCursor
-// as a "load more" affordance in the UI (see app.js#loadMorePage); the
-// others (companies, interactions, followups, settings) are read once on
-// boot -- companies and interactions are supporting/lookup data rather than
-// their own browsed list, and followups is a review queue that drains via
+// through a numbered pager in the UI (see app.js#goToPage); the others
+// (companies, interactions, followups, settings) are read once on boot --
+// companies and interactions are supporting/lookup data rather than their
+// own browsed list, and followups is a review queue that drains via
 // decisions rather than growing the way a contact or deal list does. If any
 // of those three genuinely outgrows one page in practice, it needs the same
-// "load more" treatment contacts/deals already got, not a bigger cap.
+// pager treatment contacts/deals already got, not a bigger cap.
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
@@ -85,15 +85,28 @@ async function readPage(key, cursor) {
   return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
 
-async function countRecords(key) {
+async function countRecords(key, filters) {
   if (!allowedReads.has("records.count")) return null;
   const declared = base(key);
   try {
-    const { total } = await runtimeClient.records.count({ baseId: declared.baseId });
+    const { total } = await runtimeClient.records.count({
+      baseId: declared.baseId,
+      ...(filters ? { filters } : {}),
+    });
     return total;
   } catch {
     return null;
   }
+}
+
+// A real, exact server-side count of open deals -- records.count's `filters`
+// push down to SQL, so this costs the same as the unfiltered total. Needed
+// because open_deal_count used to be `deals().filter(...).length`, which was
+// only ever correct while every deal was loaded in memory; once deals()
+// holds one page at a time (see readPage/goToPage) that count silently
+// shrinks to "however many open deals happen to be on the current page".
+function countOpenDeals() {
+  return countRecords("deals", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: "open" }]);
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -178,17 +191,29 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [companiesPage, contactsPage, dealsPage, interactionsPage, followupsPage, settings, companyCount, contactCount] =
-      await Promise.all([
-        readPage("companies"),
-        readPage("contacts"),
-        readPage("deals"),
-        readPage("interactions"),
-        readPage("followups"),
-        readSettingsRows(),
-        countRecords("companies"),
-        countRecords("contacts"),
-      ]);
+    const [
+      companiesPage,
+      contactsPage,
+      dealsPage,
+      interactionsPage,
+      followupsPage,
+      settings,
+      companyCount,
+      contactCount,
+      dealCount,
+      openDealCount,
+    ] = await Promise.all([
+      readPage("companies"),
+      readPage("contacts"),
+      readPage("deals"),
+      readPage("interactions"),
+      readPage("followups"),
+      readSettingsRows(),
+      countRecords("companies"),
+      countRecords("contacts"),
+      countRecords("deals"),
+      countOpenDeals(),
+    ]);
     const snapshot = buildSnapshot({
       companies: companiesPage.rows,
       contacts: contactsPage.rows,
@@ -203,6 +228,14 @@ export const busabaseProvider = {
     // rather than showing nothing.
     if (companyCount !== null) snapshot.metrics.company_count = companyCount;
     if (contactCount !== null) snapshot.metrics.contact_count = contactCount;
+    if (dealCount !== null) snapshot.metrics.deal_count = dealCount;
+    // open_deal_count is a real filtered total (see countOpenDeals), so it stays
+    // correct no matter which page of deals is currently loaded. pipeline_value
+    // and weighted_pipeline_value are sums, not counts -- records.count has no
+    // sum-by-field equivalent, so those two stay derived from whichever page of
+    // deals is actually loaded (see app.js#metricCards) until a real aggregate
+    // endpoint exists.
+    if (openDealCount !== null) snapshot.metrics.open_deal_count = openDealCount;
     const operatorRow = settings.get("kelly-crm-operator") || {};
     const channelsRow = settings.get("kelly-crm-channels") || {};
     const lockRow = settings.get("kelly-crm-lock") || {};
@@ -220,18 +253,21 @@ export const busabaseProvider = {
       agent_tasks: { updated_at: "", tasks: [] },
       execution_report: null,
       snapshot,
-      // One "load more" cursor per Base that has its own browsed list view.
-      // Companies/interactions/followups/settings are read once; see the
-      // comment on readPage for why.
+      // Seeds app.js's page-cursor cache: the cursor needed to fetch page 2 of
+      // each Base that has its own browsed list view (page 1 was just fetched
+      // above). Companies/interactions/followups/settings are read once; see
+      // the comment on readPage for why.
       pagination: { contacts: contactsPage.nextCursor, deals: dealsPage.nextCursor },
     };
   },
 
-  // Fetches the NEXT page for a paginated Base and returns it for the caller
-  // to append -- this function never loops or fetches more than one page
-  // itself, so a mistaken call site can't silently reintroduce the eager
-  // multi-page shape this replaced.
-  async loadMorePage(key, cursor) {
+  // Fetches exactly one page for a paginated Base and returns it for the
+  // caller to display -- this function never loops or fetches more than one
+  // page itself, so a mistaken call site can't silently reintroduce the
+  // eager multi-page shape this replaced. The caller (app.js#goToPage) is
+  // responsible for walking forward through cursors to reach an unvisited
+  // page; this always does exactly the one fetch it's asked for.
+  async fetchPage(key, cursor) {
     await ensureResources();
     return readPage(key, cursor);
   },

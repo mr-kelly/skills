@@ -8,18 +8,25 @@ import {
   renderFollowups,
   renderSettings,
 } from "./js/crm-views.js";
+import { appConfig } from "./js/config.js?v=0.1.0";
+import { NORMALIZE_ROW_BY_KEY } from "./js/crm-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
-import { NORMALIZE_ROW_BY_KEY } from "./js/crm-model.js";
 
 export const state = {
   snapshot: null,
   settings: null,
-  // Cursor for the NEXT page of each paginated Base, or null/undefined when
-  // there is no more (or the active provider -- e.g. the static demo
-  // provider -- doesn't page at all). Absence is what hides the "load more"
-  // button; see loadMorePage() and crm-views.js.
-  pagination: {},
-  loadingMore: {},
+  // Client-side pager for the Bases that have their own browsed list
+  // (contacts, deals). records.list only exposes a forward keyset cursor, so
+  // pageCursors[key] caches every cursor learned so far (index i = the
+  // cursor needed to fetch page i+1); jumping to a page beyond what's cached
+  // walks forward through the intermediate pages once to learn their
+  // cursors (see goToPage), and every page visited is then a single direct
+  // fetch on every later visit, including going back. A Base with no entry
+  // here isn't paginated (the active provider doesn't page it, or it fit on
+  // one page) -- that's what hides the pager; see pagerControl().
+  pageCursors: {},
+  currentPage: {},
+  pageLoading: {},
   route: parseRoute(),
   query: "",
   followupFilter: "all",
@@ -153,35 +160,75 @@ export async function loadState() {
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
-  state.pagination = data.pagination || {};
+  // Seed each paginated Base's cursor cache with page 1 (no cursor) and the
+  // page-2 cursor getState() already learned while fetching page 1, so
+  // clicking straight to page 2 costs one fetch instead of two.
+  state.pageCursors = {};
+  state.currentPage = {};
+  for (const [key, nextCursor] of Object.entries(data.pagination || {})) {
+    state.pageCursors[key] = [undefined, nextCursor];
+    state.currentPage[key] = 1;
+  }
   window.dispatchEvent(new CustomEvent("kelly-crm:state", { detail: data }));
   applyDemoRoute();
   render();
 }
 
-// Fetches one more page for `key` and appends it -- called from a "load
-// more" button, never on its own initiative, so a page is always the direct
-// result of a user action. Re-renders once, after the page lands, so the new
-// rows and the updated cursor (or its absence, hiding the button) show up
-// together.
-export async function loadMorePage(key) {
-  const cursor = state.pagination[key];
-  if (!cursor || state.loadingMore[key]) return;
-  state.loadingMore[key] = true;
+// The configured page size for a paginated Base, straight from config.js --
+// the one place readLimit is declared -- so the pager's page-count math can
+// never drift from what the provider actually requests per page.
+function pageSize(key) {
+  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 100;
+}
+
+// Maps a paginated Base to the metrics field carrying its REAL total (from
+// records.count, not "however many rows happen to be loaded" -- see
+// busabase-provider.js#countRecords). Total pages is derived from that, not
+// from state.snapshot[key].length, which is capped at one page's worth.
+const TOTAL_COUNT_METRIC_KEY = { contacts: "contact_count", deals: "deal_count" };
+
+export function pageCount(key) {
+  if (!state.pageCursors[key]) return 1;
+  const total = state.snapshot?.metrics?.[TOTAL_COUNT_METRIC_KEY[key]] ?? 0;
+  return Math.max(1, Math.ceil(total / pageSize(key)));
+}
+
+// Replaces the displayed page for `key` -- never appends, so state.snapshot[key]
+// always holds exactly one page's rows and every deal/contact-derived figure
+// on screen (search, the row table, metricCards()) is scoped to that one
+// page once a Base crosses a page boundary. Called only from a page-number
+// or prev/next click, so a fetch is always the direct result of a user
+// action, matching the same rule readPage's own comment states.
+export async function goToPage(key, targetPage) {
+  if (state.pageLoading[key]) return;
+  const cursors = state.pageCursors[key];
+  if (!cursors) return; // Base isn't paginated -- provider doesn't page it, or the active provider (e.g. the static demo provider) never seeded a cursor cache.
+  const page = Math.min(Math.max(1, targetPage), pageCount(key));
+  if (page === state.currentPage[key]) return;
+  state.pageLoading[key] = true;
   render();
   try {
     const provider = await getProvider();
-    if (typeof provider.loadMorePage !== "function") return;
-    const { rows, nextCursor } = await provider.loadMorePage(key, cursor);
-    // Same per-row normalization buildSnapshot() ran on page 1 -- without
-    // it, appended rows keep raw field shapes (e.g. tags as a JSON string
-    // instead of an array) and crash the first render that touches them.
+    if (typeof provider.fetchPage !== "function") return;
     const normalize = NORMALIZE_ROW_BY_KEY[key];
-    const normalizedRows = normalize ? rows.map(normalize) : rows;
-    state.snapshot[key] = [...(state.snapshot[key] || []), ...normalizedRows];
-    state.pagination[key] = nextCursor;
+    // Walk forward until this page's cursor is known. Each step here fetches
+    // an intermediate page only to learn its nextCursor -- its rows are
+    // thrown away -- because records.list's keyset cursor has no "skip N
+    // pages" equivalent; a page visited this way is cached afterward, so
+    // this cost is paid at most once per page, ever, including on revisits.
+    while (cursors.length < page) {
+      const { nextCursor } = await provider.fetchPage(key, cursors[cursors.length - 1]);
+      cursors.push(nextCursor);
+    }
+    const { rows, nextCursor } = await provider.fetchPage(key, cursors[page - 1]);
+    // Same per-row normalization buildSnapshot() ran on page 1 -- without
+    // it, a later page keeps raw field shapes (e.g. tags as a JSON string
+    // instead of an array) and crashes the first render that touches it.
+    state.snapshot[key] = normalize ? rows.map(normalize) : rows;
+    if (cursors.length === page) cursors.push(nextCursor);
+    state.currentPage[key] = page;
   } finally {
-    state.loadingMore[key] = false;
+    state.pageLoading[key] = false;
     render();
   }
 }
@@ -263,8 +310,14 @@ function renderShell() {
   applyI18n();
   const snapshot = state.snapshot;
   const reviewCount = followups().filter((item) => effectiveStatus(item) === "needs_review").length;
-  const openDealCount = deals().filter((item) => item.status === "open").length;
-  const contactCount = contacts().length;
+  // Prefer the real total (records.count, unaffected by which page is
+  // loaded) over the live in-memory filter/length, which is only correct
+  // while everything fits on one page. Falls back to the live figure for
+  // providers that never populate these metrics (e.g. the static demo
+  // provider, or a permission-denied records.count call).
+  const metrics = snapshot?.metrics || {};
+  const openDealCount = metrics.open_deal_count ?? deals().filter((item) => item.status === "open").length;
+  const contactCount = metrics.contact_count ?? contacts().length;
   els.syncStatus.textContent = snapshot?.contacts?.length ? `${openDealCount} ${t("openDeals")}` : t("empty");
   if (els.reviewCount) els.reviewCount.textContent = reviewCount;
   if (els.dealCount) els.dealCount.textContent = openDealCount;
@@ -330,14 +383,27 @@ export function warnings() {
     .join("")}</div>`;
 }
 
+// pipelineValue/weightedPipeline are sums over open deals -- records.count
+// has no sum-by-field equivalent, so unlike open_deal_count (a real filtered
+// total, see busabase-provider.js#countOpenDeals) these two can only ever
+// reflect whichever page of deals is currently loaded. Computed live from
+// deals() here (matching the Overview pipeline-by-stage chart) rather than
+// read from the frozen metrics snapshot, so both stay consistent with each
+// other and with whatever page the user actually navigated to, instead of
+// silently freezing at page 1's numbers forever.
 export function metricCards() {
   const metrics = state.snapshot?.metrics || {};
+  const openDeals = deals().filter((item) => item.status === "open");
+  const pipelineValue = openDeals.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const weightedPipelineValue = Math.round(
+    openDeals.reduce((sum, item) => sum + Number(item.amount || 0) * Number(item.probability || 0), 0),
+  );
   const reviewCount = followups().filter((item) => effectiveStatus(item) === "needs_review").length;
   return `
     <div class="metrics">
-      <div class="metric"><span>${t("pipelineValue")}</span><strong>${money(metrics.pipeline_value)}</strong></div>
-      <div class="metric"><span>${t("weightedPipeline")}</span><strong>${money(metrics.weighted_pipeline_value)}</strong></div>
-      <div class="metric"><span>${t("openDealCount")}</span><strong>${metrics.open_deal_count || 0}</strong></div>
+      <div class="metric"><span>${t("pipelineValue")}</span><strong>${money(pipelineValue)}</strong></div>
+      <div class="metric"><span>${t("weightedPipeline")}</span><strong>${money(weightedPipelineValue)}</strong></div>
+      <div class="metric"><span>${t("openDealCount")}</span><strong>${metrics.open_deal_count ?? openDeals.length}</strong></div>
       <div class="metric"><span>${t("toReview")}</span><strong>${reviewCount}</strong></div>
     </div>
   `;
@@ -494,17 +560,44 @@ export function render() {
   else renderOverview();
 }
 
-// One page per user action, per the same rule readPage's own comment states:
-// rendered only when the provider actually reported a next cursor, so a
-// fully-loaded (or non-paginating, e.g. demo) list shows nothing here.
-export function loadMoreControl(key) {
-  if (!state.pagination[key]) return "";
-  const loading = Boolean(state.loadingMore[key]);
+// A numbered pager: Prev / page numbers (every page up to 7 total, else
+// windowed to first, last, and current ±1 with "…" gaps) / Next. Rendered
+// only for a Base state.pageCursors actually tracks (see goToPage) and only
+// once it has more than one page -- a fully-loaded (or non-paginating, e.g.
+// demo) list shows nothing here.
+export function pagerControl(key) {
+  if (!state.pageCursors[key]) return "";
+  const total = pageCount(key);
+  if (total <= 1) return "";
+  const current = state.currentPage[key] || 1;
+  const loading = Boolean(state.pageLoading[key]);
+  const pageButton = (page) => `
+    <button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>
+  `;
+  // Below the ellipsis threshold, show every page -- windowing to just the
+  // current page's neighbors would otherwise hide a page number that's both
+  // reachable and in range (e.g. landing on page 4 of 4 must still offer a
+  // button back to page 2, not just Prev/Next).
+  const pageWindow =
+    total <= 7
+      ? Array.from({ length: total }, (_, index) => index + 1)
+      : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort(
+          (a, b) => a - b,
+        );
+  const sorted = pageWindow;
+  const items = [];
+  let previous = 0;
+  for (const page of sorted) {
+    if (previous && page - previous > 1) items.push(`<span class="pager-ellipsis">…</span>`);
+    items.push(pageButton(page));
+    previous = page;
+  }
   return `
-    <div class="load-more">
-      <button type="button" data-load-more="${escapeHtml(key)}" ${loading ? "disabled" : ""}>
-        ${loading ? t("loading") : t("loadMore")}
-      </button>
+    <div class="pager">
+      <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${t("prevPage")}</button>
+      ${items.join("")}
+      <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || current >= total ? "disabled" : ""}>${t("nextPage")}</button>
+      <span class="pager-summary">${t("pageOf").replace("{current}", current).replace("{total}", total)}</span>
     </div>
   `;
 }
@@ -524,8 +617,10 @@ export function escapeHtml(value) {
 }
 
 els.content.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-load-more]");
-  if (button) loadMorePage(button.dataset.loadMore);
+  const button = event.target.closest("[data-goto-page]");
+  if (!button) return;
+  const [key, page] = button.dataset.gotoPage.split(":");
+  goToPage(key, Number(page));
 });
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);
