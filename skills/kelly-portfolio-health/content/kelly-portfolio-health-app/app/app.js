@@ -1,5 +1,8 @@
 import { messages } from "./i18n/messages.js";
+import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { createPagination } from "./js/pagination.js?v=0.1.0";
+import { buildSnapshot } from "./js/portfolio-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
@@ -39,6 +42,20 @@ const els = {
   contractCount: document.querySelector("#count-contracts"),
   language: document.querySelector("#language"),
 };
+
+const PAGINATED_KEYS = ["contracts"];
+const pagination = createPagination({
+  getProvider,
+  pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),
+  applyPage: (key, rows) => {
+    state.snapshot = buildSnapshot({ contracts: rows, configSummary: state.settings?.config_summary });
+  },
+  render: () => render(),
+  label: (key) => t(key),
+  onError: (error) => {
+    state.pageError = error instanceof Error ? error.message : String(error);
+  },
+});
 
 function isMobileLayout() {
   return window.matchMedia("(max-width: 720px)").matches;
@@ -127,6 +144,7 @@ function setRoute() {
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  pagination.reset(data.pagination, data.totals);
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
@@ -164,7 +182,7 @@ function contractById(id) {
 function renderShell() {
   applyI18n();
   const insights = state.snapshot?.insights;
-  const contractCount = state.snapshot?.contracts?.length || 0;
+  const contractCount = pagination.total("contracts", state.snapshot?.contracts?.length || 0);
   const connected = hasSnapshot();
   els.syncStatus.textContent = connected
     ? state.snapshot?.generated_at
@@ -365,7 +383,7 @@ function contractsTable(rows) {
 function renderContracts() {
   els.title.textContent = t("contractsTitle");
   const rows = contractRows();
-  els.subtitle.textContent = `${rows.length} ${t("contracts")}`;
+  els.subtitle.textContent = `${pagination.total("contracts", rows.length)} ${t("contracts")}`;
   els.content.innerHTML = `${totalsMetricCards()}${contractsTable(rows)}`;
 }
 
@@ -563,10 +581,15 @@ function renderSettings() {
   `;
 }
 
+function renderPagedList(renderList, key) {
+  renderList();
+  els.content.insertAdjacentHTML("beforeend", `${pagination.control(key)}`);
+}
+
 function render() {
   renderShell();
   if (state.route.view === "contracts" && state.route.id) renderContractDetail();
-  else if (state.route.view === "contracts") renderContracts();
+  else if (state.route.view === "contracts") renderPagedList(renderContracts, "contracts");
   else if (state.route.view === "concentration") renderConcentration();
   else if (state.route.view === "watchlist") renderWatchlist();
   else if (state.route.view === "settings") renderSettings();
@@ -634,6 +657,8 @@ function escapeHtml(value) {
       })[char],
   );
 }
+
+pagination.bind(els.content);
 
 window.addEventListener("hashchange", setRoute);
 window.addEventListener("resize", syncResponsiveShell);

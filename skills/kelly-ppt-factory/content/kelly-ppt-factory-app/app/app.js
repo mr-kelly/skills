@@ -1,5 +1,15 @@
 import { messages } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import {
+  deriveActivityLog,
+  deriveReviewItems,
+  normalizeDeckRow,
+  normalizeExportRow,
+  normalizeProjectRow,
+  normalizeQaRow,
+  normalizeSlideRow,
+  normalizeStyleRow,
+} from "./js/ppt-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
@@ -8,6 +18,21 @@ const state = {
   query: "",
   lang: "en",
   edits: {},
+  pagination: {},
+  totalCount: {},
+  workflowCount: {},
+  reviewTotal: null,
+  loadingMore: {},
+  loadMoreError: {},
+};
+
+const PAGE_TARGETS = {
+  projects: { snapshotKey: "projects", idKey: "project_id", normalize: normalizeProjectRow },
+  decks: { snapshotKey: "decks", idKey: "deck_id", normalize: normalizeDeckRow },
+  "slide-cards": { snapshotKey: "slide_cards", idKey: "slide_id", normalize: normalizeSlideRow },
+  "style-systems": { snapshotKey: "style_systems", idKey: "style_system_id", normalize: normalizeStyleRow },
+  "qa-checks": { snapshotKey: "qa_checks", idKey: "qa_check_id", normalize: normalizeQaRow },
+  exports: { snapshotKey: "exports", idKey: "export_id", normalize: normalizeExportRow },
 };
 
 const els = {
@@ -111,6 +136,19 @@ function statusBadge(status) {
 function listCountMeta(count, label) {
   els.mobileMeta.textContent = `${count} ${label}`;
 }
+function countDisplay(key, loaded) {
+  if (state.query) return `${loaded}${state.pagination[key] ? "+" : ""}`;
+  return state.totalCount[key] ?? `${loaded}${state.pagination[key] ? "+" : ""}`;
+}
+function loadMoreControl(...keys) {
+  return keys
+    .filter((key) => state.pagination[key])
+    .map(
+      (key) =>
+        `<div class="load-more"><button type="button" data-load-more="${escapeHtml(key)}" ${state.loadingMore[key] ? "disabled" : ""}>${state.loadingMore[key] ? t("loadingMore") : t("loadMore")}</button>${state.loadMoreError[key] ? `<span role="alert">${t("loadMoreFailed")}</span>` : ""}</div>`,
+    )
+    .join("");
+}
 function date(value) {
   if (!value) return "";
   return new Date(value).toLocaleString(state.lang === "zh" ? "zh-CN" : "en-US", {
@@ -150,6 +188,10 @@ async function loadState() {
   applyI18n();
   const provider = await getProvider();
   state.data = await provider.getState();
+  state.pagination = state.data.pagination || {};
+  state.totalCount = state.data.totalCount || {};
+  state.workflowCount = state.data.workflowCount || {};
+  state.reviewTotal = state.data.reviewTotal ?? null;
   closeConnectGate();
   applyDemoRoute();
   window.dispatchEvent(new CustomEvent("kelly-ppt-factory:state", { detail: state.data }));
@@ -157,13 +199,39 @@ async function loadState() {
   render();
 }
 
+async function loadMore(key) {
+  const cursor = state.pagination[key];
+  const target = PAGE_TARGETS[key];
+  if (!cursor || !target || state.loadingMore[key]) return;
+  state.loadingMore[key] = true;
+  state.loadMoreError[key] = false;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage(key, cursor);
+    const current = snapshot()[target.snapshotKey] || [];
+    const known = new Set(current.map((item) => item[target.idKey]));
+    current.push(...page.rows.map(target.normalize).filter((item) => !known.has(item[target.idKey])));
+    state.pagination[key] = page.nextCursor;
+    snapshot().review_items = deriveReviewItems(decks(), slides());
+    snapshot().activity_log = deriveActivityLog(decks(), slides());
+  } catch {
+    state.loadMoreError[key] = true;
+  } finally {
+    state.loadingMore[key] = false;
+    updateAttention();
+    render();
+  }
+}
+
 function updateAttention() {
   const needs = reviews().filter((item) => ["needs_review", "changes_requested"].includes(item.status)).length;
   const approved = reviews().filter((item) => item.status === "approved").length;
   const ready = decks().filter((item) => ["approved", "generated"].includes(item.status)).length;
-  els.attention.textContent = String(needs);
-  els.approved.textContent = String(approved);
-  els.ready.textContent = String(ready);
+  els.attention.textContent = String(state.workflowCount.needsReview ?? needs);
+  els.approved.textContent = String(state.workflowCount.approved ?? approved);
+  els.ready.textContent = String(state.workflowCount.ready ?? ready);
 }
 
 function setTitle(title, subtitle = "") {
@@ -207,17 +275,19 @@ function renderOverview() {
     ${metric(t("decksGenerated"), metrics.decks_generated || 0)}
     ${metric(t("avgStyleScore"), `${metrics.avg_style_score || 0}`)}
   </div>
-  <section class="panel"><h2>${t("humanQueue")}</h2><div class="rows">${reviewRows.join("")}</div></section>`;
+  <section class="panel"><h2>${t("humanQueue")}</h2><div class="rows">${reviewRows.join("")}</div>${loadMoreControl("qa-checks")}</section>`;
   els.detail.innerHTML = renderStyleDetail(styleSystems()[0]);
-  listCountMeta(reviews().length, t("review"));
+  const reviewTotal =
+    state.reviewTotal ?? `${reviews().length}${state.pagination.decks || state.pagination["slide-cards"] ? "+" : ""}`;
+  listCountMeta(reviewTotal, t("review"));
 }
 
 function renderProjects() {
   const items = projects().filter((item) => includesQuery([item.title, item.course, item.stage, item.owner]));
   setTitle(t("projects"), `${items.length} ${t("projects")}`);
-  els.list.innerHTML = `<div class="rows">${items.map((item) => row({ href: `#/projects/${item.project_id}`, active: state.route.id === item.project_id, eyebrow: `Project #${item.ref}`, title: item.title, meta: `${item.course} · ${item.deck_count} ${t("decks")} · ${item.slide_count} ${t("slides")}`, status: item.status })).join("")}</div>`;
+  els.list.innerHTML = `<div class="rows">${items.map((item) => row({ href: `#/projects/${item.project_id}`, active: state.route.id === item.project_id, eyebrow: `Project #${item.ref}`, title: item.title, meta: `${item.course} · ${item.deck_count} ${t("decks")} · ${item.slide_count} ${t("slides")}`, status: item.status })).join("")}</div>${loadMoreControl("projects")}`;
   els.detail.innerHTML = renderProjectDetail(projectById(state.route.id) || items[0]);
-  listCountMeta(items.length, t("projects"));
+  listCountMeta(countDisplay("projects", items.length), t("projects"));
 }
 
 function renderDecks() {
@@ -225,9 +295,9 @@ function renderDecks() {
     includesQuery([item.title, item.theme, item.level, projectById(item.project_id)?.title]),
   );
   setTitle(t("decks"), `${items.length} ${t("decks")}`);
-  els.list.innerHTML = `<div class="rows">${items.map((item) => row({ href: `#/decks/${item.deck_id}`, active: state.route.id === item.deck_id, eyebrow: `Deck #${item.ref}`, title: item.title, meta: `${item.theme} · ${item.level} · ${item.approved_slide_count}/${item.target_slide_count} ${t("approved")}`, status: item.status, extra: `<small>${item.style_score}</small>` })).join("")}</div>`;
+  els.list.innerHTML = `<div class="rows">${items.map((item) => row({ href: `#/decks/${item.deck_id}`, active: state.route.id === item.deck_id, eyebrow: `Deck #${item.ref}`, title: item.title, meta: `${item.theme} · ${item.level} · ${item.approved_slide_count}/${item.target_slide_count} ${t("approved")}`, status: item.status, extra: `<small>${item.style_score}</small>` })).join("")}</div>${loadMoreControl("decks")}`;
   els.detail.innerHTML = renderDeckDetail(deckById(state.route.id) || items[0]);
-  listCountMeta(items.length, t("decks"));
+  listCountMeta(countDisplay("decks", items.length), t("decks"));
 }
 
 function renderSlides() {
@@ -235,9 +305,9 @@ function renderSlides() {
     includesQuery([item.title, item.objective, item.slide_type, deckById(item.deck_id)?.title]),
   );
   setTitle(t("slideCards"), `${items.length} ${t("slideCards")}`);
-  els.list.innerHTML = `<div class="rows">${items.map((item) => row({ href: `#/slides/${item.slide_id}`, active: state.route.id === item.slide_id, eyebrow: `${t("slide")} #${item.ref} · ${typeLabel(item.slide_type)}`, title: item.title, meta: `${deckById(item.deck_id)?.title || ""} · ${item.layout}`, status: item.status })).join("")}</div>`;
+  els.list.innerHTML = `<div class="rows">${items.map((item) => row({ href: `#/slides/${item.slide_id}`, active: state.route.id === item.slide_id, eyebrow: `${t("slide")} #${item.ref} · ${typeLabel(item.slide_type)}`, title: item.title, meta: `${deckById(item.deck_id)?.title || ""} · ${item.layout}`, status: item.status })).join("")}</div>${loadMoreControl("slide-cards")}`;
   els.detail.innerHTML = renderSlideDetail(slideById(state.route.id) || items[0]);
-  listCountMeta(items.length, t("slideCards"));
+  listCountMeta(countDisplay("slide-cards", items.length), t("slideCards"));
 }
 
 function renderReview() {
@@ -258,10 +328,10 @@ function renderReview() {
         status: item.status,
       });
     })
-    .join("")}</div>`;
+    .join("")}</div>${loadMoreControl("decks", "slide-cards")}`;
   els.detail.innerHTML = renderReviewDetail(reviews().find((item) => item.review_id === state.route.id) || items[0]);
   attachDecisionHandlers();
-  listCountMeta(items.length, t("review"));
+  listCountMeta(`${items.length}${state.pagination.decks || state.pagination["slide-cards"] ? "+" : ""}`, t("review"));
 }
 
 function renderStyle() {
@@ -277,11 +347,11 @@ function renderStyle() {
         status: "approved",
       }),
     )
-    .join("")}</div>`;
+    .join("")}</div>${loadMoreControl("style-systems")}`;
   els.detail.innerHTML = renderStyleDetail(
     styleSystems().find((item) => item.style_system_id === state.route.id) || styleSystems()[0],
   );
-  listCountMeta(styleSystems().length, t("styleSystem"));
+  listCountMeta(countDisplay("style-systems", styleSystems().length), t("styleSystem"));
 }
 
 function renderExports() {
@@ -289,11 +359,11 @@ function renderExports() {
     includesQuery([item.path, item.qa_summary, deckById(item.deck_id)?.title]),
   );
   setTitle(t("exports"), `${items.length} ${t("exports")}`);
-  els.list.innerHTML = `<div class="rows">${items.map((item) => row({ href: `#/exports/${item.export_id}`, active: state.route.id === item.export_id, eyebrow: item.format.toUpperCase(), title: deckById(item.deck_id)?.title || item.deck_id, meta: item.path, status: item.status })).join("")}</div>`;
+  els.list.innerHTML = `<div class="rows">${items.map((item) => row({ href: `#/exports/${item.export_id}`, active: state.route.id === item.export_id, eyebrow: item.format.toUpperCase(), title: deckById(item.deck_id)?.title || item.deck_id, meta: item.path, status: item.status })).join("")}</div>${loadMoreControl("exports")}`;
   els.detail.innerHTML = renderExportDetail(
     exportsList().find((item) => item.export_id === state.route.id) || items[0],
   );
-  listCountMeta(items.length, t("exports"));
+  listCountMeta(countDisplay("exports", items.length), t("exports"));
 }
 
 function detailShell(title, body, actions = "") {
@@ -445,6 +515,10 @@ function attachDecisionHandlers() {
 els.search.addEventListener("input", () => {
   state.query = els.search.value;
   render();
+});
+els.list.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-load-more]");
+  if (button) loadMore(button.dataset.loadMore);
 });
 window.addEventListener("hashchange", render);
 

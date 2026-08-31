@@ -61,3 +61,33 @@
     }
   }
 }
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+.pager button {
+  min-height: 34px;
+}
+.pager-page {
+  min-width: 34px;
+  padding-inline: 8px;
+}
+.pager-page.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.pager-ellipsis,
+.pager-summary,
+.pager-error {
+  color: var(--muted);
+  font-size: 12px;
+}
+.pager-error {
+  color: var(--danger, #b42318);
+}

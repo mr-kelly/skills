@@ -6,6 +6,9 @@ import {
   PROPOSAL_DECISION_ACTIONS,
   buildConfigSummary,
   buildSnapshot,
+  normalizeIntakeRow,
+  normalizeProposalRow,
+  normalizeTicketRow,
   statusForProposalVerdict,
   triageStateForIntakeVerdict,
 } from "../tickets-model.js?v=0.1.0";
@@ -13,6 +16,7 @@ import {
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
+const BROWSED_KEYS = ["intake", "proposals", "tickets"];
 
 // A deployed AirApp sits inside the Busabase review boundary; only a standalone
 // run may merge its own writes. That is far too consequential to infer from the
@@ -58,29 +62,42 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+const initialCursors = new Map();
+
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function readPageRows(key) {
+  const page = await readPage(key);
+  initialCursors.set(key, page.nextCursor);
+  return page.rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters ? { filters } : {}),
     });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -122,7 +139,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readSettingsRow() {
-  const rows = await readAllRecords("settings");
+  const rows = await readPageRows("settings");
   return rows.find((row) => row.record_id === "config") || {};
 }
 
@@ -217,20 +234,25 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
+    initialCursors.clear();
+    const recordCountsPromise = Promise.all(BROWSED_KEYS.map((key) => countRecords(key)));
     const [intake, tickets, proposals, crews, sync_log, settings] = await Promise.all([
-      readAllRecords("intake"),
-      readAllRecords("tickets"),
-      readAllRecords("proposals"),
-      readAllRecords("crews"),
-      readAllRecords("sync-log"),
+      readPageRows("intake"),
+      readPageRows("tickets"),
+      readPageRows("proposals"),
+      readPageRows("crews"),
+      readPageRows("sync-log"),
       readSettingsRow(),
     ]);
     const snapshot = buildSnapshot({ intake, tickets, proposals, crews, sync_log, settings });
     const config_summary = buildConfigSummary({ settings, crews });
+    const recordCounts = await recordCountsPromise;
     return {
       app: "kelly-tickets",
       demo: false,
       data_provider: "busabase",
+      pagination: Object.fromEntries(BROWSED_KEYS.map((key) => [key, initialCursors.get(key) || null])),
+      totals: Object.fromEntries(BROWSED_KEYS.map((key, index) => [key, recordCounts[index]])),
       onboarding: { completed: intake.length > 0 || tickets.length > 0, config_version: "1" },
       lock: null,
       config_summary,
@@ -317,6 +339,13 @@ export const busabaseProvider = {
     };
     await upsert("tickets", "ticket-id", ticket_id, fields, `Resolution note saved on ${ticket_id}`);
     return { ok: true };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    const normalize = { intake: normalizeIntakeRow, proposals: normalizeProposalRow, tickets: normalizeTicketRow }[key];
+    return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
   },
 
   async provisionResources() {

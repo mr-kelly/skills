@@ -102,6 +102,9 @@ export const messages = {
     example: "Example",
     recommended: "Recommended",
     setupStatus: "Onboarding",
+    loadMore: "Load more",
+    loadingMore: "Loading...",
+    loadMoreFailed: "Couldn't load more. Try again.",
   },
   zh: {
     appTitle: "作業小教練",
@@ -205,6 +208,9 @@ export const messages = {
     example: "範例",
     recommended: "建議位置",
     setupStatus: "啟用狀態",
+    loadMore: "載入更多",
+    loadingMore: "載入中...",
+    loadMoreFailed: "無法載入更多，請重試。",
   },
 };
 

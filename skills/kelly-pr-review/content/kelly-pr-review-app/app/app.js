@@ -1,10 +1,26 @@
 import { I18N } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
-import { countByWorkflow, matchesMode, matchesSearch } from "./js/pr-review-model.js?v=0.1.0";
+import {
+  countByWorkflow,
+  matchesMode,
+  matchesSearch,
+  normalizeItem,
+  withReviewRefs,
+} from "./js/pr-review-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { closeHelp, openHelp, renderDetail, renderList } from "./js/review-views.js";
 
-export let state = { items: [], counts: {}, batch: null, lock: { locked: false }, config_summary: {}, demo: false };
+export let state = {
+  items: [],
+  counts: {},
+  batch: null,
+  lock: { locked: false },
+  config_summary: {},
+  demo: false,
+  pagination: {},
+  loadingMore: false,
+  loadMoreError: false,
+};
 let allItems = [];
 const params = new URLSearchParams(window.location.search);
 const demoScenario = params.get("demo") || "";
@@ -16,6 +32,7 @@ let mode = modeForDemo(demoScenario);
 let repoFilter = "all";
 export const reviewStore = { selectedId: null, saveTimer: null };
 let refreshTimer = null;
+let hasLoadedMore = false;
 const language = resolveLanguage();
 let isApplyingRoute = false;
 let routeNeedsReplace = false;
@@ -303,7 +320,10 @@ function renderHeader() {
       : t("batch.none");
   renderRepoFilter();
   $("sectionTitle").textContent = modeTitle();
-  $("listCount").textContent = `${state.items.length}`;
+  const searching = Boolean($("searchInput")?.value.trim());
+  $("listCount").textContent = searching
+    ? `${state.items.length}${state.pagination.reviews ? "+" : ""}`
+    : String(countFor(mode));
 
   const config = state.config_summary || {};
   $("setupBody").textContent = state.demo
@@ -369,22 +389,29 @@ export async function loadState() {
   allItems = data.snapshot?.items || [];
   const repo = repoFilter;
   const repoItems = repo && repo !== "all" ? allItems.filter((item) => item.repo === repo) : allItems;
+  const exactCounts =
+    !data.demo && typeof provider.countWorkflowCounts === "function"
+      ? await provider.countWorkflowCounts(repo)
+      : data.workflowCount;
   const search = $("searchInput")?.value || "";
   const items = repoItems.filter((item) => matchesMode(item, mode) && matchesSearch(item, search));
   state = {
     items,
-    counts: countByWorkflow(repoItems),
+    counts: exactCounts || countByWorkflow(repoItems),
     repos: data.snapshot?.repos || [],
     batch: {
       batch_id: data.snapshot?.source,
       generated_at: data.snapshot?.generated_at,
       source: data.snapshot?.source,
     },
-    total_cached: repoItems.length,
-    total_all_repos: allItems.length,
+    total_cached: exactCounts?.all ?? repoItems.length,
+    total_all_repos: data.totalCount?.reviews ?? allItems.length,
     config_summary: data.config_summary || {},
     lock: data.lock || { locked: false },
     demo: Boolean(data.demo),
+    pagination: data.pagination || {},
+    loadingMore: false,
+    loadMoreError: false,
   };
   window.dispatchEvent(new CustomEvent("kelly-pr-review:state", { detail: data }));
   renderCounts();
@@ -394,6 +421,35 @@ export async function loadState() {
   if (routeNeedsReplace) {
     history.replaceState(null, "", `#${routeFor()}`);
     routeNeedsReplace = false;
+  }
+}
+
+export async function loadMoreReviews() {
+  const cursor = state.pagination.reviews;
+  if (!cursor || state.loadingMore) return;
+  state.loadingMore = true;
+  state.loadMoreError = false;
+  renderList();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage("reviews", cursor);
+    const known = new Set(allItems.map((item) => item.id));
+    const additions = page.rows.map(normalizeItem).filter((item) => !known.has(item.id));
+    allItems = withReviewRefs([...allItems, ...additions]).sort((a, b) =>
+      String(b.updated_at || "").localeCompare(String(a.updated_at || "")),
+    );
+    const repoItems = repoFilter !== "all" ? allItems.filter((item) => item.repo === repoFilter) : allItems;
+    const search = $("searchInput")?.value || "";
+    state.items = repoItems.filter((item) => matchesMode(item, mode) && matchesSearch(item, search));
+    state.pagination.reviews = page.nextCursor;
+    hasLoadedMore = true;
+  } catch {
+    state.loadMoreError = true;
+  } finally {
+    state.loadingMore = false;
+    renderHeader();
+    renderList();
   }
 }
 
@@ -432,7 +488,7 @@ function wire() {
   setInterval(() => {
     const active = document.activeElement;
     if (active && ["TEXTAREA", "INPUT"].includes(active.tagName)) return;
-    loadState().catch(() => {});
+    if (!hasLoadedMore) loadState().catch(() => {});
   }, 5000);
   window.addEventListener("hashchange", () => loadState().catch((error) => toast(error.message)));
 }

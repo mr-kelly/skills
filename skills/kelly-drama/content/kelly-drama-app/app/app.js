@@ -2,6 +2,7 @@ import { newItem, registerActionHooks } from "./js/actions.js";
 import { passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { escapeHtml } from "./js/format.js";
 import { closeModal, isModalOpen } from "./js/modal.js";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { render } from "./js/render.js";
 import { applyRouteFromHash, navigateTo, routeFor } from "./js/router.js";
 import { closeSettings, openSettings, setSettingsTab } from "./js/settings.js";
@@ -34,6 +35,11 @@ async function load() {
 }
 
 document.addEventListener("click", (event) => {
+  const loadMoreButton = event.target.closest("[data-load-more]");
+  if (loadMoreButton) {
+    loadMore(loadMoreButton.dataset.loadMore);
+    return;
+  }
   const viewButton = event.target.closest("[data-view]");
   if (viewButton) {
     setMobileSidebarOpen(false);
@@ -41,6 +47,28 @@ document.addEventListener("click", (event) => {
     navigateTo({ view: viewButton.dataset.view, selectedId: null, episodeMode: "list", episodeTab: "summary" });
   }
 });
+
+async function loadMore(key) {
+  const cursor = store.state?.pagination?.[key];
+  if (!cursor || store.loadingMore[key]) return;
+  store.loadingMore[key] = true;
+  store.loadMoreError[key] = false;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage(key, cursor);
+    const current = store.state.project[key] || [];
+    const known = new Set(current.map((item) => item.id));
+    current.push(...page.items.filter((item) => !known.has(item.id)));
+    store.state.pagination[key] = page.nextCursor;
+  } catch {
+    store.loadMoreError[key] = true;
+  } finally {
+    store.loadingMore[key] = false;
+    render();
+  }
+}
 
 $("searchInput").addEventListener("input", (event) => {
   store.query = event.target.value;

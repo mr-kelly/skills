@@ -596,6 +596,15 @@
     background: var(--surface);
   }
 
+  .load-more {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding: 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
   .item-card,
   .detail-card,
   .metric,

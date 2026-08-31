@@ -3,6 +3,7 @@ import {
   esc,
   go,
   isMobileLayout,
+  loadMore,
   loadState,
   matchSearch,
   pickFile,
@@ -37,6 +38,14 @@ export function renderList() {
       go(node.dataset.jump);
     }),
   );
+  host
+    .querySelector("[data-load-more]")
+    ?.addEventListener("click", () => loadMore(host.querySelector("[data-load-more]").dataset.loadMore));
+}
+
+function loadMoreControl(key) {
+  if (!state.data?.pagination?.[key]) return "";
+  return `<div class="load-more"><button type="button" data-load-more="${esc(key)}" ${state.loadingMore[key] ? "disabled" : ""}>${state.loadingMore[key] ? t("loading_more") : t("load_more")}</button>${state.loadMoreError[key] ? `<span role="alert">${t("load_more_failed")}</span>` : ""}</div>`;
 }
 
 function listConcept() {
@@ -59,18 +68,18 @@ function listConcept() {
       "cast",
       t("checklist_cast"),
       t("checklist_cast_sub")
-        .replace("{n}", (project().characters || []).length)
+        .replace("{n}", state.data.totals?.characters ?? (project().characters || []).length)
         .replace("{missing}", c.characters_missing_refs ?? 0),
-      c.characters_missing_refs === 0 && (project().characters || []).length > 0,
+      c.characters_missing_refs === 0 && (state.data.totals?.characters ?? (project().characters || []).length) > 0,
     ],
     [
       "storyboard",
       t("checklist_storyboard"),
       t("checklist_storyboard_sub")
-        .replace("{n}", (project().shots || []).length)
+        .replace("{n}", state.data.totals?.shots ?? (project().shots || []).length)
         .replace("{img}", c.shots_missing_image ?? 0)
         .replace("{vid}", c.shots_missing_video ?? 0),
-      (project().shots || []).length > 0 && c.shots_missing_video === 0,
+      (state.data.totals?.shots ?? (project().shots || []).length) > 0 && c.shots_missing_video === 0,
     ],
   ];
   const html = rows
@@ -111,7 +120,12 @@ function listCast() {
         })
         .join("")
     : `<div class="empty-shot">${t("cast_list_empty")}</div>`;
-  return { html, count: items.length };
+  return {
+    html: `${html}${loadMoreControl("cast")}`,
+    count: state.search
+      ? `${items.length}${state.data.pagination?.cast ? "+" : ""}`
+      : (state.data.totalCount?.cast ?? `${items.length}${state.data.pagination?.cast ? "+" : ""}`),
+  };
 }
 
 function listStoryboard() {
@@ -119,7 +133,7 @@ function listStoryboard() {
   const c = state.data.completeness || {};
   const song = project().song || {};
   const hint = `<div class="mv-timeline-meta">${t("shot_timeline_meta")
-    .replace("{n}", (project().shots || []).length)
+    .replace("{n}", state.data.totals?.shots ?? (project().shots || []).length)
     .replace(
       "{dur}",
       secs(c.shots_total_seconds),
@@ -127,7 +141,7 @@ function listStoryboard() {
   let html = hint;
   if (!shots.length) {
     html += `<div class="empty-shot">${t("shot_list_empty")}</div>`;
-    return { html, count: 0 };
+    return { html: `${html}${loadMoreControl("shots")}`, count: state.data.totalCount?.shots ?? 0 };
   }
   html += shots
     .map((shot, i) => {
@@ -151,7 +165,12 @@ function listStoryboard() {
       </div>`;
     })
     .join("");
-  return { html, count: (project().shots || []).length };
+  return {
+    html: `${html}${loadMoreControl("shots")}`,
+    count: state.search
+      ? `${shots.length}${state.data.pagination?.shots ? "+" : ""}`
+      : (state.data.totalCount?.shots ?? `${shots.length}${state.data.pagination?.shots ? "+" : ""}`),
+  };
 }
 
 // ---------------------------------------------------------------------------

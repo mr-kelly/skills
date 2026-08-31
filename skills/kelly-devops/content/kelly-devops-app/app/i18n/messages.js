@@ -1,5 +1,9 @@
 export const messages = {
   en: {
+    pagination: "Pagination",
+    prevPage: "Prev",
+    nextPage: "Next",
+    pageOf: "Page {current} of {total}",
     actionRef: "Action",
     actions: "Actions",
     actionsQueue: "Action Queue",
@@ -131,6 +135,10 @@ export const messages = {
     },
   },
   zh: {
+    pagination: "分页",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    pageOf: "第 {current} / {total} 页",
     actionRef: "行动",
     actions: "行动",
     actionsQueue: "行动队列",

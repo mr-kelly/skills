@@ -58,7 +58,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     // changeRequests.review/merge are used only to complete a scenario
     // DELETE on a standalone local runtime: Busabase always requires an

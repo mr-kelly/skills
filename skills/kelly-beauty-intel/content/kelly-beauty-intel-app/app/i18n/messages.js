@@ -25,6 +25,9 @@ export const messages = {
     why: "Why it matters",
     buyerIntent: "Buyer intent",
     nextStep: "Next step",
+    loadMore: "Load more",
+    loadingMore: "Loading...",
+    loadMoreFailed: "Couldn't load more. Try again.",
   },
   zh: {
     all: "全部",
@@ -52,5 +55,8 @@ export const messages = {
     why: "为什么重要",
     buyerIntent: "采购意图",
     nextStep: "下一步",
+    loadMore: "加载更多",
+    loadingMore: "加载中...",
+    loadMoreFailed: "无法加载更多，请重试。",
   },
 };

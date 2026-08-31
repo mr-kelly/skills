@@ -119,6 +119,9 @@ export const MESSAGES = {
     form_select_or_new_hint: "这里会显示当前视图的编辑表单。",
     empty_list: "还没有内容",
     empty_list_hint: "点击右上角新建，先搭一个骨架。",
+    load_more: "加载更多",
+    loading_more: "加载中...",
+    load_more_failed: "无法加载更多，请重试。",
     // shot sheet labels
     shot_label_composition: "镜头描述 / 规格",
     shot_label_action: "动作脚本（运动）",
@@ -347,6 +350,9 @@ export const MESSAGES = {
     form_select_or_new_hint: "The edit form for the current view will appear here.",
     empty_list: "Nothing here yet",
     empty_list_hint: "Click + to create a first item.",
+    load_more: "Load more",
+    loading_more: "Loading...",
+    load_more_failed: "Couldn't load more. Try again.",
     // shot sheet labels
     shot_label_composition: "Shot description / spec",
     shot_label_action: "Action script (motion)",

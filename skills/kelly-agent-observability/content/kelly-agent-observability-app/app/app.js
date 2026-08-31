@@ -1,8 +1,13 @@
 import { messages } from "./i18n/messages.js";
+import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const state = {
+  pageCursors: {},
+  currentPage: {},
+  pageLoading: {},
+  totals: {},
   fleet: null,
   summary: null,
   handoffs: [],
@@ -141,6 +146,14 @@ function setRoute() {
 async function loadState() {
   const provider = await getProvider();
   const data = await provider.getState();
+  state.pageCursors = {};
+  state.currentPage = {};
+  state.pageLoading = {};
+  state.totals = data.totals || {};
+  for (const [key, nextCursor] of Object.entries(data.pagination || {})) {
+    state.pageCursors[key] = [undefined, nextCursor];
+    state.currentPage[key] = 1;
+  }
   closeConnectGate();
   state.fleet = data.fleet;
   state.summary = data.summary;
@@ -202,7 +215,7 @@ function renderShell() {
     : t("needsConnection");
   if (els.degradedCount) els.degradedCount.textContent = num(summary.degraded_agent_count || 0);
   if (els.agentCount) els.agentCount.textContent = num(summary.agent_count || 0);
-  if (els.handoffCount) els.handoffCount.textContent = num(state.handoffs.length);
+  if (els.handoffCount) els.handoffCount.textContent = recordCountLabel("handoffs", state.handoffs.length);
   if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = connected
@@ -368,9 +381,10 @@ function agentHealthTable() {
 function renderAgents() {
   els.title.textContent = t("agentsTitle");
   const rows = filteredAgentRows();
-  els.subtitle.textContent = `${rows.length} ${t("agents")}`;
+  els.subtitle.textContent = `${recordCountLabel("agents", rows.length, Boolean(state.query))} ${t("agents")}`;
   if (!isConnected()) {
-    els.content.innerHTML = `<div class="empty">${t("setupNeeded")}</div>`;
+    els.content.innerHTML = `${`<div class="empty">${t("setupNeeded")}</div>`}
+    ${pagerControl("agents")}`;
     return;
   }
   els.content.innerHTML = `${demoBanner()}${agentHealthTable()}`;
@@ -538,7 +552,7 @@ function renderTraceDetail() {
 function renderHandoffs() {
   els.title.textContent = t("handoffHistory");
   const handoffs = [...state.handoffs].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
-  els.subtitle.textContent = `${handoffs.length} ${t("handoffs")}`;
+  els.subtitle.textContent = `${recordCountLabel("handoffs", handoffs.length)} ${t("handoffs")}`;
   if (!handoffs.length) {
     els.content.innerHTML = `<div class="empty">${t("noHandoffs")}</div>`;
     return;
@@ -572,6 +586,7 @@ function renderHandoffs() {
         </tbody>
       </table>
     </div>
+    ${pagerControl("handoffs")}
   `;
 }
 
@@ -638,7 +653,7 @@ function bindHandoffForms() {
         messageEl.textContent = t("handoffSubmitted");
         messageEl.className = "handoff-form-message positive";
         form.querySelector("textarea[name='note']").value = "";
-        if (els.handoffCount) els.handoffCount.textContent = num(state.handoffs.length);
+        if (els.handoffCount) els.handoffCount.textContent = recordCountLabel("handoffs", state.handoffs.length);
         return;
       }
       state.busy = true;
@@ -646,11 +661,12 @@ function bindHandoffForms() {
         const provider = await getProvider();
         const handoff = await provider.submitHandoff(payload);
         state.handoffs.push(handoff);
+        if (state.totals.handoffs != null) state.totals.handoffs += 1;
         messageEl.hidden = false;
         messageEl.textContent = t("handoffSubmitted");
         messageEl.className = "handoff-form-message positive";
         form.querySelector("textarea[name='note']").value = "";
-        if (els.handoffCount) els.handoffCount.textContent = num(state.handoffs.length);
+        if (els.handoffCount) els.handoffCount.textContent = recordCountLabel("handoffs", state.handoffs.length);
       } catch (error) {
         messageEl.hidden = false;
         messageEl.textContent = t("handoffError");
@@ -720,5 +736,112 @@ async function boot() {
     els.content.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
   }
 }
+
+const PAGE_BINDINGS = {
+  agents: { key: "agents", path: "fleet.agents" },
+  handoffs: { key: "handoffs", path: "handoffs" },
+};
+
+function pageSize(key) {
+  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 100;
+}
+
+function pageCount(key) {
+  const total = state.totals?.[key];
+  return total == null ? null : Math.max(1, Math.ceil(total / pageSize(key)));
+}
+
+function replacePageRows(path, rows) {
+  const parts = path.split(".");
+  let target = state;
+  for (const part of parts.slice(0, -1)) {
+    target = target?.[part];
+    if (!target) return;
+  }
+  target[parts.at(-1)] = rows;
+}
+
+async function goToPage(key, targetPage) {
+  if (state.pageLoading[key] || !state.pageCursors[key]) return;
+  const binding = Object.values(PAGE_BINDINGS).find((entry) => entry.key === key);
+  if (!binding) return;
+  const totalPages = pageCount(key);
+  const page = totalPages == null ? Math.max(1, targetPage) : Math.min(Math.max(1, targetPage), totalPages);
+  if (page === state.currentPage[key]) return;
+  state.pageLoading[key] = true;
+  if (typeof render === "function") render();
+  else route();
+  try {
+    const provider = await getProvider();
+    let result;
+    for (let next = state.pageCursors[key].length; next <= page; next += 1) {
+      const cursor = state.pageCursors[key][next - 1];
+      if (next > 1 && !cursor) return;
+      result = await provider.fetchPage(key, cursor);
+      state.pageCursors[key][next] = result.nextCursor;
+    }
+    if (!result || state.pageCursors[key].length > page + 1) {
+      result = await provider.fetchPage(key, state.pageCursors[key][page - 1]);
+      state.pageCursors[key][page] = result.nextCursor;
+    }
+    replacePageRows(binding.path, result.rows);
+    state.currentPage[key] = page;
+  } finally {
+    state.pageLoading[key] = false;
+    if (typeof render === "function") render();
+    else route();
+  }
+}
+
+function pagerMessage(key, fallback) {
+  return typeof t === "function" ? t(key) : fallback;
+}
+
+export function recordCountLabel(key, loadedCount, filtered = false) {
+  if (filtered) return loadedCount;
+  const total = state.totals?.[key];
+  if (total != null) return total;
+  const current = state.currentPage?.[key] || 1;
+  return `${loadedCount}${state.pageCursors?.[key]?.[current] ? "+" : ""}`;
+}
+
+export function pagerControl(key) {
+  if (!state.pageCursors[key]) return "";
+  const total = pageCount(key);
+  const current = state.currentPage[key] || 1;
+  const loading = Boolean(state.pageLoading[key]);
+  const hasNext = total == null ? Boolean(state.pageCursors[key][current]) : current < total;
+  if ((total === 1 || total == null) && current === 1 && !hasNext) return "";
+  const pages =
+    total == null
+      ? []
+      : total <= 7
+        ? Array.from({ length: total }, (_, index) => index + 1)
+        : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort(
+            (a, b) => a - b,
+          );
+  const items = [];
+  let previous = 0;
+  for (const page of pages) {
+    if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
+    items.push(
+      `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
+    );
+    previous = page;
+  }
+  return `<nav class="pager" aria-label="${pagerMessage("pagination", "Pagination")}">
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current - 1}" ${loading || current <= 1 ? "disabled" : ""}>${pagerMessage("prevPage", "Prev")}</button>
+    ${items.join("")}
+    <button type="button" class="pager-nav" data-goto-page="${key}:${current + 1}" ${loading || !hasNext ? "disabled" : ""}>${pagerMessage("nextPage", "Next")}</button>
+    ${total == null ? "" : `<span class="pager-summary">${pagerMessage("pageOf", "Page {current} of {total}").replace("{current}", current).replace("{total}", total)}</span>`}
+  </nav>`;
+}
+
+document.querySelector("#content")?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-goto-page]");
+  if (!button) return;
+  const [key, page] = button.dataset.gotoPage.split(":");
+  goToPage(key, Number(page));
+});
 
 boot();

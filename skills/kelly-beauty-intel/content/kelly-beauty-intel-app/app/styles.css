@@ -331,6 +331,15 @@ select {
   display: none;
 }
 
+.load-more {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 @media (max-width: 820px) {
   body.sidebar-open {
     overflow: hidden;
