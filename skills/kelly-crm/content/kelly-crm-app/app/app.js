@@ -1,5 +1,7 @@
 import { messages } from "./i18n/messages.js";
+import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import { NORMALIZE_ROW_BY_KEY } from "./js/crm-model.js?v=0.1.0";
 import {
   renderContactDetail,
   renderContacts,
@@ -8,8 +10,6 @@ import {
   renderFollowups,
   renderSettings,
 } from "./js/crm-views.js";
-import { appConfig } from "./js/config.js?v=0.1.0";
-import { NORMALIZE_ROW_BY_KEY } from "./js/crm-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 export const state = {
