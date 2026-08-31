@@ -10,6 +10,9 @@ import {
   DECISION_ACTIONS,
   buildConfigSummary,
   buildSnapshot,
+  normalizeCheckRow,
+  normalizeEntityRow,
+  normalizeItemRow,
   parseJsonValue,
   statusFromDecision,
 } from "../firm-radar-model.js?v=0.1.0";
@@ -17,6 +20,7 @@ import {
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
+const NORMALIZE_ROW_BY_KEY = { items: normalizeItemRow, entities: normalizeEntityRow, checks: normalizeCheckRow };
 
 // A deployed AirApp is served through the ambient Busabase session (a Busabase
 // iframe/preview host, or same-origin proxy under /api/airapp-preview/); a
@@ -68,30 +72,26 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
-  return rows;
+  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({ ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields), __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+const countStatus = (status) => countRecords("items", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -104,7 +104,7 @@ async function findRecord(key, idFieldSlug, idValue) {
 }
 
 async function readSettingsRow() {
-  const rows = await readAllRecords("settings");
+  const { rows } = await readPage("settings");
   return rows.find((row) => row.record_id === "config") || {};
 }
 
@@ -165,30 +165,50 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [items, entities, checks, settings] = await Promise.all([
-      readAllRecords("items"),
-      readAllRecords("entities"),
-      readAllRecords("checks"),
+    const [itemPage, entityPage, checkPage, settings, totals, checkStatusCounts, ...statusCounts] = await Promise.all([
+      readPage("items"),
+      readPage("entities"),
+      readPage("checks"),
       readSettingsRow(),
+      Promise.all(["items", "entities", "checks"].map((key) => countRecords(key))),
+      Promise.all(["pass", "warn", "fail"].map((status) => countRecords("checks", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]))),
+      ...["needs_review", "changes_requested", "approved", "done", "blocked"].map(countStatus),
     ]);
     const config_summary = buildConfigSummary({ settings });
     const outcomeTrends = parseJsonValue(settings.outcome_trends, []) || [];
     const snapshot = buildSnapshot({
-      items,
-      entities,
-      checks,
+      items: itemPage.rows,
+      entities: entityPage.rows,
+      checks: checkPage.rows,
       workspace: buildWorkspace(settings),
       extra: outcomeTrends.length ? { outcome_trends: outcomeTrends } : {},
+    });
+    if (totals[0] !== null) snapshot.metrics.items_total = totals[0];
+    if (checkStatusCounts[0] !== null) snapshot.metrics.checks_pass = checkStatusCounts[0];
+    if (checkStatusCounts[1] !== null) snapshot.metrics.checks_warn = checkStatusCounts[1];
+    if (checkStatusCounts[2] !== null) snapshot.metrics.checks_failed = checkStatusCounts[2];
+    ["needs_review", "changes_requested", "approved", "done", "blocked"].forEach((status, index) => {
+      if (statusCounts[index] !== null) snapshot.metrics[status] = statusCounts[index];
     });
     return {
       app: APP_ID,
       demo: false,
       data_provider: "busabase",
-      onboarding: { completed: items.length > 0, config_version: "1" },
+      onboarding: { completed: (totals[0] ?? itemPage.rows.length) > 0, config_version: "1" },
       lock: null,
       config_summary,
       snapshot,
+      pagination: { items: itemPage.nextCursor, entities: entityPage.nextCursor, checks: checkPage.nextCursor },
+      totalCount: { items: totals[0], entities: totals[1], checks: totals[2] },
+      workflowCount: Object.fromEntries(["needs_review", "changes_requested", "approved", "done", "blocked"].map((status, index) => [status, statusCounts[index]])),
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    const normalize = NORMALIZE_ROW_BY_KEY[key];
+    return { rows: normalize ? page.rows.map(normalize) : page.rows, nextCursor: page.nextCursor };
   },
 
   // Human verdict on a management insight, written directly onto the item

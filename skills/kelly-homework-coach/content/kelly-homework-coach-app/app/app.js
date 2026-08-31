@@ -1,5 +1,11 @@
 import { messages, resolveLanguage } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
+import {
+  computeMistakeFromRow,
+  computePaperFromRow,
+  computeQuestionFromRow,
+  computeReviewFromRow,
+} from "./js/homework-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const app = document.getElementById("app");
@@ -13,6 +19,19 @@ const state = {
   settingsTab: "guide",
   localPhotoName: "",
   busy: false,
+  pagination: {},
+  totalCount: {},
+  workflowCount: null,
+  loadingMore: {},
+  loadMoreError: {},
+  hasLoadedMore: false,
+};
+
+const PAGE_TARGETS = {
+  questions: { snapshotKey: "questions", idKey: "question_id", normalize: computeQuestionFromRow },
+  mistakes: { snapshotKey: "mistakes", idKey: "mistake_id", normalize: computeMistakeFromRow },
+  papers: { snapshotKey: "papers", idKey: "paper_id", normalize: computePaperFromRow },
+  reviews: { snapshotKey: "review_items", idKey: "review_id", normalize: computeReviewFromRow },
 };
 
 function t(key) {
@@ -60,10 +79,15 @@ function isEditing() {
 
 async function loadState({ quiet = false } = {}) {
   if (isEditing() && quiet) return;
+  if (quiet && state.hasLoadedMore) return;
   const provider = await getProvider();
   const data = await provider.getState();
   closeConnectGate();
   state.data = data;
+  state.pagination = data.pagination || {};
+  state.totalCount = data.totalCount || {};
+  state.workflowCount = data.workflowCount || null;
+  if (!quiet) state.hasLoadedMore = false;
   window.dispatchEvent(new CustomEvent("kelly-homework-coach:state", { detail: data }));
   render();
 }
@@ -100,7 +124,7 @@ function render() {
 
 function renderShell() {
   const snapshot = state.data.snapshot || {};
-  const counts = statusCounts(snapshot.review_items || []);
+  const counts = state.workflowCount || statusCounts(snapshot.review_items || []);
   const mobileTitle = navLabel(state.route.view);
   app.className = "app-shell";
   app.innerHTML = `
@@ -143,13 +167,13 @@ function renderSidebar(snapshot, counts) {
         </div>
       </section>
       <nav class="nav">
-        ${navButton("student", t("student"), snapshot.questions?.length || 0)}
-        ${navButton("mistakes", t("mistakes"), snapshot.mistakes?.length || 0)}
-        ${navButton("papers", t("papers"), snapshot.papers?.length || 0)}
-        ${navButton("review", t("review"), snapshot.review_items?.length || 0)}
+        ${navButton("student", t("student"), totalFor("questions", snapshot.questions?.length || 0))}
+        ${navButton("mistakes", t("mistakes"), totalFor("mistakes", snapshot.mistakes?.length || 0))}
+        ${navButton("papers", t("papers"), totalFor("papers", snapshot.papers?.length || 0))}
+        ${navButton("review", t("review"), totalFor("reviews", snapshot.review_items?.length || 0))}
       </nav>
       <div class="filter">
-        ${filterButton("all", t("all"), (snapshot.review_items || []).length)}
+        ${filterButton("all", t("all"), totalFor("reviews", (snapshot.review_items || []).length))}
         ${filterButton("needs_review", t("needsReview"), counts.needs_review)}
         ${filterButton("approved", t("ready"), counts.approved)}
         ${filterButton("done", t("done"), counts.done)}
@@ -160,6 +184,10 @@ function renderSidebar(snapshot, counts) {
       </div>
     </aside>
   `;
+}
+
+function totalFor(key, loaded) {
+  return state.totalCount[key] ?? `${loaded}${state.pagination[key] ? "+" : ""}`;
 }
 
 function navButton(view, label, count) {
@@ -199,6 +227,13 @@ function collectionFor(snapshot, view = state.route.view) {
   if (view === "papers") return snapshot.papers || [];
   if (view === "review") return snapshot.review_items || [];
   return snapshot.questions || [];
+}
+
+function baseKeyForView(view) {
+  if (view === "mistakes") return "mistakes";
+  if (view === "papers") return "papers";
+  if (view === "review") return "reviews";
+  return "questions";
 }
 
 function idFor(item, view = state.route.view) {
@@ -257,8 +292,38 @@ function renderListPanel(snapshot) {
       <div class="row-list">
         ${items.length ? items.map((item) => renderRow(item, view)).join("") : `<div class="note" style="padding:16px;">${esc(t("noItems"))}</div>`}
       </div>
+      ${loadMoreControl(baseKeyForView(view))}
     </section>
   `;
+}
+
+function loadMoreControl(key) {
+  if (!state.pagination[key]) return "";
+  return `<div class="load-more"><button type="button" data-load-more="${esc(key)}" ${state.loadingMore[key] ? "disabled" : ""}>${esc(state.loadingMore[key] ? t("loadingMore") : t("loadMore"))}</button>${state.loadMoreError[key] ? `<span role="alert">${esc(t("loadMoreFailed"))}</span>` : ""}</div>`;
+}
+
+async function loadMore(key) {
+  const cursor = state.pagination[key];
+  const target = PAGE_TARGETS[key];
+  if (!cursor || !target || state.loadingMore[key]) return;
+  state.loadingMore[key] = true;
+  state.loadMoreError[key] = false;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage(key, cursor);
+    const current = state.data.snapshot[target.snapshotKey];
+    const known = new Set(current.map((item) => item[target.idKey]));
+    current.push(...page.rows.map(target.normalize).filter((item) => !known.has(item[target.idKey])));
+    state.pagination[key] = page.nextCursor;
+    state.hasLoadedMore = true;
+  } catch {
+    state.loadMoreError[key] = true;
+  } finally {
+    state.loadingMore[key] = false;
+    render();
+  }
 }
 
 function metric(label, value) {
@@ -560,6 +625,11 @@ document.addEventListener("click", async (event) => {
   if (!(event.target instanceof Element)) return;
   const button = event.target.closest("button");
   if (!button) return;
+
+  if (button.dataset.loadMore) {
+    await loadMore(button.dataset.loadMore);
+    return;
+  }
 
   const route = button.dataset.route;
   if (route) {

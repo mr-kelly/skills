@@ -33,6 +33,12 @@ export const state = {
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
   edits: { note: {}, draft: {} },
+  pagination: {},
+  totalCount: {},
+  workflowCount: null,
+  loadingMore: {},
+  loadMoreError: {},
+  hasLoadedMore: false,
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "legal-app.sidebarCollapsed";
@@ -187,6 +193,10 @@ async function loadState() {
   closeConnectGate();
   state.snapshot = data.snapshot;
   state.settings = data;
+  state.pagination = data.pagination || {};
+  state.totalCount = data.totalCount || {};
+  state.workflowCount = data.workflowCount || null;
+  state.hasLoadedMore = false;
   applyDemoRoute();
   window.dispatchEvent(new CustomEvent("kelly-legal-casebase-ingest:state", { detail: data }));
   render();
@@ -200,7 +210,7 @@ function shouldSkipAutoRefresh() {
 
 function scheduleAutoRefresh() {
   window.setInterval(() => {
-    if (shouldSkipAutoRefresh()) return;
+    if (shouldSkipAutoRefresh() || state.hasLoadedMore) return;
     loadState().catch(() => {});
   }, AUTO_REFRESH_MS);
 }
@@ -267,19 +277,22 @@ function renderShell() {
   );
   document.body.classList.add(`${PROFILE_CLASS_PREFIX}${profile.id}`);
   const all = items();
-  const needs = all.filter((item) => item.status === "needs_review").length;
-  const ready = all.filter((item) => item.status === "approved" || item.status === "done").length;
-  const blocked = all.filter((item) => item.status === "blocked").length;
+  const needs = state.workflowCount?.needs_review ?? all.filter((item) => item.status === "needs_review").length;
+  const ready =
+    state.workflowCount?.approved != null && state.workflowCount?.done != null
+      ? state.workflowCount.approved + state.workflowCount.done
+      : all.filter((item) => item.status === "approved" || item.status === "done").length;
+  const blocked = state.workflowCount?.blocked ?? all.filter((item) => item.status === "blocked").length;
   if (els.countNeeds) els.countNeeds.textContent = needs;
   if (els.countReady) els.countReady.textContent = ready;
   if (els.countBlocked) els.countBlocked.textContent = blocked;
   if (els.syncStatus)
     els.syncStatus.textContent = state.snapshot
-      ? `${all.length} ${t("allItems")} · ${checks().length} ${t("checks").toLowerCase()}`
+      ? `${state.totalCount.items ?? `${all.length}${state.pagination.items ? "+" : ""}`} ${t("allItems")} · ${state.totalCount.checks ?? `${checks().length}${state.pagination.checks ? "+" : ""}`} ${t("checks").toLowerCase()}`
       : t("empty");
   if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
   if (els.mobileViewMeta)
-    els.mobileViewMeta.textContent = needs ? `${needs} ${t("needsReview")}` : `${all.length} ${t("allItems")}`;
+    els.mobileViewMeta.textContent = needs ? `${needs} ${t("needsReview")}` : `${state.totalCount.items ?? `${all.length}${state.pagination.items ? "+" : ""}`} ${t("allItems")}`;
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
   });
@@ -317,6 +330,29 @@ export function lockBanner() {
   return `<div class="lock-banner">${escapeHtml(t("lockActive"))}${state.settings.lock.message ? ` — ${escapeHtml(state.settings.lock.message)}` : ""}</div>`;
 }
 
+export async function loadMore(key) {
+  const cursor = state.pagination[key];
+  if (!cursor || state.loadingMore[key]) return;
+  state.loadingMore[key] = true;
+  state.loadMoreError[key] = false;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage(key, cursor);
+    const target = key === "items" ? items() : key === "entities" ? entities() : checks();
+    const known = new Set(target.map((row) => row.id));
+    target.push(...page.rows.filter((row) => !known.has(row.id)));
+    state.pagination[key] = page.nextCursor;
+    state.hasLoadedMore = true;
+  } catch {
+    state.loadMoreError[key] = true;
+  } finally {
+    state.loadingMore[key] = false;
+    render();
+  }
+}
+
 function renderOverview() {
   const metrics = state.snapshot.metrics || {};
   const review = filteredItems("needs_review").slice(0, 5);
@@ -349,26 +385,33 @@ function metricCard(label, value) {
 
 function businessMetricsHtml(profile, metrics) {
   const all = items();
-  const failed = checks().filter((check) => check.status === "fail" || check.status === "warn").length;
-  const ready = all.filter((item) => item.status === "approved" || item.status === "done").length;
+  const itemTotal = metrics.items_total ?? state.totalCount.items ?? all.length;
+  const failed =
+    metrics.checks_failed != null && metrics.checks_warn != null
+      ? metrics.checks_failed + metrics.checks_warn
+      : checks().filter((check) => check.status === "fail" || check.status === "warn").length;
+  const ready =
+    metrics.approved != null && metrics.done != null
+      ? metrics.approved + metrics.done
+      : all.filter((item) => item.status === "approved" || item.status === "done").length;
   const definitions = {
     casebase: [
-      [activeLang() === "zh" ? "来源文书" : "Source docs", metrics.source_docs || all.length],
+      [activeLang() === "zh" ? "来源文书" : "Source docs", metrics.source_docs || itemTotal],
       [activeLang() === "zh" ? "脱敏提醒" : "Redaction alerts", metrics.pii_warnings ?? failed],
-      [activeLang() === "zh" ? "分类完成" : "Taxonomy ready", `${ready}/${all.length || 0}`],
+      [activeLang() === "zh" ? "分类完成" : "Taxonomy ready", `${ready}/${itemTotal}`],
       [activeLang() === "zh" ? "疑似重复" : "Possible dupes", metrics.duplicate_candidates || 1],
     ],
     precedent: [
-      [activeLang() === "zh" ? "检索问题" : "Research questions", metrics.query_count || all.length],
+      [activeLang() === "zh" ? "检索问题" : "Research questions", metrics.query_count || itemTotal],
       [activeLang() === "zh" ? "高相似类案" : "High matches", metrics.high_matches || sumField("high_match_count")],
       [
         activeLang() === "zh" ? "引用覆盖" : "Citation checks",
-        `${checks().filter((check) => check.status === "pass").length}/${checks().length}`,
+        `${metrics.checks_pass ?? checks().filter((check) => check.status === "pass").length}/${state.totalCount.checks ?? checks().length}`,
       ],
       [activeLang() === "zh" ? "本地尺度" : "Court patterns", metrics.local_patterns || 2],
     ],
     matter: [
-      [activeLang() === "zh" ? "进行中案件" : "Active matters", all.length],
+      [activeLang() === "zh" ? "进行中案件" : "Active matters", itemTotal],
       [activeLang() === "zh" ? "证据缺口" : "Evidence gaps", metrics.evidence_gaps || sumField("evidence_gap_count")],
       [activeLang() === "zh" ? "临近期限" : "Near deadlines", metrics.deadlines_soon || 1],
       [activeLang() === "zh" ? "可进文书" : "Draft-ready", metrics.draft_ready || ready],
@@ -600,6 +643,11 @@ document.addEventListener("input", (event) => {
 });
 
 document.addEventListener("click", async (event) => {
+  const loadMoreButton = event.target.closest("[data-load-more]");
+  if (loadMoreButton) {
+    await loadMore(loadMoreButton.dataset.loadMore);
+    return;
+  }
   const button = event.target.closest("[data-action][data-id]");
   if (!button) return;
   event.preventDefault();

@@ -21,12 +21,17 @@ import {
 } from "../app.js";
 import { getProvider } from "./providers/index.js?v=0.1.0";
 
+function loadMoreControl(key) {
+  if (!state.pagination[key]) return "";
+  return `<div class="load-more"><button type="button" data-load-more="${escapeHtml(key)}" ${state.loadingMore[key] ? "disabled" : ""}>${state.loadingMore[key] ? t("loadingMore") : t("loadMore")}</button>${state.loadMoreError[key] ? `<span role="alert">${t("loadMoreFailed")}</span>` : ""}</div>`;
+}
+
 export function renderInbox() {
   const selected = state.route.id ? conversationById(state.route.id) : null;
   els.title.textContent = selected ? selected.title : t("inbox");
   els.subtitle.textContent = selected
     ? [enumLabel(selected.platform, "platform"), selected.channel, selected.workspace].filter(Boolean).join(" · ")
-    : `${filteredConversations().length} ${t("conversationCount")} · ${awaitingConversations().length} ${t("needsReply")}`;
+    : `${state.query ? `${filteredConversations().length}${state.pagination.conversations ? "+" : ""}` : state.totalCount.conversations ?? `${filteredConversations().length}${state.pagination.conversations ? "+" : ""}`} ${t("conversationCount")} · ${state.workflowCount.awaiting ?? awaitingConversations().length} ${t("needsReply")}`;
   const list = filteredConversations();
   els.content.innerHTML = `
     <section class="inbox">
@@ -54,6 +59,7 @@ export function renderInbox() {
                 .join("")
             : `<div class="empty">${t("empty")}</div>`
         }
+        ${loadMoreControl("conversations")}
       </div>
       <div class="conv-detail detail-panel">
         ${selected ? conversationDetail(selected) : `<div class="empty">${t("noConversation")}</div>`}
@@ -105,6 +111,7 @@ function conversationDetail(conversation) {
       `,
         )
         .join("")}
+      ${loadMoreControl("messages")}
       ${pending
         .map(
           (reply) => `
@@ -137,8 +144,9 @@ export function renderOutbox() {
   const replies = outboxReplies().filter((reply) =>
     matchesQuery([reply.text, reply.reason, reply.conversation_title, reply.platform, reply.status, `#${reply.ref}`]),
   );
-  const needsReview = outboxReplies().filter((reply) => reply.status === "needs_review").length;
-  els.subtitle.textContent = `${outboxReplies().length} ${t("replies")} · ${needsReview} ${enumLabel("needs_review")}`;
+  const needsReview = state.workflowCount.needs_review ?? outboxReplies().filter((reply) => reply.status === "needs_review").length;
+  const replyTotal = state.totalCount.replies ?? `${outboxReplies().length}${state.pagination.replies ? "+" : ""}`;
+  els.subtitle.textContent = `${replyTotal} ${t("replies")} · ${needsReview} ${enumLabel("needs_review")}`;
   els.content.innerHTML = replies.length
     ? `
     <div class="outbox-list">
@@ -187,6 +195,7 @@ export function renderOutbox() {
     </div>
   `
     : `<div class="empty">${t("noOutbox")}</div>`;
+  els.content.insertAdjacentHTML("beforeend", loadMoreControl("replies"));
   els.content.querySelectorAll("[data-reply-text]").forEach((textarea) => {
     const card = textarea.closest("[data-reply-card]");
     textarea.addEventListener("input", () => {
@@ -235,6 +244,7 @@ export function renderAccounts() {
     </div>
   `
     : `<div class="empty">${t("setupNeeded")}</div>`;
+  els.content.insertAdjacentHTML("beforeend", loadMoreControl("accounts"));
 }
 
 export function renderSettings() {
@@ -313,6 +323,7 @@ export function renderSettings() {
       }
     </div>
   `;
+  els.content.insertAdjacentHTML("beforeend", loadMoreControl("sync-log"));
 }
 
 export async function queueReplyAction(conversationId) {

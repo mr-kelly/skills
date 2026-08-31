@@ -64,30 +64,26 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
-  return rows;
+  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({ ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields), __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+const countStatus = (key, status) => countRecords(key, [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -130,20 +126,25 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [questionRows, mistakeRows, paperRows, reviewRows, settingsRows] = await Promise.all([
-      readAllRecords("questions"),
-      readAllRecords("mistakes"),
-      readAllRecords("papers"),
-      readAllRecords("reviews"),
-      readAllRecords("settings"),
+    const keys = ["questions", "mistakes", "papers", "reviews"];
+    const [questionPage, mistakePage, paperPage, reviewPage, settingsPage, totals, questionDone, mistakeDone, ...reviewStatusCounts] = await Promise.all([
+      readPage("questions"),
+      readPage("mistakes"),
+      readPage("papers"),
+      readPage("reviews"),
+      readPage("settings"),
+      Promise.all(keys.map((key) => countRecords(key))),
+      countStatus("questions", "done"),
+      countStatus("mistakes", "done"),
+      ...["needs_review", "changes_requested", "approved", "done", "blocked"].map((status) => countStatus("reviews", status)),
     ]);
-    const configRow = findSettingsRow(settingsRows, "config");
+    const configRow = findSettingsRow(settingsPage.rows, "config");
     const configPayload = parseSettingsPayload(configRow);
     const config_summary = buildConfigSummary(configPayload);
-    const questions = questionRows.map(computeQuestionFromRow);
-    const mistakes = mistakeRows.map(computeMistakeFromRow);
-    const papers = paperRows.map(computePaperFromRow);
-    const reviews = reviewRows.map(computeReviewFromRow);
+    const questions = questionPage.rows.map(computeQuestionFromRow);
+    const mistakes = mistakePage.rows.map(computeMistakeFromRow);
+    const papers = paperPage.rows.map(computePaperFromRow);
+    const reviews = reviewPage.rows.map(computeReviewFromRow);
     const snapshot = assembleSnapshot({
       profile: configPayload.student_profile || { display_name: "", grade: "", language: "Auto" },
       questions,
@@ -153,6 +154,10 @@ export const busabaseProvider = {
       mastery_score: configPayload.metrics?.mastery_score,
       questions_analyzed: configPayload.metrics?.questions_analyzed,
     });
+    if (totals[0] !== null && questionDone !== null) snapshot.metrics.active_questions = totals[0] - questionDone;
+    if (totals[1] !== null) snapshot.metrics.mistakes_total = totals[1];
+    if (totals[1] !== null && mistakeDone !== null) snapshot.metrics.due_reviews = totals[1] - mistakeDone;
+    if (totals[2] !== null) snapshot.metrics.papers_generated = totals[2];
     return {
       app: "kelly-homework-coach",
       demo: false,
@@ -161,7 +166,17 @@ export const busabaseProvider = {
       lock: null,
       config_summary,
       snapshot,
+      pagination: { questions: questionPage.nextCursor, mistakes: mistakePage.nextCursor, papers: paperPage.nextCursor, reviews: reviewPage.nextCursor },
+      totalCount: Object.fromEntries(keys.map((key, index) => [key, totals[index]])),
+      workflowCount: reviewStatusCounts.every((value) => value !== null)
+        ? Object.fromEntries(["needs_review", "changes_requested", "approved", "done", "blocked"].map((status, index) => [status, reviewStatusCounts[index]]))
+        : null,
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    return readPage(key, cursor);
   },
 
   // Human verdict (approve / request_changes / block / revise), written

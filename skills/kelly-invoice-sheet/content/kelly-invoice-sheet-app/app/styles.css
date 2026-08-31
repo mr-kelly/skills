@@ -769,6 +769,15 @@ button:focus-visible {
   color: var(--muted);
 }
 
+.load-more {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

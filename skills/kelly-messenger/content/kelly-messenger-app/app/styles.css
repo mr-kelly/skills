@@ -792,6 +792,15 @@ button.danger {
   background: var(--panel);
 }
 
+.load-more {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .conv-row {
   display: grid;
   gap: 4px;

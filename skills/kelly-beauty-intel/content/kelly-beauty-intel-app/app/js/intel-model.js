@@ -28,8 +28,8 @@ export function statusForAction(action) {
   return DECISION_STATUS[action] || null;
 }
 
-export function buildBatch({ signals = [], actions = [], drafts = [], sources = [] } = {}) {
-  const normalizedSignals = signals.map((row) => ({
+export function normalizeSignalRow(row = {}) {
+  return {
     id: row.signal_id || "",
     ref: Number(row.ref || 0),
     title: row.title || "",
@@ -44,9 +44,11 @@ export function buildBatch({ signals = [], actions = [], drafts = [], sources = 
     suggested_action_id: row.suggested_action_id || "",
     decision_note: row.decision_note || "",
     decided_at: row.decided_at || "",
-  }));
+  };
+}
 
-  const normalizedActions = actions.map((row) => ({
+export function normalizeActionRow(row = {}) {
+  return {
     id: row.action_id || "",
     ref: Number(row.ref || 0),
     title: row.title || "",
@@ -59,9 +61,11 @@ export function buildBatch({ signals = [], actions = [], drafts = [], sources = 
     next_step: row.next_step || "",
     decision_note: row.decision_note || "",
     decided_at: row.decided_at || "",
-  }));
+  };
+}
 
-  const normalizedDrafts = drafts.map((row) => ({
+export function normalizeDraftRow(row = {}) {
+  return {
     id: row.draft_id || "",
     ref: Number(row.ref || 0),
     channel: row.channel || "",
@@ -72,15 +76,31 @@ export function buildBatch({ signals = [], actions = [], drafts = [], sources = 
     linked_action_id: row.linked_action_id || "",
     decision_note: row.decision_note || "",
     decided_at: row.decided_at || "",
-  }));
+  };
+}
 
-  const normalizedSources = sources.map((row) => ({
+export function normalizeSourceRow(row = {}) {
+  return {
     id: row.source_id || "",
     label: row.label || "",
     status: row.status || "needs_config",
     freshness: row.freshness || "",
     coverage: row.coverage || "",
-  }));
+  };
+}
+
+export const NORMALIZE_ROW_BY_KEY = {
+  signals: normalizeSignalRow,
+  actions: normalizeActionRow,
+  drafts: normalizeDraftRow,
+  sources: normalizeSourceRow,
+};
+
+export function buildBatch({ signals = [], actions = [], drafts = [], sources = [] } = {}) {
+  const normalizedSignals = signals.map(normalizeSignalRow);
+  const normalizedActions = actions.map(normalizeActionRow);
+  const normalizedDrafts = drafts.map(normalizeDraftRow);
+  const normalizedSources = sources.map(normalizeSourceRow);
 
   const needsReview = (list) => list.filter((item) => item.status === "needs_review").length;
   const isBlocked = (item) => item.status === "blocked";

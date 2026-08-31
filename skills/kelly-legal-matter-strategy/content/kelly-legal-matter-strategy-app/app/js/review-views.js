@@ -36,11 +36,23 @@ function splitLayout(list, selected) {
     ${lockBanner()}
     <div class="split">
       <section class="list-panel">
-        <div class="list-head"><strong>${list.length} ${escapeHtml(t("allItems"))}</strong></div>
+        <div class="list-head"><strong>${itemCount(list)} ${escapeHtml(t("allItems"))}</strong></div>
         <div class="list">${list.map(rowHtml).join("") || emptyText()}</div>
+        ${loadMoreControl("items")}
       </section>
       <aside class="detail-panel">${selected ? detailHtml(selected) : `<div class="empty">${escapeHtml(t("noSelection"))}</div>`}</aside>
     </div>`;
+}
+
+function itemCount(list) {
+  if (state.query) return `${list.length}${state.pagination.items ? "+" : ""}`;
+  const status = state.route.view === "review" ? "needs_review" : STATUS_ROUTES.has(state.route.view) ? state.route.view : null;
+  return (status ? state.workflowCount?.[status] : state.totalCount.items) ?? `${list.length}${state.pagination.items ? "+" : ""}`;
+}
+
+function loadMoreControl(key) {
+  if (!state.pagination[key]) return "";
+  return `<div class="load-more"><button type="button" data-load-more="${escapeAttr(key)}" ${state.loadingMore[key] ? "disabled" : ""}>${escapeHtml(state.loadingMore[key] ? t("loadingMore") : t("loadMore"))}</button>${state.loadMoreError[key] ? `<span role="alert">${escapeHtml(t("loadMoreFailed"))}</span>` : ""}</div>`;
 }
 
 export function rowHtml(item) {
@@ -145,7 +157,7 @@ export function renderChecks() {
           `<div class="check ${escapeHtml(check.status)}"><strong>${escapeHtml(check.label)}</strong><span>${escapeHtml(t(check.status))}</span><p>${escapeHtml(check.detail || "")}</p></div>`,
       )
       .join("") || emptyText()
-  }</section>`;
+  }${loadMoreControl("checks")}</section>`;
 }
 
 function entityCard(entity) {
@@ -175,12 +187,12 @@ export function renderEntities() {
   els.subtitle.textContent = state.snapshot.workspace?.subtitle || "";
   const list = entities();
   if (!list.length) {
-    els.content.innerHTML = emptyText();
+    els.content.innerHTML = `${emptyText()}${loadMoreControl("entities")}`;
     return;
   }
   // Firm radar presents lawyer/practice-area profile cards; the other desks group their library.
   if (profile.id === "firm") {
-    els.content.innerHTML = `<section class="entity-grid ${escapeAttr(profile.id)}-entities">${list.map(entityCard).join("")}</section>`;
+    els.content.innerHTML = `<section class="entity-grid ${escapeAttr(profile.id)}-entities">${list.map(entityCard).join("")}</section>${loadMoreControl("entities")}`;
     return;
   }
   const order = ["needs_review", "changes_requested", "approved", "done", "blocked"];
@@ -198,7 +210,7 @@ export function renderEntities() {
       <div class="entity-grid ${escapeAttr(profile.id)}-entities">${groups.get(key).map(entityCard).join("")}</div>
     </section>`,
     )
-    .join("");
+    .join("") + loadMoreControl("entities");
 }
 
 export function renderSettings() {

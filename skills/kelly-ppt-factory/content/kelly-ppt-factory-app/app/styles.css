@@ -271,6 +271,14 @@ p {
   background: var(--surface-2);
   padding: 14px;
 }
+.load-more {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
 .detail-panel {
   background: var(--surface);
   padding: 18px;

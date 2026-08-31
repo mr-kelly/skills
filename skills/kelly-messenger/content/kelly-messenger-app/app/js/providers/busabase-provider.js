@@ -6,12 +6,23 @@ import {
   buildConfigSummary,
   buildOutbox,
   buildSnapshot,
+  normalizeAccount,
+  normalizeConversation,
+  normalizeMessage,
+  normalizeReply,
   statusForAction,
 } from "../messenger-model.js?v=0.1.0";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
+const NORMALIZE_ROW_BY_KEY = {
+  accounts: normalizeAccount,
+  conversations: normalizeConversation,
+  messages: (row) => ({ ...normalizeMessage(row), conversation_id: row.conversation_id || "" }),
+  "sync-log": (row) => row,
+  replies: normalizeReply,
+};
 
 // A deployed AirApp sits inside the Busabase review boundary; only a standalone
 // run may merge its own writes. That is far too consequential to infer from the
@@ -57,30 +68,26 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
-  return rows;
+  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({ ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields), __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+const countReplyStatus = (status) => countRecords("replies", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -121,7 +128,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readSettingsRow() {
-  const rows = await readAllRecords("settings");
+  const { rows } = await readPage("settings");
   return rows.find((row) => row.record_id === "config") || {};
 }
 
@@ -130,29 +137,52 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [accounts, conversations, messages, sync_log, replies, settings] = await Promise.all([
-      readAllRecords("accounts"),
-      readAllRecords("conversations"),
-      readAllRecords("messages"),
-      readAllRecords("sync-log"),
-      readAllRecords("replies"),
+    const keys = ["accounts", "conversations", "messages", "sync-log", "replies"];
+    const [accountPage, conversationPage, messagePage, syncPage, replyPage, settings, totals, unreadCount, awaitingCount, needsReview, approved, blocked] = await Promise.all([
+      readPage("accounts"),
+      readPage("conversations"),
+      readPage("messages"),
+      readPage("sync-log"),
+      readPage("replies"),
       readSettingsRow(),
+      Promise.all(keys.map((key) => countRecords(key))),
+      countRecords("conversations", [{ fieldSlug: "unread", fieldType: "checkbox", operator: "is_true" }]),
+      countRecords("conversations", [{ fieldSlug: "awaiting-reply", fieldType: "checkbox", operator: "is_true" }]),
+      countReplyStatus("needs_review"),
+      countReplyStatus("approved"),
+      countReplyStatus("blocked"),
     ]);
-    const snapshot = buildSnapshot({ accounts, conversations, messages, sync_log });
-    const outbox = buildOutbox({ replies });
-    const config_summary = buildConfigSummary({ settings, accounts });
+    const snapshot = buildSnapshot({ accounts: accountPage.rows, conversations: conversationPage.rows, messages: messagePage.rows, sync_log: syncPage.rows });
+    const outbox = buildOutbox({ replies: replyPage.rows });
+    const config_summary = buildConfigSummary({ settings, accounts: accountPage.rows });
+    if (totals[0] !== null) snapshot.metrics.account_count = totals[0];
+    if (totals[1] !== null) snapshot.metrics.conversation_count = totals[1];
+    if (totals[2] !== null) snapshot.metrics.message_count = totals[2];
+    if (unreadCount !== null) snapshot.metrics.unread_count = unreadCount;
+    if (awaitingCount !== null) snapshot.metrics.awaiting_reply_count = awaitingCount;
     return {
       app: "kelly-messenger",
       demo: false,
       data_provider: "busabase",
-      onboarding: { completed: accounts.length > 0, config_version: "1" },
+      onboarding: { completed: (totals[0] ?? accountPage.rows.length) > 0, config_version: "1" },
       lock: null,
       config_summary,
       agent_tasks: { updated_at: "", tasks: [] },
       execution_report: null,
       snapshot,
       outbox,
+      pagination: Object.fromEntries([["accounts", accountPage], ["conversations", conversationPage], ["messages", messagePage], ["sync-log", syncPage], ["replies", replyPage]].map(([key, page]) => [key, page.nextCursor])),
+      totalCount: Object.fromEntries(keys.map((key, index) => [key, totals[index]])),
+      workflowCount: { unread: unreadCount, awaiting: awaitingCount, needs_review: needsReview, approved, blocked },
+      messageRows: messagePage.rows.map(NORMALIZE_ROW_BY_KEY.messages),
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    const normalize = NORMALIZE_ROW_BY_KEY[key];
+    return { rows: normalize ? page.rows.map(normalize) : page.rows, nextCursor: page.nextCursor };
   },
 
   // Ported from the retired local-file provider (lib/data-provider)'s queueReply(): the
@@ -161,9 +191,9 @@ export const busabaseProvider = {
   async queueReply({ conversation_id, text, note = "", suggested_by = "human" } = {}) {
     if (typeof text !== "string" || !text.trim()) throw new Error("Reply text must not be empty");
     await ensureResources();
-    const conversations = await readAllRecords("conversations");
-    const conversation = conversations.find((row) => row.conversation_id === conversation_id);
-    if (!conversation) throw new Error(`Unknown conversation: ${conversation_id}`);
+    const existingConversation = await findRecord("conversations", "conversation-id", conversation_id);
+    if (!existingConversation) throw new Error(`Unknown conversation: ${conversation_id}`);
+    const conversation = normalizeFields(existingConversation.headCommit?.payload || existingConversation.headCommit?.fields || existingConversation.fields);
     const now = new Date().toISOString();
     const replyId = `reply-${now.replace(/[-:.TZ]/g, "").slice(0, 14)}-${Math.random().toString(36).slice(2, 8)}`;
     const fields = {

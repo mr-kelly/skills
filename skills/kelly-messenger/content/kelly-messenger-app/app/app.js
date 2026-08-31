@@ -9,6 +9,7 @@ import {
   renderSettings,
 } from "./js/message-views.js";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+import { withReplyRefs } from "./js/messenger-model.js?v=0.1.0";
 
 const FEATURED_DEMO_CONVERSATION = "wa-lena-pricing";
 const PENDING_STATUSES = ["needs_review", "changes_requested", "approved"];
@@ -27,6 +28,12 @@ export const state = {
   ),
   demo: new URLSearchParams(location.search).get("demo") || "",
   demoRef: 100,
+  pagination: {},
+  totalCount: {},
+  workflowCount: {},
+  loadingMore: {},
+  loadMoreError: {},
+  messageRows: [],
 };
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-messenger.sidebarCollapsed";
@@ -161,9 +168,68 @@ export async function loadState() {
   state.snapshot = data.snapshot;
   state.outbox = data.outbox;
   state.settings = data;
+  state.pagination = data.pagination || {};
+  state.totalCount = data.totalCount || {};
+  state.workflowCount = data.workflowCount || {};
+  state.messageRows = data.messageRows || [];
   applyDemoRoute();
   window.dispatchEvent(new CustomEvent("kelly-messenger:state", { detail: data }));
   render();
+}
+
+export async function loadMore(key) {
+  const cursor = state.pagination[key];
+  if (!cursor || state.loadingMore[key]) return;
+  state.loadingMore[key] = true;
+  state.loadMoreError[key] = false;
+  render();
+  try {
+    const provider = await getProvider();
+    if (typeof provider.fetchPage !== "function") return;
+    const page = await provider.fetchPage(key, cursor);
+    if (key === "conversations") {
+      const known = new Set(conversations().map((item) => item.conversation_id));
+      const additions = page.rows.filter((item) => !known.has(item.conversation_id));
+      for (const conversation of additions) attachLoadedMessages(conversation);
+      conversations().push(...additions);
+    } else if (key === "messages") {
+      for (const message of page.rows) {
+        if (!state.messageRows.some((item) => item.message_id === message.message_id)) state.messageRows.push(message);
+        const conversation = conversationById(message.conversation_id);
+        if (!conversation || conversation.messages.some((item) => item.message_id === message.message_id)) continue;
+        const { conversation_id: _conversationId, ...item } = message;
+        conversation.messages.push(item);
+        conversation.messages.sort((a, b) => String(a.sent_at).localeCompare(String(b.sent_at)));
+        conversation.last_message_at = conversation.messages.at(-1)?.sent_at || "";
+        conversation.last_incoming_at = [...conversation.messages].reverse().find((entry) => entry.direction === "incoming")?.sent_at || "";
+      }
+    } else if (key === "replies") {
+      const known = new Set(outboxReplies().map((item) => item.reply_id));
+      state.outbox.replies = withReplyRefs([...outboxReplies(), ...page.rows.filter((item) => !known.has(item.reply_id))]);
+    } else if (key === "accounts") {
+      const known = new Set(state.snapshot.accounts.map((item) => item.account_id));
+      state.snapshot.accounts.push(...page.rows.filter((item) => !known.has(item.account_id)));
+    } else if (key === "sync-log") {
+      const known = new Set(state.snapshot.sync_log.map((item) => JSON.stringify(item)));
+      state.snapshot.sync_log.push(...page.rows.filter((item) => !known.has(JSON.stringify(item))));
+    }
+    state.pagination[key] = page.nextCursor;
+  } catch {
+    state.loadMoreError[key] = true;
+  } finally {
+    state.loadingMore[key] = false;
+    render();
+  }
+}
+
+function attachLoadedMessages(conversation) {
+  const items = state.messageRows
+    .filter((message) => message.conversation_id === conversation.conversation_id)
+    .map(({ conversation_id: _conversationId, ...message }) => message)
+    .sort((a, b) => String(a.sent_at).localeCompare(String(b.sent_at)));
+  conversation.messages = items;
+  conversation.last_message_at = items.at(-1)?.sent_at || "";
+  conversation.last_incoming_at = [...items].reverse().find((message) => message.direction === "incoming")?.sent_at || "";
 }
 
 function applyDemoRoute() {
@@ -230,12 +296,13 @@ function oldestWaiting() {
 
 function renderShell() {
   applyI18n();
-  const awaiting = awaitingConversations().length;
-  const approved = outboxReplies().filter((reply) => reply.status === "approved").length;
-  const blocked = outboxReplies().filter((reply) => reply.status === "blocked").length;
-  const unread = conversations().filter((item) => item.unread).length;
-  els.syncStatus.textContent = conversations().length
-    ? `${conversations().length} ${t("conversationCount")} · ${unread} ${t("unread")}`
+  const awaiting = state.workflowCount.awaiting ?? awaitingConversations().length;
+  const approved = state.workflowCount.approved ?? outboxReplies().filter((reply) => reply.status === "approved").length;
+  const blocked = state.workflowCount.blocked ?? outboxReplies().filter((reply) => reply.status === "blocked").length;
+  const unread = state.workflowCount.unread ?? conversations().filter((item) => item.unread).length;
+  const conversationTotal = state.totalCount.conversations ?? `${conversations().length}${state.pagination.conversations ? "+" : ""}`;
+  els.syncStatus.textContent = conversationTotal
+    ? `${conversationTotal} ${t("conversationCount")} · ${unread} ${t("unread")}`
     : t("empty");
   if (els.needsReplyCount) els.needsReplyCount.textContent = awaiting;
   if (els.approvedCount) els.approvedCount.textContent = approved;
@@ -247,7 +314,7 @@ function renderShell() {
   if (els.mobileViewMeta) {
     els.mobileViewMeta.textContent = awaiting
       ? `${awaiting} ${t("needsReply")}`
-      : `${conversations().length} ${t("conversationCount")}`;
+      : `${conversationTotal} ${t("conversationCount")}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -459,6 +526,11 @@ els.language.addEventListener("change", () => {
   render();
 });
 els.content.addEventListener("click", (event) => {
+  const loadMoreButton = event.target.closest("[data-load-more]");
+  if (loadMoreButton) {
+    loadMore(loadMoreButton.dataset.loadMore);
+    return;
+  }
   const button = event.target.closest("[data-action]");
   if (!button) return;
   if (button.dataset.action === "back") {

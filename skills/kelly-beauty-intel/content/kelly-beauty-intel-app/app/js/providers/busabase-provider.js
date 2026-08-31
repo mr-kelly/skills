@@ -56,30 +56,38 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
-  return rows;
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters ? { filters } : {}),
+    });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+const countStatus = (key, status) =>
+  countRecords(key, [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -120,7 +128,7 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readSettingsRows() {
-  const rows = await readAllRecords("settings");
+  const { rows } = await readPage("settings");
   return new Map(rows.map((row) => [row.record_id || row.kind, row]));
 }
 
@@ -139,17 +147,31 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [signals, actions, drafts, sources, settings] = await Promise.all([
-      readAllRecords("signals"),
-      readAllRecords("actions"),
-      readAllRecords("drafts"),
-      readAllRecords("sources"),
+    const [signals, actions, drafts, sources, settings, signalCount, actionCount, draftCount, sourceCount, ...statusCounts] = await Promise.all([
+      readPage("signals"),
+      readPage("actions"),
+      readPage("drafts"),
+      readPage("sources"),
       readSettingsRows(),
+      countRecords("signals"),
+      countRecords("actions"),
+      countRecords("drafts"),
+      countRecords("sources"),
+      ...["signals", "actions", "drafts"].flatMap((key) =>
+        ["needs_review", "approved", "blocked", "changes_requested"].map((status) => countStatus(key, status)),
+      ),
     ]);
-    const batch = buildBatch({ signals, actions, drafts, sources });
+    const batch = buildBatch({ signals: signals.rows, actions: actions.rows, drafts: drafts.rows, sources: sources.rows });
     const brandRow = settings.get("kelly-beauty-intel-brand") || {};
     const lockRow = settings.get("kelly-beauty-intel-lock") || {};
     const brandPayload = parsePayload(brandRow.payload);
+    const exactWorkflowCounts = statusCounts.every((value) => value !== null)
+      ? {
+          needs: statusCounts[0] + statusCounts[4] + statusCounts[8],
+          approved: statusCounts[1] + statusCounts[5] + statusCounts[9],
+          blocked: statusCounts[2] + statusCounts[3] + statusCounts[6] + statusCounts[7] + statusCounts[10] + statusCounts[11],
+        }
+      : null;
     return {
       app: "kelly-beauty-intel",
       demo: false,
@@ -166,7 +188,15 @@ export const busabaseProvider = {
       files: {},
       batch,
       decisions: {},
+      pagination: { signals: signals.nextCursor, actions: actions.nextCursor, drafts: drafts.nextCursor, sources: sources.nextCursor },
+      totalCount: { signals: signalCount, actions: actionCount, drafts: draftCount, sources: sourceCount },
+      workflowCount: exactWorkflowCounts,
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    return readPage(key, cursor);
   },
 
   async applyDecision(kind, id, payload = {}) {
