@@ -71,9 +71,17 @@ function base(key) {
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
   const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({ ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields), __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id }));
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
   return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
 
@@ -87,7 +95,8 @@ async function countRecords(key, filters) {
   }
 }
 
-const countReplyStatus = (status) => countRecords("replies", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
+const countReplyStatus = (status) =>
+  countRecords("replies", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -138,7 +147,20 @@ export const busabaseProvider = {
   async getState() {
     await ensureResources();
     const keys = ["accounts", "conversations", "messages", "sync-log", "replies"];
-    const [accountPage, conversationPage, messagePage, syncPage, replyPage, settings, totals, unreadCount, awaitingCount, needsReview, approved, blocked] = await Promise.all([
+    const [
+      accountPage,
+      conversationPage,
+      messagePage,
+      syncPage,
+      replyPage,
+      settings,
+      totals,
+      unreadCount,
+      awaitingCount,
+      needsReview,
+      approved,
+      blocked,
+    ] = await Promise.all([
       readPage("accounts"),
       readPage("conversations"),
       readPage("messages"),
@@ -152,7 +174,12 @@ export const busabaseProvider = {
       countReplyStatus("approved"),
       countReplyStatus("blocked"),
     ]);
-    const snapshot = buildSnapshot({ accounts: accountPage.rows, conversations: conversationPage.rows, messages: messagePage.rows, sync_log: syncPage.rows });
+    const snapshot = buildSnapshot({
+      accounts: accountPage.rows,
+      conversations: conversationPage.rows,
+      messages: messagePage.rows,
+      sync_log: syncPage.rows,
+    });
     const outbox = buildOutbox({ replies: replyPage.rows });
     const config_summary = buildConfigSummary({ settings, accounts: accountPage.rows });
     if (totals[0] !== null) snapshot.metrics.account_count = totals[0];
@@ -171,7 +198,15 @@ export const busabaseProvider = {
       execution_report: null,
       snapshot,
       outbox,
-      pagination: Object.fromEntries([["accounts", accountPage], ["conversations", conversationPage], ["messages", messagePage], ["sync-log", syncPage], ["replies", replyPage]].map(([key, page]) => [key, page.nextCursor])),
+      pagination: Object.fromEntries(
+        [
+          ["accounts", accountPage],
+          ["conversations", conversationPage],
+          ["messages", messagePage],
+          ["sync-log", syncPage],
+          ["replies", replyPage],
+        ].map(([key, page]) => [key, page.nextCursor]),
+      ),
       totalCount: Object.fromEntries(keys.map((key, index) => [key, totals[index]])),
       workflowCount: { unread: unreadCount, awaiting: awaitingCount, needs_review: needsReview, approved, blocked },
       messageRows: messagePage.rows.map(NORMALIZE_ROW_BY_KEY.messages),
@@ -193,7 +228,11 @@ export const busabaseProvider = {
     await ensureResources();
     const existingConversation = await findRecord("conversations", "conversation-id", conversation_id);
     if (!existingConversation) throw new Error(`Unknown conversation: ${conversation_id}`);
-    const conversation = normalizeFields(existingConversation.headCommit?.payload || existingConversation.headCommit?.fields || existingConversation.fields);
+    const conversation = normalizeFields(
+      existingConversation.headCommit?.payload ||
+        existingConversation.headCommit?.fields ||
+        existingConversation.fields,
+    );
     const now = new Date().toISOString();
     const replyId = `reply-${now.replace(/[-:.TZ]/g, "").slice(0, 14)}-${Math.random().toString(36).slice(2, 8)}`;
     const fields = {

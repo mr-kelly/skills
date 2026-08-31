@@ -140,7 +140,11 @@ export const busabaseProvider = {
   async fetchPage(key, cursor) {
     await ensureResources();
     const page = await readPage(key, cursor);
-    const normalize = { accounts: normalizeAccountRow, transactions: normalizeTransactionRow, invoices: normalizeInvoiceRow }[key];
+    const normalize = {
+      accounts: normalizeAccountRow,
+      transactions: normalizeTransactionRow,
+      invoices: normalizeInvoiceRow,
+    }[key];
     return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
   },
 

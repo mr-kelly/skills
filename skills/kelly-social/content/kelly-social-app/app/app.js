@@ -1,9 +1,8 @@
 import { messages } from "./i18n/messages.js";
-import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { appConfig } from "./js/config.js?v=0.1.0";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
-import { buildSnapshot } from "./js/social-model.js?v=0.1.0";
 import {
   renderAccountDetail,
   renderAccounts,
@@ -17,6 +16,7 @@ import {
   renderTimeline,
   warnings,
 } from "./js/publishing-views.js";
+import { buildSnapshot } from "./js/social-model.js?v=0.1.0";
 
 export const state = {
   snapshot: null,

@@ -75,9 +75,17 @@ function base(key) {
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
   const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({ ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields), __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id }));
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
   return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
 
@@ -91,7 +99,8 @@ async function countRecords(key, filters) {
   }
 }
 
-const countStatus = (status) => countRecords("items", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
+const countStatus = (status) =>
+  countRecords("items", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -171,7 +180,11 @@ export const busabaseProvider = {
       readPage("checks"),
       readSettingsRow(),
       Promise.all(["items", "entities", "checks"].map((key) => countRecords(key))),
-      Promise.all(["pass", "warn", "fail"].map((status) => countRecords("checks", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]))),
+      Promise.all(
+        ["pass", "warn", "fail"].map((status) =>
+          countRecords("checks", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]),
+        ),
+      ),
       ...["needs_review", "changes_requested", "approved", "done", "blocked"].map(countStatus),
     ]);
     const config_summary = buildConfigSummary({ settings });
@@ -200,7 +213,12 @@ export const busabaseProvider = {
       snapshot,
       pagination: { items: itemPage.nextCursor, entities: entityPage.nextCursor, checks: checkPage.nextCursor },
       totalCount: { items: totals[0], entities: totals[1], checks: totals[2] },
-      workflowCount: Object.fromEntries(["needs_review", "changes_requested", "approved", "done", "blocked"].map((status, index) => [status, statusCounts[index]])),
+      workflowCount: Object.fromEntries(
+        ["needs_review", "changes_requested", "approved", "done", "blocked"].map((status, index) => [
+          status,
+          statusCounts[index],
+        ]),
+      ),
     };
   },
 

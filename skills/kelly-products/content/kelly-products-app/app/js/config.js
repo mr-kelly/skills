@@ -134,7 +134,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     // The browser only ever decides on a review item (records.changeRequest);
     // it never creates a product/channel/inventory row (those enter through

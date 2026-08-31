@@ -16,7 +16,7 @@ import {
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
-const BROWSED_KEYS = ["intake","proposals","tickets"];
+const BROWSED_KEYS = ["intake", "proposals", "tickets"];
 
 // A deployed AirApp sits inside the Busabase review boundary; only a standalone
 // run may merge its own writes. That is far too consequential to infer from the

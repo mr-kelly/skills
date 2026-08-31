@@ -1,9 +1,8 @@
 import { messages } from "./i18n/messages.js";
-import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { appConfig } from "./js/config.js?v=0.1.0";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
-import { recomputeMetrics } from "./js/support-model.js?v=0.1.0";
 import {
   decideAction,
   renderKbDetail,
@@ -14,6 +13,7 @@ import {
   saveSlaAction,
   toLocalDatetime,
 } from "./js/service-views.js";
+import { recomputeMetrics } from "./js/support-model.js?v=0.1.0";
 
 const FEATURED_DEMO_TICKET = "tk-ochoa-refund";
 const OPEN_STATUSES = ["needs_review", "changes_requested", "approved"];
@@ -57,7 +57,7 @@ export const els = {
   language: document.querySelector("#language"),
 };
 
-const PAGINATED_KEYS = ["tickets","knowledge-base"];
+const PAGINATED_KEYS = ["tickets", "knowledge-base"];
 const pagination = createPagination({
   getProvider,
   pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),

@@ -9,9 +9,9 @@ import {
   SIGNAL_ACTIONS,
   buildConfigSummary,
   buildSnapshot,
-  normalizeSignal,
   normalizeOpportunity,
   normalizeQuestion,
+  normalizeSignal,
   normalizeWatchTarget,
   statusForAction,
 } from "../radar-model.js?v=0.1.0";

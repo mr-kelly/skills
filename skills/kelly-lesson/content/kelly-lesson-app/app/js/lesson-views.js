@@ -1,6 +1,4 @@
 import {
-  pagerControl,
-  recordCountLabel,
   checks,
   date,
   els,
@@ -12,7 +10,9 @@ import {
   loadState,
   metricCards,
   noticeBanner,
+  pagerControl,
   planById,
+  recordCountLabel,
   render,
   resultBadge,
   reviewForPlan,

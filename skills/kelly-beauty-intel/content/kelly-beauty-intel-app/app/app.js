@@ -18,7 +18,18 @@ const lang =
       : "en"
     : normalizeLang(langOverride);
 const t = messages[lang] || messages.en;
-const state = { batch: null, decisions: {}, route: parseRoute(), selectedId: null, pagination: {}, totalCount: {}, workflowCount: null, loadingMore: {}, loadMoreError: {}, hasLoadedMore: false };
+const state = {
+  batch: null,
+  decisions: {},
+  route: parseRoute(),
+  selectedId: null,
+  pagination: {},
+  totalCount: {},
+  workflowCount: null,
+  loadingMore: {},
+  loadMoreError: {},
+  hasLoadedMore: false,
+};
 
 function parseRoute() {
   const hash = location.hash || "#/overview";
@@ -290,7 +301,9 @@ function renderSources() {
   `,
     )
     .join("");
-  renderShell(`<header class="page-header"><h1>${t.sources}</h1></header><section class="panel">${rows}${loadMoreControl("sources")}</section>`);
+  renderShell(
+    `<header class="page-header"><h1>${t.sources}</h1></header><section class="panel">${rows}${loadMoreControl("sources")}</section>`,
+  );
 }
 
 function renderSettings() {

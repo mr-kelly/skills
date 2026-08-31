@@ -147,7 +147,18 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [signals, actions, drafts, sources, settings, signalCount, actionCount, draftCount, sourceCount, ...statusCounts] = await Promise.all([
+    const [
+      signals,
+      actions,
+      drafts,
+      sources,
+      settings,
+      signalCount,
+      actionCount,
+      draftCount,
+      sourceCount,
+      ...statusCounts
+    ] = await Promise.all([
       readPage("signals"),
       readPage("actions"),
       readPage("drafts"),
@@ -161,7 +172,12 @@ export const busabaseProvider = {
         ["needs_review", "approved", "blocked", "changes_requested"].map((status) => countStatus(key, status)),
       ),
     ]);
-    const batch = buildBatch({ signals: signals.rows, actions: actions.rows, drafts: drafts.rows, sources: sources.rows });
+    const batch = buildBatch({
+      signals: signals.rows,
+      actions: actions.rows,
+      drafts: drafts.rows,
+      sources: sources.rows,
+    });
     const brandRow = settings.get("kelly-beauty-intel-brand") || {};
     const lockRow = settings.get("kelly-beauty-intel-lock") || {};
     const brandPayload = parsePayload(brandRow.payload);
@@ -169,7 +185,8 @@ export const busabaseProvider = {
       ? {
           needs: statusCounts[0] + statusCounts[4] + statusCounts[8],
           approved: statusCounts[1] + statusCounts[5] + statusCounts[9],
-          blocked: statusCounts[2] + statusCounts[3] + statusCounts[6] + statusCounts[7] + statusCounts[10] + statusCounts[11],
+          blocked:
+            statusCounts[2] + statusCounts[3] + statusCounts[6] + statusCounts[7] + statusCounts[10] + statusCounts[11],
         }
       : null;
     return {
@@ -188,7 +205,12 @@ export const busabaseProvider = {
       files: {},
       batch,
       decisions: {},
-      pagination: { signals: signals.nextCursor, actions: actions.nextCursor, drafts: drafts.nextCursor, sources: sources.nextCursor },
+      pagination: {
+        signals: signals.nextCursor,
+        actions: actions.nextCursor,
+        drafts: drafts.nextCursor,
+        sources: sources.nextCursor,
+      },
       totalCount: { signals: signalCount, actions: actionCount, drafts: draftCount, sources: sourceCount },
       workflowCount: exactWorkflowCounts,
     };

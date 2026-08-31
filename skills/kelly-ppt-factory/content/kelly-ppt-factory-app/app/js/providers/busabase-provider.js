@@ -68,9 +68,17 @@ function base(key) {
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
   const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({ ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields), __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id }));
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
   return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
 
@@ -84,7 +92,8 @@ async function countRecords(key, filters) {
   }
 }
 
-const countStatus = (key, status) => countRecords(key, [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
+const countStatus = (key, status) =>
+  countRecords(key, [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function countReviewRecords(status) {
   const filters = [
@@ -116,7 +125,24 @@ export const busabaseProvider = {
   async getState() {
     await ensureResources();
     const keys = ["projects", "decks", "slide-cards", "style-systems", "qa-checks", "exports"];
-    const [projects, decks, slideCards, styleSystems, qaChecks, exportsList, settings, counts, slidesNeedsReview, slidesChangesRequested, decksApproved, decksGenerated, reviewTotal, reviewNeeds, reviewChanges, reviewApproved] = await Promise.all([
+    const [
+      projects,
+      decks,
+      slideCards,
+      styleSystems,
+      qaChecks,
+      exportsList,
+      settings,
+      counts,
+      slidesNeedsReview,
+      slidesChangesRequested,
+      decksApproved,
+      decksGenerated,
+      reviewTotal,
+      reviewNeeds,
+      reviewChanges,
+      reviewApproved,
+    ] = await Promise.all([
       readPage("projects"),
       readPage("decks"),
       readPage("slide-cards"),
@@ -134,17 +160,29 @@ export const busabaseProvider = {
       countReviewRecords("changes_requested"),
       countReviewRecords("approved"),
     ]);
-    const snapshot = buildSnapshot({ projects: projects.rows, decks: decks.rows, slideCards: slideCards.rows, styleSystems: styleSystems.rows, qaChecks: qaChecks.rows, exportsList: exportsList.rows, settings });
+    const snapshot = buildSnapshot({
+      projects: projects.rows,
+      decks: decks.rows,
+      slideCards: slideCards.rows,
+      styleSystems: styleSystems.rows,
+      qaChecks: qaChecks.rows,
+      exportsList: exportsList.rows,
+      settings,
+    });
     if (counts[0] !== null) snapshot.metrics.project_count = counts[0];
     if (counts[1] !== null) snapshot.metrics.deck_count = counts[1];
     if (counts[2] !== null) snapshot.metrics.slide_count = counts[2];
-    if (slidesNeedsReview !== null && slidesChangesRequested !== null) snapshot.metrics.slides_needs_review = slidesNeedsReview + slidesChangesRequested;
+    if (slidesNeedsReview !== null && slidesChangesRequested !== null)
+      snapshot.metrics.slides_needs_review = slidesNeedsReview + slidesChangesRequested;
     if (decksGenerated !== null) snapshot.metrics.decks_generated = decksGenerated;
     return {
       app: appConfig.appId,
       demo: false,
       data_provider: "busabase",
-      onboarding: { completed: (counts[0] ?? projects.rows.length) > 0 || (counts[1] ?? decks.rows.length) > 0, config_version: "1" },
+      onboarding: {
+        completed: (counts[0] ?? projects.rows.length) > 0 || (counts[1] ?? decks.rows.length) > 0,
+        config_version: "1",
+      },
       lock: null,
       config_summary: {
         config_path: "busabase",
@@ -162,10 +200,23 @@ export const busabaseProvider = {
           : {},
       },
       snapshot,
-      pagination: Object.fromEntries([["projects", projects], ["decks", decks], ["slide-cards", slideCards], ["style-systems", styleSystems], ["qa-checks", qaChecks], ["exports", exportsList]].map(([key, page]) => [key, page.nextCursor])),
+      pagination: Object.fromEntries(
+        [
+          ["projects", projects],
+          ["decks", decks],
+          ["slide-cards", slideCards],
+          ["style-systems", styleSystems],
+          ["qa-checks", qaChecks],
+          ["exports", exportsList],
+        ].map(([key, page]) => [key, page.nextCursor]),
+      ),
       totalCount: Object.fromEntries(keys.map((key, index) => [key, counts[index]])),
       reviewTotal,
-      workflowCount: { needsReview: reviewNeeds !== null && reviewChanges !== null ? reviewNeeds + reviewChanges : null, approved: reviewApproved, ready: decksApproved !== null && decksGenerated !== null ? decksApproved + decksGenerated : null },
+      workflowCount: {
+        needsReview: reviewNeeds !== null && reviewChanges !== null ? reviewNeeds + reviewChanges : null,
+        approved: reviewApproved,
+        ready: decksApproved !== null && decksGenerated !== null ? decksApproved + decksGenerated : null,
+      },
     };
   },
 

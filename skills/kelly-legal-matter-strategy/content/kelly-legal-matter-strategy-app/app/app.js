@@ -292,7 +292,9 @@ function renderShell() {
       : t("empty");
   if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
   if (els.mobileViewMeta)
-    els.mobileViewMeta.textContent = needs ? `${needs} ${t("needsReview")}` : `${state.totalCount.items ?? `${all.length}${state.pagination.items ? "+" : ""}`} ${t("allItems")}`;
+    els.mobileViewMeta.textContent = needs
+      ? `${needs} ${t("needsReview")}`
+      : `${state.totalCount.items ?? `${all.length}${state.pagination.items ? "+" : ""}`} ${t("allItems")}`;
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
   });

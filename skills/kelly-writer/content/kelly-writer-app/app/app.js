@@ -1,6 +1,6 @@
 import { messages } from "./i18n/messages.js";
-import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { appConfig } from "./js/config.js?v=0.1.0";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { buildSnapshot } from "./js/writer-model.js?v=0.1.0";
@@ -180,7 +180,9 @@ function renderShell() {
   const approvedCount = drafts().filter((item) => item.status === "approved").length;
   const blockedCount = drafts().filter((item) => item.status === "blocked").length;
   const source = state.settings?.snapshot?.source || "";
-  els.syncStatus.textContent = drafts().length ? `${pagination.total("drafts", drafts().length)} ${t("drafts")}` : t("empty");
+  els.syncStatus.textContent = drafts().length
+    ? `${pagination.total("drafts", drafts().length)} ${t("drafts")}`
+    : t("empty");
   if (els.reviewCount) els.reviewCount.textContent = reviewCount;
   if (els.approvedCount) els.approvedCount.textContent = approvedCount;
   if (els.blockedCount) els.blockedCount.textContent = blockedCount;

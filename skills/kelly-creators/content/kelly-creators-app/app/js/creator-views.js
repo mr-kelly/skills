@@ -1,6 +1,4 @@
 import {
-  pagerControl,
-  recordCountLabel,
   compactNumber,
   creatorById,
   creators,
@@ -19,8 +17,10 @@ import {
   money,
   nicheBadge,
   noticeBanner,
+  pagerControl,
   phaseBadge,
   platformBadge,
+  recordCountLabel,
   render,
   riskBadges,
   state,

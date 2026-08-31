@@ -1,9 +1,8 @@
 import { messages } from "./i18n/messages.js";
-import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { appConfig } from "./js/config.js?v=0.1.0";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
-import { computeMetrics } from "./js/tickets-model.js?v=0.1.0";
 import {
   renderBoard,
   renderBoardDetail,
@@ -13,6 +12,7 @@ import {
   renderSettings,
   submitDecision,
 } from "./js/ticket-views.js";
+import { computeMetrics } from "./js/tickets-model.js?v=0.1.0";
 
 export const state = {
   snapshot: null,
@@ -63,7 +63,7 @@ export const els = {
   language: document.querySelector("#language"),
 };
 
-const PAGINATED_KEYS = ["intake","proposals","tickets"];
+const PAGINATED_KEYS = ["intake", "proposals", "tickets"];
 const pagination = createPagination({
   getProvider,
   pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),

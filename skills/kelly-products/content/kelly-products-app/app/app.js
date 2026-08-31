@@ -1,6 +1,6 @@
 import { messages } from "./i18n/messages.js";
-import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { appConfig } from "./js/config.js?v=0.1.0";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { createPagination } from "./js/pagination.js?v=0.1.0";
 import {
   channelsFor,
@@ -650,9 +650,9 @@ async function postDecision(action, itemId) {
 }
 
 function bindEvents() {
-pagination.bind(els.content);
+  pagination.bind(els.content);
 
-window.addEventListener("hashchange", setRoute);
+  window.addEventListener("hashchange", setRoute);
   window.addEventListener("resize", syncResponsiveShell);
   els.search.addEventListener("input", () => {
     state.query = els.search.value;

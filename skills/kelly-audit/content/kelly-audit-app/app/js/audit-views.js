@@ -1,6 +1,4 @@
 import {
-  pagerControl,
-  recordCountLabel,
   anomalies,
   anomalyBadges,
   anomalyById,
@@ -15,7 +13,9 @@ import {
   money,
   n,
   orderById,
+  pagerControl,
   paymentById,
+  recordCountLabel,
   render,
   ruleBadge,
   severityBadge,
@@ -29,8 +29,9 @@ export function renderOrders() {
   els.title.textContent = t("orders");
   const items = [...filteredOrders()].sort((a, b) => String(b.order_date).localeCompare(String(a.order_date)));
   els.subtitle.textContent = `${recordCountLabel("orders", items.length, Boolean(state.query))} ${t("orders").toLowerCase()}`;
-  els.content.innerHTML = `${items.length
-    ? `
+  els.content.innerHTML = `${
+    items.length
+      ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -59,7 +60,8 @@ export function renderOrders() {
       </table>
     </div>
   `
-    : `<div class="empty">${t("empty")}</div>`}
+      : `<div class="empty">${t("empty")}</div>`
+  }
     ${pagerControl("orders")}`;
 }
 
@@ -198,8 +200,9 @@ export function renderInvoices() {
   const items = [...filteredInvoices()].sort((a, b) => String(b.issue_date).localeCompare(String(a.issue_date)));
   const overdue = items.filter((item) => item.status === "overdue").length;
   els.subtitle.textContent = `${recordCountLabel("invoices", items.length, Boolean(state.query))} ${t("invoices").toLowerCase()} · ${overdue} ${enumLabel("overdue")}`;
-  els.content.innerHTML = `${items.length
-    ? `
+  els.content.innerHTML = `${
+    items.length
+      ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -229,7 +232,8 @@ export function renderInvoices() {
       </table>
     </div>
   `
-    : `<div class="empty">${t("empty")}</div>`}
+      : `<div class="empty">${t("empty")}</div>`
+  }
     ${pagerControl("invoices")}`;
 }
 

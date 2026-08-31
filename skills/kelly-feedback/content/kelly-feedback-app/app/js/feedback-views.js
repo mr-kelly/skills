@@ -1,6 +1,4 @@
 import {
-  pagerControl,
-  recordCountLabel,
   channelBadge,
   date,
   els,
@@ -10,9 +8,11 @@ import {
   feedbackTable,
   filteredFeedback,
   loadState,
+  pagerControl,
   preview,
   productName,
   proposals,
+  recordCountLabel,
   render,
   requestLink,
   requests,

@@ -1,6 +1,4 @@
 import {
-  pagerControl,
-  recordCountLabel,
   acosBadge,
   adjTypeBadge,
   adjustmentById,
@@ -20,7 +18,9 @@ import {
   lockBanner,
   money,
   notice,
+  pagerControl,
   platformBadge,
+  recordCountLabel,
   render,
   state,
   statusBadge,

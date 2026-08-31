@@ -165,15 +165,15 @@ export const busabaseProvider = {
     await ensureResources();
     const [signalsPage, actionsPage, draftsPage, sourcesPage, meta, signalCount, actionCount, draftCount] =
       await Promise.all([
-      readPage("signals"),
-      readPage("actions"),
-      readPage("drafts"),
-      readPage("sources"),
-      readBatchMeta(),
-      countRecords("signals"),
-      countRecords("actions"),
-      countRecords("drafts"),
-    ]);
+        readPage("signals"),
+        readPage("actions"),
+        readPage("drafts"),
+        readPage("sources"),
+        readBatchMeta(),
+        countRecords("signals"),
+        countRecords("actions"),
+        countRecords("drafts"),
+      ]);
     const batch = buildSnapshot({
       signals: signalsPage.rows,
       actions: actionsPage.rows,

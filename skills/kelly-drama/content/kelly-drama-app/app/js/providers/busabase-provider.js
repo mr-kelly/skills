@@ -120,9 +120,17 @@ function base(key) {
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
   const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({ ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields), __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id }));
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
   return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
 
@@ -600,8 +608,8 @@ async function buildCollectionItems(key, rows, sharedUrlOf) {
 }
 
 async function buildFullProject() {
-  const [projectRow, settingsRow, characterPage, relationshipPage, episodePage, shotPage, taskPage, totals] = await Promise.all(
-    [
+  const [projectRow, settingsRow, characterPage, relationshipPage, episodePage, shotPage, taskPage, totals] =
+    await Promise.all([
       readProjectRow(),
       readSettingsRow(),
       readPage("characters"),
@@ -610,8 +618,7 @@ async function buildFullProject() {
       readPage("shots"),
       readPage("tasks"),
       Promise.all(["characters", "relationships", "episodes", "shots", "tasks"].map(countActiveRecords)),
-    ],
-  );
+    ]);
   const characterRows = characterPage.rows;
   const shotRows = shotPage.rows;
   const assetIds = collectAssetIds({ projectRow, characterRows, shotRows });
@@ -632,7 +639,9 @@ async function buildFullProject() {
     shots: shotPage.nextCursor,
     tasks: taskPage.nextCursor,
   };
-  latestTotalCount = Object.fromEntries(["characters", "relationships", "episodes", "shots", "tasks"].map((key, index) => [key, totals[index]]));
+  latestTotalCount = Object.fromEntries(
+    ["characters", "relationships", "episodes", "shots", "tasks"].map((key, index) => [key, totals[index]]),
+  );
 
   const project = {
     project_id: projectRow.project_id || "kelly-drama-project",

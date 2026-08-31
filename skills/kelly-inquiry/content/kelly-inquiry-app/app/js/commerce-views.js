@@ -1,6 +1,4 @@
 import {
-  pagerControl,
-  recordCountLabel,
   approvals,
   channelBadge,
   dateOnly,
@@ -15,10 +13,12 @@ import {
   loadState,
   matchesQuery,
   money,
+  pagerControl,
   productById,
   products,
   quoteById,
   quotes,
+  recordCountLabel,
   render,
   state,
   statusChip,
@@ -39,8 +39,9 @@ export function renderQuotes() {
     ]),
   );
   els.subtitle.textContent = `${recordCountLabel("quotes", list.length, Boolean(state.query))} ${t("quoteCount")} · ${state.snapshot?.metrics?.quotes_sent || 0} ${t("quotesSent").toLowerCase()}`;
-  els.content.innerHTML = `${list.length
-    ? `
+  els.content.innerHTML = `${
+    list.length
+      ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -69,7 +70,8 @@ export function renderQuotes() {
       </table>
     </div>
   `
-    : `<div class="empty">${t("empty")}</div>`}
+      : `<div class="empty">${t("empty")}</div>`
+  }
     ${pagerControl("quotes")}`;
 }
 
@@ -207,8 +209,9 @@ export function renderApprovals() {
   const needsReview = approvals().filter((item) => item.status === "needs_review").length;
   els.subtitle.textContent = `${recordCountLabel("approvals", approvals().length, Boolean(state.query))} · ${needsReview} ${enumLabel("needs_review")}`;
   const locked = isLocked();
-  els.content.innerHTML = `${list.length
-    ? `
+  els.content.innerHTML = `${
+    list.length
+      ? `
     <div class="approval-list">
       ${list
         .map((item) => {
@@ -256,7 +259,8 @@ export function renderApprovals() {
         .join("")}
     </div>
   `
-    : `<div class="empty">${t("noApprovals")}</div>`}
+      : `<div class="empty">${t("noApprovals")}</div>`
+  }
     ${pagerControl("approvals")}`;
   els.content.querySelectorAll("[data-item-text]").forEach((textarea) => {
     const card = textarea.closest("[data-item-card]");
@@ -272,8 +276,9 @@ export function renderProducts() {
   els.title.textContent = t("products");
   const list = products().filter((product) => matchesQuery([product.name, product.sku, product.category]));
   els.subtitle.textContent = `${recordCountLabel("products", list.length, Boolean(state.query))} ${t("productCount")}`;
-  els.content.innerHTML = `${list.length
-    ? `
+  els.content.innerHTML = `${
+    list.length
+      ? `
     <div class="product-grid">
       ${list
         .map(
@@ -296,7 +301,8 @@ export function renderProducts() {
         .join("")}
     </div>
   `
-    : `<div class="empty">${t("empty")}</div>`}
+      : `<div class="empty">${t("empty")}</div>`
+  }
     ${pagerControl("products")}`;
 }
 

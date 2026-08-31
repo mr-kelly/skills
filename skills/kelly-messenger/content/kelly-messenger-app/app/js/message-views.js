@@ -31,7 +31,7 @@ export function renderInbox() {
   els.title.textContent = selected ? selected.title : t("inbox");
   els.subtitle.textContent = selected
     ? [enumLabel(selected.platform, "platform"), selected.channel, selected.workspace].filter(Boolean).join(" · ")
-    : `${state.query ? `${filteredConversations().length}${state.pagination.conversations ? "+" : ""}` : state.totalCount.conversations ?? `${filteredConversations().length}${state.pagination.conversations ? "+" : ""}`} ${t("conversationCount")} · ${state.workflowCount.awaiting ?? awaitingConversations().length} ${t("needsReply")}`;
+    : `${state.query ? `${filteredConversations().length}${state.pagination.conversations ? "+" : ""}` : (state.totalCount.conversations ?? `${filteredConversations().length}${state.pagination.conversations ? "+" : ""}`)} ${t("conversationCount")} · ${state.workflowCount.awaiting ?? awaitingConversations().length} ${t("needsReply")}`;
   const list = filteredConversations();
   els.content.innerHTML = `
     <section class="inbox">
@@ -144,7 +144,8 @@ export function renderOutbox() {
   const replies = outboxReplies().filter((reply) =>
     matchesQuery([reply.text, reply.reason, reply.conversation_title, reply.platform, reply.status, `#${reply.ref}`]),
   );
-  const needsReview = state.workflowCount.needs_review ?? outboxReplies().filter((reply) => reply.status === "needs_review").length;
+  const needsReview =
+    state.workflowCount.needs_review ?? outboxReplies().filter((reply) => reply.status === "needs_review").length;
   const replyTotal = state.totalCount.replies ?? `${outboxReplies().length}${state.pagination.replies ? "+" : ""}`;
   els.subtitle.textContent = `${replyTotal} ${t("replies")} · ${needsReview} ${enumLabel("needs_review")}`;
   els.content.innerHTML = replies.length

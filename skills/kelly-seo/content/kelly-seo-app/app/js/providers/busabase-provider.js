@@ -6,12 +6,12 @@ import {
   buildConfigSummary,
   buildSnapshot,
   evaluateGeoGate,
-  normalizeOpportunityRow,
   normalizeGeoOpportunityRow,
+  normalizeOpportunityRow,
   normalizePageRow,
   normalizeQueryRow,
-  normalizeSiteRow,
   normalizeSettingsRow,
+  normalizeSiteRow,
   statusForVerdict,
 } from "../seo-model.js?v=0.1.0";
 

@@ -1,6 +1,4 @@
 import {
-  pagerControl,
-  recordCountLabel,
   actionById,
   actions,
   date,
@@ -15,7 +13,9 @@ import {
   metrics,
   money,
   notice,
+  pagerControl,
   pct,
+  recordCountLabel,
   render,
   services,
   sparkline,

@@ -1,4 +1,3 @@
-import { appConfig } from "./js/config.js?v=0.1.0";
 import { messages } from "./i18n/messages.js";
 import {
   decideAction,
@@ -12,6 +11,7 @@ import {
   saveFollowUpAction,
   saveQuoteAction,
 } from "./js/commerce-views.js";
+import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import {
   FUNNEL_STAGES,
@@ -515,8 +515,9 @@ function renderInquiries() {
   els.title.textContent = t("inquiries");
   const list = filteredInquiries();
   els.subtitle.textContent = `${recordCountLabel("inquiries", list.length, Boolean(state.query))} ${t("inquiryCount")} · ${unansweredNew().length} ${t("newInquiries")}`;
-  els.content.innerHTML = `${list.length
-    ? `
+  els.content.innerHTML = `${
+    list.length
+      ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -550,7 +551,8 @@ function renderInquiries() {
       </table>
     </div>
   `
-    : `<div class="empty">${t("empty")}</div>`}
+      : `<div class="empty">${t("empty")}</div>`
+  }
     ${pagerControl("inquiries")}`;
 }
 
@@ -780,12 +782,11 @@ async function boot() {
 
 syncResponsiveShell();
 
-
 const PAGE_BINDINGS = {
-  "inquiries": { key: "inquiries", path: "snapshot.inquiries" },
-  "quotes": { key: "quotes", path: "snapshot.quotes" },
-  "approvals": { key: "approvals", path: "snapshot.approvals" },
-  "products": { key: "products", path: "snapshot.products" },
+  inquiries: { key: "inquiries", path: "snapshot.inquiries" },
+  quotes: { key: "quotes", path: "snapshot.quotes" },
+  approvals: { key: "approvals", path: "snapshot.approvals" },
+  products: { key: "products", path: "snapshot.products" },
 };
 
 function pageSize(key) {
@@ -870,7 +871,9 @@ export function pagerControl(key) {
   let previous = 0;
   for (const page of pages) {
     if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
-    items.push(`<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`);
+    items.push(
+      `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
+    );
     previous = page;
   }
   return `<nav class="pager" aria-label="${pagerMessage("pagination", "Pagination")}">

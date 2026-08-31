@@ -1,6 +1,4 @@
 import {
-  pagerControl,
-  recordCountLabel,
   byteLength,
   charLength,
   checks,
@@ -21,8 +19,10 @@ import {
   localeBadge,
   metricCards,
   noticeBanner,
+  pagerControl,
   platformBadge,
   platformRulesFor,
+  recordCountLabel,
   render,
   resultBadge,
   reviewForIssue,

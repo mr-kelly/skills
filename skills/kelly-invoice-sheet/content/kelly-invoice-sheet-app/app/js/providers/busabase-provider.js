@@ -71,7 +71,11 @@ function base(key) {
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
   const records = Array.isArray(result) ? result : result.records || [];
   const rows = records.map((record) => ({
     ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
@@ -91,7 +95,8 @@ async function countRecords(key, filters) {
   }
 }
 
-const countInvoices = (status) => countRecords("invoices", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
+const countInvoices = (status) =>
+  countRecords("invoices", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -125,16 +130,17 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [invoicePage, settingsPage, total, needsReview, changesRequested, approved, done, blocked] = await Promise.all([
-      readPage("invoices"),
-      readPage("settings"),
-      countRecords("invoices"),
-      countInvoices("needs_review"),
-      countInvoices("changes_requested"),
-      countInvoices("approved"),
-      countInvoices("done"),
-      countInvoices("blocked"),
-    ]);
+    const [invoicePage, settingsPage, total, needsReview, changesRequested, approved, done, blocked] =
+      await Promise.all([
+        readPage("invoices"),
+        readPage("settings"),
+        countRecords("invoices"),
+        countInvoices("needs_review"),
+        countInvoices("changes_requested"),
+        countInvoices("approved"),
+        countInvoices("done"),
+        countInvoices("blocked"),
+      ]);
     const configRow = findSettingsRow(settingsPage.rows, "config");
     const configPayload = parsePayload(configRow?.payload);
     const config_summary = buildConfigSummary(configPayload);

@@ -254,7 +254,7 @@ export const busabaseProvider = {
   async fetchPage(key, cursor) {
     await ensureResources();
     const page = await readPage(key, cursor);
-return { ...page, rows: page.rows.map(normalizeScenarioRow) };
+    return { ...page, rows: page.rows.map(normalizeScenarioRow) };
   },
 
   async provisionResources() {

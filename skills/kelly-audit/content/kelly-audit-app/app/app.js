@@ -1,4 +1,3 @@
-import { appConfig } from "./js/config.js?v=0.1.0";
 import { messages } from "./i18n/messages.js";
 import {
   renderAnomalies,
@@ -9,6 +8,7 @@ import {
   renderSettings,
   submitDecision,
 } from "./js/audit-views.js";
+import { appConfig } from "./js/config.js?v=0.1.0";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
@@ -539,11 +539,10 @@ async function boot() {
 
 syncResponsiveShell();
 
-
 const PAGE_BINDINGS = {
-  "orders": { key: "orders", path: "snapshot.orders" },
-  "invoices": { key: "invoices", path: "snapshot.invoices" },
-  "anomalies": { key: "anomalies", path: "snapshot.anomalies" },
+  orders: { key: "orders", path: "snapshot.orders" },
+  invoices: { key: "invoices", path: "snapshot.invoices" },
+  anomalies: { key: "anomalies", path: "snapshot.anomalies" },
 };
 
 function pageSize(key) {
@@ -628,7 +627,9 @@ export function pagerControl(key) {
   let previous = 0;
   for (const page of pages) {
     if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
-    items.push(`<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`);
+    items.push(
+      `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
+    );
     previous = page;
   }
   return `<nav class="pager" aria-label="${pagerMessage("pagination", "Pagination")}">

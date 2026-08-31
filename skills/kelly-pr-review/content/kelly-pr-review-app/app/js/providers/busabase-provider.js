@@ -62,7 +62,11 @@ function base(key) {
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
   const records = Array.isArray(result) ? result : result.records || [];
   const rows = records.map((record) => ({
     ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
@@ -75,7 +79,10 @@ async function readPage(key, cursor) {
 async function countRecords(key, filters) {
   if (!allowedReads.has("records.count")) return null;
   try {
-    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId, ...(filters?.length ? { filters } : {}) });
+    const { total } = await runtimeClient.records.count({
+      baseId: base(key).baseId,
+      ...(filters?.length ? { filters } : {}),
+    });
     return total;
   } catch {
     return null;
@@ -89,15 +96,50 @@ async function countWorkflowCounts(repo) {
   const scope = repo && repo !== "all" ? [equals("repo", repo)] : [];
   const count = (filters = []) => countRecords("reviews", [...scope, ...filters]);
   const values = await Promise.all([
-    count(), count([equals("status", "needs_review")]), count([equals("status", "to_approve")]), count([equals("status", "blocked")]),
-    count([equals("status", "done")]), count([equals("execution-status", "executed")]), count([equals("status", "done"), equals("execution-status", "executed")]),
-    count([equals("status", "approved")]), count([equals("status", "approved"), equals("execution-status", "executed")]),
-    count([equals("status", "merged"), checked("tested", false)]), count([checked("merged", true), checked("tested", false)]), count([equals("status", "merged"), checked("merged", true), checked("tested", false)]),
-    count([equals("status", "merged"), checked("tested", true)]), count([checked("merged", true), checked("tested", true)]), count([equals("status", "merged"), checked("merged", true), checked("tested", true)]),
+    count(),
+    count([equals("status", "needs_review")]),
+    count([equals("status", "to_approve")]),
+    count([equals("status", "blocked")]),
+    count([equals("status", "done")]),
+    count([equals("execution-status", "executed")]),
+    count([equals("status", "done"), equals("execution-status", "executed")]),
+    count([equals("status", "approved")]),
+    count([equals("status", "approved"), equals("execution-status", "executed")]),
+    count([equals("status", "merged"), checked("tested", false)]),
+    count([checked("merged", true), checked("tested", false)]),
+    count([equals("status", "merged"), checked("merged", true), checked("tested", false)]),
+    count([equals("status", "merged"), checked("tested", true)]),
+    count([checked("merged", true), checked("tested", true)]),
+    count([equals("status", "merged"), checked("merged", true), checked("tested", true)]),
   ]);
   if (values.some((value) => value === null)) return null;
-  const [all, needsReview, toApprove, blocked, doneStatus, executed, doneExecuted, approvedStatus, approvedExecuted, mergedUntested, flagMergedUntested, bothMergedUntested, mergedTested, flagMergedTested, bothMergedTested] = values;
-  return { all, needs_review: needsReview, to_approve: toApprove, blocked, done: doneStatus + executed - doneExecuted, approved: approvedStatus - approvedExecuted, needs_test: mergedUntested + flagMergedUntested - bothMergedUntested, tested: mergedTested + flagMergedTested - bothMergedTested };
+  const [
+    all,
+    needsReview,
+    toApprove,
+    blocked,
+    doneStatus,
+    executed,
+    doneExecuted,
+    approvedStatus,
+    approvedExecuted,
+    mergedUntested,
+    flagMergedUntested,
+    bothMergedUntested,
+    mergedTested,
+    flagMergedTested,
+    bothMergedTested,
+  ] = values;
+  return {
+    all,
+    needs_review: needsReview,
+    to_approve: toApprove,
+    blocked,
+    done: doneStatus + executed - doneExecuted,
+    approved: approvedStatus - approvedExecuted,
+    needs_test: mergedUntested + flagMergedUntested - bothMergedUntested,
+    tested: mergedTested + flagMergedTested - bothMergedTested,
+  };
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -164,8 +206,12 @@ export const busabaseProvider = {
     const lockRow = settings.get("kelly-pr-review-lock") || {};
     const profile = parsePayload(profileRow.payload);
     const workflowCount = await countWorkflowCounts();
-    const configuredRepos = (profile.repos || []).map((repo) => (typeof repo === "string" ? repo : repo.repo || repo.name)).filter(Boolean);
-    const repoCounts = await Promise.all(configuredRepos.map(async (repo) => ({ repo, count: await countRecords("reviews", [equals("repo", repo)]) })));
+    const configuredRepos = (profile.repos || [])
+      .map((repo) => (typeof repo === "string" ? repo : repo.repo || repo.name))
+      .filter(Boolean);
+    const repoCounts = await Promise.all(
+      configuredRepos.map(async (repo) => ({ repo, count: await countRecords("reviews", [equals("repo", repo)]) })),
+    );
     snapshot.repos = repoCounts.every((item) => item.count !== null) ? repoCounts : snapshot.repos;
     return {
       app: "kelly-pr-review",

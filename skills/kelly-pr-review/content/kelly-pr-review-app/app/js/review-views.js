@@ -33,9 +33,10 @@ export function renderList() {
     reviewStore.selectedId = state.items[0].id;
     syncRoute({ push: false });
   }
-  list.innerHTML = state.items
-    .map(
-      (item) => `
+  list.innerHTML =
+    state.items
+      .map(
+        (item) => `
     <button class="pr-row ${item.id === reviewStore.selectedId ? "active" : ""}" data-id="${escapeHtml(item.id)}">
       <a class="pr-open-button" href="${escapeHtml(item.url)}" target="_blank" rel="noopener" title="${escapeHtml(t("open_pr"))}" aria-label="${escapeHtml(t("open_pr"))} ${escapeHtml(item.repo)} #${escapeHtml(item.number)}">↗</a>
       <span>
@@ -47,8 +48,8 @@ export function renderList() {
       <span class="muted">${escapeHtml(timeAgo(item.updated_at))}</span>
     </button>
   `,
-    )
-    .join("") + loadMoreControl();
+      )
+      .join("") + loadMoreControl();
   list.querySelectorAll(".pr-row").forEach((row) => {
     row.addEventListener("click", () => {
       if (isMobileLayout()) setMobileDetailOpen(true);

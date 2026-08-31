@@ -74,7 +74,9 @@ export function renderListAndDetail() {
   const items = collectionFor().filter(matches);
   $("itemCount").textContent = store.query
     ? `${items.length}${store.state.pagination?.[store.view] ? "+" : ""}`
-    : String(store.state.totalCount?.[store.view] ?? `${items.length}${store.state.pagination?.[store.view] ? "+" : ""}`);
+    : String(
+        store.state.totalCount?.[store.view] ?? `${items.length}${store.state.pagination?.[store.view] ? "+" : ""}`,
+      );
   if (!store.selectedId || !collectionFor().some((item) => item.id === store.selectedId)) {
     store.selectedId = items[0]?.id || null;
     syncRoute({ replace: true });

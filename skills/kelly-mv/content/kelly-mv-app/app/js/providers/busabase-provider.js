@@ -94,9 +94,17 @@ function base(key) {
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
   const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({ ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields), __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id }));
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
   return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
 
@@ -111,7 +119,10 @@ async function countRecords(key, filters) {
 }
 
 async function countActiveRecords(key) {
-  const [total, deleted] = await Promise.all([countRecords(key), countRecords(key, [{ fieldSlug: "deleted", fieldType: "text", operator: "equals", value: "true" }])]);
+  const [total, deleted] = await Promise.all([
+    countRecords(key),
+    countRecords(key, [{ fieldSlug: "deleted", fieldType: "text", operator: "equals", value: "true" }]),
+  ]);
   return total === null || deleted === null ? null : total - deleted;
 }
 
@@ -240,67 +251,65 @@ function collectAssetIds({ projectRow, castRows, shotRows }) {
 
 function buildCharacterRow(row, urlOf) {
   return {
-      id: row.character_id,
-      name: row.name || "",
-      role: row.role || "",
-      status: row.status || "draft",
-      actor_profile: row.actor_profile || "",
-      character_card: {},
-      visual: {
-        front: row.visual_front || "",
-        side: row.visual_side || "",
-        back: row.visual_back || "",
-        wardrobe: row.wardrobe || "",
-        anchors: parseJsonArray(row.anchors_json),
-        forbidden_drift: parseJsonArray(row.forbidden_drift_json),
-      },
-      reference_card: {
-        status: row.reference_card_status || "draft",
-        prompt: row.reference_card_prompt || "",
-        image_asset: urlOf(row.reference_card_asset_id),
-        generated_at: row.reference_card_generated_at || "",
-        generation: parseJsonObject(row.reference_card_generation_json),
-      },
-    };
+    id: row.character_id,
+    name: row.name || "",
+    role: row.role || "",
+    status: row.status || "draft",
+    actor_profile: row.actor_profile || "",
+    character_card: {},
+    visual: {
+      front: row.visual_front || "",
+      side: row.visual_side || "",
+      back: row.visual_back || "",
+      wardrobe: row.wardrobe || "",
+      anchors: parseJsonArray(row.anchors_json),
+      forbidden_drift: parseJsonArray(row.forbidden_drift_json),
+    },
+    reference_card: {
+      status: row.reference_card_status || "draft",
+      prompt: row.reference_card_prompt || "",
+      image_asset: urlOf(row.reference_card_asset_id),
+      generated_at: row.reference_card_generated_at || "",
+      generation: parseJsonObject(row.reference_card_generation_json),
+    },
+  };
 }
 
 function buildShotRow(row, urlOf) {
   return {
-      id: row.shot_id,
-      title: row.title || "",
-      status: row.status || "draft",
-      description: row.description || "",
-      negative_prompt: row.negative_prompt || "",
-      video_prompt: row.video_prompt || "",
-      duration_seconds: Number(row.duration_seconds) || 8,
-      characters: parseJsonArray(row.characters_json),
-      image_asset: urlOf(row.image_asset_id),
-      image_generated_at: row.image_generated_at || "",
-      image_generation: parseJsonObject(row.image_generation_json),
-      image_status: row.image_status || "draft",
-      image_candidates: parseJsonArray(row.image_candidates_json).map((c) => ({
-        assetId: c.assetId,
-        path: urlOf(c.assetId),
-        generated_at: c.generated_at,
-        generation: c.generation || {},
-      })),
-      video_asset: urlOf(row.video_asset_id),
-      video_generated_at: row.video_generated_at || "",
-      video_generation: parseJsonObject(row.video_generation_json),
-      video_status: row.video_status || "draft",
-      video_candidates: parseJsonArray(row.video_candidates_json).map((c) => ({
-        assetId: c.assetId,
-        path: urlOf(c.assetId),
-        generated_at: c.generated_at,
-        generation: c.generation || {},
-      })),
-    };
+    id: row.shot_id,
+    title: row.title || "",
+    status: row.status || "draft",
+    description: row.description || "",
+    negative_prompt: row.negative_prompt || "",
+    video_prompt: row.video_prompt || "",
+    duration_seconds: Number(row.duration_seconds) || 8,
+    characters: parseJsonArray(row.characters_json),
+    image_asset: urlOf(row.image_asset_id),
+    image_generated_at: row.image_generated_at || "",
+    image_generation: parseJsonObject(row.image_generation_json),
+    image_status: row.image_status || "draft",
+    image_candidates: parseJsonArray(row.image_candidates_json).map((c) => ({
+      assetId: c.assetId,
+      path: urlOf(c.assetId),
+      generated_at: c.generated_at,
+      generation: c.generation || {},
+    })),
+    video_asset: urlOf(row.video_asset_id),
+    video_generated_at: row.video_generated_at || "",
+    video_generation: parseJsonObject(row.video_generation_json),
+    video_status: row.video_status || "draft",
+    video_candidates: parseJsonArray(row.video_candidates_json).map((c) => ({
+      assetId: c.assetId,
+      path: urlOf(c.assetId),
+      generated_at: c.generated_at,
+      generation: c.generation || {},
+    })),
+  };
 }
 
 function buildProject({ projectRow, settingsRow, castRows, shotRows, urlOf }) {
-  const characters = castRows
-    .filter((row) => row.deleted !== "true")
-    .map((row) => buildCharacterRow(row, urlOf));
+  const characters = castRows.filter((row) => row.deleted !== "true").map((row) => buildCharacterRow(row, urlOf));
 
   const shots = shotRows
     .filter((row) => row.deleted !== "true")
@@ -338,7 +347,11 @@ function buildProject({ projectRow, settingsRow, castRows, shotRows, urlOf }) {
 async function buildPageItems(key, rows) {
   const liveRows = rows.filter((row) => row.deleted !== "true");
   if (key === "shots") liveRows.sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0));
-  const assetIds = collectAssetIds({ projectRow: {}, castRows: key === "cast" ? liveRows : [], shotRows: key === "shots" ? liveRows : [] });
+  const assetIds = collectAssetIds({
+    projectRow: {},
+    castRows: key === "cast" ? liveRows : [],
+    shotRows: key === "shots" ? liveRows : [],
+  });
   const urlMap = await resolveAssetUrls(runtimeClient, assetIds);
   const urlOf = (assetId) => (assetId ? urlMap.get(assetId) || "" : "");
   const normalize = key === "cast" ? buildCharacterRow : buildShotRow;
@@ -375,7 +388,11 @@ export const busabaseProvider = {
       projects: [{ id: project.project_id, title: project.song.title, artist: project.song.artist, mode: "" }],
       active_project_id: project.project_id,
       counts: { characters: countBy(project.characters), shots: countBy(project.shots), tasks: {} },
-      totals: { characters: castCount ?? project.characters.length, shots: shotCount ?? project.shots.length, tasks: 0 },
+      totals: {
+        characters: castCount ?? project.characters.length,
+        shots: shotCount ?? project.shots.length,
+        tasks: 0,
+      },
       pagination: { cast: castPage.nextCursor, shots: shotPage.nextCursor },
       totalCount: { cast: castCount, shots: shotCount },
       completeness: completeness(project),

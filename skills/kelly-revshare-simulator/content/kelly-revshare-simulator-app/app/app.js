@@ -1,6 +1,6 @@
 import { messages } from "./i18n/messages.js";
-import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { appConfig } from "./js/config.js?v=0.1.0";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { buildBatch, buildScenario } from "./js/simulator-model.js?v=0.1.0";
@@ -233,7 +233,8 @@ function renderShell() {
   if (els.countApproved) els.countApproved.textContent = approved;
   if (els.countRejected) els.countRejected.textContent = rejected;
   if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
-  if (els.mobileViewMeta) els.mobileViewMeta.textContent = `${pagination.total("scenarios", list.length)} ${t("scenarios")}`;
+  if (els.mobileViewMeta)
+    els.mobileViewMeta.textContent = `${pagination.total("scenarios", list.length)} ${t("scenarios")}`;
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
   });

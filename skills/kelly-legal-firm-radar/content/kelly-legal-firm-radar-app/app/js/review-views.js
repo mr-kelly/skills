@@ -46,8 +46,12 @@ function splitLayout(list, selected) {
 
 function itemCount(list) {
   if (state.query) return `${list.length}${state.pagination.items ? "+" : ""}`;
-  const status = state.route.view === "review" ? "needs_review" : STATUS_ROUTES.has(state.route.view) ? state.route.view : null;
-  return (status ? state.workflowCount?.[status] : state.totalCount.items) ?? `${list.length}${state.pagination.items ? "+" : ""}`;
+  const status =
+    state.route.view === "review" ? "needs_review" : STATUS_ROUTES.has(state.route.view) ? state.route.view : null;
+  return (
+    (status ? state.workflowCount?.[status] : state.totalCount.items) ??
+    `${list.length}${state.pagination.items ? "+" : ""}`
+  );
 }
 
 function loadMoreControl(key) {
@@ -203,14 +207,15 @@ export function renderEntities() {
     groups.get(key).push(entity);
   }
   const keys = [...groups.keys()].sort((a, b) => order.indexOf(a) - order.indexOf(b));
-  els.content.innerHTML = keys
-    .map(
-      (key) => `<section class="entity-group">
+  els.content.innerHTML =
+    keys
+      .map(
+        (key) => `<section class="entity-group">
       <div class="panel-head"><h2>${escapeHtml(statusLabel(key))}</h2><span>${groups.get(key).length}</span></div>
       <div class="entity-grid ${escapeAttr(profile.id)}-entities">${groups.get(key).map(entityCard).join("")}</div>
     </section>`,
-    )
-    .join("") + loadMoreControl("entities");
+      )
+      .join("") + loadMoreControl("entities");
 }
 
 export function renderSettings() {

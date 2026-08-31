@@ -61,7 +61,11 @@ function base(key) {
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
   const records = Array.isArray(result) ? result : result.records || [];
   const rows = records.map((record) => ({
     ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
@@ -81,7 +85,8 @@ async function countRecords(key, filters) {
   }
 }
 
-const countChecks = (status) => countRecords("checks", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
+const countChecks = (status) =>
+  countRecords("checks", [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -153,17 +158,18 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [modelPage, checkPage, settingsPage, totalChecks, needsReview, changesRequested, approved, done, blocked] = await Promise.all([
-      readPage("model"),
-      readPage("checks"),
-      readPage("settings"),
-      countRecords("checks"),
-      countChecks("needs_review"),
-      countChecks("changes_requested"),
-      countChecks("approved"),
-      countChecks("done"),
-      countChecks("blocked"),
-    ]);
+    const [modelPage, checkPage, settingsPage, totalChecks, needsReview, changesRequested, approved, done, blocked] =
+      await Promise.all([
+        readPage("model"),
+        readPage("checks"),
+        readPage("settings"),
+        countRecords("checks"),
+        countChecks("needs_review"),
+        countChecks("changes_requested"),
+        countChecks("approved"),
+        countChecks("done"),
+        countChecks("blocked"),
+      ]);
     const config_summary = buildConfigSummary(settingsPage.rows);
     const modelRow = findModelRow(modelPage.rows);
     const checks = checkPage.rows.map(computeCheckFromRow);
@@ -171,7 +177,8 @@ export const busabaseProvider = {
       model: modelRow ? computeModelFromRow(modelRow) : null,
       checks,
     });
-    if (needsReview !== null && changesRequested !== null) snapshot.metrics.needs_review = needsReview + changesRequested;
+    if (needsReview !== null && changesRequested !== null)
+      snapshot.metrics.needs_review = needsReview + changesRequested;
     if (approved !== null) snapshot.metrics.approved = approved;
     if (done !== null) snapshot.metrics.done = done;
     if (blocked !== null) snapshot.metrics.blocked = blocked;

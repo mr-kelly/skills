@@ -18,7 +18,7 @@ import {
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
-const BROWSED_KEYS = ["candidates","trend-items","proposals"];
+const BROWSED_KEYS = ["candidates", "trend-items", "proposals"];
 
 // A deployed AirApp sits inside the Busabase review boundary; only a standalone
 // run may merge its own writes. That is far too consequential to infer from the
@@ -252,7 +252,11 @@ export const busabaseProvider = {
   async fetchPage(key, cursor) {
     await ensureResources();
     const page = await readPage(key, cursor);
-    const normalize = { candidates: normalizeCandidate, "trend-items": normalizeTrendItem, proposals: normalizeProposal }[key];
+    const normalize = {
+      candidates: normalizeCandidate,
+      "trend-items": normalizeTrendItem,
+      proposals: normalizeProposal,
+    }[key];
     return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
   },
 

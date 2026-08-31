@@ -1,6 +1,6 @@
 import { messages } from "./i18n/messages.js";
-import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { appConfig } from "./js/config.js?v=0.1.0";
+import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { SOURCE_KINDS, computeMetrics } from "./js/picks-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
@@ -48,7 +48,7 @@ export const els = {
   language: document.querySelector("#language"),
 };
 
-const PAGINATED_KEYS = ["candidates","trend-items","proposals"];
+const PAGINATED_KEYS = ["candidates", "trend-items", "proposals"];
 const pagination = createPagination({
   getProvider,
   pageSizes: Object.fromEntries(appConfig.bases.map((base) => [base.key, base.readLimit])),

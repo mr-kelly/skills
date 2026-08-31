@@ -72,14 +72,21 @@ export function createPagination({ getProvider, pageSizes, applyPage, render, la
     const loading = Boolean(state.loading[key]);
     const hasNext = total == null ? Boolean(state.cursors[key][current]) : current < total;
     if ((total === 1 || total == null) && current === 1 && !hasNext) return "";
-    const pages = total == null ? [] : total <= 7
-      ? Array.from({ length: total }, (_, index) => index + 1)
-      : [...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total))].sort((a, b) => a - b);
+    const pages =
+      total == null
+        ? []
+        : total <= 7
+          ? Array.from({ length: total }, (_, index) => index + 1)
+          : [
+              ...new Set([1, total, current - 1, current, current + 1].filter((page) => page >= 1 && page <= total)),
+            ].sort((a, b) => a - b);
     const items = [];
     let previous = 0;
     for (const page of pages) {
       if (previous && page - previous > 1) items.push('<span class="pager-ellipsis">…</span>');
-      items.push(`<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`);
+      items.push(
+        `<button type="button" class="pager-page ${page === current ? "active" : ""}" data-goto-page="${key}:${page}" ${loading || page === current ? "disabled" : ""}>${page}</button>`,
+      );
       previous = page;
     }
     return `<nav class="pager" aria-label="${text("pagination")}">

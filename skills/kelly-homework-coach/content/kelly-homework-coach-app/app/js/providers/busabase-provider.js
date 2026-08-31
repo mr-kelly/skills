@@ -67,9 +67,17 @@ function base(key) {
 async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const result = await runtimeClient.records.list({ baseId: declared.baseId, limit: declared.readLimit, ...(cursor ? { cursor } : {}) });
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
   const records = Array.isArray(result) ? result : result.records || [];
-  const rows = records.map((record) => ({ ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields), __recordId: record.id, __headCommitId: record.headCommitId || record.headCommit?.id }));
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
   return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
 }
 
@@ -83,7 +91,8 @@ async function countRecords(key, filters) {
   }
 }
 
-const countStatus = (key, status) => countRecords(key, [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
+const countStatus = (key, status) =>
+  countRecords(key, [{ fieldSlug: "status", fieldType: "text", operator: "equals", value: status }]);
 
 async function findRecord(key, idFieldSlug, idValue) {
   const declared = base(key);
@@ -127,7 +136,17 @@ export const busabaseProvider = {
   async getState() {
     await ensureResources();
     const keys = ["questions", "mistakes", "papers", "reviews"];
-    const [questionPage, mistakePage, paperPage, reviewPage, settingsPage, totals, questionDone, mistakeDone, ...reviewStatusCounts] = await Promise.all([
+    const [
+      questionPage,
+      mistakePage,
+      paperPage,
+      reviewPage,
+      settingsPage,
+      totals,
+      questionDone,
+      mistakeDone,
+      ...reviewStatusCounts
+    ] = await Promise.all([
       readPage("questions"),
       readPage("mistakes"),
       readPage("papers"),
@@ -136,7 +155,9 @@ export const busabaseProvider = {
       Promise.all(keys.map((key) => countRecords(key))),
       countStatus("questions", "done"),
       countStatus("mistakes", "done"),
-      ...["needs_review", "changes_requested", "approved", "done", "blocked"].map((status) => countStatus("reviews", status)),
+      ...["needs_review", "changes_requested", "approved", "done", "blocked"].map((status) =>
+        countStatus("reviews", status),
+      ),
     ]);
     const configRow = findSettingsRow(settingsPage.rows, "config");
     const configPayload = parseSettingsPayload(configRow);
@@ -166,10 +187,20 @@ export const busabaseProvider = {
       lock: null,
       config_summary,
       snapshot,
-      pagination: { questions: questionPage.nextCursor, mistakes: mistakePage.nextCursor, papers: paperPage.nextCursor, reviews: reviewPage.nextCursor },
+      pagination: {
+        questions: questionPage.nextCursor,
+        mistakes: mistakePage.nextCursor,
+        papers: paperPage.nextCursor,
+        reviews: reviewPage.nextCursor,
+      },
       totalCount: Object.fromEntries(keys.map((key, index) => [key, totals[index]])),
       workflowCount: reviewStatusCounts.every((value) => value !== null)
-        ? Object.fromEntries(["needs_review", "changes_requested", "approved", "done", "blocked"].map((status, index) => [status, reviewStatusCounts[index]]))
+        ? Object.fromEntries(
+            ["needs_review", "changes_requested", "approved", "done", "blocked"].map((status, index) => [
+              status,
+              reviewStatusCounts[index],
+            ]),
+          )
         : null,
     };
   },

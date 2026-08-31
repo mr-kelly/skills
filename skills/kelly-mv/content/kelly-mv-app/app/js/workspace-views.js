@@ -3,8 +3,8 @@ import {
   esc,
   go,
   isMobileLayout,
-  loadState,
   loadMore,
+  loadState,
   matchSearch,
   pickFile,
   project,
@@ -38,7 +38,9 @@ export function renderList() {
       go(node.dataset.jump);
     }),
   );
-  host.querySelector("[data-load-more]")?.addEventListener("click", () => loadMore(host.querySelector("[data-load-more]").dataset.loadMore));
+  host
+    .querySelector("[data-load-more]")
+    ?.addEventListener("click", () => loadMore(host.querySelector("[data-load-more]").dataset.loadMore));
 }
 
 function loadMoreControl(key) {
@@ -120,7 +122,9 @@ function listCast() {
     : `<div class="empty-shot">${t("cast_list_empty")}</div>`;
   return {
     html: `${html}${loadMoreControl("cast")}`,
-    count: state.search ? `${items.length}${state.data.pagination?.cast ? "+" : ""}` : state.data.totalCount?.cast ?? `${items.length}${state.data.pagination?.cast ? "+" : ""}`,
+    count: state.search
+      ? `${items.length}${state.data.pagination?.cast ? "+" : ""}`
+      : (state.data.totalCount?.cast ?? `${items.length}${state.data.pagination?.cast ? "+" : ""}`),
   };
 }
 
@@ -163,7 +167,9 @@ function listStoryboard() {
     .join("");
   return {
     html: `${html}${loadMoreControl("shots")}`,
-    count: state.search ? `${shots.length}${state.data.pagination?.shots ? "+" : ""}` : state.data.totalCount?.shots ?? `${shots.length}${state.data.pagination?.shots ? "+" : ""}`,
+    count: state.search
+      ? `${shots.length}${state.data.pagination?.shots ? "+" : ""}`
+      : (state.data.totalCount?.shots ?? `${shots.length}${state.data.pagination?.shots ? "+" : ""}`),
   };
 }
 

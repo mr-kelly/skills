@@ -8,8 +8,8 @@ import {
   renderOutbox,
   renderSettings,
 } from "./js/message-views.js";
-import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { withReplyRefs } from "./js/messenger-model.js?v=0.1.0";
+import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
 const FEATURED_DEMO_CONVERSATION = "wa-lena-pricing";
 const PENDING_STATUSES = ["needs_review", "changes_requested", "approved"];
@@ -201,11 +201,15 @@ export async function loadMore(key) {
         conversation.messages.push(item);
         conversation.messages.sort((a, b) => String(a.sent_at).localeCompare(String(b.sent_at)));
         conversation.last_message_at = conversation.messages.at(-1)?.sent_at || "";
-        conversation.last_incoming_at = [...conversation.messages].reverse().find((entry) => entry.direction === "incoming")?.sent_at || "";
+        conversation.last_incoming_at =
+          [...conversation.messages].reverse().find((entry) => entry.direction === "incoming")?.sent_at || "";
       }
     } else if (key === "replies") {
       const known = new Set(outboxReplies().map((item) => item.reply_id));
-      state.outbox.replies = withReplyRefs([...outboxReplies(), ...page.rows.filter((item) => !known.has(item.reply_id))]);
+      state.outbox.replies = withReplyRefs([
+        ...outboxReplies(),
+        ...page.rows.filter((item) => !known.has(item.reply_id)),
+      ]);
     } else if (key === "accounts") {
       const known = new Set(state.snapshot.accounts.map((item) => item.account_id));
       state.snapshot.accounts.push(...page.rows.filter((item) => !known.has(item.account_id)));
@@ -229,7 +233,8 @@ function attachLoadedMessages(conversation) {
     .sort((a, b) => String(a.sent_at).localeCompare(String(b.sent_at)));
   conversation.messages = items;
   conversation.last_message_at = items.at(-1)?.sent_at || "";
-  conversation.last_incoming_at = [...items].reverse().find((message) => message.direction === "incoming")?.sent_at || "";
+  conversation.last_incoming_at =
+    [...items].reverse().find((message) => message.direction === "incoming")?.sent_at || "";
 }
 
 function applyDemoRoute() {
@@ -297,10 +302,12 @@ function oldestWaiting() {
 function renderShell() {
   applyI18n();
   const awaiting = state.workflowCount.awaiting ?? awaitingConversations().length;
-  const approved = state.workflowCount.approved ?? outboxReplies().filter((reply) => reply.status === "approved").length;
+  const approved =
+    state.workflowCount.approved ?? outboxReplies().filter((reply) => reply.status === "approved").length;
   const blocked = state.workflowCount.blocked ?? outboxReplies().filter((reply) => reply.status === "blocked").length;
   const unread = state.workflowCount.unread ?? conversations().filter((item) => item.unread).length;
-  const conversationTotal = state.totalCount.conversations ?? `${conversations().length}${state.pagination.conversations ? "+" : ""}`;
+  const conversationTotal =
+    state.totalCount.conversations ?? `${conversations().length}${state.pagination.conversations ? "+" : ""}`;
   els.syncStatus.textContent = conversationTotal
     ? `${conversationTotal} ${t("conversationCount")} · ${unread} ${t("unread")}`
     : t("empty");

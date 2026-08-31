@@ -143,7 +143,10 @@ function countDisplay(key, loaded) {
 function loadMoreControl(...keys) {
   return keys
     .filter((key) => state.pagination[key])
-    .map((key) => `<div class="load-more"><button type="button" data-load-more="${escapeHtml(key)}" ${state.loadingMore[key] ? "disabled" : ""}>${state.loadingMore[key] ? t("loadingMore") : t("loadMore")}</button>${state.loadMoreError[key] ? `<span role="alert">${t("loadMoreFailed")}</span>` : ""}</div>`)
+    .map(
+      (key) =>
+        `<div class="load-more"><button type="button" data-load-more="${escapeHtml(key)}" ${state.loadingMore[key] ? "disabled" : ""}>${state.loadingMore[key] ? t("loadingMore") : t("loadMore")}</button>${state.loadMoreError[key] ? `<span role="alert">${t("loadMoreFailed")}</span>` : ""}</div>`,
+    )
     .join("");
 }
 function date(value) {
@@ -274,7 +277,8 @@ function renderOverview() {
   </div>
   <section class="panel"><h2>${t("humanQueue")}</h2><div class="rows">${reviewRows.join("")}</div>${loadMoreControl("qa-checks")}</section>`;
   els.detail.innerHTML = renderStyleDetail(styleSystems()[0]);
-  const reviewTotal = state.reviewTotal ?? `${reviews().length}${state.pagination.decks || state.pagination["slide-cards"] ? "+" : ""}`;
+  const reviewTotal =
+    state.reviewTotal ?? `${reviews().length}${state.pagination.decks || state.pagination["slide-cards"] ? "+" : ""}`;
   listCountMeta(reviewTotal, t("review"));
 }
 

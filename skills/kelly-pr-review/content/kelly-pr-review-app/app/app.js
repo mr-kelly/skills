@@ -1,10 +1,26 @@
 import { I18N } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
-import { countByWorkflow, matchesMode, matchesSearch, normalizeItem, withReviewRefs } from "./js/pr-review-model.js?v=0.1.0";
+import {
+  countByWorkflow,
+  matchesMode,
+  matchesSearch,
+  normalizeItem,
+  withReviewRefs,
+} from "./js/pr-review-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { closeHelp, openHelp, renderDetail, renderList } from "./js/review-views.js";
 
-export let state = { items: [], counts: {}, batch: null, lock: { locked: false }, config_summary: {}, demo: false, pagination: {}, loadingMore: false, loadMoreError: false };
+export let state = {
+  items: [],
+  counts: {},
+  batch: null,
+  lock: { locked: false },
+  config_summary: {},
+  demo: false,
+  pagination: {},
+  loadingMore: false,
+  loadMoreError: false,
+};
 let allItems = [];
 const params = new URLSearchParams(window.location.search);
 const demoScenario = params.get("demo") || "";
