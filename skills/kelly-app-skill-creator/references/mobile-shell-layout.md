@@ -4,13 +4,143 @@ Use this reference when creating or updating an App-in-Skill UI. It captures the
 
 ## Layout Taste
 
-- Build the actual work surface first, not a landing page.
-- Prefer a restrained, operational layout: sidebar navigation, human-attention summary, list/workspace area, detail pane, and compact actions.
-- Use a neutral base palette with one accent, soft borders, low shadows, and 6-8px radii. Avoid decorative hero sections, nested cards, color-heavy gradients, and oversized marketing typography.
-- Keep controls visually quiet. Icon buttons should usually be transparent with a low-contrast icon and a subtle hover background. Avoid black floating mobile buttons, hamburger glyphs, heavy button shadows, and selected states that flood whole rows with accent color.
-- Keep information dense but calm. Rows should scan quickly; detail pages can carry the full context.
-- Use full-width panes and bands for page structure. Reserve cards for repeated items, settings groups, dialogs, and genuinely framed tools.
-- Use workflow navigation as the primary sidebar: `All`, `Needs Review`, `Approved`, `Done`, `Blocked`, or the domain equivalent. Show categories as badges, not primary navigation.
+Build the actual work surface first, not a landing page. A good App-in-Skill reads as a small
+cockpit for one workflow: dense but calm, specific to the work, quiet controls, clear workflow
+state.
+
+### Token Scale
+
+Declare these once in `:root` and never write a raw color, font size, or radius into a rule.
+Retheming an app then means editing one block.
+
+```css
+:root {
+  --canvas: #f6f7f8;          /* page background */
+  --surface: #ffffff;         /* cards and panes */
+  --surface-soft: #f4f5f7;    /* inert fills: counts, segmented track, avatars */
+  --surface-hover: #fafbfb;
+
+  --ink: #14181f;
+  --ink-soft: #454c57;
+  --muted: #79828f;
+  --line: #ebedf0;
+  --line-strong: #dcdfe4;
+
+  --positive: #1f7a4d;
+  --warning: #8a5a00;
+  --danger: #b3261e;
+
+  --radius-sm: 8px;           /* controls */
+  --radius-md: 10px;
+  --radius-lg: 14px;          /* cards */
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-modal: 0 24px 60px rgba(16, 24, 40, 0.16);
+
+  --text-xs: 11px;  --text-sm: 12px;  --text-base: 13px;  --text-md: 14px;
+  --text-lg: 16px;  --text-xl: 20px;  --text-2xl: 30px;  --text-3xl: 38px;
+
+  /* Translucent surfaces must be tokens too -- see Dark Mode below. */
+  --surface-blur: rgba(255, 255, 255, 0.94);
+  --scrim: rgba(16, 24, 40, 0.34);
+
+  /* One duration for every hover/selection change. */
+  --ease: 130ms cubic-bezier(0.2, 0, 0.2, 1);
+
+  color-scheme: light dark;
+}
+```
+
+Do not introduce a size between two type steps, and do not add a third shadow.
+
+The large steps matter as much as the small ones. Measured across the 53 existing apps in this
+repo, 67% of every `font-size` declaration is 8-12.5px, only 13 declarations in the whole set are
+28px or larger, 31 distinct sizes are in use, and not one app defines a size through a variable.
+That is the concrete reason they read as cramped rather than composed: nothing on the page is large
+enough to anchor it. Spend `--text-2xl` on metric values and `--text-3xl` on exactly one greeting
+or page title. Accent tokens are
+covered separately in `ui-workflow-patterns.md`; one accent per app, owning selection, active nav,
+focus rings, links, and the primary button — nothing else.
+
+Keep CJK faces in the font stack. These apps ship localized copy, and a stack without
+`PingFang SC` / `Noto Sans SC` renders Chinese in a serif fallback:
+
+```css
+font-family:
+  Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+  "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+```
+
+### Dark Mode
+
+Ship it. Dark is a `@media (prefers-color-scheme: dark)` block that overrides **tokens only** — not
+one rule is duplicated for it. Keep `<meta name="color-scheme" content="light dark">` in the HTML so
+native controls and scrollbars follow. Surfaces should be near-black, not pure black: at `#000` the
+hairlines have to get brighter to stay visible, and bright hairlines read as noise.
+
+This only works if no rule contains a raw color, and the failure mode is silent. A hardcoded
+`rgba(255, 255, 255, 0.94)` on a sticky list header sat *after* the dark block in source order, won
+the cascade at equal specificity, and left a white bar with invisible text in dark mode. Nothing
+errors — it is only visible in a screenshot. Route every translucent surface through
+`--surface-blur` / `--scrim`.
+
+Two knobs flip direction rather than being restated as rules: a status pill's wash must rise in
+dark (a 9% wash is invisible on a dark surface) and its text mix must fall (76% toward a dark ink
+would be unreadable). The accent lifts too — a dark-enough accent to work on white is too dark to
+sit on a dark surface.
+
+### Polish
+
+Cheap in code, and their absence is what makes a tool look unfinished:
+
+- **Motion.** Hover/selection transitions on `--ease`. Snapping reads as unfinished; slower reads as
+  laggy. All motion collapses under `prefers-reduced-motion`.
+- **Scrollbars.** Thin, transparent track, `--line-strong` thumb, via `scrollbar-width` plus
+  `::-webkit-scrollbar`. The default chrome scrollbar is wide, opaque and light-only; in a two-pane
+  layout it reads as a seam through the design.
+- **Focus.** A 2px accent outline plus a soft `box-shadow` halo, not one flat outline — `box-shadow`
+  so focus never shifts layout.
+- **`::selection` and `caret-color`** read from the accent.
+- **Icons**: monochrome, 16px, `stroke: currentColor`, sized by rule rather than per icon. A
+  multi-colored icon set is the fastest way to make a calm tool look like a toy.
+- **Empty states**: icon, what is missing, and the one action that fixes it — never a bare line of
+  grey text. An empty screen with no next step is where these tools most often strand a user.
+- **Skeletons** for known-shape loads so the layout does not jump; a loading message for
+  unknown-length waits.
+
+### Composition
+
+- The page sits on `--canvas`; content sits in white cards with a hairline `--line` border and
+  `--shadow-card`. Cards separate regions; nested cards do not.
+- Metrics are cards in an `auto-fit` row: label at `--text-base` muted, value at `--text-2xl` with
+  `font-variant-numeric: tabular-nums`, optional trend line beneath. Two columns at 390px, not
+  three — a third column clips the number.
+- The list/detail workspace is one card containing both panes, not two floating panels.
+- Any number that sits in a column — counts, currency, percentages — gets `tabular-nums`.
+- A status pill takes its dot, a ~9% background wash, and its text color from one token, so a
+  status can never end up half-colored. Keep the wash that light.
+- A greeting/overview page gets a muted context line, one `--text-3xl` title, a supporting
+  sentence, and the page-level actions on the right.
+- Rows scan quickly; the detail pane carries the full context.
+- Icon buttons stay transparent with a low-contrast icon and a subtle hover background.
+
+### Do Not
+
+Each of these is a specific, recurring way a generated app reads as busy rather than calm:
+
+- Multi-colored pastel icon tiles on metric cards. Four tints across four cards is decoration that
+  competes with the numbers, which are the only thing on that card worth reading.
+- Per-row generated avatar colors. Keep monograms monochrome — a random hue per row fights every
+  real status color sitting in the same row.
+- Saturated pill backgrounds for status. A 9% wash is the ceiling; past that, twenty rows read as
+  a bag of highlighters.
+- A horizontal scrollbar inside a toolbar or filter strip. Let the toolbar wrap instead; a nested
+  scrollbar is the most common way these layouts start looking broken at narrow widths.
+- Decorative hero sections, gradients, oversized marketing typography, nested cards, mock skeleton
+  graphics presented as content, black floating mobile buttons, hamburger glyphs where a panel icon
+  fits better, heavy shadows, and hover states that promote every control to primary.
+
+Use workflow navigation as the primary sidebar: `All`, `Needs Review`, `Approved`, `Done`,
+`Blocked`, or the domain equivalent. Show categories as badges, not primary navigation.
 
 ## Desktop Shell
 
