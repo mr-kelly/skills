@@ -1,5 +1,5 @@
 import { createProvider } from "../lib/data-provider/index.ts";
-import { loadBatch, normalizeItem } from "./batch-store.ts";
+import { loadBatchPage, normalizeItem } from "./batch-store.ts";
 import { loadConfigWithMeta, onboardingStatus, publicAccounts } from "./config.ts";
 import { lockPayload } from "./lock.ts";
 import { providerStatus } from "./provider-status.ts";
@@ -45,7 +45,13 @@ export async function statePayload(query: StateQuery = {}) {
       }
     : onboardingStatus(config, configMeta);
   const setupIncomplete = providerUnavailable || onboarding.configured === false;
-  const batch = setupIncomplete ? { items: [] } : await loadBatch();
+  const page = setupIncomplete
+    ? { batch: { items: [] }, batchId: "", nextCursor: null, total: 0 }
+    : await loadBatchPage({
+        cursor: normalizeQueryValue(query.cursor, ""),
+        batchId: normalizeQueryValue(query.batch_id, ""),
+      });
+  const batch = page.batch;
   const allItems = withReviewNumbers((batch.items || []).map(normalizeItem));
   let items = allItems;
   const mode = normalizeQueryValue(query.mode, "all");
@@ -104,7 +110,11 @@ export async function statePayload(query: StateQuery = {}) {
     },
     counts,
     items,
-    total_cached: allItems.length,
+    total_cached: page.total ?? allItems.length,
+    pagination: {
+      batch_id: page.batchId,
+      next_cursor: page.nextCursor,
+    },
     batch_path: "busabase:base/kelly-email-reviews-v3",
     contacts_path: "busabase:base/kelly-email-contacts-v3",
     decisions_path: "busabase:base/kelly-email-reviews-v3/decision-*",

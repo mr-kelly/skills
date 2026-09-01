@@ -62,6 +62,9 @@ jobs:
       - name: Typecheck (.mjs)
         run: npm run typecheck
 
+      - name: Test Pages asset validator
+        run: node --test tests/pages-assets.test.mjs
+
       - name: Test canonical app skills
         run: npm run test:app-skills
         env:
@@ -84,6 +87,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - uses: actions/setup-node@v4
         with:
@@ -91,7 +96,7 @@ jobs:
 
       - name: Stage Pages site with screenshots
         run: |
-          node scripts/build-site.mjs
+          node scripts/build-site.mjs --asset-mode=pages-local
           site="$RUNNER_TEMP/pages"
           mkdir -p "$site"
           cp -R docs/. "$site/"
@@ -101,8 +106,7 @@ jobs:
             mkdir -p "$target"
             cp -R "$source" "$target/screenshots"
           done
-          find "$site" -type f -name '*.html' -exec sed -i \
-            's#https://raw.githubusercontent.com/mr-kelly/skills/main/#/skills/#g' {} +
+          node scripts/check-pages-assets.mjs "$site"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

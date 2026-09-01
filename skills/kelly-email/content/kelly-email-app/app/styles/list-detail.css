@@ -118,6 +118,22 @@
     box-shadow: inset 2px 0 0 var(--accent), inset 0 1px 0 rgba(255, 255, 255, 0.58);
   }
 
+  .load-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 54px;
+    padding: 10px 12px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .load-more.is-hidden,
+  .load-more button.is-hidden {
+    display: none;
+  }
+
   .row-top {
     display: grid;
     grid-template-columns: 1fr auto;

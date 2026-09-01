@@ -33,7 +33,7 @@ import {
   restoreScrollState,
   setMobileDetailOpen,
 } from "./shell.js";
-import { $, store } from "./store.js";
+import { $, appendStatePage, store } from "./store.js";
 
 function countFor(name) {
   if (name === "all") return store.state.total_cached || 0;
@@ -65,6 +65,19 @@ export function renderCounts() {
   if (humanApproved) humanApproved.textContent = countFor("approved");
   if (humanBlocked) humanBlocked.textContent = countFor("blocked");
   renderMobileTopbar();
+}
+
+export function renderLoadMore() {
+  const control = $("loadMoreControl");
+  const button = $("loadMore");
+  const status = $("loadMoreStatus");
+  if (!control || !button || !status) return;
+  const hasNext = Boolean(store.state.pagination?.next_cursor);
+  control.classList.toggle("is-hidden", !hasNext && !store.loadMoreError);
+  button.classList.toggle("is-hidden", !hasNext);
+  button.disabled = store.loadingMore;
+  button.textContent = t(store.loadingMore ? "list.loading_more" : "list.load_more");
+  status.textContent = store.loadMoreError ? t("list.load_more_failed") : "";
 }
 
 export function renderBulkActions() {
@@ -264,6 +277,7 @@ export function renderList() {
   if (setupNeeded()) {
     $("messageList").innerHTML = `<div class="empty-detail">${escapeHtml(t("setup.list_empty"))}</div>`;
     $("listCount").textContent = t("list.setup_required");
+    renderLoadMore();
     return;
   }
   if (!store.selectedId || !store.state.items.some((item) => item.id === store.selectedId)) {
@@ -277,7 +291,11 @@ export function renderList() {
   }
   $("messageList").innerHTML =
     store.state.items.map(rowHtml).join("") || `<div class="empty-detail">${escapeHtml(t("list.no_items"))}</div>`;
-  $("listCount").textContent = t("list.items", { count: store.state.items.length });
+  $("listCount").textContent = t("list.loaded_items", {
+    loaded: store.state.items.length,
+    total: store.state.total_cached ?? store.state.items.length,
+  });
+  renderLoadMore();
   renderMobileTopbar();
   document.querySelectorAll(".message-row").forEach((row) => {
     row.addEventListener("click", (event) => {
@@ -453,13 +471,18 @@ export function renderDetail() {
   };
 }
 
-export async function refresh({ preserveScroll = true } = {}) {
+export async function refresh({ preserveScroll = true, append = false } = {}) {
   if (isEditing()) return pollLock();
   applyRouteFromHash();
   const scrollState = preserveScroll ? captureScrollState() : null;
   const q = encodeURIComponent($("searchInput").value || "");
   if (store.mode === "to_approve") store.mode = "approved";
-  store.state = await api(`/api/state?mode=${store.mode}&q=${q}`);
+  const pagination = append ? store.state.pagination || {} : {};
+  const cursor = pagination.next_cursor ? `&cursor=${encodeURIComponent(pagination.next_cursor)}` : "";
+  const batchId = pagination.batch_id ? `&batch_id=${encodeURIComponent(pagination.batch_id)}` : "";
+  const next = await api(`/api/state?mode=${store.mode}&q=${q}${cursor}${batchId}`);
+  store.state = append ? appendStatePage(store.state, next) : next;
+  store.pagesLoaded = append ? store.pagesLoaded + 1 : 1;
   renderCounts();
   renderList();
   renderDetail();
@@ -469,6 +492,22 @@ export async function refresh({ preserveScroll = true } = {}) {
     store.routeNeedsReplace = false;
   }
   if (scrollState) requestAnimationFrame(() => restoreScrollState(scrollState));
+}
+
+export async function loadMore() {
+  if (store.loadingMore || !store.state.pagination?.next_cursor) return;
+  store.loadingMore = true;
+  store.loadMoreError = "";
+  renderLoadMore();
+  try {
+    await refresh({ append: true });
+  } catch (error) {
+    store.loadMoreError = error instanceof Error ? error.message : String(error);
+    toast(t("list.load_more_failed"));
+  } finally {
+    store.loadingMore = false;
+    renderLoadMore();
+  }
 }
 
 export async function decide(action, ids = null) {

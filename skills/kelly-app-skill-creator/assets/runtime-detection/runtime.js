@@ -34,9 +34,9 @@ const normalize = (body) => {
 };
 
 /**
- * Relative path on purpose: under the Local Node engine the App is served from a
- * sub-path of busabase's origin, so a leading slash would resolve against that
- * origin's root. The content-type check matters too — a hosted origin's
+ * Relative path on purpose: a hosted App can be served from a sub-path of
+ * Busabase's origin, so a leading slash would resolve against that origin's
+ * root. The content-type check matters too — a hosted origin's
  * catch-all route can answer 200 with an HTML shell, which `response.ok` alone
  * would read as a successful probe. The timeout keeps a hung probe from holding
  * the module graph open; it degrades to "unknown", which every caller below

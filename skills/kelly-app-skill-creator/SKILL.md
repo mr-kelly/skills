@@ -215,10 +215,11 @@ This is a copied asset rather than prose because prose did not hold: 65
 generated Apps had each independently reinvented the same loopback-hostname
 test, and one App's own check script had gone as far as *requiring* it.
 
-Busabase spawns the App's own process in every runtime it hosts, and injects
-`BUSABASE_AIRAPP_RUNTIME` (`nodepod` | `local-node` | `srt` | `embed`). Nobody
-else sets it, so **its absence is the positive fact "standalone"**. `server.js`
-re-exposes it — the browser cannot read environment variables.
+Busabase spawns the App's own process in every runtime it hosts and injects a
+non-empty `BUSABASE_AIRAPP_RUNTIME`. Nobody else sets it, so **its absence is
+the positive fact "standalone"**. `server.js` must re-expose the result from
+`describeBusabaseAirAppRuntime()` — the browser cannot read environment
+variables, and the SDK keeps renamed and future runtime values compatible.
 
 **Never derive this from the URL** — not the hostname, not `window.self !==
 window.top`, not a `/api/airapp-preview/` path prefix. Every such test misfires
@@ -230,8 +231,8 @@ hosted" is wrong. The second direction is the damaging one: the App hides its
 own connect gate, calls `/api/v1` with no credential, and reports an error the
 operator cannot act on.
 
-Browser code probes `__airapp/runtime` **relatively** (no leading slash — under
-the Local Node engine the App is served from a sub-path of busabase's origin)
+Browser code probes `__airapp/runtime` **relatively** (no leading slash — a
+hosted App can be served from a sub-path of Busabase's origin)
 and must verify the response is JSON, since a hosted origin's catch-all route
 can answer `200` with an HTML shell.
 
