@@ -8,28 +8,13 @@ For layout mechanics, mobile CSS, sidebar drawer, scrim, and panel icon implemen
 
 Build a quiet operator tool, not a landing page.
 
-Good App-in-Skill surfaces feel like a small cockpit for one workflow:
+Good App-in-Skill surfaces feel like a small cockpit for one workflow: dense but calm, specific to
+the work, neutral surfaces, restrained accent, transparent icon buttons, clear workflow state.
 
-- dense but calm,
-- specific to the work,
-- neutral surfaces,
-- soft borders,
-- sparse shadows,
-- restrained accent color,
-- transparent icon buttons,
-- clear workflow state.
-
-Avoid:
-
-- hero sections,
-- marketing copy,
-- decorative gradients,
-- nested cards,
-- black floating mobile buttons,
-- hamburger glyphs when a panel icon fits better,
-- loud selected-row fills,
-- heavy card shadows,
-- hover states that turn every control into a primary action.
+`mobile-shell-layout.md` owns the concrete standard — the token scale (color, type, radius,
+shadow), the card composition rules, and the `Do Not` list of the specific patterns that make a
+generated app read as busy. Follow it rather than re-deriving a palette per app; that is what keeps
+a set of sibling skills looking like one product.
 
 ## Human Attention Panel
 
