@@ -106,6 +106,9 @@ export const I18N = {
     "tested.need_evidence": "Add a test note or an evidence link first.",
     "merged.at": "Merged {time} ago",
     demo_notice: "Demo mode: decisions are not saved.",
+    load_more: "Load more",
+    loading_more: "Loading...",
+    load_more_failed: "Couldn't load more. Try again.",
   },
   "zh-CN": {
     "brand.subtitle": "GitHub 审阅台",
@@ -210,5 +213,8 @@ export const I18N = {
     "tested.need_evidence": "请先填写测试说明或证据链接。",
     "merged.at": "{time} 前合并",
     demo_notice: "Demo 模式：不会保存任何决定。",
+    load_more: "加载更多",
+    loading_more: "加载中...",
+    load_more_failed: "无法加载更多，请重试。",
   },
 };

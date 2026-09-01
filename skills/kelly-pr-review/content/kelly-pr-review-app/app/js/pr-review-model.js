@@ -155,7 +155,7 @@ export function normalizeItem(row = {}) {
 // Busabase reads that have no guaranteed insertion order: refs are assigned
 // by a stable created_at (fallback id) ascending sort so a PR's "Review #N"
 // stays put across reloads regardless of the page order records.list returns.
-function withReviewRefs(items) {
+export function withReviewRefs(items) {
   const ordered = items
     .slice()
     .sort((a, b) => String(a.created_at || a.id).localeCompare(String(b.created_at || b.id)));

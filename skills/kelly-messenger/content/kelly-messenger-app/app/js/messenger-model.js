@@ -177,7 +177,7 @@ export function normalizeReply({
 // adapted for Busabase reads that have no guaranteed insertion order: refs
 // are assigned by a stable created_at ascending sort so "Reply #N" stays put
 // across reloads regardless of the page order records.list returns.
-function withReplyRefs(replies) {
+export function withReplyRefs(replies) {
   const ordered = replies
     .slice()
     .sort((a, b) => String(a.created_at || a.reply_id).localeCompare(String(b.created_at || b.reply_id)));

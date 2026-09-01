@@ -1,0 +1,5 @@
+{
+  "type": "airapp",
+  "name": "Kelly Local Model Lab",
+  "description": "Review training examples, monitor local MLX fine-tunes, compare locked evaluations, and govern LoRA adapters with Busabase as the source of truth."
+}

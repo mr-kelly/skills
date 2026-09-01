@@ -81,7 +81,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     // No delete operation exists in this skill's UI (create/edit a contract,
     // mark an obligation done, acknowledge a renewal notice, and record an

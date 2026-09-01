@@ -278,6 +278,15 @@ textarea:disabled {
   border-right: 1px solid var(--line);
 }
 
+.load-more {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .panel-header {
   position: sticky;
   top: 0;

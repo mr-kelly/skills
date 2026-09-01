@@ -871,6 +871,15 @@ body.sidebar-collapsed .sidebar-footer {
   overflow: auto;
 }
 
+.load-more {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .list-head {
   position: sticky;
   top: 0;

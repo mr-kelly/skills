@@ -224,6 +224,85 @@ Create one thin Busabase repository/service layer over `busabase-sdk`:
 Hono routes, scripts, and Agent jobs call the same service functions. Browser code
 calls Hono/AirApp endpoints and receives only sanitized data.
 
+## Reading Records At Scale: List, Page, Count
+
+Never call `records.list` in a loop to load an entire Base. One `records.list`
+call fetches one page; a capped loop (however high the cap) still hides a
+multi-page scan behind a single loading state instead of fetching a page per
+user action — the cap only bounds how bad that gets, it doesn't fix the shape.
+`busabase-sdk/airapp-check` (wired into every app's `check.mjs`) statically
+catches this as `airapp/eager-multi-page`/`airapp/unbounded-read`; do not
+special-case around the rule, fix the reading shape.
+
+**UI convention: choose "load more" or a numbered pager by layout — both are
+compliant with "one page per user action"; the difference is purely
+interaction design, not a rule to apply uniformly:**
+
+- **Load more (cumulative append).** A button appends the next page to what's
+  already showing. Fits a persistent list+detail split (a list panel and a
+  detail panel visible at the same time) — paging away by *replacing* the
+  list would silently orphan whatever the open detail pane is showing, and a
+  numbered pager crammed into a narrow side-list column has little room to
+  earn its keep. The browsing model here is continuous scanning, not jumping
+  to a numbered page.
+- **Numbered pager (Prev / 1 2 3 … / Next).** Each page click *replaces* the
+  displayed rows with exactly that page — never append — so search, the row
+  table, and any page-derived figure stay scoped to one page's worth of data.
+  Fits a screen where the list *is* the whole view and selecting a row
+  navigates away to a separate detail screen or route (nothing next to the
+  list to orphan) — `kelly-crm`'s Contacts/Deals pages (this repo, PR #131)
+  are the reference: clicking a row replaces the *entire* content area with
+  a detail view, it doesn't open a side panel next to the list.
+- Don't default to one out of habit. Look at the actual screen being built —
+  is there a detail pane staying open next to the list, or does the list own
+  the whole screen and hand off to a separate view? — and pick accordingly.
+
+Both need the same forward-cursor handling regardless of which UI wins:
+`records.list` only exposes a forward keyset cursor
+(`{baseId, limit, cursor}` → `{records, nextCursor}`), never an offset/skip.
+For a numbered pager, there is no way to fetch "page 5" directly — cache
+every cursor learned as pages are visited (an array where index `i` holds
+the cursor needed to fetch page `i + 1`, `cursors[0]` always `undefined`),
+walk forward through intermediate pages once to learn each one's `nextCursor`
+when reaching an unvisited page, then fetch the target page for real. Every
+page, once visited this way, is a single direct fetch on every later visit —
+including going backward. This cost is paid at most once per page per
+session, not per visit. For load-more, just keep the single latest
+`nextCursor` and append — there's no random access to cache for.
+
+Use `records.count({baseId})` for "how many rows exist" — it is a real, exact
+SQL count, never `rows.length` from whatever page happens to be loaded. It
+also accepts `filters` (the same shape `records.list` takes), pushed down to
+SQL, so a scoped count (e.g. "how many are open") is exactly as cheap and
+exact as the unfiltered total — use it instead of filtering a loaded page and
+counting what survives, which is only correct while that page happens to
+contain every matching row.
+
+**Per-row normalization must be one named function per record shape, applied
+identically to every page fetched — first or Nth.** Field coercion (a
+JSON-string-encoded array field parsed into a real array, numeric coercion,
+defaulting) belongs in a function like `normalizeContactRow(row)`, called by
+both the initial load and every subsequent page fetch. A second, inline copy
+of the same logic for "page 1 only" silently diverges the moment either one
+changes, and the failure mode is not a type error at write time — it is a
+render crash on whichever row is unlucky enough to land past the first page
+(reproduced for real: `tags` arrived as the string `"[]"` instead of `[]` for
+every row fetched after page 1, until the same normalizer ran on it too).
+
+**Sums and grouped aggregates have no cheap exact answer once data exceeds one
+page.** `records.count`'s exactness covers counts (including filtered
+counts); it has no sum-by-field or group-by equivalent. Don't loop
+`records.list` just to compute an exact sum — that reintroduces the same
+anti-pattern this section opens with. Instead, compute such aggregates from
+whichever page is currently loaded, keep every on-screen presentation of that
+number derived the same way (so a metric card and a chart below it never
+silently disagree), and don't present the result as a global total it isn't.
+
+Reference implementation: `kelly-crm`'s Contacts/Deals pager
+(`app/js/providers/busabase-provider.js`'s `readPage` / `countRecords` /
+`fetchPage`, `app/app.js`'s `goToPage` / `pagerControl`) in `mr-kelly/skills`
+PR #131.
+
 ## Configuration And Preferences
 
 Separate configuration by behavior:

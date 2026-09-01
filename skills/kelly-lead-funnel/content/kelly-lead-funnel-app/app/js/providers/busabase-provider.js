@@ -46,6 +46,7 @@ function parsePayload(value) {
 let runtimeClient;
 let runtimeBases = new Map();
 let pendingSetupError = "";
+let currentCriteria = {};
 
 async function ensureResources() {
   runtimeClient = runtimeClient || createRuntimeClient();
@@ -75,29 +76,47 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
-  }
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+const initialPageCursors = {};
+const initialTotalCounts = {};
+
+async function readFirstPage(key) {
+  const [{ rows, nextCursor }, total] = await Promise.all([readPage(key), countRecords(key)]);
+  initialPageCursors[key] = nextCursor;
+  initialTotalCounts[key] = total;
   return rows;
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  const declared = base(key);
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: declared.baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
+  }
+}
+
+function normalizePageRows(key, rows) {
+  if (key !== "leads") return rows;
+  return buildSnapshot({ leads: rows.map(normalizeLeadRow), criteria: currentCriteria }).leads;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -133,17 +152,28 @@ function findSettingsRow(rows = [], kind = "") {
   return rows.find((row) => row.kind === kind) || null;
 }
 
+function withPagination(data) {
+  return {
+    ...data,
+    pagination: { ...initialPageCursors },
+    totals: { ...initialTotalCounts },
+  };
+}
+
 export const busabaseProvider = {
   kind: "busabase",
 
   async getState() {
+    for (const key of Object.keys(initialPageCursors)) delete initialPageCursors[key];
+    for (const key of Object.keys(initialTotalCounts)) delete initialTotalCounts[key];
     await ensureResources();
-    const [leadRows, settingsRows] = await Promise.all([readAllRecords("leads"), readAllRecords("settings")]);
+    const [leadRows, settingsRows] = await Promise.all([readFirstPage("leads"), readFirstPage("settings")]);
     const configRow = findSettingsRow(settingsRows, "config");
     const config_summary = buildConfigSummary(parsePayload(configRow?.payload));
+    currentCriteria = config_summary.scoring_criteria;
     const leads = leadRows.map(normalizeLeadRow);
     const snapshot = buildSnapshot({ leads, criteria: config_summary.scoring_criteria });
-    return {
+    return withPagination({
       app: "kelly-lead-funnel",
       demo: false,
       data_provider: "busabase",
@@ -152,7 +182,7 @@ export const busabaseProvider = {
       config_summary,
       leads: snapshot.leads,
       summary: snapshot.summary,
-    };
+    });
   },
 
   // Direct kanban write: move a lead's stage (or reject it with a required
@@ -187,6 +217,12 @@ export const busabaseProvider = {
     const next = applyNote(current, String(text).trim(), author);
     await updateLeadRecord(existing, next, `Add note to ${id}`);
     return next;
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    return { ...page, rows: normalizePageRows(key, page.rows) };
   },
 
   async provisionResources() {

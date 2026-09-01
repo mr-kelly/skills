@@ -1,5 +1,9 @@
 export const messages = {
   en: {
+    pagination: "Pagination",
+    prevPage: "Prev",
+    nextPage: "Next",
+    pageOf: "Page {current} of {total}",
     accounts: "Channels",
     agentSuggestedPrefill: "Agent-drafted reply prefilled below. Edit before queueing.",
     approvals: "Approvals",
@@ -175,6 +179,10 @@ export const messages = {
     },
   },
   zh: {
+    pagination: "分页",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    pageOf: "第 {current} / {total} 页",
     accounts: "渠道",
     agentSuggestedPrefill: "下方已预填 Agent 起草的回复，可先编辑再入队。",
     approvals: "审批队列",

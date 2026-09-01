@@ -13,6 +13,7 @@ import {
   loadState,
   matchesQuery,
   priorityChip,
+  recordTotal,
   referenceNow,
   render,
   slaCountdown,
@@ -30,7 +31,7 @@ export function renderKnowledge() {
   const list = knowledge().filter((article) =>
     matchesQuery([article.title, article.body, article.category, ...(article.tags || [])]),
   );
-  els.subtitle.textContent = `${list.length} ${t("knowledgeBase")}`;
+  els.subtitle.textContent = `${recordTotal("knowledge-base", list.length)} ${t("knowledgeBase")}`;
   els.content.innerHTML = list.length
     ? `
     <div class="kb-grid">

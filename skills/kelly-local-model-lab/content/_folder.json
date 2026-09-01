@@ -1,0 +1,4 @@
+{
+  "name": "Kelly Local Model Lab",
+  "description": "Busabase-backed control plane for curating training examples, queuing local Apple Silicon fine-tuning runs, comparing locked evaluations, and registering model adapters."
+}

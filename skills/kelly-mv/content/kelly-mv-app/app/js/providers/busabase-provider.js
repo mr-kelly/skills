@@ -91,29 +91,39 @@ function base(key) {
   return declared;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: declared.readLimit,
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function countRecords(key, filters) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId, ...(filters ? { filters } : {}) });
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
+}
+
+async function countActiveRecords(key) {
+  const [total, deleted] = await Promise.all([
+    countRecords(key),
+    countRecords(key, [{ fieldSlug: "deleted", fieldType: "text", operator: "equals", value: "true" }]),
+  ]);
+  return total === null || deleted === null ? null : total - deleted;
 }
 
 async function findRecord(key, idFieldSlug, idValue) {
@@ -155,11 +165,11 @@ async function upsert(key, idFieldSlug, idValue, fields, message) {
 }
 
 async function readProjectRow() {
-  const rows = await readAllRecords("project");
+  const { rows } = await readPage("project");
   return rows[0] || {};
 }
 async function readSettingsRow() {
-  const rows = await readAllRecords("settings");
+  const { rows } = await readPage("settings");
   return rows.find((row) => row.record_id === "config") || {};
 }
 
@@ -239,66 +249,72 @@ function collectAssetIds({ projectRow, castRows, shotRows }) {
   return ids.filter(Boolean);
 }
 
+function buildCharacterRow(row, urlOf) {
+  return {
+    id: row.character_id,
+    name: row.name || "",
+    role: row.role || "",
+    status: row.status || "draft",
+    actor_profile: row.actor_profile || "",
+    character_card: {},
+    visual: {
+      front: row.visual_front || "",
+      side: row.visual_side || "",
+      back: row.visual_back || "",
+      wardrobe: row.wardrobe || "",
+      anchors: parseJsonArray(row.anchors_json),
+      forbidden_drift: parseJsonArray(row.forbidden_drift_json),
+    },
+    reference_card: {
+      status: row.reference_card_status || "draft",
+      prompt: row.reference_card_prompt || "",
+      image_asset: urlOf(row.reference_card_asset_id),
+      generated_at: row.reference_card_generated_at || "",
+      generation: parseJsonObject(row.reference_card_generation_json),
+    },
+  };
+}
+
+function buildShotRow(row, urlOf) {
+  return {
+    id: row.shot_id,
+    title: row.title || "",
+    status: row.status || "draft",
+    description: row.description || "",
+    negative_prompt: row.negative_prompt || "",
+    video_prompt: row.video_prompt || "",
+    duration_seconds: Number(row.duration_seconds) || 8,
+    characters: parseJsonArray(row.characters_json),
+    image_asset: urlOf(row.image_asset_id),
+    image_generated_at: row.image_generated_at || "",
+    image_generation: parseJsonObject(row.image_generation_json),
+    image_status: row.image_status || "draft",
+    image_candidates: parseJsonArray(row.image_candidates_json).map((c) => ({
+      assetId: c.assetId,
+      path: urlOf(c.assetId),
+      generated_at: c.generated_at,
+      generation: c.generation || {},
+    })),
+    video_asset: urlOf(row.video_asset_id),
+    video_generated_at: row.video_generated_at || "",
+    video_generation: parseJsonObject(row.video_generation_json),
+    video_status: row.video_status || "draft",
+    video_candidates: parseJsonArray(row.video_candidates_json).map((c) => ({
+      assetId: c.assetId,
+      path: urlOf(c.assetId),
+      generated_at: c.generated_at,
+      generation: c.generation || {},
+    })),
+  };
+}
+
 function buildProject({ projectRow, settingsRow, castRows, shotRows, urlOf }) {
-  const characters = castRows
-    .filter((row) => row.deleted !== "true")
-    .map((row) => ({
-      id: row.character_id,
-      name: row.name || "",
-      role: row.role || "",
-      status: row.status || "draft",
-      actor_profile: row.actor_profile || "",
-      character_card: {},
-      visual: {
-        front: row.visual_front || "",
-        side: row.visual_side || "",
-        back: row.visual_back || "",
-        wardrobe: row.wardrobe || "",
-        anchors: parseJsonArray(row.anchors_json),
-        forbidden_drift: parseJsonArray(row.forbidden_drift_json),
-      },
-      reference_card: {
-        status: row.reference_card_status || "draft",
-        prompt: row.reference_card_prompt || "",
-        image_asset: urlOf(row.reference_card_asset_id),
-        generated_at: row.reference_card_generated_at || "",
-        generation: parseJsonObject(row.reference_card_generation_json),
-      },
-    }));
+  const characters = castRows.filter((row) => row.deleted !== "true").map((row) => buildCharacterRow(row, urlOf));
 
   const shots = shotRows
     .filter((row) => row.deleted !== "true")
     .sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0))
-    .map((row) => ({
-      id: row.shot_id,
-      title: row.title || "",
-      status: row.status || "draft",
-      description: row.description || "",
-      negative_prompt: row.negative_prompt || "",
-      video_prompt: row.video_prompt || "",
-      duration_seconds: Number(row.duration_seconds) || 8,
-      characters: parseJsonArray(row.characters_json),
-      image_asset: urlOf(row.image_asset_id),
-      image_generated_at: row.image_generated_at || "",
-      image_generation: parseJsonObject(row.image_generation_json),
-      image_status: row.image_status || "draft",
-      image_candidates: parseJsonArray(row.image_candidates_json).map((c) => ({
-        assetId: c.assetId,
-        path: urlOf(c.assetId),
-        generated_at: c.generated_at,
-        generation: c.generation || {},
-      })),
-      video_asset: urlOf(row.video_asset_id),
-      video_generated_at: row.video_generated_at || "",
-      video_generation: parseJsonObject(row.video_generation_json),
-      video_status: row.video_status || "draft",
-      video_candidates: parseJsonArray(row.video_candidates_json).map((c) => ({
-        assetId: c.assetId,
-        path: urlOf(c.assetId),
-        generated_at: c.generated_at,
-        generation: c.generation || {},
-      })),
-    }));
+    .map((row) => buildShotRow(row, urlOf));
 
   return {
     project_id: projectRow.project_id || "kelly-mv-project",
@@ -328,8 +344,18 @@ function buildProject({ projectRow, settingsRow, castRows, shotRows, urlOf }) {
   };
 }
 
-function nextShotPosition(shotRows) {
-  return shotRows.reduce((max, row) => Math.max(max, Number(row.position) || 0), 0) + 1;
+async function buildPageItems(key, rows) {
+  const liveRows = rows.filter((row) => row.deleted !== "true");
+  if (key === "shots") liveRows.sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0));
+  const assetIds = collectAssetIds({
+    projectRow: {},
+    castRows: key === "cast" ? liveRows : [],
+    shotRows: key === "shots" ? liveRows : [],
+  });
+  const urlMap = await resolveAssetUrls(runtimeClient, assetIds);
+  const urlOf = (assetId) => (assetId ? urlMap.get(assetId) || "" : "");
+  const normalize = key === "cast" ? buildCharacterRow : buildShotRow;
+  return liveRows.map((row) => normalize(row, urlOf));
 }
 
 export const busabaseProvider = {
@@ -337,12 +363,16 @@ export const busabaseProvider = {
 
   async getState() {
     await ensureResources();
-    const [projectRow, settingsRow, castRows, shotRows] = await Promise.all([
+    const [projectRow, settingsRow, castPage, shotPage, castCount, shotCount] = await Promise.all([
       readProjectRow(),
       readSettingsRow(),
-      readAllRecords("cast"),
-      readAllRecords("shots"),
+      readPage("cast"),
+      readPage("shots"),
+      countActiveRecords("cast"),
+      countActiveRecords("shots"),
     ]);
+    const castRows = castPage.rows;
+    const shotRows = shotPage.rows;
     const assetIds = collectAssetIds({ projectRow, castRows, shotRows });
     const urlMap = await resolveAssetUrls(runtimeClient, assetIds);
     const urlOf = (assetId) => (assetId ? urlMap.get(assetId) || "" : "");
@@ -358,11 +388,23 @@ export const busabaseProvider = {
       projects: [{ id: project.project_id, title: project.song.title, artist: project.song.artist, mode: "" }],
       active_project_id: project.project_id,
       counts: { characters: countBy(project.characters), shots: countBy(project.shots), tasks: {} },
-      totals: { characters: project.characters.length, shots: project.shots.length, tasks: 0 },
+      totals: {
+        characters: castCount ?? project.characters.length,
+        shots: shotCount ?? project.shots.length,
+        tasks: 0,
+      },
+      pagination: { cast: castPage.nextCursor, shots: shotPage.nextCursor },
+      totalCount: { cast: castCount, shots: shotCount },
       completeness: completeness(project),
       attention: attention(project),
       next_step: nextStep(project),
     };
+  },
+
+  async fetchPage(key, cursor) {
+    await ensureResources();
+    const page = await readPage(key, cursor);
+    return { items: await buildPageItems(key, page.rows), nextCursor: page.nextCursor };
   },
 
   async saveTreatment({ summary = "", look = "", aspect_ratio = "16:9" } = {}) {
@@ -485,12 +527,14 @@ export const busabaseProvider = {
     await ensureResources();
     const id = String(shot.id || "");
     if (!id) throw new Error("Shot id is required");
-    const shotRows = await readAllRecords("shots");
-    const existingRow = shotRows.find((row) => row.shot_id === id);
+    const existing = await findRecord("shots", "shot-id", id);
+    const existingRow = existing
+      ? normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields)
+      : null;
     const fields = {
       ...shotFields(existingRow || {}),
       shot_id: id,
-      position: existingRow ? existingRow.position : nextShotPosition(shotRows),
+      position: existingRow ? existingRow.position : ((await countActiveRecords("shots")) || 0) + 1,
       title: shot.title ?? existingRow?.title ?? "",
       description: shot.description ?? existingRow?.description ?? "",
       negative_prompt: shot.negative_prompt ?? existingRow?.negative_prompt ?? "",

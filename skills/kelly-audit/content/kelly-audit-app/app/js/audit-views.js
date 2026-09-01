@@ -13,7 +13,9 @@ import {
   money,
   n,
   orderById,
+  pagerControl,
   paymentById,
+  recordCountLabel,
   render,
   ruleBadge,
   severityBadge,
@@ -26,9 +28,10 @@ import { getProvider } from "./providers/index.js?v=0.1.0";
 export function renderOrders() {
   els.title.textContent = t("orders");
   const items = [...filteredOrders()].sort((a, b) => String(b.order_date).localeCompare(String(a.order_date)));
-  els.subtitle.textContent = `${items.length} ${t("orders").toLowerCase()}`;
-  els.content.innerHTML = items.length
-    ? `
+  els.subtitle.textContent = `${recordCountLabel("orders", items.length, Boolean(state.query))} ${t("orders").toLowerCase()}`;
+  els.content.innerHTML = `${
+    items.length
+      ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -57,7 +60,9 @@ export function renderOrders() {
       </table>
     </div>
   `
-    : `<div class="empty">${t("empty")}</div>`;
+      : `<div class="empty">${t("empty")}</div>`
+  }
+    ${pagerControl("orders")}`;
 }
 
 function chainRow(tone, title, detail, amountHtml, badgeHtml) {
@@ -194,9 +199,10 @@ export function renderInvoices() {
   els.title.textContent = t("invoices");
   const items = [...filteredInvoices()].sort((a, b) => String(b.issue_date).localeCompare(String(a.issue_date)));
   const overdue = items.filter((item) => item.status === "overdue").length;
-  els.subtitle.textContent = `${items.length} ${t("invoices").toLowerCase()} · ${overdue} ${enumLabel("overdue")}`;
-  els.content.innerHTML = items.length
-    ? `
+  els.subtitle.textContent = `${recordCountLabel("invoices", items.length, Boolean(state.query))} ${t("invoices").toLowerCase()} · ${overdue} ${enumLabel("overdue")}`;
+  els.content.innerHTML = `${
+    items.length
+      ? `
     <div class="table-wrap">
       <table>
         <thead>
@@ -226,7 +232,9 @@ export function renderInvoices() {
       </table>
     </div>
   `
-    : `<div class="empty">${t("empty")}</div>`;
+      : `<div class="empty">${t("empty")}</div>`
+  }
+    ${pagerControl("invoices")}`;
 }
 
 export function renderInvoiceDetail() {
@@ -344,7 +352,10 @@ export function renderAnomalies() {
   const chips = state.route.id
     ? `<a class="chip" href="#/anomalies" title="${escapeHtml(t("showAll"))}">← ${escapeHtml(t("showAll"))} <b>${all.length}</b></a>`
     : ANOMALY_FILTERS.map((filter) => {
-        const count = filter === "all" ? all.length : all.filter((item) => item.status === filter).length;
+        const count =
+          filter === "all"
+            ? recordCountLabel("anomalies", all.length, Boolean(state.query))
+            : all.filter((item) => item.status === filter).length;
         const label = filter === "all" ? t("viewAll") : enumLabel(filter);
         return `<button type="button" class="chip ${state.anomalyFilter === filter ? "active" : ""}" data-anomaly-filter="${filter}" title="${escapeHtml(label)}">${escapeHtml(label)} <b>${count}</b></button>`;
       }).join("");
@@ -355,6 +366,7 @@ export function renderAnomalies() {
     <div class="opp-list">
       ${items.map((item) => anomalyCard(item, locked)).join("") || `<div class="empty">${t("noAnomalies")}</div>`}
     </div>
+    ${pagerControl("anomalies")}
   `;
 }
 

@@ -1,0 +1,88 @@
+{
+  "name": "Model Registry",
+  "description": "Base models and adapter versions that passed evaluation, including provenance and lifecycle.",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "model-id",
+      "name": "Model ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "display-name",
+      "name": "Display name",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "base-model",
+      "name": "Base model",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "base-revision",
+      "name": "Base revision",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "adapter-file",
+      "name": "Adapter file",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "training-run-id",
+      "name": "Training run ID",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "dataset-hash",
+      "name": "Dataset hash",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": true,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "notes",
+      "name": "Notes",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "registered-at",
+      "name": "Registered at",
+      "type": "text",
+      "required": true,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelly Local Model Lab</title>
+    <link rel="stylesheet" href="./styles/layers.css">
+    <link rel="stylesheet" href="./styles/shell.css">
+    <link rel="stylesheet" href="./styles/workflow.css">
+    <link rel="stylesheet" href="./accent-theme.css">
+    <link rel="stylesheet" href="./vendor/busabase-airapp-gate.css">
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar" id="appSidebar">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">LM</div>
+          <div class="brand-copy">
+            <div class="brand-title">Local Model Lab</div>
+            <div id="sync-status" class="brand-subtitle">Loading</div>
+          </div>
+          <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" title="Toggle sidebar" aria-label="Toggle sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+        </div>
+        <div class="search sidebar-search">
+          <input id="search" type="search" placeholder="Search" aria-label="Search">
+        </div>
+        <section class="human-work" aria-labelledby="humanWorkTitle">
+          <div class="human-work-eyebrow" data-i18n="attention">Your attention</div>
+          <div id="humanWorkTitle" class="human-work-title" data-i18n="humanWorkTitle">Review data before training</div>
+          <a class="human-work-primary" href="#/examples" data-route="examples">
+            <span><strong id="review-count">0</strong><span data-i18n="needReview">examples need a verdict</span></span>
+          </a>
+          <div class="human-work-secondary">
+            <a href="#/runs" data-route="runs"><strong id="active-run-count">0</strong><span data-i18n="activeRuns">runs ready or active</span></a>
+            <a href="#/registry" data-route="registry"><strong id="candidate-count">0</strong><span data-i18n="candidateModels">candidate adapters</span></a>
+          </div>
+        </section>
+        <div class="sidebar-separator"></div>
+        <nav class="filters" aria-label="Main">
+          <a href="#/overview" data-route="overview" data-i18n="overview">Overview</a>
+          <a href="#/examples" data-route="examples" data-i18n="examples">Dataset</a>
+          <a href="#/runs" data-route="runs" data-i18n="runs">Training runs</a>
+          <a href="#/evaluations" data-route="evaluations" data-i18n="evaluations">Evaluations</a>
+          <a href="#/registry" data-route="registry" data-i18n="registry">Model registry</a>
+          <a href="#/settings" data-route="settings" data-i18n="settings">Help & Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+          <label for="language" data-i18n="language">Language</label>
+          <select id="language">
+            <option value="auto">Auto</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="mobile-topbar">
+          <button id="mobileSidebarToggle" class="mobile-sidebar-toggle" type="button" aria-controls="appSidebar" aria-label="Open sidebar" title="Open sidebar"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
+          <div class="mobile-topbar-copy"><div id="mobileViewTitle" class="mobile-view-title">Local Model Lab</div><div id="mobileViewMeta" class="mobile-view-meta">Loading</div></div>
+          <button id="mobileRefresh" class="mobile-refresh-button" type="button" title="Refresh" aria-label="Refresh">R</button>
+        </div>
+        <header class="topbar">
+          <div><h1 id="page-title">Overview</h1><p id="page-subtitle" class="muted"></p></div>
+          <div class="topbar-actions"><button id="refresh" type="button" title="Refresh" aria-label="Refresh">Refresh</button></div>
+        </header>
+        <section id="content" class="content"></section>
+      </main>
+    </div>
+    <div id="sidebarScrim" class="sidebar-scrim" hidden></div>
+    <script type="module" src="./app.js"></script>
+    <script type="module" src="./accent-theme.js"></script>
+  </body>
+</html>

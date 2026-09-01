@@ -29,7 +29,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.2");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.30.1");
 });
 
 test("keeps the package manifest and runtime declarations aligned", async () => {
@@ -114,7 +114,7 @@ test("a trusted skill-root generator script exists and never touches handoffs", 
   assert.match(scriptSource, /generateFleetData/);
   assert.doesNotMatch(scriptSource, /handoffsBase/);
   const pkg = await readJson(join(skillRoot, "package.json"));
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.2");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.30.1");
 });
 
 test("retires the pre-Busabase local-file/TS-server layer", async () => {

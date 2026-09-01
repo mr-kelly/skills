@@ -1,0 +1,112 @@
+{
+  "name": "Evaluations",
+  "description": "Locked baseline and adapter evaluation results with exact metrics and human promotion verdicts.",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "evaluation-id",
+      "name": "Evaluation ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "run-id",
+      "name": "Run ID",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "model-role",
+      "name": "Model role",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "dataset-hash",
+      "name": "Evaluation dataset hash",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "case-count",
+      "name": "Case count",
+      "type": "number",
+      "required": true,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "json-valid-pct",
+      "name": "JSON valid %",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "schema-valid-pct",
+      "name": "Schema valid %",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "exact-field-pct",
+      "name": "Exact field %",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "latency-ms",
+      "name": "Median latency ms",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "report-file",
+      "name": "Report file",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "verdict",
+      "name": "Verdict",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "decision-note",
+      "name": "Decision note",
+      "type": "longtext",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "evaluated-at",
+      "name": "Evaluated at",
+      "type": "text",
+      "required": true,
+      "position": 12,
+      "options": {}
+    }
+  ],
+  "views": []
+}

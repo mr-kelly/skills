@@ -363,6 +363,15 @@ pre {
   padding: 0 12px;
 }
 
+.load-more {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .mobile-topbar,
 .sidebar-scrim {
   display: none;
