@@ -2,7 +2,8 @@
  * Where am I running? — answered by this app's own server, not by the URL.
  *
  * Busabase spawns the App's process in every runtime it hosts and injects
- * `BUSABASE_AIRAPP_RUNTIME` (`nodepod` | `local-node` | `srt` | `embed`).
+ * `BUSABASE_AIRAPP_RUNTIME` — any non-empty value. Deliberately not enumerated
+ * here: an app that lists engine names goes stale every time one is renamed.
  * Nobody else sets it, so its absence is the positive fact "standalone".
  * `server.js` re-exposes it because the browser cannot read env vars.
  *
@@ -16,13 +17,18 @@
  */
 
 const UNKNOWN_RUNTIME = { runtime: "unknown", hosted: false, determined: false };
-const HOSTED = new Set(["nodepod", "local-node", "srt", "embed"]);
 
 const normalize = (body) => {
   if (!body || typeof body !== "object" || typeof body.runtime !== "string") return UNKNOWN_RUNTIME;
   return {
     runtime: body.runtime,
-    hosted: body.hosted === true || HOSTED.has(body.runtime),
+    // PRESENCE, never membership of a list of engine names. The server already
+    // answers this correctly; the list that used to sit here was a second,
+    // staler opinion that would override nothing today and everything the day
+    // the server's field goes missing. It still named `local-node`, retired two
+    // renames ago. #127 removed this shape from every server; it never reached
+    // the browser, which is where these 66 copies were.
+    hosted: body.hosted === true,
     determined: true,
   };
 };

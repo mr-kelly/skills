@@ -28,7 +28,7 @@ export const appConfig = {
       name: "Training Examples",
       slug: "kelly-local-model-lab-training-examples",
       description: "Human-reviewed prompt and ideal-response pairs used to build immutable training snapshots.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "example-id", name: "Example ID", type: "text", required: true },
         { slug: "task", name: "Task", type: "text", required: true },
@@ -49,7 +49,7 @@ export const appConfig = {
       slug: "kelly-local-model-lab-training-runs",
       description:
         "Reviewable local training jobs with immutable inputs, claims, heartbeat, status, and result references.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "run-id", name: "Run ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: true },
@@ -76,7 +76,7 @@ export const appConfig = {
       name: "Evaluations",
       slug: "kelly-local-model-lab-evaluations",
       description: "Locked baseline and adapter evaluation results with exact metrics and human promotion verdicts.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "evaluation-id", name: "Evaluation ID", type: "text", required: true },
         { slug: "run-id", name: "Run ID", type: "text", required: true },
@@ -98,7 +98,7 @@ export const appConfig = {
       name: "Model Registry",
       slug: "kelly-local-model-lab-model-registry",
       description: "Base models and adapter versions that passed evaluation, including provenance and lifecycle.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "model-id", name: "Model ID", type: "text", required: true },
         { slug: "display-name", name: "Display name", type: "text", required: true },

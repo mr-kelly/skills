@@ -1,6 +1,6 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { createBusabaseAirAppLocalGateway } from "busabase-sdk/airapp-node";
+import { createBusabaseAirAppLocalGateway, describeBusabaseAirAppRuntime } from "busabase-sdk/airapp-node";
 import { Hono } from "hono";
 import { readWechatStatus, searchWechatContacts } from "./wechat-status.mjs";
 
@@ -40,10 +40,10 @@ app.all("/api/v1/*", (context) => gateway.proxy(context.req.raw));
 /**
  * The ONLY sanctioned way for browser code to learn where it is running.
  *
- * Busabase spawns this very process when it hosts the app, and injects
- * `BUSABASE_AIRAPP_RUNTIME` (`nodepod` | `local` | `srt` | `embed`).
- * Nobody else sets it, so its absence is the positive fact "standalone".
- * This route re-exposes that to the browser, which cannot read env vars.
+ * Busabase spawns this very process when it hosts the app and injects a
+ * non-empty `BUSABASE_AIRAPP_RUNTIME`. Nobody else sets it, so its absence is
+ * the positive fact "standalone". The SDK translates that into the report this
+ * route re-exposes to the browser, which cannot read env vars.
  *
  * Never classify the environment by hostname. A Busabase-hosted AirApp is
  * routinely served from `localhost` (Desktop/OSS runs on
@@ -61,33 +61,15 @@ app.all("/api/v1/*", (context) => gateway.proxy(context.req.raw));
  * the gateway's own `/auth/status`.
  *
  * Browser code must fetch this RELATIVELY (`__airapp/runtime`, no leading
- * slash). Under the Local Node engine the app is reverse-proxied onto a
- * sub-path of busabase's origin, so a leading slash resolves against the
- * origin root — busabase itself — and 404s.
+ * slash). A hosted app can be reverse-proxied onto a sub-path of Busabase's
+ * origin, so a leading slash resolves against the origin root — Busabase
+ * itself — and 404s.
  */
-// Hosted is decided from PRESENCE, never from membership of a list of known
-// engine names. A local list is what broke 66 shipped apps when `local-node`
-// became `local`: each answered "standalone" inside a hosted preview, showed
-// its own connection gate, called /api/v1 with no credential, and left the
-// operator with nothing to act on. Only Busabase sets this variable, so any
-// non-empty value means it spawned this process — including an engine this app
-// has never heard of.
-//
-// The same rule now also lives in busabase-sdk as `isBusabaseAirAppHosted()` /
-// `readBusabaseAirAppRuntime()`, which is where it belongs. It is NOT used here
-// yet on purpose: the scaffold pins the latest *published* SDK, and those
-// exports ship in the next release. Importing them now would generate apps that
-// crash on boot against every SDK currently on npm. Swap this for the helpers
-// once a release carrying them is out.
-const airappRuntime = (process.env.BUSABASE_AIRAPP_RUNTIME || "").trim();
-app.get("/__airapp/runtime", (context) =>
-  context.json({
-    runtime: airappRuntime || "standalone",
-    hosted: airappRuntime !== "",
-    devProxy: Boolean((process.env.BUSABASE_BASE_URL || "").trim()),
-  }),
-);
-console.log(`AirApp runtime: ${airappRuntime || "standalone"}`);
+// The SDK decides hosting from presence, preserves unknown future engine names,
+// and reports the current known alias separately.
+const airappRuntime = describeBusabaseAirAppRuntime();
+app.get("/__airapp/runtime", (context) => context.json(airappRuntime));
+console.log(`AirApp runtime: ${airappRuntime.runtime}`);
 
 app.use("/*", async (context, next) => {
   await next();

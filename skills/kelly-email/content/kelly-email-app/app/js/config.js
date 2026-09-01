@@ -130,7 +130,7 @@ export const appConfig = {
       slug: "kelly-email-reviews",
       name: "Email Reviews",
       description: "Mailbox review items, human decisions, and execution outcomes",
-      readLimit: 100,
+      readLimit: 50,
       fields: reviewFields,
     },
     {
@@ -138,7 +138,7 @@ export const appConfig = {
       slug: "kelly-email-contacts",
       name: "Email Contacts",
       description: "Contact observations derived from reviewed mail",
-      readLimit: 100,
+      readLimit: 50,
       fields: contactFields,
     },
     {
@@ -152,12 +152,21 @@ export const appConfig = {
   ],
   drive: {
     slug: "kelly-email-files",
+    resourceKey: "kelly-email-files",
     name: "Email Files",
     description: "Email HTML and attachment artifacts",
   },
   vaultNamespace: "kelly-email",
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.get", "fileTrees.readFile"],
+    readProcedures: [
+      "nodes.list",
+      "nodes.get",
+      "bases.get",
+      "records.list",
+      "records.count",
+      "records.get",
+      "fileTrees.readFile",
+    ],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata", "fileTrees.create"],
     writeProcedures: ["bases.createChangeRequest", "records.changeRequest", "fileTrees.createChangeRequest"],
   },

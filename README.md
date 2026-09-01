@@ -1708,16 +1708,16 @@ Local Apple Silicon fine-tuning control plane: curate examples, claim reproducib
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-local-model-lab-overview.png" alt="Kelly Local Model Lab overview"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-local-model-lab-dataset.png" alt="Kelly Local Model Lab dataset review"></td>
+    <td width="50%"><img src="skills/kelly-local-model-lab/assets/screenshots/overview.png" alt="Kelly Local Model Lab overview"></td>
+    <td width="50%"><img src="skills/kelly-local-model-lab/assets/screenshots/dataset.png" alt="Kelly Local Model Lab dataset review"></td>
   </tr>
   <tr>
     <td><strong>Training overview</strong><br>Approved split counts, work needing attention, the Busabase-to-MLX pipeline, and the latest locked evaluation gain.</td>
     <td><strong>Dataset review</strong><br>Prompt and ideal-response provenance, stable sample ids, split membership, and explicit approve/request-changes/block decisions.</td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/kelly-local-model-lab-evaluations.png" alt="Kelly Local Model Lab baseline and adapter evaluation"></td>
-    <td width="50%"><img src="docs/screenshots/kelly-local-model-lab-registry.png" alt="Kelly Local Model Lab model registry"></td>
+    <td width="50%"><img src="skills/kelly-local-model-lab/assets/screenshots/evaluations.png" alt="Kelly Local Model Lab baseline and adapter evaluation"></td>
+    <td width="50%"><img src="skills/kelly-local-model-lab/assets/screenshots/registry.png" alt="Kelly Local Model Lab model registry"></td>
   </tr>
   <tr>
     <td><strong>Locked evaluation</strong><br>Baseline and adapter JSON/schema/exact-field metrics with an honest hold verdict before promotion.</td>

@@ -2,7 +2,7 @@
  * Where am I running? — answered by this app's own server, not by the URL.
  *
  * Busabase spawns the App's process in every runtime it hosts and injects
- * `BUSABASE_AIRAPP_RUNTIME` (`nodepod` | `local-node` | `srt` | `embed`).
+ * `BUSABASE_AIRAPP_RUNTIME` with a non-empty value.
  * Nobody else sets it, so its absence is the positive fact "standalone".
  * `server.js` re-exposes it because the browser cannot read env vars.
  *
@@ -16,21 +16,22 @@
  */
 
 const UNKNOWN_RUNTIME = { runtime: "unknown", hosted: false, determined: false };
-const HOSTED = new Set(["nodepod", "local-node", "srt", "embed"]);
 
 const normalize = (body) => {
   if (!body || typeof body !== "object" || typeof body.runtime !== "string") return UNKNOWN_RUNTIME;
   return {
     runtime: body.runtime,
-    hosted: body.hosted === true || HOSTED.has(body.runtime),
+    // The server owns this decision. Do not form a second, stale opinion from
+    // a list of engine names in browser code.
+    hosted: body.hosted === true,
     determined: true,
   };
 };
 
 /**
- * Relative path on purpose: under the Local Node engine the App is served from a
- * sub-path of busabase's origin, so a leading slash would resolve against that
- * origin's root. The content-type check matters too — a hosted origin's
+ * Relative path on purpose: a hosted App can be served from a sub-path of
+ * Busabase's origin, so a leading slash would resolve against that origin's
+ * root. The content-type check matters too — a hosted origin's
  * catch-all route can answer 200 with an HTML shell, which `response.ok` alone
  * would read as a successful probe. The timeout keeps a hung probe from holding
  * the module graph open; it degrades to "unknown", which every caller below

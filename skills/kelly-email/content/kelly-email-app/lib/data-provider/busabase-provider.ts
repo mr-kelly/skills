@@ -3,7 +3,12 @@ import { isAirAppRequest } from "../runtime-context.ts";
 import type { Batch, Config, ConfigWithMeta } from "../types.ts";
 import { createBusabaseClient } from "./busabase-client.ts";
 import { rowsFromContactsBatch } from "./email-contacts.ts";
-import { batchFromEmailRecords, emailRecordId, reviewItemToEmailRecordFields } from "./email-records.ts";
+import {
+  batchFromEmailRecords,
+  emailRecordFieldsToReviewItem,
+  emailRecordId,
+  reviewItemToEmailRecordFields,
+} from "./email-records.ts";
 import type { AttachmentInput, AttachmentResult, DecisionInput, DetailInput } from "./provider-interface.ts";
 import { applyDetailUpdate, applyItemsDecision, decisionsFromBatch, normalizeBatch, utcNow } from "./provider-utils.ts";
 
@@ -81,9 +86,49 @@ export function createBusabaseProvider() {
     return readConfigMeta();
   }
 
-  async function readReviewRows() {
-    const rows = await (await client()).listRecordFields();
-    return rows.filter((row: any) => String(row.kind || "review_item") === "review_item");
+  async function readBatchPage({ cursor = "", batchId = "" } = {}) {
+    const busabase = await client();
+    let activeBatchId = String(batchId || "").trim();
+    if (!activeBatchId) {
+      const latest = await busabase.readRecordPage({
+        limit: 1,
+        filters: [{ fieldSlug: "kind", fieldType: "text", operator: "equals", value: "review_item" }],
+        sort: { fieldSlug: "updated-at", fieldType: "date", direction: "desc" },
+      });
+      activeBatchId = String(latest.rows[0]?.batch_id || "").trim();
+    }
+    if (!activeBatchId) {
+      return { batch: batchFromEmailRecords([]), batchId: "", nextCursor: null, total: 0 };
+    }
+    const filters = [
+      { fieldSlug: "kind", fieldType: "text", operator: "equals" as const, value: "review_item" },
+      { fieldSlug: "batch-id", fieldType: "text", operator: "equals" as const, value: activeBatchId },
+    ];
+    const [page, total] = await Promise.all([
+      busabase.readRecordPage({
+        ...(cursor ? { cursor } : {}),
+        filters,
+        sort: { fieldSlug: "updated-at", fieldType: "date", direction: "desc" },
+      }),
+      busabase.countRecordFields(filters),
+    ]);
+    return {
+      batch: batchFromEmailRecords(page.rows, activeBatchId),
+      batchId: activeBatchId,
+      nextCursor: page.nextCursor,
+      total,
+    };
+  }
+
+  async function readReviewItems(itemIds: string[]) {
+    const busabase = await client();
+    const rows = await Promise.all(
+      itemIds.map((id) => busabase.getRecordFields(emailRecordId({ id })).then((fields) => ({ fields, id }))),
+    );
+    return {
+      batchId: String(rows[0]?.fields.batch_id || ""),
+      items: rows.map(({ fields }) => emailRecordFieldsToReviewItem(fields)),
+    };
   }
 
   async function writeReviewRows(batch: Batch, itemIds?: string[]) {
@@ -170,7 +215,12 @@ export function createBusabaseProvider() {
 
     async getBatch(): Promise<Batch> {
       await this.init();
-      return batchFromEmailRecords(await readReviewRows());
+      return (await readBatchPage()).batch;
+    },
+
+    async getBatchPage(options = {}) {
+      await this.init();
+      return readBatchPage(options);
     },
 
     async saveBatch(batch: Batch) {
@@ -200,7 +250,8 @@ export function createBusabaseProvider() {
 
     async updateItems(input: DecisionInput) {
       await this.rejectIfLocked();
-      const batch = await this.getBatch();
+      const selected = await readReviewItems((input.ids || []).map(String));
+      const batch = { batch_id: selected.batchId, items: selected.items };
       const changed = applyItemsDecision(batch, input);
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
       const writes = await writeReviewRows(next, changed);
@@ -213,7 +264,8 @@ export function createBusabaseProvider() {
 
     async updateDetail(input: DetailInput) {
       await this.rejectIfLocked();
-      const batch = await this.getBatch();
+      const selected = await readReviewItems([String(input.id || "")]);
+      const batch = { batch_id: selected.batchId, items: selected.items };
       const item = applyDetailUpdate(batch, input);
       const next = normalizeBatch({ ...batch, updated_at: utcNow() });
       const [write] = await writeReviewRows(next, [item.id]);

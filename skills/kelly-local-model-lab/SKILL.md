@@ -16,7 +16,6 @@ metadata:
       - evaluations
       - model-registry
       - settings
-      - model-lab-files
     risk: local-write
 ---
 

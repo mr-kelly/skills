@@ -20,6 +20,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS = path.join(ROOT, "docs");
 const PAGES_DIR = path.join(DOCS, "s");
 const REPO_URL = "https://github.com/mr-kelly/skills";
+const assetModeArg = process.argv.find((arg) => arg.startsWith("--asset-mode="));
+const ASSET_MODE = assetModeArg?.slice("--asset-mode=".length) || "repository";
+if (!new Set(["repository", "pages-local"]).has(ASSET_MODE)) {
+  throw new Error(`Unsupported asset mode: ${ASSET_MODE}`);
+}
 // skills/**/assets/screenshots/** is Git LFS-tracked (see .gitattributes); raw.githubusercontent.com
 // serves the LFS pointer text instead of the image, so screenshots must go through the LFS media host.
 const RAW_REPO_URL = "https://media.githubusercontent.com/media/mr-kelly/skills/main";
@@ -86,7 +91,8 @@ function normalizeShotPath(src, imgPrefix) {
 }
 
 function siteShotPath(src, rel = "") {
-  return src.startsWith("skills/") ? `${RAW_REPO_URL}/${src}` : `${rel}${src}`;
+  if (!src.startsWith("skills/")) return `${rel}${src}`;
+  return ASSET_MODE === "pages-local" ? `${rel}${src}` : `${RAW_REPO_URL}/${src}`;
 }
 
 function siteThumbPath(src) {

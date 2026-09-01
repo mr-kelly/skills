@@ -10,6 +10,12 @@
     "schemaVersion": 1,
     "airapp": "kelly-local-model-lab-app",
     "tags": ["platform", "risk:local-write", "surface:busabase"],
+    "screenshots": [
+      "assets/screenshots/overview.png",
+      "assets/screenshots/dataset.png",
+      "assets/screenshots/evaluations.png",
+      "assets/screenshots/registry.png"
+    ],
     "agentPrompts": [
       "Open Kelly Local Model Lab and show me which examples need review.",
       "Prepare a reproducible local QLoRA run from the approved Busabase dataset.",
