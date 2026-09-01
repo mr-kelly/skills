@@ -8,7 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // Added on top of this file's own checks, not in place of them: the rules
 // above/below this block are specific to this app; the ones here are the
 // shared contract every AirApp is held to, versioned with the SDK so a fix
-// like busabase-sdk@0.21.0's runtime-detection rule reaches every app that
+// like busabase-sdk@0.30.1's runtime-detection rule reaches every app that
 // bumps its pin instead of staying stuck in whatever copy this file had.
 {
   const { checkAirApp } = await import("busabase-sdk/airapp-check");
@@ -47,17 +47,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
       (await readIfExists(path.join(root, "app", "config.js"))),
     shippedSlug: path.basename(root),
   });
-  // The two page-fetch rules are downgraded to a warning here, fleet-wide, on
-  // purpose: 60 of 68 apps eagerly fetch every page of a Base in one call
-  // (airapp/eager-multi-page) or have no page cap at all (airapp/unbounded-read),
-  // a pre-existing pattern this gate's job is to make VISIBLE, not to block
-  // every app's own check script on before the actual pagination fix -- a
-  // separate, larger, UI-touching change -- lands. Remove this carve-out once
-  // that fix ships; until then it would just get bypassed some other way.
-  const DEFERRED_PENDING_PAGINATION_FIX = new Set(["airapp/eager-multi-page", "airapp/unbounded-read"]);
-  const errors = findings.filter((f) => f.severity === "error" && !DEFERRED_PENDING_PAGINATION_FIX.has(f.rule));
-  const deferred = findings.filter((f) => f.severity === "error" && DEFERRED_PENDING_PAGINATION_FIX.has(f.rule));
-  for (const f of deferred) console.warn(`busabase-sdk/airapp-check: [${f.rule}] ${f.message}`);
+  const errors = findings.filter((f) => f.severity === "error");
   if (errors.length) {
     throw new Error(
       `busabase-sdk/airapp-check found ${errors.length} contract violation(s):\n${errors.map((f) => `  [${f.rule}] ${f.message}`).join("\n")}`,
