@@ -35,6 +35,8 @@
   "noEvaluation": "No comparable baseline and adapter result yet.",
   "recentRuns": "Recent runs",
   "viewAll": "View all",
+  "loadMore": "Load more",
+  "loading": "Loading...",
   "datasetQueue": "Dataset review queue",
   "noExamples": "No examples match this filter.",
   "selectExample": "Select an example",

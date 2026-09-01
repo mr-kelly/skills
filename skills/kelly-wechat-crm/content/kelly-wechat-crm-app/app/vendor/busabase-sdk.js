@@ -5,7 +5,7 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// node_modules/.pnpm/busabase-sdk@0.19.0/node_modules/busabase-sdk/dist/url-B8GMXalA.js
+// node_modules/.pnpm/busabase-sdk@0.30.1/node_modules/busabase-sdk/dist/url-B8GMXalA.js
 function normalizeBaseUrl(raw) {
   return raw.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
 }
@@ -16449,7 +16449,7 @@ function date4(params) {
 // node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// node_modules/.pnpm/busabase-sdk@0.19.0/node_modules/busabase-sdk/dist/index.js
+// node_modules/.pnpm/busabase-sdk@0.30.1/node_modules/busabase-sdk/dist/index.js
 var normalizeOrigin = (raw) => raw.trim().replace(/\/+$/, "").replace(/\/api\/v1$/, "");
 function nodeWebUrl({ webOrigin, spaceId, nodeType, nodeSlug, extraSegments = [] }) {
   const origin = normalizeOrigin(webOrigin);
@@ -16539,6 +16539,15 @@ var AgentSessionVOSchema = external_exports.object({
   /** Set when status is "failed"; surfaced verbatim to the user. */
   error: external_exports.string().nullable().default(null)
 });
+var AgentConnectionVOSchema = external_exports.object({
+  slug: external_exports.string(),
+  agentName: external_exports.string(),
+  transport: AgentTransportSchema,
+  sessionCount: external_exports.number().int().nonnegative(),
+  latest: AgentSessionVOSchema.nullable(),
+  /** Controls owner-only actions such as deleting the saved OAuth grant. */
+  ownedByCurrentUser: external_exports.boolean()
+});
 var AgentSessionEventVOSchema = external_exports.object({
   sessionId: external_exports.string(),
   /** Monotonic per session, so a reconnecting client can tell what it missed. */
@@ -16559,6 +16568,8 @@ var AgentSessionEventVOSchema = external_exports.object({
   permissionOptionId: external_exports.string().optional(),
   at: external_exports.string()
 });
+var AgentConnectionScopeSchema = external_exports.enum(["mine", "space"]);
+var ListAgentConnectionsInputSchema = external_exports.object({ scope: AgentConnectionScopeSchema.default("mine") });
 var CreateAgentSessionInputSchema = external_exports.object({
   /** Must name a catalog entry. Deliberately NOT a command line — see below. */
   slug: external_exports.string().min(1)
@@ -16568,9 +16579,15 @@ var DisconnectAgentInputSchema = external_exports.object({
   slug: external_exports.string().min(1)
 });
 var PromptAttachmentInputSchema = external_exports.object({
-  kind: external_exports.enum(["image", "audio"]),
-  data: external_exports.string().min(1),
-  mimeType: external_exports.string().min(1)
+  kind: external_exports.enum([
+    "image",
+    "audio",
+    "file"
+  ]),
+  data: external_exports.string().min(1).max(2e7),
+  mimeType: external_exports.string().min(1),
+  /** The original filename, carried for `file` so the agent and the transcript can name it. */
+  filename: external_exports.string().max(255).optional()
 });
 var PromptAgentSessionInputSchema = external_exports.object({
   sessionId: external_exports.string().min(1),
@@ -16590,6 +16607,10 @@ var agentsContract = {
     ok: external_exports.boolean(),
     deletedSessionCount: external_exports.number().int().nonnegative()
   })),
+  connections: {
+    /** Connected backends in the current user's personal or active-space scope. */
+    list: oc.input(ListAgentConnectionsInputSchema).output(AgentConnectionVOSchema.array())
+  },
   sessions: {
     list: oc.output(AgentSessionVOSchema.array()),
     create: oc.input(CreateAgentSessionInputSchema).output(AgentSessionVOSchema),
@@ -16756,7 +16777,8 @@ var baseSchema = external_exports.object({
     requiredApprovals: external_exports.number()
   }),
   createdAt: external_exports.string(),
-  fields: external_exports.array(baseFieldSchema)
+  fields: external_exports.array(baseFieldSchema),
+  metadata: external_exports.record(external_exports.string(), external_exports.unknown()).default({})
 });
 var createBaseInputSchema = external_exports.object({
   parentNodeId: external_exports.string().optional().describe("Parent node id. Must be a folder or the space root; container-incapable node types (Base, Doc, AirApp, etc.) cannot hold children."),
@@ -16907,7 +16929,8 @@ var makeFileTreeNodeType = (config2) => ({
   icon: config2.icon,
   capabilities: {
     hasDetail: true,
-    creatable: true
+    creatable: true,
+    publicAccess: config2.publicAccess
   },
   operations: fileTreeOperations(config2.type)
 });
@@ -16917,7 +16940,8 @@ var airappNodeType = makeFileTreeNodeType({
   icon: "app-window",
   routeBase: "airapps",
   tag: "AirApps",
-  entryFile: "package.json"
+  entryFile: "package.json",
+  publicAccess: "no"
 });
 var baseNodeType = {
   type: "base",
@@ -16925,7 +16949,8 @@ var baseNodeType = {
   icon: "table",
   capabilities: {
     hasDetail: true,
-    creatable: true
+    creatable: true,
+    publicAccess: "detail"
   },
   operations: [
     {
@@ -17021,7 +17046,8 @@ var docNodeType = {
   icon: "file-text",
   capabilities: {
     hasDetail: true,
-    creatable: true
+    creatable: true,
+    publicAccess: "detail"
   },
   operations: [{
     kind: "doc_update",
@@ -17035,7 +17061,8 @@ var driveNodeType = makeFileTreeNodeType({
   icon: "hard-drive",
   routeBase: "drives",
   tag: "Drives",
-  entryFile: "README.md"
+  entryFile: "README.md",
+  publicAccess: "no"
 });
 var fileNodeType = {
   type: "file",
@@ -17043,7 +17070,8 @@ var fileNodeType = {
   icon: "file",
   capabilities: {
     hasDetail: true,
-    creatable: true
+    creatable: true,
+    publicAccess: "detail"
   },
   operations: []
 };
@@ -17054,7 +17082,8 @@ var folderNodeType = {
   capabilities: {
     container: true,
     creatable: true,
-    hasDetail: true
+    hasDetail: true,
+    publicAccess: "detail"
   },
   operations: []
 };
@@ -17064,7 +17093,8 @@ var formNodeType = {
   icon: "form",
   capabilities: {
     hasDetail: true,
-    creatable: true
+    creatable: true,
+    publicAccess: "submit"
   },
   operations: []
 };
@@ -17074,7 +17104,8 @@ var htmlNodeType = {
   icon: "code-xml",
   capabilities: {
     hasDetail: true,
-    creatable: true
+    creatable: true,
+    publicAccess: "no"
   },
   operations: [{
     kind: "html_document_update",
@@ -17088,7 +17119,8 @@ var skillNodeType = makeFileTreeNodeType({
   icon: "sparkles",
   routeBase: "skills",
   tag: "Skills",
-  entryFile: "SKILL.md"
+  entryFile: "SKILL.md",
+  publicAccess: "no"
 });
 var whiteboardNodeType = {
   type: "whiteboard",
@@ -17096,7 +17128,8 @@ var whiteboardNodeType = {
   icon: "pen-tool",
   capabilities: {
     hasDetail: true,
-    creatable: true
+    creatable: true,
+    publicAccess: "detail"
   },
   operations: [{
     kind: "whiteboard_document_update",
@@ -17110,7 +17143,8 @@ var workflowNodeType = {
   icon: "workflow",
   capabilities: {
     hasDetail: true,
-    creatable: true
+    creatable: true,
+    publicAccess: "detail"
   },
   operations: [{
     kind: "workflow_document_update",
@@ -17297,6 +17331,23 @@ var userRefSchema = external_exports.object({
   image: external_exports.string().nullable(),
   role: external_exports.string().nullable().optional()
 });
+var sourceChannelSchema = external_exports.enum([
+  "web_ui",
+  "browser",
+  "openapi",
+  "sdk",
+  "cli",
+  "mcp",
+  "skill",
+  "webhook",
+  "automation",
+  "import"
+]);
+var sourceAttributionSchema = external_exports.object({
+  displayName: external_exports.string().nullable(),
+  ownerName: external_exports.string().nullable(),
+  channel: sourceChannelSchema.nullable()
+});
 var commitSchema = external_exports.object({
   id: external_exports.string(),
   baseId: external_exports.string().nullable(),
@@ -17388,6 +17439,7 @@ var changeRequestSchema = external_exports.object({
   status: changeRequestStatusSchema,
   submittedBy: external_exports.string(),
   submittedByUser: userRefSchema.nullable().optional().default(null),
+  sourceAttribution: sourceAttributionSchema.nullable().optional(),
   sourceMeta: external_exports.record(external_exports.string(), external_exports.unknown()),
   reviewPolicySnapshot: external_exports.record(external_exports.string(), external_exports.unknown()),
   mergeSummary: external_exports.record(external_exports.string(), external_exports.unknown()),
@@ -17411,11 +17463,18 @@ var agentTaskSchema = external_exports.object({
 });
 var searchResultSchema = external_exports.object({
   id: external_exports.string(),
+  /**
+  * `node` covers the CONTENT of a content-bearing node (doc / html /
+  * whiteboard / workflow). Purely additive — callers that do not know it can
+  * ignore the kind, and callers that never asked for it (an explicit
+  * `sources` list without `nodes`) never receive it.
+  */
   kind: external_exports.enum([
     "record",
     "change_request",
     "base",
-    "file"
+    "file",
+    "node"
   ]),
   title: external_exports.string(),
   body: external_exports.string(),
@@ -17428,7 +17487,17 @@ var searchResponseSchema = external_exports.object({
   limit: external_exports.number(),
   offset: external_exports.number(),
   hasMore: external_exports.boolean(),
-  results: external_exports.array(searchResultSchema)
+  results: external_exports.array(searchResultSchema),
+  /**
+  * True when at least one in-scope node's content was indexed only up to the
+  * projection cap, so this search could not see all of it.
+  *
+  * Exists so an empty result can be reported honestly: without it, "no
+  * results" is ambiguous between "the workspace does not contain this" and
+  * "we did not look at all of it". Clients should surface it — and point at
+  * `grep`, which has no such cap — rather than implying absence.
+  */
+  contentTruncated: external_exports.boolean().default(false)
 });
 var liveEventSchema = external_exports.object({
   kind: external_exports.enum([
@@ -17476,6 +17545,7 @@ var auditEventSchema = external_exports.object({
   action: auditActionSchema,
   actorId: external_exports.string(),
   actor: userRefSchema.nullable().optional().default(null),
+  sourceAttribution: sourceAttributionSchema.nullable().optional(),
   baseId: external_exports.string().nullable(),
   recordId: external_exports.string().nullable(),
   changeRequestId: external_exports.string().nullable(),
@@ -17592,18 +17662,27 @@ var listChangeRequestsPagedInputSchema = external_exports.object({
   /** Opaque base64 cursor (`createdAt|id`) for keyset pagination. */
   cursor: external_exports.string().optional(),
   status: external_exports.array(changeRequestStatusSchema).optional(),
-  mine: external_exports.boolean().optional()
+  mine: external_exports.boolean().optional(),
+  affectsNodeId: external_exports.string().min(1).optional()
 }).optional().default({ limit: 50 });
 var listChangeRequestsResponseSchema = external_exports.object({
   changeRequests: external_exports.array(changeRequestSchema),
   nextCursor: external_exports.string().nullable()
 });
-var listChangeRequestsPageInputSchema = external_exports.object({
+var changeRequestPageInputShape = {
   page: external_exports.coerce.number().int().min(1).optional().default(1),
   pageSize: external_exports.coerce.number().int().min(1).max(100).optional().default(50),
   status: external_exports.array(changeRequestStatusSchema).optional(),
   mine: external_exports.boolean().optional()
+};
+var listChangeRequestsPageInputSchema = external_exports.object({
+  ...changeRequestPageInputShape,
+  affectsNodeId: external_exports.string().min(1).optional()
 }).optional().default({
+  page: 1,
+  pageSize: 50
+});
+var inboxSnapshotInputSchema = external_exports.object(changeRequestPageInputShape).optional().default({
   page: 1,
   pageSize: 50
 });
@@ -17622,10 +17701,12 @@ var changeRequestCountsSchema = external_exports.object({
   merged: external_exports.number().int().nonnegative(),
   rejected: external_exports.number().int().nonnegative()
 });
+var inboxSnapshotResponseSchema = listChangeRequestsPageResponseSchema.extend({ counts: changeRequestCountsSchema });
 var SEARCH_SOURCES = [
   "records",
   "files",
-  "names"
+  "names",
+  "nodes"
 ];
 var searchInputSchema = external_exports.object({
   query: external_exports.string().default(""),
@@ -17854,16 +17935,11 @@ var airAppRunLocalInputSchema = external_exports.object({
   *  The in-browser Nodepod engine never uses this field: it hands raw bytes to
   *  `Nodepod.boot({ files })` directly and skips the base64 round trip. */
   binaryFiles: external_exports.record(external_exports.string(), external_exports.string()).optional().default({}),
-  /** Server-side execution mode. `"local"` spawns a bare host Node.js
-  *  process (previewable, data bridge via reverse proxy, NOT OS-isolated);
-  *  `"srt"` wraps the same commands in the OS sandbox (isolated execution,
-  *  but live preview is unreachable). `"nodepod"` never calls this endpoint —
-  *  it runs entirely in-browser. */
-  engine: external_exports.enum([
-    "local",
-    "srt",
-    "sandock"
-  ]).default("local")
+  /** Where the server should run it. `"local"` spawns a bare process on the
+  *  Busabase host (previewable, data bridge via reverse proxy, NOT isolated);
+  *  `"remote"` runs the same lifecycle on a provisioned machine elsewhere.
+  *  `"browser"` never reaches this endpoint — it runs entirely in the tab. */
+  engine: external_exports.enum(["local", "remote"]).default("local")
 });
 var airAppRuntimeEventSchema = external_exports.discriminatedUnion("type", [
   external_exports.object({
@@ -17968,6 +18044,10 @@ var AssetVOSchema = external_exports.object({
   textStatus: AssetTextStatusSchema,
   createdAt: external_exports.string()
 });
+var ListAssetsInputSchema = external_exports.object({
+  limit: external_exports.coerce.number().int().min(1).max(200).optional().describe("Page size, 1-200. Omit to return every asset (the historical behaviour)."),
+  cursor: external_exports.string().optional().describe("Asset id of the last row of the previous page. Requires `limit`.")
+}).optional();
 var AssetUsageVOSchema = external_exports.object({
   ownerType: external_exports.enum([
     "drive",
@@ -18142,8 +18222,8 @@ var assetsContract = {
     path: "/assets",
     tags: ["Assets"],
     summary: "List assets",
-    successDescription: "Every asset in the space, with file metadata and usage counts."
-  }).output(external_exports.array(AssetVOSchema)),
+    successDescription: "Assets in the space, newest first, with file metadata and usage counts. Every asset when `limit` is omitted; otherwise one page, where `cursor` is the previous page's last asset id and a short page means the end."
+  }).input(ListAssetsInputSchema).output(external_exports.array(AssetVOSchema)),
   get: oc.route({
     method: "GET",
     path: "/assets/{assetId}",
@@ -18426,6 +18506,33 @@ var createBulkChangeRequestInputSchema = external_exports.object({
   idempotencyKey: external_exports.string().optional().describe("Optional client-supplied key that dedupes retries. Scoped per base + submitter: calling this endpoint again with the SAME idempotencyKey returns the bulk change request created by the first call instead of creating a duplicate. Omit for normal one-shot calls; only set it when you might retry."),
   autoMerge: external_exports.boolean().optional()
 });
+var bulkRecordUpdateSchema = external_exports.object({
+  recordId: external_exports.string().min(1),
+  fields: external_exports.record(external_exports.string(), external_exports.unknown()).refine((fields) => Object.keys(fields).length > 0, "fields must contain at least one field"),
+  baseCommitId: external_exports.string().min(1).optional(),
+  message: external_exports.string().min(1).optional()
+});
+var createBulkUpdateChangeRequestInputSchema = external_exports.object({
+  updates: external_exports.array(bulkRecordUpdateSchema).min(1).max(1e3),
+  message: external_exports.string().optional().default("Bulk update records"),
+  submittedBy: external_exports.string().optional().default("local-producer"),
+  idempotencyKey: external_exports.string().optional(),
+  autoMerge: external_exports.boolean().optional()
+}).superRefine(({ updates }, ctx) => {
+  const seen = /* @__PURE__ */ new Set();
+  for (const [index, update] of updates.entries()) {
+    if (seen.has(update.recordId)) ctx.addIssue({
+      code: "custom",
+      path: [
+        "updates",
+        index,
+        "recordId"
+      ],
+      message: `Duplicate recordId in batch: ${update.recordId}`
+    });
+    seen.add(update.recordId);
+  }
+});
 var recordFieldFilterInputSchema = external_exports.object({
   baseId: external_exports.string().optional(),
   fieldSlug: external_exports.string().min(1),
@@ -18522,6 +18629,13 @@ var baseContract = {
     summary: "Create bulk record Change Request in Base",
     successDescription: "Created one change request proposing many record creates."
   }).input(createBulkChangeRequestInputSchema.extend({ baseId: external_exports.string() })).output(changeRequestSchema),
+  createBulkUpdateChangeRequest: oc.route({
+    method: "POST",
+    path: "/bases/{baseId}/records/bulk-update-change-request",
+    tags: ["Bases", "Change Requests"],
+    summary: "Create bulk record update Change Request in Base",
+    successDescription: "Created one change request proposing many record updates."
+  }).input(createBulkUpdateChangeRequestInputSchema.extend({ baseId: external_exports.string() })).output(changeRequestSchema),
   createField: oc.route({
     method: "POST",
     path: "/bases/{baseId}/fields",
@@ -18702,6 +18816,20 @@ var ExportAssetTextVOSchema = external_exports.object({
   textContentHash: external_exports.string().nullable(),
   byteCount: external_exports.number().int().nonnegative()
 });
+var ImportBeginInputSchema = external_exports.object({
+  /**
+  * The space id the archive was ORIGINALLY exported from (`manifest.spaceId`
+  * in the `.bbdump`, already integrity-verified before this is called).
+  * `importTableRows`'s "nodes" handling needs this to recognize the
+  * archive's own root-node row deterministically (`rootNodeIdForSpace`) —
+  * scanning each batch's rows for "the one with a null `parentId`" only
+  * works when that row happens to land in the SAME batch as its children,
+  * which cursor pagination (id-ordered, not tree-ordered) does not
+  * guarantee once a space has more nodes than one page. See the matching
+  * comment in `import-logic.ts`.
+  */
+  sourceSpaceId: external_exports.string()
+});
 var ImportBeginVOSchema = external_exports.object({ sessionId: external_exports.string() });
 var ImportTablesInputSchema = external_exports.object({
   sessionId: external_exports.string(),
@@ -18741,7 +18869,7 @@ var dumpContract = {
     tags: ["Dump"],
     summary: "Begin a full-fidelity import session",
     successDescription: "Created an import session for the current space. Refused unless the space's node tree is empty (full-fidelity import preserves original ids and cannot merge into existing data)."
-  }).output(ImportBeginVOSchema),
+  }).input(ImportBeginInputSchema).output(ImportBeginVOSchema),
   importTables: oc.route({
     method: "POST",
     path: "/dump/import/tables",
@@ -18908,6 +19036,40 @@ var formContract = {
     successDescription: "Creates an approval-first record-create ChangeRequest on the target Base."
   }).input(SubmitFormInputSchema.extend({ nodeId: external_exports.string() })).output(FormSubmitResultSchema)
 };
+var GuideKindSchema = external_exports.enum(["reference", "walkthrough"]);
+var GuideTopicVOSchema = external_exports.object({
+  topic: external_exports.string(),
+  title: external_exports.string(),
+  /** `reference` = read it and apply it. `walkthrough` = a workflow to run WITH the user. */
+  kind: GuideKindSchema,
+  summary: external_exports.string()
+});
+var GuideVOSchema = external_exports.object({
+  topic: external_exports.string(),
+  title: external_exports.string(),
+  kind: GuideKindSchema,
+  /** The document itself, markdown. */
+  content: external_exports.string(),
+  /** The other topics this deployment serves, so one call is enough to keep going. */
+  otherTopics: external_exports.array(external_exports.string())
+});
+var ReadGuideInputSchema = external_exports.object({ topic: external_exports.string().min(1).describe("Guide topic. Call `GET /guides` for the ones served here.") });
+var guidesContract = {
+  list: oc.route({
+    method: "GET",
+    path: "/guides",
+    tags: ["Guides"],
+    summary: "List the guides this deployment serves",
+    successDescription: "The guide catalog: topic, title, kind, and a one-line summary. Read one with `GET /guides/{topic}`."
+  }).output(external_exports.array(GuideTopicVOSchema)),
+  read: oc.route({
+    method: "GET",
+    path: "/guides/{topic}",
+    tags: ["Guides"],
+    summary: "Read one guide",
+    successDescription: "The full markdown document, plus the other topics served here. Read `workspace` before proposing changes and `airapp` before writing any AirApp file."
+  }).input(ReadGuideInputSchema).output(GuideVOSchema)
+};
 var InstallPlanNodeTypeSchema = external_exports.enum([
   "folder",
   "doc",
@@ -19020,6 +19182,13 @@ var InstallResultVOSchema = external_exports.object({
   */
   pendingChangeRequests: external_exports.number().int().min(0),
   warnings: external_exports.array(external_exports.string()).default([])
+});
+external_exports.object({
+  /** Which of the five passes stopped, e.g. `Pass 4/5 (sample records)`. */
+  phase: external_exports.string(),
+  targetFolderSlug: external_exports.string(),
+  created: InstallCreatedCountsVOSchema,
+  pendingChangeRequests: external_exports.number().int().min(0)
 });
 var repoUrlField = external_exports.string().min(1).describe("GitHub repo URL: https://github.com/<owner>/<repo>[/tree/<ref>[/<subdir>]]. Only GitHub hosts are accepted.");
 var intoFolderField = external_exports.string().optional().describe("Slug of the folder to install into. Defaults to the package manifest's name.");
@@ -19412,6 +19581,104 @@ var listRecordActivityInputSchema = external_exports.object({
   recordId: external_exports.string().min(1),
   limit: external_exports.coerce.number().int().min(1).max(100).optional().default(50)
 });
+var EMBED_LINK_MAX_MINUTES = 1440;
+var EmbedNodeTypeSchema = external_exports.enum([
+  "base",
+  "doc",
+  "file",
+  "drive",
+  "skill",
+  "folder",
+  "airapp"
+]);
+var EmbedTargetTypeSchema = external_exports.enum([
+  "node",
+  "change-request",
+  "record-detail"
+]);
+var EmbedFrameModeSchema = external_exports.enum([
+  "anywhere",
+  "origins",
+  "top-level-only"
+]);
+var EmbedAllowedOriginSchema = external_exports.string().trim().min(1).superRefine((value2, ctx) => {
+  let url2;
+  try {
+    url2 = new URL(value2);
+  } catch {
+    ctx.addIssue({
+      code: "custom",
+      message: "Allowed origins must be valid URLs"
+    });
+    return;
+  }
+  const isLocalHttp = url2.protocol === "http:" && (url2.hostname === "localhost" || url2.hostname === "127.0.0.1" || url2.hostname === "[::1]");
+  if (url2.protocol !== "https:" && !isLocalHttp) ctx.addIssue({
+    code: "custom",
+    message: "Allowed origins must use HTTPS"
+  });
+  if (url2.username || url2.password || url2.pathname !== "/" || url2.search || url2.hash || url2.hostname.includes("*")) ctx.addIssue({
+    code: "custom",
+    message: "Allowed origins must be exact origins"
+  });
+}).transform((value2) => new URL(value2).origin);
+var EmbedFramePolicyInputSchema = external_exports.discriminatedUnion("mode", [
+  external_exports.object({
+    mode: external_exports.literal("anywhere"),
+    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).max(0).optional()
+  }),
+  external_exports.object({
+    mode: external_exports.literal("origins"),
+    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).min(1).max(20)
+  }),
+  external_exports.object({
+    mode: external_exports.literal("top-level-only"),
+    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).max(0).optional()
+  })
+]).transform((policy) => ({
+  mode: policy.mode,
+  allowedOrigins: [...new Set(policy.allowedOrigins ?? [])]
+}));
+var EmbedFramePolicyVOSchema = external_exports.object({
+  mode: EmbedFrameModeSchema,
+  allowedOrigins: external_exports.array(external_exports.string().url())
+}).superRefine((policy, ctx) => {
+  if (!(policy.mode === "origins" ? policy.allowedOrigins.length > 0 : policy.allowedOrigins.length === 0)) ctx.addIssue({
+    code: "custom",
+    message: "Stored frame policy is invalid"
+  });
+});
+var CreateEmbedLinkInputSchema = external_exports.object({
+  type: EmbedTargetTypeSchema,
+  typeId: external_exports.string().min(1),
+  expiresInMinutes: external_exports.number().int().min(1).max(EMBED_LINK_MAX_MINUTES).optional().default(15),
+  framePolicy: EmbedFramePolicyInputSchema.optional().default({
+    mode: "anywhere",
+    allowedOrigins: []
+  })
+});
+var ListEmbedLinksInputSchema = external_exports.object({
+  type: EmbedTargetTypeSchema.optional(),
+  typeId: external_exports.string().min(1).optional()
+}).optional().default({});
+var RevokeEmbedLinkInputSchema = external_exports.object({ id: external_exports.string().min(1) });
+var EmbedLinkVOSchema = external_exports.object({
+  id: external_exports.string(),
+  type: EmbedTargetTypeSchema,
+  typeId: external_exports.string(),
+  targetName: external_exports.string(),
+  nodeType: EmbedNodeTypeSchema.nullable(),
+  createdAt: external_exports.string().datetime(),
+  expiresAt: external_exports.string().datetime(),
+  revokedAt: external_exports.string().datetime().nullable(),
+  active: external_exports.boolean(),
+  framePolicy: EmbedFramePolicyVOSchema
+});
+var CreatedEmbedLinkVOSchema = EmbedLinkVOSchema.extend({
+  url: external_exports.string().url(),
+  iframeUrl: external_exports.string().url()
+});
+var RevokeEmbedLinkVOSchema = external_exports.object({ revoked: external_exports.literal(true) });
 var GrepSourceSchema = external_exports.enum([
   "files",
   "nodes",
@@ -19701,6 +19968,7 @@ var NodeDetailVOSchema = external_exports.discriminatedUnion("type", [
   NODE_DETAIL_VARIANTS.workflow,
   NODE_DETAIL_VARIANTS.html
 ]);
+var nodeAncestorsVOSchema = external_exports.object({ ancestorIds: external_exports.array(external_exports.string()) });
 var getNodeInputSchema = external_exports.object({
   nodeId: external_exports.string().describe("Node id, or a slug that is unique within its type."),
   type: external_exports.enum(NODE_TYPES).optional().describe("Optional disambiguation hint, only needed when `nodeId` is a slug that exists under more than one node type.")
@@ -19714,6 +19982,29 @@ var changeRequestBatchFailureSchema = external_exports.object({
   code: external_exports.string().optional(),
   data: external_exports.unknown().optional()
 });
+var embedLinkErrorResponseSchema = external_exports.object({ error: external_exports.string() });
+var embedLinkErrors = {
+  BAD_REQUEST: {
+    status: 400,
+    message: "Bad Request",
+    data: embedLinkErrorResponseSchema
+  },
+  UNAUTHORIZED: {
+    status: 401,
+    message: "Unauthorized",
+    data: embedLinkErrorResponseSchema
+  },
+  FORBIDDEN: {
+    status: 403,
+    message: "Forbidden",
+    data: embedLinkErrorResponseSchema
+  },
+  NOT_FOUND: {
+    status: 404,
+    message: "Not Found",
+    data: embedLinkErrorResponseSchema
+  }
+};
 var changeRequestReviewBatchResultSchema = external_exports.object({ results: external_exports.array(external_exports.discriminatedUnion("ok", [external_exports.object({
   changeRequestId: external_exports.string(),
   ok: external_exports.literal(true),
@@ -19750,6 +20041,29 @@ var busabaseContractRoutes = {
     summary: "Search files, Docs, and Base records with one pattern (unified grep)",
     successDescription: "Streaming regex/literal matches across every in-scope source \u2014 Drive/Skill files, Doc bodies, and Base records (canonical headCommit.payload, never the truncated search projection) \u2014 with one shared pattern, one shared maxMatches/deadline budget (files scanned first, then docs, then whatever budget remains goes to records), and a per-source honest coverage report (files keeps its existing missing/stale/unsearchable/errored/notReached; docs and records report scanned/errored/notReached). truncated is set when any source truncated or has notReached > 0."
   }).input(UnifiedGrepInputSchema).output(UnifiedGrepResultVOSchema),
+  embedLinks: {
+    create: oc.route({
+      method: "POST",
+      path: "/embed-links",
+      tags: ["Embed Links"],
+      summary: "Create a polymorphic read-only embed link",
+      successDescription: "The capability URL is returned once; only its secret hash is stored."
+    }).errors(embedLinkErrors).input(CreateEmbedLinkInputSchema).output(CreatedEmbedLinkVOSchema),
+    list: oc.route({
+      method: "GET",
+      path: "/embed-links",
+      tags: ["Embed Links"],
+      summary: "List embed links the caller can manage",
+      successDescription: "Embed link metadata without capability secrets."
+    }).errors(embedLinkErrors).input(ListEmbedLinksInputSchema).output(external_exports.array(EmbedLinkVOSchema)),
+    revoke: oc.route({
+      method: "DELETE",
+      path: "/embed-links/{id}",
+      tags: ["Embed Links"],
+      summary: "Revoke an embed link",
+      successDescription: "The capability stops resolving immediately."
+    }).errors(embedLinkErrors).input(RevokeEmbedLinkInputSchema).output(RevokeEmbedLinkVOSchema)
+  },
   nodes: {
     list: oc.route({
       method: "GET",
@@ -19763,7 +20077,7 @@ var busabaseContractRoutes = {
       path: "/nodes/search",
       tags: ["Nodes", "Search"],
       summary: "Search nodes by name/slug (cheap, name-only quick-jump)",
-      successDescription: "Plain ilike match on name/slug across every registered node type, scoped by the same node-visibility ACL as `nodes.list`. No content scan and no full-text ranking \u2014 ordered exact-slug-match first, then by name. Backs the dashboard search dialog's 'Recent' tab cache-miss path; the heavier `search` endpoint remains the dedicated full-text content search."
+      successDescription: "Plain ilike match on name/slug across every registered node type, scoped by the same node-visibility ACL as `nodes.list`. No content scan and no full-text ranking \u2014 ordered exact-slug-match first, then by name. Backs the dashboard search dialog's 'Recent' tab cache-miss path. To search what is written INSIDE nodes, use `search` with the `nodes` source (indexed, paginated) or `grep` (exhaustive, no index)."
     }).input(searchNodesByNameInputSchema).output(external_exports.array(nodeSearchResultSchema)),
     isDescendant: oc.route({
       method: "GET",
@@ -19772,6 +20086,13 @@ var busabaseContractRoutes = {
       summary: "Check whether a node is a descendant of another",
       successDescription: "Server-authoritative parentId-chain walk from nodeId up to potentialAncestorId. Used to gate cross-branch drag-and-drop drops in the sidebar, since the full tree is no longer guaranteed to be loaded client-side (depth-bounded lazy load) \u2014 a purely local walk could wrongly allow dropping a folder into its own unloaded descendant."
     }).input(isDescendantInputSchema).output(isDescendantOutputSchema),
+    ancestors: oc.route({
+      method: "GET",
+      path: "/nodes/{nodeId}/ancestors",
+      tags: ["Nodes"],
+      summary: "List a node's ancestor ids",
+      successDescription: "The node's ancestor ids, root-first, excluding the node itself (`[]` directly under the workspace root). `nodeId` accepts an id or a slug, same as `nodes.get`; pass `type` when a slug exists under more than one type. Lets a depth-bounded, lazily-expanded tree open straight to a deep node on a cold load (a refresh, a bookmark, a shared link) without one round trip per level."
+    }).input(getNodeInputSchema).output(nodeAncestorsVOSchema),
     createChangeRequest: oc.route({
       method: "POST",
       path: "/nodes/change-requests",
@@ -20008,21 +20329,23 @@ var busabaseContractRoutes = {
   dump: dumpContract,
   install: installContract,
   templates: templatesContract,
+  guides: guidesContract,
   changeRequests: {
     list: oc.route({
       method: "GET",
       path: "/change-requests",
       tags: ["Change Requests"],
       summary: "List change requests",
-      successDescription: "A page of change requests plus an opaque nextCursor (null at the end). Filter with `status` and/or `mine`."
+      successDescription: "A page of change requests plus an opaque nextCursor (null at the end). Filter with `status`, `mine`, and/or `affectsNodeId`."
     }).input(listChangeRequestsPagedInputSchema).output(listChangeRequestsResponseSchema),
     listPage: oc.route({
       method: "GET",
       path: "/change-requests/page",
       tags: ["Change Requests"],
       summary: "List a numbered change request page",
-      successDescription: "A random-access page of change requests plus the total across the whole filter. Same `status` / `mine` filters as the cursor listing."
+      successDescription: "A random-access page of change requests plus the total across the whole filter. Same `status`, `mine`, and `affectsNodeId` filters as the cursor listing."
     }).input(listChangeRequestsPageInputSchema).output(listChangeRequestsPageResponseSchema),
+    inboxSnapshot: oc.input(inboxSnapshotInputSchema).output(inboxSnapshotResponseSchema),
     counts: oc.route({
       method: "GET",
       path: "/change-requests/counts",
@@ -20073,94 +20396,6 @@ var busabaseContractRoutes = {
   views: viewContract
 };
 oc.prefix("/api/v1").router(busabaseContractRoutes);
-var EMBED_LINK_MAX_MINUTES = 1440;
-var EmbedNodeTypeSchema = external_exports.enum([
-  "base",
-  "doc",
-  "file",
-  "drive",
-  "skill",
-  "folder",
-  "airapp"
-]);
-var EmbedFrameModeSchema = external_exports.enum([
-  "anywhere",
-  "origins",
-  "top-level-only"
-]);
-var EmbedAllowedOriginSchema = external_exports.string().trim().min(1).superRefine((value2, ctx) => {
-  let url2;
-  try {
-    url2 = new URL(value2);
-  } catch {
-    ctx.addIssue({
-      code: "custom",
-      message: "Allowed origins must be valid URLs"
-    });
-    return;
-  }
-  const isLocalHttp = url2.protocol === "http:" && (url2.hostname === "localhost" || url2.hostname === "127.0.0.1" || url2.hostname === "[::1]");
-  if (url2.protocol !== "https:" && !isLocalHttp) ctx.addIssue({
-    code: "custom",
-    message: "Allowed origins must use HTTPS"
-  });
-  if (url2.username || url2.password || url2.pathname !== "/" || url2.search || url2.hash || url2.hostname.includes("*")) ctx.addIssue({
-    code: "custom",
-    message: "Allowed origins must be exact origins"
-  });
-}).transform((value2) => new URL(value2).origin);
-var EmbedFramePolicyInputSchema = external_exports.discriminatedUnion("mode", [
-  external_exports.object({
-    mode: external_exports.literal("anywhere"),
-    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).max(0).optional()
-  }),
-  external_exports.object({
-    mode: external_exports.literal("origins"),
-    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).min(1).max(20)
-  }),
-  external_exports.object({
-    mode: external_exports.literal("top-level-only"),
-    allowedOrigins: external_exports.array(EmbedAllowedOriginSchema).max(0).optional()
-  })
-]).transform((policy) => ({
-  mode: policy.mode,
-  allowedOrigins: [...new Set(policy.allowedOrigins ?? [])]
-}));
-var EmbedFramePolicyVOSchema = external_exports.object({
-  mode: EmbedFrameModeSchema,
-  allowedOrigins: external_exports.array(external_exports.string().url())
-}).superRefine((policy, ctx) => {
-  if (!(policy.mode === "origins" ? policy.allowedOrigins.length > 0 : policy.allowedOrigins.length === 0)) ctx.addIssue({
-    code: "custom",
-    message: "Stored frame policy is invalid"
-  });
-});
-var CreateEmbedLinkInputSchema = external_exports.object({
-  nodeId: external_exports.string().min(1),
-  expiresInMinutes: external_exports.number().int().min(1).max(EMBED_LINK_MAX_MINUTES).optional().default(15),
-  framePolicy: EmbedFramePolicyInputSchema.optional().default({
-    mode: "anywhere",
-    allowedOrigins: []
-  })
-});
-var ListEmbedLinksInputSchema = external_exports.object({ nodeId: external_exports.string().min(1).optional() }).optional().default({});
-var RevokeEmbedLinkInputSchema = external_exports.object({ id: external_exports.string().min(1) });
-var EmbedLinkVOSchema = external_exports.object({
-  id: external_exports.string(),
-  nodeId: external_exports.string(),
-  nodeName: external_exports.string(),
-  nodeType: EmbedNodeTypeSchema,
-  createdAt: external_exports.string().datetime(),
-  expiresAt: external_exports.string().datetime(),
-  revokedAt: external_exports.string().datetime().nullable(),
-  active: external_exports.boolean(),
-  framePolicy: EmbedFramePolicyVOSchema
-});
-var CreatedEmbedLinkVOSchema = EmbedLinkVOSchema.extend({
-  url: external_exports.string().url(),
-  iframeUrl: external_exports.string().url()
-});
-var RevokeEmbedLinkVOSchema = external_exports.object({ revoked: external_exports.literal(true) });
 var ErrorResponseSchema = external_exports.object({ error: external_exports.string() });
 var HealthResponseSchema = external_exports.object({
   status: external_exports.string(),
@@ -20206,25 +20441,7 @@ var notFoundErrors = { NOT_FOUND: {
   message: "Not Found",
   data: ErrorResponseSchema
 } };
-var embedLinksErrors = {
-  BAD_REQUEST: {
-    status: 400,
-    message: "Bad Request",
-    data: ErrorResponseSchema
-  },
-  ...authenticatedErrors,
-  FORBIDDEN: {
-    status: 403,
-    message: "Forbidden",
-    data: ErrorResponseSchema
-  },
-  ...notFoundErrors
-};
-var securedRoute = (operation) => ({
-  ...operation,
-  security: [{ bearerAuth: [] }]
-});
-var { vault: _localVault, ...cloudWorkbenchRoutes } = busabaseContractRoutes;
+var { embedLinks: _embedLinksAlreadyPublishedAtRoot, vault: _localVault, ...cloudWorkbenchRoutes } = busabaseContractRoutes;
 var cloudExtraRoutes = {
   system: {
     health: oc.route({
@@ -20289,32 +20506,7 @@ var cloudExtraRoutes = {
       ...notFoundErrors
     }).input(external_exports.object({ params: external_exports.object({ id: external_exports.string() }) })).output(AgentTaskDetailSchema)
   },
-  embedLinks: {
-    create: oc.route({
-      method: "POST",
-      path: "/embed-links",
-      tags: ["Embed Links"],
-      summary: "Create a short-lived read-only embed link for one node",
-      successDescription: "The capability URL is returned once; only its secret hash is stored.",
-      spec: securedRoute
-    }).errors(embedLinksErrors).input(CreateEmbedLinkInputSchema).output(CreatedEmbedLinkVOSchema),
-    list: oc.route({
-      method: "GET",
-      path: "/embed-links",
-      tags: ["Embed Links"],
-      summary: "List embed links the caller can manage",
-      successDescription: "Embed link metadata without capability secrets.",
-      spec: securedRoute
-    }).errors(embedLinksErrors).input(ListEmbedLinksInputSchema).output(external_exports.array(EmbedLinkVOSchema)),
-    revoke: oc.route({
-      method: "DELETE",
-      path: "/embed-links/{id}",
-      tags: ["Embed Links"],
-      summary: "Revoke an embed link",
-      successDescription: "The capability stops resolving immediately.",
-      spec: securedRoute
-    }).errors(embedLinksErrors).input(RevokeEmbedLinkInputSchema).output(RevokeEmbedLinkVOSchema)
-  }
+  embedLinks: busabaseContractRoutes.embedLinks
 };
 var cloudContract = oc.prefix("/api/v1").router({
   ...cloudWorkbenchRoutes,
@@ -20333,6 +20525,7 @@ function resolveConfig(config2 = {}) {
     webUrl: normalizeBaseUrl(config2.webUrl ?? env("BUSABASE_WEB_URL") ?? baseUrl),
     apiKey: config2.apiKey ?? env("BUSABASE_API_KEY"),
     spaceId: config2.spaceId ?? env("BUSABASE_SPACE_ID"),
+    sourceChannel: config2.sourceChannel ?? "sdk",
     headers: config2.headers,
     fetch: config2.fetch
   };
@@ -20368,6 +20561,7 @@ function createBusabaseClient(config2 = {}) {
       return {
         ...resolved.apiKey ? { authorization: `Bearer ${resolved.apiKey}` } : {},
         ...resolved.spaceId ? { "x-busabase-space": resolved.spaceId } : {},
+        "x-busabase-channel": resolved.sourceChannel ?? "sdk",
         ...extra
       };
     }
@@ -20526,7 +20720,7 @@ var Busabase = class {
   * This is the *authenticated*, durable link: it never expires, but the reader
   * needs a session unless the node has public sharing enabled. For a no-login
   * link, mint a Cloud embed link instead —
-  * `bb.embedLinks.create({ nodeId })` returns `{ url, iframeUrl }`.
+  * `bb.embedLinks.create({ type: "node", typeId: nodeId })` returns `{ url, iframeUrl }`.
   *
   * @example
   * ```ts

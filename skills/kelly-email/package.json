@@ -12,12 +12,12 @@
     "app:check": "pnpm --dir content/kelly-email-app check"
   },
   "dependencies": {
-    "busabase-sdk": "0.17.2",
+    "busabase-sdk": "0.30.1",
     "imapflow": "^1.6.5",
     "mailparser": "^3.9.14",
     "nodemailer": "^9.0.3"
   },
   "engines": {
-    "node": ">=23.6"
+    "node": ">=24.18.0"
   }
 }

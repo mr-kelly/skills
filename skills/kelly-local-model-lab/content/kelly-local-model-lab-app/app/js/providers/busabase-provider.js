@@ -24,6 +24,16 @@ const toBusabaseFields = (fields) =>
 let runtimeClient;
 let runtimeBases = new Map();
 let pendingSetupError = "";
+let loadedRows = new Map();
+let pageState = new Map();
+
+const snapshotKeys = {
+  "training-examples": "examples",
+  "training-runs": "runs",
+  evaluations: "evaluations",
+  "model-registry": "models",
+  settings: "settings",
+};
 
 async function ensureResources() {
   runtimeClient = runtimeClient || createRuntimeClient();
@@ -54,29 +64,31 @@ function base(key) {
   return value;
 }
 
-async function readAllRecords(key, { maxPages = 20 } = {}) {
+async function readPage(key, cursor) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < maxPages; page += 1) {
-    const result = await runtimeClient.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+  const result = await runtimeClient.records.list({
+    baseId: declared.baseId,
+    limit: Math.min(declared.readLimit || 100, 100),
+    ...(cursor ? { cursor } : {}),
+  });
+  const records = Array.isArray(result) ? result : result.records || [];
+  const rows = records.map((record) => ({
+    ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
+    __recordId: record.id,
+    __headCommitId: record.headCommitId || record.headCommit?.id,
+  }));
+  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+}
+
+async function countRecords(key) {
+  if (!allowedReads.has("records.count")) return null;
+  try {
+    const { total } = await runtimeClient.records.count({ baseId: base(key).baseId });
+    return total;
+  } catch {
+    return null;
   }
-  return rows;
 }
 
 async function updateRecord(key, item, fields, message) {
@@ -97,19 +109,48 @@ function settingsPayload(rows, kind) {
   return parseJson(rows.find((row) => row.kind === kind)?.payload, {});
 }
 
+function currentSnapshot() {
+  const settingsRows = loadedRows.get("settings") || [];
+  const snapshot = buildSnapshot({
+    examples: loadedRows.get("training-examples") || [],
+    runs: loadedRows.get("training-runs") || [],
+    evaluations: loadedRows.get("evaluations") || [],
+    models: loadedRows.get("model-registry") || [],
+    settings: settingsPayload(settingsRows, "lab-config"),
+  });
+  const exampleTotal = pageState.get("training-examples")?.total;
+  if (exampleTotal !== null && exampleTotal !== undefined) snapshot.counts.examples = exampleTotal;
+  return snapshot;
+}
+
+function currentPaging() {
+  return Object.fromEntries(
+    [...pageState].map(([key, page]) => [
+      key,
+      {
+        loaded: (loadedRows.get(key) || []).length,
+        total: page.total,
+        hasMore: Boolean(page.nextCursor),
+      },
+    ]),
+  );
+}
+
 export const busabaseProvider = {
   kind: "busabase",
 
   async getState() {
     const resources = await ensureResources();
-    const [examples, runs, evaluations, models, settingsRows] = await Promise.all([
-      readAllRecords("training-examples"),
-      readAllRecords("training-runs"),
-      readAllRecords("evaluations"),
-      readAllRecords("model-registry"),
-      readAllRecords("settings"),
-    ]);
-    const settings = settingsPayload(settingsRows, "lab-config");
+    const keys = Object.keys(snapshotKeys);
+    const pages = await Promise.all(
+      keys.map(async (key) => {
+        const [page, total] = await Promise.all([readPage(key), countRecords(key)]);
+        return { key, page, total };
+      }),
+    );
+    loadedRows = new Map(pages.map(({ key, page }) => [key, page.rows]));
+    pageState = new Map(pages.map(({ key, page, total }) => [key, { nextCursor: page.nextCursor, total }]));
+    const settingsRows = loadedRows.get("settings") || [];
     return {
       app: appConfig.appId,
       demo: false,
@@ -119,8 +160,20 @@ export const busabaseProvider = {
         folder_id: resources.folder?.id || "",
         base_ids: Object.fromEntries(resources.bases.map((item) => [item.key, item.baseId])),
       },
-      snapshot: buildSnapshot({ examples, runs, evaluations, models, settings }),
+      snapshot: currentSnapshot(),
+      paging: currentPaging(),
     };
+  },
+
+  async loadMore(key) {
+    if (!Object.hasOwn(snapshotKeys, key)) throw new Error(`UNKNOWN_BASE: ${key}`);
+    await ensureResources();
+    const current = pageState.get(key);
+    if (!current?.nextCursor) return { snapshot: currentSnapshot(), paging: currentPaging() };
+    const page = await readPage(key, current.nextCursor);
+    loadedRows.set(key, [...(loadedRows.get(key) || []), ...page.rows]);
+    pageState.set(key, { ...current, nextCursor: page.nextCursor });
+    return { snapshot: currentSnapshot(), paging: currentPaging() };
   },
 
   async reviewExample(example, verdict, note = "") {

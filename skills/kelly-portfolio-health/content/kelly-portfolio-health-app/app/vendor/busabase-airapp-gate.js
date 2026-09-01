@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-// node_modules/.pnpm/busabase-sdk@0.16.1/node_modules/busabase-sdk/dist/airapp-gate.js
+// node_modules/.pnpm/busabase-sdk@0.30.1/node_modules/busabase-sdk/dist/airapp-gate.js
 function selectAirAppGateScreen(status) {
   if (!status) return "connect";
   switch (status.readiness) {
@@ -17,9 +17,7 @@ function selectAirAppGateScreen(status) {
 }
 function describeAirAppSetupError(error) {
   const code = typeof error === "object" && error !== null && "code" in error && typeof error.code === "string" ? error.code : "";
-  const raw = String(
-    (typeof error === "object" && error !== null && "message" in error ? error.message : error) ?? "SETUP_REQUIRED"
-  );
+  const raw = String((typeof error === "object" && error !== null && "message" in error ? error.message : error) ?? "SETUP_REQUIRED");
   const parsed = /^([A-Z_]+):\s*(.*)$/s.exec(raw);
   const resolvedCode = code || parsed?.[1] || raw.trim() || "SETUP_REQUIRED";
   const detail = parsed ? parsed[2] : code ? raw : "";
@@ -39,17 +37,13 @@ var defaultAirAppGateRenderer = {
   connect(view) {
     const head = `<h1 id="bbGateConnectTitle">Connect Busabase</h1><p>${escapeHtml(view.appName)} reads and writes through your Busabase workspace.</p>`;
     const body = (view.oauthError ? `<p class="bb-gate-error" role="alert">${escapeHtml(view.oauthError)}</p>` : "") + (view.reconnect ? `<p class="bb-gate-note">Your session expired. Reconnect to continue.</p>` : "") + `<h2>Server</h2><div class="bb-gate-server-grid"><label class="bb-gate-server-card is-selected"><input type="radio" name="server_mode" value="cloud" checked><span><strong>Busabase Cloud</strong><span>${escapeHtml(hostOf(view.cloudBaseUrl))}</span></span></label><label class="bb-gate-server-card"><input type="radio" name="server_mode" value="custom"><span><strong>Custom server</strong><span>Self-hosted or enterprise address</span></span></label></div><label class="bb-gate-custom-url" data-custom-url hidden><span>Busabase URL</span><input type="url" name="custom_base_url" inputmode="url" placeholder="https://busabase.example.com" autocomplete="url"></label><input type="hidden" name="base_url" value="${escapeHtml(view.cloudBaseUrl)}">`;
-    const footer = `<span class="bb-gate-note">OAuth credentials stay on this machine (~/.busabase/airapps)</span><button class="bb-gate-primary" type="submit">Connect Busabase</button>`;
-    return `<form method="post" action="${escapeHtml(`${view.authBasePath}/auth/start`)}" data-connect-form>${panel("bbGateConnectTitle", head, body, footer)}</form>`;
+    return `<form method="post" action="${escapeHtml(`${view.authBasePath}/auth/start`)}" data-connect-form>${panel("bbGateConnectTitle", head, body, '<span class="bb-gate-note">OAuth credentials stay on this machine (~/.busabase/airapps)</span><button class="bb-gate-primary" type="submit">Connect Busabase</button>')}</form>`;
   },
   space(view) {
-    const options = view.spaces.map(
-      (space) => `<option value="${escapeHtml(space.id)}">${escapeHtml(space.name)} \xB7 ${escapeHtml(space.id)}</option>`
-    ).join("");
+    const options = view.spaces.map((space) => `<option value="${escapeHtml(space.id)}">${escapeHtml(space.name)} \xB7 ${escapeHtml(space.id)}</option>`).join("");
     const head = `<h1 id="bbGateSpaceTitle">Choose a Busabase Space</h1><p>Signed in to <strong>${escapeHtml(view.baseUrl)}</strong>. Choose where ${escapeHtml(view.appName)}'s data lives.</p>`;
     const body = `<label class="bb-gate-space-select"><span>Space</span><select name="space_id" required>${options}</select></label><p class="bb-gate-error" data-space-error hidden></p>`;
-    const footer = `<span class="bb-gate-note">Resources are only checked after you confirm</span><button class="bb-gate-primary" type="submit">Use this Space</button>`;
-    return `<form data-space-form>${panel("bbGateSpaceTitle", head, body, footer)}</form>`;
+    return `<form data-space-form>${panel("bbGateSpaceTitle", head, body, '<span class="bb-gate-note">Resources are only checked after you confirm</span><button class="bb-gate-primary" type="submit">Use this Space</button>')}</form>`;
   },
   workspace(view) {
     const head = `<h1 id="bbGateWorkspaceTitle">${escapeHtml(view.title)}</h1>`;
@@ -67,13 +61,7 @@ var hostOf = (baseUrl) => {
 };
 var DEFAULT_CLOUD_BASE_URL = "https://busabase.com";
 function createAirAppConnectGate(options) {
-  const {
-    appName,
-    authBasePath = "",
-    onProvision,
-    demoHref = null,
-    render = defaultAirAppGateRenderer
-  } = options;
+  const { appName, authBasePath = "", onProvision, demoHref = null, render = defaultAirAppGateRenderer } = options;
   const doFetch = options.fetch ?? globalThis.fetch;
   const root = () => {
     if (options.mount) {
@@ -95,16 +83,12 @@ function createAirAppConnectGate(options) {
     if (options.mount) {
       const element = typeof options.mount === "string" ? document.querySelector(options.mount) : options.mount;
       if (element) element.innerHTML = "";
-    } else {
-      document.querySelector("#busabaseAirAppGate")?.remove();
-    }
+    } else document.querySelector("#busabaseAirAppGate")?.remove();
     document.documentElement.classList.remove("bb-gate-active");
   };
   const status = async () => {
     try {
-      const response = await doFetch(`${authBasePath}/auth/status`, {
-        headers: { accept: "application/json" }
-      });
+      const response = await doFetch(`${authBasePath}/auth/status`, { headers: { accept: "application/json" } });
       const type = response.headers.get("content-type") ?? "";
       if (!response.ok || !type.includes("application/json")) return null;
       return await response.json();
@@ -117,12 +101,12 @@ function createAirAppConnectGate(options) {
     const oauthError = new URLSearchParams(window.location.search).get("oauth_error") ?? "";
     element.innerHTML = render.connect({
       appName,
-      cloudBaseUrl: current?.cloudBaseUrl || DEFAULT_CLOUD_BASE_URL,
+      cloudBaseUrl: current?.cloudBaseUrl || "https://busabase.com",
       reconnect: current?.readiness === "needs_auth",
       oauthError,
       authBasePath
     });
-    wireConnect(element, current?.cloudBaseUrl || DEFAULT_CLOUD_BASE_URL);
+    wireConnect(element, current?.cloudBaseUrl || "https://busabase.com");
   };
   const renderSpace = (current, onReady) => {
     const element = root();
@@ -139,18 +123,14 @@ function createAirAppConnectGate(options) {
     const customField = form.querySelector("[data-custom-url]");
     const customInput = customField?.querySelector("input") ?? null;
     const hiddenBaseUrl = form.querySelector('input[name="base_url"]');
-    for (const radio of form.querySelectorAll('input[name="server_mode"]')) {
-      radio.addEventListener("change", () => {
-        const custom = radio.value === "custom";
-        for (const card of form.querySelectorAll(".bb-gate-server-card")) {
-          card.classList.toggle("is-selected", card.querySelector("input")?.checked === true);
-        }
-        if (customField) customField.hidden = !custom;
-        if (customInput) customInput.required = custom;
-        if (hiddenBaseUrl) hiddenBaseUrl.value = custom ? customInput?.value ?? "" : cloudBaseUrl;
-        if (custom) customInput?.focus();
-      });
-    }
+    for (const radio of form.querySelectorAll('input[name="server_mode"]')) radio.addEventListener("change", () => {
+      const custom = radio.value === "custom";
+      for (const card of form.querySelectorAll(".bb-gate-server-card")) card.classList.toggle("is-selected", card.querySelector("input")?.checked === true);
+      if (customField) customField.hidden = !custom;
+      if (customInput) customInput.required = custom;
+      if (hiddenBaseUrl) hiddenBaseUrl.value = custom ? customInput?.value ?? "" : cloudBaseUrl;
+      if (custom) customInput?.focus();
+    });
     customInput?.addEventListener("input", () => {
       if (hiddenBaseUrl) hiddenBaseUrl.value = customInput.value;
     });
@@ -234,7 +214,12 @@ function createAirAppConnectGate(options) {
     renderConnect(current);
     return false;
   };
-  return { pass, renderSetupRequired, close, status };
+  return {
+    pass,
+    renderSetupRequired,
+    close,
+    status
+  };
 }
 export {
   DEFAULT_CLOUD_BASE_URL,

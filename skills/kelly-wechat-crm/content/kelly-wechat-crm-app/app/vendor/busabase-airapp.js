@@ -14519,7 +14519,17 @@ function date4(params) {
 // node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// node_modules/.pnpm/busabase-sdk@0.19.0/node_modules/busabase-sdk/dist/airapp.js
+// node_modules/.pnpm/busabase-sdk@0.30.1/node_modules/busabase-sdk/dist/airapp.js
+var SkillFrontmatterSchema$1 = external_exports.object({
+  /** Identity. For a Skill inside a package this must equal the package name. */
+  name: external_exports.string().min(1),
+  /**
+  * How an agent decides whether to reach for this Skill at all — so an empty one
+  * is not a cosmetic omission, it is a Skill that never gets picked.
+  */
+  description: external_exports.string().default(""),
+  metadata: external_exports.object({}).passthrough().optional()
+});
 var TemplateAirAppRefSchema = external_exports.object({
   /** Slug of the `content/<dir>` holding the AirApp. */
   slug: external_exports.string().min(1),
@@ -14575,11 +14585,7 @@ var SkillBusabaseMetadataSchema = external_exports.object({
   resources: external_exports.array(external_exports.string()).default([]),
   risk: external_exports.string().optional()
 });
-external_exports.object({
-  name: external_exports.string().min(1),
-  description: external_exports.string().default(""),
-  metadata: external_exports.object({ busabase: SkillBusabaseMetadataSchema.optional() }).passthrough().optional()
-});
+SkillFrontmatterSchema$1.extend({ metadata: external_exports.object({ busabase: SkillBusabaseMetadataSchema.optional() }).passthrough().optional() });
 var AppResourceOwnershipSchema = external_exports.object({
   appId: external_exports.string().min(1),
   /** Stable internal handle (`"contacts"`), NOT the installed slug. */

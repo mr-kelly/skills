@@ -36,7 +36,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.2");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.30.1");
 });
 
 test("keeps the package manifest and runtime declarations aligned", async () => {
@@ -164,7 +164,7 @@ test("retires the pre-Busabase local-file/legacy-busabase provider layer", async
 
 test("ships trusted generation/hyperframe/seed/validate/export scripts using busabase-sdk with --apply dry-run gating where they write", async () => {
   const pkg = await readJson(join(skillRoot, "package.json"));
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.17.2");
+  assert.equal(pkg.dependencies["busabase-sdk"], "0.30.1");
   const libSource = await readFile(join(skillRoot, "scripts", "lib", "drama-busabase.mjs"), "utf8");
   assert.match(libSource, /createBusabaseClient/);
   assert.match(libSource, /BUSABASE_BASE_URL/);

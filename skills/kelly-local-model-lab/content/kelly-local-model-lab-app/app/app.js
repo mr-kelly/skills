@@ -9,6 +9,7 @@ const state = {
   lang: normalizeLang(params.get("lang") || localStorage.getItem("kelly-local-model-lab-language") || "auto"),
   messages: { en: {}, zh: {} },
   busy: false,
+  loadingMore: new Set(),
   settingsTab: "guide",
 };
 
@@ -158,6 +159,13 @@ function metric(labelText, value, hint = "") {
   return `<div class="metric"><span>${escapeHtml(labelText)}</span><strong>${escapeHtml(value)}</strong>${hint ? `<small>${escapeHtml(hint)}</small>` : ""}</div>`;
 }
 
+function loadMoreControl(key) {
+  const page = state.data?.paging?.[key];
+  if (!page?.hasMore) return "";
+  const total = page.total === null || page.total === undefined ? "" : ` / ${number(page.total)}`;
+  return `<div class="load-more-row"><button type="button" data-load-more="${escapeHtml(key)}" ${state.loadingMore.has(key) ? "disabled" : ""}>${escapeHtml(state.loadingMore.has(key) ? t("loading") : t("loadMore"))}</button><span>${number(page.loaded)}${total}</span></div>`;
+}
+
 function latestComparison() {
   return state.data?.snapshot?.comparisons?.find((item) => item.adapter && item.baseline) || null;
 }
@@ -259,7 +267,7 @@ function renderExamples() {
   const selected = items.find((item) => item.example_id === state.route.id) || null;
   els.title.textContent = t("examples");
   els.subtitle.textContent = `${items.length} ${t("examples").toLowerCase()}`;
-  els.content.innerHTML = `<div class="lab-split"><section class="list-panel"><div class="list-header"><strong>${escapeHtml(t("datasetQueue"))}</strong><span>${number(items.filter((item) => item.status === "needs_review").length)} ${escapeHtml(t("needReview"))}</span></div><div class="lab-list">${exampleList(items)}</div></section><aside class="detail-panel">${exampleDetail(selected)}</aside></div>`;
+  els.content.innerHTML = `<div class="lab-split"><section class="list-panel"><div class="list-header"><strong>${escapeHtml(t("datasetQueue"))}</strong><span>${number(items.filter((item) => item.status === "needs_review").length)} ${escapeHtml(t("needReview"))}</span></div><div class="lab-list">${exampleList(items)}</div>${loadMoreControl("training-examples")}</section><aside class="detail-panel">${exampleDetail(selected)}</aside></div>`;
 }
 
 function runRows(runs) {
@@ -270,7 +278,7 @@ function runRows(runs) {
 function renderRuns() {
   els.title.textContent = t("runs");
   els.subtitle.textContent = t("runsSubtitle");
-  els.content.innerHTML = `<section class="overview-panel wide"><div class="boundary-note">${escapeHtml(t("workerBoundary"))}</div>${runRows(state.data.snapshot.runs)}</section>`;
+  els.content.innerHTML = `<section class="overview-panel wide"><div class="boundary-note">${escapeHtml(t("workerBoundary"))}</div>${runRows(state.data.snapshot.runs)}${loadMoreControl("training-runs")}</section>`;
 }
 
 function comparisonCard(comparison) {
@@ -288,13 +296,27 @@ function comparisonCard(comparison) {
 function renderEvaluations() {
   els.title.textContent = t("evaluations");
   els.subtitle.textContent = t("evaluationsSubtitle");
-  els.content.innerHTML = `<div class="evaluation-list">${state.data.snapshot.comparisons.map(comparisonCard).join("") || `<div class="empty">${escapeHtml(t("noEvaluation"))}</div>`}</div>`;
+  els.content.innerHTML = `<div class="evaluation-list">${state.data.snapshot.comparisons.map(comparisonCard).join("") || `<div class="empty">${escapeHtml(t("noEvaluation"))}</div>`}${loadMoreControl("evaluations")}</div>`;
 }
 
 function renderRegistry() {
   els.title.textContent = t("registry");
   els.subtitle.textContent = t("registrySubtitle");
-  els.content.innerHTML = `<div class="registry-grid">${state.data.snapshot.models.map((model) => `<article class="registry-item"><div class="panel-heading"><div><span class="row-id">${escapeHtml(model.model_id)}</span><h2>${escapeHtml(model.display_name)}</h2></div><span class="badge status-${escapeHtml(model.status)}">${escapeHtml(label(model.status))}</span></div><dl><dt>${escapeHtml(t("baseModel"))}</dt><dd>${escapeHtml(model.base_model)}</dd><dt>${escapeHtml(t("trainingRun"))}</dt><dd>${escapeHtml(model.training_run_id || "-")}</dd><dt>${escapeHtml(t("adapterFile"))}</dt><dd>${escapeHtml(model.adapter_file || "-")}</dd><dt>${escapeHtml(t("registered"))}</dt><dd>${escapeHtml(formatTime(model.registered_at))}</dd></dl><p>${escapeHtml(model.notes)}</p></article>`).join("")}</div>`;
+  els.content.innerHTML = `<div class="registry-grid">${state.data.snapshot.models.map((model) => `<article class="registry-item"><div class="panel-heading"><div><span class="row-id">${escapeHtml(model.model_id)}</span><h2>${escapeHtml(model.display_name)}</h2></div><span class="badge status-${escapeHtml(model.status)}">${escapeHtml(label(model.status))}</span></div><dl><dt>${escapeHtml(t("baseModel"))}</dt><dd>${escapeHtml(model.base_model)}</dd><dt>${escapeHtml(t("trainingRun"))}</dt><dd>${escapeHtml(model.training_run_id || "-")}</dd><dt>${escapeHtml(t("adapterFile"))}</dt><dd>${escapeHtml(model.adapter_file || "-")}</dd><dt>${escapeHtml(t("registered"))}</dt><dd>${escapeHtml(formatTime(model.registered_at))}</dd></dl><p>${escapeHtml(model.notes)}</p></article>`).join("")}${loadMoreControl("model-registry")}</div>`;
+}
+
+async function loadMore(key) {
+  if (state.loadingMore.has(key)) return;
+  state.loadingMore.add(key);
+  render();
+  try {
+    const provider = await getProvider();
+    const next = await provider.loadMore(key);
+    state.data = { ...state.data, ...next };
+  } finally {
+    state.loadingMore.delete(key);
+    render();
+  }
 }
 
 function settingsModal() {
@@ -378,6 +400,8 @@ els.language.addEventListener("change", () => {
   render();
 });
 document.addEventListener("click", (event) => {
+  const loadMoreAction = event.target.closest("[data-load-more]");
+  if (loadMoreAction) loadMore(loadMoreAction.dataset.loadMore);
   const exampleAction = event.target.closest("[data-example-verdict]");
   if (exampleAction) reviewExample(exampleAction.dataset.exampleId, exampleAction.dataset.exampleVerdict);
   const evaluationAction = event.target.closest("[data-evaluation-verdict]");

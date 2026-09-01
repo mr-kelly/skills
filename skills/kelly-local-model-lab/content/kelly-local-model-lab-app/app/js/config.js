@@ -19,6 +19,7 @@ export const appConfig = {
   },
   drive: {
     name: "Model Lab Files",
+    slug: "kelly-local-model-lab-files",
     description: "Immutable dataset snapshots, LoRA adapters, evaluation reports, and model cards.",
   },
   bases: [
@@ -27,7 +28,7 @@ export const appConfig = {
       name: "Training Examples",
       slug: "kelly-local-model-lab-training-examples",
       description: "Human-reviewed prompt and ideal-response pairs used to build immutable training snapshots.",
-      readLimit: 200,
+      readLimit: 100,
       fields: [
         { slug: "example-id", name: "Example ID", type: "text", required: true },
         { slug: "task", name: "Task", type: "text", required: true },
@@ -75,7 +76,7 @@ export const appConfig = {
       name: "Evaluations",
       slug: "kelly-local-model-lab-evaluations",
       description: "Locked baseline and adapter evaluation results with exact metrics and human promotion verdicts.",
-      readLimit: 200,
+      readLimit: 100,
       fields: [
         { slug: "evaluation-id", name: "Evaluation ID", type: "text", required: true },
         { slug: "run-id", name: "Run ID", type: "text", required: true },
@@ -126,7 +127,7 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list"],
+    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },

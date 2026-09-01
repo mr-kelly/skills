@@ -35,6 +35,8 @@
   "noEvaluation": "还没有可比较的原始模型和 adapter 结果。",
   "recentRuns": "最近运行",
   "viewAll": "查看全部",
+  "loadMore": "加载更多",
+  "loading": "加载中...",
   "datasetQueue": "数据集审核队列",
   "noExamples": "没有匹配的样本。",
   "selectExample": "选择一个样本",
