@@ -1,0 +1,88 @@
+{
+  "name": "咨询师追问",
+  "description": "把模糊需求问清楚的那些问题，以及你的回答",
+  "position": 2,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "记录 ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "idea-id",
+      "name": "所属灵感",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "stage",
+      "name": "属于哪一层",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "question",
+      "name": "咨询师的问题",
+      "type": "longtext",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "why-asking",
+      "name": "为什么问这个",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "answer",
+      "name": "你的回答",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "状态",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "position",
+      "name": "顺序",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "asked-at",
+      "name": "提问时间",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "answered-at",
+      "name": "回答时间",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": []
+}

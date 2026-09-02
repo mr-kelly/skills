@@ -1,0 +1,48 @@
+{
+  "name": "设置",
+  "description": "Operator profile, pipeline config, channels, and the agent lock",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "记录 ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "kind",
+      "name": "类型",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "名称",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "payload",
+      "name": "内容",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "更新时间",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    }
+  ],
+  "views": []
+}
