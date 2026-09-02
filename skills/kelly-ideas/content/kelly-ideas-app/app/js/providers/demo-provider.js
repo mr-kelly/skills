@@ -1,3 +1,4 @@
+import { demoVisualsForApp } from "../demo-visuals-data.js?v=0.1.0";
 // Deterministic, explicitly-labeled, read-only demo data. Never reads or
 // writes Busabase, never claims a real connection, and never persists
 // anything — matches the ?demo=1 contract used across Kelly App-in-Skills.
@@ -80,8 +81,7 @@ const IDEAS = [
   idea("idea-wechat", "微信好友那么多，不知道今天该找谁", {
     one_liner: "把已经认识的人变成看得见的关系快照，告诉我今天该找谁",
     who: "微信里躺着几千个好友、但说不出谁该联系的创业者和销售",
-    problem:
-      "通讯录越长越没用。真正的问题不是找不到人，是不知道跟谁的关系到了可以开口的程度。",
+    problem: "通讯录越长越没用。真正的问题不是找不到人，是不知道跟谁的关系到了可以开口的程度。",
     why_now: "本地微信数据现在能只读取出来，不用把聊天记录交给任何云端。",
     stage: "mrd",
     status: "打磨中",
@@ -97,8 +97,7 @@ const IDEAS = [
     status: "已搁置",
     source: "跟朋友吃饭聊到的",
     tags: ["已搁置"],
-    notes:
-      "咨询师复盘：说不出为什么是我们做、也说不出比现有平台强在哪。不是想法不好，是没有我们的位置。先搁置。",
+    notes: "咨询师复盘：说不出为什么是我们做、也说不出比现有平台强在哪。不是想法不好，是没有我们的位置。先搁置。",
   }),
 ];
 

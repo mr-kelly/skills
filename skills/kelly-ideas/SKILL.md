@@ -2,7 +2,7 @@
 name: kelly-ideas
 description: Busabase-backed App-in-Skill idea desk that works like a business consultant — it interrogates a vague idea until it is sharp, then carries it through BRD, MRD, and PRD. Use when the user invokes $kelly-ideas or /kelly-ideas, mentions an idea, inspiration, idea vault, 灵感, 灵感库, wants to think through a product or business concept, asks for a BRD/MRD/PRD, says they have an idea but cannot describe it clearly, or wants an idea shaped into a spec that $kelly-app-creator can build into a real app.
 metadata:
-  category: product-strategy
+  category: platform
   tags:
     - risk:gated-write
     - surface:busabase
