@@ -1518,6 +1518,9 @@ dd {
 /* Field list */
 .fields {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-flow: row;
+  align-content: start;
   gap: 1px;
   margin: 0;
   border: 1px solid var(--line);
@@ -1529,17 +1532,21 @@ dd {
 .field {
   display: grid;
   grid-template-columns: 180px minmax(0, 1fr);
+  align-items: start;
   gap: 12px;
+  min-width: 0;
   padding: 10px 14px;
   background: var(--panel);
 }
 
 .field dt {
+  min-width: 0;
   color: var(--muted);
   font-size: var(--text-base);
 }
 
 .field dd {
+  min-width: 0;
   margin: 0;
   color: var(--ink);
   overflow-wrap: anywhere;
