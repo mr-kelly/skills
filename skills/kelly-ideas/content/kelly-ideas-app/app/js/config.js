@@ -61,7 +61,7 @@ export const appConfig = {
       name: "咨询师追问",
       slug: "kelly-ideas-questions",
       description: "把模糊需求问清楚的那些问题，以及你的回答",
-      readLimit: 200,
+      readLimit: 100,
       fields: [
         { slug: "record-id", name: "记录 ID", type: "text", required: true },
         { slug: "idea-id", name: "所属灵感", type: "text", required: true },

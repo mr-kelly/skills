@@ -78,6 +78,22 @@ please them.
 Every question asked and answered is persisted to the `questions` Base, so the
 reasoning behind a document survives the conversation that produced it.
 
+## Answering Questions
+
+The operator may answer a consultant question either in Agent chat or in the
+AirApp UI. Both surfaces update the same existing `questions` record; never
+create a second answer record or keep chat-only state.
+
+- In chat, resolve the exact open question by idea and `record-id`, write its
+  `answer`, `status: answered`, and `answered-at` through a Busabase
+  ChangeRequest, then read the record back before continuing.
+- The UI uses the same fields and mutation boundary. An answer made on either
+  surface must appear on the other after refresh.
+- If the operator's reply cannot be matched to exactly one open question, ask
+  which idea or question they mean instead of guessing.
+- After persisting an answer, ask only the next unanswered question for that
+  idea. Do not generate a document or advance the rung until its gate is met.
+
 ## Mandatory Dependencies
 
 1. Read and follow `$busabase` for connection, target Space, node discovery,

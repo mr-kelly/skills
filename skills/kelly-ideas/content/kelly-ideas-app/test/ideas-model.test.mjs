@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { appConfig } from "../app/js/config.js";
 import {
   advanceCheck,
   attentionFor,
@@ -9,6 +10,15 @@ import {
   nextStage,
   normalizeQuestionRow,
 } from "../app/js/ideas-model.js";
+
+test("every Base read stays within the Busabase records.list limit", () => {
+  for (const base of appConfig.bases) {
+    assert.ok(
+      Number.isInteger(base.readLimit) && base.readLimit >= 1 && base.readLimit <= 100,
+      `${base.key}: ${base.readLimit}`,
+    );
+  }
+});
 
 const vagueIdea = {
   record_id: "idea-1",
