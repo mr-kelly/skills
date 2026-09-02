@@ -122,6 +122,30 @@ A ticket's `kb_refs` reference `article_id`s. The `support-qa` gate requires
 a substantive reply to cite at least one real article and flags any dangling
 `kb_ref`.
 
+## QA Pairs (`kelly-support-qa-pairs`)
+
+Question/answer pairs distilled from Knowledge Base articles.
+
+| Field slug | App key | Type | Notes |
+| --- | --- | --- | --- |
+| `pair-id` | `pair_id` | text | stable id, required |
+| `article-id` | `article_id` | text | the source article, required — every pair stays traceable |
+| `question` | `question` | longtext | required; how a customer would actually ask it |
+| `answer` | `answer` | longtext | required; must be supported by the source article |
+| `category` | `category` | text | inherited from the article |
+| `tags` | `tags` | longtext | JSON array |
+| `status` | `status` | text | `draft\|approved\|rejected` — only `approved` pairs are used |
+| `reviewed-by` | `reviewed_by` | text | who approved it |
+| `updated-at` | `updated_at` | text | ISO timestamp |
+
+Pairs are **derived data**: the article is the source of truth. A pair whose
+`updated_at` predates its article's has gone stale and should be re-distilled
+and re-reviewed rather than left `approved`.
+
+Approved pairs are the export surface for fine-tuning (`$kelly-local-model-lab`
+consumes exactly this shape). Fine-tuning is optional and never replaces the
+human approval queue.
+
 ## Sync Log (`kelly-support-sync-log`)
 
 Append-only history of ticket-collection runs per account.

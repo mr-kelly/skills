@@ -114,6 +114,25 @@ export const appConfig = {
       ],
     },
     {
+      key: "qa-pairs",
+      name: "QA Pairs",
+      slug: "kelly-support-qa-pairs",
+      description:
+        "Question/answer pairs distilled from Knowledge Base articles — what the agent retrieves against, and the shape a fine-tune consumes",
+      readLimit: 100,
+      fields: [
+        { slug: "pair-id", name: "Pair ID", type: "text", required: true },
+        { slug: "article-id", name: "Source article", type: "text", required: true },
+        { slug: "question", name: "Question", type: "longtext", required: true },
+        { slug: "answer", name: "Answer", type: "longtext", required: true },
+        { slug: "category", name: "Category", type: "text", required: false },
+        { slug: "tags", name: "Tags", type: "longtext", required: false },
+        { slug: "status", name: "Status", type: "text", required: false },
+        { slug: "reviewed-by", name: "Reviewed by", type: "text", required: false },
+        { slug: "updated-at", name: "Updated at", type: "text", required: false },
+      ],
+    },
+    {
       key: "sync-log",
       name: "Sync Log",
       slug: "kelly-support-sync-log",
