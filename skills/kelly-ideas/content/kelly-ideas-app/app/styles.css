@@ -1741,14 +1741,3 @@ dd {
     width: 100px;
   }
 }
-
-/* Demo mode injects a visuals panel as a direct child of .main. On phones
-   .main is a two-row grid whose second row (minmax(0, 1fr)) is meant for
-   #content -- the panel takes that row instead and pushes #content past the
-   100dvh boundary, so the two visually collide. Give the panel its own auto
-   row only when it is actually present; non-demo layout is untouched. */
-@media (max-width: 900px) {
-  .main:has(> .demo-visuals-panel) {
-    grid-template-rows: auto auto minmax(0, 1fr);
-  }
-}

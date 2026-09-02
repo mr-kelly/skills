@@ -7,7 +7,6 @@
 // produced it", plus one still-vague idea mid-interrogation and one honestly
 // parked idea.
 import { buildSnapshot } from "../ideas-model.js?v=0.1.0";
-import { demoVisualsForApp } from "../demo-visuals-data.js?v=0.1.0";
 
 const NOW = "2026-09-02T09:30:00.000Z";
 
@@ -288,8 +287,7 @@ export const demoProvider = {
       },
       agent_tasks: { updated_at: "", tasks: [] },
       execution_report: null,
-      demo_visuals: demoVisualsForApp("kelly-ideas"),
-      snapshot: { ...snapshot, demo_visuals: demoVisualsForApp("kelly-ideas") },
+      snapshot,
     };
   },
 
