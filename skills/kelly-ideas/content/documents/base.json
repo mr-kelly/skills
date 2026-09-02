@@ -1,0 +1,80 @@
+{
+  "name": "文档",
+  "description": "同一条灵感的 BRD / MRD / PRD 三份文档",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "记录 ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "idea-id",
+      "name": "所属灵感",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "kind",
+      "name": "文档类型",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "标题",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "body",
+      "name": "正文",
+      "type": "longtext",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "状态",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "version",
+      "name": "版本",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "gaps",
+      "name": "还缺什么",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "更新时间",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}
