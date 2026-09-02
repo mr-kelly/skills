@@ -15,7 +15,7 @@
   h3 {
     margin: 0 0 8px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
     text-transform: uppercase;
   }
@@ -33,7 +33,7 @@
     display: block;
     margin-top: 5px;
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 500;
     overflow-wrap: anywhere;
   }
@@ -52,7 +52,7 @@
 
   .panel-heading h2 {
     margin: 0;
-    font-size: 15px;
+    font-size: var(--text-md);
   }
 
   .pipeline-list {
@@ -84,7 +84,7 @@
     border-radius: 50%;
     background: var(--accent-soft);
     color: var(--accent-text);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 700;
   }
 
@@ -113,8 +113,8 @@
   .bar {
     height: 8px;
     overflow: hidden;
-    border-radius: 4px;
-    background: #edf0f3;
+    border-radius: var(--radius-sm);
+    background: var(--surface-soft);
   }
 
   .bar i {
@@ -126,7 +126,7 @@
 
   .text-link {
     color: var(--accent-text);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 650;
     text-decoration: none;
   }
@@ -139,7 +139,7 @@
     min-height: 0;
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
   }
 
@@ -167,7 +167,7 @@
 
   .list-header span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .lab-list,
@@ -185,7 +185,7 @@
   }
 
   .lab-list-row:hover {
-    background: #f7f9fb;
+    background: var(--surface-soft);
   }
 
   .lab-list-row.selected {
@@ -196,7 +196,7 @@
   .lab-list-row strong {
     display: -webkit-box;
     overflow: hidden;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 620;
     line-height: 1.45;
     -webkit-box-orient: vertical;
@@ -206,7 +206,7 @@
   .row-id {
     color: var(--muted);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   .row-meta,
@@ -229,15 +229,15 @@
 
   .detail-heading h2 {
     margin: 4px 0 0;
-    font-size: 18px;
+    font-size: var(--text-lg);
   }
 
   .prompt-block,
   .json-block {
     padding: 12px;
     border: 1px solid var(--line);
-    border-radius: 7px;
-    background: #fafbfc;
+    border-radius: var(--radius-sm);
+    background: var(--surface-hover);
     line-height: 1.55;
     overflow-wrap: anywhere;
   }
@@ -245,8 +245,8 @@
   .json-block {
     margin: 0;
     overflow: auto;
-    color: #263346;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--text-sm);
     white-space: pre-wrap;
   }
 
@@ -281,7 +281,7 @@
     min-height: 44px;
     padding: 9px 10px;
     border: 1px solid var(--line-strong);
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
     color: var(--text);
     font: inherit;
@@ -299,9 +299,9 @@
   }
 
   button.danger-quiet {
-    border-color: #edcaca;
-    background: #fff;
-    color: #a33a3a;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+    background: var(--surface);
+    color: var(--danger);
   }
 
   .detail-empty {
@@ -323,7 +323,7 @@
     margin-bottom: 14px;
     padding: 11px 13px;
     border: 1px solid var(--accent-line);
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     background: var(--accent-wash);
     color: var(--accent-text);
     line-height: 1.45;
@@ -348,13 +348,13 @@
 
   th {
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 700;
     text-transform: uppercase;
   }
 
   .error-text {
-    color: #a33a3a;
+    color: var(--danger);
   }
 
   .evaluation-list,
@@ -367,7 +367,7 @@
   .registry-item {
     padding: 16px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
   }
 
@@ -415,7 +415,7 @@
     max-height: min(720px, calc(100dvh - 40px));
     overflow: hidden;
     border: 1px solid var(--line-strong);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
     box-shadow: 0 18px 48px rgba(16, 24, 40, 0.18);
   }
@@ -431,7 +431,7 @@
 
   .modal > header h2 {
     margin: 3px 0 0;
-    font-size: 18px;
+    font-size: var(--text-lg);
   }
 
   .modal-tabs {
@@ -503,7 +503,7 @@
       margin: -12px -12px 0;
       padding: 11px 12px;
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.96);
+      background: var(--surface-blur);
       color: var(--accent-text);
       text-decoration: none;
     }
@@ -556,7 +556,7 @@
 
     .eval-grid {
       grid-template-columns: minmax(92px, 1fr) repeat(2, minmax(68px, 0.75fr));
-      font-size: 12px;
+      font-size: var(--text-sm);
     }
   }
 }

@@ -16,20 +16,20 @@
   }
 
   .badge.status-healthy {
-    border: 1px solid #cfe8da;
-    background: #eaf7ef;
+    border: 1px solid var(--line);
+    background: var(--surface-soft);
     color: var(--good);
   }
 
   .badge.status-degraded {
-    border: 1px solid #f0dcae;
-    background: #fbf3dc;
+    border: 1px solid color-mix(in srgb, var(--warning) 34%, var(--line));
+    background: var(--blue-soft);
     color: var(--warn);
   }
 
   .badge.status-critical {
-    border: 1px solid #f0cdcd;
-    background: #fdeeee;
+    border: 1px solid color-mix(in srgb, var(--danger) 34%, var(--line));
+    background: var(--surface-soft);
     color: var(--bad);
   }
 
@@ -58,7 +58,7 @@
   .spark-bar {
     flex: 1 1 auto;
     min-width: 3px;
-    border-radius: 2px 2px 0 0;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     background: var(--accent);
     opacity: 0.55;
   }
@@ -87,7 +87,7 @@
     align-items: start;
     padding: 12px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
   }
 
@@ -100,17 +100,17 @@
     background: var(--accent-weak);
     color: var(--accent);
     font-weight: 700;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .step-item.step-error .step-index {
-    background: #fdeeee;
+    background: var(--surface-soft);
     color: var(--bad);
   }
 
   .step-item.step-break {
     border-color: var(--bad);
-    background: #fff5f5;
+    background: var(--surface-soft);
     box-shadow: 0 0 0 1px rgba(179, 52, 52, 0.25);
   }
 
@@ -120,8 +120,8 @@
     padding: 3px 8px;
     border-radius: 999px;
     background: var(--bad);
-    color: #fff;
-    font-size: 11px;
+    color: var(--accent-contrast);
+    font-size: var(--text-xs);
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -136,7 +136,7 @@
     width: 100%;
     resize: vertical;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     padding: 10px;
     font: inherit;
     color: var(--ink);
@@ -154,11 +154,11 @@
   }
 
   .handoff-form-message {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .handoff-label {
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
     color: var(--muted);
   }
@@ -173,7 +173,7 @@
 
   #page-subtitle {
     margin-top: 2px;
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   h2 {
@@ -200,7 +200,7 @@
 
   .table-wrap th {
     padding: 10px 12px;
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -211,11 +211,11 @@
   }
 
   .table-wrap tbody tr:hover {
-    background: #fafbfc;
+    background: var(--surface-hover);
   }
 
   .table-wrap td {
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .table-wrap td.num {
@@ -225,7 +225,7 @@
 
   .agent-id {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 11px;
+    font-size: var(--text-xs);
     letter-spacing: 0;
   }
 
@@ -284,13 +284,13 @@
     background: var(--panel);
     color: var(--good);
     font-weight: 700;
-    font-size: 12px;
+    font-size: var(--text-sm);
     box-shadow: 0 0 0 3px var(--bg);
   }
 
   .step-item.step-error .step-index {
-    border-color: #f0cdcd;
-    background: #fdeeee;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+    background: var(--surface-soft);
     color: var(--bad);
   }
 
@@ -304,7 +304,7 @@
 
   .step-item.step-error ~ .step-item .step-connector,
   .step-item.step-error .step-connector {
-    background: #f0cdcd;
+    background: var(--danger-soft);
   }
 
   .step-body {
@@ -318,12 +318,12 @@
 
   .step-duration {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .step-status-line {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .step-item.step-error .step-status-line {
@@ -332,9 +332,9 @@
 
   .step-item.step-break .step-body {
     padding: 10px 12px;
-    border: 1px solid #f0cdcd;
-    border-radius: 8px;
-    background: #fff5f5;
+    border: 1px solid color-mix(in srgb, var(--danger) 34%, var(--line));
+    border-radius: var(--radius-sm);
+    background: var(--surface-soft);
     box-shadow: 0 0 0 1px rgba(179, 52, 52, 0.12);
   }
 }

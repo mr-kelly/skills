@@ -6,7 +6,7 @@
     display: grid;
     place-items: center;
     padding: 24px;
-    background: #f8fafc;
+    background: var(--surface-hover);
     color: var(--text);
   }
 
@@ -21,8 +21,8 @@
     grid-template-rows: auto minmax(0, 1fr) auto;
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #ffffff;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     box-shadow: 0 24px 80px rgba(17, 24, 39, 0.28);
   }
 
@@ -59,7 +59,7 @@
     box-shadow: none;
     padding: 4px 2px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 600;
   }
 
@@ -100,7 +100,7 @@
   .setup-autosave-status {
     min-width: 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .setup-autosave-status.is-saved {
@@ -113,7 +113,7 @@
 
   .provider-gate-kicker {
     color: var(--accent);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 760;
     text-transform: uppercase;
   }
@@ -121,7 +121,7 @@
   .provider-gate h1 {
     margin: 0;
     color: var(--text);
-    font-size: 20px;
+    font-size: var(--text-xl);
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: 0;
@@ -144,7 +144,7 @@
 
   .setup-language-switch > span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 650;
   }
 
@@ -155,10 +155,10 @@
     min-height: 28px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: #fff;
+    background: var(--surface);
     padding: 4px 8px;
-    color: #374151;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--text-sm);
     line-height: 1;
     cursor: pointer;
     user-select: none;
@@ -181,7 +181,7 @@
     justify-items: start;
     align-content: center;
     border: 1px solid var(--line);
-    background: #fff;
+    background: var(--surface);
     color: var(--text);
     text-align: left;
     box-shadow: none;
@@ -189,12 +189,12 @@
   }
 
   .provider-choice-card strong {
-    font-size: 14px;
+    font-size: var(--text-md);
   }
 
   .provider-choice-card span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.35;
   }
 
@@ -222,13 +222,13 @@
   }
 
   .busabase-config-form .theme-option strong {
-    font-size: 13px;
+    font-size: var(--text-base);
     color: var(--text);
   }
 
   .busabase-config-form .theme-option span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.4;
     font-weight: 400;
   }
@@ -236,7 +236,7 @@
   .field-row {
     display: grid;
     gap: 5px;
-    font-size: 12px;
+    font-size: var(--text-sm);
     color: var(--muted);
   }
 
@@ -247,11 +247,11 @@
   .field-input {
     width: 100%;
     border: 1px solid var(--line);
-    border-radius: 6px;
-    background: #fff;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     padding: 8px 10px;
     color: var(--text);
-    font-size: 13px;
+    font-size: var(--text-base);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 
@@ -285,15 +285,15 @@
 
   .provider-gate-meta dt {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .provider-gate-meta dd {
     margin: 0;
     min-width: 0;
-    color: #374151;
+    color: var(--accent);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 12px;
+    font-size: var(--text-sm);
     overflow-wrap: anywhere;
   }
 
@@ -303,9 +303,9 @@
 
   .setup-checklist {
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
-    background: #fff;
+    background: var(--surface);
   }
 
   .setup-check {
@@ -330,7 +330,7 @@
 
   .setup-check strong {
     min-width: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .setup-check small {
@@ -347,13 +347,13 @@
     display: grid;
     gap: 7px;
     border: 1px solid var(--accent-line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--accent-wash);
     padding: 11px;
   }
 
   .setup-prompt-title {
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 760;
     color: var(--accent-text);
   }
@@ -362,15 +362,15 @@
     margin: 0;
     overflow: auto;
     border: 1px solid var(--accent-line);
-    border-radius: 7px;
-    background: #fff;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     padding: 10px;
     white-space: pre-wrap;
   }
 
   .setup-prompt-box code {
-    color: #334155;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--text-sm);
     line-height: 1.5;
   }
 
@@ -418,16 +418,16 @@
   .local-server-options small,
   .setup-actions span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .local-setup-error {
-    border: 1px solid #fecaca;
-    border-radius: 6px;
-    background: #fef2f2;
+    border: 1px solid color-mix(in srgb, var(--danger) 34%, var(--line));
+    border-radius: var(--radius-sm);
+    background: var(--surface-soft);
     padding: 9px 11px;
-    color: #991b1b;
-    font-size: 12px;
+    color: var(--danger);
+    font-size: var(--text-sm);
   }
 
   .local-setup-error.is-hidden,
@@ -437,7 +437,7 @@
 
   .setup-actions a {
     color: var(--accent-text);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   @media (max-width: 720px) {

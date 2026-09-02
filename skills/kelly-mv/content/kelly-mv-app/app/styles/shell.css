@@ -1,6 +1,6 @@
 @layer shell {
   :root {
-    color-scheme: light;
+    color-scheme: light dark;
     --bg: #f7f8fa;
     --surface: #ffffff;
     --surface-soft: #fafafa;
@@ -32,7 +32,7 @@
     color: var(--ink);
     background: var(--bg);
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 14px;
+    font-size: var(--text-md);
   }
 
   button,
@@ -100,7 +100,7 @@
     place-items: center;
     padding: 0;
     border: 1px solid var(--line);
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     color: var(--muted);
     background: var(--surface);
   }
@@ -143,15 +143,15 @@
     display: grid;
     place-items: center;
     border: 1px solid var(--line);
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     color: var(--accent);
     background: var(--surface);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 800;
   }
 
   .brand-title {
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 700;
     line-height: 1.2;
   }
@@ -166,7 +166,7 @@
 
   .brand-subtitle {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .project-switcher {
@@ -182,8 +182,8 @@
   .project-switcher label,
   .field label,
   .shot-pipeline label {
-    color: #52525b;
-    font-size: 12px;
+    color: var(--ink-soft);
+    font-size: var(--text-sm);
     font-weight: 600;
   }
 
@@ -199,7 +199,7 @@
     flex-wrap: wrap;
     gap: 6px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .switch-meta span:not(:empty) {
@@ -232,11 +232,11 @@
   .nav button:hover,
   .item-card:hover,
   .back-button:hover {
-    background: #f4f4f5;
+    background: var(--surface-soft);
   }
 
   .quick-stats span {
-    font-size: 16px;
+    font-size: var(--text-lg);
     font-weight: 700;
     line-height: 1;
   }
@@ -244,7 +244,7 @@
   .quick-stats small {
     overflow: hidden;
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -263,15 +263,15 @@
     width: 100%;
     min-height: 32px;
     padding: 7px 9px;
-    border-radius: 7px;
-    color: #3f3f46;
+    border-radius: var(--radius-sm);
+    color: var(--ink-soft);
     background: transparent;
     text-align: left;
   }
 
   .nav button.active {
     color: var(--ink);
-    background: #eceefc;
+    background: var(--surface-soft);
     font-weight: 650;
   }
 
@@ -292,18 +292,18 @@
   }
 
   .settings-button:hover {
-    background: #f4f4f5;
+    background: var(--surface-soft);
   }
 
   .settings-button span {
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 650;
   }
 
   .settings-button small {
     overflow: hidden;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -326,7 +326,7 @@
     grid-template-rows: auto auto minmax(0, 1fr);
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     background: var(--surface);
     box-shadow: 0 24px 80px rgba(24, 24, 27, 0.22);
   }
@@ -341,7 +341,7 @@
   }
 
   .modal-title {
-    font-size: 15px;
+    font-size: var(--text-md);
     font-weight: 750;
   }
 
@@ -350,7 +350,7 @@
     max-width: 460px;
     margin-top: 3px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -374,7 +374,7 @@
 
   .modal-tabs button {
     padding: 8px 10px 9px;
-    border-radius: 7px 7px 0 0;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     color: var(--muted);
     background: transparent;
     font-weight: 650;
@@ -402,7 +402,7 @@
 
   .settings-panel h2 {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 750;
   }
 
@@ -422,7 +422,7 @@
     gap: 8px;
     align-items: baseline;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .settings-row code {
@@ -443,14 +443,14 @@
   }
 
   .project-title {
-    font-size: 15px;
+    font-size: var(--text-md);
     font-weight: 750;
     line-height: 1.25;
   }
 
   .project-meta {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .sidebar-actions {
@@ -494,7 +494,7 @@
     min-height: 34px;
     padding: 8px 11px;
     border-radius: var(--radius);
-    color: #fff;
+    color: var(--accent-contrast);
     background: var(--accent);
     font-weight: 650;
   }
@@ -502,18 +502,18 @@
   #newItemButton {
     width: 34px;
     padding: 0;
-    font-size: 20px;
+    font-size: var(--text-xl);
     line-height: 1;
   }
 
   .lock-banner {
     margin: 12px 18px 0;
     padding: 9px 10px;
-    border: 1px solid #fde68a;
+    border: 1px solid color-mix(in srgb, var(--warning) 34%, var(--line));
     border-radius: var(--radius);
-    color: #854d0e;
-    background: #fffbeb;
-    font-size: 13px;
+    color: var(--danger);
+    background: var(--surface-soft);
+    font-size: var(--text-base);
   }
 
   .hidden {
@@ -563,13 +563,13 @@
 
   .panel-head h2 {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 750;
   }
 
   .panel-head p {
     margin: 2px 0 0;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .count-pill,
@@ -580,9 +580,9 @@
     padding: 2px 7px;
     border: 1px solid transparent;
     border-radius: 999px;
-    color: #52525b;
-    background: #f4f4f5;
-    font-size: 11px;
+    color: var(--ink-soft);
+    background: var(--surface-soft);
+    font-size: var(--text-xs);
     line-height: 1;
     white-space: nowrap;
   }
@@ -602,7 +602,7 @@
     gap: 8px;
     padding: 14px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .item-card,
@@ -646,7 +646,7 @@
     overflow: hidden;
     color: var(--faint);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 11px;
+    font-size: var(--text-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -661,7 +661,7 @@
   .item-card h3 {
     overflow: hidden;
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 650;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -672,7 +672,7 @@
     overflow: hidden;
     margin: 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.35;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -680,7 +680,7 @@
 
   .row-arrow {
     color: var(--faint);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .card-meta {
@@ -693,7 +693,7 @@
   .section-label {
     padding: 10px 12px 7px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 650;
   }
 
@@ -703,24 +703,24 @@
 
   .badge.status-approved,
   .badge.status-done {
-    color: #166534;
-    background: #ecfdf3;
+    color: var(--positive);
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
   }
 
   .badge.status-needs_review,
   .badge.status-changes_requested {
-    color: #be123c;
-    background: #fff1f2;
+    color: var(--danger);
+    background: var(--surface-soft);
   }
 
   .badge.status-draft {
-    color: #854d0e;
-    background: #fffbeb;
+    color: var(--danger);
+    background: var(--surface-soft);
   }
 
   .badge.status-blocked {
-    color: #9a3412;
-    background: #fff7ed;
+    color: var(--danger);
+    background: var(--surface-soft);
   }
 
   .detail {
@@ -734,7 +734,7 @@
 
   .detail-card h2 {
     margin: 0 0 12px;
-    font-size: 16px;
+    font-size: var(--text-lg);
     font-weight: 750;
   }
 
@@ -754,7 +754,7 @@
   .detail-head p {
     margin: 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .back-button {
@@ -778,7 +778,7 @@
 
   .episode-tabs button {
     padding: 7px 10px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     color: var(--muted);
     background: transparent;
     font-weight: 650;
@@ -798,7 +798,7 @@
 
   .script-section h3 {
     margin: 0 0 10px;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 750;
   }
 
@@ -830,7 +830,7 @@
     width: 100%;
     min-width: 760px;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .episode-table th,
@@ -847,7 +847,7 @@
     z-index: 1;
     color: var(--muted);
     background: var(--surface-soft);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 650;
   }
 
@@ -864,7 +864,7 @@
     width: 58px;
     color: var(--faint);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
   }
 
@@ -885,7 +885,7 @@
     max-width: 320px;
     margin-top: 3px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -952,10 +952,10 @@
     place-items: center;
     width: 30px;
     height: 30px;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     color: var(--accent);
     background: var(--accent-soft);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 800;
   }
 
@@ -976,20 +976,20 @@
   .execution-card span {
     display: block;
     color: var(--accent);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 800;
   }
 
   .execution-card strong {
     display: block;
     margin-top: 3px;
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .execution-card p {
     margin: 6px 0 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.4;
   }
 
@@ -1007,7 +1007,7 @@
 
   .shot-script-head h4 {
     margin: 6px 0 0;
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .shot-pipeline {
@@ -1023,7 +1023,7 @@
 
   .shot-pipeline p {
     margin: 0 0 6px;
-    font-size: 13px;
+    font-size: var(--text-base);
     line-height: 1.45;
   }
 
@@ -1034,11 +1034,11 @@
     padding: 8px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    color: #27272a;
+    color: var(--ink);
     background: var(--surface-soft);
     white-space: pre-wrap;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.45;
   }
 
@@ -1051,7 +1051,7 @@
     color: var(--muted);
     background: var(--surface-soft);
     text-align: center;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .storyboard-image {

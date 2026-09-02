@@ -4,7 +4,7 @@
   .nav-group-label {
     margin: 10px 4px 2px;
     color: var(--muted-soft);
-    font-size: 10px;
+    font-size: var(--text-xs);
     font-weight: 760;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -15,9 +15,9 @@
   }
 
   .badge.pillar {
-    background: #f5f3ff;
-    color: #6d28d9;
-    border-color: #e9d5ff;
+    background: var(--surface-soft);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
   }
 
   .badge.kind,
@@ -27,53 +27,53 @@
   }
 
   .badge.sentiment-positive {
-    background: #ecfdf3;
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
   }
 
   .badge.sentiment-negative {
-    background: #fff1f0;
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
   }
 
   .badge.sentiment-question {
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: var(--surface-soft);
+    color: var(--accent);
   }
 
   .badge.prio-high {
-    background: #fff1f0;
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
-    border-color: #fecaca;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
   }
 
   .badge.review-needs_review {
-    background: #fff8db;
+    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
     color: var(--warn);
-    border-color: #fde68a;
+    border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
   }
 
   .badge.review-changes_requested {
-    background: #fff7ed;
-    color: #c2410c;
-    border-color: #fed7aa;
+    background: var(--surface-soft);
+    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
   }
 
   .badge.review-approved {
-    background: #ecfdf3;
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
-    border-color: #bbf7d0;
+    border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
   }
 
   .badge.review-done {
-    background: #f1f5f9;
-    color: #475569;
+    background: var(--surface-soft);
+    color: var(--ink-soft);
   }
 
   .badge.review-blocked {
-    background: #fff1f0;
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
-    border-color: #fecaca;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
   }
 
   .gate {
@@ -83,27 +83,27 @@
     padding: 3px 9px;
     border-radius: 999px;
     border: 1px solid var(--line);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 760;
     white-space: nowrap;
   }
 
   .gate-SHIP {
-    background: #ecfdf3;
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
-    border-color: #bbf7d0;
+    border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
   }
 
   .gate-FIX {
-    background: #fff8db;
+    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
     color: var(--warn);
-    border-color: #fde68a;
+    border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
   }
 
   .gate-BLOCK {
-    background: #fff1f0;
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
-    border-color: #fecaca;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
   }
 
   .desk-list {
@@ -117,7 +117,7 @@
     gap: 10px;
     padding: 16px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
   }
 
@@ -136,12 +136,12 @@
 
   .desk-title {
     margin: 0;
-    font-size: 16px;
+    font-size: var(--text-lg);
   }
 
   .desk-hook {
     margin: 0;
-    font-size: 15px;
+    font-size: var(--text-md);
     font-weight: 700;
     line-height: 1.45;
     overflow-wrap: anywhere;
@@ -149,7 +149,7 @@
 
   .desk-body {
     margin: 0;
-    color: #374151;
+    color: var(--accent);
     line-height: 1.5;
     overflow-wrap: anywhere;
   }
@@ -168,9 +168,9 @@
   .tag {
     padding: 2px 8px;
     border-radius: 999px;
-    background: #eef2ff;
-    color: #4338ca;
-    font-size: 12px;
+    background: var(--surface-soft);
+    color: var(--accent);
+    font-size: var(--text-sm);
     font-weight: 650;
   }
 
@@ -178,7 +178,7 @@
     padding: 8px 10px;
     border-left: 3px solid var(--line-strong);
     background: var(--panel-subtle);
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   }
 
   .gate-panel {
@@ -186,18 +186,18 @@
     gap: 8px;
     padding: 12px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel-subtle);
   }
 
   .gate-panel.gate-BLOCK {
-    border-color: #fecaca;
-    background: #fff6f5;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+    background: var(--surface-soft);
   }
 
   .gate-panel.gate-FIX {
-    border-color: #fde68a;
-    background: #fffdf3;
+    border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
+    background: var(--surface-soft);
   }
 
   .gate-checks {
@@ -242,11 +242,11 @@
 
   .gate-block-note {
     padding: 8px 10px;
-    border-radius: 6px;
-    background: #fff1f0;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
     font-weight: 650;
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .actions {
@@ -264,24 +264,24 @@
   }
 
   button.btn-approve {
-    border-color: #bbf7d0;
-    background: #ecfdf3;
+    border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
     font-weight: 650;
   }
 
   button.btn-approve:hover {
-    background: #d7f7e3;
+    background: var(--green-soft);
   }
 
   button.btn-danger {
-    border-color: #fecaca;
-    background: #fff5f5;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+    background: var(--surface-soft);
     color: var(--bad);
   }
 
   button.btn-danger:hover {
-    background: #ffe9e7;
+    background: var(--surface-soft);
   }
 
   button.active {
@@ -296,7 +296,7 @@
     display: grid;
     gap: 4px;
     padding: 10px 12px;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
   }
 
   .incoming-msg {
@@ -305,8 +305,8 @@
   }
 
   .reply-msg {
-    background: #f0f9ff;
-    border: 1px solid #dbeafe;
+    background: var(--surface-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
   }
 
   .incoming-msg p,
@@ -321,13 +321,13 @@
     gap: 6px;
     padding: 10px 12px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel-subtle);
   }
 
   .shotlist-head {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -352,10 +352,10 @@
     place-items: center;
     width: 22px;
     height: 22px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: var(--accent);
-    color: #fff;
-    font-size: 12px;
+    color: var(--accent-contrast);
+    font-size: var(--text-sm);
     font-weight: 700;
   }
 
@@ -363,7 +363,7 @@
   .shot-vo small {
     display: block;
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   .shot-dur {
@@ -403,22 +403,22 @@
   }
 
   .status.cal-scheduled {
-    background: #ecfdf3;
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
   }
 
   .status.cal-drafting {
-    background: #fff8db;
+    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
     color: var(--warn);
   }
 
   .status.cal-published {
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: var(--surface-soft);
+    color: var(--accent);
   }
 
   .status.cal-skipped {
-    background: #f1f5f9;
+    background: var(--surface-soft);
     color: var(--muted);
   }
 
@@ -436,29 +436,29 @@
     flex-wrap: wrap;
     padding: 16px;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     background: var(--panel);
   }
 
   .crisis-status.crisis-watch {
-    border-color: #fde68a;
-    background: #fffdf3;
+    border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
+    background: var(--surface-soft);
   }
 
   .crisis-status.crisis-active {
-    border-color: #fecaca;
-    background: #fff6f5;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+    background: var(--surface-soft);
   }
 
   .crisis-eyebrow {
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 760;
     text-transform: uppercase;
   }
 
   .crisis-state {
-    font-size: 22px;
+    font-size: var(--text-xl);
     font-weight: 760;
     text-transform: capitalize;
   }
@@ -472,17 +472,17 @@
   .pub-flag {
     padding: 4px 10px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
   }
 
   .pub-flag.live {
-    background: #ecfdf3;
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
   }
 
   .pub-flag.paused {
-    background: #fff1f0;
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
   }
 
@@ -504,7 +504,7 @@
     align-items: start;
     padding: 12px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
     cursor: pointer;
   }
@@ -633,13 +633,13 @@
     .human-work-primary strong {
       min-width: 30px;
       height: 30px;
-      font-size: 15px;
+      font-size: var(--text-md);
     }
 
     .filters a {
       min-height: 34px;
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.62);
+      background: color-mix(in srgb, var(--surface) 62%, transparent);
     }
 
     .main {
@@ -655,7 +655,7 @@
       min-height: 52px;
       padding: 8px 10px;
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.96);
+      background: var(--surface-blur);
       backdrop-filter: blur(12px);
     }
 
@@ -676,7 +676,7 @@
 
     .mobile-view-title {
       overflow: hidden;
-      font-size: 14px;
+      font-size: var(--text-md);
       font-weight: 760;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -685,7 +685,7 @@
     .mobile-view-meta {
       overflow: hidden;
       color: var(--muted);
-      font-size: 12px;
+      font-size: var(--text-sm);
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -746,7 +746,7 @@
       max-width: 100%;
       border-left: 1px solid var(--line);
       border-right: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
     }
 
     table {
@@ -779,7 +779,7 @@
 .pager-summary,
 .pager-error {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 .pager-error {
   color: var(--danger, #b42318);

@@ -18,7 +18,7 @@
     flex-wrap: nowrap;
     gap: 6px;
     border-bottom: 1px solid var(--line);
-    background: #fbfcfd;
+    background: var(--surface-soft);
     padding: 8px 12px;
     overflow-x: auto;
     scrollbar-width: thin;
@@ -31,7 +31,7 @@
   .bulk-selected {
     flex: 0 0 auto;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 620;
     margin-right: 4px;
     white-space: nowrap;
@@ -48,7 +48,7 @@
     align-items: center;
     gap: 6px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 620;
     margin-left: 2px;
     white-space: nowrap;
@@ -57,8 +57,8 @@
   .bulk-more select {
     height: 32px;
     border: 1px solid var(--line-strong);
-    border-radius: 8px;
-    background: #fff;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     color: var(--text);
     padding: 0 30px 0 10px;
     font: inherit;
@@ -92,10 +92,10 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.94);
+    background: var(--surface-blur);
     padding: 8px 12px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     backdrop-filter: blur(12px);
   }
 
@@ -104,18 +104,18 @@
     grid-template-columns: 24px 1fr;
     gap: 7px;
     padding: 10px 12px;
-    border-bottom: 1px solid #edf0f4;
+    border-bottom: 1px solid var(--line);
     cursor: pointer;
     transition: background 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
   }
 
   .message-row:hover {
-    background: color-mix(in srgb, var(--accent-wash) 42%, #ffffff);
+    background: color-mix(in srgb, var(--accent-wash) 42%, var(--surface));
   }
 
   .message-row.selected {
-    background: linear-gradient(90deg, var(--accent-soft), color-mix(in srgb, var(--accent-soft) 34%, #ffffff));
-    box-shadow: inset 2px 0 0 var(--accent), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+    background: linear-gradient(90deg, var(--accent-soft), color-mix(in srgb, var(--accent-soft) 34%, var(--surface)));
+    box-shadow: inset 2px 0 0 var(--accent), inset 0 1px 0 color-mix(in srgb, var(--surface) 58%, transparent);
   }
 
   .load-more {
@@ -126,7 +126,7 @@
     min-height: 54px;
     padding: 10px 12px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .load-more.is-hidden,
@@ -152,7 +152,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .review-ref {
@@ -162,20 +162,20 @@
     background: var(--accent-wash);
     color: var(--accent-text);
     padding: 1px 6px;
-    font-size: 11px;
+    font-size: var(--text-xs);
     line-height: 1.5;
     font-weight: 650;
   }
 
   .detail-review-ref {
     display: inline-flex;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .subject {
     margin-top: 2px;
     font-weight: 560;
-    font-size: 13px;
+    font-size: var(--text-base);
     line-height: 1.32;
   }
 
@@ -183,7 +183,7 @@
     margin-top: 3px;
     color: var(--muted);
     line-height: 1.38;
-    font-size: 12px;
+    font-size: var(--text-sm);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -197,7 +197,7 @@
     gap: 5px;
     min-width: 0;
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     line-height: 1.35;
   }
 
@@ -210,7 +210,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: #4b5563;
+    color: var(--accent);
     font-weight: 620;
   }
 
@@ -223,18 +223,18 @@
 
   .badge {
     border: 1px solid var(--line);
-    background: #f9fafb;
+    background: var(--surface-soft);
     color: var(--muted);
     border-radius: 999px;
     padding: 1px 6px;
-    font-size: 11px;
+    font-size: var(--text-xs);
     line-height: 1.55;
     font-weight: 520;
   }
 
   .badge.prepared {
-    border-color: #d8dee8;
-    color: #566070;
+    border-color: var(--line);
+    color: var(--accent);
   }
 
   .badge.needs_review,
@@ -246,19 +246,19 @@
 
   .badge.marketing,
   .badge.system {
-    border-color: #dce3ee;
-    background: #f8fafc;
+    border-color: var(--line);
+    background: var(--surface-hover);
   }
 
   .badge.money,
   .badge.security {
-    border-color: #f2b8b5;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
     background: var(--danger-soft);
     color: var(--danger);
   }
 
   .badge.course {
-    border-color: #f4d38a;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
     color: var(--warning);
   }
 
@@ -268,13 +268,13 @@
 
   .badge.executed,
   .badge.done {
-    border-color: #9fd6bd;
+    border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
     background: var(--ok-soft);
     color: var(--ok);
   }
 
   .badge.blocked {
-    border-color: #f2b8b5;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
     color: var(--danger);
   }
 
@@ -286,13 +286,13 @@
 
   .date {
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
 
   .detail-panel {
-    background: #fff;
+    background: var(--surface);
     padding: 0 22px 24px;
   }
 
@@ -307,7 +307,7 @@
   }
 
   .detail-title {
-    font-size: 21px;
+    font-size: var(--text-xl);
     line-height: 1.25;
     font-weight: 680;
     margin: 18px 0 12px;
@@ -319,7 +319,7 @@
     grid-template-columns: 96px minmax(0, 1fr);
     gap: 7px 12px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--text-base);
     border-bottom: 1px solid var(--line);
     padding-bottom: 16px;
   }
@@ -331,13 +331,13 @@
   .review-advice {
     margin-top: 14px;
     border: 1px solid var(--accent-line);
-    border-radius: 8px;
-    background: linear-gradient(180deg, var(--accent-wash), color-mix(in srgb, var(--accent-wash) 36%, #ffffff));
+    border-radius: var(--radius-sm);
+    background: linear-gradient(180deg, var(--accent-wash), color-mix(in srgb, var(--accent-wash) 36%, var(--surface)));
     padding: 12px;
   }
 
   .review-advice-title {
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
     color: var(--accent-text);
     text-transform: uppercase;
@@ -353,15 +353,15 @@
   }
 
   .review-advice dt {
-    color: #536079;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--text-sm);
     font-weight: 650;
   }
 
   .review-advice dd {
     margin: 0;
-    color: #273244;
-    font-size: 13px;
+    color: var(--accent);
+    font-size: var(--text-base);
     line-height: 1.45;
   }
 
@@ -380,7 +380,7 @@
     z-index: 2;
     margin: 0 -22px;
     padding: 10px 22px;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--surface-blur);
     backdrop-filter: blur(12px);
     box-shadow: 0 1px 0 var(--line);
   }
@@ -401,7 +401,7 @@
     min-width: 0;
     padding-inline: 10px;
     color: var(--text);
-    background: #fff;
+    background: var(--surface);
   }
 
   .detail-more-action:disabled {
@@ -417,8 +417,8 @@
     min-width: 190px;
     padding: 6px;
     border: 1px solid var(--line-strong);
-    border-radius: 8px;
-    background: #fff;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
   }
 
@@ -431,7 +431,7 @@
     width: 100%;
     justify-content: flex-start;
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: transparent;
     box-shadow: none;
     color: var(--text);
@@ -454,8 +454,8 @@
     margin-top: 20px;
     margin-bottom: 8px;
     font-weight: 650;
-    font-size: 12px;
-    color: #3f4652;
+    font-size: var(--text-sm);
+    color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -463,12 +463,12 @@
   .body-box,
   .draft-box {
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel-subtle);
     padding: 12px;
     white-space: pre-wrap;
     line-height: 1.48;
-    font-size: 14px;
+    font-size: var(--text-md);
     max-height: 340px;
     overflow: auto;
     box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
@@ -481,11 +481,11 @@
 
   .translation-empty {
     border: 1px dashed var(--line-strong);
-    border-radius: 8px;
-    background: #fff;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     color: var(--muted);
     padding: 10px 12px;
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.45;
   }
 
@@ -504,18 +504,18 @@
     min-height: 118px;
     resize: vertical;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel-subtle);
     padding: 12px;
     line-height: 1.48;
-    font-size: 14px;
+    font-size: var(--text-md);
     outline: none;
   }
 
   .comment-box:focus,
   .draft-box:focus {
     border-color: var(--accent-line);
-    background: #fff;
+    background: var(--surface);
     box-shadow: 0 0 0 3px var(--accent-focus);
   }
 
@@ -527,10 +527,10 @@
 
   .attachment {
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     padding: 10px;
     background: var(--panel-subtle);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .attachment-head {
@@ -555,16 +555,16 @@
     max-height: 420px;
     margin-top: 10px;
     border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #fff;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
   }
 
   .attachment-preview-pdf,
   .html-preview {
     width: 100%;
     border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #fff;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
   }
 
   .attachment-preview-pdf {
@@ -608,7 +608,7 @@
     }
 
     .detail-title {
-      font-size: 18px;
+      font-size: var(--text-lg);
       margin-top: 14px;
     }
 
@@ -696,11 +696,11 @@
     }
 
     .sender {
-      font-size: 12.5px;
+      font-size: var(--text-sm);
     }
 
     .subject {
-      font-size: 12px;
+      font-size: var(--text-sm);
       overflow-wrap: anywhere;
     }
 
@@ -714,7 +714,7 @@
     }
 
     .badge {
-      font-size: 10.5px;
+      font-size: var(--text-xs);
       padding: 1px 5px;
       max-width: 100%;
       overflow-wrap: anywhere;
@@ -735,7 +735,7 @@
       border-width: 0 0 1px;
       border-radius: 0;
       padding: 10px 12px;
-      background: rgba(255, 255, 255, 0.96);
+      background: var(--surface-blur);
       box-shadow: none;
       backdrop-filter: blur(12px);
     }
@@ -745,7 +745,7 @@
     }
 
     .detail-title {
-      font-size: 17px;
+      font-size: var(--text-lg);
       margin: 14px 0 10px;
       overflow-wrap: anywhere;
     }
@@ -822,7 +822,7 @@
     .body-box,
     .draft-box,
     .comment-box {
-      font-size: 13px;
+      font-size: var(--text-base);
       padding: 10px;
     }
 

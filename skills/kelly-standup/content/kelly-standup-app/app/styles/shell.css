@@ -1,6 +1,6 @@
 @layer shell {
   :root {
-    color-scheme: light;
+    color-scheme: light dark;
     --bg: #f7f8fa;
     --panel: #ffffff;
     --panel-subtle: #fafbfc;
@@ -50,23 +50,23 @@
   }
 
   h2 {
-    font-size: 15px;
+    font-size: var(--text-md);
   }
 
   h3 {
-    font-size: 14px;
+    font-size: var(--text-md);
   }
 
   h4 {
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     font-weight: 760;
     text-transform: uppercase;
   }
 
   .muted {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .strong {
@@ -98,7 +98,7 @@
     padding: 14px 12px;
     overflow: hidden auto;
     border-right: 1px solid var(--line);
-    background: #f3f4f6;
+    background: var(--surface-soft);
     z-index: 5;
   }
 
@@ -116,10 +116,10 @@
     display: grid;
     place-items: center;
     border: 1px solid var(--line-strong);
-    border-radius: 5px;
-    background: #f7f8fa;
-    color: #475569;
-    font-size: 8px;
+    border-radius: var(--radius-sm);
+    background: var(--canvas);
+    color: var(--ink-soft);
+    font-size: var(--text-xs);
     font-weight: 760;
     line-height: 1;
   }
@@ -130,7 +130,7 @@
   }
 
   .brand-title {
-    font-size: 15px;
+    font-size: var(--text-md);
     font-weight: 650;
     line-height: 1.2;
   }
@@ -140,7 +140,7 @@
     padding-left: 26px;
     overflow: hidden;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.45;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -152,9 +152,9 @@
     place-items: center;
     padding: 0;
     border-color: transparent;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     background: transparent;
-    color: #7a828f;
+    color: var(--accent);
     box-shadow: none;
   }
 
@@ -170,8 +170,8 @@
   .mobile-sidebar-toggle:hover,
   .mobile-sidebar-toggle:focus-visible {
     border-color: transparent;
-    background: #eef1f5;
-    color: #2f343b;
+    background: var(--surface-soft);
+    color: var(--accent);
     outline: none;
     box-shadow: none;
   }
@@ -187,7 +187,7 @@
     width: 17px;
     height: 15px;
     border: 1.5px solid currentColor;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     opacity: 0.82;
   }
 
@@ -259,15 +259,15 @@
     min-height: 36px;
     padding: 0 11px 0 32px;
     border: 1px solid var(--line);
-    border-radius: 7px;
-    background: rgba(255, 255, 255, 0.72);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
     box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
   }
 
   .search input:focus {
     border-color: var(--line-strong);
     outline: none;
-    background: #fff;
+    background: var(--surface);
     box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
   }
 
@@ -276,19 +276,19 @@
     gap: 8px;
     padding: 10px;
     border: 1px solid var(--line);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.72);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
   }
 
   .human-work-eyebrow {
-    color: #2563eb;
-    font-size: 11px;
+    color: var(--accent);
+    font-size: var(--text-xs);
     font-weight: 760;
     text-transform: uppercase;
   }
 
   .human-work-title {
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 680;
   }
 
@@ -299,8 +299,8 @@
   .human-work-primary,
   .human-work-secondary a {
     border: 1px solid var(--line);
-    border-radius: 7px;
-    background: rgba(255, 255, 255, 0.68);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--surface) 68%, transparent);
     color: var(--text);
   }
 
@@ -323,10 +323,10 @@
     height: 34px;
     display: grid;
     place-items: center;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     background: #202124;
-    color: #fff;
-    font-size: 16px;
+    color: var(--accent-contrast);
+    font-size: var(--text-lg);
   }
 
   .human-work-secondary {
@@ -343,13 +343,13 @@
   }
 
   .human-work-secondary strong {
-    font-size: 16px;
+    font-size: var(--text-lg);
   }
 
   .human-work-secondary span {
     overflow: hidden;
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -371,18 +371,18 @@
     align-items: center;
     min-height: 32px;
     padding: 7px 9px;
-    border-radius: 7px;
-    color: #475569;
+    border-radius: var(--radius-sm);
+    color: var(--ink-soft);
     text-decoration: none;
   }
 
   .filters a:hover {
-    background: rgba(255, 255, 255, 0.6);
+    background: color-mix(in srgb, var(--surface) 60%, transparent);
     color: var(--text);
   }
 
   .filters a.active {
-    background: rgba(255, 255, 255, 0.84);
+    background: color-mix(in srgb, var(--surface) 84%, transparent);
     color: var(--text);
     font-weight: 650;
     box-shadow: var(--shadow);
@@ -400,8 +400,8 @@
   .sidebar-footer select {
     width: 100%;
     min-height: 34px;
-    border-radius: 7px;
-    background: rgba(255, 255, 255, 0.72);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
   }
 
   /* Main area */
@@ -433,11 +433,11 @@
     min-height: 58px;
     padding: 10px 18px;
     border-bottom: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.94);
+    background: var(--surface-blur);
   }
 
   .topbar h1 {
-    font-size: 20px;
+    font-size: var(--text-xl);
     line-height: 1.2;
   }
 
@@ -457,7 +457,7 @@
   textarea {
     min-height: 34px;
     border: 1px solid var(--line);
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
     color: var(--text);
     font: inherit;
@@ -481,7 +481,7 @@
 
   button:hover {
     border-color: var(--line-strong);
-    background: #fbfbfc;
+    background: var(--surface-soft);
   }
 
   button:disabled {
@@ -492,7 +492,7 @@
   button.primary {
     border-color: #1f2937;
     background: #202124;
-    color: #fff;
+    color: var(--accent-contrast);
   }
 
   button.primary:hover {

@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
   --bg: #f7f8fa;
   --panel: #ffffff;
   --panel-subtle: #fafbfc;
@@ -63,7 +63,7 @@ body.sidebar-collapsed .app-shell {
   padding: 14px 12px;
   overflow: hidden auto;
   border-right: 1px solid var(--line);
-  background: #f3f4f6;
+  background: var(--surface-soft);
   z-index: 5;
 }
 
@@ -81,10 +81,10 @@ body.sidebar-collapsed .app-shell {
   display: grid;
   place-items: center;
   border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  background: #f7f8fa;
-  color: #475569;
-  font-size: 9px;
+  border-radius: var(--radius-sm);
+  background: var(--canvas);
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
   font-weight: 760;
   line-height: 1;
 }
@@ -95,7 +95,7 @@ body.sidebar-collapsed .app-shell {
 }
 
 .brand-title {
-  font-size: 15px;
+  font-size: var(--text-md);
   font-weight: 650;
   line-height: 1.2;
 }
@@ -104,7 +104,7 @@ body.sidebar-collapsed .app-shell {
   margin-top: 4px;
   padding-left: 26px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.45;
 }
 
@@ -114,9 +114,9 @@ body.sidebar-collapsed .app-shell {
   place-items: center;
   padding: 0;
   border-color: transparent;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: #7a828f;
+  color: var(--accent);
   box-shadow: none;
 }
 
@@ -132,8 +132,8 @@ body.sidebar-collapsed .app-shell {
 .mobile-sidebar-toggle:hover,
 .mobile-sidebar-toggle:focus-visible {
   border-color: transparent;
-  background: #eef1f5;
-  color: #2f343b;
+  background: var(--surface-soft);
+  color: var(--accent);
   outline: none;
   box-shadow: none;
 }
@@ -149,7 +149,7 @@ body.sidebar-collapsed .app-shell {
   width: 17px;
   height: 15px;
   border: 1.5px solid currentColor;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   opacity: 0.82;
 }
 
@@ -221,8 +221,8 @@ body.sidebar-collapsed .sidebar-footer {
   min-height: 36px;
   padding: 0 11px 0 32px;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.72);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
   box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
   font: inherit;
   color: var(--ink);
@@ -231,7 +231,7 @@ body.sidebar-collapsed .sidebar-footer {
 .search input:focus {
   border-color: var(--line-strong);
   outline: none;
-  background: #fff;
+  background: var(--surface);
   box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
 }
 
@@ -240,19 +240,19 @@ body.sidebar-collapsed .sidebar-footer {
   gap: 8px;
   padding: 10px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.72);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 
 .human-work-eyebrow {
-  color: #2563eb;
-  font-size: 11px;
+  color: var(--accent);
+  font-size: var(--text-xs);
   font-weight: 760;
   text-transform: uppercase;
 }
 
 .human-work-title {
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 680;
 }
 
@@ -263,8 +263,8 @@ body.sidebar-collapsed .sidebar-footer {
 .human-work-primary,
 .human-work-secondary a {
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.68);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 68%, transparent);
   color: var(--text);
 }
 
@@ -287,10 +287,10 @@ body.sidebar-collapsed .sidebar-footer {
   height: 34px;
   display: grid;
   place-items: center;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: #202124;
-  color: #fff;
-  font-size: 16px;
+  color: var(--accent-contrast);
+  font-size: var(--text-lg);
 }
 
 .human-work-secondary {
@@ -307,13 +307,13 @@ body.sidebar-collapsed .sidebar-footer {
 }
 
 .human-work-secondary strong {
-  font-size: 16px;
+  font-size: var(--text-lg);
 }
 
 .human-work-secondary span {
   overflow: hidden;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -333,17 +333,17 @@ body.sidebar-collapsed .sidebar-footer {
   align-items: center;
   min-height: 32px;
   padding: 7px 9px;
-  border-radius: 7px;
-  color: #475569;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
 }
 
 .filters a:hover {
-  background: rgba(255, 255, 255, 0.6);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
   color: var(--text);
 }
 
 .filters a.active {
-  background: rgba(255, 255, 255, 0.84);
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
   color: var(--text);
   font-weight: 650;
   box-shadow: var(--shadow);
@@ -362,8 +362,8 @@ body.sidebar-collapsed .sidebar-footer {
   width: 100%;
   margin-top: 6px;
   min-height: 34px;
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.72);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 
 select,
@@ -372,8 +372,8 @@ button,
 textarea {
   min-height: 36px;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: white;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   box-shadow: none;
@@ -399,7 +399,7 @@ button {
 
 button:hover {
   border-color: var(--line-strong);
-  background: #fbfbfc;
+  background: var(--surface-soft);
 }
 
 button:disabled {
@@ -430,7 +430,7 @@ button:disabled {
   min-height: 58px;
   padding: 10px 18px;
   border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface-blur);
 }
 
 h1,
@@ -440,16 +440,16 @@ h2 {
 }
 
 h1 {
-  font-size: 21px;
+  font-size: var(--text-xl);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
 
 h2 {
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 700;
-  color: #4b5563;
+  color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -468,7 +468,7 @@ h2 {
 
 .muted {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .metrics {
@@ -486,7 +486,7 @@ h2 {
 .warnings,
 .table-wrap {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--panel);
 }
 
@@ -497,13 +497,13 @@ h2 {
 .metric span {
   display: block;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .metric strong {
   display: block;
   margin-top: 6px;
-  font-size: 20px;
+  font-size: var(--text-xl);
 }
 
 .metric strong.positive {
@@ -541,16 +541,16 @@ table {
 th,
 td {
   padding: 11px 12px;
-  border-bottom: 1px solid #edf0f4;
+  border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
 }
 
 th {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
-  background: #fafbfc;
+  background: var(--surface-hover);
 }
 
 th.sortable {
@@ -585,9 +585,9 @@ th.sortable.active {
   padding: 3px 8px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: #f8fafc;
-  color: #475569;
-  font-size: 11px;
+  background: var(--surface-hover);
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -607,32 +607,32 @@ th.sortable.active {
 }
 
 .badge.needs_review {
-  border-color: #f0dcae;
-  background: #fbf3dc;
+  border-color: color-mix(in srgb, var(--warning) 34%, var(--line));
+  background: var(--blue-soft);
   color: var(--warn);
 }
 
 .badge.blocking {
-  border-color: #f0cdcd;
-  background: #fdeeee;
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--bad);
 }
 
 .badge.acceptable {
-  border-color: #cfeee0;
-  background: #eafaf1;
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--good);
 }
 
 .badge.regression {
-  border-color: #f0cdcd;
-  background: #fdeeee;
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--bad);
 }
 
 .badge.improvement {
-  border-color: #cfeee0;
-  background: #eafaf1;
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--good);
 }
 
@@ -640,7 +640,7 @@ th.sortable.active {
   display: inline-block;
   margin-bottom: 12px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 
 .back-link:hover {
@@ -700,7 +700,7 @@ dd {
   margin-bottom: 14px;
   padding: 18px 18px 16px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   background: var(--panel);
   box-shadow: var(--shadow);
 }
@@ -716,7 +716,7 @@ dd {
 .compare-panel-head h2 {
   margin: 0;
   color: var(--ink);
-  font-size: 14px;
+  font-size: var(--text-md);
   font-weight: 700;
   text-transform: none;
   letter-spacing: 0;
@@ -724,7 +724,7 @@ dd {
 
 .compare-panel-head h2 .muted {
   margin: 0 2px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -736,21 +736,21 @@ dd {
   border: 1px solid var(--line);
   background: var(--accent-weak);
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .compare-delta.positive {
-  border-color: #b9e6cd;
-  background: #eafaf1;
+  border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--good);
 }
 
 .compare-delta.negative {
-  border-color: #f3c9c9;
-  background: #fdeeee;
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--bad);
 }
 
@@ -768,7 +768,7 @@ dd {
 
 .compare-row-label {
   overflow: hidden;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -782,7 +782,7 @@ dd {
   position: relative;
   height: 12px;
   border-radius: 999px;
-  background: #eef1f5;
+  background: var(--surface-soft);
   overflow: hidden;
 }
 
@@ -808,7 +808,7 @@ dd {
 
 .compare-row-value {
   text-align: right;
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -817,7 +817,7 @@ dd {
   padding: 16px;
   margin-bottom: 18px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--panel);
 }
 
@@ -842,23 +842,23 @@ dd {
 }
 
 button.approve {
-  border-color: #b9e6cd;
-  background: #eafaf1;
+  border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--good);
 }
 
 button.approve:hover {
-  background: #dff5e8;
+  background: var(--surface-soft);
 }
 
 button.block {
-  border-color: #f3c9c9;
-  background: #fdeeee;
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--bad);
 }
 
 button.block:hover {
-  background: #fbe1e1;
+  background: var(--surface-soft);
 }
 
 .regression-list,
@@ -874,7 +874,7 @@ button.block:hover {
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--panel);
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
@@ -890,7 +890,7 @@ button.block:hover {
 
 .case-row .case-title strong {
   display: block;
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 650;
 }
 
@@ -898,7 +898,7 @@ button.block:hover {
   display: block;
   overflow: hidden;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -907,19 +907,19 @@ button.block:hover {
 .case-row .score-delta {
   min-width: 40px;
   padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-variant-numeric: tabular-nums;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 760;
   text-align: right;
 }
 
 .case-row .score-delta.positive {
-  background: #eafaf1;
+  background: var(--surface-soft);
 }
 
 .case-row .score-delta.negative {
-  background: #fdeeee;
+  background: var(--surface-soft);
 }
 
 .detail {
@@ -940,7 +940,7 @@ button.block:hover {
   display: grid;
   gap: 5px;
   padding: 10px 56px 10px 0;
-  border-bottom: 1px solid #f1f3f6;
+  border-bottom: 1px solid var(--line);
 }
 
 .rubric-group:last-child {
@@ -953,7 +953,7 @@ button.block:hover {
   grid-template-columns: 84px minmax(0, 1fr) 32px;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .rubric-key {
@@ -968,7 +968,7 @@ button.block:hover {
   position: relative;
   height: 7px;
   border-radius: 999px;
-  background: #eef1f5;
+  background: var(--surface-soft);
   overflow: hidden;
 }
 
@@ -997,18 +997,18 @@ button.block:hover {
   transform: translateY(-50%);
   background: var(--accent-weak);
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 760;
   font-variant-numeric: tabular-nums;
 }
 
 .rubric-delta.positive {
-  background: #eafaf1;
+  background: var(--surface-soft);
   color: var(--good);
 }
 
 .rubric-delta.negative {
-  background: #fdeeee;
+  background: var(--surface-soft);
   color: var(--bad);
 }
 
@@ -1021,7 +1021,7 @@ button.block:hover {
 
 .transcript-col {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--panel);
   padding: 12px;
   min-width: 0;
@@ -1032,13 +1032,13 @@ button.block:hover {
   align-items: center;
   gap: 8px;
   margin: 0 0 10px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
 .transcript-tag {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 760;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1048,7 +1048,7 @@ button.block:hover {
   margin: 0;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-  font-size: 13px;
+  font-size: var(--text-base);
   line-height: 1.55;
 }
 
@@ -1058,7 +1058,7 @@ button.block:hover {
 }
 
 .transcript-baseline .transcript-tag {
-  color: #64748b;
+  color: var(--muted);
 }
 
 .transcript-candidate {
@@ -1071,7 +1071,7 @@ button.block:hover {
 
 .transcript-col.diff-changed {
   border-color: var(--accent-line, #dbe6ff);
-  background: var(--accent-wash, #f5f8ff);
+  background: var(--accent-wash, var(--surface-soft));
 }
 
 .transcript-col.diff-changed.transcript-baseline {
@@ -1083,7 +1083,7 @@ button.block:hover {
   margin-top: 16px;
   padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--panel);
 }
 
@@ -1095,14 +1095,14 @@ button.block:hover {
 }
 
 button.blocking-btn {
-  border-color: #f3c9c9;
-  background: #fdeeee;
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--bad);
 }
 
 button.acceptable-btn {
-  border-color: #b9e6cd;
-  background: #eafaf1;
+  border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
+  background: var(--surface-soft);
   color: var(--good);
 }
 
@@ -1124,13 +1124,13 @@ button.acceptable-btn {
   border: 1px solid var(--line);
   background: var(--panel);
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 
 .category-chip.active {
   border-color: var(--accent-line, #dbe6ff);
-  background: var(--accent-wash, #f5f8ff);
+  background: var(--accent-wash, var(--surface-soft));
   color: var(--accent-text, #0066cc);
 }
 
@@ -1212,7 +1212,7 @@ button.acceptable-btn {
   .filters a {
     min-height: 34px;
     border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.62);
+    background: color-mix(in srgb, var(--surface) 62%, transparent);
   }
 
   .main {
@@ -1228,7 +1228,7 @@ button.acceptable-btn {
     min-height: 52px;
     padding: 8px 10px;
     border-bottom: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--surface-blur);
   }
 
   .mobile-sidebar-toggle {
@@ -1248,7 +1248,7 @@ button.acceptable-btn {
 
   .mobile-view-title {
     overflow: hidden;
-    font-size: 14px;
+    font-size: var(--text-md);
     font-weight: 760;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1257,7 +1257,7 @@ button.acceptable-btn {
   .mobile-view-meta {
     overflow: hidden;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     text-overflow: ellipsis;
     white-space: nowrap;
   }

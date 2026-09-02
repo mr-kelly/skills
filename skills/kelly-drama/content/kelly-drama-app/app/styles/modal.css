@@ -20,7 +20,7 @@
     overflow: auto;
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow);
     padding: 22px 24px 26px;
   }
@@ -35,7 +35,7 @@
     border: 1px solid var(--line);
     background: var(--surface);
     color: var(--muted);
-    font-size: 18px;
+    font-size: var(--text-lg);
     line-height: 1;
     cursor: pointer;
   }
@@ -47,7 +47,7 @@
 
   .modal-head h3 {
     margin: 0 0 8px;
-    font-size: 17px;
+    font-size: var(--text-lg);
   }
 
   .modal-tags {
@@ -63,7 +63,7 @@
 
   .modal-section > label {
     display: block;
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 600;
     color: var(--muted);
     text-transform: uppercase;
@@ -74,7 +74,7 @@
   .prompt-pre {
     white-space: pre-wrap;
     word-break: break-word;
-    font-size: 12.5px;
+    font-size: var(--text-sm);
     line-height: 1.6;
     background: var(--surface-soft);
     border: 1px solid var(--line);
@@ -104,7 +104,7 @@
 
   .ref-thumb figcaption {
     margin-top: 5px;
-    font-size: 12px;
+    font-size: var(--text-sm);
     color: var(--ink);
     display: flex;
     justify-content: space-between;
@@ -128,13 +128,13 @@
   }
 
   .ctx-row span {
-    font-size: 12px;
+    font-size: var(--text-sm);
     color: var(--muted);
   }
 
   .ctx-row p {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     line-height: 1.5;
   }
 

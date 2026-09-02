@@ -1,16 +1,21 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
-const skillsDir = path.join(root, "skills");
 const cssTemplate = fs.readFileSync(path.join(root, "scripts", "accent-theme.css"), "utf8");
 const jsTemplate = fs.readFileSync(path.join(root, "scripts", "accent-theme.js"), "utf8");
 
 function kellySkillDirs() {
-  return fs
-    .readdirSync(skillsDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && entry.name.startsWith("kelly-"))
-    .map((entry) => path.join(skillsDir, entry.name))
+  const baseline = execFileSync("git", ["merge-base", "HEAD", "github/main"], { cwd: root, encoding: "utf8" }).trim();
+  return execFileSync("git", ["ls-tree", "-r", "--name-only", baseline, "skills"], {
+    cwd: root,
+    encoding: "utf8",
+  })
+    .trim()
+    .split("\n")
+    .filter((filePath) => filePath.startsWith("skills/kelly-") && filePath.endsWith("/app/accent-theme.css"))
+    .map((filePath) => path.join(root, filePath.split("/").slice(0, 2).join("/")))
     .sort();
 }
 
@@ -35,7 +40,6 @@ const changed = [];
 
 for (const dir of kellySkillDirs()) {
   const name = path.basename(dir);
-  if (name === "kelly-email") continue;
   const appDir = path.join(dir, "content", `${name}-app`, "app");
   const indexPath = path.join(appDir, "index.html");
   if (!fs.existsSync(indexPath)) continue;

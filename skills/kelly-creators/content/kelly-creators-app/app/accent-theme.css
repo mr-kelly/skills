@@ -94,6 +94,19 @@ html[data-accent-theme="graphite"] {
   --accent-weak: var(--accent-soft);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent-strong: color-mix(in srgb, var(--accent) 86%, white);
+    --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
+    --accent-wash: color-mix(in srgb, var(--accent) 12%, var(--surface));
+    --accent-line: color-mix(in srgb, var(--accent) 38%, var(--line));
+    --accent-focus: color-mix(in srgb, var(--accent) 28%, transparent);
+    --accent-text: color-mix(in srgb, var(--accent) 84%, white);
+    --accent-contrast: #0b1014;
+    --accent-weak: var(--accent-soft);
+  }
+}
+
 input[type="checkbox"],
 input[type="radio"] {
   accent-color: var(--accent);
@@ -172,8 +185,8 @@ button.active {
 .message-row.selected,
 .episode-table tbody tr.active,
 .conv-row.active {
-  background: linear-gradient(90deg, var(--accent-soft), color-mix(in srgb, var(--accent-soft) 34%, #ffffff));
-  box-shadow: inset 2px 0 0 var(--accent), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  background: linear-gradient(90deg, var(--accent-soft), color-mix(in srgb, var(--accent-soft) 34%, var(--surface)));
+  box-shadow: inset 2px 0 0 var(--accent), inset 0 1px 0 color-mix(in srgb, var(--surface) 58%, transparent);
 }
 
 .badge.needs_review,
