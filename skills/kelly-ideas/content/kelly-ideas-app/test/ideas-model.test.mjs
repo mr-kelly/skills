@@ -11,6 +11,9 @@ import {
   normalizeQuestionRow,
 } from "../app/js/ideas-model.js";
 
+const demoProviderModule = "../app/js/providers/demo-provider.js";
+const { demoSnapshot } = await import(demoProviderModule);
+
 test("every Base read stays within the Busabase records.list limit", () => {
   for (const base of appConfig.bases) {
     assert.ok(
@@ -18,6 +21,22 @@ test("every Base read stays within the Busabase records.list limit", () => {
       `${base.key}: ${base.readLimit}`,
     );
   }
+});
+
+test("demo snapshots load deterministic workflow scenes", () => {
+  const overview = demoSnapshot("overview");
+  assert.equal(overview.ideas.length, 4);
+  assert.equal(overview.counts.parked, 1);
+
+  const ready = demoSnapshot("ready");
+  assert.deepEqual(
+    ready.ideas.map((idea) => idea.record_id),
+    ["idea-email"],
+  );
+  assert.equal(ready.ideas[0].documents.prd.status, "已完善");
+
+  const needsAnswer = demoSnapshot("needs-answer");
+  assert.ok(needsAnswer.counts.needsAnswer > 0);
 });
 
 const vagueIdea = {

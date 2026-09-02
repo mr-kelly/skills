@@ -121,6 +121,12 @@ const ROUTE_OVERRIDES = {
     qualified: "/qualified",
     connected: "/connected",
   },
+  "kelly-ideas": {
+    overview: "/overview",
+    "idea-detail": "/ideas/idea-email",
+    questions: "/ideas/idea-vague/questions",
+    documents: "/ideas/idea-email/prd",
+  },
   "kelly-wechat-crm": {
     people: "/people/wechat-person-xiaoyu",
     groups: "/groups/wechat-group-product",

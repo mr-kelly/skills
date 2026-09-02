@@ -1557,6 +1557,29 @@ Kelly CLM 是一个刻意保持轻量的合同生命周期台，用于合同台�
   </tr>
 </table>
 
+### `kelly-ideas`
+
+把模糊想法逐层打磨成可追溯的 BRD、MRD 和 PRD；问题未回答时不会跳级。
+
+<table>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-ideas/assets/screenshots/overview.webp" alt="Kelly Ideas 总览"></td>
+    <td width="50%"><img src="../skills/kelly-ideas/assets/screenshots/idea-detail.webp" alt="Kelly Ideas 灵感详情"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>集中查看等待回答、可以推进和主动搁置的灵感。</td>
+    <td><strong>灵感详情</strong><br>一句话、目标用户、问题、时机、清晰度和当前推进门槛。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-ideas/assets/screenshots/questions.webp" alt="Kelly Ideas 咨询师追问"></td>
+    <td width="50%"><img src="../skills/kelly-ideas/assets/screenshots/documents.webp" alt="Kelly Ideas PRD 文档"></td>
+  </tr>
+  <tr>
+    <td><strong>咨询师追问</strong><br>一次聚焦一个问题，展示提问原因，并提供明确的回答或跳过动作。</td>
+    <td><strong>PRD 文档</strong><br>带版本、状态和未解决 gaps 的产品需求草案。</td>
+  </tr>
+</table>
+
 </details>
 
 ---

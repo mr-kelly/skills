@@ -1726,6 +1726,29 @@ Local Apple Silicon fine-tuning control plane: curate examples, claim reproducib
   </tr>
 </table>
 
+### `kelly-ideas`
+
+Idea strategy desk that turns a vague thought into a traceable BRD, MRD, and PRD without skipping unanswered questions.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-ideas/assets/screenshots/overview.webp" alt="Kelly Ideas overview"></td>
+    <td width="50%"><img src="skills/kelly-ideas/assets/screenshots/idea-detail.webp" alt="Kelly Ideas idea detail"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Ideas waiting on an answer, ready to advance, or deliberately parked.</td>
+    <td><strong>Idea detail</strong><br>The one-liner, target user, problem, timing, clarity score, and current ladder gate.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-ideas/assets/screenshots/questions.webp" alt="Kelly Ideas consultant questions"></td>
+    <td width="50%"><img src="skills/kelly-ideas/assets/screenshots/documents.webp" alt="Kelly Ideas PRD document"></td>
+  </tr>
+  <tr>
+    <td><strong>Consultant questions</strong><br>One focused question at a time, with its reason and an explicit answer or skip action.</td>
+    <td><strong>PRD document</strong><br>A versioned product requirements draft with status and unresolved gaps kept visible.</td>
+  </tr>
+</table>
+
 ### `kelly-sales-outreach`
 
 <table>
