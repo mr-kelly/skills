@@ -39,6 +39,59 @@ test("demo snapshots load deterministic workflow scenes", () => {
   assert.ok(needsAnswer.counts.needsAnswer > 0);
 });
 
+test("completed demo documents are decision-grade and visually structured", () => {
+  const overview = demoSnapshot("overview");
+  const email = overview.ideas.find((idea) => idea.record_id === "idea-email");
+  assert.deepEqual(
+    Object.values(email.documents)
+      .filter(Boolean)
+      .map((document) => document.kind)
+      .sort(),
+    ["brd", "mrd", "prd"],
+  );
+
+  for (const idea of overview.ideas) {
+    const answeredQuestionIds = new Set(
+      idea.questions.filter((question) => question.status === "answered").map((question) => question.record_id),
+    );
+    const completedDocuments = Object.values(idea.documents).filter((document) => document?.status === "已完善");
+    for (const document of completedDocuments) {
+      assert.match(document.body, /^#\s+.+/m, `${document.kind} should start with a document title`);
+      assert.match(document.body, /^>\s+.+/m, `${document.kind} should start with a decision summary`);
+      assert.match(document.body, /\|\s*---\s*\|/, `${document.kind} should include a decision table`);
+      assert.match(document.body, /```mermaid\n/, `${document.kind} should include a meaningful diagram`);
+      const provenance = [...document.body.matchAll(/\[Q:([^\]]+)\]/g)].map((match) => match[1]);
+      assert.ok(provenance.length > 0, `${document.kind} should cite answered consultant questions`);
+      for (const questionId of provenance) {
+        assert.ok(
+          answeredQuestionIds.has(questionId),
+          `${document.kind} cites unanswered or missing question ${questionId}`,
+        );
+      }
+
+      const requiredByKind = {
+        brd: [
+          /业务目标|business objective/i,
+          /成功标准|success metric/i,
+          /风险|risk/i,
+          /非目标|不做|non-goal|out of scope/i,
+        ],
+        mrd: [/ICP|target market/i, /替代|竞品|alternative|competitor/i, /定价|pricing/i, /验证|validation/i],
+        prd: [
+          /用户故事|user stor/i,
+          /功能需求|functional requirement/i,
+          /失败|恢复|error|recovery/i,
+          /非目标|non-goal|out of scope/i,
+          /验收|acceptance/i,
+        ],
+      };
+      for (const pattern of requiredByKind[document.kind]) {
+        assert.match(document.body, pattern, `${document.kind} is missing a document-specific decision section`);
+      }
+    }
+  }
+});
+
 const vagueIdea = {
   record_id: "idea-1",
   title: "帮人做点什么",

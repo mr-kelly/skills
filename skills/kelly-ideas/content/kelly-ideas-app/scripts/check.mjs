@@ -56,6 +56,9 @@ const root = path.resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
 const configText = await readFile(path.join(root, "app", "js", "config.js"), "utf8");
 const index = await readFile(path.join(root, "app", "index.html"), "utf8");
+const rendererText = await readFile(path.join(root, "app", "js", "markdown-renderer.js"), "utf8");
+const richDocsBundle = await readFile(path.join(root, "app", "vendor", "rich-docs.js"), "utf8");
+const mermaidBundle = await readFile(path.join(root, "app", "vendor", "mermaid.js"), "utf8");
 
 if (packageJson.scripts.start !== "node server.js") throw new Error("AirApp start must be node server.js");
 if (!configText.includes('deployment: "cloud"')) throw new Error("Kelly Ideas must be Cloud-only");
@@ -63,6 +66,17 @@ if (/KELLY_CRM_DATA_PROVIDER|local-file-provider|config\.local\.json/.test(confi
   throw new Error("Retired provider/runtime contract remains in app config");
 }
 if (/\b(?:href|src)="\/(?!api\/v1)/.test(index)) throw new Error("AirApp assets must use relative URLs");
+for (const [dependency, version] of Object.entries({ dompurify: "3.4.14", marked: "18.0.11", mermaid: "11.17.2" })) {
+  if (packageJson.devDependencies?.[dependency] !== version) {
+    throw new Error(`${dependency} must stay pinned at ${version}`);
+  }
+}
+if (richDocsBundle.length < 50_000 || mermaidBundle.length < 1_000_000) {
+  throw new Error("Rich-document vendor bundles are missing or incomplete");
+}
+if (!rendererText.includes('securityLevel: "strict"') || !rendererText.includes("DOMPurify.sanitize")) {
+  throw new Error("Rich-document rendering must keep Mermaid strict and sanitize stored markup");
+}
 
 const forbidden = ["local-file-provider.ts", "launcher.ts", "start.sh", "setup-gate.js"];
 const walk = async (directory) => {

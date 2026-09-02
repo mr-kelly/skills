@@ -1,4 +1,4 @@
 interface:
   display_name: "Kelly Ideas"
-  short_description: "Busabase-backed CRM desk for contacts, deals, and follow-ups"
-  default_prompt: "Use $kelly-ideas to open my CRM AirApp and review the pipeline and follow-up queue."
+  short_description: "Turn a vague idea into a professional BRD, MRD, and PRD"
+  default_prompt: "Use $kelly-ideas to challenge this idea, identify what is still unknown, and shape it into a professional visual BRD, MRD, and PRD."

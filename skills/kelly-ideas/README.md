@@ -12,6 +12,11 @@ carries it through BRD, MRD, and PRD.
 - Idea detail: overview (one-liner, who, problem, why-now), the consultant's
   questions and your answers, and the advance gate — blocked with a reason,
   or ready with one click.
+- Rich documents: rendered GitHub-flavored Markdown with tables, images,
+  strict-mode Mermaid diagrams, and sanitized SVG figures.
+- Decision-grade output: a completed BRD, MRD, or PRD includes evidence and
+  assumptions, a meaningful diagram, a decision table, risks, and testable
+  success or acceptance criteria.
 - The gate is the one hard rule: an idea cannot leave a rung while any
   required field is blank or any question on that rung is unanswered, and
   the check is re-derived server-side on every advance, not trusted from

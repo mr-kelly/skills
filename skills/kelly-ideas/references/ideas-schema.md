@@ -39,7 +39,7 @@ One row per idea per kind — at most three per idea (`brd`, `mrd`, `prd`).
 | `body` | `body` | longtext | markdown |
 | `status` | `status` | text | e.g. `草稿` / `已完善` |
 | `version` | `version` | number | |
-| `gaps` | `gaps` | longtext | JSON array of what's still missing |
+| `gaps` | `gaps` | longtext | JSON array of blocking document omissions; non-blocking assumptions and validation backlog stay in the document body |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
 ## Questions (`kelly-ideas-questions`)
