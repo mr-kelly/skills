@@ -1,0 +1,17 @@
+{
+  "name": "kelly-followups",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Kelly Followups — a minimal Busabase App-in-Skill: record who to follow up with after a meeting, see today's list, mark done.",
+  "scripts": {
+    "app:check": "pnpm --dir content/kelly-followups-app check",
+    "sync-content": "node scripts/sync-content.mjs --check"
+  },
+  "dependencies": {
+    "busabase-sdk": "0.30.1"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  }
+}
