@@ -56,6 +56,8 @@ test("completed demo documents are decision-grade and visually structured", () =
     );
     const completedDocuments = Object.values(idea.documents).filter((document) => document?.status === "已完善");
     for (const document of completedDocuments) {
+      assert.match(document.body, /^#\s+.+/m, `${document.kind} should start with a document title`);
+      assert.match(document.body, /^>\s+.+/m, `${document.kind} should start with a decision summary`);
       assert.match(document.body, /\|\s*---\s*\|/, `${document.kind} should include a decision table`);
       assert.match(document.body, /```mermaid\n/, `${document.kind} should include a meaningful diagram`);
       const provenance = [...document.body.matchAll(/\[Q:([^\]]+)\]/g)].map((match) => match[1]);
@@ -65,6 +67,26 @@ test("completed demo documents are decision-grade and visually structured", () =
           answeredQuestionIds.has(questionId),
           `${document.kind} cites unanswered or missing question ${questionId}`,
         );
+      }
+
+      const requiredByKind = {
+        brd: [
+          /业务目标|business objective/i,
+          /成功标准|success metric/i,
+          /风险|risk/i,
+          /非目标|不做|non-goal|out of scope/i,
+        ],
+        mrd: [/ICP|target market/i, /替代|竞品|alternative|competitor/i, /定价|pricing/i, /验证|validation/i],
+        prd: [
+          /用户故事|user stor/i,
+          /功能需求|functional requirement/i,
+          /失败|恢复|error|recovery/i,
+          /非目标|non-goal|out of scope/i,
+          /验收|acceptance/i,
+        ],
+      };
+      for (const pattern of requiredByKind[document.kind]) {
+        assert.match(document.body, pattern, `${document.kind} is missing a document-specific decision section`);
       }
     }
   }

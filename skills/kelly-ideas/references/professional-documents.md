@@ -5,6 +5,29 @@ goal is not maximum length. The goal is a professional artifact that preserves t
 reasoning, supports a real decision, and can be handed to the next person or Agent without a second
 interview.
 
+## Industry Reference Baseline
+
+This standard adapts, rather than copies, four established bodies of practice:
+
+- [IIBA Business Analysis Standard](https://www.iiba.org/knowledgehub/the-business-analysis-standard/4-implementing-business-analysis/4-4-understanding-requirements-and-designs/): keep business goals, stakeholder needs, solution requirements, and transition requirements distinguishable.
+- [Atlassian product requirements guidance](https://www.atlassian.com/software/confluence/templates/product-requirements): connect objectives to success metrics; expose assumptions, options, user stories, supporting designs, open questions, and explicit out-of-scope items.
+- [Aha! MRD guidance](https://www.aha.io/roadmapping/guide/requirements-management/what-is-a-market-requirements-document): keep the MRD rooted in market research and focused on the opportunity, target customers, alternatives, high-level capabilities, and metrics rather than detailed implementation.
+- [W3C WAI accessibility principles](https://www.w3.org/WAI/fundamentals/accessibility-principles/): make non-text alternatives, adaptable presentation, perceivable content, keyboard operation, understandable errors, and testing with users part of product acceptance when the product has a user interface.
+
+These sources are reference anchors, not evidence that a particular idea is viable. Market claims still require the operator's evidence or a cited primary source.
+
+## Document Boundaries
+
+Each document owns a different decision. Do not repeat the same feature list three times under different headings.
+
+| Document | Decision it enables | Proper level of detail | Must not become |
+| --- | --- | --- | --- |
+| BRD | Invest, pause, or stop | Business outcomes, stakeholder needs, constraints, value, success measures | A feature backlog or UI specification |
+| MRD | Choose the market, ICP, positioning, and validation path | Research-backed market/customer needs and high-level capabilities | A speculative TAM slide or detailed implementation plan |
+| PRD | Commit a release scope that design, engineering, and QA can implement and verify | User behavior, requirement IDs, states, permissions, integrations, acceptance, rollout | An architecture implementation spec or an unprioritized wish list |
+
+The flow is directional: BRD business requirements justify the change; MRD stakeholder and market needs choose where to compete; PRD solution and transition requirements define the release. If a downstream discovery invalidates an upstream decision, revise the upstream document and increment its version rather than hiding the contradiction in the PRD.
+
 ## Shared Quality Gate
 
 Every completed document must:
@@ -78,6 +101,17 @@ Recommended visuals:
 - evidence and success-metric table;
 - risk/decision matrix.
 
+Recommended section order:
+
+1. Executive decision summary.
+2. Evidence, assumptions, and unknowns.
+3. Target stakeholders and current-state journey.
+4. Cost of the status quo and desired business outcome.
+5. Options considered and recommended direction.
+6. Objectives, baselines, thresholds, and measurement.
+7. Constraints, dependencies, risks, and non-goals.
+8. Investment decision, owner, and next gate.
+
 ## MRD: Who Buys and Why This Wins
 
 A professional MRD should make a target-segment and go-to-market decision possible. Include:
@@ -100,6 +134,18 @@ Recommended visuals:
 - current alternatives comparison;
 - acquisition or adoption journey;
 - validation experiment table.
+
+Recommended section order:
+
+1. Market decision summary and scope.
+2. Evidence quality and research coverage.
+3. Primary ICP, buyer, user, and excluded segments.
+4. Jobs, triggers, anxieties, and buying context.
+5. Current alternatives and competitive dimensions.
+6. Positioning, differentiated promise, and reasons to believe.
+7. High-level capabilities, never detailed UI or engineering design.
+8. Pricing/packaging hypotheses and route to first users.
+9. Validation experiments, thresholds, risks, and next market decision.
 
 ## PRD: What Gets Built and How We Know It Works
 
@@ -125,6 +171,35 @@ Recommended visuals:
 - system or data-boundary diagram when multiple components interact;
 - requirement-to-acceptance matrix;
 - failure/recovery matrix.
+
+Recommended section order:
+
+1. Product intent, release decision, owner, and status.
+2. Actors, user outcomes, and concrete user stories.
+3. Scope, priorities, release boundary, and non-goals.
+4. Information architecture and primary user flow.
+5. Functional requirements with stable IDs and observable acceptance criteria.
+6. Non-functional requirements: performance, reliability, privacy, security, accessibility, localization, and auditability as applicable.
+7. State model covering loading, empty, success, error, retry, recovery, re-entry, and cancellation.
+8. Data objects, ownership, retention, integrations, and permission boundaries.
+9. Instrumentation, rollout, migration/transition, rollback, and operational readiness.
+10. Requirement-to-acceptance traceability, unresolved questions, and handoff decision.
+
+### Requirement Classification
+
+Use the IIBA classification to prevent important requirements from disappearing inside a feature list:
+
+| Requirement type | Question to answer in Kelly Ideas | Typical destination |
+| --- | --- | --- |
+| Business | What outcome justifies the change? | BRD objectives and success measures |
+| Stakeholder | What must each user, buyer, approver, operator, or affected party be able to achieve? | BRD/MRD needs and PRD user stories |
+| Solution: functional | What behavior or information must the release provide? | PRD requirement IDs and acceptance criteria |
+| Solution: non-functional | How well and under what constraints must it work? | PRD performance, reliability, privacy, security, accessibility, localization |
+| Transition | What migration, onboarding, rollout, training, or rollback is needed to reach the target state? | PRD rollout and operational readiness |
+
+### Accessibility Is A Requirement, Not Polish
+
+For any product with a user interface, name the relevant accessibility requirements and how they will be tested. At minimum consider text alternatives for non-text content, adaptable layouts, contrast and readable scaling, keyboard operation, focus visibility, understandable instructions and errors, and assistive-technology testing. Do not claim WCAG conformance from a visual review alone; identify the target level and the required conformance testing when it matters.
 
 ## Markdown and Visual Contract
 
@@ -152,3 +227,18 @@ ask the next highest-value question.
 Mark it `已完善` only when the document passes the shared quality gate and its next decision is
 clear. `已完善` means ready for review or handoff, not that every uncertainty in the business has
 been eliminated.
+
+## Final Review Protocol
+
+Before writing `status: 已完善`, read the rendered document from top to bottom and answer yes to all applicable checks:
+
+1. Does the first screen state the decision, target user, evidence strength, and current status?
+2. Can every confirmed claim be traced to an answered question or primary source?
+3. Are assumptions paired with a validation method and unknowns paired with a next question?
+4. Does every table help make a decision, and does every visual explain a relationship that prose alone would obscure?
+5. Are goals measurable, with baseline status, threshold, owner, and measurement method where applicable?
+6. Does the document stay inside its BRD/MRD/PRD boundary?
+7. Are privacy, security, accessibility, failure recovery, and irreversible actions explicit where relevant?
+8. Are non-goals, dependencies, risks, next decision, and handoff readiness visible?
+
+If any answer is no and the omission could change the decision, keep the document in draft and add the blocking item to `gaps`.
