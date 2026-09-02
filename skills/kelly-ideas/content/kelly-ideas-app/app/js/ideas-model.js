@@ -156,9 +156,7 @@ export function clarityFor(idea, questions = [], documents = []) {
   const mine = asArray(questions).filter((q) => q.idea_id === idea.record_id);
   const answered = mine.filter((q) => q.status !== "open").length;
   const questionScore = mine.length ? (answered / mine.length) * 20 : 0;
-  const settled = asArray(documents).filter(
-    (doc) => doc.idea_id === idea.record_id && doc.status === "已完善",
-  ).length;
+  const settled = asArray(documents).filter((doc) => doc.idea_id === idea.record_id && doc.status === "已完善").length;
   const docScore = Math.min(settled / DOC_KINDS.length, 1) * 10;
   return Math.round(stageScore + fieldScore + questionScore + docScore);
 }
@@ -167,9 +165,7 @@ export function clarityFor(idea, questions = [], documents = []) {
 // the operator can do, not what state a row is in.
 export function attentionFor(idea, questions = []) {
   if (idea.status === STATUS_PARKED) return "parked";
-  const open = asArray(questions).filter(
-    (q) => q.idea_id === idea.record_id && q.status === "open",
-  );
+  const open = asArray(questions).filter((q) => q.idea_id === idea.record_id && q.status === "open");
   if (open.length) return "needs_answer";
   const check = advanceCheck(idea, questions);
   if (check.reason === "missing_fields") return "needs_answer";

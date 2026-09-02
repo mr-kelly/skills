@@ -16,8 +16,8 @@ import {
   t,
   warnings,
 } from "../app.js";
-import { getProvider } from "./providers/index.js?v=0.1.0";
 import { DOC_KINDS, STAGES } from "./ideas-model.js?v=0.1.0";
+import { getProvider } from "./providers/index.js?v=0.1.0";
 
 const DOC_TABS = ["overview", "questions", ...DOC_KINDS];
 
@@ -47,11 +47,7 @@ export function renderIdeas() {
     ${noticeBanner()}
     ${warnings()}
     <div class="list-pane">
-      ${
-        ideas.length
-          ? ideas.map(ideaRow).join("")
-          : `<div class="empty">${t("noIdeas")}</div>`
-      }
+      ${ideas.length ? ideas.map(ideaRow).join("") : `<div class="empty">${t("noIdeas")}</div>`}
     </div>
     ${pagerControl("ideas")}
   `;
@@ -61,9 +57,7 @@ function questionCard(question) {
   const answered = question.status === "answered";
   const skipped = question.status === "skipped";
   const stateClass = answered ? "answered" : skipped ? "skipped" : "open";
-  const why = question.why_asking
-    ? `<p class="question-why">${escapeHtml(question.why_asking)}</p>`
-    : "";
+  const why = question.why_asking ? `<p class="question-why">${escapeHtml(question.why_asking)}</p>` : "";
   const body = answered
     ? `<blockquote class="question-answer">${escapeHtml(question.answer)}</blockquote>`
     : skipped

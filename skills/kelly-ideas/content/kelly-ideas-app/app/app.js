@@ -269,9 +269,7 @@ function renderShell() {
   if (els.ideaCount) els.ideaCount.textContent = total;
   if (els.mobileViewTitle) els.mobileViewTitle.textContent = viewLabel(state.route.view);
   if (els.mobileViewMeta) {
-    els.mobileViewMeta.textContent = needsAnswer
-      ? `${needsAnswer} ${t("needAnswer")}`
-      : `${total} ${t("ideasUnit")}`;
+    els.mobileViewMeta.textContent = needsAnswer ? `${needsAnswer} ${t("needAnswer")}` : `${total} ${t("ideasUnit")}`;
   }
   document.querySelectorAll("[data-route]").forEach((link) => {
     link.classList.toggle("active", link.dataset.route === state.route.view);
@@ -401,7 +399,9 @@ function renderOverview() {
         <h2>${t("panelReady")}</h2>
         ${
           ready
-            .map((idea) => ideaLink(idea, t("readyFor").replace("{stage}", t(`stage_${idea.advance.target || idea.stage}`))))
+            .map((idea) =>
+              ideaLink(idea, t("readyFor").replace("{stage}", t(`stage_${idea.advance.target || idea.stage}`))),
+            )
             .join("") || `<div class="empty-inline">${t("nothingReady")}</div>`
         }
       </div>

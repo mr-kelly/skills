@@ -47,9 +47,7 @@ test("filling the required fields opens the gate", () => {
 });
 
 test("an open question blocks advancement even when fields are filled", () => {
-  const questions = [
-    { idea_id: "idea-2", stage: "brd", status: "open", question: "谁已经试过？" },
-  ];
+  const questions = [{ idea_id: "idea-2", stage: "brd", status: "open", question: "谁已经试过？" }];
   const check = advanceCheck(sharpIdea, questions);
   assert.equal(check.canAdvance, false);
   assert.equal(check.reason, "open_questions");
@@ -90,12 +88,8 @@ test("clarity rises as the ladder is climbed", () => {
 test("buildSnapshot derives counts, attention, and per-kind documents", () => {
   const snapshot = buildSnapshot({
     ideas: [vagueIdea, sharpIdea],
-    documents: [
-      { record_id: "d1", idea_id: "idea-2", kind: "brd", status: "已完善", body: "..." },
-    ],
-    questions: [
-      { record_id: "q1", idea_id: "idea-1", stage: "idea", question: "给谁用？", position: 1 },
-    ],
+    documents: [{ record_id: "d1", idea_id: "idea-2", kind: "brd", status: "已完善", body: "..." }],
+    questions: [{ record_id: "q1", idea_id: "idea-1", stage: "idea", question: "给谁用？", position: 1 }],
   });
 
   assert.equal(snapshot.counts.total, 2);

@@ -73,7 +73,7 @@ export const messages = {
     advanceTo: "Advance to {stage}",
 
     // questions
-    answerPlaceholder: "Answer in your own words. \"I don't know\" is a valid answer.",
+    answerPlaceholder: 'Answer in your own words. "I don\'t know" is a valid answer.',
     submitAnswer: "Save answer",
     skipQuestion: "Skip",
     questionSkipped: "Skipped.",
