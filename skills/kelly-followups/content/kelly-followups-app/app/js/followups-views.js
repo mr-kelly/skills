@@ -29,11 +29,7 @@ export function renderToday() {
     ${lockBanner()}
     ${noticeBanner()}
     <div class="list-pane">
-      ${
-        snapshot?.today?.length
-          ? snapshot.today.map(row).join("")
-          : `<div class="empty">${t("nothingToday")}</div>`
-      }
+      ${snapshot?.today?.length ? snapshot.today.map(row).join("") : `<div class="empty">${t("nothingToday")}</div>`}
     </div>
   `;
   bindRowEvents();

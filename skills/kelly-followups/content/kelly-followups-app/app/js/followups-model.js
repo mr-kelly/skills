@@ -28,7 +28,7 @@ export function isDueToday(row, todayIso) {
   return row.due <= todayIso;
 }
 
-export function buildSnapshot({ followups = [] } = {}, todayIso) {
+export function buildSnapshot({ followups = [] }, todayIso) {
   const normalized = (Array.isArray(followups) ? followups : []).map(normalizeFollowupRow);
   const today = normalized.filter((row) => isDueToday(row, todayIso));
   const upcoming = normalized.filter((row) => row.status === "pending" && !isDueToday(row, todayIso));

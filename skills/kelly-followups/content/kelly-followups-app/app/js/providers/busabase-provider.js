@@ -181,7 +181,13 @@ export const busabaseProvider = {
 
     const recordId = String(payload.record_id || "");
     if (!recordId) throw new Error("record_id is required");
-    await upsert("followups", "record-id", recordId, { record_id: recordId, status: "done" }, `Marked ${recordId} done`);
+    await upsert(
+      "followups",
+      "record-id",
+      recordId,
+      { record_id: recordId, status: "done" },
+      `Marked ${recordId} done`,
+    );
     return { updated_at: now };
   },
 
