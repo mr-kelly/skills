@@ -39,6 +39,37 @@ test("demo snapshots load deterministic workflow scenes", () => {
   assert.ok(needsAnswer.counts.needsAnswer > 0);
 });
 
+test("completed demo documents are decision-grade and visually structured", () => {
+  const overview = demoSnapshot("overview");
+  const email = overview.ideas.find((idea) => idea.record_id === "idea-email");
+  assert.deepEqual(
+    Object.values(email.documents)
+      .filter(Boolean)
+      .map((document) => document.kind)
+      .sort(),
+    ["brd", "mrd", "prd"],
+  );
+
+  for (const idea of overview.ideas) {
+    const answeredQuestionIds = new Set(
+      idea.questions.filter((question) => question.status === "answered").map((question) => question.record_id),
+    );
+    const completedDocuments = Object.values(idea.documents).filter((document) => document?.status === "已完善");
+    for (const document of completedDocuments) {
+      assert.match(document.body, /\|\s*---\s*\|/, `${document.kind} should include a decision table`);
+      assert.match(document.body, /```mermaid\n/, `${document.kind} should include a meaningful diagram`);
+      const provenance = [...document.body.matchAll(/\[Q:([^\]]+)\]/g)].map((match) => match[1]);
+      assert.ok(provenance.length > 0, `${document.kind} should cite answered consultant questions`);
+      for (const questionId of provenance) {
+        assert.ok(
+          answeredQuestionIds.has(questionId),
+          `${document.kind} cites unanswered or missing question ${questionId}`,
+        );
+      }
+    }
+  }
+});
+
 const vagueIdea = {
   record_id: "idea-1",
   title: "帮人做点什么",

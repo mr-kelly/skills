@@ -17,6 +17,7 @@ import {
   warnings,
 } from "../app.js";
 import { DOC_KINDS, STAGES } from "./ideas-model.js?v=0.1.0";
+import { hydrateDocumentVisuals, renderMarkdownDocument } from "./markdown-renderer.js?v=0.1.0";
 import { getProvider } from "./providers/index.js?v=0.1.0";
 
 const DOC_TABS = ["overview", "questions", ...DOC_KINDS];
@@ -134,7 +135,7 @@ function documentTab(idea, kind) {
         <span class="muted">v${doc.version} · ${date(doc.updated_at)}</span>
       </div>
       ${gaps}
-      <pre class="doc-body">${escapeHtml(doc.body)}</pre>
+      <article class="doc-body">${renderMarkdownDocument(doc.body)}</article>
     </div>
   `;
 }
@@ -177,6 +178,7 @@ export function renderIdeaDetail() {
     <div class="tab-body">${body}</div>
   `;
   bindDetailEvents();
+  void hydrateDocumentVisuals(els.content);
 }
 
 function bindDetailEvents() {
@@ -249,6 +251,7 @@ export function renderDocumentView(kind) {
     </nav>
     <div class="tab-body">${documentTab(idea, kind)}</div>
   `;
+  void hydrateDocumentVisuals(els.content);
 }
 
 export function renderSettings() {

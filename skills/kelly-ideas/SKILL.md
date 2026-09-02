@@ -1,6 +1,6 @@
 ---
 name: kelly-ideas
-description: Busabase-backed App-in-Skill idea desk that works like a business consultant — it interrogates a vague idea until it is sharp, then carries it through BRD, MRD, and PRD. Use when the user invokes $kelly-ideas or /kelly-ideas, mentions an idea, inspiration, idea vault, 灵感, 灵感库, wants to think through a product or business concept, asks for a BRD/MRD/PRD, says they have an idea but cannot describe it clearly, or wants an idea shaped into a spec that $kelly-app-creator can build into a real app.
+description: Busabase-backed App-in-Skill idea desk that works like a business consultant — it interrogates a product or business idea until it is sharp, then carries it through professional, visual BRD, MRD, and PRD documents. Use when the user invokes $kelly-ideas or /kelly-ideas, wants to capture or shape a product/business idea, asks for a BRD/MRD/PRD, says they have a product idea but cannot describe it clearly, or wants an idea shaped into a spec that $kelly-app-skill-creator can build into a real app.
 metadata:
   category: platform
   tags:
@@ -29,7 +29,7 @@ supports an explicitly requested local preview with OAuth connection bootstrap.
 It is an idea vault with a consultant attached. The vault holds every idea the
 operator has ever had; the consultant's job is to take one of them from "I have
 a feeling there's something here" to a specification precise enough that
-`$kelly-app-creator` can build it.
+`$kelly-app-skill-creator` can build it.
 
 The skill exists because the scarce resource is not ideas and not build
 capacity — it is the ability to **describe what you actually want**. Most people
@@ -94,13 +94,10 @@ create a second answer record or keep chat-only state.
 - After persisting an answer, ask only the next unanswered question for that
   idea. Do not generate a document or advance the rung until its gate is met.
 
-## Mandatory Dependencies
+## Mandatory Dependency
 
-1. Read and follow `$busabase` for connection, target Space, node discovery,
-   ChangeRequests, review, merge, and trusted mutations.
-2. Read and follow `$kelly-app-creator` for the App-in-Skill artifact contract,
-   the UI contract, and AirApp delivery. It also owns the downstream handoff:
-   a finished PRD here is its input.
+Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review,
+merge, and trusted mutations.
 
 ## Busabase Resources
 
@@ -115,6 +112,21 @@ All state lives in the `kelly-ideas` Folder in the selected Space.
 
 Ideas are never deleted by the Agent. Parking an idea sets `status` to `已搁置`.
 
+## Document Presentation
+
+Before drafting or revising any BRD, MRD, or PRD, read
+[references/professional-documents.md](references/professional-documents.md) completely. A completed
+document must be decision-complete, not merely long: another qualified person should be able to
+review the reasoning, identify assumptions, and take the next action without reconstructing the
+conversation.
+
+Write bodies as GitHub-flavored Markdown. Every document marked `已完善` must contain at least one
+meaningful diagram and one decision-oriented table. Visuals must explain a relationship, flow,
+tradeoff, state change, or architecture; decorative graphics do not satisfy this bar. Label claims
+as confirmed evidence, explicit assumptions, or unknowns. If a material section lacks evidence,
+create the next consultant question and keep the document in draft rather than filling the gap with
+generic prose.
+
 ## Authentication
 
 Connection bootstrap only: `BUSABASE_BASE_URL`, `BUSABASE_API_KEY`,
@@ -126,8 +138,9 @@ value to browser code, logs, demos, or screenshots.
 
 When a PRD reaches `已完善`, the idea is ready to become software.
 
-Offer the handoff explicitly; do not perform it silently. On confirmation,
-invoke `$kelly-app-creator` with the PRD body, the BRD's problem statement, and
+Offer the handoff explicitly; do not perform it silently. Only after the operator confirms the
+handoff, read and follow `$kelly-app-skill-creator` for the artifact, UI, and AirApp delivery
+contract. Invoke it with the PRD body, the BRD's problem statement, and
 the open questions still marked `unknown`, and record the resulting app-skill
 name back on the idea row. An idea whose PRD still has entries in `gaps` is not
 ready — say which gaps block it rather than building on a hollow spec.
@@ -144,6 +157,9 @@ connection and is labeled read-only. Use it for recordings and screenshots.
 - The `kelly-ideas` Folder exists with all four resources.
 - Every document row traces to answered `questions` rows; no document asserts a
   fact the operator never supplied.
+- Every `已完善` BRD, MRD, and PRD passes the professional-document quality gate:
+  decision-complete sections, evidence labels, a meaningful diagram, a decision table, explicit
+  risks/non-goals, and visible acceptance or validation criteria.
 - `ideas.clarity` and `open-questions` reflect the real state of the ladder.
 - Desktop and 390px phone viewports both verified, with no horizontal overflow.
 - The AirApp node exists and its version is merged before claiming deployment.
