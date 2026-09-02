@@ -15,7 +15,7 @@
   .empty,
   .warnings {
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
     box-shadow: none;
   }
@@ -27,13 +27,13 @@
   .metric span {
     display: block;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .metric strong {
     display: block;
     margin-top: 6px;
-    font-size: 20px;
+    font-size: var(--text-xl);
   }
 
   .metric-badges {
@@ -44,7 +44,7 @@
   }
 
   .metric-badges .platform-badge {
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   /* Tables */
@@ -64,16 +64,16 @@
   th,
   td {
     padding: 11px 12px;
-    border-bottom: 1px solid #edf0f4;
+    border-bottom: 1px solid var(--line);
     text-align: left;
     vertical-align: top;
   }
 
   th {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
-    background: #fafbfc;
+    background: var(--surface-hover);
   }
 
   .strong {
@@ -98,9 +98,9 @@
     padding: 3px 8px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: #f8fafc;
-    color: #475569;
-    font-size: 12px;
+    background: var(--surface-hover);
+    color: var(--ink-soft);
+    font-size: var(--text-sm);
     font-weight: 700;
     white-space: nowrap;
   }
@@ -114,111 +114,111 @@
     padding: 3px 8px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: #f8fafc;
-    color: #475569;
-    font-size: 12px;
+    background: var(--surface-hover);
+    color: var(--ink-soft);
+    font-size: var(--text-sm);
     font-weight: 700;
     white-space: nowrap;
   }
 
   .status-badge.needs_review {
-    background: #fff8db;
+    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
     color: var(--warn);
   }
 
   .status-badge.changes_requested {
-    background: #fef0e6;
-    color: #b54708;
+    background: var(--surface-soft);
+    color: var(--danger);
   }
 
   .status-badge.approved {
-    background: #ecfdf3;
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
   }
 
   .status-badge.done {
-    background: #eef2ff;
-    color: #3730a3;
+    background: var(--surface-soft);
+    color: var(--accent);
   }
 
   .status-badge.blocked {
-    background: #fff1f0;
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
   }
 
   .result-badge.pass {
-    background: #ecfdf3;
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
   }
 
   .result-badge.warn {
-    background: #fff8db;
+    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
     color: var(--warn);
   }
 
   .result-badge.fail {
-    background: #fff1f0;
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
   }
 
   .severity-badge.error {
-    background: #fff1f0;
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
   }
 
   .severity-badge.warning {
-    background: #fff8db;
+    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
     color: var(--warn);
   }
 
   .source-badge.kelly_picks {
-    background: #f1f4f8;
+    background: var(--accent-soft);
     color: var(--accent);
   }
 
   .source-badge.manual {
-    background: #f8fafc;
-    color: #475569;
+    background: var(--surface-hover);
+    color: var(--ink-soft);
   }
 
   .platform-badge.amazon {
-    background: #fff7e6;
-    color: #92600a;
+    background: var(--surface-soft);
+    color: var(--danger);
   }
 
   .platform-badge.nda {
-    background: #fff7e6;
-    color: #92600a;
+    background: var(--surface-soft);
+    color: var(--danger);
   }
 
   .platform-badge.shopify {
-    background: #eefbf0;
-    color: #157347;
+    background: var(--surface-soft);
+    color: var(--positive);
   }
 
   .platform-badge.msa {
-    background: #eefbf0;
-    color: #157347;
+    background: var(--surface-soft);
+    color: var(--positive);
   }
 
   .platform-badge.tiktok_shop {
-    background: #f2f1fe;
-    color: #4338ca;
+    background: var(--surface-soft);
+    color: var(--accent);
   }
 
   .platform-badge.dpa {
-    background: #f2f1fe;
-    color: #4338ca;
+    background: var(--surface-soft);
+    color: var(--accent);
   }
 
   .platform-badge.ebay {
-    background: #eef6ff;
-    color: #1d4ed8;
+    background: var(--surface-soft);
+    color: var(--accent);
   }
 
   .platform-badge.sow {
-    background: #eef6ff;
-    color: #1d4ed8;
+    background: var(--surface-soft);
+    color: var(--accent);
   }
 
   .score {
@@ -258,7 +258,7 @@
     margin-top: 10px;
     border-left: 1px solid var(--line);
     border-right: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
   }
 
   /* Status matrix */
@@ -272,7 +272,7 @@
     padding: 4px 10px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
     text-align: center;
     white-space: nowrap;
@@ -285,18 +285,18 @@
   }
 
   .matrix-cell.draft {
-    background: #fff8db;
+    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
     color: var(--warn);
   }
 
   .matrix-cell.approved {
-    background: #ecfdf3;
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
   }
 
   .matrix-cell.exported {
-    background: #eef2ff;
-    color: #3730a3;
+    background: var(--surface-soft);
+    color: var(--accent);
   }
 
   a.matrix-cell:hover {
@@ -309,7 +309,7 @@
     gap: 12px;
     align-items: center;
     padding: 10px 0;
-    border-bottom: 1px solid #edf0f4;
+    border-bottom: 1px solid var(--line);
   }
 
   .due-row:last-child {
@@ -339,7 +339,7 @@
     gap: 10px;
     align-items: start;
     padding: 10px 0;
-    border-bottom: 1px solid #edf0f4;
+    border-bottom: 1px solid var(--line);
   }
 
   .activity-row:last-child {
@@ -399,7 +399,7 @@
     min-width: 0;
     padding: 16px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
   }
 
@@ -423,7 +423,7 @@
     overflow: auto;
     border-left: 1px solid var(--line);
     border-right: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
   }
 
   .spec-table table {
@@ -440,7 +440,7 @@
     gap: 10px;
     align-items: start;
     padding: 9px 0;
-    border-bottom: 1px solid #edf0f4;
+    border-bottom: 1px solid var(--line);
   }
 
   .check-row:last-child {
@@ -449,7 +449,7 @@
 
   .check-row strong {
     display: block;
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .check-row small {
@@ -465,22 +465,22 @@
     place-items: center;
     border: 1px solid var(--line);
     border-radius: 999px;
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
   }
 
   .image-tick.ready {
-    background: #ecfdf3;
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
   }
 
   .image-tick.missing {
-    background: #fff1f0;
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
   }
 
   .image-tick.needs_edit {
-    background: #fff8db;
+    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
     color: var(--warn);
   }
 
@@ -500,8 +500,8 @@
     border: 1px solid var(--line);
     border-radius: 999px;
     background: var(--panel);
-    color: #475569;
-    font-size: 12.5px;
+    color: var(--ink-soft);
+    font-size: var(--text-sm);
     font-weight: 650;
   }
 
@@ -535,13 +535,13 @@
 
   .field-head label {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
   }
 
   .counter {
     color: var(--muted-soft);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -553,7 +553,7 @@
 
   .field-input {
     min-width: 0;
-    font-size: 13.5px;
+    font-size: var(--text-base);
     line-height: 1.5;
     overflow-x: hidden;
     white-space: pre-wrap;
@@ -565,7 +565,7 @@
   }
 
   .field-hint {
-    font-size: 11.5px;
+    font-size: var(--text-sm);
   }
 
   .notes-actions {
@@ -607,8 +607,8 @@
     min-height: 30px;
     padding: 0 10px;
     border-radius: 999px;
-    font-size: 12.5px;
-    color: #475569;
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
   }
 
   .queue-filter small {
@@ -633,7 +633,7 @@
     gap: 10px;
     padding: 16px;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
   }
 
@@ -655,7 +655,7 @@
 
   .queue-meta {
     color: var(--muted);
-    font-size: 12.5px;
+    font-size: var(--text-sm);
     overflow-wrap: anywhere;
   }
 
@@ -679,7 +679,7 @@
 
   .queue-label {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     font-weight: 700;
   }
 
@@ -691,26 +691,26 @@
   }
 
   .queue-actions button.approve {
-    border-color: #bbe3cf;
-    background: #ecfdf3;
+    border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
     color: var(--good);
     font-weight: 650;
   }
 
   .queue-actions button.approve:hover {
-    border-color: #8fd3b3;
-    background: #e0fae9;
+    border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
+    background: var(--surface-soft);
   }
 
   .queue-actions button.danger {
-    border-color: #f0c6c2;
-    background: #fff1f0;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+    background: color-mix(in srgb, var(--danger) 18%, var(--surface));
     color: var(--bad);
   }
 
   .queue-actions button.danger:hover {
-    border-color: #e5a9a3;
-    background: #ffe8e6;
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+    background: var(--surface-soft);
   }
 
   .queue-decision {
@@ -722,16 +722,16 @@
   .notice-banner {
     margin-bottom: 14px;
     padding: 10px 14px;
-    border: 1px solid #f0dfb2;
-    border-radius: 8px;
-    background: #fff8db;
+    border: 1px solid color-mix(in srgb, var(--warning) 34%, var(--line));
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--warning) 18%, var(--surface));
     color: var(--warn);
   }
 
   .notice-banner {
-    border-color: #c9dcf5;
-    background: #eff5fe;
-    color: #1d4ed8;
+    border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+    background: var(--surface-soft);
+    color: var(--accent);
   }
 
   .warnings {
@@ -764,7 +764,7 @@
     grid-template-columns: minmax(140px, 1fr) minmax(120px, 1fr) auto;
     gap: 10px;
     padding: 10px 0;
-    border-bottom: 1px solid #edf0f4;
+    border-bottom: 1px solid var(--line);
   }
 
   .settings-row .rule-chips {
@@ -892,13 +892,13 @@
     .human-work-primary strong {
       min-width: 30px;
       height: 30px;
-      font-size: 15px;
+      font-size: var(--text-md);
     }
 
     .filters a {
       min-height: 34px;
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.62);
+      background: color-mix(in srgb, var(--surface) 62%, transparent);
     }
 
     .main {
@@ -914,7 +914,7 @@
       min-height: 52px;
       padding: 8px 10px;
       border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.96);
+      background: var(--surface-blur);
       backdrop-filter: blur(12px);
     }
 
@@ -935,7 +935,7 @@
 
     .mobile-view-title {
       overflow: hidden;
-      font-size: 14px;
+      font-size: var(--text-md);
       font-weight: 760;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -944,7 +944,7 @@
     .mobile-view-meta {
       overflow: hidden;
       color: var(--muted);
-      font-size: 12px;
+      font-size: var(--text-sm);
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -992,7 +992,7 @@
     .table-wrap {
       max-width: 100%;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
     }
 
     table {

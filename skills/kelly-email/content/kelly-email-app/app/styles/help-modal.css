@@ -21,7 +21,7 @@
     grid-template-rows: auto auto minmax(0, 1fr);
     overflow: hidden;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     background: var(--panel);
     box-shadow: 0 24px 80px rgba(17, 24, 39, 0.28);
   }
@@ -36,14 +36,14 @@
   }
 
   .modal-title {
-    font-size: 16px;
+    font-size: var(--text-lg);
     font-weight: 700;
   }
 
   .modal-subtitle {
     margin-top: 3px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .icon-button {
@@ -55,7 +55,7 @@
     gap: 4px;
     padding: 10px 14px 0;
     border-bottom: 1px solid var(--line);
-    background: #fbfcfd;
+    background: var(--surface-soft);
   }
 
   .modal-tabs button {
@@ -97,20 +97,20 @@
   .help-tab-panel ol {
     margin: 0;
     padding-left: 19px;
-    color: #4b5563;
+    color: var(--accent);
     line-height: 1.55;
   }
 
   .modal-body h2 {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 680;
-    color: #374151;
+    color: var(--accent);
   }
 
   .modal-body p {
     margin: 0;
-    color: #4b5563;
+    color: var(--accent);
     line-height: 1.5;
   }
 
@@ -123,11 +123,11 @@
     margin: 0;
     overflow: auto;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel-subtle);
     padding: 10px;
-    color: #374151;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--text-sm);
     line-height: 1.45;
   }
 
@@ -140,21 +140,21 @@
     display: grid;
     gap: 10px;
     border: 1px solid var(--accent-line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--accent-wash);
     padding: 12px;
   }
 
   .account-help-card strong {
     display: block;
-    font-size: 13px;
-    color: #1f2937;
+    font-size: var(--text-base);
+    color: var(--accent);
   }
 
   .account-help-card p {
     margin: 3px 0 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.45;
   }
 
@@ -162,11 +162,11 @@
     margin: 0;
     overflow: auto;
     border: 1px solid var(--accent-line);
-    border-radius: 7px;
-    background: #fff;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     padding: 10px;
-    color: #334155;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--text-sm);
     line-height: 1.5;
     white-space: pre-wrap;
   }
@@ -182,7 +182,7 @@
     gap: 8px;
     min-width: 0;
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
     padding: 10px;
   }
@@ -193,14 +193,14 @@
     align-items: center;
     justify-content: space-between;
     min-width: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 660;
     color: var(--text);
   }
 
   .settings-card p {
-    color: #4b5563;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--text-sm);
     line-height: 1.5;
   }
 
@@ -217,7 +217,7 @@
     align-items: baseline;
     min-width: 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .settings-row strong,
@@ -225,7 +225,7 @@
   .settings-row code {
     min-width: 0;
     overflow: hidden;
-    color: #374151;
+    color: var(--accent);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -246,8 +246,8 @@
   .settings-bullets div {
     position: relative;
     padding-left: 12px;
-    color: #4b5563;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--text-sm);
     line-height: 1.45;
   }
 
@@ -273,9 +273,9 @@
     border: 1px solid var(--line);
     border-radius: 999px;
     background: var(--panel-subtle);
-    color: #4b5563;
+    color: var(--accent);
     padding: 2px 7px;
-    font-size: 11px;
+    font-size: var(--text-xs);
     line-height: 1.45;
   }
 
@@ -287,7 +287,7 @@
 
   .account-card {
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     background: var(--panel);
     overflow: hidden;
   }
@@ -311,7 +311,7 @@
 
   .account-card strong {
     display: block;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 650;
     color: var(--text);
   }
@@ -320,7 +320,7 @@
     display: block;
     margin-top: 2px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .account-detail {
@@ -335,15 +335,15 @@
     grid-template-columns: 58px 1fr;
     gap: 6px;
     align-items: center;
-    font-size: 12px;
+    font-size: var(--text-sm);
     color: var(--muted);
   }
 
   .account-row code,
   .account-identity code {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 12px;
-    color: #374151;
+    font-size: var(--text-sm);
+    color: var(--accent);
   }
 
   .identity-list {
@@ -354,11 +354,11 @@
   .account-identity {
     display: grid;
     gap: 1px;
-    font-size: 11px;
+    font-size: var(--text-xs);
   }
 
   .account-identity span {
-    color: #374151;
+    color: var(--accent);
     font-weight: 560;
   }
 
@@ -407,8 +407,8 @@
     .modal-tabs button {
       min-width: 0;
       border: 1px solid var(--line);
-      border-radius: 7px;
-      background: #fff;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
       padding: 7px 8px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -417,7 +417,7 @@
     }
 
     .modal-tabs button:hover {
-      background: #fbfbfc;
+      background: var(--surface-soft);
     }
 
     .modal-tabs button.active {

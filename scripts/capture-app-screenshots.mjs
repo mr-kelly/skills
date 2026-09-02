@@ -7,6 +7,7 @@
 //   node scripts/capture-app-screenshots.mjs --all --frame
 
 import { spawn } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { statSync } from "node:fs";
 import { mkdir, readdir, rm, stat, writeFile } from "node:fs/promises";
 import http from "node:http";
@@ -15,7 +16,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = process.env.AIRAPP_SCREENSHOT_ROOT
+  ? path.resolve(process.env.AIRAPP_SCREENSHOT_ROOT)
+  : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CHROME_CANDIDATES = [
   process.env.CHROME_PATH,
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -213,6 +216,8 @@ function parseArgs(argv) {
     all: false,
     frame: false,
     force: false,
+    matrix: false,
+    baseline: false,
     skills: [],
     paths: [],
     limit: 0,
@@ -223,6 +228,8 @@ function parseArgs(argv) {
     else if (arg === "--all") args.all = true;
     else if (arg === "--frame") args.frame = true;
     else if (arg === "--force") args.force = true;
+    else if (arg === "--matrix") args.matrix = true;
+    else if (arg === "--baseline") args.baseline = true;
     else if (arg === "--skill") args.skills.push(argv[++i]);
     else if (arg.startsWith("--skill=")) args.skills.push(arg.slice("--skill=".length));
     else if (arg === "--path") args.paths.push(argv[++i]);
@@ -245,6 +252,7 @@ function printHelp() {
   node scripts/capture-app-screenshots.mjs --all --frame
   node scripts/capture-app-screenshots.mjs --skill kelly-email --frame
   node scripts/capture-app-screenshots.mjs --path skills/foo/assets/screenshots/overview.webp
+  node scripts/capture-app-screenshots.mjs --matrix --all
 
 Options:
   --all       Capture all tracked App-in-Skill screenshot paths as WebP.
@@ -253,6 +261,8 @@ Options:
   --frame     Run scripts/frame-screenshots.mjs --force after capture.
   --dry-run   Print planned captures without launching apps or writing files.
   --limit     Capture only the first N planned paths.
+  --matrix    Capture light/dark desktop/phone cells under .tmp and assert layout.
+  --baseline  With --matrix, capture all four cells without enforcing new acceptance assertions.
 `);
 }
 
@@ -367,7 +377,7 @@ function canListen(port) {
     const server = net.createServer();
     server.once("error", () => resolve(false));
     server.once("listening", () => server.close(() => resolve(true)));
-    server.listen(port, HOST);
+    server.listen(port);
   });
 }
 
@@ -633,6 +643,262 @@ async function captureOne(tab, file, serverPort) {
   return { url, viewport };
 }
 
+async function captureMatrixCell(tab, skill, serverPort, scheme, viewportName, viewport, outputRoot) {
+  await tab.send("Emulation.setDeviceMetricsOverride", {
+    width: viewport.width,
+    height: viewport.height,
+    deviceScaleFactor: 1,
+    mobile: viewportName === "phone",
+  });
+  await tab.send("Emulation.setEmulatedMedia", {
+    media: "",
+    features: [{ name: "prefers-color-scheme", value: scheme }],
+  });
+  await tab.send("Page.enable");
+  await tab.send("Runtime.enable");
+  await tab.send("Page.navigate", { url: `http://${HOST}:${serverPort}/?demo=1` });
+  await waitForPageStable(tab);
+
+  const evaluated = await tab.send("Runtime.evaluate", {
+    expression: `(() => {
+      const visible = (element) => {
+        const style = getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      };
+      const clipped = [...document.querySelectorAll("button, .badge, th, .sidebar a, .sidebar button, .nav-item")]
+        .filter((element) => visible(element) && element.textContent.trim() && !element.classList.contains("has-tooltip"))
+        .filter((element) => element.scrollWidth > element.clientWidth + 3 || element.scrollHeight > element.clientHeight + 3)
+        .slice(0, 20)
+        .map((element) => ({
+          selector: element.className || element.tagName.toLowerCase(),
+          text: element.textContent.trim().replace(/\\s+/g, " ").slice(0, 80),
+          client: [element.clientWidth, element.clientHeight],
+          scroll: [element.scrollWidth, element.scrollHeight]
+        }));
+      const surface = (selector, stickyOnly = false) => {
+        const element = [...document.querySelectorAll(selector)].find(
+          (candidate) => !stickyOnly || getComputedStyle(candidate).position === "sticky"
+        );
+        return element ? getComputedStyle(element).backgroundColor : null;
+      };
+      const pageBackground = [".app-shell", ".shell", "#app", "main", "body", ".sidebar", ".list-panel", ".detail-panel", ".content"]
+        .map((selector) => document.querySelector(selector))
+        .filter(Boolean)
+        .map((element) => getComputedStyle(element).backgroundColor)
+        .find((color) => color !== "transparent" && color !== "rgba(0, 0, 0, 0)") || "transparent";
+      const parseColor = (value) => {
+        const match = value.match(/rgba?\(([^)]+)\)/);
+        if (!match) return null;
+        const parts = match[1].replace("/", " ").split(/[\s,]+/).filter(Boolean);
+        if (parts.length < 3) return null;
+        const alpha = parts[3]?.endsWith("%") ? Number.parseFloat(parts[3]) / 100 : Number(parts[3] ?? 1);
+        return [Number(parts[0]), Number(parts[1]), Number(parts[2]), alpha];
+      };
+      const luminance = (color) => {
+        const channels = color.slice(0, 3).map((channel) => {
+          const value = channel / 255;
+          return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+        });
+        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+      };
+      const contrast = (foreground, background) => {
+        const first = luminance(foreground);
+        const second = luminance(background);
+        return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+      };
+      const identity = (element) => element.tagName.toLowerCase() +
+        (element.id ? "#" + element.id : "") +
+        (element.classList.length ? "." + [...element.classList].slice(0, 3).join(".") : "");
+      const ignoredTags = new Set(["IMG", "SVG", "CANVAS", "IFRAME", "VIDEO"]);
+      const visibleElements = [...document.body.querySelectorAll("*")]
+        .filter((element) => visible(element) && !ignoredTags.has(element.tagName));
+      const brightSurfaces = visibleElements
+        .filter((element) => {
+          const color = parseColor(getComputedStyle(element).backgroundColor);
+          const rect = element.getBoundingClientRect();
+          return color && color[3] > 0.8 && luminance(color) > 0.8 && rect.width * rect.height > 1200;
+        })
+        .slice(0, 30)
+        .map(identity);
+      const brightBackgroundImages = visibleElements
+        .filter((element) => !element.closest(".demo-visuals-panel"))
+        .filter((element) => {
+          const style = getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          if (style.backgroundImage === "none" || rect.width * rect.height <= 1200) return false;
+          return [...style.backgroundImage.matchAll(/rgba?\([^)]+\)/g)]
+            .map((match) => parseColor(match[0]))
+            .some((color) => color && color[3] > 0.8 && luminance(color) > 0.8 && Math.max(...color.slice(0, 3)) - Math.min(...color.slice(0, 3)) < 20);
+        })
+        .slice(0, 30)
+        .map(identity);
+      const lowContrastText = visibleElements
+        .filter((element) => [...element.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()))
+        .map((element) => {
+          const foreground = parseColor(getComputedStyle(element).color);
+          let ancestor = element;
+          let background = null;
+          while (ancestor && !background) {
+            const candidate = parseColor(getComputedStyle(ancestor).backgroundColor);
+            if (candidate && candidate[3] > 0.8) background = candidate;
+            ancestor = ancestor.parentElement;
+          }
+          return foreground && background
+            ? { selector: identity(element), ratio: contrast(foreground, background), text: element.textContent.trim().slice(0, 80) }
+            : null;
+        })
+        .filter((result) => result && result.ratio < 3)
+        .slice(0, 30);
+      const overlapArea = (first, second) => {
+        if (!first || !second || !visible(first) || !visible(second)) return 0;
+        if (first.contains(second) || second.contains(first)) return 0;
+        const a = first.getBoundingClientRect();
+        const b = second.getBoundingClientRect();
+        return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) *
+          Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      };
+      const layoutOverlaps = [
+        [".demo-visuals-panel", ".content"],
+        [".demo-visuals-grid", ".metrics"]
+      ]
+        .map(([first, second]) => ({ first, second, area: overlapArea(document.querySelector(first), document.querySelector(second)) }))
+        .filter((result) => result.area > 1);
+      return {
+        overflow: document.documentElement.scrollWidth <= window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+        pageBackground,
+        panelHeading: surface(".panel-heading", true),
+        modalHeader: surface(".modal-header"),
+        clipped,
+        brightSurfaces,
+        brightBackgroundImages,
+        lowContrastText,
+        layoutOverlaps
+      };
+    })()`,
+    returnByValue: true,
+  });
+  const evidence = evaluated.result?.value;
+  const screenshot = await tab.send("Page.captureScreenshot", {
+    format: "png",
+    fromSurface: true,
+    captureBeyondViewport: false,
+  });
+  const outputDir = path.join(outputRoot, skill);
+  await mkdir(outputDir, { recursive: true });
+  const outputPath = path.join(outputDir, `${scheme}-${viewportName}.png`);
+  await writeFile(outputPath, Buffer.from(screenshot.data, "base64"));
+  return { ...evidence, outputPath };
+}
+
+async function runMatrix(args) {
+  let skills = execFileSync("git", ["ls-files", "skills"], {
+    cwd: ROOT,
+    encoding: "utf8",
+  })
+    .trim()
+    .split("\n")
+    .filter((filePath) => filePath.startsWith("skills/kelly-") && filePath.endsWith("/app/index.html"))
+    .map((filePath) => filePath.split("/")[1])
+    .sort();
+  if (args.skills.length) skills = skills.filter((skill) => args.skills.includes(skill));
+  if (args.limit) skills = skills.slice(0, args.limit);
+  if (args.dryRun) {
+    for (const skill of skills) console.log(`would check ${skill}: light/dark x desktop/phone`);
+    return;
+  }
+
+  const chrome = await launchChrome();
+  const failures = [];
+  const outputRoot = path.resolve(
+    process.env.BASE_UI_MATRIX_OUTPUT_DIR ||
+      path.join(ROOT, ".tmp", args.baseline ? "base-ui-before" : "base-ui-matrix"),
+  );
+  let next = BASE_PORT;
+  try {
+    for (const skill of skills) {
+      const port = await nextPort(next);
+      next = port + 1;
+      let server;
+      try {
+        server = await startServer(skill, port);
+        const tab = await newTab(chrome.port);
+        try {
+          const results = new Map();
+          for (const [viewportName, viewport] of Object.entries({ desktop: DESKTOP_VIEWPORT, phone: PHONE_VIEWPORT })) {
+            for (const scheme of ["light", "dark"]) {
+              const result = await captureMatrixCell(tab, skill, port, scheme, viewportName, viewport, outputRoot);
+              results.set(`${scheme}-${viewportName}`, result);
+              if (!args.baseline && !result.overflow) {
+                failures.push(
+                  `${skill} ${scheme}-${viewportName}: ${result.scrollWidth}px > ${result.viewportWidth}px`,
+                );
+              }
+              if (!args.baseline && result.clipped.length) {
+                failures.push(`${skill} ${scheme}-${viewportName}: clipped text ${JSON.stringify(result.clipped)}`);
+              }
+              if (!args.baseline && result.layoutOverlaps.length) {
+                failures.push(
+                  `${skill} ${scheme}-${viewportName}: overlapping work surfaces ${JSON.stringify(result.layoutOverlaps)}`,
+                );
+              }
+              if (!args.baseline && scheme === "dark" && result.brightSurfaces.length) {
+                failures.push(
+                  `${skill} dark-${viewportName}: bright surfaces ${JSON.stringify(result.brightSurfaces)}`,
+                );
+              }
+              if (!args.baseline && scheme === "dark" && result.brightBackgroundImages.length) {
+                failures.push(
+                  `${skill} dark-${viewportName}: bright background images ${JSON.stringify(result.brightBackgroundImages)}`,
+                );
+              }
+              if (!args.baseline && scheme === "dark" && result.lowContrastText.length) {
+                failures.push(
+                  `${skill} dark-${viewportName}: text contrast below 3:1 ${JSON.stringify(result.lowContrastText)}`,
+                );
+              }
+            }
+          }
+          for (const viewportName of args.baseline ? [] : ["desktop", "phone"]) {
+            const light = results.get(`light-${viewportName}`);
+            const dark = results.get(`dark-${viewportName}`);
+            if (light.pageBackground === dark.pageBackground) {
+              failures.push(`${skill} ${viewportName}: page background does not change in dark mode`);
+            }
+            for (const [label, key] of [
+              [".panel-heading", "panelHeading"],
+              [".modal-header", "modalHeader"],
+            ]) {
+              if (light[key] && dark[key] && light[key] === dark[key]) {
+                failures.push(`${skill} ${viewportName}: ${label} background does not change in dark mode`);
+              }
+            }
+          }
+          console.log(`PASS ${skill} (${args.baseline ? "baseline evidence" : "4 cells"})`);
+        } finally {
+          tab.close();
+        }
+      } catch (error) {
+        failures.push(`${skill}: ${error instanceof Error ? error.message : error}`);
+      } finally {
+        stopServer(server);
+      }
+    }
+  } finally {
+    try {
+      chrome.child.kill("SIGTERM");
+    } catch {}
+    await waitForExit(chrome.child);
+    await rmWithRetry(chrome.userDataDir);
+  }
+
+  console.log(`Matrix checked ${skills.length} apps and ${skills.length * 4} cells.`);
+  console.log(`Screenshots: ${outputRoot}`);
+  if (failures.length) throw new Error(`Matrix failures (${failures.length}):\n${failures.join("\n")}`);
+}
+
 async function runCommand(command, args) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { cwd: ROOT, stdio: "inherit" });
@@ -642,6 +908,10 @@ async function runCommand(command, args) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  if (args.matrix) {
+    await runMatrix(args);
+    return;
+  }
   let files = await screenshotFiles(args);
   if (args.limit) files = files.slice(0, args.limit);
   if (!files.length) {

@@ -58,7 +58,7 @@ body.sidebar-collapsed .app-shell {
   overflow: auto;
   padding: 14px 12px;
   border-right: 1px solid var(--line);
-  background: #f1f3f6;
+  background: var(--surface-soft);
 }
 
 .brand {
@@ -73,9 +73,9 @@ body.sidebar-collapsed .app-shell {
   width: 24px;
   height: 24px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  font-size: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: var(--text-xs);
   font-weight: 760;
 }
 
@@ -98,9 +98,9 @@ body.sidebar-collapsed .app-shell {
   width: 32px;
   height: 32px;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: #667085;
+  color: var(--accent);
 }
 
 .panel-icon {
@@ -108,7 +108,7 @@ body.sidebar-collapsed .app-shell {
   width: 17px;
   height: 15px;
   border: 1.5px solid currentColor;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .panel-icon::before {
@@ -124,7 +124,7 @@ body.sidebar-collapsed .app-shell {
 .panel,
 .metric {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--panel);
 }
 
@@ -134,7 +134,7 @@ body.sidebar-collapsed .app-shell {
 
 .eyebrow {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
 }
 
@@ -146,7 +146,7 @@ body.sidebar-collapsed .app-shell {
 .attention-meta {
   margin-top: 4px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .nav {
@@ -156,13 +156,13 @@ body.sidebar-collapsed .app-shell {
 
 .nav a {
   padding: 9px 10px;
-  border-radius: 7px;
-  color: #445064;
+  border-radius: var(--radius-sm);
+  color: var(--accent);
 }
 
 .nav a.active,
 .nav a:hover {
-  background: #e8edf3;
+  background: var(--surface-soft);
   color: var(--text);
 }
 
@@ -177,8 +177,8 @@ body.sidebar-collapsed .app-shell {
 .small-button {
   min-height: 34px;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: #fff;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
 }
 
 body.sidebar-collapsed .brand-copy,
@@ -201,7 +201,7 @@ body.sidebar-collapsed .sidebar-footer {
   gap: 20px;
   padding: 18px 22px;
   border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-blur);
 }
 
 h1,
@@ -222,7 +222,7 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .content {
@@ -245,7 +245,7 @@ h2 {
 .metric strong {
   display: block;
   margin: 6px 0;
-  font-size: 24px;
+  font-size: var(--text-2xl);
 }
 
 .panel {
@@ -299,20 +299,20 @@ td:first-child {
   gap: 4px;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
 }
 
 .check-row.needs_review {
-  border-color: #f3c96b;
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
 }
 
 .check-row.approved {
-  border-color: #9dd7bd;
+  border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
 }
 
 .check-row.blocked {
-  border-color: #f1a7a2;
+  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
 }
 
 .evidence,
@@ -327,7 +327,7 @@ td:first-child {
 .tabs span {
   padding: 6px 9px;
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: var(--subtle);
 }
 
@@ -342,9 +342,9 @@ textarea,
 pre {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 10px;
-  background: #fff;
+  background: var(--surface);
   color: var(--text);
 }
 
@@ -358,8 +358,8 @@ pre {
 .actions button {
   min-height: 36px;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: #fff;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
   padding: 0 12px;
 }
 
@@ -369,7 +369,7 @@ pre {
   gap: 8px;
   padding: 16px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 
 .mobile-topbar,
@@ -425,7 +425,7 @@ pre {
     gap: 8px;
     padding: 8px 10px;
     border-bottom: 1px solid var(--line);
-    background: #fff;
+    background: var(--surface);
   }
 
   .topbar {

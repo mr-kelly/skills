@@ -14,7 +14,7 @@
   --accent-focus: rgba(52, 199, 89, 0.32);
   --accent-text: #0f6624;
   --accent-contrast: #ffffff;
-  color-scheme: light;
+  color-scheme: light dark;
   accent-color: var(--accent);
 }
 
@@ -47,8 +47,8 @@ select {
 button {
   min-height: 34px;
   border: 1px solid var(--line-strong);
-  border-radius: 7px;
-  background: #fff;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
   color: var(--text);
   cursor: pointer;
 }
@@ -73,7 +73,7 @@ button:focus-visible {
   min-width: 0;
   min-height: 0;
   border-right: 1px solid var(--line);
-  background: #fbfbfc;
+  background: var(--surface-soft);
 }
 
 .brand {
@@ -90,10 +90,10 @@ button:focus-visible {
   display: grid;
   place-items: center;
   border: 1px solid var(--line-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--accent-text);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 800;
 }
 
@@ -106,7 +106,7 @@ button:focus-visible {
 
 .brand-subtitle {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .sidebar-toggle,
@@ -122,7 +122,7 @@ button:focus-visible {
 .sidebar-toggle {
   width: 30px;
   height: 30px;
-  color: #7a828f;
+  color: var(--accent);
 }
 
 .sidebar-toggle:hover,
@@ -130,8 +130,8 @@ button:focus-visible {
 .mobile-sidebar-toggle:hover,
 .mobile-sidebar-toggle:focus-visible {
   border-color: transparent;
-  background: #eef1f5;
-  color: #2f343b;
+  background: var(--surface-soft);
+  color: var(--accent);
   box-shadow: none;
 }
 
@@ -141,7 +141,7 @@ button:focus-visible {
   width: 17px;
   height: 15px;
   border: 1.5px solid currentColor;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   opacity: 0.82;
 }
 
@@ -160,13 +160,13 @@ button:focus-visible {
   margin: 0 12px 12px;
   padding: 12px;
   border: 1px solid var(--accent-line);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--accent-wash);
 }
 
 .human-label {
   color: var(--accent-text);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 760;
   text-transform: uppercase;
 }
@@ -175,7 +175,7 @@ button:focus-visible {
   display: block;
   margin-top: 3px;
   color: var(--text);
-  font-size: 15px;
+  font-size: var(--text-md);
 }
 
 .human-counts {
@@ -184,7 +184,7 @@ button:focus-visible {
   flex-wrap: wrap;
   margin-top: 9px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .filters {
@@ -211,13 +211,13 @@ button:focus-visible {
 
 .filter.active {
   border-color: var(--accent-line);
-  background: #fff;
+  background: var(--surface);
   color: var(--accent-text);
 }
 
 .filter b {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .settings-link {
@@ -229,9 +229,13 @@ button:focus-visible {
 .main {
   position: relative;
   display: grid;
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
+}
+
+.main > .demo-visuals-panel {
+  margin: 12px 12px 0;
 }
 
 .mobile-topbar {
@@ -250,17 +254,17 @@ button:focus-visible {
   grid-column: 1 / -1;
   margin: 0 0 12px;
   padding: 10px 14px;
-  border: 1px solid #f0dfb2;
-  border-radius: 8px;
-  background: #fff8db;
-  color: #8a6500;
-  font-size: 13px;
+  border: 1px solid color-mix(in srgb, var(--warning) 34%, var(--line));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warning) 18%, var(--surface));
+  color: var(--danger);
+  font-size: var(--text-base);
 }
 
 .notice-banner {
-  border-color: #c9dcf5;
-  background: #eff5fe;
-  color: #1d4ed8;
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: var(--surface-soft);
+  color: var(--accent);
 }
 
 .list-panel {
@@ -281,22 +285,22 @@ button:focus-visible {
   gap: 14px;
   min-width: 0;
   border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface-blur);
 }
 
 .sheet-topbar {
   min-height: 44px;
   padding: 0 14px;
-  color: #374151;
+  color: var(--accent);
 }
 
 .file-dot {
   width: 22px;
   height: 22px;
   border: 2px solid #111827;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: linear-gradient(90deg, transparent 45%, #111827 45% 55%, transparent 55%),
-    linear-gradient(0deg, transparent 45%, #111827 45% 55%, transparent 55%), #fff;
+    linear-gradient(0deg, transparent 45%, #111827 45% 55%, transparent 55%), var(--surface);
 }
 
 .topbar-spacer {
@@ -331,9 +335,9 @@ button:focus-visible {
   min-height: 31px;
   padding: 0 12px;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: var(--muted);
-  background: #fff;
+  background: var(--surface);
 }
 
 .sheet-tab {
@@ -353,15 +357,15 @@ button:focus-visible {
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  background: linear-gradient(#eef0f2 1px, transparent 1px) 0 0 / 48px 21px,
-    linear-gradient(90deg, #eef0f2 1px, transparent 1px) 0 0 / 48px 21px, #fff;
+  background: linear-gradient(var(--surface-soft) 1px, transparent 1px) 0 0 / 48px 21px,
+    linear-gradient(90deg, var(--surface-soft) 1px, transparent 1px) 0 0 / 48px 21px, var(--surface);
 }
 
 .invoice-grid {
   min-width: 980px;
   width: 100%;
   border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-blur);
 }
 
 .invoice-grid th,
@@ -370,7 +374,7 @@ button:focus-visible {
   max-width: 220px;
   padding: 6px 9px;
   overflow: hidden;
-  border: 1px solid #dfe4ea;
+  border: 1px solid var(--line);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -379,16 +383,16 @@ button:focus-visible {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #f7f8fa;
-  color: #4b5563;
-  font-size: 12px;
+  background: var(--canvas);
+  color: var(--accent);
+  font-size: var(--text-sm);
   font-weight: 650;
 }
 
 .invoice-grid .row-head {
   width: 42px;
-  background: #f2f4f7;
-  color: #5b6472;
+  background: var(--surface-soft);
+  color: var(--accent);
   text-align: center;
 }
 
@@ -397,7 +401,7 @@ button:focus-visible {
 }
 
 .invoice-grid tr:hover td {
-  background: #f8fafc;
+  background: var(--surface-hover);
 }
 
 .money {
@@ -411,21 +415,21 @@ button:focus-visible {
   min-height: 22px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #eef2f7;
-  color: #526071;
-  font-size: 12px;
+  background: var(--surface-soft);
+  color: var(--accent);
+  font-size: var(--text-sm);
   font-weight: 700;
 }
 
 .status.needs_review {
-  background: #fff7e6;
-  color: #8a5a00;
+  background: var(--surface-soft);
+  color: var(--danger);
 }
 
 .status.changes_requested,
 .status.blocked {
-  background: #fff1f0;
-  color: #b42318;
+  background: color-mix(in srgb, var(--danger) 18%, var(--surface));
+  color: var(--danger);
 }
 
 .status.approved {
@@ -434,8 +438,8 @@ button:focus-visible {
 }
 
 .status.done {
-  background: #edf7ff;
-  color: #075985;
+  background: var(--surface-soft);
+  color: var(--accent);
 }
 
 .extract-modal {
@@ -448,8 +452,8 @@ button:focus-visible {
   width: min(960px, calc(100% - 48px));
   min-height: 560px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
   box-shadow: 0 18px 50px rgba(15, 23, 42, 0.22);
 }
 
@@ -467,7 +471,7 @@ button:focus-visible {
   height: 32px;
   display: grid;
   place-items: center;
-  border-radius: 9px;
+  border-radius: var(--radius-md);
   background: var(--accent-wash);
   color: var(--accent-text);
   font-weight: 900;
@@ -475,25 +479,25 @@ button:focus-visible {
 
 .extract-head h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--text-xl);
 }
 
 .extract-head p {
   margin: 0;
   color: var(--faint);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 650;
 }
 
 .game-check {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 
 .close-extract {
   border-color: transparent;
   background: transparent;
-  font-size: 28px;
+  font-size: var(--text-2xl);
   line-height: 1;
 }
 
@@ -510,12 +514,12 @@ button:focus-visible {
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #4b5563;
+  color: var(--accent);
   font-weight: 680;
 }
 
 .extract-tabs button.active {
-  color: #111827;
+  color: var(--accent);
   box-shadow: inset 0 -3px var(--accent-strong);
 }
 
@@ -524,8 +528,8 @@ button:focus-visible {
   align-items: center;
   gap: 8px;
   margin-left: auto;
-  color: #374151;
-  font-size: 13px;
+  color: var(--accent);
+  font-size: var(--text-base);
   white-space: nowrap;
 }
 
@@ -533,13 +537,13 @@ button:focus-visible {
   width: 50px;
   height: 6px;
   border-radius: 999px;
-  background: #e5e7eb;
+  background: var(--line);
 }
 
 .extract-tabs .upgrade {
   padding: 0 14px;
   border: 1px solid var(--line-strong);
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
 }
 
 .extract-tabs .help {
@@ -555,20 +559,20 @@ button:focus-visible {
   gap: 8px;
   min-height: 395px;
   margin: 18px;
-  border: 2px dashed #d0d0d0;
-  border-radius: 6px;
+  border: 2px dashed var(--line);
+  border-radius: var(--radius-sm);
   color: var(--muted);
   text-align: center;
 }
 
 .drop-zone strong {
   color: var(--accent-text);
-  font-size: 18px;
+  font-size: var(--text-lg);
 }
 
 .upload-icon {
-  color: #687385;
-  font-size: 46px;
+  color: var(--accent);
+  font-size: var(--text-3xl);
   line-height: 1;
 }
 
@@ -576,7 +580,7 @@ button:focus-visible {
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  background: #fbfbfc;
+  background: var(--surface-soft);
 }
 
 .back-to-list {
@@ -617,13 +621,13 @@ button:focus-visible {
 
 .detail-title span:first-child {
   color: var(--accent-text);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 780;
 }
 
 .detail-title h2 {
   margin: 3px 0 8px;
-  font-size: 18px;
+  font-size: var(--text-lg);
   line-height: 1.25;
 }
 
@@ -632,7 +636,7 @@ button:focus-visible {
   gap: 8px;
   flex-wrap: wrap;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .fields-grid {
@@ -649,7 +653,7 @@ button:focus-visible {
 
 .field span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 650;
 }
 
@@ -659,8 +663,8 @@ button:focus-visible {
   width: 100%;
   min-width: 0;
   border: 1px solid var(--line-strong);
-  border-radius: 7px;
-  background: #fff;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
   color: var(--text);
 }
 
@@ -691,8 +695,8 @@ button:focus-visible {
 .settings-card {
   min-width: 0;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
 }
 
 .section-head {
@@ -707,12 +711,12 @@ button:focus-visible {
 .warnings h3,
 .settings-card h3 {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 
 .section-head span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .line-items table {
@@ -730,7 +734,7 @@ button:focus-visible {
 
 .line-items th {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .warnings {
@@ -748,9 +752,9 @@ button:focus-visible {
   max-width: 100%;
   padding: 4px 8px;
   border-radius: 999px;
-  background: #fff7e6;
-  color: #8a5a00;
-  font-size: 12px;
+  background: var(--surface-soft);
+  color: var(--danger);
+  font-size: var(--text-sm);
   overflow-wrap: anywhere;
 }
 
@@ -775,7 +779,7 @@ button:focus-visible {
   gap: 8px;
   padding: 14px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 
 .modal-backdrop {
@@ -795,8 +799,8 @@ button:focus-visible {
   max-height: min(760px, 90vh);
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
+  border-radius: var(--radius-md);
+  background: var(--surface);
   box-shadow: 0 18px 60px rgba(15, 23, 42, 0.22);
 }
 
@@ -811,13 +815,13 @@ button:focus-visible {
 
 .modal h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--text-lg);
 }
 
 .modal header button {
   border-color: transparent;
   background: transparent;
-  font-size: 24px;
+  font-size: var(--text-2xl);
 }
 
 .modal-tabs {
@@ -922,14 +926,14 @@ button:focus-visible {
     min-height: 52px;
     padding: 8px 10px;
     border-bottom: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--surface-blur);
     backdrop-filter: blur(12px);
   }
 
   .mobile-sidebar-toggle {
     width: 36px;
     height: 34px;
-    color: #59616d;
+    color: var(--accent);
   }
 
   .mobile-title {
@@ -946,7 +950,7 @@ button:focus-visible {
 
   .mobile-title span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .sidebar {
@@ -1034,7 +1038,7 @@ button:focus-visible {
     padding: 0 12px;
     border-width: 0 0 1px;
     border-radius: 0;
-    background: #fff;
+    background: var(--surface);
     color: var(--accent-text);
     font-weight: 700;
   }

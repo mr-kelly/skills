@@ -10,8 +10,8 @@
   .project-switcher label,
   .field label,
   .shot-pipeline label {
-    color: #52525b;
-    font-size: 12px;
+    color: var(--ink-soft);
+    font-size: var(--text-sm);
     font-weight: 600;
   }
 
@@ -56,13 +56,13 @@
 
   .panel-head h2 {
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 750;
   }
 
   .panel-head p {
     margin: 2px 0 0;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .count-pill,
@@ -73,9 +73,9 @@
     padding: 2px 7px;
     border: 1px solid transparent;
     border-radius: 999px;
-    color: #52525b;
-    background: #f4f4f5;
-    font-size: 11px;
+    color: var(--ink-soft);
+    background: var(--surface-soft);
+    font-size: var(--text-xs);
     line-height: 1;
     white-space: nowrap;
   }
@@ -95,7 +95,7 @@
     gap: 8px;
     padding: 14px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .item-card,
@@ -140,7 +140,7 @@
     overflow: hidden;
     color: var(--faint);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 11px;
+    font-size: var(--text-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -155,7 +155,7 @@
   .item-card h3 {
     overflow: hidden;
     margin: 0;
-    font-size: 13px;
+    font-size: var(--text-base);
     font-weight: 650;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -166,7 +166,7 @@
     overflow: hidden;
     margin: 0;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.35;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -174,24 +174,24 @@
 
   .badge.status-approved,
   .badge.status-done {
-    color: #166534;
-    background: #ecfdf3;
+    color: var(--positive);
+    background: color-mix(in srgb, var(--positive) 18%, var(--surface));
   }
 
   .badge.status-needs_review,
   .badge.status-changes_requested {
-    color: #be123c;
-    background: #fff1f2;
+    color: var(--danger);
+    background: var(--surface-soft);
   }
 
   .badge.status-draft {
-    color: #854d0e;
-    background: #fffbeb;
+    color: var(--danger);
+    background: var(--surface-soft);
   }
 
   .badge.status-blocked {
-    color: #9a3412;
-    background: #fff7ed;
+    color: var(--danger);
+    background: var(--surface-soft);
   }
 
   .detail {
@@ -205,7 +205,7 @@
 
   .detail-card h2 {
     margin: 0 0 12px;
-    font-size: 16px;
+    font-size: var(--text-lg);
     font-weight: 750;
   }
 
@@ -218,11 +218,11 @@
     color: var(--muted);
     background: var(--surface-soft);
     text-align: center;
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .form-note {
-    font-size: 12px;
+    font-size: var(--text-sm);
     color: var(--muted);
     margin: 4px 0 12px;
     line-height: 1.5;
@@ -254,15 +254,15 @@
 
   .form-actions .danger {
     color: var(--danger);
-    background: #fff1f2;
+    background: var(--surface-soft);
   }
 
   .form-actions .danger:hover {
-    background: #ffe4e6;
+    background: var(--surface-soft);
   }
 
   .form-actions .muted {
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .detail-card.is-dirty .save-hint {
@@ -281,7 +281,7 @@
   .visual-bible-card h3,
   .character-reference h3 {
     margin: 0 0 6px;
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .visual-bible-card p,
@@ -317,7 +317,7 @@
     overflow: hidden;
     margin-top: 5px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -330,14 +330,14 @@
     padding: 10px 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius);
-    color: #fff;
+    color: var(--accent-contrast);
     background: #18181b;
     box-shadow: var(--shadow);
-    font-size: 13px;
+    font-size: var(--text-base);
   }
 
   .item-card:hover {
-    background: #f4f4f5;
+    background: var(--surface-soft);
   }
 
   .form-actions button,
@@ -348,7 +348,7 @@
     min-height: 34px;
     padding: 8px 11px;
     border-radius: var(--radius);
-    color: #fff;
+    color: var(--accent-contrast);
     background: var(--accent);
     font-weight: 650;
   }
