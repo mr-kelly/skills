@@ -1,0 +1,64 @@
+{
+  "name": "跟进事项",
+  "description": "会后记的跟进：谁、跟进什么事、什么时候该完成",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "记录 ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "meeting",
+      "name": "来自哪个会",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "person",
+      "name": "跟进谁",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "action",
+      "name": "跟进什么事",
+      "type": "longtext",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "due",
+      "name": "什么时候该完成",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "状态",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "创建时间",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": []
+}
