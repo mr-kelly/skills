@@ -146,3 +146,49 @@
     border-radius: var(--radius);
   }
 }
+
+/* Shot edit modal: hosts the same shotForm the detail pane renders, so the
+   form itself keeps its own grid — this only gives it a scrollable body and
+   a header, and neutralises the detail-card chrome that assumes a side pane. */
+.modal-form-head {
+  padding: 2px 2px 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 14px;
+}
+
+.modal-form-head h3 {
+  margin: 2px 0 0;
+  font-size: var(--text-lg);
+}
+
+.modal-form-body {
+  max-height: min(70vh, 640px);
+  overflow-y: auto;
+}
+
+.modal-form-body .detail-card {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.shot-row-edit {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+}
+
+.shot-row-wrap {
+  position: relative;
+}
+
+.shot-row-wrap .shot-row-meta {
+  padding-right: 56px;
+}
+
+/* shotForm renders its own <h2> with the shot title, which the modal header
+   already shows — hide the duplicate rather than forking the form. */
+.modal-form-body .detail-card > h2 {
+  display: none;
+}
