@@ -3,10 +3,10 @@
 // copy, same characters — "Walking Against the Light" / 《逆光而行》) from
 // the retired app/server/demo.ts's demoProject(). Binary media are synthetic
 // in-memory placeholders (hash-tinted SVG data URLs) generated in the
-// browser — never a real generated/uploaded asset, matching the existing
-// demo-visuals pattern used across every converted skill (kelly-mv's
-// demo-provider.js, this skill's closest architectural twin).
-import { demoVisualsForApp } from "../demo-visuals-data.js?v=0.1.0";
+// browser — never a real generated/uploaded asset. These are the per-shot and
+// per-character placeholders shown inside the workbench; the separate
+// demo-visuals panel that used to sit above the whole app is gone (see the
+// commit that removed it), so nothing here feeds that.
 import { attention, completeness, countBy } from "../drama-model.js?v=0.1.0";
 
 const DEMO_UPDATED_AT = "2026-06-30T09:30:00.000Z";
@@ -1001,7 +1001,6 @@ function activeLangIsZh() {
 }
 
 function demoStatePayload(project) {
-  const visuals = demoVisualsForApp("kelly-drama");
   return {
     demo: true,
     demo_scenario: new URLSearchParams(window.location.search).get("demo") || "overview",
@@ -1010,8 +1009,7 @@ function demoStatePayload(project) {
     onboarding: { completed: true, config_version: "demo" },
     lock: { locked: false },
     config_summary: { config_path: "demo://kelly-drama/project.json", is_example: false },
-    demo_visuals: visuals,
-    project: { ...project, demo_visuals: visuals },
+    project,
     projects: [
       {
         id: project.project_id,
