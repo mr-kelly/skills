@@ -1,0 +1,111 @@
+{
+  "name": "Project Groups",
+  "description": "The portfolio's project groups/programs and the projects they own.",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "program-id",
+      "name": "Program ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Project group name",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "manager",
+      "name": "Program manager",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "sponsor",
+      "name": "Sponsor",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "health",
+      "name": "Health",
+      "type": "select",
+      "required": false,
+      "position": 4,
+      "options": {
+        "choices": [
+          {
+            "id": "green",
+            "name": "green"
+          },
+          {
+            "id": "amber",
+            "name": "amber"
+          },
+          {
+            "id": "red",
+            "name": "red"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "objective",
+      "name": "Objective",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "project-ids",
+      "name": "Owned project IDs",
+      "type": "multiselect",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "cover",
+      "name": "Cover",
+      "type": "attachment",
+      "required": false,
+      "position": 7,
+      "options": {
+        "attachment": {
+          "maxFiles": 1
+        }
+      }
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "updated_time",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "all-project-groups-table",
+      "name": "All project groups",
+      "type": "table",
+      "description": "All project groups for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["name", "manager", "sponsor", "health", "project-ids"]
+      }
+    }
+  ]
+}

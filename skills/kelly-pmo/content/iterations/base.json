@@ -1,0 +1,119 @@
+{
+  "name": "Iterations",
+  "description": "Delivery iterations/sprints with goals, dates, team, capacity, and status.",
+  "position": 11,
+  "fields": [
+    {
+      "slug": "iteration-id",
+      "name": "Iteration ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Iteration",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "goal",
+      "name": "Goal",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "team",
+      "name": "Team",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "select",
+      "required": false,
+      "position": 5,
+      "options": {
+        "choices": [
+          {
+            "id": "planned",
+            "name": "planned"
+          },
+          {
+            "id": "active",
+            "name": "active"
+          },
+          {
+            "id": "review",
+            "name": "review"
+          },
+          {
+            "id": "complete",
+            "name": "complete"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "start-date",
+      "name": "Start date",
+      "type": "date",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "end-date",
+      "name": "End date",
+      "type": "date",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "capacity",
+      "name": "Capacity",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "velocity",
+      "name": "Velocity",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "iteration-register-table",
+      "name": "Iteration register",
+      "type": "table",
+      "description": "Iteration register for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["name", "project-id", "team", "status", "start-date", "end-date", "capacity", "velocity"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "name": "Human Resources",
+  "description": "People, roles, capacity, allocation, skills, and availability for portfolio planning.",
+  "position": 6,
+  "fields": [
+    {
+      "slug": "resource-id",
+      "name": "Resource ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Name",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "role",
+      "name": "Role",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "function",
+      "name": "Function",
+      "type": "select",
+      "required": false,
+      "position": 3,
+      "options": {
+        "choices": [
+          {
+            "id": "product",
+            "name": "product"
+          },
+          {
+            "id": "engineering",
+            "name": "engineering"
+          },
+          {
+            "id": "operations",
+            "name": "operations"
+          },
+          {
+            "id": "growth",
+            "name": "growth"
+          },
+          {
+            "id": "finance",
+            "name": "finance"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "project-ids",
+      "name": "Project IDs",
+      "type": "multiselect",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "allocation-percent",
+      "name": "Allocation percent",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "availability",
+      "name": "Availability",
+      "type": "select",
+      "required": false,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "available",
+            "name": "available"
+          },
+          {
+            "id": "partial",
+            "name": "partial"
+          },
+          {
+            "id": "full",
+            "name": "full"
+          },
+          {
+            "id": "leave",
+            "name": "leave"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "skills",
+      "name": "Skills",
+      "type": "multiselect",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "photo",
+      "name": "Photo",
+      "type": "attachment",
+      "required": false,
+      "position": 8,
+      "options": {
+        "attachment": {
+          "maxFiles": 1
+        }
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "resource-ledger-table",
+      "name": "Resource ledger",
+      "type": "table",
+      "description": "Resource ledger for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["name", "role", "function", "allocation-percent", "availability", "project-ids"]
+      }
+    }
+  ]
+}

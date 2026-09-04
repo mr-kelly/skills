@@ -156,8 +156,10 @@
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
+| `kelly-followups` | 维护一个刻意轻量的会后跟进清单：记录要跟进谁、查看今天到期的事项，并标记完成。 | 周会产生简单的个人跟进承诺，而完整项目管理工具过重时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-followups.html?lang=zh) |
 | `kelly-jobhunt` | 求职直投台，三个子命令：`profile` 把你的简历提炼成结构化档案并排版出 PDF，`research` 按你指定的招聘渠道找目标公司和公开联系邮箱、为每家写一封定制邮件，`send` 把你自己的 SMTP 凭据存进 Busabase Vault 再发出你批准的信。一家公司只发一封。 | 不想走招聘平台海投、要直接投公司邮箱时使用；也用于用已有材料生成简历 PDF、收集招聘联系邮箱及其来源、发出前审阅和修改邮件、跟踪哪些公司已经投过。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-jobhunt.html?lang=zh) |
 | `kelly-messenger` | 把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。 | 在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html?lang=zh) |
+| `kelly-pmo` | 运行完整 PMO 工作区：16 个关联 Base 覆盖截图中的项目群、项目组、项目计划、进度汇报、特项任务、沟通规划、人力资源、职能组、名词管理、Testing、需求表、迭代，以及里程碑、风险、决策和设置；带表格/相册/看板/日历/甘特图原生视图和 Doc、Drive/File、Form、Whiteboard、Workflow、HTML、Skill、AirApp 配套节点。 | 运行 PMO、复核项目组合健康度、检查完整多表模型、发现逾期周报或阻塞里程碑、记录跨项目决策，或在隔离 OSS 实例中压力测试 Busabase 节点与视图能力时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-pmo.html?lang=zh) |
 | `kelly-standup` | 团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。 | 异步开晨会、一眼看到每个人在干什么、跟踪阻塞和参与率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html?lang=zh) |
 
 ### 品牌与营销
@@ -1435,6 +1437,37 @@ Kelly CLM 是一个刻意保持轻量的合同生命周期台，用于合同台�
   <tr>
     <td><strong>调整队列</strong><br>Agent 提出的出价/预算/否定词调整，带证据和影响预估，批准后才执行。</td>
     <td><strong>异常</strong><br>确定性异常流：ACOS 超标、预算烧穿、零转化花费、CPC 飙升、素材被拒。</td>
+  </tr>
+</table>
+
+### `kelly-pmo`
+
+Kelly PMO 把参考 PM 数据库做成完整 Busabase 工作区：12 张与截图对应的业务表、4 张治理表、52 个已保存原生视图，以及文档、文件、表单、白板、工作流、HTML、Skill 和 AirApp 配套节点。
+
+<table>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-pmo/assets/screenshots/overview-zh-CN.webp" alt="Kelly PMO 项目组合总览"></td>
+    <td width="50%"><img src="../skills/kelly-pmo/assets/screenshots/workspace-zh-CN.webp" alt="Kelly PMO 完整数据工作区"></td>
+  </tr>
+  <tr>
+    <td><strong>项目组合脉搏</strong><br>在一屏内查看交付健康、临近承诺、逾期周报和需要实名判断的决策。</td>
+    <td><strong>完整数据工作区</strong><br>12 张参考业务表、记录数、166 个字段、原生视图与 8 种配套节点。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-pmo/assets/screenshots/projects-zh-CN.webp" alt="Kelly PMO 项目列表与详情"></td>
+    <td width="50%"><img src="../skills/kelly-pmo/assets/screenshots/milestones-zh-CN.webp" alt="Kelly PMO 里程碑计划"></td>
+  </tr>
+  <tr>
+    <td><strong>项目控制</strong><br>在列表/详情工作区中贯通负责人、进度、日期、里程碑、风险和最新周报。</td>
+    <td><strong>里程碑计划</strong><br>跨项目查看交付关卡、到期压力、证据、进度和完成控制。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-pmo/assets/screenshots/decisions-zh-CN.webp" alt="Kelly PMO 决策队列"></td>
+    <td width="50%"><img src="../skills/kelly-pmo/assets/screenshots/mobile-workspace-zh-CN.webp" alt="Kelly PMO 手机数据工作区"></td>
+  </tr>
+  <tr>
+    <td><strong>决策队列</strong><br>稳定编号、建议、审阅意见，以及批准/要求修改/阻塞的明确结论。</td>
+    <td><strong>手机工作区</strong><br>完整多表资源和视图地图在窄屏上依然可导航。</td>
   </tr>
 </table>
 

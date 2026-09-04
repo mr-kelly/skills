@@ -1,0 +1,21 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-pmo",
+  "description": "Complete PMO workspace with 16 Bases, rich native views, supporting node types, portfolio synthesis, and reviewable decisions.",
+  "version": "0.2.0",
+  "license": "MIT",
+  "tags": ["comms", "risk:local-write", "surface:busabase"],
+  "template": {
+    "category": "comms",
+    "schemaVersion": 2,
+    "airapp": "kelly-pmo-app",
+    "tags": ["comms", "risk:local-write", "surface:busabase"],
+    "screenshots": [],
+    "agentPrompts": [
+      "Summarize portfolio health and show what needs my attention.",
+      "Open the complete Kelly PMO data workspace and show its tables and native views.",
+      "Run the isolated Busabase extreme suite across node and view types."
+    ],
+    "requires": { "airapp": true }
+  }
+}

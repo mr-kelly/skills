@@ -1,0 +1,111 @@
+{
+  "name": "Project Teams",
+  "description": "Delivery teams, team leads, scope, and linked projects.",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "team-id",
+      "name": "Team ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Team name",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "lead",
+      "name": "Team lead",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "function",
+      "name": "Function",
+      "type": "select",
+      "required": false,
+      "position": 3,
+      "options": {
+        "choices": [
+          {
+            "id": "product",
+            "name": "product"
+          },
+          {
+            "id": "engineering",
+            "name": "engineering"
+          },
+          {
+            "id": "operations",
+            "name": "operations"
+          },
+          {
+            "id": "growth",
+            "name": "growth"
+          },
+          {
+            "id": "finance",
+            "name": "finance"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "project-ids",
+      "name": "Project IDs",
+      "type": "multiselect",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "capacity",
+      "name": "Capacity",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "location",
+      "name": "Location",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "avatar",
+      "name": "Team image",
+      "type": "attachment",
+      "required": false,
+      "position": 7,
+      "options": {
+        "attachment": {
+          "maxFiles": 1
+        }
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "all-project-teams-table",
+      "name": "All project teams",
+      "type": "table",
+      "description": "All project teams for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["name", "lead", "function", "capacity", "project-ids"]
+      }
+    }
+  ]
+}

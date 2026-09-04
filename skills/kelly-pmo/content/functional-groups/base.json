@@ -1,0 +1,95 @@
+{
+  "name": "Functional Groups",
+  "description": "Functional ownership, group leads, responsibilities, and capacity envelopes.",
+  "position": 7,
+  "fields": [
+    {
+      "slug": "group-id",
+      "name": "Group ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "name",
+      "name": "Functional group",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "lead",
+      "name": "Lead",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "responsibility",
+      "name": "Responsibility",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "headcount",
+      "name": "Headcount",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "health",
+      "name": "Health",
+      "type": "select",
+      "required": false,
+      "position": 5,
+      "options": {
+        "choices": [
+          {
+            "id": "green",
+            "name": "green"
+          },
+          {
+            "id": "amber",
+            "name": "amber"
+          },
+          {
+            "id": "red",
+            "name": "red"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "icon",
+      "name": "Group image",
+      "type": "attachment",
+      "required": false,
+      "position": 6,
+      "options": {
+        "attachment": {
+          "maxFiles": 1
+        }
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "functional-group-register-table",
+      "name": "Functional group register",
+      "type": "table",
+      "description": "Functional group register for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["name", "lead", "responsibility", "headcount", "health"]
+      }
+    }
+  ]
+}

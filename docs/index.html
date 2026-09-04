@@ -258,8 +258,8 @@ h2.group {
         <span class="en">Agent skills for daily business operations. Each App-in-Skill pairs an operating procedure for the agent with a local browser UI where a human reviews, approves, edits, and hands work back — dashboards for money, CRM, chat, SEO, market intel, ops, and more.</span><span class="zh">服务日常业务的 agent skills。每个 App-in-Skill 都由两部分组成：给 agent 的操作规程 + 一个本地浏览器操作台，供人 review、批准、编辑并把任务交还给 agent —— 覆盖资金、CRM、聊天聚合、SEO、市场情报、运维等场景。</span>
       </p>
       <div class="stats">
-        <span><strong>74</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
-        <span><strong>70</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
+        <span><strong>76</strong><span class="en">skills</span><span class="zh">个 skills</span></span>
+        <span><strong>72</strong><span class="en">bundled App UIs</span><span class="zh">个内置 App UI</span></span>
         <span><strong>0</strong><span class="en">npm dependencies</span><span class="zh">npm 依赖</span></span>
       </div>
       <div class="audit-note">
@@ -566,6 +566,14 @@ After installation, list the available skills and help me choose the right one f
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
   </div>
 </a>
+<a class="card" data-skill-card data-tags="risk:gated-write surface:busabase" href="s/kelly-followups.html">
+  <div class="thumb empty">⚙️</div>
+  <div class="body">
+    <span class="name">kelly-followups<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Keeps a deliberately small post-meeting follow-up list: record who needs a follow-up, see what is due today, and mark it done.</span><span class="zh">维护一个刻意轻量的会后跟进清单：记录要跟进谁、查看今天到期的事项，并标记完成。</span></span>
+    <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
 <a class="card" data-skill-card data-tags="risk:gated-write surface:busabase surface:smtp" href="s/kelly-jobhunt.html">
   <div class="thumb"><img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-jobhunt/assets/screenshots/thumbs/to-send.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-jobhunt/assets/screenshots/thumbs/to-send.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-jobhunt/assets/screenshots/thumbs/to-send.webp" alt="kelly-jobhunt UI" loading="lazy"></div>
   <div class="body">
@@ -580,6 +588,14 @@ After installation, list the available skills and help me choose the right one f
     <span class="name">kelly-messenger<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
     <span class="desc"><span class="en">Aggregates WhatsApp, Discord, Slack, and Telegram into one unified local inbox with full conversation transcripts and an approval-gated reply outbox.</span><span class="zh">把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。</span></span>
     <span class="risk risk-gated-write"><span class="en">Gated write</span><span class="zh">审批后写</span></span>
+  </div>
+</a>
+<a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-pmo.html">
+  <div class="thumb"><img data-shot-en="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-pmo/assets/screenshots/thumbs/overview.webp" data-shot-zh="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-pmo/assets/screenshots/thumbs/overview-zh-CN.webp" src="https://media.githubusercontent.com/media/mr-kelly/skills/main/skills/kelly-pmo/assets/screenshots/thumbs/overview.webp" alt="kelly-pmo UI" loading="lazy"></div>
+  <div class="body">
+    <span class="name">kelly-pmo<span class="pill"><span class="en">App UI</span><span class="zh">App UI</span></span></span>
+    <span class="desc"><span class="en">Runs a complete PMO workspace across 16 linked Bases: the 12 source-aligned tables for project groups, teams, plans, reports, special tasks, communications, people, functions, glossary, testing, requirements, and iterations, plus milestones, risks, decisions, and settings. Adds saved table/gallery/kanban/calendar/gantt views and supporting Doc, Drive/File, Form, Whiteboard, Workflow, HTML, Skill, and AirApp nodes.</span><span class="zh">运行完整 PMO 工作区：16 个关联 Base 覆盖截图中的项目群、项目组、项目计划、进度汇报、特项任务、沟通规划、人力资源、职能组、名词管理、Testing、需求表、迭代，以及里程碑、风险、决策和设置；带表格/相册/看板/日历/甘特图原生视图和 Doc、Drive/File、Form、Whiteboard、Workflow、HTML、Skill、AirApp 配套节点。</span></span>
+    <span class="risk risk-local-write"><span class="en">Local only</span><span class="zh">仅本地</span></span>
   </div>
 </a>
 <a class="card" data-skill-card data-tags="risk:local-write surface:busabase" href="s/kelly-standup.html">
@@ -1003,13 +1019,13 @@ After installation, list the available skills and help me choose the right one f
 </section>
   <section class="side-card">
     <h3><span class="en">Categories</span><span class="zh">分类</span></h3>
-    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">74</span></button>
+    <div class="category-list"><button class="category-button active" type="button" data-category-filter="all" onclick="mkSetCategory('all')"><span class="en">All skills</span><span class="zh">全部 skills</span><span class="count">76</span></button>
 <button class="category-button" type="button" data-category-filter="finance" onclick="mkSetCategory('finance')"><span class="en">Finance &amp; Back Office</span><span class="zh">财务与后台</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="invest" onclick="mkSetCategory('invest')"><span class="en">Investing &amp; Wealth</span><span class="zh">投资与财富</span><span class="count">4</span></button>
 <button class="category-button" type="button" data-category-filter="rbf" onclick="mkSetCategory('rbf')"><span class="en">Revenue-Based Finance</span><span class="zh">收益分成融资</span><span class="count">5</span></button>
 <button class="category-button" type="button" data-category-filter="legal" onclick="mkSetCategory('legal')"><span class="en">Legal &amp; Contracts</span><span class="zh">法务与合同</span><span class="count">6</span></button>
 <button class="category-button" type="button" data-category-filter="sales-crm" onclick="mkSetCategory('sales-crm')"><span class="en">Sales &amp; Customer</span><span class="zh">销售与客户</span><span class="count">8</span></button>
-<button class="category-button" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Team</span><span class="zh">沟通与协同</span><span class="count">4</span></button>
+<button class="category-button" type="button" data-category-filter="comms" onclick="mkSetCategory('comms')"><span class="en">Comms &amp; Team</span><span class="zh">沟通与协同</span><span class="count">6</span></button>
 <button class="category-button" type="button" data-category-filter="marketing" onclick="mkSetCategory('marketing')"><span class="en">Brand &amp; Marketing</span><span class="zh">品牌与营销</span><span class="count">6</span></button>
 <button class="category-button" type="button" data-category-filter="growth" onclick="mkSetCategory('growth')"><span class="en">Growth &amp; Analytics</span><span class="zh">增长与分析</span><span class="count">3</span></button>
 <button class="category-button" type="button" data-category-filter="ecommerce" onclick="mkSetCategory('ecommerce')"><span class="en">Cross-Border E-commerce</span><span class="zh">跨境电商</span><span class="count">4</span></button>
@@ -1024,8 +1040,8 @@ After installation, list the available skills and help me choose the right one f
       <button class="tag-button active" type="button" data-tag-filter="risk:all" onclick="mkSetTag('risk:all')"><span class="en">Any</span><span class="zh">不限</span></button>
 <button class="tag-button" type="button" data-tag-filter="risk:sandbox" onclick="mkSetTag('risk:sandbox')"><span class="en">Sandbox data</span><span class="zh">沙盒数据</span><span class="count">9</span></button>
 <button class="tag-button" type="button" data-tag-filter="risk:read-only" onclick="mkSetTag('risk:read-only')"><span class="en">Read-only</span><span class="zh">只读</span><span class="count">7</span></button>
-<button class="tag-button" type="button" data-tag-filter="risk:local-write" onclick="mkSetTag('risk:local-write')"><span class="en">Local only</span><span class="zh">仅本地</span><span class="count">25</span></button>
-<button class="tag-button" type="button" data-tag-filter="risk:gated-write" onclick="mkSetTag('risk:gated-write')"><span class="en">Gated write</span><span class="zh">审批后写</span><span class="count">33</span></button>
+<button class="tag-button" type="button" data-tag-filter="risk:local-write" onclick="mkSetTag('risk:local-write')"><span class="en">Local only</span><span class="zh">仅本地</span><span class="count">26</span></button>
+<button class="tag-button" type="button" data-tag-filter="risk:gated-write" onclick="mkSetTag('risk:gated-write')"><span class="en">Gated write</span><span class="zh">审批后写</span><span class="count">34</span></button>
     </div>
   </section>
   <section class="side-card">

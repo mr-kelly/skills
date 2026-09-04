@@ -1,0 +1,99 @@
+{
+  "name": "Glossary",
+  "description": "Shared PMO terms, acronyms, definitions, owners, and effective dates.",
+  "position": 8,
+  "fields": [
+    {
+      "slug": "term-id",
+      "name": "Term ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "term",
+      "name": "Term",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "acronym",
+      "name": "Acronym",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "definition",
+      "name": "Definition",
+      "type": "markdown",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "domain",
+      "name": "Domain",
+      "type": "select",
+      "required": false,
+      "position": 4,
+      "options": {
+        "choices": [
+          {
+            "id": "portfolio",
+            "name": "portfolio"
+          },
+          {
+            "id": "delivery",
+            "name": "delivery"
+          },
+          {
+            "id": "product",
+            "name": "product"
+          },
+          {
+            "id": "technology",
+            "name": "technology"
+          },
+          {
+            "id": "finance",
+            "name": "finance"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "effective-date",
+      "name": "Effective date",
+      "type": "date",
+      "required": false,
+      "position": 6,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "glossary-a-z-table",
+      "name": "Glossary A-Z",
+      "type": "table",
+      "description": "Glossary A-Z for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["term", "acronym", "domain", "owner", "effective-date"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "name": "Requirements",
+  "description": "Requirements, acceptance criteria, owners, priority, source, and delivery state.",
+  "position": 10,
+  "fields": [
+    {
+      "slug": "requirement-id",
+      "name": "Requirement ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "iteration-id",
+      "name": "Iteration ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Requirement",
+      "type": "text",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "type",
+      "name": "Type",
+      "type": "select",
+      "required": false,
+      "position": 4,
+      "options": {
+        "choices": [
+          {
+            "id": "business",
+            "name": "business"
+          },
+          {
+            "id": "functional",
+            "name": "functional"
+          },
+          {
+            "id": "nonfunctional",
+            "name": "nonfunctional"
+          },
+          {
+            "id": "compliance",
+            "name": "compliance"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "priority",
+      "name": "Priority",
+      "type": "select",
+      "required": false,
+      "position": 5,
+      "options": {
+        "choices": [
+          {
+            "id": "must",
+            "name": "must"
+          },
+          {
+            "id": "should",
+            "name": "should"
+          },
+          {
+            "id": "could",
+            "name": "could"
+          },
+          {
+            "id": "wont",
+            "name": "wont"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "select",
+      "required": false,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "draft",
+            "name": "draft"
+          },
+          {
+            "id": "ready",
+            "name": "ready"
+          },
+          {
+            "id": "in_progress",
+            "name": "in_progress"
+          },
+          {
+            "id": "accepted",
+            "name": "accepted"
+          },
+          {
+            "id": "blocked",
+            "name": "blocked"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "acceptance-criteria",
+      "name": "Acceptance criteria",
+      "type": "markdown",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "source-url",
+      "name": "Source URL",
+      "type": "url",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "requirement-register-table",
+      "name": "Requirement register",
+      "type": "table",
+      "description": "Requirement register for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["title", "project-id", "iteration-id", "type", "priority", "status", "owner"]
+      }
+    }
+  ]
+}

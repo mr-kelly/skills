@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kelly PMO"
+  short_description: "Project portfolio cockpit"
+  default_prompt: "Use $kelly-pmo to review my project portfolio, surface what needs attention, and open the PMO workspace."

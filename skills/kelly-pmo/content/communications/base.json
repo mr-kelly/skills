@@ -1,0 +1,134 @@
+{
+  "name": "Communication Plans",
+  "description": "Stakeholder communication events, channels, owners, audiences, and approval state.",
+  "position": 5,
+  "fields": [
+    {
+      "slug": "communication-id",
+      "name": "Communication ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Communication",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "audience",
+      "name": "Audience",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "channel",
+      "name": "Channel",
+      "type": "select",
+      "required": false,
+      "position": 4,
+      "options": {
+        "choices": [
+          {
+            "id": "meeting",
+            "name": "meeting"
+          },
+          {
+            "id": "email",
+            "name": "email"
+          },
+          {
+            "id": "chat",
+            "name": "chat"
+          },
+          {
+            "id": "document",
+            "name": "document"
+          },
+          {
+            "id": "townhall",
+            "name": "townhall"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "scheduled-at",
+      "name": "Scheduled at",
+      "type": "date",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "select",
+      "required": false,
+      "position": 7,
+      "options": {
+        "choices": [
+          {
+            "id": "draft",
+            "name": "draft"
+          },
+          {
+            "id": "ready",
+            "name": "ready"
+          },
+          {
+            "id": "sent",
+            "name": "sent"
+          },
+          {
+            "id": "cancelled",
+            "name": "cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "message",
+      "name": "Message",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "communication-register-table",
+      "name": "Communication register",
+      "type": "table",
+      "description": "Communication register for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["title", "project-id", "audience", "channel", "owner", "scheduled-at", "status"]
+      }
+    }
+  ]
+}

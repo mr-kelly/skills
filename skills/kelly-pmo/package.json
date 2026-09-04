@@ -1,0 +1,17 @@
+{
+  "name": "kelly-pmo",
+  "private": true,
+  "type": "module",
+  "version": "0.2.0",
+  "description": "Trusted scripts for kelly-pmo: workspace setup and AirApp publish.",
+  "scripts": {
+    "sync:views": "node scripts/sync-native-views.mjs",
+    "sync:nodes": "node scripts/sync-support-nodes.mjs"
+  },
+  "dependencies": {
+    "busabase-sdk": "0.30.1"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  }
+}

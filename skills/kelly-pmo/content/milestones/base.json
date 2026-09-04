@@ -1,0 +1,131 @@
+{
+  "name": "Milestones",
+  "description": "Project milestones and gates with owner, dates, progress, evidence, and delivery state.",
+  "position": 12,
+  "fields": [
+    {
+      "slug": "milestone-id",
+      "name": "Milestone ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Milestone",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "start-date",
+      "name": "Start date",
+      "type": "date",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "due-date",
+      "name": "Due date",
+      "type": "date",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "select",
+      "required": false,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "not_started",
+            "name": "not_started"
+          },
+          {
+            "id": "in_progress",
+            "name": "in_progress"
+          },
+          {
+            "id": "at_risk",
+            "name": "at_risk"
+          },
+          {
+            "id": "blocked",
+            "name": "blocked"
+          },
+          {
+            "id": "done",
+            "name": "done"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "progress",
+      "name": "Progress",
+      "type": "number",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "evidence",
+      "name": "Evidence",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "created-at",
+      "name": "Created at",
+      "type": "text",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 10,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "milestone-register-table",
+      "name": "Milestone register",
+      "type": "table",
+      "description": "Milestone register for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["title", "project-id", "owner", "due-date", "status", "progress"]
+      }
+    }
+  ]
+}

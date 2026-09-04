@@ -1,0 +1,766 @@
+{
+  "schemaVersion": 2,
+  "bases": [
+    {
+      "key": "programs",
+      "slug": "kelly-pmo-programs",
+      "views": [
+        {
+          "slug": "all-project-groups-table",
+          "name": "All project groups",
+          "type": "table",
+          "description": "All project groups for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "manager", "sponsor", "health", "project-ids"]
+          }
+        },
+        {
+          "slug": "project-group-gallery-gallery",
+          "name": "Project group gallery",
+          "type": "gallery",
+          "description": "Project group gallery for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "manager", "health", "objective"],
+            "coverFieldSlug": "cover",
+            "coverFit": "cover",
+            "cardSize": "medium",
+            "showFieldLabels": true
+          }
+        },
+        {
+          "slug": "project-groups-by-health-kanban",
+          "name": "Project groups by health",
+          "type": "kanban",
+          "description": "Project groups by health for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "health",
+            "visibleFieldSlugs": ["name", "manager", "objective"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "project-teams",
+      "slug": "kelly-pmo-project-teams",
+      "views": [
+        {
+          "slug": "all-project-teams-table",
+          "name": "All project teams",
+          "type": "table",
+          "description": "All project teams for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "lead", "function", "capacity", "project-ids"]
+          }
+        },
+        {
+          "slug": "team-gallery-gallery",
+          "name": "Team gallery",
+          "type": "gallery",
+          "description": "Team gallery for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "lead", "function", "capacity"],
+            "coverFieldSlug": "avatar",
+            "coverFit": "cover",
+            "cardSize": "medium",
+            "showFieldLabels": true
+          }
+        },
+        {
+          "slug": "teams-by-function-kanban",
+          "name": "Teams by function",
+          "type": "kanban",
+          "description": "Teams by function for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "function",
+            "visibleFieldSlugs": ["name", "lead", "capacity"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "projects",
+      "slug": "kelly-pmo-projects",
+      "views": [
+        {
+          "slug": "all-project-plans-table",
+          "name": "All project plans",
+          "type": "table",
+          "description": "All project plans for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "program", "team", "owner", "status", "health", "progress", "target-date"]
+          }
+        },
+        {
+          "slug": "project-portfolio-gallery-gallery",
+          "name": "Project portfolio gallery",
+          "type": "gallery",
+          "description": "Project portfolio gallery for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "program", "owner", "health", "progress"],
+            "coverFieldSlug": "cover",
+            "coverFit": "cover",
+            "cardSize": "medium",
+            "showFieldLabels": true
+          }
+        },
+        {
+          "slug": "delivery-board-kanban",
+          "name": "Delivery board",
+          "type": "kanban",
+          "description": "Delivery board for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "status",
+            "visibleFieldSlugs": ["name", "owner", "health", "progress", "target-date"]
+          }
+        },
+        {
+          "slug": "project-target-calendar-calendar",
+          "name": "Project target calendar",
+          "type": "calendar",
+          "description": "Project target calendar for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "target-date",
+            "visibleFieldSlugs": ["name", "owner", "health"]
+          }
+        },
+        {
+          "slug": "portfolio-gantt-gantt",
+          "name": "Portfolio gantt",
+          "type": "gantt",
+          "description": "Portfolio gantt for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "startFieldSlug": "start-date",
+            "endFieldSlug": "target-date",
+            "ganttScale": "week",
+            "visibleFieldSlugs": ["name", "owner", "status", "progress"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "reports",
+      "slug": "kelly-pmo-reports",
+      "views": [
+        {
+          "slug": "all-status-reports-table",
+          "name": "All status reports",
+          "type": "table",
+          "description": "All status reports for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["project-id", "period-key", "health", "progress", "submitted-at"]
+          }
+        },
+        {
+          "slug": "weekly-report-digest-gallery",
+          "name": "Weekly report digest",
+          "type": "gallery",
+          "description": "Weekly report digest for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["project-id", "period-key", "health", "summary", "decisions-needed"],
+            "coverFieldSlug": null,
+            "coverFit": "cover",
+            "cardSize": "medium",
+            "showFieldLabels": true
+          }
+        },
+        {
+          "slug": "reports-by-health-kanban",
+          "name": "Reports by health",
+          "type": "kanban",
+          "description": "Reports by health for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "health",
+            "visibleFieldSlugs": ["project-id", "period-key", "summary"]
+          }
+        },
+        {
+          "slug": "report-calendar-calendar",
+          "name": "Report calendar",
+          "type": "calendar",
+          "description": "Report calendar for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "submitted-at",
+            "visibleFieldSlugs": ["project-id", "period-key", "health"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "special-tasks",
+      "slug": "kelly-pmo-special-tasks",
+      "views": [
+        {
+          "slug": "all-special-tasks-table",
+          "name": "All special tasks",
+          "type": "table",
+          "description": "All special tasks for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["title", "project-id", "owner", "priority", "status", "due-date"]
+          }
+        },
+        {
+          "slug": "special-task-board-kanban",
+          "name": "Special task board",
+          "type": "kanban",
+          "description": "Special task board for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "status",
+            "visibleFieldSlugs": ["title", "owner", "priority", "due-date"]
+          }
+        },
+        {
+          "slug": "special-task-calendar-calendar",
+          "name": "Special task calendar",
+          "type": "calendar",
+          "description": "Special task calendar for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "due-date",
+            "visibleFieldSlugs": ["title", "owner", "priority"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "communications",
+      "slug": "kelly-pmo-communications",
+      "views": [
+        {
+          "slug": "communication-register-table",
+          "name": "Communication register",
+          "type": "table",
+          "description": "Communication register for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["title", "project-id", "audience", "channel", "owner", "scheduled-at", "status"]
+          }
+        },
+        {
+          "slug": "communications-by-state-kanban",
+          "name": "Communications by state",
+          "type": "kanban",
+          "description": "Communications by state for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "status",
+            "visibleFieldSlugs": ["title", "audience", "channel", "scheduled-at"]
+          }
+        },
+        {
+          "slug": "communication-calendar-calendar",
+          "name": "Communication calendar",
+          "type": "calendar",
+          "description": "Communication calendar for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "scheduled-at",
+            "visibleFieldSlugs": ["title", "audience", "channel", "owner"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "resources",
+      "slug": "kelly-pmo-resources",
+      "views": [
+        {
+          "slug": "resource-ledger-table",
+          "name": "Resource ledger",
+          "type": "table",
+          "description": "Resource ledger for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "role", "function", "allocation-percent", "availability", "project-ids"]
+          }
+        },
+        {
+          "slug": "people-gallery-gallery",
+          "name": "People gallery",
+          "type": "gallery",
+          "description": "People gallery for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "role", "function", "availability", "skills"],
+            "coverFieldSlug": "photo",
+            "coverFit": "cover",
+            "cardSize": "medium",
+            "showFieldLabels": true
+          }
+        },
+        {
+          "slug": "capacity-board-kanban",
+          "name": "Capacity board",
+          "type": "kanban",
+          "description": "Capacity board for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "availability",
+            "visibleFieldSlugs": ["name", "role", "allocation-percent", "project-ids"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "functional-groups",
+      "slug": "kelly-pmo-functional-groups",
+      "views": [
+        {
+          "slug": "functional-group-register-table",
+          "name": "Functional group register",
+          "type": "table",
+          "description": "Functional group register for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "lead", "responsibility", "headcount", "health"]
+          }
+        },
+        {
+          "slug": "functional-group-gallery-gallery",
+          "name": "Functional group gallery",
+          "type": "gallery",
+          "description": "Functional group gallery for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["name", "lead", "headcount", "health"],
+            "coverFieldSlug": "icon",
+            "coverFit": "cover",
+            "cardSize": "medium",
+            "showFieldLabels": true
+          }
+        },
+        {
+          "slug": "groups-by-health-kanban",
+          "name": "Groups by health",
+          "type": "kanban",
+          "description": "Groups by health for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "health",
+            "visibleFieldSlugs": ["name", "lead", "headcount"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "glossary",
+      "slug": "kelly-pmo-glossary",
+      "views": [
+        {
+          "slug": "glossary-a-z-table",
+          "name": "Glossary A-Z",
+          "type": "table",
+          "description": "Glossary A-Z for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["term", "acronym", "domain", "owner", "effective-date"]
+          }
+        },
+        {
+          "slug": "term-cards-gallery",
+          "name": "Term cards",
+          "type": "gallery",
+          "description": "Term cards for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["term", "acronym", "definition", "domain", "owner"],
+            "coverFieldSlug": null,
+            "coverFit": "cover",
+            "cardSize": "medium",
+            "showFieldLabels": true
+          }
+        },
+        {
+          "slug": "terminology-changes-calendar",
+          "name": "Terminology changes",
+          "type": "calendar",
+          "description": "Terminology changes for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "effective-date",
+            "visibleFieldSlugs": ["term", "domain", "owner"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "testing",
+      "slug": "kelly-pmo-testing",
+      "views": [
+        {
+          "slug": "test-register-table",
+          "name": "Test register",
+          "type": "table",
+          "description": "Test register for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["cycle", "project-id", "test-type", "owner", "status", "coverage", "open-defects"]
+          }
+        },
+        {
+          "slug": "test-execution-board-kanban",
+          "name": "Test execution board",
+          "type": "kanban",
+          "description": "Test execution board for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "status",
+            "visibleFieldSlugs": ["cycle", "project-id", "test-type", "owner", "planned-date"]
+          }
+        },
+        {
+          "slug": "test-calendar-calendar",
+          "name": "Test calendar",
+          "type": "calendar",
+          "description": "Test calendar for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "planned-date",
+            "visibleFieldSlugs": ["cycle", "project-id", "test-type", "status"]
+          }
+        },
+        {
+          "slug": "test-evidence-gallery",
+          "name": "Test evidence",
+          "type": "gallery",
+          "description": "Test evidence for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["cycle", "project-id", "status", "coverage", "open-defects"],
+            "coverFieldSlug": "evidence",
+            "coverFit": "cover",
+            "cardSize": "medium",
+            "showFieldLabels": true
+          }
+        }
+      ]
+    },
+    {
+      "key": "requirements",
+      "slug": "kelly-pmo-requirements",
+      "views": [
+        {
+          "slug": "requirement-register-table",
+          "name": "Requirement register",
+          "type": "table",
+          "description": "Requirement register for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["title", "project-id", "iteration-id", "type", "priority", "status", "owner"]
+          }
+        },
+        {
+          "slug": "requirement-board-kanban",
+          "name": "Requirement board",
+          "type": "kanban",
+          "description": "Requirement board for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "status",
+            "visibleFieldSlugs": ["title", "project-id", "priority", "owner"]
+          }
+        },
+        {
+          "slug": "requirement-cards-gallery",
+          "name": "Requirement cards",
+          "type": "gallery",
+          "description": "Requirement cards for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["title", "project-id", "type", "priority", "status", "acceptance-criteria"],
+            "coverFieldSlug": null,
+            "coverFit": "cover",
+            "cardSize": "medium",
+            "showFieldLabels": true
+          }
+        }
+      ]
+    },
+    {
+      "key": "iterations",
+      "slug": "kelly-pmo-iterations",
+      "views": [
+        {
+          "slug": "iteration-register-table",
+          "name": "Iteration register",
+          "type": "table",
+          "description": "Iteration register for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": [
+              "name",
+              "project-id",
+              "team",
+              "status",
+              "start-date",
+              "end-date",
+              "capacity",
+              "velocity"
+            ]
+          }
+        },
+        {
+          "slug": "iteration-board-kanban",
+          "name": "Iteration board",
+          "type": "kanban",
+          "description": "Iteration board for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "status",
+            "visibleFieldSlugs": ["name", "project-id", "team", "goal"]
+          }
+        },
+        {
+          "slug": "iteration-calendar-calendar",
+          "name": "Iteration calendar",
+          "type": "calendar",
+          "description": "Iteration calendar for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "start-date",
+            "visibleFieldSlugs": ["name", "project-id", "team", "status"]
+          }
+        },
+        {
+          "slug": "iteration-timeline-gantt",
+          "name": "Iteration timeline",
+          "type": "gantt",
+          "description": "Iteration timeline for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "startFieldSlug": "start-date",
+            "endFieldSlug": "end-date",
+            "ganttScale": "week",
+            "visibleFieldSlugs": ["name", "project-id", "team", "status"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "milestones",
+      "slug": "kelly-pmo-milestones",
+      "views": [
+        {
+          "slug": "milestone-register-table",
+          "name": "Milestone register",
+          "type": "table",
+          "description": "Milestone register for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["title", "project-id", "owner", "due-date", "status", "progress"]
+          }
+        },
+        {
+          "slug": "milestone-board-kanban",
+          "name": "Milestone board",
+          "type": "kanban",
+          "description": "Milestone board for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "status",
+            "visibleFieldSlugs": ["title", "project-id", "owner", "due-date", "progress"]
+          }
+        },
+        {
+          "slug": "milestone-calendar-calendar",
+          "name": "Milestone calendar",
+          "type": "calendar",
+          "description": "Milestone calendar for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "due-date",
+            "visibleFieldSlugs": ["title", "project-id", "owner", "status"]
+          }
+        },
+        {
+          "slug": "milestone-gantt-gantt",
+          "name": "Milestone gantt",
+          "type": "gantt",
+          "description": "Milestone gantt for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "startFieldSlug": "start-date",
+            "endFieldSlug": "due-date",
+            "ganttScale": "week",
+            "visibleFieldSlugs": ["title", "project-id", "owner", "status", "progress"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "risks",
+      "slug": "kelly-pmo-risks",
+      "views": [
+        {
+          "slug": "raid-register-table",
+          "name": "RAID register",
+          "type": "table",
+          "description": "RAID register for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": [
+              "title",
+              "project-id",
+              "category",
+              "probability",
+              "impact",
+              "status",
+              "owner",
+              "review-date"
+            ]
+          }
+        },
+        {
+          "slug": "risk-response-board-kanban",
+          "name": "Risk response board",
+          "type": "kanban",
+          "description": "Risk response board for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "status",
+            "visibleFieldSlugs": ["title", "project-id", "probability", "impact", "owner"]
+          }
+        },
+        {
+          "slug": "risk-review-calendar-calendar",
+          "name": "Risk review calendar",
+          "type": "calendar",
+          "description": "Risk review calendar for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "review-date",
+            "visibleFieldSlugs": ["title", "project-id", "impact", "owner"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "decisions",
+      "slug": "kelly-pmo-decisions",
+      "views": [
+        {
+          "slug": "decision-register-table",
+          "name": "Decision register",
+          "type": "table",
+          "description": "Decision register for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": ["ref", "title", "project-id", "status", "decided-at"]
+          }
+        },
+        {
+          "slug": "decision-board-kanban",
+          "name": "Decision board",
+          "type": "kanban",
+          "description": "Decision board for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "stackByFieldSlug": "status",
+            "visibleFieldSlugs": ["ref", "title", "project-id", "recommendation"]
+          }
+        },
+        {
+          "slug": "decision-calendar-calendar",
+          "name": "Decision calendar",
+          "type": "calendar",
+          "description": "Decision calendar for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "dateFieldSlug": "decided-at",
+            "visibleFieldSlugs": ["ref", "title", "project-id", "status"]
+          }
+        }
+      ]
+    },
+    {
+      "key": "settings",
+      "slug": "kelly-pmo-settings",
+      "views": [
+        {
+          "slug": "pmo-settings-table",
+          "name": "PMO settings",
+          "type": "table",
+          "description": "PMO settings for Kelly PMO",
+          "config": {
+            "filters": [],
+            "sorts": [],
+            "visibleFieldSlugs": [
+              "portfolio-name",
+              "timezone",
+              "reporting-weekday",
+              "status-freshness-days",
+              "onboarding-status"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

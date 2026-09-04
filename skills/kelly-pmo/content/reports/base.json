@@ -1,0 +1,131 @@
+{
+  "name": "Status Reports",
+  "description": "One idempotent status report per project and ISO-week period key.",
+  "position": 3,
+  "fields": [
+    {
+      "slug": "report-id",
+      "name": "Report ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "period-key",
+      "name": "Period key",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "summary",
+      "name": "Summary",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "progress",
+      "name": "Progress",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "health",
+      "name": "Health",
+      "type": "select",
+      "required": false,
+      "position": 5,
+      "options": {
+        "choices": [
+          {
+            "id": "green",
+            "name": "green"
+          },
+          {
+            "id": "amber",
+            "name": "amber"
+          },
+          {
+            "id": "red",
+            "name": "red"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "accomplishments",
+      "name": "Accomplishments",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "next-period",
+      "name": "Next period",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "blockers",
+      "name": "Blockers",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "decisions-needed",
+      "name": "Decisions needed",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "submitted-at",
+      "name": "Submitted at",
+      "type": "date",
+      "required": false,
+      "position": 10,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 11,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "all-status-reports-table",
+      "name": "All status reports",
+      "type": "table",
+      "description": "All status reports for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["project-id", "period-key", "health", "progress", "submitted-at"]
+      }
+    }
+  ]
+}

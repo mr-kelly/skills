@@ -156,8 +156,10 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | Skill | What It Does | When To Use It | Details |
 | --- | --- | --- | --- |
 | `kelly-email` | Runs an AI-assisted inbox-zero workflow across configured email accounts. It triages unread mail, drafts replies, prepares cleanup actions, and uses a local UI for human approval before execution. | Use it when processing unread email, drafting support replies, archiving or marking messages read after approval, or managing email through an App-in-Skill UI. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-email.html) |
+| `kelly-followups` | Keeps a deliberately small post-meeting follow-up list: record who needs a follow-up, see what is due today, and mark it done. | Use it when weekly meetings create simple personal follow-up commitments and a full project-management tool would be unnecessary. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-followups.html) |
 | `kelly-jobhunt` | Runs a job-search outreach desk across three subcommands: `profile` turns a resume into a structured profile and a typeset PDF, `research` finds target companies and their published contact addresses and drafts one tailored email each, `send` puts the user's own SMTP credentials in the Busabase Vault and mails what they approved. One company gets exactly one email. | Use it when applying to companies directly instead of through a job board, building a resume PDF from existing material, collecting hiring contact addresses with their sources, reviewing and editing application emails before they go out, or tracking which companies have already been contacted. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-jobhunt.html) |
 | `kelly-messenger` | Aggregates WhatsApp, Discord, Slack, and Telegram into one unified local inbox with full conversation transcripts and an approval-gated reply outbox. | Use it when reading messages across chat platforms in one place, drafting replies in a single composer, and approving queued outbound messages that the agent then sends via platform connectors. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html) |
+| `kelly-pmo` | Runs a complete PMO workspace across 16 linked Bases: the 12 source-aligned tables for project groups, teams, plans, reports, special tasks, communications, people, functions, glossary, testing, requirements, and iterations, plus milestones, risks, decisions, and settings. Adds saved table/gallery/kanban/calendar/gantt views and supporting Doc, Drive/File, Form, Whiteboard, Workflow, HTML, Skill, and AirApp nodes. | Use it when running a PMO, reviewing portfolio health, inspecting the complete multi-table data model, finding stale reports or blocked milestones, recording cross-project decisions, or stress-testing Busabase node/view capabilities in an isolated OSS instance. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-pmo.html) |
 | `kelly-standup` | Team standup board: the agent collects members' daily check-ins from chat channels on demand, structures them into yesterday/today/blockers cards with a team digest, and drafts approval-gated nudges for missing check-ins. | Use it when running daily standups asynchronously, seeing what everyone is working on at a glance, or tracking blockers and participation across the team. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html) |
 
 ### Brand & Marketing
@@ -1431,6 +1433,37 @@ Kelly CLM is a deliberately lightweight contract lifecycle desk for contract inv
   <tr>
     <td><strong>Adjustment queue</strong><br>Agent-proposed bid, budget, and negative-keyword changes with evidence and expected impact, gated on approval.</td>
     <td><strong>Alerts</strong><br>Deterministic anomaly feed: ACOS breaches, budget burnouts, zero-conversion spend, CPC spikes, rejected ads.</td>
+  </tr>
+</table>
+
+### `kelly-pmo`
+
+Kelly PMO turns the reference PM database into a complete Busabase workspace: twelve source-aligned business tables, four governance tables, 52 saved native views, and supporting document, file, form, whiteboard, workflow, HTML, Skill, and AirApp nodes.
+
+<table>
+  <tr>
+    <td width="50%"><img src="skills/kelly-pmo/assets/screenshots/overview.webp" alt="Kelly PMO portfolio overview"></td>
+    <td width="50%"><img src="skills/kelly-pmo/assets/screenshots/workspace.webp" alt="Kelly PMO complete data workspace"></td>
+  </tr>
+  <tr>
+    <td><strong>Portfolio pulse</strong><br>Delivery health, approaching commitments, stale reports, and named decisions in one attention-first view.</td>
+    <td><strong>Complete data workspace</strong><br>All twelve reference tables, record counts, 166 fields, native views, and eight supporting node types.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-pmo/assets/screenshots/projects.webp" alt="Kelly PMO project list and detail"></td>
+    <td width="50%"><img src="skills/kelly-pmo/assets/screenshots/milestones.webp" alt="Kelly PMO milestone plan"></td>
+  </tr>
+  <tr>
+    <td><strong>Project control</strong><br>Ownership, progress, dates, milestones, risks, and the latest status report in one list/detail workspace.</td>
+    <td><strong>Milestone plan</strong><br>Portfolio-wide delivery gates with due-date pressure, evidence, progress, and completion controls.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-pmo/assets/screenshots/decisions.webp" alt="Kelly PMO decision queue"></td>
+    <td width="50%"><img src="skills/kelly-pmo/assets/screenshots/mobile-workspace.webp" alt="Kelly PMO phone workspace"></td>
+  </tr>
+  <tr>
+    <td><strong>Decision queue</strong><br>Stable references, recommendations, review notes, and explicit approve/change/block verdicts.</td>
+    <td><strong>Phone workspace</strong><br>The complete multi-table resource and view map remains navigable on a narrow screen.</td>
   </tr>
 </table>
 

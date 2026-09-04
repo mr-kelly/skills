@@ -1,0 +1,122 @@
+{
+  "name": "Special Tasks",
+  "description": "Cross-project or executive special assignments outside the ordinary milestone plan.",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "task-id",
+      "name": "Task ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "title",
+      "name": "Task",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "priority",
+      "name": "Priority",
+      "type": "select",
+      "required": false,
+      "position": 4,
+      "options": {
+        "choices": [
+          {
+            "id": "low",
+            "name": "low"
+          },
+          {
+            "id": "medium",
+            "name": "medium"
+          },
+          {
+            "id": "high",
+            "name": "high"
+          },
+          {
+            "id": "critical",
+            "name": "critical"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "select",
+      "required": false,
+      "position": 5,
+      "options": {
+        "choices": [
+          {
+            "id": "ready",
+            "name": "ready"
+          },
+          {
+            "id": "in_progress",
+            "name": "in_progress"
+          },
+          {
+            "id": "blocked",
+            "name": "blocked"
+          },
+          {
+            "id": "done",
+            "name": "done"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "due-date",
+      "name": "Due date",
+      "type": "date",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "brief",
+      "name": "Brief",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "all-special-tasks-table",
+      "name": "All special tasks",
+      "type": "table",
+      "description": "All special tasks for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["title", "project-id", "owner", "priority", "status", "due-date"]
+      }
+    }
+  ]
+}

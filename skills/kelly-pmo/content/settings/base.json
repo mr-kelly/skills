@@ -1,0 +1,149 @@
+{
+  "name": "Settings",
+  "description": "Versioned portfolio onboarding, reporting cadence, capacity policy, health thresholds, and decision policy.",
+  "position": 15,
+  "fields": [
+    {
+      "slug": "record-id",
+      "name": "Record ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "portfolio-name",
+      "name": "Portfolio name",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "timezone",
+      "name": "Timezone",
+      "type": "text",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "reporting-weekday",
+      "name": "Reporting weekday",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "amber-threshold-days",
+      "name": "Amber threshold days",
+      "type": "number",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "red-threshold-days",
+      "name": "Red threshold days",
+      "type": "number",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status-freshness-days",
+      "name": "Status freshness days",
+      "type": "number",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "resource-capacity-policy",
+      "name": "Resource capacity policy",
+      "type": "longtext",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "decision-policy",
+      "name": "Decision policy",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-version",
+      "name": "Onboarding version",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-status",
+      "name": "Onboarding status",
+      "type": "select",
+      "required": false,
+      "position": 10,
+      "options": {
+        "choices": [
+          {
+            "id": "not_started",
+            "name": "not_started"
+          },
+          {
+            "id": "in_progress",
+            "name": "in_progress"
+          },
+          {
+            "id": "needs_review",
+            "name": "needs_review"
+          },
+          {
+            "id": "complete",
+            "name": "complete"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "completed-at",
+      "name": "Completed at",
+      "type": "date",
+      "required": false,
+      "position": 11,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 12,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "pmo-settings-table",
+      "name": "PMO settings",
+      "type": "table",
+      "description": "PMO settings for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": [
+          "portfolio-name",
+          "timezone",
+          "reporting-weekday",
+          "status-freshness-days",
+          "onboarding-status"
+        ]
+      }
+    }
+  ]
+}

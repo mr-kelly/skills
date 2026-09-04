@@ -1,0 +1,158 @@
+{
+  "name": "Testing",
+  "description": "Test cycles, owners, environments, coverage, defects, and release readiness.",
+  "position": 9,
+  "fields": [
+    {
+      "slug": "test-id",
+      "name": "Test ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "cycle",
+      "name": "Cycle",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "test-type",
+      "name": "Test type",
+      "type": "select",
+      "required": false,
+      "position": 3,
+      "options": {
+        "choices": [
+          {
+            "id": "unit",
+            "name": "unit"
+          },
+          {
+            "id": "integration",
+            "name": "integration"
+          },
+          {
+            "id": "uat",
+            "name": "uat"
+          },
+          {
+            "id": "performance",
+            "name": "performance"
+          },
+          {
+            "id": "security",
+            "name": "security"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "owner",
+      "name": "Owner",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "environment",
+      "name": "Environment",
+      "type": "text",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "select",
+      "required": false,
+      "position": 6,
+      "options": {
+        "choices": [
+          {
+            "id": "planned",
+            "name": "planned"
+          },
+          {
+            "id": "running",
+            "name": "running"
+          },
+          {
+            "id": "blocked",
+            "name": "blocked"
+          },
+          {
+            "id": "passed",
+            "name": "passed"
+          },
+          {
+            "id": "failed",
+            "name": "failed"
+          }
+        ]
+      }
+    },
+    {
+      "slug": "planned-date",
+      "name": "Planned date",
+      "type": "date",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "coverage",
+      "name": "Coverage",
+      "type": "number",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "open-defects",
+      "name": "Open defects",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "evidence",
+      "name": "Evidence",
+      "type": "attachment",
+      "required": false,
+      "position": 10,
+      "options": {
+        "attachment": {
+          "maxFiles": 20
+        }
+      }
+    }
+  ],
+  "views": [
+    {
+      "slug": "test-register-table",
+      "name": "Test register",
+      "type": "table",
+      "description": "Test register for Kelly PMO",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["cycle", "project-id", "test-type", "owner", "status", "coverage", "open-defects"]
+      }
+    }
+  ]
+}

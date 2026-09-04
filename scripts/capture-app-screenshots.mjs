@@ -127,6 +127,9 @@ const ROUTE_OVERRIDES = {
     questions: "/ideas/idea-vague/questions",
     documents: "/ideas/idea-email/prd",
   },
+  "kelly-pmo": {
+    workspace: "/workspace/projects",
+  },
   "kelly-wechat-crm": {
     people: "/people/wechat-person-xiaoyu",
     groups: "/groups/wechat-group-product",

@@ -1,0 +1,6 @@
+{
+  "type": "skill",
+  "name": "PMO Operator Skill",
+  "description": "Agent procedure for maintaining the PMO workspace.",
+  "position": 18
+}
