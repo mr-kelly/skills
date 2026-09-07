@@ -18,7 +18,7 @@ export const appConfig = {
       name: "跟进事项",
       slug: "kelly-followups-followups",
       description: "会后记的跟进：谁、跟进什么事、什么时候该完成",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "record-id", name: "记录 ID", type: "text", required: true },
         { slug: "meeting", name: "来自哪个会", type: "text", required: false },

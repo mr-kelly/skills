@@ -4,7 +4,7 @@
 // projects with a project switcher" was vestigial (the UI only ever showed
 // the single active project) and is dropped here, same as every other
 // converted skill models one workspace per AirApp instance. `readLimit` stays
-// <= 100 everywhere per the migration recipe.
+// <= 50 everywhere per the airapp/read-budget contract.
 //
 // Binary media (character reference-card images, character reference-voice
 // samples, shot storyboard images/videos) are NOT stored as Base fields —
@@ -97,7 +97,7 @@ export const appConfig = {
       name: "Characters",
       slug: "kelly-drama-characters",
       description: "Character library: card, three-view visual notes, voice profile, reference card + voice assets",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "character-id", name: "Character ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -152,7 +152,7 @@ export const appConfig = {
       name: "Relationships",
       slug: "kelly-drama-relationships",
       description: "Directional character relationships: power dynamic, temperature, conflict, evidence",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "relationship-id", name: "Relationship ID", type: "text", required: true },
         { slug: "from-character-id", name: "From character ID", type: "text", required: false },
@@ -172,7 +172,7 @@ export const appConfig = {
       name: "Episodes",
       slug: "kelly-drama-episodes",
       description: "Episode ladder: promise, A/B plot, beats, cliffhanger, paired HyperFrame composition",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "episode-id", name: "Episode ID", type: "text", required: true },
         { slug: "number", name: "Number", type: "number", required: false },
@@ -194,7 +194,7 @@ export const appConfig = {
       name: "Shots",
       slug: "kelly-drama-shots",
       description: "Storyboard shots: production sheet (camera/action/audio/continuity) + image/video candidates",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "shot-id", name: "Shot ID", type: "text", required: true },
         { slug: "episode-id", name: "Episode ID", type: "text", required: false },
@@ -243,7 +243,7 @@ export const appConfig = {
       name: "Tasks",
       slug: "kelly-drama-tasks",
       description: "Freeform human/agent review tasks (@ai notes, missing-field follow-ups)",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "task-id", name: "Task ID", type: "text", required: true },
         { slug: "kind", name: "Kind", type: "text", required: false },

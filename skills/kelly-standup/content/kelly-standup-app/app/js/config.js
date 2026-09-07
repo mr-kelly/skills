@@ -18,7 +18,7 @@ export const appConfig = {
       name: "Members",
       slug: "kelly-standup-members",
       description: "Team roster",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "member-id", name: "Member ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -35,7 +35,7 @@ export const appConfig = {
       name: "Days",
       slug: "kelly-standup-days",
       description: "One row per recorded standup day: digest paragraph and who is on leave",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "date", name: "Date", type: "text", required: true },
         { slug: "digest", name: "Digest", type: "longtext", required: false },
@@ -47,7 +47,7 @@ export const appConfig = {
       name: "Check-ins",
       slug: "kelly-standup-checkins",
       description: "One row per member per day: yesterday/today/blockers/mood",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "checkin-id", name: "Check-in ID", type: "text", required: true },
         { slug: "member-id", name: "Member ID", type: "text", required: false },
@@ -66,7 +66,7 @@ export const appConfig = {
       name: "Blockers",
       slug: "kelly-standup-blockers",
       description: "Blocker registry, deduplicated across days by content",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "blocker-id", name: "Blocker ID", type: "text", required: true },
         { slug: "member-id", name: "Member ID", type: "text", required: false },
@@ -83,7 +83,7 @@ export const appConfig = {
       name: "Reminders",
       slug: "kelly-standup-reminders",
       description: "Approval-gated nudges: missing check-ins and blocker escalations",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "reminder-id", name: "Reminder ID", type: "text", required: true },
         { slug: "type", name: "Type", type: "text", required: false },

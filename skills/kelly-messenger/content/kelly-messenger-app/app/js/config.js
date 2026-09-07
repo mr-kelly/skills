@@ -19,7 +19,7 @@ export const appConfig = {
       name: "Accounts",
       slug: "kelly-messenger-accounts",
       description: "Connected messaging accounts: platform, connector, channels to watch, and env var names for tokens",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "account-id", name: "Account ID", type: "text", required: true },
         { slug: "platform", name: "Platform", type: "text", required: false },
@@ -41,7 +41,7 @@ export const appConfig = {
       name: "Conversations",
       slug: "kelly-messenger-conversations",
       description: "One row per conversation across all connected accounts",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "conversation-id", name: "Conversation ID", type: "text", required: true },
         { slug: "account-id", name: "Account ID", type: "text", required: false },
@@ -62,7 +62,7 @@ export const appConfig = {
       name: "Messages",
       slug: "kelly-messenger-messages",
       description: "One row per message, joined onto its conversation by conversation-id",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "message-id", name: "Message ID", type: "text", required: true },
         { slug: "conversation-id", name: "Conversation ID", type: "text", required: false },
@@ -78,7 +78,7 @@ export const appConfig = {
       name: "Sync Log",
       slug: "kelly-messenger-sync-log",
       description: "Append-only history of sync/ingest runs per account",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "sync-id", name: "Sync ID", type: "text", required: true },
         { slug: "account-id", name: "Account ID", type: "text", required: false },
@@ -94,7 +94,7 @@ export const appConfig = {
       name: "Replies",
       slug: "kelly-messenger-replies",
       description: "Outgoing reply review queue: draft, decision, and send execution result",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "reply-id", name: "Reply ID", type: "text", required: true },
         { slug: "conversation-id", name: "Conversation ID", type: "text", required: false },

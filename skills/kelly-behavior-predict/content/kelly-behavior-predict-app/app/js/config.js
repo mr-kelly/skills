@@ -24,7 +24,7 @@ export const appConfig = {
       slug: "kelly-behavior-predict-sessions",
       description:
         "The fixed mock session sample (100 rows across 5 segments) — raw behavior features, the funnel stage reached, and the seeded mock 'actual' next action used only to make the backtest non-trivial",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "session-id", name: "Session ID", type: "text", required: true },
         { slug: "segment-id", name: "Segment ID", type: "text", required: true },

@@ -18,7 +18,7 @@ export const appConfig = {
       name: "灵感库",
       slug: "kelly-ideas-ideas",
       description: "每一条灵感，以及它被打磨到什么程度",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "record-id", name: "记录 ID", type: "text", required: true },
         { slug: "title", name: "灵感名", type: "text", required: true },
@@ -43,7 +43,7 @@ export const appConfig = {
       name: "文档",
       slug: "kelly-ideas-documents",
       description: "同一条灵感的 BRD / MRD / PRD 三份文档",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "record-id", name: "记录 ID", type: "text", required: true },
         { slug: "idea-id", name: "所属灵感", type: "text", required: true },
@@ -61,7 +61,7 @@ export const appConfig = {
       name: "咨询师追问",
       slug: "kelly-ideas-questions",
       description: "把模糊需求问清楚的那些问题，以及你的回答",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "record-id", name: "记录 ID", type: "text", required: true },
         { slug: "idea-id", name: "所属灵感", type: "text", required: true },

@@ -39,7 +39,7 @@ export const appConfig = {
       name: "Posts",
       slug: "kelly-social-posts",
       description: "Collected posts across all connected accounts, with per-post engagement metrics",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "post-id", name: "Post ID", type: "text", required: true },
         { slug: "platform", name: "Platform", type: "text", required: false },
@@ -62,7 +62,7 @@ export const appConfig = {
       name: "Sync Log",
       slug: "kelly-social-sync-log",
       description: "Append-only history of collection runs per account",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "sync-id", name: "Sync ID", type: "text", required: true },
         { slug: "account-id", name: "Account ID", type: "text", required: false },
@@ -80,7 +80,7 @@ export const appConfig = {
       name: "Calendar",
       slug: "kelly-social-calendar",
       description: "Content calendar: scheduled posts across channels by theme pillar and date",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "entry-id", name: "Entry ID", type: "text", required: true },
         { slug: "date", name: "Date", type: "text", required: false },
@@ -98,7 +98,7 @@ export const appConfig = {
       name: "Drafts",
       slug: "kelly-social-drafts",
       description: "Post composer / draft review queue, gated by the social-qa quality gate",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "draft-id", name: "Draft ID", type: "text", required: true },
         { slug: "channels", name: "Channels", type: "longtext", required: false },
@@ -120,7 +120,7 @@ export const appConfig = {
       name: "Shorts",
       slug: "kelly-social-shorts",
       description: "Short-video scripts for Reels / Shorts / TikTok / Douyin, same five-state review model",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "short-id", name: "Short ID", type: "text", required: true },
         { slug: "channels", name: "Channels", type: "longtext", required: false },
@@ -143,7 +143,7 @@ export const appConfig = {
       name: "Engagement",
       slug: "kelly-social-engagement",
       description: "Incoming mentions/comments with agent-drafted replies, approval-gated",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "item-id", name: "Item ID", type: "text", required: true },
         { slug: "platform", name: "Platform", type: "text", required: false },

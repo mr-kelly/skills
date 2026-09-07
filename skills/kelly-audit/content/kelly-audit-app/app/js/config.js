@@ -19,7 +19,7 @@ export const appConfig = {
       name: "Orders",
       slug: "kelly-audit-orders",
       description: "Normalized sales orders imported from CSV/JSON exports",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "order-id", name: "Order ID", type: "text", required: true },
         { slug: "order-no", name: "Order no", type: "text", required: false },
@@ -35,7 +35,7 @@ export const appConfig = {
       name: "Invoices",
       slug: "kelly-audit-invoices",
       description: "Normalized invoices and credit notes imported from CSV/JSON exports",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "invoice-id", name: "Invoice ID", type: "text", required: true },
         { slug: "invoice-no", name: "Invoice no", type: "text", required: false },
@@ -55,7 +55,7 @@ export const appConfig = {
       name: "Payments",
       slug: "kelly-audit-payments",
       description: "Normalized payments / receipts (回款) imported from CSV/JSON exports",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "payment-id", name: "Payment ID", type: "text", required: true },
         { slug: "payment-ref", name: "Payment ref", type: "text", required: false },
@@ -74,7 +74,7 @@ export const appConfig = {
       name: "Anomalies",
       slug: "kelly-audit-anomalies",
       description: "Rule-flagged anomalies with evidence, a drafted follow-up, and the review-queue decision",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "anomaly-id", name: "Anomaly ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -108,7 +108,7 @@ export const appConfig = {
       name: "Import Log",
       slug: "kelly-audit-import-log",
       description: "Append-only history of import runs: files, added/updated counts, and row warnings",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "log-id", name: "Log ID", type: "text", required: true },
         { slug: "imported-at", name: "Imported at", type: "text", required: false },

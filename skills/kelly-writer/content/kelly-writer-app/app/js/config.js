@@ -18,7 +18,7 @@ export const appConfig = {
       name: "Drafts",
       slug: "kelly-writer-drafts",
       description: "Per-channel content drafts under human review",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "draft-id", name: "Draft ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },

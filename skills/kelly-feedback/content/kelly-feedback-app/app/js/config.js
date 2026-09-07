@@ -47,7 +47,7 @@ export const appConfig = {
       name: "Feedback",
       slug: "kelly-feedback-feedback",
       description: "Raw feedback items normalized from every channel, one row per item",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "feedback-id", name: "Feedback ID", type: "text", required: true },
         { slug: "source-id", name: "Source ID", type: "text", required: false },
@@ -71,7 +71,7 @@ export const appConfig = {
       name: "Requests",
       slug: "kelly-feedback-requests",
       description: "Clustered feature requests (frequency/weighted score are derived, not stored)",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "request-id", name: "Request ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: false },
@@ -106,7 +106,7 @@ export const appConfig = {
       name: "Proposals",
       slug: "kelly-feedback-proposals",
       description: "Agent-proposed roadmap changes: promote / decline / merge / publish changelog",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "proposal-id", name: "Proposal ID", type: "text", required: true },
         { slug: "type", name: "Type", type: "text", required: false },
@@ -129,7 +129,7 @@ export const appConfig = {
       name: "Sync Log",
       slug: "kelly-feedback-sync-log",
       description: "Append-only history of ingest/cluster/execute runs",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "sync-id", name: "Sync ID", type: "text", required: true },
         { slug: "at", name: "At", type: "text", required: false },

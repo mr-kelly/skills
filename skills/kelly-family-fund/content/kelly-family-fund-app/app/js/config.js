@@ -45,7 +45,7 @@ export const appConfig = {
       name: "Income",
       slug: "kelly-family-fund-income",
       description: "Monthly pension inflow per beneficiary",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "income-id", name: "Income ID", type: "text", required: true },
         { slug: "month", name: "Month", type: "text", required: false },
@@ -59,7 +59,7 @@ export const appConfig = {
       name: "Expenses",
       slug: "kelly-family-fund-expenses",
       description: "Care cost and family-benefiting expenses",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "expense-id", name: "Expense ID", type: "text", required: true },
         { slug: "month", name: "Month", type: "text", required: false },

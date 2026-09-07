@@ -24,7 +24,7 @@ export const appConfig = {
       slug: "kelly-disclosure-tracker-vehicles",
       description:
         "One row per financing vehicle (fund/SPV) — the origination entity, fund-manager entity, listing venue, base currency, and target close date. Per-vehicle checklist completeness/readiness is never stored; it is recomputed client-side from the items Base on every read",
-      readLimit: 60,
+      readLimit: 50,
       fields: [
         { slug: "vehicle-id", name: "Vehicle ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -42,7 +42,7 @@ export const appConfig = {
       slug: "kelly-disclosure-tracker-items",
       description:
         "One row per standardized disclosure checklist item, scoped to a vehicle and one of the three entity roles (origination / fund_manager / listing_venue). Carries the raw checklist fields, an optional cross-entity reconciliation record, the reviewer's decision, and — once scripts/execute_decisions.mjs runs — an execution marker. Status is never stored; it is recomputed client-side from decision + reconciliation on every read",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "item-id", name: "Item ID", type: "text", required: true },
         { slug: "vehicle-id", name: "Vehicle ID", type: "text", required: true },

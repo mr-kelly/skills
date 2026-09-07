@@ -22,7 +22,7 @@ export const appConfig = {
       name: "Agent Configs",
       slug: "kelly-agent-builder-agents",
       description: "Mock agent configs and their governance status",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "agent-id", name: "Agent ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },

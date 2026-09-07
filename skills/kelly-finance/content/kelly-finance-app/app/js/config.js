@@ -46,7 +46,7 @@ export const appConfig = {
       slug: "kelly-finance-checks",
       description:
         "One row per model-audit check (formula ties, model-quality issues, delivery notes) — the raw check fields plus the reviewer's decision, written directly onto the same row. Status is stored directly (set by the reviewer's decision action), not recomputed",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "check-id", name: "Check ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: false },

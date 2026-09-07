@@ -19,7 +19,7 @@ export const appConfig = {
       name: "Projects",
       slug: "kelly-ppt-factory-projects",
       description: "A client / use-case / theme batch, e.g. Demo Studio / Pitch Deck / Seed Round",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "project-id", name: "Project ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "text", required: false },
@@ -40,7 +40,7 @@ export const appConfig = {
       name: "Decks",
       slug: "kelly-ppt-factory-decks",
       description: "One PPTX deliverable under a project — approval, style score, and output paths on the same row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "deck-id", name: "Deck ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "text", required: false },
@@ -76,7 +76,7 @@ export const appConfig = {
       slug: "kelly-ppt-factory-slide-cards",
       description:
         "The storyboard unit for one PPTX page — objective, layout, structured content, asset brief, style/QA checks, and the review-queue decision on the same row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "slide-id", name: "Slide ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "text", required: false },
@@ -117,7 +117,7 @@ export const appConfig = {
       name: "Style Systems",
       slug: "kelly-ppt-factory-style-systems",
       description: "Reusable presentation style kits — palette, fonts, visual/layout rules, and component library",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "style-system-id", name: "Style system ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -135,7 +135,7 @@ export const appConfig = {
       name: "QA Checks",
       slug: "kelly-ppt-factory-qa-checks",
       description: "Deterministic or human QA evidence for a deck, slide, or export",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "check-id", name: "Check ID", type: "text", required: true },
         { slug: "target-id", name: "Target ID", type: "text", required: false },
@@ -151,7 +151,7 @@ export const appConfig = {
       name: "Exports",
       slug: "kelly-ppt-factory-exports",
       description: "Generated PPTX output records — path, render path, generation status, and QA summary",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "export-id", name: "Export ID", type: "text", required: true },
         { slug: "deck-id", name: "Deck ID", type: "text", required: false },

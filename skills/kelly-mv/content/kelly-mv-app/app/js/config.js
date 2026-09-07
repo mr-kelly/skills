@@ -3,7 +3,7 @@
 // "library of many projects with a project switcher" was vestigial (never
 // exercised by the UI schema doc, never demonstrated) and is dropped here,
 // same as every other converted skill models one workspace per AirApp
-// instance. `readLimit` stays <= 100 everywhere per the migration recipe.
+// instance. `readLimit` stays <= 50 everywhere per the airapp/read-budget contract.
 //
 // Binary media (uploaded MP3, character reference images, shot images/
 // videos) are NOT stored as Base fields — they are real Busabase Drive Asset
@@ -70,7 +70,7 @@ export const appConfig = {
       name: "Cast",
       slug: "kelly-mv-cast",
       description: "On-screen characters with three-view visual notes and a reference-card image",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "character-id", name: "Character ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -101,7 +101,7 @@ export const appConfig = {
       name: "Shots",
       slug: "kelly-mv-shots",
       description: "Ordered storyboard shots, each with a scene description and image + video candidates",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "shot-id", name: "Shot ID", type: "text", required: true },
         { slug: "position", name: "Position", type: "number", required: false },

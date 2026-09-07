@@ -24,7 +24,7 @@ export const appConfig = {
       slug: "kelly-portfolio-health-contracts",
       description:
         "One row per RBF/private-credit contract: funding terms, cumulative repayment, a 6-month monthly-revenue series (JSON array), status, and the human review flag/note/decision timestamp written directly onto the same row. Totals, repayment lag, concentration, and the revenue-decline watchlist are never stored — they are pure/derived from these rows and recomputed on every read.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "contract-id", name: "Contract ID", type: "text", required: true },
         { slug: "business-name", name: "Business name", type: "text", required: true },

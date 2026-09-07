@@ -34,7 +34,7 @@ export const appConfig = {
       name: "Positions",
       slug: "kelly-invest-webull-positions",
       description: "Webull holdings per account with cost basis, market value, and P/L",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "position-id", name: "Position ID", type: "text", required: true },
         { slug: "symbol", name: "Symbol", type: "text", required: true },

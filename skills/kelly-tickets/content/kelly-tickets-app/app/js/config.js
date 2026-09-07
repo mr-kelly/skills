@@ -33,7 +33,7 @@ export const appConfig = {
       name: "Intake",
       slug: "kelly-tickets-intake",
       description: "Raw complaints/requests as they arrived on a channel, before or after triage",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "intake-id", name: "Intake ID", type: "text", required: true },
         { slug: "channel", name: "Channel", type: "text", required: false },
@@ -61,7 +61,7 @@ export const appConfig = {
       name: "Tickets",
       slug: "kelly-tickets-tickets",
       description: "Tickets tracked from classification through resolution, with an append-only history timeline",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "ticket-id", name: "Ticket ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: false },
@@ -89,7 +89,7 @@ export const appConfig = {
       slug: "kelly-tickets-proposals",
       description:
         "The dispatch review queue — proposed crew/priority/SLA, the human decision, and the execution marker on the same row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "proposal-id", name: "Proposal ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -120,7 +120,7 @@ export const appConfig = {
       name: "Sync Log",
       slug: "kelly-tickets-sync-log",
       description: "Append-only history of ingest/triage/execute runs",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "log-id", name: "Log ID", type: "text", required: true },
         { slug: "at", name: "At", type: "text", required: false },

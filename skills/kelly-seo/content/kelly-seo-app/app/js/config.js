@@ -38,7 +38,7 @@ export const appConfig = {
       name: "Queries",
       slug: "kelly-seo-queries",
       description: "Top Search Console queries with deltas, badges, top pages, and a trend series",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "query-id", name: "Query ID", type: "text", required: true },
         { slug: "site-id", name: "Site ID", type: "text", required: false },
@@ -59,7 +59,7 @@ export const appConfig = {
       name: "Pages",
       slug: "kelly-seo-pages",
       description: "Top Search Console pages with deltas, issues, top queries, and a trend series",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "page-id", name: "Page ID", type: "text", required: true },
         { slug: "site-id", name: "Site ID", type: "text", required: false },
@@ -80,7 +80,7 @@ export const appConfig = {
       name: "Opportunities",
       slug: "kelly-seo-opportunities",
       description: "Agent-proposed SEO opportunities (title/meta rewrite, internal links, content brief, page fix)",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "opportunity-id", name: "Opportunity ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -111,7 +111,7 @@ export const appConfig = {
       name: "GEO Opportunities",
       slug: "kelly-seo-geo-opportunities",
       description: "Agent-proposed GEO content optimizations, gated by geo-qa before they can ship",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "geo-opportunity-id", name: "GEO opportunity ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
