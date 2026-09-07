@@ -24,7 +24,11 @@ export const appConfig = {
       slug: "kelly-behavior-predict-sessions",
       description:
         "The fixed mock session sample (100 rows across 5 segments) — raw behavior features, the funnel stage reached, and the seeded mock 'actual' next action used only to make the backtest non-trivial",
-      readLimit: 50,
+      // Exempt from the fleet-wide 50-record default: this Base holds a
+      // deterministic, generated, forever-fixed sample (see the description
+      // above) rather than organic data that can grow. contract.test.mjs
+      // asserts the mock sample fits within this value, so it must stay >=100.
+      readLimit: 100,
       fields: [
         { slug: "session-id", name: "Session ID", type: "text", required: true },
         { slug: "segment-id", name: "Segment ID", type: "text", required: true },
