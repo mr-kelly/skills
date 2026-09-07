@@ -136,7 +136,7 @@ async function loadState() {
 }
 
 function pageSize(key) {
-  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 100;
+  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 50;
 }
 
 function pageCount(key) {

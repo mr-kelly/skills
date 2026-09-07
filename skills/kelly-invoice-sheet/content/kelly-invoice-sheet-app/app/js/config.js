@@ -20,7 +20,7 @@ export const appConfig = {
       slug: "kelly-invoice-sheet-invoices",
       description:
         "One row per extracted invoice/receipt/credit note/statement — header fields, field confidence, line items (JSON array, shares the invoice's own lifecycle), risk/warning flags, and the reviewer's decision (decision-action/decision-note/decided-at) written directly onto the same row. Written by scripts/import_batch.mjs when the agent finishes extracting a batch; status is set directly by a human decision in the app",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "invoice-id", name: "Invoice ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "text", required: false },

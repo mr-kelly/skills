@@ -20,7 +20,7 @@ export const appConfig = {
       slug: "kelly-legal-firm-radar-items",
       description:
         "Agent-prepared management insights — practice mix, quality, talent, and brand-proof analytics facts, workflow status, and the review-queue decision on the same row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "item-id", name: "Item ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "text", required: false },
@@ -59,7 +59,7 @@ export const appConfig = {
       slug: "kelly-legal-firm-radar-entities",
       description:
         "Practice-area groupings and lawyer capability profile cards derived from anonymized casebase metadata — not raw case documents",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "entity-id", name: "Entity ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: false },
@@ -77,7 +77,7 @@ export const appConfig = {
       slug: "kelly-legal-firm-radar-checks",
       description:
         "Deterministic analytics QA checks for anonymization, sample size, attribution, and unsupported claims",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "check-id", name: "Check ID", type: "text", required: true },
         { slug: "label", name: "Label", type: "text", required: false },

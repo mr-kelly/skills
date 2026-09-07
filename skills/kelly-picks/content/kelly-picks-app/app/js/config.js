@@ -19,7 +19,7 @@ export const appConfig = {
       name: "Candidates",
       slug: "kelly-picks-candidates",
       description: "Products under research, with a margin card and competition read JSON-encoded on each row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "candidate-id", name: "Candidate ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -48,7 +48,7 @@ export const appConfig = {
       name: "Trend Items",
       slug: "kelly-picks-trend-items",
       description: "Raw source-tagged trend signals from a sweep, optionally linked to a candidate",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "trend-id", name: "Trend ID", type: "text", required: true },
         { slug: "source", name: "Source", type: "text", required: false },
@@ -73,7 +73,7 @@ export const appConfig = {
       name: "Proposals",
       slug: "kelly-picks-proposals",
       description: "Agent-proposed develop/watch/drop verdicts per candidate, reviewed in the decision queue",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "proposal-id", name: "Proposal ID", type: "text", required: true },
         { slug: "candidate-id", name: "Candidate ID", type: "text", required: false },
@@ -92,7 +92,7 @@ export const appConfig = {
       name: "Sources",
       slug: "kelly-picks-sources",
       description: "Configured trend sources: kind, collection method, and sweep freshness",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "source-id", name: "Source ID", type: "text", required: true },
         { slug: "kind", name: "Kind", type: "text", required: false },
@@ -108,7 +108,7 @@ export const appConfig = {
       name: "Sync Log",
       slug: "kelly-picks-sync-log",
       description: "Append-only history of ingest/compute/execute runs",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "log-id", name: "Log ID", type: "text", required: true },
         { slug: "at", name: "At", type: "text", required: false },

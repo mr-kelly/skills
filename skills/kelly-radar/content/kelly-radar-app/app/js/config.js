@@ -19,7 +19,7 @@ export const appConfig = {
       name: "Watchlist",
       slug: "kelly-radar-watchlist",
       description: "Monitored competitors, categories, keywords, and communities, with per-source method",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "target-id", name: "Target ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -35,7 +35,7 @@ export const appConfig = {
       name: "Signals",
       slug: "kelly-radar-signals",
       description: "Normalized competitor-monitoring signals: pricing/changelog/launch/review/news/hiring changes",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "signal-id", name: "Signal ID", type: "text", required: true },
         { slug: "target-id", name: "Target ID", type: "text", required: false },
@@ -62,7 +62,7 @@ export const appConfig = {
       name: "Research Questions",
       slug: "kelly-radar-questions",
       description: "Research questions moving through brief_needs_review -> researching -> report_ready -> closed",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "question-id", name: "Question ID", type: "text", required: true },
         { slug: "question", name: "Question", type: "text", required: false },
@@ -81,7 +81,7 @@ export const appConfig = {
       name: "Research Briefs",
       slug: "kelly-radar-briefs",
       description: "Agent-drafted research briefs awaiting approval before deep research starts",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "brief-id", name: "Brief ID", type: "text", required: true },
         { slug: "question-id", name: "Question ID", type: "text", required: false },
@@ -102,7 +102,7 @@ export const appConfig = {
       name: "Research Reports",
       slug: "kelly-radar-reports",
       description: "Cited research reports with sections, sources, annotations, and Kelly's confidence rating",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "report-id", name: "Report ID", type: "text", required: true },
         { slug: "question-id", name: "Question ID", type: "text", required: false },
@@ -121,7 +121,7 @@ export const appConfig = {
       name: "Trend Movers",
       slug: "kelly-radar-movers",
       description: "Rising keyword/topic demand signals: search queries, community topic volume, category interest",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "mover-id", name: "Mover ID", type: "text", required: true },
         { slug: "keyword", name: "Keyword", type: "text", required: false },
@@ -139,7 +139,7 @@ export const appConfig = {
       name: "Opportunities",
       slug: "kelly-radar-opportunities",
       description: "Opportunity cards turned from sustained trend movers, with a proposed next-step handoff",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "opportunity-id", name: "Opportunity ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: false },
@@ -158,7 +158,7 @@ export const appConfig = {
       name: "Sync Log",
       slug: "kelly-radar-sync-log",
       description: "Append-only history of ingest/file-report/execute-decisions runs",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "log-id", name: "Log ID", type: "text", required: true },
         { slug: "at", name: "At", type: "text", required: false },

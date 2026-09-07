@@ -69,7 +69,7 @@ async function readPage(key, cursor) {
   const declared = base(key);
   const result = await runtimeClient.records.list({
     baseId: declared.baseId,
-    limit: Math.min(declared.readLimit || 100, 100),
+    limit: Math.min(declared.readLimit || 50, 50),
     ...(cursor ? { cursor } : {}),
   });
   const records = Array.isArray(result) ? result : result.records || [];

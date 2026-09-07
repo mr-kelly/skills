@@ -18,7 +18,7 @@ export const appConfig = {
       name: "公司",
       slug: "kelly-crm-companies",
       description: "Companies referenced by contacts and deals",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "company-id", name: "公司 ID", type: "text", required: true },
         { slug: "name", name: "公司名称", type: "text", required: true },
@@ -34,7 +34,7 @@ export const appConfig = {
       name: "联系人",
       slug: "kelly-crm-contacts",
       description: "People, their relationship strength, and next follow-up",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "contact-id", name: "联系人 ID", type: "text", required: true },
         { slug: "name", name: "姓名", type: "text", required: true },
@@ -54,7 +54,7 @@ export const appConfig = {
       name: "交易",
       slug: "kelly-crm-deals",
       description: "Pipeline deals with stage, amount, and next step",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "deal-id", name: "交易 ID", type: "text", required: true },
         { slug: "name", name: "交易名称", type: "text", required: true },
@@ -80,7 +80,7 @@ export const appConfig = {
       name: "互动记录",
       slug: "kelly-crm-interactions",
       description: "Email, meeting, call, chat, social, and note touchpoints",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "interaction-id", name: "互动 ID", type: "text", required: true },
         { slug: "contact-id", name: "联系人", type: "text", required: true },
@@ -98,7 +98,7 @@ export const appConfig = {
       name: "跟进队列",
       slug: "kelly-crm-followups",
       description: "Agent-drafted follow-ups under human review before handoff",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "followup-id", name: "跟进 ID", type: "text", required: true },
         { slug: "ref", name: "序号", type: "number", required: false },

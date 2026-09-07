@@ -20,7 +20,7 @@ export const appConfig = {
       slug: "kelly-clm-contracts",
       description:
         "One row per contract: counterparty, type, lifecycle stage, owner, business owner, value, start/end dates, renewal date, notice deadline, next action, risk, and renewal-notice acknowledgement. Created/edited directly by the operator.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "contract-id", name: "Contract ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -47,7 +47,7 @@ export const appConfig = {
       slug: "kelly-clm-obligations",
       description:
         "One row per contract obligation/milestone: linked contract, title, owner, due date, status, and evidence note. Status is toggled directly by the operator (e.g. marking an obligation done).",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "obligation-id", name: "Obligation ID", type: "text", required: true },
         { slug: "contract-id", name: "Contract ID", type: "text", required: false },
@@ -66,7 +66,7 @@ export const appConfig = {
       slug: "kelly-clm-approvals",
       description:
         "One row per approval/reminder handoff linked to a contract: title, summary, and status. The operator's decision (approve/request changes/block) is written directly onto this row -- there is no separate decisions/handoff-log bucket.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "approval-id", name: "Approval ID", type: "text", required: true },
         { slug: "contract-id", name: "Contract ID", type: "text", required: false },

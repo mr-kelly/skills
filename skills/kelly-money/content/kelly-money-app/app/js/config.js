@@ -18,7 +18,7 @@ export const appConfig = {
       name: "Accounts",
       slug: "kelly-money-accounts",
       description: "Provider account inventory with balances and sync health",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "account-id", name: "Account ID", type: "text", required: true },
         { slug: "provider", name: "Provider", type: "text", required: false },
@@ -44,7 +44,7 @@ export const appConfig = {
       name: "Transactions",
       slug: "kelly-money-transactions",
       description: "Normalized ledger entries across providers",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "transaction-id", name: "Transaction ID", type: "text", required: true },
         { slug: "provider", name: "Provider", type: "text", required: false },
@@ -71,7 +71,7 @@ export const appConfig = {
       name: "Invoices",
       slug: "kelly-money-invoices",
       description: "Invoice metadata from provider exports, PDFs, or manual entry",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "invoice-id", name: "Invoice ID", type: "text", required: true },
         { slug: "invoice-number", name: "Invoice number", type: "text", required: false },
@@ -96,7 +96,7 @@ export const appConfig = {
       name: "Invoice Matches",
       slug: "kelly-money-invoice-matches",
       description: "Invoice-to-transaction reconciliation results",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "match-id", name: "Match ID", type: "text", required: true },
         { slug: "invoice-id", name: "Invoice ID", type: "text", required: false },

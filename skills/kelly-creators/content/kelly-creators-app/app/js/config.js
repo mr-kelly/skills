@@ -19,7 +19,7 @@ export const appConfig = {
       slug: "kelly-creators-creators",
       description:
         "Creator candidates and engagements (fit score, outreach drafts, briefs, contracts) plus pre-publication content-review quality gates, under human review",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "creator-id", name: "Creator ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },

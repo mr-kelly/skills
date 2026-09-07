@@ -19,7 +19,7 @@ export const appConfig = {
       name: "Services",
       slug: "kelly-devops-services",
       description: "Monitored endpoints: roster plus the latest HTTP/TLS check result",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "service-id", name: "Service ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -41,7 +41,7 @@ export const appConfig = {
       name: "Expiries",
       slug: "kelly-devops-expiries",
       description: "One ledger row per domain, API key rotation, or plan renewal (SSL certs are derived from Services)",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "expiry-id", name: "Expiry ID", type: "text", required: true },
         { slug: "type", name: "Type", type: "text", required: false },
@@ -60,7 +60,7 @@ export const appConfig = {
       name: "Spend Providers",
       slug: "kelly-devops-spend-providers",
       description: "Per cloud/billing provider month-to-date vs last-month spend",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "provider-id", name: "Provider ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -76,7 +76,7 @@ export const appConfig = {
       name: "Spend Products",
       slug: "kelly-devops-spend-products",
       description: "Per-product spend allocation for the same billing period",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "product-id", name: "Product ID", type: "text", required: true },
         { slug: "product", name: "Product", type: "text", required: false },
@@ -92,7 +92,7 @@ export const appConfig = {
       slug: "kelly-devops-actions",
       description:
         "Agent-proposed action cards: renew domain, rotate key, investigate spend, restart service, ack incident",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "action-id", name: "Action ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -115,7 +115,7 @@ export const appConfig = {
       name: "Events",
       slug: "kelly-devops-events",
       description: "Append-only feed: check runs, incidents, expiry warnings, spend anomalies, action decisions",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "event-id", name: "Event ID", type: "text", required: true },
         { slug: "at", name: "At", type: "text", required: false },

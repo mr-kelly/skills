@@ -20,7 +20,7 @@ export const appConfig = {
       slug: "kelly-homework-coach-questions",
       description:
         "One row per homework question the agent has explained (from a photo, pasted text, or a paper) — prompt/answers, outcome, and the child-facing explanation (kid summary, steps, key concept, self check, next hint). Written by scripts/record_homework.mjs when the agent finishes explaining a question in chat; status is stored directly, set by the parent/teacher's review decision on the linked review row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "question-id", name: "Question ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -49,7 +49,7 @@ export const appConfig = {
       slug: "kelly-homework-coach-mistakes",
       description:
         "One row per mistake-book entry (grouped by stable id so repeated review updates the same card instead of duplicating it) — root cause, misconception, fix strategy, similar practice prompt, and parent note. Written by scripts/record_homework.mjs alongside the question it came from",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "mistake-id", name: "Mistake ID", type: "text", required: true },
         { slug: "question-id", name: "Question ID", type: "text", required: false },
@@ -95,7 +95,7 @@ export const appConfig = {
       slug: "kelly-homework-coach-reviews",
       description:
         "One row per parent/teacher review item (targets a question, mistake, or paper) — the raw review fields plus the reviewer's decision (decision-action/decision-comment/decided-at) and, once scripts/execute_decisions.mjs runs, an execution marker, all written directly onto the same row. Status is stored directly, set by the reviewer's decision action",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "review-id", name: "Review ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },

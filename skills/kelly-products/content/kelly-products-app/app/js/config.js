@@ -20,7 +20,7 @@ export const appConfig = {
       slug: "kelly-products-products",
       description:
         "One row per product/SKU: catalog identity, lifecycle/status, owner, vendor, launch date, image + gallery, tags, and JSON-encoded pricing/inventory-rollup/content/compliance blocks. Created and updated only by the agent's ingest workflow.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "product-id", name: "Product ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -50,7 +50,7 @@ export const appConfig = {
       slug: "kelly-products-channels",
       description:
         "One row per product x marketplace channel (Amazon/Shopify/TikTok Shop/eBay): listing id, status, price, buybox, content score, and channel issue note. Created and updated only by the agent's ingest workflow.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "channel-id", name: "Channel ID", type: "text", required: true },
         { slug: "product-id", name: "Product ID", type: "text", required: false },
@@ -71,7 +71,7 @@ export const appConfig = {
       slug: "kelly-products-inventory",
       description:
         "One row per product x warehouse: on-hand/available/reserved/inbound units, inbound ETA, days of cover, and stock-risk status. Created and updated only by the agent's ingest workflow.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "inventory-id", name: "Inventory ID", type: "text", required: true },
         { slug: "product-id", name: "Product ID", type: "text", required: false },
@@ -93,7 +93,7 @@ export const appConfig = {
       slug: "kelly-products-review",
       description:
         "Approval-gated review queue: channel publish approvals, price-change review, quality holds, and lifecycle/archive decisions, linked to a product. The operator's decision (approve/request_changes/block) is written directly onto this row -- there is no separate decisions.json-equivalent bucket. Execution fields record the agent's follow-up outside the app after approval.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "item-id", name: "Item ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },

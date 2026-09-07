@@ -22,7 +22,7 @@ export const appConfig = {
       name: "Retouch Jobs",
       slug: "kelly-portrait-retouch-jobs",
       description: "One row per non-destructive portrait processing request",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "job-id", name: "Job ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: false },
@@ -40,7 +40,7 @@ export const appConfig = {
       name: "Candidates",
       slug: "kelly-portrait-retouch-candidates",
       description: "Candidate provenance, naturalness checks, and human verdicts; binary images live in Drive",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "candidate-id", name: "Candidate ID", type: "text", required: true },
         { slug: "job-id", name: "Job ID", type: "text", required: true },

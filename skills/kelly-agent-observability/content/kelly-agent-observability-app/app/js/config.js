@@ -47,7 +47,7 @@ export const appConfig = {
       slug: "kelly-agent-observability-traces",
       description:
         "One row per mock trace (ordered tool-call chain) for one agent, capped to fit under the 100-record read limit. Steps (JSON array) carry the ordered timeline; broke-at-step-id flags exactly where a broken chain stopped. Written only by the trusted generator script.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "trace-id", name: "Trace ID", type: "text", required: true },
         { slug: "agent-id", name: "Agent ID", type: "text", required: true },
@@ -65,7 +65,7 @@ export const appConfig = {
       slug: "kelly-agent-observability-handoffs",
       description:
         "Append-only human-in-the-loop handoff log: an acknowledge / needs-investigation note recorded against one agent or trace. The only Base the AirApp itself ever writes to — always a new record, never an update to an agent/trace row.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "handoff-id", name: "Handoff ID", type: "text", required: true },
         { slug: "target-type", name: "Target type", type: "text", required: false },

@@ -37,7 +37,7 @@ export const appConfig = {
       name: "Tickets",
       slug: "kelly-support-tickets",
       description: "The approval queue: triaged ticket, KB-grounded draft reply, decision, and execution result",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "ticket-id", name: "Ticket ID", type: "text", required: true },
         { slug: "account-id", name: "Account ID", type: "text", required: false },
@@ -86,7 +86,7 @@ export const appConfig = {
       name: "Messages",
       slug: "kelly-support-messages",
       description: "One row per conversation message, joined onto its ticket by ticket-id",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "message-id", name: "Message ID", type: "text", required: true },
         { slug: "ticket-id", name: "Ticket ID", type: "text", required: false },
@@ -102,7 +102,7 @@ export const appConfig = {
       name: "Knowledge Base",
       slug: "kelly-support-knowledge-base",
       description: "Articles and canned macros the agent cites when drafting replies",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "article-id", name: "Article ID", type: "text", required: true },
         { slug: "kind", name: "Kind", type: "text", required: false },
@@ -118,7 +118,7 @@ export const appConfig = {
       name: "Sync Log",
       slug: "kelly-support-sync-log",
       description: "Append-only history of ticket collection runs per account",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "sync-id", name: "Sync ID", type: "text", required: true },
         { slug: "account-id", name: "Account ID", type: "text", required: false },

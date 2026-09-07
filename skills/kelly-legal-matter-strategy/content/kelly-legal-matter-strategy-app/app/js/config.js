@@ -24,7 +24,7 @@ export const appConfig = {
       slug: "kelly-legal-matter-strategy-items",
       description:
         "Agent-prepared matter-strategy packs — issue tree, evidence map, risk posture, negotiation options, and pleading outline, workflow status, and the review-queue decision on the same row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "item-id", name: "Item ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "text", required: false },
@@ -64,7 +64,7 @@ export const appConfig = {
       name: "Matter Library",
       slug: "kelly-legal-matter-strategy-entities",
       description: "Matter families, issue clusters, or strategy lanes grouped by cause, stage, and responsible lawyer",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "entity-id", name: "Entity ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: false },
@@ -82,7 +82,7 @@ export const appConfig = {
       slug: "kelly-legal-matter-strategy-checks",
       description:
         "Deterministic strategy QA checks for missing facts, evidence gaps, deadline caveats, precedent grounding, and unsupported legal positions",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "check-id", name: "Check ID", type: "text", required: true },
         { slug: "label", name: "Label", type: "text", required: false },

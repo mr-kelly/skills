@@ -19,7 +19,7 @@ export const appConfig = {
       name: "Products",
       slug: "kelly-listing-products",
       description: "Product source-material library referenced by platform drafts",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "product-id", name: "Product ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -44,7 +44,7 @@ export const appConfig = {
       slug: "kelly-listing-drafts",
       description:
         "Platform listing drafts — structured fields, workflow status, and the review-queue decision on the same row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "draft-id", name: "Draft ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -84,7 +84,7 @@ export const appConfig = {
       name: "Checks",
       slug: "kelly-listing-checks",
       description: "Per-draft, per-rule compliance check results",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "check-id", name: "Check ID", type: "text", required: true },
         { slug: "draft-id", name: "Draft ID", type: "text", required: false },
@@ -102,7 +102,7 @@ export const appConfig = {
       name: "Claims",
       slug: "kelly-listing-claims",
       description: "Compliance registry — approved marketing claims and rejected claims",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "claim-id", name: "Claim ID", type: "text", required: true },
         { slug: "text", name: "Claim", type: "longtext", required: false },
@@ -122,7 +122,7 @@ export const appConfig = {
       name: "Claim Rules",
       slug: "kelly-listing-claim-rules",
       description: "Compliance registry — banned-word / restricted-phrase rules",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "rule-id", name: "Rule ID", type: "text", required: true },
         { slug: "phrase", name: "Phrase", type: "text", required: false },

@@ -24,7 +24,7 @@ export const appConfig = {
       slug: "kelly-financial-services-intel-signals",
       description:
         "Source-backed regulatory, macro, market, portfolio-theme, and buyer-intent signals: evidence link, why-it-matters, buyer-intent interpretation, confidence, risk badges, and a suggested action. Created by the agent's own workflow, decided (approve/request_changes/block) directly on this row.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "signal-id", name: "Signal ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -50,7 +50,7 @@ export const appConfig = {
       slug: "kelly-financial-services-intel-actions",
       description:
         "Approved/blocked/reviewable internal brief, client education, or operating actions linked to today's signals, with owner, priority, reason, and the concrete next step.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "action-id", name: "Action ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -73,7 +73,7 @@ export const appConfig = {
       slug: "kelly-financial-services-intel-drafts",
       description:
         "Editable channel drafts (client memo / internal brief / advisor script) tied to an approved action, kept behind a review gate until approved.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "draft-id", name: "Draft ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },

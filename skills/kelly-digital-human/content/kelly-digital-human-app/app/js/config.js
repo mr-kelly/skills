@@ -20,7 +20,7 @@ export const appConfig = {
       slug: "kelly-digital-human-qa-decisions",
       description:
         "One row per launch-QA-check decision, keyed by the curated check id (lip-sync, latency, ai-disclosure, voice-consent, script-safety, fallback, privacy, mobile). A row only exists once a human has decided on that check -- this replaces the retired app/.data/decisions.json handoff bucket with direct Busabase records, the same sparse-map shape (a check with no row yet is simply undecided).",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "check-id", name: "Check ID", type: "text", required: true },
         { slug: "action", name: "Action", type: "text", required: false },

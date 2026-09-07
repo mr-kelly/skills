@@ -160,7 +160,7 @@ export async function loadState() {
 // the one place readLimit is declared -- so the pager's page-count math can
 // never drift from what the provider actually requests per page.
 function pageSize(key) {
-  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 100;
+  return appConfig.bases.find((entry) => entry.key === key)?.readLimit || 50;
 }
 
 // Maps a paginated Base to the metrics field carrying its REAL total (from

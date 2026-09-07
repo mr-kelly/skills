@@ -41,7 +41,7 @@ export const appConfig = {
       name: "Inquiries",
       slug: "kelly-inquiry-inquiries",
       description: "The sales pipeline: one row per inquiry across new/replied/quoted/negotiating/won/lost",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "inquiry-id", name: "Inquiry ID", type: "text", required: true },
         { slug: "account-id", name: "Account ID", type: "text", required: false },
@@ -70,7 +70,7 @@ export const appConfig = {
       name: "Messages",
       slug: "kelly-inquiry-messages",
       description: "One row per conversation message, joined onto its inquiry by inquiry-id",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "message-id", name: "Message ID", type: "text", required: true },
         { slug: "inquiry-id", name: "Inquiry ID", type: "text", required: false },
@@ -86,7 +86,7 @@ export const appConfig = {
       name: "Products",
       slug: "kelly-inquiry-products",
       description: "The product knowledge base: SKU, MOQ, price floors/ceilings, lead time, specs, and FAQ",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "product-id", name: "Product ID", type: "text", required: true },
         { slug: "sku", name: "SKU", type: "text", required: false },
@@ -106,7 +106,7 @@ export const appConfig = {
       name: "Quotes",
       slug: "kelly-inquiry-quotes",
       description: "Quote worksheets: line items sourced from the product KB, validity, and min-price guard results",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "quote-id", name: "Quote ID", type: "text", required: true },
         { slug: "quote-no", name: "Quote no", type: "text", required: false },
@@ -131,7 +131,7 @@ export const appConfig = {
       name: "Approvals",
       slug: "kelly-inquiry-approvals",
       description: "The review queue: outgoing reply/quote drafts, decision, and send-execution result",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "item-id", name: "Item ID", type: "text", required: true },
         { slug: "kind", name: "Kind", type: "text", required: false },
@@ -163,7 +163,7 @@ export const appConfig = {
       name: "Sync Log",
       slug: "kelly-inquiry-sync-log",
       description: "Append-only history of ingest/sync runs per account",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "sync-id", name: "Sync ID", type: "text", required: true },
         { slug: "account-id", name: "Account ID", type: "text", required: false },

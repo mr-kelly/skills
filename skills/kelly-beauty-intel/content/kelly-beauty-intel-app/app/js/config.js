@@ -18,7 +18,7 @@ export const appConfig = {
       name: "Signals",
       slug: "kelly-beauty-intel-signals",
       description: "Source-backed signals with buyer-intent interpretation",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "signal-id", name: "Signal ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -42,7 +42,7 @@ export const appConfig = {
       name: "Actions",
       slug: "kelly-beauty-intel-actions",
       description: "Approved/blocked/reviewable operating or sales actions",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "action-id", name: "Action ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -63,7 +63,7 @@ export const appConfig = {
       name: "Drafts",
       slug: "kelly-beauty-intel-drafts",
       description: "Editable channel drafts under review before handoff",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "draft-id", name: "Draft ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },

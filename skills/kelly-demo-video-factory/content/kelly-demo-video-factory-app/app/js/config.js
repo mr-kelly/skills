@@ -44,7 +44,7 @@ export const appConfig = {
       slug: "kelly-demo-video-factory-videos",
       description:
         "One row per video: purpose, hook, pain point, concept, status, verified claims, HyperFrame path, final video URL, owner.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "title", name: "Title", type: "text", required: true },
         { slug: "series", name: "Series", type: "select", required: false, options: { choices: [] } },
@@ -97,7 +97,7 @@ export const appConfig = {
       slug: "kelly-demo-video-factory-video-shots",
       description:
         "One row per shot: linked video, shot number, timecode, scene, code reference, script line, note, recording status, asset.",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "title", name: "Title", type: "text", required: true },
         { slug: "video", name: "Video", type: "relation", required: false, options: { multiple: false } },

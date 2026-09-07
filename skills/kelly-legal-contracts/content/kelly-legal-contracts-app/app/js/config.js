@@ -23,7 +23,7 @@ export const appConfig = {
       name: "Contracts",
       slug: "kelly-legal-contracts-contracts",
       description: "Contract library referenced by clause issues (NDA/MSA/DPA/SOW)",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "contract-id", name: "Contract ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -47,7 +47,7 @@ export const appConfig = {
       name: "Issues",
       slug: "kelly-legal-contracts-issues",
       description: "Clause issues — structured fields, workflow status, and the review-queue decision on the same row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "issue-id", name: "Issue ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -87,7 +87,7 @@ export const appConfig = {
       name: "Checks",
       slug: "kelly-legal-contracts-checks",
       description: "Per-issue, per-rule risk-check results",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "check-id", name: "Check ID", type: "text", required: true },
         { slug: "issue-id", name: "Issue ID", type: "text", required: false },
@@ -105,7 +105,7 @@ export const appConfig = {
       name: "Claims",
       slug: "kelly-legal-contracts-claims",
       description: "Clause playbook — approved fallback clauses and rejected positions",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "claim-id", name: "Claim ID", type: "text", required: true },
         { slug: "text", name: "Clause / position", type: "longtext", required: false },
@@ -125,7 +125,7 @@ export const appConfig = {
       name: "Claim Rules",
       slug: "kelly-legal-contracts-claim-rules",
       description: "Clause playbook — hard-stop / restricted-phrase rules",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "rule-id", name: "Rule ID", type: "text", required: true },
         { slug: "phrase", name: "Term", type: "text", required: false },

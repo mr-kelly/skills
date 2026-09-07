@@ -20,7 +20,7 @@ export const appConfig = {
       slug: "kelly-lead-funnel-leads",
       description:
         "One row per merchant/business lead: brand, category, city, store count, est. monthly revenue, lead source, data verifiability, funnel stage, rejection reason, notes (JSON array), and stage history (JSON array). Score/score_breakdown/suggested_action are never stored — they are pure/derived from these fields plus the fund's scoring_criteria and recomputed on every read. Stage moves, rejections, and notes are written directly by the human sourcing-team operator in the kanban board — this is a direct-manipulation control panel, not a review/approval queue",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "lead-id", name: "Lead ID", type: "text", required: true },
         { slug: "brand-name", name: "Brand name", type: "text", required: true },

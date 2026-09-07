@@ -18,7 +18,7 @@ export const appConfig = {
       name: "Launch Items",
       slug: "kelly-launch-items",
       description: "RAMP checklist tasks and assets under human review",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "item-id", name: "Item ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },

@@ -35,7 +35,7 @@ export const appConfig = {
       slug: "kelly-ads-campaigns",
       description:
         "One row per campaign: budget, targets, and the daily spend/impressions/clicks/conversions/revenue series",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "campaign-id", name: "Campaign ID", type: "text", required: true },
         { slug: "platform", name: "Platform", type: "text", required: false },
@@ -58,7 +58,7 @@ export const appConfig = {
       slug: "kelly-ads-anomalies",
       description:
         "Deterministic anomaly feed: ACOS breaches, budget burnouts, zero-conversion spend, CPC spikes, rejections",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "anomaly-id", name: "Anomaly ID", type: "text", required: true },
         { slug: "type", name: "Type", type: "text", required: false },
@@ -79,7 +79,7 @@ export const appConfig = {
       slug: "kelly-ads-adjustments",
       description:
         "Agent-proposed adjustment cards: negative keyword, bid down/up, pause target, budget shift, creative refresh",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "adjustment-id", name: "Adjustment ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },

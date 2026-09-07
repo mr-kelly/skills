@@ -19,7 +19,7 @@ export const appConfig = {
       name: "Teachers",
       slug: "kelly-lesson-teachers",
       description: "Teachers referenced by lesson plans",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "teacher-id", name: "Teacher ID", type: "text", required: true },
         { slug: "name", name: "Name", type: "text", required: false },
@@ -32,7 +32,7 @@ export const appConfig = {
       name: "Plans",
       slug: "kelly-lesson-plans",
       description: "Lesson plans — structured sections, workflow status, and the review-queue decision on the same row",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "plan-id", name: "Plan ID", type: "text", required: true },
         { slug: "ref", name: "Ref", type: "number", required: false },
@@ -77,7 +77,7 @@ export const appConfig = {
       name: "Checks",
       slug: "kelly-lesson-checks",
       description: "Per-plan, per-rule compliance check results",
-      readLimit: 100,
+      readLimit: 50,
       fields: [
         { slug: "check-id", name: "Check ID", type: "text", required: true },
         { slug: "plan-id", name: "Plan ID", type: "text", required: false },
