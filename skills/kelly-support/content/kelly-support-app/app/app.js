@@ -5,8 +5,10 @@ import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import {
   decideAction,
+  qaPairDecision,
   renderKbDetail,
   renderKnowledge,
+  renderQaPairs,
   renderSettings,
   renderSla,
   saveReplyAction,
@@ -252,8 +254,16 @@ export function knowledge() {
   return state.snapshot?.knowledge_base || [];
 }
 
+export function qaPairs() {
+  return state.snapshot?.qa_pairs || [];
+}
+
 export function ticketById(id) {
   return tickets().find((item) => item.ticket_id === id);
+}
+
+export function qaPairById(id) {
+  return qaPairs().find((item) => item.pair_id === id);
 }
 
 export function kbById(id) {
@@ -341,6 +351,7 @@ export function flashNotice(text) {
 function viewLabel(view) {
   if (view === "tickets") return t("tickets");
   if (view === "knowledge") return t("knowledge");
+  if (view === "qa-pairs") return t("qaPairs");
   if (view === "sla") return t("sla");
   if (view === "settings") return t("settings");
   return t("overview");
@@ -746,6 +757,7 @@ export function render() {
   else if (state.route.view === "tickets") renderPagedList(renderTickets, "tickets");
   else if (state.route.view === "knowledge" && state.route.id) renderKbDetail();
   else if (state.route.view === "knowledge") renderPagedList(renderKnowledge, "knowledge-base");
+  else if (state.route.view === "qa-pairs") renderQaPairs();
   else if (state.route.view === "sla") renderSla();
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
@@ -810,6 +822,10 @@ els.content.addEventListener("click", (event) => {
   }
   if (button.dataset.action === "decide") {
     decideAction(button.dataset.ticket, button.dataset.decision);
+    return;
+  }
+  if (button.dataset.action === "qa-decide") {
+    qaPairDecision(button.dataset.pair, button.dataset.decision);
   }
 });
 

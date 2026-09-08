@@ -121,6 +121,34 @@ export function normalizeKbArticle({
   return { article_id, kind, title, body, tags: parseJsonList(tags), category, updated_at };
 }
 
+export function normalizeQaPair({
+  pair_id = "",
+  article_id = "",
+  question = "",
+  answer = "",
+  category = "",
+  tags = "",
+  status = "",
+  reviewed_by = "",
+  updated_at = "",
+} = {}) {
+  // Status is trusted from storage here (unlike a ticket's derived fields)
+  // because approve/reject is the one write this record ever receives, and
+  // it always writes status directly -- there is no separate signal (like a
+  // ticket's messages) that could drift out of sync with it.
+  return {
+    pair_id,
+    article_id,
+    question,
+    answer,
+    category,
+    tags: parseJsonList(tags),
+    status: status === "approved" || status === "rejected" ? status : "draft",
+    reviewed_by,
+    updated_at,
+  };
+}
+
 export function normalizeTicket({
   ticket_id = "",
   account_id = "",
@@ -450,6 +478,7 @@ function buildWarnings(tickets) {
  *   tickets?: Array<Record<string, any>>,
  *   messages?: Array<Record<string, any>>,
  *   knowledge_base?: Array<Record<string, any>>,
+ *   qa_pairs?: Array<Record<string, any>>,
  *   sync_log?: Array<Record<string, any>>,
  *   risk_policy?: Record<string, any>,
  * }} [args]
@@ -459,10 +488,14 @@ export function buildSnapshot({
   tickets = [],
   messages = [],
   knowledge_base = [],
+  qa_pairs = [],
   sync_log = [],
   risk_policy = {},
 } = {}) {
   const normalizedKb = knowledge_base.map(normalizeKbArticle);
+  const normalizedQaPairs = qa_pairs
+    .map(normalizeQaPair)
+    .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")));
 
   const messagesByTicket = new Map();
   for (const row of messages) {
@@ -500,6 +533,7 @@ export function buildSnapshot({
     accounts: normalizedAccounts,
     tickets: normalizedTickets,
     knowledge_base: normalizedKb,
+    qa_pairs: normalizedQaPairs,
     sync_log: [...sync_log].sort((a, b) => String(a.at || "").localeCompare(String(b.at || ""))),
     warnings: buildWarnings(normalizedTickets),
   };
