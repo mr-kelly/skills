@@ -74,6 +74,41 @@ function parseJsonObject(text) {
   }
 }
 
+function characterVisualLockReadyRow(row = {}) {
+  return Boolean(
+    row.visual_front &&
+      row.visual_side &&
+      row.visual_back &&
+      row.reference_card_asset_id &&
+      row.reference_card_status === "approved",
+  );
+}
+
+async function assertShotGenerationStage(shotRow, { video = false } = {}) {
+  const episode = await findRecord("episodes", "episode-id", shotRow.episode_id);
+  const episodeFields = normalizeFields(episode?.headCommit?.payload || episode?.headCommit?.fields || episode?.fields);
+  if (episodeFields.status !== "approved" || shotRow.status !== "approved") {
+    throw new Error("请先把剧集脚本和本镜分镜都标记为“已定稿”，再进入生图阶段。");
+  }
+
+  const characterIds = parseJsonArray(shotRow.characters_json);
+  for (const characterId of characterIds) {
+    const character = await findRecord("characters", "character-id", characterId);
+    const fields = normalizeFields(
+      character?.headCommit?.payload || character?.headCommit?.fields || character?.fields,
+    );
+    if (!character || !characterVisualLockReadyRow(fields)) {
+      throw new Error(
+        `角色 ${fields.name || characterId} 的三视图尚未生成并锁定，不能进入${video ? "视频" : "图片"}阶段。`,
+      );
+    }
+  }
+
+  if (video && (shotRow.image_status !== "approved" || !shotRow.image_asset_id)) {
+    throw new Error("请先确认本镜分镜图片，再进入视频阶段。");
+  }
+}
+
 // Ported verbatim from the retired app/server/hono.ts's idFor().
 function idFor(kind, item) {
   if (item.id) return String(item.id);
@@ -955,6 +990,7 @@ export const busabaseProvider = {
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
+    await assertShotGenerationStage(currentFields);
     await upsert(
       "shots",
       "shot-id",
@@ -973,6 +1009,7 @@ export const busabaseProvider = {
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
+    await assertShotGenerationStage(currentFields, { video: true });
     await upsert(
       "shots",
       "shot-id",
@@ -1015,6 +1052,46 @@ export const busabaseProvider = {
       characterId,
       { ...characterFields(currentFields), character_id: characterId, reference_card_status: "requested" },
       `Request reference card generation for ${characterId}`,
+    );
+    const project = await buildFullProject();
+    return fullStatePayload(project);
+  },
+
+  async approveCharacterCard(characterId) {
+    await ensureResources();
+    const existing = await findRecord("characters", "character-id", characterId);
+    if (!existing) throw new Error(`Unknown character: ${characterId}`);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
+    if (!characterVisualLockReadyRow({ ...currentFields, reference_card_status: "generated" })) {
+      throw new Error("请先填写正面、侧面、背面三视图设定，并确认参考图已经生成。");
+    }
+    await upsert(
+      "characters",
+      "character-id",
+      characterId,
+      { ...characterFields(currentFields), character_id: characterId, reference_card_status: "approved" },
+      `Approve three-view reference for ${characterId}`,
+    );
+    const project = await buildFullProject();
+    return fullStatePayload(project);
+  },
+
+  async approveStoryboardImage(shotId) {
+    await ensureResources();
+    const existing = await findRecord("shots", "shot-id", shotId);
+    if (!existing) throw new Error(`Unknown shot: ${shotId}`);
+    const currentFields = normalizeFields(
+      existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
+    );
+    if (!currentFields.image_asset_id) throw new Error("请先生成本镜分镜图片。");
+    await upsert(
+      "shots",
+      "shot-id",
+      shotId,
+      { ...shotFields(currentFields), shot_id: shotId, image_status: "approved" },
+      `Approve storyboard image for ${shotId}`,
     );
     const project = await buildFullProject();
     return fullStatePayload(project);

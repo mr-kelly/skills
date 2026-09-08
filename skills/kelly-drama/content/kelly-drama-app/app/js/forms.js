@@ -1,3 +1,4 @@
+import { characterVisualLockReady, hasThreeViewNotes } from "./drama-model.js?v=0.1.0";
 import {
   characterName,
   characterSelect,
@@ -35,14 +36,21 @@ export function seriesForm(series) {
 function characterReferencePreview(item) {
   const reference = item.reference_card || {};
   const generated = Boolean(reference.image_asset);
+  const notesReady = hasThreeViewNotes(item);
+  const locked = characterVisualLockReady(item);
   return `
     <section class="character-reference">
       <div>
         <h3>${t("char_ref_title")}</h3>
         <p class="muted">${escapeHtml(reference.purpose || t("char_ref_hint"))}</p>
+        <span class="visual-lock-status ${locked ? "ok" : "pending"}">${locked ? t("char_ref_locked") : t("char_ref_lock_pending")}</span>
       </div>
       ${reference.image_asset ? `<img src="${escapeHtml(reference.image_asset)}" alt="${t("char_ref_title")}" />` : `<div class="asset-placeholder">${t("char_ref_placeholder")}</div>`}
-      <button type="button" class="mini-button generate-card-button" data-generate-character-card="${escapeHtml(item.id)}">${generated ? t("regenerate_image") : t("generate_reference_card")}</button>
+      <div class="character-reference-actions">
+        <button type="button" class="mini-button generate-card-button" data-generate-character-card="${escapeHtml(item.id)}">${generated ? t("regenerate_image") : t("generate_reference_card")}</button>
+        <button type="button" class="mini-button ${locked ? "ghost" : "primary"}" data-approve-character-card="${escapeHtml(item.id)}" ${generated && notesReady ? "" : "disabled"}>${locked ? t("char_ref_locked") : t("char_ref_lock")}</button>
+      </div>
+      ${!notesReady ? `<p class="form-note">${t("char_ref_lock_requires_notes")}</p>` : ""}
     </section>`;
 }
 

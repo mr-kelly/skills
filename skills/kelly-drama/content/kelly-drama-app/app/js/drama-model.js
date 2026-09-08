@@ -162,6 +162,39 @@ export function hasGeneratedRef(character = {}) {
   return Boolean(character?.reference_card?.image_asset);
 }
 
+export function hasThreeViewNotes(character = {}) {
+  const visual = character?.visual || {};
+  return Boolean(visual.front && visual.side && visual.back);
+}
+
+export function characterVisualLockReady(character = {}) {
+  return hasThreeViewNotes(character) && character?.reference_card?.status === "approved" && hasGeneratedRef(character);
+}
+
+export function shotScriptLockReady(project = {}, shot = {}) {
+  const episode = (project.episodes || []).find((item) => item.id === shot.episode_id);
+  return episode?.status === "approved" && shot.status === "approved";
+}
+
+export function shotImageGate(project = {}, shot = {}) {
+  const characters = shotCharacters(project, shot);
+  const missingCharacters = characters.filter((character) => !characterVisualLockReady(character));
+  return {
+    scriptLocked: shotScriptLockReady(project, shot),
+    missingCharacters,
+    ready: shotScriptLockReady(project, shot) && missingCharacters.length === 0,
+  };
+}
+
+export function shotVideoGate(project = {}, shot = {}) {
+  const imageGate = shotImageGate(project, shot);
+  return {
+    ...imageGate,
+    imageApproved: shot.image_status === "approved" && Boolean(shot.image_asset),
+    ready: imageGate.ready && shot.image_status === "approved" && Boolean(shot.image_asset),
+  };
+}
+
 export function storyboardPrompt(project = {}, shot = {}) {
   const bible = project.series?.visual_bible || {};
   const characters = shotCharacters(project, shot);
@@ -249,6 +282,7 @@ export function storyboardPromptPreview(project = {}, shotId = "") {
 
 export function characterCardPrompt(character = {}, project = {}) {
   return [
+    "Generate a single character turnaround reference sheet with clearly separated front, side, and back views; preserve the same face, hair, body proportions, wardrobe, and props in all three views.",
     character.reference_card?.prompt || "",
     project.series?.visual_bible?.realism_target
       ? `Series visual target: ${project.series.visual_bible.realism_target}`

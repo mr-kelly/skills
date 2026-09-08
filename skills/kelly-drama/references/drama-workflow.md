@@ -48,6 +48,8 @@ For a new episode planned in Kelly Drama first:
   - Front: face, hairline, eyes, distinguishing marks, default expression.
   - Side: profile, nose/chin, posture, hairstyle silhouette.
   - Back: hair length, shoulders, signature clothing, silhouette.
+- Treat the three-view reference as a reviewable turnaround sheet, not only three prose fields. The generated sheet must show the same character in front, side, and back views with matching face, hair, body proportions, wardrobe, and props.
+- Keep `reference_card_status` at `requested`/`generated` until the human approves the sheet; only `approved` unlocks storyboard image requests. If a character is revised or the sheet is regenerated, return the status to `requested`/`generated` and re-approve it.
 - Add "continuity anchors" that should appear often: necklace, scar, suit color, phone case, ring, etc.
 - Add "forbidden drift" for common mistakes: age change, hair color change, missing scar, wrong wardrobe, softened villain energy.
 - Update the card whenever a plot reveal changes identity, wealth, family ties, trauma, legal status, or public reputation.
@@ -107,7 +109,7 @@ A shot that only describes a still frame is image-ready, not video-ready. Genera
 
 ## Character Consistency via Image-to-Image
 
-Text descriptions alone do not lock a character's face or costume across shots. Generate character reference-card images first, then feed those images (plus the visual background reference) to the image API's `/images/edits` endpoint as real input images when generating each storyboard frame. A path mentioned only in the prompt text is invisible to the model. Shots whose characters lack reference cards fall back to text-to-image and will drift — create the cards before generating those shots.
+Text descriptions alone do not lock a character's face or costume across shots. Generate and approve a three-view character turnaround first, then feed that image (plus the visual background reference) to the image API's `/images/edits` endpoint as real input pixels when generating each storyboard frame. A path mentioned only in the prompt text is invisible to the model. The app and trusted generation script must block shots whose on-screen characters lack an approved three-view reference; do not silently fall back to text-to-image for those shots.
 
 ## AI Collaboration Pattern
 

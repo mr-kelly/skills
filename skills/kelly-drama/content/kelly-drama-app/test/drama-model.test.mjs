@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   attention,
+  characterVisualLockReady,
   completeness,
   countBy,
   dialogueCps,
@@ -11,8 +12,10 @@ import {
   hasSoundBed,
   listToArray,
   shotCharacters,
+  shotImageGate,
   shotIsSilent,
   shotReadiness,
+  shotVideoGate,
   slug,
   storyboardPrompt,
   storyboardPromptPreview,
@@ -28,6 +31,7 @@ function readyShot(overrides = {}) {
     id: "shot-001-04",
     episode_id: "ep-001",
     title: "The correction",
+    status: "draft",
     duration_seconds: 5,
     emotion: "tense",
     shot_size: "two-shot",
@@ -45,6 +49,8 @@ function readyShot(overrides = {}) {
     srt: [{ time: "00:00:01,000 --> 00:00:03,400", text: "顾沉舟：新娘的名字，是林晚。" }],
     continuity: { anchors: ["rimless glasses"] },
     characters: ["char-gu-chenzhou"],
+    image_asset: "",
+    image_status: "draft",
     ...overrides,
   };
 }
@@ -195,6 +201,24 @@ test("storyboardPromptPreview: mode is image-edit only when an on-screen charact
   assert.equal(previewWithRef.references.length, 1);
   assert.equal(previewWithRef.references[0].kind, "character");
   assert.equal(previewWithRef.references[0].name, "Gu Chenzhou");
+});
+
+test("stage gates require an approved three-view character reference and approved text", () => {
+  const project = sampleProject();
+  project.characters[1].reference_card.status = "approved";
+  project.episodes[0].status = "approved";
+  const shot = readyShot({ status: "approved" });
+  project.shots[0] = shot;
+  assert.equal(characterVisualLockReady(project.characters[1]), true);
+  assert.equal(shotImageGate(project, shot).ready, true);
+  assert.equal(shotVideoGate(project, shot).ready, false);
+
+  shot.image_asset = "https://busabase.example/storyboard";
+  shot.image_status = "approved";
+  assert.equal(shotVideoGate(project, shot).ready, true);
+
+  project.characters[1].reference_card.status = "generated";
+  assert.equal(shotImageGate(project, shot).ready, false);
 });
 
 test("storyboardPromptPreview throws for an unknown shot id", () => {

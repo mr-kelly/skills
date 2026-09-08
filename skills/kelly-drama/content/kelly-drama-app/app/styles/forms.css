@@ -69,6 +69,28 @@
     border-radius: var(--radius);
   }
 
+  .character-reference-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .visual-lock-status {
+    display: inline-flex;
+    width: fit-content;
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: var(--warning);
+    background: color-mix(in srgb, var(--warning) 12%, var(--surface));
+    font-size: var(--text-xs);
+    font-weight: 650;
+  }
+
+  .visual-lock-status.ok {
+    color: var(--positive);
+    background: color-mix(in srgb, var(--positive) 12%, var(--surface));
+  }
+
   .relationship-node {
     padding: 10px;
     margin-bottom: 10px;

@@ -58,18 +58,18 @@ Default to the AirApp for ongoing creative work — give the user the clickable 
 
 1. Open the AirApp (or `pnpm --dir content/kelly-drama-app dev` for local preview, which asks you to connect Busabase and select a Space — never an API key).
 2. On first run the workspace is empty; provision it from the app's setup screen, then seed the bundled starter with `node scripts/create_sample_project.mjs --apply` (a short-drama adaptation of 《三国演义》, one episode per original chapter), or start from scratch.
-3. Use the app to maintain:
+3. Use the app to maintain, in this order:
    - Series bible: logline, genre, platform, target audience, episode format, hook rules, world rules.
+   - Visual bible: aspect ratio, screen orientation, realism target, cinematography, color palette, period detail, background reference images, and generated style anchors.
+   - Character library and relationship map: establish stable character ids, dramatic roles, character cards, relationship power direction, emotional temperature, conflict, and evidence episodes.
+   - Character three-view lock: fill each character's front/side/back notes, generate one turnaround reference sheet with the three views, review it, and set `reference_card_status = "approved"`. Do not generate storyboard images for shots containing a character whose three-view reference is not approved.
+   - Episode ladder and text lock: write the episode promise, acts, beats, turning points, dialogue, and cliffhanger; then set the episode and each shot's `status = "approved"` only after the user confirms the script and storyboard text.
+   - Storyboard image stage: request/generate images only after the text lock and character three-view lock. The user may reject/regenerate candidates; set `image_status = "approved"` only for the selected image.
+   - Video stage: request/generate shot video only after the selected storyboard image is approved. Never skip from a text prompt directly to video when a storyboard image is required.
    - HyperFrame project link: `series.hyperframe_project_path` is the absolute path to the matching HyperFrame project. Do not guess it when the user has provided a path; store the explicit path.
    - Episode HyperFrame links: each episode can carry `hyperframe_composition` (for example `index.html` or `compositions/ep-002.html`) and `hyperframe_video_asset` (the rendered/reference output indexed back into Kelly Drama).
-   - Visual bible: aspect ratio, screen orientation, realism target, cinematography, color palette, period detail, background reference images, and generated style anchors.
-   - Character library: stable role id, actor profile, character card, three-view visual notes, wardrobe, voice, secrets, forbidden drift.
-   - Character reference cards: generate character card images before storyboard/video work when consistency matters.
    - Character voice: keep a `voice_profile` (timbre/type, pace, accent, signature delivery, casting reference, sample audition line) and a `voice_reference` asset slot for a generated reference voice. Clicking "Generate reference voice" in the app only writes a **request** onto the character record (`voice_reference_status = "requested"`) — the browser cannot spawn the local Qwen3-TTS process. After the user asks, fulfill pending requests with `node scripts/execute_generation_requests.mjs --apply`, which spawns `scripts/gen_voice.py` with the `voice_profile` as the VoiceDesign `instruct` and `sample_script` as the line and uploads the result as a Busabase Asset; samples are non-destructive candidates (`voice_candidates`), pick the active one. Keep shot `audio.dialogue[].tone` and `srt` speakers aligned with each character's voice profile. `gen_voice.py` needs a local Python with `mlx_audio` installed (Apple Silicon); point `KELLY_DRAMA_TTS_PYTHON` at it. First run downloads `mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit`.
-   - Relationship map: relationship type, power direction, emotional temperature, conflict, evidence episodes.
-   - Episode ladder: episodes, acts, beats, turning points, cliffhangers, emotional payload.
-   - Storyboard bench: shots, image prompts, negative prompts, continuity anchors, production status.
-4. After major edits, run `node scripts/validate_shot_readiness.mjs` before generating a shot's image or video (checks the video-ready Definition of Done below and flags overdense dialogue and characters missing reference cards).
+4. After major edits, run `node scripts/validate_shot_readiness.mjs` before generating a shot's image or video (checks the video-ready Definition of Done below and flags overdense dialogue, missing references, and stage-lock violations).
 5. Export a readable bible with `node scripts/export_story_bible.mjs` when the user wants a handoff, pitch note, or production brief.
 
 ## Kelly Drama ↔ HyperFrame Contract
@@ -107,6 +107,8 @@ When planning a new episode first in Kelly Drama:
 
 - Preserve continuity first: every new scene should point to character ids, relationship ids, and prior facts instead of rewriting canon.
 - Treat actors and characters separately. An actor can play a character, but the character card is the story source of truth.
+- Treat character visual identity as a hard dependency. The textual front/side/back notes are not enough by themselves: generate and human-approve a three-view turnaround reference sheet before using that character in storyboard image generation.
+- Keep the production gates explicit: character `reference_card_status = "approved"` unlocks storyboard images; episode and shot `status = "approved"` unlock the image stage; shot `image_status = "approved"` unlocks video. A request that bypasses one of these gates is invalid and should be blocked with a clear next step.
 - Write short-drama beats as production units: each beat needs a hook, conflict turn, emotional value, and either a reveal, reversal, choice, or cliffhanger.
 - Treat episode runtime as flexible: a short-drama episode is usually 2-4 minutes, adjusted by story density rather than forced to a fixed length.
 - Respect AI video model shot limits: one generated shot should be planned as 4, 5, 6, 8, 10, or 12 seconds, and never exceed 12 seconds in a single generation unit. Float the duration to the shot's information density — quick reactions/close-ups run short (4-6s), establishing/ceremony/group/action runs longer (8-12s). Do not pin every shot at 12s.
@@ -115,6 +117,7 @@ When planning a new episode first in Kelly Drama:
 - Storyboard images can be generated through an OpenAI-compatible Images API. Default model is `gpt-image-2`; default `BASE_URL` is `https://moonrouter.dev/v1` (base URL/model/size live on the `settings` Busabase record; the API key itself is the `KELLY_DRAMA_IMAGE_API_KEY` env var read only by `scripts/execute_generation_requests.mjs`, never stored or sent to the browser).
 - Use real image-to-image conditioning for character consistency: storyboard generation feeds the existing character reference-card images (and the visual background reference) to the `/images/edits` endpoint as actual input images, not just as text. Text mentions of a reference path do nothing — the model must receive the pixels. If a character lacks a generated reference card, that shot falls back to text-to-image and consistency will drift, so generate the card first.
 - Generate in dependency order: visual bible/background reference images first, then character reference-card images, then episode storyboard images, then video generation units. If character or background references are missing, create those before generating storyboard/video assets to avoid consistency drift and wasted generations.
+- The human review checkpoints are part of the dependency order: approve the character turnaround before storyboard images, approve the episode/shot text before storyboard images, and approve the selected storyboard image before video. Regeneration resets the downstream approval for that asset.
 - Finish the text before spending on pixels: a shot must reach the video-ready Definition of Done (below) and pass `scripts/validate_shot_readiness.mjs` before you generate its image or video. Thin shot data (missing motion, audio, transitions, timed dialogue) produces wasted image and video generations.
 - For realism-oriented dramas, prompts should explicitly request live-action cinema stills, natural lensing, physical costumes, period-accurate sets, and "almost impossible to tell it is AI generated"; also forbid UI overlays, captions, watermarks, readable fake text, modern items, fantasy glow, and plastic-looking skin.
 - Use "forbidden drift" on character cards for details the image or script generator must not change.

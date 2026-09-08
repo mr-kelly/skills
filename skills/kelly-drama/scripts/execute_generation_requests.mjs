@@ -239,6 +239,31 @@ function toShotFields(row) {
   };
 }
 
+function shotStageError(row, episodeRows, characterRows, { video = false } = {}) {
+  const episode = episodeRows.find((item) => item.episode_id === row.episode_id);
+  if (episode?.status !== "approved" || row.status !== "approved") {
+    return "脚本/分镜尚未定稿；请先将所属剧集和本镜 status 设为 approved。";
+  }
+  const characterIds = parseJsonArray(row.characters_json);
+  const missing = characterIds.filter((id) => {
+    const character = characterRows.find((item) => item.character_id === id);
+    return (
+      !character ||
+      character.deleted === "true" ||
+      !character.visual_front ||
+      !character.visual_side ||
+      !character.visual_back ||
+      !character.reference_card_asset_id ||
+      character.reference_card_status !== "approved"
+    );
+  });
+  if (missing.length) return `角色三视图未锁定：${missing.join(", ")}`;
+  if (video && (row.image_status !== "approved" || !row.image_asset_id)) {
+    return "分镜图片尚未确认；请先将 image_status 设为 approved。";
+  }
+  return "";
+}
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // PROD MODE — Seedance 2.0 via BytePlus/Volcengine Ark (submit -> poll -> download).
@@ -330,9 +355,10 @@ async function main() {
   const onlyKind = flagValue(args, "--kind");
 
   const { client, basesByKey } = await connect();
-  const [projectRows, characterRows, shotRows, settingsRows] = await Promise.all([
+  const [projectRows, characterRows, episodeRows, shotRows, settingsRows] = await Promise.all([
     readAllRecords(client, basesByKey.get("project")),
     readAllRecords(client, basesByKey.get("characters")),
+    readAllRecords(client, basesByKey.get("episodes")),
     readAllRecords(client, basesByKey.get("shots")),
     readAllRecords(client, basesByKey.get("settings")),
   ]);
@@ -519,6 +545,8 @@ async function main() {
   const urlOf = (assetId) => (assetId ? urlCache.get(assetId) || "" : "");
   for (const row of pendingImages) {
     try {
+      const gateError = shotStageError(row, episodeRows, characterRows);
+      if (gateError) throw new Error(gateError);
       if (!imageConfig.api_key) throw new Error("KELLY_DRAMA_IMAGE_API_KEY is not set.");
       for (const character of characterRows) {
         if (character.reference_card_asset_id && !urlCache.has(character.reference_card_asset_id)) {
@@ -604,6 +632,8 @@ async function main() {
   for (const row of pendingVideos) {
     const backend = String(row.video_status || "").split(":")[1] || "seedance";
     try {
+      const gateError = shotStageError(row, episodeRows, characterRows, { video: true });
+      if (gateError) throw new Error(gateError);
       if (!row.image_asset_id)
         throw new Error(
           "This shot has no storyboard image yet — generate the image first (video is image-to-video from the keyframe).",

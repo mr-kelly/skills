@@ -69,7 +69,7 @@ async function main() {
     .map((row) => ({
       id: row.character_id,
       name: row.name,
-      reference_card: { image_asset: row.reference_card_asset_id },
+      reference_card: { image_asset: row.reference_card_asset_id, status: row.reference_card_status },
     }));
   const charIds = new Set(characters.map((c) => c.id));
 
@@ -91,8 +91,8 @@ async function main() {
     for (const cid of shot.characters || []) {
       if (!charIds.has(cid)) errors.push(`${id}: 未知角色 ${cid}`);
       const c = characters.find((x) => x.id === cid);
-      if (c && !c.reference_card?.image_asset) {
-        warnings.push(`${id}: 角色「${c.name || cid}」无参考卡图，图生图一致性会漂移`);
+      if (c && (!c.reference_card?.image_asset || c.reference_card?.status !== "approved")) {
+        warnings.push(`${id}: 角色「${c.name || cid}」三视图未锁定，图生图阶段会被阻止`);
       }
     }
 

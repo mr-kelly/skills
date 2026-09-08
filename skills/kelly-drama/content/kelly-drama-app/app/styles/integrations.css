@@ -1,0 +1,13 @@
+/* Keep the shared connect gate isolated from the app's form defaults. */
+.bb-gate-server-card input[type="radio"] {
+  width: 16px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
+.bb-gate-server-card > span {
+  min-width: 0;
+  flex: 1 1 auto;
+}

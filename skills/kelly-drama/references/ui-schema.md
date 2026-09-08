@@ -17,7 +17,24 @@ Statuses: `characters`/`episodes`/`shots`/`tasks` `status` is
 `draft|needs_review|changes_requested|approved|done|blocked`.
 Generation-status fields (`reference-card-status`, `voice-reference-status`,
 `image-status`, `video-status`) are
-`draft|ready_to_generate|planned|requested|generated|blocked`.
+`draft|ready_to_generate|planned|requested|generated|approved|blocked`.
+
+The production gates use these existing fields instead of a second workflow
+table:
+
+- `visual-front`, `visual-side`, and `visual-back` are the required character
+  design notes.
+- `reference-card-status = "approved"` means the generated three-view
+  turnaround sheet was reviewed and locked by a human. A generated asset alone
+  is not enough.
+- `episodes.status = "approved"` and `shots.status = "approved"` mean the
+  text script and storyboard production sheet are locked for image generation.
+- `image-status = "approved"` means the selected storyboard image was reviewed
+  and unlocks shot video generation.
+
+The UI and `scripts/execute_generation_requests.mjs` enforce the same order:
+character three-view lock -> episode/shot text lock -> storyboard image ->
+approved storyboard image -> shot video.
 
 ## Binary media: Busabase Drive Assets, not Base fields
 
@@ -95,7 +112,7 @@ here — they're env vars read only by the trusted generation script
 | `visual-anchors-json` / `visual-forbidden-drift-json` | same | longtext | JSON arrays |
 | `voice-type` / `voice-pace` / `voice-accent` / `voice-signature` / `voice-casting-reference` | same | text | `voice_profile` |
 | `voice-sample-script` | `voice_sample_script` | longtext | audition line for TTS |
-| `reference-card-status` / `reference-card-purpose` / `reference-card-prompt` | same | text/longtext | |
+| `reference-card-status` / `reference-card-purpose` / `reference-card-prompt` | same | text/longtext | `approved` means the three-view turnaround sheet is human-locked |
 | `reference-card-asset-id` / `reference-card-generated-at` | same | text | |
 | `reference-card-generation-json` | `reference_card_generation_json` | longtext | JSON: `{provider, base_url, model}` |
 | `voice-reference-status` / `voice-reference-provider` | same | text | |
@@ -154,7 +171,7 @@ Busabase gives no ordering guarantee) carries the sequence.
 | `audio-json` | `audio_json` | longtext | JSON: `{dialogue:[{speaker,line,tone}], narration, sfx:[], ambient, music}` |
 | `srt-json` | `srt_json` | longtext | JSON array `[{time, text, speaker?}]` |
 | `continuity-json` | `continuity_json` | longtext | JSON: `{wardrobe, props:[], carries_from_prev, anchors:[]}` |
-| `image-asset-id` / `image-status` / `image-generated-at` | same | text | active image |
+| `image-asset-id` / `image-status` / `image-generated-at` | same | text | active image; `approved` means the human accepted the selected storyboard image |
 | `image-generation-json` | `image_generation_json` | longtext | JSON: `{provider, base_url, model, mode}`, `mode` is `image-edit\|text-to-image` |
 | `image-candidates-json` | `image_candidates_json` | longtext | JSON array `[{assetId, generated_at, generation}]` |
 | `video-asset-id` / `video-status` / `video-generated-at` | same | text | active video; `video-status` also carries the requested backend as `requested:seedance`/`requested:ltx` |
@@ -189,9 +206,9 @@ The retired local app's `agent_execution` task queue
 `tasks` Base above. Instead, clicking "Generate" in the app writes the
 request directly onto the owning record's status field:
 
-- Character reference card: `reference-card-status = "requested"`.
+- Character reference card / three-view turnaround: `reference-card-status = "requested"`.
 - Character reference voice: `voice-reference-status = "requested"`.
-- Storyboard image: `image-status = "requested"`.
+- Storyboard image: `image-status = "requested"` only after the episode/shot text and all on-screen character turnarounds are approved.
 - Shot video: `video-status = "requested:<backend>"` (`seedance` default, or `ltx` for the local draft path).
 
 `scripts/execute_generation_requests.mjs --apply` is the trusted process
@@ -201,6 +218,10 @@ LTX-Video via `gen_draft_video.mjs`, or Seedance/Ark), uploads the result as
 a Busabase Asset, appends it to the relevant `*-candidates-json`, and flips
 status to `"generated"` (or `"blocked"` with the error left for the next
 attempt to retry).
+
+Generation does not itself approve an asset. The human must explicitly move a
+character reference card or storyboard image from `generated` to `approved` in
+the app before the next stage is unlocked.
 
 ## Write surface
 

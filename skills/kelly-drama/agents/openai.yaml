@@ -1,4 +1,4 @@
 interface:
   display_name: "Kelly Drama"
   short_description: "Drama planning UI with HyperFrame-linked episode production."
-  default_prompt: "Use kelly-drama to plan a drama or product-video project, manage the story bible, beats, storyboard shots, and review state in the local app, with each project linked to a HyperFrame project and each episode linked to a HyperFrame composition for final tuning."
+  default_prompt: "Use kelly-drama to plan a drama or product-video project in stages: establish characters and relationships, lock approved three-view character turnarounds, confirm script and storyboard text, then generate and approve storyboard images before generating video, with each project linked to a HyperFrame project and each episode linked to a HyperFrame composition for final tuning."

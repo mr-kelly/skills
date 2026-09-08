@@ -1,8 +1,10 @@
 import {
   dialogueCps,
   hasSoundBed,
+  shotImageGate,
   shotIsSilent,
   shotReadiness,
+  shotVideoGate,
   shotsForEpisode as shotsForEpisodeModel,
 } from "./drama-model.js?v=0.1.0";
 import { escapeHtml, statusBadge } from "./format.js";
@@ -94,24 +96,28 @@ function videoCandidateStrip(shot) {
 function shotVideoBlock(shot) {
   const v = shot.video_asset || "";
   const isVideo = Boolean(v);
-  const hasImage = Boolean(shot.image_asset);
+  const gate = shotVideoGate(project(), shot);
+  const imageApproved = gate.imageApproved;
   return `
     <div class="shot-video">
       ${
         isVideo
           ? `<video src="${escapeHtml(v)}" controls preload="metadata" playsinline></video><span class="img-mode-badge">${escapeHtml(videoModelLabel(shot.video_generation))}</span>`
-          : `<div class="asset-placeholder">${hasImage ? t("video_pending") : t("video_pending_image")}</div>`
+          : `<div class="asset-placeholder">${imageApproved ? t("video_pending") : t("video_requires_image_approval")}</div>`
       }
       ${videoCandidateStrip(shot)}
       <div class="storyboard-actions">
-        <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" ${hasImage ? "" : "disabled"}>${isVideo ? t("regenerate_video") : t("generate_video")}</button>
+        <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" ${gate.ready ? "" : "disabled"}>${isVideo ? t("regenerate_video") : t("generate_video")}</button>
       </div>
+      ${!gate.ready ? `<p class="stage-lock">${!gate.scriptLocked ? t("shot_image_requires_script") : !gate.imageApproved ? t("shot_video_requires_image") : t("shot_video_requires_character_lock")}</p>` : ""}
     </div>`;
 }
 
 function storyboardImageBlock(shot) {
   const asset = shot.image_asset || "";
   const isGenerated = Boolean(asset);
+  const gate = shotImageGate(project(), shot);
+  const imageApproved = shot.image_status === "approved" && isGenerated;
   const mode = shot.image_generation?.mode;
   const modeBadge =
     isGenerated && mode
@@ -123,9 +129,11 @@ function storyboardImageBlock(shot) {
       ${modeBadge}
       ${imageCandidateStrip(shot)}
       <div class="storyboard-actions">
-        <button type="button" class="mini-button generate-image-button" data-generate-image="${escapeHtml(shot.id)}">${isGenerated ? t("regenerate_image") : t("generate_image")}</button>
+        <button type="button" class="mini-button generate-image-button" data-generate-image="${escapeHtml(shot.id)}" ${gate.ready ? "" : "disabled"}>${isGenerated ? t("regenerate_image") : t("generate_image")}</button>
+        <button type="button" class="mini-button ${imageApproved ? "ghost" : "primary"}" data-approve-image="${escapeHtml(shot.id)}" ${isGenerated ? "" : "disabled"}>${imageApproved ? t("image_approved") : t("approve_image")}</button>
         <button type="button" class="mini-button ghost" data-prompt-preview="${escapeHtml(shot.id)}">${t("view_prompt")}</button>
       </div>
+      ${!gate.ready ? `<p class="stage-lock">${!gate.scriptLocked ? t("shot_image_requires_script") : gate.missingCharacters.length ? t("shot_image_requires_character_lock") : ""}</p>` : ""}
     </div>`;
 }
 

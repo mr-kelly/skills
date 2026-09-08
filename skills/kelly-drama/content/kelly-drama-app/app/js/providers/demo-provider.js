@@ -1074,6 +1074,12 @@ export const demoProvider = {
   async requestCharacterCardGeneration() {
     throw new Error("Demo mode is read-only.");
   },
+  async approveCharacterCard() {
+    throw new Error("Demo mode is read-only.");
+  },
+  async approveStoryboardImage() {
+    throw new Error("Demo mode is read-only.");
+  },
   async saveImageConfig() {
     throw new Error("Demo mode is read-only.");
   },

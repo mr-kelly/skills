@@ -341,6 +341,21 @@ export function bindForm() {
       }
     });
   });
+  document.querySelectorAll("[data-approve-character-card]").forEach((node) => {
+    node.addEventListener("click", async () => {
+      const id = node.dataset.approveCharacterCard;
+      node.disabled = true;
+      try {
+        const provider = await getProvider();
+        store.state = await provider.approveCharacterCard(id);
+        toast(t("toast_char_ref_approved"));
+        hooks.render();
+      } catch (error) {
+        toast(error.message || t("approve_char_ref_failed"));
+        node.disabled = false;
+      }
+    });
+  });
   document.querySelectorAll("[data-set-voice-active]").forEach((node) => {
     node.addEventListener("click", async () => {
       try {
@@ -362,6 +377,21 @@ export function bindForm() {
         hooks.render();
       } catch (error) {
         toast(error.message || "Failed");
+      }
+    });
+  });
+  document.querySelectorAll("[data-approve-image]").forEach((node) => {
+    node.addEventListener("click", async () => {
+      const shotId = node.dataset.approveImage;
+      node.disabled = true;
+      try {
+        const provider = await getProvider();
+        store.state = await provider.approveStoryboardImage(shotId);
+        toast(t("toast_image_approved"));
+        hooks.render();
+      } catch (error) {
+        toast(error.message || t("approve_image_failed"));
+        node.disabled = false;
       }
     });
   });
