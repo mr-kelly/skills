@@ -122,6 +122,7 @@ function shotListRow(shot, index) {
         </span>
         <span class="shot-row-caret">${expanded ? "▾" : "▸"}</span>
       </button>
+      <button type="button" class="mini-button ghost shot-row-edit" data-shot-edit="${escapeHtml(shot.id)}" title="${t("shot_edit")}">${t("shot_edit")}</button>
       ${expanded ? `<div class="shot-row-detail">${shotPreview(shot)}</div>` : ""}
     </div>`;
 }
@@ -196,7 +197,7 @@ function episodeDetail(item) {
       </div>
 
       ${store.episodeTab === "shots" ? episodeShotsTab(item, shots) : episodeSummaryTab(item)}
-      ${store.episodeTab === "shots" ? `<div class="form-actions"><span class="muted">${t("episode_shots_note")}</span></div>` : formActions()}
+      ${store.episodeTab === "shots" ? "" : formActions()}
     </form>`;
 }
 

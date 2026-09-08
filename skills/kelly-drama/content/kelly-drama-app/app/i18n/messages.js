@@ -88,7 +88,10 @@ export const MESSAGES = {
     episode_tab_summary: "剧集总述",
     episode_tab_shots: "分镜详情",
     episode_back: "返回剧集列表",
-    episode_shots_note: "分镜详情当前用于查看执行层，编辑分镜可后续接到单镜头弹窗。",
+    shot_edit: "编辑",
+    toast_save_failed: "保存失败。",
+    shot_edit_eyebrow: "编辑分镜",
+    shot_not_found: "找不到这个分镜。",
     episode_select_hint: "选择一集",
     episode_select_hint_sub: "从左侧剧集表格进入单集详情。",
     // shot readiness
@@ -319,7 +322,10 @@ export const MESSAGES = {
     episode_tab_summary: "Episode summary",
     episode_tab_shots: "Storyboard shots",
     episode_back: "Back to episode list",
-    episode_shots_note: "Shot details are view-only here. Full editing is available per-shot in a future panel.",
+    shot_edit: "Edit",
+    toast_save_failed: "Save failed.",
+    shot_edit_eyebrow: "Edit shot",
+    shot_not_found: "That shot no longer exists.",
     episode_select_hint: "Select an episode",
     episode_select_hint_sub: "Click an episode in the table to open its detail.",
     // shot readiness

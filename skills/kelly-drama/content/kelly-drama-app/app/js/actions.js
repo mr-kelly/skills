@@ -1,8 +1,9 @@
 import { getProvider, toast } from "./api.js";
 import { storyboardPromptPreview } from "./drama-model.js?v=0.1.0";
 import { arr } from "./format.js";
+import { shotForm } from "./forms.js";
 import { t } from "./i18n.js";
-import { openImageModal, openPromptModal } from "./modal.js";
+import { closeModal, openImageModal, openPromptModal, openShotEditModal } from "./modal.js";
 import { navigateTo, syncRoute } from "./router.js";
 import { isMobileLayout, setMobileDetailOpen } from "./shell.js";
 import { project, store } from "./store.js";
@@ -257,11 +258,46 @@ export function bindForm() {
   });
   document.querySelectorAll("[data-shot-toggle]").forEach((node) => {
     node.addEventListener("click", (event) => {
-      if (event.target.closest("[data-generate-image], [data-prompt-preview], [data-image-zoom]")) return;
+      if (event.target.closest("[data-generate-image], [data-prompt-preview], [data-image-zoom], [data-shot-edit]"))
+        return;
       const id = node.dataset.shotToggle;
       if (store.expandedShots.has(id)) store.expandedShots.delete(id);
       else store.expandedShots.add(id);
       hooks.render();
+    });
+  });
+  document.querySelectorAll("[data-shot-edit]").forEach((node) => {
+    node.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const shot = (project().shots || []).find((s) => s.id === node.dataset.shotEdit);
+      if (!shot) {
+        toast(t("shot_not_found"));
+        return;
+      }
+      openShotEditModal(shotForm(shot), shot.title || shot.id);
+      // The page-level form binding below grabs only the FIRST form.detail-card
+      // in the document, which is the episode form behind the overlay — so the
+      // modal's form has to be wired here explicitly. It still submits through
+      // saveForm(), i.e. the same `kind: "shots"` branch the detail pane uses;
+      // this adds an entry point, never a second write path.
+      const modalForm = document.querySelector("#modalHost form.detail-card");
+      if (!modalForm) return;
+      modalForm.addEventListener("input", () => modalForm.classList.add("is-dirty"));
+      modalForm.addEventListener("submit", async (submitEvent) => {
+        submitEvent.preventDefault();
+        try {
+          await saveForm(modalForm);
+        } catch (error) {
+          // Demo mode rejects every write by design, and a real Space can
+          // reject too (lock held, permission denied). Surface it and keep the
+          // modal open with the user's edits intact rather than letting the
+          // rejection escape as an unhandled error and look like a dead button.
+          toast(error.message || t("toast_save_failed"));
+          return;
+        }
+        closeModal();
+        hooks.render();
+      });
     });
   });
   const expandAll = document.querySelector("[data-shots-expand-all]");
