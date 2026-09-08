@@ -73,6 +73,24 @@ Short-drama episodes usually need a click reason every 45-90 seconds. For each e
 - Avoid "setup-only" episodes. If an episode must set up, include a mini-payoff.
 - Keep each beat tied to a character decision or reveal.
 
+## Season Continuity Pass
+
+The episode ladder can be correct while the video still feels like unrelated
+clips. Before spending on storyboard images, run a continuity pass across the
+whole season:
+
+- Give each episode a specific three-shot movement: entry state, turn, and
+  cliffhanger image. Do not reuse a generic shot template across episodes.
+- Carry at least one concrete element across the cut: a phone, photo, ticket,
+  card, tape, bill, screen, sound, gesture, eyeline, or room geography.
+- Make the last shot of episode N the first visual question of episode N+1.
+- Put the carry-over in `continuity.carries_from_prev` and put the stable traits
+  in `continuity.anchors`; prompt generation from those fields rather than
+  rewriting the visual canon in prose.
+- When the continuity pass changes a shot, keep old assets as candidates but
+  mark the episode/shot/image/video as `changes_requested` and rerender from
+  the new canonical shot data.
+
 Recommended beat fields:
 
 - `hook`: what catches attention immediately.

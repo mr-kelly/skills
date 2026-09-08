@@ -93,7 +93,7 @@ here — they're env vars read only by the trusted generation script
 | --- | --- | --- | --- |
 | `record-id` | `record_id` | text | always `"config"` |
 | `image-base-url` / `image-model` / `image-size` | same | text | OpenAI-images-compatible endpoint |
-| `video-draft-backend` | `video_draft_backend` | text | e.g. `ltx-video-mps` |
+| `video-draft-backend` | `video_draft_backend` | text | e.g. `ltx-video-mps` or `minimax-h3-mlx` |
 | `video-width` / `video-height` / `video-fps` / `video-max-frames` | same | number | local LTX draft render settings |
 | `video-prod-backend` / `video-ark-base-url` / `video-ark-model` | same | text | Seedance 2.0 via BytePlus/Volcengine Ark |
 | `video-prod-resolution` / `video-prod-ratio` | same | text | e.g. `720p` / `16:9` |
@@ -174,8 +174,8 @@ Busabase gives no ordering guarantee) carries the sequence.
 | `image-asset-id` / `image-status` / `image-generated-at` | same | text | active image; `approved` means the human accepted the selected storyboard image |
 | `image-generation-json` | `image_generation_json` | longtext | JSON: `{provider, base_url, model, mode}`, `mode` is `image-edit\|text-to-image` |
 | `image-candidates-json` | `image_candidates_json` | longtext | JSON array `[{assetId, generated_at, generation}]` |
-| `video-asset-id` / `video-status` / `video-generated-at` | same | text | active video; `video-status` also carries the requested backend as `requested:seedance`/`requested:ltx` |
-| `video-generation-json` | `video_generation_json` | longtext | JSON: `{mode: draft\|prod, backend, ...}` |
+| `video-asset-id` / `video-status` / `video-generated-at` | same | text | active video; `video-status` carries `requested:seedance`, `requested:ltx`, or `requested:minimax-h3` |
+| `video-generation-json` | `video_generation_json` | longtext | JSON: `{mode: local\|draft\|prod, backend, method, audio, dialogue_backend?, ...}` |
 | `video-candidates-json` | `video_candidates_json` | longtext | JSON array `[{assetId, generated_at, generation}]` |
 | `deleted` | `deleted` | text | `"true"`/`"false"` soft-delete tombstone |
 
@@ -209,7 +209,7 @@ request directly onto the owning record's status field:
 - Character reference card / three-view turnaround: `reference-card-status = "requested"`.
 - Character reference voice: `voice-reference-status = "requested"`.
 - Storyboard image: `image-status = "requested"` only after the episode/shot text and all on-screen character turnarounds are approved.
-- Shot video: `video-status = "requested:<backend>"` (`seedance` default, or `ltx` for the local draft path).
+- Shot video: `video-status = "requested:<backend>"` (`seedance`, `ltx`, or `minimax-h3`). `minimax-h3` may use an approved first-frame image or an explicitly recorded text-to-video-and-audio fallback.
 
 `scripts/execute_generation_requests.mjs --apply` is the trusted process
 that scans for `"requested"` rows, performs the real generation call
@@ -233,5 +233,5 @@ generation (reference cards, reference voices, storyboard images, shot
 videos) and the local-filesystem HyperFrame status read are never done from
 the browser — only requested; `scripts/execute_generation_requests.mjs` and
 `scripts/read_hyperframe_status.mjs` are the trusted processes authorized to
-call an external image/video API, spawn the local Qwen3-TTS or LTX-Video
-process, or read the operator's local filesystem.
+call an external image/video API, spawn the local Qwen3-TTS, MiniMax-H3 MLX,
+or LTX-Video process, or read the operator's local filesystem.

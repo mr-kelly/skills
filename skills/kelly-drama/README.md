@@ -64,13 +64,20 @@ real generated or uploaded asset.
 
 Generating a character reference card, a reference voice, a storyboard
 image, or a shot video needs either a paid image-API key, a local Python
-with `mlx_audio` installed, a local LTX-Video checkout, or a Seedance/Ark
-API key — the browser can only write a **request** onto the record (never
-hold a key or spawn a local process). `scripts/execute_generation_requests.mjs
-[--apply]` is the trusted process that fulfills those requests: it re-reads
-Busabase, performs the real generation call, uploads the result as a
-Busabase Asset, and flips the record's status to `generated` (or `blocked`
-on failure).
+with `mlx_audio` installed, a local MiniMax-H3 MLX checkout, a local
+LTX-Video checkout, or a Seedance/Ark API key — the browser can only write a
+**request** onto the record (never hold a key or spawn a local process).
+`scripts/execute_generation_requests.mjs [--apply]` is the trusted process
+that fulfills those requests: it re-reads Busabase, performs the real
+generation call, uploads the result as a Busabase Asset, and flips the
+record's status to `generated` (or `blocked` on failure). Exact dialogue is
+normally synthesized with local Qwen3-TTS and mixed into the video from the
+shot's SRT timecodes.
+
+For local MiniMax-H3 MLX, set `KELLY_DRAMA_H3_DIR` to the `mlx-h3` checkout and
+request `video_status = "requested:minimax-h3"`. The trusted process uses an
+approved storyboard image as a first frame when present, or records an
+explicit text-to-video-and-audio fallback when the image stage is unavailable.
 
 ## HyperFrame
 

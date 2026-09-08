@@ -64,6 +64,7 @@ Default to the AirApp for ongoing creative work — give the user the clickable 
    - Character library and relationship map: establish stable character ids, dramatic roles, character cards, relationship power direction, emotional temperature, conflict, and evidence episodes.
    - Character three-view lock: fill each character's front/side/back notes, generate one turnaround reference sheet with the three views, review it, and set `reference_card_status = "approved"`. Do not generate storyboard images for shots containing a character whose three-view reference is not approved.
    - Episode ladder and text lock: write the episode promise, acts, beats, turning points, dialogue, and cliffhanger; then set the episode and each shot's `status = "approved"` only after the user confirms the script and storyboard text.
+   - Season continuity pass: every shot sequence must carry a prop, sound, spatial axis, action, or unresolved line from the previous shot/episode. Do not fill every episode with the same generic `cold open / memory / empty room` template; each shot title, setting, action, and transition must be specific to its beat.
    - Storyboard image stage: request/generate images only after the text lock and character three-view lock. The user may reject/regenerate candidates; set `image_status = "approved"` only for the selected image.
    - Video stage: request/generate shot video only after the selected storyboard image is approved. Never skip from a text prompt directly to video when a storyboard image is required.
    - HyperFrame project link: `series.hyperframe_project_path` is the absolute path to the matching HyperFrame project. Do not guess it when the user has provided a path; store the explicit path.
@@ -106,6 +107,7 @@ When planning a new episode first in Kelly Drama:
 ## Creative Operating Rules
 
 - Preserve continuity first: every new scene should point to character ids, relationship ids, and prior facts instead of rewriting canon.
+- Treat the season as one serialized visual argument: map the recurring objects, spaces, sounds, and power changes before generating media. A plot can be approved while its storyboard still needs a continuity rewrite.
 - Treat actors and characters separately. An actor can play a character, but the character card is the story source of truth.
 - Treat character visual identity as a hard dependency. The textual front/side/back notes are not enough by themselves: generate and human-approve a three-view turnaround reference sheet before using that character in storyboard image generation.
 - Keep the production gates explicit: character `reference_card_status = "approved"` unlocks storyboard images; episode and shot `status = "approved"` unlock the image stage; shot `image_status = "approved"` unlocks video. A request that bypasses one of these gates is invalid and should be blocked with a clear next step.
@@ -118,6 +120,7 @@ When planning a new episode first in Kelly Drama:
 - Use real image-to-image conditioning for character consistency: storyboard generation feeds the existing character reference-card images (and the visual background reference) to the `/images/edits` endpoint as actual input images, not just as text. Text mentions of a reference path do nothing — the model must receive the pixels. If a character lacks a generated reference card, that shot falls back to text-to-image and consistency will drift, so generate the card first.
 - Generate in dependency order: visual bible/background reference images first, then character reference-card images, then episode storyboard images, then video generation units. If character or background references are missing, create those before generating storyboard/video assets to avoid consistency drift and wasted generations.
 - The human review checkpoints are part of the dependency order: approve the character turnaround before storyboard images, approve the episode/shot text before storyboard images, and approve the selected storyboard image before video. Regeneration resets the downstream approval for that asset.
+- When a continuity or story revision changes shot content, preserve the old assets as candidates but set the episode/shot/image/video statuses to `changes_requested`; old renders are references, not final output.
 - Finish the text before spending on pixels: a shot must reach the video-ready Definition of Done (below) and pass `scripts/validate_shot_readiness.mjs` before you generate its image or video. Thin shot data (missing motion, audio, transitions, timed dialogue) produces wasted image and video generations.
 - For realism-oriented dramas, prompts should explicitly request live-action cinema stills, natural lensing, physical costumes, period-accurate sets, and "almost impossible to tell it is AI generated"; also forbid UI overlays, captions, watermarks, readable fake text, modern items, fantasy glow, and plastic-looking skin.
 - Use "forbidden drift" on character cards for details the image or script generator must not change.
@@ -151,14 +154,16 @@ Turning storyboards into an actual short drama (continuous episode with characte
 - **Non-destructive generation + candidates**: every image/video/voice generation appends a candidate (`image_candidates` / `video_candidates` / `voice_candidates`); the user picks the active one in the app (a Busabase record write, not a file rename). Different models/providers just add more candidates. Never overwrite.
 - **Character voices**: local Qwen3-TTS (mlx-audio, Apple Silicon), VoiceDesign `instruct` built from each character's `voice_profile`. It tends to speak slowly — fit each line into its shot window with ffmpeg `atempo` during assembly.
 - **Episode assembly** (the step that makes clips into a drama): per-shot visual sized to exactly the shot's duration (Seedance clip where available, else a Ken Burns `zoompan` move on the storyboard still) → `concat` into one silent episode video → synthesize each dialogue line (right voice), place it at its cumulative SRT time (`adelay`), atempo-fit to its shot window, and `amix` all lines → mux audio onto the video. Burned-in subtitles need an ffmpeg built with **libass** (the default Homebrew build here lacked the `subtitles` filter) — otherwise ship a `.srt` sidecar. **Lip-sync** is a later polish (cut to the speaker's close-up + a dedicated lip-sync model); ship voiceover-over-picture first.
-- Local video generation on Mac (LTX-Video on MPS) proved impractical (tens of GB across multiple models, slow/thermal MPS, stalling downloads) — use cloud (Seedance/Ark) for video.
+- **Exact dialogue rule:** H3's joint audio can attempt spoken dialogue, but exact Chinese lines are not guaranteed. For deliverable dialogue, generate the character/narrator lines with local Qwen3-TTS, place them from `srt` timecodes, duck H3 ambience, and mux with ffmpeg. Mark the generation metadata with `dialogue_backend: "qwen3-tts-mlx+ffmpeg"`.
+- **MiniMax-H3 MLX:** when the local checkout is available, use `node scripts/execute_generation_requests.mjs --apply` with `video_status = "requested:minimax-h3"`. `scripts/gen_minimax_h3.mjs` runs the local `uv run mlx-h3` runtime, uses an approved storyboard image as `--first-frame` when available, and permits an explicit text-to-video-and-audio fallback when image generation is unavailable. Set `KELLY_DRAMA_H3_DIR` to the checkout; do not silently switch to cloud video.
+- Local LTX-Video on Mac remains a separate draft backend. Choose H3 MLX for local joint video/audio, Seedance/Ark for cloud production, and LTX only when its checkout and memory budget are known to work.
 
 ## Busabase Resources
 
 One Folder (`kelly-drama`), seven Bases, declared in `content/kelly-drama-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `project`: single-row series bible + visual bible + the paired HyperFrame project path and its cached status (`hyperframe_status_json`, refreshed by `scripts/read_hyperframe_status.mjs`).
-- `settings`: one row (`record-id: "config"`) with the image/video/TTS generation backend settings (base URL/model/size, LTX draft params, Seedance/Ark prod params, TTS model — API keys themselves are env vars for the trusted scripts, never stored).
+- `settings`: one row (`record-id: "config"`) with the image/video/TTS generation backend settings (base URL/model/size, LTX draft params, MiniMax-H3 MLX local checkout/steps via environment, Seedance/Ark prod params, TTS model — API keys themselves are env vars for the trusted scripts, never stored).
 - `characters`: character library — card (identity/motivation/wound/secret/arc/voice), three-view visual notes, wardrobe, anchors/forbidden-drift (JSON arrays), voice profile, and the reference-card + reference-voice status/prompt/asset id.
 - `relationships`: directional relationships — type, public status, hidden truth, power dynamic, emotional temperature, conflict, evidence (JSON array).
 - `episodes`: episode ladder — number, title, promise, A/B-plot, cliffhanger, beats (JSON array), and the paired HyperFrame composition/video-asset fields.
@@ -175,9 +180,10 @@ full field <-> asset mapping.
 Clicking a "Generate" button in the app only writes a **request** onto the
 character/shot record (`reference_card_status` / `voice_reference_status` /
 `image_status` / `video_status` = `requested`) — the browser cannot hold the
-image-API key or spawn the local Qwen3-TTS/LTX-Video processes. After the
-user asks, fulfill pending requests with `node scripts/execute_generation_requests.mjs --apply`
-(dry run without `--apply`).
+image-API key or spawn local generation processes. After the user asks,
+fulfill pending requests with `node scripts/execute_generation_requests.mjs --apply`
+(dry run without `--apply`). For local MiniMax-H3 MLX, set
+`KELLY_DRAMA_H3_DIR` and use `video_status = "requested:minimax-h3"`.
 
 Resources provision lazily through an idempotent Busabase ChangeRequest the
 first time the app runs in a Space. A soft-delete `deleted` text field

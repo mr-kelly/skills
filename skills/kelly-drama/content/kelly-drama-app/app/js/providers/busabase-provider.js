@@ -84,7 +84,7 @@ function characterVisualLockReadyRow(row = {}) {
   );
 }
 
-async function assertShotGenerationStage(shotRow, { video = false } = {}) {
+async function assertShotGenerationStage(shotRow, { video = false, allowTextVideo = false } = {}) {
   const episode = await findRecord("episodes", "episode-id", shotRow.episode_id);
   const episodeFields = normalizeFields(episode?.headCommit?.payload || episode?.headCommit?.fields || episode?.fields);
   if (episodeFields.status !== "approved" || shotRow.status !== "approved") {
@@ -104,7 +104,7 @@ async function assertShotGenerationStage(shotRow, { video = false } = {}) {
     }
   }
 
-  if (video && (shotRow.image_status !== "approved" || !shotRow.image_asset_id)) {
+  if (video && !allowTextVideo && (shotRow.image_status !== "approved" || !shotRow.image_asset_id)) {
     throw new Error("请先确认本镜分镜图片，再进入视频阶段。");
   }
 }
@@ -1009,7 +1009,10 @@ export const busabaseProvider = {
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
-    await assertShotGenerationStage(currentFields, { video: true });
+    await assertShotGenerationStage(currentFields, {
+      video: true,
+      allowTextVideo: backend === "minimax-h3" || backend === "h3",
+    });
     await upsert(
       "shots",
       "shot-id",

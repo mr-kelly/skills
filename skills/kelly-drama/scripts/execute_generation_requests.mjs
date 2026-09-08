@@ -14,8 +14,8 @@
 // agent_tasks.json — there is no separate decisions/tasks bucket, per the
 // migration recipe. Also mirrors Kelly MV's scripts/execute_generation_requests.mjs
 // (this skill's closest architectural twin) for the image-generation half;
-// the voice (Qwen3-TTS/mlx-audio) and video (Seedance/Ark cloud + LTX-Video
-// local draft) halves are Kelly Drama-specific, ported from the retired
+// the voice (Qwen3-TTS/mlx-audio) and video (MiniMax-H3 MLX / Seedance/Ark
+// cloud + LTX-Video local draft) halves are Kelly Drama-specific, ported from the retired
 // lib/generation/{voice,video}-service.ts.
 //
 // Usage:
@@ -41,10 +41,12 @@ import {
   voiceScript,
 } from "../content/kelly-drama-app/app/js/drama-model.js";
 import { generateDraftVideo } from "./gen_draft_video.mjs";
+import { generateMiniMaxH3Video } from "./gen_minimax_h3.mjs";
 import {
   connect,
   downloadAssetToFile,
   parseJsonArray,
+  parseJsonObject,
   readAllRecords,
   uploadAssetFromBytes,
   uploadAssetFromFile,
@@ -239,7 +241,7 @@ function toShotFields(row) {
   };
 }
 
-function shotStageError(row, episodeRows, characterRows, { video = false } = {}) {
+function shotStageError(row, episodeRows, characterRows, { video = false, allowTextVideo = false } = {}) {
   const episode = episodeRows.find((item) => item.episode_id === row.episode_id);
   if (episode?.status !== "approved" || row.status !== "approved") {
     return "脚本/分镜尚未定稿；请先将所属剧集和本镜 status 设为 approved。";
@@ -258,7 +260,7 @@ function shotStageError(row, episodeRows, characterRows, { video = false } = {})
     );
   });
   if (missing.length) return `角色三视图未锁定：${missing.join(", ")}`;
-  if (video && (row.image_status !== "approved" || !row.image_asset_id)) {
+  if (video && !allowTextVideo && (row.image_status !== "approved" || !row.image_asset_id)) {
     return "分镜图片尚未确认；请先将 image_status 设为 approved。";
   }
   return "";
@@ -632,13 +634,73 @@ async function main() {
   for (const row of pendingVideos) {
     const backend = String(row.video_status || "").split(":")[1] || "seedance";
     try {
-      const gateError = shotStageError(row, episodeRows, characterRows, { video: true });
+      const isH3 = backend === "minimax-h3" || backend === "h3";
+      const gateError = shotStageError(row, episodeRows, characterRows, { video: true, allowTextVideo: isH3 });
       if (gateError) throw new Error(gateError);
-      if (!row.image_asset_id)
+      if (!row.image_asset_id && !isH3)
         throw new Error(
           "This shot has no storyboard image yet — generate the image first (video is image-to-video from the keyframe).",
         );
-      if (backend === "ltx" || backend === "draft") {
+      if (isH3) {
+        const imageAbs = row.image_asset_id ? path.join(CACHE_DIR, `${row.shot_id}-h3-keyframe.png`) : "";
+        if (imageAbs) await downloadAssetToFile(client, row.image_asset_id, imageAbs);
+        const audio = parseJsonObject(row.audio_json);
+        const dialogue = (audio.dialogue || [])
+          .map((line) => `${line.speaker || "角色"}说：“${line.line || ""}”`)
+          .join("；");
+        const h3Prompt = [
+          prodPrompt(toShotFields(row)),
+          "Generate synchronized Mandarin speech and restrained ambient sound.",
+          dialogue ? `Spoken dialogue, say these lines clearly in order: ${dialogue}.` : "",
+          audio.narration ? `Narration: ${audio.narration}.` : "",
+          "Preserve the fictional character designs, wardrobe continuity, camera geography, and emotional beat. No subtitles, watermark, logo, or readable text.",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        const outAbs = path.join(CACHE_DIR, `${row.shot_id}-minimax-h3.mp4`);
+        await generateMiniMaxH3Video({
+          image: imageAbs,
+          prompt: h3Prompt,
+          output: outAbs,
+          durationSeconds: Number(row.duration_seconds) || 8,
+        });
+        const bytes = await fs.readFile(outAbs);
+        const { assetId } = await uploadAssetFromBytes(
+          client,
+          bytes,
+          `${row.shot_id}-minimax-h3.mp4`,
+          "video/mp4",
+          "kelly-drama/generation",
+        );
+        const generatedAt = new Date().toISOString();
+        const generation = {
+          mode: "local",
+          backend: "minimax-h3-mlx",
+          method: imageAbs ? "first-frame" : "text-to-video-and-audio-fallback",
+          audio: true,
+          duration_seconds: Number(row.duration_seconds) || 8,
+        };
+        const candidates = [
+          ...parseJsonArray(row.video_candidates_json),
+          { assetId, generated_at: generatedAt, generation },
+        ];
+        await upsert(
+          client,
+          basesByKey.get("shots"),
+          "shot-id",
+          row.shot_id,
+          {
+            ...toShotFields(row),
+            video_asset_id: assetId,
+            video_status: "generated",
+            video_generated_at: generatedAt,
+            video_generation_json: JSON.stringify(generation),
+            video_candidates_json: JSON.stringify(candidates),
+          },
+          `Generate MiniMax-H3 MLX video for ${row.shot_id}`,
+        );
+        console.log(`generated MiniMax-H3 video: ${row.shot_id}`);
+      } else if (backend === "ltx" || backend === "draft") {
         const imageAbs = path.join(CACHE_DIR, `${row.shot_id}-keyframe.png`);
         await downloadAssetToFile(client, row.image_asset_id, imageAbs);
         const outAbs = path.join(CACHE_DIR, `${row.shot_id}-draft.mp4`);
