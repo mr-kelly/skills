@@ -71,6 +71,7 @@ function itemCard(item) {
 
 export function renderListAndDetail() {
   $("newItemButton").style.visibility = "visible";
+  document.querySelector(".workspace")?.classList.remove("episode-detail-mode", "episodes-list-layout");
   const items = collectionFor().filter(matches);
   $("itemCount").textContent = store.query
     ? `${items.length}${store.state.pagination?.[store.view] ? "+" : ""}`
