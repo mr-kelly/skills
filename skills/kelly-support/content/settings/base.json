@@ -1,7 +1,7 @@
 {
   "name": "Settings",
   "description": "One row (record-id: config) with SLA policy, risk policy, reply style, and the KB source path",
-  "position": 5,
+  "position": 6,
   "fields": [
     {
       "slug": "record-id",

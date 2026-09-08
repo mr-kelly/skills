@@ -1,0 +1,80 @@
+{
+  "name": "QA Pairs",
+  "description": "Question/answer pairs distilled from Knowledge Base articles — what the agent retrieves against, and the shape a fine-tune consumes",
+  "position": 4,
+  "fields": [
+    {
+      "slug": "pair-id",
+      "name": "Pair ID",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "article-id",
+      "name": "Source article",
+      "type": "text",
+      "required": true,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "question",
+      "name": "Question",
+      "type": "longtext",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
+      "slug": "answer",
+      "name": "Answer",
+      "type": "longtext",
+      "required": true,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "category",
+      "name": "Category",
+      "type": "text",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "tags",
+      "name": "Tags",
+      "type": "longtext",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "status",
+      "name": "Status",
+      "type": "text",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "reviewed-by",
+      "name": "Reviewed by",
+      "type": "text",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 8,
+      "options": {}
+    }
+  ],
+  "views": []
+}

@@ -92,13 +92,14 @@ the exact missing dependency. Do not invent a second data backend.
 
 ## Busabase Resources
 
-Six Bases under one application Folder (`kelly-support`), declared in
+Seven Bases under one application Folder (`kelly-support`), declared in
 `content/kelly-support-app/app/js/config.js` and the generated template sidecars under `content/`:
 
 - `accounts`: channel accounts — email, WhatsApp, web chat, contact form, WeChat — with connector and env-var *names* for tokens (never values).
 - `tickets`: the approval queue — customer, subject/body, category/priority, workflow `status`, `proposed-action`, the KB-grounded `suggested-reply` and its `kb-refs`, SLA fields, an optional CSAT score, the human verdict (`decision-action`/`decision-comment`/`decided-at`), and the execution marker written by `scripts/execute_decisions.mjs`.
 - `messages`: one row per conversation message, joined onto its ticket by `ticket-id`.
-- `knowledge-base`: articles and canned macros the agent cites when drafting replies.
+- `knowledge-base`: articles and canned macros the agent cites when drafting replies. **This is the source of truth** — everything downstream traces back to an article here.
+- `qa-pairs`: question/answer pairs distilled from those articles. Each row keeps its `article-id`, so any answer can be traced back to the article it came from. This is both what the agent retrieves against for a fast, well-scoped reply, and the exact shape a fine-tune consumes.
 - `sync-log`: append-only history of ticket-collection runs per account.
 - `settings`: one row (`record-id: "config"`) with SLA policy, risk policy, reply style, and the KB source path.
 
@@ -173,6 +174,43 @@ logic.
 2. Set `proposed_action`: `send_reply` for a normal answer, `escalate` (with a tier) for anything beyond L1, `refund` (approval-required) for eligible refunds, `close` to resolve without a reply, `no_action` for spam or FYI.
 3. Write the ticket to Busabase with `status: "needs_review"`. The `support-qa` gate (`runQualityGate`) is computed live on every read — never stored — so an edited reply always reflects the current verdict.
 4. Give Kelly the AirApp URL (or local preview URL) to review the queue, gate verdicts, and SLA board.
+
+## Knowledge Base → QA Pairs
+
+The `knowledge-base` Base holds whole documents — a returns policy, a
+shipping FAQ, a warranty page. Those are what a human wrote; they are not the
+shape either retrieval or training wants.
+
+Distilling an article into `qa-pairs` produces that shape:
+
+1. Read the article from `knowledge-base`.
+2. Split it into the distinct questions a customer would actually ask, and
+   the answer to each. One article usually yields several pairs; a long
+   policy page can yield a dozen.
+3. Write each pair with its `article-id` so the answer stays traceable to its
+   source, and `status: "draft"`.
+4. A human reviews and flips `status` to `approved`. Only approved pairs are
+   used for drafting or exported for training.
+
+Rules that keep this honest:
+
+- **Never invent an answer the article does not support.** If a question has
+  no answer in the source, it does not become a pair. A fabricated pair is
+  worse here than anywhere else: it will be repeated to a real customer, and
+  if exported it teaches a model to repeat it forever.
+- **Preserve numbers and conditions exactly** — refund windows, fee amounts,
+  eligibility conditions. Paraphrasing "within 7 days" into "about a week" is
+  a policy change, not a rewrite.
+- **An article edit invalidates its pairs.** When an article's `updated-at`
+  moves past its pairs', re-distill and re-review rather than leaving stale
+  answers approved.
+- Pairs are derived data. The article remains the source of truth; never edit
+  a pair to say something the article does not.
+
+Approved pairs are also the export surface for fine-tuning — see
+`$kelly-local-model-lab`, which consumes exactly this question/answer shape.
+Fine-tuning is optional and separate: this skill works fully without it, and
+a fine-tune never replaces the human approval queue.
 
 ## The Quality Gate — `support-qa` ⛩
 
