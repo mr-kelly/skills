@@ -261,7 +261,7 @@ def test_busabase_provisioning(browser) -> None:
         # Data must survive a complete Busabase process restart.
         with managed_process(busabase_command, REPO_ROOT, {}, f"{busabase_url}/api/health", timeout=90):
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
-            assert len(resource_keys(nodes)) == 7, nodes
+            assert len(resource_keys(nodes)) == 8, nodes
             tickets_base = find_resource(nodes, "tickets")
             records = read_json(f"{busabase_url}/api/v1/records?baseId={tickets_base['baseId']}")
             record_items = records if isinstance(records, list) else records.get("records", [])
