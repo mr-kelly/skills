@@ -7,11 +7,13 @@ counts, and shot readiness are computed client-side from
 `project`/`characters`/`relationships`/`episodes`/`shots`/`tasks` on every
 read (`content/kelly-drama-app/app/js/drama-model.js`) — they are never stored.
 
-One workspace = exactly one drama project (series bible + characters +
-relationships + episodes + storyboard shots + review tasks). The retired
-local-file app's multi-project "library"/project-switcher was never
-exercised by the shipped UI and is not ported — each Busabase Space/AirApp
-instance holds one drama project, same as every other converted skill.
+One Busabase Space can hold multiple drama projects. The `project` Base has
+one row per project. Every row in `characters`, `relationships`, `episodes`,
+`shots`, and `tasks` carries a required `project-id`; the app filters every
+collection by the active project before building state. IDs for new content
+are project-scoped to avoid collisions. Legacy rows without `project-id` are
+visible only under `kelly-drama-project` until
+`scripts/migrate_multi_project.mjs --apply` assigns them explicitly.
 
 Statuses: `characters`/`episodes`/`shots`/`tasks` `status` is
 `draft|needs_review|changes_requested|approved|done|blocked`.
@@ -69,7 +71,7 @@ reason, mirroring kelly-mv's identical precedent.
 
 ## project (`kelly-drama-project`)
 
-Single row (there is exactly one; look up the first record).
+One row per drama project; look up by `project-id`.
 
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
@@ -105,6 +107,7 @@ here — they're env vars read only by the trusted generation script
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
 | `character-id` | `character_id` | text | stable id, e.g. `char-lin-wan`, required |
+| `project-id` | `project_id` | text | owning drama project, required |
 | `name` / `role` / `status` | same | text | required |
 | `actor-profile` | `actor_profile` | longtext | casting/performance notes |
 | `card-identity` / `card-motivation` / `card-wound` / `card-secret` / `card-arc` / `card-voice` | same | longtext | the character card |
@@ -129,6 +132,7 @@ storyboard image-to-image for consistency.
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
 | `relationship-id` | `relationship_id` | text | required |
+| `project-id` | `project_id` | text | owning drama project, required |
 | `from-character-id` / `to-character-id` | same | text | reference `characters` ids |
 | `type` | `type` | text | e.g. "contract spouses" |
 | `public-status` / `hidden-truth` / `power-dynamic` | same | longtext | |
@@ -142,6 +146,7 @@ storyboard image-to-image for consistency.
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
 | `episode-id` | `episode_id` | text | required |
+| `project-id` | `project_id` | text | owning drama project, required |
 | `number` | `number` | number | episode number, drives display order |
 | `title` / `status` | same | text | |
 | `hyperframe-composition` / `hyperframe-video-asset` | same | text | paired HyperFrame composition path / rendered-output reference |
@@ -157,6 +162,7 @@ Busabase gives no ordering guarantee) carries the sequence.
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
 | `shot-id` | `shot_id` | text | required |
+| `project-id` | `project_id` | text | owning drama project, required |
 | `episode-id` / `beat-id` | same | text | link to the owning episode/beat |
 | `position` | `position` | number | sort key within the episode; new shots get `max(position) + 1` |
 | `title` / `status` | same | text | |
@@ -193,6 +199,7 @@ hand-off.
 | Field slug | App key | Type | Notes |
 | --- | --- | --- | --- |
 | `task-id` | `task_id` | text | required |
+| `project-id` | `project_id` | text | owning drama project, required |
 | `kind` | `kind` | text | `character\|relationship\|episode\|shot\|export` |
 | `target-id` | `target_id` | text | id of the referenced item |
 | `status` | `status` | text | |

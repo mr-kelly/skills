@@ -36,7 +36,10 @@
 
         <section class="project-switcher" aria-label="Drama switcher">
           <label for="projectSelect" data-i18n="project_label">项目</label>
-          <select id="projectSelect"></select>
+          <div class="project-select-row">
+            <select id="projectSelect"></select>
+            <button id="newProjectButton" type="button" data-i18n-title="new_project_title" title="新建项目" aria-label="新建项目">+</button>
+          </div>
           <div id="projectSwitchMeta" class="switch-meta"></div>
         </section>
 

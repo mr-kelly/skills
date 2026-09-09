@@ -290,6 +290,14 @@
       "required": false,
       "position": 35,
       "options": {}
+    },
+    {
+      "slug": "project-id",
+      "name": "Project ID",
+      "type": "text",
+      "required": true,
+      "position": 36,
+      "options": {}
     }
   ],
   "views": []

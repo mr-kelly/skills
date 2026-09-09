@@ -4,7 +4,7 @@ Kelly Drama is a Busabase-backed App-in-Skill workbench for planning short-drama
 
 ## What It Shows
 
-- Overview: project metrics, next-step cards, cached HyperFrame project status, and the visual bible.
+- Overview: switch/create isolated projects, project metrics, next-step cards, cached HyperFrame project status, and the visual bible.
 - Characters: character cards, actor profiles, three-view visual notes, reference-card images, and voice profiles.
 - Relationships: who relates to whom — public status, hidden truth, power dynamic, and evidence episodes.
 - Episodes: the episode table (summary, status, shot counts) plus per-episode script beats and the storyboard shot list.
@@ -89,9 +89,10 @@ HyperFrame panel to display.
 
 ## Data
 
-The whole workspace — series bible, characters, relationships, episodes, and
-storyboard shots — lives in seven Busabase Bases under one application
-Folder; binary media are Busabase Drive Assets referenced by id. See
+The workspace can hold multiple isolated drama projects. Their series bibles,
+characters, relationships, episodes, and storyboard shots live in seven
+Busabase Bases under one application Folder; every content row carries its
+owning project id, and binary media are Busabase Drive Assets referenced by id. See
 `SKILL.md` and `references/ui-schema.md` for the field-slug tables and the
 Asset shape. Trusted skill-root scripts (`scripts/execute_generation_requests.mjs`,
 `scripts/read_hyperframe_status.mjs`, `scripts/create_sample_project.mjs`,

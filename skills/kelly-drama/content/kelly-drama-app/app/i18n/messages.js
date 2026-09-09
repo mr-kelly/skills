@@ -6,6 +6,9 @@ export const MESSAGES = {
   zh: {
     brand_subtitle: "短剧工作台",
     project_label: "项目",
+    new_project_title: "新建项目",
+    new_project_prompt: "项目名称",
+    project_created: "项目已创建",
     search_placeholder: "搜索",
     new_item_title: "在当前视图中新建一项",
     new_item_label: "+",
@@ -252,6 +255,9 @@ export const MESSAGES = {
   en: {
     brand_subtitle: "Drama workbench",
     project_label: "Project",
+    new_project_title: "Create project",
+    new_project_prompt: "Project title",
+    project_created: "Project created",
     search_placeholder: "Search",
     new_item_title: "Create a new item in current view",
     new_item_label: "+",

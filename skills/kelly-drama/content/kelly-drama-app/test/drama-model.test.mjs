@@ -11,6 +11,7 @@ import {
   hasGeneratedRef,
   hasSoundBed,
   listToArray,
+  rowsForProject,
   shotCharacters,
   shotImageGate,
   shotIsSilent,
@@ -116,6 +117,22 @@ test("attention tallies status across tasks/characters/episodes/shots", () => {
   assert.equal(a.approved, 2); // 1 task + 1 episode
   assert.equal(a.blocked, 1);
   assert.deepEqual(countBy(project.tasks), { needs_review: 1, approved: 1, blocked: 1 });
+});
+
+test("rowsForProject isolates projects and assigns legacy rows only to the default project", () => {
+  const rows = [
+    { id: "legacy" },
+    { id: "old", project_id: "kelly-drama-project" },
+    { id: "sanguo", project_id: "sanguo-yanyi" },
+  ];
+  assert.deepEqual(
+    rowsForProject(rows, "kelly-drama-project").map((row) => row.id),
+    ["legacy", "old"],
+  );
+  assert.deepEqual(
+    rowsForProject(rows, "sanguo-yanyi").map((row) => row.id),
+    ["sanguo"],
+  );
 });
 
 test("shotReadiness: a fully specced shot is ready with no missing fields", () => {

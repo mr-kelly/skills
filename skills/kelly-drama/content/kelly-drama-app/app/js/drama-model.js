@@ -21,6 +21,12 @@ export function countBy(items = [], field = "status") {
   return counts;
 }
 
+export function rowsForProject(rows = [], projectId = "", legacyProjectId = "kelly-drama-project") {
+  return (rows || []).filter(
+    (row) => row?.project_id === projectId || (!row?.project_id && projectId === legacyProjectId),
+  );
+}
+
 // ---- completeness / attention (ported from app/server/demo.ts) ----
 
 export function completeness(project = {}) {

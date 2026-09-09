@@ -48,7 +48,7 @@ metadata:
 
 ## Core Idea
 
-Use this skill as a short-drama and product-video planning workspace. Keep the app as the human editing surface and planning system of record: the skill reasons, drafts, validates, exports, and fulfills the AI-generation requests the app can only queue. The app reads and writes a Busabase workspace — one Folder, seven Bases (project/settings/characters/relationships/episodes/shots/tasks) — plus Busabase Drive Assets for every generated character reference card, reference voice, storyboard image, and shot video.
+Use this skill as a short-drama and product-video planning workspace. Keep the app as the human editing surface and planning system of record: the skill reasons, drafts, validates, exports, and fulfills the AI-generation requests the app can only queue. One Busabase Space can hold multiple isolated drama projects inside one Folder and seven Bases (project/settings/characters/relationships/episodes/shots/tasks), plus Busabase Drive Assets for every generated character reference card, reference voice, storyboard image, and shot video. Every character, relationship, episode, shot, and task carries its owning `project_id`; never read or write a content row outside the active project.
 
 Kelly Drama is **not** the final motion editor. For final video tuning, each Kelly Drama project should point to a concrete HyperFrame project path, and each episode should point to a concrete HyperFrame composition. Kelly Drama manages the creative plan, canonical beats, storyboard metadata, review state, and asset index; HyperFrame owns the final composition, animation, captions, audio timing, render, and publish pass.
 
@@ -58,6 +58,8 @@ Default to the AirApp for ongoing creative work — give the user the clickable 
 
 1. Open the AirApp (or `pnpm --dir content/kelly-drama-app dev` for local preview, which asks you to connect Busabase and select a Space — never an API key).
 2. On first run the workspace is empty; provision it from the app's setup screen, then seed the bundled starter with `node scripts/create_sample_project.mjs --apply` (a short-drama adaptation of 《三国演义》, one episode per original chapter), or start from scratch.
+   - Existing single-project workspaces upgrade with `node scripts/migrate_multi_project.mjs --apply`; legacy rows are assigned to `kelly-drama-project` without changing content.
+   - Create another isolated project from the UI project switcher, or with `node scripts/create_project.mjs --apply --id <id> --title <title>`.
 3. Use the app to maintain, in this order:
    - Series bible: logline, genre, platform, target audience, episode format, hook rules, world rules.
    - Visual bible: aspect ratio, screen orientation, realism target, cinematography, color palette, period detail, background reference images, and generated style anchors.
@@ -162,7 +164,7 @@ Turning storyboards into an actual short drama (continuous episode with characte
 
 One Folder (`kelly-drama`), seven Bases, declared in `content/kelly-drama-app/app/js/config.js` and the generated template sidecars under `content/`:
 
-- `project`: single-row series bible + visual bible + the paired HyperFrame project path and its cached status (`hyperframe_status_json`, refreshed by `scripts/read_hyperframe_status.mjs`).
+- `project`: one row per drama project, each with its own series bible, visual bible, paired HyperFrame project path, and cached status (`hyperframe_status_json`, refreshed by `scripts/read_hyperframe_status.mjs`).
 - `settings`: one row (`record-id: "config"`) with the image/video/TTS generation backend settings (base URL/model/size, LTX draft params, MiniMax-H3 MLX local checkout/steps via environment, Seedance/Ark prod params, TTS model — API keys themselves are env vars for the trusted scripts, never stored).
 - `characters`: character library — card (identity/motivation/wound/secret/arc/voice), three-view visual notes, wardrobe, anchors/forbidden-drift (JSON arrays), voice profile, and the reference-card + reference-voice status/prompt/asset id.
 - `relationships`: directional relationships — type, public status, hidden truth, power dynamic, emotional temperature, conflict, evidence (JSON array).
@@ -200,6 +202,8 @@ record delete in the write surface.
 ```bash
 pnpm --dir skills/kelly-drama/content/kelly-drama-app dev
 node skills/kelly-drama/scripts/create_sample_project.mjs --apply
+node skills/kelly-drama/scripts/migrate_multi_project.mjs --apply
+node skills/kelly-drama/scripts/create_project.mjs --apply --id my-project --title "My Project"
 node skills/kelly-drama/scripts/read_hyperframe_status.mjs --apply
 node skills/kelly-drama/scripts/validate_shot_readiness.mjs --episode ep-001
 node skills/kelly-drama/scripts/export_story_bible.mjs

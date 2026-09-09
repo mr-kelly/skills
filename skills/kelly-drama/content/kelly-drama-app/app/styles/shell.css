@@ -121,6 +121,22 @@
     max-width: 100%;
   }
 
+  .project-select-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 32px;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .project-select-row button {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    color: var(--accent-contrast);
+    background: var(--accent);
+    font-weight: 750;
+  }
+
   .switch-meta {
     min-width: 0;
     display: flex;

@@ -168,9 +168,12 @@ async function saveForm(form) {
 
 export function newItem() {
   const timestamp = Date.now().toString().slice(-5);
+  const projectPrefix = String(store.state?.active_project_id || "project")
+    .replace(/[^a-z0-9一-龥]+/gi, "-")
+    .replace(/^-+|-+$/g, "");
   const templates = {
     characters: {
-      id: `char-new-${timestamp}`,
+      id: `${projectPrefix}-char-new-${timestamp}`,
       name: "New character",
       role: "helper",
       status: "draft",
@@ -178,27 +181,33 @@ export function newItem() {
       visual: { anchors: [], forbidden_drift: [] },
     },
     relationships: {
-      id: `rel-new-${timestamp}`,
+      id: `${projectPrefix}-rel-new-${timestamp}`,
       from: store.state.project.characters?.[0]?.id || "",
       to: store.state.project.characters?.[1]?.id || "",
       type: "new relationship",
       evidence: [],
     },
     episodes: {
-      id: `ep-new-${timestamp}`,
+      id: `${projectPrefix}-ep-new-${timestamp}`,
       number: (store.state.project.episodes?.length || 0) + 1,
       title: "New episode",
       status: "draft",
       beats: [],
     },
     shots: {
-      id: `shot-new-${timestamp}`,
+      id: `${projectPrefix}-shot-new-${timestamp}`,
       episode_id: store.state.project.episodes?.[0]?.id || "",
       title: "New shot",
       status: "draft",
       characters: [],
     },
-    tasks: { id: `task-new-${timestamp}`, kind: "episode", status: "needs_review", title: "New task", note: "" },
+    tasks: {
+      id: `${projectPrefix}-task-new-${timestamp}`,
+      kind: "episode",
+      status: "needs_review",
+      title: "New task",
+      note: "",
+    },
   };
   const item = templates[store.view];
   store.selectedId = item.id;

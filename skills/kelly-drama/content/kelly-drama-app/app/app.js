@@ -1,6 +1,7 @@
 import { newItem, registerActionHooks } from "./js/actions.js";
 import { passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import { escapeHtml } from "./js/format.js";
+import { t } from "./js/i18n.js";
 import { closeModal, isModalOpen } from "./js/modal.js";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import { render } from "./js/render.js";
@@ -16,7 +17,7 @@ import {
 } from "./js/shell.js";
 import { shotsForEpisode } from "./js/shots.js";
 import { loadState } from "./js/state.js";
-import { $, DEMO_SCENARIO, store } from "./js/store.js";
+import { $, ACTIVE_PROJECT_STORAGE_KEY, DEMO_SCENARIO, store } from "./js/store.js";
 
 registerActionHooks({ render, shotsForEpisode });
 
@@ -76,6 +77,39 @@ $("searchInput").addEventListener("input", (event) => {
 });
 
 $("newItemButton").addEventListener("click", newItem);
+$("projectSelect").addEventListener("change", async (event) => {
+  try {
+    const provider = await getProvider();
+    store.activeProjectId = event.target.value;
+    localStorage.setItem(ACTIVE_PROJECT_STORAGE_KEY, store.activeProjectId);
+    store.state = await provider.switchProject(store.activeProjectId);
+    store.view = "overview";
+    store.selectedId = null;
+    navigateTo({ view: "overview", selectedId: null, episodeMode: "list", episodeTab: "summary" }, { replace: true });
+  } catch (error) {
+    console.error(error);
+  }
+});
+$("newProjectButton").addEventListener("click", async () => {
+  const title = window.prompt(t("new_project_prompt"));
+  if (!title?.trim()) return;
+  try {
+    const provider = await getProvider();
+    const projectId = title
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9一-龥]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    store.state = await provider.createProject({ projectId, title: title.trim() });
+    store.activeProjectId = store.state.active_project_id;
+    localStorage.setItem(ACTIVE_PROJECT_STORAGE_KEY, store.activeProjectId);
+    store.view = "overview";
+    store.selectedId = null;
+    navigateTo({ view: "overview", selectedId: null, episodeMode: "list", episodeTab: "summary" }, { replace: true });
+  } catch (error) {
+    console.error(error);
+  }
+});
 $("sidebarToggle").addEventListener("click", toggleSidebar);
 $("mobileSidebarToggle").addEventListener("click", () => setMobileSidebarOpen(true));
 $("sidebarScrim").addEventListener("click", () => setMobileSidebarOpen(false));

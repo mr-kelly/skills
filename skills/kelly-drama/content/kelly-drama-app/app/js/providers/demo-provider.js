@@ -1046,6 +1046,12 @@ export const demoProvider = {
     const project = demoProject(activeLangIsZh());
     return demoStatePayload(project);
   },
+  async switchProject() {
+    return this.getState();
+  },
+  async createProject() {
+    throw new Error("Demo mode is read-only.");
+  },
 
   async saveSeries() {
     throw new Error("Demo mode is read-only.");

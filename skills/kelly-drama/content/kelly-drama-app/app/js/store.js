@@ -7,6 +7,7 @@ export const $ = (id) => document.getElementById(id);
 
 export const SIDEBAR_COLLAPSED_STORAGE_KEY = "kelly-drama.sidebarCollapsed";
 export const LANG_STORAGE_KEY = "kdrama_lang";
+export const ACTIVE_PROJECT_STORAGE_KEY = "kelly-drama.activeProjectId";
 
 // Demo mode: `/?demo=<scene>&lang=en|zh` shows deterministic mock data.
 export const PAGE_QUERY = new URLSearchParams(window.location.search);
@@ -24,6 +25,7 @@ export const store = {
   routeNeedsReplace: false,
   lastAppliedHash: "",
   langPref: URL_LANG || localStorage.getItem(LANG_STORAGE_KEY) || "auto",
+  activeProjectId: localStorage.getItem(ACTIVE_PROJECT_STORAGE_KEY) || "",
   expandedShots: new Set(),
   loadingMore: {},
   loadMoreError: {},

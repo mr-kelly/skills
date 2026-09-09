@@ -8,7 +8,7 @@ import { store } from "./store.js";
 
 export async function loadState() {
   const provider = await getProvider();
-  const data = await provider.getState();
+  const data = await provider.getState({ projectId: store.activeProjectId });
   closeConnectGate();
   store.state = data;
   window.dispatchEvent(new CustomEvent("kelly-drama:state", { detail: data }));

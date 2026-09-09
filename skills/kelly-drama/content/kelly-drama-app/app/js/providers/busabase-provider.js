@@ -39,7 +39,8 @@ import { inspectProvisionedResources, provisionDeclaredResources } from "../../v
 import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
 import { resolveAssetUrls } from "../drama-client.js?v=0.1.0";
-import { attention, completeness, countBy, slug } from "../drama-model.js?v=0.1.0";
+import { attention, completeness, countBy, rowsForProject, slug } from "../drama-model.js?v=0.1.0";
+import { ACTIVE_PROJECT_STORAGE_KEY, store } from "../store.js";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
@@ -123,6 +124,11 @@ let runtimeBases = new Map();
 let pendingSetupError = "";
 let latestPagination = {};
 let latestTotalCount = {};
+let latestProjects = [];
+
+function currentProjectId() {
+  return store.activeProjectId || localStorage.getItem(ACTIVE_PROJECT_STORAGE_KEY) || "";
+}
 
 async function ensureResources() {
   runtimeClient = runtimeClient || createRuntimeClient();
@@ -152,7 +158,7 @@ function base(key) {
   return declared;
 }
 
-async function readPage(key, cursor) {
+async function readPage(key, cursor, { projectId = currentProjectId() } = {}) {
   if (!allowedReads.has("records.list")) throw new Error("PROCEDURE_DENIED: records.list");
   const declared = base(key);
   const result = await runtimeClient.records.list({
@@ -166,7 +172,10 @@ async function readPage(key, cursor) {
     __recordId: record.id,
     __headCommitId: record.headCommitId || record.headCommit?.id,
   }));
-  return { rows, nextCursor: Array.isArray(result) ? null : result.nextCursor || null };
+  return {
+    rows: key === "project" ? rows : rowsForProject(rows, projectId),
+    nextCursor: Array.isArray(result) ? null : result.nextCursor || null,
+  };
 }
 
 async function countRecords(key, filters) {
@@ -258,6 +267,7 @@ function projectFields(row = {}) {
 function characterFields(row = {}) {
   return {
     character_id: row.character_id,
+    project_id: row.project_id || currentProjectId(),
     name: row.name || "",
     role: row.role || "",
     status: row.status || "draft",
@@ -299,6 +309,7 @@ function characterFields(row = {}) {
 function relationshipFields(row = {}) {
   return {
     relationship_id: row.relationship_id,
+    project_id: row.project_id || currentProjectId(),
     from_character_id: row.from_character_id || "",
     to_character_id: row.to_character_id || "",
     type: row.type || "",
@@ -315,6 +326,7 @@ function relationshipFields(row = {}) {
 function episodeFields(row = {}) {
   return {
     episode_id: row.episode_id,
+    project_id: row.project_id || currentProjectId(),
     number: row.number ?? 0,
     title: row.title || "",
     status: row.status || "draft",
@@ -333,6 +345,7 @@ function episodeFields(row = {}) {
 function shotFields(row = {}) {
   return {
     shot_id: row.shot_id,
+    project_id: row.project_id || currentProjectId(),
     episode_id: row.episode_id || "",
     beat_id: row.beat_id || "",
     position: row.position ?? 0,
@@ -378,6 +391,7 @@ function shotFields(row = {}) {
 function taskFields(row = {}) {
   return {
     task_id: row.task_id,
+    project_id: row.project_id || currentProjectId(),
     kind: row.kind || "episode",
     target_id: row.target_id || "",
     status: row.status || "needs_review",
@@ -444,6 +458,7 @@ function buildSeries(projectRow, urlOf) {
 function buildCharacter(row, urlOf) {
   return {
     id: row.character_id,
+    project_id: row.project_id || currentProjectId(),
     name: row.name || "",
     role: row.role || "",
     status: row.status || "draft",
@@ -499,6 +514,7 @@ function buildCharacter(row, urlOf) {
 function buildRelationship(row) {
   return {
     id: row.relationship_id,
+    project_id: row.project_id || currentProjectId(),
     from: row.from_character_id || "",
     to: row.to_character_id || "",
     type: row.type || "",
@@ -514,6 +530,7 @@ function buildRelationship(row) {
 function buildEpisode(row) {
   return {
     id: row.episode_id,
+    project_id: row.project_id || currentProjectId(),
     number: Number(row.number) || 0,
     title: row.title || "",
     status: row.status || "draft",
@@ -531,6 +548,7 @@ function buildEpisode(row) {
 function buildShot(row, urlOf) {
   return {
     id: row.shot_id,
+    project_id: row.project_id || currentProjectId(),
     episode_id: row.episode_id || "",
     beat_id: row.beat_id || "",
     title: row.title || "",
@@ -584,6 +602,7 @@ function buildShot(row, urlOf) {
 function buildTask(row) {
   return {
     id: row.task_id,
+    project_id: row.project_id || currentProjectId(),
     kind: row.kind || "episode",
     target_id: row.target_id || "",
     status: row.status || "needs_review",
@@ -592,9 +611,9 @@ function buildTask(row) {
   };
 }
 
-async function readProjectRow() {
+async function readProjectRow(projectId = currentProjectId()) {
   const { rows } = await readPage("project");
-  return rows[0] || {};
+  return rows.find((row) => row.project_id === projectId) || rows[0] || {};
 }
 async function readSettingsRow() {
   const { rows } = await readPage("settings");
@@ -642,18 +661,23 @@ async function buildCollectionItems(key, rows, sharedUrlOf) {
   return items;
 }
 
-async function buildFullProject() {
-  const [projectRow, settingsRow, characterPage, relationshipPage, episodePage, shotPage, taskPage, totals] =
-    await Promise.all([
-      readProjectRow(),
-      readSettingsRow(),
-      readPage("characters"),
-      readPage("relationships"),
-      readPage("episodes"),
-      readPage("shots"),
-      readPage("tasks"),
-      Promise.all(["characters", "relationships", "episodes", "shots", "tasks"].map(countActiveRecords)),
-    ]);
+async function buildFullProject(requestedProjectId = "") {
+  const projectPage = await readPage("project");
+  const projectRows = projectPage.rows.filter((row) => row.deleted !== "true");
+  const requested = requestedProjectId || currentProjectId();
+  const projectRow = projectRows.find((row) => row.project_id === requested) || projectRows[0] || {};
+  const projectId = projectRow.project_id || requested || "kelly-drama-project";
+  store.activeProjectId = projectId;
+  localStorage.setItem(ACTIVE_PROJECT_STORAGE_KEY, projectId);
+
+  const [settingsRow, characterPage, relationshipPage, episodePage, shotPage, taskPage] = await Promise.all([
+    readSettingsRow(),
+    readPage("characters", undefined, { projectId }),
+    readPage("relationships", undefined, { projectId }),
+    readPage("episodes", undefined, { projectId }),
+    readPage("shots", undefined, { projectId }),
+    readPage("tasks", undefined, { projectId }),
+  ]);
   const characterRows = characterPage.rows;
   const shotRows = shotPage.rows;
   const assetIds = collectAssetIds({ projectRow, characterRows, shotRows });
@@ -675,8 +699,17 @@ async function buildFullProject() {
     tasks: taskPage.nextCursor,
   };
   latestTotalCount = Object.fromEntries(
-    ["characters", "relationships", "episodes", "shots", "tasks"].map((key, index) => [key, totals[index]]),
+    [characterPage, relationshipPage, episodePage, shotPage, taskPage].map((page, index) => [
+      ["characters", "relationships", "episodes", "shots", "tasks"][index],
+      page.rows.filter((row) => row.deleted !== "true").length,
+    ]),
   );
+  latestProjects = projectRows.map((row) => ({
+    id: row.project_id,
+    title: row.title || row.project_id,
+    genre: row.genre || "",
+    format: row.format || "",
+  }));
 
   const project = {
     project_id: projectRow.project_id || "kelly-drama-project",
@@ -692,7 +725,7 @@ async function buildFullProject() {
   return project;
 }
 
-function fullStatePayload(project) {
+function fullStatePayload(project, projects = latestProjects) {
   return {
     app: "kelly-drama",
     demo: false,
@@ -701,14 +734,7 @@ function fullStatePayload(project) {
     lock: { locked: false },
     config_summary: { config_path: "busabase:workspace/kelly-drama", is_example: false },
     project,
-    projects: [
-      {
-        id: project.project_id,
-        title: project.series?.title || "",
-        genre: project.series?.genre || "",
-        format: project.series?.format || "",
-      },
-    ],
+    projects,
     active_project_id: project.project_id,
     counts: {
       characters: countBy(project.characters),
@@ -765,6 +791,7 @@ function payloadToRow(kind, payload = {}) {
     const visual = payload.visual || {};
     const vp = payload.voice_profile || {};
     return {
+      project_id: payload.project_id || currentProjectId(),
       name: payload.name,
       role: payload.role,
       status: payload.status,
@@ -791,6 +818,7 @@ function payloadToRow(kind, payload = {}) {
   }
   if (kind === "relationships") {
     return {
+      project_id: payload.project_id || currentProjectId(),
       from_character_id: payload.from,
       to_character_id: payload.to,
       type: payload.type,
@@ -804,6 +832,7 @@ function payloadToRow(kind, payload = {}) {
   }
   if (kind === "episodes") {
     return {
+      project_id: payload.project_id || currentProjectId(),
       number: payload.number,
       title: payload.title,
       status: payload.status,
@@ -819,6 +848,7 @@ function payloadToRow(kind, payload = {}) {
   }
   if (kind === "shots") {
     const row = {
+      project_id: payload.project_id || currentProjectId(),
       episode_id: payload.episode_id,
       beat_id: payload.beat_id,
       title: payload.title,
@@ -848,6 +878,7 @@ function payloadToRow(kind, payload = {}) {
   }
   // tasks
   return {
+    project_id: payload.project_id || currentProjectId(),
     kind: payload.kind,
     target_id: payload.target_id,
     status: payload.status,
@@ -859,21 +890,47 @@ function payloadToRow(kind, payload = {}) {
 export const busabaseProvider = {
   kind: "busabase",
 
-  async getState() {
+  async getState({ projectId = "" } = {}) {
     await ensureResources();
-    const project = await buildFullProject();
+    const project = await buildFullProject(projectId);
     return fullStatePayload(project);
   },
 
   async fetchPage(key, cursor) {
     await ensureResources();
-    const page = await readPage(key, cursor);
+    const page = await readPage(key, cursor, { projectId: currentProjectId() });
     return { items: await buildCollectionItems(key, page.rows), nextCursor: page.nextCursor };
+  },
+
+  async switchProject(projectId) {
+    const project = await buildFullProject(projectId);
+    return fullStatePayload(project);
+  },
+
+  async createProject({ projectId, title, genre = "", format = "", logline = "" } = {}) {
+    await ensureResources();
+    const normalizedId = slug(projectId || title);
+    if (!normalizedId) throw new Error("Project title is required.");
+    const existing = await findRecord("project", "project-id", normalizedId);
+    if (existing) throw new Error(`Project ${normalizedId} already exists.`);
+    const fields = projectFields({
+      project_id: normalizedId,
+      title: title || normalizedId,
+      genre,
+      format,
+      logline,
+      hook_rules_json: "[]",
+      world_rules_json: "[]",
+      hyperframe_status_json: "{}",
+      visual_background_refs_json: "[]",
+    });
+    await upsert("project", "project-id", normalizedId, fields, `Create drama project ${normalizedId}`);
+    return this.switchProject(normalizedId);
   },
 
   async saveSeries(series = {}) {
     await ensureResources();
-    const current = await readProjectRow();
+    const current = await readProjectRow(currentProjectId());
     const fields = {
       ...projectFields(current),
       title: series.title || "",
@@ -888,7 +945,7 @@ export const busabaseProvider = {
       world_rules_json: JSON.stringify(series.world_rules || []),
     };
     await upsert("project", "project-id", fields.project_id, fields, "Update series bible");
-    const project = await buildFullProject();
+    const project = await buildFullProject(current.project_id);
     return fullStatePayload(project);
   },
 
@@ -901,10 +958,18 @@ export const busabaseProvider = {
     const existingRow = existing
       ? normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields)
       : null;
-    const fields = { ...spec.fields(existingRow || {}), [spec.idKey]: id, ...payloadToRow(kindKey, payload) };
-    if (kindKey === "shots" && !existingRow) fields.position = ((await countActiveRecords("shots")) || 0) + 1;
+    const fields = {
+      ...spec.fields(existingRow || {}),
+      [spec.idKey]: id,
+      project_id: existingRow?.project_id || payload.project_id || currentProjectId(),
+      ...payloadToRow(kindKey, payload),
+    };
+    if (kindKey === "shots" && !existingRow) {
+      const current = await readPage("shots", undefined, { projectId: currentProjectId() });
+      fields.position = Math.max(0, ...current.rows.map((row) => Number(row.position) || 0)) + 1;
+    }
     await upsert(spec.baseKey, spec.idField, id, fields, `Save ${kindKey} ${id}`);
-    const project = await buildFullProject();
+    const project = await buildFullProject(currentProjectId());
     return fullStatePayload(project);
   },
 

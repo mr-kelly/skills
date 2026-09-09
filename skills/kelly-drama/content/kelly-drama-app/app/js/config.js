@@ -20,7 +20,7 @@ export const appConfig = {
   locale: "auto",
   readOnly: false,
   spaceId: "",
-  schemaVersion: 1,
+  schemaVersion: 2,
   folder: {
     name: "Kelly Drama",
     description: "Short-drama workspace: series bible, characters, relationships, episodes, and storyboard shots",
@@ -33,7 +33,7 @@ export const appConfig = {
       name: "Project",
       slug: "kelly-drama-project",
       description: "Single-row series bible + visual bible + paired HyperFrame project link",
-      readLimit: 5,
+      readLimit: 100,
       fields: [
         { slug: "project-id", name: "Project ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: false },
@@ -145,6 +145,7 @@ export const appConfig = {
         },
         { slug: "voice-candidates-json", name: "Voice candidates JSON", type: "longtext", required: false },
         { slug: "deleted", name: "Deleted", type: "text", required: false },
+        { slug: "project-id", name: "Project ID", type: "text", required: true },
       ],
     },
     {
@@ -165,6 +166,7 @@ export const appConfig = {
         { slug: "conflict", name: "Conflict", type: "longtext", required: false },
         { slug: "evidence-json", name: "Evidence JSON", type: "longtext", required: false },
         { slug: "deleted", name: "Deleted", type: "text", required: false },
+        { slug: "project-id", name: "Project ID", type: "text", required: true },
       ],
     },
     {
@@ -187,6 +189,7 @@ export const appConfig = {
         { slug: "cliffhanger", name: "Cliffhanger", type: "longtext", required: false },
         { slug: "beats-json", name: "Beats JSON", type: "longtext", required: false },
         { slug: "deleted", name: "Deleted", type: "text", required: false },
+        { slug: "project-id", name: "Project ID", type: "text", required: true },
       ],
     },
     {
@@ -236,6 +239,7 @@ export const appConfig = {
         { slug: "video-generation-json", name: "Video generation JSON", type: "longtext", required: false },
         { slug: "video-candidates-json", name: "Video candidates JSON", type: "longtext", required: false },
         { slug: "deleted", name: "Deleted", type: "text", required: false },
+        { slug: "project-id", name: "Project ID", type: "text", required: true },
       ],
     },
     {
@@ -252,6 +256,7 @@ export const appConfig = {
         { slug: "title", name: "Title", type: "text", required: false },
         { slug: "note", name: "Note", type: "longtext", required: false },
         { slug: "deleted", name: "Deleted", type: "text", required: false },
+        { slug: "project-id", name: "Project ID", type: "text", required: true },
       ],
     },
   ],

@@ -11,6 +11,8 @@
     "hyperframe-status:apply": "node scripts/read_hyperframe_status.mjs --apply",
     "seed:dry-run": "node scripts/create_sample_project.mjs",
     "seed": "node scripts/create_sample_project.mjs --apply",
+    "migrate:projects": "node scripts/migrate_multi_project.mjs --apply",
+    "project:create": "node scripts/create_project.mjs",
     "validate": "node scripts/validate_shot_readiness.mjs",
     "export": "node scripts/export_story_bible.mjs"
   },
