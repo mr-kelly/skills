@@ -28,6 +28,7 @@ function run(command, args, cwd) {
 
 export async function generateMiniMaxH3Video({
   image = "",
+  referenceImages = [],
   prompt = "",
   output = "",
   durationSeconds = 8,
@@ -42,6 +43,12 @@ export async function generateMiniMaxH3Video({
   if (!output) throw new Error("generateMiniMaxH3Video requires an output path.");
   if (!prompt) throw new Error("generateMiniMaxH3Video requires a prompt.");
   if (!fs.existsSync(H3_DIR)) throw new Error(`MiniMax-H3 MLX checkout not found: ${H3_DIR}`);
+  if (image && referenceImages.length)
+    throw new Error("MiniMax-H3 first-frame and reference-image modes are mutually exclusive.");
+  if (referenceImages.length > 9) throw new Error("MiniMax-H3 supports at most 9 reference images.");
+  for (const reference of referenceImages) {
+    if (!fs.existsSync(reference)) throw new Error(`MiniMax-H3 reference image not found: ${reference}`);
+  }
 
   fs.mkdirSync(path.dirname(output), { recursive: true });
   const args = [
@@ -62,6 +69,7 @@ export async function generateMiniMaxH3Video({
     output,
   ];
   if (image) args.splice(3, 0, "--first-frame", image);
+  for (const reference of referenceImages.toReversed()) args.splice(3, 0, "--ref-image", reference);
   await run("uv", args, H3_DIR);
   if (!fs.existsSync(output) || fs.statSync(output).size === 0)
     throw new Error(`MiniMax-H3 produced no video: ${output}`);

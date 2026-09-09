@@ -158,6 +158,7 @@ function buildProject({ projectRow, characterRows, urlOf }) {
 function toCharacterFields(row) {
   return {
     character_id: row.character_id,
+    project_id: row.project_id || "",
     name: row.name || "",
     role: row.role || "",
     status: row.status || "draft",
@@ -199,6 +200,7 @@ function toCharacterFields(row) {
 function toShotFields(row) {
   return {
     shot_id: row.shot_id,
+    project_id: row.project_id || "",
     episode_id: row.episode_id || "",
     beat_id: row.beat_id || "",
     position: row.position ?? 0,
@@ -364,9 +366,11 @@ async function main() {
     readAllRecords(client, basesByKey.get("shots")),
     readAllRecords(client, basesByKey.get("settings")),
   ]);
-  const projectRow = projectRows[0] || {};
   const settingsRow = settingsRows.find((row) => row.record_id === "config") || {};
   const imageConfig = loadImageConfig(settingsRow);
+  const projectFor = (row) => projectRows.find((project) => project.project_id === row.project_id) || {};
+  const charactersFor = (row) => characterRows.filter((character) => character.project_id === row.project_id);
+  const episodesFor = (row) => episodeRows.filter((episode) => episode.project_id === row.project_id);
 
   const pendingCards = characterRows.filter(
     (row) =>
@@ -422,7 +426,8 @@ async function main() {
   for (const row of pendingCards) {
     try {
       if (!imageConfig.api_key) throw new Error("KELLY_DRAMA_IMAGE_API_KEY is not set.");
-      const project = buildProject({ projectRow, characterRows, urlOf: () => "" });
+      const scopedCharacters = charactersFor(row);
+      const project = buildProject({ projectRow: projectFor(row), characterRows: scopedCharacters, urlOf: () => "" });
       const character = project.characters.find((c) => c.id === row.character_id) || {
         reference_card: { prompt: row.reference_card_prompt },
       };
@@ -547,16 +552,17 @@ async function main() {
   const urlOf = (assetId) => (assetId ? urlCache.get(assetId) || "" : "");
   for (const row of pendingImages) {
     try {
-      const gateError = shotStageError(row, episodeRows, characterRows);
+      const scopedCharacters = charactersFor(row);
+      const gateError = shotStageError(row, episodesFor(row), scopedCharacters);
       if (gateError) throw new Error(gateError);
       if (!imageConfig.api_key) throw new Error("KELLY_DRAMA_IMAGE_API_KEY is not set.");
-      for (const character of characterRows) {
+      for (const character of scopedCharacters) {
         if (character.reference_card_asset_id && !urlCache.has(character.reference_card_asset_id)) {
           const asset = await client.assets.get({ assetId: character.reference_card_asset_id }).catch(() => null);
           if (asset?.asset?.url) urlCache.set(character.reference_card_asset_id, asset.asset.url);
         }
       }
-      const project = buildProject({ projectRow, characterRows, urlOf });
+      const project = buildProject({ projectRow: projectFor(row), characterRows: scopedCharacters, urlOf });
       const shot = {
         ...toShotFields(row),
         id: row.shot_id,
@@ -569,7 +575,7 @@ async function main() {
       if (refs.length) {
         const referenceFiles = [];
         for (const ref of refs) {
-          const character = characterRows.find((c) => c.character_id === ref.id);
+          const character = scopedCharacters.find((c) => c.character_id === ref.id);
           if (!character?.reference_card_asset_id) continue;
           const tmpPath = path.join(CACHE_DIR, `ref-${character.character_id}.png`);
           await downloadAssetToFile(client, character.reference_card_asset_id, tmpPath);
@@ -635,7 +641,10 @@ async function main() {
     const backend = String(row.video_status || "").split(":")[1] || "seedance";
     try {
       const isH3 = backend === "minimax-h3" || backend === "h3";
-      const gateError = shotStageError(row, episodeRows, characterRows, { video: true, allowTextVideo: isH3 });
+      const gateError = shotStageError(row, episodesFor(row), charactersFor(row), {
+        video: true,
+        allowTextVideo: isH3,
+      });
       if (gateError) throw new Error(gateError);
       if (!row.image_asset_id && !isH3)
         throw new Error(

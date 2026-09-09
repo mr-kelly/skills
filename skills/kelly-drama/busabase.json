@@ -7,7 +7,7 @@
   "tags": ["production", "risk:local-write", "surface:busabase", "surface:moonrouter", "surface:byteplus-ark"],
   "template": {
     "category": "production",
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "airapp": "kelly-drama-app",
     "tags": ["production", "risk:local-write", "surface:busabase", "surface:moonrouter", "surface:byteplus-ark"],
     "screenshots": [
