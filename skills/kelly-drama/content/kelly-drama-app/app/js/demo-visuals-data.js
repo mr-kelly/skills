@@ -10,20 +10,20 @@ const ACCENTS = ["#be123c", "#7c2d12"];
 const VISUAL_DEFS = [
   {
     id: "kelly-drama-visual-1",
-    title: "Character reference",
-    caption: "Synthetic cast reference card for visual consistency review.",
+    title: { en: "Character reference", zh: "人物参考卡" },
+    caption: { en: "Synthetic cast reference card for visual consistency review.", zh: "用于人物一致性审核的模拟角色参考卡。" },
     kind: "profile",
   },
   {
     id: "kelly-drama-visual-2",
-    title: "Storyboard frame",
-    caption: "Mock vertical-drama frame with camera and action notes.",
+    title: { en: "Storyboard frame", zh: "分镜画面" },
+    caption: { en: "Mock vertical-drama frame with camera and action notes.", zh: "带摄影和动作说明的模拟竖屏短剧画面。" },
     kind: "video",
   },
   {
     id: "kelly-drama-visual-3",
-    title: "Relationship map",
-    caption: "Visual power map for family, rival, and secret arcs.",
+    title: { en: "Relationship map", zh: "人物关系图" },
+    caption: { en: "Visual power map for family, rival, and secret arcs.", zh: "呈现家族、对手与秘密线索的权力关系图。" },
     kind: "board",
   },
 ];
@@ -64,15 +64,17 @@ function imageDataUrl(title, caption, kind, index) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(visualSvg(title, caption, kind, index))}`;
 }
 
-export function demoVisualsForApp(appName = SKILL_NAME) {
+export function demoVisualsForApp(appName = SKILL_NAME, zh = false) {
   return VISUAL_DEFS.map((item, index) => {
-    const src = imageDataUrl(item.title, item.caption, item.kind, index);
+    const title = item.title[zh ? "zh" : "en"];
+    const caption = item.caption[zh ? "zh" : "en"];
+    const src = imageDataUrl(title, caption, item.kind, index);
     return {
       id: item.id,
-      title: item.title,
-      caption: item.caption,
+      title,
+      caption,
       kind: item.kind,
-      alt: `${appName || SKILL_NAME} demo visual: ${item.title}`,
+      alt: zh ? `${appName || SKILL_NAME} 演示画面：${title}` : `${appName || SKILL_NAME} demo visual: ${title}`,
       src,
       image: src,
       image_url: src,

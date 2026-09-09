@@ -12,7 +12,8 @@
 // from the hostname. `shouldUseLocalGateway` drives the connect gate;
 // `isStandaloneLocalRuntime` drives whether writes may merge. They differ only
 // when the runtime is undetermined, where each falls to its own safe side.
-import { createAirAppConnectGate } from "../vendor/busabase-airapp-gate.js";
+import { createAirAppConnectGate, escapeHtml } from "../vendor/busabase-airapp-gate.js";
+import { t } from "./i18n.js";
 import { getProvider } from "./providers/index.js?v=0.1.0";
 import { isStandaloneLocalRuntime, shouldUseLocalGateway } from "./runtime.js";
 
@@ -20,10 +21,52 @@ export { isStandaloneLocalRuntime, shouldUseLocalGateway };
 
 const isDemo = () => new URLSearchParams(window.location.search).has("demo");
 
+const panel = (labelledBy, head, body, footer) =>
+  `<div class="bb-gate-overlay"><section class="bb-gate-panel" role="dialog" aria-modal="true" aria-labelledby="${labelledBy}"><div class="bb-gate-head"><div>${head}</div></div><div class="bb-gate-body">${body}</div><div class="bb-gate-footer">${footer}</div></section></div>`;
+
+const hostOf = (baseUrl) => {
+  try {
+    return new URL(baseUrl).host;
+  } catch {
+    return baseUrl;
+  }
+};
+
+const localizedRenderer = {
+  connect(view) {
+    const head = `<h1 id="bbGateConnectTitle">${t("gate_connect_title")}</h1><p>${t("gate_connect_description").replace("{app}", escapeHtml(view.appName))}</p>`;
+    const body = `${view.oauthError ? `<p class="bb-gate-error" role="alert">${escapeHtml(view.oauthError)}</p>` : ""}${view.reconnect ? `<p class="bb-gate-note">${t("gate_session_expired")}</p>` : ""}<h2>${t("gate_server")}</h2><div class="bb-gate-server-grid"><label class="bb-gate-server-card is-selected"><input type="radio" name="server_mode" value="cloud" checked><span><strong>Busabase Cloud</strong><span>${escapeHtml(hostOf(view.cloudBaseUrl))}</span></span></label><label class="bb-gate-server-card"><input type="radio" name="server_mode" value="custom"><span><strong>${t("gate_custom_server")}</strong><span>${t("gate_custom_server_hint")}</span></span></label></div><label class="bb-gate-custom-url" data-custom-url hidden><span>Busabase URL</span><input type="url" name="custom_base_url" inputmode="url" placeholder="https://busabase.example.com" autocomplete="url"></label><input type="hidden" name="base_url" value="${escapeHtml(view.cloudBaseUrl)}">`;
+    return `<form method="post" action="${escapeHtml(`${view.authBasePath}/auth/start`)}" data-connect-form>${panel("bbGateConnectTitle", head, body, `<span class="bb-gate-note">${t("gate_oauth_note")}</span><button class="bb-gate-primary" type="submit">${t("gate_connect_button")}</button>`)}</form>`;
+  },
+  space(view) {
+    const options = view.spaces
+      .map((space) => `<option value="${escapeHtml(space.id)}">${escapeHtml(space.name)} · ${escapeHtml(space.id)}</option>`)
+      .join("");
+    const head = `<h1 id="bbGateSpaceTitle">${t("gate_space_title")}</h1><p>${t("gate_space_description").replace("{url}", `<strong>${escapeHtml(view.baseUrl)}</strong>`).replace("{app}", escapeHtml(view.appName))}</p>`;
+    const body = `<label class="bb-gate-space-select"><span>Space</span><select name="space_id" required>${options}</select></label><p class="bb-gate-error" data-space-error hidden></p>`;
+    return `<form data-space-form>${panel("bbGateSpaceTitle", head, body, `<span class="bb-gate-note">${t("gate_space_note")}</span><button class="bb-gate-primary" type="submit">${t("gate_space_button")}</button>`)}</form>`;
+  },
+  workspace(view) {
+    const title =
+      view.code === "SETUP_PENDING"
+        ? t("gate_workspace_pending")
+        : view.canProvision
+          ? t("gate_workspace_initialize")
+          : t("gate_workspace_not_ready");
+    const head = `<h1 id="bbGateWorkspaceTitle">${title}</h1>`;
+    const body = view.canProvision
+      ? `<p>${t("gate_workspace_create").replace("{app}", escapeHtml(view.appName))}</p><p>${t("gate_workspace_change_request")}</p><p class="bb-gate-error" data-workspace-status hidden></p>`
+      : `<p>${escapeHtml(view.detail)}</p><p>${t("gate_workspace_no_manual").replace("{app}", escapeHtml(view.appName))}</p><p class="bb-gate-error" data-workspace-status hidden></p>`;
+    const footer = `${view.demoHref ? `<a class="bb-gate-link" href="${escapeHtml(view.demoHref)}">${t("gate_open_demo")}</a>` : "<span></span>"}${view.canProvision ? `<button class="bb-gate-primary" type="button" data-provision>${t("gate_initialize_button")}</button>` : view.canRetry ? `<button class="bb-gate-primary" type="button" data-retry>${t("gate_retry_button")}</button>` : ""}`;
+    return panel("bbGateWorkspaceTitle", head, body, footer);
+  },
+};
+
 const gate = createAirAppConnectGate({
   appName: "Kelly Drama",
   demoHref: "?demo=1#/overview",
   shouldGate: () => !isDemo() && shouldUseLocalGateway(),
+  render: localizedRenderer,
   onProvision: async () => (await getProvider()).provisionResources(),
 });
 

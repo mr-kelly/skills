@@ -1001,7 +1001,7 @@ function activeLangIsZh() {
 }
 
 function demoStatePayload(project) {
-  const visuals = demoVisualsForApp("kelly-drama");
+  const visuals = demoVisualsForApp("kelly-drama", activeLangIsZh());
   return {
     demo: true,
     demo_scenario: new URLSearchParams(window.location.search).get("demo") || "overview",

@@ -1,7 +1,7 @@
 import { bindForm } from "./actions.js";
 import { escapeHtml, statusBadge } from "./format.js";
 import { detailForm } from "./forms.js";
-import { t } from "./i18n.js";
+import { localizeValue, t } from "./i18n.js";
 import { syncRoute } from "./router.js";
 import { $, project, store } from "./store.js";
 
@@ -30,7 +30,7 @@ export function loadMoreControl(key) {
 }
 
 function itemCard(item) {
-  const title = item.name || item.title || item.type || item.id;
+  const title = item.name || item.title || localizeValue(item.type) || item.id;
   const body =
     item.logline ||
     item.promise ||
@@ -50,10 +50,10 @@ function itemCard(item) {
   const thumb = item.reference_card?.image_asset || item.image_asset || "";
   const hasThumb = typeof thumb === "string" && Boolean(thumb);
   const meta = [
-    item.role,
-    item.type,
+    localizeValue(item.role),
+    localizeValue(item.type),
     item.status ? statusBadge(item.status) : "",
-    item.number ? `<span class="badge">Ep ${item.number}</span>` : "",
+    item.number ? `<span class="badge">${t("episode_short")} ${item.number}</span>` : "",
   ]
     .filter(Boolean)
     .map((part) => (String(part).startsWith("<") ? part : `<span class="badge">${escapeHtml(part)}</span>`))

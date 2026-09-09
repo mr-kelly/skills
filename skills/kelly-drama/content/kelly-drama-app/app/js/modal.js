@@ -35,15 +35,15 @@ function mountModal(inner) {
 export function openImageModal(src) {
   if (!src) return;
   mountModal(`
-    <button type="button" class="modal-close-button" aria-label="Close">${t("modal_close")}</button>
-    <div class="modal-image-wrap"><img src="${escapeHtml(src)}" alt="Storyboard enlarged" /></div>`);
+    <button type="button" class="modal-close-button" aria-label="${t("modal_close_aria")}">${t("modal_close")}</button>
+    <div class="modal-image-wrap"><img src="${escapeHtml(src)}" alt="${t("modal_storyboard_enlarged")}" /></div>`);
 }
 
 function refThumb(ref) {
   return `
     <figure class="ref-thumb">
       <img src="${escapeHtml(ref.path)}" alt="${escapeHtml(ref.name)}" data-image-zoom="${escapeHtml(ref.path)}" />
-      <figcaption>${escapeHtml(ref.name)}<small>${ref.kind === "character" ? "Character card" : "Background"}</small></figcaption>
+      <figcaption>${escapeHtml(ref.name)}<small>${ref.kind === "character" ? t("modal_ref_character") : t("modal_ref_background")}</small></figcaption>
     </figure>`;
 }
 
@@ -52,11 +52,11 @@ export function openPromptModal(data) {
   const modeLabel = data.mode === "image-edit" ? t("modal_mode_image_edit") : t("modal_mode_text");
   const ctx = data.context || {};
   const contextRows = [
-    ["Episode", ctx.episode_title],
-    ["Logline", ctx.logline],
-    ["Realism target", ctx.realism_target],
-    ["Color palette", ctx.color_palette],
-    ["Period detail", ctx.period_detail],
+    [t("modal_context_episode"), ctx.episode_title],
+    [t("modal_context_logline"), ctx.logline],
+    [t("modal_context_realism"), ctx.realism_target],
+    [t("modal_context_palette"), ctx.color_palette],
+    [t("modal_context_period"), ctx.period_detail],
   ]
     .filter(([, v]) => v)
     .map(([k, v]) => `<div class="ctx-row"><span>${escapeHtml(k)}</span><p>${escapeHtml(v)}</p></div>`)
@@ -68,7 +68,7 @@ export function openPromptModal(data) {
     )
     .join("");
   mountModal(`
-    <button type="button" class="modal-close-button" aria-label="Close">${t("modal_close")}</button>
+    <button type="button" class="modal-close-button" aria-label="${t("modal_close_aria")}">${t("modal_close")}</button>
     <div class="modal-head">
       <h3>${escapeHtml(data.title || t("modal_prompt_title"))}</h3>
       <div class="modal-tags">

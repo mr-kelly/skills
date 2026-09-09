@@ -23,6 +23,12 @@
     return params.has("demo") || params.has("demo_visuals");
   }
 
+  function isChinese() {
+    const selected = String(new URLSearchParams(window.location.search).get("lang") || "").toLowerCase();
+    if (selected) return selected.startsWith("zh");
+    return document.documentElement.lang.toLowerCase().startsWith("zh");
+  }
+
   function mountPoint() {
     return (
       document.querySelector("main.main") ||
@@ -49,10 +55,11 @@
   }
 
   function visualCard(item) {
+    const zh = isChinese();
     const src = item.src || item.image || item.image_url || item.thumbnail_url || "";
-    const alt = item.alt || item.title || "Demo visual";
-    const title = item.title || "Demo visual";
-    const caption = item.caption || "Synthetic image for the demo dataset.";
+    const alt = item.alt || item.title || (zh ? "演示画面" : "Demo visual");
+    const title = item.title || (zh ? "演示画面" : "Demo visual");
+    const caption = item.caption || (zh ? "演示数据集的模拟图片。" : "Synthetic image for the demo dataset.");
     return `<figure class="demo-visual-card"><img src="${esc(src)}" alt="${esc(alt)}" loading="lazy"><figcaption><strong>${esc(title)}</strong><span>${esc(caption)}</span></figcaption></figure>`;
   }
 
@@ -64,10 +71,11 @@
     const mount = mountPoint();
     if (!mount) return;
     const panel = document.createElement("section");
+    const zh = isChinese();
     panel.id = PANEL_ID;
     panel.className = "demo-visuals-panel";
-    panel.setAttribute("aria-label", "Simulated demo images");
-    panel.innerHTML = `<div class="demo-visuals-head"><div><span>Demo images</span><strong>Screenshot-safe simulated visuals</strong></div><small>mock data</small></div><div class="demo-visuals-grid">${visuals.slice(0, 3).map(visualCard).join("")}</div>`;
+    panel.setAttribute("aria-label", zh ? "模拟演示图片" : "Simulated demo images");
+    panel.innerHTML = `<div class="demo-visuals-head"><div><span>${zh ? "演示图片" : "Demo images"}</span><strong>${zh ? "可安全用于截图的模拟画面" : "Screenshot-safe simulated visuals"}</strong></div><small>${zh ? "模拟数据" : "mock data"}</small></div><div class="demo-visuals-grid">${visuals.slice(0, 3).map(visualCard).join("")}</div>`;
     insertPanel(panel, mount);
   }
 

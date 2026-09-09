@@ -1,7 +1,7 @@
 import { bindForm } from "./actions.js";
 import { escapeHtml, formatBytes } from "./format.js";
 import { seriesForm } from "./forms.js";
-import { t } from "./i18n.js";
+import { localizeValue, t } from "./i18n.js";
 import { $, project, store } from "./store.js";
 
 function overviewCard(title, body, target, tag) {
@@ -22,8 +22,8 @@ function visualBiblePreview(bible) {
     <section class="visual-bible-card">
       <div>
         <h3>${t("visual_bible_title")}</h3>
-        <p>${escapeHtml(bible.format_note || "")}</p>
-        <p class="muted">${escapeHtml(bible.realism_target || "")}</p>
+        <p>${escapeHtml(localizeValue(bible.format_note || ""))}</p>
+        <p class="muted">${escapeHtml(localizeValue(bible.realism_target || ""))}</p>
       </div>
       <div class="reference-grid">
         ${assets.map((asset) => `<figure><img src="${escapeHtml(asset.path)}" alt="${escapeHtml(asset.title || t("visual_bible_title"))}" /><figcaption>${escapeHtml(asset.title || t("visual_bible_title"))}</figcaption></figure>`).join("") || `<div class="asset-placeholder">${t("visual_bible_placeholder")}</div>`}
@@ -32,35 +32,35 @@ function visualBiblePreview(bible) {
 }
 
 function hyperframeStatusPanel(status) {
-  if (!status.ok) return `<p class="form-note">${escapeHtml(status.error || "Could not read HyperFrame project.")}</p>`;
+  if (!status.ok) return `<p class="form-note">${escapeHtml(status.error || t("hyperframe_read_failed"))}</p>`;
   const compositions = status.compositions || [];
   const renders = status.renders || [];
   const audio = status.audio || [];
   const changelogs = status.changelogs || [];
   return `
     <div class="hyperframe-metrics">
-      <div><strong>${status.counts?.compositions || 0}</strong><span>compositions</span></div>
-      <div><strong>${status.counts?.scenes || 0}</strong><span>scenes</span></div>
-      <div><strong>${status.counts?.renders || 0}</strong><span>renders</span></div>
-      <div><strong>${status.counts?.audio || 0}</strong><span>audio</span></div>
+      <div><strong>${status.counts?.compositions || 0}</strong><span>${t("hyperframe_compositions")}</span></div>
+      <div><strong>${status.counts?.scenes || 0}</strong><span>${t("hyperframe_scenes")}</span></div>
+      <div><strong>${status.counts?.renders || 0}</strong><span>${t("hyperframe_renders")}</span></div>
+      <div><strong>${status.counts?.audio || 0}</strong><span>${t("hyperframe_audio")}</span></div>
     </div>
     <div class="hyperframe-list">
-      <h4>Compositions</h4>
+      <h4>${t("hyperframe_compositions")}</h4>
       ${
         compositions
           .map(
             (item) => `
         <div class="hyperframe-row">
           <code>${escapeHtml(item.path)}</code>
-          <span>${escapeHtml(item.scenes?.length || 0)} scenes</span>
+          <span>${escapeHtml(item.scenes?.length || 0)} ${t("hyperframe_scenes")}</span>
           <span>${Number.isFinite(item.duration_seconds) ? `${item.duration_seconds}s` : ""}</span>
         </div>`,
           )
-          .join("") || `<p class="muted">No HTML compositions found.</p>`
+          .join("") || `<p class="muted">${t("hyperframe_no_compositions")}</p>`
       }
     </div>
     <div class="hyperframe-list compact">
-      <h4>Renders</h4>
+      <h4>${t("hyperframe_renders")}</h4>
       ${
         renders
           .slice(0, 5)
@@ -68,19 +68,19 @@ function hyperframeStatusPanel(status) {
             (item) =>
               `<div class="hyperframe-row"><code>${escapeHtml(item.path)}</code><span>${Number.isFinite(item.duration_seconds) ? `${item.duration_seconds.toFixed(1)}s` : ""}</span><span>${formatBytes(item.size_bytes)}</span></div>`,
           )
-          .join("") || `<p class="muted">No rendered videos found.</p>`
+          .join("") || `<p class="muted">${t("hyperframe_no_renders")}</p>`
       }
     </div>
     <div class="hyperframe-list compact">
-      <h4>Audio</h4>
+      <h4>${t("hyperframe_audio")}</h4>
       ${
         audio
           .slice(0, 8)
           .map((item) => `<span class="hf-chip">${escapeHtml(item.path)}</span>`)
-          .join("") || `<p class="muted">No audio files found.</p>`
+          .join("") || `<p class="muted">${t("hyperframe_no_audio")}</p>`
       }
     </div>
-    ${changelogs.length ? `<div class="hyperframe-list compact"><h4>Latest changelog</h4><div class="hyperframe-row"><code>${escapeHtml(changelogs[0].path)}</code><span>${escapeHtml((changelogs[0].updated_at || "").slice(0, 10))}</span></div></div>` : ""}
+    ${changelogs.length ? `<div class="hyperframe-list compact"><h4>${t("hyperframe_latest_changelog")}</h4><div class="hyperframe-row"><code>${escapeHtml(changelogs[0].path)}</code><span>${escapeHtml((changelogs[0].updated_at || "").slice(0, 10))}</span></div></div>` : ""}
   `;
 }
 
@@ -102,12 +102,12 @@ function hyperframeOverview(p) {
       <div class="section-head">
         <div>
           <h3>HyperFrame</h3>
-          <p class="muted">${escapeHtml(path || "No project path set")}</p>
+          <p class="muted">${escapeHtml(path || t("hyperframe_no_path"))}</p>
         </div>
-        ${series.hyperframe_status_updated_at ? `<span class="badge soft">Last read ${escapeHtml(series.hyperframe_status_updated_at.slice(0, 10))}</span>` : ""}
+        ${series.hyperframe_status_updated_at ? `<span class="badge soft">${t("hyperframe_last_read")} ${escapeHtml(series.hyperframe_status_updated_at.slice(0, 10))}</span>` : ""}
       </div>
-      ${!path ? `<div class="asset-placeholder">Set the HyperFrame project path in the project form.</div>` : ""}
-      ${path && !hasStatus ? `<p class="muted">Not read yet — run <code>scripts/read_hyperframe_status.mjs --apply</code> to cache the HyperFrame project status here.</p>` : ""}
+      ${!path ? `<div class="asset-placeholder">${t("hyperframe_set_path")}</div>` : ""}
+      ${path && !hasStatus ? `<p class="muted">${t("hyperframe_not_read")} <code>scripts/read_hyperframe_status.mjs --apply</code></p>` : ""}
       ${path && hasStatus ? hyperframeStatusPanel(status) : ""}
     </section>`;
 }

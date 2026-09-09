@@ -67,7 +67,7 @@ function imageCandidateStrip(shot) {
   return `<div class="cand-strip">${list
     .map(
       (c, i) => `
-    <button type="button" class="cand-thumb ${c.path === active ? "active" : ""}" data-set-active-image="${escapeHtml(c.assetId)}" data-shot="${escapeHtml(shot.id)}" title="v${i + 1}${c.path === active ? " (active)" : " — click to select"}">
+    <button type="button" class="cand-thumb ${c.path === active ? "active" : ""}" data-set-active-image="${escapeHtml(c.assetId)}" data-shot="${escapeHtml(shot.id)}" title="v${i + 1}${c.path === active ? ` (${t("candidate_active")})` : ` — ${t("candidate_select")}`}">
       <img src="${escapeHtml(c.path)}" alt="" loading="lazy" />
       ${c.path === active ? `<span class="cand-pick">✓</span>` : ""}
     </button>`,
@@ -76,9 +76,9 @@ function imageCandidateStrip(shot) {
 }
 
 function videoModelLabel(generation) {
-  if (!generation) return "Video";
+  if (!generation) return t("video_label");
   const b = generation.backend || "";
-  const model = /seedance/i.test(b) ? "Seedance" : /ltx/i.test(b) ? "LTX" : generation.model || "Video";
+  const model = /seedance/i.test(b) ? "Seedance" : /ltx/i.test(b) ? "LTX" : generation.model || t("video_label");
   const m = generation.method === "text-to-video" ? "T2V" : generation.method === "image-to-video" ? "I2V" : "";
   return m ? `${model}·${m}` : model;
 }
@@ -135,7 +135,7 @@ function storyboardImageBlock(shot) {
       : "";
   return `
     <div class="storyboard-image">
-      ${isGenerated ? `<img src="${escapeHtml(asset)}" alt="${escapeHtml(shot.title || "Storyboard image")}" data-image-zoom="${escapeHtml(asset)}" title="Click to enlarge" />` : `<div class="asset-placeholder">${escapeHtml(asset || t("image_pending"))}</div>`}
+      ${isGenerated ? `<img src="${escapeHtml(asset)}" alt="${escapeHtml(shot.title || t("shot_label_storyboard_image"))}" data-image-zoom="${escapeHtml(asset)}" title="${t("image_click_enlarge")}" />` : `<div class="asset-placeholder">${escapeHtml(asset || t("image_pending"))}</div>`}
       ${modeBadge}
       ${imageCandidateStrip(shot)}
       ${statusBadge(shot.image_status)}
@@ -160,13 +160,13 @@ export function shotPreview(shot) {
   const pendingCount = r.missing.length + (r.pacingWarn ? 1 : 0);
   const readinessChip = r.ready
     ? `<span class="ready-chip ok">${t("shot_video_ready")}</span>`
-    : `<span class="ready-chip warn" title="${escapeHtml([...r.missing.map((m) => m), r.pacingWarn ? `Pace: ${r.cps.toFixed(1)} chars/s` : ""].filter(Boolean).join(", "))}">${t("shot_pending").replace("{n}", pendingCount)}</span>`;
+    : `<span class="ready-chip warn" title="${escapeHtml([...r.missing.map((m) => m), r.pacingWarn ? t("shot_pacing_warning").replace("{cps}", r.cps.toFixed(1)) : ""].filter(Boolean).join(", "))}">${t("shot_pending").replace("{n}", pendingCount)}</span>`;
   const cont = shot.continuity || {};
   return `
     <article class="shot-script-card">
       <div class="shot-script-head">
         <div>
-          <span class="badge">${escapeHtml(shot.beat_id || "beat")}</span>
+          <span class="badge">${escapeHtml(shot.beat_id || t("beat_label"))}</span>
           <span class="badge">${escapeHtml(shot.duration_preset || `${shot.duration_seconds || ""}s` || "—")}</span>
           ${r.silent ? `<span class="badge soft">${t("shot_pure_visual")}</span>` : ""}
           ${readinessChip}
@@ -188,14 +188,14 @@ export function shotPreview(shot) {
           ${audioBlock(shot.audio)}
         </section>
         <section class="sheet-block">
-          <label>${t("shot_label_srt")} ${r.silent ? "" : srt.length ? `<span class="cps ${r.pacingWarn ? "warn" : ""}">${r.cps.toFixed(1)} chars/s · ${srt.length} cues</span>` : ""}</label>
+          <label>${t("shot_label_srt")} ${r.silent ? "" : srt.length ? `<span class="cps ${r.pacingWarn ? "warn" : ""}">${r.cps.toFixed(1)} ${t("chars_per_second")} · ${srt.length} ${t("subtitle_cues")}</span>` : ""}</label>
           ${
             r.silent
               ? `<p class="muted">${t("shot_pure_visual_note")}</p>`
               : `<pre>${escapeHtml(srt.length ? srt.map(formatSrtLine).join("\n\n") : t("shot_srt_pending"))}</pre>`
           }
         </section>
-        ${shot.transition_in || shot.transition_out ? `<section class="sheet-block"><label>${t("shot_label_transition")}</label><p class="muted">${t("trans_in")}：${escapeHtml(shot.transition_in || "cut")} ／ ${t("trans_out")}：${escapeHtml(shot.transition_out || "cut")}</p></section>` : ""}
+        ${shot.transition_in || shot.transition_out ? `<section class="sheet-block"><label>${t("shot_label_transition")}</label><p class="muted">${t("trans_in")}：${escapeHtml(shot.transition_in || t("transition_cut"))} ／ ${t("trans_out")}：${escapeHtml(shot.transition_out || t("transition_cut"))}</p></section>` : ""}
         ${
           cont.anchors || cont.props || cont.wardrobe
             ? `<section class="sheet-block"><label>${t("shot_label_continuity")}</label>

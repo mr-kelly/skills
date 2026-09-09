@@ -36,6 +36,7 @@ export function statusBadge(status) {
       requested: t("status_requested"),
       running: t("status_running"),
       generated: t("status_generated"),
+      approved_in_episode: t("status_approved_in_episode"),
     }[state] ||
     status ||
     t("status_draft");
@@ -67,18 +68,21 @@ export function textarea(name, label, value = "", full = true) {
 
 export function select(name, label, value, options) {
   return `<div class="field"><label for="${name}">${label}</label><select id="${name}" name="${name}">
-    ${options.map((option) => `<option value="${escapeHtml(option)}" ${option === value ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}
+    ${options
+      .map((option) => (typeof option === "string" ? { value: option, label: option } : option))
+      .map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === value ? "selected" : ""}>${escapeHtml(option.label)}</option>`)
+      .join("")}
   </select></div>`;
 }
 
 export function statusSelect(value) {
-  return select("status", "Status", value || "draft", [
-    "draft",
-    "needs_review",
-    "changes_requested",
-    "approved",
-    "done",
-    "blocked",
+  return select("status", t("field_status"), value || "draft", [
+    { value: "draft", label: t("status_draft") },
+    { value: "needs_review", label: t("status_needs_review") },
+    { value: "changes_requested", label: t("status_changes_requested") },
+    { value: "approved", label: t("status_approved") },
+    { value: "done", label: t("status_done") },
+    { value: "blocked", label: t("status_blocked") },
   ]);
 }
 

@@ -9,20 +9,20 @@ function capabilitiesPanel() {
   const capabilities = store.state?.capabilities;
   if (!capabilities) return `<div class="settings-card"><p class="muted">${t("capabilities_unavailable")}</p></div>`;
   const rows = [
-    ["image", "GPT Image", capabilities.providers?.image],
-    ["seedance", "Seedance / Ark", capabilities.providers?.seedance],
-    ["h3", "MiniMax H3 MLX", capabilities.providers?.minimax_h3],
-    ["ltx", "LTX-Video", capabilities.providers?.ltx],
-    ["qwen", "Qwen3-TTS MLX", capabilities.providers?.qwen_tts],
-    ["api_tts", "API TTS", capabilities.providers?.api_tts],
-    ["hyperframes", "HyperFrames", capabilities.tools?.hyperframes],
-    ["renderer", "Episode renderer", capabilities.workflows?.episode_render],
+    ["image", capabilities.providers?.image],
+    ["seedance", capabilities.providers?.seedance],
+    ["h3", capabilities.providers?.minimax_h3],
+    ["ltx", capabilities.providers?.ltx],
+    ["qwen", capabilities.providers?.qwen_tts],
+    ["api_tts", capabilities.providers?.api_tts],
+    ["hyperframes", capabilities.tools?.hyperframes],
+    ["renderer", capabilities.workflows?.episode_render],
   ];
   return `<div class="capability-list">${rows
     .map(
-      ([key, name, item]) => `<div class="capability-row ${item?.available ? "available" : "blocked"}">
+      ([key, item]) => `<div class="capability-row ${item?.available ? "available" : "blocked"}">
         <span class="capability-dot" aria-hidden="true"></span>
-        <div><strong>${escapeHtml(name)}</strong><p>${escapeHtml(item ? t(`capability_${key}_${item.available ? "ok" : "missing"}`) : t("capabilities_unavailable"))}</p></div>
+        <div><strong>${escapeHtml(t(`capability_${key}_name`))}</strong><p>${escapeHtml(item ? t(`capability_${key}_${item.available ? "ok" : "missing"}`) : t("capabilities_unavailable"))}</p></div>
       </div>`,
     )
     .join("")}</div>`;
@@ -37,8 +37,8 @@ function imageConfigPanel() {
         <input id="imageBaseUrl" name="base_url" value="${escapeHtml(config.image_base_url || "https://moonrouter.dev/v1")}" />
       </div>
       <div class="field">
-        <label>API Key</label>
-        <div class="settings-row"><code>KELLY_DRAMA_IMAGE_API_KEY</code><span>set for the trusted generation script, not this browser</span></div>
+        <label>${t("image_config_api_key")}</label>
+        <div class="settings-row"><code>KELLY_DRAMA_IMAGE_API_KEY</code><span>${t("image_config_key_hint")}</span></div>
       </div>
       <div class="field">
         <label for="imageModel">${t("image_config_model")}</label>
@@ -74,7 +74,7 @@ function bindImageConfigForm() {
       toast(t("image_config_saved"));
       openSettings();
     } catch (error) {
-      toast(error.message || "Failed");
+      toast(error.message || t("generic_failed"));
     }
   });
 }

@@ -2,7 +2,7 @@ import { episodeRenderAgentPrompt, generationAgentPrompt, requestAgentAction } f
 import { getProvider, toast } from "./api.js";
 import { storyboardPromptPreview } from "./drama-model.js?v=0.1.0";
 import { arr } from "./format.js";
-import { t } from "./i18n.js";
+import { canonicalValue, t } from "./i18n.js";
 import { openImageModal, openPromptModal } from "./modal.js";
 import { navigateTo, syncRoute } from "./router.js";
 import { isMobileLayout, setMobileDetailOpen } from "./shell.js";
@@ -32,7 +32,7 @@ function serializeItem(form, kind) {
     return {
       ...base,
       name: value(form, "name"),
-      role: value(form, "role"),
+      role: canonicalValue(value(form, "role")),
       status: value(form, "status"),
       actor_profile: value(form, "actor_profile"),
       character_card: {
@@ -66,7 +66,7 @@ function serializeItem(form, kind) {
       ...base,
       from: value(form, "from"),
       to: value(form, "to"),
-      type: value(form, "type"),
+      type: canonicalValue(value(form, "type")),
       public_status: value(form, "public_status"),
       hidden_truth: value(form, "hidden_truth"),
       power_dynamic: value(form, "power_dynamic"),
@@ -80,7 +80,7 @@ function serializeItem(form, kind) {
     try {
       beats = JSON.parse(value(form, "beats_json") || "[]");
     } catch {
-      throw new Error("Invalid beats JSON");
+      throw new Error(t("invalid_beats_json"));
     }
     return {
       ...base,
@@ -131,7 +131,7 @@ function serializeItem(form, kind) {
   }
   return {
     ...base,
-    kind: value(form, "kind"),
+    kind: canonicalValue(value(form, "kind")),
     target_id: value(form, "target_id"),
     status: value(form, "status"),
     title: value(form, "title"),
@@ -176,7 +176,7 @@ export function newItem() {
   const templates = {
     characters: {
       id: `${projectPrefix}-char-new-${timestamp}`,
-      name: "New character",
+      name: t("new_character"),
       role: "helper",
       status: "draft",
       character_card: {},
@@ -186,20 +186,20 @@ export function newItem() {
       id: `${projectPrefix}-rel-new-${timestamp}`,
       from: store.state.project.characters?.[0]?.id || "",
       to: store.state.project.characters?.[1]?.id || "",
-      type: "new relationship",
+      type: t("new_relationship"),
       evidence: [],
     },
     episodes: {
       id: `${projectPrefix}-ep-new-${timestamp}`,
       number: (store.state.project.episodes?.length || 0) + 1,
-      title: "New episode",
+      title: t("new_episode"),
       status: "draft",
       beats: [],
     },
     shots: {
       id: `${projectPrefix}-shot-new-${timestamp}`,
       episode_id: store.state.project.episodes?.[0]?.id || "",
-      title: "New shot",
+      title: t("new_shot"),
       status: "draft",
       characters: [],
     },
@@ -207,7 +207,7 @@ export function newItem() {
       id: `${projectPrefix}-task-new-${timestamp}`,
       kind: "episode",
       status: "needs_review",
-      title: "New task",
+      title: t("new_task"),
       note: "",
     },
   };
@@ -412,7 +412,7 @@ export function bindForm() {
         toast(t("toast_voice_active"));
         hooks.render();
       } catch (error) {
-        toast(error.message || "Failed");
+        toast(error.message || t("generic_failed"));
       }
     });
   });
@@ -424,7 +424,7 @@ export function bindForm() {
         toast(t("toast_image_active"));
         hooks.render();
       } catch (error) {
-        toast(error.message || "Failed");
+        toast(error.message || t("generic_failed"));
       }
     });
   });
@@ -451,7 +451,7 @@ export function bindForm() {
         toast(t("toast_video_active"));
         hooks.render();
       } catch (error) {
-        toast(error.message || "Failed");
+        toast(error.message || t("generic_failed"));
       }
     });
   });
@@ -461,7 +461,7 @@ export function bindForm() {
         const data = storyboardPromptPreview(project(), node.dataset.promptPreview);
         openPromptModal(data);
       } catch (error) {
-        toast(error.message || "Could not load prompt");
+        toast(error.message || t("prompt_load_failed"));
       }
     });
   });
