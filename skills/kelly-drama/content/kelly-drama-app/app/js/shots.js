@@ -1,3 +1,4 @@
+import { generationCapability, preferredVideoBackend } from "./agent-bridge.js";
 import {
   dialogueCps,
   hasSoundBed,
@@ -9,7 +10,7 @@ import {
 } from "./drama-model.js?v=0.1.0";
 import { escapeHtml, statusBadge } from "./format.js";
 import { t } from "./i18n.js";
-import { project } from "./store.js";
+import { project, settings, store } from "./store.js";
 
 // Pure readiness rules (shotIsSilent/hasSoundBed/dialogueCps/shotReadiness)
 // live in drama-model.js — same rules scripts/validate_shot_readiness.mjs
@@ -98,6 +99,10 @@ function shotVideoBlock(shot) {
   const isVideo = Boolean(v);
   const gate = shotVideoGate(project(), shot);
   const imageApproved = gate.imageApproved;
+  const capability = generationCapability(store.state?.capabilities, "video");
+  const capabilityReason = capability.reason_key ? t(capability.reason_key) : capability.reason || "";
+  const backend = preferredVideoBackend(store.state?.capabilities, settings().video_prod_backend);
+  const canGenerate = gate.ready && capability.available;
   return `
     <div class="shot-video">
       ${
@@ -106,10 +111,12 @@ function shotVideoBlock(shot) {
           : `<div class="asset-placeholder">${imageApproved ? t("video_pending") : t("video_requires_image_approval")}</div>`
       }
       ${videoCandidateStrip(shot)}
+      ${statusBadge(shot.video_status)}
+      ${shot.video_generation?.error ? `<p class="stage-lock">${escapeHtml(shot.video_generation.error)}</p>` : ""}
       <div class="storyboard-actions">
-        <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" ${gate.ready ? "" : "disabled"}>${isVideo ? t("regenerate_video") : t("generate_video")}</button>
+        <button type="button" class="mini-button generate-video-button" data-generate-video="${escapeHtml(shot.id)}" data-video-backend="${escapeHtml(backend)}" ${canGenerate ? "" : "disabled"} title="${escapeHtml(capability.available ? "" : capabilityReason)}">${isVideo ? t("regenerate_video") : t("generate_video")}</button>
       </div>
-      ${!gate.ready ? `<p class="stage-lock">${!gate.scriptLocked ? t("shot_image_requires_script") : !gate.imageApproved ? t("shot_video_requires_image") : t("shot_video_requires_character_lock")}</p>` : ""}
+      ${!capability.available ? `<p class="stage-lock">${escapeHtml(capabilityReason)}</p>` : !gate.ready ? `<p class="stage-lock">${!gate.scriptLocked ? t("shot_image_requires_script") : !gate.imageApproved ? t("shot_video_requires_image") : t("shot_video_requires_character_lock")}</p>` : ""}
     </div>`;
 }
 
@@ -118,6 +125,9 @@ function storyboardImageBlock(shot) {
   const isGenerated = Boolean(asset);
   const gate = shotImageGate(project(), shot);
   const imageApproved = shot.image_status === "approved" && isGenerated;
+  const capability = generationCapability(store.state?.capabilities, "image");
+  const capabilityReason = capability.reason_key ? t(capability.reason_key) : capability.reason || "";
+  const canGenerate = gate.ready && capability.available;
   const mode = shot.image_generation?.mode;
   const modeBadge =
     isGenerated && mode
@@ -128,12 +138,14 @@ function storyboardImageBlock(shot) {
       ${isGenerated ? `<img src="${escapeHtml(asset)}" alt="${escapeHtml(shot.title || "Storyboard image")}" data-image-zoom="${escapeHtml(asset)}" title="Click to enlarge" />` : `<div class="asset-placeholder">${escapeHtml(asset || t("image_pending"))}</div>`}
       ${modeBadge}
       ${imageCandidateStrip(shot)}
+      ${statusBadge(shot.image_status)}
+      ${shot.image_generation?.error ? `<p class="stage-lock">${escapeHtml(shot.image_generation.error)}</p>` : ""}
       <div class="storyboard-actions">
-        <button type="button" class="mini-button generate-image-button" data-generate-image="${escapeHtml(shot.id)}" ${gate.ready ? "" : "disabled"}>${isGenerated ? t("regenerate_image") : t("generate_image")}</button>
+        <button type="button" class="mini-button generate-image-button" data-generate-image="${escapeHtml(shot.id)}" ${canGenerate ? "" : "disabled"} title="${escapeHtml(capability.available ? "" : capabilityReason)}">${isGenerated ? t("regenerate_image") : t("generate_image")}</button>
         <button type="button" class="mini-button ${imageApproved ? "ghost" : "primary"}" data-approve-image="${escapeHtml(shot.id)}" ${isGenerated ? "" : "disabled"}>${imageApproved ? t("image_approved") : t("approve_image")}</button>
         <button type="button" class="mini-button ghost" data-prompt-preview="${escapeHtml(shot.id)}">${t("view_prompt")}</button>
       </div>
-      ${!gate.ready ? `<p class="stage-lock">${!gate.scriptLocked ? t("shot_image_requires_script") : gate.missingCharacters.length ? t("shot_image_requires_character_lock") : ""}</p>` : ""}
+      ${!capability.available ? `<p class="stage-lock">${escapeHtml(capabilityReason)}</p>` : !gate.ready ? `<p class="stage-lock">${!gate.scriptLocked ? t("shot_image_requires_script") : gate.missingCharacters.length ? t("shot_image_requires_character_lock") : ""}</p>` : ""}
     </div>`;
 }
 

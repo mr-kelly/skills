@@ -5,6 +5,29 @@ import { render } from "./render.js";
 import { loadState } from "./state.js";
 import { $, LANG_STORAGE_KEY, project, settings, store } from "./store.js";
 
+function capabilitiesPanel() {
+  const capabilities = store.state?.capabilities;
+  if (!capabilities) return `<div class="settings-card"><p class="muted">${t("capabilities_unavailable")}</p></div>`;
+  const rows = [
+    ["image", "GPT Image", capabilities.providers?.image],
+    ["seedance", "Seedance / Ark", capabilities.providers?.seedance],
+    ["h3", "MiniMax H3 MLX", capabilities.providers?.minimax_h3],
+    ["ltx", "LTX-Video", capabilities.providers?.ltx],
+    ["qwen", "Qwen3-TTS MLX", capabilities.providers?.qwen_tts],
+    ["api_tts", "API TTS", capabilities.providers?.api_tts],
+    ["hyperframes", "HyperFrames", capabilities.tools?.hyperframes],
+    ["renderer", "Episode renderer", capabilities.workflows?.episode_render],
+  ];
+  return `<div class="capability-list">${rows
+    .map(
+      ([key, name, item]) => `<div class="capability-row ${item?.available ? "available" : "blocked"}">
+        <span class="capability-dot" aria-hidden="true"></span>
+        <div><strong>${escapeHtml(name)}</strong><p>${escapeHtml(item ? t(`capability_${key}_${item.available ? "ok" : "missing"}`) : t("capabilities_unavailable"))}</p></div>
+      </div>`,
+    )
+    .join("")}</div>`;
+}
+
 function imageConfigPanel() {
   const config = settings();
   return `
@@ -82,6 +105,7 @@ export function openSettings() {
   const titleSuffix = project().series?.title ? `《${project().series.title}》 · ` : "";
   $("settingsSubtitle").textContent = titleSuffix + t("settings_title_default");
   $("imageSettingsMount").innerHTML = imageConfigPanel();
+  $("capabilitiesMount").innerHTML = capabilitiesPanel();
   bindImageConfigForm();
   bindLangSelect();
   setSettingsTab("image");

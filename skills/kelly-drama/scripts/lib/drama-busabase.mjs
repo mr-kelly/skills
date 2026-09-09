@@ -12,6 +12,7 @@ import path from "node:path";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources } from "busabase-sdk/airapp";
 import { appConfig } from "../../content/kelly-drama-app/app/js/config.js";
+import { prepareUploadableFile } from "./media-preflight.mjs";
 
 export function clientFromEnv() {
   const baseUrl = process.env.BUSABASE_BASE_URL;
@@ -104,6 +105,22 @@ export async function upsert(client, declaredBase, idFieldSlug, idValue, fields,
 }
 
 export async function uploadAssetFromBytes(client, bytes, fileName, mimeType, context = "kelly-drama/script") {
+  if (bytes.length > 25 * 1024 * 1024) {
+    if (!String(mimeType).startsWith("video/")) throw new Error("Asset exceeds the Busabase 25 MB limit.");
+    const temporaryInput = path.join(
+      process.env.TMPDIR || "/tmp",
+      `kelly-drama-bytes-${process.pid}-${Date.now()}.mp4`,
+    );
+    await fs.writeFile(temporaryInput, bytes);
+    try {
+      const prepared = await prepareUploadableFile(temporaryInput, mimeType);
+      const preparedBytes = await fs.readFile(prepared.path);
+      if (prepared.temporary) await fs.unlink(prepared.path).catch(() => undefined);
+      return uploadAssetFromBytes(client, preparedBytes, fileName, mimeType, context);
+    } finally {
+      await fs.unlink(temporaryInput).catch(() => undefined);
+    }
+  }
   const requested = await client.assets.createUploadUrl({ fileName, mimeType, sizeBytes: bytes.length, context });
   if (requested.assetId) return { assetId: requested.assetId, url: requested.publicUrl };
   const put = await fetch(requested.uploadUrl, { method: "PUT", headers: { "content-type": mimeType }, body: bytes });
@@ -119,8 +136,13 @@ export async function uploadAssetFromBytes(client, bytes, fileName, mimeType, co
 }
 
 export async function uploadAssetFromFile(client, absPath, mimeType, context) {
-  const bytes = await fs.readFile(absPath);
-  return uploadAssetFromBytes(client, bytes, path.basename(absPath), mimeType, context);
+  const prepared = await prepareUploadableFile(absPath, mimeType);
+  try {
+    const bytes = await fs.readFile(prepared.path);
+    return uploadAssetFromBytes(client, bytes, path.basename(absPath), mimeType, context);
+  } finally {
+    if (prepared.temporary) await fs.unlink(prepared.path).catch(() => undefined);
+  }
 }
 
 export async function downloadAssetToFile(client, assetId, absPath) {

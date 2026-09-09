@@ -23,6 +23,7 @@ registerActionHooks({ render, shotsForEpisode });
 
 async function load() {
   await loadState();
+  store.hasUnsavedChanges = false;
   if (DEMO_SCENARIO && !window.location.hash) {
     const demoRoutes = {
       overview: "/overview",
@@ -203,6 +204,35 @@ setInterval(() => {
     applyRouteFromHash({ replaceEmpty: true });
   }
 }, 300);
+
+let backgroundRefreshInFlight = false;
+async function refreshGeneratedState() {
+  if (
+    backgroundRefreshInFlight ||
+    !store.state ||
+    store.hasUnsavedChanges ||
+    document.hidden ||
+    isTypingTarget(document.activeElement) ||
+    isModalOpen() ||
+    !$("settingsModal").classList.contains("hidden")
+  )
+    return;
+  backgroundRefreshInFlight = true;
+  try {
+    await loadState();
+    render();
+  } catch (error) {
+    console.warn("Kelly Drama background refresh failed", error);
+  } finally {
+    backgroundRefreshInFlight = false;
+  }
+}
+
+setInterval(() => void refreshGeneratedState(), 15_000);
+window.addEventListener("focus", () => void refreshGeneratedState());
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) void refreshGeneratedState();
+});
 
 async function boot() {
   const ready = await passConnectGate({ onReady: boot });

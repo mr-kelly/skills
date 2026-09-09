@@ -121,6 +121,7 @@
         </div>
         <nav class="modal-tabs" aria-label="设置标签">
           <button class="active" data-settings-tab="image" data-i18n="settings_tab_image">图像 API</button>
+          <button data-settings-tab="capabilities" data-i18n="settings_tab_capabilities">执行能力</button>
           <button data-settings-tab="general" data-i18n="settings_tab_general">通用</button>
           <button data-settings-tab="files" data-i18n="settings_tab_files">文件</button>
         </nav>
@@ -129,6 +130,11 @@
             <h2 data-i18n="settings_tab_image">图像 API</h2>
             <p class="muted" data-i18n="image_config_hint">用于生成分镜图。API Key 只显示配置状态，不会在界面里回显完整密钥。</p>
             <div id="imageSettingsMount"></div>
+          </section>
+          <section class="settings-panel" data-settings-panel="capabilities">
+            <h2 data-i18n="settings_tab_capabilities">执行能力</h2>
+            <p class="muted" data-i18n="capabilities_hint">生成前检查当前可信运行环境，缺失能力不会创建无法执行的假任务。</p>
+            <div id="capabilitiesMount"></div>
           </section>
           <section class="settings-panel" data-settings-panel="general">
             <h2 data-i18n="settings_tab_general">通用</h2>

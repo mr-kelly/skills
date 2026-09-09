@@ -76,7 +76,16 @@ function scriptPreview(item) {
 }
 
 function episodeSummaryTab(item) {
+  const video = item.hyperframe_video_url || "";
+  const renderCapability = store.state?.capabilities?.workflows?.episode_render || { available: true, reason: "" };
   return `
+    <section class="episode-master">
+      <div class="section-head">
+        <div><h3>${t("episode_master_title")}</h3><p class="muted">${t("episode_master_hint")}</p></div>
+        <button type="button" class="mini-button primary" data-render-episode="${escapeHtml(item.id)}" ${renderCapability.available ? "" : "disabled"} title="${escapeHtml(renderCapability.reason || "")}">${video ? t("episode_render_again") : t("episode_render")}</button>
+      </div>
+      ${video ? `<video src="${escapeHtml(video)}" controls preload="metadata" playsinline></video>` : `<div class="asset-placeholder">${t("episode_master_empty")}</div>`}
+    </section>
     <section class="script-section">
       <h3>${t("script_section_episode_summary")}</h3>
       <div class="form-grid">

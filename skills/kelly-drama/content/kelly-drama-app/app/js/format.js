@@ -23,6 +23,7 @@ export function lines(value) {
 }
 
 export function statusBadge(status) {
+  const state = String(status || "draft").split(":")[0];
   const label =
     {
       draft: t("status_draft"),
@@ -31,10 +32,14 @@ export function statusBadge(status) {
       approved: t("status_approved"),
       done: t("status_done"),
       blocked: t("status_blocked"),
-    }[status] ||
+      planned: t("status_planned"),
+      requested: t("status_requested"),
+      running: t("status_running"),
+      generated: t("status_generated"),
+    }[state] ||
     status ||
     t("status_draft");
-  return `<span class="badge status-${escapeHtml(status || "draft")}">${escapeHtml(label)}</span>`;
+  return `<span class="badge status-${escapeHtml(state)}">${escapeHtml(label)}</span>`;
 }
 
 export function formatBytes(bytes) {

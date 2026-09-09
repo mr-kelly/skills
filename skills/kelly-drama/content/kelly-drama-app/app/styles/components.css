@@ -173,7 +173,8 @@
   }
 
   .badge.status-approved,
-  .badge.status-done {
+  .badge.status-done,
+  .badge.status-generated {
     color: var(--positive);
     background: color-mix(in srgb, var(--positive) 18%, var(--surface));
   }
@@ -192,6 +193,11 @@
   .badge.status-blocked {
     color: var(--danger);
     background: var(--surface-soft);
+  }
+
+  .badge.status-running {
+    color: #155e75;
+    background: #cffafe;
   }
 
   .detail {

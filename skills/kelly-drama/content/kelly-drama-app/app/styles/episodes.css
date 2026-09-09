@@ -77,6 +77,25 @@
     border-top: 1px solid var(--line);
   }
 
+  .episode-master {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-soft);
+  }
+
+  .episode-master video {
+    width: 100%;
+    max-height: min(62vh, 640px);
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-sm);
+    background: #111;
+    object-fit: contain;
+  }
+
   .script-section h3 {
     margin: 0 0 10px;
     font-size: var(--text-base);

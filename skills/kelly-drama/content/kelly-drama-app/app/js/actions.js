@@ -1,3 +1,4 @@
+import { episodeRenderAgentPrompt, generationAgentPrompt, requestAgentAction } from "./agent-bridge.js";
 import { getProvider, toast } from "./api.js";
 import { storyboardPromptPreview } from "./drama-model.js?v=0.1.0";
 import { arr } from "./format.js";
@@ -162,6 +163,7 @@ async function saveForm(form) {
     store.selectedId = payload.id;
   }
   toast(t("toast_saved"));
+  store.hasUnsavedChanges = false;
   syncRoute({ replace: true });
   hooks.render();
 }
@@ -220,6 +222,22 @@ export function newItem() {
 }
 
 export function bindForm() {
+  document.querySelectorAll("form.detail-card").forEach((form) => {
+    form.addEventListener("input", () => {
+      store.hasUnsavedChanges = true;
+    });
+  });
+  document.querySelectorAll("[data-render-episode]").forEach((node) => {
+    node.addEventListener("click", () => {
+      const episodeId = node.dataset.renderEpisode;
+      const sent = requestAgentAction({
+        requestId: `kelly-drama:episode:${Date.now()}`,
+        label: t("agent_action_render_episode"),
+        prompt: episodeRenderAgentPrompt({ projectId: store.state.active_project_id, episodeId }),
+      });
+      toast(sent ? t("toast_agent_action_requested") : t("toast_agent_action_chat_required"));
+    });
+  });
   document.querySelectorAll("[data-go]").forEach((node) => {
     node.addEventListener("click", () => {
       navigateTo({ view: node.dataset.go, selectedId: null, episodeMode: "list", episodeTab: "summary" });
@@ -291,6 +309,11 @@ export function bindForm() {
         const provider = await getProvider();
         store.state = await provider.requestStoryboardImageGeneration(shotId);
         toast(t("toast_image_generated"));
+        requestAgentAction({
+          requestId: `kelly-drama:image:${Date.now()}`,
+          label: t("agent_action_generate_image"),
+          prompt: generationAgentPrompt({ projectId: store.state.active_project_id, kind: "image", targetId: shotId }),
+        });
         hooks.render();
       } catch (error) {
         toast(error.message || t("generate_image_failed"));
@@ -306,8 +329,14 @@ export function bindForm() {
       node.textContent = t("generating_video");
       try {
         const provider = await getProvider();
-        store.state = await provider.requestShotVideoGeneration(shotId);
+        const backend = node.dataset.videoBackend || "seedance";
+        store.state = await provider.requestShotVideoGeneration(shotId, backend);
         toast(t("toast_video_generated"));
+        requestAgentAction({
+          requestId: `kelly-drama:video:${Date.now()}`,
+          label: t("agent_action_generate_video"),
+          prompt: generationAgentPrompt({ projectId: store.state.active_project_id, kind: "video", targetId: shotId }),
+        });
         hooks.render();
       } catch (error) {
         toast(error.message || t("generate_video_failed"));
@@ -325,6 +354,11 @@ export function bindForm() {
         const provider = await getProvider();
         store.state = await provider.requestCharacterVoiceGeneration(id);
         toast(t("toast_voice_generated"));
+        requestAgentAction({
+          requestId: `kelly-drama:voice:${Date.now()}`,
+          label: t("agent_action_generate_voice"),
+          prompt: generationAgentPrompt({ projectId: store.state.active_project_id, kind: "voice", targetId: id }),
+        });
         hooks.render();
       } catch (error) {
         toast(error.message || t("generate_voice_failed"));
@@ -342,6 +376,11 @@ export function bindForm() {
         const provider = await getProvider();
         store.state = await provider.requestCharacterCardGeneration(id);
         toast(t("toast_card_generated"));
+        requestAgentAction({
+          requestId: `kelly-drama:card:${Date.now()}`,
+          label: t("agent_action_generate_card"),
+          prompt: generationAgentPrompt({ projectId: store.state.active_project_id, kind: "card", targetId: id }),
+        });
         hooks.render();
       } catch (error) {
         toast(error.message || t("generate_card_failed"));

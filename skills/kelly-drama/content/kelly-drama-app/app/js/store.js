@@ -29,6 +29,7 @@ export const store = {
   expandedShots: new Set(),
   loadingMore: {},
   loadMoreError: {},
+  hasUnsavedChanges: false,
 };
 
 export function project() {

@@ -403,13 +403,28 @@ function taskFields(row = {}) {
 
 // ---- read: rows -> project ----
 
-function collectAssetIds({ projectRow, characterRows, shotRows }) {
+function busabaseAssetId(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/^ast[a-z0-9]+$/i.test(text)) return text;
+  try {
+    const parsed = JSON.parse(text);
+    const id = parsed?.assetId || parsed?.asset_id || parsed?.id || "";
+    if (/^ast[a-z0-9]+$/i.test(String(id))) return String(id);
+  } catch {
+    // Older rows sometimes store a readable index string instead of JSON.
+  }
+  return text.match(/\bast[a-z0-9]+\b/i)?.[0] || "";
+}
+
+function collectAssetIds({ projectRow, characterRows, episodeRows = [], shotRows }) {
   const ids = [];
   for (const bg of parseJsonArray(projectRow.visual_background_refs_json)) ids.push(bg.assetId);
   for (const row of characterRows) {
     ids.push(row.reference_card_asset_id, row.voice_reference_asset_id);
     for (const cand of parseJsonArray(row.voice_candidates_json)) ids.push(cand.assetId);
   }
+  for (const row of episodeRows) ids.push(busabaseAssetId(row.hyperframe_video_asset));
   for (const row of shotRows) {
     ids.push(row.image_asset_id, row.video_asset_id);
     for (const cand of parseJsonArray(row.image_candidates_json)) ids.push(cand.assetId);
@@ -527,7 +542,8 @@ function buildRelationship(row) {
   };
 }
 
-function buildEpisode(row) {
+function buildEpisode(row, urlOf) {
+  const videoAssetId = busabaseAssetId(row.hyperframe_video_asset);
   return {
     id: row.episode_id,
     project_id: row.project_id || currentProjectId(),
@@ -536,6 +552,8 @@ function buildEpisode(row) {
     status: row.status || "draft",
     hyperframe_composition: row.hyperframe_composition || "",
     hyperframe_video_asset: row.hyperframe_video_asset || "",
+    hyperframe_video_asset_id: videoAssetId,
+    hyperframe_video_url: urlOf(videoAssetId),
     summary: row.summary || "",
     promise: row.promise || "",
     a_plot: row.a_plot || "",
@@ -646,10 +664,11 @@ async function buildCollectionItems(key, rows, sharedUrlOf) {
   const liveRows = rows.filter((row) => row.deleted !== "true");
   if (key === "shots") liveRows.sort((a, b) => (Number(a.position) || 0) - (Number(b.position) || 0));
   let urlOf = sharedUrlOf;
-  if (!urlOf && (key === "characters" || key === "shots")) {
+  if (!urlOf && (key === "characters" || key === "episodes" || key === "shots")) {
     const assetIds = collectAssetIds({
       projectRow: {},
       characterRows: key === "characters" ? liveRows : [],
+      episodeRows: key === "episodes" ? liveRows : [],
       shotRows: key === "shots" ? liveRows : [],
     });
     const urlMap = await resolveAssetUrls(runtimeClient, assetIds);
@@ -680,7 +699,7 @@ async function buildFullProject(requestedProjectId = "") {
   ]);
   const characterRows = characterPage.rows;
   const shotRows = shotPage.rows;
-  const assetIds = collectAssetIds({ projectRow, characterRows, shotRows });
+  const assetIds = collectAssetIds({ projectRow, characterRows, episodeRows: episodePage.rows, shotRows });
   const urlMap = await resolveAssetUrls(runtimeClient, assetIds);
   const urlOf = (assetId) => (assetId ? urlMap.get(assetId) || "" : "");
 

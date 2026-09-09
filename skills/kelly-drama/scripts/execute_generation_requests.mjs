@@ -371,28 +371,28 @@ async function main() {
   const pendingCards = characterRows.filter(
     (row) =>
       row.deleted !== "true" &&
-      row.reference_card_status === "requested" &&
+      ["requested", "running"].includes(row.reference_card_status) &&
       (!onlyCharacter || row.character_id === onlyCharacter) &&
       (!onlyKind || onlyKind === "card"),
   );
   const pendingVoices = characterRows.filter(
     (row) =>
       row.deleted !== "true" &&
-      row.voice_reference_status === "requested" &&
+      ["requested", "running"].includes(row.voice_reference_status) &&
       (!onlyCharacter || row.character_id === onlyCharacter) &&
       (!onlyKind || onlyKind === "voice"),
   );
   const pendingImages = shotRows.filter(
     (row) =>
       row.deleted !== "true" &&
-      row.image_status === "requested" &&
+      ["requested", "running"].includes(row.image_status) &&
       (!onlyShot || row.shot_id === onlyShot) &&
       (!onlyKind || onlyKind === "image"),
   );
   const pendingVideos = shotRows.filter(
     (row) =>
       row.deleted !== "true" &&
-      String(row.video_status || "").startsWith("requested") &&
+      /^(requested|running)(:|$)/.test(String(row.video_status || "")) &&
       (!onlyShot || row.shot_id === onlyShot) &&
       (!onlyKind || onlyKind === "video"),
   );
@@ -421,8 +421,22 @@ async function main() {
   // generateCharacterCard.
   for (const row of pendingCards) {
     try {
+      await upsert(
+        client,
+        basesByKey.get("characters"),
+        "character-id",
+        row.character_id,
+        {
+          ...toCharacterFields(row),
+          reference_card_status: "running",
+          reference_card_generation_json: JSON.stringify({ started_at: new Date().toISOString() }),
+        },
+        `Start reference card generation for ${row.character_id}`,
+      );
       if (!imageConfig.api_key) throw new Error("KELLY_DRAMA_IMAGE_API_KEY is not set.");
-      const project = buildProject({ projectRow, characterRows, urlOf: () => "" });
+      const owner = projectRows.find((item) => item.project_id === row.project_id) || projectRow;
+      const ownerCharacters = characterRows.filter((item) => item.project_id === row.project_id);
+      const project = buildProject({ projectRow: owner, characterRows: ownerCharacters, urlOf: () => "" });
       const character = project.characters.find((c) => c.id === row.character_id) || {
         reference_card: { prompt: row.reference_card_prompt },
       };
@@ -460,7 +474,11 @@ async function main() {
         basesByKey.get("characters"),
         "character-id",
         row.character_id,
-        { ...toCharacterFields(row), reference_card_status: "blocked" },
+        {
+          ...toCharacterFields(row),
+          reference_card_status: "blocked",
+          reference_card_generation_json: JSON.stringify({ error: error.message, failed_at: new Date().toISOString() }),
+        },
         `Reference card generation failed for ${row.character_id}`,
       );
     }
@@ -470,6 +488,18 @@ async function main() {
   const python = process.env.KELLY_DRAMA_TTS_PYTHON || "python3";
   for (const row of pendingVoices) {
     try {
+      await upsert(
+        client,
+        basesByKey.get("characters"),
+        "character-id",
+        row.character_id,
+        {
+          ...toCharacterFields(row),
+          voice_reference_status: "running",
+          voice_reference_generation_json: JSON.stringify({ started_at: new Date().toISOString() }),
+        },
+        `Start reference voice generation for ${row.character_id}`,
+      );
       const character = {
         id: row.character_id,
         name: row.name,
@@ -484,29 +514,72 @@ async function main() {
           sample_script: row.voice_sample_script,
         },
       };
-      const model = "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit";
-      const outAbs = path.join(CACHE_DIR, `${row.character_id}-voice-${Date.now()}.wav`);
-      const pyArgs = { model, text: voiceScript(character), instruct: voiceInstruct(character), output: outAbs };
-      const scriptPath = path.join(SKILL_DIR, "scripts", "gen_voice.py");
-      const outPath = await new Promise((resolve, reject) => {
-        let out = "";
-        let err = "";
-        const child = spawn(python, [scriptPath, JSON.stringify(pyArgs)], { stdio: ["ignore", "pipe", "pipe"] });
-        child.stdout.on("data", (d) => {
-          out += d.toString();
+      const configuredBackend = process.env.KELLY_DRAMA_TTS_BACKEND || settingsRow.tts_backend || "qwen3-tts-mlx";
+      const requestedBackend =
+        process.platform !== "darwin" &&
+        process.env.KELLY_DRAMA_TTS_BASE_URL &&
+        process.env.KELLY_DRAMA_TTS_API_KEY &&
+        !process.env.KELLY_DRAMA_TTS_BACKEND
+          ? "openai-compatible"
+          : configuredBackend;
+      const script = voiceScript(character);
+      const instruct = voiceInstruct(character);
+      let model = settingsRow.tts_model || "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit";
+      let backend = requestedBackend;
+      let assetId;
+      if (requestedBackend === "openai-compatible" || requestedBackend === "api") {
+        const baseUrl = String(process.env.KELLY_DRAMA_TTS_BASE_URL || "").replace(/\/+$/, "");
+        const apiKey = process.env.KELLY_DRAMA_TTS_API_KEY || "";
+        if (!baseUrl || !apiKey) throw new Error("KELLY_DRAMA_TTS_BASE_URL and KELLY_DRAMA_TTS_API_KEY are required.");
+        model = settingsRow.tts_model || process.env.KELLY_DRAMA_TTS_MODEL || "gpt-4o-mini-tts";
+        const response = await fetch(`${baseUrl}/audio/speech`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model,
+            voice: process.env.KELLY_DRAMA_TTS_VOICE || "alloy",
+            input: script,
+            instructions: instruct,
+            response_format: "mp3",
+          }),
         });
-        child.stderr.on("data", (d) => {
-          err += d.toString();
+        if (!response.ok)
+          throw new Error(`TTS API failed (${response.status}): ${(await response.text()).slice(0, 500)}`);
+        const uploaded = await uploadAssetFromBytes(
+          client,
+          Buffer.from(await response.arrayBuffer()),
+          `${row.character_id}-voice.mp3`,
+          "audio/mpeg",
+          "kelly-drama/generation",
+        );
+        assetId = uploaded.assetId;
+        backend = "openai-compatible";
+      } else {
+        const outAbs = path.join(CACHE_DIR, `${row.character_id}-voice-${Date.now()}.wav`);
+        const pyArgs = { model, text: script, instruct, output: outAbs };
+        const scriptPath = path.join(SKILL_DIR, "scripts", "gen_voice.py");
+        const outPath = await new Promise((resolve, reject) => {
+          let out = "";
+          let err = "";
+          const child = spawn(python, [scriptPath, JSON.stringify(pyArgs)], { stdio: ["ignore", "pipe", "pipe"] });
+          child.stdout.on("data", (d) => {
+            out += d.toString();
+          });
+          child.stderr.on("data", (d) => {
+            err += d.toString();
+          });
+          child.on("error", reject);
+          child.on("close", (code) => {
+            if (code !== 0) return reject(new Error((err || out).trim() || `gen_voice.py exit ${code}`));
+            resolve(out.trim().split("\n").filter(Boolean).pop()?.trim());
+          });
         });
-        child.on("error", reject);
-        child.on("close", (code) => {
-          if (code !== 0) return reject(new Error((err || out).trim() || `gen_voice.py exit ${code}`));
-          resolve(out.trim().split("\n").filter(Boolean).pop()?.trim());
-        });
-      });
-      const { assetId } = await uploadAssetFromFile(client, outPath, "audio/wav", "kelly-drama/generation");
+        const uploaded = await uploadAssetFromFile(client, outPath, "audio/wav", "kelly-drama/generation");
+        assetId = uploaded.assetId;
+        backend = "qwen3-tts-mlx";
+      }
       const generatedAt = new Date().toISOString();
-      const generation = { backend: "qwen3-tts-mlx", model, instruct: pyArgs.instruct, script: pyArgs.text };
+      const generation = { backend, model, instruct, script };
       const candidates = [
         ...parseJsonArray(row.voice_candidates_json),
         { assetId, generated_at: generatedAt, generation },
@@ -519,7 +592,7 @@ async function main() {
         {
           ...toCharacterFields(row),
           voice_reference_status: "generated",
-          voice_reference_provider: "qwen3-tts-mlx",
+          voice_reference_provider: backend,
           voice_reference_asset_id: assetId,
           voice_reference_generated_at: generatedAt,
           voice_reference_generation_json: JSON.stringify(generation),
@@ -535,7 +608,14 @@ async function main() {
         basesByKey.get("characters"),
         "character-id",
         row.character_id,
-        { ...toCharacterFields(row), voice_reference_status: "blocked" },
+        {
+          ...toCharacterFields(row),
+          voice_reference_status: "blocked",
+          voice_reference_generation_json: JSON.stringify({
+            error: error.message,
+            failed_at: new Date().toISOString(),
+          }),
+        },
         `Reference voice generation failed for ${row.character_id}`,
       );
     }
@@ -547,6 +627,18 @@ async function main() {
   const urlOf = (assetId) => (assetId ? urlCache.get(assetId) || "" : "");
   for (const row of pendingImages) {
     try {
+      await upsert(
+        client,
+        basesByKey.get("shots"),
+        "shot-id",
+        row.shot_id,
+        {
+          ...toShotFields(row),
+          image_status: "running",
+          image_generation_json: JSON.stringify({ started_at: new Date().toISOString() }),
+        },
+        `Start storyboard image generation for ${row.shot_id}`,
+      );
       const gateError = shotStageError(row, episodeRows, characterRows);
       if (gateError) throw new Error(gateError);
       if (!imageConfig.api_key) throw new Error("KELLY_DRAMA_IMAGE_API_KEY is not set.");
@@ -556,7 +648,9 @@ async function main() {
           if (asset?.asset?.url) urlCache.set(character.reference_card_asset_id, asset.asset.url);
         }
       }
-      const project = buildProject({ projectRow, characterRows, urlOf });
+      const owner = projectRows.find((item) => item.project_id === row.project_id) || projectRow;
+      const ownerCharacters = characterRows.filter((item) => item.project_id === row.project_id);
+      const project = buildProject({ projectRow: owner, characterRows: ownerCharacters, urlOf });
       const shot = {
         ...toShotFields(row),
         id: row.shot_id,
@@ -622,7 +716,11 @@ async function main() {
         basesByKey.get("shots"),
         "shot-id",
         row.shot_id,
-        { ...toShotFields(row), image_status: "blocked" },
+        {
+          ...toShotFields(row),
+          image_status: "blocked",
+          image_generation_json: JSON.stringify({ error: error.message, failed_at: new Date().toISOString() }),
+        },
         `Storyboard image generation failed for ${row.shot_id}`,
       );
     }
@@ -634,6 +732,18 @@ async function main() {
   for (const row of pendingVideos) {
     const backend = String(row.video_status || "").split(":")[1] || "seedance";
     try {
+      await upsert(
+        client,
+        basesByKey.get("shots"),
+        "shot-id",
+        row.shot_id,
+        {
+          ...toShotFields(row),
+          video_status: `running:${backend}`,
+          video_generation_json: JSON.stringify({ backend, started_at: new Date().toISOString() }),
+        },
+        `Start shot video generation for ${row.shot_id}`,
+      );
       const isH3 = backend === "minimax-h3" || backend === "h3";
       const gateError = shotStageError(row, episodeRows, characterRows, { video: true, allowTextVideo: isH3 });
       if (gateError) throw new Error(gateError);
@@ -780,7 +890,11 @@ async function main() {
         basesByKey.get("shots"),
         "shot-id",
         row.shot_id,
-        { ...toShotFields(row), video_status: "blocked" },
+        {
+          ...toShotFields(row),
+          video_status: "blocked",
+          video_generation_json: JSON.stringify({ backend, error: error.message, failed_at: new Date().toISOString() }),
+        },
         `Shot video generation failed for ${row.shot_id}`,
       );
     }

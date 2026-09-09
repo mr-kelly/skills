@@ -2,6 +2,7 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { createBusabaseAirAppLocalGateway } from "busabase-sdk/airapp-node";
 import { Hono } from "hono";
+import { inspectCapabilities } from "./server/preflight.mjs";
 
 const AIRAPP_ID = "kelly-drama";
 
@@ -25,6 +26,13 @@ const gateway = createBusabaseAirAppLocalGateway({
 });
 
 app.get("/health", (context) => context.json({ ok: true, app: "kelly-drama" }));
+let capabilityCache = null;
+app.get("/__kelly_drama/capabilities", (context) => {
+  if (!capabilityCache || Date.now() - capabilityCache.readAt > 30_000) {
+    capabilityCache = { readAt: Date.now(), value: inspectCapabilities() };
+  }
+  return context.json(capabilityCache.value);
+});
 
 /**
  * The ONLY sanctioned way for browser code to learn where it is running.

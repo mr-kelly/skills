@@ -144,6 +144,40 @@
     background: var(--surface-soft);
   }
 
+  .capability-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .capability-row {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-soft);
+  }
+
+  .capability-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: #c2413a;
+  }
+
+  .capability-row.available .capability-dot {
+    background: #16845b;
+  }
+
+  .capability-row p {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+
   .image-config button {
     display: inline-flex;
     align-items: center;

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "version": "0.1.0",
-  "description": "Kelly Drama trusted skill-root scripts: AI generation dispatcher, HyperFrame status cache, sample-project seed, shot-readiness validation, story-bible export.",
+  "description": "Kelly Drama trusted scripts: capability preflight, AI generation, episode rough-cut assembly, HyperFrame status, validation, and export.",
   "scripts": {
     "generate": "node scripts/execute_generation_requests.mjs",
     "generate:apply": "node scripts/execute_generation_requests.mjs --apply",
@@ -14,6 +14,9 @@
     "migrate:projects": "node scripts/migrate_multi_project.mjs --apply",
     "project:create": "node scripts/create_project.mjs",
     "validate": "node scripts/validate_shot_readiness.mjs",
+    "preflight": "node scripts/preflight.mjs",
+    "render:episode": "node scripts/render_episode.mjs",
+    "test": "node --test test/*.test.mjs content/kelly-drama-app/test/*.test.mjs",
     "export": "node scripts/export_story_bible.mjs"
   },
   "dependencies": {

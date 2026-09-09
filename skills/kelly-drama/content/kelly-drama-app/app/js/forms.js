@@ -1,3 +1,4 @@
+import { generationCapability } from "./agent-bridge.js";
 import { characterVisualLockReady, hasThreeViewNotes } from "./drama-model.js?v=0.1.0";
 import {
   characterName,
@@ -7,6 +8,7 @@ import {
   formActions,
   input,
   lines,
+  statusBadge,
   statusSelect,
   textarea,
 } from "./format.js";
@@ -38,16 +40,19 @@ function characterReferencePreview(item) {
   const generated = Boolean(reference.image_asset);
   const notesReady = hasThreeViewNotes(item);
   const locked = characterVisualLockReady(item);
+  const cardCapability = generationCapability(store.state?.capabilities, "card");
+  const cardCapabilityReason = cardCapability.reason_key ? t(cardCapability.reason_key) : cardCapability.reason || "";
   return `
     <section class="character-reference">
       <div>
         <h3>${t("char_ref_title")}</h3>
         <p class="muted">${escapeHtml(reference.purpose || t("char_ref_hint"))}</p>
+        ${statusBadge(reference.status)}
         <span class="visual-lock-status ${locked ? "ok" : "pending"}">${locked ? t("char_ref_locked") : t("char_ref_lock_pending")}</span>
       </div>
       ${reference.image_asset ? `<img src="${escapeHtml(reference.image_asset)}" alt="${t("char_ref_title")}" />` : `<div class="asset-placeholder">${t("char_ref_placeholder")}</div>`}
       <div class="character-reference-actions">
-        <button type="button" class="mini-button generate-card-button" data-generate-character-card="${escapeHtml(item.id)}">${generated ? t("regenerate_image") : t("generate_reference_card")}</button>
+        <button type="button" class="mini-button generate-card-button" data-generate-character-card="${escapeHtml(item.id)}" ${cardCapability.available ? "" : "disabled"} title="${escapeHtml(cardCapabilityReason)}">${generated ? t("regenerate_image") : t("generate_reference_card")}</button>
         <button type="button" class="mini-button ${locked ? "ghost" : "primary"}" data-approve-character-card="${escapeHtml(item.id)}" ${generated && notesReady ? "" : "disabled"}>${locked ? t("char_ref_locked") : t("char_ref_lock")}</button>
       </div>
       ${!notesReady ? `<p class="form-note">${t("char_ref_lock_requires_notes")}</p>` : ""}
@@ -71,6 +76,10 @@ function characterVoicePreview(item) {
   const vr = item.voice_reference || {};
   const summary = [vp.type, vp.pace, vp.accent, vp.signature].filter(Boolean).join(" · ");
   const generated = vr.asset && vr.status === "generated";
+  const voiceCapability = generationCapability(store.state?.capabilities, "voice");
+  const voiceCapabilityReason = voiceCapability.reason_key
+    ? t(voiceCapability.reason_key)
+    : voiceCapability.reason || "";
   return `
     <section class="character-voice">
       <div class="voice-head">
@@ -78,7 +87,7 @@ function characterVoicePreview(item) {
           <h3>${t("char_voice_title")}</h3>
           <p class="muted">${escapeHtml(summary || t("char_voice_hint"))}</p>
         </div>
-        <span class="voice-status ${generated ? "ok" : "planned"}">${generated ? t("char_voice_generated") : t("char_voice_planned")}</span>
+        ${statusBadge(vr.status)}
       </div>
       ${vp.casting_reference ? `<p class="voice-line"><span class="mini-label">${t("char_voice_casting")}</span>${escapeHtml(vp.casting_reference)}</p>` : ""}
       ${vp.sample_script ? `<p class="voice-line"><span class="mini-label">${t("char_voice_sample")}</span>${escapeHtml(vp.sample_script)}</p>` : ""}
@@ -88,9 +97,10 @@ function characterVoicePreview(item) {
             ? `<audio controls src="${escapeHtml(vr.asset)}"></audio>`
             : `<div class="asset-placeholder">${t("char_voice_placeholder")}</div>`
         }
-        <button type="button" class="mini-button generate-voice-button" data-generate-voice="${escapeHtml(item.id)}">${generated ? t("regenerate_voice") : t("generate_voice")}</button>
+        <button type="button" class="mini-button generate-voice-button" data-generate-voice="${escapeHtml(item.id)}" ${voiceCapability.available ? "" : "disabled"} title="${escapeHtml(voiceCapabilityReason)}">${generated ? t("regenerate_voice") : t("generate_voice")}</button>
       </div>
       ${voiceCandidateStrip(item)}
+      ${vr.generation?.error ? `<p class="stage-lock">${escapeHtml(vr.generation.error)}</p>` : ""}
     </section>`;
 }
 

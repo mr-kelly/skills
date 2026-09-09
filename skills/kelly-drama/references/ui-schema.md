@@ -223,8 +223,15 @@ that scans for `"requested"` rows, performs the real generation call
 (OpenAI-images-compatible API, local Qwen3-TTS via `gen_voice.py`, local
 LTX-Video via `gen_draft_video.mjs`, or Seedance/Ark), uploads the result as
 a Busabase Asset, appends it to the relevant `*-candidates-json`, and flips
-status to `"generated"` (or `"blocked"` with the error left for the next
-attempt to retry).
+status through `"running"` to `"generated"` (or `"blocked"` with the error
+stored in the corresponding generation metadata). A later dispatcher run may
+resume a stranded `"running"` request; candidate assets remain non-destructive.
+
+When running inside Buda's Local Browser, the AirApp also posts a versioned
+`buda:agent-action-request` to its parent. Buda accepts it only from the current
+preview origin and iframe, then requires a user click before forwarding the
+exact command to the Agent. This is an execution handoff, not browser-held
+credentials or an implicit approval.
 
 Generation does not itself approve an asset. The human must explicitly move a
 character reference card or storyboard image from `generated` to `approved` in

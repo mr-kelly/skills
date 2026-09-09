@@ -4,6 +4,8 @@
 
 A strong short-drama workspace separates planning canon from final motion production. Canon lives in the story bible, character cards, relationships, episode beats, storyboard notes, and review state. Final animation, captions, audio timing, render, and publish live in the paired HyperFrame project. Generated text, images, videos, or HyperFrame renders are candidates until accepted back into canon.
 
+Before generation, run `scripts/preflight.mjs`. Never queue work for a backend the report marks unavailable. In Buda, let the AirApp request an Agent action through the host confirmation banner; preview content is not authorized to submit an Agent message directly.
+
 ## Information Architecture
 
 Use six connected layers:
@@ -39,6 +41,8 @@ For a new episode planned in Kelly Drama first:
 2. Decide the composition path before final production, such as `compositions/ep-002-blog-cms.html`.
 3. Build/refine the composition in HyperFrame.
 4. Re-import rendered frames/video to Kelly Drama when the composition becomes the reviewable or final version.
+
+For a reproducible picture-lock rough cut before HyperFrame polish, run `scripts/render_episode.mjs --project <id> --episode <id> --apply`. The output and SRT sidecar are local deliverables; the size-safe review video is uploaded and displayed on the episode page.
 
 ## Character Library Best Practices
 
