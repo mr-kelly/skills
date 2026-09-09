@@ -40,6 +40,7 @@ import { createRuntimeClient } from "../busabase-client.js";
 import { appConfig } from "../config.js?v=0.1.0";
 import { resolveAssetUrls } from "../drama-client.js?v=0.1.0";
 import { attention, completeness, countBy, rowsForProject, slug } from "../drama-model.js?v=0.1.0";
+import { t } from "../i18n.js";
 import { ACTIVE_PROJECT_STORAGE_KEY, store } from "../store.js";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
@@ -910,9 +911,9 @@ export const busabaseProvider = {
   async createProject({ projectId, title, genre = "", format = "", logline = "" } = {}) {
     await ensureResources();
     const normalizedId = slug(projectId || title);
-    if (!normalizedId) throw new Error("Project title is required.");
+    if (!normalizedId) throw new Error(t("project_title_required"));
     const existing = await findRecord("project", "project-id", normalizedId);
-    if (existing) throw new Error(`Project ${normalizedId} already exists.`);
+    if (existing) throw new Error(t("project_exists").replace("{id}", normalizedId));
     const fields = projectFields({
       project_id: normalizedId,
       title: title || normalizedId,
@@ -952,7 +953,7 @@ export const busabaseProvider = {
   async saveItem(kindKey, payload = {}) {
     await ensureResources();
     const spec = COLLECTIONS[kindKey];
-    if (!spec) throw new Error(`Unknown collection: ${kindKey}`);
+    if (!spec) throw new Error(t("unknown_collection").replace("{kind}", kindKey));
     const id = idForPayload(kindKey, payload);
     const existing = await findRecord(spec.baseKey, spec.idField, id);
     const existingRow = existing
@@ -976,7 +977,7 @@ export const busabaseProvider = {
   async deleteItem(kindKey, id) {
     await ensureResources();
     const spec = COLLECTIONS[kindKey];
-    if (!spec) throw new Error(`Unknown collection: ${kindKey}`);
+    if (!spec) throw new Error(t("unknown_collection").replace("{kind}", kindKey));
     const existing = await findRecord(spec.baseKey, spec.idField, id);
     if (existing) {
       const currentFields = normalizeFields(
@@ -997,14 +998,14 @@ export const busabaseProvider = {
   async setShotActive(shotId, kindOfAsset, assetId) {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
-    if (!existing) throw new Error(`Unknown shot: ${shotId}`);
+    if (!existing) throw new Error(t("unknown_shot").replace("{id}", shotId));
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
     const isVideo = kindOfAsset === "video";
     const candidates = parseJsonArray(currentFields[isVideo ? "video_candidates_json" : "image_candidates_json"]);
     const match = candidates.find((c) => c.assetId === assetId);
-    if (!match) throw new Error("该候选不存在，无法设为选用。");
+    if (!match) throw new Error(t("candidate_missing"));
     const fields = {
       ...shotFields(currentFields),
       shot_id: shotId,
@@ -1028,13 +1029,13 @@ export const busabaseProvider = {
   async setCharacterVoiceActive(characterId, assetId) {
     await ensureResources();
     const existing = await findRecord("characters", "character-id", characterId);
-    if (!existing) throw new Error(`Unknown character: ${characterId}`);
+    if (!existing) throw new Error(t("unknown_character").replace("{id}", characterId));
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
     const candidates = parseJsonArray(currentFields.voice_candidates_json);
     const match = candidates.find((c) => c.assetId === assetId);
-    if (!match) throw new Error("该候选不存在，无法设为选用。");
+    if (!match) throw new Error(t("candidate_missing"));
     const fields = {
       ...characterFields(currentFields),
       character_id: characterId,
@@ -1051,7 +1052,7 @@ export const busabaseProvider = {
   async requestStoryboardImageGeneration(shotId) {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
-    if (!existing) throw new Error(`Unknown shot: ${shotId}`);
+    if (!existing) throw new Error(t("unknown_shot").replace("{id}", shotId));
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
@@ -1070,7 +1071,7 @@ export const busabaseProvider = {
   async requestShotVideoGeneration(shotId, backend = "seedance") {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
-    if (!existing) throw new Error(`Unknown shot: ${shotId}`);
+    if (!existing) throw new Error(t("unknown_shot").replace("{id}", shotId));
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
@@ -1092,7 +1093,7 @@ export const busabaseProvider = {
   async requestCharacterVoiceGeneration(characterId) {
     await ensureResources();
     const existing = await findRecord("characters", "character-id", characterId);
-    if (!existing) throw new Error(`Unknown character: ${characterId}`);
+    if (!existing) throw new Error(t("unknown_character").replace("{id}", characterId));
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
@@ -1110,7 +1111,7 @@ export const busabaseProvider = {
   async requestCharacterCardGeneration(characterId) {
     await ensureResources();
     const existing = await findRecord("characters", "character-id", characterId);
-    if (!existing) throw new Error(`Unknown character: ${characterId}`);
+    if (!existing) throw new Error(t("unknown_character").replace("{id}", characterId));
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
@@ -1128,12 +1129,12 @@ export const busabaseProvider = {
   async approveCharacterCard(characterId) {
     await ensureResources();
     const existing = await findRecord("characters", "character-id", characterId);
-    if (!existing) throw new Error(`Unknown character: ${characterId}`);
+    if (!existing) throw new Error(t("unknown_character").replace("{id}", characterId));
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
     if (!characterVisualLockReadyRow({ ...currentFields, reference_card_status: "generated" })) {
-      throw new Error("请先填写正面、侧面、背面三视图设定，并确认参考图已经生成。");
+      throw new Error(t("character_lock_incomplete"));
     }
     await upsert(
       "characters",
@@ -1149,11 +1150,11 @@ export const busabaseProvider = {
   async approveStoryboardImage(shotId) {
     await ensureResources();
     const existing = await findRecord("shots", "shot-id", shotId);
-    if (!existing) throw new Error(`Unknown shot: ${shotId}`);
+    if (!existing) throw new Error(t("unknown_shot").replace("{id}", shotId));
     const currentFields = normalizeFields(
       existing.headCommit?.payload || existing.headCommit?.fields || existing.fields,
     );
-    if (!currentFields.image_asset_id) throw new Error("请先生成本镜分镜图片。");
+    if (!currentFields.image_asset_id) throw new Error(t("storyboard_image_required"));
     await upsert(
       "shots",
       "shot-id",

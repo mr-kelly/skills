@@ -17,6 +17,8 @@
 // Busabase's own product usage, so it is correct and will start working as
 // soon as the upstream package serves what it advertises.
 
+import { t } from "./i18n.js";
+
 const urlCache = new Map();
 
 function fileExtOf(name) {
@@ -40,7 +42,7 @@ export async function uploadAsset(client, file, { context = "kelly-drama" } = {}
     headers: { "content-type": mimeType },
     body: file,
   });
-  if (!put.ok) throw new Error(`Asset upload failed (${put.status}).`);
+  if (!put.ok) throw new Error(t("asset_upload_failed").replace("{status}", put.status));
   const confirmed = await client.assets.confirm({
     storageKey: requested.storageKey,
     fileName,

@@ -18,16 +18,16 @@ export function seriesForm(series) {
     <form class="detail-card" data-kind="series">
       <h2>${t("form_series_title")}</h2>
       <div class="form-grid">
-        ${input("title", "Title", series.title)}
-        ${input("genre", "Genre", series.genre)}
-        ${input("platform", "Platform / format", series.platform)}
-        ${input("format", "Episodes / runtime", series.format)}
-        ${input("tone", "Tone", series.tone)}
-        ${input("audience", "Target audience", series.audience)}
-        ${input("hyperframe_project_path", "HyperFrame project path", series.hyperframe_project_path || "")}
-        ${textarea("logline", "One-line logline", series.logline)}
-        ${textarea("hook_rules", "Hook rules (one per line)", lines(series.hook_rules))}
-        ${textarea("world_rules", "World rules (one per line)", lines(series.world_rules))}
+        ${input("title", t("field_title"), series.title)}
+        ${input("genre", t("field_genre"), series.genre)}
+        ${input("platform", t("field_platform_format"), series.platform)}
+        ${input("format", t("field_episodes_runtime"), series.format)}
+        ${input("tone", t("field_tone"), series.tone)}
+        ${input("audience", t("field_target_audience"), series.audience)}
+        ${input("hyperframe_project_path", t("field_hyperframe_project_path"), series.hyperframe_project_path || "")}
+        ${textarea("logline", t("field_logline"), series.logline)}
+        ${textarea("hook_rules", t("field_hook_rules"), lines(series.hook_rules))}
+        ${textarea("world_rules", t("field_world_rules"), lines(series.world_rules))}
       </div>
       <div class="form-actions"><button type="submit">${t("form_series_save")}</button></div>
     </form>`;
@@ -100,33 +100,33 @@ function characterForm(item) {
   const vp = item.voice_profile || {};
   return `
     <form class="detail-card" data-kind="characters" data-id="${escapeHtml(item.id)}">
-      <h2>${escapeHtml(item.name || "New character")}</h2>
+      <h2>${escapeHtml(item.name || t("new_character"))}</h2>
       ${characterReferencePreview(item)}
       ${characterVoicePreview(item)}
       <div class="form-grid">
-        ${input("id", "Character ID", item.id)}
-        ${input("name", "Name", item.name)}
-        ${input("role", "Dramatic function", item.role)}
+        ${input("id", t("field_character_id"), item.id)}
+        ${input("name", t("field_name"), item.name)}
+        ${input("role", t("field_dramatic_function"), item.role)}
         ${statusSelect(item.status)}
-        ${textarea("actor_profile", "Actor / performance notes", item.actor_profile)}
-        ${textarea("identity", "Identity", card.identity, false)}
-        ${textarea("motivation", "Desire", card.motivation, false)}
-        ${textarea("wound", "Wound", card.wound, false)}
-        ${textarea("secret", "Secret", card.secret, false)}
-        ${textarea("arc", "Character arc", card.arc, false)}
-        ${textarea("voice", "Dialogue voice (tone baseline)", card.voice, false)}
-        ${input("voice_type", "Timbre / type", vp.type)}
-        ${input("voice_pace", "Pace", vp.pace)}
-        ${input("voice_accent", "Accent / dialect", vp.accent)}
-        ${input("voice_signature", "Signature delivery", vp.signature)}
-        ${input("voice_casting", "Casting reference voice", vp.casting_reference)}
-        ${textarea("voice_sample", "Audition line (voice script sample)", vp.sample_script, false)}
-        ${textarea("front", "Three-view: front", visual.front, false)}
-        ${textarea("side", "Three-view: side", visual.side, false)}
-        ${textarea("back", "Three-view: back", visual.back, false)}
-        ${textarea("wardrobe", "Wardrobe", visual.wardrobe, false)}
-        ${textarea("anchors", "Consistency anchors (one per line)", lines(visual.anchors))}
-        ${textarea("forbidden_drift", "Forbidden drift (one per line)", lines(visual.forbidden_drift))}
+        ${textarea("actor_profile", t("field_actor_notes"), item.actor_profile)}
+        ${textarea("identity", t("field_identity"), card.identity, false)}
+        ${textarea("motivation", t("field_desire"), card.motivation, false)}
+        ${textarea("wound", t("field_wound"), card.wound, false)}
+        ${textarea("secret", t("field_secret"), card.secret, false)}
+        ${textarea("arc", t("field_character_arc"), card.arc, false)}
+        ${textarea("voice", t("field_dialogue_voice"), card.voice, false)}
+        ${input("voice_type", t("field_voice_type"), vp.type)}
+        ${input("voice_pace", t("field_voice_pace"), vp.pace)}
+        ${input("voice_accent", t("field_voice_accent"), vp.accent)}
+        ${input("voice_signature", t("field_voice_signature"), vp.signature)}
+        ${input("voice_casting", t("field_voice_casting"), vp.casting_reference)}
+        ${textarea("voice_sample", t("field_voice_sample"), vp.sample_script, false)}
+        ${textarea("front", t("field_view_front"), visual.front, false)}
+        ${textarea("side", t("field_view_side"), visual.side, false)}
+        ${textarea("back", t("field_view_back"), visual.back, false)}
+        ${textarea("wardrobe", t("field_wardrobe"), visual.wardrobe, false)}
+        ${textarea("anchors", t("field_consistency_anchors"), lines(visual.anchors))}
+        ${textarea("forbidden_drift", t("field_forbidden_drift"), lines(visual.forbidden_drift))}
       </div>
       ${formActions()}
     </form>`;
@@ -139,18 +139,18 @@ function relationshipPreview(item) {
 function relationshipForm(item) {
   return `
     <form class="detail-card" data-kind="relationships" data-id="${escapeHtml(item.id)}">
-      <h2>${escapeHtml(item.type || "New relationship")}</h2>
+      <h2>${escapeHtml(item.type || t("new_relationship"))}</h2>
       <div class="form-grid">
-        ${input("id", "Relationship ID", item.id)}
-        ${characterSelect("from", "From", item.from)}
-        ${characterSelect("to", "To", item.to)}
-        ${input("type", "Relationship type", item.type)}
-        ${input("emotional_temperature", "Emotional temperature", item.emotional_temperature)}
-        ${textarea("public_status", "Public relationship", item.public_status, false)}
-        ${textarea("hidden_truth", "Hidden truth", item.hidden_truth, false)}
-        ${textarea("power_dynamic", "Power direction", item.power_dynamic, false)}
-        ${textarea("conflict", "Current conflict", item.conflict)}
-        ${textarea("evidence", "Evidence (one per line)", lines(item.evidence))}
+        ${input("id", t("field_relationship_id"), item.id)}
+        ${characterSelect("from", t("field_from"), item.from)}
+        ${characterSelect("to", t("field_to"), item.to)}
+        ${input("type", t("field_relationship_type"), item.type)}
+        ${input("emotional_temperature", t("field_emotional_temperature"), item.emotional_temperature)}
+        ${textarea("public_status", t("field_public_relationship"), item.public_status, false)}
+        ${textarea("hidden_truth", t("field_hidden_truth"), item.hidden_truth, false)}
+        ${textarea("power_dynamic", t("field_power_direction"), item.power_dynamic, false)}
+        ${textarea("conflict", t("field_current_conflict"), item.conflict)}
+        ${textarea("evidence", t("field_evidence"), lines(item.evidence))}
       </div>
       ${relationshipPreview(item)}
       ${formActions()}
@@ -160,19 +160,19 @@ function relationshipForm(item) {
 function episodeForm(item) {
   return `
     <form class="detail-card" data-kind="episodes" data-id="${escapeHtml(item.id)}">
-      <h2>Ep ${escapeHtml(item.number || "")} — ${escapeHtml(item.title || "")}</h2>
+      <h2>${t("episode_heading").replace("{n}", escapeHtml(item.number || ""))} — ${escapeHtml(item.title || "")}</h2>
       <div class="form-grid">
-        ${input("id", "Episode ID", item.id)}
-        ${input("number", "Episode number", item.number || "", "number")}
-        ${input("title", "Title", item.title)}
+        ${input("id", t("field_episode_id"), item.id)}
+        ${input("number", t("field_episode_number"), item.number || "", "number")}
+        ${input("title", t("field_title"), item.title)}
         ${statusSelect(item.status)}
-        ${input("hyperframe_composition", "HyperFrame composition", item.hyperframe_composition || "")}
-        ${input("hyperframe_video_asset", "HyperFrame video asset", item.hyperframe_video_asset || "")}
-        ${textarea("promise", "Episode promise", item.promise)}
-        ${textarea("a_plot", "A-plot", item.a_plot, false)}
-        ${textarea("b_plot", "B-plot", item.b_plot, false)}
-        ${textarea("cliffhanger", "Cliffhanger", item.cliffhanger)}
-        ${textarea("beats_json", "Beats JSON", JSON.stringify(item.beats || [], null, 2))}
+        ${input("hyperframe_composition", t("field_hyperframe_composition"), item.hyperframe_composition || "")}
+        ${input("hyperframe_video_asset", t("field_hyperframe_video_asset"), item.hyperframe_video_asset || "")}
+        ${textarea("promise", t("field_episode_promise"), item.promise)}
+        ${textarea("a_plot", t("field_a_plot"), item.a_plot, false)}
+        ${textarea("b_plot", t("field_b_plot"), item.b_plot, false)}
+        ${textarea("cliffhanger", t("field_cliffhanger"), item.cliffhanger)}
+        ${textarea("beats_json", t("field_beats_json"), JSON.stringify(item.beats || [], null, 2))}
       </div>
       ${formActions()}
     </form>`;
@@ -181,32 +181,32 @@ function episodeForm(item) {
 function shotForm(item) {
   return `
     <form class="detail-card" data-kind="shots" data-id="${escapeHtml(item.id)}">
-      <h2>${escapeHtml(item.title || "New shot")}</h2>
+      <h2>${escapeHtml(item.title || t("new_shot"))}</h2>
       <div class="form-grid">
-        ${input("id", "Shot ID", item.id)}
-        ${episodeSelect("episode_id", "Episode", item.episode_id)}
-        ${input("beat_id", "Beat ID", item.beat_id)}
-        ${input("title", "Shot title", item.title)}
+        ${input("id", t("field_shot_id"), item.id)}
+        ${episodeSelect("episode_id", t("field_episode"), item.episode_id)}
+        ${input("beat_id", t("field_beat_id"), item.beat_id)}
+        ${input("title", t("field_shot_title"), item.title)}
         ${statusSelect(item.status)}
-        ${input("duration_seconds", "Duration (s — 4/5/6/8/10/12)", item.duration_seconds)}
-        ${input("emotion", "Emotion", item.emotion)}
-        ${input("shot_size", "Shot size", item.shot_size)}
-        ${input("camera_angle", "Camera angle", item.camera_angle)}
-        ${input("camera_movement", "Camera movement", item.camera_movement)}
-        ${input("lens", "Lens", item.lens)}
-        ${input("transition_in", "Transition in", item.transition_in)}
-        ${input("transition_out", "Transition out", item.transition_out)}
-        ${textarea("characters", "Characters (one ID per line)", lines(item.characters), false)}
-        ${textarea("composition", "Composition (still frame)", item.composition, false)}
-        ${textarea("camera", "Camera (freeform)", item.camera, false)}
-        ${textarea("setting", "Setting", item.setting, false)}
-        ${textarea("lighting", "Lighting", item.lighting, false)}
-        ${textarea("action", "Action script (motion)", item.action, false)}
-        ${textarea("prompt", "Image prompt", item.prompt)}
-        ${textarea("video_prompt", "Video motion prompt", item.video_prompt)}
-        ${textarea("negative_prompt", "Negative prompt", item.negative_prompt)}
+        ${input("duration_seconds", t("field_duration"), item.duration_seconds)}
+        ${input("emotion", t("field_emotion"), item.emotion)}
+        ${input("shot_size", t("field_shot_size"), item.shot_size)}
+        ${input("camera_angle", t("field_camera_angle"), item.camera_angle)}
+        ${input("camera_movement", t("field_camera_movement"), item.camera_movement)}
+        ${input("lens", t("field_lens"), item.lens)}
+        ${input("transition_in", t("field_transition_in"), item.transition_in)}
+        ${input("transition_out", t("field_transition_out"), item.transition_out)}
+        ${textarea("characters", t("field_characters"), lines(item.characters), false)}
+        ${textarea("composition", t("field_composition"), item.composition, false)}
+        ${textarea("camera", t("field_camera_freeform"), item.camera, false)}
+        ${textarea("setting", t("field_setting"), item.setting, false)}
+        ${textarea("lighting", t("field_lighting"), item.lighting, false)}
+        ${textarea("action", t("field_action_script"), item.action, false)}
+        ${textarea("prompt", t("field_image_prompt"), item.prompt)}
+        ${textarea("video_prompt", t("field_video_prompt"), item.video_prompt)}
+        ${textarea("negative_prompt", t("field_negative_prompt"), item.negative_prompt)}
       </div>
-      <p class="form-note">Sound design (audio), continuity, and SRT are structured fields — preserved on save. Edit via @ai or a trusted script (see references/ui-schema.md).</p>
+      <p class="form-note">${t("shot_structured_fields_note")}</p>
       ${formActions()}
     </form>`;
 }
@@ -214,14 +214,14 @@ function shotForm(item) {
 function taskForm(item) {
   return `
     <form class="detail-card" data-kind="tasks" data-id="${escapeHtml(item.id)}">
-      <h2>${escapeHtml(item.title || "New task")}</h2>
+      <h2>${escapeHtml(item.title || t("new_task"))}</h2>
       <div class="form-grid">
-        ${input("id", "Task ID", item.id)}
-        ${input("kind", "Kind", item.kind)}
-        ${input("target_id", "Target ID", item.target_id)}
+        ${input("id", t("field_task_id"), item.id)}
+        ${input("kind", t("field_kind"), item.kind)}
+        ${input("target_id", t("field_target_id"), item.target_id)}
         ${statusSelect(item.status)}
-        ${input("title", "Title", item.title)}
-        ${textarea("note", "Note / @ai request", item.note)}
+        ${input("title", t("field_title"), item.title)}
+        ${textarea("note", t("field_note_ai"), item.note)}
       </div>
       ${formActions()}
     </form>`;

@@ -80,16 +80,16 @@ function episodeSummaryTab(item) {
     <section class="script-section">
       <h3>${t("script_section_episode_summary")}</h3>
       <div class="form-grid">
-        ${input("id", "ID", item.id)}
-        ${input("number", "Ep #", item.number || "", "number")}
-        ${input("title", "Title", item.title)}
+        ${input("id", t("field_episode_id"), item.id)}
+        ${input("number", t("field_episode_number"), item.number || "", "number")}
+        ${input("title", t("field_title"), item.title)}
         ${statusSelect(item.status)}
-        ${textarea("summary", "Summary", item.summary || item.promise)}
-        ${textarea("promise", "Source anchor / episode promise", item.promise)}
-        ${textarea("a_plot", "A-plot", item.a_plot, false)}
-        ${textarea("b_plot", "B-plot", item.b_plot, false)}
-        ${textarea("cliffhanger", "Cliffhanger", item.cliffhanger)}
-        ${textarea("beats_json", "Beats JSON", JSON.stringify(item.beats || [], null, 2))}
+        ${textarea("summary", t("episode_table_summary"), item.summary || item.promise)}
+        ${textarea("promise", t("field_episode_promise"), item.promise)}
+        ${textarea("a_plot", t("field_a_plot"), item.a_plot, false)}
+        ${textarea("b_plot", t("field_b_plot"), item.b_plot, false)}
+        ${textarea("cliffhanger", t("field_cliffhanger"), item.cliffhanger)}
+        ${textarea("beats_json", t("field_beats_json"), JSON.stringify(item.beats || [], null, 2))}
       </div>
     </section>
     ${scriptPreview(item)}`;
@@ -133,7 +133,7 @@ function executionTimeline(item, shots) {
     <section class="script-section">
       <div class="section-head">
         <div>
-          <h3>Storyboard</h3>
+          <h3>${t("storyboard_title")}</h3>
           <p class="muted">${t("exec_card_01_body")}</p>
         </div>
       </div>
@@ -184,13 +184,13 @@ function episodeDetail(item) {
       <div class="detail-head">
         <div>
           <div class="eyebrow">${t("episode_detail_eyebrow")}</div>
-          <h2>${escapeHtml(item.title || "New episode")}</h2>
+          <h2>${escapeHtml(item.title || t("new_episode"))}</h2>
           <p>${escapeHtml(item.source_chapter?.work || "")}${item.source_chapter?.work ? " · " : ""}${escapeHtml(item.source_chapter?.chapter_number || item.number || "")}${item.source_chapter?.chapter_number || item.number ? " · " : ""}${escapeHtml(item.runtime || "")}</p>
         </div>
         ${statusBadge(item.status)}
       </div>
 
-      <div class="episode-tabs" role="tablist" aria-label="Episode detail">
+      <div class="episode-tabs" role="tablist" aria-label="${t("episode_detail_aria")}">
         <button type="button" class="${store.episodeTab === "summary" ? "active" : ""}" data-episode-tab="summary">${t("episode_tab_summary")}</button>
         <button type="button" class="${store.episodeTab === "shots" ? "active" : ""}" data-episode-tab="shots">${t("episode_tab_shots")}</button>
       </div>

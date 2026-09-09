@@ -34,21 +34,21 @@
           <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-controls="appSidebar" aria-expanded="true" data-i18n-title="sidebar_toggle_title" title="收起侧栏" aria-label="收起侧栏"><span class="sidebar-toggle-icon" aria-hidden="true"></span></button>
         </div>
 
-        <section class="project-switcher" aria-label="Drama switcher">
+        <section class="project-switcher" aria-label="短剧项目切换" data-i18n-aria-label="project_switcher_aria">
           <label for="projectSelect" data-i18n="project_label">项目</label>
           <div class="project-select-row">
             <select id="projectSelect"></select>
-            <button id="newProjectButton" type="button" data-i18n-title="new_project_title" title="新建项目" aria-label="新建项目">+</button>
+            <button id="newProjectButton" type="button" data-i18n-title="new_project_title" data-i18n-aria-label="new_project_title" title="新建项目" aria-label="新建项目">+</button>
           </div>
           <div id="projectSwitchMeta" class="switch-meta"></div>
         </section>
 
         <div class="sidebar-actions">
           <input id="searchInput" data-i18n-placeholder="search_placeholder" placeholder="搜索" />
-          <button id="newItemButton" data-i18n-title="new_item_title" title="在当前视图中新建一项" aria-label="新建">+</button>
+          <button id="newItemButton" data-i18n-title="new_item_title" data-i18n-aria-label="new_item_title" title="在当前视图中新建一项" aria-label="在当前视图中新建一项">+</button>
         </div>
 
-        <section class="quick-stats" aria-label="Project status">
+        <section class="quick-stats" aria-label="项目状态" data-i18n-aria-label="project_status_aria">
           <button data-view="tasks" data-i18n-title="nav_tasks_title" title="查看需要处理的任务">
             <span id="attentionNeeds">0</span>
             <small data-i18n="stat_pending">待处理</small>
@@ -74,7 +74,7 @@
         </nav>
 
         <div class="settings-dock">
-          <button id="settingsButton" class="settings-button" title="打开设置和本地文件信息">
+          <button id="settingsButton" class="settings-button" data-i18n-title="settings" data-i18n-aria-label="settings" title="设置" aria-label="设置">
             <span data-i18n="settings">设置</span>
             <small data-i18n="settings_sub">图像 API / 文件</small>
           </button>
@@ -117,9 +117,9 @@
             <div id="settingsTitle" class="modal-title" data-i18n="settings">设置</div>
             <div class="modal-subtitle" id="settingsSubtitle" data-i18n="settings_title_default">短剧生成与本地项目配置</div>
           </div>
-          <button id="closeSettings" class="modal-close" data-i18n="settings_close" aria-label="关闭设置">关闭</button>
+          <button id="closeSettings" class="modal-close" data-i18n="settings_close" data-i18n-aria-label="settings_close" aria-label="关闭">关闭</button>
         </div>
-        <nav class="modal-tabs" aria-label="设置标签">
+        <nav class="modal-tabs" aria-label="设置标签" data-i18n-aria-label="settings_tabs_aria">
           <button class="active" data-settings-tab="image" data-i18n="settings_tab_image">图像 API</button>
           <button data-settings-tab="general" data-i18n="settings_tab_general">通用</button>
           <button data-settings-tab="files" data-i18n="settings_tab_files">文件</button>
@@ -148,7 +148,7 @@
             <div class="settings-card">
               <div class="settings-row">
                 <span data-i18n="settings_project_file">项目文件</span>
-                <code id="projectPath">loading...</code>
+                <code id="projectPath" data-i18n="loading_more">加载中...</code>
               </div>
             </div>
           </section>

@@ -11,19 +11,25 @@ const VISUAL_DEFS = [
   {
     id: "kelly-drama-visual-1",
     title: "Character reference",
+    titleZh: "人物参考",
     caption: "Synthetic cast reference card for visual consistency review.",
+    captionZh: "用于检查画面一致性的模拟人物参考卡。",
     kind: "profile",
   },
   {
     id: "kelly-drama-visual-2",
     title: "Storyboard frame",
+    titleZh: "分镜画面",
     caption: "Mock vertical-drama frame with camera and action notes.",
+    captionZh: "带有镜头与动作备注的模拟竖屏短剧画面。",
     kind: "video",
   },
   {
     id: "kelly-drama-visual-3",
     title: "Relationship map",
+    titleZh: "人物关系图",
     caption: "Visual power map for family, rival, and secret arcs.",
+    captionZh: "用于呈现家庭、对手与秘密线的权力关系图。",
     kind: "board",
   },
 ];
@@ -64,15 +70,17 @@ function imageDataUrl(title, caption, kind, index) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(visualSvg(title, caption, kind, index))}`;
 }
 
-export function demoVisualsForApp(appName = SKILL_NAME) {
+export function demoVisualsForApp(appName = SKILL_NAME, zh = false) {
   return VISUAL_DEFS.map((item, index) => {
-    const src = imageDataUrl(item.title, item.caption, item.kind, index);
+    const title = zh ? item.titleZh : item.title;
+    const caption = zh ? item.captionZh : item.caption;
+    const src = imageDataUrl(title, caption, item.kind, index);
     return {
       id: item.id,
-      title: item.title,
-      caption: item.caption,
+      title,
+      caption,
       kind: item.kind,
-      alt: `${appName || SKILL_NAME} demo visual: ${item.title}`,
+      alt: zh ? `${appName || SKILL_NAME} 演示图片：${title}` : `${appName || SKILL_NAME} demo visual: ${title}`,
       src,
       image: src,
       image_url: src,

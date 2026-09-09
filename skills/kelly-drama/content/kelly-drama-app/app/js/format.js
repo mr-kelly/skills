@@ -67,14 +67,10 @@ export function select(name, label, value, options) {
 }
 
 export function statusSelect(value) {
-  return select("status", "Status", value || "draft", [
-    "draft",
-    "needs_review",
-    "changes_requested",
-    "approved",
-    "done",
-    "blocked",
-  ]);
+  const options = ["draft", "needs_review", "changes_requested", "approved", "done", "blocked"];
+  return `<div class="field"><label for="status">${t("field_status")}</label><select id="status" name="status">
+    ${options.map((option) => `<option value="${option}" ${option === (value || "draft") ? "selected" : ""}>${escapeHtml(t(`status_${option}`))}</option>`).join("")}
+  </select></div>`;
 }
 
 export function characterSelect(name, label, value) {

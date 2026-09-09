@@ -10,12 +10,12 @@ function imageConfigPanel() {
   return `
     <form class="image-config" data-image-config>
       <div class="field">
-        <label for="imageBaseUrl">BASE_URL</label>
+        <label for="imageBaseUrl">${t("image_config_base_url")}</label>
         <input id="imageBaseUrl" name="base_url" value="${escapeHtml(config.image_base_url || "https://moonrouter.dev/v1")}" />
       </div>
       <div class="field">
-        <label>API Key</label>
-        <div class="settings-row"><code>KELLY_DRAMA_IMAGE_API_KEY</code><span>set for the trusted generation script, not this browser</span></div>
+        <label>${t("image_config_api_key")}</label>
+        <div class="settings-row"><code>KELLY_DRAMA_IMAGE_API_KEY</code><span>${t("image_config_key_location")}</span></div>
       </div>
       <div class="field">
         <label for="imageModel">${t("image_config_model")}</label>
@@ -51,7 +51,7 @@ function bindImageConfigForm() {
       toast(t("image_config_saved"));
       openSettings();
     } catch (error) {
-      toast(error.message || "Failed");
+      toast(error.message || t("settings_save_failed"));
     }
   });
 }

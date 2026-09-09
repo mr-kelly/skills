@@ -8,8 +8,12 @@
 // demo-provider.js, this skill's closest architectural twin).
 import { demoVisualsForApp } from "../demo-visuals-data.js?v=0.1.0";
 import { attention, completeness, countBy } from "../drama-model.js?v=0.1.0";
+import { t } from "../i18n.js";
 
 const DEMO_UPDATED_AT = "2026-06-30T09:30:00.000Z";
+const readOnly = () => {
+  throw new Error(t("demo_read_only"));
+};
 
 function hashCode(text) {
   let hash = 0;
@@ -1000,8 +1004,8 @@ function activeLangIsZh() {
   return Boolean(navigator.languages?.some((item) => String(item).toLowerCase().startsWith("zh")));
 }
 
-function demoStatePayload(project) {
-  const visuals = demoVisualsForApp("kelly-drama");
+function demoStatePayload(project, zh = activeLangIsZh()) {
+  const visuals = demoVisualsForApp("kelly-drama", zh);
   return {
     demo: true,
     demo_scenario: new URLSearchParams(window.location.search).get("demo") || "overview",
@@ -1050,46 +1054,46 @@ export const demoProvider = {
     return this.getState();
   },
   async createProject() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
 
   async saveSeries() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async saveItem() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async deleteItem() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async setShotActive() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async setCharacterVoiceActive() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async requestStoryboardImageGeneration() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async requestShotVideoGeneration() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async requestCharacterVoiceGeneration() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async requestCharacterCardGeneration() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async approveCharacterCard() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async approveStoryboardImage() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async saveImageConfig() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
   async provisionResources() {
-    throw new Error("Demo mode is read-only.");
+    return readOnly();
   },
 };

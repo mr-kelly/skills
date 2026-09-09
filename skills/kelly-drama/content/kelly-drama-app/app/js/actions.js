@@ -79,7 +79,7 @@ function serializeItem(form, kind) {
     try {
       beats = JSON.parse(value(form, "beats_json") || "[]");
     } catch {
-      throw new Error("Invalid beats JSON");
+      throw new Error(t("invalid_beats_json"));
     }
     return {
       ...base,
@@ -174,8 +174,8 @@ export function newItem() {
   const templates = {
     characters: {
       id: `${projectPrefix}-char-new-${timestamp}`,
-      name: "New character",
-      role: "helper",
+      name: t("new_character"),
+      role: t("default_helper_role"),
       status: "draft",
       character_card: {},
       visual: { anchors: [], forbidden_drift: [] },
@@ -184,20 +184,20 @@ export function newItem() {
       id: `${projectPrefix}-rel-new-${timestamp}`,
       from: store.state.project.characters?.[0]?.id || "",
       to: store.state.project.characters?.[1]?.id || "",
-      type: "new relationship",
+      type: t("new_relationship"),
       evidence: [],
     },
     episodes: {
       id: `${projectPrefix}-ep-new-${timestamp}`,
       number: (store.state.project.episodes?.length || 0) + 1,
-      title: "New episode",
+      title: t("new_episode"),
       status: "draft",
       beats: [],
     },
     shots: {
       id: `${projectPrefix}-shot-new-${timestamp}`,
       episode_id: store.state.project.episodes?.[0]?.id || "",
-      title: "New shot",
+      title: t("new_shot"),
       status: "draft",
       characters: [],
     },
@@ -205,7 +205,7 @@ export function newItem() {
       id: `${projectPrefix}-task-new-${timestamp}`,
       kind: "episode",
       status: "needs_review",
-      title: "New task",
+      title: t("new_task"),
       note: "",
     },
   };
@@ -373,7 +373,7 @@ export function bindForm() {
         toast(t("toast_voice_active"));
         hooks.render();
       } catch (error) {
-        toast(error.message || "Failed");
+        toast(error.message || t("generic_failed"));
       }
     });
   });
@@ -385,7 +385,7 @@ export function bindForm() {
         toast(t("toast_image_active"));
         hooks.render();
       } catch (error) {
-        toast(error.message || "Failed");
+        toast(error.message || t("generic_failed"));
       }
     });
   });
@@ -412,7 +412,7 @@ export function bindForm() {
         toast(t("toast_video_active"));
         hooks.render();
       } catch (error) {
-        toast(error.message || "Failed");
+        toast(error.message || t("generic_failed"));
       }
     });
   });
@@ -422,7 +422,7 @@ export function bindForm() {
         const data = storyboardPromptPreview(project(), node.dataset.promptPreview);
         openPromptModal(data);
       } catch (error) {
-        toast(error.message || "Could not load prompt");
+        toast(error.message || t("prompt_load_failed"));
       }
     });
   });
