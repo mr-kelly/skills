@@ -1,8 +1,26 @@
-/* Keep the shared connect gate isolated from the app's form defaults. */
+/* Keep the shared connect gate isolated from the app's legacy form defaults. */
+.bb-gate-overlay,
+.bb-gate-overlay * {
+  box-sizing: border-box;
+}
+
+.bb-gate-panel,
+.bb-gate-body,
+.bb-gate-server-grid,
+.bb-gate-server-card,
+.bb-gate-footer,
+.bb-gate-footer > * {
+  min-width: 0;
+}
+
 .bb-gate-server-card input[type="radio"] {
   width: 16px;
   min-width: 16px;
+  max-width: 16px;
   height: 16px;
+  min-height: 16px;
+  max-height: 16px;
+  margin: 0;
   padding: 0;
   flex: 0 0 auto;
 }
@@ -10,4 +28,17 @@
 .bb-gate-server-card > span {
   min-width: 0;
   flex: 1 1 auto;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .bb-gate-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .bb-gate-footer button {
+    width: 100%;
+    flex: none;
+  }
 }

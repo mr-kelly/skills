@@ -42,6 +42,43 @@ def attach_error_capture(page: Page) -> list[str]:
     return errors
 
 
+def test_connect_gate_layout(browser, base_url: str) -> None:
+    for width, height in ((820, 820), (560, 760), (390, 844)):
+        context = browser.new_context(viewport={"width": width, "height": height})
+        page = context.new_page()
+        errors = attach_error_capture(page)
+        page.goto(f"{base_url}/?lang=zh")
+        page.wait_for_load_state("networkidle")
+
+        panel = page.locator(".bb-gate-panel")
+        cards = page.locator(".bb-gate-server-card")
+        assert panel.is_visible()
+        assert cards.count() == 2
+        assert page.get_by_role("heading", name="连接 Busabase").is_visible()
+
+        for index in range(cards.count()):
+            card_box = cards.nth(index).bounding_box()
+            radio_box = cards.nth(index).locator('input[type="radio"]').bounding_box()
+            copy_box = cards.nth(index).locator(":scope > span").bounding_box()
+            assert card_box and radio_box and copy_box
+            assert radio_box["width"] <= 18, radio_box
+            assert radio_box["x"] >= card_box["x"], (card_box, radio_box)
+            assert radio_box["x"] + radio_box["width"] <= card_box["x"] + card_box["width"], (card_box, radio_box)
+            assert copy_box["x"] >= card_box["x"], (card_box, copy_box)
+            assert copy_box["x"] + copy_box["width"] <= card_box["x"] + card_box["width"], (card_box, copy_box)
+
+        panel_box = panel.bounding_box()
+        footer_box = page.locator(".bb-gate-footer").bounding_box()
+        button_box = page.locator(".bb-gate-footer button").bounding_box()
+        assert panel_box and footer_box and button_box
+        assert button_box["x"] >= panel_box["x"], (panel_box, button_box)
+        assert button_box["x"] + button_box["width"] <= panel_box["x"] + panel_box["width"], (panel_box, button_box)
+        assert footer_box["y"] + footer_box["height"] <= height + 1, footer_box
+        assert_no_horizontal_overflow(page)
+        assert not errors, errors
+        context.close()
+
+
 def test_demo_ui(browser, base_url: str) -> None:
     desktop = browser.new_context(viewport={"width": 1280, "height": 820})
     page = desktop.new_page()
@@ -329,6 +366,8 @@ def main() -> None:
             with sync_playwright() as playwright:
                 browser = playwright.chromium.launch(headless=True)
                 try:
+                    test_connect_gate_layout(browser, base_url)
+                    print("PASS OSS - connect gate layout at desktop split-pane and phone viewports")
                     test_demo_ui(browser, base_url)
                     print("PASS OSS - demo UI at desktop and phone viewports")
                     test_busabase_provisioning(browser)
