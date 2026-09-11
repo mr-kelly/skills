@@ -8,11 +8,14 @@ import {
   enumLabel,
   escapeHtml,
   flashNotice,
+  gateSummaryText,
   kbById,
   knowledge,
   loadState,
   matchesQuery,
   priorityChip,
+  qaPairById,
+  qaPairs,
   recordTotal,
   referenceNow,
   render,
@@ -91,6 +94,73 @@ export function renderKbDetail() {
       </aside>
     </section>
   `;
+}
+
+/* ----- qa pairs ----- */
+
+const QA_STATUS_CLASS = { draft: "warning", approved: "positive", rejected: "" };
+
+function qaStatusBadge(status) {
+  return `<span class="badge ${QA_STATUS_CLASS[status] || ""}">${t(`qaStatus_${status}`)}</span>`;
+}
+
+export function renderQaPairs() {
+  els.title.textContent = t("qaPairs");
+  const list = qaPairs().filter((pair) => matchesQuery([pair.question, pair.answer, pair.category, pair.article_id]));
+  const draftCount = qaPairs().filter((pair) => pair.status === "draft").length;
+  els.subtitle.textContent = draftCount
+    ? t("qaPairsSubtitleDraft").replace("{n}", draftCount)
+    : t("qaPairsSubtitleClear");
+  els.content.innerHTML = list.length
+    ? `
+    <div class="qa-list">
+      ${list
+        .map((pair) => {
+          const article = kbById(pair.article_id);
+          return `
+        <div class="qa-card" data-qa-id="${escapeHtml(pair.pair_id)}">
+          <div class="row between">
+            ${qaStatusBadge(pair.status)}
+            ${article ? `<a class="qa-source" href="#/knowledge/${encodeURIComponent(article.article_id)}">${escapeHtml(article.title)}</a>` : `<span class="muted">${escapeHtml(pair.article_id)}</span>`}
+          </div>
+          <p class="qa-question"><strong>${t("qaQuestion")}:</strong> ${escapeHtml(pair.question)}</p>
+          <p class="qa-answer"><strong>${t("qaAnswer")}:</strong> ${escapeHtml(pair.answer)}</p>
+          ${
+            pair.status === "draft"
+              ? `
+            <div class="row">
+              <button type="button" class="btn primary" data-action="qa-decide" data-pair="${escapeHtml(pair.pair_id)}" data-decision="approved">${t("qaApprove")}</button>
+              <button type="button" class="btn" data-action="qa-decide" data-pair="${escapeHtml(pair.pair_id)}" data-decision="rejected">${t("qaReject")}</button>
+            </div>`
+              : `<p class="muted qa-reviewed">${t("qaReviewedBy").replace("{name}", escapeHtml(pair.reviewed_by || "—"))}</p>`
+          }
+        </div>
+      `;
+        })
+        .join("")}
+    </div>
+  `
+    : `<div class="empty">${t("empty")}</div>`;
+}
+
+export async function qaPairDecision(pairId, status) {
+  if (state.settings?.demo) {
+    const pair = qaPairById(pairId);
+    if (!pair) return;
+    pair.status = status;
+    pair.reviewed_by = "you (demo)";
+    flashNotice(t("demoNotice"));
+    render();
+    return;
+  }
+  try {
+    const provider = await getProvider();
+    await provider.reviewQaPair({ pair_id: pairId, status });
+  } catch (error) {
+    flashNotice(error.message || "Review failed");
+    return;
+  }
+  await loadState();
 }
 
 /* ----- sla & csat ----- */
@@ -330,7 +400,7 @@ export async function decideAction(ticketId, action) {
     if (typeof text === "string" && text) ticket.suggested_reply = text;
     applyGateDemo(ticket);
     if (action === "approve" && ticket.quality_gate?.verdict === "block") {
-      flashNotice(ticket.quality_gate.summary);
+      flashNotice(gateSummaryText(ticket.quality_gate));
       render();
       return;
     }

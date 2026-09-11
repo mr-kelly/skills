@@ -41,6 +41,63 @@ function kb(article_id, kind, title, body, tags, category) {
   return { article_id, kind, title, body, tags, category, updated_at: "2026-06-30T00:00:00.000Z" };
 }
 
+function qaPair(pair_id, article_id, question, answer, category, status, reviewed_by = "") {
+  return {
+    pair_id,
+    article_id,
+    question,
+    answer,
+    category,
+    tags: [],
+    status,
+    reviewed_by,
+    updated_at: status === "draft" ? "2026-07-04T00:00:00.000Z" : "2026-07-05T00:00:00.000Z",
+  };
+}
+
+// Distilled straight from demoKnowledgeBase(): every number here is copied
+// verbatim from its source article, which is the one rule this Base exists
+// to enforce -- a fine-tune trained on a paraphrased "about a week" instead
+// of "5-10 business days" would quietly teach the model the wrong policy.
+function demoQaPairs() {
+  return [
+    qaPair(
+      "qa-refund-window",
+      "kb-refunds",
+      "How long do I have to ask for a refund?",
+      "New paid plans are eligible for a full refund within 30 days of purchase.",
+      "billing",
+      "approved",
+      "kelly",
+    ),
+    qaPair(
+      "qa-refund-timing",
+      "kb-refunds",
+      "How long does a refund take to arrive?",
+      "Refunds are issued to the original payment method and take 5-10 business days.",
+      "billing",
+      "approved",
+      "kelly",
+    ),
+    qaPair(
+      "qa-refund-approval",
+      "kb-refunds",
+      "Can a refund be processed automatically?",
+      "No. Refunds must be approved by a human agent before processing.",
+      "billing",
+      "draft",
+    ),
+    qaPair(
+      "qa-2fa-lockout",
+      "kb-2fa",
+      "I'm locked out of 2FA and have no recovery code, what happens?",
+      "Identity must be verified before 2FA is reset -- 2FA is never disabled on an unverified request.",
+      "account",
+      "draft",
+    ),
+  ];
+}
+
 function decision(action, comment, decided_at) {
   return { action, comment, decided_at };
 }
@@ -784,6 +841,7 @@ function demoSnapshot() {
     accounts,
     tickets,
     knowledge_base,
+    qa_pairs: demoQaPairs(),
     sync_log: demoSyncLog(),
     warnings: [
       {
@@ -956,6 +1014,10 @@ export const demoProvider = {
   },
 
   async decideApproval() {
+    throw new Error("Demo mode is read-only.");
+  },
+
+  async reviewQaPair() {
     throw new Error("Demo mode is read-only.");
   },
 

@@ -6,6 +6,7 @@ import {
   buildConfigSummary,
   buildSnapshot,
   normalizeKbArticle,
+  normalizeQaPair,
   normalizeTicket,
   runQualityGate,
   statusForAction,
@@ -208,11 +209,12 @@ export const busabaseProvider = {
     await ensureResources();
     initialCursors.clear();
     const recordCountsPromise = Promise.all(BROWSED_KEYS.map((key) => countRecords(key)));
-    const [accounts, tickets, messages, knowledge_base, sync_log, settings] = await Promise.all([
+    const [accounts, tickets, messages, knowledge_base, qa_pairs, sync_log, settings] = await Promise.all([
       readPageRows("accounts"),
       readPageRows("tickets"),
       readPageRows("messages"),
       readPageRows("knowledge-base"),
+      readPageRows("qa-pairs"),
       readPageRows("sync-log"),
       readSettingsRow(),
     ]);
@@ -222,7 +224,7 @@ export const busabaseProvider = {
     } catch {
       risk_policy = {};
     }
-    const snapshot = buildSnapshot({ accounts, tickets, messages, knowledge_base, sync_log, risk_policy });
+    const snapshot = buildSnapshot({ accounts, tickets, messages, knowledge_base, qa_pairs, sync_log, risk_policy });
     const config_summary = buildConfigSummary({ settings, accounts });
     const recordCounts = await recordCountsPromise;
     return {
@@ -343,6 +345,36 @@ export const busabaseProvider = {
     const page = await readPage(key, cursor);
     const normalize = { tickets: normalizeTicket, "knowledge-base": normalizeKbArticle }[key];
     return { ...page, rows: normalize ? page.rows.map(normalize) : page.rows };
+  },
+
+  // The human verdict this Base exists for: an agent-drafted pair starts
+  // "draft" and is never used for retrieval or export until a person flips it
+  // to "approved" (or "rejected", which retires it the same way -- neither
+  // status is ever used downstream). This writes status directly rather than
+  // deriving it, unlike a ticket's quality_gate, because approve/reject is
+  // the ONLY write this record ever receives -- there is no second signal
+  // (like a ticket's messages) it could drift out of sync with.
+  async reviewQaPair({ pair_id, status, reviewer = appConfig.appId } = {}) {
+    if (status !== "approved" && status !== "rejected") throw new Error(`Unsupported qa-pair status: ${status}`);
+    await ensureResources();
+    const existing = await findRecord("qa-pairs", "pair-id", pair_id);
+    if (!existing) throw new Error(`Unknown QA pair: ${pair_id}`);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
+    const fields = {
+      ...current,
+      pair_id,
+      status,
+      reviewed_by: reviewer,
+      updated_at: new Date().toISOString(),
+    };
+    await upsert(
+      "qa-pairs",
+      "pair-id",
+      pair_id,
+      fields,
+      `${status === "approved" ? "Approve" : "Reject"} QA pair ${pair_id}`,
+    );
+    return { ok: true };
   },
 
   async provisionResources() {

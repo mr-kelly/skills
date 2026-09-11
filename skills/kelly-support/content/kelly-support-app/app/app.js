@@ -5,8 +5,10 @@ import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import {
   decideAction,
+  qaPairDecision,
   renderKbDetail,
   renderKnowledge,
+  renderQaPairs,
   renderSettings,
   renderSla,
   saveReplyAction,
@@ -151,6 +153,31 @@ export function dateTime(value) {
   }).format(new Date(value));
 }
 
+// support-qa gate checks carry an English `message` fallback plus a stable
+// `code` (+ `params`) identifying exactly which branch produced it; this
+// resolves the localized template for that (id, code) pair, falling back to
+// the English message if a translation is missing.
+export function gateCheckText(check) {
+  const template =
+    messages[activeLang()]?.gateCheck?.[check.id]?.[check.code] || messages.en.gateCheck?.[check.id]?.[check.code];
+  if (!template) return check.message || "";
+  return template.replace(/\{(\w+)\}/g, (_, name) => String(check.params?.[name] ?? ""));
+}
+
+// Mirrors runQualityGate()'s hardBlocks/softFixes grouping in support-model.js
+// to recompute a localized summary from the same failing checks, instead of
+// echoing the gate's English `summary` fallback.
+export function gateSummaryText(gate) {
+  if (!gate?.checks?.length) return gate?.summary || "";
+  const hardBlocks = gate.checks.filter(
+    (c) => (c.id === "no_unapproved_commitment" || c.id === "refund_policy") && !c.ok,
+  );
+  const softFixes = gate.checks.filter((c) => (c.id === "grounding" || c.id === "kb_refs_resolve") && !c.ok);
+  const failing = hardBlocks.length ? hardBlocks : softFixes;
+  if (!failing.length) return t("gateReadySummary");
+  return failing.map(gateCheckText).join(" ");
+}
+
 export function referenceNow() {
   if (state.settings?.demo && state.snapshot?.generated_at) return new Date(state.snapshot.generated_at).getTime();
   return Date.now();
@@ -252,8 +279,16 @@ export function knowledge() {
   return state.snapshot?.knowledge_base || [];
 }
 
+export function qaPairs() {
+  return state.snapshot?.qa_pairs || [];
+}
+
 export function ticketById(id) {
   return tickets().find((item) => item.ticket_id === id);
+}
+
+export function qaPairById(id) {
+  return qaPairs().find((item) => item.pair_id === id);
 }
 
 export function kbById(id) {
@@ -341,6 +376,7 @@ export function flashNotice(text) {
 function viewLabel(view) {
   if (view === "tickets") return t("tickets");
   if (view === "knowledge") return t("knowledge");
+  if (view === "qa-pairs") return t("qaPairs");
   if (view === "sla") return t("sla");
   if (view === "settings") return t("settings");
   return t("overview");
@@ -372,7 +408,7 @@ function actionChip(action) {
 function gateBadge(gate) {
   if (!gate) return "";
   const verdict = gate.verdict || "ship";
-  return `<span class="gate-badge ${escapeHtml(verdict)}" title="${escapeHtml(gate.summary || "")}">⛩ ${escapeHtml(enumLabel(verdict, "verdict"))} · ${gate.score}</span>`;
+  return `<span class="gate-badge ${escapeHtml(verdict)}" title="${escapeHtml(gateSummaryText(gate))}">⛩ ${escapeHtml(enumLabel(verdict, "verdict"))} · ${gate.score}</span>`;
 }
 
 function countryCell(country) {
@@ -385,18 +421,38 @@ export function matchesQuery(values) {
   return values.filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
 }
 
+// Warnings carry an English `message`/`detail` fallback for non-UI consumers
+// (CLI output, logs); the two well-known warning shapes are localized here
+// from their structured fields instead of echoing that fallback verbatim.
+function warningText(item) {
+  if (item.id === "sla-breach-batch") {
+    return {
+      message: `${item.count} ${t("slaBreachWarning")}`,
+      detail: `${t("seeSlaBoardOldest")} ${item.oldest_ticket_id} (${enumLabel(item.oldest_priority, "priority")}, ${t("dueBy").toLowerCase()} ${dateTime(item.oldest_due_by)})`,
+    };
+  }
+  if (item.id?.endsWith("-quality-block")) {
+    return {
+      message: `${t("ticketWord")} #${item.ticket_ref} (${item.customer_name}) ${t("gateBlockWarning")}`,
+      detail: item.gate_checks ? gateSummaryText({ checks: item.gate_checks }) : item.detail,
+    };
+  }
+  return { message: item.message, detail: item.detail };
+}
+
 function warningsHtml() {
   const items = state.snapshot?.warnings || [];
   if (!items.length) return "";
   return `<div class="warnings">${items
-    .map(
-      (item) => `
+    .map((item) => {
+      const { message, detail } = warningText(item);
+      return `
     <div class="${escapeHtml(item.severity || "warning")}">
-      <strong>${escapeHtml(item.message)}</strong>
-      ${item.detail ? `<span>${escapeHtml(item.detail)}</span>` : ""}
+      <strong>${escapeHtml(message)}</strong>
+      ${detail ? `<span>${escapeHtml(detail)}</span>` : ""}
     </div>
-  `,
-    )
+  `;
+    })
     .join("")}</div>`;
 }
 
@@ -588,12 +644,12 @@ function gateHtml(gate) {
         <strong>⛩ support-qa</strong>
         <span class="gate-badge ${escapeHtml(verdict)}">${escapeHtml(enumLabel(verdict, "verdict"))} · ${gate.score}</span>
       </div>
-      <div class="gate-summary">${escapeHtml(gate.summary || "")}</div>
+      <div class="gate-summary">${escapeHtml(gateSummaryText(gate))}</div>
       <ul class="gate-checks">
         ${(gate.checks || [])
           .map(
             (check) =>
-              `<li class="${check.ok ? "ok" : "fail"}"><span aria-hidden="true">${check.ok ? "✓" : "✗"}</span> ${escapeHtml(check.message)}</li>`,
+              `<li class="${check.ok ? "ok" : "fail"}"><span aria-hidden="true">${check.ok ? "✓" : "✗"}</span> ${escapeHtml(gateCheckText(check))}</li>`,
           )
           .join("")}
       </ul>
@@ -746,6 +802,7 @@ export function render() {
   else if (state.route.view === "tickets") renderPagedList(renderTickets, "tickets");
   else if (state.route.view === "knowledge" && state.route.id) renderKbDetail();
   else if (state.route.view === "knowledge") renderPagedList(renderKnowledge, "knowledge-base");
+  else if (state.route.view === "qa-pairs") renderQaPairs();
   else if (state.route.view === "sla") renderSla();
   else if (state.route.view === "settings") renderSettings();
   else renderOverview();
@@ -810,6 +867,10 @@ els.content.addEventListener("click", (event) => {
   }
   if (button.dataset.action === "decide") {
     decideAction(button.dataset.ticket, button.dataset.decision);
+    return;
+  }
+  if (button.dataset.action === "qa-decide") {
+    qaPairDecision(button.dataset.pair, button.dataset.decision);
   }
 });
 

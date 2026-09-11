@@ -11,6 +11,7 @@
   .metric,
   .overview-panel,
   .kb-card,
+  .qa-card,
   .settings section,
   .empty,
   .warnings {
@@ -756,6 +757,40 @@
   .kb-card.macro {
     background: var(--surface-soft);
     border-color: var(--line);
+  }
+
+  /* ----- qa pairs ----- */
+
+  .qa-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .qa-card {
+    display: grid;
+    gap: 8px;
+    padding: 14px 16px;
+  }
+
+  .qa-source {
+    font-size: var(--text-sm);
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .qa-source:hover {
+    text-decoration: underline;
+  }
+
+  .qa-question,
+  .qa-answer {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .qa-reviewed {
+    margin: 0;
+    font-size: var(--text-sm);
   }
 
   .kb-body {
