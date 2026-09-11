@@ -269,8 +269,11 @@ function withTicketRefs(tickets) {
 // never sends; a human still approves. decideApproval and the executor both
 // re-check the gate so a BLOCK is a hard stop even if a stale approve exists.
 
+// \b is a \w-based word boundary and never matches around CJK ideographs, so
+// the Chinese alternatives below are plain substrings with no \b — matching
+// them the same way the English half does would silently never match.
 const COMMITMENT_PATTERNS =
-  /\b(refund|money back|reimburse|compensat|guarantee|we (?:will|'ll) (?:refund|credit|waive|comp)|credit your account|free month|discount code|coupon)\b/i;
+  /\b(refund|money back|reimburse|compensat|guarantee|we (?:will|'ll) (?:refund|credit|waive|comp)|credit your account|free month|discount code|coupon)\b|(退款|补偿|赔偿|保证退|免费一个月|优惠券|折扣码)/i;
 
 export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   const reply = String(ticket.suggested_reply || "");
@@ -280,10 +283,16 @@ export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   const checks = [];
 
   // 1. Grounding: a substantive reply should cite at least one real KB article.
+  // Every check also carries a stable `code` (+ `params` for the dynamic
+  // pieces) alongside the English `message` fallback, so the UI can render a
+  // localized string (see gateCheckText() in app.js) without having to
+  // reverse-engineer which branch produced a given English sentence.
   const grounded = validRefs.length > 0 || reply.trim().length < 40;
   checks.push({
     id: "grounding",
     ok: grounded,
+    code: grounded ? (validRefs.length ? "grounded_with_refs" : "short_ack") : "ungrounded",
+    params: { count: validRefs.length },
     message: grounded
       ? validRefs.length
         ? `Reply cites ${validRefs.length} KB article(s).`
@@ -296,6 +305,8 @@ export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   checks.push({
     id: "kb_refs_resolve",
     ok: danglingRefs.length === 0,
+    code: danglingRefs.length ? "dangling" : "all_resolve",
+    params: { refs: danglingRefs.join(", ") },
     message: danglingRefs.length
       ? `Cites unknown KB article(s): ${danglingRefs.join(", ")}.`
       : "All cited KB refs resolve.",
@@ -310,6 +321,7 @@ export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   checks.push({
     id: "no_unapproved_commitment",
     ok: commitmentOk,
+    code: commitmentOk ? (makesCommitment ? "commitment_approved" : "no_commitment") : "commitment_blocked",
     message: commitmentOk
       ? makesCommitment
         ? "Commitment present but on an approved refund/action."
@@ -325,6 +337,12 @@ export function runQualityGate(ticket = {}, kb = [], risk = {}) {
   checks.push({
     id: "refund_policy",
     ok: refundOk || ticket.status === "approved",
+    code:
+      ticket.proposed_action === "refund"
+        ? ticket.status === "approved"
+          ? "refund_approved"
+          : "refund_needs_approval"
+        : "no_refund_requested",
     message:
       ticket.proposed_action === "refund"
         ? ticket.status === "approved"
@@ -448,6 +466,12 @@ function buildWarnings(tickets) {
     warnings.push({
       id: "sla-breach-batch",
       severity: "warning",
+      count: breaching.length,
+      oldest_ticket_id: breaching[0].ticket_id,
+      oldest_priority: breaching[0].priority,
+      oldest_due_by: breaching[0].sla.due_by,
+      // English fallback for non-UI consumers (CLI output, logs); the
+      // rendered UI builds a localized string from the fields above instead.
       message: `${breaching.length} ticket(s) have breached their first-response SLA.`,
       detail: `See the SLA board — the oldest is ${breaching[0].ticket_id} (${breaching[0].priority}, due ${breaching[0].sla.due_by}).`,
     });
@@ -458,6 +482,12 @@ function buildWarnings(tickets) {
         id: `${ticket.ticket_id}-quality-block`,
         severity: "warning",
         account_id: ticket.account_id,
+        ticket_ref: ticket.ref,
+        customer_name: ticket.customer?.name || ticket.ticket_id,
+        gate_checks: ticket.quality_gate.checks,
+        // English fallback for non-UI consumers; UI builds a localized string
+        // for both message and detail (the latter from gate_checks, since
+        // ticket.quality_gate.summary is itself just an English fallback).
         message: `Ticket #${ticket.ref} (${ticket.customer?.name || ticket.ticket_id}) is BLOCKED by the support-qa gate.`,
         detail: ticket.quality_gate.summary || "",
       });

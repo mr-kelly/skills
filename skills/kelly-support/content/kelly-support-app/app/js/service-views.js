@@ -8,6 +8,7 @@ import {
   enumLabel,
   escapeHtml,
   flashNotice,
+  gateSummaryText,
   kbById,
   knowledge,
   loadState,
@@ -399,7 +400,7 @@ export async function decideAction(ticketId, action) {
     if (typeof text === "string" && text) ticket.suggested_reply = text;
     applyGateDemo(ticket);
     if (action === "approve" && ticket.quality_gate?.verdict === "block") {
-      flashNotice(ticket.quality_gate.summary);
+      flashNotice(gateSummaryText(ticket.quality_gate));
       render();
       return;
     }

@@ -95,6 +95,22 @@ test("runQualityGate: a reply promising a refund without approval is a hard BLOC
   assert.equal(refundCheck.ok, false);
 });
 
+test("runQualityGate: a Chinese-language refund commitment is also a hard BLOCK", () => {
+  const ticket = {
+    suggested_reply: "我可以把这笔年付款项退回原支付方式，我这就为您处理退款。",
+    kb_refs: ["kb-refunds"],
+    proposed_action: "refund",
+    status: "needs_review",
+    execution: { amount: 120 },
+  };
+  const kb = [{ article_id: "kb-refunds" }];
+  const risk = { refund_requires_approval: true, block_commitments_without_approval: true };
+  const gate = runQualityGate(ticket, kb, risk);
+  assert.equal(gate.verdict, "block");
+  const commitmentCheck = gate.checks.find((c) => c.id === "no_unapproved_commitment");
+  assert.equal(commitmentCheck.ok, false);
+});
+
 test("runQualityGate: the same refund reply on an APPROVED refund action clears the gate", () => {
   const ticket = {
     suggested_reply: "I can refund the €120 annual charge to your original card and process that refund right away.",
