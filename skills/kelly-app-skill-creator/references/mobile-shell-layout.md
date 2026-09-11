@@ -111,9 +111,27 @@ Cheap in code, and their absence is what makes a tool look unfinished:
 
 - The page sits on `--canvas`; content sits in white cards with a hairline `--line` border and
   `--shadow-card`. Cards separate regions; nested cards do not.
-- Metrics are cards in an `auto-fit` row: label at `--text-base` muted, value at `--text-2xl` with
-  `font-variant-numeric: tabular-nums`, optional trend line beneath. Two columns at 390px, not
-  three — a third column clips the number.
+- Metrics sit in a **fixed-column row** — `repeat(3, minmax(0, 1fr))` or `repeat(4, …)`, dropping to
+  two columns at the phone breakpoint — with the label muted at `--text-sm` and the value at
+  `--text-xl` with `font-variant-numeric: tabular-nums`. **Never `repeat(auto-fit, …)`.** `auto-fit`
+  makes the summary's height a function of how many metrics the app declares: six of them wrap into
+  two rows ~217px tall at `1280x820` and three rows at `390x844`, and the list starts below the
+  fold. Fixed columns squeeze the cells instead, which is the behaviour you want when space runs
+  short. A hairline-divided band with no per-cell border reads calmer still and is the better
+  default for a new app, but the card form is fine as long as it cannot wrap.
+- **Four numbers is the ceiling, three is better**, and each one has to be unavailable elsewhere on
+  the screen. Per-item counts usually sit next to their nav entry already, and the number that
+  demands action sits in the sidebar's attention block; restating them makes the summary a second
+  navigation that cannot be clicked. Put subsets that take a computation to know, and move the next
+  idea into a nav item or a filter.
+- **Internal identifiers never reach the screen.** Record ids, uuids, hashes, file keys: the reader
+  can neither recognise one nor click it, so it says nothing while looking like content. A field
+  that stores a reference must render the referenced thing's name; when that thing is not loaded
+  yet, say so rather than falling back to the id. For the same reason a display helper's last
+  resort is `-`, never `value.id` and never `JSON.stringify(value)`.
+- A row's secondary line is a **chosen** set of fields. Slicing "the 2nd through 4th field" picks up
+  whatever the schema happens to hold there — which is how two reference columns became the
+  subtitle of every row in a shipped app.
 - The list/detail workspace is one card containing both panes, not two floating panels.
 - Any number that sits in a column — counts, currency, percentages — gets `tabular-nums`.
 - A status pill takes its dot, a ~9% background wash, and its text color from one token, so a
@@ -135,6 +153,14 @@ Each of these is a specific, recurring way a generated app reads as busy rather 
   a bag of highlighters.
 - A horizontal scrollbar inside a toolbar or filter strip. Let the toolbar wrap instead; a nested
   scrollbar is the most common way these layouts start looking broken at narrow widths.
+- A summary that wraps to a second row. Nothing overflows horizontally when it does, so every
+  width-based check below still passes while the app has stopped showing its content.
+- Raw ids anywhere a human reads: rows, detail fields, headings, tooltips. They are the most common
+  reason an app looks broken on real data while looking fine on fixture data — which is a fixture
+  problem as much as a rendering one. **Fixtures must carry the shapes the real source returns.** A
+  fixture that pre-resolves a reference into `{ id, name }`, or uses ids like `"p1"` that look
+  nothing like real ones, means the resolution path never runs and the id path never renders: the
+  demo certifies a screen production will never show.
 - Decorative hero sections, gradients, oversized marketing typography, nested cards, mock skeleton
   graphics presented as content, black floating mobile buttons, hamburger glyphs where a panel icon
   fits better, heavy shadows, and hover states that promote every control to primary.
@@ -505,6 +531,14 @@ Run these checks before handing off:
 - `node --check app/app.js` and any server modules.
 - App validator or dry-run script, if the skill has one.
 - Desktop viewport around `1280x820`: sidebar collapse works, no horizontal overflow, list/detail remain usable.
+- Desktop first-screen budget at `1280x820`: the metrics row is **one row**, the list shows at least
+  three rows, and the page itself does not scroll vertically. Every other item on this list is about
+  width; this is the one that catches a summary quietly eating the first screen. Check `390x844`
+  too — two columns of four metrics is two rows there, and the list still has to be visible under
+  them.
+- No identifier is visible anywhere. Walk every view, open the first row in each, and assert the
+  rendered text matches no id shape the app stores (`rec…`/uuid/hash). A sweep, not a spot check —
+  ids surface in whichever view happens to hold a reference field.
 - Phone viewport around `390x844`: top bar visible, drawer opens/closes, scrim only intercepts clicks while open, list rows are scannable, selecting a row opens detail, back returns to list.
 - Narrow phone viewport around `360x740`: no horizontal overflow.
 - Help/settings modal: every tab fits, long paths wrap, close button is visible, `document.documentElement.scrollWidth <= window.innerWidth`.
