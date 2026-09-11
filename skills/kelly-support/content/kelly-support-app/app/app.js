@@ -158,7 +158,8 @@ export function dateTime(value) {
 // resolves the localized template for that (id, code) pair, falling back to
 // the English message if a translation is missing.
 export function gateCheckText(check) {
-  const template = messages[activeLang()]?.gateCheck?.[check.id]?.[check.code] || messages.en.gateCheck?.[check.id]?.[check.code];
+  const template =
+    messages[activeLang()]?.gateCheck?.[check.id]?.[check.code] || messages.en.gateCheck?.[check.id]?.[check.code];
   if (!template) return check.message || "";
   return template.replace(/\{(\w+)\}/g, (_, name) => String(check.params?.[name] ?? ""));
 }
@@ -168,7 +169,9 @@ export function gateCheckText(check) {
 // echoing the gate's English `summary` fallback.
 export function gateSummaryText(gate) {
   if (!gate?.checks?.length) return gate?.summary || "";
-  const hardBlocks = gate.checks.filter((c) => (c.id === "no_unapproved_commitment" || c.id === "refund_policy") && !c.ok);
+  const hardBlocks = gate.checks.filter(
+    (c) => (c.id === "no_unapproved_commitment" || c.id === "refund_policy") && !c.ok,
+  );
   const softFixes = gate.checks.filter((c) => (c.id === "grounding" || c.id === "kb_refs_resolve") && !c.ok);
   const failing = hardBlocks.length ? hardBlocks : softFixes;
   if (!failing.length) return t("gateReadySummary");
