@@ -39,6 +39,9 @@ documented future extension (see `references/embeddable-widget.md`).
   </tr>
 </table>
 
+A recorded walkthrough (approve a QA pair, approve a SHIP ticket, block a refund the gate flags) is at
+[`docs/demo-recordings/kelly-support/kelly-support-demo-zh-CN.mp4`](../../docs/demo-recordings/kelly-support/kelly-support-demo-zh-CN.mp4).
+
 ## Running Locally
 
 ```bash
