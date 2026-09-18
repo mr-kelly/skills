@@ -123,11 +123,7 @@ describe(current);
 
 let dataReady = current.folder && !current.missing.length && !current.repairs.length;
 let currentSettingsRecord = dataReady ? await findSettingsRecord(current) : null;
-let settingsReady = supportSettingsComplete(
-  currentSettingsRecord?.headCommit?.payload ||
-    currentSettingsRecord?.headCommit?.fields ||
-    currentSettingsRecord?.fields,
-);
+let settingsReady = supportSettingsComplete(currentSettingsRecord?.headCommit?.payload);
 console.log(
   `  ${"Support policy".padEnd(28)} ${settingsReady ? "已配置" : currentSettingsRecord ? "存在，待操作员确认" : "缺失（将提交安全默认值供审核）"}`,
 );
@@ -168,11 +164,7 @@ if (!dataReady) {
 }
 
 currentSettingsRecord = await findSettingsRecord(current);
-settingsReady = supportSettingsComplete(
-  currentSettingsRecord?.headCommit?.payload ||
-    currentSettingsRecord?.headCommit?.fields ||
-    currentSettingsRecord?.fields,
-);
+settingsReady = supportSettingsComplete(currentSettingsRecord?.headCommit?.payload);
 if (!currentSettingsRecord) {
   const result = await proposeDefaultSettings(current);
   console.log(`\n默认支持策略请求已提交：${result.id}（待审核）`);
