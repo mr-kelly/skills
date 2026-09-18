@@ -98,6 +98,8 @@ export function normalizeMessage({
   text = "",
   sent_at = "",
   attachment = "",
+  provider_message_id = "",
+  provider_references = "",
 } = {}) {
   return {
     message_id,
@@ -106,6 +108,8 @@ export function normalizeMessage({
     text,
     sent_at,
     attachment,
+    provider_message_id,
+    provider_references,
   };
 }
 
@@ -193,6 +197,10 @@ export function normalizeTicket({
   execution_attempt = "",
   execution_started_at = "",
   execution_completed_at = "",
+  execution_last_error = "",
+  execution_next_retry_at = "",
+  execution_claim_expires_at = "",
+  execution_retryable = "",
   executed_at = "",
   updated_at = "",
 } = {}) {
@@ -251,6 +259,10 @@ export function normalizeTicket({
           attempt: execution_attempt !== "" ? Number(execution_attempt) || 0 : 0,
           started_at: execution_started_at,
           completed_at: execution_completed_at,
+          last_error: execution_last_error,
+          next_retry_at: execution_next_retry_at,
+          claim_expires_at: execution_claim_expires_at,
+          retryable: toBool(execution_retryable),
           executed_at,
         }
       : null,
@@ -487,6 +499,17 @@ function buildWarnings(tickets) {
     });
   }
   for (const ticket of tickets) {
+    if (["failed", "blocked"].includes(ticket.execution?.status)) {
+      warnings.push({
+        id: `${ticket.ticket_id}-execution-${ticket.execution.status}`,
+        severity: "warning",
+        account_id: ticket.account_id,
+        ticket_ref: ticket.ref,
+        customer_name: ticket.customer?.name || ticket.ticket_id,
+        message: `Ticket #${ticket.ref} execution is ${ticket.execution.status}.`,
+        detail: ticket.execution.detail || ticket.execution.last_error || "",
+      });
+    }
     if (ticket.quality_gate?.verdict === "block" && ticket.status !== "blocked") {
       warnings.push({
         id: `${ticket.ticket_id}-quality-block`,

@@ -69,6 +69,15 @@ def test_demo_ui(browser, base_url: str) -> None:
     page.goto(f"{base_url}/?demo=detail&lang=en#/tickets/tk-ochoa-refund")
     page.wait_for_load_state("networkidle")
     assert page.locator(".gate-panel.block").is_visible()
+
+    page.goto(f"{base_url}/?demo=tickets&lang=en#/tickets/tk-costa-complaint")
+    page.wait_for_load_state("networkidle")
+    execution = page.locator(".execution-state.bad")
+    assert execution.is_visible()
+    assert "Delivery failed" in execution.inner_text()
+    assert "Attempt 1" in execution.inner_text()
+    assert "Retry after" in execution.inner_text()
+    assert page.locator(".approval-waiting").count() == 0
     assert not errors, errors
     desktop.close()
 
@@ -195,11 +204,30 @@ def test_busabase_provisioning(browser) -> None:
                 nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
                 tickets_base = find_resource(nodes, "tickets")
                 assert tickets_base and tickets_base.get("baseId"), nodes
+                accounts_base = find_resource(nodes, "accounts")
+                messages_base = find_resource(nodes, "messages")
+                account_cr = post_json(
+                    f"{busabase_url}/api/v1/bases/{accounts_base['baseId']}/change-requests",
+                    {
+                        "fields": {
+                            "account-id": "email-support",
+                            "channel": "email",
+                            "connector": "email_agent",
+                            "display-name": "Fixture Support",
+                            "handle": "support@example.test",
+                            "status": "ok",
+                        },
+                        "message": "Seed Kelly Support email account",
+                        "submittedBy": "kelly-skills-test",
+                    },
+                )
+                post_json(f"{busabase_url}/api/v1/change-requests/merge", {"changeRequestIds": [account_cr["id"]]})
                 record_cr = post_json(
                     f"{busabase_url}/api/v1/bases/{tickets_base['baseId']}/change-requests",
                     {
                         "fields": {
                             "ticket-id": "tk-fixture",
+                            "account-id": "email-support",
                             "channel": "email",
                             "customer-name": "Fixture Customer",
                             "subject": "Integration Fixture Ticket",
@@ -216,6 +244,24 @@ def test_busabase_provisioning(browser) -> None:
                     },
                 )
                 post_json(f"{busabase_url}/api/v1/change-requests/merge", {"changeRequestIds": [record_cr["id"]]})
+                message_cr = post_json(
+                    f"{busabase_url}/api/v1/bases/{messages_base['baseId']}/change-requests",
+                    {
+                        "fields": {
+                            "message-id": "msg-fixture-incoming",
+                            "ticket-id": "tk-fixture",
+                            "direction": "incoming",
+                            "sender": "Fixture Customer",
+                            "text": "How do I export my notes?",
+                            "sent-at": "2026-07-06T08:00:00.000Z",
+                            "provider-message-id": "<incoming-fixture@example.test>",
+                            "provider-references": "<older-fixture@example.test>",
+                        },
+                        "message": "Seed Kelly Support incoming message",
+                        "submittedBy": "kelly-skills-test",
+                    },
+                )
+                post_json(f"{busabase_url}/api/v1/change-requests/merge", {"changeRequestIds": [message_cr["id"]]})
 
                 # A fresh app process must discover the existing resources and
                 # records, and a human verdict on the seeded ticket must write
@@ -262,6 +308,51 @@ def test_busabase_provisioning(browser) -> None:
                 )
                 assert (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["status"] == "approved", fixture
 
+                terminal_crs = []
+                for fields in (
+                    {
+                        "ticket-id": "tk-close",
+                        "account-id": "email-support",
+                        "channel": "email",
+                        "customer-name": "Close Customer",
+                        "customer-email": "close@example.test",
+                        "subject": "Close this ticket",
+                        "body": "No reply needed.",
+                        "status": "approved",
+                        "proposed-action": "close",
+                        "suggested-reply": "I guarantee a refund, but this draft must not be sent.",
+                        "decision-action": "approve",
+                        "decided-at": "2026-07-06T08:03:00.000Z",
+                        "created-at": "2026-07-06T08:01:00.000Z",
+                    },
+                    {
+                        "ticket-id": "tk-refund",
+                        "account-id": "email-support",
+                        "channel": "email",
+                        "customer-name": "Refund Customer",
+                        "customer-email": "refund@example.test",
+                        "subject": "Refund approved but provider missing",
+                        "body": "Please refund.",
+                        "status": "approved",
+                        "proposed-action": "refund",
+                        "suggested-reply": "We are reviewing your approved refund request.",
+                        "decision-action": "approve",
+                        "decided-at": "2026-07-06T08:03:00.000Z",
+                        "created-at": "2026-07-06T08:02:00.000Z",
+                    },
+                ):
+                    terminal_crs.append(
+                        post_json(
+                            f"{busabase_url}/api/v1/bases/{tickets_base['baseId']}/change-requests",
+                            {
+                                "fields": fields,
+                                "message": f"Seed {fields['ticket-id']}",
+                                "submittedBy": "kelly-skills-test",
+                            },
+                        )["id"]
+                    )
+                post_json(f"{busabase_url}/api/v1/change-requests/merge", {"changeRequestIds": terminal_crs})
+
                 trusted_env = {**os.environ, "BUSABASE_BASE_URL": busabase_url}
                 queued = subprocess.run(
                     ["node", "skills/kelly-support/scripts/execute_decisions.mjs", "--apply"],
@@ -272,29 +363,49 @@ def test_busabase_provisioning(browser) -> None:
                     text=True,
                 )
                 assert "queued send_reply" in queued.stdout, queued.stdout
+                assert "completed close" in queued.stdout, queued.stdout
+                assert "blocked refund" in queued.stdout, queued.stdout
 
-                finalize_command = [
-                    "node",
-                    "skills/kelly-support/scripts/finalize_delivery.mjs",
-                    "--ticket-id",
-                    "tk-fixture",
-                    "--provider-message-id",
-                    "provider-fixture-1",
-                    "--sent-at",
-                    "2026-07-06T08:05:00.000Z",
-                    "--apply",
-                ]
-                finalized = subprocess.run(
-                    finalize_command,
-                    cwd=REPO_ROOT,
-                    env=trusted_env,
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                assert "finalized as sent and done" in finalized.stdout, finalized.stdout
+                with tempfile.TemporaryDirectory(prefix="kelly-support-connector-") as connector_dir:
+                    connector_path = Path(connector_dir) / "connector.mjs"
+                    connector_path.write_text(
+                        """let body = '';
+for await (const chunk of process.stdin) body += chunk;
+const request = JSON.parse(body);
+console.log(JSON.stringify({ok:true,dryRun:false,messageId:'<provider-fixture-1@example.test>',submittedMessageId:'<provider-fixture-1@example.test>',providerReceiptId:'250 2.0.0 queued as fixture-receipt-1',accepted:[request.toAddress],rejected:[],identityId:'fixture',sendAs:request.fromAddress,mailboxId:'fixture',threaded:Boolean(request.inReplyTo)}));
+""",
+                        encoding="utf-8",
+                    )
+                    worker_env = {**trusted_env, "KELLY_EMAIL_CONNECTOR_PATH": str(connector_path)}
+                    finalized = subprocess.run(
+                        ["node", "skills/kelly-support/scripts/process_email_queue.mjs", "--apply"],
+                        cwd=REPO_ROOT,
+                        env=worker_env,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    assert "tk-fixture: sent <provider-fixture-1@example.test> receipt=250 2.0.0 queued as fixture-receipt-1 threaded" in finalized.stdout, finalized.stdout
+                    repeated_worker = subprocess.run(
+                        ["node", "skills/kelly-support/scripts/process_email_queue.mjs", "--apply"],
+                        cwd=REPO_ROOT,
+                        env=worker_env,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    assert "No queued email replies" in repeated_worker.stdout, repeated_worker.stdout
+
                 repeated = subprocess.run(
-                    finalize_command,
+                    [
+                        "node",
+                        "skills/kelly-support/scripts/finalize_delivery.mjs",
+                        "--ticket-id",
+                        "tk-fixture",
+                        "--provider-message-id",
+                        "250 2.0.0 queued as fixture-receipt-1",
+                        "--apply",
+                    ],
                     cwd=REPO_ROOT,
                     env=trusted_env,
                     check=True,
@@ -313,10 +424,20 @@ def test_busabase_provisioning(browser) -> None:
                 fixture_fields = fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"]
                 assert fixture_fields["status"] == "done", fixture
                 assert fixture_fields["execution-status"] == "sent", fixture
-                assert fixture_fields["execution-provider-message-id"] == "provider-fixture-1", fixture
-                assert fixture_fields["sla-first-response-at"] == "2026-07-06T08:05:00.000Z", fixture
+                assert fixture_fields["execution-provider-message-id"] == "250 2.0.0 queued as fixture-receipt-1", fixture
+                assert fixture_fields["sla-first-response-at"], fixture
 
-                messages_base = find_resource(nodes, "messages")
+                by_ticket = {
+                    (row.get("headCommit", {}).get("payload") or row.get("headCommit", {}).get("fields", {})).get("ticket-id"): row
+                    for row in record_items
+                }
+                close_fields = by_ticket["tk-close"]["headCommit"].get("payload") or by_ticket["tk-close"]["headCommit"]["fields"]
+                refund_fields = by_ticket["tk-refund"]["headCommit"].get("payload") or by_ticket["tk-refund"]["headCommit"]["fields"]
+                assert close_fields["status"] == "done", close_fields
+                assert close_fields["execution-status"] == "completed", close_fields
+                assert refund_fields["status"] == "blocked", refund_fields
+                assert refund_fields["execution-status"] == "blocked", refund_fields
+
                 messages = read_json(f"{busabase_url}/api/v1/records?baseId={messages_base['baseId']}")
                 message_items = messages if isinstance(messages, list) else messages.get("records", [])
                 outgoing = [
@@ -325,6 +446,134 @@ def test_busabase_provisioning(browser) -> None:
                     if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("direction") == "outgoing"
                 ]
                 assert len(outgoing) == 1, outgoing
+                outgoing_fields = outgoing[0]["headCommit"].get("payload") or outgoing[0]["headCommit"]["fields"]
+                assert outgoing_fields["provider-message-id"] == "<provider-fixture-1@example.test>", outgoing_fields
+
+                retry_ticket_cr = post_json(
+                    f"{busabase_url}/api/v1/bases/{tickets_base['baseId']}/change-requests",
+                    {
+                        "fields": {
+                            "ticket-id": "tk-retry",
+                            "account-id": "email-support",
+                            "channel": "email",
+                            "customer-name": "Retry Customer",
+                            "customer-email": "retry@example.test",
+                            "subject": "Retry a temporary rejection",
+                            "body": "Please help.",
+                            "status": "approved",
+                            "proposed-action": "send_reply",
+                            "suggested-reply": "This reply is approved and grounded.",
+                            "decision-action": "approve",
+                            "decided-at": "2026-07-06T08:06:00.000Z",
+                            "created-at": "2026-07-06T08:06:00.000Z",
+                        },
+                        "message": "Seed retry ticket",
+                        "submittedBy": "kelly-skills-test",
+                    },
+                )
+                retry_message_cr = post_json(
+                    f"{busabase_url}/api/v1/bases/{messages_base['baseId']}/change-requests",
+                    {
+                        "fields": {
+                            "message-id": "msg-retry-incoming",
+                            "ticket-id": "tk-retry",
+                            "direction": "incoming",
+                            "sender": "Retry Customer",
+                            "text": "Please help.",
+                            "sent-at": "2026-07-06T08:06:00.000Z",
+                            "provider-message-id": "<incoming-retry@example.test>",
+                        },
+                        "message": "Seed retry incoming message",
+                        "submittedBy": "kelly-skills-test",
+                    },
+                )
+                post_json(
+                    f"{busabase_url}/api/v1/change-requests/merge",
+                    {"changeRequestIds": [retry_ticket_cr["id"], retry_message_cr["id"]]},
+                )
+                subprocess.run(
+                    ["node", "skills/kelly-support/scripts/execute_decisions.mjs", "--apply"],
+                    cwd=REPO_ROOT,
+                    env=trusted_env,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                with tempfile.TemporaryDirectory(prefix="kelly-support-retry-") as retry_dir:
+                    failure_connector = Path(retry_dir) / "failure.mjs"
+                    failure_connector.write_text(
+                        "console.log(JSON.stringify({ok:false,message:'temporary provider rejection',code:'EENVELOPE',responseCode:451,retryable:true,ambiguous:false})); process.exitCode=1;\n",
+                        encoding="utf-8",
+                    )
+                    failure_env = {**trusted_env, "KELLY_EMAIL_CONNECTOR_PATH": str(failure_connector)}
+                    failed = subprocess.run(
+                        [
+                            "node",
+                            "skills/kelly-support/scripts/process_email_queue.mjs",
+                            "--ticket-id",
+                            "tk-retry",
+                            "--retry-delay-seconds",
+                            "0",
+                            "--apply",
+                        ],
+                        cwd=REPO_ROOT,
+                        env=failure_env,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    assert "failed_retryable" in failed.stdout, failed.stdout
+
+                    records = read_json(f"{busabase_url}/api/v1/records?baseId={tickets_base['baseId']}")
+                    record_items = records if isinstance(records, list) else records.get("records", [])
+                    retry_row = next(
+                        row
+                        for row in record_items
+                        if (row.get("headCommit", {}).get("payload") or {}).get("ticket-id") == "tk-retry"
+                    )
+                    retry_fields = retry_row["headCommit"]["payload"]
+                    assert retry_fields["execution-status"] == "failed", retry_fields
+                    assert retry_fields["execution-retryable"] == "true", retry_fields
+                    assert retry_fields["execution-next-retry-at"], retry_fields
+
+                    requeued = subprocess.run(
+                        [
+                            "node",
+                            "skills/kelly-support/scripts/execute_decisions.mjs",
+                            "--retry-failed",
+                            "--apply",
+                        ],
+                        cwd=REPO_ROOT,
+                        env=trusted_env,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    assert "tk-retry: queued send_reply" in requeued.stdout, requeued.stdout
+
+                    success_connector = Path(retry_dir) / "success.mjs"
+                    success_connector.write_text(
+                        """let body=''; for await (const chunk of process.stdin) body+=chunk;
+const request=JSON.parse(body); console.log(JSON.stringify({ok:true,dryRun:false,messageId:'<provider-retry@example.test>',submittedMessageId:'<provider-retry@example.test>',providerReceiptId:'250 2.0.0 queued as fixture-retry-receipt',accepted:[request.toAddress],rejected:[],identityId:'fixture',sendAs:request.fromAddress,mailboxId:'fixture',threaded:true}));
+""",
+                        encoding="utf-8",
+                    )
+                    success_env = {**trusted_env, "KELLY_EMAIL_CONNECTOR_PATH": str(success_connector)}
+                    retried = subprocess.run(
+                        [
+                            "node",
+                            "skills/kelly-support/scripts/process_email_queue.mjs",
+                            "--ticket-id",
+                            "tk-retry",
+                            "--apply",
+                        ],
+                        cwd=REPO_ROOT,
+                        env=success_env,
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    assert "tk-retry: sent <provider-retry@example.test> receipt=250 2.0.0 queued as fixture-retry-receipt threaded" in retried.stdout, retried.stdout
 
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
             keys = resource_keys(nodes)
@@ -349,6 +598,32 @@ def test_busabase_provisioning(browser) -> None:
                 for record in record_items
             )
 
+def test_schema_upgrade() -> None:
+    busabase_port = free_port()
+    busabase_url = f"http://127.0.0.1:{busabase_port}"
+    with tempfile.TemporaryDirectory(prefix="kelly-support-upgrade-") as data_dir:
+        command = [
+            "npx",
+            "-y",
+            f"busabase@{BUSABASE_VERSION}",
+            "server",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(busabase_port),
+            "--data",
+            data_dir,
+        ]
+        with managed_process(command, REPO_ROOT, {}, f"{busabase_url}/api/health", timeout=90):
+            result = subprocess.run(
+                ["node", "tests/app-skills/kelly-support/upgrade_test.mjs", busabase_url],
+                cwd=REPO_ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            assert "PASS v2 -> v3 additive schema upgrade" in result.stdout, result.stdout
+
 
 def main() -> None:
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
@@ -361,6 +636,8 @@ def main() -> None:
                 try:
                     test_demo_ui(browser, base_url)
                     print("PASS OSS - demo UI at desktop and phone viewports")
+                    test_schema_upgrade()
+                    print("PASS OSS - v2 to v3 additive schema migration")
                     test_busabase_provisioning(browser)
                     print("PASS OSS - lazy provisioning, decision write, and persistence against temporary Busabase")
                 except Exception:
