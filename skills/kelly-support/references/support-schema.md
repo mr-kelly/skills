@@ -72,7 +72,7 @@ marker.
 | `decision-action` | `decision_action` | text | written with the verdict |
 | `decision-comment` | `decision_comment` | longtext | written with the verdict |
 | `decided-at` | `decided_at` | text | written with the verdict |
-| `execution-status` | `execution_status` | text | `queued\|sending\|sent\|skipped\|blocked`; only the connector finalizer writes `sent` |
+| `execution-status` | `execution_status` | text | `queued\|sending\|sent\|completed\|failed\|skipped\|blocked`; only the connector finalizer writes `sent` |
 | `execution-operation` | `execution_operation` | text | `send_reply\|escalate\|refund\|close\|no_action` |
 | `execution-connector` | `execution_connector` | text | the account id that would deliver it |
 | `execution-target` | `execution_target` | text | `provider_conversation_id` at execution time |
@@ -80,10 +80,14 @@ marker.
 | `execution-amount` | `execution_amount` | number | for `refund` |
 | `execution-detail` | `execution_detail` | longtext | |
 | `execution-idempotency-key` | `execution_idempotency_key` | text | stable connector dedupe key created when work is queued |
-| `execution-provider-message-id` | `execution_provider_message_id` | text | provider receipt after confirmed delivery |
+| `execution-provider-message-id` | `execution_provider_message_id` | text | sanitized SMTP 2xx acceptance receipt (not the RFC Message-ID) |
 | `execution-attempt` | `execution_attempt` | number | claim attempt count |
 | `execution-started-at` | `execution_started_at` | text | ISO claim timestamp |
 | `execution-completed-at` | `execution_completed_at` | text | ISO provider-confirmed completion timestamp |
+| `execution-last-error` | `execution_last_error` | longtext | sanitized connector failure; never credentials |
+| `execution-next-retry-at` | `execution_next_retry_at` | text | ISO time after an explicit retryable provider rejection |
+| `execution-claim-expires-at` | `execution_claim_expires_at` | text | ISO claim lease; expiry is ambiguous and blocks automatic resend |
+| `execution-retryable` | `execution_retryable` | text | `"true"\|"false"` |
 | `executed-at` | `executed_at` | text | ISO timestamp |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
@@ -108,6 +112,8 @@ One row per conversation message, joined onto its ticket by `ticket-id`.
 | `text` | `text` | longtext | message body |
 | `sent-at` | `sent_at` | text | ISO timestamp |
 | `attachment` | `attachment` | text | optional short note, e.g. `file: screenshot.png` |
+| `provider-message-id` | `provider_message_id` | text | submitted RFC Message-ID for email threading and correlation; a provider may rewrite it on delivery |
+| `provider-references` | `provider_references` | longtext | RFC References value for email threading |
 
 Store only the minimum excerpt needed for review. Never store credentials, QR payloads, or session tokens.
 
@@ -211,10 +217,13 @@ stale `approve` decision exists.
 The trusted claim step. Reads `tickets` whose `decision_action` is
 `approve` AND `status` is `approved`, re-checks the `support-qa` gate live,
 requires complete versioned support settings, and — with `--apply` — writes
-`execution-status: queued` plus operation, target, attempt and idempotency key.
-It performs no external side effect and never writes `sent`. The configured
-connector performs the operation. After provider acceptance,
-`scripts/finalize_delivery.mjs` records the deterministic outgoing message,
-provider receipt, first-response SLA, `execution-status: sent`, and
-`status: done`. Retrying the same receipt is idempotent; a conflicting receipt
-fails closed.
+`execution-status: queued` plus operation, target and a reviewed-version
+idempotency key. It performs no external side effect and never writes `sent`.
+For email, `process_email_queue.mjs` claims `sending`, delegates to Kelly Email,
+and finalizes only after SMTP acceptance. Explicit temporary rejection records
+`failed` plus a bounded retry time; ambiguous outcomes and expired claims record
+`blocked` and require reconciliation. `close`/`no_action` complete locally.
+Unsupported refund/escalation providers fail closed. Retrying the same SMTP 2xx
+acceptance receipt is idempotent; a conflicting receipt fails. The outgoing
+message stores the submitted RFC Message-ID separately because providers may
+rewrite it after acceptance.

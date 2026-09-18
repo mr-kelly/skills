@@ -33,6 +33,11 @@ test("support settings become complete only after a validated confirmation", () 
     { complete: true, updatedAt: "2026-09-18T00:00:00.000Z" },
   );
   assert.equal(supportSettingsComplete(confirmed), true);
+  const busabasePayload = Object.fromEntries(
+    Object.entries(confirmed).map(([key, value]) => [key.replaceAll("_", "-"), value]),
+  );
+  assert.equal(supportSettingsComplete(busabasePayload), true);
+  assert.deepEqual(normalizeSupportSettings(busabasePayload), normalizeSupportSettings(confirmed));
   assert.equal(supportSettingsComplete({ onboarding_status: "complete", onboarding_version: 1 }), false);
   assert.throws(
     () =>

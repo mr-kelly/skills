@@ -80,10 +80,15 @@ Busabase Bases under one application Folder. See `SKILL.md` and
 quality gate and every SLA-breach flag are computed client-side on every
 read, never stored. Setup proposes conservative policy defaults for review,
 and approval/execution fail closed until the operator confirms them.
-`scripts/execute_decisions.mjs` claims approved work as `queued`; it never
-records `sent` or performs an external action. After a configured connector
-returns a provider receipt, `scripts/finalize_delivery.mjs` idempotently
-records the outgoing message, first-response SLA, receipt, and `done` state.
+`scripts/execute_decisions.mjs` claims approved email replies as `queued`; it
+never records `sent` or performs an external action. `process_email_queue.mjs`
+hands those claims to Kelly Email's SMTP connector, records bounded retry state
+for explicit temporary rejection, and blocks ambiguous outcomes. After a real
+provider's sanitized SMTP 2xx acceptance receipt, `scripts/finalize_delivery.mjs`
+idempotently records the outgoing message with its separately submitted RFC
+Message-ID, first-response SLA, receipt, and `done` state. Internal
+`close`/`no_action` complete without a provider; unsupported refund/escalation
+providers fail closed.
 
 ## Philosophy
 

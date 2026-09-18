@@ -431,7 +431,7 @@ function demoTickets() {
       ),
     ),
 
-    // 7 — complaint, approved and waiting to send.
+    // 7 — complaint, approved but temporarily failed delivery.
     ticket(
       "tk-costa-complaint",
       7,
@@ -453,7 +453,18 @@ function demoTickets() {
       false,
       "2026-07-06T06:50:00.000Z",
       "wc:bruno_c",
-      null,
+      {
+        status: "failed",
+        operation: "send_reply",
+        connector: "webchat_widget",
+        channel: "webchat",
+        target: "wc:bruno_c",
+        detail: "Temporary provider rejection; retry is scheduled.",
+        last_error: "Provider returned a temporary 451 response.",
+        attempt: 1,
+        retryable: true,
+        next_retry_at: "2026-07-06T09:00:00.000Z",
+      },
       [
         msg(
           "cos-1",

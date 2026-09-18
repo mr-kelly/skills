@@ -662,6 +662,26 @@ function gateHtml(gate) {
   `;
 }
 
+function executionHtml(execution) {
+  if (!execution?.status) return "";
+  const status = execution.status;
+  const tone = ["failed", "blocked"].includes(status)
+    ? "bad"
+    : ["sent", "executed", "completed"].includes(status)
+      ? "good"
+      : "pending";
+  const details = [
+    execution.detail,
+    execution.attempt ? `${t("attempt")} ${execution.attempt}` : "",
+    execution.next_retry_at ? `${t("retryAt")} ${dateTime(execution.next_retry_at)}` : "",
+    execution.claim_expires_at && ["queued", "sending"].includes(status)
+      ? `${t("claimExpiresAt")} ${dateTime(execution.claim_expires_at)}`
+      : "",
+    execution.last_error,
+  ].filter(Boolean);
+  return `<div class="execution-state ${tone}"><strong>${escapeHtml(t(`execution_${status}`))}</strong>${details.map((detail) => `<span>${escapeHtml(detail)}</span>`).join("")}</div>`;
+}
+
 function renderTicketDetail() {
   const ticket = ticketById(state.route.id);
   if (!ticket) {
@@ -678,8 +698,9 @@ function renderTicketDetail() {
     .filter(Boolean)
     .join(" · ");
   const locked = isLocked();
-  const deliveryRecorded = ticket.execution?.status === "sent" || ticket.execution?.status === "executed";
-  const editable = ticket.status !== "done" && ticket.status !== "blocked" && !deliveryRecorded;
+  const deliveryRecorded = ["sent", "executed", "completed", "skipped"].includes(ticket.execution?.status);
+  const executionInFlight = ["queued", "sending"].includes(ticket.execution?.status);
+  const editable = ticket.status !== "done" && ticket.status !== "blocked" && !deliveryRecorded && !executionInFlight;
   const settingsReady = state.settings?.onboarding?.settings_completed !== false;
   const draft = state.drafts[ticket.ticket_id];
   const replyValue = draft !== undefined ? draft : ticket.suggested_reply || "";
@@ -743,9 +764,10 @@ function renderTicketDetail() {
           `
               : ""
           }
-          ${ticket.status === "approved" && !deliveryRecorded ? `<div class="approval-waiting">${t("waitingForSend")}</div>` : ""}
+          ${ticket.status === "approved" && !ticket.execution ? `<div class="approval-waiting">${t("waitingForSend")}</div>` : ""}
+          ${executionHtml(ticket.execution)}
           ${ticket.decision?.comment ? `<div class="approval-reason"><span class="muted">${t("comment")}:</span> ${escapeHtml(ticket.decision.comment)} <small class="muted">(${t("decidedAt")} ${dateTime(ticket.decision.decided_at)})</small></div>` : ""}
-          ${deliveryRecorded ? `<div class="approval-execution">${t("sentVia")} ${escapeHtml(enumLabel(ticket.execution.connector, "connector"))} · ${escapeHtml(ticket.execution.target || "")} ${ticket.execution.executed_at ? `· ${dateTime(ticket.execution.executed_at)}` : ""}</div>` : ""}
+          ${deliveryRecorded ? `<div class="approval-execution">${ticket.execution.status === "sent" || ticket.execution.status === "executed" ? `${t("sentVia")} ${escapeHtml(enumLabel(ticket.execution.connector, "connector"))} · ${escapeHtml(ticket.execution.target || "")}` : escapeHtml(t(`execution_${ticket.execution.status}`))} ${ticket.execution.executed_at ? `· ${dateTime(ticket.execution.executed_at)}` : ""}</div>` : ""}
         </div>
       </div>
       <aside class="detail-side">
