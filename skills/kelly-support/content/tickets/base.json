@@ -308,11 +308,51 @@
       "options": {}
     },
     {
+      "slug": "execution-idempotency-key",
+      "name": "Execution idempotency key",
+      "type": "text",
+      "required": false,
+      "position": 38,
+      "options": {}
+    },
+    {
+      "slug": "execution-provider-message-id",
+      "name": "Provider message ID",
+      "type": "text",
+      "required": false,
+      "position": 39,
+      "options": {}
+    },
+    {
+      "slug": "execution-attempt",
+      "name": "Execution attempt",
+      "type": "number",
+      "required": false,
+      "position": 40,
+      "options": {}
+    },
+    {
+      "slug": "execution-started-at",
+      "name": "Execution started at",
+      "type": "text",
+      "required": false,
+      "position": 41,
+      "options": {}
+    },
+    {
+      "slug": "execution-completed-at",
+      "name": "Execution completed at",
+      "type": "text",
+      "required": false,
+      "position": 42,
+      "options": {}
+    },
+    {
       "slug": "executed-at",
       "name": "Executed at",
       "type": "text",
       "required": false,
-      "position": 38,
+      "position": 43,
       "options": {}
     },
     {
@@ -320,7 +360,7 @@
       "name": "Updated at",
       "type": "text",
       "required": false,
-      "position": 39,
+      "position": 44,
       "options": {}
     }
   ],

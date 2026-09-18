@@ -8,6 +8,41 @@ import {
   runQualityGate,
   statusForAction,
 } from "../app/js/support-model.js";
+import {
+  DEFAULT_SUPPORT_SETTINGS,
+  normalizeSupportSettings,
+  serializeSupportSettings,
+  settingsRecord,
+  supportSettingsComplete,
+} from "../app/js/support-settings.js";
+
+test("support settings default to conservative values but require explicit confirmation", () => {
+  const pending = settingsRecord({ updatedAt: "2026-09-18T00:00:00.000Z" });
+  assert.equal(supportSettingsComplete(pending), false);
+  const normalized = normalizeSupportSettings(pending);
+  assert.deepEqual(normalized.sla_policy, DEFAULT_SUPPORT_SETTINGS.sla_policy);
+  assert.equal(normalized.risk_policy.refund_requires_approval, true);
+  assert.equal(normalized.risk_policy.max_auto_refund, 0);
+  assert.equal(normalized.risk_policy.block_ungrounded_replies, true);
+  assert.equal(normalized.risk_policy.block_commitments_without_approval, true);
+});
+
+test("support settings become complete only after a validated confirmation", () => {
+  const confirmed = serializeSupportSettings(
+    { ...settingsRecord(), onboarding_status: "complete" },
+    { complete: true, updatedAt: "2026-09-18T00:00:00.000Z" },
+  );
+  assert.equal(supportSettingsComplete(confirmed), true);
+  assert.equal(supportSettingsComplete({ onboarding_status: "complete", onboarding_version: 1 }), false);
+  assert.throws(
+    () =>
+      serializeSupportSettings(
+        { ...confirmed, reply_style: JSON.stringify({ ...DEFAULT_SUPPORT_SETTINGS.reply_style, signature: "" }) },
+        { complete: true },
+      ),
+    /reply_style\.signature/,
+  );
+});
 
 test("statusForAction maps every decision verdict", () => {
   assert.equal(statusForAction("approve"), "approved");

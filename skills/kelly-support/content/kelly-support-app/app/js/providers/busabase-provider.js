@@ -11,6 +11,11 @@ import {
   runQualityGate,
   statusForAction,
 } from "../support-model.js?v=0.1.0";
+import {
+  normalizeSupportSettings,
+  serializeSupportSettings,
+  supportSettingsComplete,
+} from "../support-settings.js?v=0.1.0";
 
 const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
@@ -225,7 +230,8 @@ export const busabaseProvider = {
       risk_policy = {};
     }
     const snapshot = buildSnapshot({ accounts, tickets, messages, knowledge_base, qa_pairs, sync_log, risk_policy });
-    const config_summary = buildConfigSummary({ settings, accounts });
+    const normalizedSettings = normalizeSupportSettings(settings);
+    const config_summary = buildConfigSummary({ settings: normalizedSettings, accounts });
     const recordCounts = await recordCountsPromise;
     return {
       app: "kelly-support",
@@ -233,7 +239,13 @@ export const busabaseProvider = {
       data_provider: "busabase",
       pagination: Object.fromEntries(BROWSED_KEYS.map((key) => [key, initialCursors.get(key) || null])),
       totals: Object.fromEntries(BROWSED_KEYS.map((key, index) => [key, recordCounts[index]])),
-      onboarding: { completed: accounts.length > 0, config_version: "1" },
+      onboarding: {
+        completed: accounts.length > 0 && supportSettingsComplete(settings),
+        accounts_completed: accounts.length > 0,
+        settings_completed: supportSettingsComplete(settings),
+        status: normalizedSettings.onboarding_status,
+        config_version: String(normalizedSettings.onboarding_version || 0),
+      },
       lock: null,
       config_summary,
       execution_report: null,
@@ -283,6 +295,14 @@ export const busabaseProvider = {
     const editedText = typeof text === "string" && text.trim() ? text.trim() : "";
 
     if (action === "approve") {
+      const settings = await readSettingsRow();
+      if (!supportSettingsComplete(settings)) {
+        const error = new Error(
+          "SUPPORT_SETTINGS_REQUIRED: confirm SLA, risk, language, and signature before approval",
+        );
+        error.statusCode = 409;
+        throw error;
+      }
       const { kb, risk } = await currentRiskAndKb();
       const candidate = {
         suggested_reply: editedText || current.suggested_reply || "",
@@ -338,6 +358,32 @@ export const busabaseProvider = {
     };
     await upsert("tickets", "ticket-id", ticket_id, fields, `Reschedule SLA for ticket ${ticket_id}`);
     return { ok: true };
+  },
+
+  async saveSettings(input = {}) {
+    await ensureResources();
+    const fields = serializeSupportSettings(input, { complete: true });
+    const current = await readSettingsRow();
+    const normalized = toBusabaseFields(fields);
+    const autoMerge = isStandaloneLocalRuntime();
+    const result = current.__recordId
+      ? await runtimeClient.records.changeRequest({
+          recordId: current.__recordId,
+          operation: "update",
+          fields: normalized,
+          message: "Configure Kelly Support policies and mark onboarding complete",
+          author: appConfig.appId,
+          baseCommitId: current.__headCommitId,
+          autoMerge,
+        })
+      : await runtimeClient.bases.createChangeRequest({
+          baseId: base("settings").baseId,
+          fields: normalized,
+          message: "Configure Kelly Support policies and mark onboarding complete",
+          submittedBy: appConfig.appId,
+          autoMerge,
+        });
+    return { ok: true, change_request_id: result?.status === "in_review" ? result.id : "" };
   },
 
   async fetchPage(key, cursor) {

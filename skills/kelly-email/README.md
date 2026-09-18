@@ -20,6 +20,8 @@ When an explicitly requested `pnpm dev` preview runs on loopback, it connects wi
 
 1. Ask `$kelly-email` to propose the next bounded email batch.
 2. Approve the batch scope before any live mailbox read.
+   Use `--mailbox <mailbox-id>` to select one physical mailbox and
+   `--recipient <email>` to filter the IMAP search before downloading bodies.
 3. The skill scans and classifies mail into Busabase review rows.
 4. Review decisions in the Kelly Email AirApp.
 5. Ask `$kelly-email` to execute the approved decisions.

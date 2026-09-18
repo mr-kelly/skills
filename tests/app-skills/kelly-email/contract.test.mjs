@@ -30,6 +30,14 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.dependencies["busabase-sdk"], "0.30.1");
 });
 
+test("mail collection can scope secret checks and IMAP search before downloading bodies", async () => {
+  const source = await readFile(join(skillRoot, "scripts", "generate_review_batch.ts"), "utf8");
+  assert.match(source, /--mailbox/);
+  assert.match(source, /--recipient/);
+  assert.match(source, /header:\s*\{\s*to:\s*recipient\s*\}/);
+  assert.match(source, /selectedConfig = \{ \.\.\.config, mailboxes \}/);
+});
+
 // kelly-email is laid out as a busabase TEMPLATE, so the invariant this file
 // used to check through `resource-map.json` is now carried by the package.
 //

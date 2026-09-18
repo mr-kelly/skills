@@ -188,6 +188,11 @@ export function normalizeTicket({
   execution_tier = "",
   execution_amount = "",
   execution_detail = "",
+  execution_idempotency_key = "",
+  execution_provider_message_id = "",
+  execution_attempt = "",
+  execution_started_at = "",
+  execution_completed_at = "",
   executed_at = "",
   updated_at = "",
 } = {}) {
@@ -241,6 +246,11 @@ export function normalizeTicket({
           tier: execution_tier,
           amount: execution_amount !== "" ? Number(execution_amount) || 0 : undefined,
           detail: execution_detail,
+          idempotency_key: execution_idempotency_key,
+          provider_message_id: execution_provider_message_id,
+          attempt: execution_attempt !== "" ? Number(execution_attempt) || 0 : 0,
+          started_at: execution_started_at,
+          completed_at: execution_completed_at,
           executed_at,
         }
       : null,
@@ -581,6 +591,9 @@ export function buildSnapshot({
  */
 export function buildConfigSummary({ settings = {}, accounts = [] } = {}) {
   return {
+    onboarding_status: settings.onboarding_status || "not_started",
+    onboarding_version: Number(settings.onboarding_version || 0),
+    updated_at: settings.updated_at || "",
     config_path: "busabase",
     is_example: false,
     sla_policy: parseJsonObject(settings.sla_policy),

@@ -24,6 +24,7 @@ import { fileURLToPath } from "node:url";
 import { createBusabaseClient } from "busabase-sdk";
 import { inspectProvisionedResources, provisionDeclaredResources, publishAirApp } from "busabase-sdk/airapp";
 import { appConfig } from "../content/kelly-support-app/app/js/config.js";
+import { settingsRecord, supportSettingsComplete } from "../content/kelly-support-app/app/js/support-settings.js";
 
 const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "content", "kelly-support-app");
 
@@ -77,6 +78,35 @@ const describe = (resources) => {
   console.log(`  ${"AirApp".padEnd(28)} ${resources.airApp ? `已就绪 · ${resources.airApp.nodeId}` : "缺失"}`);
 };
 
+async function findSettingsRecord(resources) {
+  const settingsBase = resources.bases.find((base) => base.key === "settings");
+  if (!settingsBase) return null;
+  try {
+    return await client.records.get({ baseId: settingsBase.baseId, fieldSlug: "record-id", valueText: "config" });
+  } catch (error) {
+    if (error?.code === "NOT_FOUND" || error?.status === 404) return null;
+    throw error;
+  }
+}
+
+async function proposeDefaultSettings(resources) {
+  const settingsBase = resources.bases.find((base) => base.key === "settings");
+  if (!settingsBase) fail("Settings Base 尚未就绪，无法创建默认策略。");
+  return client.bases.createChangeRequest({
+    baseId: settingsBase.baseId,
+    fields: Object.fromEntries(
+      Object.entries(settingsRecord({ updatedAt: new Date().toISOString() })).map(([key, value]) => [
+        key.replaceAll("_", "-"),
+        value,
+      ]),
+    ),
+    message: "Initialize conservative Kelly Support defaults for human review",
+    submittedBy: "kelly-support-setup",
+    idempotencyKey: "kelly-support-default-settings-v1",
+    autoMerge: false,
+  });
+}
+
 let current;
 try {
   current = await inspectProvisionedResources(client, appConfig);
@@ -91,8 +121,17 @@ console.log(`Space ${process.env.BUSABASE_SPACE_ID || "（未指定，使用账�
 console.log(`Folder ${appConfig.folder.name}（${appConfig.folder.slug}）${current.folder ? "已存在" : "将创建"}`);
 describe(current);
 
-const dataReady = current.folder && !current.missing.length && !current.repairs.length;
-if (dataReady && current.airApp) {
+let dataReady = current.folder && !current.missing.length && !current.repairs.length;
+let currentSettingsRecord = dataReady ? await findSettingsRecord(current) : null;
+let settingsReady = supportSettingsComplete(
+  currentSettingsRecord?.headCommit?.payload ||
+    currentSettingsRecord?.headCommit?.fields ||
+    currentSettingsRecord?.fields,
+);
+console.log(
+  `  ${"Support policy".padEnd(28)} ${settingsReady ? "已配置" : currentSettingsRecord ? "存在，待操作员确认" : "缺失（将提交安全默认值供审核）"}`,
+);
+if (dataReady && current.airApp && settingsReady) {
   console.log("\n工作区已经就绪（数据层 + AirApp 均已存在），这次不需要创建任何东西。");
   process.exit(0);
 }
@@ -103,6 +142,8 @@ if (!apply) {
     console.log(`\n将创建：${current.folder ? "" : "Folder + "}${names}`);
     if (current.repairs.length) console.log(`将补写 ${current.repairs.length} 处应用归属标记（不改数据）。`);
   }
+  if (!currentSettingsRecord) console.log("将提交一条默认支持策略 ChangeRequest；合并并确认前不会允许批准或执行回复。");
+  else if (!settingsReady) console.log("现有支持策略尚未完成确认；请在 Settings 中检查并提交配置。");
   if (!current.airApp) {
     console.log(
       "将发布 AirApp（提交待审核 ChangeRequest——执行代码，不会自动合并，需要人工在 Busabase 里审核并合并）。",
@@ -123,7 +164,20 @@ if (!dataReady) {
   console.log("\n数据层创建完成，回读结果：");
   describe(current);
   if (current.missing.length) fail("回读发现仍有资源缺失，没有继续。");
+  dataReady = current.folder && !current.missing.length && !current.repairs.length;
 }
+
+currentSettingsRecord = await findSettingsRecord(current);
+settingsReady = supportSettingsComplete(
+  currentSettingsRecord?.headCommit?.payload ||
+    currentSettingsRecord?.headCommit?.fields ||
+    currentSettingsRecord?.fields,
+);
+if (!currentSettingsRecord) {
+  const result = await proposeDefaultSettings(current);
+  console.log(`\n默认支持策略请求已提交：${result.id}（待审核）`);
+  console.log("请确认 SLA、服务时间、退款/承诺规则、回复语言和签名后再合并；配置完成前真实执行保持阻止状态。");
+} else if (!settingsReady) console.log("\n支持策略已存在但尚未确认；请在 Settings 中完成配置后再执行客户回复。");
 
 if (!current.airApp) {
   console.log("\n发布 AirApp…");
