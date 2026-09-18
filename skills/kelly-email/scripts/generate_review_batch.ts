@@ -29,6 +29,8 @@ interface BatchArgs {
   reviewQuota: number;
   maxScanPerMailbox: number;
   dryRun: boolean;
+  mailboxId?: string;
+  recipient?: string;
   help?: boolean;
 }
 
@@ -47,7 +49,13 @@ function parseArgs(argv: string[]): BatchArgs {
     const arg = argv[i];
     if (arg === "--help" || arg === "-h") args.help = true;
     else if (arg === "--dry-run") args.dryRun = true;
-    else if (arg === "--review-quota") args.reviewQuota = Number(argv[++i]);
+    else if (arg === "--mailbox") {
+      args.mailboxId = String(argv[++i] || "").trim();
+      if (!args.mailboxId) throw new Error("--mailbox requires a mailbox id");
+    } else if (arg === "--recipient") {
+      args.recipient = String(argv[++i] || "").trim();
+      if (!args.recipient) throw new Error("--recipient requires an email address");
+    } else if (arg === "--review-quota") args.reviewQuota = Number(argv[++i]);
     else if (arg === "--max-scan-per-mailbox") args.maxScanPerMailbox = Number(argv[++i]);
     else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -55,9 +63,11 @@ function parseArgs(argv: string[]): BatchArgs {
 }
 
 function printHelp() {
-  console.log(`Usage: node scripts/generate_review_batch.ts [--review-quota 5] [--max-scan-per-mailbox 120] [--dry-run]
+  console.log(`Usage: node scripts/generate_review_batch.ts [--mailbox <mailbox-id>] [--recipient <email>] [--review-quota 5] [--max-scan-per-mailbox 120] [--dry-run]
 
 Read unread IMAP mail and generate structured Busabase review/contact records.
+--mailbox restricts secret checks and scanning to one configured physical mailbox.
+--recipient adds an IMAP server-side To-header filter before any message body is downloaded.
 --dry-run reads and classifies mail but does not write Busabase records.`);
 }
 
@@ -140,8 +150,9 @@ async function fetchOne(client: any, uid: unknown) {
   );
 }
 
-async function folderUnseenUids(client: any) {
-  const uids = await client.search({ seen: false }, { uid: true });
+async function folderUnseenUids(client: any, recipient = "") {
+  const query = recipient ? { seen: false, header: { to: recipient } } : { seen: false };
+  const uids = await client.search(query, { uid: true });
   return [...uids].sort((a, b) => Number(b) - Number(a));
 }
 
@@ -150,6 +161,7 @@ async function fetchMailbox(
   reviewQuota: number,
   maxScan: number,
   config: Config,
+  recipient = "",
 ): Promise<ReviewItem[]> {
   const client = await imapClient(mailbox);
   await client.connect();
@@ -167,7 +179,7 @@ async function fetchMailbox(
         continue;
       }
       try {
-        const uids = await folderUnseenUids(client);
+        const uids = await folderUnseenUids(client, recipient);
         for (const uid of uids) {
           if (scanned >= maxScan || needsReview >= reviewQuota) break;
           const message = await fetchOne(client, uid);
@@ -317,7 +329,12 @@ async function main() {
   await loadDotenv();
   const configMeta = await loadConfigWithMeta();
   const config = configMeta.config;
-  const onboarding = onboardingStatus(config, configMeta);
+  const mailboxes = args.mailboxId
+    ? (config.mailboxes || []).filter((mailbox) => mailbox.mailbox_id === args.mailboxId)
+    : config.mailboxes || [];
+  if (args.mailboxId && mailboxes.length === 0) throw new Error(`Unknown mailbox: ${args.mailboxId}`);
+  const selectedConfig = { ...config, mailboxes };
+  const onboarding = onboardingStatus(selectedConfig, configMeta);
   if (!onboarding.configured) {
     console.log(
       JSON.stringify(
@@ -339,10 +356,12 @@ async function main() {
   }
   const allItems: ReviewItem[] = [];
 
-  for (const mailbox of config.mailboxes || []) {
+  for (const mailbox of mailboxes) {
     const remainingReviewQuota = args.reviewQuota - allItems.filter((item) => item.status === "needs_review").length;
     if (remainingReviewQuota <= 0) break;
-    allItems.push(...(await fetchMailbox(mailbox, remainingReviewQuota, args.maxScanPerMailbox, config)));
+    allItems.push(
+      ...(await fetchMailbox(mailbox, remainingReviewQuota, args.maxScanPerMailbox, selectedConfig, args.recipient)),
+    );
   }
   allItems.sort((a, b) => Number(b.uid || 0) - Number(a.uid || 0));
 

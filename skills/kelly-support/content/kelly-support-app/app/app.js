@@ -12,6 +12,7 @@ import {
   renderSettings,
   renderSla,
   saveReplyAction,
+  saveSettingsAction,
   saveSlaAction,
   toLocalDatetime,
 } from "./js/service-views.js";
@@ -352,6 +353,10 @@ function renderShell() {
       els.notice.textContent = t("demoNotice");
       els.notice.hidden = false;
       els.notice.className = "notice demo";
+    } else if (state.settings?.onboarding?.settings_completed === false) {
+      els.notice.innerHTML = `${escapeHtml(t("settingsRequired"))} <a href="#/settings">${escapeHtml(t("openSettings"))}</a>`;
+      els.notice.hidden = false;
+      els.notice.className = "notice locked";
     } else {
       els.notice.hidden = true;
     }
@@ -673,7 +678,9 @@ function renderTicketDetail() {
     .filter(Boolean)
     .join(" · ");
   const locked = isLocked();
-  const editable = ticket.status !== "done" && ticket.status !== "blocked";
+  const deliveryRecorded = ticket.execution?.status === "sent" || ticket.execution?.status === "executed";
+  const editable = ticket.status !== "done" && ticket.status !== "blocked" && !deliveryRecorded;
+  const settingsReady = state.settings?.onboarding?.settings_completed !== false;
   const draft = state.drafts[ticket.ticket_id];
   const replyValue = draft !== undefined ? draft : ticket.suggested_reply || "";
   const kbRefs = (ticket.kb_refs || []).map((id) => kbById(id)).filter(Boolean);
@@ -728,7 +735,7 @@ function renderTicketDetail() {
               <input type="text" id="decision-comment" placeholder="${escapeHtml(t("commentPlaceholder"))}" ${locked ? "disabled" : ""}>
               <div class="approval-buttons">
                 <button type="button" data-action="save-reply" data-ticket="${escapeHtml(ticket.ticket_id)}" ${locked ? "disabled" : ""}>${t("queueReply")}</button>
-                <button type="button" class="primary" data-action="decide" data-ticket="${escapeHtml(ticket.ticket_id)}" data-decision="approve" ${locked ? "disabled" : ""}>${t("approve")}</button>
+                <button type="button" class="primary" data-action="decide" data-ticket="${escapeHtml(ticket.ticket_id)}" data-decision="approve" ${locked || !settingsReady ? "disabled" : ""} title="${!settingsReady ? escapeHtml(t("settingsRequired")) : ""}">${t("approve")}</button>
                 <button type="button" data-action="decide" data-ticket="${escapeHtml(ticket.ticket_id)}" data-decision="request_changes" ${locked ? "disabled" : ""}>${t("requestChanges")}</button>
                 <button type="button" class="danger" data-action="decide" data-ticket="${escapeHtml(ticket.ticket_id)}" data-decision="block" ${locked ? "disabled" : ""}>${t("block")}</button>
               </div>
@@ -736,9 +743,9 @@ function renderTicketDetail() {
           `
               : ""
           }
-          ${ticket.status === "approved" ? `<div class="approval-waiting">${t("waitingForSend")}</div>` : ""}
+          ${ticket.status === "approved" && !deliveryRecorded ? `<div class="approval-waiting">${t("waitingForSend")}</div>` : ""}
           ${ticket.decision?.comment ? `<div class="approval-reason"><span class="muted">${t("comment")}:</span> ${escapeHtml(ticket.decision.comment)} <small class="muted">(${t("decidedAt")} ${dateTime(ticket.decision.decided_at)})</small></div>` : ""}
-          ${ticket.execution && ticket.execution.status === "executed" ? `<div class="approval-execution">${t("sentVia")} ${escapeHtml(enumLabel(ticket.execution.connector, "connector"))} · ${escapeHtml(ticket.execution.target || "")} ${ticket.execution.executed_at ? `· ${dateTime(ticket.execution.executed_at)}` : ""}</div>` : ""}
+          ${deliveryRecorded ? `<div class="approval-execution">${t("sentVia")} ${escapeHtml(enumLabel(ticket.execution.connector, "connector"))} · ${escapeHtml(ticket.execution.target || "")} ${ticket.execution.executed_at ? `· ${dateTime(ticket.execution.executed_at)}` : ""}</div>` : ""}
         </div>
       </div>
       <aside class="detail-side">
@@ -863,6 +870,10 @@ els.content.addEventListener("click", (event) => {
   }
   if (button.dataset.action === "save-sla") {
     saveSlaAction(button.dataset.ticket);
+    return;
+  }
+  if (button.dataset.action === "save-settings") {
+    saveSettingsAction();
     return;
   }
   if (button.dataset.action === "decide") {

@@ -14,7 +14,7 @@
   ],
   "template": {
     "category": "sales-crm",
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "airapp": "kelly-support-app",
     "tags": [
       "sales-crm",

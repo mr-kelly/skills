@@ -243,8 +243,44 @@ export function renderSettings() {
   const syncLog = state.snapshot?.sync_log || [];
   const report = state.settings?.execution_report;
   const risk = summary.risk_policy || {};
+  const sla = summary.sla_policy || {};
+  const hours = sla.first_response_hours || {};
+  const style = summary.reply_style || {};
+  const checked = (value) => (value === false ? "" : "checked");
   els.content.innerHTML = `
     <div class="settings">
+      <section class="settings-editor">
+        <div class="row between settings-editor-head">
+          <div>
+            <h2>${t("supportPolicies")}</h2>
+            <p class="muted">${state.settings?.onboarding?.settings_completed ? t("settingsReady") : t("settingsRequired")}</p>
+          </div>
+          <span class="badge ${state.settings?.onboarding?.settings_completed ? "positive" : "warning"}">${state.settings?.onboarding?.settings_completed ? t("completed") : t("incomplete")}</span>
+        </div>
+        <div class="settings-form-grid">
+          ${["urgent", "high", "normal", "low"]
+            .map(
+              (priority) =>
+                `<label><span>${escapeHtml(enumLabel(priority, "severity"))} · ${t("firstResponseTarget")}</span><input data-settings-field="sla-${priority}" type="number" min="0.25" step="0.25" value="${escapeHtml(hours[priority] ?? { urgent: 2, high: 4, normal: 8, low: 24 }[priority])}"></label>`,
+            )
+            .join("")}
+          <label class="settings-span-2"><span>${t("businessHours")}</span><input data-settings-field="business-hours" type="text" value="${escapeHtml(sla.business_hours || "24/7")}"></label>
+          <label><span>${t("maxAutoRefund")}</span><input data-settings-field="max-auto-refund" type="number" min="0" step="0.01" value="${escapeHtml(risk.max_auto_refund ?? 0)}"></label>
+          <label class="settings-span-2"><span>${t("replyTone")}</span><input data-settings-field="tone" type="text" value="${escapeHtml(style.tone || "professional, concise, direct, solution-focused")}"></label>
+          <label><span>${t("languagePolicy")}</span><select data-settings-field="language"><option value="follow_customer" ${style.language === "follow_customer" || !style.language ? "selected" : ""}>${t("followCustomer")}</option><option value="zh-CN" ${style.language === "zh-CN" ? "selected" : ""}>简体中文</option><option value="en" ${style.language === "en" ? "selected" : ""}>English</option></select></label>
+          <label><span>${t("replySignature")}</span><input data-settings-field="signature" type="text" value="${escapeHtml(style.signature || "Support")}"></label>
+          <label class="settings-span-2"><span>${t("knowledgeSource")}</span><input data-settings-field="kb-source" type="text" value="${escapeHtml(summary.knowledge_base?.source_path || "")}" placeholder="https://docs.example.com"></label>
+        </div>
+        <div class="settings-toggles">
+          <label><input data-settings-field="refund-approval" type="checkbox" ${checked(risk.refund_requires_approval)}> ${t("refundApproval")}</label>
+          <label><input data-settings-field="block-ungrounded" type="checkbox" ${checked(risk.block_ungrounded_replies)}> ${t("blockUngrounded")}</label>
+          <label><input data-settings-field="block-commitments" type="checkbox" ${checked(risk.block_commitments_without_approval)}> ${t("blockCommitments")}</label>
+        </div>
+        <div class="row settings-save-row">
+          <button type="button" class="primary" data-action="save-settings">${t("saveSettings")}</button>
+          <span class="muted">${t("settingsReviewNote")}</span>
+        </div>
+      </section>
       <section>
         <h2>${t("configuration")}</h2>
         <dl>
@@ -340,6 +376,56 @@ export function renderSettings() {
       }
     </div>
   `;
+}
+
+export async function saveSettingsAction() {
+  const value = (name) => String(els.content.querySelector(`[data-settings-field="${name}"]`)?.value || "").trim();
+  const number = (name) => Number(value(name));
+  const checked = (name) => Boolean(els.content.querySelector(`[data-settings-field="${name}"]`)?.checked);
+  const payload = {
+    onboarding_status: "complete",
+    onboarding_version: 1,
+    sla_policy: {
+      first_response_hours: {
+        urgent: number("sla-urgent"),
+        high: number("sla-high"),
+        normal: number("sla-normal"),
+        low: number("sla-low"),
+      },
+      business_hours: value("business-hours"),
+    },
+    risk_policy: {
+      refund_requires_approval: checked("refund-approval"),
+      max_auto_refund: number("max-auto-refund"),
+      block_ungrounded_replies: checked("block-ungrounded"),
+      block_commitments_without_approval: checked("block-commitments"),
+    },
+    reply_style: {
+      tone: value("tone"),
+      language: value("language"),
+      signature: value("signature"),
+      avoid: state.settings?.config_summary?.reply_style?.avoid || [],
+    },
+    kb_source_path: value("kb-source"),
+  };
+  if (state.settings?.demo) {
+    state.settings.config_summary = { ...state.settings.config_summary, ...payload };
+    state.settings.onboarding.settings_completed = true;
+    state.settings.onboarding.completed = true;
+    flashNotice(`${t("saveSettings")} · ${t("demoNotice")}`);
+    render();
+    return;
+  }
+  try {
+    const provider = await getProvider();
+    const result = await provider.saveSettings(payload);
+    flashNotice(
+      result.change_request_id ? `${t("settingsPendingReview")}: ${result.change_request_id}` : t("settingsSaved"),
+    );
+    await loadState();
+  } catch (error) {
+    flashNotice(error.message || "Settings save failed");
+  }
 }
 
 /* ----- actions ----- */

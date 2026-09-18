@@ -12,11 +12,27 @@
       "options": {}
     },
     {
+      "slug": "onboarding-status",
+      "name": "Onboarding status",
+      "type": "text",
+      "required": false,
+      "position": 1,
+      "options": {}
+    },
+    {
+      "slug": "onboarding-version",
+      "name": "Onboarding version",
+      "type": "number",
+      "required": false,
+      "position": 2,
+      "options": {}
+    },
+    {
       "slug": "sla-policy",
       "name": "SLA policy",
       "type": "longtext",
       "required": false,
-      "position": 1,
+      "position": 3,
       "options": {}
     },
     {
@@ -24,7 +40,7 @@
       "name": "Risk policy",
       "type": "longtext",
       "required": false,
-      "position": 2,
+      "position": 4,
       "options": {}
     },
     {
@@ -32,7 +48,7 @@
       "name": "Reply style",
       "type": "longtext",
       "required": false,
-      "position": 3,
+      "position": 5,
       "options": {}
     },
     {
@@ -40,7 +56,15 @@
       "name": "KB source path",
       "type": "text",
       "required": false,
-      "position": 4,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "updated-at",
+      "name": "Updated at",
+      "type": "text",
+      "required": false,
+      "position": 7,
       "options": {}
     }
   ],

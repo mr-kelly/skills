@@ -15,7 +15,7 @@ documented future extension (see `references/embeddable-widget.md`).
 - **Tickets**: the approval queue (customer, subject, channel, category, priority, proposed action, `support-qa` verdict, status, SLA countdown) with conversation detail, the gate panel, an editable KB-grounded reply with its cited references, and Approve / Request changes / Block decisions that write straight to Busabase, plus an SLA reschedule.
 - **Knowledge**: the knowledge base — articles and canned macros (title, body, tags) the agent drafts from; each shows the tickets that cite it.
 - **SLA & CSAT**: the SLA board (due / breached) plus the CSAT trend and rated tickets with scores and comments.
-- **Help & Settings**: sanitized config (channels, connectors, env readiness, SLA policy, risk policy, KB source) and onboarding state. Never secrets.
+- **Help & Settings**: sanitized, editable config (channels, connectors, env readiness, SLA policy, risk policy, reply style, KB source) and onboarding state. Saves remain ChangeRequest-first and never expose secrets.
 - The AirApp never sends anything. Every reply and proposed action is approval-required; a `support-qa` BLOCK refuses both approval and execution.
 
 ## App UI Screenshots
@@ -74,14 +74,16 @@ function the Busabase provider uses.
 ## Data
 
 All state — accounts, tickets (with their conversation messages), the
-knowledge base, the sync log, and SLA/risk-policy config — lives in six
+knowledge base, the sync log, and versioned SLA/risk/reply policy config — lives in seven
 Busabase Bases under one application Folder. See `SKILL.md` and
 `references/support-schema.md` for the resource map. The `support-qa`
 quality gate and every SLA-breach flag are computed client-side on every
-read, never stored. `scripts/execute_decisions.mjs` is the trusted process
-that records an execution marker on each approved ticket; it connects with
-`BUSABASE_BASE_URL` / `BUSABASE_API_KEY` / `BUSABASE_SPACE_ID` and performs
-no send, refund, or channel API call itself.
+read, never stored. Setup proposes conservative policy defaults for review,
+and approval/execution fail closed until the operator confirms them.
+`scripts/execute_decisions.mjs` claims approved work as `queued`; it never
+records `sent` or performs an external action. After a configured connector
+returns a provider receipt, `scripts/finalize_delivery.mjs` idempotently
+records the outgoing message, first-response SLA, receipt, and `done` state.
 
 ## Philosophy
 

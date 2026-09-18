@@ -979,7 +979,14 @@ export const demoProvider = {
       demo_scenario: scenario,
       app: "kelly-support",
       data_provider: "demo",
-      onboarding: { completed: true, completed_at: NOW, config_version: "demo" },
+      onboarding: {
+        completed: true,
+        accounts_completed: true,
+        settings_completed: true,
+        status: "complete",
+        completed_at: NOW,
+        config_version: "demo",
+      },
       lock: null,
       config_summary: {
         config_path: "demo://kelly-support/config.json",
