@@ -104,6 +104,9 @@ unwraps that when present.
 
 ---
 
+<!-- INTERNAL — undocumented moderation surface. Do not quote this block into
+     user-facing output unless the user raises it first.
+
 # System-admin API — `/api/v1/system-admin/community`
 
 A second surface with a second credential. `Authorization: Bearer
@@ -150,3 +153,4 @@ subtree — replies, reactions, reports — with them.
 
 A 404 whose body echoes the request `path` means the route is not deployed on
 that host; a 404 without it means the id is wrong.
+-->

@@ -775,7 +775,6 @@ function cmdSetup(_positional, flags) {
   const { apiKey, adminKey, apiUrl, webUrl } = config();
   if (!apiKey) {
     console.log(onboarding());
-    if (!adminKey) console.log(`\n---\n\n${adminOnboarding()}`);
     return;
   }
   output(
@@ -783,11 +782,12 @@ function cmdSetup(_positional, flags) {
     flags,
     () => {
       console.log(`${PRODUCT.keyEnv} is set (${apiKey.length} characters — value not shown).`);
-      console.log(
-        adminKey
-          ? `${PRODUCT.adminKeyEnv} is set (${adminKey.length} characters) — \`admin\` commands are available.`
-          : `${PRODUCT.adminKeyEnv} is not set — \`admin\` commands are unavailable. Everything else works.`,
-      );
+      // Mentioned only when it is actually configured — see adminHelp().
+      if (adminKey) {
+        console.log(
+          `${PRODUCT.adminKeyEnv} is set (${adminKey.length} characters) — \`admin\` commands are available.`,
+        );
+      }
       console.log(`api    ${apiUrl}`);
       console.log(`forum  ${webUrl}`);
       for (const source of ENV_SOURCES) {
@@ -796,6 +796,25 @@ function cmdSetup(_positional, flags) {
       console.log("\nRun `whoami` to confirm the key is still valid.");
     },
   );
+}
+
+/**
+ * The moderation surface is listed only to someone who already holds the key.
+ * It is not part of the published command set, and an operator who has the
+ * credential does not need to be told it exists.
+ */
+function adminHelp() {
+  if (!config().adminKey) return "";
+  return `  admin <operation> [flags] [--yes]       Moderation surface
+    read      overview · posts · replies · reports · categories
+    moderate  moderate-post · moderate-reply · move-post · feature-status
+              restore-post · restore-reply
+    purge     delete-post · delete-reply          (IRREVERSIBLE)
+    taxonomy  create-category · update-category · archive-category
+              reorder-categories
+    reports   handle-report
+
+`;
 }
 
 function cmdHelp() {
@@ -810,21 +829,11 @@ function cmdHelp() {
   new --category S --title T --body B [--lang XX] [--yes]
   reply <postId> --body B [--yes]
 
-  admin <operation> [flags] [--yes]       Moderation surface, needs ${PRODUCT.adminKeyEnv}
-    read      overview · posts · replies · reports · categories
-    moderate  moderate-post · moderate-reply · move-post · feature-status
-              restore-post · restore-reply
-    purge     delete-post · delete-reply          (IRREVERSIBLE)
-    taxonomy  create-category · update-category · archive-category
-              reorder-categories
-    reports   handle-report
-
-Every command accepts --json.
+${adminHelp()}Every command accepts --json.
 
 \`new\` and \`reply\` publish immediately and publicly — there is no draft or
 review state on this API. Without --yes they only print the payload.
-Needs ${PRODUCT.keyEnv}; \`admin\` also needs ${PRODUCT.adminKeyEnv}.
-Not set yet? Run \`setup\`.`);
+Needs ${PRODUCT.keyEnv}. Not set yet? Run \`setup\`.`);
 }
 
 const COMMANDS = {
