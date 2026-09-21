@@ -41,7 +41,8 @@ node skills/busabase-community/scripts/community.mjs whoami   # is the key still
 
 | Variable | Default | What it is |
 | --- | --- | --- |
-| `BUSABASE_API_KEY` | — | Required. Bearer token |
+| `BUSABASE_API_KEY` | — | Required. Bearer token for reading and posting |
+| `BUSABASE_SYSTEMADMIN_KEY` | — | Optional. Unlocks `admin`. Falls back to `SYSTEMADMIN_KEY` |
 | `BUSABASE_COMMUNITY_API_URL` | `https://busabase.com` | API origin |
 | `BUSABASE_COMMUNITY_URL` | `https://community.busabase.com` | Forum origin, for links |
 
@@ -80,6 +81,7 @@ a cross-origin redirect — so calling the community host would always come back
 | `post <slug>` | One post with its replies |
 | `new --category S --title T --body B [--lang XX] [--yes]` | Publish a post |
 | `reply <postId> --body B [--yes]` | Publish a reply |
+| `admin <operation> [flags] [--yes]` | Moderation surface — see below |
 
 Every command takes `--json`. Use it when you are going to reason over the
 result; use the plain output when you are showing it to the user.
@@ -88,6 +90,48 @@ result; use the plain output when you are showing it to the user.
 first rather than guessing. `post` takes a **slug**; `reply` takes the post
 **id** from `post <slug>`, which is not the same string.
 
+## The moderation surface (`admin`)
+
+`/api/v1/system-admin/community/*` is a second API with a second credential.
+`BUSABASE_SYSTEMADMIN_KEY` is the **deployment's** `SYSTEM_ADMIN_API_SECRET_KEY`
+— not a per-user token. It can hide, move and permanently delete anyone's
+content, so treat it as an operator credential, not as your own.
+
+Without it, `admin` stops with instructions and everything else keeps working.
+Some deployments do not serve this API at all yet; there the first `admin` call
+says so plainly rather than guessing.
+
+| Group | Operations |
+| --- | --- |
+| Read | `overview` · `posts` · `replies` · `reports` · `categories` |
+| Moderate | `moderate-post` · `moderate-reply` · `move-post` · `feature-status` · `restore-post` · `restore-reply` |
+| Purge | `delete-post` · `delete-reply` — **irreversible** |
+| Taxonomy | `create-category` · `update-category` · `archive-category` · `reorder-categories` |
+| Reports | `handle-report` |
+
+```bash
+admin overview
+admin posts --status hidden --include-deleted --limit 20
+admin reports --status open
+admin moderate-post --post-id <id> --status hidden --yes
+admin feature-status --post-id <id> --feature-status planned --yes    # `none` clears it
+admin create-category --slug how-to --kind question --name "How to" --name "zh-CN=怎么做" --yes
+admin reorder-categories --category-ids c1,c2,c3 --yes
+```
+
+Flags are the API's field names in kebab-case (`--post-id`, `--include-deleted`,
+`--category-slug`). A category's text repeats once per locale — a bare `--name`
+is English, `--name "zh-CN=…"` is that locale.
+
+Every write previews its payload and sends nothing without `--yes`, exactly like
+`new` and `reply`.
+
+**`removed` is not `delete`.** `moderate-post --status removed` is a soft delete
+— the row survives, links do not rot, and `restore-post` undoes it. `delete-post`
+purges the post, its replies, its reactions and its reports, and there is no
+undo. Reach for the soft one unless the user asked for destruction in as many
+words, and quote the irreversible warning back to them before running it.
+
 ## Permission boundary
 
 **Publishing is immediate, public, and has no draft or review state on this
@@ -95,8 +139,8 @@ API.** There is no change request to stage and no merge to hold back.
 
 So the gate is local and mandatory:
 
-1. `new` and `reply` without `--yes` print the exact JSON payload and send
-   nothing. That is the default.
+1. `new`, `reply` and every `admin` write without `--yes` print the exact JSON
+   payload and send nothing. That is the default.
 2. Show the user that payload — the real title and body, verbatim, not a summary.
 3. Re-run with `--yes` only after they say yes, in that same turn.
 
@@ -130,5 +174,7 @@ node --test skills/busabase-community/test/community.test.mjs
 ```
 
 Offline: they cover argument parsing, URL building, config resolution, error
-envelopes, the onboarding text, and the CJK-aware column padding. They need no
-key and make no network calls, so they stay runnable in CI and on a fresh clone.
+envelopes, both onboarding texts, the CJK-aware column padding, and the admin
+payload builder (booleans, numbers, locale text, the `none` feature status).
+They need no key and make no network calls, so they stay runnable in CI and on
+a fresh clone.
