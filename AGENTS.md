@@ -1,7 +1,8 @@
 # AGENTS.md
 
-Kelly's App-in-Skill workspace: 67 skills under `skills/`, each pairing an agent operating
-procedure with a Busabase-backed local browser UI for human review and approval.
+Kelly's App-in-Skill workspace: 78 skills under `skills/`, most pairing an agent operating
+procedure with a Busabase-backed local browser UI for human review and approval. A few are
+UI-less helpers (`agent-rules`, `publish-skills`, the `*-community` forum CLIs).
 
 ## Skill taxonomy
 
@@ -91,7 +92,8 @@ skill is not a surface: `kelly-campaigns` drafts campaigns but hands sending to 
 it carries `surface:busabase` only.
 
 Currently in use: `busabase` (all but `agent-rules`, `publish-skills`,
-`kelly-app-skill-creator-tests`), `gsc` `github` `webull` `a-share` `stripe` `mercury`
+`kelly-app-skill-creator-tests`, `buda-community`, `sandock-community`), `buda` `sandock`
+`gsc` `github` `webull` `a-share` `stripe` `mercury`
 `airwallex` `creem` `sendgrid` `moonrouter` `byteplus-ark` `imap` `smtp` `whatsapp` `discord`
 `slack` `telegram` `instagram` `messenger` `wechat` `webchat`.
 
