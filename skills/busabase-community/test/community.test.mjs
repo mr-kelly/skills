@@ -1,16 +1,28 @@
 // Offline unit tests for the community CLI's pure helpers.
 // No credentials, no network: `node --test skills/busabase-community/test`.
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { test } from "node:test";
 import {
+  accountKeyEnv,
+  adminOnboarding,
+  buildAdminPayload,
   buildUrl,
   config,
   displayWidth,
+  envSearchPaths,
   errorMessage,
+  i18nText,
+  listAccounts,
+  loadEnvFiles,
+  nestQuery,
   num,
   onboarding,
   pad,
   parseArgs,
+  parseDotenv,
 } from "../scripts/community.mjs";
 
 test("parseArgs keeps positionals after a boolean flag", () => {
@@ -90,4 +102,136 @@ test("onboarding names the env var, the docs and the env file, but no key", () =
   assert.match(text, /https:\/\/busabase\.com\/docs\/api-tokens/);
   assert.match(text, /~\/\.busabase\/\.env/);
   assert.match(text, /community\.busabase\.com/);
+});
+
+test("config reads the admin key from the prefixed name or the shared fallback", () => {
+  assert.equal(config({ BUSABASE_SYSTEMADMIN_KEY: "a" }).adminKey, "a");
+  assert.equal(config({ SYSTEMADMIN_KEY: "b" }).adminKey, "b");
+  assert.equal(config({ BUSABASE_SYSTEMADMIN_KEY: "a", SYSTEMADMIN_KEY: "b" }).adminKey, "a", "prefixed wins");
+  assert.equal(config({}).adminKey, undefined);
+});
+
+test("adminOnboarding separates the two credentials", () => {
+  const text = adminOnboarding({});
+  assert.match(text, /BUSABASE_SYSTEMADMIN_KEY is not set/);
+  assert.match(text, /NOT the same credential as BUSABASE_API_KEY/);
+  assert.match(text, /SYSTEMADMIN_KEY/);
+});
+
+test("i18nText reads a bare value as English and locale=value as itself", () => {
+  const { flags } = parseArgs(["--name", "How to", "--name", "zh-CN=怎么做"]);
+  assert.deepEqual(i18nText(flags, "name"), { en: "How to", "zh-CN": "怎么做" });
+});
+
+test("i18nText leaves an equals sign alone when the head is not a locale", () => {
+  const { flags } = parseArgs(["--name", "A=B"]);
+  assert.deepEqual(i18nText(flags, "name"), { en: "A=B" });
+});
+
+test("buildAdminPayload coerces booleans, numbers and the null feature status", () => {
+  const { flags } = parseArgs(["--post-id", "p1", "--feature-status", "none"]);
+  assert.deepEqual(buildAdminPayload("feature-status", flags), { postId: "p1", featureStatus: null });
+
+  const listed = parseArgs(["--include-deleted", "--limit", "5", "--status", "hidden"]).flags;
+  assert.deepEqual(buildAdminPayload("posts", listed), { status: "hidden", includeDeleted: true, limit: 5 });
+
+  const unarchive = parseArgs(["--category-id", "c1", "--is-archived", "false"]).flags;
+  assert.deepEqual(buildAdminPayload("archive-category", unarchive), { categoryId: "c1", isArchived: false });
+});
+
+test("buildAdminPayload splits a comma-separated reorder list", () => {
+  const { flags } = parseArgs(["--category-ids", "c1, c2 ,c3"]);
+  assert.deepEqual(buildAdminPayload("reorder-categories", flags), { categoryIds: ["c1", "c2", "c3"] });
+});
+
+test("parseDotenv reads values, strips quotes and skips comments", () => {
+  const values = parseDotenv(
+    ["# comment", "BUSABASE_API_KEY=plain", 'QUOTED="with spaces"', "SINGLE='x'", "", "novalue"].join("\n"),
+  );
+  assert.deepEqual(values, { BUSABASE_API_KEY: "plain", QUOTED: "with spaces", SINGLE: "x" });
+});
+
+test("envSearchPaths looks in the skill directory before the home directory", () => {
+  const paths = envSearchPaths({ HOME: "/home/someone" });
+  const skillIndex = paths.findIndex((p) => p.endsWith(path.join("busabase-community", ".env")));
+  const homeIndex = paths.findIndex((p) => p === path.join("/home/someone", ".busabase", ".env"));
+  assert.ok(skillIndex >= 0 && homeIndex >= 0, "both candidates are searched");
+  assert.ok(skillIndex < homeIndex, "the skill's own file is nearer");
+  assert.deepEqual(envSearchPaths({ HOME: "/h", BUSABASE_ENV_FILE: "/explicit" })[0], "/explicit");
+});
+
+test("loadEnvFiles fills only what the shell left unset", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "community-env-"));
+  const file = path.join(dir, ".env");
+  writeFileSync(file, "BUSABASE_API_KEY=from-file\nBUSABASE_SPACE_ID=spc_1\n");
+  try {
+    const env = { BUSABASE_ENV_FILE: file, BUSABASE_API_KEY: "already-exported" };
+    const loaded = loadEnvFiles(env);
+    assert.equal(env.BUSABASE_API_KEY, "already-exported", "an exported value wins");
+    assert.equal(env.BUSABASE_SPACE_ID, "spc_1", "a missing one is filled in");
+    assert.deepEqual(loaded[0].keys, ["BUSABASE_SPACE_ID"], "reports only what it applied");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("loadEnvFiles ignores a path that does not exist", () => {
+  assert.deepEqual(loadEnvFiles({ BUSABASE_ENV_FILE: path.join(tmpdir(), "definitely-absent-community-env") }), []);
+});
+
+test("nestQuery wraps admin filters the way the contract expects", () => {
+  // Flat params are ignored by the server, not rejected — an unfiltered list
+  // would come back looking like a filtered one.
+  assert.deepEqual(nestQuery({ status: "hidden", limit: 2 }), {
+    "query[status]": "hidden",
+    "query[limit]": 2,
+  });
+  assert.deepEqual(nestQuery({}), {});
+});
+
+test("buildUrl percent-encodes the bracketed admin filters", () => {
+  const url = buildUrl("https://busabase.com", "/api/v1/system-admin/community/posts", nestQuery({ status: "hidden" }));
+  assert.equal(url, "https://busabase.com/api/v1/system-admin/community/posts?query%5Bstatus%5D=hidden");
+});
+
+test("accountKeyEnv builds the per-account variable name", () => {
+  assert.equal(accountKeyEnv("alt"), "BUSABASE_API_KEY_ALT");
+  assert.equal(accountKeyEnv("Growth Team"), "BUSABASE_API_KEY_GROWTH_TEAM");
+});
+
+test("config picks the account from --as, then the env default, then the bare key", () => {
+  const env = {
+    BUSABASE_API_KEY: "default-key",
+    BUSABASE_API_KEY_ALT: "alt-key",
+    BUSABASE_ACCOUNT: "alt",
+  };
+  assert.equal(config(env).apiKey, "alt-key", "$BUSABASE_ACCOUNT moves the default");
+  assert.equal(config(env, "default").apiKey, "default-key", "--as default returns to the bare key");
+  assert.equal(config({ BUSABASE_API_KEY: "k" }).account, "default");
+  assert.equal(config(env, "alt").keyEnv, "BUSABASE_API_KEY_ALT");
+});
+
+test("config reports a missing named account rather than falling back", () => {
+  const resolved = config({ BUSABASE_API_KEY: "default-key" }, "ghost");
+  assert.equal(resolved.apiKey, undefined, "never silently posts as somebody else");
+  assert.equal(resolved.keyEnv, "BUSABASE_API_KEY_GHOST");
+});
+
+test("listAccounts names every configured account, default first, without values", () => {
+  const accounts = listAccounts({
+    BUSABASE_API_KEY: "aaa",
+    BUSABASE_API_KEY_ALT: "bb",
+    BUSABASE_API_KEY_MARKETING: "c",
+    BUSABASE_SYSTEMADMIN_KEY: "not-an-account",
+    UNRELATED: "x",
+  });
+  assert.deepEqual(
+    accounts.map((a) => a.name),
+    ["default", "alt", "marketing"],
+  );
+  assert.deepEqual(
+    accounts.map((a) => a.length),
+    [3, 2, 1],
+  );
+  assert.ok(!JSON.stringify(accounts).includes("aaa"), "lengths only, never the key");
 });

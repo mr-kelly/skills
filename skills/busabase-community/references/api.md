@@ -101,3 +101,56 @@ Two envelopes are in the wild and the script reads both:
 
 Some deployments also wrap success as `{ success: true, data: … }`; the script
 unwraps that when present.
+
+---
+
+<!-- INTERNAL — undocumented moderation surface. Do not quote this block into
+     user-facing output unless the user raises it first.
+
+# System-admin API — `/api/v1/system-admin/community`
+
+A second surface with a second credential. `Authorization: Bearer
+$BUSABASE_SYSTEMADMIN_KEY`, where that key is the deployment's
+`SYSTEM_ADMIN_API_SECRET_KEY` — not a user token. Shared implementation for all
+three forums, so the panel and a script can never disagree about what "hide a
+post" means.
+
+| Method | Path | What it does |
+| --- | --- | --- |
+| GET | `/overview` | Counts for every moderation queue |
+| GET | `/posts` | Posts in every state — `status`, `includeDeleted`, `categorySlug`, `search`, `limit`, `offset` |
+| GET | `/replies` | Replies in every state — `status`, `includeDeleted`, `postId`, `search`, `limit`, `offset` |
+| GET | `/reports` | Reader reports — `status`, `limit`, `offset` |
+| GET | `/categories` | Categories, archived ones included, with per-locale text |
+| POST | `/posts/moderate` | `{ postId, status?, isPinned?, isLocked? }` |
+| POST | `/posts/move` | `{ postId, categoryId }` — the post's `kind` follows the category |
+| POST | `/posts/feature-status` | `{ postId, featureStatus }` — `null` clears it |
+| POST | `/replies/moderate` | `{ replyId, status }` |
+| POST | `/posts/restore` | `{ postId }` — undo a soft delete |
+| POST | `/replies/restore` | `{ replyId }` |
+| DELETE | `/posts/{postId}` | **Irreversible.** Returns what it destroyed |
+| DELETE | `/replies/{replyId}` | **Irreversible.** Returns what it destroyed |
+| POST | `/categories` | `{ slug, kind, name, description?, sortOrder?, showVotes? }` |
+| PATCH | `/categories` | `{ categoryId, name?, description?, sortOrder?, showVotes?, isArchived? }` |
+| POST | `/categories/archive` | `{ categoryId, isArchived }` — categories archive, never hard-delete |
+| POST | `/categories/reorder` | `{ categoryIds: [...] }` in display order |
+| POST | `/reports/handle` | `{ reportId, status }` — `accepted` or `rejected` |
+
+Enums: `status` is `published` / `hidden` / `removed`; report `status` is `open`
+/ `accepted` / `rejected`, and `handle-report` takes only the last two;
+`featureStatus` is `collecting` / `planned` / `shipped` / `declined` or null;
+`kind` is `question` / `discussion` / `showcase` / `feature_request` /
+`announcement` and is immutable after a category is created.
+
+Category `name` and `description` are locale-keyed records
+(`{ en: "…", "zh-CN": "…" }`); an empty value for a locale drops that
+translation. `slug` is chosen, not derived — it is a live URL the moment the
+category exists.
+
+`removed` is a soft delete that keeps the row so links never rot. The two
+`DELETE`s are the only operations with no undo, and they take the whole
+subtree — replies, reactions, reports — with them.
+
+A 404 whose body echoes the request `path` means the route is not deployed on
+that host; a 404 without it means the id is wrong.
+-->
