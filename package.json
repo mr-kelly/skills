@@ -10,6 +10,7 @@
     "screenshots:frame": "node scripts/frame-screenshots.mjs",
     "screenshots:thumbnails": "node scripts/generate-screenshot-thumbnails.mjs",
     "typecheck": "tsc -p tsconfig.json",
+    "test:community": "node --test skills/busabase-community/test/*.test.mjs skills/buda-community/test/*.test.mjs skills/sandock-community/test/*.test.mjs",
     "audit:app-setup": "node scripts/audit-app-setup-contract.mjs",
     "audit:sdk-policy": "node scripts/audit-sdk-policy.mjs",
     "audit:hosted-detection": "node scripts/audit-hosted-detection.mjs",

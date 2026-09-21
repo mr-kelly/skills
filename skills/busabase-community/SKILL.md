@@ -218,11 +218,26 @@ response fields). Read it before changing the script.
 ## Tests
 
 ```bash
-node --test skills/busabase-community/test/community.test.mjs
+npm run test:community                              # all three forum skills, in CI too
+node --test skills/busabase-community/test/*.test.mjs   # just this one
 ```
 
-Offline: they cover argument parsing, URL building, config resolution, error
-envelopes, the onboarding text, the CJK-aware column padding, the env-file
-search order and precedence, account resolution, and request building.
+`node --test <dir>` does not expand a directory on Node 24 — name the files.
+
+Two files per skill, both offline — no key, no network, runnable on a fresh
+clone:
+
+- `community.test.mjs` — the pure helpers: argument parsing, URL building,
+  config and account resolution, the dotenv reader and its precedence, error
+  envelopes, the onboarding text, CJK-aware padding.
+- `commands.test.mjs` — the commands themselves, driven through `run()` with a
+  recording `fetch`. This is where the dangerous behaviour is pinned down:
+  that a write without `--yes` sends **nothing**, that reads use the user's
+  credential and moderation uses the operator's, that an unknown `--as` account
+  refuses instead of publishing as somebody else, that an id in a path is
+  encoded, and that a listing never prints a key.
+
+The second file exists because a helper test cannot answer "did this send
+anything". Both are wired into CI (`npm run test:community`).
 They need no key and make no network calls, so they stay runnable in CI and on
 a fresh clone.
