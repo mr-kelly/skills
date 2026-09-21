@@ -166,9 +166,23 @@ export function num(value, fallback) {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
+/**
+ * Every refusal in this file goes through here.
+ *
+ * It throws rather than calling `process.exit` so the commands can be driven
+ * from a test — "this refused to send" is the behaviour most worth pinning
+ * down, and it is unreachable from a process that has already exited. The
+ * entry point turns it back into exit code 1 on stderr.
+ */
+export class CommunityCliError extends Error {
+  constructor(message, { prefixed = true } = {}) {
+    super(prefixed ? `${PRODUCT.slug}: ${message}` : message);
+    this.name = "CommunityCliError";
+  }
+}
+
 function fail(message) {
-  console.error(`${PRODUCT.slug}: ${message}`);
-  process.exit(1);
+  throw new CommunityCliError(message);
 }
 
 /** What to tell a user who has not configured the key yet. */
@@ -197,12 +211,13 @@ export function onboarding(env = process.env, account = "") {
 function requireKey() {
   const { apiKey } = selected();
   if (apiKey) return apiKey;
-  console.error(onboarding(process.env, ACCOUNT));
-  process.exit(1);
+  // The onboarding text is the whole message; the slug prefix would only
+  // push its first line out of alignment.
+  throw new CommunityCliError(onboarding(ENV, ACCOUNT), { prefixed: false });
 }
 
 /** What to tell someone who asked for an admin command without the admin key. */
-export function adminOnboarding(env = process.env) {
+export function adminOnboarding(env = ENV) {
   return [
     `${PRODUCT.adminKeyEnv} is not set — the moderation surface needs the deployment's own system-admin key.`,
     "",
@@ -222,8 +237,7 @@ export function adminOnboarding(env = process.env) {
 function requireAdminKey() {
   const { adminKey } = selected();
   if (adminKey) return adminKey;
-  console.error(adminOnboarding());
-  process.exit(1);
+  throw new CommunityCliError(adminOnboarding(ENV), { prefixed: false });
 }
 
 // -------------------------------------------------------------------- request
@@ -289,11 +303,12 @@ export function buildUrl(apiUrl, path, query = {}) {
  * @param {string} path
  * @param {{ method?: string, query?: Record<string, unknown>, body?: unknown, admin?: boolean, soft?: boolean, fetchImpl?: typeof fetch }} [options]
  */
-async function request(path, { method = "GET", query, body, admin = false, soft = false, fetchImpl = fetch } = {}) {
+async function request(path, { method = "GET", query, body, admin = false, soft = false, fetchImpl } = {}) {
   const apiKey = admin ? requireAdminKey() : requireKey();
   const { apiUrl } = selected();
+  const send = fetchImpl ?? FETCH ?? fetch;
 
-  const response = await fetchImpl(buildUrl(apiUrl, path, query), {
+  const response = await send(buildUrl(apiUrl, path, query), {
     method,
     headers: {
       authorization: `Bearer ${apiKey}`,
@@ -815,15 +830,18 @@ async function cmdAdmin(positional, flags) {
 let ENV_SOURCES = [];
 /** The `--as` name for this invocation, resolved once in the entry point. */
 let ACCOUNT = "";
+/** Ambient environment and transport. `run()` swaps both for the duration of a call. */
+let ENV = process.env;
+/** @type {typeof fetch | null} */
+let FETCH = null;
 
-const selected = () => config(process.env, ACCOUNT);
+const selected = () => config(ENV, ACCOUNT);
 
 async function cmdAccounts(_positional, flags) {
-  const accounts = listAccounts();
+  const accounts = listAccounts(ENV);
   const active = selected().account;
   if (!accounts.length) {
-    console.error(onboarding(process.env, ACCOUNT));
-    process.exit(1);
+    throw new CommunityCliError(onboarding(ENV, ACCOUNT), { prefixed: false });
   }
 
   // --verify costs one request per account; without it this is offline.
@@ -866,13 +884,9 @@ function cmdSetup(_positional, flags) {
     flags,
     () => {
       console.log(`${keyEnv} is set (${apiKey.length} characters — value not shown).`);
-      const others = listAccounts().filter((a) => a.name !== account);
-      if (others.length) {
-        console.log(
-          `account  ${account} (of ${listAccounts().length}: ${listAccounts()
-            .map((a) => a.name)
-            .join(", ")})`,
-        );
+      const all = listAccounts(ENV);
+      if (all.length > 1) {
+        console.log(`account  ${account} (of ${all.length}: ${all.map((a) => a.name).join(", ")})`);
       }
       // Mentioned only when it is actually configured — see adminHelp().
       if (adminKey) {
@@ -943,20 +957,48 @@ const COMMANDS = {
   help: cmdHelp,
 };
 
+/**
+ * Run one command. Exported so a test can drive the real command layer —
+ * including the paths that refuse to do anything — with an injected `fetch`.
+ */
+export async function run(argv, { env = process.env, fetchImpl = null } = {}) {
+  const previous = { env: ENV, fetch: FETCH, account: ACCOUNT };
+  ENV = env;
+  FETCH = fetchImpl;
+  try {
+    return await dispatch(argv, env);
+  } finally {
+    ENV = previous.env;
+    FETCH = previous.fetch;
+    ACCOUNT = previous.account;
+  }
+}
+
+async function dispatch(argv, env) {
+  const [command, ...rest] = argv;
+  const handler = COMMANDS[command ?? "help"];
+  if (!handler) fail(`unknown command "${command}". Run \`help\`.`);
+  const { positional, flags } = parseArgs(rest);
+  ACCOUNT = "";
+  if (flags.as !== undefined) {
+    if (typeof flags.as !== "string") fail("--as <name> — name the account. `accounts` lists them.");
+    ACCOUNT = flags.as;
+    const { apiKey, keyEnv } = config(env, ACCOUNT);
+    if (!apiKey)
+      fail(`--as ${flags.as} — no such account. ${keyEnv} is not set; \`accounts\` lists the ones that are.`);
+  }
+  return handler(positional, flags);
+}
+
 const isMain = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
   // Before anything reads config(): files fill only what the shell left unset.
   ENV_SOURCES = loadEnvFiles();
-  const [command, ...rest] = process.argv.slice(2);
-  const handler = COMMANDS[command ?? "help"];
-  if (!handler) fail(`unknown command "${command}". Run \`help\`.`);
-  const { positional, flags } = parseArgs(rest);
-  if (flags.as !== undefined) {
-    if (typeof flags.as !== "string") fail("--as <name> — name the account. `accounts` lists them.");
-    ACCOUNT = flags.as;
-    const { apiKey, keyEnv } = selected();
-    if (!apiKey)
-      fail(`--as ${flags.as} — no such account. ${keyEnv} is not set; \`accounts\` lists the ones that are.`);
+  try {
+    await run(process.argv.slice(2));
+  } catch (error) {
+    if (!(error instanceof CommunityCliError)) throw error;
+    console.error(error.message);
+    process.exit(1);
   }
-  await handler(positional, flags);
 }

@@ -65,6 +65,9 @@ jobs:
       - name: Test Pages asset validator
         run: node --test tests/pages-assets.test.mjs
 
+      - name: Test community forum skills
+        run: npm run test:community
+
       - name: Test canonical app skills
         run: npm run test:app-skills
         env:
