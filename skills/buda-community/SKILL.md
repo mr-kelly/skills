@@ -35,8 +35,8 @@ skill and a separate approval.
 ## Setup
 
 ```bash
-cp skills/buda-community/.env.example skills/buda-community/.env
-chmod 600 skills/buda-community/.env      # then fill in BUDA_API_KEY
+printf 'BUDA_API_KEY=%s\n' '<key>' >> skills/buda-community/.env
+chmod 600 skills/buda-community/.env
 node skills/buda-community/scripts/community.mjs setup    # is it configured?
 node skills/buda-community/scripts/community.mjs whoami   # is the key still valid?
 ```
@@ -54,9 +54,8 @@ every file:
 | 5 | `~/.buda/.env` — shared with the other Buda tooling |
 
 `.env` and `.env.local` are gitignored (`skills/*/.env` in the repo's
-`.gitignore`). `.env.example` is the tracked template; it holds no values.
-`setup` prints which files were read and which variable names came from each —
-never a value.
+`.gitignore`), and nothing in this directory is tracked. `setup` prints which
+files were read and which variable names came from each — never a value.
 
 | Variable | Default | What it is |
 | --- | --- | --- |
@@ -75,8 +74,8 @@ scraping the public site, and do not go quiet. Walk the user through it:
 1. Run `setup` and show them its output.
 2. Tell them where the key comes from — <https://buda.im/en/docs/developers/authentication>,
    signed in with the same account they use on the forum.
-3. Tell them to put it in `skills/buda-community/.env` (copy
-   `.env.example`, `chmod 600`). It is gitignored and read automatically.
+3. Tell them to put it in `skills/buda-community/.env` (`chmod 600`).
+   It is gitignored and read automatically.
 4. Ask them to say when it is set, then confirm with `whoami` before doing
    anything else.
 

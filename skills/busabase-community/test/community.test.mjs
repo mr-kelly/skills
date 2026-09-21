@@ -15,6 +15,7 @@ import {
   errorMessage,
   i18nText,
   loadEnvFiles,
+  nestQuery,
   num,
   onboarding,
   pad,
@@ -174,4 +175,19 @@ test("loadEnvFiles fills only what the shell left unset", () => {
 
 test("loadEnvFiles ignores a path that does not exist", () => {
   assert.deepEqual(loadEnvFiles({ BUSABASE_ENV_FILE: path.join(tmpdir(), "definitely-absent-community-env") }), []);
+});
+
+test("nestQuery wraps admin filters the way the contract expects", () => {
+  // Flat params are ignored by the server, not rejected — an unfiltered list
+  // would come back looking like a filtered one.
+  assert.deepEqual(nestQuery({ status: "hidden", limit: 2 }), {
+    "query[status]": "hidden",
+    "query[limit]": 2,
+  });
+  assert.deepEqual(nestQuery({}), {});
+});
+
+test("buildUrl percent-encodes the bracketed admin filters", () => {
+  const url = buildUrl("https://busabase.com", "/api/v1/system-admin/community/posts", nestQuery({ status: "hidden" }));
+  assert.equal(url, "https://busabase.com/api/v1/system-admin/community/posts?query%5Bstatus%5D=hidden");
 });

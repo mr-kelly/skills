@@ -35,8 +35,8 @@ skill and a separate approval.
 ## Setup
 
 ```bash
-cp skills/sandock-community/.env.example skills/sandock-community/.env
-chmod 600 skills/sandock-community/.env      # then fill in SANDOCK_API_KEY
+printf 'SANDOCK_API_KEY=%s\n' '<key>' >> skills/sandock-community/.env
+chmod 600 skills/sandock-community/.env
 node skills/sandock-community/scripts/community.mjs setup    # is it configured?
 node skills/sandock-community/scripts/community.mjs whoami   # is the key still valid?
 ```
@@ -54,9 +54,8 @@ every file:
 | 5 | `~/.sandock/.env` — shared with the other Sandock tooling |
 
 `.env` and `.env.local` are gitignored (`skills/*/.env` in the repo's
-`.gitignore`). `.env.example` is the tracked template; it holds no values.
-`setup` prints which files were read and which variable names came from each —
-never a value.
+`.gitignore`), and nothing in this directory is tracked. `setup` prints which
+files were read and which variable names came from each — never a value.
 
 | Variable | Default | What it is |
 | --- | --- | --- |
@@ -75,8 +74,8 @@ scraping the public site, and do not go quiet. Walk the user through it:
 1. Run `setup` and show them its output.
 2. Tell them where the key comes from — <https://sandock.ai/docs/api-keys>,
    signed in with the same account they use on the forum.
-3. Tell them to put it in `skills/sandock-community/.env` (copy
-   `.env.example`, `chmod 600`). It is gitignored and read automatically.
+3. Tell them to put it in `skills/sandock-community/.env` (`chmod 600`).
+   It is gitignored and read automatically.
 4. Ask them to say when it is set, then confirm with `whoami` before doing
    anything else.
 

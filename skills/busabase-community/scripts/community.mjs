@@ -662,6 +662,21 @@ function validateAdminPayload(operation, payload) {
 
 const kebab = (field) => field.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
 
+/**
+ * The admin list contracts take their filters as `z.object({ query: … })`, so
+ * oRPC serializes them nested: `?query[status]=hidden`, not `?status=hidden`.
+ *
+ * This is not cosmetic. A flat parameter is not rejected — it is *ignored*, so
+ * an unfiltered list comes back looking like a successful filtered one. The
+ * public endpoints take flat parameters; only these nested ones do.
+ */
+export function nestQuery(payload) {
+  /** @type {Record<string, unknown>} */
+  const nested = {};
+  for (const [field, value] of Object.entries(payload)) nested[`query[${field}]`] = value;
+  return nested;
+}
+
 function renderAdmin(operation, data) {
   if (operation === "overview") {
     for (const [key, value] of Object.entries(data)) console.log(`${pad(kebab(key), 24)}${value}`);
@@ -747,7 +762,7 @@ async function cmdAdmin(positional, flags) {
   const data = await request(path, {
     method: spec.method,
     admin: true,
-    query: spec.query ? payload : undefined,
+    query: spec.query ? nestQuery(payload) : undefined,
     body: spec.body && spec.method !== "DELETE" ? payload : undefined,
   });
   output(data, flags, () => renderAdmin(operation, data));

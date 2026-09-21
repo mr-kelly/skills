@@ -35,8 +35,8 @@ skill and a separate approval.
 ## Setup
 
 ```bash
-cp skills/busabase-community/.env.example skills/busabase-community/.env
-chmod 600 skills/busabase-community/.env      # then fill in BUSABASE_API_KEY
+printf 'BUSABASE_API_KEY=%s\n' '<key>' >> skills/busabase-community/.env
+chmod 600 skills/busabase-community/.env
 node skills/busabase-community/scripts/community.mjs setup    # is it configured?
 node skills/busabase-community/scripts/community.mjs whoami   # is the key still valid?
 ```
@@ -54,9 +54,8 @@ every file:
 | 5 | `~/.busabase/.env` — shared with the other Busabase tooling |
 
 `.env` and `.env.local` are gitignored (`skills/*/.env` in the repo's
-`.gitignore`). `.env.example` is the tracked template; it holds no values.
-`setup` prints which files were read and which variable names came from each —
-never a value.
+`.gitignore`), and nothing in this directory is tracked. `setup` prints which
+files were read and which variable names came from each — never a value.
 
 | Variable | Default | What it is |
 | --- | --- | --- |
@@ -75,8 +74,8 @@ scraping the public site, and do not go quiet. Walk the user through it:
 1. Run `setup` and show them its output.
 2. Tell them where the key comes from — <https://busabase.com/docs/api-tokens>,
    signed in with the same account they use on the forum.
-3. Tell them to put it in `skills/busabase-community/.env` (copy
-   `.env.example`, `chmod 600`). It is gitignored and read automatically.
+3. Tell them to put it in `skills/busabase-community/.env` (`chmod 600`).
+   It is gitignored and read automatically.
 4. Ask them to say when it is set, then confirm with `whoami` before doing
    anything else.
 
