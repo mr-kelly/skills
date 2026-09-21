@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import {
+  accountKeyEnv,
   adminOnboarding,
   buildAdminPayload,
   buildUrl,
@@ -14,6 +15,7 @@ import {
   envSearchPaths,
   errorMessage,
   i18nText,
+  listAccounts,
   loadEnvFiles,
   nestQuery,
   num,
@@ -190,4 +192,46 @@ test("nestQuery wraps admin filters the way the contract expects", () => {
 test("buildUrl percent-encodes the bracketed admin filters", () => {
   const url = buildUrl("https://busabase.com", "/api/v1/system-admin/community/posts", nestQuery({ status: "hidden" }));
   assert.equal(url, "https://busabase.com/api/v1/system-admin/community/posts?query%5Bstatus%5D=hidden");
+});
+
+test("accountKeyEnv builds the per-account variable name", () => {
+  assert.equal(accountKeyEnv("alt"), "BUSABASE_API_KEY_ALT");
+  assert.equal(accountKeyEnv("Growth Team"), "BUSABASE_API_KEY_GROWTH_TEAM");
+});
+
+test("config picks the account from --as, then the env default, then the bare key", () => {
+  const env = {
+    BUSABASE_API_KEY: "default-key",
+    BUSABASE_API_KEY_ALT: "alt-key",
+    BUSABASE_ACCOUNT: "alt",
+  };
+  assert.equal(config(env).apiKey, "alt-key", "$BUSABASE_ACCOUNT moves the default");
+  assert.equal(config(env, "default").apiKey, "default-key", "--as default returns to the bare key");
+  assert.equal(config({ BUSABASE_API_KEY: "k" }).account, "default");
+  assert.equal(config(env, "alt").keyEnv, "BUSABASE_API_KEY_ALT");
+});
+
+test("config reports a missing named account rather than falling back", () => {
+  const resolved = config({ BUSABASE_API_KEY: "default-key" }, "ghost");
+  assert.equal(resolved.apiKey, undefined, "never silently posts as somebody else");
+  assert.equal(resolved.keyEnv, "BUSABASE_API_KEY_GHOST");
+});
+
+test("listAccounts names every configured account, default first, without values", () => {
+  const accounts = listAccounts({
+    BUSABASE_API_KEY: "aaa",
+    BUSABASE_API_KEY_ALT: "bb",
+    BUSABASE_API_KEY_MARKETING: "c",
+    BUSABASE_SYSTEMADMIN_KEY: "not-an-account",
+    UNRELATED: "x",
+  });
+  assert.deepEqual(
+    accounts.map((a) => a.name),
+    ["default", "alt", "marketing"],
+  );
+  assert.deepEqual(
+    accounts.map((a) => a.length),
+    [3, 2, 1],
+  );
+  assert.ok(!JSON.stringify(accounts).includes("aaa"), "lengths only, never the key");
 });

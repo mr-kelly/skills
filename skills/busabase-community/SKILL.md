@@ -59,7 +59,9 @@ files were read and which variable names came from each — never a value.
 
 | Variable | Default | What it is |
 | --- | --- | --- |
-| `BUSABASE_API_KEY` | — | Required. Bearer token for reading and posting |
+| `BUSABASE_API_KEY` | — | Required. Bearer token for the default account |
+| `BUSABASE_API_KEY_<NAME>` | — | A second account, reached with `--as <name>` |
+| `BUSABASE_ACCOUNT` | `default` | Which account to use when `--as` is absent |
 | `BUSABASE_COMMUNITY_API_URL` | `https://busabase.com` | API origin |
 | `BUSABASE_COMMUNITY_URL` | `https://community.busabase.com` | Forum origin, for links |
 | `BUSABASE_ENV_FILE` | — | Optional. Read this file first, ahead of the defaults |
@@ -94,6 +96,7 @@ a cross-origin redirect — so calling the community host would always come back
 | Command | What it does |
 | --- | --- |
 | `setup` | Report whether the key is configured, or print how to configure it |
+| `accounts [--verify]` | List the configured accounts; `--verify` checks each against the server |
 | `whoami` | Verify the key, print the account and the API/forum origins |
 | `categories` | Category slugs, kinds and post counts |
 | `posts [--category S] [--sort active\|latest\|top] [--unanswered] [--q TEXT] [--lang XX] [--limit N] [--offset N]` | List posts |
@@ -103,6 +106,38 @@ a cross-origin redirect — so calling the community host would always come back
 
 Every command takes `--json`. Use it when you are going to reason over the
 result; use the plain output when you are showing it to the user.
+
+## Several accounts
+
+One forum, several identities. The unnamed `BUSABASE_API_KEY` is the default
+account; anything under `BUSABASE_API_KEY_<NAME>` is another one.
+
+```bash
+# skills/busabase-community/.env
+BUSABASE_API_KEY=...            # default
+BUSABASE_API_KEY_ALT=...        # --as alt
+BUSABASE_API_KEY_SUPPORT=...    # --as support
+```
+
+```bash
+accounts --verify                       # who is configured, and does each still work
+whoami --as support                     # which identity is that, really
+reply <postId> --body "…" --as alt --yes
+```
+
+`--as` works on every command. `BUSABASE_ACCOUNT=alt` changes the default for a
+whole shell. `--as` always wins over it.
+
+Rules that matter more here than anywhere else in this skill:
+
+- **Say which account, every time.** `whoami`, the `--yes` preview, and the
+  published confirmation all name the account. Quote that name back to the user
+  — "posted as `alt`", not "posted".
+- **Never substitute an account.** A name that is not configured is an error,
+  not a fall back to the default. Publishing under the wrong identity is not
+  something the user can undo.
+- **Ask which account** when the user has more than one configured and has not
+  said which to use. Do not assume the default just because it is the default.
 
 `--category` takes a **slug** (`ask`, `feature-requests`, …) — run `categories`
 first rather than guessing. `post` takes a **slug**; `reply` takes the post
@@ -188,6 +223,6 @@ node --test skills/busabase-community/test/community.test.mjs
 
 Offline: they cover argument parsing, URL building, config resolution, error
 envelopes, the onboarding text, the CJK-aware column padding, the env-file
-search order and precedence, and request building.
+search order and precedence, account resolution, and request building.
 They need no key and make no network calls, so they stay runnable in CI and on
 a fresh clone.

@@ -47,6 +47,11 @@ const PRODUCT = {
    * and every admin command refuses to run without it.
    */
   adminKeyEnv: "BUSABASE_SYSTEMADMIN_KEY",
+  /**
+   * Extra accounts live under this prefix — `BUSABASE_API_KEY_ALT` is the
+   * account `--as alt`. One forum, several identities.
+   */
+  accountEnv: "BUSABASE_ACCOUNT",
   /** Point this at any file to override the search path entirely. */
   envFileEnv: "BUSABASE_ENV_FILE",
   /** Conventional per-product home directory, shared with the other Busabase tooling. */
@@ -167,19 +172,20 @@ function fail(message) {
 }
 
 /** What to tell a user who has not configured the key yet. */
-export function onboarding(env = process.env) {
-  const { apiUrl, webUrl } = config(env);
+export function onboarding(env = process.env, account = "") {
+  const { apiUrl, webUrl, keyEnv } = config(env, account);
   return [
-    `${PRODUCT.keyEnv} is not set — this skill cannot reach the ${PRODUCT.name} community without it.`,
+    `${keyEnv} is not set — this skill cannot reach the ${PRODUCT.name} community without it.`,
     "",
     "Set it up:",
     `  1. Sign in at ${webUrl} — the forum uses your ${PRODUCT.name} account.`,
     `  2. Create an API key: ${PRODUCT.keyDocs}`,
     "  3. Write it to the skill's own env file — gitignored, read automatically:",
-    `       printf '${PRODUCT.keyEnv}=%s\\n' '<key>' >> ${SKILL_ENV_HINT}`,
+    `       printf '${keyEnv}=%s\\n' '<key>' >> ${SKILL_ENV_HINT}`,
     `       chmod 600 ${SKILL_ENV_HINT}`,
     `     ${PRODUCT.envFile} works too, and so does a one-off`,
-    `     \`export ${PRODUCT.keyEnv}=<key>\`, which an exported value always wins over.`,
+    `     \`export ${keyEnv}=<key>\`, which an exported value always wins over.`,
+    `     A second account is ${PRODUCT.keyEnv}_<NAME>, reached with \`--as <name>\`.`,
     "  4. Verify: node scripts/community.mjs whoami",
     "",
     `Optional overrides — ${PRODUCT.apiEnv} (default ${apiUrl}), ${PRODUCT.webEnv} (default ${webUrl}).`,
@@ -189,9 +195,9 @@ export function onboarding(env = process.env) {
 }
 
 function requireKey() {
-  const { apiKey } = config();
+  const { apiKey } = selected();
   if (apiKey) return apiKey;
-  console.error(onboarding());
+  console.error(onboarding(process.env, ACCOUNT));
   process.exit(1);
 }
 
@@ -214,7 +220,7 @@ export function adminOnboarding(env = process.env) {
 }
 
 function requireAdminKey() {
-  const { adminKey } = config();
+  const { adminKey } = selected();
   if (adminKey) return adminKey;
   console.error(adminOnboarding());
   process.exit(1);
@@ -222,12 +228,43 @@ function requireAdminKey() {
 
 // -------------------------------------------------------------------- request
 
-export function config(env = process.env) {
-  const apiKey = env[PRODUCT.keyEnv];
+/** `alt` → `BUSABASE_API_KEY_ALT`. Anything not a letter or digit becomes `_`. */
+export function accountKeyEnv(account) {
+  return `${PRODUCT.keyEnv}_${String(account)
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")}`;
+}
+
+/**
+ * Every account configured for this forum, default first.
+ *
+ * The default is the bare `BUSABASE_API_KEY`; a named one is
+ * `BUSABASE_API_KEY_<NAME>`. Returns names and key lengths — never a key.
+ */
+export function listAccounts(env = process.env) {
+  const accounts = [];
+  if (env[PRODUCT.keyEnv]) accounts.push({ name: "default", env: PRODUCT.keyEnv, length: env[PRODUCT.keyEnv].length });
+  const prefix = `${PRODUCT.keyEnv}_`;
+  for (const [key, value] of Object.entries(env)) {
+    if (!key.startsWith(prefix) || !value) continue;
+    accounts.push({ name: key.slice(prefix.length).toLowerCase(), env: key, length: value.length });
+  }
+  return accounts;
+}
+
+/**
+ * @param {Record<string, string | undefined>} [env]
+ * @param {string} [account] the `--as` name, when one was given
+ */
+export function config(env = process.env, account = "") {
+  // Precedence: --as beats $BUSABASE_ACCOUNT beats the unnamed default key.
+  const name = account || env[PRODUCT.accountEnv] || "";
+  const keyEnv = name && name !== "default" ? accountKeyEnv(name) : PRODUCT.keyEnv;
+  const apiKey = env[keyEnv];
   const adminKey = env[PRODUCT.adminKeyEnv] || env[ADMIN_KEY_FALLBACK];
   const apiUrl = (env[PRODUCT.apiEnv] || PRODUCT.apiUrl).replace(/\/+$/, "").replace(/\/api\/v1$/, "");
   const webUrl = (env[PRODUCT.webEnv] || PRODUCT.webUrl).replace(/\/+$/, "");
-  return { apiKey, adminKey, apiUrl, webUrl };
+  return { apiKey, adminKey, apiUrl, webUrl, account: name || "default", keyEnv };
 }
 
 /** Both error envelopes in the wild — `{error}` and `{success,message}`. */
@@ -250,11 +287,11 @@ export function buildUrl(apiUrl, path, query = {}) {
 
 /**
  * @param {string} path
- * @param {{ method?: string, query?: Record<string, unknown>, body?: unknown, admin?: boolean, fetchImpl?: typeof fetch }} [options]
+ * @param {{ method?: string, query?: Record<string, unknown>, body?: unknown, admin?: boolean, soft?: boolean, fetchImpl?: typeof fetch }} [options]
  */
-async function request(path, { method = "GET", query, body, admin = false, fetchImpl = fetch } = {}) {
+async function request(path, { method = "GET", query, body, admin = false, soft = false, fetchImpl = fetch } = {}) {
   const apiKey = admin ? requireAdminKey() : requireKey();
-  const { apiUrl } = config();
+  const { apiUrl } = selected();
 
   const response = await fetchImpl(buildUrl(apiUrl, path, query), {
     method,
@@ -275,8 +312,13 @@ async function request(path, { method = "GET", query, body, admin = false, fetch
   }
 
   if (!response.ok) {
+    // `soft` is for callers checking several credentials in a row: one dead
+    // account should be reported beside the others, not end the command.
+    if (soft) return null;
     if (response.status === 401) {
-      fail(`${method} ${path} — unauthorized. ${PRODUCT.keyEnv} is expired or from another account — see \`setup\`.`);
+      fail(
+        `${method} ${path} — unauthorized. ${admin ? PRODUCT.adminKeyEnv : selected().keyEnv} is expired or rejected.`,
+      );
     }
     if (response.status === 403) fail(`${method} ${path} — forbidden. This key may not post to that category.`);
     if (response.status === 404) {
@@ -343,12 +385,13 @@ function postUrl(post, webUrl) {
 // ------------------------------------------------------------------ commands
 
 async function cmdWhoami(_positional, flags) {
-  const { apiUrl, webUrl } = config();
+  const { apiUrl, webUrl } = selected();
   const categories = await request("/api/v1/community/categories");
   const me = PRODUCT.meEndpoint ? await request(PRODUCT.meEndpoint) : null;
   output({ api: apiUrl, forum: webUrl, user: me, categoryCount: categories.items.length }, flags, () => {
     console.log(`api        ${apiUrl}`);
     console.log(`forum      ${webUrl}`);
+    console.log(`account    ${selected().account} (${selected().keyEnv})`);
     const user = me?.user ?? me;
     console.log(
       `user       ${user?.name ?? user?.email ?? (me ? JSON.stringify(user) : "(no users/me on this deployment)")}`,
@@ -372,7 +415,7 @@ async function cmdCategories(_positional, flags) {
 async function cmdPosts(_positional, flags) {
   const sort = flags.sort ? String(flags.sort) : "active";
   if (!SORTS.includes(sort)) fail(`--sort ${sort} — expected one of ${SORTS.join(", ")}.`);
-  const { webUrl } = config();
+  const { webUrl } = selected();
   const data = await request("/api/v1/community/posts", {
     query: {
       category: flags.category,
@@ -400,7 +443,7 @@ async function cmdPosts(_positional, flags) {
 async function cmdPost(positional, flags) {
   const slug = positional[0];
   if (!slug) fail("post <slug> — pass the post slug (the last URL segment, see `posts`).");
-  const { webUrl } = config();
+  const { webUrl } = selected();
   const post = await request(`/api/v1/community/posts/${encodeURIComponent(slug)}`);
   output(post, flags, () => {
     console.log(`# ${post.title}`);
@@ -423,7 +466,7 @@ async function cmdPost(positional, flags) {
 /** Publishing is immediate and public, so default to showing the payload only. */
 function confirmOrPreview(flags, label, payload) {
   if (flags.yes === true) return true;
-  console.log(`${label} — NOT sent. This is what --yes would publish:\n`);
+  console.log(`${label} — NOT sent. This is what --yes would publish, as account ${selected().account}:\n`);
   console.log(JSON.stringify(payload, null, 2));
   console.log(`\nThis forum has no draft state. Get the user's explicit go-ahead, then re-run with --yes.`);
   return false;
@@ -440,10 +483,10 @@ async function cmdNew(_positional, flags) {
   const payload = { category, title, body, lang };
   if (!confirmOrPreview(flags, "New post", payload)) return;
 
-  const { webUrl } = config();
+  const { webUrl } = selected();
   const post = await request("/api/v1/community/posts", { method: "POST", body: payload });
   output(post, flags, () => {
-    console.log(`Published: ${post.title}`);
+    console.log(`Published as ${selected().account}: ${post.title}`);
     console.log(postUrl(post, webUrl));
     console.log(`post id ${post.id} · slug ${post.slug}`);
   });
@@ -464,7 +507,7 @@ async function cmdReply(positional, flags) {
     body: payload,
   });
   output(reply, flags, () => {
-    console.log(`Replied to ${reply.postId} as ${reply.id} (${reply.status}).`);
+    console.log(`Replied to ${reply.postId} as ${reply.id} (${reply.status}), from account ${selected().account}.`);
     console.log(oneLine(reply.bodyText, 200));
   });
 }
@@ -770,9 +813,50 @@ async function cmdAdmin(positional, flags) {
 
 /** Populated at startup so `setup` can say where the values came from. */
 let ENV_SOURCES = [];
+/** The `--as` name for this invocation, resolved once in the entry point. */
+let ACCOUNT = "";
+
+const selected = () => config(process.env, ACCOUNT);
+
+async function cmdAccounts(_positional, flags) {
+  const accounts = listAccounts();
+  const active = selected().account;
+  if (!accounts.length) {
+    console.error(onboarding(process.env, ACCOUNT));
+    process.exit(1);
+  }
+
+  // --verify costs one request per account; without it this is offline.
+  const rows = [];
+  for (const account of accounts) {
+    /** @type {{ name: string, env: string, length: number, active: boolean, user?: string | null, valid?: boolean }} */
+    const row = { ...account, active: account.name === active };
+    if (flags.verify) {
+      ACCOUNT = account.name;
+      const me = PRODUCT.meEndpoint
+        ? await request(PRODUCT.meEndpoint, { soft: true })
+        : await request("/api/v1/community/categories", { soft: true });
+      const user = me?.user ?? me;
+      row.user = user ? (user.name ?? user.email ?? "ok") : null;
+      row.valid = Boolean(me);
+    }
+    rows.push(row);
+  }
+  ACCOUNT = active === "default" ? "" : active;
+
+  output({ accounts: rows, active }, flags, () => {
+    for (const row of rows) {
+      console.log(
+        `${row.active ? "*" : " "} ${pad(row.name, 16)}${pad(row.env, 30)}${String(row.length).padStart(3)} chars` +
+          `${row.valid === false ? "  REJECTED" : row.user ? `  ${row.user}` : ""}`,
+      );
+    }
+    console.log(`\n${rows.length} account(s). \`--as <name>\` picks one; ${PRODUCT.accountEnv} sets the default.`);
+  });
+}
 
 function cmdSetup(_positional, flags) {
-  const { apiKey, adminKey, apiUrl, webUrl } = config();
+  const { apiKey, adminKey, apiUrl, webUrl, account, keyEnv } = selected();
   if (!apiKey) {
     console.log(onboarding());
     return;
@@ -781,7 +865,15 @@ function cmdSetup(_positional, flags) {
     { configured: true, apiUrl, webUrl, keyLength: apiKey.length, adminKeyLength: adminKey?.length ?? null },
     flags,
     () => {
-      console.log(`${PRODUCT.keyEnv} is set (${apiKey.length} characters — value not shown).`);
+      console.log(`${keyEnv} is set (${apiKey.length} characters — value not shown).`);
+      const others = listAccounts().filter((a) => a.name !== account);
+      if (others.length) {
+        console.log(
+          `account  ${account} (of ${listAccounts().length}: ${listAccounts()
+            .map((a) => a.name)
+            .join(", ")})`,
+        );
+      }
       // Mentioned only when it is actually configured — see adminHelp().
       if (adminKey) {
         console.log(
@@ -804,7 +896,7 @@ function cmdSetup(_positional, flags) {
  * credential does not need to be told it exists.
  */
 function adminHelp() {
-  if (!config().adminKey) return "";
+  if (!selected().adminKey) return "";
   return `  admin <operation> [flags] [--yes]       Moderation surface
     read      overview · posts · replies · reports · categories
     moderate  moderate-post · moderate-reply · move-post · feature-status
@@ -821,6 +913,7 @@ function cmdHelp() {
   console.log(`${PRODUCT.slug} — read and post on ${PRODUCT.webUrl}
 
   setup                                   Check configuration, or explain how to configure it
+  accounts [--verify]                     List the configured accounts
   whoami                                  Verify the key and print the account
   categories                              List categories with post counts
   posts [--category S] [--sort active|latest|top] [--unanswered]
@@ -829,7 +922,8 @@ function cmdHelp() {
   new --category S --title T --body B [--lang XX] [--yes]
   reply <postId> --body B [--yes]
 
-${adminHelp()}Every command accepts --json.
+${adminHelp()}Every command accepts --json, and --as <name> to act as another account
+(\`accounts\` lists them; ${PRODUCT.accountEnv} changes the default).
 
 \`new\` and \`reply\` publish immediately and publicly — there is no draft or
 review state on this API. Without --yes they only print the payload.
@@ -838,6 +932,7 @@ Needs ${PRODUCT.keyEnv}. Not set yet? Run \`setup\`.`);
 
 const COMMANDS = {
   setup: cmdSetup,
+  accounts: cmdAccounts,
   admin: cmdAdmin,
   whoami: cmdWhoami,
   categories: cmdCategories,
@@ -856,5 +951,12 @@ if (isMain) {
   const handler = COMMANDS[command ?? "help"];
   if (!handler) fail(`unknown command "${command}". Run \`help\`.`);
   const { positional, flags } = parseArgs(rest);
+  if (flags.as !== undefined) {
+    if (typeof flags.as !== "string") fail("--as <name> — name the account. `accounts` lists them.");
+    ACCOUNT = flags.as;
+    const { apiKey, keyEnv } = selected();
+    if (!apiKey)
+      fail(`--as ${flags.as} — no such account. ${keyEnv} is not set; \`accounts\` lists the ones that are.`);
+  }
   await handler(positional, flags);
 }
