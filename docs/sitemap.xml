@@ -11,6 +11,16 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://mr-kelly.github.io/skills/s/buda-community.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/busabase-community.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-ads.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -152,6 +162,11 @@
   </url>
   <url>
     <loc>https://mr-kelly.github.io/skills/s/kelly-financial-services-intel.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/kelly-followups.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -372,6 +387,11 @@
   </url>
   <url>
     <loc>https://mr-kelly.github.io/skills/s/publish-skills.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mr-kelly.github.io/skills/s/sandock-community.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

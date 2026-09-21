@@ -156,6 +156,7 @@
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `kelly-email` | AI 辅助 inbox-zero：跨邮箱 triage 未读邮件、起草回复、准备清理动作，并在本地 UI 里人工批准后执行。 | 处理未读邮件、写 support 回复、批准后归档/标记已读，或用 App-in-Skill UI 管理邮件时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-email.html?lang=zh) |
+| `kelly-followups` | 只做一件事：记下会后要跟进的人，列出今天该跟进哪些，做完打勾，不做成项目管理工具。 | 记录会议待办、查看今天该跟进谁时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-followups.html?lang=zh) |
 | `kelly-jobhunt` | 求职直投台，三个子命令：`profile` 把你的简历提炼成结构化档案并排版出 PDF，`research` 按你指定的招聘渠道找目标公司和公开联系邮箱、为每家写一封定制邮件，`send` 把你自己的 SMTP 凭据存进 Busabase Vault 再发出你批准的信。一家公司只发一封。 | 不想走招聘平台海投、要直接投公司邮箱时使用；也用于用已有材料生成简历 PDF、收集招聘联系邮箱及其来源、发出前审阅和修改邮件、跟踪哪些公司已经投过。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-jobhunt.html?lang=zh) |
 | `kelly-messenger` | 把 WhatsApp、Discord、Slack、Telegram 聚合成一个本地统一收件箱：完整会话记录 + 审批制回复 outbox。 | 在一个地方读所有聊天平台的消息、用一个 composer 写回复、批准后由 agent 经平台连接器发送时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-messenger.html?lang=zh) |
 | `kelly-standup` | 团队晨会看板：被调用时 agent 从聊天渠道收集成员日报，整理成「昨天/今天/阻塞」卡片和团队摘要，给缺交的人起草审批制催交提醒。 | 异步开晨会、一眼看到每个人在干什么、跟踪阻塞和参与率时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-standup.html?lang=zh) |
@@ -226,6 +227,8 @@
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `agent-rules` | 让 Codex、Claude Code、Copilot、Kiro、Cursor、Gemini 等 agent 共享同一套规则和 skills。 | 设置多 agent repo、检查规则漂移、修复 rule/skill symlink 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/agent-rules.html?lang=zh) |
+| `buda-community` | 通过 community.buda.im 自带的 `/api/v1/community` REST API 操作 Buda 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答、管理或发布 Buda 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/buda-community.html?lang=zh) |
+| `busabase-community` | 通过 community.busabase.com 自带的 `/api/v1/community` REST API 操作 Busabase 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答、管理或发布 Busabase 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/busabase-community.html?lang=zh) |
 | `kelly-agent-builder` | 低代码 agent 配置与治理控制台：维护一批 mock agent 配置的配额、审批和归属，未填齐字段前禁止上线。 | 管理 agent 目录、检查配额使用、把草稿激活为上线，或归档某个 agent 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-builder.html?lang=zh) |
 | `kelly-agent-eval` | 评测看板，跑固定测试集对比 baseline 与候选版本 agent，在发版前用打分规则揪出回归问题。 | 排查 agent 版本回归、对比 baseline 与候选质量，或记录发版批准/阻止决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-eval.html?lang=zh) |
 | `kelly-agent-observability` | 本地看板，展示运行在共享 AI 网关背后的一批 LLM agent：调用量、延迟、错误率、成本，以及链路级故障追踪。 | 审阅 agent 集群健康状况，或排查某条失败链路断在哪一步时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html?lang=zh) |
@@ -237,6 +240,7 @@
 | `kelly-local-model-lab` | Busabase 支撑的本地模型实验室：审核训练样本、在 Apple Silicon 上用 MLX-LM 执行 LoRA/QLoRA 微调、锁定评估集对比原始模型与 adapter，并登记通过审核的 adapter。 | 需要以 Busabase 为工作流事实源，在本地训练、评估、晋级或管理语言模型 adapter 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html?lang=zh) |
 | `kelly-pr-review` | 通过 `gh` CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 `gh pr review`。 | review PR、批准/comment/request changes，或批量处理 PR review decision 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html?lang=zh) |
 | `publish-skills` | 把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 `gh skill` 校验、切版本、接 Claude `/plugin` 和 Codex marketplace，并准备 MCP Registry 和精选商店。 | 发布、上架、分发 skills、plugins 或 MCP servers 到 skills.sh、Claude Code、Codex 或 MCP Registry 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/publish-skills.html?lang=zh) |
+| `sandock-community` | 通过 community.sandock.ai 自带的 `/api/v1/community` REST API 操作 Sandock 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答、管理或发布 Sandock 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/sandock-community.html?lang=zh) |
 
 ---
 

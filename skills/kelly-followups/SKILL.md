@@ -2,7 +2,7 @@
 name: kelly-followups
 description: Busabase-backed App-in-Skill for one thing only — record who you need to follow up with after a meeting, see what is due today, mark it done. Use when the user invokes $kelly-followups or /kelly-followups, mentions a followup, follow-up, meeting action item, or wants a lightweight daily reminder of who to check in with, without a full project-management tool.
 metadata:
-  category: productivity
+  category: comms
   tags:
     - risk:gated-write
     - surface:busabase
