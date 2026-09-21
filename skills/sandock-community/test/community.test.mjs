@@ -1,6 +1,9 @@
 // Offline unit tests for the community CLI's pure helpers.
 // No credentials, no network: `node --test skills/sandock-community/test`.
 import assert from "node:assert/strict";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { test } from "node:test";
 import {
   adminOnboarding,
@@ -8,12 +11,15 @@ import {
   buildUrl,
   config,
   displayWidth,
+  envSearchPaths,
   errorMessage,
   i18nText,
+  loadEnvFiles,
   num,
   onboarding,
   pad,
   parseArgs,
+  parseDotenv,
 } from "../scripts/community.mjs";
 
 test("parseArgs keeps positionals after a boolean flag", () => {
@@ -133,4 +139,39 @@ test("buildAdminPayload coerces booleans, numbers and the null feature status", 
 test("buildAdminPayload splits a comma-separated reorder list", () => {
   const { flags } = parseArgs(["--category-ids", "c1, c2 ,c3"]);
   assert.deepEqual(buildAdminPayload("reorder-categories", flags), { categoryIds: ["c1", "c2", "c3"] });
+});
+
+test("parseDotenv reads values, strips quotes and skips comments", () => {
+  const values = parseDotenv(
+    ["# comment", "SANDOCK_API_KEY=plain", 'QUOTED="with spaces"', "SINGLE='x'", "", "novalue"].join("\n"),
+  );
+  assert.deepEqual(values, { SANDOCK_API_KEY: "plain", QUOTED: "with spaces", SINGLE: "x" });
+});
+
+test("envSearchPaths looks in the skill directory before the home directory", () => {
+  const paths = envSearchPaths({ HOME: "/home/someone" });
+  const skillIndex = paths.findIndex((p) => p.endsWith(path.join("sandock-community", ".env")));
+  const homeIndex = paths.findIndex((p) => p === path.join("/home/someone", ".sandock", ".env"));
+  assert.ok(skillIndex >= 0 && homeIndex >= 0, "both candidates are searched");
+  assert.ok(skillIndex < homeIndex, "the skill's own file is nearer");
+  assert.deepEqual(envSearchPaths({ HOME: "/h", SANDOCK_ENV_FILE: "/explicit" })[0], "/explicit");
+});
+
+test("loadEnvFiles fills only what the shell left unset", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "community-env-"));
+  const file = path.join(dir, ".env");
+  writeFileSync(file, "SANDOCK_API_KEY=from-file\nSANDOCK_SPACE_ID=spc_1\n");
+  try {
+    const env = { SANDOCK_ENV_FILE: file, SANDOCK_API_KEY: "already-exported" };
+    const loaded = loadEnvFiles(env);
+    assert.equal(env.SANDOCK_API_KEY, "already-exported", "an exported value wins");
+    assert.equal(env.SANDOCK_SPACE_ID, "spc_1", "a missing one is filled in");
+    assert.deepEqual(loaded[0].keys, ["SANDOCK_SPACE_ID"], "reports only what it applied");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("loadEnvFiles ignores a path that does not exist", () => {
+  assert.deepEqual(loadEnvFiles({ SANDOCK_ENV_FILE: path.join(tmpdir(), "definitely-absent-community-env") }), []);
 });

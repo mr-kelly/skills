@@ -12,6 +12,14 @@
  * Usage:  node scripts/community.mjs <command> [options]
  */
 
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const SKILL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+/** Shown in instructions — a path the user can paste, not an absolute one. */
+const SKILL_ENV_HINT = `skills/${"sandock-community"}/.env`;
+
 /** The only per-product part of this file. Everything below is shared verbatim. */
 const PRODUCT = {
   name: "Sandock",
@@ -39,11 +47,77 @@ const PRODUCT = {
    * and every admin command refuses to run without it.
    */
   adminKeyEnv: "SANDOCK_SYSTEMADMIN_KEY",
+  /** Point this at any file to override the search path entirely. */
+  envFileEnv: "SANDOCK_ENV_FILE",
+  /** Conventional per-product home directory, shared with the other Sandock tooling. */
+  homeDir: ".sandock",
 };
 
 /** Falls back to a bare SYSTEMADMIN_KEY so one shell can drive several forums. */
 const ADMIN_KEY_FALLBACK = "SYSTEMADMIN_KEY";
 const ADMIN_BASE = "/api/v1/system-admin/community";
+
+// ------------------------------------------------------------- env files
+
+/**
+ * Where the keys may live, nearest first. All of these are gitignored or
+ * outside the repository; none of them is ever read into output.
+ *
+ * An already-exported variable always wins, so a one-off
+ * `SANDOCK_API_KEY=… node scripts/community.mjs …` still overrides the file.
+ */
+export function envSearchPaths(env = process.env) {
+  const home = env.HOME || "";
+  return [
+    env[PRODUCT.envFileEnv],
+    path.join(SKILL_DIR, ".env.local"),
+    path.join(SKILL_DIR, ".env"),
+    home && path.join(home, ".config", PRODUCT.slug, ".env"),
+    home && path.join(home, PRODUCT.homeDir, ".env"),
+  ].filter((file) => typeof file === "string" && file.length > 0);
+}
+
+/** A deliberately small dotenv reader — `KEY=value`, `#` comments, optional quotes. */
+export function parseDotenv(raw) {
+  /** @type {Record<string, string>} */
+  const values = {};
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const at = trimmed.indexOf("=");
+    if (at === -1) continue;
+    const key = trimmed.slice(0, at).trim();
+    let value = trimmed.slice(at + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (key) values[key] = value;
+  }
+  return values;
+}
+
+/** Fill in missing variables from the first file that defines them. Returns what it read. */
+export function loadEnvFiles(env = process.env) {
+  const loaded = [];
+  for (const file of envSearchPaths(env)) {
+    let raw;
+    try {
+      raw = readFileSync(file, "utf8");
+    } catch {
+      continue; // absent or unreadable — the next candidate gets a turn
+    }
+    const values = parseDotenv(raw);
+    const applied = [];
+    for (const [key, value] of Object.entries(values)) {
+      if (env[key] === undefined) {
+        env[key] = value;
+        applied.push(key);
+      }
+    }
+    loaded.push({ file, keys: applied });
+  }
+  return loaded;
+}
 
 const SORTS = ["active", "latest", "top"];
 
@@ -101,16 +175,16 @@ export function onboarding(env = process.env) {
     "Set it up:",
     `  1. Sign in at ${webUrl} — the forum uses your ${PRODUCT.name} account.`,
     `  2. Create an API key: ${PRODUCT.keyDocs}`,
-    "  3. Keep it OUTSIDE this repository, in a file only you can read:",
-    `       mkdir -p $(dirname ${PRODUCT.envFile}) && printf '${PRODUCT.keyEnv}=%s\\n' '<key>' >> ${PRODUCT.envFile}`,
-    `       chmod 600 ${PRODUCT.envFile}`,
-    "     Load it into the shell that runs this skill:",
-    `       set -a && . ${PRODUCT.envFile} && set +a`,
-    `     (a one-off \`export ${PRODUCT.keyEnv}=<key>\` works too, but is lost on the next shell)`,
+    "  3. Write it to the skill's own env file — gitignored, read automatically:",
+    `       printf '${PRODUCT.keyEnv}=%s\\n' '<key>' >> ${SKILL_ENV_HINT}`,
+    `       chmod 600 ${SKILL_ENV_HINT}`,
+    `     ${PRODUCT.envFile} works too, and so does a one-off`,
+    `     \`export ${PRODUCT.keyEnv}=<key>\`, which an exported value always wins over.`,
     "  4. Verify: node scripts/community.mjs whoami",
     "",
     `Optional overrides — ${PRODUCT.apiEnv} (default ${apiUrl}), ${PRODUCT.webEnv} (default ${webUrl}).`,
-    "Never paste the key into chat, into this repository, or into command output.",
+    `Files are read nearest-first — ${PRODUCT.envFileEnv}, ${SKILL_ENV_HINT}(.local), ~/.config/${PRODUCT.slug}/.env, ${PRODUCT.envFile}.`,
+    "Never paste the key into chat, into a tracked file, or into command output.",
   ].join("\n");
 }
 
@@ -130,7 +204,8 @@ export function adminOnboarding(env = process.env) {
     "`SYSTEM_ADMIN_API_SECRET_KEY`, it is not per-user, and it can hide, move and",
     "permanently delete anyone's content. Only an operator of the deployment has it.",
     "",
-    `  export ${PRODUCT.adminKeyEnv}=<key>     # or ${ADMIN_KEY_FALLBACK} to cover several forums`,
+    `  printf '${PRODUCT.adminKeyEnv}=%s\\n' '<key>' >> ${SKILL_ENV_HINT}`,
+    `  # or ${ADMIN_KEY_FALLBACK} in any of the same files, to cover several forums at once`,
     "  node scripts/community.mjs admin overview",
     "",
     "Without it every `admin` command stops here. The read and post commands are",
@@ -678,6 +753,9 @@ async function cmdAdmin(positional, flags) {
   output(data, flags, () => renderAdmin(operation, data));
 }
 
+/** Populated at startup so `setup` can say where the values came from. */
+let ENV_SOURCES = [];
+
 function cmdSetup(_positional, flags) {
   const { apiKey, adminKey, apiUrl, webUrl } = config();
   if (!apiKey) {
@@ -697,6 +775,9 @@ function cmdSetup(_positional, flags) {
       );
       console.log(`api    ${apiUrl}`);
       console.log(`forum  ${webUrl}`);
+      for (const source of ENV_SOURCES) {
+        console.log(`read   ${source.file} → ${source.keys.join(", ") || "(nothing new)"}`);
+      }
       console.log("\nRun `whoami` to confirm the key is still valid.");
     },
   );
@@ -745,6 +826,8 @@ const COMMANDS = {
 
 const isMain = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
+  // Before anything reads config(): files fill only what the shell left unset.
+  ENV_SOURCES = loadEnvFiles();
   const [command, ...rest] = process.argv.slice(2);
   const handler = COMMANDS[command ?? "help"];
   if (!handler) fail(`unknown command "${command}". Run \`help\`.`);

@@ -35,9 +35,28 @@ skill and a separate approval.
 ## Setup
 
 ```bash
+cp skills/busabase-community/.env.example skills/busabase-community/.env
+chmod 600 skills/busabase-community/.env      # then fill in BUSABASE_API_KEY
 node skills/busabase-community/scripts/community.mjs setup    # is it configured?
 node skills/busabase-community/scripts/community.mjs whoami   # is the key still valid?
 ```
+
+The skill reads its own env file — no `source`, no exporting. Files are read
+**nearest-first**, and a variable already exported in the shell always wins over
+every file:
+
+| Order | Where |
+| --- | --- |
+| 1 | `$BUSABASE_ENV_FILE`, if set |
+| 2 | `skills/busabase-community/.env.local` |
+| 3 | `skills/busabase-community/.env` |
+| 4 | `~/.config/busabase-community/.env` |
+| 5 | `~/.busabase/.env` — shared with the other Busabase tooling |
+
+`.env` and `.env.local` are gitignored (`skills/*/.env` in the repo's
+`.gitignore`). `.env.example` is the tracked template; it holds no values.
+`setup` prints which files were read and which variable names came from each —
+never a value.
 
 | Variable | Default | What it is |
 | --- | --- | --- |
@@ -45,6 +64,7 @@ node skills/busabase-community/scripts/community.mjs whoami   # is the key still
 | `BUSABASE_SYSTEMADMIN_KEY` | — | Optional. Unlocks `admin`. Falls back to `SYSTEMADMIN_KEY` |
 | `BUSABASE_COMMUNITY_API_URL` | `https://busabase.com` | API origin |
 | `BUSABASE_COMMUNITY_URL` | `https://community.busabase.com` | Forum origin, for links |
+| `BUSABASE_ENV_FILE` | — | Optional. Read this file first, ahead of the defaults |
 
 ### First run — when the key is missing
 
@@ -55,14 +75,15 @@ scraping the public site, and do not go quiet. Walk the user through it:
 1. Run `setup` and show them its output.
 2. Tell them where the key comes from — <https://busabase.com/docs/api-tokens>,
    signed in with the same account they use on the forum.
-3. Tell them to store it outside this repository, e.g. in `~/.busabase/.env`
-   (`chmod 600`), and to load it into the shell that runs this skill:
-   `set -a && . ~/.busabase/.env && set +a`.
+3. Tell them to put it in `skills/busabase-community/.env` (copy
+   `.env.example`, `chmod 600`). It is gitignored and read automatically.
 4. Ask them to say when it is set, then confirm with `whoami` before doing
    anything else.
 
-Never ask the user to paste the key into chat, never write it into this
-repository, and never echo it in output — `setup` prints only its length.
+Never ask the user to paste the key into chat, never write it into a tracked
+file, and never echo it in output — `setup` prints only its length. When you
+write the file **for** them, write only the variable they gave you and never
+print the line back.
 
 **Why the API origin is not the forum origin.** `community.busabase.com/api/v1/*`
 only 307s to `busabase.com`, and `fetch` strips the `Authorization` header across
@@ -174,7 +195,8 @@ node --test skills/busabase-community/test/community.test.mjs
 ```
 
 Offline: they cover argument parsing, URL building, config resolution, error
-envelopes, both onboarding texts, the CJK-aware column padding, and the admin
-payload builder (booleans, numbers, locale text, the `none` feature status).
+envelopes, both onboarding texts, the CJK-aware column padding, the env-file
+search order and precedence, and the admin payload builder (booleans, numbers,
+locale text, the `none` feature status).
 They need no key and make no network calls, so they stay runnable in CI and on
 a fresh clone.
