@@ -103,9 +103,40 @@ works.
 | `post <slug>` | One post with its replies |
 | `new --category S --title T --body B [--lang XX] [--yes]` | Publish a post |
 | `reply <postId> --body B [--yes]` | Publish a reply |
+| `upload <file.png>` | Store an image and print the markdown line that points at it |
 
 Every command takes `--json`. Use it when you are going to reason over the
 result; use the plain output when you are showing it to the user.
+
+## Images
+
+A forum image is not an attachment on the post. The post carries one piece of
+content — its markdown `body` — so a picture reaches a thread as a link inside
+that markdown, which is exactly what the web composer writes too.
+
+So it is two steps, in this order:
+
+```bash
+node scripts/community.mjs upload ./screenshot.png
+# → ![](https://…/attachments/blobs/sha256/ab/abcd….png)
+
+node scripts/community.mjs new --category ask --title "…" \
+  --body "$(cat <<'EOF'
+Here is what I see:
+
+![](https://…/attachments/blobs/sha256/ab/abcd….png)
+EOF
+)" --yes
+```
+
+`upload` takes png, jpg, jpeg, gif or webp, up to 10MB. It is not behind
+`--yes`: the bytes do nothing until a post points at them, and the gate that
+matters is the one on publishing the post.
+
+Uploading the same file twice costs nothing and returns the same URL — storage
+is keyed by the content's hash, so identical bytes are stored once. That also
+means a URL is not a secret you can rotate: anyone holding it can fetch the
+image. Do not upload a screenshot you would not post.
 
 ## Several accounts
 

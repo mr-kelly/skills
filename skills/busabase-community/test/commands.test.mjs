@@ -6,7 +6,10 @@
 // credential it sends, and what it refuses to do. Those are the answers that
 // matter when the command publishes to a public forum or deletes someone's post.
 import assert from "node:assert/strict";
-import { beforeEach, describe, test } from "node:test";
+import { rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { after, before, beforeEach, describe, test } from "node:test";
 import { CommunityCliError, run } from "../scripts/community.mjs";
 
 /** A fetch that records every call and replies with whatever you queue up. */
@@ -14,11 +17,16 @@ function recorder(responses = []) {
   const calls = [];
   const queue = [...responses];
   const fetchImpl = async (url, init = {}) => {
+    // A presigned PUT carries raw bytes, not JSON — record those as bytes
+    // rather than throwing, so the upload path is testable at all.
+    const isJson = typeof init.body === "string";
     calls.push({
       url: String(url),
       method: init.method ?? "GET",
       auth: init.headers?.authorization,
-      body: init.body ? JSON.parse(init.body) : undefined,
+      contentType: init.headers?.["content-type"],
+      body: isJson ? JSON.parse(init.body) : undefined,
+      bytes: isJson ? undefined : init.body,
     });
     const next = queue.shift() ?? { status: 200, payload: {} };
     return new Response(next.payload === undefined ? "" : JSON.stringify(next.payload), {
@@ -318,5 +326,68 @@ describe("failure modes", () => {
         return true;
       },
     );
+  });
+});
+
+describe("upload", () => {
+  const PNG = path.join(tmpdir(), "community-upload-test.png");
+  const TARGET = {
+    uploadUrl: "https://bucket.example/presigned?sig=abc",
+    storageKey: "attachments/blobs/sha256/ab/abcd.png",
+    publicUrl: "https://cdn.example/attachments/blobs/sha256/ab/abcd.png",
+    expiresIn: 3600,
+    duplicate: false,
+  };
+
+  before(() => writeFileSync(PNG, Buffer.from("pretend png bytes")));
+  after(() => rmSync(PNG, { force: true }));
+
+  test("asks for a target, PUTs the bytes, then confirms", async () => {
+    const { calls, fetchImpl } = recorder([
+      { payload: TARGET },
+      { payload: {} },
+      { payload: { publicUrl: TARGET.publicUrl } },
+    ]);
+    await run(["upload", PNG], { env: ENV, fetchImpl });
+
+    assert.equal(calls.length, 3);
+    assert.equal(calls[0].url, "https://busabase.com/api/v1/community/attachments/upload-urls");
+    assert.equal(calls[0].auth, "Bearer user-key");
+    assert.match(calls[0].body.contentHash, /^sha256:[0-9a-f]{64}$/);
+    assert.equal(calls[0].body.mimeType, "image/png");
+
+    assert.equal(calls[1].url, TARGET.uploadUrl);
+    assert.equal(calls[1].method, "PUT");
+    // The target is already signed; sending a second credential is what breaks it.
+    assert.equal(calls[1].auth, undefined);
+    assert.ok(calls[1].bytes, "the bytes themselves must be sent");
+
+    assert.equal(calls[2].url, "https://busabase.com/api/v1/community/attachments/confirmations");
+    assert.equal(calls[2].body.storageKey, TARGET.storageKey);
+  });
+
+  test("prints the markdown line, because that is what goes in a post body", async () => {
+    const { fetchImpl } = recorder([{ payload: TARGET }, { payload: {} }, { payload: {} }]);
+    await run(["upload", PNG], { env: ENV, fetchImpl });
+    assert.match(log.join("\n"), /!\[\]\(https:\/\/cdn\.example\/attachments\/blobs\/sha256\/ab\/abcd\.png\)/);
+  });
+
+  test("stored bytes skip both the upload and the confirmation", async () => {
+    const { calls, fetchImpl } = recorder([{ payload: { ...TARGET, duplicate: true, uploadUrl: "", expiresIn: 0 } }]);
+    await run(["upload", PNG], { env: ENV, fetchImpl });
+    assert.equal(calls.length, 1, "a duplicate has nothing to send and nothing to confirm");
+    assert.match(log.join("\n"), /Already stored/);
+  });
+
+  test("a non-image is refused before anything is read or sent", async () => {
+    const { calls, fetchImpl } = recorder();
+    await assert.rejects(() => run(["upload", "notes.txt"], { env: ENV, fetchImpl }), CommunityCliError);
+    assert.equal(calls.length, 0);
+  });
+
+  test("a failed storage PUT is reported, and nothing is confirmed", async () => {
+    const { calls, fetchImpl } = recorder([{ payload: TARGET }, { status: 403, payload: {} }]);
+    await assert.rejects(() => run(["upload", PNG], { env: ENV, fetchImpl }), CommunityCliError);
+    assert.equal(calls.length, 2, "a confirmation after a failed PUT would register bytes that are not there");
   });
 });
