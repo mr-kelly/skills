@@ -162,20 +162,24 @@ test("assembleSnapshot: recomputes metrics and surfaces a no-snapshot warning on
   assert.equal(withData.metrics.active_questions, 1);
 });
 
-test("demoSnapshot: exact worked example ported verbatim from the retired app/server/demo.ts", () => {
+test("demoSnapshot: exact worked example ported from the retired app/server/demo.ts", () => {
   const en = demoSnapshot("en");
   assert.equal(en.source, "kelly-homework-coach-demo");
   assert.equal(en.profile.display_name, "Mia");
-  assert.equal(en.questions.length, 3);
+  // 4/3/2/5, not the retired demo's 3/3/2/4: q-area-blurred + rv-area-blurred
+  // were added so the queue contains a record that must NOT be approved. A
+  // fixture in which every row is approvable certifies nothing about the
+  // review surface, and a recording of it shows a person clicking Approve.
+  assert.equal(en.questions.length, 4);
   assert.equal(en.mistakes.length, 3);
   assert.equal(en.papers.length, 2);
-  assert.equal(en.review_items.length, 4);
+  assert.equal(en.review_items.length, 5);
   // Reverse-engineered against the retired demo.ts: mistakes_total/papers_generated
   // equal array length; active_questions/due_reviews equal the not-done count;
   // mastery_score/questions_analyzed are authored (18 questions analyzed
-  // all-time, even though only 3 are currently visible).
+  // all-time, even though only 4 are currently visible).
   assert.deepEqual(en.metrics, {
-    active_questions: 2,
+    active_questions: 3,
     mistakes_total: 3,
     due_reviews: 2,
     papers_generated: 2,
@@ -184,7 +188,22 @@ test("demoSnapshot: exact worked example ported verbatim from the retired app/se
   });
   assert.equal(en.questions[0].explanation.steps.length, 3);
 
+  const blurred = en.questions.find((question) => question.question_id === "q-area-blurred");
+  assert.equal(blurred.outcome, "uncertain");
+  assert.equal(blurred.correct_answer, "");
+  assert.ok(blurred.confidence < 0.5, "the low read confidence is the evidence a reviewer acts on");
+
+  // The zh bundle is Simplified, mainland wording. It was Hong Kong
+  // Traditional while resolveLanguage() routed every zh-* tag — including
+  // zh-CN — to it.
   const zh = demoSnapshot("zh");
   assert.equal(zh.profile.display_name, "晴晴");
-  assert.equal(zh.questions[0].title, "763 - 428 退位減法");
+  assert.equal(zh.profile.language, "zh-CN");
+  assert.equal(zh.questions[0].title, "763 - 428 退位减法");
+  assert.equal(zh.questions[0].grade, "四年级");
+  const traditional =
+    /[學數錯試審複習題講練畫圖較個並計過檢驗還們麼樣長開頭關於後級單顯減業紙導語門週綜聽釋對準確識換記變離欄]/;
+  for (const value of JSON.stringify(zh).split('"')) {
+    assert.doesNotMatch(value, traditional, `Traditional character left in the zh bundle: ${value}`);
+  }
 });

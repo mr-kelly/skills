@@ -6,15 +6,17 @@ For layout mechanics, mobile CSS, sidebar drawer, scrim, and panel icon implemen
 
 ## Product Taste
 
-Build a quiet operator tool, not a landing page.
+Build an editorial desk for one workflow, not a landing page and not a generic
+dashboard. Composed, legible across a room, specific to the work: an eyebrow, a
+serif headline that says what the operator has to decide, a hairline metric
+band, then the queue.
 
-Good App-in-Skill surfaces feel like a small cockpit for one workflow: dense but calm, specific to
-the work, neutral surfaces, restrained accent, transparent icon buttons, clear workflow state.
-
-`mobile-shell-layout.md` owns the concrete standard — the token scale (color, type, radius,
-shadow), the card composition rules, and the `Do Not` list of the specific patterns that make a
-generated app read as busy. Follow it rather than re-deriving a palette per app; that is what keeps
-a set of sibling skills looking like one product.
+`editorial-visual-system.md` owns the concrete standard — the type scale, the
+six colour families, the three layout registers, dark mode, the magazine
+vocabulary, the camera-ready rules, and the `Do Not` list. `mobile-shell-layout.md`
+owns the shell mechanics that carry them. Follow both rather than re-deriving a
+palette per app; that is what keeps 179 sibling skills looking like one product
+instead of 179 unrelated tools.
 
 ## Human Attention Panel
 
@@ -56,28 +58,37 @@ Show categories and risks as row/detail badges, not sidebar navigation.
 
 Add hover tooltips for icon buttons, workflow filters, and action buttons.
 
-## Accent Color System
+## Style: Family, Register, Accent
 
-Support an Apple/macOS-like accent color system for operator apps unless the app is truly read-only or visually branded. Keep it as a system accent, not a full skin: selected rows, active tabs, focus rings, links, primary workflow buttons, badges, and human-attention highlights should read from CSS variables while the app stays neutral.
+The operator picks the look; the app picks the defaults. Three controls in
+`Help & Settings` › `Style`, in this order:
 
-Use separate tokens for display color, accessible button color, soft tints, borders, focus rings, text, and contrast. A good baseline token set is:
+1. **Colour family** (`data-theme`) — seven compact swatches with a selected
+   ring: `ink-paper` (default), `rose-ochre`, `mauve-plum`, `coral-amber`,
+   `sage-clay`, `ink-blush`, `graphite`. Each swatch shows the family's paper
+   over its accent, not a bare circle of accent — the paper is most of what the
+   operator will be looking at.
+2. **Layout register** (`data-editorial`) — offer it only when more than one
+   register genuinely fits the data: a briefing app can be `desk` or `spread`;
+   a bulk review queue is `desk`, full stop. A control whose other option is
+   wrong is not a choice.
+3. **Accent** — only for an app that wants a per-operator tint inside a family.
+   Most apps should skip this entirely. The family already carries an accent
+   that was chosen against its own paper, and a free accent picker on top of a
+   warm family is how an app ends up with a blue button on cream.
 
-```css
-:root {
-  --accent: #007aff;
-  --accent-strong: #0057b8;
-  --accent-soft: #eaf3ff;
-  --accent-wash: #f5f9ff;
-  --accent-line: #b8d7ff;
-  --accent-focus: rgba(0, 122, 255, 0.28);
-  --accent-text: #064f9e;
-  --accent-contrast: #ffffff;
-}
-```
+All three are `<html>` attributes, so switching one re-themes the app with no
+re-render. Persist the operator's choice in their Busabase preferences when it
+should follow them across devices; keep in-memory state only for a disposable
+preview.
 
-Start from Apple-style Blue, Purple, Pink, Red, Orange, Yellow, Green, and Graphite. Deepen button and text tokens as needed for at least 4.5:1 contrast on primary buttons and selected text.
-
-Put compact circular swatches with a selected ring/check in `Help & Settings`. Persist the selected accent in the operator's Busabase preferences when it should follow the operator; use in-memory state only for a disposable preview. Keep native checkboxes/radios aligned with `accent-color`, and verify the picker wraps cleanly on phone widths without horizontal overflow.
+The accent — whichever way it is set — owns selected rows, active nav, focus
+rings, links, the primary workflow button, and the human-attention count.
+**Nothing else.** A rouge border on a neutral card, a tinted sidebar, a coloured
+page background: each costs the accent its meaning, and together they turn
+"editorial" into "themed". Keep native checkboxes and radios aligned with
+`accent-color: var(--accent)`, and verify the picker wraps cleanly at phone
+widths without horizontal overflow.
 
 ## Detail Actions
 

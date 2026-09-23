@@ -1,32 +1,14 @@
-:root {
-  --bg: #f6f7fb;
-  --panel: #ffffff;
-  --panel-soft: #f9fafc;
-  --ink: #1c2430;
-  --muted: #687386;
-  --muted-2: #8a94a6;
-  --line: #e2e6ee;
-  --line-strong: #cfd6e2;
-  --accent: #1473e6;
-  --accent-strong: #0b55b8;
-  --accent-soft: #e8f1ff;
-  --accent-wash: #f4f8ff;
-  --accent-line: #b9d5ff;
-  --accent-focus: rgba(20, 115, 230, 0.24);
-  --accent-text: #074d9f;
-  --accent-contrast: #ffffff;
-  --ok: #2d8659;
-  --ok-soft: #e8f6ef;
-  --warn: #b35a1f;
-  --warn-soft: #fff0e5;
-  --bad: #ba3648;
-  --bad-soft: #ffe9ee;
-  --child: #13a398;
-  --paper: #8b5cf6;
-  --shadow: 0 16px 40px rgba(29, 39, 57, 0.08);
-  color-scheme: light dark;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
+/*
+ * Kelly Homework Coach — app-owned layout over the editorial theme.
+ *
+ * This file used to open with a ~25-declaration `:root` palette (#f6f7fb,
+ * #1473e6, --ok/--warn/--bad/--child/--paper). Every one of those outranked
+ * base-ui's tokens, so the app was hardcoded light-mode blue no matter what
+ * theme loaded underneath it. They are all gone: colour, type size, radius,
+ * and duration now come from `styles/editorial.css` only, which is what lets
+ * the Style tab switch families and what makes dark mode work at all.
+ * `scripts/check.mjs` fails the build if a raw one comes back.
+ */
 
 * {
   box-sizing: border-box;
@@ -38,8 +20,11 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--canvas);
   color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
   letter-spacing: 0;
 }
 
@@ -51,11 +36,12 @@ textarea {
 }
 
 button {
-  border: 1px solid var(--line);
+  border: var(--hairline) solid var(--line);
   border-radius: var(--radius-sm);
-  background: var(--panel);
+  background: var(--surface);
   color: var(--ink);
   cursor: pointer;
+  transition: background var(--ease), border-color var(--ease), box-shadow var(--ease);
 }
 
 button:hover,
@@ -71,48 +57,86 @@ textarea:disabled {
   opacity: 0.62;
 }
 
+/* ── Editorial vocabulary ─────────────────────────────────────────────────
+ * Eyebrow, headline, lede, rule, metric band. base-ui already drops the
+ * uppercase/tracking from .eyebrow under :lang(zh|ja|ko), which is why
+ * app.js keeps <html lang> in step with the active language. */
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--eyebrow-size);
+  font-weight: 620;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--display-size);
+  font-weight: 500;
+  line-height: var(--display-leading);
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: var(--lede-size);
+  line-height: var(--leading-snug);
+}
+
 .app-shell {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 284px minmax(0, 1fr);
   height: 100dvh;
   min-width: 0;
 }
 
+/* ── Sidebar ───────────────────────────────────────────────────────────── */
+
 .sidebar {
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-  gap: 14px;
+  gap: 18px;
   min-width: 0;
-  border-right: 1px solid var(--line);
-  background: var(--surface-blur);
-  padding: 14px;
+  border-right: var(--hairline) solid var(--line);
+  background: var(--canvas-tint);
+  padding: 18px 16px;
 }
 
 .brand {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 32px;
+  grid-template-columns: 32px minmax(0, 1fr) 32px;
   align-items: center;
   gap: 10px;
+  border-bottom: var(--rule-heavy) solid var(--rule-strong);
+  padding-bottom: 14px;
 }
 
 .brand-icon {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   place-items: center;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: var(--text-xs);
-  font-weight: 800;
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
 }
 
 .brand-title {
   overflow: hidden;
   color: var(--ink);
   font-size: var(--text-md);
-  font-weight: 760;
+  font-weight: 680;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -135,7 +159,7 @@ textarea:disabled {
   padding: 0;
   border-color: transparent;
   background: transparent;
-  color: var(--accent);
+  color: var(--ink-soft);
   box-shadow: none;
 }
 
@@ -153,7 +177,7 @@ textarea:disabled {
   width: 17px;
   height: 15px;
   border: 1.5px solid currentColor;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
 }
 
 .panel-icon::before {
@@ -167,47 +191,63 @@ textarea:disabled {
   opacity: 0.5;
 }
 
+/* The attention block is the one place the accent is spent in the sidebar.
+ * A rule-divided band, not four bordered cards -- same reasoning as the
+ * metric band: four boxes inside a 284px column is all border and no number. */
 .human-work {
   display: grid;
   gap: 10px;
-  border: 1px solid var(--accent-line);
-  border-radius: var(--radius-sm);
-  background: var(--accent-wash);
-  padding: 12px;
 }
 
 .human-work strong {
-  font-size: var(--text-base);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
 
 .attention-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  border-block: var(--rule-weight) solid var(--rule);
 }
 
 .attention-metric {
   min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
-  padding: 8px;
+  padding: 10px 12px;
+}
+
+.attention-metric:nth-child(2n) {
+  border-inline-start: var(--hairline) solid var(--line);
+}
+
+.attention-metric:nth-child(n + 3) {
+  border-block-start: var(--hairline) solid var(--line);
 }
 
 .attention-metric b {
   display: block;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-tight);
+}
+
+/* The number that demands action is the only one that carries the accent. */
+.attention-metric.is-live b {
   color: var(--accent-text);
-  font-size: var(--text-lg);
 }
 
 .attention-metric span {
   color: var(--muted);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
 }
 
 .nav {
   display: grid;
-  gap: 6px;
+  gap: 2px;
 }
 
 .nav button,
@@ -216,37 +256,55 @@ textarea:disabled {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   width: 100%;
-  padding: 9px 10px;
+  padding: 8px 10px;
   border-color: transparent;
+  border-radius: var(--radius-xs);
   background: transparent;
+  color: var(--ink-soft);
+  font-size: var(--text-base);
   text-align: left;
+}
+
+.nav button:hover,
+.filter button:hover {
+  border-color: transparent;
+  background: var(--surface-hover);
+  box-shadow: none;
 }
 
 .nav button.active,
 .filter button.active {
-  border-color: var(--accent-line);
+  border-color: transparent;
   background: var(--accent-soft);
+  box-shadow: inset 2px 0 0 var(--accent);
   color: var(--accent-text);
-  font-weight: 700;
+  font-weight: 640;
 }
 
 .nav small,
 .filter small {
   color: var(--muted);
+  font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
 }
 
 .filter {
   display: grid;
   align-content: start;
-  gap: 5px;
+  gap: 2px;
   min-height: 0;
+  border-top: var(--rule-weight) solid var(--rule);
+  padding-top: 12px;
 }
 
 .sidebar-footer {
   display: grid;
   gap: 8px;
+  border-top: var(--rule-weight) solid var(--rule);
+  padding-top: 12px;
 }
+
+/* ── Main + list panel ─────────────────────────────────────────────────── */
 
 .main {
   display: grid;
@@ -261,7 +319,7 @@ textarea:disabled {
 
 .content {
   display: grid;
-  grid-template-columns: minmax(360px, 39%) minmax(0, 1fr);
+  grid-template-columns: minmax(380px, 40%) minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
 }
@@ -271,11 +329,11 @@ textarea:disabled {
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  background: var(--panel);
+  background: var(--surface);
 }
 
 .list-panel {
-  border-right: 1px solid var(--line);
+  border-right: var(--hairline) solid var(--line);
 }
 
 .load-more {
@@ -292,40 +350,62 @@ textarea:disabled {
   top: 0;
   z-index: 2;
   display: grid;
-  gap: 10px;
-  border-bottom: 1px solid var(--line);
+  gap: 8px;
+  border-bottom: var(--rule-heavy) solid var(--rule-strong);
   background: var(--surface-blur);
-  padding: 16px;
+  padding: var(--page-pad) var(--page-pad) 16px;
   backdrop-filter: blur(12px);
-}
-
-.panel-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.panel-title h1,
-.panel-title h2 {
-  margin: 0;
-  font-size: var(--text-lg);
-  line-height: 1.2;
-}
-
-.panel-title p {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: var(--text-sm);
 }
 
 .search {
   width: 100%;
   min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel-soft);
+  margin-top: 4px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-xs);
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-size: var(--text-base);
   padding: 9px 10px;
+}
+
+.search:focus-visible {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-focus);
+  outline: 0;
+}
+
+/* Three cells, fixed columns, hairline-divided -- never auto-fit, whose
+ * height is a function of how many metrics the app declares. Due reviews
+ * deliberately absent: it already sits in the sidebar attention block, and
+ * a band that restates the sidebar is a second navigation you cannot click. */
+.metric-band {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: var(--rule-weight) solid var(--rule);
+}
+
+.metric-band > * + * {
+  border-inline-start: var(--hairline) solid var(--line);
+}
+
+.metric {
+  min-width: 0;
+  padding: 14px var(--page-pad);
+}
+
+.metric-value {
+  display: block;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-tight);
+}
+
+.metric-label {
+  color: var(--muted);
+  font-size: var(--text-sm);
 }
 
 .row-list {
@@ -334,20 +414,41 @@ textarea:disabled {
 
 .row {
   display: grid;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
   border: 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: var(--hairline) solid var(--line);
   border-radius: 0;
   background: transparent;
-  padding: 14px 16px;
+  padding: 14px var(--page-pad);
   text-align: left;
+  /* --ease-state, not --ease: this is the transition a viewer has to SEE
+   * when a decision moves a row between queues. 130ms is four frames. */
+  transition: background var(--ease-state), box-shadow var(--ease-state);
 }
 
-.row:hover,
+.row:hover {
+  background: var(--surface-hover);
+  box-shadow: none;
+}
+
 .row.active {
   background: var(--accent-wash);
   box-shadow: inset 3px 0 0 var(--accent);
+}
+
+/* One-shot confirmation highlight, played once after a decision is recorded
+ * and before the row changes queue. Without it the most important moment in
+ * a demo -- the approval landing -- happens between two frames. */
+@keyframes decision-flash {
+  from {
+    background: var(--accent-soft);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+}
+
+.row.is-decided {
+  animation: decision-flash var(--ease-flash);
 }
 
 .row-top {
@@ -361,17 +462,23 @@ textarea:disabled {
 .row-title {
   min-width: 0;
   overflow: hidden;
-  font-weight: 750;
+  color: var(--ink);
+  font-size: var(--text-base);
+  font-weight: 640;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .row-summary {
-  color: var(--muted);
+  color: var(--ink-soft);
   font-size: var(--text-sm);
-  line-height: 1.45;
+  line-height: var(--leading-snug);
 }
 
+/* ── Status pills ──────────────────────────────────────────────────────── */
+
+/* The border is for the camera: a wash alone loses its shape after H.264,
+ * and twenty rows of shapeless tint is a bag of highlighters. */
 .chips {
   display: flex;
   flex-wrap: wrap;
@@ -382,38 +489,50 @@ textarea:disabled {
   display: inline-flex;
   align-items: center;
   min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  border: var(--hairline) solid currentColor;
+  border-radius: var(--radius-pill);
   background: var(--surface-soft);
   color: var(--muted);
   font-size: var(--text-xs);
+  font-weight: 560;
+  letter-spacing: var(--tracking-wide);
   line-height: 1;
-  padding: 5px 7px;
+  padding: 5px 9px;
+  text-transform: uppercase;
+}
+
+.chip:lang(zh) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.chip.action {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .chip.ok {
-  border-color: color-mix(in srgb, var(--positive) 34%, var(--line));
-  background: var(--ok-soft);
-  color: var(--ok);
+  background: var(--positive-soft);
+  color: var(--positive-text);
 }
 
 .chip.warn {
-  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
-  background: var(--warn-soft);
-  color: var(--warn);
+  background: var(--warning-soft);
+  color: var(--warning-text);
 }
 
 .chip.bad {
-  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
-  background: var(--bad-soft);
-  color: var(--bad);
+  background: var(--danger-soft);
+  color: var(--danger-text);
 }
 
 .chip.accent {
-  border-color: var(--accent-line);
   background: var(--accent-soft);
   color: var(--accent-text);
 }
+
+/* ── Detail panel ──────────────────────────────────────────────────────── */
 
 .detail-panel {
   display: grid;
@@ -423,7 +542,7 @@ textarea:disabled {
 .detail-scroll {
   min-width: 0;
   overflow: auto;
-  padding: 18px;
+  padding: var(--page-pad);
 }
 
 .detail-actions-top {
@@ -432,18 +551,25 @@ textarea:disabled {
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: var(--hairline) solid var(--line);
   background: var(--surface-blur);
-  padding: 12px 18px;
+  padding: 12px var(--page-pad);
   backdrop-filter: blur(12px);
+}
+
+.decision-state {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-size: var(--text-sm);
 }
 
 .primary {
   border-color: var(--accent-strong);
   background: var(--accent-strong);
   color: var(--accent-contrast);
-  font-weight: 750;
+  font-weight: 620;
 }
 
 .primary:hover,
@@ -453,29 +579,43 @@ textarea:disabled {
 }
 
 .danger {
-  border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
-  background: var(--bad-soft);
-  color: var(--bad);
+  border-color: var(--danger-soft);
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+.danger:hover,
+.danger:focus-visible {
+  border-color: var(--danger);
 }
 
 .plain {
   border-color: var(--line);
-  background: var(--panel);
+  background: var(--surface);
 }
 
 .hero-answer {
   display: grid;
   gap: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-soft) 100%);
-  padding: 16px;
+  border-bottom: var(--rule-weight) solid var(--rule);
+  padding-bottom: var(--section-gap);
 }
 
 .question-title {
   margin: 0;
-  font-size: var(--text-2xl);
-  line-height: 1.2;
+  font-family: var(--font-display);
+  font-size: var(--display-size);
+  font-weight: 500;
+  line-height: var(--display-leading);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
+.hero-answer > p {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--ink-soft);
+  font-size: var(--text-md);
 }
 
 .answer-grid {
@@ -486,10 +626,10 @@ textarea:disabled {
 
 .answer-box {
   min-width: 0;
-  border: 1px solid var(--line);
+  border: var(--hairline) solid var(--line);
   border-radius: var(--radius-sm);
-  background: var(--panel-soft);
-  padding: 12px;
+  background: var(--surface-soft);
+  padding: 12px 14px;
 }
 
 .answer-box span {
@@ -497,43 +637,71 @@ textarea:disabled {
   margin-bottom: 6px;
   color: var(--muted);
   font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
+}
+
+.answer-box span:lang(zh) {
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .answer-box b {
   overflow-wrap: anywhere;
+  font-family: var(--font-display);
   font-size: var(--text-xl);
+  font-weight: 500;
+}
+
+.answer-box p {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+}
+
+.answer-box.is-flagged {
+  border-color: var(--danger);
+  background: var(--danger-soft);
 }
 
 .section {
   display: grid;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: var(--section-gap);
 }
 
 .section h3 {
   margin: 0;
-  color: var(--accent);
-  font-size: var(--text-md);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
 
+.section h3:lang(zh) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Rules between regions, not a border around every list item. */
 .step-list,
 .info-list {
   display: grid;
-  gap: 8px;
+  gap: 0;
   margin: 0;
   padding: 0;
+  border-top: var(--hairline) solid var(--line);
   list-style: none;
 }
 
 .step-list li,
 .info-list li,
 .paper-item {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
-  padding: 10px 12px;
-  line-height: 1.45;
+  border-bottom: var(--hairline) solid var(--line);
+  padding: 11px 2px;
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
 }
 
 .step-list li {
@@ -547,51 +715,67 @@ textarea:disabled {
   width: 24px;
   height: 24px;
   place-items: center;
-  border-radius: 999px;
-  background: var(--surface-soft);
-  color: var(--positive);
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink-soft);
   font-size: var(--text-sm);
-  font-weight: 800;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
-.metric-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  padding: 14px 16px 0;
-}
-
-.metric {
-  min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel-soft);
-  padding: 12px;
-}
-
-.metric b {
-  display: block;
-  color: var(--ink);
-  font-size: var(--text-2xl);
-}
-
-.metric span {
-  color: var(--muted);
-  font-size: var(--text-xs);
-}
+/* ── Photo desk ────────────────────────────────────────────────────────── */
 
 .photo-box,
 .paper-builder {
   display: grid;
   gap: 10px;
-  border: 1px dashed color-mix(in srgb, var(--accent) 34%, var(--line));
-  border-radius: var(--radius-sm);
-  background: var(--surface-soft);
-  padding: 14px;
+  border-bottom: var(--rule-weight) solid var(--rule);
+  padding: 14px var(--page-pad);
 }
 
-.photo-box input {
-  width: 100%;
+/* The native file input renders "Choose File / No file chosen" in the
+ * browser's own chrome -- a different type stack, a different radius, and
+ * an English string that never localizes. The input stays (it is what makes
+ * the picker local-only) and the label carries the look. */
+.photo-picker input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.photo-actions .primary {
+  margin-inline-start: auto;
+}
+
+.photo-picker {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: 8px;
+  border: var(--hairline) dashed var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: var(--text-base);
+  padding: 9px 12px;
+}
+
+.photo-picker:hover,
+.photo-picker:focus-within {
+  border-color: var(--accent-line);
+  color: var(--accent-text);
 }
 
 .builder-grid {
@@ -608,7 +792,8 @@ textarea:disabled {
 .field label {
   color: var(--muted);
   font-size: var(--text-xs);
-  font-weight: 700;
+  font-weight: 620;
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
 }
 
@@ -616,14 +801,24 @@ textarea:disabled {
 .field select,
 .field textarea {
   min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
-  padding: 9px 10px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  padding: 10px 12px;
+}
+
+.field textarea:focus-visible,
+.field input:focus-visible {
+  border-color: var(--accent-line);
+  box-shadow: 0 0 0 3px var(--accent-focus);
+  outline: 0;
 }
 
 .field textarea {
-  min-height: 90px;
+  min-height: 92px;
   resize: vertical;
 }
 
@@ -636,8 +831,10 @@ textarea:disabled {
 .note {
   color: var(--muted);
   font-size: var(--text-sm);
-  line-height: 1.45;
+  line-height: var(--leading-snug);
 }
+
+/* ── Modal, settings, setup ────────────────────────────────────────────── */
 
 .modal-backdrop {
   position: fixed;
@@ -645,7 +842,7 @@ textarea:disabled {
   z-index: 50;
   display: grid;
   place-items: center;
-  background: rgba(17, 24, 39, 0.28);
+  background: var(--scrim);
   padding: 24px;
 }
 
@@ -655,10 +852,10 @@ textarea:disabled {
   width: min(760px, 100%);
   max-height: min(760px, calc(100dvh - 48px));
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
-  box-shadow: var(--shadow);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-modal);
 }
 
 .modal-head {
@@ -666,55 +863,98 @@ textarea:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid var(--line);
-  padding: 14px 16px;
+  border-bottom: var(--rule-heavy) solid var(--rule-strong);
+  padding: 16px var(--page-pad);
 }
 
 .modal-head h2 {
   margin: 0;
-  font-size: var(--text-lg);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 500;
+  letter-spacing: var(--tracking-display);
 }
 
 .modal-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  border-bottom: 1px solid var(--line);
-  padding: 10px 16px;
+  border-bottom: var(--hairline) solid var(--line);
+  padding: 10px var(--page-pad);
+}
+
+.modal-tabs button {
+  font-size: var(--text-base);
 }
 
 .modal-tabs button.active {
-  border-color: var(--accent-line);
+  border-color: transparent;
   background: var(--accent-soft);
   color: var(--accent-text);
+  font-weight: 620;
 }
 
 .modal-body {
   min-width: 0;
   overflow: auto;
-  padding: 16px;
+  padding: var(--page-pad);
 }
 
 .settings-card {
   display: grid;
-  gap: 8px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel-soft);
-  padding: 12px;
+  gap: 2px;
+  border-top: var(--hairline) solid var(--line);
 }
 
 .settings-row {
   display: grid;
-  grid-template-columns: 170px minmax(0, 1fr);
+  grid-template-columns: 180px minmax(0, 1fr);
   gap: 10px;
   min-width: 0;
-  padding: 6px 0;
+  border-bottom: var(--hairline) solid var(--line);
+  padding: 11px 2px;
+  font-size: var(--text-base);
+}
+
+.settings-row strong {
+  color: var(--muted);
+  font-weight: 560;
 }
 
 .settings-row code,
 .settings-row span {
   overflow-wrap: anywhere;
+}
+
+/* Style tab: the family and register the operator can change. Each swatch
+ * paints itself from the family it names, so the grid is the palette. */
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.style-swatch {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--canvas);
+  color: var(--ink);
+  font-size: var(--text-base);
+  text-align: left;
+}
+
+.style-swatch.active {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.style-swatch small {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
 }
 
 .setup {
@@ -723,23 +963,26 @@ textarea:disabled {
   place-items: center;
   overflow: auto;
   padding: 24px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(246, 247, 251, 0.96)), var(--bg);
+  background: var(--canvas);
 }
 
 .setup-panel {
   display: grid;
   gap: 18px;
   width: min(940px, 100%);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--panel);
-  padding: 22px;
-  box-shadow: var(--shadow);
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 26px;
+  box-shadow: var(--shadow-card);
 }
 
 .setup-panel h1 {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--text-2xl);
+  font-weight: 500;
+  letter-spacing: var(--tracking-display);
 }
 
 .provider-grid {
@@ -752,9 +995,9 @@ textarea:disabled {
   display: grid;
   gap: 10px;
   align-content: start;
-  border: 1px solid var(--line);
+  border: var(--hairline) solid var(--line);
   border-radius: var(--radius-sm);
-  background: var(--panel-soft);
+  background: var(--surface-soft);
   padding: 14px;
 }
 
@@ -773,22 +1016,22 @@ textarea:disabled {
 .check-dot {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
-  background: var(--muted-2);
+  border-radius: var(--radius-pill);
+  background: var(--muted);
 }
 
 .check-dot.ok {
-  background: var(--ok);
+  background: var(--positive);
 }
 
 .prompt-box {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  border: 1px solid var(--line);
+  border: var(--hairline) solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface-soft);
   padding: 12px;
-  color: var(--accent);
+  color: var(--ink-soft);
   font-size: var(--text-sm);
 }
 
@@ -825,8 +1068,13 @@ body.sidebar-collapsed .sidebar-footer button {
 }
 
 @media (max-width: 980px) {
-  .metric-grid {
+  .metric-band {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric-band > :nth-child(3) {
+    border-inline-start: 0;
+    border-block-start: var(--hairline) solid var(--line);
   }
 
   .builder-grid,
@@ -857,7 +1105,7 @@ body.sidebar-collapsed .sidebar-footer button {
     align-items: center;
     gap: 8px;
     min-height: 54px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: var(--hairline) solid var(--line);
     background: var(--surface-blur);
     padding: 8px 10px;
     backdrop-filter: blur(12px);
@@ -866,7 +1114,8 @@ body.sidebar-collapsed .sidebar-footer button {
   .mobile-title {
     min-width: 0;
     overflow: hidden;
-    font-weight: 760;
+    font-size: var(--text-base);
+    font-weight: 640;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -879,12 +1128,12 @@ body.sidebar-collapsed .sidebar-footer button {
     height: 100dvh;
     overflow: auto;
     transform: translateX(-100%);
-    transition: transform 0.18s ease;
+    transition: transform var(--ease-state);
   }
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.16);
+    box-shadow: var(--shadow-modal);
   }
 
   .sidebar-scrim {
@@ -892,7 +1141,7 @@ body.sidebar-collapsed .sidebar-footer button {
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.28);
+    background: var(--scrim);
   }
 
   .content {
@@ -925,14 +1174,13 @@ body.sidebar-collapsed .sidebar-footer button {
     top: 0;
   }
 
-  .question-title {
-    font-size: var(--text-xl);
-  }
-
   .answer-grid,
-  .metric-grid,
   .provider-grid {
     grid-template-columns: 1fr;
+  }
+
+  .metric-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .modal-backdrop {

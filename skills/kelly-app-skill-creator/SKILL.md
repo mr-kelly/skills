@@ -69,8 +69,9 @@ than claiming full completion.
 
 ## Reference Map
 
-Read the two UI references completely for every app creation or UI change. Read
-the other selected references completely before acting:
+Read the three UI references completely for every app creation or UI change —
+`editorial-visual-system.md` first, since the other two defer to it for every
+visual token. Read the other selected references completely before acting:
 
 | Need | Reference |
 | --- | --- |
@@ -79,6 +80,7 @@ the other selected references completely before acting:
 | Human verdicts, Agent revision, claims, external execution, rehearsal, recovery | `references/review-and-execution-contract.md` |
 | Product shape selection | `references/app-types.md` |
 | Research/Plan/Action/Retrospective patterns | `references/workflow-patterns.md` |
+| Type, colour families, layout register, dark mode, camera-ready rules | `references/editorial-visual-system.md` |
 | Attention UI, review actions, routing, settings, i18n | `references/ui-workflow-patterns.md` |
 | Desktop and mobile shell implementation | `references/mobile-shell-layout.md` |
 | Large zero-build frontend module splits | `references/frontend-modules.md` |
@@ -281,10 +283,43 @@ token, refresh token, PKCE verifier, or Vault value.
 
 ## Mandatory UI Contract
 
-Build a quiet operator tool, not a landing page or generic dashboard. Apply
-`references/ui-workflow-patterns.md` and
-`references/mobile-shell-layout.md` as hard implementation and acceptance gates.
+Build an editorial desk for one workflow — not a landing page, not a generic
+dashboard. Apply `references/editorial-visual-system.md`,
+`references/ui-workflow-patterns.md`, and `references/mobile-shell-layout.md`
+as hard implementation and acceptance gates.
 
+**Copy `assets/editorial-theme/` — do not re-derive it.** Two files, and every
+generated App gets both:
+
+| Asset | Goes to | Role |
+| --- | --- | --- |
+| `editorial.css` | `app/styles/editorial.css`, loaded **after `base-ui.css`, before app styles** | the editorial profile over the shared base-ui tokens; the only file that knows a colour, font size, radius, or duration |
+| `check-editorial.mjs` | into `scripts/check.mjs` assertions | fails the build when a raw value slips into any other stylesheet |
+
+This is a copied asset for the same reason `runtime-detection/` is: prose did
+not hold. Across the existing fleet, 67% of every declared font size sat in
+8-12.5px, 31 distinct sizes were in use, and not one app defined a size through
+a variable — each had re-derived its own scale from the same paragraph.
+
+- `editorial.css` is a profile over the fleet's shared `scripts/base-ui.css`,
+  not a replacement for it. base-ui keeps owning the shared components; the
+  profile only re-values the tokens they read.
+- Pick one colour family (`data-theme`) and one layout register
+  (`data-editorial`) per app, from the seven and three the asset defines. The
+  default `ink-paper` — warm neutral paper, ink, one restrained indigo, and a
+  near-ink primary button — is the right answer for most desks; the louder
+  families are chosen, not inherited. Do not invent an eighth family in one
+  app's stylesheet; say which is closest and what is wrong with it instead.
+- `data-display="sans"` turns the serif headline off in one attribute when a
+  subject matter makes it feel wrong. The scale and the rules carry the look;
+  the face does not have to.
+- The display serif is display-only — `--text-xl` and above. A CJK serif at body
+  size is harder to read than the sans it replaced, and these apps ship
+  localized copy.
+- Treat the recording as a first-class surface: nothing load-bearing below 15px,
+  state changes the viewer must notice on `--ease-state`, a one-shot
+  `--ease-flash` on a persisted verdict, and no 1px near-white line carrying
+  structure.
 - Put the brand, human-attention summary, workflow navigation, and Help &
   Settings in a fixed desktop sidebar. Collapse it to an icon rail with a panel
   icon; keep the brand icon visible.
@@ -302,9 +337,12 @@ Build a quiet operator tool, not a landing page or generic dashboard. Apply
 - Keep touch targets 36-44px, wrap long values, and prevent page-level horizontal
   overflow. Make Help & Settings a responsive modal and a full-screen panel on
   phones.
-- Verify at approximately 1280x820, 390x844, and 360x740. Exercise sidebar
-  collapse/drawer, scrim, navigation, row selection, detail back, modal tabs,
-  browser history, and overflow before handoff.
+- Verify at approximately 1280x820, **1280x720** (the recording viewport — 100
+  vertical pixels is the difference between three visible rows and a list below
+  the fold), 390x844, and 360x740. Exercise sidebar collapse/drawer, scrim,
+  navigation, row selection, detail back, modal tabs, browser history, and
+  overflow before handoff. Screenshot at least two colour families, one of them
+  dark; a hardcoded colour is invisible until then.
 
 ## Busabase Resource Discipline
 
@@ -516,8 +554,14 @@ Finish only when:
   URL; a local URL is reported only for an explicitly requested local preview;
 - the Kelly desktop sidebar, attention, workflow navigation, list/detail, hash
   routing, and Help & Settings contract is implemented where applicable;
-- 1280px desktop, 390px phone, and 360px narrow-phone workflows pass visual,
-  interaction, and horizontal-overflow checks;
+- `editorial.css` is the app's first stylesheet, `editorialAssertions` is in
+  `scripts/check.mjs` and passes, and the declared `data-theme` /
+  `data-editorial` defaults are stated;
+- the overview and workspace were screenshotted in at least two colour families
+  including one dark, and a 10-second approval clip shows the state change
+  without prior knowledge of what to look for;
+- 1280x820 and 1280x720 desktop, 390px phone, and 360px narrow-phone workflows
+  pass visual, interaction, and horizontal-overflow checks;
 - validation, deployment, and real-data checks required by dependency skills
   pass, and were verified as described in "A Green Suite Is Not An Acceptance".
 

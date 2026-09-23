@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en" data-theme="ink-paper" data-editorial="desk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<title>Editorial theme — reference</title>
+<link rel="stylesheet" href="./editorial.css" />
+<script>
+  // Reference page only: ?theme=mauve-plum&register=spread switches the two
+  // axes without a build step. A real app sets these from its own default
+  // plus the operator's stored Style preference.
+  const q = new URLSearchParams(location.search);
+  if (q.get("theme")) document.documentElement.dataset.theme = q.get("theme");
+  if (q.get("register")) document.documentElement.dataset.editorial = q.get("register");
+  if (q.get("display")) document.documentElement.dataset.display = q.get("display");
+</script>
+<style>
+/* Reference implementation of the magazine vocabulary. Every declaration
+   reads a token; there is no raw colour, size, radius, or duration here. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--accent-soft); }
+
+.app-shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); height: 100vh; }
+
+/* ---- sidebar ---- */
+.sidebar {
+  display: flex; flex-direction: column; gap: var(--space-5);
+  padding: var(--space-4);
+  border-right: var(--rule-weight) solid var(--rule);
+  background: var(--canvas-tint);
+  overflow: auto;
+}
+.brand { display: flex; align-items: center; gap: var(--space-2); }
+.brand-icon {
+  width: 24px; height: 24px; display: grid; place-items: center; flex: 0 0 auto;
+  border: var(--hairline) solid var(--rule); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--ink-soft);
+  font-size: var(--text-xs); font-weight: 700; letter-spacing: var(--tracking-wide); line-height: 1;
+}
+.brand-title { font-size: var(--text-base); font-weight: 650; letter-spacing: -0.01em; }
+.brand-subtitle { font-size: var(--text-xs); color: var(--muted); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+.eyebrow {
+  font-size: var(--eyebrow-size); font-weight: 620; letter-spacing: var(--tracking-wide);
+  text-transform: uppercase; color: var(--muted);
+}
+.attention {
+  padding: var(--space-3); border-radius: var(--radius-md);
+  background: var(--accent-soft); border: var(--hairline) solid var(--accent-line);
+}
+.attention-count {
+  font-family: var(--font-display); font-size: var(--text-2xl);
+  line-height: var(--leading-tight); color: var(--accent-text); font-variant-numeric: tabular-nums;
+}
+.attention-label { font-size: var(--text-sm); color: var(--ink-soft); }
+.filters { display: flex; flex-direction: column; gap: var(--space-1); }
+.filters a {
+  display: flex; justify-content: space-between; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm);
+  color: var(--ink-soft); text-decoration: none; font-size: var(--text-base);
+  transition: background var(--ease), color var(--ease);
+}
+.filters a:hover { background: var(--surface-hover); color: var(--ink); }
+.filters a.is-active { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.filters .count { font-size: var(--text-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+.sidebar-foot { margin-top: auto; font-size: var(--text-sm); color: var(--muted); }
+
+/* ---- main ---- */
+.main { overflow: auto; padding: var(--page-pad); display: flex; flex-direction: column; gap: var(--section-gap); }
+.masthead { border-bottom: var(--rule-heavy) solid var(--rule-strong); padding-bottom: var(--space-4); }
+.headline {
+  margin: var(--space-2) 0 0; font-family: var(--font-display);
+  font-size: var(--display-size); line-height: var(--display-leading);
+  letter-spacing: var(--tracking-display); font-weight: 500; color: var(--ink);
+}
+.lede { margin: var(--space-3) 0 0; max-width: var(--measure); font-size: var(--lede-size); color: var(--ink-soft); }
+
+.metric-band {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-block: var(--rule-weight) solid var(--rule);
+}
+.metric { padding: var(--space-3) var(--space-4); }
+.metric + .metric { border-inline-start: var(--hairline) solid var(--line); }
+.metric-label { font-size: var(--text-sm); color: var(--muted); }
+.metric-value {
+  font-family: var(--font-display); font-size: var(--text-xl); line-height: var(--leading-snug);
+  font-variant-numeric: tabular-nums; color: var(--ink);
+}
+
+/* ---- workspace ---- */
+.workspace {
+  display: grid; grid-template-columns: minmax(360px, 38%) minmax(0, 1fr);
+  border: var(--hairline) solid var(--line); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-card); overflow: hidden; min-height: 380px;
+}
+.list-panel { border-right: var(--hairline) solid var(--line); overflow: auto; }
+.list-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--space-3) var(--space-4); border-bottom: var(--rule-weight) solid var(--rule);
+}
+.row {
+  display: grid; gap: var(--space-1); padding: var(--space-3) var(--space-4);
+  border-bottom: var(--hairline) solid var(--line); cursor: pointer;
+  transition: background var(--ease);
+}
+.row:hover { background: var(--surface-hover); }
+.row.is-selected { background: var(--accent-wash); box-shadow: inset 3px 0 0 var(--accent); }
+.row-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.row-ref { font-size: var(--text-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
+.row-title { font-size: var(--text-base); font-weight: 600; color: var(--ink); }
+.row-sub { font-size: var(--text-sm); color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row.just-decided { animation: flash var(--ease-flash) 1; }
+@keyframes flash { from { background: var(--accent-soft); } to { background: transparent; } }
+
+.pill {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  padding: 2px var(--space-2); border-radius: var(--radius-pill);
+  border: var(--hairline) solid currentColor;
+  font-size: var(--text-xs); font-weight: 620; letter-spacing: var(--tracking-wide); text-transform: uppercase;
+}
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: var(--radius-pill); background: currentColor; }
+.pill.review { color: var(--warning-text); background: var(--warning-soft); }
+.pill.ok { color: var(--positive-text); background: var(--positive-soft); }
+.pill.risk { color: var(--danger-text); background: var(--danger-soft); }
+.pill.note { color: var(--second-text); background: var(--second-soft); }
+
+.detail { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
+.detail-title { font-family: var(--font-display); font-size: var(--text-xl); line-height: var(--leading-snug); margin: var(--space-1) 0 0; font-weight: 500; }
+.detail-meta { font-size: var(--text-sm); color: var(--muted); }
+.detail-body { max-width: var(--measure); color: var(--ink-soft); }
+.quote {
+  margin: 0; padding-left: var(--space-4); border-left: var(--rule-heavy) solid var(--accent);
+  font-family: var(--font-display); font-size: var(--text-lg); line-height: var(--leading-snug); color: var(--ink);
+}
+.actions { display: flex; gap: var(--space-2); flex-wrap: wrap; padding-top: var(--space-3); border-top: var(--rule-weight) solid var(--rule); }
+button {
+  font-family: inherit; font-size: var(--text-base); padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm); border: var(--hairline) solid var(--rule);
+  background: var(--surface); color: var(--ink); cursor: pointer;
+  transition: background var(--ease), border-color var(--ease), color var(--ease);
+}
+button:hover { background: var(--surface-soft); }
+button.primary { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--accent-contrast); font-weight: 600; }
+button.primary:hover { background: var(--accent); border-color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 0 0 6px var(--accent-focus); }
+
+/* ---- gallery register ---- */
+[data-editorial="gallery"] .workspace { display: block; border: 0; background: transparent; box-shadow: none; }
+[data-editorial="gallery"] .list-panel { border: 0; }
+[data-editorial="gallery"] .list-head { border: 0; padding-inline: 0; }
+[data-editorial="gallery"] .rows { display: grid; grid-template-columns: var(--gallery-columns); gap: var(--space-4); }
+[data-editorial="gallery"] .row {
+  border: var(--hairline) solid var(--line); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-card); padding: var(--space-4);
+}
+[data-editorial="gallery"] .row::before {
+  content: ""; display: block; height: 96px; margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) var(--space-3);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0; background: var(--canvas-tint);
+  border-bottom: var(--hairline) solid var(--line);
+}
+[data-editorial="gallery"] .detail { display: none; }
+[data-editorial="gallery"] .row-sub { white-space: normal; }
+
+@media (max-width: 720px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .workspace { grid-template-columns: 1fr; }
+  .detail { display: none; }
+  .metric-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metric:nth-child(3) {
+    grid-column: 1 / -1;
+    border-inline-start: 0;
+    border-top: var(--hairline) solid var(--line);
+  }
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">ID</div>
+      <div>
+        <div class="brand-title">Inbox Desk</div>
+        <div class="brand-subtitle">Review</div>
+      </div>
+    </div>
+    <div class="attention">
+      <div class="attention-count">3</div>
+      <div class="attention-label">need a note or decision</div>
+    </div>
+    <nav class="filters">
+      <div class="eyebrow">Workflow</div>
+      <a href="#" class="is-active">Needs Review <span class="count">3</span></a>
+      <a href="#">Ready for agent <span class="count">5</span></a>
+      <a href="#">Done <span class="count">48</span></a>
+      <a href="#">Blocked <span class="count">1</span></a>
+    </nav>
+    <div class="sidebar-foot">Help &amp; Settings</div>
+  </aside>
+
+  <main class="main">
+    <div class="masthead">
+      <div class="eyebrow">Overview · Tuesday 09:41</div>
+      <h1 class="headline">Three emails need your judgment.</h1>
+      <p class="lede">Two are replies a customer is waiting on, one asks for a refund above the limit the agent is allowed to approve on its own. 其余 12 封已由 Agent 处理完毕，无需你介入。</p>
+    </div>
+
+    <div class="metric-band">
+      <div class="metric"><div class="metric-label">Awaiting you</div><div class="metric-value">3</div></div>
+      <div class="metric"><div class="metric-label">Median wait</div><div class="metric-value">4h 12m</div></div>
+      <div class="metric"><div class="metric-label">Approved this week</div><div class="metric-value">48</div></div>
+    </div>
+
+    <section class="workspace">
+      <div class="list-panel">
+        <div class="list-head"><div class="eyebrow">Needs Review</div><span class="row-ref">3 items</span></div>
+        <div class="rows">
+          <div class="row is-selected">
+            <div class="row-top"><span class="row-title">Refund request over limit</span><span class="pill risk">Risk</span></div>
+            <div class="row-sub">Review #1 · Nora Whitfield · billing@northmill.co</div>
+          </div>
+          <div class="row just-decided">
+            <div class="row-top"><span class="row-title">续费方案询问</span><span class="pill review">Review</span></div>
+            <div class="row-sub">Review #2 · 陈泓宇 · hy.chen@lianyi.cn</div>
+          </div>
+          <div class="row">
+            <div class="row-top"><span class="row-title">Integration question — SSO</span><span class="pill note">Note</span></div>
+            <div class="row-sub">Review #3 · Priya Raman · it@halcyon.io</div>
+          </div>
+          <div class="row">
+            <div class="row-top"><span class="row-title">Renewal confirmed</span><span class="pill ok">Approved</span></div>
+            <div class="row-sub">Review #4 · Dana Osei · finance@brightlane.org</div>
+          </div>
+          <div class="row">
+            <div class="row-top"><span class="row-title">发票抬头更正</span><span class="pill ok">Approved</span></div>
+            <div class="row-sub">Review #5 · 王雪 · xue.wang@ruitai.com</div>
+          </div>
+        </div>
+      </div>
+      <div class="detail">
+        <div>
+          <div class="eyebrow">Review #1 · Refund · Above agent limit</div>
+          <h2 class="detail-title">Refund request over limit</h2>
+          <div class="detail-meta">Nora Whitfield · billing@northmill.co · received 07:02</div>
+        </div>
+        <blockquote class="quote">“We were double-charged for the March seats — could you refund the second invoice?”</blockquote>
+        <p class="detail-body">The agent verified both invoices and found a duplicate charge of $2,480. That is above the $1,000 it may refund on its own, so it prepared the reply and stopped here.</p>
+        <div class="actions">
+          <button class="primary">Approve refund</button>
+          <button>Request changes</button>
+          <button>Block</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

@@ -40,29 +40,36 @@ def test_demo_ui(browser, base_url: str) -> None:
     page = desktop.new_page()
     errors = attach_error_capture(page)
 
-    # The fixed demo dataset (demoSnapshot() in app/app/js/homework-model.js,
-    # ported verbatim from the retired app/server/demo.ts) counts verified
-    # against a throwaway Node probe before writing these assertions:
-    # 3 questions, 3 mistakes, 2 papers, 4 review items. Review status counts
-    # are needs_review=2, changes_requested=1, approved=1, blocked=0, so the
-    # sidebar's "needs a kind decision" tile (needs_review + changes_requested)
-    # reads 3, "ready for agent" (approved) reads 1, blocked reads 0.
+    # The fixed demo dataset (demoSnapshot() in app/app/js/homework-model.js)
+    # counts, verified against a throwaway Node probe before writing these
+    # assertions: 4 questions, 3 mistakes, 2 papers, 5 review items. Review
+    # status counts are needs_review=3, changes_requested=1, approved=1,
+    # blocked=0, so the sidebar's "waiting on you" tile (needs_review +
+    # changes_requested) reads 4, "ready for agent" (approved) reads 1,
+    # blocked reads 0. The 4th question and 5th review are q-area-blurred /
+    # rv-area-blurred: the record that must NOT be approved.
     page.goto(f"{base_url}/?demo=student&lang=en#/student")
     page.wait_for_load_state("networkidle")
     assert page.locator(".brand-title").inner_text() == "Homework Coach"
     assert page.locator(".brand-subtitle").inner_text() == "Student desk + review queue"
-    assert page.locator(".nav button[data-route='student'] small").inner_text() == "3"
+    assert page.locator(".nav button[data-route='student'] small").inner_text() == "4"
     assert page.locator(".nav button[data-route='mistakes'] small").inner_text() == "3"
     assert page.locator(".nav button[data-route='papers'] small").inner_text() == "2"
-    assert page.locator(".nav button[data-route='review'] small").inner_text() == "4"
+    assert page.locator(".nav button[data-route='review'] small").inner_text() == "5"
     attention = page.locator(".attention-metric b")
-    assert attention.nth(0).inner_text() == "3"
+    assert attention.nth(0).inner_text() == "4"
     assert attention.nth(1).inner_text() == "1"
     assert attention.nth(2).inner_text() == "2"
     assert attention.nth(3).inner_text() == "0"
-    assert page.locator(".metric-grid .metric").count() == 4
-    assert page.locator(".row-list .row").count() == 3
+    # Three cells, not four: due_reviews already sits in the sidebar attention
+    # block, and a band that restates the sidebar is a second navigation the
+    # reader cannot click.
+    assert page.locator(".metric-band .metric").count() == 3
+    assert page.locator(".row-list .row").count() == 4
     assert page.locator(".photo-box [data-local-photo]").count() == 1
+    # The editorial vocabulary the recording depends on being legible.
+    assert page.locator(".panel-header .eyebrow").count() == 1
+    assert page.locator(".panel-header .headline").inner_text() == "Mia has 3 questions open."
     assert_no_horizontal_overflow(page)
 
     page.goto(f"{base_url}/?demo=mistakes&lang=en#/mistakes")
@@ -75,12 +82,67 @@ def test_demo_ui(browser, base_url: str) -> None:
 
     page.goto(f"{base_url}/?demo=review&lang=en#/review")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".row-list .row").count() == 4
+    assert page.locator(".row-list .row").count() == 5
     assert page.locator("[data-decision-action='approve']").count() == 1
+    # A proposed action is rendered as a sentence a parent can read. The raw
+    # `add_to_mistake_book` used to render verbatim in the row chip AND in the
+    # detail pane.
+    assert "Add to the mistake notebook" in page.locator(".row-list .row").first.inner_text()
+    assert "add_to_mistake_book" not in page.locator(".app-shell").inner_text()
 
-    page.goto(f"{base_url}/?demo=student&lang=zh#/student")
+    # ?demo= used to swallow every decision ("Demo mode: decision write
+    # skipped"), which made the app's single most important interaction
+    # unreachable in the only mode a screenshot or recording can use.
+    page.goto(f"{base_url}/?demo=review&lang=en#/review/rv-area-blurred")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".brand-title").inner_text() == "作業小教練"
+    blocked_row = page.locator(".row-list .row").nth(4)
+    assert "NEEDS REVIEW" in blocked_row.inner_text()
+    page.locator("[data-decision-action='block']").click()
+    page.wait_for_timeout(200)
+    # One --ease-flash highlight before the row settles into its new queue.
+    assert "is-decided" in (blocked_row.get_attribute("class") or "")
+    page.wait_for_timeout(900)
+    assert "BLOCKED" in blocked_row.inner_text()
+    assert page.locator(".attention-metric b").nth(0).inner_text() == "3"
+    assert page.locator(".attention-metric b").nth(3).inner_text() == "1"
+    # Nothing is persisted: a reload restores the fixture.
+    page.reload()
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".attention-metric b").nth(3).inner_text() == "0"
+    desktop.close()
+
+    # ...but the 20s background refresh must NOT restore it. That poll exists
+    # to pick up what the agent wrote to Busabase since the last paint; in
+    # demo mode the provider hands back the same fixture every time, so the
+    # only thing a quiet refresh can do is discard the decision the operator
+    # just made. Caught by recording the demo and watching the counters snap
+    # back twenty seconds after an approval.
+    clocked = browser.new_context(viewport={"width": 1280, "height": 820})
+    clocked.clock.install()
+    page = clocked.new_page()
+    errors = attach_error_capture(page)
+    page.goto(f"{base_url}/?demo=review&lang=en#/review/rv-area-blurred")
+    page.wait_for_load_state("networkidle")
+    page.locator("[data-decision-action='block']").click()
+    page.wait_for_timeout(200)
+    assert page.locator(".attention-metric b").nth(3).inner_text() == "1"
+    clocked.clock.fast_forward("00:45")
+    page.wait_for_timeout(300)
+    assert page.locator(".attention-metric b").nth(3).inner_text() == "1"
+    assert not errors, errors
+    clocked.close()
+
+    desktop = browser.new_context(viewport={"width": 1280, "height": 820})
+    page = desktop.new_page()
+    errors = attach_error_capture(page)
+
+    # zh-CN is Simplified. It used to serve Hong Kong Traditional, because
+    # resolveLanguage() routes every zh-* tag to the one `zh` bundle.
+    for tag in ("zh", "zh-CN"):
+        page.goto(f"{base_url}/?demo=student&lang={tag}#/student")
+        page.wait_for_load_state("networkidle")
+        assert page.locator(".brand-title").inner_text() == "作业小教练"
+        assert page.locator("html").get_attribute("lang") == "zh-CN"
 
     assert not errors, errors
     desktop.close()

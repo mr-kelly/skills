@@ -48,7 +48,22 @@ Then open the printed URL with one of these demo paths:
 /?demo=review&lang=en#/review
 ```
 
-Use `lang=zh` or `lang=zh-HK` for Chinese screenshots. Demo mode never reads or writes Busabase; demo decisions stay in the browser and are discarded on refresh.
+Use `lang=zh` or `lang=zh-CN` for Chinese — Simplified, mainland wording. Demo mode never reads
+or writes Busabase, but the decisions are real: approve / request changes / block mutate the
+rendered snapshot through the same `statusForAction()` the Busabase provider calls, mirror the new
+status onto the target record, and play one confirmation highlight. A refresh restores the fixture.
+
+The queue deliberately contains one record that should **not** be approved — `rv-area-blurred`,
+where the homework photo hides a side length, the agent assumed `8 cm`, and its own read confidence
+is `0.41`. It is there so the review surface can be shown making a judgement.
+
+## Demo Recording
+
+```text
+docs/demo-recordings/kelly-homework-coach/kelly-homework-coach-demo-zh-CN.mp4
+```
+
+Recipe: `skills/kelly-app-skill-creator/references/demo-recording.md`.
 
 ## How A New Question/Mistake/Paper Enters The System
 

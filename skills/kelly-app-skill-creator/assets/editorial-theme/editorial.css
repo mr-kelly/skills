@@ -1,0 +1,811 @@
+/*
+ * Kelly App-in-Skill — Editorial theme tokens.
+ *
+ * This is the editorial PROFILE over the fleet's shared `scripts/base-ui.css`
+ * — same token names, new values, plus the tokens base-ui has no concept of
+ * (display serif, rule weights, the six families, the layout registers, the
+ * second motion duration). base-ui keeps owning the shared components
+ * (.card, .button, .badge, .eyebrow, .table, .empty-state); this file only
+ * re-values what they read.
+ *
+ * Copy it into the generated app as `app/styles/editorial.css` and load it
+ * AFTER `base-ui.css` and BEFORE every app-owned stylesheet. Order matters
+ * and so does the selector: base-ui declares its dark tokens on an unlayered
+ * `html:root` (0,1,1), so a plain `:root` (0,1,0) would lose to it in dark
+ * mode no matter where it loads — which is why every block below is
+ * `html:root`. Verified by reading computed values with both stylesheets
+ * linked, in both colour schemes.
+ *
+ * It is custom-property declarations only: no components, no layout, so it
+ * never fights an app's own `@layer` order (see `css-modules.md`).
+ *
+ * It defines three independent axes. An app picks a default for each and lets
+ * the operator change the first two in Help & Settings > Style:
+ *
+ *   data-theme      colour family   rose-ochre | mauve-plum | coral-amber
+ *                                   sage-clay | ink-blush | graphite
+ *   data-editorial  layout register desk | spread | gallery
+ *   (dark mode)     automatic, follows prefers-color-scheme
+ *
+ * The rule that makes all of it work: NO RULE ANYWHERE ELSE MAY CONTAIN A RAW
+ * COLOUR, FONT SIZE, RADIUS, OR DURATION. Every one reads a variable from
+ * here. `check-editorial.mjs` fails the build when that slips.
+ */
+
+html:root {
+  color-scheme: light dark;
+
+  /* ---- Type stacks -------------------------------------------------- */
+  /* Display serif carries the magazine voice. It is ONLY ever used at
+   * --text-2xl and above — a CJK serif (Songti/Noto Serif SC) at body size
+   * is materially harder to read on screen and ruins a localized app. */
+  --font-display: ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, Cambria, "Songti SC",
+    "Source Han Serif SC", "Noto Serif SC", serif;
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ---- Type scale ---------------------------------------------------- */
+  /* Body sits at 15px, not 13px. The old scale was tuned for a dense local
+   * tool; these apps are recorded at 1280x720 and the clip is watched at
+   * 720p, where 13px body turns to mush after H.264. Every step below is
+   * legible in that clip. Do not introduce a size between two steps. */
+  --text-xs: 12px; /* eyebrow, badge, pill — always with --tracking-wide */
+  --text-sm: 13px; /* secondary row line, table meta */
+  --text-base: 15px; /* body, row title, form control */
+  --text-md: 16px; /* section lead, detail body */
+  --text-lg: 18px; /* card title, detail heading */
+  --text-xl: 22px; /* metric value, detail subject */
+  --text-2xl: 34px; /* section headline — serif from here up */
+  --text-3xl: 48px; /* exactly one page title per screen */
+
+  --leading-tight: 1.12; /* display sizes only */
+  --leading-snug: 1.35;
+  --leading-body: 1.62; /* magazine body copy is looser than a dashboard's */
+  --tracking-wide: 0.09em; /* eyebrow / kicker / small caps */
+  --tracking-display: -0.017em; /* large serif needs negative tracking */
+  --measure: 68ch; /* long-form copy never runs wider than this */
+
+  /* ---- Spacing ------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+
+  /* ---- Radius -------------------------------------------------------- */
+  /* Paper has corners. Soft, not pill-shaped — a 999px radius on every
+   * control is the single fastest way to read as a consumer toy. */
+  --radius-xs: 4px; /* icon geometry drawn in CSS, not chrome */
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px; /* status pills and avatars ONLY */
+
+  /* ---- Rules and shadow ---------------------------------------------- */
+  /* Three weights of line, because a magazine's structure is carried by its
+   * rules, and because a single 1px near-white hairline is exactly what
+   * video compression deletes. --rule is the workhorse. */
+  --hairline: 1px;
+  --rule-weight: 1.5px;
+  --rule-heavy: 2.5px;
+
+  /* Paper lifts, it does not float. Wide and shallow, never a dark blur. */
+  --shadow-card: 0 1px 2px var(--shadow-tint), 0 8px 24px -16px var(--shadow-tint-deep);
+  --shadow-modal: 0 32px 80px -24px var(--shadow-tint-deep);
+
+  /* ---- Motion -------------------------------------------------------- */
+  /* Two durations, and the difference matters on camera. --ease is for
+   * pointer feedback and must stay quick or the app feels laggy in the
+   * hand. --ease-state is for a change the VIEWER has to notice — a row
+   * moving queue, a verdict landing, a badge flipping — and 130ms of that
+   * is simply invisible in a 30fps clip. */
+  --ease: 130ms cubic-bezier(0.2, 0, 0.2, 1);
+  --ease-state: 280ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-flash: 620ms ease-out; /* one-shot confirmation highlight */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:root {
+    --ease: 1ms linear;
+    --ease-state: 1ms linear;
+    --ease-flash: 1ms linear;
+  }
+}
+
+/* =====================================================================
+ * COLOUR FAMILIES
+ *
+ * Every family below declares the same token names, so a component rule is
+ * written once and re-themes for free. Contrast was checked against the
+ * family's own surface: --ink and --*-text clear 7:1, --accent-strong and
+ * every button fill clear 4.5:1 against --accent-contrast.
+ *
+ * Status washes sit at ~13%, not the 9% a screen-only tool can afford. A 9%
+ * tint survives a screenshot and disappears in a 720p clip; each pill also
+ * carries a matching --*-line border so it keeps its shape after encoding.
+ * ===================================================================== */
+
+/* --- Ink & Paper — warm neutral paper, ink, one restrained indigo. The
+ *     default, and the one that has to sit on a compliance console and a
+ *     beauty-intel desk without arguing with either.
+ *
+ *     Note --accent-strong: it is near-ink, not indigo. A magazine's inside
+ *     pages are black and white plus one spot colour; the primary button here
+ *     is the ink, and the indigo is spent only on selection, links, and focus.
+ *     That is what reads as composed rather than themed. ------------------ */
+html:root,
+html:root[data-theme="ink-paper"] {
+  --canvas: #f9f9f7;
+  --canvas-tint: #f1f1ee;
+  --surface: #ffffff;
+  --surface-soft: #f4f4f1;
+  --surface-hover: #fbfbfa;
+  --surface-blur: rgba(252, 252, 251, 0.94);
+
+  --ink: #16181c;
+  --ink-soft: #40444b;
+  --muted: #787c84;
+
+  --line: #e5e5e1;
+  --rule: #cdcdc7;
+  --rule-strong: #16181c;
+
+  --accent: #3a5a93;
+  --accent-strong: #1b2432;
+  --accent-soft: rgba(58, 90, 147, 0.1);
+  --accent-wash: rgba(58, 90, 147, 0.045);
+  --accent-line: rgba(58, 90, 147, 0.3);
+  --accent-focus: rgba(58, 90, 147, 0.28);
+  --accent-text: #2f4d80;
+  --accent-contrast: #ffffff;
+
+  --second: #8a7a5c;
+  --second-soft: rgba(138, 122, 92, 0.14);
+  --second-text: #6d5f45;
+
+  --positive: #2b6a4c;
+  --positive-soft: rgba(43, 106, 76, 0.13);
+  --positive-text: #22553d;
+  --warning: #85601c;
+  --warning-soft: rgba(133, 96, 28, 0.14);
+  --warning-text: #6a4c16;
+  --danger: #a53328;
+  --danger-soft: rgba(165, 51, 40, 0.12);
+  --danger-text: #8a2b21;
+
+  --scrim: rgba(22, 24, 28, 0.4);
+  --shadow-tint: rgba(30, 32, 38, 0.07);
+  --shadow-tint-deep: rgba(30, 32, 38, 0.22);
+}
+
+/* --- Rose & Ochre — cream paper, ink, rouge, brass. --------------------- */
+html:root[data-theme="rose-ochre"] {
+  --canvas: #fbf7f4;
+  --canvas-tint: #f4ede7;
+  --surface: #ffffff;
+  --surface-soft: #f7f1ec;
+  --surface-hover: #fdfaf8;
+  --surface-blur: rgba(255, 253, 251, 0.94);
+
+  --ink: #1e1a18;
+  --ink-soft: #4a423e;
+  --muted: #857a73;
+
+  --line: #e8ded6;
+  --rule: #d8cabf;
+  --rule-strong: #1e1a18;
+
+  --accent: #b8546b;
+  --accent-strong: #98354f;
+  --accent-soft: rgba(184, 84, 107, 0.11);
+  --accent-wash: rgba(184, 84, 107, 0.05);
+  --accent-line: rgba(184, 84, 107, 0.34);
+  --accent-focus: rgba(184, 84, 107, 0.3);
+  --accent-text: #8e3049;
+  --accent-contrast: #ffffff;
+
+  --second: #b07c3f;
+  --second-soft: rgba(176, 124, 63, 0.14);
+  --second-text: #8a5f28;
+
+  --positive: #2e6b4f;
+  --positive-soft: rgba(46, 107, 79, 0.13);
+  --positive-text: #245741;
+  --warning: #8a5a1e;
+  --warning-soft: rgba(138, 90, 30, 0.14);
+  --warning-text: #6f4716;
+  --danger: #a8342b;
+  --danger-soft: rgba(168, 52, 43, 0.12);
+  --danger-text: #8c2a22;
+
+  --scrim: rgba(30, 26, 24, 0.38);
+  --shadow-tint: rgba(60, 40, 30, 0.07);
+  --shadow-tint-deep: rgba(60, 40, 30, 0.22);
+}
+
+/* --- Mauve & Plum — cool, restrained, Vogue-side of feminine. --------- */
+html:root[data-theme="mauve-plum"] {
+  --canvas: #f8f5f8;
+  --canvas-tint: #efe8f0;
+  --surface: #ffffff;
+  --surface-soft: #f4eef5;
+  --surface-hover: #fcfafc;
+  --surface-blur: rgba(253, 251, 253, 0.94);
+
+  --ink: #1c1820;
+  --ink-soft: #474050;
+  --muted: #827a8c;
+
+  --line: #e6dee9;
+  --rule: #d4c8da;
+  --rule-strong: #1c1820;
+
+  --accent: #7e4a72;
+  --accent-strong: #66375c;
+  --accent-soft: rgba(126, 74, 114, 0.12);
+  --accent-wash: rgba(126, 74, 114, 0.055);
+  --accent-line: rgba(126, 74, 114, 0.34);
+  --accent-focus: rgba(126, 74, 114, 0.3);
+  --accent-text: #6b3a61;
+  --accent-contrast: #ffffff;
+
+  --second: #8a6b3c;
+  --second-soft: rgba(138, 107, 60, 0.14);
+  --second-text: #6d532d;
+
+  --positive: #2f6350;
+  --positive-soft: rgba(47, 99, 80, 0.13);
+  --positive-text: #255042;
+  --warning: #85591f;
+  --warning-soft: rgba(133, 89, 31, 0.14);
+  --warning-text: #6b4718;
+  --danger: #a33a38;
+  --danger-soft: rgba(163, 58, 56, 0.12);
+  --danger-text: #872f2d;
+
+  --scrim: rgba(28, 24, 32, 0.4);
+  --shadow-tint: rgba(45, 35, 55, 0.07);
+  --shadow-tint-deep: rgba(45, 35, 55, 0.24);
+}
+
+/* --- Coral & Amber — the brightest family; reads well on camera. ------ */
+html:root[data-theme="coral-amber"] {
+  --canvas: #fff9f5;
+  --canvas-tint: #fceee5;
+  --surface: #ffffff;
+  --surface-soft: #fdf2eb;
+  --surface-hover: #fffcfa;
+  --surface-blur: rgba(255, 252, 249, 0.94);
+
+  --ink: #22190f;
+  --ink-soft: #4e4132;
+  --muted: #8b7a67;
+
+  --line: #f0e1d5;
+  --rule: #e0cbb8;
+  --rule-strong: #22190f;
+
+  --accent: #d2503c;
+  --accent-strong: #ae3a29;
+  --accent-soft: rgba(210, 80, 60, 0.12);
+  --accent-wash: rgba(210, 80, 60, 0.055);
+  --accent-line: rgba(210, 80, 60, 0.34);
+  --accent-focus: rgba(210, 80, 60, 0.3);
+  --accent-text: #a33524;
+  --accent-contrast: #ffffff;
+
+  --second: #b5791b;
+  --second-soft: rgba(181, 121, 27, 0.15);
+  --second-text: #8d5d13;
+
+  --positive: #2c6b4a;
+  --positive-soft: rgba(44, 107, 74, 0.13);
+  --positive-text: #23573c;
+  --warning: #8a5a12;
+  --warning-soft: rgba(138, 90, 18, 0.14);
+  --warning-text: #6e480e;
+  /* Deliberately pushed away from --accent: a coral app whose danger colour
+   * is also coral has no danger colour. */
+  --danger: #8e2b22;
+  --danger-soft: rgba(142, 43, 34, 0.13);
+  --danger-text: #78241c;
+
+  --scrim: rgba(34, 25, 15, 0.38);
+  --shadow-tint: rgba(80, 45, 20, 0.07);
+  --shadow-tint-deep: rgba(80, 45, 20, 0.22);
+}
+
+/* --- Sage & Clay — botanical, calmest of the warm families. ----------- */
+html:root[data-theme="sage-clay"] {
+  --canvas: #f7f7f3;
+  --canvas-tint: #edeee6;
+  --surface: #ffffff;
+  --surface-soft: #f2f3ec;
+  --surface-hover: #fbfbf8;
+  --surface-blur: rgba(252, 252, 249, 0.94);
+
+  --ink: #1b1f1a;
+  --ink-soft: #434a40;
+  --muted: #7c8378;
+
+  --line: #e2e5da;
+  --rule: #cfd4c5;
+  --rule-strong: #1b1f1a;
+
+  --accent: #a85a44;
+  --accent-strong: #8c4630;
+  --accent-soft: rgba(168, 90, 68, 0.12);
+  --accent-wash: rgba(168, 90, 68, 0.055);
+  --accent-line: rgba(168, 90, 68, 0.34);
+  --accent-focus: rgba(168, 90, 68, 0.3);
+  --accent-text: #8a452f;
+  --accent-contrast: #ffffff;
+
+  --second: #5f7050;
+  --second-soft: rgba(95, 112, 80, 0.15);
+  --second-text: #4b5a3f;
+
+  --positive: #3c6b4c;
+  --positive-soft: rgba(60, 107, 76, 0.14);
+  --positive-text: #30573d;
+  --warning: #856018;
+  --warning-soft: rgba(133, 96, 24, 0.14);
+  --warning-text: #6a4c13;
+  --danger: #9c3b2e;
+  --danger-soft: rgba(156, 59, 46, 0.12);
+  --danger-text: #833126;
+
+  --scrim: rgba(27, 31, 26, 0.38);
+  --shadow-tint: rgba(40, 50, 35, 0.07);
+  --shadow-tint-deep: rgba(40, 50, 35, 0.22);
+}
+
+/* --- Ink & Blush — newsprint contrast, rouge used sparingly. The pick
+ *     when an app must not read as decorative at all. ------------------ */
+html:root[data-theme="ink-blush"] {
+  --canvas: #fafaf8;
+  --canvas-tint: #efefea;
+  --surface: #ffffff;
+  --surface-soft: #f3f3ef;
+  --surface-hover: #fcfcfa;
+  --surface-blur: rgba(253, 253, 251, 0.94);
+
+  --ink: #121212;
+  --ink-soft: #3d3d3d;
+  --muted: #767674;
+
+  --line: #e3e3de;
+  --rule: #c9c9c2;
+  --rule-strong: #121212;
+
+  --accent: #c2415f;
+  --accent-strong: #a22745;
+  --accent-soft: rgba(194, 65, 95, 0.11);
+  --accent-wash: rgba(194, 65, 95, 0.05);
+  --accent-line: rgba(194, 65, 95, 0.32);
+  --accent-focus: rgba(194, 65, 95, 0.28);
+  --accent-text: #9e243f;
+  --accent-contrast: #ffffff;
+
+  --second: #6e6e68;
+  --second-soft: rgba(110, 110, 104, 0.14);
+  --second-text: #57574f;
+
+  --positive: #2d6349;
+  --positive-soft: rgba(45, 99, 73, 0.13);
+  --positive-text: #24503b;
+  --warning: #7e5a16;
+  --warning-soft: rgba(126, 90, 22, 0.14);
+  --warning-text: #654812;
+  --danger: #a82f2a;
+  --danger-soft: rgba(168, 47, 42, 0.12);
+  --danger-text: #8b2722;
+
+  --scrim: rgba(18, 18, 18, 0.42);
+  --shadow-tint: rgba(18, 18, 18, 0.07);
+  --shadow-tint-deep: rgba(18, 18, 18, 0.22);
+}
+
+/* --- Graphite — the pre-editorial neutral, kept as an explicit opt-out
+ *     for an app that genuinely must look like infrastructure. It still
+ *     inherits the new type scale, rule weights, and motion. ---------- */
+html:root[data-theme="graphite"] {
+  --canvas: #f6f7f8;
+  --canvas-tint: #eef0f2;
+  --surface: #ffffff;
+  --surface-soft: #f4f5f7;
+  --surface-hover: #fafbfb;
+  --surface-blur: rgba(255, 255, 255, 0.94);
+
+  --ink: #14181f;
+  --ink-soft: #454c57;
+  --muted: #79828f;
+
+  --line: #e4e7eb;
+  --rule: #d2d7de;
+  --rule-strong: #14181f;
+
+  --accent: #2f6fd0;
+  --accent-strong: #1f57ab;
+  --accent-soft: rgba(47, 111, 208, 0.11);
+  --accent-wash: rgba(47, 111, 208, 0.05);
+  --accent-line: rgba(47, 111, 208, 0.32);
+  --accent-focus: rgba(47, 111, 208, 0.28);
+  --accent-text: #1c4f9c;
+  --accent-contrast: #ffffff;
+
+  --second: #64707e;
+  --second-soft: rgba(100, 112, 126, 0.14);
+  --second-text: #4e5865;
+
+  --positive: #1f7a4d;
+  --positive-soft: rgba(31, 122, 77, 0.13);
+  --positive-text: #186340;
+  --warning: #8a5a00;
+  --warning-soft: rgba(138, 90, 0, 0.14);
+  --warning-text: #6f4800;
+  --danger: #b3261e;
+  --danger-soft: rgba(179, 38, 30, 0.12);
+  --danger-text: #94201a;
+
+  --scrim: rgba(16, 24, 40, 0.38);
+  --shadow-tint: rgba(16, 24, 40, 0.07);
+  --shadow-tint-deep: rgba(16, 24, 40, 0.22);
+}
+
+/* =====================================================================
+ * DARK MODE
+ *
+ * Tokens only — not one component rule is duplicated below. Two knobs flip
+ * direction rather than being restated: a status wash RISES (a 13% tint is
+ * invisible on a dark surface) and its text LIGHTENS. The accent lifts too,
+ * and because a lifted accent is bright, --accent-contrast flips to dark ink
+ * on a dark theme's primary button. Surfaces stay near-black, never #000: at
+ * pure black the rules have to get brighter to stay visible, and bright
+ * rules read as noise.
+ * ===================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  html:root,
+  html:root[data-theme="ink-paper"] {
+    --canvas: #121316;
+    --canvas-tint: #191b1f;
+    --surface: #191b1f;
+    --surface-soft: #21242a;
+    --surface-hover: #262a31;
+    --surface-blur: rgba(25, 27, 31, 0.92);
+    --ink: #f2f2f0;
+    --ink-soft: #c0c2c6;
+    --muted: #8b8f96;
+    --line: #2a2d33;
+    --rule: #393d45;
+    --rule-strong: #f2f2f0;
+    /* The primary button stays "the ink" in dark too — which here means a
+     * near-white fill with dark type, not a bright indigo. */
+    --accent: #8fb0e8;
+    --accent-strong: #e8eaee;
+    --accent-soft: rgba(143, 176, 232, 0.18);
+    --accent-wash: rgba(143, 176, 232, 0.08);
+    --accent-line: rgba(143, 176, 232, 0.4);
+    --accent-focus: rgba(143, 176, 232, 0.36);
+    --accent-text: #a8c3f0;
+    --accent-contrast: #16181c;
+    --second: #bfae8c;
+    --second-soft: rgba(191, 174, 140, 0.2);
+    --second-text: #d0c3a8;
+    --positive: #6fc49b;
+    --positive-soft: rgba(111, 196, 155, 0.2);
+    --positive-text: #8fd5b2;
+    --warning: #d9a95f;
+    --warning-soft: rgba(217, 169, 95, 0.2);
+    --warning-text: #e5be88;
+    --danger: #e8837a;
+    --danger-soft: rgba(232, 131, 122, 0.2);
+    --danger-text: #f0a199;
+    --scrim: rgba(0, 0, 0, 0.6);
+    --shadow-tint: rgba(0, 0, 0, 0.5);
+    --shadow-tint-deep: rgba(0, 0, 0, 0.72);
+  }
+
+  html:root[data-theme="rose-ochre"] {
+    --canvas: #17120f;
+    --canvas-tint: #1f1815;
+    --surface: #1e1815;
+    --surface-soft: #26201c;
+    --surface-hover: #2a231f;
+    --surface-blur: rgba(30, 24, 21, 0.92);
+    --ink: #f6efe9;
+    --ink-soft: #cbbeb4;
+    --muted: #9a8c83;
+    --line: #352c27;
+    --rule: #453931;
+    --rule-strong: #f6efe9;
+    --accent: #e58ba1;
+    --accent-strong: #d4697f;
+    --accent-soft: rgba(229, 139, 161, 0.18);
+    --accent-wash: rgba(229, 139, 161, 0.08);
+    --accent-line: rgba(229, 139, 161, 0.42);
+    --accent-focus: rgba(229, 139, 161, 0.38);
+    --accent-text: #f0a8ba;
+    --accent-contrast: #241a1d;
+    --second: #d9a867;
+    --second-soft: rgba(217, 168, 103, 0.2);
+    --second-text: #e3bc8a;
+    --positive: #6fc49b;
+    --positive-soft: rgba(111, 196, 155, 0.2);
+    --positive-text: #8fd5b2;
+    --warning: #dca85c;
+    --warning-soft: rgba(220, 168, 92, 0.2);
+    --warning-text: #e6bd84;
+    --danger: #e8837a;
+    --danger-soft: rgba(232, 131, 122, 0.2);
+    --danger-text: #f0a199;
+    --scrim: rgba(10, 7, 6, 0.62);
+    --shadow-tint: rgba(0, 0, 0, 0.5);
+    --shadow-tint-deep: rgba(0, 0, 0, 0.72);
+  }
+
+  html:root[data-theme="mauve-plum"] {
+    --canvas: #15121a;
+    --canvas-tint: #1d1823;
+    --surface: #1c1823;
+    --surface-soft: #241f2c;
+    --surface-hover: #292333;
+    --surface-blur: rgba(28, 24, 35, 0.92);
+    --ink: #f2eef6;
+    --ink-soft: #c5bdd0;
+    --muted: #948ca1;
+    --line: #2f2939;
+    --rule: #3e3549;
+    --rule-strong: #f2eef6;
+    --accent: #cf9ac4;
+    --accent-strong: #b87aac;
+    --accent-soft: rgba(207, 154, 196, 0.18);
+    --accent-wash: rgba(207, 154, 196, 0.08);
+    --accent-line: rgba(207, 154, 196, 0.42);
+    --accent-focus: rgba(207, 154, 196, 0.38);
+    --accent-text: #dcb0d2;
+    --accent-contrast: #1f1926;
+    --second: #ccad74;
+    --second-soft: rgba(204, 173, 116, 0.2);
+    --second-text: #dbc194;
+    --positive: #6fc0a0;
+    --positive-soft: rgba(111, 192, 160, 0.2);
+    --positive-text: #8fd2b7;
+    --warning: #d6a563;
+    --warning-soft: rgba(214, 165, 99, 0.2);
+    --warning-text: #e2bb89;
+    --danger: #e58885;
+    --danger-soft: rgba(229, 136, 133, 0.2);
+    --danger-text: #eea5a2;
+    --scrim: rgba(8, 6, 12, 0.62);
+    --shadow-tint: rgba(0, 0, 0, 0.5);
+    --shadow-tint-deep: rgba(0, 0, 0, 0.72);
+  }
+
+  html:root[data-theme="coral-amber"] {
+    --canvas: #1a1210;
+    --canvas-tint: #221815;
+    --surface: #211815;
+    --surface-soft: #2a1f1a;
+    --surface-hover: #30231d;
+    --surface-blur: rgba(33, 24, 21, 0.92);
+    --ink: #f8efe7;
+    --ink-soft: #cdbdae;
+    --muted: #9c8a79;
+    --line: #382b24;
+    --rule: #49382e;
+    --rule-strong: #f8efe7;
+    --accent: #f08a72;
+    --accent-strong: #dd6b52;
+    --accent-soft: rgba(240, 138, 114, 0.18);
+    --accent-wash: rgba(240, 138, 114, 0.08);
+    --accent-line: rgba(240, 138, 114, 0.42);
+    --accent-focus: rgba(240, 138, 114, 0.38);
+    --accent-text: #f6a893;
+    --accent-contrast: #2a1712;
+    --second: #e0ae56;
+    --second-soft: rgba(224, 174, 86, 0.2);
+    --second-text: #ecc37e;
+    --positive: #6cc297;
+    --positive-soft: rgba(108, 194, 151, 0.2);
+    --positive-text: #8dd3ae;
+    --warning: #dda75a;
+    --warning-soft: rgba(221, 167, 90, 0.2);
+    --warning-text: #e8bd83;
+    --danger: #d9736a;
+    --danger-soft: rgba(217, 115, 106, 0.22);
+    --danger-text: #e4948d;
+    --scrim: rgba(12, 7, 5, 0.62);
+    --shadow-tint: rgba(0, 0, 0, 0.5);
+    --shadow-tint-deep: rgba(0, 0, 0, 0.72);
+  }
+
+  html:root[data-theme="sage-clay"] {
+    --canvas: #141713;
+    --canvas-tint: #1b1f19;
+    --surface: #1b1f19;
+    --surface-soft: #232720;
+    --surface-hover: #282d24;
+    --surface-blur: rgba(27, 31, 25, 0.92);
+    --ink: #eff2ea;
+    --ink-soft: #c0c6b8;
+    --muted: #8d9484;
+    --line: #2c3129;
+    --rule: #3a4136;
+    --rule-strong: #eff2ea;
+    --accent: #e0937a;
+    --accent-strong: #c9735a;
+    --accent-soft: rgba(224, 147, 122, 0.18);
+    --accent-wash: rgba(224, 147, 122, 0.08);
+    --accent-line: rgba(224, 147, 122, 0.42);
+    --accent-focus: rgba(224, 147, 122, 0.38);
+    --accent-text: #eaad98;
+    --accent-contrast: #231a15;
+    --second: #a8ba92;
+    --second-soft: rgba(168, 186, 146, 0.2);
+    --second-text: #bccaaa;
+    --positive: #7cc49c;
+    --positive-soft: rgba(124, 196, 156, 0.2);
+    --positive-text: #99d4b2;
+    --warning: #d4a75f;
+    --warning-soft: rgba(212, 167, 95, 0.2);
+    --warning-text: #e1bd88;
+    --danger: #e08a7c;
+    --danger-soft: rgba(224, 138, 124, 0.2);
+    --danger-text: #eaa79b;
+    --scrim: rgba(7, 9, 6, 0.62);
+    --shadow-tint: rgba(0, 0, 0, 0.5);
+    --shadow-tint-deep: rgba(0, 0, 0, 0.72);
+  }
+
+  html:root[data-theme="ink-blush"] {
+    --canvas: #121212;
+    --canvas-tint: #191919;
+    --surface: #191919;
+    --surface-soft: #212121;
+    --surface-hover: #262626;
+    --surface-blur: rgba(25, 25, 25, 0.92);
+    --ink: #f4f4f1;
+    --ink-soft: #c2c2be;
+    --muted: #8d8d89;
+    --line: #2b2b2b;
+    --rule: #3a3a39;
+    --rule-strong: #f4f4f1;
+    --accent: #ec8098;
+    --accent-strong: #d55f7b;
+    --accent-soft: rgba(236, 128, 152, 0.18);
+    --accent-wash: rgba(236, 128, 152, 0.08);
+    --accent-line: rgba(236, 128, 152, 0.42);
+    --accent-focus: rgba(236, 128, 152, 0.38);
+    --accent-text: #f2a0b2;
+    --accent-contrast: #1e1417;
+    --second: #a5a59d;
+    --second-soft: rgba(165, 165, 157, 0.2);
+    --second-text: #bcbcb4;
+    --positive: #6fc49b;
+    --positive-soft: rgba(111, 196, 155, 0.2);
+    --positive-text: #8fd5b2;
+    --warning: #d6a95f;
+    --warning-soft: rgba(214, 169, 95, 0.2);
+    --warning-text: #e3be88;
+    --danger: #e8837a;
+    --danger-soft: rgba(232, 131, 122, 0.2);
+    --danger-text: #f0a199;
+    --scrim: rgba(0, 0, 0, 0.66);
+    --shadow-tint: rgba(0, 0, 0, 0.5);
+    --shadow-tint-deep: rgba(0, 0, 0, 0.72);
+  }
+
+  html:root[data-theme="graphite"] {
+    --canvas: #101319;
+    --canvas-tint: #171b23;
+    --surface: #171b23;
+    --surface-soft: #1e232c;
+    --surface-hover: #232935;
+    --surface-blur: rgba(23, 27, 35, 0.92);
+    --ink: #eef1f6;
+    --ink-soft: #bcc3ce;
+    --muted: #8a93a1;
+    --line: #262c37;
+    --rule: #333a47;
+    --rule-strong: #eef1f6;
+    --accent: #79aef5;
+    --accent-strong: #5b93e0;
+    --accent-soft: rgba(121, 174, 245, 0.18);
+    --accent-wash: rgba(121, 174, 245, 0.08);
+    --accent-line: rgba(121, 174, 245, 0.42);
+    --accent-focus: rgba(121, 174, 245, 0.38);
+    --accent-text: #9cc4f8;
+    --accent-contrast: #12192a;
+    --second: #95a2b3;
+    --second-soft: rgba(149, 162, 179, 0.2);
+    --second-text: #adb8c6;
+    --positive: #63c39a;
+    --positive-soft: rgba(99, 195, 154, 0.2);
+    --positive-text: #86d3b1;
+    --warning: #d7a85e;
+    --warning-soft: rgba(215, 168, 94, 0.2);
+    --warning-text: #e4bd87;
+    --danger: #ea8079;
+    --danger-soft: rgba(234, 128, 121, 0.2);
+    --danger-text: #f19e98;
+    --scrim: rgba(4, 6, 10, 0.64);
+    --shadow-tint: rgba(0, 0, 0, 0.5);
+    --shadow-tint-deep: rgba(0, 0, 0, 0.72);
+  }
+}
+
+/* =====================================================================
+ * LAYOUT REGISTER
+ *
+ * How much magazine the app spends. Colour is unaffected; these change the
+ * page's rhythm only, and the workspace itself (list/detail) keeps its
+ * working density in all three. See `editorial-visual-system.md` for the
+ * component rules each register implies.
+ *
+ *   desk     the default. Editorial voice, operator density.
+ *   spread   the overview page opens as a magazine spread; the workspace
+ *            snaps back to desk density the moment a row is selected.
+ *   gallery  the list itself becomes a card flow. Only for apps whose
+ *            items are visual and few (<~40 in a normal day).
+ * ===================================================================== */
+
+/* The serif headline is the loudest remaining style marker. One attribute
+ * turns it off without touching anything else — the scale, the rules, and
+ * the rhythm are what carry the look, not the face. */
+html:root[data-display="sans"] {
+  --font-display: var(--font-body);
+  --tracking-display: -0.012em;
+}
+
+html:root,
+html:root[data-editorial="desk"] {
+  --display-size: var(--text-2xl);
+  --display-leading: var(--leading-tight);
+  --lede-size: var(--text-md);
+  --page-pad: var(--space-5);
+  --section-gap: var(--space-5);
+  --eyebrow-size: var(--text-xs);
+}
+
+html:root[data-editorial="spread"] {
+  --display-size: var(--text-3xl);
+  --display-leading: var(--leading-tight);
+  --lede-size: var(--text-lg);
+  --page-pad: var(--space-7);
+  --section-gap: var(--space-7);
+  --eyebrow-size: var(--text-xs);
+}
+
+html:root[data-editorial="gallery"] {
+  --display-size: var(--text-3xl);
+  --display-leading: var(--leading-tight);
+  --lede-size: var(--text-md);
+  --page-pad: var(--space-6);
+  --section-gap: var(--space-6);
+  --eyebrow-size: var(--text-xs);
+  --gallery-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* A phone is never a spread — and it is not a desk either. EVERY register
+ * drops to the same phone rhythm below the shell breakpoint: at 390px even
+ * the default 34px headline wraps to two lines and pushes the queue off the
+ * first screen, which is the exact failure the fixed-column metric band
+ * exists to prevent elsewhere. */
+@media (max-width: 720px) {
+  html:root,
+  html:root[data-editorial="desk"],
+  html:root[data-editorial="spread"],
+  html:root[data-editorial="gallery"] {
+    --display-size: var(--text-xl);
+    --lede-size: var(--text-base);
+    --page-pad: var(--space-4);
+    --section-gap: var(--space-5);
+    --gallery-columns: minmax(0, 1fr);
+  }
+}
