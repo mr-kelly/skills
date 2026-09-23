@@ -736,6 +736,15 @@
 
   /* ----- knowledge ----- */
 
+  .knowledge-actions,
+  .material-import-panel {
+    margin-bottom: 14px;
+  }
+
+  .material-import-panel .row {
+    margin-top: 14px;
+  }
+
   .kb-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -764,6 +773,11 @@
   .qa-list {
     display: grid;
     gap: 12px;
+  }
+
+  .qa-practice-actions {
+    margin-bottom: 12px;
+    flex-wrap: wrap;
   }
 
   .qa-card {

@@ -4,7 +4,9 @@ import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/con
 import { createPagination } from "./js/pagination.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 import {
+  createPracticeTicketsAction,
   decideAction,
+  importMaterialAction,
   qaPairDecision,
   renderKbDetail,
   renderKnowledge,
@@ -31,6 +33,7 @@ export const state = {
   notes: {},
   slas: {},
   edits: {},
+  materialImportOpen: false,
   lang: normalizeLang(
     new URLSearchParams(location.search).get("lang") || localStorage.getItem("kelly-support-language") || "auto",
   ),
@@ -874,6 +877,19 @@ els.content.addEventListener("click", (event) => {
   }
   if (button.dataset.action === "save-settings") {
     saveSettingsAction();
+    return;
+  }
+  if (button.dataset.action === "toggle-material-import") {
+    state.materialImportOpen = !state.materialImportOpen;
+    render();
+    return;
+  }
+  if (button.dataset.action === "import-material") {
+    importMaterialAction();
+    return;
+  }
+  if (button.dataset.action === "create-practice-tickets") {
+    createPracticeTicketsAction(button.dataset.article);
     return;
   }
   if (button.dataset.action === "decide") {

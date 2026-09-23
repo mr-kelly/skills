@@ -4,6 +4,7 @@ import { appConfig } from "../config.js?v=0.1.0";
 import {
   DECISION_ACTIONS,
   buildConfigSummary,
+  buildPracticeTicketBundle,
   buildSnapshot,
   normalizeKbArticle,
   normalizeQaPair,
@@ -251,6 +252,75 @@ export const busabaseProvider = {
       execution_report: null,
       snapshot,
     };
+  },
+
+  async importKnowledgeBundle({ article, qa_pairs = [] } = {}) {
+    await ensureResources();
+    if (!article?.article_id || !article?.title || !article?.body) throw new Error("INVALID_KNOWLEDGE_ARTICLE");
+    await upsert(
+      "knowledge-base",
+      "article-id",
+      article.article_id,
+      { ...article, tags: JSON.stringify(article.tags || []) },
+      `Import knowledge material ${article.article_id}`,
+    );
+    for (const pair of qa_pairs) {
+      await upsert(
+        "qa-pairs",
+        "pair-id",
+        pair.pair_id,
+        { ...pair, tags: JSON.stringify(pair.tags || []), status: "draft", reviewed_by: "" },
+        `Import draft QA pair ${pair.pair_id}`,
+      );
+    }
+    return { article_id: article.article_id, qa_count: qa_pairs.length };
+  },
+
+  async createPracticeTicketsFromQa({ article, qa_pairs = [] } = {}) {
+    await ensureResources();
+    const now = new Date().toISOString();
+    const bundle = buildPracticeTicketBundle({ article, qa_pairs, now });
+    await upsert(
+      "accounts",
+      "account-id",
+      bundle.account.account_id,
+      bundle.account,
+      "Initialize manual QA practice account",
+    );
+    for (const ticket of bundle.tickets) {
+      await upsert(
+        "tickets",
+        "ticket-id",
+        ticket.ticket_id,
+        ticketFields(ticket),
+        `Create synthetic practice ticket ${ticket.ticket_id}`,
+      );
+    }
+    for (const message of bundle.messages) {
+      await upsert(
+        "messages",
+        "message-id",
+        message.message_id,
+        message,
+        `Create synthetic incoming message ${message.message_id}`,
+      );
+    }
+    await upsert(
+      "sync-log",
+      "sync-id",
+      `sync-practice-${article.article_id}`,
+      {
+        sync_id: `sync-practice-${article.article_id}`,
+        account_id: bundle.account.account_id,
+        method: "manual",
+        at: now,
+        status: "ok",
+        message: `${bundle.tickets.length} synthetic practice tickets created from QA pairs.`,
+        new_messages: bundle.messages.length,
+      },
+      `Record synthetic practice ticket generation for ${article.article_id}`,
+    );
+    return { ticket_count: bundle.tickets.length };
   },
 
   // Ported from the retired local-file provider (lib/data-provider)'s

@@ -1,5 +1,17 @@
 # Kelly Local Model Lab
 
+Kelly Support integration:
+
+```bash
+pnpm sync:support-qa
+pnpm sync:support-qa -- --apply
+```
+
+The dry run shows which approved, non-stale QA pairs would be imported. Applied
+records enter this lab as `support_qa` examples in `needs_review`; a second
+review is required before an immutable snapshot can be trained. Run a QA
+snapshot with `scripts/mlx_smoke.py --task support_qa --data <snapshot-dir>`.
+
 A Busabase-backed App-in-Skill for curating model-training data, queuing local
 Apple Silicon fine-tunes, comparing locked baseline and adapter evaluations, and
 registering approved LoRA adapters.

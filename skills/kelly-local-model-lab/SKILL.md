@@ -67,6 +67,12 @@ For a first Apple Silicon validation, use:
 - metrics: JSON validity, schema validity, exact-field accuracy, and latency;
 - output: a LoRA adapter, never a rewritten foundation checkpoint.
 
+For customer-support training, use task `support_qa`. Approved QA pairs from
+`$kelly-support` cross the trusted bridge into `training-examples` with their
+source article and pair ids, but return to `needs_review` before they can enter
+a snapshot. The evaluator reports normalized exact-answer match and Unicode
+character F1 instead of the `app_spec` JSON/schema metrics.
+
 Treat the bundled `training/fixture/` data as a pipeline smoke fixture only. It
 never impersonates reviewed Busabase data. Production experiments must carry a
 Drive snapshot reference and SHA-256 hash on the run record.
@@ -103,6 +109,19 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-mlx.txt
 .venv/bin/python scripts/mlx_smoke.py
 ```
+
+Support QA handoff and training:
+
+```bash
+pnpm sync:support-qa
+pnpm sync:support-qa -- --apply
+.venv/bin/python scripts/mlx_smoke.py --task support_qa --data <snapshot-directory>
+```
+
+The bridge groups split assignment by source article so QA from one material
+cannot leak across train and locked test. A single source can populate a review
+queue, but it is not sufficient evidence for model promotion; collect at least
+three independent source groups and keep one or more groups locked for testing.
 
 Outputs go under the ignored `.cache/smoke-run/` directory. The script validates
 the fixture, hashes all splits, records the exact package version and command,

@@ -35,9 +35,30 @@ export function renderKnowledge() {
     matchesQuery([article.title, article.body, article.category, ...(article.tags || [])]),
   );
   els.subtitle.textContent = `${recordTotal("knowledge-base", list.length)} ${t("knowledgeBase")}`;
-  els.content.innerHTML = list.length
-    ? `
-    <div class="kb-grid">
+  const importPanel = state.settings?.demo
+    ? ""
+    : `
+      <div class="row knowledge-actions">
+        <button type="button" class="btn primary" data-action="toggle-material-import">${t("importMaterial")}</button>
+      </div>
+      ${
+        state.materialImportOpen
+          ? `<section class="overview-panel material-import-panel">
+              <div class="settings-form-grid">
+                <label><span>${t("materialTitle")}</span><input id="material-title" type="text"></label>
+                <label><span>${t("sourceMaterial")}</span><input id="material-url" type="url" placeholder="https://"></label>
+                <label><span>${t("materialPublishedAt")}</span><input id="material-published-at" type="text" placeholder="YYYY-MM-DD"></label>
+                <label><span>${t("category")}</span><input id="material-category" type="text" value="service-script"></label>
+                <label class="settings-span-2"><span>${t("materialBody")}</span><textarea id="material-body" rows="7"></textarea></label>
+                <label class="settings-span-2"><span>${t("materialQaJson")}</span><textarea id="material-qa" rows="10" placeholder='[{"question":"...","answer":"..."}]'></textarea></label>
+              </div>
+              <div class="row"><button type="button" class="btn primary" data-action="import-material">${t("importAsDraft")}</button></div>
+            </section>`
+          : ""
+      }
+    `;
+  const grid = list.length
+    ? `<div class="kb-grid">
       ${list
         .map(
           (article) => `
@@ -52,9 +73,86 @@ export function renderKnowledge() {
       `,
         )
         .join("")}
-    </div>
-  `
+    </div>`
     : `<div class="empty">${t("empty")}</div>`;
+  els.content.innerHTML = `${importPanel}${grid}`;
+}
+
+function stableMaterialId(value) {
+  const source = String(value || "").trim();
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `kb-material-${(hash >>> 0).toString(16).padStart(8, "0")}`;
+}
+
+async function sha256(value) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return `sha256:${[...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+
+export async function importMaterialAction() {
+  const title = document.querySelector("#material-title")?.value.trim() || "";
+  const sourceUrl = document.querySelector("#material-url")?.value.trim() || "";
+  const publishedAt = document.querySelector("#material-published-at")?.value.trim() || "";
+  const category = document.querySelector("#material-category")?.value.trim() || "service-script";
+  const body = document.querySelector("#material-body")?.value.trim() || "";
+  const qaSource = document.querySelector("#material-qa")?.value.trim() || "";
+  if (!title || !body || !qaSource) {
+    flashNotice(t("materialRequired"));
+    return;
+  }
+  let pairs;
+  try {
+    pairs = JSON.parse(qaSource);
+  } catch {
+    flashNotice(t("materialQaInvalid"));
+    return;
+  }
+  if (!Array.isArray(pairs) || !pairs.length || pairs.some((pair) => !pair.question?.trim() || !pair.answer?.trim())) {
+    flashNotice(t("materialQaInvalid"));
+    return;
+  }
+  const articleId = stableMaterialId(sourceUrl || title);
+  const now = new Date().toISOString();
+  const provider = await getProvider();
+  try {
+    await provider.importKnowledgeBundle({
+      article: {
+        article_id: articleId,
+        kind: "article",
+        title,
+        body,
+        tags: ["training-source", category],
+        category,
+        source_url: sourceUrl,
+        source_published_at: publishedAt,
+        source_fetched_at: now,
+        content_hash: await sha256(JSON.stringify({ title, sourceUrl, body })),
+        updated_at: now,
+      },
+      qa_pairs: pairs.map((pair, index) => ({
+        pair_id: `${articleId}-qa-${String(index + 1).padStart(2, "0")}`,
+        article_id: articleId,
+        question: pair.question.trim(),
+        answer: pair.answer.trim(),
+        category: pair.category?.trim() || category,
+        tags: Array.isArray(pair.tags) ? pair.tags : [],
+        status: "draft",
+        reviewed_by: "",
+        updated_at: now,
+      })),
+    });
+  } catch (error) {
+    flashNotice(error.message || t("materialImportFailed"));
+    return;
+  }
+  state.materialImportOpen = false;
+  await loadState();
+  location.hash = "#/qa-pairs";
+  flashNotice(t("materialImported").replace("{n}", String(pairs.length)));
 }
 
 export function renderKbDetail() {
@@ -73,6 +171,11 @@ export function renderKbDetail() {
         <div class="overview-panel kb-article">
           <p class="kb-article-body">${escapeHtml(article.body)}</p>
           <div class="kb-tags">${(article.tags || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
+          ${
+            article.source_url
+              ? `<p class="kb-provenance"><strong>${t("sourceMaterial")}:</strong> <a class="text-link" href="${escapeHtml(article.source_url)}" target="_blank" rel="noreferrer">${escapeHtml(article.source_url)}</a>${article.source_published_at ? ` · ${escapeHtml(article.source_published_at.slice(0, 10))}` : ""}</p>`
+              : ""
+          }
         </div>
       </div>
       <aside class="detail-side">
@@ -111,8 +214,18 @@ export function renderQaPairs() {
   els.subtitle.textContent = draftCount
     ? t("qaPairsSubtitleDraft").replace("{n}", draftCount)
     : t("qaPairsSubtitleClear");
+  const practiceActions = state.settings?.demo
+    ? ""
+    : [...new Set(list.map((pair) => pair.article_id))]
+        .map((articleId) => {
+          const article = kbById(articleId);
+          if (!article) return "";
+          return `<button type="button" class="btn" data-action="create-practice-tickets" data-article="${escapeHtml(articleId)}">${t("createPracticeTickets")} · ${escapeHtml(article.title)}</button>`;
+        })
+        .join("");
   els.content.innerHTML = list.length
     ? `
+    ${practiceActions ? `<div class="row qa-practice-actions">${practiceActions}</div>` : ""}
     <div class="qa-list">
       ${list
         .map((pair) => {
@@ -139,8 +252,27 @@ export function renderQaPairs() {
         })
         .join("")}
     </div>
+    <div class="boundary-note qa-training-note">${t("qaTrainingHandoff")}</div>
   `
     : `<div class="empty">${t("empty")}</div>`;
+}
+
+export async function createPracticeTicketsAction(articleId) {
+  const article = kbById(articleId);
+  const pairs = qaPairs().filter((pair) => pair.article_id === articleId);
+  if (!article || !pairs.length) {
+    flashNotice(t("practiceTicketsUnavailable"));
+    return;
+  }
+  try {
+    const provider = await getProvider();
+    const result = await provider.createPracticeTicketsFromQa({ article, qa_pairs: pairs });
+    await loadState();
+    location.hash = "#/tickets/needs_review";
+    flashNotice(t("practiceTicketsCreated").replace("{n}", String(result.ticket_count)));
+  } catch (error) {
+    flashNotice(error.message || t("practiceTicketsFailed"));
+  }
 }
 
 export async function qaPairDecision(pairId, status) {

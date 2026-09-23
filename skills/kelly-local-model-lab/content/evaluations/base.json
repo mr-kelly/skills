@@ -20,11 +20,19 @@
       "options": {}
     },
     {
+      "slug": "task",
+      "name": "Task",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
       "slug": "model-role",
       "name": "Model role",
       "type": "text",
       "required": true,
-      "position": 2,
+      "position": 3,
       "options": {}
     },
     {
@@ -32,7 +40,7 @@
       "name": "Evaluation dataset hash",
       "type": "text",
       "required": true,
-      "position": 3,
+      "position": 4,
       "options": {}
     },
     {
@@ -40,7 +48,7 @@
       "name": "Case count",
       "type": "number",
       "required": true,
-      "position": 4,
+      "position": 5,
       "options": {}
     },
     {
@@ -48,7 +56,7 @@
       "name": "JSON valid %",
       "type": "number",
       "required": false,
-      "position": 5,
+      "position": 6,
       "options": {}
     },
     {
@@ -56,7 +64,7 @@
       "name": "Schema valid %",
       "type": "number",
       "required": false,
-      "position": 6,
+      "position": 7,
       "options": {}
     },
     {
@@ -64,7 +72,23 @@
       "name": "Exact field %",
       "type": "number",
       "required": false,
-      "position": 7,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "exact-match-pct",
+      "name": "Exact answer match %",
+      "type": "number",
+      "required": false,
+      "position": 9,
+      "options": {}
+    },
+    {
+      "slug": "character-f1-pct",
+      "name": "Character F1 %",
+      "type": "number",
+      "required": false,
+      "position": 10,
       "options": {}
     },
     {
@@ -72,7 +96,7 @@
       "name": "Median latency ms",
       "type": "number",
       "required": false,
-      "position": 8,
+      "position": 11,
       "options": {}
     },
     {
@@ -80,7 +104,7 @@
       "name": "Report file",
       "type": "text",
       "required": false,
-      "position": 9,
+      "position": 12,
       "options": {}
     },
     {
@@ -88,7 +112,7 @@
       "name": "Verdict",
       "type": "text",
       "required": false,
-      "position": 10,
+      "position": 13,
       "options": {}
     },
     {
@@ -96,7 +120,7 @@
       "name": "Decision note",
       "type": "longtext",
       "required": false,
-      "position": 11,
+      "position": 14,
       "options": {}
     },
     {
@@ -104,7 +128,7 @@
       "name": "Evaluated at",
       "type": "text",
       "required": true,
-      "position": 12,
+      "position": 15,
       "options": {}
     }
   ],

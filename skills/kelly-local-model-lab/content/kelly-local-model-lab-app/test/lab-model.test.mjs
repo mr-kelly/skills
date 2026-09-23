@@ -64,6 +64,17 @@ test("compareEvaluations pairs baseline and adapter by run", () => {
   assert.equal(comparisons.length, 1);
   assert.equal(comparisons[0].schema_delta, 40);
   assert.equal(comparisons[0].exact_delta, 32);
+  assert.equal(comparisons[0].primary_delta, 40);
+});
+
+test("compareEvaluations uses character F1 for support QA", () => {
+  const [comparison] = compareEvaluations([
+    { evaluation_id: "base", run_id: "RUN-QA", task: "support_qa", model_role: "baseline", character_f1_pct: 42 },
+    { evaluation_id: "adapter", run_id: "RUN-QA", task: "support_qa", model_role: "adapter", character_f1_pct: 76 },
+  ]);
+  assert.equal(comparison.task, "support_qa");
+  assert.equal(comparison.character_f1_delta, 34);
+  assert.equal(comparison.primary_delta, 34);
 });
 
 test("applyEvaluationVerdict records only declared promotion decisions", () => {

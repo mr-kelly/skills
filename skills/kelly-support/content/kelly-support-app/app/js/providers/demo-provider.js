@@ -37,11 +37,23 @@ function sla(policy, due_by, first_response_at = "") {
   return { policy, due_by, breached: false, first_response_at };
 }
 
-function kb(article_id, kind, title, body, tags, category) {
-  return { article_id, kind, title, body, tags, category, updated_at: "2026-06-30T00:00:00.000Z" };
+function kb(article_id, kind, title, body, tags, category, provenance = {}) {
+  return {
+    article_id,
+    kind,
+    title,
+    body,
+    tags,
+    category,
+    source_url: provenance.source_url || "",
+    source_published_at: provenance.source_published_at || "",
+    source_fetched_at: provenance.source_fetched_at || "",
+    content_hash: provenance.content_hash || "",
+    updated_at: provenance.updated_at || "2026-06-30T00:00:00.000Z",
+  };
 }
 
-function qaPair(pair_id, article_id, question, answer, category, status, reviewed_by = "") {
+function qaPair(pair_id, article_id, question, answer, category, status, reviewed_by = "", updated_at = "") {
   return {
     pair_id,
     article_id,
@@ -51,7 +63,7 @@ function qaPair(pair_id, article_id, question, answer, category, status, reviewe
     tags: [],
     status,
     reviewed_by,
-    updated_at: status === "draft" ? "2026-07-04T00:00:00.000Z" : "2026-07-05T00:00:00.000Z",
+    updated_at: updated_at || (status === "draft" ? "2026-07-04T00:00:00.000Z" : "2026-07-05T00:00:00.000Z"),
   };
 }
 
@@ -61,6 +73,66 @@ function qaPair(pair_id, article_id, question, answer, category, status, reviewe
 // of "5-10 business days" would quietly teach the model the wrong policy.
 function demoQaPairs() {
   return [
+    qaPair(
+      "qa-phone-opening",
+      "kb-phone-service-guide",
+      "电话接通后，客服应该怎样开场？",
+      "先礼貌问候，再说明自己的公司和客服身份，最后用开放式问题询问客户需要什么帮助。问候可以结合当前时段或节日调整。",
+      "service-script",
+      "approved",
+      "kelly",
+      "2026-09-23T00:10:00.000Z",
+    ),
+    qaPair(
+      "qa-phone-confirm",
+      "kb-phone-service-guide",
+      "没有完全听清客户的问题时，应该怎么确认？",
+      "不要猜测客户的意思。礼貌请客户重复，并用自己的话复述关键信息，请客户确认理解是否准确。",
+      "service-script",
+      "draft",
+      "",
+      "2026-09-23T00:10:00.000Z",
+    ),
+    qaPair(
+      "qa-phone-empathy",
+      "kb-phone-service-guide",
+      "客户情绪激动时，客服应该如何回应？",
+      "保持冷静，先表达理解和同理心，再说明当前能够采取的具体下一步；不要在尚未核实政策和权限前承诺一定解决或保证结果。",
+      "service-script",
+      "draft",
+      "",
+      "2026-09-23T00:10:00.000Z",
+    ),
+    qaPair(
+      "qa-phone-wait",
+      "kb-phone-service-guide",
+      "需要客户等待查询时，要说明什么？",
+      "说明等待的原因和大致时间，并礼貌征得客户同意。如果查询时间较长，应约定可兑现的回访方式和时间。",
+      "service-script",
+      "draft",
+      "",
+      "2026-09-23T00:10:00.000Z",
+    ),
+    qaPair(
+      "qa-phone-complaint",
+      "kb-phone-service-guide",
+      "收到客户投诉时，合适的处理顺序是什么？",
+      "先为客户受到的影响道歉并确认问题，再记录诉求，说明现在可以执行的处理步骤；暂时无法解决时，应清楚说明限制和后续安排。",
+      "service-script",
+      "draft",
+      "",
+      "2026-09-23T00:10:00.000Z",
+    ),
+    qaPair(
+      "qa-phone-close",
+      "kb-phone-service-guide",
+      "电话结束前，客服应该做什么？",
+      "确认客户当前问题已经得到回应或已约定下一步，感谢客户来电或提出意见，并用简洁礼貌的结束语收尾。",
+      "service-script",
+      "draft",
+      "",
+      "2026-09-23T00:10:00.000Z",
+    ),
     qaPair(
       "qa-refund-window",
       "kb-refunds",
@@ -160,6 +232,21 @@ function ticket(
 
 function demoKnowledgeBase() {
   return [
+    kb(
+      "kb-phone-service-guide",
+      "article",
+      "电话客服高效沟通话术指南",
+      "材料按客服通话阶段整理了六类做法：开场问候、核实问题、安抚情绪、处理投诉、说明等待和礼貌结束，并补充无声电话、音量问题和转接请求的场景示例。训练用 QA 只保留这些可追溯原则；文中带有产品推广性质的内容不作为客服事实或训练答案。",
+      ["电话客服", "沟通话术", "投诉", "服务规范", "training-source"],
+      "service-script",
+      {
+        source_url: "https://cloud.baidu.com/article/3416329",
+        source_published_at: "2024-12-02T17:43:00+08:00",
+        source_fetched_at: "2026-09-23T00:00:00.000Z",
+        content_hash: "sha256:91df8946ff8177053f5de82e3162014e1191ea570181cf71fe043ad476e49f27",
+        updated_at: "2026-09-23T00:00:00.000Z",
+      },
+    ),
     kb(
       "kb-refunds",
       "article",

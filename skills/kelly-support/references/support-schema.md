@@ -121,6 +121,10 @@ Store only the minimum excerpt needed for review. Never store credentials, QR pa
 | `body` | `body` | longtext | the article or canned macro text |
 | `tags` | `tags` | longtext | JSON array |
 | `category` | `category` | text | |
+| `source-url` | `source_url` | text | original material URL, when applicable |
+| `source-published-at` | `source_published_at` | text | source publication timestamp |
+| `source-fetched-at` | `source_fetched_at` | text | source retrieval timestamp |
+| `content-hash` | `content_hash` | text | digest of the normalized source material |
 | `updated-at` | `updated_at` | text | ISO timestamp |
 
 A ticket's `kb_refs` reference `article_id`s. The `support-qa` gate requires

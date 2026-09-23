@@ -215,6 +215,16 @@ Approved pairs are also the export surface for fine-tuning — see
 Fine-tuning is optional and separate: this skill works fully without it, and
 a fine-tune never replaces the human approval queue.
 
+The handoff is implemented by Local Model Lab's trusted bridge. It reads only
+`approved` pairs, rejects pairs made stale by a newer source article, preserves
+the article/pair provenance and content hash, and creates `support_qa` training
+examples in `needs_review` so training use receives a second human verdict:
+
+```bash
+pnpm --dir skills/kelly-local-model-lab sync:support-qa
+pnpm --dir skills/kelly-local-model-lab sync:support-qa -- --apply
+```
+
 ## The Quality Gate — `support-qa` ⛩
 
 Before any send, each drafted reply passes `support-qa`, a CSAT-risk / policy gate producing a score (0–100) and a **SHIP / FIX / BLOCK** verdict (see `runQualityGate()` in `content/kelly-support-app/app/js/support-model.js`):

@@ -4,13 +4,16 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import gc
 import hashlib
 import importlib.metadata
 import json
+import re
 import subprocess
 import sys
 import time
+import unicodedata
 from pathlib import Path
 
 CATEGORIES = {
@@ -50,6 +53,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-revision", default="")
     parser.add_argument("--data", type=Path, default=root / "training" / "fixture")
     parser.add_argument("--output", type=Path, default=root / ".cache" / "smoke-run")
+    parser.add_argument("--task", choices=("auto", "app_spec", "support_qa"), default="auto")
     parser.add_argument("--iters", type=int, default=80)
     parser.add_argument("--baseline-only", action="store_true")
     parser.add_argument("--skip-baseline", action="store_true")
@@ -67,8 +71,25 @@ def load_jsonl(path: Path) -> list[dict]:
     return rows
 
 
-def validate_data(data_dir: Path) -> tuple[dict[str, list[dict]], str]:
+def infer_task(data_dir: Path, splits: dict[str, list[dict]], requested: str) -> str:
+    if requested != "auto":
+        return requested
+    manifest_path = data_dir / "manifest.json"
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        task = manifest.get("task")
+        if task in {"app_spec", "support_qa"}:
+            return task
+    first = next(row for rows in splits.values() for row in rows)
+    try:
+        return "app_spec" if schema_valid(json.loads(first["messages"][-1]["content"])) else "support_qa"
+    except (KeyError, TypeError, json.JSONDecodeError):
+        return "support_qa"
+
+
+def validate_data(data_dir: Path, requested_task: str) -> tuple[dict[str, list[dict]], str, str]:
     splits = {name: load_jsonl(data_dir / f"{name}.jsonl") for name in ("train", "valid", "test")}
+    task = infer_task(data_dir, splits, requested_task)
     prompts = set()
     digest = hashlib.sha256()
     for split, rows in splits.items():
@@ -89,10 +110,14 @@ def validate_data(data_dir: Path) -> tuple[dict[str, list[dict]], str]:
             if not prompt or prompt in prompts:
                 raise ValueError(f"duplicate or empty prompt in {split}[{index}]")
             prompts.add(prompt)
-            expected = json.loads(messages[2].get("content", ""))
-            if not schema_valid(expected):
-                raise ValueError(f"invalid expected app_spec in {split}[{index}]")
-    return splits, digest.hexdigest()
+            expected_text = messages[2].get("content", "").strip()
+            if task == "app_spec":
+                expected = json.loads(expected_text)
+                if not schema_valid(expected):
+                    raise ValueError(f"invalid expected app_spec in {split}[{index}]")
+            elif not expected_text:
+                raise ValueError(f"empty expected support answer in {split}[{index}]")
+    return splits, digest.hexdigest(), task
 
 
 def local_model_hash(model: str) -> str:
@@ -142,12 +167,9 @@ def chat_prompt(tokenizer, messages: list[dict]) -> str:
         return tokenizer.apply_chat_template(messages, **kwargs)
 
 
-def evaluate(model_name: str, rows: list[dict], adapter_path: Path | None = None) -> dict:
-    import mlx.core as mx
-    from mlx_lm import generate, load
+def evaluate_app_spec(model, tokenizer, rows: list[dict]) -> dict:
+    from mlx_lm import generate
 
-    load_kwargs = {"adapter_path": str(adapter_path)} if adapter_path else {}
-    model, tokenizer = load(model_name, **load_kwargs)
     results = []
     latencies = []
     valid_json = 0
@@ -169,9 +191,6 @@ def evaluate(model_name: str, rows: list[dict], adapter_path: Path | None = None
             exact_fields += sum(parsed.get(key) == expected[key] for key in EXPECTED_KEYS)
         results.append({"prompt": messages[-2]["content"], "expected": expected, "output": output, "parsed": parsed})
     latencies.sort()
-    del model
-    mx.clear_cache()
-    gc.collect()
     count = len(rows)
     return {
         "case_count": count,
@@ -181,6 +200,74 @@ def evaluate(model_name: str, rows: list[dict], adapter_path: Path | None = None
         "median_latency_ms": round(latencies[len(latencies) // 2], 2),
         "cases": results,
     }
+
+
+def normalize_answer(value: str) -> str:
+    without_thinking = re.sub(r"<think>.*?</think>", "", value, flags=re.DOTALL | re.IGNORECASE)
+    normalized = unicodedata.normalize("NFKC", without_thinking).casefold()
+    return "".join(char for char in normalized if not char.isspace() and not unicodedata.category(char).startswith("P"))
+
+
+def character_f1(expected: str, actual: str) -> float:
+    expected_chars = Counter(normalize_answer(expected))
+    actual_chars = Counter(normalize_answer(actual))
+    if not expected_chars or not actual_chars:
+        return 1.0 if expected_chars == actual_chars else 0.0
+    overlap = sum((expected_chars & actual_chars).values())
+    precision = overlap / sum(actual_chars.values())
+    recall = overlap / sum(expected_chars.values())
+    return 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+
+
+def evaluate_support_qa(model, tokenizer, rows: list[dict]) -> dict:
+    from mlx_lm import generate
+
+    results = []
+    latencies = []
+    exact_matches = 0
+    f1_scores = []
+    for row in rows:
+        messages = row["messages"]
+        expected = messages[-1]["content"].strip()
+        prompt = chat_prompt(tokenizer, messages[:-1])
+        started = time.perf_counter()
+        output = generate(model, tokenizer, prompt=prompt, max_tokens=180, verbose=False).strip()
+        latencies.append((time.perf_counter() - started) * 1000)
+        exact = normalize_answer(output) == normalize_answer(expected)
+        score = character_f1(expected, output)
+        exact_matches += int(exact)
+        f1_scores.append(score)
+        results.append(
+            {
+                "prompt": messages[-2]["content"],
+                "expected": expected,
+                "output": output,
+                "normalized_exact": exact,
+                "character_f1": round(score, 4),
+            }
+        )
+    latencies.sort()
+    count = len(rows)
+    return {
+        "case_count": count,
+        "exact_match_pct": round(exact_matches / count * 100, 2),
+        "character_f1_pct": round(sum(f1_scores) / count * 100, 2),
+        "median_latency_ms": round(latencies[len(latencies) // 2], 2),
+        "cases": results,
+    }
+
+
+def evaluate(model_name: str, rows: list[dict], task: str, adapter_path: Path | None = None) -> dict:
+    import mlx.core as mx
+    from mlx_lm import load
+
+    load_kwargs = {"adapter_path": str(adapter_path)} if adapter_path else {}
+    model, tokenizer = load(model_name, **load_kwargs)
+    result = evaluate_app_spec(model, tokenizer, rows) if task == "app_spec" else evaluate_support_qa(model, tokenizer, rows)
+    del model
+    mx.clear_cache()
+    gc.collect()
+    return result
 
 
 def train(args: argparse.Namespace, adapter_path: Path) -> list[str]:
@@ -218,7 +305,7 @@ def train(args: argparse.Namespace, adapter_path: Path) -> list[str]:
 
 def main() -> None:
     args = parse_args()
-    splits, dataset_hash = validate_data(args.data)
+    splits, dataset_hash, task = validate_data(args.data, args.task)
     args.output.mkdir(parents=True, exist_ok=True)
     adapter_path = args.output / "adapters"
     report_path = args.output / "report.json"
@@ -230,6 +317,7 @@ def main() -> None:
             "model_source": args.model_source,
             "model_revision": args.model_revision,
             "model_hash": local_model_hash(args.model),
+            "task": task,
             "dataset_hash": f"sha256:{dataset_hash}",
             "dataset_counts": {key: len(value) for key, value in splits.items()},
             "mlx_lm_version": importlib.metadata.version("mlx-lm"),
@@ -237,7 +325,7 @@ def main() -> None:
             "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
     if not args.skip_baseline:
-        report["baseline"] = evaluate(args.model, splits["test"])
+        report["baseline"] = evaluate(args.model, splits["test"], task)
         report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     if args.baseline_only:
         report["completed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -245,7 +333,7 @@ def main() -> None:
         print(report_path)
         return
     report["train_command"] = train(args, adapter_path)
-    report["adapter"] = evaluate(args.model, splits["test"], adapter_path)
+    report["adapter"] = evaluate(args.model, splits["test"], task, adapter_path)
     report["completed_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(report_path)

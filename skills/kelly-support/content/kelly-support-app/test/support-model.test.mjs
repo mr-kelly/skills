@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildConfigSummary,
+  buildPracticeTicketBundle,
   buildSnapshot,
   recomputeMetrics,
   refreshTicketDerived,
@@ -331,4 +332,34 @@ test("buildConfigSummary: never exposes secret values, only env-var names and re
   const email = summary.accounts.find((a) => a.account_id === "email-support");
   assert.deepEqual(email.secret_envs, []);
   assert.equal(email.secrets_ready, true);
+});
+
+test("buildPracticeTicketBundle creates grounded, non-deliverable synthetic tickets", () => {
+  const article = { article_id: "kb-guide" };
+  const bundle = buildPracticeTicketBundle({
+    article,
+    qa_pairs: [
+      {
+        pair_id: "qa-opening",
+        article_id: "kb-guide",
+        question: "客服怎样开场？",
+        answer: "先问候并说明身份，再询问客户需要什么帮助。",
+        status: "draft",
+      },
+      {
+        pair_id: "qa-other-source",
+        article_id: "kb-other",
+        question: "不应导入",
+        answer: "不应导入",
+      },
+    ],
+    now: "2026-09-23T12:00:00.000Z",
+  });
+  assert.equal(bundle.account.connector, "manual");
+  assert.equal(bundle.tickets.length, 1);
+  assert.equal(bundle.messages.length, 1);
+  assert.equal(bundle.tickets[0].status, "needs_review");
+  assert.equal(bundle.tickets[0].provider_conversation_id, "");
+  assert.deepEqual(JSON.parse(bundle.tickets[0].kb_refs), ["kb-guide"]);
+  assert.match(bundle.tickets[0].execution_detail, /never deliver externally/);
 });

@@ -20,11 +20,19 @@
       "options": {}
     },
     {
+      "slug": "task",
+      "name": "Task",
+      "type": "text",
+      "required": true,
+      "position": 2,
+      "options": {}
+    },
+    {
       "slug": "base-model",
       "name": "Base model",
       "type": "text",
       "required": true,
-      "position": 2,
+      "position": 3,
       "options": {}
     },
     {
@@ -32,7 +40,7 @@
       "name": "Base revision",
       "type": "text",
       "required": false,
-      "position": 3,
+      "position": 4,
       "options": {}
     },
     {
@@ -40,7 +48,7 @@
       "name": "Method",
       "type": "text",
       "required": true,
-      "position": 4,
+      "position": 5,
       "options": {}
     },
     {
@@ -48,7 +56,7 @@
       "name": "Status",
       "type": "text",
       "required": true,
-      "position": 5,
+      "position": 6,
       "options": {}
     },
     {
@@ -56,7 +64,7 @@
       "name": "Dataset snapshot file",
       "type": "text",
       "required": true,
-      "position": 6,
+      "position": 7,
       "options": {}
     },
     {
@@ -64,7 +72,7 @@
       "name": "Dataset hash",
       "type": "text",
       "required": true,
-      "position": 7,
+      "position": 8,
       "options": {}
     },
     {
@@ -72,7 +80,7 @@
       "name": "Training config JSON",
       "type": "longtext",
       "required": true,
-      "position": 8,
+      "position": 9,
       "options": {}
     },
     {
@@ -80,7 +88,7 @@
       "name": "Claimant",
       "type": "text",
       "required": false,
-      "position": 9,
+      "position": 10,
       "options": {}
     },
     {
@@ -88,7 +96,7 @@
       "name": "Claimed at",
       "type": "text",
       "required": false,
-      "position": 10,
+      "position": 11,
       "options": {}
     },
     {
@@ -96,7 +104,7 @@
       "name": "Heartbeat at",
       "type": "text",
       "required": false,
-      "position": 11,
+      "position": 12,
       "options": {}
     },
     {
@@ -104,7 +112,7 @@
       "name": "Attempt",
       "type": "number",
       "required": false,
-      "position": 12,
+      "position": 13,
       "options": {}
     },
     {
@@ -112,7 +120,7 @@
       "name": "Adapter file",
       "type": "text",
       "required": false,
-      "position": 13,
+      "position": 14,
       "options": {}
     },
     {
@@ -120,7 +128,7 @@
       "name": "Report file",
       "type": "text",
       "required": false,
-      "position": 14,
+      "position": 15,
       "options": {}
     },
     {
@@ -128,7 +136,7 @@
       "name": "Sanitized error",
       "type": "longtext",
       "required": false,
-      "position": 15,
+      "position": 16,
       "options": {}
     },
     {
@@ -136,7 +144,7 @@
       "name": "Created at",
       "type": "text",
       "required": true,
-      "position": 16,
+      "position": 17,
       "options": {}
     },
     {
@@ -144,7 +152,7 @@
       "name": "Completed at",
       "type": "text",
       "required": false,
-      "position": 17,
+      "position": 18,
       "options": {}
     }
   ],

@@ -53,6 +53,7 @@ export const appConfig = {
       fields: [
         { slug: "run-id", name: "Run ID", type: "text", required: true },
         { slug: "title", name: "Title", type: "text", required: true },
+        { slug: "task", name: "Task", type: "text", required: true },
         { slug: "base-model", name: "Base model", type: "text", required: true },
         { slug: "base-revision", name: "Base revision", type: "text", required: false },
         { slug: "method", name: "Method", type: "text", required: true },
@@ -80,12 +81,15 @@ export const appConfig = {
       fields: [
         { slug: "evaluation-id", name: "Evaluation ID", type: "text", required: true },
         { slug: "run-id", name: "Run ID", type: "text", required: true },
+        { slug: "task", name: "Task", type: "text", required: true },
         { slug: "model-role", name: "Model role", type: "text", required: true },
         { slug: "dataset-hash", name: "Evaluation dataset hash", type: "text", required: true },
         { slug: "case-count", name: "Case count", type: "number", required: true },
         { slug: "json-valid-pct", name: "JSON valid %", type: "number", required: false },
         { slug: "schema-valid-pct", name: "Schema valid %", type: "number", required: false },
         { slug: "exact-field-pct", name: "Exact field %", type: "number", required: false },
+        { slug: "exact-match-pct", name: "Exact answer match %", type: "number", required: false },
+        { slug: "character-f1-pct", name: "Character F1 %", type: "number", required: false },
         { slug: "latency-ms", name: "Median latency ms", type: "number", required: false },
         { slug: "report-file", name: "Report file", type: "text", required: false },
         { slug: "verdict", name: "Verdict", type: "text", required: false },

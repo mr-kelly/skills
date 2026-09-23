@@ -55,11 +55,18 @@ adapter. Record per-case expected output, raw completion, parsed output, schema
 errors, exact fields, and latency. Training loss is diagnostic only and never a
 promotion metric.
 
-The initial `app_spec` evaluator requires exactly:
+The `app_spec` evaluator requires exactly:
 
 ```json
 {"name":"...","category":"platform","risk":"local-write","surface":["busabase"],"app_type":"action-console"}
 ```
+
+The `support_qa` evaluator accepts a plain-text assistant answer and records
+normalized exact-answer match plus Unicode character F1. Imported support QA
+keeps `source: kelly-support:<article-id>:<pair-id>` and must return to
+`needs_review` even when the upstream pair was approved. Split assignment is
+stable per source article; never distribute QA from one source across train and
+locked test.
 
 Promotion is a human verdict on one adapter evaluation. It does not silently
 retire the prior active model or merge unrelated ChangeRequests.

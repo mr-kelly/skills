@@ -49,6 +49,14 @@ pnpm --dir content/kelly-support-app install
 pnpm --dir content/kelly-support-app dev
 ```
 
+Approved QA pairs can be handed to Local Model Lab with its dry-run-first
+bridge. The lab deliberately reviews imported pairs again before snapshotting:
+
+```bash
+pnpm --dir ../kelly-local-model-lab sync:support-qa
+pnpm --dir ../kelly-local-model-lab sync:support-qa -- --apply
+```
+
 Open the printed URL. A standalone local preview asks you to connect
 Busabase (Cloud or a custom server) and select a Space — never an API key.
 

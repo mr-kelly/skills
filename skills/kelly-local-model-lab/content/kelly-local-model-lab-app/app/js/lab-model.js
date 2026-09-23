@@ -38,6 +38,7 @@ export function normalizeRun(row = {}) {
   return {
     run_id: text(row.run_id),
     title: text(row.title),
+    task: text(row.task) || parseJson(row.config).task || "app_spec",
     base_model: text(row.base_model),
     base_revision: text(row.base_revision),
     method: text(row.method) || "qlora",
@@ -61,12 +62,15 @@ export function normalizeEvaluation(row = {}) {
   return {
     evaluation_id: text(row.evaluation_id),
     run_id: text(row.run_id),
+    task: text(row.task) || "app_spec",
     model_role: text(row.model_role),
     dataset_hash: text(row.dataset_hash),
     case_count: number(row.case_count),
     json_valid_pct: number(row.json_valid_pct),
     schema_valid_pct: number(row.schema_valid_pct),
     exact_field_pct: number(row.exact_field_pct),
+    exact_match_pct: number(row.exact_match_pct),
+    character_f1_pct: number(row.character_f1_pct),
     latency_ms: number(row.latency_ms),
     report_file: text(row.report_file),
     verdict: text(row.verdict),
@@ -125,12 +129,15 @@ export function baseEvaluationFields(evaluation) {
   return {
     evaluation_id: value.evaluation_id,
     run_id: value.run_id,
+    task: value.task,
     model_role: value.model_role,
     dataset_hash: value.dataset_hash,
     case_count: value.case_count,
     json_valid_pct: value.json_valid_pct,
     schema_valid_pct: value.schema_valid_pct,
     exact_field_pct: value.exact_field_pct,
+    exact_match_pct: value.exact_match_pct,
+    character_f1_pct: value.character_f1_pct,
     latency_ms: value.latency_ms,
     report_file: value.report_file,
     verdict: value.verdict,
@@ -145,13 +152,27 @@ export function compareEvaluations(evaluations = []) {
     if (!byRun.has(evaluation.run_id)) byRun.set(evaluation.run_id, {});
     byRun.get(evaluation.run_id)[evaluation.model_role] = evaluation;
   }
-  return [...byRun.entries()].map(([run_id, pair]) => ({
-    run_id,
-    baseline: pair.baseline || null,
-    adapter: pair.adapter || null,
-    schema_delta: pair.adapter && pair.baseline ? pair.adapter.schema_valid_pct - pair.baseline.schema_valid_pct : null,
-    exact_delta: pair.adapter && pair.baseline ? pair.adapter.exact_field_pct - pair.baseline.exact_field_pct : null,
-  }));
+  return [...byRun.entries()].map(([run_id, pair]) => {
+    const baseline = pair.baseline || null;
+    const adapter = pair.adapter || null;
+    const task = adapter?.task || baseline?.task || "app_spec";
+    return {
+      run_id,
+      task,
+      baseline,
+      adapter,
+      schema_delta: adapter && baseline ? adapter.schema_valid_pct - baseline.schema_valid_pct : null,
+      exact_delta: adapter && baseline ? adapter.exact_field_pct - baseline.exact_field_pct : null,
+      exact_match_delta: adapter && baseline ? adapter.exact_match_pct - baseline.exact_match_pct : null,
+      character_f1_delta: adapter && baseline ? adapter.character_f1_pct - baseline.character_f1_pct : null,
+      primary_delta:
+        adapter && baseline
+          ? task === "support_qa"
+            ? adapter.character_f1_pct - baseline.character_f1_pct
+            : adapter.schema_valid_pct - baseline.schema_valid_pct
+          : null,
+    };
+  });
 }
 
 export function buildSnapshot({ examples = [], runs = [], evaluations = [], models = [], settings = {} } = {}) {

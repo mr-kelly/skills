@@ -64,6 +64,8 @@
   "jsonValid": "JSON 有效",
   "schemaValid": "Schema 有效",
   "exactFields": "字段精确",
+  "exactMatch": "答案精确匹配",
+  "characterF1": "字符 F1",
   "decisionNote": "决定备注",
   "promote": "晋级",
   "hold": "保留观察",

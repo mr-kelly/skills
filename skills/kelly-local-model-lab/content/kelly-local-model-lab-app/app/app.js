@@ -145,7 +145,7 @@ function applyDemoRoute() {
   const scenario = state.data.demo_scenario;
   const route =
     scenario === "dataset"
-      ? "#/examples/EX-004"
+      ? "#/examples/SUPPORT-qa-phone-empathy"
       : scenario === "evaluations"
         ? "#/evaluations"
         : scenario === "registry"
@@ -194,13 +194,13 @@ function renderOverview() {
         </ol>
       </div>
       <div class="overview-panel">
-        <div class="panel-heading"><h2>${escapeHtml(t("latestComparison"))}</h2>${comparison ? `<span class="badge ${comparison.schema_delta > 0 ? "sev-info" : "sev-high"}">${comparison.schema_delta > 0 ? "+" : ""}${number(comparison.schema_delta, 1)} pp</span>` : ""}</div>
+        <div class="panel-heading"><h2>${escapeHtml(t("latestComparison"))}</h2>${comparison ? `<span class="badge ${comparison.primary_delta > 0 ? "sev-info" : "sev-high"}">${comparison.primary_delta > 0 ? "+" : ""}${number(comparison.primary_delta, 1)} pp</span>` : ""}</div>
         ${
           comparison
             ? `
           <div class="comparison-bars">
-            <div><span>${escapeHtml(t("baseline"))}</span><div class="bar"><i style="width:${comparison.baseline.schema_valid_pct}%"></i></div><strong>${number(comparison.baseline.schema_valid_pct, 1)}%</strong></div>
-            <div><span>${escapeHtml(t("adapter"))}</span><div class="bar"><i style="width:${comparison.adapter.schema_valid_pct}%"></i></div><strong>${number(comparison.adapter.schema_valid_pct, 1)}%</strong></div>
+            <div><span>${escapeHtml(t("baseline"))}</span><div class="bar"><i style="width:${comparison.task === "support_qa" ? comparison.baseline.character_f1_pct : comparison.baseline.schema_valid_pct}%"></i></div><strong>${number(comparison.task === "support_qa" ? comparison.baseline.character_f1_pct : comparison.baseline.schema_valid_pct, 1)}%</strong></div>
+            <div><span>${escapeHtml(t("adapter"))}</span><div class="bar"><i style="width:${comparison.task === "support_qa" ? comparison.adapter.character_f1_pct : comparison.adapter.schema_valid_pct}%"></i></div><strong>${number(comparison.task === "support_qa" ? comparison.adapter.character_f1_pct : comparison.adapter.schema_valid_pct, 1)}%</strong></div>
           </div>
           <a class="text-link" href="#/evaluations">${escapeHtml(t("openEvaluation"))}</a>
         `
@@ -285,9 +285,13 @@ function comparisonCard(comparison) {
   const adapter = comparison.adapter;
   const baseline = comparison.baseline;
   if (!adapter || !baseline) return "";
+  const metrics =
+    comparison.task === "support_qa"
+      ? `<span>${escapeHtml(t("exactMatch"))}</span><b>${number(baseline.exact_match_pct, 1)}%</b><b>${number(adapter.exact_match_pct, 1)}%</b><span>${escapeHtml(t("characterF1"))}</span><b>${number(baseline.character_f1_pct, 1)}%</b><b>${number(adapter.character_f1_pct, 1)}%</b>`
+      : `<span>${escapeHtml(t("jsonValid"))}</span><b>${number(baseline.json_valid_pct, 1)}%</b><b>${number(adapter.json_valid_pct, 1)}%</b><span>${escapeHtml(t("schemaValid"))}</span><b>${number(baseline.schema_valid_pct, 1)}%</b><b>${number(adapter.schema_valid_pct, 1)}%</b><span>${escapeHtml(t("exactFields"))}</span><b>${number(baseline.exact_field_pct, 1)}%</b><b>${number(adapter.exact_field_pct, 1)}%</b>`;
   return `<article class="evaluation-card">
     <div class="panel-heading"><div><span class="row-id">${escapeHtml(comparison.run_id)}</span><h2>${escapeHtml(t("baselineVsAdapter"))}</h2></div><span class="badge status-${escapeHtml(adapter.verdict || "needs_review")}">${escapeHtml(label(adapter.verdict || "needs_review", "verdict"))}</span></div>
-    <div class="eval-grid"><span></span><strong>${escapeHtml(t("baseline"))}</strong><strong>${escapeHtml(t("adapter"))}</strong><span>${escapeHtml(t("jsonValid"))}</span><b>${number(baseline.json_valid_pct, 1)}%</b><b>${number(adapter.json_valid_pct, 1)}%</b><span>${escapeHtml(t("schemaValid"))}</span><b>${number(baseline.schema_valid_pct, 1)}%</b><b>${number(adapter.schema_valid_pct, 1)}%</b><span>${escapeHtml(t("exactFields"))}</span><b>${number(baseline.exact_field_pct, 1)}%</b><b>${number(adapter.exact_field_pct, 1)}%</b></div>
+    <div class="eval-grid"><span></span><strong>${escapeHtml(t("baseline"))}</strong><strong>${escapeHtml(t("adapter"))}</strong>${metrics}</div>
     <label>${escapeHtml(t("decisionNote"))}<textarea class="evaluation-note" data-evaluation-id="${escapeHtml(adapter.evaluation_id)}" rows="2">${escapeHtml(adapter.decision_note)}</textarea></label>
     <div class="review-actions"><button class="primary" data-evaluation-verdict="promote" data-evaluation-id="${escapeHtml(adapter.evaluation_id)}">${escapeHtml(t("promote"))}</button><button data-evaluation-verdict="hold" data-evaluation-id="${escapeHtml(adapter.evaluation_id)}">${escapeHtml(t("hold"))}</button><button class="danger-quiet" data-evaluation-verdict="reject" data-evaluation-id="${escapeHtml(adapter.evaluation_id)}">${escapeHtml(t("reject"))}</button></div>
   </article>`;

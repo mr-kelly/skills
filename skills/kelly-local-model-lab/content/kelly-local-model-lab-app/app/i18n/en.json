@@ -64,6 +64,8 @@
   "jsonValid": "Valid JSON",
   "schemaValid": "Schema valid",
   "exactFields": "Exact fields",
+  "exactMatch": "Exact answer",
+  "characterF1": "Character F1",
   "decisionNote": "Decision note",
   "promote": "Promote",
   "hold": "Hold",

@@ -116,9 +116,25 @@ export function normalizeKbArticle({
   body = "",
   tags = "",
   category = "",
+  source_url = "",
+  source_published_at = "",
+  source_fetched_at = "",
+  content_hash = "",
   updated_at = "",
 } = {}) {
-  return { article_id, kind, title, body, tags: parseJsonList(tags), category, updated_at };
+  return {
+    article_id,
+    kind,
+    title,
+    body,
+    tags: parseJsonList(tags),
+    category,
+    source_url,
+    source_published_at,
+    source_fetched_at,
+    content_hash,
+    updated_at,
+  };
 }
 
 export function normalizeQaPair({
@@ -147,6 +163,100 @@ export function normalizeQaPair({
     reviewed_by,
     updated_at,
   };
+}
+
+const PRACTICE_CUSTOMERS = [
+  ["林晓", "青岚工作室"],
+  ["周然", "北辰零售"],
+  ["陈雨", "澄海设计"],
+  ["王宁", "木棉教育"],
+  ["赵清", "远山科技"],
+  ["何安", "日光餐饮"],
+];
+
+function practiceCategory(question) {
+  return /(投诉|抱怨|情绪|生气|激动)/.test(question) ? "complaint" : "how_to";
+}
+
+/**
+ * @param {{ article?: { article_id?: string }, qa_pairs?: Array<Record<string, any>>, now?: string }} options
+ */
+export function buildPracticeTicketBundle({ article, qa_pairs = [], now = new Date().toISOString() } = {}) {
+  if (!article?.article_id) throw new Error("Practice tickets require a source article");
+  const pairs = qa_pairs.map(normalizeQaPair).filter((pair) => pair.article_id === article.article_id);
+  const baseTime = new Date(now).getTime();
+  const account = {
+    account_id: "manual-qa-practice",
+    channel: "form",
+    connector: "manual",
+    display_name: "QA 练习工单",
+    handle: "",
+    status: "ok",
+    access_token_env: "",
+    phone_number_id_env: "",
+    corp_secret_env: "",
+    last_sync_at: now,
+  };
+  const tickets = [];
+  const messages = [];
+  pairs.forEach((pair, index) => {
+    const [customerName, customerCompany] = PRACTICE_CUSTOMERS[index % PRACTICE_CUSTOMERS.length];
+    const ticketId = `practice-${pair.pair_id}`;
+    const createdAt = new Date(baseTime - index * 5 * 60 * 1000).toISOString();
+    const priority = /(投诉|抱怨|情绪|生气|激动)/.test(pair.question) ? "high" : "normal";
+    tickets.push({
+      ticket_id: ticketId,
+      account_id: account.account_id,
+      channel: account.channel,
+      customer_name: customerName,
+      customer_company: customerCompany,
+      customer_email: "",
+      customer_handle: "",
+      customer_country: "CN",
+      customer_plan: "练习场景",
+      subject: pair.question,
+      body: pair.question,
+      category: practiceCategory(pair.question),
+      priority,
+      status: "needs_review",
+      proposed_action: "send_reply",
+      reason: `根据 QA ${pair.pair_id} 生成的合成练习工单；回复仅依据知识材料 ${article.article_id}。`,
+      suggested_reply: pair.answer,
+      kb_refs: JSON.stringify([article.article_id]),
+      sla_policy: "first_response",
+      sla_due_by: new Date(baseTime + (priority === "high" ? 4 : 8) * 60 * 60 * 1000).toISOString(),
+      sla_first_response_at: "",
+      csat_score: "",
+      csat_comment: "",
+      csat_rated_at: "",
+      owner: "Kelly",
+      unread: "true",
+      created_at: createdAt,
+      provider_conversation_id: "",
+      decision_action: "",
+      decision_comment: "",
+      decided_at: "",
+      execution_status: "",
+      execution_operation: "",
+      execution_connector: "",
+      execution_target: "",
+      execution_tier: "",
+      execution_amount: "",
+      execution_detail: "Synthetic practice ticket; never deliver externally.",
+      executed_at: "",
+      updated_at: now,
+    });
+    messages.push({
+      message_id: `${ticketId}-incoming-01`,
+      ticket_id: ticketId,
+      direction: "incoming",
+      sender: customerName,
+      text: pair.question,
+      sent_at: createdAt,
+      attachment: "",
+    });
+  });
+  return { account, tickets, messages };
 }
 
 export function normalizeTicket({

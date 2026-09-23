@@ -5,7 +5,8 @@
   "version": "0.1.0",
   "description": "Trusted scripts for Kelly Local Model Lab setup, MLX smoke training, and AirApp publishing.",
   "scripts": {
-    "check": "node scripts/validate-fixture.mjs && node scripts/sync-content.mjs --check && pnpm --dir content/kelly-local-model-lab-app check",
+    "check": "node scripts/validate-fixture.mjs && node scripts/sync-content.mjs --check && node --test test/*.test.mjs && pnpm --dir content/kelly-local-model-lab-app check",
+    "sync:support-qa": "node scripts/support-qa-bridge.mjs",
     "train:smoke": ".venv/bin/python scripts/mlx_smoke.py"
   },
   "dependencies": {
