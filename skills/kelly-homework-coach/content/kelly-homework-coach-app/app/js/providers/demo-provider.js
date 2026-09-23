@@ -62,6 +62,13 @@ export const demoProvider = {
     throw new Error("Demo mode is read-only.");
   },
 
+  // app.js special-cases demo mode before it reaches a provider (see
+  // applyDemoDecision/finishRun); this exists so the two providers keep the
+  // same surface and a missed code path fails loudly instead of silently.
+  async submitPaperAttempt() {
+    throw new Error("Demo mode is read-only.");
+  },
+
   async provisionResources() {
     throw new Error("Demo mode is read-only.");
   },

@@ -273,6 +273,54 @@ export const busabaseProvider = {
     return { ok: true };
   },
 
+  /**
+   * Record a finished practice run onto the paper's OWN row.
+   *
+   * Deliberately narrow. `papers` is already documented as "one row per
+   * practice paper plan **or completed-paper analysis**", and `analysis` is a
+   * JSON object, so the attempt is an UPDATE to a row that exists — it reuses
+   * updateRecord()/records.changeRequest and needs no create procedure and no
+   * new Base. The AirApp's write surface is unchanged.
+   *
+   * What it does NOT write: mistake cards. Turning a wrong answer into a
+   * root cause and a misconception is a judgement about a child's learning,
+   * and this skill's contract is that the agent drafts those and a parent
+   * approves them. The runner only reports what it can prove.
+   */
+  async submitPaperAttempt({ paper_id, attempt } = {}) {
+    if (!paper_id || typeof paper_id !== "string") throw new Error("submitPaperAttempt requires a paper_id");
+    if (!attempt || typeof attempt !== "object") throw new Error("submitPaperAttempt requires an attempt");
+    await ensureResources();
+    const existing = await findRecord("papers", "paper-id", paper_id);
+    if (!existing) throw new Error(`Paper not found: ${paper_id}`);
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
+    const paper = computePaperFromRow(current);
+    await updateRecord(
+      "papers",
+      existing,
+      basePaperFields({
+        ...paper,
+        status: "needs_review",
+        analysis: { ...paper.analysis, wrong_count: attempt.wrong_count, attempt },
+      }),
+      `Practice run on paper ${paper_id}: ${attempt.correct}/${attempt.total}`,
+    );
+
+    // Put it back in front of a person. A finished run that leaves its review
+    // row sitting at "approved" is a result nobody is asked to look at.
+    const review = await findRecord("reviews", "target-id", paper_id);
+    if (review) {
+      const reviewCurrent = normalizeFields(review.headCommit?.payload || review.headCommit?.fields || review.fields);
+      await updateRecord(
+        "reviews",
+        review,
+        baseReviewFields({ ...computeReviewFromRow(reviewCurrent), status: "needs_review" }),
+        `Practice run on paper ${paper_id} needs review`,
+      );
+    }
+    return { ok: true };
+  },
+
   async provisionResources() {
     if (!allowedSetup.has("nodes.createChangeRequest") || !allowedSetup.has("nodes.updateMetadata")) {
       throw new Error("PROCEDURE_DENIED: nodes.createChangeRequest/nodes.updateMetadata");

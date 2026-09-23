@@ -136,6 +136,53 @@ def test_demo_ui(browser, base_url: str) -> None:
     page = desktop.new_page()
     errors = attach_error_capture(page)
 
+    # The practice runner: a paper the student actually sits, marked locally.
+    # paper-mixed-01's review is `approved`, so handing in visibly moves it
+    # back into the queue — which is the whole point of the feature.
+    page.goto(f"{base_url}/?demo=papers&lang=en#/papers/paper-mixed-01")
+    page.wait_for_load_state("networkidle")
+    assert page.locator(".filter button").nth(2).inner_text().endswith("1")  # Ready = 1
+    page.locator("[data-run-start]").click()
+    # A run owns the detail pane; leaving the nav button in the sticky action
+    # bar offers the student a control that silently abandons their run.
+    assert page.locator(".detail-actions-top").inner_text().strip() == ""
+
+    # hint_first: the first wrong answer gets the hint, never the answer.
+    page.fill("#runAnswer", "999")
+    page.locator("[data-run-submit]").click()
+    verdict = page.locator(".run-verdict").first
+    assert "is-hint" in (verdict.get_attribute("class") or "")
+    assert "326" not in verdict.inner_text()
+    page.locator("[data-run-retry]").click()
+    page.fill("#runAnswer", "999")
+    page.locator("[data-run-submit]").click()
+    # Only the second wrong attempt reveals it.
+    assert "326" in page.locator(".run-verdict").first.inner_text()
+
+    page.locator("[data-run-next]").click()
+    page.fill("#runAnswer", "444")
+    page.locator("[data-run-submit]").click()
+    assert "is-correct" in (page.locator(".run-verdict").first.get_attribute("class") or "")
+    page.locator("[data-run-next]").click()
+    # The open-response item carries no answer key, so nobody marks it.
+    page.fill("#runAnswer", "Small daily care helps things grow.")
+    page.locator("[data-run-submit]").click()
+    assert "is-open" in (page.locator(".run-verdict").first.get_attribute("class") or "")
+    page.locator("[data-run-next]").click()
+
+    # Scored over the GRADED items: 1 of 2, not 1 of 3.
+    assert page.locator(".question-title").first.inner_text() == "You got 1 of 2 right."
+    page.locator("[data-run-finish]").click()
+    page.wait_for_timeout(300)
+    # Ready 1 -> 0, Needs Review 3 -> 4: the paper is back in front of a person.
+    assert page.locator(".filter button").nth(1).inner_text().endswith("4")
+    assert page.locator(".filter button").nth(2).inner_text().endswith("0")
+
+    # A paper with no answer key says so instead of inventing one to mark.
+    page.goto(f"{base_url}/?demo=papers&lang=en#/papers/paper-fractions-01")
+    page.wait_for_load_state("networkidle")
+    assert page.locator("[data-run-start]").count() == 1
+
     # zh-CN is Simplified. It used to serve Hong Kong Traditional, because
     # resolveLanguage() routes every zh-* tag to the one `zh` bundle.
     for tag in ("zh", "zh-CN"):

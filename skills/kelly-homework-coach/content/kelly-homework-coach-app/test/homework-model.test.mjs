@@ -4,15 +4,21 @@ import test from "node:test";
 import {
   DECISION_ACTIONS,
   assembleSnapshot,
+  attemptTopics,
   baseQuestionFields,
   baseReviewFields,
   buildConfigSummary,
+  buildPaperAttempt,
   computeMetrics,
   computeMistakeFromRow,
   computePaperFromRow,
   computeQuestionFromRow,
   computeReviewFromRow,
   demoSnapshot,
+  gradeAnswer,
+  isGradeable,
+  normalizePaperItem,
+  paperItems,
   pendingAgentTasks,
   sanitizeObject,
   statusForAction,
@@ -205,5 +211,86 @@ test("demoSnapshot: exact worked example ported from the retired app/server/demo
     /[學數錯試審複習題講練畫圖較個並計過檢驗還們麼樣長開頭關於後級單顯減業紙導語門週綜聽釋對準確識換記變離欄]/;
   for (const value of JSON.stringify(zh).split('"')) {
     assert.doesNotMatch(value, traditional, `Traditional character left in the zh bundle: ${value}`);
+  }
+});
+
+// ── Practice runner ────────────────────────────────────────────────────────
+
+test("normalizePaperItem accepts both the legacy string and the gradeable object", () => {
+  assert.deepEqual(normalizePaperItem("604 - 278", 0), {
+    ref: 1,
+    prompt: "604 - 278",
+    answer: "",
+    hint: "",
+    topic: "",
+  });
+  assert.deepEqual(normalizePaperItem({ prompt: "p", answer: "a", hint: "h", topic: "t" }, 3), {
+    ref: 4,
+    prompt: "p",
+    answer: "a",
+    hint: "h",
+    topic: "t",
+  });
+});
+
+test("gradeAnswer forgives formatting, not arithmetic", () => {
+  // A grade-4 answer sheet must not fail on a full-width digit, a stray
+  // space, a trailing period, or letter case. Everything else is wrong, and
+  // is marked wrong rather than guessed at — a child is told the result.
+  assert.equal(gradeAnswer("４/８", "4/8"), "correct");
+  assert.equal(gradeAnswer("  5/8 ", "5/8"), "correct");
+  assert.equal(gradeAnswer("326。", "326"), "correct");
+  assert.equal(gradeAnswer("EQUAL", "equal"), "correct");
+  assert.equal(gradeAnswer("3/8", "1/2"), "wrong");
+  assert.equal(gradeAnswer("", "1/2"), "wrong");
+  // No answer key means nobody marks it — never a silent pass or fail.
+  assert.equal(gradeAnswer("anything", ""), "ungraded");
+});
+
+test("a paper runs when at least one item can be marked", () => {
+  assert.equal(isGradeable({ items: ["no answer key"] }), false);
+  assert.equal(isGradeable({ items: [{ prompt: "p", answer: "1" }, "open response"] }), true);
+  assert.equal(isGradeable({ items: [] }), false);
+});
+
+test("buildPaperAttempt scores over the GRADED items, not every item", () => {
+  const paper = {
+    items: [
+      { prompt: "a", answer: "1", topic: "退位减法" },
+      { prompt: "b", answer: "2", topic: "退位减法" },
+      { prompt: "c", answer: "", topic: "中心思想" },
+    ],
+  };
+  const attempt = buildPaperAttempt(paper, { 1: "1", 2: "9", 3: "一段话" }, { 2: 1 }, "2026-09-24T00:00:00.000Z");
+  assert.equal(attempt.total, 3);
+  // 2, not 3: the open-response item is not a question the child got wrong.
+  assert.equal(attempt.graded, 2);
+  assert.equal(attempt.correct, 1);
+  assert.equal(attempt.wrong_count, 1);
+  assert.deepEqual(
+    attempt.results.map((result) => result.outcome),
+    ["correct", "wrong", "ungraded"],
+  );
+  assert.equal(attempt.results[1].hints_used, 1);
+  assert.deepEqual(attemptTopics(attempt), ["退位减法"]);
+  // The runner reports what it can prove and nothing else: strengths,
+  // review_plan and deep_notes are judgements the agent writes and a parent
+  // approves, so an attempt must not carry them.
+  assert.equal("strengths" in attempt, false);
+  assert.equal("review_plan" in attempt, false);
+});
+
+test("every demo paper is runnable, and no hint gives away its own answer", () => {
+  for (const lang of ["en", "zh"]) {
+    for (const paper of demoSnapshot(lang).papers) {
+      assert.ok(isGradeable(paper), `${paper.paper_id} (${lang}) must be runnable`);
+      for (const item of paperItems(paper)) {
+        if (!item.answer || !item.hint) continue;
+        assert.ok(
+          !item.hint.includes(item.answer),
+          `${paper.paper_id} item ${item.ref} (${lang}): the hint contains its own answer`,
+        );
+      }
+    }
   }
 });

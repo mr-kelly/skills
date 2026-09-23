@@ -724,6 +724,67 @@ textarea:disabled {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Practice runner ───────────────────────────────────────────────────── */
+
+.run-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* The verdict is the frame a child reads first, so it carries its meaning in
+ * a border and a wash rather than in the wording alone. --ease-state, not
+ * --ease: this is a state change the viewer -- and the camera -- must see. */
+.run-verdict {
+  display: grid;
+  gap: 6px;
+  border-inline-start: var(--rule-heavy) solid var(--rule);
+  border-radius: var(--radius-xs);
+  background: var(--surface-soft);
+  padding: 12px 14px;
+  font-size: var(--text-md);
+  animation: decision-flash var(--ease-flash);
+}
+
+.run-verdict p {
+  margin: 0;
+}
+
+.run-verdict strong {
+  font-weight: 620;
+}
+
+.run-verdict.is-correct {
+  border-inline-start-color: var(--positive);
+  background: var(--positive-soft);
+  color: var(--positive-text);
+}
+
+.run-verdict.is-hint {
+  border-inline-start-color: var(--warning);
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+
+.run-verdict.is-wrong {
+  border-inline-start-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger-text);
+}
+
+.run-verdict.is-open {
+  border-inline-start-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
 /* ── Photo desk ────────────────────────────────────────────────────────── */
 
 .photo-box,

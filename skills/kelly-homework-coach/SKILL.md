@@ -75,7 +75,7 @@ Required app views (hash routes):
 - `#/student`: student study desk with a photo/intake box (local-only filename picker plus a copy-to-chat prompt), current question, gentle step-by-step explanation, hint ladder, and "I understand" / "I still need help" controls.
 - `#/student/<question_id>`: question detail with the original prompt text, the student's answer, concept explanation, steps, self-check, and next hint.
 - `#/mistakes`: mistake notebook with due-review chips, topic filters, root-cause analysis, similar practice prompt, and review history.
-- `#/papers`: practice paper list, including mistake-focused settings, estimated minutes, and paper analysis (wrong-question count, strengths, review plan).
+- `#/papers`: practice paper list, including mistake-focused settings, estimated minutes, and paper analysis (wrong-question count, strengths, review plan). A paper whose `items` carry an answer key can be **sat** here — see Practice Runner below.
 - `#/review`: parent/teacher review queue with stable refs, workflow states (`needs_review` / `changes_requested` / `approved` / `done` / `blocked`), an editable review note, suggested actions, and approve/request-changes/block decisions — written directly onto the review record through `busabase-sdk`.
 - `#/settings`: sanitized config summary, data provider, learning policy, answer-reveal rule, language, and a **Style** tab that switches the editorial colour family on `<html data-theme>`. Never exposes a secret value.
 
@@ -106,8 +106,21 @@ Required app views (hash routes):
 
 1. Build practice papers from target subject/topic, grade, difficulty mix, and recent mistakes.
 2. Generate a paper plan first: title, question count, estimated minutes, topics, linked mistakes, and answer-key policy. Parent/teacher approval is required before export.
-3. After a completed paper is analyzed, list all wrong questions with topic, root cause, concept gap, and recommended review sequence.
-4. Export approved papers locally only, outside this app, after review. This skill never sends anything to school systems or messaging apps.
+3. Write each item as `{ prompt, answer, hint, topic }` so the student can sit the paper in the app. `items` has always been a free JSON array, so this is not a schema change — a plain string still parses, it just cannot be marked. An item that genuinely has no single right answer (「说说这篇短文的中心意思」) carries `answer: ""` and is reported for a person to read rather than auto-marked.
+4. After a completed paper is analyzed, list all wrong questions with topic, root cause, concept gap, and recommended review sequence.
+5. Export approved papers locally only, outside this app, after review. This skill never sends anything to school systems or messaging apps.
+
+## Practice Runner
+
+A paper with an answer key can be sat in the app: `#/papers/<paper_id>` → **开始做这张卷**. One question at a time, answer, mark, next.
+
+- **Marking is local and deterministic.** `gradeAnswer()` in `homework-model.js` normalizes full-width digits, whitespace, a trailing period and case, then compares exactly. No model call and no fuzzy match — a child is told they got it wrong, so the rule has to be one you can explain to them.
+- **`hint_first` is enforced here, not just documented.** The first wrong answer gets the item's `hint`; only a second wrong attempt reveals `answer`. When `learning_policy.answer_policy` is not `hint_first`, the answer shows immediately. A hint must never contain its own answer — `test/homework-model.test.mjs` asserts this across the whole demo dataset.
+- **The score is over marked items.** `attempt.graded`, not `attempt.total`: an open-response item nobody marked is not a question the child got wrong.
+- **Handing in writes one row.** The attempt goes onto the paper's **own** record (`analysis.attempt`, plus `analysis.wrong_count`), and the paper's review row returns to `needs_review` so a parent sees the result. `papers` is already defined as holding "a completed-paper analysis", so this is an update through the existing `records.changeRequest` path — no new Base, no create procedure, and no widening of what the AirApp may write.
+- **The runner never writes a mistake card.** Turning a wrong answer into a root cause and a misconception is a judgement about a child's learning; the agent drafts those (`scripts/record_homework.mjs`) and a parent approves them. The runner reports only what it can prove: which items were wrong, what was given, what was expected, and how many hints were used.
+
+So the loop is: agent builds the paper → student sits it → app marks and hands in → parent reviews in `#/review` → agent turns the missed items into mistake cards.
 
 ## Review And Execution Loop
 
