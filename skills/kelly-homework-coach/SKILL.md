@@ -30,7 +30,7 @@ Default interaction mode: App UI. Unless the user explicitly asks for chat-only 
 
 ## Mandatory Dependencies
 
-1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-homework-coach-app/` artifact.
+1. Read and follow `$kelly-app-skill-creator` for product behavior, visual quality, responsive layout, and the complete canonical `content/kelly-homework-coach-app/` artifact. The app renders on the **editorial** visual preset (`references/editorial-visual-system.md`): `app/styles/editorial.css` is a byte-identical copy of the shared asset and the only file allowed to know a colour, a font size, a radius, or a duration, and `scripts/check.mjs` fails the build when a raw one comes back. Default family `sage-clay`, register `desk`.
 2. Read and follow `$busabase` for connection, target Space, node discovery, ChangeRequests, review, and merge behavior.
 3. Read and follow `$busabase-app-creator` for resource modeling, AirApp runtime limits, security, validation, and deployment.
 
@@ -77,13 +77,15 @@ Required app views (hash routes):
 - `#/mistakes`: mistake notebook with due-review chips, topic filters, root-cause analysis, similar practice prompt, and review history.
 - `#/papers`: practice paper list, including mistake-focused settings, estimated minutes, and paper analysis (wrong-question count, strengths, review plan).
 - `#/review`: parent/teacher review queue with stable refs, workflow states (`needs_review` / `changes_requested` / `approved` / `done` / `blocked`), an editable review note, suggested actions, and approve/request-changes/block decisions — written directly onto the review record through `busabase-sdk`.
-- `#/settings`: sanitized config summary, data provider, learning policy, answer-reveal rule, and language. Never exposes a secret value.
+- `#/settings`: sanitized config summary, data provider, learning policy, answer-reveal rule, language, and a **Style** tab that switches the editorial colour family on `<html data-theme>`. Never exposes a secret value.
 
 ## Demo Mode
 
-- `?demo=student`, `?demo=mistakes`, `?demo=papers`, and `?demo=review` open the deterministic offline dataset for screenshots and review (the scenario only selects which route to demo — the underlying data is always the same `demoSnapshot()`). Demo mode never reads or writes Busabase; demo decisions stay in the browser and are discarded on refresh.
-- `lang=en`, `lang=zh`, or `lang=zh-HK` forces UI chrome language. Demo content is meaningfully localized when Chinese is selected.
-- Deep links such as `/?demo=student&lang=zh-HK#/student` must work.
+- `?demo=student`, `?demo=mistakes`, `?demo=papers`, and `?demo=review` open the deterministic offline dataset for screenshots, review, and demo recordings (the scenario only selects which route to demo — the underlying data is always the same `demoSnapshot()`). Demo mode never reads or writes Busabase.
+- **Demo decisions really apply, in memory.** Approve / request changes / block mutate the rendered snapshot through the same `statusForAction()` the Busabase provider calls, mirror the new status onto the target question/mistake/paper, and play one confirmation highlight — then a refresh restores the fixture. Nothing is persisted and nothing leaves the tab.
+- The demo dataset contains a record that must **not** be approved: `q-area-blurred` / `rv-area-blurred`, where the photo hides one side length, the agent assumed `8 cm`, and its own read confidence is `0.41`. It exists so the review surface can be demonstrated making a judgement rather than rubber-stamping.
+- `lang=en`, `lang=zh`, or `lang=zh-CN` forces UI chrome language. Chinese is **Simplified, mainland wording** (四年级 / 错题本 / 练习卷); `resolveLanguage()` routes every `zh-*` tag to that one bundle.
+- Deep links such as `/?demo=student&lang=zh-CN#/student` must work.
 
 ## Homework Photo Workflow
 

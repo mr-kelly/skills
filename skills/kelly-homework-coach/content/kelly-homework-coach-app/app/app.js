@@ -5,6 +5,7 @@ import {
   computePaperFromRow,
   computeQuestionFromRow,
   computeReviewFromRow,
+  statusForAction,
 } from "./js/homework-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
 
@@ -25,6 +26,8 @@ const state = {
   loadingMore: {},
   loadMoreError: {},
   hasLoadedMore: false,
+  notice: "",
+  flashId: "",
 };
 
 const PAGE_TARGETS = {
@@ -36,6 +39,58 @@ const PAGE_TARGETS = {
 
 function t(key) {
   return messages[state.lang]?.[key] || messages.en[key] || key;
+}
+
+// `{n}` / `{name}` interpolation, for the headline and eyebrow only. Two
+// placeholders is the whole feature: a headline that needs more than that is
+// a paragraph wearing a headline's clothes.
+function tf(key, vars) {
+  return Object.entries(vars).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, String(value)), t(key));
+}
+
+// A parent reads "add to the mistake notebook", never `add_to_mistake_book`.
+// The raw value is this app's contract with scripts/execute_decisions.mjs, not
+// a label -- the reader can neither recognise it nor click it, so it says
+// nothing while looking like content. An unknown action degrades to its
+// humanised form, never to the id and never to "-".
+const ACTION_LABELS = {
+  add_to_mistake_book: "actionAddToMistakeBook",
+  mark_understood: "actionMarkUnderstood",
+  queue_practice_paper: "actionQueuePracticePaper",
+  export_paper_plan: "actionExportPaperPlan",
+  request_revision: "actionRequestRevision",
+  block_item: "actionBlockItem",
+  revise_explanation: "actionReviseExplanation",
+};
+
+function actionLabel(action) {
+  const key = ACTION_LABELS[action];
+  return key ? t(key) : String(action || "").replace(/_/g, " ");
+}
+
+// Colour family. index.html ships the default (`sage-clay` -- botanical and
+// calm, the family editorial-visual-system.md names for education); the Style
+// tab is the only thing that overrides it. Register and light/dark are not
+// offered: `desk` is correct for an app whose first screen is a queue, and
+// dark follows the OS.
+const THEME_FAMILIES = [
+  ["ink-paper", "familyInkPaper", "familyInkPaperCopy"],
+  ["rose-ochre", "familyRoseOchre", "familyRoseOchreCopy"],
+  ["mauve-plum", "familyMauvePlum", "familyMauvePlumCopy"],
+  ["coral-amber", "familyCoralAmber", "familyCoralAmberCopy"],
+  ["sage-clay", "familySageClay", "familySageClayCopy"],
+  ["ink-blush", "familyInkBlush", "familyInkBlushCopy"],
+  ["graphite", "familyGraphite", "familyGraphiteCopy"],
+];
+const DEFAULT_FAMILY = document.documentElement.dataset.theme || "sage-clay";
+
+function activeFamily() {
+  const saved = localStorage.getItem("khc-theme") || "";
+  return THEME_FAMILIES.some(([id]) => id === saved) ? saved : DEFAULT_FAMILY;
+}
+
+function applyFamily() {
+  document.documentElement.dataset.theme = activeFamily();
 }
 
 function esc(value) {
@@ -80,6 +135,13 @@ function isEditing() {
 async function loadState({ quiet = false } = {}) {
   if (isEditing() && quiet) return;
   if (quiet && state.hasLoadedMore) return;
+  // The 20s background refresh exists to pick up what the agent wrote to
+  // Busabase since the last paint. In demo mode there is no second writer --
+  // the provider hands back the same fixture every time -- so a quiet refresh
+  // can only do one thing: throw away the decisions the operator just made in
+  // this tab. Found by recording the demo and watching the sidebar counters
+  // snap back to 4/1 twenty seconds after an approval.
+  if (quiet && state.data?.demo) return;
   const provider = await getProvider();
   const data = await provider.getState();
   closeConnectGate();
@@ -118,6 +180,7 @@ function outcomeChip(outcome) {
 function render() {
   if (!state.data) return;
   state.lang = resolveLanguage();
+  document.documentElement.lang = state.lang === "zh" ? "zh-CN" : "en";
   state.route = parseRoute();
   renderShell();
 }
@@ -136,7 +199,7 @@ function renderShell() {
         <button class="icon-button" data-open-settings type="button" aria-label="${esc(t("settings"))}">...</button>
       </div>
       <section class="content">
-        ${renderListPanel(snapshot)}
+        ${renderListPanel(snapshot, counts)}
         ${renderDetailPanel(snapshot)}
       </section>
     </main>
@@ -160,7 +223,7 @@ function renderSidebar(snapshot, counts) {
       <section class="human-work">
         <strong>${esc(t("humanWork"))}</strong>
         <div class="attention-grid">
-          <div class="attention-metric"><b>${counts.needs_review + counts.changes_requested}</b><span>${esc(t("needsReview"))}</span></div>
+          <div class="attention-metric is-live"><b>${counts.needs_review + counts.changes_requested}</b><span>${esc(t("openForYou"))}</span></div>
           <div class="attention-metric"><b>${counts.approved}</b><span>${esc(t("readyForAgent"))}</span></div>
           <div class="attention-metric"><b>${metrics.due_reviews || 0}</b><span>${esc(t("dueReviews"))}</span></div>
           <div class="attention-metric"><b>${counts.blocked}</b><span>${esc(t("blockedCount"))}</span></div>
@@ -262,31 +325,55 @@ function selectedItem(snapshot) {
   return items.find((item) => idFor(item, view) === state.route.id) || items[0] || null;
 }
 
-function renderListPanel(snapshot) {
+// The headline is a sentence about the work, not the page name -- "3 things
+// need your judgment." is what the reader is here for; "Review" is what the
+// nav rail already told them. The lede says what to do next.
+function panelIntro(view, snapshot, counts) {
+  const name = snapshot.profile?.display_name || t("studentName");
+  if (view === "mistakes") {
+    const due = (snapshot.mistakes || []).filter((item) => item.status !== "done").length;
+    return { headline: tf("headlineMistakes", { n: due }), lede: t("ledeMistakes") };
+  }
+  if (view === "papers") {
+    return { headline: tf("headlinePapers", { n: (snapshot.papers || []).length }), lede: t("ledePapers") };
+  }
+  if (view === "review") {
+    const open = counts.needs_review + counts.changes_requested;
+    return {
+      headline: open ? tf("headlineReview", { n: open }) : t("headlineReviewClear"),
+      lede: t("ledeReview"),
+    };
+  }
+  const open = (snapshot.questions || []).filter((item) => item.status !== "done").length;
+  return {
+    headline: open ? tf("headlineStudent", { name, n: open }) : tf("headlineStudentClear", { name }),
+    lede: t("ledeStudent"),
+  };
+}
+
+function renderListPanel(snapshot, counts) {
   const view = state.route.view === "settings" ? "student" : state.route.view;
   const items = filteredItems(snapshot);
   const metrics = snapshot.metrics || {};
   const showMetrics = view === "student";
+  const intro = panelIntro(view, snapshot, counts);
+  const total = collectionFor(snapshot, view).length;
   return `
     <section class="list-panel">
       <div class="panel-header">
-        <div class="panel-title">
-          <div>
-            <h1>${esc(navLabel(view))}</h1>
-            <p>${esc(snapshot.profile?.display_name || "Student")} · ${esc(snapshot.profile?.grade || "")}</p>
-          </div>
-        </div>
+        <p class="eyebrow">${esc(navLabel(view))} · ${esc(tf("itemsCount", { n: total }))}</p>
+        <h1 class="headline">${esc(intro.headline)}</h1>
+        <p class="lede">${esc(intro.lede)}</p>
         <input class="search" type="search" value="${esc(state.query)}" data-search placeholder="${esc(t("search"))}" />
       </div>
       ${
         showMetrics
-          ? `<div class="metric-grid">
+          ? `<div class="metric-band">
               ${metric(t("mastery"), `${metrics.mastery_score || 0}%`)}
-              ${metric(t("dueReviews"), metrics.due_reviews || 0)}
               ${metric(t("analyzed"), metrics.questions_analyzed || 0)}
               ${metric(t("activeQuestions"), metrics.active_questions || 0)}
             </div>
-            <div class="section" style="padding: 0 16px 14px;">${renderPhotoBox()}</div>`
+            ${renderPhotoBox()}`
           : ""
       }
       <div class="row-list">
@@ -327,19 +414,21 @@ async function loadMore(key) {
 }
 
 function metric(label, value) {
-  return `<div class="metric"><b>${esc(value)}</b><span>${esc(label)}</span></div>`;
+  return `<div class="metric"><span class="metric-value">${esc(value)}</span><span class="metric-label">${esc(label)}</span></div>`;
 }
 
 function renderPhotoBox() {
   return `
     <div class="photo-box">
-      <div class="row-top">
-        <strong>${esc(t("photoDesk"))}</strong>
+      <div class="photo-actions">
+        <label class="photo-picker">
+          <input type="file" accept="image/*" data-local-photo />
+          <span>${esc(t("choosePhoto"))}</span>
+        </label>
         <span class="chip accent">${esc(t("selectedOnly"))}</span>
+        <button class="primary" data-copy-prompt="photo" type="button">${esc(t("askAgent"))}</button>
       </div>
-      <input type="file" accept="image/*" data-local-photo />
-      <p class="note">${esc(state.localPhotoName || t("localPhoto"))}</p>
-      <button class="primary" data-copy-prompt="photo" type="button">${esc(t("askAgent"))}</button>
+      ${state.localPhotoName ? `<p class="note">${esc(state.localPhotoName)}</p>` : ""}
     </div>
   `;
 }
@@ -353,9 +442,9 @@ function renderRow(item, view) {
   if (view === "student") chips += outcomeChip(item.outcome);
   if (view === "mistakes") chips += `<span class="chip">${esc(item.topic)}</span>`;
   if (view === "papers") chips += `<span class="chip">${esc(item.question_count)} ${esc(t("questionCount"))}</span>`;
-  if (view === "review") chips += `<span class="chip">${esc(item.proposed_action)}</span>`;
+  if (view === "review") chips += `<span class="chip action">${esc(actionLabel(item.proposed_action))}</span>`;
   return `
-    <button class="row ${active ? "active" : ""}" data-select-id="${esc(id)}" data-select-view="${esc(view)}" type="button">
+    <button class="row ${active ? "active" : ""} ${state.flashId === id ? "is-decided" : ""}" data-select-id="${esc(id)}" data-select-view="${esc(view)}" type="button">
       <div class="row-top">
         <div class="row-title">${esc(refLabel(view, item.ref))} · ${esc(title)}</div>
       </div>
@@ -380,6 +469,7 @@ function renderDetailPanel(snapshot) {
       <div class="detail-actions-top">
         <button class="plain back-to-list" data-back-list type="button">${esc(t("back"))}</button>
         ${view === "review" && item ? reviewActions(item) : studentActions(view, item)}
+        ${state.notice ? `<span class="decision-state" role="status">${esc(state.notice)}</span>` : ""}
       </div>
       <div class="detail-scroll">
         ${item ? renderDetail(item, view, snapshot) : `<p class="note">${esc(t("noItems"))}</p>`}
@@ -417,6 +507,7 @@ function renderDetail(item, view, snapshot) {
 }
 
 function renderQuestion(question) {
+  const unverified = question.outcome === "uncertain" || !question.correct_answer;
   return `
     <section class="hero-answer">
       <div class="chips">${statusChip(question.status)}${outcomeChip(question.outcome)}<span class="chip">${esc(question.subject)}</span><span class="chip">${esc(question.topic)}</span></div>
@@ -424,7 +515,7 @@ function renderQuestion(question) {
       <p>${esc(question.prompt_text)}</p>
       <div class="answer-grid">
         <div class="answer-box"><span>${esc(t("studentAnswer"))}</span><b>${esc(question.student_answer)}</b></div>
-        <div class="answer-box"><span>${esc(t("correctAnswer"))}</span><b>${esc(question.correct_answer)}</b></div>
+        <div class="answer-box ${unverified ? "is-flagged" : ""}"><span>${esc(t("correctAnswer"))}</span><b>${esc(question.correct_answer || t("uncertain"))}</b></div>
       </div>
       <p class="note">${esc(question.explanation?.kid_summary || "")}</p>
     </section>
@@ -448,7 +539,7 @@ function renderMistake(mistake) {
       <p>${esc(t("topic"))}: ${esc(mistake.topic)} · ${esc(t("due"))}: ${esc(mistake.next_review_at)}</p>
     </section>
     ${infoSection(t("rootCause"), mistake.analysis?.root_cause)}
-    ${infoSection("Misconception", mistake.analysis?.misconception)}
+    ${infoSection(t("misconception"), mistake.analysis?.misconception)}
     ${infoSection(t("fixStrategy"), mistake.analysis?.fix_strategy)}
     ${infoSection(t("similarPrompt"), mistake.analysis?.similar_prompt)}
     ${infoSection(t("parentNote"), mistake.analysis?.parent_note)}
@@ -477,7 +568,7 @@ function renderPaper(paper) {
       </div>
     </section>
     <section class="section">
-      <h3>Items</h3>
+      <h3>${esc(t("paperItems"))}</h3>
       ${(paper.items || []).map((entry) => `<div class="paper-item">${esc(entry)}</div>`).join("")}
     </section>
     ${listSection(t("strengths"), paper.analysis?.strengths)}
@@ -495,19 +586,19 @@ function renderReviewItem(item, snapshot) {
       <h2 class="question-title">${esc(item.title)}</h2>
       <p>${esc(item.summary)}</p>
       <div class="split">
-        <div class="answer-box"><span>${esc(t("proposedAction"))}</span><b>${esc(item.proposed_action)}</b></div>
+        <div class="answer-box"><span>${esc(t("proposedAction"))}</span><b>${esc(actionLabel(item.proposed_action))}</b></div>
         <div class="answer-box"><span>${esc(t("reason"))}</span><p>${esc(item.reason)}</p></div>
       </div>
     </section>
     ${listSection(t("suggestions"), item.suggestions)}
-    ${infoSection(t("suggestedNote"), item.suggested_note)}
     <section class="section">
       <h3>${esc(t("reviewNote"))}</h3>
       <div class="field">
         <textarea id="reviewNote">${esc(decision?.comment || item.suggested_note || "")}</textarea>
+        <p class="note">${esc(t("reviewNoteHint"))}</p>
       </div>
     </section>
-    ${target ? `<section class="section"><h3>Target</h3>${targetSummary(target, item.target_type)}</section>` : ""}
+    ${target ? `<section class="section"><h3>${esc(t("targetSection"))}</h3>${targetSummary(target, item.target_type)}</section>` : ""}
   `;
 }
 
@@ -538,7 +629,7 @@ function listSection(title, items = []) {
 
 function renderSettingsModal() {
   const config = state.data.config_summary || {};
-  const tabs = ["guide", "policy", "language"];
+  const tabs = ["guide", "policy", "style", "language"];
   return `
     <div class="modal-backdrop" data-close-settings>
       <section class="modal" role="dialog" aria-modal="true" aria-label="${esc(t("settings"))}" data-modal>
@@ -558,7 +649,7 @@ function renderSettingsModal() {
 }
 
 function settingsTabLabel(tab) {
-  return { guide: t("guide"), policy: t("policy"), language: t("language") }[tab] || tab;
+  return { guide: t("guide"), policy: t("policy"), style: t("style"), language: t("language") }[tab] || tab;
 }
 
 function settingsTab(config) {
@@ -570,6 +661,17 @@ function settingsTab(config) {
         ${settingsRow(t("storeRawPhotos"), String(config.learning_policy?.store_raw_photos))}
         ${settingsRow(t("exportApproval"), String(config.learning_policy?.parent_review_required_for_exports))}
       </section>
+    `;
+  }
+  if (state.settingsTab === "style") {
+    return `
+      <p class="note">${esc(t("styleCopy"))}</p>
+      <div class="style-grid">
+        ${THEME_FAMILIES.map(([id, nameKey, copyKey]) => {
+          const active = activeFamily() === id ? "active" : "";
+          return `<button class="style-swatch ${active}" data-family="${esc(id)}" type="button"><strong>${esc(t(nameKey))}</strong><small>${esc(t(copyKey))}</small></button>`;
+        }).join("")}
+      </div>
     `;
   }
   if (state.settingsTab === "language") {
@@ -600,21 +702,76 @@ function languagePicker() {
   `;
 }
 
+/**
+ * Demo mode used to log "decision write skipped" and return, so every button
+ * in the review queue did nothing: the app's single most important
+ * interaction was unreachable in the only mode a screenshot or a recording
+ * can use, and SKILL.md's "demo decisions stay in the browser and are
+ * discarded on refresh" described something the code did not do.
+ *
+ * It now mutates the in-memory snapshot that is already rendered -- the same
+ * pattern as kelly-products' postDecision() -- through the SAME
+ * statusForAction() the Busabase provider calls, so the two cannot drift.
+ * Nothing is persisted and nothing is sent: a refresh restores the fixture,
+ * which is exactly what the ?demo= contract promises.
+ */
+function applyDemoDecision({ review_id, action, comment }) {
+  const snapshot = state.data.snapshot || {};
+  const review = (snapshot.review_items || []).find((item) => item.review_id === review_id);
+  if (!review) return;
+  const nextStatus = statusForAction(action);
+  review.status = nextStatus;
+  review.decision = { action, comment: String(comment || ""), decided_at: new Date().toISOString() };
+
+  // The real write mirrors the status onto the target's own row; so does this.
+  const targets = {
+    question: [snapshot.questions, "question_id"],
+    mistake: [snapshot.mistakes, "mistake_id"],
+    paper: [snapshot.papers, "paper_id"],
+  }[review.target_type];
+  if (targets) {
+    const [rows, idKey] = targets;
+    const target = (rows || []).find((row) => row[idKey] === review.target_id);
+    if (target) target.status = nextStatus;
+  }
+  state.workflowCount = null;
+}
+
 async function submitDecision(payload) {
   if (state.data?.demo) {
-    console.info("Demo mode: decision write skipped", payload);
+    applyDemoDecision(payload);
+    state.notice = t("decisionRecordedDemo");
+    flashDecision(payload.review_id);
     return;
   }
   state.busy = true;
   try {
     const provider = await getProvider();
     await provider.submitReview(payload);
+    state.notice = t("decisionRecorded");
     await loadState();
+    flashDecision(payload.review_id);
   } catch (error) {
     window.alert(error.message);
   } finally {
     state.busy = false;
   }
+}
+
+/**
+ * One --ease-flash highlight on the row that just took a verdict, then the
+ * row settles into its new queue. Without it the most important moment in a
+ * recording -- the approval landing -- happens between two frames, and a
+ * viewer who does not already know what to look for sees nothing happen.
+ */
+function flashDecision(reviewId) {
+  state.flashId = reviewId;
+  render();
+  window.setTimeout(() => {
+    state.flashId = "";
+    state.notice = "";
+    render();
+  }, 2400);
 }
 
 function nearestReviewForTarget(targetId) {
@@ -669,6 +826,13 @@ document.addEventListener("click", async (event) => {
   if (button.dataset.selectId) {
     routeTo(button.dataset.selectView || state.route.view, button.dataset.selectId);
     setSidebarOpen(false);
+    return;
+  }
+
+  if (button.dataset.family) {
+    localStorage.setItem("khc-theme", button.dataset.family);
+    applyFamily();
+    render();
     return;
   }
 
@@ -776,4 +940,5 @@ async function boot() {
   }
 }
 
+applyFamily();
 boot();

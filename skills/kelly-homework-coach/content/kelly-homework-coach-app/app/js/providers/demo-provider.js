@@ -21,8 +21,8 @@ const DEMO_CONFIG_PAYLOAD = {
   student_profile: {
     display_name: "Demo Student",
     grade: "Grade 4",
-    language: "zh-HK",
-    timezone: "Asia/Hong_Kong",
+    language: "zh-CN",
+    timezone: "Asia/Shanghai",
   },
   subjects: ["Math", "Chinese", "English"],
   learning_policy: {

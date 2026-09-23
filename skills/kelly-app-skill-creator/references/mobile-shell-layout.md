@@ -1,172 +1,86 @@
-# Mobile Shell And Linear-Style Layout
+# Mobile Shell And Split-Pane Layout
 
-Use this reference when creating or updating an App-in-Skill UI. It captures the default layout pattern for quiet workflow tools: a dense desktop split-pane inspired by Linear-style product surfaces, plus a phone-first shell that remains usable at 360-390px widths.
+Use this reference when creating or updating an App-in-Skill UI. It captures the
+shell mechanics for a workflow tool: a desktop split-pane that keeps its working
+density, plus a phone-first shell that remains usable at 360-390px widths.
+
+The visual system it carries — type, colour families, layout register, dark
+mode, camera-ready rules — lives in `editorial-visual-system.md`. Read that
+first.
 
 ## Layout Taste
 
-Build the actual work surface first, not a landing page. A good App-in-Skill reads as a small
-cockpit for one workflow: dense but calm, specific to the work, quiet controls, clear workflow
-state.
+Build the actual work surface first, not a landing page. A good App-in-Skill
+reads as a small editorial desk for one workflow: composed, legible from across
+a room, specific to the work, and calm.
 
-### Token Scale
+**`editorial-visual-system.md` owns every visual token** — the type scale, the
+colour families (`data-theme`), the layout register (`data-editorial`), dark
+mode, the magazine vocabulary (eyebrow / headline / lede / rule / metric band /
+status pill), the camera-ready rules, and the `Do Not` list. Read it before
+writing a line of CSS, copy `assets/editorial-theme/editorial.css` into the app
+(after `base-ui.css`, before every app-owned stylesheet), and never write a raw
+colour, font size, radius, or duration into any other rule.
 
-Declare these once in `:root` and never write a raw color, font size, or radius into a rule.
-Retheming an app then means editing one block.
-
-```css
-:root {
-  --canvas: #f6f7f8;          /* page background */
-  --surface: #ffffff;         /* cards and panes */
-  --surface-soft: #f4f5f7;    /* inert fills: counts, segmented track, avatars */
-  --surface-hover: #fafbfb;
-
-  --ink: #14181f;
-  --ink-soft: #454c57;
-  --muted: #79828f;
-  --line: #ebedf0;
-  --line-strong: #dcdfe4;
-
-  --positive: #1f7a4d;
-  --warning: #8a5a00;
-  --danger: #b3261e;
-
-  --radius-sm: 8px;           /* controls */
-  --radius-md: 10px;
-  --radius-lg: 14px;          /* cards */
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04);
-  --shadow-modal: 0 24px 60px rgba(16, 24, 40, 0.16);
-
-  --text-xs: 11px;  --text-sm: 12px;  --text-base: 13px;  --text-md: 14px;
-  --text-lg: 16px;  --text-xl: 20px;  --text-2xl: 30px;  --text-3xl: 38px;
-
-  /* Translucent surfaces must be tokens too -- see Dark Mode below. */
-  --surface-blur: rgba(255, 255, 255, 0.94);
-  --scrim: rgba(16, 24, 40, 0.34);
-
-  /* One duration for every hover/selection change. */
-  --ease: 130ms cubic-bezier(0.2, 0, 0.2, 1);
-
-  color-scheme: light dark;
-}
-```
-
-Do not introduce a size between two type steps, and do not add a third shadow.
-
-The large steps matter as much as the small ones. Measured across the 53 existing apps in this
-repo, 67% of every `font-size` declaration is 8-12.5px, only 13 declarations in the whole set are
-28px or larger, 31 distinct sizes are in use, and not one app defines a size through a variable.
-That is the concrete reason they read as cramped rather than composed: nothing on the page is large
-enough to anchor it. Spend `--text-2xl` on metric values and `--text-3xl` on exactly one greeting
-or page title. Accent tokens are
-covered separately in `ui-workflow-patterns.md`; one accent per app, owning selection, active nav,
-focus rings, links, and the primary button — nothing else.
-
-Keep CJK faces in the font stack. These apps ship localized copy, and a stack without
-`PingFang SC` / `Noto Sans SC` renders Chinese in a serif fallback:
-
-```css
-font-family:
-  Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-  "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-```
-
-### Dark Mode
-
-Ship it. Dark is a `@media (prefers-color-scheme: dark)` block that overrides **tokens only** — not
-one rule is duplicated for it. Keep `<meta name="color-scheme" content="light dark">` in the HTML so
-native controls and scrollbars follow. Surfaces should be near-black, not pure black: at `#000` the
-hairlines have to get brighter to stay visible, and bright hairlines read as noise.
-
-This only works if no rule contains a raw color, and the failure mode is silent. A hardcoded
-`rgba(255, 255, 255, 0.94)` on a sticky list header sat *after* the dark block in source order, won
-the cascade at equal specificity, and left a white bar with invisible text in dark mode. Nothing
-errors — it is only visible in a screenshot. Route every translucent surface through
-`--surface-blur` / `--scrim`.
-
-Two knobs flip direction rather than being restated as rules: a status pill's wash must rise in
-dark (a 9% wash is invisible on a dark surface) and its text mix must fall (76% toward a dark ink
-would be unreadable). The accent lifts too — a dark-enough accent to work on white is too dark to
-sit on a dark surface.
+This file owns the mechanics that carry those tokens: shell grid, sidebar
+collapse, drawer and scrim, sticky panes, breakpoints, and the modal shape.
 
 ### Polish
 
 Cheap in code, and their absence is what makes a tool look unfinished:
 
-- **Motion.** Hover/selection transitions on `--ease`. Snapping reads as unfinished; slower reads as
-  laggy. All motion collapses under `prefers-reduced-motion`.
-- **Scrollbars.** Thin, transparent track, `--line-strong` thumb, via `scrollbar-width` plus
-  `::-webkit-scrollbar`. The default chrome scrollbar is wide, opaque and light-only; in a two-pane
-  layout it reads as a seam through the design.
-- **Focus.** A 2px accent outline plus a soft `box-shadow` halo, not one flat outline — `box-shadow`
-  so focus never shifts layout.
+- **Motion.** Pointer feedback on `--ease`; a state change the operator (or a
+  viewer of the recording) must notice on `--ease-state`; a persisted verdict
+  gets one `--ease-flash` highlight before its row moves queue. All of it
+  collapses under `prefers-reduced-motion`, which the theme asset handles by
+  rewriting the duration tokens — do not write that media query per component.
+- **Scrollbars.** Thin, transparent track, `--rule` thumb, via `scrollbar-width`
+  plus `::-webkit-scrollbar`. The default chrome scrollbar is wide, opaque and
+  light-only; in a two-pane layout it reads as a seam through the design.
+- **Focus.** A 2px `--accent` outline plus a soft `--accent-focus` `box-shadow`
+  halo, not one flat outline — `box-shadow` so focus never shifts layout.
 - **`::selection` and `caret-color`** read from the accent.
-- **Icons**: monochrome, 16px, `stroke: currentColor`, sized by rule rather than per icon. A
-  multi-colored icon set is the fastest way to make a calm tool look like a toy.
-- **Empty states**: icon, what is missing, and the one action that fixes it — never a bare line of
-  grey text. An empty screen with no next step is where these tools most often strand a user.
-- **Skeletons** for known-shape loads so the layout does not jump; a loading message for
-  unknown-length waits.
+- **Icons**: monochrome, 16px, `stroke: currentColor`, sized by rule rather than
+  per icon. A multi-coloured icon set is the fastest way to make a composed tool
+  look like a toy.
+- **Empty states**: icon, what is missing, and the one action that fixes it —
+  never a bare line of grey text. An empty screen with no next step is where
+  these tools most often strand a user.
+- **Skeletons** for known-shape loads so the layout does not jump; a loading
+  message for unknown-length waits.
 
 ### Composition
 
-- The page sits on `--canvas`; content sits in white cards with a hairline `--line` border and
-  `--shadow-card`. Cards separate regions; nested cards do not.
-- Metrics sit in a **fixed-column row** — `repeat(3, minmax(0, 1fr))` or `repeat(4, …)`, dropping to
-  two columns at the phone breakpoint — with the label muted at `--text-sm` and the value at
-  `--text-xl` with `font-variant-numeric: tabular-nums`. **Never `repeat(auto-fit, …)`.** `auto-fit`
-  makes the summary's height a function of how many metrics the app declares: six of them wrap into
-  two rows ~217px tall at `1280x820` and three rows at `390x844`, and the list starts below the
-  fold. Fixed columns squeeze the cells instead, which is the behaviour you want when space runs
-  short. A hairline-divided band with no per-cell border reads calmer still and is the better
-  default for a new app, but the card form is fine as long as it cannot wrap.
-- **Four numbers is the ceiling, three is better**, and each one has to be unavailable elsewhere on
-  the screen. Per-item counts usually sit next to their nav entry already, and the number that
-  demands action sits in the sidebar's attention block; restating them makes the summary a second
-  navigation that cannot be clicked. Put subsets that take a computation to know, and move the next
-  idea into a nav item or a filter.
-- **Internal identifiers never reach the screen.** Record ids, uuids, hashes, file keys: the reader
-  can neither recognise one nor click it, so it says nothing while looking like content. A field
-  that stores a reference must render the referenced thing's name; when that thing is not loaded
-  yet, say so rather than falling back to the id. For the same reason a display helper's last
-  resort is `-`, never `value.id` and never `JSON.stringify(value)`.
-- A row's secondary line is a **chosen** set of fields. Slicing "the 2nd through 4th field" picks up
-  whatever the schema happens to hold there — which is how two reference columns became the
-  subtitle of every row in a shipped app.
-- The list/detail workspace is one card containing both panes, not two floating panels.
-- Any number that sits in a column — counts, currency, percentages — gets `tabular-nums`.
-- A status pill takes its dot, a ~9% background wash, and its text color from one token, so a
-  status can never end up half-colored. Keep the wash that light.
-- A greeting/overview page gets a muted context line, one `--text-3xl` title, a supporting
-  sentence, and the page-level actions on the right.
+Structural rules; the visual ones live in `editorial-visual-system.md`.
+
+- The page sits on `--canvas`. Regions are separated by **rules**, not by giving
+  each one its own bordered card. A card is right for the list/detail workspace
+  (one card containing both panes) and for the settings modal; it is wrong for a
+  headline block, a metric band, or a section heading.
+- The metric band uses **fixed columns** — `repeat(3, minmax(0, 1fr))` or
+  `repeat(4, …)`, dropping to two at the phone breakpoint. **Never
+  `repeat(auto-fit, …)`**: with `auto-fit` the band's height becomes a function
+  of how many metrics the app declares, six wrap to ~217px at 1280x820 and three
+  rows at 390x844, and the list starts below the fold. Fixed columns squeeze the
+  cells instead, which is the behaviour you want when space runs short.
+- **Internal identifiers never reach the screen.** A field that stores a
+  reference renders the referenced thing's name; when it is not loaded yet, say
+  so rather than falling back to the id. A display helper's last resort is `-`,
+  never `value.id` and never `JSON.stringify(value)`.
+- A row's secondary line is a **chosen** set of fields. Slicing "the 2nd through
+  4th field" picks up whatever the schema happens to hold there — which is how
+  two reference columns became the subtitle of every row in a shipped app.
+- The list/detail workspace is one card containing both panes, not two floating
+  panels.
+- Any number that sits in a column — counts, currency, percentages — gets
+  `tabular-nums`.
 - Rows scan quickly; the detail pane carries the full context.
-- Icon buttons stay transparent with a low-contrast icon and a subtle hover background.
+- Icon buttons stay transparent with a low-contrast icon and a subtle hover
+  background.
 
-### Do Not
-
-Each of these is a specific, recurring way a generated app reads as busy rather than calm:
-
-- Multi-colored pastel icon tiles on metric cards. Four tints across four cards is decoration that
-  competes with the numbers, which are the only thing on that card worth reading.
-- Per-row generated avatar colors. Keep monograms monochrome — a random hue per row fights every
-  real status color sitting in the same row.
-- Saturated pill backgrounds for status. A 9% wash is the ceiling; past that, twenty rows read as
-  a bag of highlighters.
-- A horizontal scrollbar inside a toolbar or filter strip. Let the toolbar wrap instead; a nested
-  scrollbar is the most common way these layouts start looking broken at narrow widths.
-- A summary that wraps to a second row. Nothing overflows horizontally when it does, so every
-  width-based check below still passes while the app has stopped showing its content.
-- Raw ids anywhere a human reads: rows, detail fields, headings, tooltips. They are the most common
-  reason an app looks broken on real data while looking fine on fixture data — which is a fixture
-  problem as much as a rendering one. **Fixtures must carry the shapes the real source returns.** A
-  fixture that pre-resolves a reference into `{ id, name }`, or uses ids like `"p1"` that look
-  nothing like real ones, means the resolution path never runs and the id path never renders: the
-  demo certifies a screen production will never show.
-- Decorative hero sections, gradients, oversized marketing typography, nested cards, mock skeleton
-  graphics presented as content, black floating mobile buttons, hamburger glyphs where a panel icon
-  fits better, heavy shadows, and hover states that promote every control to primary.
-
-Use workflow navigation as the primary sidebar: `All`, `Needs Review`, `Approved`, `Done`,
-`Blocked`, or the domain equivalent. Show categories as badges, not primary navigation.
+Use workflow navigation as the primary sidebar: `All`, `Needs Review`,
+`Approved`, `Done`, `Blocked`, or the domain equivalent. Show categories as
+badges, not primary navigation.
 
 ## Desktop Shell
 
@@ -213,17 +127,21 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
 
 ```css
 .brand-icon {
-  width: 18px;
-  height: 18px;
+  /* 24px, not the 18px this used to be: at 18px the monogram had to sit at
+   * 8px, which is unreadable in a 720p clip and was the smallest type in the
+   * whole fleet. */
+  width: 24px;
+  height: 24px;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  border: 1px solid var(--line-strong);
-  border-radius: 5px;
-  background: #f7f8fa;
-  color: #475569;
-  font-size: 8px;
-  font-weight: 760;
+  border: var(--hairline) solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
   line-height: 1;
 }
 
@@ -233,7 +151,7 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
   place-items: center;
   padding: 0;
   border-color: transparent;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: transparent;
   box-shadow: none;
 }
@@ -241,7 +159,7 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
 .sidebar-toggle {
   width: 30px;
   height: 30px;
-  color: #7a828f;
+  color: var(--muted);
 }
 
 .sidebar-toggle:hover,
@@ -249,8 +167,8 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
 .mobile-sidebar-toggle:hover,
 .mobile-sidebar-toggle:focus-visible {
   border-color: transparent;
-  background: #eef1f5;
-  color: #2f343b;
+  background: var(--surface-soft);
+  color: var(--ink);
   box-shadow: none;
 }
 
@@ -259,8 +177,8 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
   display: block;
   width: 17px;
   height: 15px;
-  border: 1.5px solid currentColor;
-  border-radius: 4px;
+  border: var(--rule-weight) solid currentColor;
+  border-radius: var(--radius-xs);
   opacity: 0.82;
 }
 
@@ -270,7 +188,7 @@ Use a panel icon instead of a hamburger. A hamburger suggests a generic menu; a 
   top: 0;
   bottom: 0;
   left: 5px;
-  width: 1.5px;
+  width: var(--rule-weight);
   background: currentColor;
   opacity: 0.52;
 }
@@ -282,7 +200,7 @@ For mobile, prefer the same quiet light control unless the app chrome is dark:
 .mobile-sidebar-toggle {
   width: 36px;
   height: 34px;
-  color: #59616d;
+  color: var(--muted);
 }
 ```
 
@@ -292,9 +210,9 @@ If a mobile toggle must be dark, override hover/focus so the global button hover
 .mobile-sidebar-toggle,
 .mobile-sidebar-toggle:hover,
 .mobile-sidebar-toggle:focus-visible {
-  border-color: #202124;
-  background: #202124;
-  color: #fff;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--canvas);
   box-shadow: none;
 }
 ```
@@ -347,8 +265,8 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
     gap: 9px;
     min-height: 52px;
     padding: 8px 10px;
-    border-bottom: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.96);
+    border-bottom: var(--rule-weight) solid var(--rule);
+    background: var(--surface-blur);
     backdrop-filter: blur(12px);
   }
 
@@ -359,14 +277,14 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
     height: 100dvh;
     overflow: auto;
     transform: translateX(-100%);
-    transition: transform 0.18s ease;
+    transition: transform var(--ease-state);
     z-index: 30;
     box-shadow: none;
   }
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.16);
+    box-shadow: var(--shadow-modal);
   }
 
   .sidebar-scrim {
@@ -374,7 +292,7 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.28);
+    background: var(--scrim);
   }
 
   .content {
@@ -412,9 +330,9 @@ At `<=720px`, switch to a real phone shell instead of shrinking the desktop:
     display: inline-flex;
     width: calc(100% + 24px);
     margin: 0 -12px 10px;
-    border-width: 0 0 1px;
+    border-width: 0 0 var(--rule-weight);
     border-radius: 0;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--surface-blur);
     backdrop-filter: blur(12px);
   }
 

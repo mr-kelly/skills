@@ -9,7 +9,7 @@ It requires:
 - `$busabase` for connection, node discovery, ChangeRequests, and approvals;
 - `$busabase-app-creator` for Busabase resource modeling, Vault boundaries, AirApp constraints, validation, synchronization, and deployment.
 
-The default operating model is Research -> Plan -> Action -> Retrospective. This skill owns the complete product UI contract: information architecture, human-attention sidebar, workflow navigation, desktop list/detail layout, hash routing, Help & Settings, accessibility, phone drawer and separate mobile detail flow, and visual verification at desktop and 390/360px widths. It delegates only AirApp runtime engineering to `$busabase-app-creator`.
+The default operating model is Research -> Plan -> Action -> Retrospective. This skill owns the complete product UI contract: the editorial visual system (six colour families, three layout registers, magazine typography, dark mode, camera-ready rules), information architecture, human-attention sidebar, workflow navigation, desktop list/detail layout, hash routing, Help & Settings, accessibility, phone drawer and separate mobile detail flow, and visual verification at 1280x820, 1280x720, 390px, and 360px widths. It delegates only AirApp runtime engineering to `$busabase-app-creator`.
 
 Runtime readiness and product onboarding are separate Busabase-backed states. The generated app keeps operator context, policies, sources, schedules, review decisions, Agent claims, and execution results in native Busabase resources. The AirApp records reviewable human input through ChangeRequests; trusted Agents or Workflows own Vault-backed external side effects.
 

@@ -99,6 +99,32 @@ Demo mode must not read or write:
 
 If the demo needs to show approved or executed state, seed it in a dedicated local Busabase instance or demo/test Space. Purely presentational in-memory fixtures are acceptable only when they cannot persist and are labeled demo-only.
 
+## Before You Record: The UI Has To Be Camera-Ready
+
+Most of what makes a clip readable is decided in the app, not in the capture.
+`editorial-visual-system.md` carries the contract; the four that matter most
+here, because they are the ones a recording exposes and a screenshot hides:
+
+- **Nothing load-bearing below 15px.** At 720p, `--text-sm` metadata is fine
+  and a `--text-sm` row title is not.
+- **The state change runs on `--ease-state` (280ms), not `--ease` (130ms).**
+  130ms is roughly four frames at 30fps: the row teleports and the viewer never
+  sees the approval land. This is the single most common reason a demo of a
+  working app reads as "nothing happened".
+- **A persisted verdict plays one `--ease-flash` highlight** before its row
+  moves queue.
+- **Structure is carried by `--rule-weight` lines, not 1px near-white
+  hairlines**, which H.264 smears into the background.
+
+If the app being recorded predates this contract, fix the app rather than
+compensating in the capture. Zooming the browser to make 13px legible changes
+the layout you are demonstrating.
+
+Colour family is a recording decision too. `coral-amber` and `rose-ochre` hold
+up best on camera; `graphite` is the hardest to light. If the app's default
+family is `graphite` for a good reason, record it as it ships — do not re-theme
+an app for its own demo.
+
 ## Recording Quality
 
 Use a stable desktop viewport for the primary clip:
