@@ -385,6 +385,21 @@ describe("upload", () => {
     assert.equal(calls.length, 0);
   });
 
+  test("a relative upload target is resolved against the API origin", async () => {
+    // A deployment on local-disk storage hands back a path on the API host, not
+    // an absolute presigned URL. `fetch` rejects the former outright, so this is
+    // the difference between working and ERR_INVALID_URL on every self-hosted
+    // install — and an absolute fixture can never show it.
+    const { calls, fetchImpl } = recorder([
+      { payload: { ...TARGET, uploadUrl: "/api/dev/upload?key=attachments%2Fblobs%2Fsha256%2Fab%2Fabcd.png" } },
+      { payload: {} },
+      { payload: {} },
+    ]);
+    await run(["upload", PNG], { env: ENV, fetchImpl });
+
+    assert.equal(calls[1].url, "https://busabase.com/api/dev/upload?key=attachments%2Fblobs%2Fsha256%2Fab%2Fabcd.png");
+  });
+
   test("a failed storage PUT is reported, and nothing is confirmed", async () => {
     const { calls, fetchImpl } = recorder([{ payload: TARGET }, { status: 403, payload: {} }]);
     await assert.rejects(() => run(["upload", PNG], { env: ENV, fetchImpl }), CommunityCliError);

@@ -587,9 +587,14 @@ async function cmdUpload(positional, flags) {
 
   if (!target.duplicate) {
     const send = FETCH ?? fetch;
+    // A deployment backed by object storage hands back an absolute presigned
+    // URL; one backed by local disk hands back a path on the API host itself.
+    // Both are valid targets, and `fetch` only accepts the first, so resolve
+    // against the API origin rather than assuming the shape.
+    const uploadUrl = new URL(target.uploadUrl, selected().apiUrl).toString();
     // No authorization header here: the target is already presigned, and an
     // extra credential is exactly what invalidates the signature.
-    const stored = await send(target.uploadUrl, {
+    const stored = await send(uploadUrl, {
       method: "PUT",
       headers: { "content-type": mimeType },
       body: bytes,
