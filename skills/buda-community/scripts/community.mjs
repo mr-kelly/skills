@@ -791,8 +791,7 @@ async function cmdAdmin(positional, flags) {
   const accepted = [...(spec.body ?? []), ...(spec.query ?? [])];
   if (flags.status !== undefined && !accepted.includes("status")) {
     fail(
-      `admin ${operation} — takes no --status. Take content down with take-down-post / take-down-reply, ` +
-        "bring it back with restore-post / restore-reply, and list what is down with --deleted-only.",
+      `admin ${operation} — takes no --status. Take content down with take-down-post / take-down-reply, bring it back with restore-post / restore-reply, and list what is down with --deleted-only.`,
     );
   }
   const payload = buildAdminPayload(operation, flags);
