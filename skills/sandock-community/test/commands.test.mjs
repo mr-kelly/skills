@@ -117,9 +117,27 @@ describe("the publish gate", () => {
 describe("the moderation gate", () => {
   test("a moderation write without --yes sends nothing", async () => {
     const { calls, fetchImpl } = recorder();
-    await run(["admin", "moderate-post", "--post-id", "cpost1", "--status", "hidden"], { env: ENV, fetchImpl });
+    await run(["admin", "take-down-post", "--post-id", "cpost1"], { env: ENV, fetchImpl });
     assert.equal(calls.length, 0);
     assert.match(log.join("\n"), /NOT sent/);
+  });
+
+  test("taking a post down posts to take-down, not moderate", async () => {
+    const { calls, fetchImpl } = recorder([{ payload: { id: "cpost1", deletedAt: "2026-09-23T00:00:00Z" } }]);
+    await run(["admin", "take-down-post", "--post-id", "cpost1", "--yes"], { env: ENV, fetchImpl });
+    assert.equal(calls.length, 1);
+    assert.equal(new URL(calls[0].url).pathname, "/api/v1/system-admin/community/posts/take-down");
+    assert.deepEqual(calls[0].body, { postId: "cpost1" });
+  });
+
+  test("a stale --status on moderate-post is refused, because the server would silently drop it", async () => {
+    const { calls, fetchImpl } = recorder();
+    await assert.rejects(
+      () =>
+        run(["admin", "moderate-post", "--post-id", "cpost1", "--status", "removed", "--yes"], { env: ENV, fetchImpl }),
+      /take-down-post/,
+    );
+    assert.equal(calls.length, 0);
   });
 
   test("a hard delete without --yes sends nothing and says it cannot be undone", async () => {
@@ -127,7 +145,7 @@ describe("the moderation gate", () => {
     await run(["admin", "delete-post", "--post-id", "cpost1"], { env: ENV, fetchImpl });
     assert.equal(calls.length, 0);
     assert.match(log.join("\n"), /IRREVERSIBLE/);
-    assert.match(log.join("\n"), /moderate-post --status removed/, "points at the reversible one");
+    assert.match(log.join("\n"), /take-down-post/, "points at the reversible one");
   });
 
   test("a hard delete with --yes puts the id in the path, not the body", async () => {
@@ -169,9 +187,9 @@ describe("the moderation gate", () => {
 
   test("admin list filters go out nested, which is the only form the server reads", async () => {
     const { calls, fetchImpl } = recorder([{ payload: { items: [], total: 0 } }]);
-    await run(["admin", "posts", "--status", "hidden", "--include-deleted", "--limit", "5"], { env: ENV, fetchImpl });
+    await run(["admin", "posts", "--deleted-only", "--include-deleted", "--limit", "5"], { env: ENV, fetchImpl });
     const url = new URL(calls[0].url);
-    assert.equal(url.searchParams.get("query[status]"), "hidden");
+    assert.equal(url.searchParams.get("query[deletedOnly]"), "true");
     assert.equal(url.searchParams.get("query[includeDeleted]"), "true");
     assert.equal(url.searchParams.get("query[limit]"), "5");
     assert.equal(url.searchParams.get("status"), null, "a flat parameter would be silently ignored");
@@ -183,11 +201,11 @@ describe("the moderation gate", () => {
     assert.equal(calls.length, 0);
   });
 
-  test("an out-of-range status is refused before the request", async () => {
+  test("an out-of-range report status is refused before the request", async () => {
     const { calls, fetchImpl } = recorder();
     await assert.rejects(
       () =>
-        run(["admin", "moderate-reply", "--reply-id", "r1", "--status", "vanished", "--yes"], { env: ENV, fetchImpl }),
+        run(["admin", "handle-report", "--report-id", "r1", "--status", "vanished", "--yes"], { env: ENV, fetchImpl }),
       CommunityCliError,
     );
     assert.equal(calls.length, 0);

@@ -155,15 +155,15 @@ and nothing else is affected. Some deployments do not serve the route at all;
 the first call says so.
 
   read      overview · posts · replies · reports · categories
-  moderate  moderate-post · moderate-reply · move-post · feature-status
-            restore-post · restore-reply
+  moderate  moderate-post (pin/lock/backdate) · move-post · feature-status
+  take down take-down-post · take-down-reply · restore-post · restore-reply
   purge     delete-post · delete-reply            IRREVERSIBLE
   taxonomy  create-category · update-category · archive-category
             reorder-categories
   reports   handle-report
 
-  admin posts --status hidden --include-deleted --limit 20
-  admin moderate-post --post-id <id> --status hidden --yes
+  admin posts --deleted-only --include-deleted --limit 20
+  admin take-down-post --post-id <id> --yes
   admin feature-status --post-id <id> --feature-status planned --yes   # none clears
   admin create-category --slug how-to --kind question --name "How to" --name "zh-CN=怎么做" --yes
 
@@ -172,7 +172,7 @@ per locale: bare --name is English, --name "zh-CN=…" is that locale.
 
 Same gate as `new`/`reply`: payload printed, nothing sent, until --yes.
 
-`moderate-post --status removed` is the SOFT delete — row survives, links hold,
+`take-down-post` is the SOFT delete — row survives, links hold,
 `restore-post` undoes it. `delete-post` purges the post, its replies, reactions
 and reports with no undo. Reach for the soft one unless the user asked for
 destruction in as many words, and quote the irreversible warning back first.

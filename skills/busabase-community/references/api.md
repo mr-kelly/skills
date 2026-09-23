@@ -118,14 +118,15 @@ post" means.
 | Method | Path | What it does |
 | --- | --- | --- |
 | GET | `/overview` | Counts for every moderation queue |
-| GET | `/posts` | Posts in every state — `status`, `includeDeleted`, `categorySlug`, `search`, `limit`, `offset` |
-| GET | `/replies` | Replies in every state — `status`, `includeDeleted`, `postId`, `search`, `limit`, `offset` |
+| GET | `/posts` | Posts in every state — `includeDeleted`, `deletedOnly`, `categorySlug`, `search`, `limit`, `offset` |
+| GET | `/replies` | Replies in every state — `includeDeleted`, `deletedOnly`, `postId`, `search`, `limit`, `offset` |
 | GET | `/reports` | Reader reports — `status`, `limit`, `offset` |
 | GET | `/categories` | Categories, archived ones included, with per-locale text |
-| POST | `/posts/moderate` | `{ postId, status?, isPinned?, isLocked? }` |
+| POST | `/posts/moderate` | `{ postId, isPinned?, isLocked?, createdAt? }` — no `status`; an unknown field is dropped and still answers 200 |
+| POST | `/posts/take-down` | `{ postId }` — soft delete, reversible |
 | POST | `/posts/move` | `{ postId, categoryId }` — the post's `kind` follows the category |
 | POST | `/posts/feature-status` | `{ postId, featureStatus }` — `null` clears it |
-| POST | `/replies/moderate` | `{ replyId, status }` |
+| POST | `/replies/take-down` | `{ replyId }` — soft delete, reversible |
 | POST | `/posts/restore` | `{ postId }` — undo a soft delete |
 | POST | `/replies/restore` | `{ replyId }` |
 | DELETE | `/posts/{postId}` | **Irreversible.** Returns what it destroyed |
@@ -136,7 +137,7 @@ post" means.
 | POST | `/categories/reorder` | `{ categoryIds: [...] }` in display order |
 | POST | `/reports/handle` | `{ reportId, status }` — `accepted` or `rejected` |
 
-Enums: `status` is `published` / `hidden` / `removed`; report `status` is `open`
+Enums: report `status` is `open`
 / `accepted` / `rejected`, and `handle-report` takes only the last two;
 `featureStatus` is `collecting` / `planned` / `shipped` / `declined` or null;
 `kind` is `question` / `discussion` / `showcase` / `feature_request` /
@@ -147,8 +148,8 @@ Category `name` and `description` are locale-keyed records
 translation. `slug` is chosen, not derived — it is a live URL the moment the
 category exists.
 
-`removed` is a soft delete that keeps the row so links never rot. The two
-`DELETE`s are the only operations with no undo, and they take the whole
+A take-down is a soft delete (`deletedAt` set) that keeps the row so links never rot. The two
+`DELETE`s (which answer 409 unless the content was taken down first) are the only operations with no undo, and they take the whole
 subtree — replies, reactions, reports — with them.
 
 A 404 whose body echoes the request `path` means the route is not deployed on

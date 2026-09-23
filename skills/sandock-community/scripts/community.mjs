@@ -540,28 +540,31 @@ const ADMIN_OPS = {
   posts: {
     method: "GET",
     path: "/posts",
-    query: ["status", "includeDeleted", "categorySlug", "search", "limit", "offset"],
+    query: ["includeDeleted", "deletedOnly", "categorySlug", "search", "limit", "offset"],
   },
   replies: {
     method: "GET",
     path: "/replies",
-    query: ["status", "includeDeleted", "postId", "search", "limit", "offset"],
+    query: ["includeDeleted", "deletedOnly", "postId", "search", "limit", "offset"],
   },
   reports: { method: "GET", path: "/reports", query: ["status", "limit", "offset"] },
   categories: { method: "GET", path: "/categories" },
 
+  // Pin, lock or backdate only. Taking content down is take-down-*; the server
+  // strips a `status` sent here and still answers 200, so it is refused locally.
   "moderate-post": {
     method: "POST",
     path: "/posts/moderate",
-    body: ["postId", "status", "isPinned", "isLocked"],
+    body: ["postId", "isPinned", "isLocked", "createdAt"],
     required: ["postId"],
     writes: true,
   },
-  "moderate-reply": {
+  "take-down-post": { method: "POST", path: "/posts/take-down", body: ["postId"], required: ["postId"], writes: true },
+  "take-down-reply": {
     method: "POST",
-    path: "/replies/moderate",
-    body: ["replyId", "status"],
-    required: ["replyId", "status"],
+    path: "/replies/take-down",
+    body: ["replyId"],
+    required: ["replyId"],
     writes: true,
   },
   "move-post": {
@@ -637,10 +640,6 @@ const ADMIN_OPS = {
 
 const ADMIN_ENUMS = {
   status: {
-    "moderate-post": ["published", "hidden", "removed"],
-    "moderate-reply": ["published", "hidden", "removed"],
-    posts: ["published", "hidden", "removed"],
-    replies: ["published", "hidden", "removed"],
     reports: ["open", "accepted", "rejected"],
     "handle-report": ["accepted", "rejected"],
   },
@@ -648,7 +647,7 @@ const ADMIN_ENUMS = {
   kind: ["question", "discussion", "showcase", "feature_request", "announcement"],
 };
 
-const BOOLEAN_FIELDS = new Set(["includeDeleted", "isPinned", "isLocked", "showVotes", "isArchived"]);
+const BOOLEAN_FIELDS = new Set(["includeDeleted", "deletedOnly", "isPinned", "isLocked", "showVotes", "isArchived"]);
 const NUMBER_FIELDS = new Set(["limit", "offset", "sortOrder"]);
 
 const LOCALE = /^[a-z]{2}(-[A-Za-z]{2,4})?$/;
@@ -751,12 +750,7 @@ function renderAdmin(operation, data) {
   }
   if (operation === "posts") {
     for (const post of data.items) {
-      const marks = [
-        post.status !== "published" && post.status,
-        post.deletedAt && "deleted",
-        post.isPinned && "pinned",
-        post.isLocked && "locked",
-      ]
+      const marks = [post.deletedAt && "taken-down", post.isPinned && "pinned", post.isLocked && "locked"]
         .filter(Boolean)
         .join(",");
       console.log(`${pad(post.id, 24)}${pad(post.categorySlug, 18)}${pad(marks || "published", 22)}${post.title}`);
@@ -766,13 +760,7 @@ function renderAdmin(operation, data) {
   }
   if (operation === "replies") {
     for (const reply of data.items) {
-      const marks = [
-        reply.status !== "published" && reply.status,
-        reply.deletedAt && "deleted",
-        reply.isAccepted && "accepted",
-      ]
-        .filter(Boolean)
-        .join(",");
+      const marks = [reply.deletedAt && "taken-down", reply.isAccepted && "accepted"].filter(Boolean).join(",");
       console.log(
         `${pad(reply.id, 24)}${pad(marks || "published", 22)}${oneLine(reply.body, 60)}  ← ${reply.postTitle}`,
       );
@@ -798,6 +786,15 @@ async function cmdAdmin(positional, flags) {
     fail(`admin <operation> — one of ${Object.keys(ADMIN_OPS).join(", ")}.`);
   }
   const spec = ADMIN_OPS[operation];
+  // The server drops a field it does not know and answers 200, so a stale
+  // `--status` would look like success while changing nothing.
+  const accepted = [...(spec.body ?? []), ...(spec.query ?? [])];
+  if (flags.status !== undefined && !accepted.includes("status")) {
+    fail(
+      `admin ${operation} — takes no --status. Take content down with take-down-post / take-down-reply, ` +
+        "bring it back with restore-post / restore-reply, and list what is down with --deleted-only.",
+    );
+  }
   const payload = buildAdminPayload(operation, flags);
   validateAdminPayload(operation, payload);
 
@@ -807,7 +804,7 @@ async function cmdAdmin(positional, flags) {
     console.log(JSON.stringify(payload, null, 2));
     if (spec.destructive) {
       console.log("\n*** IRREVERSIBLE. This purges the row and everything hanging off it.");
-      console.log("*** To take content down reversibly use `moderate-post --status removed` instead.");
+      console.log("*** To take content down reversibly use `take-down-post` instead.");
     }
     console.log("\nShow the user exactly this, then re-run with --yes.");
     return;

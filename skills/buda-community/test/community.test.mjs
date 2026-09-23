@@ -132,8 +132,8 @@ test("buildAdminPayload coerces booleans, numbers and the null feature status", 
   const { flags } = parseArgs(["--post-id", "p1", "--feature-status", "none"]);
   assert.deepEqual(buildAdminPayload("feature-status", flags), { postId: "p1", featureStatus: null });
 
-  const listed = parseArgs(["--include-deleted", "--limit", "5", "--status", "hidden"]).flags;
-  assert.deepEqual(buildAdminPayload("posts", listed), { status: "hidden", includeDeleted: true, limit: 5 });
+  const listed = parseArgs(["--include-deleted", "--limit", "5", "--deleted-only"]).flags;
+  assert.deepEqual(buildAdminPayload("posts", listed), { includeDeleted: true, deletedOnly: true, limit: 5 });
 
   const unarchive = parseArgs(["--category-id", "c1", "--is-archived", "false"]).flags;
   assert.deepEqual(buildAdminPayload("archive-category", unarchive), { categoryId: "c1", isArchived: false });
