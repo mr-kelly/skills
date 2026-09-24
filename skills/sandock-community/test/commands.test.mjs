@@ -348,7 +348,7 @@ describe("failure modes", () => {
 });
 
 describe("upload", () => {
-  const PNG = path.join(tmpdir(), "community-upload-test.png");
+  const PNG = path.join(tmpdir(), `community-upload-test-${process.pid}.png`);
   const TARGET = {
     uploadUrl: "https://bucket.example/presigned?sig=abc",
     storageKey: "attachments/blobs/sha256/ab/abcd.png",
