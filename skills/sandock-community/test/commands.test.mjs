@@ -107,6 +107,14 @@ describe("the publish gate", () => {
     assert.equal(calls.length, 1);
   });
 
+  test("a refused edit says whose it has to be, not that the category is closed", async () => {
+    const { fetchImpl } = recorder([{ status: 403, payload: { error: "You can only edit your own posts" } }]);
+    await assert.rejects(
+      () => run(["edit", "cpost1", "--body", "someone else's post", "--yes"], { env: ENV, fetchImpl }),
+      /Only the account that wrote it/,
+    );
+  });
+
   test("`reply` without --yes sends nothing at all", async () => {
     const { calls, fetchImpl } = recorder();
     await run(["reply", "cpost1", "--body", "a reply"], { env: ENV, fetchImpl });

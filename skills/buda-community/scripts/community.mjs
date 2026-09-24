@@ -336,7 +336,13 @@ async function request(path, { method = "GET", query, body, admin = false, soft 
         `${method} ${path} — unauthorized. ${admin ? PRODUCT.adminKeyEnv : selected().keyEnv} is expired or rejected.`,
       );
     }
-    if (response.status === 403) fail(`${method} ${path} — forbidden. This key may not post to that category.`);
+    if (response.status === 403) {
+      fail(
+        method === "PATCH"
+          ? `${method} ${path} — forbidden. Only the account that wrote it can edit it (see --as), and a locked post cannot be edited.`
+          : `${method} ${path} — forbidden. This key may not post to that category.`,
+      );
+    }
     if (response.status === 404) {
       // A missing *route* echoes the path back; a missing *record* does not.
       // Worth separating: one means "not deployed here", the other "wrong id".
