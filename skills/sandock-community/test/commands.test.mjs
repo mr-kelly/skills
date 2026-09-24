@@ -6,7 +6,7 @@
 // credential it sends, and what it refuses to do. Those are the answers that
 // matter when the command publishes to a public forum or deletes someone's post.
 import assert from "node:assert/strict";
-import { rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { after, before, beforeEach, describe, test } from "node:test";
@@ -330,7 +330,12 @@ describe("failure modes", () => {
 });
 
 describe("upload", () => {
-  const PNG = path.join(tmpdir(), "community-upload-test.png");
+  // A directory of this suite's own, not a fixed name under /tmp. The three
+  // forum skills run these same tests concurrently in CI, and a shared path
+  // meant one suite's cleanup deleted the file another was still reading —
+  // which looks like "cannot read" in whichever suite lost the race.
+  const FIXTURES = mkdtempSync(path.join(tmpdir(), "community-upload-"));
+  const PNG = path.join(FIXTURES, "shot.png");
   const TARGET = {
     uploadUrl: "https://bucket.example/presigned?sig=abc",
     storageKey: "attachments/blobs/sha256/ab/abcd.png",
@@ -340,7 +345,7 @@ describe("upload", () => {
   };
 
   before(() => writeFileSync(PNG, Buffer.from("pretend png bytes")));
-  after(() => rmSync(PNG, { force: true }));
+  after(() => rmSync(FIXTURES, { recursive: true, force: true }));
 
   test("asks for a target, PUTs the bytes, then confirms", async () => {
     const { calls, fetchImpl } = recorder([
