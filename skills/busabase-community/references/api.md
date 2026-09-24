@@ -1,6 +1,6 @@
 # Community API contract
 
-Five endpoints, Bearer auth, JSON in and out. The same shape is served by
+Seven endpoints, Bearer auth, JSON in and out. The same shape is served by
 Busabase, Buda and Sandock — Sandock publishes it in its
 `/api/v1/openapi.json`; Busabase does not document it, but the endpoints are
 there (an unauthenticated call answers `401`, not `404`).
@@ -89,6 +89,50 @@ Addressed by post **id** (from the post detail), not slug.
 ```
 
 → the created `Reply`. Same immediacy.
+
+## `POST /api/v1/community/attachments/upload-urls`
+
+Two routes for putting an image where a post body can point at it. A forum
+image is a markdown link in `body`, never a field on the post, so these hand
+back a URL and stop — writing `![](publicUrl)` into the body is the caller's
+job.
+
+```jsonc
+{
+  "fileName": "screenshot.png",   // 1–255 chars
+  "mimeType": "image/png",        // png | jpeg | gif | webp only
+  "sizeBytes": 20480,             // 10MB ceiling, far below the general 200MB
+  "contentHash": "sha256:<hex>"   // optional, and worth sending — see below
+}
+```
+
+→ `{ uploadUrl, storageKey, publicUrl, expiresIn, duplicate }`
+
+`PUT` the bytes to `uploadUrl` with the same `content-type` and **no
+Authorization header** — the target is already presigned, and a second
+credential invalidates the signature.
+
+When `duplicate` is `true` these exact bytes are already stored: `uploadUrl` is
+empty, `expiresIn` is `0`, and both the `PUT` and the confirmation below are
+skipped. That is what `contentHash` buys — storage is content-addressed
+(`attachments/blobs/sha256/<first2>/<hex>.<ext>`), so the same screenshot
+uploaded twice occupies one object. Omit the hash and every upload mints a new
+random key instead.
+
+Deliberately narrower than the general attachment API underneath it: `spaceId`,
+`context` and `metadata` are not accepted at all. A forum credential can upload
+a picture for a post and nothing else.
+
+## `POST /api/v1/community/attachments/confirmations`
+
+```jsonc
+{ "storageKey": "…", "fileName": "…", "mimeType": "…", "sizeBytes": 20480, "contentHash": "sha256:<hex>" }
+```
+
+→ `{ publicUrl }` — the URL to put in the markdown.
+
+The key must be one this endpoint minted (`attachments/…`); a key from another
+namespace is refused.
 
 ## Errors
 

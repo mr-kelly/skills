@@ -12,6 +12,7 @@
  * Usage:  node scripts/community.mjs <command> [options]
  */
 
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -527,6 +528,96 @@ async function cmdReply(positional, flags) {
   });
 }
 
+/**
+ * What a post body can render and what the server accepts. Duplicated from the
+ * server on purpose: a 12MB screenshot should be refused before it is read into
+ * memory and hashed, not after a round trip that was never going to succeed.
+ */
+const IMAGE_MIME_TYPES = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+};
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Put an image where a post body can point at it.
+ *
+ * A forum image is not an attachment on the post — it is a markdown link in the
+ * body, which is why this prints the markdown rather than attaching anything.
+ * Upload first, paste the line into `--body`, then `new`/`reply` as usual.
+ *
+ * Deliberately not behind `--yes`: the bytes are inert until a post references
+ * them, and the gate that matters is on publishing the post.
+ */
+async function cmdUpload(positional, flags) {
+  const file = positional[0] ?? flags.file;
+  if (typeof file !== "string") {
+    fail("upload <file.png> [--as NAME]     prints the markdown line to paste into --body");
+  }
+
+  const ext = path.extname(file).toLowerCase();
+  const mimeType = IMAGE_MIME_TYPES[ext];
+  if (!mimeType) {
+    fail(`upload takes ${Object.keys(IMAGE_MIME_TYPES).join(", ")} — got "${ext || file}".`);
+  }
+
+  let bytes;
+  try {
+    bytes = readFileSync(file);
+  } catch {
+    fail(`cannot read ${file}`);
+  }
+  if (bytes.byteLength > MAX_IMAGE_BYTES) {
+    fail(`${file} is ${(bytes.byteLength / 1024 / 1024).toFixed(1)}MB; the limit is 10MB.`);
+  }
+
+  const fileName = path.basename(file);
+  // Sending the hash is what buys store-once: the same screenshot uploaded
+  // twice resolves to the object already there instead of a second copy.
+  const contentHash = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+  const sizeBytes = bytes.byteLength;
+
+  const target = await request("/api/v1/community/attachments/upload-urls", {
+    method: "POST",
+    body: { fileName, mimeType, sizeBytes, contentHash },
+  });
+
+  if (!target.duplicate) {
+    const send = FETCH ?? fetch;
+    // A deployment backed by object storage hands back an absolute presigned
+    // URL; one backed by local disk hands back a path on the API host itself.
+    // Both are valid targets, and `fetch` only accepts the first, so resolve
+    // against the API origin rather than assuming the shape.
+    const uploadUrl = new URL(target.uploadUrl, selected().apiUrl).toString();
+    // No authorization header here: the target is already presigned, and an
+    // extra credential is exactly what invalidates the signature.
+    const stored = await send(uploadUrl, {
+      method: "PUT",
+      headers: { "content-type": mimeType },
+      body: bytes,
+    });
+    if (!stored.ok) fail(`upload failed: the storage target answered ${stored.status}.`);
+
+    await request("/api/v1/community/attachments/confirmations", {
+      method: "POST",
+      body: { storageKey: target.storageKey, fileName, mimeType, sizeBytes, contentHash },
+    });
+  }
+
+  const markdown = `![](${target.publicUrl})`;
+  output({ publicUrl: target.publicUrl, markdown, duplicate: Boolean(target.duplicate) }, flags, () => {
+    console.log(markdown);
+    console.log(
+      target.duplicate
+        ? "Already stored — same bytes, same URL. Paste the line above into --body."
+        : "Paste the line above into --body.",
+    );
+  });
+}
+
 // -------------------------------------------------------------- admin surface
 
 /**
@@ -931,12 +1022,16 @@ function cmdHelp() {
   post <slug>                             One post with its replies
   new --category S --title T --body B [--lang XX] [--yes]
   reply <postId> --body B [--yes]
+  upload <file.png>                       Store an image, print its markdown line
 
 ${adminHelp()}Every command accepts --json, and --as <name> to act as another account
 (\`accounts\` lists them; ${PRODUCT.accountEnv} changes the default).
 
 \`new\` and \`reply\` publish immediately and publicly — there is no draft or
 review state on this API. Without --yes they only print the payload.
+
+A forum image is a markdown link in the body, not an attachment on the post.
+\`upload\` stores the file and prints \`![](url)\` — paste that into --body.
 Needs ${PRODUCT.keyEnv}. Not set yet? Run \`setup\`.`);
 }
 
@@ -950,6 +1045,7 @@ const COMMANDS = {
   post: cmdPost,
   new: cmdNew,
   reply: cmdReply,
+  upload: cmdUpload,
   help: cmdHelp,
 };
 
