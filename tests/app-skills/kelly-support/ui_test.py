@@ -52,10 +52,11 @@ def test_demo_ui(browser, base_url: str) -> None:
     page.wait_for_load_state("networkidle")
     assert page.locator(".table-wrap table tbody tr").count() == 14
 
-    # 7 knowledge-base articles/macros.
+    # 8 knowledge-base articles/macros — the eighth is the phone-script guide
+    # the QA training flow reads from, which is why it carries `training-source`.
     page.goto(f"{base_url}/?demo=knowledge#/knowledge")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".kb-grid .kb-card").count() == 7
+    assert page.locator(".kb-grid .kb-card").count() == 8
 
     # SLA board: 10 open tickets carry a due-by (14 total minus 3 done minus
     # 1 blocked); 3 resolved tickets carry a CSAT score.
