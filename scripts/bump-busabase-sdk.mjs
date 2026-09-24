@@ -2,7 +2,15 @@
 // Moves skills to another busabase-sdk version, everywhere that version is recorded.
 //
 //   node scripts/bump-busabase-sdk.mjs <version> --skills kelly-support,kelly-email
-//   node scripts/bump-busabase-sdk.mjs <version> --all [--dry-run] [--jobs 4]
+//   node scripts/bump-busabase-sdk.mjs <version> --all [--dry-run] [--jobs 4] [--with-scripts]
+//
+// By default only the app (content/*-app) moves. The skill root, whose package.json the
+// publish/setup scripts read, stays where it is unless --with-scripts is passed. That is
+// deliberate: `publishAirApp` in 0.30.1 hardcodes `autoMerge: false`, so an AirApp — code
+// the viewer's browser executes — always waits for a human. From 0.80.0 it omits the flag
+// and the server merges immediately when the key has `write`. Every script tells its user
+// "待审核", so moving the root silently turns that sentence false. Opt in only after
+// deciding that gate should go.
 //
 // Bumping package.json alone is not an upgrade. The browser never loads node_modules: it
 // loads app/vendor/*.js, which `pnpm build:sdk` bundles from the installed SDK. A bump
@@ -25,11 +33,12 @@ const flag = (name) => args.includes(name);
 const option = (name) => args[args.indexOf(name) + 1];
 
 if (!version || (!flag("--all") && !flag("--skills"))) {
-  console.error("usage: bump-busabase-sdk.mjs <x.y.z> (--all | --skills a,b) [--dry-run] [--jobs N]");
+  console.error("usage: bump-busabase-sdk.mjs <x.y.z> (--all | --skills a,b) [--dry-run] [--jobs N] [--with-scripts]");
   process.exit(2);
 }
 
 const dryRun = flag("--dry-run");
+const withScripts = flag("--with-scripts");
 const jobs = Number(option("--jobs")) || 4;
 
 const readOptional = (file) => fs.readFile(file, "utf8").catch(() => "");
@@ -89,7 +98,7 @@ async function bump(name) {
   const skill = path.join(SKILLS, name);
   const app = path.join(skill, "content", `${name}-app`);
 
-  const done = (await repinProject(skill)).map((file) => `${file}`);
+  const done = withScripts ? await repinProject(skill) : [];
   const inApp = await repinProject(app);
   done.push(...inApp.map((file) => `app/${file}`));
 
