@@ -641,18 +641,30 @@ const ADMIN_OPS = {
   reports: { method: "GET", path: "/reports", query: ["status", "limit", "offset"] },
   categories: { method: "GET", path: "/categories" },
 
+  // Pin, lock and backdate only. Taking a post down is `take-down-post`, a
+  // separate route — this one used to advertise a `--status` flag that the
+  // server's schema does not declare, so zod stripped it and the call came back
+  // 200 having changed nothing. A moderator reading that response believed the
+  // post was gone while it stayed live.
   "moderate-post": {
     method: "POST",
     path: "/posts/moderate",
-    body: ["postId", "status", "isPinned", "isLocked"],
+    body: ["postId", "isPinned", "isLocked", "createdAt"],
     required: ["postId"],
     writes: true,
   },
-  "moderate-reply": {
+  "take-down-post": {
     method: "POST",
-    path: "/replies/moderate",
-    body: ["replyId", "status"],
-    required: ["replyId", "status"],
+    path: "/posts/take-down",
+    body: ["postId"],
+    required: ["postId"],
+    writes: true,
+  },
+  "take-down-reply": {
+    method: "POST",
+    path: "/replies/take-down",
+    body: ["replyId"],
+    required: ["replyId"],
     writes: true,
   },
   "move-post": {
@@ -728,8 +740,6 @@ const ADMIN_OPS = {
 
 const ADMIN_ENUMS = {
   status: {
-    "moderate-post": ["published", "hidden", "removed"],
-    "moderate-reply": ["published", "hidden", "removed"],
     posts: ["published", "hidden", "removed"],
     replies: ["published", "hidden", "removed"],
     reports: ["open", "accepted", "rejected"],
@@ -898,7 +908,7 @@ async function cmdAdmin(positional, flags) {
     console.log(JSON.stringify(payload, null, 2));
     if (spec.destructive) {
       console.log("\n*** IRREVERSIBLE. This purges the row and everything hanging off it.");
-      console.log("*** To take content down reversibly use `moderate-post --status removed` instead.");
+      console.log("*** To take content down reversibly use `take-down-post` instead.");
     }
     console.log("\nShow the user exactly this, then re-run with --yes.");
     return;
@@ -1004,7 +1014,8 @@ function adminHelp() {
   if (!selected().adminKey) return "";
   return `  admin <operation> [flags] [--yes]       Moderation surface
     read      overview · posts · replies · reports · categories
-    moderate  moderate-post · moderate-reply · move-post · feature-status
+    moderate  moderate-post · take-down-post · take-down-reply · move-post
+              feature-status
               restore-post · restore-reply
     purge     delete-post · delete-reply          (IRREVERSIBLE)
     taxonomy  create-category · update-category · archive-category

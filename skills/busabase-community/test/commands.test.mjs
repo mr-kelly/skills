@@ -135,7 +135,7 @@ describe("the moderation gate", () => {
     await run(["admin", "delete-post", "--post-id", "cpost1"], { env: ENV, fetchImpl });
     assert.equal(calls.length, 0);
     assert.match(log.join("\n"), /IRREVERSIBLE/);
-    assert.match(log.join("\n"), /moderate-post --status removed/, "points at the reversible one");
+    assert.match(log.join("\n"), /take-down-post/, "points at the reversible one");
   });
 
   test("a hard delete with --yes puts the id in the path, not the body", async () => {

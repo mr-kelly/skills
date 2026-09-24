@@ -166,10 +166,11 @@ post" means.
 | GET | `/replies` | Replies in every state — `status`, `includeDeleted`, `postId`, `search`, `limit`, `offset` |
 | GET | `/reports` | Reader reports — `status`, `limit`, `offset` |
 | GET | `/categories` | Categories, archived ones included, with per-locale text |
-| POST | `/posts/moderate` | `{ postId, status?, isPinned?, isLocked? }` |
+| POST | `/posts/moderate` | `{ postId, isPinned?, isLocked?, createdAt? }` — shapes a live thread; takes nothing down |
+| POST | `/posts/take-down` | `{ postId }` — the soft delete `restore-post` undoes |
 | POST | `/posts/move` | `{ postId, categoryId }` — the post's `kind` follows the category |
 | POST | `/posts/feature-status` | `{ postId, featureStatus }` — `null` clears it |
-| POST | `/replies/moderate` | `{ replyId, status }` |
+| POST | `/replies/take-down` | `{ replyId }` |
 | POST | `/posts/restore` | `{ postId }` — undo a soft delete |
 | POST | `/replies/restore` | `{ replyId }` |
 | DELETE | `/posts/{postId}` | **Irreversible.** Returns what it destroyed |
@@ -179,6 +180,10 @@ post" means.
 | POST | `/categories/archive` | `{ categoryId, isArchived }` — categories archive, never hard-delete |
 | POST | `/categories/reorder` | `{ categoryIds: [...] }` in display order |
 | POST | `/reports/handle` | `{ reportId, status }` — `accepted` or `rejected` |
+
+There is no `status` field on `posts/moderate`, and no `replies/moderate` route at all — an
+earlier version of this file claimed both. The server strips an undeclared `status` and answers
+200, so a take-down aimed at `moderate` reports success and leaves the post live.
 
 Enums: `status` is `published` / `hidden` / `removed`; report `status` is `open`
 / `accepted` / `rejected`, and `handle-report` takes only the last two;
