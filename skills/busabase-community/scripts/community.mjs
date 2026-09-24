@@ -529,6 +529,62 @@ async function cmdReply(positional, flags) {
 }
 
 /**
+ * Edit something you wrote. The server only lets an account change its own
+ * posts and replies (and refuses a locked post), so `--as` decides whose.
+ * The URL never changes; the thread just shows an "edited" mark.
+ */
+async function cmdEdit(positional, flags) {
+  const postId = positional[0] ?? flags.post;
+  const { title, body } = flags;
+  if (typeof postId !== "string" || (title === undefined && body === undefined && flags.lang === undefined)) {
+    fail('edit <postId> [--title "..."] [--body "..."] [--lang zh-CN] [--yes]     (postId, not the slug)');
+  }
+  const payload = {};
+  if (title !== undefined) {
+    if (typeof title !== "string" || title.length < 5 || title.length > 200) fail("--title must be 5–200 characters.");
+    payload.title = title;
+  }
+  if (body !== undefined) {
+    if (typeof body !== "string" || body.length < 10 || body.length > 50000) {
+      fail("--body must be 10–50000 characters (markdown).");
+    }
+    payload.body = body;
+  }
+  if (flags.lang !== undefined) payload.lang = String(flags.lang);
+  if (!confirmOrPreview(flags, `Edit post ${postId}`, payload)) return;
+
+  const { webUrl } = selected();
+  const post = await request(`/api/v1/community/posts/${encodeURIComponent(postId)}`, {
+    method: "PATCH",
+    body: payload,
+  });
+  output(post, flags, () => {
+    console.log(`Edited as ${selected().account}: ${post.title}`);
+    console.log(postUrl(post, webUrl));
+  });
+}
+
+async function cmdEditReply(positional, flags) {
+  const replyId = positional[0] ?? flags.reply;
+  const body = flags.body;
+  if (typeof replyId !== "string" || typeof body !== "string") {
+    fail('edit-reply <replyId> --body "..." [--yes]     (replyId from `post <slug>`)');
+  }
+  if (body.length < 2 || body.length > 20000) fail("--body must be 2–20000 characters (markdown).");
+  const payload = { body };
+  if (!confirmOrPreview(flags, `Edit reply ${replyId}`, payload)) return;
+
+  const reply = await request(`/api/v1/community/replies/${encodeURIComponent(replyId)}`, {
+    method: "PATCH",
+    body: payload,
+  });
+  output(reply, flags, () => {
+    console.log(`Edited reply ${reply.id} as ${selected().account}.`);
+    console.log(oneLine(reply.bodyText, 200));
+  });
+}
+
+/**
  * What a post body can render and what the server accepts. Duplicated from the
  * server on purpose: a 12MB screenshot should be refused before it is read into
  * memory and hashed, not after a round trip that was never going to succeed.
@@ -1022,6 +1078,8 @@ function cmdHelp() {
   post <slug>                             One post with its replies
   new --category S --title T --body B [--lang XX] [--yes]
   reply <postId> --body B [--yes]
+  edit <postId> [--title T] [--body B] [--lang XX] [--yes]   Your own post only
+  edit-reply <replyId> --body B [--yes]                      Your own reply only
   upload <file.png>                       Store an image, print its markdown line
 
 ${adminHelp()}Every command accepts --json, and --as <name> to act as another account
@@ -1045,6 +1103,8 @@ const COMMANDS = {
   post: cmdPost,
   new: cmdNew,
   reply: cmdReply,
+  edit: cmdEdit,
+  "edit-reply": cmdEditReply,
   upload: cmdUpload,
   help: cmdHelp,
 };

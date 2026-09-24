@@ -84,6 +84,29 @@ describe("the publish gate", () => {
     assert.match(log.join("\n"), /NOT sent/);
   });
 
+  test("`edit` PATCHes the post by id, and previews without --yes", async () => {
+    const preview = recorder();
+    await run(["edit", "cpost1", "--body", "corrected body text"], { env: ENV, fetchImpl: preview.fetchImpl });
+    assert.equal(preview.calls.length, 0);
+
+    const { calls, fetchImpl } = recorder([{ payload: { ...POST, title: "Same title here" } }]);
+    await run(["edit", "cpost1", "--body", "corrected body text", "--yes"], { env: ENV, fetchImpl });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].method, "PATCH");
+    assert.equal(new URL(calls[0].url).pathname, "/api/v1/community/posts/cpost1");
+    assert.deepEqual(calls[0].body, { body: "corrected body text" });
+  });
+
+  test("`edit-reply` PATCHes the reply, and `edit` with nothing to change is refused", async () => {
+    const { calls, fetchImpl } = recorder([{ payload: { id: "crep1", bodyText: "new" } }]);
+    await run(["edit-reply", "crep1", "--body", "new text", "--yes"], { env: ENV, fetchImpl });
+    assert.equal(new URL(calls[0].url).pathname, "/api/v1/community/replies/crep1");
+    assert.equal(calls[0].method, "PATCH");
+
+    await assert.rejects(() => run(["edit", "cpost1", "--yes"], { env: ENV, fetchImpl }), CommunityCliError);
+    assert.equal(calls.length, 1);
+  });
+
   test("`reply` without --yes sends nothing at all", async () => {
     const { calls, fetchImpl } = recorder();
     await run(["reply", "cpost1", "--body", "a reply"], { env: ENV, fetchImpl });
