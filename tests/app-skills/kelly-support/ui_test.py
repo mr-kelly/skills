@@ -52,10 +52,12 @@ def test_demo_ui(browser, base_url: str) -> None:
     page.wait_for_load_state("networkidle")
     assert page.locator(".table-wrap table tbody tr").count() == 14
 
-    # 7 knowledge-base articles/macros.
+    # 8 knowledge-base articles/macros: the 6 English ones plus the two macros,
+    # and the Chinese phone-support guide d43c77dd added as fine-tuning source
+    # material. That commit added the article but left this count at 7.
     page.goto(f"{base_url}/?demo=knowledge#/knowledge")
     page.wait_for_load_state("networkidle")
-    assert page.locator(".kb-grid .kb-card").count() == 7
+    assert page.locator(".kb-grid .kb-card").count() == 8
 
     # SLA board: 10 open tickets carry a due-by (14 total minus 3 done minus
     # 1 blocked); 3 resolved tickets carry a CSAT score.
