@@ -56,7 +56,8 @@ const runtimeSource = await readFile(path.join(root, "app", "js", "runtime.js"),
 const serverSource = await readFile(path.join(root, "server.js"), "utf8");
 
 if (packageJson.scripts.start !== "node server.js") throw new Error("AirApp start must be node server.js");
-if (packageJson.dependencies["busabase-sdk"] !== "0.30.1") throw new Error("busabase-sdk must be exact-pinned");
+if (!/^\d+\.\d+\.\d+$/.test(packageJson.dependencies["busabase-sdk"]))
+  throw new Error("busabase-sdk must be exact-pinned");
 if (!configText.includes('deployment: "cloud"')) throw new Error("Local Model Lab must be Cloud-only");
 if (/local-file-provider|config\.local\.json|app\/\.data/.test(configText)) {
   throw new Error("Retired provider/runtime contract remains in app config");

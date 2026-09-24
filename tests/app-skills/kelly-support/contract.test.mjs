@@ -35,7 +35,7 @@ test("has the canonical app project and deterministic commands", async () => {
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
   assert.match(pkg.scripts.check, /node --test/);
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.30.1");
+  assert.match(pkg.dependencies["busabase-sdk"], /^\d+\.\d+\.\d+$/, "busabase-sdk must be an exact pin");
 });
 
 test("keeps the package manifest and runtime declarations aligned", async () => {
@@ -128,7 +128,7 @@ test("ships a trusted execute-decisions script that performs no external send it
   assert.doesNotMatch(source, /status: apply \? "sent"/);
   assert.match(source, /supportSettingsComplete/);
   const pkg = await readJson(join(skillRoot, "package.json"));
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.30.1");
+  assert.match(pkg.dependencies["busabase-sdk"], /^\d+\.\d+\.\d+$/, "busabase-sdk must be an exact pin");
 });
 
 test("finalizes only provider-confirmed delivery and records the customer-visible outcome", async () => {
