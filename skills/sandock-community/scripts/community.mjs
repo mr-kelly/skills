@@ -336,7 +336,13 @@ async function request(path, { method = "GET", query, body, admin = false, soft 
         `${method} ${path} — unauthorized. ${admin ? PRODUCT.adminKeyEnv : selected().keyEnv} is expired or rejected.`,
       );
     }
-    if (response.status === 403) fail(`${method} ${path} — forbidden. This key may not post to that category.`);
+    if (response.status === 403) {
+      fail(
+        method === "PATCH"
+          ? `${method} ${path} — forbidden. Only the account that wrote it can edit it (see --as), and a locked post cannot be edited.`
+          : `${method} ${path} — forbidden. This key may not post to that category.`,
+      );
+    }
     if (response.status === 404) {
       // A missing *route* echoes the path back; a missing *record* does not.
       // Worth separating: one means "not deployed here", the other "wrong id".
@@ -524,6 +530,62 @@ async function cmdReply(positional, flags) {
   });
   output(reply, flags, () => {
     console.log(`Replied to ${reply.postId} as ${reply.id} (${reply.status}), from account ${selected().account}.`);
+    console.log(oneLine(reply.bodyText, 200));
+  });
+}
+
+/**
+ * Edit something you wrote. The server only lets an account change its own
+ * posts and replies (and refuses a locked post), so `--as` decides whose.
+ * The URL never changes; the thread just shows an "edited" mark.
+ */
+async function cmdEdit(positional, flags) {
+  const postId = positional[0] ?? flags.post;
+  const { title, body } = flags;
+  if (typeof postId !== "string" || (title === undefined && body === undefined && flags.lang === undefined)) {
+    fail('edit <postId> [--title "..."] [--body "..."] [--lang zh-CN] [--yes]     (postId, not the slug)');
+  }
+  const payload = {};
+  if (title !== undefined) {
+    if (typeof title !== "string" || title.length < 5 || title.length > 200) fail("--title must be 5–200 characters.");
+    payload.title = title;
+  }
+  if (body !== undefined) {
+    if (typeof body !== "string" || body.length < 10 || body.length > 50000) {
+      fail("--body must be 10–50000 characters (markdown).");
+    }
+    payload.body = body;
+  }
+  if (flags.lang !== undefined) payload.lang = String(flags.lang);
+  if (!confirmOrPreview(flags, `Edit post ${postId}`, payload)) return;
+
+  const { webUrl } = selected();
+  const post = await request(`/api/v1/community/posts/${encodeURIComponent(postId)}`, {
+    method: "PATCH",
+    body: payload,
+  });
+  output(post, flags, () => {
+    console.log(`Edited as ${selected().account}: ${post.title}`);
+    console.log(postUrl(post, webUrl));
+  });
+}
+
+async function cmdEditReply(positional, flags) {
+  const replyId = positional[0] ?? flags.reply;
+  const body = flags.body;
+  if (typeof replyId !== "string" || typeof body !== "string") {
+    fail('edit-reply <replyId> --body "..." [--yes]     (replyId from `post <slug>`)');
+  }
+  if (body.length < 2 || body.length > 20000) fail("--body must be 2–20000 characters (markdown).");
+  const payload = { body };
+  if (!confirmOrPreview(flags, `Edit reply ${replyId}`, payload)) return;
+
+  const reply = await request(`/api/v1/community/replies/${encodeURIComponent(replyId)}`, {
+    method: "PATCH",
+    body: payload,
+  });
+  output(reply, flags, () => {
+    console.log(`Edited reply ${reply.id} as ${selected().account}.`);
     console.log(oneLine(reply.bodyText, 200));
   });
 }
@@ -1037,6 +1099,8 @@ function cmdHelp() {
   post <slug>                             One post with its replies
   new --category S --title T --body B [--lang XX] [--yes]
   reply <postId> --body B [--yes]
+  edit <postId> [--title T] [--body B] [--lang XX] [--yes]   Your own post only
+  edit-reply <replyId> --body B [--yes]                      Your own reply only
   upload <file.png>                       Store an image, print its markdown line
 
 ${adminHelp()}Every command accepts --json, and --as <name> to act as another account
@@ -1060,6 +1124,8 @@ const COMMANDS = {
   post: cmdPost,
   new: cmdNew,
   reply: cmdReply,
+  edit: cmdEdit,
+  "edit-reply": cmdEditReply,
   upload: cmdUpload,
   help: cmdHelp,
 };

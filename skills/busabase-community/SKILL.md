@@ -103,6 +103,8 @@ a cross-origin redirect — so calling the community host would always come back
 | `post <slug>` | One post with its replies |
 | `new --category S --title T --body B [--lang XX] [--yes]` | Publish a post |
 | `reply <postId> --body B [--yes]` | Publish a reply |
+| `edit <postId> [--title T] [--body B] [--lang XX] [--yes]` | Edit a post the selected account wrote. The URL stays; the thread shows "edited" |
+| `edit-reply <replyId> --body B [--yes]` | Edit a reply the selected account wrote |
 | `upload <file.png>` | Store an image and print the markdown line that points at it |
 
 Every command takes `--json`. Use it when you are going to reason over the
