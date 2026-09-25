@@ -3113,7 +3113,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
             })));
           }
         }
-
+        
         if (${id}.value === undefined) {
           if (${k} in input) {
             newResult[${k}] = undefined;
@@ -3121,7 +3121,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
         } else {
           newResult[${k}] = ${id}.value;
         }
-
+        
       `);
       } else if (!isOptionalIn) {
         doc.write(`
@@ -3158,7 +3158,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
             path: iss.path ? [${k}, ...iss.path] : [${k}]
           })));
         }
-
+        
         if (${id}.value === undefined) {
           if (${k} in input) {
             newResult[${k}] = undefined;
@@ -3166,7 +3166,7 @@ var $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) =>
         } else {
           newResult[${k}] = ${id}.value;
         }
-
+        
       `);
       }
     }
@@ -14519,7 +14519,63 @@ function date4(params) {
 // node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// node_modules/.pnpm/busabase-sdk@0.30.1/node_modules/busabase-sdk/dist/airapp.js
+// node_modules/.pnpm/busabase-sdk@0.80.0/node_modules/busabase-sdk/dist/template-DRMp6tKv.js
+async function hashBytes(bytes) {
+  const subtle = globalThis.crypto?.subtle;
+  if (!subtle) return void 0;
+  const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  const digest = await subtle.digest("SHA-256", buffer);
+  return `sha256:${Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+async function uploadAsset(client, bytes, options, fetchImpl = fetch) {
+  const { fileName, mimeType, context, spaceId } = options;
+  if (!bytes.byteLength) throw new Error(`uploadAsset: ${fileName} is empty \u2014 there are no bytes to upload`);
+  const contentHash = await hashBytes(bytes);
+  const upload = await client.assets.createUploadUrl({
+    fileName,
+    mimeType,
+    sizeBytes: bytes.byteLength,
+    ...context ? { context } : {},
+    ...spaceId ? { spaceId } : {},
+    ...contentHash ? { contentHash } : {}
+  });
+  if (upload.duplicate && upload.attachmentId) return {
+    ...upload.assetId ? { assetId: upload.assetId } : {},
+    attachmentId: upload.attachmentId,
+    url: upload.publicUrl,
+    fileName,
+    mimeType,
+    size: bytes.byteLength,
+    ...contentHash ? { contentHash } : {}
+  };
+  const response = await fetchImpl(upload.uploadUrl, {
+    method: "PUT",
+    headers: { "content-type": mimeType },
+    body: bytes
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`uploadAsset: presigned upload of ${fileName} failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`);
+  }
+  const confirmed = await client.assets.confirm({
+    storageKey: upload.storageKey,
+    fileName,
+    mimeType,
+    sizeBytes: bytes.byteLength,
+    ...context ? { context } : {},
+    ...spaceId ? { spaceId } : {},
+    ...contentHash ? { contentHash } : {}
+  });
+  return {
+    ...confirmed.assetId ? { assetId: confirmed.assetId } : {},
+    attachmentId: confirmed.attachmentId,
+    url: confirmed.publicUrl,
+    fileName,
+    mimeType,
+    size: bytes.byteLength,
+    ...contentHash ? { contentHash } : {}
+  };
+}
 var SkillFrontmatterSchema$1 = external_exports.object({
   /** Identity. For a Skill inside a package this must equal the package name. */
   name: external_exports.string().min(1),
@@ -14553,6 +14609,19 @@ external_exports.object({
   /** Card/detail screenshots, package-relative (`assets/screenshots/overview.webp`). */
   screenshots: external_exports.array(external_exports.string()).default([]),
   /**
+  * Optional demo clip, package-relative (`assets/recordings/busa-crm.mp4`).
+  *
+  * No companion poster field on purpose: the detail page uses
+  * `screenshots[0]`, which the catalog already requires to be the cover. One
+  * declared path instead of two that can disagree with each other.
+  *
+  * Note for anyone adding a sibling field here: this is a plain `z.object`, so
+  * an unrecognized key in `busabase.json` is silently stripped rather than
+  * rejected. A template cannot declare a field ahead of the schema landing —
+  * it just vanishes, with no error from `busabase-cli check`.
+  */
+  video: external_exports.string().optional(),
+  /**
   * Ready-made prompts shown after install ("Ask agent" prefills the first).
   *
   * They are the difference between a folder of tables and something a user can
@@ -14578,11 +14647,23 @@ external_exports.object({
   secrets: external_exports.array(TemplateSecretSchema).default([]),
   requires: external_exports.object({ airapp: external_exports.boolean().optional() }).default({})
 });
+var TemplateRiskLevelSchema = external_exports.enum([
+  "gated-write",
+  "local-write",
+  "read-only",
+  "sandbox"
+]);
 var SkillBusabaseMetadataSchema = external_exports.object({
   template: external_exports.boolean().default(false),
   folderSlug: external_exports.string().optional(),
   /** Resource keys the manual talks about; each must exist under `content/`. */
   resources: external_exports.array(external_exports.string()).default([]),
+  /**
+  * Free-form on purpose — see `parseTemplateRisk`. Validating this to the enum
+  * here would turn a stranger's typo or a retired term into a hard parse
+  * failure for the whole frontmatter, which is a worse outcome than a card
+  * that cannot show a risk badge.
+  */
   risk: external_exports.string().optional()
 });
 SkillFrontmatterSchema$1.extend({ metadata: external_exports.object({ busabase: SkillBusabaseMetadataSchema.optional() }).passthrough().optional() });
@@ -14607,6 +14688,8 @@ external_exports.object({
   appId: external_exports.string().min(1),
   ["isTemplateSkill"]: external_exports.literal(true)
 });
+
+// node_modules/.pnpm/busabase-sdk@0.80.0/node_modules/busabase-sdk/dist/airapp.js
 var AirAppSetupError = class extends Error {
   code;
   /** The human-readable half, without the `CODE: ` prefix. */
@@ -14890,12 +14973,40 @@ function provisionDeclaredResources(client, config2) {
 }
 function buildAirAppFileOperations(localFiles, deployedPaths) {
   const deployed = new Set(deployedPaths);
-  return localFiles.map((file2) => ({
-    kind: deployed.has(file2.path) ? "update" : "create",
-    path: file2.path,
-    content: file2.content,
-    ...file2.mimeType ? { mimeType: file2.mimeType } : {}
-  }));
+  return localFiles.map((file2) => {
+    if (file2.bytes) throw new Error(`buildAirAppFileOperations: ${file2.path} carries bytes \u2014 run resolveAirAppFileAssets first to turn them into an assetId`);
+    return {
+      kind: deployed.has(file2.path) ? "update" : "create",
+      path: file2.path,
+      ...file2.assetId ? { assetId: file2.assetId } : { content: file2.content },
+      ...file2.mimeType ? { mimeType: file2.mimeType } : {}
+    };
+  });
+}
+async function resolveAirAppFileAssets(client, files, fetchImpl) {
+  const resolved = [];
+  for (const file2 of files) {
+    if (!file2.bytes) {
+      resolved.push(file2);
+      continue;
+    }
+    const mimeType = file2.mimeType ?? "application/octet-stream";
+    const asset = await uploadAsset(client, file2.bytes, {
+      fileName: basenameOf(file2.path),
+      mimeType
+    }, fetchImpl);
+    if (!asset.assetId) throw new Error(`resolveAirAppFileAssets: ${file2.path} uploaded but this host returned no assetId, so no file can reference it`);
+    resolved.push({
+      path: file2.path,
+      assetId: asset.assetId,
+      mimeType
+    });
+  }
+  return resolved;
+}
+function basenameOf(filePath) {
+  const segments = filePath.split("/");
+  return segments[segments.length - 1] || filePath;
 }
 async function findPendingAirAppCreate(client, slug) {
   let cursor;
@@ -14918,42 +15029,48 @@ async function publishAirApp(client, config2, files) {
   if (!airApp) throw setupError("SETUP_CONFLICT", "This app does not declare an airApp to publish");
   const current = await inspectProvisionedResources(client, config2);
   if (!current.folder) throw setupError("SETUP_REQUIRED", "Provision the Folder and Bases with provisionDeclaredResources before publishing the AirApp");
+  const resolvedFiles = await resolveAirAppFileAssets(client, files);
   if (!current.airApp) {
     const pendingChangeRequestId = await findPendingAirAppCreate(client, airApp.slug);
     if (pendingChangeRequestId) return {
       status: "pending",
+      merged: false,
       changeRequestId: pendingChangeRequestId
     };
-    const changeRequest = await client.fileTrees.create({
+    const result = await client.fileTrees.create({
       type: "airapp",
       parentNodeId: current.folder.nodeId,
       slug: airApp.slug,
       name: airApp.name,
       description: airApp.description ?? "",
-      files,
-      mergeMode: "replace",
-      autoMerge: false
+      files: resolvedFiles,
+      mergeMode: "replace"
     });
-    if (changeRequest.materialized) throw setupError("SCHEMA_INCOMPLETE", "AirApp create unexpectedly materialized despite autoMerge: false");
-    return {
+    return result.materialized ? {
       status: "created",
-      changeRequestId: changeRequest.id
+      merged: true,
+      nodeId: result.node.id
+    } : {
+      status: "created",
+      merged: false,
+      changeRequestId: result.id
     };
   }
-  const operations = buildAirAppFileOperations(files, (await client.fileTrees.listFiles({
+  const operations = buildAirAppFileOperations(resolvedFiles, (await client.fileTrees.listFiles({
     nodeId: current.airApp.nodeId,
     type: "airapp"
   })).map((file2) => file2.path));
+  const changeRequest = await client.fileTrees.createChangeRequest({
+    nodeId: current.airApp.nodeId,
+    type: "airapp",
+    operations,
+    message: `Publish ${config2.appName} AirApp`,
+    submittedBy: config2.appId
+  });
   return {
     status: "updated",
-    changeRequestId: (await client.fileTrees.createChangeRequest({
-      nodeId: current.airApp.nodeId,
-      type: "airapp",
-      operations,
-      message: `Publish ${config2.appName} AirApp`,
-      submittedBy: config2.appId,
-      autoMerge: false
-    })).id
+    merged: changeRequest.status === "merged",
+    changeRequestId: changeRequest.id
   };
 }
 export {
@@ -14964,5 +15081,6 @@ export {
   isNotFound,
   provisionDeclaredResources,
   publishAirApp,
+  resolveAirAppFileAssets,
   resolveProvisionedFolder
 };
