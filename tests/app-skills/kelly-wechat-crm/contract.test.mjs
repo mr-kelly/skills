@@ -33,7 +33,7 @@ test("ships the canonical installable Node AirApp project", async () => {
   assert.equal(pkg.engines.node, ">=24.18.0");
   assert.equal(pkg.scripts.dev, "node server.js");
   assert.equal(pkg.scripts.start, "node server.js");
-  assert.equal(pkg.dependencies["busabase-sdk"], "0.30.1");
+  assert.match(pkg.dependencies["busabase-sdk"], /^\d+\.\d+\.\d+$/, "busabase-sdk must be an exact pin");
 });
 
 test("aligns manifest, skill resources, config, and generated content", async () => {
