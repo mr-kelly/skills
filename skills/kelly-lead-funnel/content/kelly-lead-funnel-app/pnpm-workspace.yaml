@@ -1,2 +1,2 @@
 minimumReleaseAgeExclude:
-  - busabase-sdk@0.30.1
+  - busabase-sdk@0.80.0
