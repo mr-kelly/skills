@@ -168,7 +168,7 @@ logic.
    - `form_intake` — a contact form writes submissions the agent ingests.
    - `wechat_work` — WeChat Work (`corp_secret_env`).
    - `manual` — the user or agent prepares a ticket by hand.
-4. All collected data enters through one write path: the agent merges it directly into the `tickets`/`messages` Bases via `busabase-sdk` (`bases.createChangeRequest` for a new ticket, `records.changeRequest` to append messages or update an existing one) — dedupe by stable ticket/message ids, derive SLA due-by, run `support-qa` on any drafted reply, and append a `sync-log` entry per account. There is no separate ingest script; this mirrors the same write path a human decision uses.
+4. All collected data enters through one write path: the agent merges it directly into the `tickets`/`messages` Bases via `busabase-sdk` (`bases.createChangeRequest` for a new ticket, `records.changeRequest` to append messages or update an existing one) — dedupe by stable ticket/message ids, derive SLA due-by, run `support-qa` on any drafted reply, and append a `sync-log` entry per account. Email handoff must preserve the source RFC Message-ID and References in the message's `provider-message-id` / `provider-references` fields so the connector can thread the reply. There is no separate ingest script; this mirrors the same write path a human decision uses.
 5. While triaging, the agent classifies each ticket (`category`, `priority`), drafts a `suggested_reply` grounded in the knowledge base with the `kb_refs` it used, and sets a `proposed_action`. It never promises a refund or makes a commitment unless the action is an approved refund.
 
 ## Triage & Reply Workflow
@@ -241,10 +241,11 @@ Verdicts: **SHIP** (grounded and within policy), **FIX** (deliverable but revise
 1. Queue: the agent drafts the `suggested_reply` and writes `status: needs_review` to the `tickets` Base. The user edits it in the ticket detail and clicks Save reply (re-runs the gate live), or decides directly.
 2. Review: in the ticket detail the user Approves, Requests changes, or Blocks — written directly onto the ticket record through `busabase-sdk`. `approve` is refused while the (possibly just-edited) reply's gate is `BLOCK` — the user must fix the reply (e.g. drop the unapproved refund promise) or Block instead. From a standalone local preview the write merges immediately (trusted operator); from the deployed AirApp it creates a pending ChangeRequest for the trusted process to merge.
 3. Agent revision loop: for a ticket moved to `changes_requested`, redraft honoring the `decision-comment`, the config `reply_style`, and the KB (re-run the gate live), and write it back to `needs_review`. A `FIX` verdict (usually a dangling KB ref) is visible live on every read — no separate task queue needed.
-4. Queue: only after the user asks, run `node scripts/execute_decisions.mjs` (dry-run) and show the plan. With explicit approval, run `--apply`: it re-reads the canonical settings, ticket, reviewed decision and gate, then claims eligible work as `queued` with a stable idempotency key. It performs no external side effect and never records `sent`.
-5. Deliver: the named connector performs the exact approved operation using the stored idempotency key. Do not change the mailbox or ticket on a failed or ambiguous provider response.
-6. Finalize: after the provider accepts delivery, call `node scripts/finalize_delivery.mjs --ticket-id <id> --provider-message-id <receipt> --sent-at <iso> --apply`. The finalizer writes a deterministic outgoing message, first-response SLA, provider receipt, `execution-status: sent`, and `status: done`. Re-running the same receipt is a no-op; a conflicting receipt fails.
-7. Report per-ticket results back with the stable `#<ref>` refs.
+4. Queue: only after the user asks, run `node scripts/execute_decisions.mjs` (dry-run) and show the plan. With explicit approval, run `--apply`: it re-reads the canonical settings, ticket, reviewed decision and gate, then claims eligible email replies as `queued` with a stable reviewed-version idempotency key. `close` and `no_action` complete locally; `refund`, `escalate`, and channels without a configured provider fail closed as `blocked` instead of waiting forever.
+5. Deliver email: run `node scripts/process_email_queue.mjs` first as a dry run, then `--apply` only under the same explicit authorization. It atomically claims each queued item as `sending`, delegates SMTP to Kelly Email, and never reads a secret into browser code. A sanitized SMTP 2xx acceptance receipt is required for success; the submitted RFC Message-ID is recorded separately because providers may rewrite it during delivery.
+6. Recover: an explicit temporary SMTP rejection becomes `failed` with `execution-next-retry-at`; requeue due work with `execute_decisions.mjs --retry-failed --apply`. An expired `sending` claim or ambiguous network outcome becomes `blocked` for manual reconciliation and is never automatically resent.
+7. Finalize: the email worker calls `finalize_delivery.mjs` after provider acceptance. The finalizer writes a deterministic outgoing message, submitted RFC Message-ID, first-response SLA, sanitized SMTP 2xx receipt, `execution-status: sent`, and `status: done`. Re-running the same receipt is a no-op; a conflicting receipt fails.
+8. Report per-ticket results back with the stable `#<ref>` refs.
 
 ## SLA & CSAT
 
@@ -268,7 +269,10 @@ Verdicts: **SHIP** (grounded and within policy), **FIX** (deliverable but revise
 ```bash
 node skills/kelly-support/scripts/execute_decisions.mjs
 node skills/kelly-support/scripts/execute_decisions.mjs --apply
-node skills/kelly-support/scripts/finalize_delivery.mjs --ticket-id <id> --provider-message-id <receipt> --sent-at <iso> --apply
+node skills/kelly-support/scripts/process_email_queue.mjs
+node skills/kelly-support/scripts/process_email_queue.mjs --apply
+node skills/kelly-support/scripts/execute_decisions.mjs --retry-failed --apply
+node skills/kelly-support/scripts/finalize_delivery.mjs --ticket-id <id> --provider-receipt-id <smtp-2xx> --submitted-message-id <rfc-id> --sent-at <iso> --apply
 pnpm --dir skills/kelly-support/content/kelly-support-app dev
 ```
 

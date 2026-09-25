@@ -56,6 +56,32 @@ test("keeps the package manifest and runtime declarations aligned", async () => 
   }
 });
 
+test("keeps every schema upgrade additive so existing workspaces can migrate", async () => {
+  const { appConfig } = await import(join(browserRoot, "js", "config.js"));
+  const slugs = (key) => appConfig.bases.find((base) => base.key === key).fields.map((field) => field.slug);
+  const v2TicketFields = [
+    "execution-idempotency-key",
+    "execution-provider-message-id",
+    "execution-attempt",
+    "execution-started-at",
+    "execution-completed-at",
+  ];
+  const v3TicketFields = [
+    "execution-last-error",
+    "execution-next-retry-at",
+    "execution-claim-expires-at",
+    "execution-retryable",
+  ];
+  const currentTickets = slugs("tickets");
+  const v1Tickets = currentTickets.slice(0, -(v2TicketFields.length + v3TicketFields.length));
+  const v1Settings = ["record-id", "sla-policy", "risk-policy", "reply-style", "kb-source-path"];
+  const v1Messages = ["message-id", "ticket-id", "direction", "sender", "text", "sent-at", "attachment"];
+  assert.deepEqual(currentTickets, [...v1Tickets, ...v2TicketFields, ...v3TicketFields]);
+  assert.deepEqual(slugs("settings").slice(0, v1Settings.length), v1Settings);
+  assert.deepEqual(slugs("messages").slice(0, v1Messages.length), v1Messages);
+  assert.deepEqual(slugs("messages").slice(v1Messages.length), ["provider-message-id", "provider-references"]);
+});
+
 test("declares itself a template and names only resources it ships", async () => {
   const templateRoot = join(repoRoot, "skills", "kelly-support");
   const skill = await readFile(join(templateRoot, "SKILL.md"), "utf8");
@@ -119,26 +145,46 @@ test("retires the pre-Busabase local-file provider layer", async () => {
 });
 
 test("ships a trusted execute-decisions script that performs no external send itself", async () => {
-  const source = await readFile(join(skillRoot, "scripts", "execute_decisions.mjs"), "utf8");
-  assert.match(source, /createBusabaseClient/);
-  assert.match(source, /BUSABASE_BASE_URL/);
+  const [source, runtime] = await Promise.all([
+    readFile(join(skillRoot, "scripts", "execute_decisions.mjs"), "utf8"),
+    readFile(join(skillRoot, "scripts", "lib", "runtime.mjs"), "utf8"),
+  ]);
+  assert.match(runtime, /createBusabaseClient/);
+  assert.match(runtime, /BUSABASE_BASE_URL/);
   assert.match(source, /--apply/);
   assert.doesNotMatch(source, /nodemailer|smtp|sendMail|graph\.facebook\.com|api\.telegram\.org|slack\.com\/api/i);
-  assert.match(source, /status: apply \? "queued" : "dry_run"/);
-  assert.doesNotMatch(source, /status: apply \? "sent"/);
+  assert.match(source, /let status = args\.apply \? "queued" : "dry_run"/);
+  assert.doesNotMatch(source, /args\.apply \? "sent"/);
   assert.match(source, /supportSettingsComplete/);
+  assert.match(source, /process_email_queue\.mjs/);
   const pkg = await readJson(join(skillRoot, "package.json"));
   assert.match(pkg.dependencies["busabase-sdk"], /^\d+\.\d+\.\d+$/, "busabase-sdk must be an exact pin");
 });
 
-test("finalizes only provider-confirmed delivery and records the customer-visible outcome", async () => {
+test("finalizes only SMTP-accepted delivery and keeps the submitted RFC Message-ID separate", async () => {
   const source = await readFile(join(skillRoot, "scripts", "finalize_delivery.mjs"), "utf8");
-  assert.match(source, /--provider-message-id/);
+  assert.match(source, /--provider-receipt-id/);
+  assert.match(source, /--submitted-message-id/);
   assert.match(source, /direction: "outgoing"/);
   assert.match(source, /status: "done"/);
   assert.match(source, /execution_status: "sent"/);
   assert.match(source, /sla_first_response_at/);
   assert.match(source, /createHash\("sha256"\)/);
+  assert.match(source, /execution_provider_message_id: receiptId/);
+  assert.match(source, /provider_message_id: rfcMessageId/);
+  assert.match(source, /execution_last_error: ""/);
+});
+
+test("ships a bounded email worker with failure and retry state", async () => {
+  const source = await readFile(join(skillRoot, "scripts", "process_email_queue.mjs"), "utf8");
+  assert.match(source, /send_support_reply\.ts/);
+  assert.match(source, /execution_status: "sending"/);
+  assert.match(source, /execution_claim_expires_at/);
+  assert.match(source, /execution_next_retry_at/);
+  assert.match(source, /Ambiguous SMTP outcome/);
+  assert.match(source, /providerReceiptId: result\.providerReceiptId/);
+  assert.match(source, /submittedMessageId: result\.submittedMessageId/);
+  assert.match(source, /finalizeDelivery/);
 });
 
 test("initializes reviewable support defaults and exposes approval-first settings editing", async () => {

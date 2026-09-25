@@ -671,6 +671,34 @@
     overflow-wrap: anywhere;
   }
 
+  .execution-state {
+    display: grid;
+    gap: 4px;
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--panel-subtle);
+    color: var(--muted);
+    font-size: var(--text-sm);
+    overflow-wrap: anywhere;
+  }
+
+  .execution-state.good strong {
+    color: var(--good);
+  }
+
+  .execution-state.pending strong {
+    color: var(--accent);
+  }
+
+  .execution-state.bad {
+    border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
+  }
+
+  .execution-state.bad strong {
+    color: var(--bad);
+  }
+
   /* ----- quality gate panel ----- */
 
   .gate-panel {

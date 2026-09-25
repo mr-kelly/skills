@@ -308,51 +308,11 @@
       "options": {}
     },
     {
-      "slug": "execution-idempotency-key",
-      "name": "Execution idempotency key",
-      "type": "text",
-      "required": false,
-      "position": 38,
-      "options": {}
-    },
-    {
-      "slug": "execution-provider-message-id",
-      "name": "Provider message ID",
-      "type": "text",
-      "required": false,
-      "position": 39,
-      "options": {}
-    },
-    {
-      "slug": "execution-attempt",
-      "name": "Execution attempt",
-      "type": "number",
-      "required": false,
-      "position": 40,
-      "options": {}
-    },
-    {
-      "slug": "execution-started-at",
-      "name": "Execution started at",
-      "type": "text",
-      "required": false,
-      "position": 41,
-      "options": {}
-    },
-    {
-      "slug": "execution-completed-at",
-      "name": "Execution completed at",
-      "type": "text",
-      "required": false,
-      "position": 42,
-      "options": {}
-    },
-    {
       "slug": "executed-at",
       "name": "Executed at",
       "type": "text",
       "required": false,
-      "position": 43,
+      "position": 38,
       "options": {}
     },
     {
@@ -360,7 +320,79 @@
       "name": "Updated at",
       "type": "text",
       "required": false,
+      "position": 39,
+      "options": {}
+    },
+    {
+      "slug": "execution-idempotency-key",
+      "name": "Execution idempotency key",
+      "type": "text",
+      "required": false,
+      "position": 40,
+      "options": {}
+    },
+    {
+      "slug": "execution-provider-message-id",
+      "name": "Provider message ID",
+      "type": "text",
+      "required": false,
+      "position": 41,
+      "options": {}
+    },
+    {
+      "slug": "execution-attempt",
+      "name": "Execution attempt",
+      "type": "number",
+      "required": false,
+      "position": 42,
+      "options": {}
+    },
+    {
+      "slug": "execution-started-at",
+      "name": "Execution started at",
+      "type": "text",
+      "required": false,
+      "position": 43,
+      "options": {}
+    },
+    {
+      "slug": "execution-completed-at",
+      "name": "Execution completed at",
+      "type": "text",
+      "required": false,
       "position": 44,
+      "options": {}
+    },
+    {
+      "slug": "execution-last-error",
+      "name": "Execution last error",
+      "type": "longtext",
+      "required": false,
+      "position": 45,
+      "options": {}
+    },
+    {
+      "slug": "execution-next-retry-at",
+      "name": "Execution next retry at",
+      "type": "text",
+      "required": false,
+      "position": 46,
+      "options": {}
+    },
+    {
+      "slug": "execution-claim-expires-at",
+      "name": "Execution claim expires at",
+      "type": "text",
+      "required": false,
+      "position": 47,
+      "options": {}
+    },
+    {
+      "slug": "execution-retryable",
+      "name": "Execution retryable",
+      "type": "text",
+      "required": false,
+      "position": 48,
       "options": {}
     }
   ],
