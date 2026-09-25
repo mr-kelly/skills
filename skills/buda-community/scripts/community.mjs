@@ -12,6 +12,7 @@
  * Usage:  node scripts/community.mjs <command> [options]
  */
 
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -335,7 +336,13 @@ async function request(path, { method = "GET", query, body, admin = false, soft 
         `${method} ${path} — unauthorized. ${admin ? PRODUCT.adminKeyEnv : selected().keyEnv} is expired or rejected.`,
       );
     }
-    if (response.status === 403) fail(`${method} ${path} — forbidden. This key may not post to that category.`);
+    if (response.status === 403) {
+      fail(
+        method === "PATCH"
+          ? `${method} ${path} — forbidden. Only the account that wrote it can edit it (see --as), and a locked post cannot be edited.`
+          : `${method} ${path} — forbidden. This key may not post to that category.`,
+      );
+    }
     if (response.status === 404) {
       // A missing *route* echoes the path back; a missing *record* does not.
       // Worth separating: one means "not deployed here", the other "wrong id".
@@ -527,6 +534,152 @@ async function cmdReply(positional, flags) {
   });
 }
 
+/**
+ * Edit something you wrote. The server only lets an account change its own
+ * posts and replies (and refuses a locked post), so `--as` decides whose.
+ * The URL never changes; the thread just shows an "edited" mark.
+ */
+async function cmdEdit(positional, flags) {
+  const postId = positional[0] ?? flags.post;
+  const { title, body } = flags;
+  if (typeof postId !== "string" || (title === undefined && body === undefined && flags.lang === undefined)) {
+    fail('edit <postId> [--title "..."] [--body "..."] [--lang zh-CN] [--yes]     (postId, not the slug)');
+  }
+  const payload = {};
+  if (title !== undefined) {
+    if (typeof title !== "string" || title.length < 5 || title.length > 200) fail("--title must be 5–200 characters.");
+    payload.title = title;
+  }
+  if (body !== undefined) {
+    if (typeof body !== "string" || body.length < 10 || body.length > 50000) {
+      fail("--body must be 10–50000 characters (markdown).");
+    }
+    payload.body = body;
+  }
+  if (flags.lang !== undefined) payload.lang = String(flags.lang);
+  if (!confirmOrPreview(flags, `Edit post ${postId}`, payload)) return;
+
+  const { webUrl } = selected();
+  const post = await request(`/api/v1/community/posts/${encodeURIComponent(postId)}`, {
+    method: "PATCH",
+    body: payload,
+  });
+  output(post, flags, () => {
+    console.log(`Edited as ${selected().account}: ${post.title}`);
+    console.log(postUrl(post, webUrl));
+  });
+}
+
+async function cmdEditReply(positional, flags) {
+  const replyId = positional[0] ?? flags.reply;
+  const body = flags.body;
+  if (typeof replyId !== "string" || typeof body !== "string") {
+    fail('edit-reply <replyId> --body "..." [--yes]     (replyId from `post <slug>`)');
+  }
+  if (body.length < 2 || body.length > 20000) fail("--body must be 2–20000 characters (markdown).");
+  const payload = { body };
+  if (!confirmOrPreview(flags, `Edit reply ${replyId}`, payload)) return;
+
+  const reply = await request(`/api/v1/community/replies/${encodeURIComponent(replyId)}`, {
+    method: "PATCH",
+    body: payload,
+  });
+  output(reply, flags, () => {
+    console.log(`Edited reply ${reply.id} as ${selected().account}.`);
+    console.log(oneLine(reply.bodyText, 200));
+  });
+}
+
+/**
+ * What a post body can render and what the server accepts. Duplicated from the
+ * server on purpose: a 12MB screenshot should be refused before it is read into
+ * memory and hashed, not after a round trip that was never going to succeed.
+ */
+const IMAGE_MIME_TYPES = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+};
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Put an image where a post body can point at it.
+ *
+ * A forum image is not an attachment on the post — it is a markdown link in the
+ * body, which is why this prints the markdown rather than attaching anything.
+ * Upload first, paste the line into `--body`, then `new`/`reply` as usual.
+ *
+ * Deliberately not behind `--yes`: the bytes are inert until a post references
+ * them, and the gate that matters is on publishing the post.
+ */
+async function cmdUpload(positional, flags) {
+  const file = positional[0] ?? flags.file;
+  if (typeof file !== "string") {
+    fail("upload <file.png> [--as NAME]     prints the markdown line to paste into --body");
+  }
+
+  const ext = path.extname(file).toLowerCase();
+  const mimeType = IMAGE_MIME_TYPES[ext];
+  if (!mimeType) {
+    fail(`upload takes ${Object.keys(IMAGE_MIME_TYPES).join(", ")} — got "${ext || file}".`);
+  }
+
+  let bytes;
+  try {
+    bytes = readFileSync(file);
+  } catch {
+    fail(`cannot read ${file}`);
+  }
+  if (bytes.byteLength > MAX_IMAGE_BYTES) {
+    fail(`${file} is ${(bytes.byteLength / 1024 / 1024).toFixed(1)}MB; the limit is 10MB.`);
+  }
+
+  const fileName = path.basename(file);
+  // Sending the hash is what buys store-once: the same screenshot uploaded
+  // twice resolves to the object already there instead of a second copy.
+  const contentHash = `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+  const sizeBytes = bytes.byteLength;
+
+  const target = await request("/api/v1/community/attachments/upload-urls", {
+    method: "POST",
+    body: { fileName, mimeType, sizeBytes, contentHash },
+  });
+
+  if (!target.duplicate) {
+    const send = FETCH ?? fetch;
+    // A deployment backed by object storage hands back an absolute presigned
+    // URL; one backed by local disk hands back a path on the API host itself.
+    // Both are valid targets, and `fetch` only accepts the first, so resolve
+    // against the API origin rather than assuming the shape.
+    const uploadUrl = new URL(target.uploadUrl, selected().apiUrl).toString();
+    // No authorization header here: the target is already presigned, and an
+    // extra credential is exactly what invalidates the signature.
+    const stored = await send(uploadUrl, {
+      method: "PUT",
+      headers: { "content-type": mimeType },
+      body: bytes,
+    });
+    if (!stored.ok) fail(`upload failed: the storage target answered ${stored.status}.`);
+
+    await request("/api/v1/community/attachments/confirmations", {
+      method: "POST",
+      body: { storageKey: target.storageKey, fileName, mimeType, sizeBytes, contentHash },
+    });
+  }
+
+  const markdown = `![](${target.publicUrl})`;
+  output({ publicUrl: target.publicUrl, markdown, duplicate: Boolean(target.duplicate) }, flags, () => {
+    console.log(markdown);
+    console.log(
+      target.duplicate
+        ? "Already stored — same bytes, same URL. Paste the line above into --body."
+        : "Paste the line above into --body.",
+    );
+  });
+}
+
 // -------------------------------------------------------------- admin surface
 
 /**
@@ -550,18 +703,30 @@ const ADMIN_OPS = {
   reports: { method: "GET", path: "/reports", query: ["status", "limit", "offset"] },
   categories: { method: "GET", path: "/categories" },
 
+  // Pin, lock and backdate only. Taking a post down is `take-down-post`, a
+  // separate route — this one used to advertise a `--status` flag that the
+  // server's schema does not declare, so zod stripped it and the call came back
+  // 200 having changed nothing. A moderator reading that response believed the
+  // post was gone while it stayed live.
   "moderate-post": {
     method: "POST",
     path: "/posts/moderate",
-    body: ["postId", "status", "isPinned", "isLocked"],
+    body: ["postId", "isPinned", "isLocked", "createdAt"],
     required: ["postId"],
     writes: true,
   },
-  "moderate-reply": {
+  "take-down-post": {
     method: "POST",
-    path: "/replies/moderate",
-    body: ["replyId", "status"],
-    required: ["replyId", "status"],
+    path: "/posts/take-down",
+    body: ["postId"],
+    required: ["postId"],
+    writes: true,
+  },
+  "take-down-reply": {
+    method: "POST",
+    path: "/replies/take-down",
+    body: ["replyId"],
+    required: ["replyId"],
     writes: true,
   },
   "move-post": {
@@ -637,8 +802,6 @@ const ADMIN_OPS = {
 
 const ADMIN_ENUMS = {
   status: {
-    "moderate-post": ["published", "hidden", "removed"],
-    "moderate-reply": ["published", "hidden", "removed"],
     posts: ["published", "hidden", "removed"],
     replies: ["published", "hidden", "removed"],
     reports: ["open", "accepted", "rejected"],
@@ -807,7 +970,7 @@ async function cmdAdmin(positional, flags) {
     console.log(JSON.stringify(payload, null, 2));
     if (spec.destructive) {
       console.log("\n*** IRREVERSIBLE. This purges the row and everything hanging off it.");
-      console.log("*** To take content down reversibly use `moderate-post --status removed` instead.");
+      console.log("*** To take content down reversibly use `take-down-post` instead.");
     }
     console.log("\nShow the user exactly this, then re-run with --yes.");
     return;
@@ -913,7 +1076,8 @@ function adminHelp() {
   if (!selected().adminKey) return "";
   return `  admin <operation> [flags] [--yes]       Moderation surface
     read      overview · posts · replies · reports · categories
-    moderate  moderate-post · moderate-reply · move-post · feature-status
+    moderate  moderate-post · take-down-post · take-down-reply · move-post
+              feature-status
               restore-post · restore-reply
     purge     delete-post · delete-reply          (IRREVERSIBLE)
     taxonomy  create-category · update-category · archive-category
@@ -935,12 +1099,18 @@ function cmdHelp() {
   post <slug>                             One post with its replies
   new --category S --title T --body B [--lang XX] [--yes]
   reply <postId> --body B [--yes]
+  edit <postId> [--title T] [--body B] [--lang XX] [--yes]   Your own post only
+  edit-reply <replyId> --body B [--yes]                      Your own reply only
+  upload <file.png>                       Store an image, print its markdown line
 
 ${adminHelp()}Every command accepts --json, and --as <name> to act as another account
 (\`accounts\` lists them; ${PRODUCT.accountEnv} changes the default).
 
 \`new\` and \`reply\` publish immediately and publicly — there is no draft or
 review state on this API. Without --yes they only print the payload.
+
+A forum image is a markdown link in the body, not an attachment on the post.
+\`upload\` stores the file and prints \`![](url)\` — paste that into --body.
 Needs ${PRODUCT.keyEnv}. Not set yet? Run \`setup\`.`);
 }
 
@@ -954,6 +1124,9 @@ const COMMANDS = {
   post: cmdPost,
   new: cmdNew,
   reply: cmdReply,
+  edit: cmdEdit,
+  "edit-reply": cmdEditReply,
+  upload: cmdUpload,
   help: cmdHelp,
 };
 

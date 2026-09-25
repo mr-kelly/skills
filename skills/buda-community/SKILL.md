@@ -103,9 +103,42 @@ works.
 | `post <slug>` | One post with its replies |
 | `new --category S --title T --body B [--lang XX] [--yes]` | Publish a post |
 | `reply <postId> --body B [--yes]` | Publish a reply |
+| `edit <postId> [--title T] [--body B] [--lang XX] [--yes]` | Edit a post the selected account wrote. The URL stays; the thread shows "edited" |
+| `edit-reply <replyId> --body B [--yes]` | Edit a reply the selected account wrote |
+| `upload <file.png>` | Store an image and print the markdown line that points at it |
 
 Every command takes `--json`. Use it when you are going to reason over the
 result; use the plain output when you are showing it to the user.
+
+## Images
+
+A forum image is not an attachment on the post. The post carries one piece of
+content — its markdown `body` — so a picture reaches a thread as a link inside
+that markdown, which is exactly what the web composer writes too.
+
+So it is two steps, in this order:
+
+```bash
+node scripts/community.mjs upload ./screenshot.png
+# → ![](https://…/attachments/blobs/sha256/ab/abcd….png)
+
+node scripts/community.mjs new --category ask --title "…" \
+  --body "$(cat <<'EOF'
+Here is what I see:
+
+![](https://…/attachments/blobs/sha256/ab/abcd….png)
+EOF
+)" --yes
+```
+
+`upload` takes png, jpg, jpeg, gif or webp, up to 10MB. It is not behind
+`--yes`: the bytes do nothing until a post points at them, and the gate that
+matters is the one on publishing the post.
+
+Uploading the same file twice costs nothing and returns the same URL — storage
+is keyed by the content's hash, so identical bytes are stored once. That also
+means a URL is not a secret you can rotate: anyone holding it can fetch the
+image. Do not upload a screenshot you would not post.
 
 ## Several accounts
 
@@ -155,15 +188,16 @@ and nothing else is affected. Some deployments do not serve the route at all;
 the first call says so.
 
   read      overview · posts · replies · reports · categories
-  moderate  moderate-post · moderate-reply · move-post · feature-status
-            restore-post · restore-reply
+  moderate  moderate-post · take-down-post · take-down-reply · move-post
+            feature-status · restore-post · restore-reply
   purge     delete-post · delete-reply            IRREVERSIBLE
   taxonomy  create-category · update-category · archive-category
             reorder-categories
   reports   handle-report
 
   admin posts --status hidden --include-deleted --limit 20
-  admin moderate-post --post-id <id> --status hidden --yes
+  admin take-down-post --post-id <id> --yes
+  admin moderate-post --post-id <id> --is-locked true --yes
   admin feature-status --post-id <id> --feature-status planned --yes   # none clears
   admin create-category --slug how-to --kind question --name "How to" --name "zh-CN=怎么做" --yes
 
@@ -172,8 +206,9 @@ per locale: bare --name is English, --name "zh-CN=…" is that locale.
 
 Same gate as `new`/`reply`: payload printed, nothing sent, until --yes.
 
-`moderate-post --status removed` is the SOFT delete — row survives, links hold,
-`restore-post` undoes it. `delete-post` purges the post, its replies, reactions
+`take-down-post` is the SOFT delete — row survives, links hold, `restore-post`
+undoes it. `moderate-post` does NOT take anything down; it pins, locks and
+backdates, and the server's schema has no status field for it to honour. `delete-post` purges the post, its replies, reactions
 and reports with no undo. Reach for the soft one unless the user asked for
 destruction in as many words, and quote the irreversible warning back first.
 
