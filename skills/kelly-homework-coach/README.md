@@ -57,6 +57,16 @@ The queue deliberately contains one record that should **not** be approved — `
 where the homework photo hides a side length, the agent assumed `8 cm`, and its own read confidence
 is `0.41`. It is there so the review surface can be shown making a judgement.
 
+## Practice Runner
+
+A paper whose items carry an answer key can be sat in the app — `#/papers/<paper_id>` → **开始做这张卷**.
+One question at a time; the first wrong answer gets a hint and only the second reveals the answer,
+because `learning_policy.answer_policy` is `hint_first`. Marking is local and deterministic
+(`gradeAnswer()`): full-width digits, spaces, a trailing period and case are forgiven, nothing else is.
+
+Handing in updates the paper's own row and puts its review back in the queue. It does **not** write
+mistake cards — that judgement belongs to the agent and the parent who approves it.
+
 ## Demo Recording
 
 ```text

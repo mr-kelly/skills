@@ -1,10 +1,14 @@
 import { messages, resolveLanguage } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import {
+  buildPaperAttempt,
   computeMistakeFromRow,
   computePaperFromRow,
   computeQuestionFromRow,
   computeReviewFromRow,
+  gradeAnswer,
+  isGradeable,
+  paperItems,
   statusForAction,
 } from "./js/homework-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
@@ -28,6 +32,7 @@ const state = {
   hasLoadedMore: false,
   notice: "",
   flashId: "",
+  run: null,
 };
 
 const PAGE_TARGETS = {
@@ -468,7 +473,7 @@ function renderDetailPanel(snapshot) {
     <aside class="detail-panel">
       <div class="detail-actions-top">
         <button class="plain back-to-list" data-back-list type="button">${esc(t("back"))}</button>
-        ${view === "review" && item ? reviewActions(item) : studentActions(view, item)}
+        ${view === "review" && item ? reviewActions(item) : activeRun() ? "" : studentActions(view, item)}
         ${state.notice ? `<span class="decision-state" role="status">${esc(state.notice)}</span>` : ""}
       </div>
       <div class="detail-scroll">
@@ -501,7 +506,11 @@ function reviewActions(item) {
 
 function renderDetail(item, view, snapshot) {
   if (view === "mistakes") return renderMistake(item);
-  if (view === "papers") return renderPaper(item);
+  if (view === "papers") {
+    const runState = activeRun();
+    if (runState && runState.paper_id === item.paper_id) return renderRunner(item);
+    return renderPaper(item);
+  }
   if (view === "review") return renderReviewItem(item, snapshot);
   return renderQuestion(item);
 }
@@ -551,6 +560,14 @@ function renderPaper(paper) {
     <section class="hero-answer">
       <div class="chips">${statusChip(paper.status)}<span class="chip">${esc(paper.subject)}</span><span class="chip">${esc(paper.estimated_minutes)} ${esc(t("minutes"))}</span></div>
       <h2 class="question-title">${esc(paper.title)}</h2>
+      ${
+        isGradeable(paper)
+          ? `<div class="run-entry">
+              <button class="primary" data-run-start="${esc(paper.paper_id)}" type="button">${esc(t("startPaper"))}</button>
+              <span class="note">${esc(t("startPaperHint"))}</span>
+            </div>`
+          : `<p class="note">${esc(t("paperNotGradeable"))}</p>`
+      }
       <div class="builder-grid">
         ${metric(t("questionCount"), paper.question_count)}
         ${metric(t("wrongCount"), paper.analysis?.wrong_count || 0)}
@@ -569,11 +586,265 @@ function renderPaper(paper) {
     </section>
     <section class="section">
       <h3>${esc(t("paperItems"))}</h3>
-      ${(paper.items || []).map((entry) => `<div class="paper-item">${esc(entry)}</div>`).join("")}
+      ${paperItems(paper)
+        .map((entry) => `<div class="paper-item">${esc(entry.ref)}. ${esc(entry.prompt)}</div>`)
+        .join("")}
     </section>
     ${listSection(t("strengths"), paper.analysis?.strengths)}
     ${listSection(t("reviewPlan"), paper.analysis?.review_plan)}
     ${infoSection(t("deepNotes"), paper.analysis?.deep_notes)}
+  `;
+}
+
+// ── Practice runner ────────────────────────────────────────────────────────
+//
+// The student answers the paper one question at a time. Everything here is
+// local and deterministic: no model call, no network, and the marking rule is
+// gradeAnswer() so a child can be told exactly why an answer was counted
+// wrong. Only "交卷" reaches Busabase, and only to update the paper's own row.
+
+function activeRun() {
+  return state.run;
+}
+
+function runPaper() {
+  const runState = activeRun();
+  if (!runState) return null;
+  return (state.data?.snapshot?.papers || []).find((paper) => paper.paper_id === runState.paper_id) || null;
+}
+
+/**
+ * hint_first is a configured policy, not a default this file gets to invent:
+ * Help & Settings › Policy shows it, SKILL.md's Safety Defaults enforce it,
+ * and a paper runner that dumps the answer on the first wrong attempt breaks
+ * the one rule the whole skill is built around.
+ */
+function hintFirst() {
+  return (state.data?.config_summary?.learning_policy?.answer_policy || "hint_first") === "hint_first";
+}
+
+function startRun(paperId) {
+  state.run = { paper_id: paperId, index: 0, answers: {}, hints: {}, tries: {}, stage: "answer", outcome: "" };
+  state.notice = "";
+  render();
+}
+
+function exitRun() {
+  state.run = null;
+  render();
+}
+
+function currentItem() {
+  const paper = runPaper();
+  if (!paper) return null;
+  return paperItems(paper)[activeRun().index] || null;
+}
+
+function submitRunAnswer() {
+  const runState = activeRun();
+  const item = currentItem();
+  if (!runState || !item) return;
+  const given = document.getElementById("runAnswer")?.value ?? "";
+  runState.answers[item.ref] = given;
+  const outcome = gradeAnswer(given, item.answer);
+  runState.outcome = outcome;
+  runState.tries[item.ref] = (runState.tries[item.ref] || 0) + 1;
+
+  if (outcome === "correct" || outcome === "ungraded") {
+    runState.stage = "result";
+  } else if (hintFirst() && runState.tries[item.ref] === 1 && item.hint) {
+    // First wrong answer with a hint available: the hint, never the answer.
+    runState.hints[item.ref] = (runState.hints[item.ref] || 0) + 1;
+    runState.stage = "hint";
+  } else {
+    runState.stage = "reveal";
+  }
+  render();
+}
+
+function retryRunItem() {
+  const runState = activeRun();
+  if (!runState) return;
+  runState.stage = "answer";
+  runState.outcome = "";
+  render();
+}
+
+function nextRunItem() {
+  const runState = activeRun();
+  const paper = runPaper();
+  if (!runState || !paper) return;
+  const total = paperItems(paper).length;
+  if (runState.index + 1 >= total) runState.stage = "done";
+  else {
+    runState.index += 1;
+    runState.stage = "answer";
+    runState.outcome = "";
+  }
+  render();
+}
+
+/**
+ * Hand the finished attempt to the parent.
+ *
+ * The attempt is written onto the paper's own row — `papers` is already
+ * documented as holding "a completed-paper analysis" — and the paper's review
+ * row goes back to needs_review so it surfaces in the queue. That is the whole
+ * write: no new Base, no create procedure, and nothing that the AirApp could
+ * not already do.
+ */
+async function finishRun() {
+  const runState = activeRun();
+  const paper = runPaper();
+  if (!runState || !paper) return;
+  const attempt = buildPaperAttempt(paper, runState.answers, runState.hints);
+
+  if (state.data?.demo) {
+    paper.analysis = { ...paper.analysis, wrong_count: attempt.wrong_count, attempt };
+    paper.status = "needs_review";
+    const review = (state.data.snapshot.review_items || []).find((item) => item.target_id === paper.paper_id);
+    if (review) {
+      review.status = "needs_review";
+      review.decision = null;
+    }
+    state.workflowCount = null;
+    runState.stage = "submitted";
+    state.notice = t("decisionRecordedDemo");
+    render();
+    return;
+  }
+
+  state.busy = true;
+  render();
+  try {
+    const provider = await getProvider();
+    await provider.submitPaperAttempt({ paper_id: paper.paper_id, attempt });
+    runState.stage = "submitted";
+    state.notice = t("paperSubmitted");
+    await loadState();
+  } catch (error) {
+    window.alert(error.message);
+  } finally {
+    state.busy = false;
+    render();
+  }
+}
+
+function runProgress(paper) {
+  const runState = activeRun();
+  const total = paperItems(paper).length;
+  return `${runState.index + 1} / ${total}`;
+}
+
+function renderRunner(paper) {
+  const runState = activeRun();
+  const items = paperItems(paper);
+  const item = items[runState.index];
+
+  if (runState.stage === "done" || runState.stage === "submitted") {
+    const attempt = buildPaperAttempt(paper, runState.answers, runState.hints);
+    const wrong = attempt.results.filter((result) => result.outcome === "wrong");
+    const open = attempt.results.filter((result) => result.outcome === "ungraded");
+    return `
+      <section class="hero-answer">
+        <p class="eyebrow">${esc(t("papers"))} · ${esc(paper.title)}</p>
+        <h2 class="question-title">${esc(tf("runScore", { correct: attempt.correct, total: attempt.graded }))}</h2>
+        <p>${esc(open.length ? tf("runOpenItems", { n: open.length }) : t("runAllMarked"))}</p>
+      </section>
+      ${
+        wrong.length
+          ? `<section class="section">
+              <h3>${esc(t("runWrongList"))}</h3>
+              <ul class="info-list">
+                ${wrong
+                  .map(
+                    (result) =>
+                      `<li><strong>${esc(result.ref)}. ${esc(result.prompt)}</strong><br /><span class="note">${esc(t("studentAnswer"))}: ${esc(result.given || "—")} · ${esc(t("correctAnswer"))}: ${esc(result.expected)}${result.topic ? ` · ${esc(result.topic)}` : ""}</span></li>`,
+                  )
+                  .join("")}
+              </ul>
+            </section>`
+          : `<p class="note">${esc(t("runNoWrong"))}</p>`
+      }
+      <section class="section">
+        ${
+          runState.stage === "submitted"
+            ? `<p class="note">${esc(t("runHandedOff"))}</p>
+               <div class="run-actions">
+                 <button class="primary" data-route="review" type="button">${esc(t("review"))}</button>
+                 <button class="plain" data-run-exit type="button">${esc(t("close"))}</button>
+               </div>`
+            : `<div class="run-actions">
+                 <button class="primary" data-run-finish type="button" ${state.busy ? "disabled" : ""}>${esc(t("runHandIn"))}</button>
+                 <button class="plain" data-run-exit type="button">${esc(t("back"))}</button>
+               </div>`
+        }
+      </section>
+    `;
+  }
+
+  const given = runState.answers[item.ref] ?? "";
+  return `
+    <section class="hero-answer">
+      <p class="eyebrow">${esc(t("papers"))} · ${esc(runProgress(paper))}${item.topic ? ` · ${esc(item.topic)}` : ""}</p>
+      <h2 class="question-title">${esc(item.prompt)}</h2>
+      ${
+        runState.stage === "answer" && runState.showHint && item.hint
+          ? `<div class="run-verdict is-hint"><p>${esc(item.hint)}</p></div>`
+          : ""
+      }
+      ${
+        runState.stage === "answer"
+          ? `<div class="field">
+              <label for="runAnswer">${esc(t("runYourAnswer"))}</label>
+              <input id="runAnswer" type="text" value="${esc(given)}" autocomplete="off" placeholder="${esc(t("runAnswerPlaceholder"))}" />
+            </div>
+            <div class="run-actions">
+              <button class="primary" data-run-submit type="button">${esc(t("runSubmit"))}</button>
+              ${item.hint ? `<button class="plain" data-run-hint type="button">${esc(t("runNeedHint"))}</button>` : ""}
+            </div>`
+          : ""
+      }
+      ${
+        runState.stage === "hint"
+          ? `<div class="run-verdict is-hint">
+              <strong>${esc(t("runNotYet"))}</strong>
+              <p>${esc(item.hint)}</p>
+            </div>
+            <div class="run-actions">
+              <button class="primary" data-run-retry type="button">${esc(t("runTryAgain"))}</button>
+            </div>`
+          : ""
+      }
+      ${
+        runState.stage === "reveal"
+          ? `<div class="run-verdict is-wrong">
+              <strong>${esc(t("runWrong"))}</strong>
+              <p>${esc(t("correctAnswer"))}: <b>${esc(item.answer)}</b></p>
+              ${item.hint ? `<p class="note">${esc(item.hint)}</p>` : ""}
+            </div>
+            <div class="run-actions">
+              <button class="primary" data-run-next type="button">${esc(t("runNext"))}</button>
+            </div>`
+          : ""
+      }
+      ${
+        runState.stage === "result"
+          ? `<div class="run-verdict ${runState.outcome === "correct" ? "is-correct" : "is-open"}">
+              <strong>${esc(runState.outcome === "correct" ? t("runCorrect") : t("runOpenItem"))}</strong>
+              ${runState.outcome === "ungraded" ? `<p class="note">${esc(t("runOpenItemNote"))}</p>` : ""}
+            </div>
+            <div class="run-actions">
+              <button class="primary" data-run-next type="button">${esc(t("runNext"))}</button>
+            </div>`
+          : ""
+      }
+    </section>
+    <section class="section">
+      <div class="run-actions">
+        <button class="plain" data-run-exit type="button">${esc(t("runQuit"))}</button>
+      </div>
+    </section>
   `;
 }
 
@@ -788,8 +1059,46 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
+  if (button.dataset.runStart) {
+    startRun(button.dataset.runStart);
+    return;
+  }
+  if (button.dataset.runSubmit !== undefined) {
+    submitRunAnswer();
+    return;
+  }
+  if (button.dataset.runHint !== undefined) {
+    const runState = activeRun();
+    const item = currentItem();
+    if (runState && item) {
+      runState.showHint = true;
+      runState.hints[item.ref] = (runState.hints[item.ref] || 0) + 1;
+      render();
+    }
+    return;
+  }
+  if (button.dataset.runRetry !== undefined) {
+    retryRunItem();
+    return;
+  }
+  if (button.dataset.runNext !== undefined) {
+    const runState = activeRun();
+    if (runState) runState.showHint = false;
+    nextRunItem();
+    return;
+  }
+  if (button.dataset.runFinish !== undefined) {
+    await finishRun();
+    return;
+  }
+  if (button.dataset.runExit !== undefined) {
+    exitRun();
+    return;
+  }
+
   const route = button.dataset.route;
   if (route) {
+    state.run = null;
     if (route.includes("/")) window.location.hash = `#/${route}`;
     else routeTo(route);
     setSidebarOpen(false);
@@ -888,6 +1197,13 @@ document.addEventListener("click", async (event) => {
         comment: t("stillNeedHelp"),
       });
   }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  if (!(event.target instanceof Element) || event.target.id !== "runAnswer") return;
+  event.preventDefault();
+  submitRunAnswer();
 });
 
 document.addEventListener("input", (event) => {

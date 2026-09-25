@@ -327,6 +327,103 @@ export function computePaperFromRow({
   };
 }
 
+// ── Practice runner ────────────────────────────────────────────────────────
+//
+// A paper's `items` has always been a free JSON array, so a gradeable item is
+// an object rather than a schema change: `{ prompt, answer, hint, topic }`.
+// Legacy string items still parse — they just cannot be graded, and the
+// runner says so instead of inventing an answer to mark against.
+
+export function normalizePaperItem(item, index) {
+  const ref = index + 1;
+  if (typeof item === "string") return { ref, prompt: item, answer: "", hint: "", topic: "" };
+  if (!item || typeof item !== "object") return { ref, prompt: "", answer: "", hint: "", topic: "" };
+  return {
+    ref,
+    prompt: String(item.prompt ?? ""),
+    answer: String(item.answer ?? ""),
+    hint: String(item.hint ?? ""),
+    topic: String(item.topic ?? ""),
+  };
+}
+
+export function paperItems(paper) {
+  return (paper?.items || []).map(normalizePaperItem);
+}
+
+// One gradeable item is enough to run. A mixed paper legitimately carries
+// open-response items (「读一篇短文，说说中心意思」has no answer key), and
+// refusing the whole paper because of them would be wrong — those items are
+// collected and marked `ungraded` for a person to read, never auto-marked.
+export function isGradeable(paper) {
+  return paperItems(paper).some((item) => item.answer !== "");
+}
+
+/**
+ * Deterministic, explainable marking. It has to be explainable because a
+ * child is told they got it wrong: full-width digits and punctuation, spaces,
+ * a trailing period, and letter case are noise a grade-4 answer sheet should
+ * never fail on; everything else is a real difference and is marked wrong
+ * rather than guessed at. No model call, no fuzzy match.
+ */
+export function normalizeAnswer(value = "") {
+  return String(value)
+    .normalize("NFKC")
+    .replace(/[\s\u3000]/g, "")
+    .replace(/[。．.]$/, "")
+    .toLowerCase();
+}
+
+export function gradeAnswer(given, expected) {
+  if (!expected) return "ungraded";
+  return normalizeAnswer(given) === normalizeAnswer(expected) ? "correct" : "wrong";
+}
+
+/**
+ * The attempt record, written onto the paper's OWN row.
+ *
+ * `papers` is documented as "one row per practice paper plan **or completed-
+ * paper analysis**", and `analysis` already carries `wrong_count`. So a
+ * finished run is an update to a row that already exists — it needs no new
+ * Base, no create procedure, and no widening of what the AirApp may write.
+ *
+ * Only mechanically true fields are computed here. `strengths`, `review_plan`
+ * and `deep_notes` stay empty: they are judgements about a child's learning,
+ * and this skill's contract is that the agent writes those and a parent
+ * approves them. A runner that auto-filled them would be inventing analysis.
+ */
+export function buildPaperAttempt(paper, answers = {}, hintsUsed = {}, now = new Date().toISOString()) {
+  const items = paperItems(paper);
+  const results = items.map((item) => {
+    const given = String(answers[item.ref] ?? "");
+    return {
+      ref: item.ref,
+      prompt: item.prompt,
+      topic: item.topic,
+      given,
+      expected: item.answer,
+      outcome: gradeAnswer(given, item.answer),
+      hints_used: Number(hintsUsed[item.ref]) || 0,
+    };
+  });
+  const answered = results.filter((result) => result.outcome !== "ungraded");
+  return {
+    attempted_at: now,
+    total: results.length,
+    // `graded` is the score's denominator, not `total`. An open-response item
+    // nobody marked is not a question the child got wrong, and "3 题里做对 2 题"
+    // for 2-right/0-wrong/1-open tells them they missed one when they did not.
+    graded: answered.length,
+    correct: answered.filter((result) => result.outcome === "correct").length,
+    wrong_count: answered.filter((result) => result.outcome === "wrong").length,
+    results,
+  };
+}
+
+export function attemptTopics(attempt, outcome = "wrong") {
+  return [...new Set((attempt?.results || []).filter((r) => r.outcome === outcome && r.topic).map((r) => r.topic))];
+}
+
 // Normalizes a Busabase `reviews` row into the structured ReviewItem shape,
 // with the decision assembled from decision_action/decision_comment/
 // decided_at (mirrors computeCheckFromRow() in kelly-finance's
@@ -813,10 +910,66 @@ export function demoSnapshot(lang = "en") {
       question_count: 8,
       estimated_minutes: 25,
       difficulty_mix: { easy: 0.35, medium: 0.5, challenge: 0.15 },
+      // Gradeable items: `{ prompt, answer, hint, topic }`. The count matches
+      // question_count, and the last two are the "偏难" pair the review row
+      // already talks about, so the paper, its review and the runner agree.
       items: [
-        L(zh, "Compare 3/8 and 1/2", "比较 3/8 和 1/2"),
-        L(zh, "Draw 2/4 and 1/2", "画出 2/4 和 1/2"),
-        L(zh, "Word problem: sharing a cake", "应用题：分蛋糕"),
+        {
+          prompt: L(zh, "Which is greater: 3/8 or 1/2?", "3/8 和 1/2 哪个大？"),
+          answer: "1/2",
+          hint: L(zh, "Make both into the same number of pieces first.", "先把两个分数化成一样多的份数再比。"),
+          topic: L(zh, "Comparing fractions", "分数比较"),
+        },
+        {
+          prompt: L(zh, "Write 1/2 as eighths.", "把 1/2 写成八分之几。"),
+          answer: "4/8",
+          hint: L(zh, "Half of 8 pieces is how many pieces?", "8 份的一半是几份？"),
+          topic: L(zh, "Equivalent fractions", "等值分数"),
+        },
+        {
+          prompt: L(zh, "Which is greater: 2/4 or 1/2?", "2/4 和 1/2 哪个大？"),
+          answer: L(zh, "equal", "一样大"),
+          hint: L(zh, "Draw both on the same bar.", "把两个画在同一条纸条上看看。"),
+          topic: L(zh, "Equivalent fractions", "等值分数"),
+        },
+        {
+          prompt: L(zh, "Which is greater: 5/8 or 1/2?", "5/8 和 1/2 哪个大？"),
+          answer: "5/8",
+          hint: L(zh, "1/2 is 4/8. Now compare the top numbers.", "1/2 就是 4/8，再比上面的数。"),
+          topic: L(zh, "Comparing fractions", "分数比较"),
+        },
+        {
+          prompt: L(zh, "Fill in: 3/4 = ?/8", "填空：3/4 = ?/8"),
+          answer: "6/8",
+          hint: L(zh, "The bottom number doubled, so the top one does too.", "下面的数翻倍了，上面的也要翻倍。"),
+          topic: L(zh, "Equivalent fractions", "等值分数"),
+        },
+        {
+          prompt: L(
+            zh,
+            "A cake is cut into 8. You eat 3. How much is left?",
+            "一个蛋糕切成 8 份，你吃了 3 份，还剩几分之几？",
+          ),
+          answer: "5/8",
+          hint: L(zh, "The whole cake is 8/8.", "整个蛋糕是 8/8。"),
+          topic: L(zh, "Fractions in word problems", "分数应用题"),
+        },
+        {
+          prompt: L(zh, "Which is greater: 2/3 or 5/12?", "2/3 和 5/12 哪个大？"),
+          answer: "2/3",
+          hint: L(zh, "Make both twelfths first.", "先都化成十二分之几。"),
+          topic: L(zh, "Comparing fractions", "分数比较"),
+        },
+        {
+          prompt: L(
+            zh,
+            "Why can you not compare 3/8 and 1/2 by the top numbers alone?",
+            "为什么不能只看上面的数来比 3/8 和 1/2？",
+          ),
+          answer: "",
+          hint: L(zh, "Think about how big one piece is.", "想一想每一份有多大。"),
+          topic: L(zh, "Explain your reasoning", "讲出道理"),
+        },
       ],
       analysis: {
         wrong_count: 2,
@@ -849,7 +1002,32 @@ export function demoSnapshot(lang = "en") {
       question_count: 10,
       estimated_minutes: 30,
       difficulty_mix: { easy: 0.4, medium: 0.45, challenge: 0.15 },
-      items: ["604 - 278", "800 - 356", L(zh, "Read a short plant-care passage", "读一篇照顾植物的短文")],
+      items: [
+        {
+          prompt: "604 - 278 = ?",
+          answer: "326",
+          hint: L(zh, "Rewrite the digit you borrowed from straight away.", "借位之后马上把那一位改写掉。"),
+          topic: L(zh, "Subtraction with regrouping", "退位减法"),
+        },
+        {
+          prompt: "800 - 356 = ?",
+          answer: "444",
+          hint: L(zh, "Two zeros in a row means you borrow twice.", "连着两个 0，要借两次。"),
+          topic: L(zh, "Subtraction with regrouping", "退位减法"),
+        },
+        {
+          // No answer key on purpose: an open-response item is marked
+          // `ungraded` and read by a person, never auto-marked.
+          prompt: L(
+            zh,
+            "Read the plant-care passage. What is its main idea?",
+            "读一篇照顾植物的短文，说说它的中心意思。",
+          ),
+          answer: "",
+          hint: L(zh, "Start with 'This passage tells us…'", "可以用“这篇短文告诉我们……”开头。"),
+          topic: L(zh, "Main idea", "中心思想"),
+        },
+      ],
       analysis: {
         wrong_count: 1,
         strengths: [
