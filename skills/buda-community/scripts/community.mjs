@@ -347,8 +347,12 @@ async function request(path, { method = "GET", query, body, admin = false, soft 
       // A missing *route* echoes the path back; a missing *record* does not.
       // Worth separating: one means "not deployed here", the other "wrong id".
       const routeMissing = typeof payload === "object" && payload !== null && "path" in payload;
-      if (routeMissing && path.startsWith(ADMIN_BASE)) {
-        fail(`${method} ${path} — this deployment does not serve the system-admin community API yet.`);
+      if (routeMissing) {
+        fail(
+          path.startsWith(ADMIN_BASE)
+            ? `${method} ${path} — this deployment does not serve the system-admin community API yet.`
+            : `${method} ${path} — this deployment does not serve that route yet (it was not deployed, so nothing was changed). Try again after the next release.`,
+        );
       }
       fail(`${method} ${path} — not found. Check the slug or id.`);
     }

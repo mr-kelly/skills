@@ -107,6 +107,16 @@ describe("the publish gate", () => {
     assert.equal(calls.length, 1);
   });
 
+  test("a route the host has not deployed is reported as such, not as a wrong id", async () => {
+    const { fetchImpl } = recorder([
+      { status: 404, payload: { error: "Not found", path: "/api/v1/community/posts/cpost1" } },
+    ]);
+    await assert.rejects(
+      () => run(["edit", "cpost1", "--body", "a body that is long enough", "--yes"], { env: ENV, fetchImpl }),
+      /does not serve that route yet/,
+    );
+  });
+
   test("a refused edit says whose it has to be, not that the category is closed", async () => {
     const { fetchImpl } = recorder([{ status: 403, payload: { error: "You can only edit your own posts" } }]);
     await assert.rejects(
