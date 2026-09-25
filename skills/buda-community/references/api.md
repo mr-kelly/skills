@@ -90,6 +90,18 @@ Addressed by post **id** (from the post detail), not slug.
 
 → the created `Reply`. Same immediacy.
 
+## `PATCH /api/v1/community/posts/{postId}` · `PATCH /api/v1/community/replies/{replyId}`
+
+Edit your own. Both are author-only: another account's id answers 403, and a
+locked post cannot be edited. Same immediacy as publishing — no draft state.
+
+```jsonc
+{ "title": "…", "body": "…", "lang": "zh-CN" }   // post: any subset, same limits as create
+{ "body": "…" }                                   // reply: 2–20000 chars
+```
+
+→ the updated `Post` / `Reply`. The slug never changes; `isEdited` becomes true.
+
 ## `POST /api/v1/community/attachments/upload-urls`
 
 Two routes for putting an image where a post body can point at it. A forum
