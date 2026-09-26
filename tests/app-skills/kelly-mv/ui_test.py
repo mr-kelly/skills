@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import io
 import json
 import sys
 import tempfile
 import urllib.request
+import wave
 from pathlib import Path
+from urllib.parse import urljoin
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Page, expect, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
@@ -105,6 +108,17 @@ def test_demo_ui(browser, base_url: str) -> None:
         mobile.close()
 
 
+def tiny_wav() -> bytes:
+    """A real, decodable WAV (0.1s of silence), so the browser's metadata read succeeds."""
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as out:
+        out.setnchannels(1)
+        out.setsampwidth(2)
+        out.setframerate(8000)
+        out.writeframes(b"\x00\x00" * 800)
+    return buffer.getvalue()
+
+
 def read_json(url: str):
     with urllib.request.urlopen(url, timeout=5) as response:
         return json.load(response)
@@ -146,12 +160,10 @@ def test_busabase_provisioning(browser) -> None:
     text-field write round trip (shot title edit -> Busabase -> re-read), and
     persistence across a full Busabase process restart.
 
-    Drive/Asset binary upload coverage is not exercised here. It was scoped out
-    because `busabase@0.11.0`'s standalone CLI minted an `/api/dev/upload` URL
-    that 404'd under its own production NODE_ENV. That no longer holds: against
-    the pinned `busabase@0.16.2` (and 0.81.0), `assets.createUploadUrl()` returns
-    `/api/storage/upload?key=…` and a PUT → confirm() → read-back round trip
-    completes, so this coverage can be added.
+    It also covers a Drive/Asset binary round trip: a song picked in the
+    browser is uploaded through the app's own proxy, the project record
+    carries its asset id, and the rendered URL serves the same bytes, before
+    and after a Busabase restart.
     """
     busabase_port = free_port()
     app_port = free_port()
@@ -263,6 +275,13 @@ def test_busabase_provisioning(browser) -> None:
                     context = browser.new_context(viewport={"width": 390, "height": 844})
                     page = context.new_page()
                     errors = attach_error_capture(page)
+                    # A 404 from `records/get` is the provider asking "does this
+                    # row exist yet?" before its first upsert; it catches that and
+                    # creates the row. The browser still logs it as a failed load.
+                    # Accept exactly that lookup and nothing else: every other 404
+                    # in this session still fails the test.
+                    not_found: list[str] = []
+                    page.on("response", lambda r: not_found.append(r.url) if r.status == 404 else None)
                     page.goto(f"{app_url}/#/storyboard/shot-fixture")
                     page.wait_for_load_state("networkidle")
                     assert page.locator("[data-provision]").count() == 0
@@ -271,7 +290,29 @@ def test_busabase_provisioning(browser) -> None:
                     page.locator("#shotSave").click()
                     page.wait_for_timeout(800)
                     assert_no_horizontal_overflow(page)
-                    assert not errors, errors
+
+                    # Binary round trip, the way a person does it: pick an audio
+                    # file in the browser, let the app upload it as a Busabase
+                    # Asset (createUploadUrl -> PUT -> confirm, the PUT going to
+                    # the app's own origin and through server.js's proxy), then
+                    # read the bytes back from the URL the page renders.
+                    song_bytes = tiny_wav()
+                    page.goto(f"{app_url}/#/song")
+                    page.wait_for_load_state("networkidle")
+                    with page.expect_file_chooser() as chooser:
+                        page.locator("#songUpload").click()
+                    chooser.value.set_files(
+                        {"name": "fixture-song.wav", "mimeType": "audio/wav", "buffer": song_bytes}
+                    )
+                    audio = page.locator("audio[src]")
+                    expect(audio).to_have_count(1, timeout=30_000)
+                    song_src = audio.get_attribute("src")
+                    served = page.request.get(urljoin(page.url, song_src))
+                    assert served.status == 200, (song_src, served.status)
+                    assert served.body() == song_bytes, "the page's audio URL must serve the uploaded bytes"
+                    unexpected_404s = [url for url in not_found if "/api/v1/records/get?" not in url]
+                    assert not unexpected_404s, unexpected_404s
+                    assert not [e for e in errors if "status of 404" not in e], errors
                     context.close()
 
                 records = read_json(f"{busabase_url}/api/v1/records?baseId={shots_base['baseId']}")
@@ -280,6 +321,17 @@ def test_busabase_provisioning(browser) -> None:
                     r for r in record_items if (r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})).get("shot-id") == "shot-fixture"
                 )
                 assert (fixture["headCommit"].get("payload") or fixture["headCommit"]["fields"])["title"] == "Integration Fixture Shot (edited)", fixture
+
+                project_base = find_resource(read_json(f"{busabase_url}/api/v1/nodes?depth=2"), "project")
+                project_rows = read_json(f"{busabase_url}/api/v1/records?baseId={project_base['baseId']}")
+                project_items = project_rows if isinstance(project_rows, list) else project_rows.get("records", [])
+                project_fields = [
+                    r.get("headCommit", {}).get("payload") or r.get("headCommit", {}).get("fields", {})
+                    for r in project_items
+                ]
+                uploaded = next((f for f in project_fields if f.get("song-audio-asset-id")), None)
+                assert uploaded, project_fields
+                assert uploaded["song-source"] == "uploaded", uploaded
 
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
             keys = resource_keys(nodes)
@@ -301,6 +353,9 @@ def test_busabase_provisioning(browser) -> None:
                 (record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("title") == "Integration Fixture Shot (edited)"
                 for record in record_items
             )
+            # The uploaded song's bytes survive the restart too.
+            with urllib.request.urlopen(urljoin(busabase_url, song_src), timeout=10) as response:
+                assert response.read() == song_bytes
 
 
 def main() -> None:
@@ -317,7 +372,7 @@ def main() -> None:
                     test_busabase_provisioning(browser)
                     print(
                         "PASS OSS - lazy provisioning, live text-field write, and persistence against temporary "
-                        "Busabase (Drive/Asset binary upload round trip not exercised — see test docstring)"
+                        "Busabase, including a browser Asset upload round trip"
                     )
                 except Exception:
                     for index, context in enumerate(browser.contexts):

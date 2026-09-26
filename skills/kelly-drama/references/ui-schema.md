@@ -43,9 +43,12 @@ proxies, and a PUT → `confirm()` → read-back round trip completes. Only
 `busabase@0.11.0` differed: its standalone CLI minted an `/api/dev/upload` target
 that 404'd ("Not available in production") under its own production `NODE_ENV`.
 That was a gap in one release, fixed upstream, not a current limitation.
-The OSS integration test (`tests/app-skills/kelly-drama/ui_test.py`) still
-scopes its live-write coverage to a plain text field; it was scoped down for
-the 0.11.0 gap, which no longer applies, so binary upload coverage can be added.
+This app has no in-browser upload: images, video and voice are generated and
+stored by the agent's scripts, and the browser only displays them. The OSS
+integration test (`tests/app-skills/kelly-drama/ui_test.py`) covers that read
+path: it stores a real PNG as an Asset the way those scripts do, attaches it
+to a seeded shot, and checks the rendered image URL serves the same bytes,
+before and after a Busabase restart.
 
 ## project (`kelly-drama-project`)
 

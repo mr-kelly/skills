@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import json
+import struct
 import sys
 import tempfile
 import urllib.request
+import zlib
 from pathlib import Path
+from urllib.parse import urljoin
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Page, expect, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "tests" / "app-skills" / "harness"))
@@ -125,6 +128,43 @@ def read_json(url: str):
         return json.load(response)
 
 
+def tiny_png() -> bytes:
+    """A real 4x4 PNG, so the browser decodes it rather than showing a broken image."""
+    raw = b"".join(b"\x00" + b"\x1e\x3a\x5f" * 4 for _ in range(4))
+
+    def chunk(kind: bytes, data: bytes) -> bytes:
+        return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
+
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", struct.pack(">IIBBBBB", 4, 4, 8, 2, 0, 0, 0))
+        + chunk(b"IDAT", zlib.compress(raw))
+        + chunk(b"IEND", b"")
+    )
+
+
+def upload_asset(busabase_url: str, name: str, mime: str, data: bytes) -> str:
+    """Store bytes as a Busabase Asset the way the skill's agent scripts do:
+    request a target, PUT the bytes, confirm. Returns the asset id."""
+    meta = {"fileName": name, "mimeType": mime, "sizeBytes": len(data)}
+    target = post_json(f"{busabase_url}/api/v1/assets/upload-urls", meta)
+    put = urllib.request.Request(
+        urljoin(busabase_url, target["uploadUrl"]), data=data, method="PUT", headers={"content-type": mime}
+    )
+    with urllib.request.urlopen(put, timeout=10) as response:
+        assert response.status == 200, response.status
+    confirmed = post_json(f"{busabase_url}/api/v1/assets/confirmations", {**meta, "storageKey": target["storageKey"]})
+    return confirmed["assetId"]
+
+
+def seed_record(busabase_url: str, base_id: str, fields: dict) -> None:
+    created = post_json(
+        f"{busabase_url}/api/v1/bases/{base_id}/change-requests",
+        {"fields": fields, "message": "Seed Kelly Drama integration fixture", "submittedBy": "kelly-skills-test"},
+    )
+    post_json(f"{busabase_url}/api/v1/change-requests/merge", {"changeRequestIds": [created["id"]]})
+
+
 def post_json(url: str, payload: dict):
     request = urllib.request.Request(
         url,
@@ -162,12 +202,11 @@ def test_busabase_provisioning(browser) -> None:
     edit -> Busabase -> re-read), and persistence across a full Busabase
     process restart.
 
-    Drive/Asset binary upload coverage is not exercised here. It was scoped out
-    because `busabase@0.11.0`'s standalone CLI minted an `/api/dev/upload` URL
-    that 404'd under its own production NODE_ENV. That no longer holds: against
-    the pinned `busabase@0.16.2` (and 0.81.0), `assets.createUploadUrl()` returns
-    `/api/storage/upload?key=…` and a PUT → confirm() → read-back round trip
-    completes, so this coverage can be added.
+    It also covers the Asset read path, which is the one this app has: there
+    is no in-browser upload (images are generated and stored by the agent's
+    scripts), so a real PNG is stored as an Asset the way those scripts do,
+    attached to a seeded shot, and the rendered image URL is checked to serve
+    the same bytes, before and after a Busabase restart.
     """
     busabase_port = free_port()
     app_port = free_port()
@@ -259,6 +298,31 @@ def test_busabase_provisioning(browser) -> None:
                 )
                 post_json(f"{busabase_url}/api/v1/change-requests/merge", {"changeRequestIds": [record_cr["id"]]})
 
+                # Kelly Drama has no in-browser upload: images are generated and
+                # stored by the agent (scripts/execute_generation_requests.mjs),
+                # and the browser only displays them. So store a real PNG as an
+                # Asset the way that script does, attach it to a seeded shot, and
+                # check below that the app renders it and serves the same bytes.
+                shot_image = tiny_png()
+                shot_image_asset = upload_asset(busabase_url, "fixture-shot.png", "image/png", shot_image)
+                seed_record(
+                    busabase_url,
+                    find_resource(nodes, "episodes")["baseId"],
+                    {"episode-id": "ep-fixture", "number": "1", "title": "Integration Fixture Episode", "deleted": "false"},
+                )
+                seed_record(
+                    busabase_url,
+                    find_resource(nodes, "shots")["baseId"],
+                    {
+                        "shot-id": "shot-fixture",
+                        "episode-id": "ep-fixture",
+                        "position": "1",
+                        "title": "Integration Fixture Shot",
+                        "image-asset-id": shot_image_asset,
+                        "deleted": "false",
+                    },
+                )
+
                 # A fresh app process must discover the existing resources
                 # and records, show the seeded task, and a live edit through
                 # the UI must write straight back to Busabase. Desktop
@@ -282,6 +346,22 @@ def test_busabase_provisioning(browser) -> None:
                     page.locator('form[data-kind="tasks"] button[type="submit"]').click()
                     page.wait_for_timeout(800)
                     assert_no_horizontal_overflow(page)
+
+                    # The agent-stored image reaches the page: the shot row's
+                    # thumbnail and the expanded storyboard image both point at
+                    # it, and that URL serves the exact bytes that were stored.
+                    page.goto(f"{app_url}/#/episodes/ep-fixture/shots")
+                    expect(page.locator(".shot-row-wrap")).to_have_count(1, timeout=15_000)
+                    thumb = page.locator(".shot-row-thumb img")
+                    expect(thumb).to_have_count(1)
+                    image_src = thumb.get_attribute("src")
+                    page.locator(".shot-row").first.click()
+                    storyboard = page.locator(".shot-row-detail .storyboard-image img")
+                    expect(storyboard).to_have_attribute("src", image_src)
+                    served = page.request.get(urljoin(page.url, image_src))
+                    assert served.status == 200, (image_src, served.status)
+                    assert served.body() == shot_image, "the rendered image URL must serve the stored bytes"
+                    expect(storyboard).to_have_js_property("naturalWidth", 4)
                     assert not errors, errors
                     context.close()
 
@@ -314,6 +394,9 @@ def test_busabase_provisioning(browser) -> None:
                 (record.get("headCommit", {}).get("payload") or record.get("headCommit", {}).get("fields", {})).get("title") == "Integration Fixture Task (edited)"
                 for record in record_items
             )
+            # The stored image survives the restart too.
+            with urllib.request.urlopen(urljoin(busabase_url, image_src), timeout=10) as response:
+                assert response.read() == shot_image
 
 
 def main() -> None:
@@ -330,7 +413,7 @@ def main() -> None:
                     test_busabase_provisioning(browser)
                     print(
                         "PASS OSS - lazy provisioning, live text-field write, and persistence against temporary "
-                        "Busabase (Drive/Asset binary upload round trip not exercised — see test docstring)"
+                        "Busabase, including an agent-stored Asset rendered and served by the app"
                     )
                 except Exception:
                     for index, context in enumerate(browser.contexts):
