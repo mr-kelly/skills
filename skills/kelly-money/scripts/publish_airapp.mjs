@@ -62,5 +62,13 @@ try {
   fail(`发布 AirApp 失败：${error instanceof Error ? error.message : error}`);
 }
 
-console.log(`AirApp ${result.status === "created" ? "创建" : "更新"}请求已提交：${result.changeRequestId}（待审核）`);
-console.log("请在 Busabase 里审核并合并这个 ChangeRequest 后，改动才会生效。");
+// Whether this landed or waits for review is the server's call, made from this key's
+// permission on the Folder: `write` merges immediately, anything less opens a ChangeRequest.
+// `=== true`, not truthiness: this repo typechecks non-strict, where only the comparison
+// narrows the result union to the members that carry `changeRequestId`.
+if (result.merged === true) {
+  console.log(`AirApp 已${result.status === "created" ? "创建" : "更新"}并生效。`);
+} else {
+  console.log(`AirApp ${result.status === "created" ? "创建" : "更新"}请求已提交：${result.changeRequestId}（待审核）`);
+  console.log("请在 Busabase 里审核并合并这个 ChangeRequest 后，改动才会生效。");
+}

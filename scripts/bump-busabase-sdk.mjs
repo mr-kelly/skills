@@ -2,15 +2,12 @@
 // Moves skills to another busabase-sdk version, everywhere that version is recorded.
 //
 //   node scripts/bump-busabase-sdk.mjs <version> --skills kelly-support,kelly-email
-//   node scripts/bump-busabase-sdk.mjs <version> --all [--dry-run] [--jobs 4] [--with-scripts]
+//   node scripts/bump-busabase-sdk.mjs <version> --all [--dry-run] [--jobs 4]
 //
-// By default only the app (content/*-app) moves. The skill root, whose package.json the
-// publish/setup scripts read, stays where it is unless --with-scripts is passed. That is
-// deliberate: `publishAirApp` in 0.30.1 hardcodes `autoMerge: false`, so an AirApp — code
-// the viewer's browser executes — always waits for a human. From 0.80.0 it omits the flag
-// and the server merges immediately when the key has `write`. Every script tells its user
-// "待审核", so moving the root silently turns that sentence false. Opt in only after
-// deciding that gate should go.
+// Both the skill root (read by the publish/setup scripts) and the app move together.
+// Note for anyone crossing 0.30.1: `publishAirApp` stopped forcing review there. Whether a
+// publish merges now depends on the key's permission on the Folder, so a script must
+// branch on `result.merged` rather than assume a pending ChangeRequest.
 //
 // Bumping package.json alone is not an upgrade. The browser never loads node_modules: it
 // loads app/vendor/*.js, which `pnpm build:sdk` bundles from the installed SDK. A bump
@@ -33,12 +30,11 @@ const flag = (name) => args.includes(name);
 const option = (name) => args[args.indexOf(name) + 1];
 
 if (!version || (!flag("--all") && !flag("--skills"))) {
-  console.error("usage: bump-busabase-sdk.mjs <x.y.z> (--all | --skills a,b) [--dry-run] [--jobs N] [--with-scripts]");
+  console.error("usage: bump-busabase-sdk.mjs <x.y.z> (--all | --skills a,b) [--dry-run] [--jobs N]");
   process.exit(2);
 }
 
 const dryRun = flag("--dry-run");
-const withScripts = flag("--with-scripts");
 const jobs = Number(option("--jobs")) || 4;
 
 const readOptional = (file) => fs.readFile(file, "utf8").catch(() => "");
@@ -98,7 +94,7 @@ async function bump(name) {
   const skill = path.join(SKILLS, name);
   const app = path.join(skill, "content", `${name}-app`);
 
-  const done = withScripts ? await repinProject(skill) : [];
+  const done = await repinProject(skill);
   const inApp = await repinProject(app);
   done.push(...inApp.map((file) => `app/${file}`));
 

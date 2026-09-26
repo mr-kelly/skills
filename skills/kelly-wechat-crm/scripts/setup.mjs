@@ -57,7 +57,11 @@ if (!resources.folder || resources.missing.length || resources.repairs.length) {
 }
 if (!resources.airApp) {
   const result = await publishAirApp(client, appConfig, await readAirAppFiles());
-  console.log(`AirApp ${result.status}; pending ChangeRequest ${result.changeRequestId}`);
+  console.log(
+    result.merged === true
+      ? `AirApp ${result.status}; merged`
+      : `AirApp ${result.status}; pending ChangeRequest ${result.changeRequestId}`,
+  );
 } else {
   console.log("AirApp already exists; use scripts/publish_airapp.mjs to propose a source update.");
 }
