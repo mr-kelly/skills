@@ -227,8 +227,8 @@
 | Skill | 做什么 | 什么时候用 | 详情 |
 | --- | --- | --- | --- |
 | `agent-rules` | 让 Codex、Claude Code、Copilot、Kiro、Cursor、Gemini 等 agent 共享同一套规则和 skills。 | 设置多 agent repo、检查规则漂移、修复 rule/skill symlink 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/agent-rules.html?lang=zh) |
-| `buda-community` | 通过 community.buda.im 自带的 `/api/v1/community` REST API 操作 Buda 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答、管理或发布 Buda 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/buda-community.html?lang=zh) |
-| `busabase-community` | 通过 community.busabase.com 自带的 `/api/v1/community` REST API 操作 Busabase 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答、管理或发布 Busabase 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/busabase-community.html?lang=zh) |
+| `buda-community` | 通过 community.buda.im 自带的 `/api/v1/community` REST API 操作 Buda 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答或发布 Buda 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/buda-community.html?lang=zh) |
+| `busabase-community` | 通过 community.busabase.com 自带的 `/api/v1/community` REST API 操作 Busabase 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答或发布 Busabase 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/busabase-community.html?lang=zh) |
 | `kelly-agent-builder` | 低代码 agent 配置与治理控制台：维护一批 mock agent 配置的配额、审批和归属，未填齐字段前禁止上线。 | 管理 agent 目录、检查配额使用、把草稿激活为上线，或归档某个 agent 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-builder.html?lang=zh) |
 | `kelly-agent-eval` | 评测看板，跑固定测试集对比 baseline 与候选版本 agent，在发版前用打分规则揪出回归问题。 | 排查 agent 版本回归、对比 baseline 与候选质量，或记录发版批准/阻止决定时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-eval.html?lang=zh) |
 | `kelly-agent-observability` | 本地看板，展示运行在共享 AI 网关背后的一批 LLM agent：调用量、延迟、错误率、成本，以及链路级故障追踪。 | 审阅 agent 集群健康状况，或排查某条失败链路断在哪一步时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-agent-observability.html?lang=zh) |
@@ -240,7 +240,7 @@
 | `kelly-local-model-lab` | Busabase 支撑的本地模型实验室：审核训练样本、在 Apple Silicon 上用 MLX-LM 执行 LoRA/QLoRA 微调、锁定评估集对比原始模型与 adapter，并登记通过审核的 adapter。 | 需要以 Busabase 为工作流事实源，在本地训练、评估、晋级或管理语言模型 adapter 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-local-model-lab.html?lang=zh) |
 | `kelly-pr-review` | 通过 `gh` CLI 做 GitHub PR review desk：收集待 review PR、准备 review notes、在本地 UI 批准后执行 `gh pr review`。 | review PR、批准/comment/request changes，或批量处理 PR review decision 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-pr-review.html?lang=zh) |
 | `publish-skills` | 把 agent skills 和 MCP servers 发布到各大市场和注册表：扫描私密数据、用 `gh skill` 校验、切版本、接 Claude `/plugin` 和 Codex marketplace，并准备 MCP Registry 和精选商店。 | 发布、上架、分发 skills、plugins 或 MCP servers 到 skills.sh、Claude Code、Codex 或 MCP Registry 时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/publish-skills.html?lang=zh) |
-| `sandock-community` | 通过 community.sandock.ai 自带的 `/api/v1/community` REST API 操作 Sandock 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答、管理或发布 Sandock 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/sandock-community.html?lang=zh) |
+| `sandock-community` | 通过 community.sandock.ai 自带的 `/api/v1/community` REST API 操作 Sandock 社区论坛：列分类和帖子、读一个帖子连同回复、搜索，发帖和回帖必须先经过明确确认。 | 查看、回答或发布 Sandock 社区内容时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/sandock-community.html?lang=zh) |
 
 ---
 

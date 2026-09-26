@@ -42,13 +42,6 @@ const PRODUCT = {
   /** Conventional place to keep the key — outside any repository. */
   envFile: "~/.buda/.env",
   /**
-   * Separate, far more powerful credential for `/api/v1/system-admin/community/*`
-   * — the moderation surface. It is the deployment's own
-   * `SYSTEM_ADMIN_API_SECRET_KEY`, not a per-user token, so it is optional here
-   * and every admin command refuses to run without it.
-   */
-  adminKeyEnv: "BUDA_SYSTEMADMIN_KEY",
-  /**
    * Extra accounts live under this prefix — `BUDA_API_KEY_ALT` is the
    * account `--as alt`. One forum, several identities.
    */
@@ -58,10 +51,6 @@ const PRODUCT = {
   /** Conventional per-product home directory, shared with the other Buda tooling. */
   homeDir: ".buda",
 };
-
-/** Falls back to a bare SYSTEMADMIN_KEY so one shell can drive several forums. */
-const ADMIN_KEY_FALLBACK = "SYSTEMADMIN_KEY";
-const ADMIN_BASE = "/api/v1/system-admin/community";
 
 // ------------------------------------------------------------- env files
 
@@ -76,9 +65,7 @@ export function envSearchPaths(env = process.env) {
   const home = env.HOME || "";
   return [
     env[PRODUCT.envFileEnv],
-    path.join(SKILL_DIR, ".env.local"),
     path.join(SKILL_DIR, ".env"),
-    home && path.join(home, ".config", PRODUCT.slug, ".env"),
     home && path.join(home, PRODUCT.homeDir, ".env"),
   ].filter((file) => typeof file === "string" && file.length > 0);
 }
@@ -130,8 +117,6 @@ const SORTS = ["active", "latest", "top"];
 // ---------------------------------------------------------------- arg parsing
 
 const BOOLEAN_FLAGS = new Set(["yes", "json", "unanswered"]);
-/** Flags that may repeat, because a category's text is one value per locale. */
-const REPEATABLE_FLAGS = new Set(["name", "description"]);
 
 export function parseArgs(argv) {
   const positional = [];
@@ -151,11 +136,7 @@ export function parseArgs(argv) {
       continue;
     }
     const value = inline ?? (argv[i + 1]?.startsWith("--") ? true : (argv[++i] ?? true));
-    if (REPEATABLE_FLAGS.has(key)) {
-      flags[key] = [...(Array.isArray(flags[key]) ? flags[key] : []), value];
-    } else {
-      flags[key] = value;
-    }
+    flags[key] = value;
   }
   return { positional, flags };
 }
@@ -204,7 +185,7 @@ export function onboarding(env = process.env, account = "") {
     "  4. Verify: node scripts/community.mjs whoami",
     "",
     `Optional overrides — ${PRODUCT.apiEnv} (default ${apiUrl}), ${PRODUCT.webEnv} (default ${webUrl}).`,
-    `Files are read nearest-first — ${PRODUCT.envFileEnv}, ${SKILL_ENV_HINT}(.local), ~/.config/${PRODUCT.slug}/.env, ${PRODUCT.envFile}.`,
+    `Files are read nearest-first — ${PRODUCT.envFileEnv}, ${SKILL_ENV_HINT}, ${PRODUCT.envFile}.`,
     "Never paste the key into chat, into a tracked file, or into command output.",
   ].join("\n");
 }
@@ -215,30 +196,6 @@ function requireKey() {
   // The onboarding text is the whole message; the slug prefix would only
   // push its first line out of alignment.
   throw new CommunityCliError(onboarding(ENV, ACCOUNT), { prefixed: false });
-}
-
-/** What to tell someone who asked for an admin command without the admin key. */
-export function adminOnboarding(env = ENV) {
-  return [
-    `${PRODUCT.adminKeyEnv} is not set — the moderation surface needs the deployment's own system-admin key.`,
-    "",
-    `This is NOT the same credential as ${PRODUCT.keyEnv}. It is the server's`,
-    "`SYSTEM_ADMIN_API_SECRET_KEY`, it is not per-user, and it can hide, move and",
-    "permanently delete anyone's content. Only an operator of the deployment has it.",
-    "",
-    `  printf '${PRODUCT.adminKeyEnv}=%s\\n' '<key>' >> ${SKILL_ENV_HINT}`,
-    `  # or ${ADMIN_KEY_FALLBACK} in any of the same files, to cover several forums at once`,
-    "  node scripts/community.mjs admin overview",
-    "",
-    "Without it every `admin` command stops here. The read and post commands are",
-    `unaffected — they use ${PRODUCT.keyEnv}.`,
-  ].join("\n");
-}
-
-function requireAdminKey() {
-  const { adminKey } = selected();
-  if (adminKey) return adminKey;
-  throw new CommunityCliError(adminOnboarding(ENV), { prefixed: false });
 }
 
 // -------------------------------------------------------------------- request
@@ -276,10 +233,9 @@ export function config(env = process.env, account = "") {
   const name = account || env[PRODUCT.accountEnv] || "";
   const keyEnv = name && name !== "default" ? accountKeyEnv(name) : PRODUCT.keyEnv;
   const apiKey = env[keyEnv];
-  const adminKey = env[PRODUCT.adminKeyEnv] || env[ADMIN_KEY_FALLBACK];
   const apiUrl = (env[PRODUCT.apiEnv] || PRODUCT.apiUrl).replace(/\/+$/, "").replace(/\/api\/v1$/, "");
   const webUrl = (env[PRODUCT.webEnv] || PRODUCT.webUrl).replace(/\/+$/, "");
-  return { apiKey, adminKey, apiUrl, webUrl, account: name || "default", keyEnv };
+  return { apiKey, apiUrl, webUrl, account: name || "default", keyEnv };
 }
 
 /** Both error envelopes in the wild — `{error}` and `{success,message}`. */
@@ -302,10 +258,10 @@ export function buildUrl(apiUrl, path, query = {}) {
 
 /**
  * @param {string} path
- * @param {{ method?: string, query?: Record<string, unknown>, body?: unknown, admin?: boolean, soft?: boolean, fetchImpl?: typeof fetch }} [options]
+ * @param {{ method?: string, query?: Record<string, unknown>, body?: unknown, soft?: boolean, fetchImpl?: typeof fetch }} [options]
  */
-async function request(path, { method = "GET", query, body, admin = false, soft = false, fetchImpl } = {}) {
-  const apiKey = admin ? requireAdminKey() : requireKey();
+async function request(path, { method = "GET", query, body, soft = false, fetchImpl } = {}) {
+  const apiKey = requireKey();
   const { apiUrl } = selected();
   const send = fetchImpl ?? FETCH ?? fetch;
 
@@ -332,9 +288,7 @@ async function request(path, { method = "GET", query, body, admin = false, soft 
     // account should be reported beside the others, not end the command.
     if (soft) return null;
     if (response.status === 401) {
-      fail(
-        `${method} ${path} — unauthorized. ${admin ? PRODUCT.adminKeyEnv : selected().keyEnv} is expired or rejected.`,
-      );
+      fail(`${method} ${path} — unauthorized. ${selected().keyEnv} is expired or rejected.`);
     }
     if (response.status === 403) {
       fail(
@@ -349,9 +303,7 @@ async function request(path, { method = "GET", query, body, admin = false, soft 
       const routeMissing = typeof payload === "object" && payload !== null && "path" in payload;
       if (routeMissing) {
         fail(
-          path.startsWith(ADMIN_BASE)
-            ? `${method} ${path} — this deployment does not serve the system-admin community API yet.`
-            : `${method} ${path} — this deployment does not serve that route yet (it was not deployed, so nothing was changed). Try again after the next release.`,
+          `${method} ${path} — this deployment does not serve that route yet (it was not deployed, so nothing was changed). Try again after the next release.`,
         );
       }
       fail(`${method} ${path} — not found. Check the slug or id.`);
@@ -684,315 +636,6 @@ async function cmdUpload(positional, flags) {
   });
 }
 
-// -------------------------------------------------------------- admin surface
-
-/**
- * `/api/v1/system-admin/community/*` — the moderation surface, one table
- * instead of eighteen near-identical functions. `body`/`query` list the flags
- * an operation accepts, in camelCase; `writes` decides whether --yes is
- * required; `destructive` marks the two operations with no undo.
- */
-const ADMIN_OPS = {
-  overview: { method: "GET", path: "/overview" },
-  posts: {
-    method: "GET",
-    path: "/posts",
-    query: ["status", "includeDeleted", "categorySlug", "search", "limit", "offset"],
-  },
-  replies: {
-    method: "GET",
-    path: "/replies",
-    query: ["status", "includeDeleted", "postId", "search", "limit", "offset"],
-  },
-  reports: { method: "GET", path: "/reports", query: ["status", "limit", "offset"] },
-  categories: { method: "GET", path: "/categories" },
-
-  // Pin, lock and backdate only. Taking a post down is `take-down-post`, a
-  // separate route — this one used to advertise a `--status` flag that the
-  // server's schema does not declare, so zod stripped it and the call came back
-  // 200 having changed nothing. A moderator reading that response believed the
-  // post was gone while it stayed live.
-  "moderate-post": {
-    method: "POST",
-    path: "/posts/moderate",
-    body: ["postId", "isPinned", "isLocked", "createdAt"],
-    required: ["postId"],
-    writes: true,
-  },
-  "take-down-post": {
-    method: "POST",
-    path: "/posts/take-down",
-    body: ["postId"],
-    required: ["postId"],
-    writes: true,
-  },
-  "take-down-reply": {
-    method: "POST",
-    path: "/replies/take-down",
-    body: ["replyId"],
-    required: ["replyId"],
-    writes: true,
-  },
-  "move-post": {
-    method: "POST",
-    path: "/posts/move",
-    body: ["postId", "categoryId"],
-    required: ["postId", "categoryId"],
-    writes: true,
-  },
-  "feature-status": {
-    method: "POST",
-    path: "/posts/feature-status",
-    body: ["postId", "featureStatus"],
-    required: ["postId", "featureStatus"],
-    writes: true,
-  },
-  "restore-post": { method: "POST", path: "/posts/restore", body: ["postId"], required: ["postId"], writes: true },
-  "restore-reply": { method: "POST", path: "/replies/restore", body: ["replyId"], required: ["replyId"], writes: true },
-
-  "delete-post": {
-    method: "DELETE",
-    path: "/posts/{postId}",
-    body: ["postId"],
-    required: ["postId"],
-    writes: true,
-    destructive: true,
-  },
-  "delete-reply": {
-    method: "DELETE",
-    path: "/replies/{replyId}",
-    body: ["replyId"],
-    required: ["replyId"],
-    writes: true,
-    destructive: true,
-  },
-
-  "create-category": {
-    method: "POST",
-    path: "/categories",
-    body: ["slug", "kind", "name", "description", "sortOrder", "showVotes"],
-    required: ["slug", "kind", "name"],
-    writes: true,
-  },
-  "update-category": {
-    method: "PATCH",
-    path: "/categories",
-    body: ["categoryId", "name", "description", "sortOrder", "showVotes", "isArchived"],
-    required: ["categoryId"],
-    writes: true,
-  },
-  "archive-category": {
-    method: "POST",
-    path: "/categories/archive",
-    body: ["categoryId", "isArchived"],
-    required: ["categoryId", "isArchived"],
-    writes: true,
-  },
-  "reorder-categories": {
-    method: "POST",
-    path: "/categories/reorder",
-    body: ["categoryIds"],
-    required: ["categoryIds"],
-    writes: true,
-  },
-  "handle-report": {
-    method: "POST",
-    path: "/reports/handle",
-    body: ["reportId", "status"],
-    required: ["reportId", "status"],
-    writes: true,
-  },
-};
-
-const ADMIN_ENUMS = {
-  status: {
-    posts: ["published", "hidden", "removed"],
-    replies: ["published", "hidden", "removed"],
-    reports: ["open", "accepted", "rejected"],
-    "handle-report": ["accepted", "rejected"],
-  },
-  featureStatus: ["collecting", "planned", "shipped", "declined", "none"],
-  kind: ["question", "discussion", "showcase", "feature_request", "announcement"],
-};
-
-const BOOLEAN_FIELDS = new Set(["includeDeleted", "isPinned", "isLocked", "showVotes", "isArchived"]);
-const NUMBER_FIELDS = new Set(["limit", "offset", "sortOrder"]);
-
-const LOCALE = /^[a-z]{2}(-[A-Za-z]{2,4})?$/;
-
-/**
- * `--name "Ask" --name "zh-CN=提问"` → `{ en: "Ask", "zh-CN": "提问" }`.
- *
- * A bare value is English. A `locale=value` prefix is only read as a locale
- * when it actually looks like one, so a category literally named "A=B" keeps
- * its equals sign instead of becoming a locale nobody asked for.
- */
-export function i18nText(flags, field) {
-  /** @type {Record<string, string>} */
-  const text = {};
-  const values = Array.isArray(flags[field]) ? flags[field] : flags[field] === undefined ? [] : [flags[field]];
-  for (const entry of values) {
-    if (typeof entry !== "string") continue;
-    const at = entry.indexOf("=");
-    const head = at === -1 ? "" : entry.slice(0, at);
-    if (at !== -1 && LOCALE.test(head)) text[head] = entry.slice(at + 1);
-    else text.en = entry;
-  }
-  return text;
-}
-
-export function buildAdminPayload(operation, flags) {
-  const spec = ADMIN_OPS[operation];
-  /** @type {Record<string, unknown>} */
-  const payload = {};
-  for (const field of [...(spec.body ?? []), ...(spec.query ?? [])]) {
-    if (field === "name" || field === "description") {
-      const text = i18nText(flags, field);
-      if (Object.keys(text).length) payload[field] = text;
-      continue;
-    }
-    if (field === "categoryIds") {
-      if (typeof flags.categoryIds === "string")
-        payload.categoryIds = flags.categoryIds.split(",").map((id) => id.trim());
-      continue;
-    }
-    const value = flags[field];
-    if (value === undefined) continue;
-    if (BOOLEAN_FIELDS.has(field)) payload[field] = value === true || String(value) !== "false";
-    else if (NUMBER_FIELDS.has(field)) payload[field] = num(value, undefined);
-    // `none` is how an operator clears a feature status; the API wants null.
-    else if (field === "featureStatus" && value === "none") payload[field] = null;
-    else payload[field] = String(value);
-  }
-  return payload;
-}
-
-function validateAdminPayload(operation, payload) {
-  const spec = ADMIN_OPS[operation];
-  const missing = (spec.required ?? []).filter((field) => payload[field] === undefined);
-  if (missing.length) fail(`admin ${operation} — missing --${missing.map(kebab).join(" --")}.`);
-  const allowed = ADMIN_ENUMS.status[operation];
-  if (allowed && payload.status !== undefined && !allowed.includes(String(payload.status))) {
-    fail(`admin ${operation} — --status must be one of ${allowed.join(", ")}.`);
-  }
-  if (payload.featureStatus !== undefined && payload.featureStatus !== null) {
-    if (!ADMIN_ENUMS.featureStatus.includes(String(payload.featureStatus))) {
-      fail(`admin ${operation} — --feature-status must be one of ${ADMIN_ENUMS.featureStatus.join(", ")}.`);
-    }
-  }
-  if (payload.kind !== undefined && !ADMIN_ENUMS.kind.includes(String(payload.kind))) {
-    fail(`admin ${operation} — --kind must be one of ${ADMIN_ENUMS.kind.join(", ")}.`);
-  }
-}
-
-const kebab = (field) => field.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-
-/**
- * The admin list contracts take their filters as `z.object({ query: … })`, so
- * oRPC serializes them nested: `?query[status]=hidden`, not `?status=hidden`.
- *
- * This is not cosmetic. A flat parameter is not rejected — it is *ignored*, so
- * an unfiltered list comes back looking like a successful filtered one. The
- * public endpoints take flat parameters; only these nested ones do.
- */
-export function nestQuery(payload) {
-  /** @type {Record<string, unknown>} */
-  const nested = {};
-  for (const [field, value] of Object.entries(payload)) nested[`query[${field}]`] = value;
-  return nested;
-}
-
-function renderAdmin(operation, data) {
-  if (operation === "overview") {
-    for (const [key, value] of Object.entries(data)) console.log(`${pad(kebab(key), 24)}${value}`);
-    return;
-  }
-  if (operation === "categories" || Array.isArray(data)) {
-    for (const category of data) {
-      console.log(
-        `${pad(category.id, 24)}${pad(category.slug, 20)}${pad(category.kind, 17)}` +
-          `${String(category.postCount).padStart(4)}  ${category.name}${category.isArchived ? "  [archived]" : ""}`,
-      );
-    }
-    return;
-  }
-  if (operation === "posts") {
-    for (const post of data.items) {
-      const marks = [
-        post.status !== "published" && post.status,
-        post.deletedAt && "deleted",
-        post.isPinned && "pinned",
-        post.isLocked && "locked",
-      ]
-        .filter(Boolean)
-        .join(",");
-      console.log(`${pad(post.id, 24)}${pad(post.categorySlug, 18)}${pad(marks || "published", 22)}${post.title}`);
-    }
-    console.log(`\n${data.items.length} of ${data.total}`);
-    return;
-  }
-  if (operation === "replies") {
-    for (const reply of data.items) {
-      const marks = [
-        reply.status !== "published" && reply.status,
-        reply.deletedAt && "deleted",
-        reply.isAccepted && "accepted",
-      ]
-        .filter(Boolean)
-        .join(",");
-      console.log(
-        `${pad(reply.id, 24)}${pad(marks || "published", 22)}${oneLine(reply.body, 60)}  ← ${reply.postTitle}`,
-      );
-    }
-    console.log(`\n${data.items.length} of ${data.total}`);
-    return;
-  }
-  if (operation === "reports") {
-    for (const report of data.items) {
-      console.log(
-        `${pad(report.id, 24)}${pad(report.status, 10)}${pad(report.targetType, 7)}${pad(report.reason, 14)}${oneLine(report.targetExcerpt, 70)}`,
-      );
-    }
-    console.log(`\n${data.items.length} of ${data.total}`);
-    return;
-  }
-  console.log(JSON.stringify(data, null, 2));
-}
-
-async function cmdAdmin(positional, flags) {
-  const operation = positional[0];
-  if (!operation || !ADMIN_OPS[operation]) {
-    fail(`admin <operation> — one of ${Object.keys(ADMIN_OPS).join(", ")}.`);
-  }
-  const spec = ADMIN_OPS[operation];
-  const payload = buildAdminPayload(operation, flags);
-  validateAdminPayload(operation, payload);
-
-  if (spec.writes && flags.yes !== true) {
-    console.log(`admin ${operation} — NOT sent. This is what --yes would do:\n`);
-    console.log(`${spec.method} ${ADMIN_BASE}${spec.path}`);
-    console.log(JSON.stringify(payload, null, 2));
-    if (spec.destructive) {
-      console.log("\n*** IRREVERSIBLE. This purges the row and everything hanging off it.");
-      console.log("*** To take content down reversibly use `take-down-post` instead.");
-    }
-    console.log("\nShow the user exactly this, then re-run with --yes.");
-    return;
-  }
-
-  // The two DELETEs address the id in the path; everything else sends a body.
-  const path = `${ADMIN_BASE}${spec.path}`.replace(/\{(\w+)\}/g, (_, field) =>
-    encodeURIComponent(String(payload[field])),
-  );
-  const data = await request(path, {
-    method: spec.method,
-    admin: true,
-    query: spec.query ? nestQuery(payload) : undefined,
-    body: spec.body && spec.method !== "DELETE" ? payload : undefined,
-  });
-  output(data, flags, () => renderAdmin(operation, data));
-}
-
 /** Populated at startup so `setup` can say where the values came from. */
 let ENV_SOURCES = [];
 /** The `--as` name for this invocation, resolved once in the entry point. */
@@ -1041,54 +684,24 @@ async function cmdAccounts(_positional, flags) {
 }
 
 function cmdSetup(_positional, flags) {
-  const { apiKey, adminKey, apiUrl, webUrl, account, keyEnv } = selected();
+  const { apiKey, apiUrl, webUrl, account, keyEnv } = selected();
   if (!apiKey) {
     console.log(onboarding());
     return;
   }
-  output(
-    { configured: true, apiUrl, webUrl, keyLength: apiKey.length, adminKeyLength: adminKey?.length ?? null },
-    flags,
-    () => {
-      console.log(`${keyEnv} is set (${apiKey.length} characters — value not shown).`);
-      const all = listAccounts(ENV);
-      if (all.length > 1) {
-        console.log(`account  ${account} (of ${all.length}: ${all.map((a) => a.name).join(", ")})`);
-      }
-      // Mentioned only when it is actually configured — see adminHelp().
-      if (adminKey) {
-        console.log(
-          `${PRODUCT.adminKeyEnv} is set (${adminKey.length} characters) — \`admin\` commands are available.`,
-        );
-      }
-      console.log(`api    ${apiUrl}`);
-      console.log(`forum  ${webUrl}`);
-      for (const source of ENV_SOURCES) {
-        console.log(`read   ${source.file} → ${source.keys.join(", ") || "(nothing new)"}`);
-      }
-      console.log("\nRun `whoami` to confirm the key is still valid.");
-    },
-  );
-}
-
-/**
- * The moderation surface is listed only to someone who already holds the key.
- * It is not part of the published command set, and an operator who has the
- * credential does not need to be told it exists.
- */
-function adminHelp() {
-  if (!selected().adminKey) return "";
-  return `  admin <operation> [flags] [--yes]       Moderation surface
-    read      overview · posts · replies · reports · categories
-    moderate  moderate-post · take-down-post · take-down-reply · move-post
-              feature-status
-              restore-post · restore-reply
-    purge     delete-post · delete-reply          (IRREVERSIBLE)
-    taxonomy  create-category · update-category · archive-category
-              reorder-categories
-    reports   handle-report
-
-`;
+  output({ configured: true, apiUrl, webUrl, keyLength: apiKey.length }, flags, () => {
+    console.log(`${keyEnv} is set (${apiKey.length} characters — value not shown).`);
+    const all = listAccounts(ENV);
+    if (all.length > 1) {
+      console.log(`account  ${account} (of ${all.length}: ${all.map((a) => a.name).join(", ")})`);
+    }
+    console.log(`api    ${apiUrl}`);
+    console.log(`forum  ${webUrl}`);
+    for (const source of ENV_SOURCES) {
+      console.log(`read   ${source.file} → ${source.keys.join(", ") || "(nothing new)"}`);
+    }
+    console.log("\nRun `whoami` to confirm the key is still valid.");
+  });
 }
 
 function cmdHelp() {
@@ -1107,7 +720,7 @@ function cmdHelp() {
   edit-reply <replyId> --body B [--yes]                      Your own reply only
   upload <file.png>                       Store an image, print its markdown line
 
-${adminHelp()}Every command accepts --json, and --as <name> to act as another account
+Every command accepts --json, and --as <name> to act as another account
 (\`accounts\` lists them; ${PRODUCT.accountEnv} changes the default).
 
 \`new\` and \`reply\` publish immediately and publicly — there is no draft or
@@ -1121,7 +734,6 @@ Needs ${PRODUCT.keyEnv}. Not set yet? Run \`setup\`.`);
 const COMMANDS = {
   setup: cmdSetup,
   accounts: cmdAccounts,
-  admin: cmdAdmin,
   whoami: cmdWhoami,
   categories: cmdCategories,
   posts: cmdPosts,
