@@ -36,19 +36,16 @@ resolves an asset id to a fetchable URL via `assets.get({assetId})` (cached
 per page load) and renders it directly as an `<img>`/`<audio>`/`<video>`
 `src`.
 
-**Known OSS limitation**, confirmed live against the exact `busabase@0.11.0`
-standalone CLI every converted skill's integration test targets:
-`assets.createUploadUrl()` returns an `/api/dev/upload` target, and that
-route 404s ("Not available in production") under the CLI's own production
-`NODE_ENV` gate — so a real Asset upload does not complete against that
-specific packaged CLI today, independent of anything this AirApp does (see
-`content/kelly-drama-app/server.js` and `content/kelly-drama-app/app/js/drama-client.js` for the full trace). The
-code is written against the documented SDK contract and mirrors Busabase's
-own product usage (the Doc editor's image-paste upload); it is correct and
-will start working the moment the upstream package serves what it
-advertises. The OSS integration test (`tests/app-skills/kelly-drama/ui_test.py`)
-scopes its live-write coverage to a plain text field for exactly this
-reason, mirroring kelly-mv's identical precedent.
+**Upload status.** Asset upload works end to end on current servers. Re-tested
+against `busabase@0.16.2` (the version the OSS integration tests pin) and 0.81.0:
+`assets.createUploadUrl()` returns `/api/storage/upload?key=…`, which server.js
+proxies, and a PUT → `confirm()` → read-back round trip completes. Only
+`busabase@0.11.0` differed: its standalone CLI minted an `/api/dev/upload` target
+that 404'd ("Not available in production") under its own production `NODE_ENV`.
+That was a gap in one release, fixed upstream, not a current limitation.
+The OSS integration test (`tests/app-skills/kelly-drama/ui_test.py`) still
+scopes its live-write coverage to a plain text field; it was scoped down for
+the 0.11.0 gap, which no longer applies, so binary upload coverage can be added.
 
 ## project (`kelly-drama-project`)
 
