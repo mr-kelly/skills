@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
-// Builds the GitHub Pages site in docs/ from README.md + docs/README-zh-CN.md + bundled screenshots.
+// Builds the GitHub Pages site in docs/ from README.md + docs/README-zh-CN.md + bundled screenshots
+// and demo recordings (docs/demo-recordings/).
 // Zero dependencies. Re-run after changing READMEs or screenshots: node scripts/build-site.mjs
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -19,6 +20,7 @@ import { README_TARGETS, expectedBlock } from "./sync-readme-skills.mjs";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS = path.join(ROOT, "docs");
 const PAGES_DIR = path.join(DOCS, "s");
+const RECORDINGS_DIR = path.join(DOCS, "demo-recordings");
 const REPO_URL = "https://github.com/mr-kelly/skills";
 const assetModeArg = process.argv.find((arg) => arg.startsWith("--asset-mode="));
 const ASSET_MODE = assetModeArg?.slice("--asset-mode=".length) || "repository";
@@ -28,6 +30,10 @@ if (!new Set(["repository", "pages-local"]).has(ASSET_MODE)) {
 // skills/**/assets/screenshots/** is Git LFS-tracked (see .gitattributes); raw.githubusercontent.com
 // serves the LFS pointer text instead of the image, so screenshots must go through the LFS media host.
 const RAW_REPO_URL = "https://media.githubusercontent.com/media/mr-kelly/skills/main";
+// The two hosts are not interchangeable, and each fails differently: media.* serves ONLY LFS objects
+// (a plain file 404s), raw.* serves plain files and hands back the pointer text for an LFS object.
+// So an LFS asset goes through RAW_REPO_URL above and a plain one through this.
+const PLAIN_REPO_URL = "https://raw.githubusercontent.com/mr-kelly/skills/main";
 const INSTALL_COMMAND = "npx skills add mr-kelly/skills";
 const CLAUDE_INSTALL_COMMAND = "/plugin marketplace add mr-kelly/skills\n/plugin install mr-kelly-skills";
 const SITE_URL = "https://mr-kelly.github.io/skills/";
@@ -100,6 +106,108 @@ function siteThumbPath(src) {
   return siteShotPath(existsSync(path.join(ROOT, thumb)) ? thumb : src);
 }
 
+// ── Demo recordings ─────────────────────────────────────────────────────────
+// docs/demo-recordings/<skill>/<skill>-<slug>-<zh-CN|en>.mp4, with an optional
+// poster of the same name and a .webp extension beside it. Recordings are Git
+// LFS objects (see .gitattributes), so in "repository" mode they go through the
+// LFS media host exactly as screenshots do, while the posters — plain objects —
+// go through the plain host. The Pages deploy copies docs/ verbatim, so
+// "pages-local" points at that copy for both.
+function siteRecordingPath(rel) {
+  return ASSET_MODE === "pages-local" ? `../${rel.replace(/^docs\//, "")}` : `${RAW_REPO_URL}/${rel}`;
+}
+
+// Posters are ordinary git objects (only *.mp4 is LFS-tracked here), so in
+// "repository" mode they come from the plain host — the media host would 404 them.
+function sitePosterPath(rel) {
+  return ASSET_MODE === "pages-local" ? `../${rel.replace(/^docs\//, "")}` : `${PLAIN_REPO_URL}/${rel}`;
+}
+
+const RECORDING_LABELS = {
+  demo: ["Demo recording", "演示录屏"],
+  "workflow-demo": ["Workflow demo", "工作流演示"],
+};
+
+function recordingLabel(slug) {
+  if (RECORDING_LABELS[slug]) return RECORDING_LABELS[slug];
+  const words = slug.replace(/-/g, " ");
+  const label = words.charAt(0).toUpperCase() + words.slice(1);
+  return [label, label];
+}
+
+async function recordingsFor(skill) {
+  const dir = path.join(RECORDINGS_DIR, skill);
+  let names;
+  try {
+    names = await fs.readdir(dir);
+  } catch {
+    return [];
+  }
+  const nameRe = new RegExp(`^${skill}-(.+)-(zh-CN|en)$`);
+  const bySlug = new Map();
+  const misnamed = [];
+  for (const file of names.filter((n) => n.endsWith(".mp4")).sort()) {
+    const base = file.slice(0, -".mp4".length);
+    const m = base.match(nameRe);
+    // A recording that does not match would simply never appear. Same rule as a
+    // missing category: fail the build rather than ship a page that quietly
+    // lacks the video someone recorded.
+    if (!m) {
+      misnamed.push(`docs/demo-recordings/${skill}/${file}`);
+      continue;
+    }
+    const entry = bySlug.get(m[1]) ?? { en: null, zh: null };
+    entry[m[2] === "en" ? "en" : "zh"] = base;
+    bySlug.set(m[1], entry);
+  }
+  if (misnamed.length) {
+    throw new Error(
+      `${misnamed.join(", ")}: recording names must be ${skill}-<slug>-<zh-CN|en>.mp4 (see kelly-app-skill-creator/references/demo-recording.md)`,
+    );
+  }
+  return [...bySlug.entries()].map(([slug, own]) => {
+    // No English cut yet -> the English page plays the Chinese one, and says so.
+    const chosen = { en: own.en ?? own.zh, zh: own.zh ?? own.en };
+    const rel = (base, ext) => `docs/demo-recordings/${skill}/${base}.${ext}`;
+    const poster = (base) => (existsSync(path.join(ROOT, rel(base, "webp"))) ? rel(base, "webp") : null);
+    return {
+      slug,
+      hasOwn: { en: Boolean(own.en), zh: Boolean(own.zh) },
+      video: { en: rel(chosen.en, "mp4"), zh: rel(chosen.zh, "mp4") },
+      poster: { en: poster(chosen.en), zh: poster(chosen.zh) },
+    };
+  });
+}
+
+// One poster card per recording, in the gallery's own grid — a slide among the
+// screenshots rather than a player above them. No <video> exists until the card
+// is clicked (see openVideo in LANG_JS): these are megabyte files behind an LFS
+// host, and a page that is mostly a gallery should not fetch one on load.
+function videoFigureHtml(rec, fallbackShot) {
+  const [labelEn, labelZh] = recordingLabel(rec.slug);
+  const posterOf = (lang) => {
+    if (rec.poster[lang]) return sitePosterPath(rec.poster[lang]);
+    if (fallbackShot) return siteShotPath(fallbackShot[lang], "../");
+    return "";
+  };
+  const posterEn = posterOf("en");
+  const posterZh = posterOf("zh");
+  const noteEn = rec.hasOwn.en ? "" : " Recorded in Simplified Chinese.";
+  const noteZh = rec.hasOwn.zh ? "" : " 录制语言：英文。";
+  const img = posterEn
+    ? `<img data-shot-en="${esc(posterEn)}" data-shot-zh="${esc(posterZh)}" src="${esc(posterEn)}" alt="" loading="lazy">`
+    : "";
+  return `<figure class="shot shot-video">
+  <button type="button" class="video-poster${posterEn ? "" : " no-poster"}" data-video-en="${esc(siteRecordingPath(rec.video.en))}" data-video-zh="${esc(siteRecordingPath(rec.video.zh))}" data-label-en="Play: ${esc(labelEn)}" data-label-zh="播放：${esc(labelZh)}" aria-label="Play: ${esc(labelEn)}">
+    ${img}
+    <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg></span>
+  </button>
+  <figcaption class="cap">
+    ${bilingual(`<strong>${esc(labelEn)}</strong><span>Screen recording of the app in use.${esc(noteEn)}</span>`, `<strong>${esc(labelZh)}</strong><span>应用实际操作的屏幕录制。${esc(noteZh)}</span>`, "div")}
+  </figcaption>
+</figure>`;
+}
+
 function parseShotSections(md, imgPrefix) {
   // Returns { sectionName: { imgs: [...], caps: [{title, text}] } }
   const sections = {};
@@ -165,6 +273,10 @@ const LANG_JS = `
       var src = lang === "zh" && img.getAttribute("data-shot-zh") ? img.getAttribute("data-shot-zh") : img.getAttribute("data-shot-en");
       if (img.getAttribute("src") !== src) img.setAttribute("src", src);
     });
+    document.querySelectorAll("[data-label-en]").forEach(function (el) {
+      var label = lang === "zh" && el.getAttribute("data-label-zh") ? el.getAttribute("data-label-zh") : el.getAttribute("data-label-en");
+      el.setAttribute("aria-label", label);
+    });
     document.querySelectorAll(".lang-toggle button").forEach(function (b) {
       b.classList.toggle("active", b.getAttribute("data-lang") === lang);
     });
@@ -172,18 +284,63 @@ const LANG_JS = `
   window.mkSetLang = function (l) { lang = l; localStorage.setItem("mk-lang", l); apply(); };
   document.addEventListener("DOMContentLoaded", apply);
   apply();
+  // A detached <video> keeps playing (audio, network) until it is collected, so
+  // closing has to stop it first, not just remove the box.
+  function closeLightbox(box) {
+    box.querySelectorAll("video").forEach(function (v) {
+      v.pause();
+      v.removeAttribute("src");
+      v.load();
+    });
+    box.remove();
+    if (box._opener && document.contains(box._opener)) box._opener.focus();
+  }
+  // The <video> is created here, on click — until then nothing is fetched.
+  function openVideo(button) {
+    var src = lang === "zh" && button.getAttribute("data-video-zh") ? button.getAttribute("data-video-zh") : button.getAttribute("data-video-en");
+    var poster = button.querySelector("img");
+    var box = document.createElement("div");
+    box.className = "lightbox lightbox-video";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-modal", "true");
+    box.setAttribute("aria-label", button.getAttribute("aria-label") || "");
+    box._opener = button;
+    var video = document.createElement("video");
+    video.controls = true;
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    if (poster) video.poster = poster.getAttribute("src");
+    video.src = src;
+    var close = document.createElement("button");
+    close.type = "button";
+    close.className = "lightbox-close";
+    close.setAttribute("aria-label", lang === "zh" ? "关闭" : "Close");
+    close.textContent = "\u00d7";
+    close.addEventListener("click", function () { closeLightbox(box); });
+    box.addEventListener("click", function (ev) { if (ev.target === box) closeLightbox(box); });
+    box.appendChild(video);
+    box.appendChild(close);
+    document.body.appendChild(box);
+    close.focus();
+    var started = video.play();
+    if (started && started.catch) started.catch(function () {});
+  }
   document.addEventListener("click", function (e) {
-    var img = e.target.closest ? e.target.closest(".shot img") : null;
+    var opener = e.target.closest ? e.target.closest(".video-poster") : null;
+    if (opener) { openVideo(opener); return; }
+    var img = e.target.closest ? e.target.closest(".shot:not(.shot-video) img") : null;
     if (img) {
       var box = document.createElement("div");
       box.className = "lightbox";
       box.innerHTML = '<img src="' + img.getAttribute("src") + '" alt="">';
-      box.addEventListener("click", function () { box.remove(); });
+      box.addEventListener("click", function () { closeLightbox(box); });
       document.body.appendChild(box);
     }
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") document.querySelectorAll(".lightbox").forEach(function (b) { b.remove(); });
+    if (e.key === "Escape") document.querySelectorAll(".lightbox").forEach(closeLightbox);
   });
   var mkFilters = { category: "all", risk: "all", industry: "all" };
   function applyFilters(updateUrl) {
@@ -479,11 +636,35 @@ h2.group {
 .shot .cap { padding: 12px 16px; border-top: 1px solid var(--border); }
 .shot .cap strong { display: block; font-size: 14px; margin-bottom: 2px; }
 .shot .cap span { color: var(--muted); font-size: 13px; }
+.shot-video .video-poster {
+  position: relative; display: block; width: 100%; margin: 0; padding: 0; border: 0;
+  background: #18181b; color: #fff; cursor: pointer; line-height: 0;
+}
+.shot-video .video-poster.no-poster { aspect-ratio: 16 / 10; }
+.shot-video .video-poster img { width: 100%; height: auto; display: block; cursor: pointer; }
+.shot-video .play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.shot-video .play::before {
+  content: ""; position: absolute; width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(24,24,27,.72); box-shadow: 0 6px 24px rgba(0,0,0,.28);
+  transition: transform .15s ease, background .15s ease;
+}
+.shot-video .play svg { position: relative; margin-left: 4px; }
+.shot-video .video-poster:hover .play::before,
+.shot-video .video-poster:focus-visible .play::before { transform: scale(1.08); background: rgba(24,24,27,.86); }
+.shot-video .video-poster:focus-visible { outline: 2px solid var(--text); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .shot-video .play::before { transition: none; } }
 .lightbox {
   position: fixed; inset: 0; z-index: 50; background: rgba(24,24,27,.86);
   display: flex; align-items: center; justify-content: center; padding: 4vh 4vw; cursor: zoom-out;
 }
 .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
+.lightbox-video { cursor: default; }
+.lightbox video { max-width: 100%; max-height: 100%; border-radius: 8px; background: #000; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
+.lightbox-close {
+  position: absolute; top: 14px; right: 18px; width: 40px; height: 40px; border: 0; border-radius: 50%;
+  background: rgba(255,255,255,.14); color: #fff; font-size: 24px; line-height: 1; cursor: pointer;
+}
+.lightbox-close:hover, .lightbox-close:focus-visible { background: rgba(255,255,255,.28); }
 .footer { margin-top: 64px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
 @media (max-width: 860px) {
   .hero h1 { font-size: 26px; }
@@ -772,6 +953,7 @@ async function main() {
       whenEn: en.when || "",
       whenZh: zh.when || en.when || "",
       shots,
+      recordings: await recordingsFor(folder),
       hasApp: await hasAppDirectory(folder),
       hasReadme: await fileExists(ROOT, "skills", folder, "README.md"),
       ...(await skillTaxonomy(folder)),
@@ -916,7 +1098,9 @@ async function main() {
     const whenHtml = s.whenEn
       ? `    <div class="panel"><h3>${bilingual("When to use it", "什么时候用")}</h3><p>${bilingual(esc(s.whenEn), esc(s.whenZh))}</p></div>\n`
       : "";
-    const shotsSectionHtml = shotsHtml ? `    <div class="shots">${shotsHtml}</div>\n` : "";
+    const videosHtml = s.recordings.map((rec) => videoFigureHtml(rec, s.shots[0])).join("\n");
+    const galleryHtml = [videosHtml, shotsHtml].filter(Boolean).join("\n");
+    const shotsSectionHtml = galleryHtml ? `    <div class="shots">${galleryHtml}</div>\n` : "";
 
     const body = `
 <div class="skill-layout">

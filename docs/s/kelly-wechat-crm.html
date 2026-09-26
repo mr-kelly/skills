@@ -207,11 +207,35 @@ h2.group {
 .shot .cap { padding: 12px 16px; border-top: 1px solid var(--border); }
 .shot .cap strong { display: block; font-size: 14px; margin-bottom: 2px; }
 .shot .cap span { color: var(--muted); font-size: 13px; }
+.shot-video .video-poster {
+  position: relative; display: block; width: 100%; margin: 0; padding: 0; border: 0;
+  background: #18181b; color: #fff; cursor: pointer; line-height: 0;
+}
+.shot-video .video-poster.no-poster { aspect-ratio: 16 / 10; }
+.shot-video .video-poster img { width: 100%; height: auto; display: block; cursor: pointer; }
+.shot-video .play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.shot-video .play::before {
+  content: ""; position: absolute; width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(24,24,27,.72); box-shadow: 0 6px 24px rgba(0,0,0,.28);
+  transition: transform .15s ease, background .15s ease;
+}
+.shot-video .play svg { position: relative; margin-left: 4px; }
+.shot-video .video-poster:hover .play::before,
+.shot-video .video-poster:focus-visible .play::before { transform: scale(1.08); background: rgba(24,24,27,.86); }
+.shot-video .video-poster:focus-visible { outline: 2px solid var(--text); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .shot-video .play::before { transition: none; } }
 .lightbox {
   position: fixed; inset: 0; z-index: 50; background: rgba(24,24,27,.86);
   display: flex; align-items: center; justify-content: center; padding: 4vh 4vw; cursor: zoom-out;
 }
 .lightbox img { max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
+.lightbox-video { cursor: default; }
+.lightbox video { max-width: 100%; max-height: 100%; border-radius: 8px; background: #000; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
+.lightbox-close {
+  position: absolute; top: 14px; right: 18px; width: 40px; height: 40px; border: 0; border-radius: 50%;
+  background: rgba(255,255,255,.14); color: #fff; font-size: 24px; line-height: 1; cursor: pointer;
+}
+.lightbox-close:hover, .lightbox-close:focus-visible { background: rgba(255,255,255,.28); }
 .footer { margin-top: 64px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
 @media (max-width: 860px) {
   .hero h1 { font-size: 26px; }
@@ -367,6 +391,10 @@ After it is installed, invoke the skill as $kelly-wechat-crm.</textarea>
       var src = lang === "zh" && img.getAttribute("data-shot-zh") ? img.getAttribute("data-shot-zh") : img.getAttribute("data-shot-en");
       if (img.getAttribute("src") !== src) img.setAttribute("src", src);
     });
+    document.querySelectorAll("[data-label-en]").forEach(function (el) {
+      var label = lang === "zh" && el.getAttribute("data-label-zh") ? el.getAttribute("data-label-zh") : el.getAttribute("data-label-en");
+      el.setAttribute("aria-label", label);
+    });
     document.querySelectorAll(".lang-toggle button").forEach(function (b) {
       b.classList.toggle("active", b.getAttribute("data-lang") === lang);
     });
@@ -374,18 +402,63 @@ After it is installed, invoke the skill as $kelly-wechat-crm.</textarea>
   window.mkSetLang = function (l) { lang = l; localStorage.setItem("mk-lang", l); apply(); };
   document.addEventListener("DOMContentLoaded", apply);
   apply();
+  // A detached <video> keeps playing (audio, network) until it is collected, so
+  // closing has to stop it first, not just remove the box.
+  function closeLightbox(box) {
+    box.querySelectorAll("video").forEach(function (v) {
+      v.pause();
+      v.removeAttribute("src");
+      v.load();
+    });
+    box.remove();
+    if (box._opener && document.contains(box._opener)) box._opener.focus();
+  }
+  // The <video> is created here, on click — until then nothing is fetched.
+  function openVideo(button) {
+    var src = lang === "zh" && button.getAttribute("data-video-zh") ? button.getAttribute("data-video-zh") : button.getAttribute("data-video-en");
+    var poster = button.querySelector("img");
+    var box = document.createElement("div");
+    box.className = "lightbox lightbox-video";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-modal", "true");
+    box.setAttribute("aria-label", button.getAttribute("aria-label") || "");
+    box._opener = button;
+    var video = document.createElement("video");
+    video.controls = true;
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    if (poster) video.poster = poster.getAttribute("src");
+    video.src = src;
+    var close = document.createElement("button");
+    close.type = "button";
+    close.className = "lightbox-close";
+    close.setAttribute("aria-label", lang === "zh" ? "关闭" : "Close");
+    close.textContent = "×";
+    close.addEventListener("click", function () { closeLightbox(box); });
+    box.addEventListener("click", function (ev) { if (ev.target === box) closeLightbox(box); });
+    box.appendChild(video);
+    box.appendChild(close);
+    document.body.appendChild(box);
+    close.focus();
+    var started = video.play();
+    if (started && started.catch) started.catch(function () {});
+  }
   document.addEventListener("click", function (e) {
-    var img = e.target.closest ? e.target.closest(".shot img") : null;
+    var opener = e.target.closest ? e.target.closest(".video-poster") : null;
+    if (opener) { openVideo(opener); return; }
+    var img = e.target.closest ? e.target.closest(".shot:not(.shot-video) img") : null;
     if (img) {
       var box = document.createElement("div");
       box.className = "lightbox";
       box.innerHTML = '<img src="' + img.getAttribute("src") + '" alt="">';
-      box.addEventListener("click", function () { box.remove(); });
+      box.addEventListener("click", function () { closeLightbox(box); });
       document.body.appendChild(box);
     }
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") document.querySelectorAll(".lightbox").forEach(function (b) { b.remove(); });
+    if (e.key === "Escape") document.querySelectorAll(".lightbox").forEach(closeLightbox);
   });
   var mkFilters = { category: "all", risk: "all", industry: "all" };
   function applyFilters(updateUrl) {

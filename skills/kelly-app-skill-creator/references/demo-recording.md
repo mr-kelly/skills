@@ -162,6 +162,18 @@ docs/demo-recordings/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
 
 If Git LFS is unavailable, or the clip is only a temporary review artifact, keep the MP4 outside the repo and commit only the external path, recording recipe, or summary.
 
+### Showing it on the site
+
+`node scripts/build-site.mjs` turns every `docs/demo-recordings/<skill-name>/*.mp4` into a poster card at the front of that skill's page gallery; clicking it opens the player. Nothing else has to be registered — but three conventions have to hold, because each way of breaking one fails silently (a card that never appears, a broken poster, a black player):
+
+- **Name it `<skill-name>-<slug>-<zh-CN|en>.mp4`.** The slug becomes the card's label (`demo` → "Demo recording", `workflow-demo` → "Workflow demo"; anything else is title-cased). A name that does not match fails the build rather than being skipped. Several slugs give several cards. With only a `zh-CN` cut, the English page plays it and says "Recorded in Simplified Chinese"; add an `-en.mp4` and it switches over.
+- **Commit a poster beside it: the same name with `.webp`**, e.g. `kelly-support-demo-zh-CN.webp`. Pick a frame that shows the product mid-story, not the boot state, and keep the video's own aspect ratio (960 px wide is plenty, tens of KB). Without one the card falls back to the skill's first screenshot. The poster is a *plain* git object: only `*.mp4` is LFS-tracked, and `tests/site-recordings.test.mjs` fails if a poster becomes LFS.
+- **Keep the MP4 an actual, browser-playable MP4** — H.264, `yuv420p`, faststart, as above. The Pages deploy runs `scripts/check-pages-assets.mjs`, which rejects a recording that is missing, still an LFS pointer, or not an MP4 (no `ftyp` box), since a pointer served as `video.mp4` loads the page fine and then opens onto a black frame.
+
+The page never contains a `<video>` element until someone clicks: the player is built by script on click, so a page that is mostly screenshots does not fetch a multi-megabyte file on load. That is the same pattern the Busabase template gallery uses.
+
+Why the host differs: in the checked-in docs the video is fetched from `media.githubusercontent.com` (LFS objects only — a plain file 404s) and the poster from `raw.githubusercontent.com` (plain files only — an LFS object comes back as pointer text). The deployed site uses neither; the Pages job copies `docs/` and points both at the copy.
+
 Generated raw frames, temporary browser profiles, and scratch scripts should usually be deleted before handoff unless the user asked for a reusable recording harness. If a harness is intentionally kept, put it under repo-level `scripts/` or `docs/demo-recordings/<skill-name>/` with a clear name and make sure it never stores private data.
 
 A robust automation script should:
