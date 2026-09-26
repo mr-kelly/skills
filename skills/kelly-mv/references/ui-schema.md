@@ -36,6 +36,10 @@ proxies, and a PUT → `confirm()` → read-back round trip completes. Only
 `busabase@0.11.0` differed: its standalone CLI minted an `/api/dev/upload` target
 that 404'd ("Not available in production") under its own production `NODE_ENV`.
 That was a gap in one release, fixed upstream, not a current limitation.
+The OSS integration test (`tests/app-skills/kelly-mv/ui_test.py`) covers the
+browser path: it picks an audio file, lets the app upload it as the song, and
+checks the project record carries the asset id and the rendered audio URL
+serves the same bytes, before and after a Busabase restart.
 
 ## project (`kelly-mv-project`)
 
