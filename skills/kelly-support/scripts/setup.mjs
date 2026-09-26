@@ -141,9 +141,7 @@ if (!apply) {
   if (!currentSettingsRecord) console.log("将提交一条默认支持策略 ChangeRequest；合并并确认前不会允许批准或执行回复。");
   else if (!settingsReady) console.log("现有支持策略尚未完成确认；请在 Settings 中检查并提交配置。");
   if (!current.airApp) {
-    console.log(
-      "将发布 AirApp（提交待审核 ChangeRequest——执行代码，不会自动合并，需要人工在 Busabase 里审核并合并）。",
-    );
+    console.log("将发布 AirApp（执行代码；有 Folder 写权限时直接生效，否则提交待审核 ChangeRequest）。");
   }
   console.log("确认无误后加 --apply。");
   process.exit(0);

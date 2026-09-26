@@ -58,9 +58,7 @@ if (!apply) {
     if (current.repairs.length) console.log(`将补写 ${current.repairs.length} 处应用归属标记（不改数据）。`);
   }
   if (!current.airApp) {
-    console.log(
-      "将发布 AirApp（提交待审核 ChangeRequest——执行代码，不会自动合并，需要人工在 Busabase 里审核并合并）。",
-    );
+    console.log("将发布 AirApp（执行代码；有 Folder 写权限时直接生效，否则提交待审核 ChangeRequest）。");
   }
   console.log("确认无误后加 --apply。");
   process.exit(0);
@@ -99,4 +97,4 @@ if (!current.airApp) {
   console.log("\nAirApp 已就绪。");
 }
 
-console.log("\n下一步：合并所有待审核 CR 后，/kelly-jobhunt profile");
+console.log("\n下一步：如有待审核的 ChangeRequest，先在 Busabase 里合并，然后 /kelly-jobhunt profile");

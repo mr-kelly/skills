@@ -180,6 +180,12 @@ def read_json(url: str):
         return json.load(response)
 
 
+def _flatten_nodes(nodes):
+    for node in nodes:
+        yield node
+        yield from _flatten_nodes(node.get("children") or [])
+
+
 def resource_keys(nodes) -> list[str]:
     keys: list[str] = []
     for node in nodes:
@@ -363,33 +369,38 @@ def test_busabase_round_trip(browser) -> None:
                     assert sorted(resource_keys(nodes)) == ["app-root", "companies", "leads", "profile"], nodes
 
                     # Re-running setup over a workspace the app just built must
-                    # adopt the data layer, not build a second one beside it —
-                    # and it must publish the AirApp exactly once: the browser's
-                    # lazy provisioning never touches the AirApp (it is always a
-                    # separate, always-review-first ChangeRequest), so the first
-                    # --apply here is expected to submit one.
+                    # adopt the data layer, not build a second one beside it.
+                    # The browser's lazy provisioning never touches the AirApp,
+                    # so this run publishes it. Whether a publish lands at once or
+                    # waits for review follows the key's permission on the Folder;
+                    # the harness key can write, so it merges immediately.
                     nodes_before = json.dumps(nodes, sort_keys=True)
                     setup_again = run_script(["scripts/setup.mjs", "--apply"], busabase_url)
                     assert setup_again.returncode == 0, setup_again.stderr
                     for slug in ("kelly-jobhunt-profile", "kelly-jobhunt-companies", "kelly-jobhunt-leads"):
                         line = next((l for l in setup_again.stdout.splitlines() if slug in l), None)
                         assert line and "已就绪" in line, setup_again.stdout
-                    after = json.dumps(read_json(f"{busabase_url}/api/v1/nodes?depth=2"), sort_keys=True)
-                    assert after == nodes_before, setup_again.stdout
-                    match = re.search(r"AirApp .{0,4}请求已提交：([a-zA-Z0-9]+)", setup_again.stdout)
-                    assert match, setup_again.stdout
-                    first_change_request_id = match.group(1)
+                    assert "AirApp 已创建并生效" in setup_again.stdout, setup_again.stdout
+                    after_publish = json.dumps(read_json(f"{busabase_url}/api/v1/nodes?depth=2"), sort_keys=True)
+                    assert after_publish != nodes_before, "the merged publish should have added the AirApp node"
 
-                    # Calling --apply again before that ChangeRequest is reviewed
-                    # must reuse it, never propose a second, duplicate create.
+                    # Publishing is exactly once: a third --apply finds the AirApp
+                    # in place and creates nothing. Compared by structure, not the
+                    # raw tree: a merged publish creates the node without its
+                    # ownership stamp (appId/resourceKey/schemaVersion), and this
+                    # run's resource check stamps it — a one-time repair, not a
+                    # second publish.
+                    def node_shape(tree):
+                        return sorted(
+                            (n.get("id"), n.get("type"), n.get("slug"))
+                            for n in _flatten_nodes(tree)
+                        )
+
                     setup_third = run_script(["scripts/setup.mjs", "--apply"], busabase_url)
                     assert setup_third.returncode == 0, setup_third.stderr
-                    match_again = re.search(r"AirApp .{0,4}请求已提交：([a-zA-Z0-9]+)", setup_third.stdout)
-                    assert match_again, setup_third.stdout
-                    assert match_again.group(1) == first_change_request_id, (
-                        setup_again.stdout,
-                        setup_third.stdout,
-                    )
+                    assert "发布 AirApp" not in setup_third.stdout, setup_third.stdout
+                    after_third = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
+                    assert node_shape(after_third) == node_shape(json.loads(after_publish)), setup_third.stdout
                     profile_base = find_resource(nodes, "profile")["baseId"]
                     companies_base = find_resource(nodes, "companies")["baseId"]
                     leads_base = find_resource(nodes, "leads")["baseId"]
@@ -617,9 +628,9 @@ def test_busabase_round_trip(browser) -> None:
                 )
 
             # One Folder+Bases structure request from the browser's lazy
-            # provisioning, and — separately, always review-first, never
-            # folded into that request — exactly one AirApp request, reused
-            # (not duplicated) across the two setup.mjs --apply calls above.
+            # provisioning, and — separately, never folded into that request —
+            # exactly one AirApp request across the two setup.mjs --apply calls
+            # above. The harness key can write, so that one merged on the spot.
             structure_requests = [item for item in node_tree_requests if not targets_airapp(item)]
             airapp_requests = [item for item in node_tree_requests if targets_airapp(item)]
             assert len(structure_requests) == 1, change_requests
@@ -628,7 +639,9 @@ def test_busabase_round_trip(browser) -> None:
         # The local PGlite data must survive a complete Busabase restart.
         with managed_process(busabase_command, REPO_ROOT, {}, f"{busabase_url}/api/health", timeout=90):
             nodes = read_json(f"{busabase_url}/api/v1/nodes?depth=2")
-            assert sorted(resource_keys(nodes)) == ["app-root", "companies", "leads", "profile"], nodes
+            # The AirApp is here too: it was published with a key that can write,
+            # so it merged rather than waiting in review, and survives the restart.
+            assert sorted(resource_keys(nodes)) == ["app-root", "companies", "kelly-jobhunt-app", "leads", "profile"], nodes
             companies = records_of(busabase_url, find_resource(nodes, "companies")["baseId"])
             assert any(row["key"] == "lanxi-tech" and row["status"] == "queued" for row in companies), companies
 
