@@ -7,15 +7,12 @@
 // busabase-sdk@0.11.0 and Busabase's own product usage (the Doc editor's
 // image-paste upload hook).
 //
-// KNOWN LIMITATION, inherited from the same trace: `assets.createUploadUrl()`
-// returns an `/api/dev/upload` target that 404s ("Not available in
-// production") under the standalone `npx busabase@0.11.0 server` CLI's own
-// NODE_ENV=production gate — so a real upload does not complete against that
-// specific packaged OSS build today, independent of server.js's proxy (which
-// still proxies `/api/storage/*` and `/api/dev/*` for exactly this reason).
-// The code here is written against the documented SDK contract and mirrors
-// Busabase's own product usage, so it is correct and will start working as
-// soon as the upstream package serves what it advertises.
+// Upload works end to end on current servers: re-tested against `busabase@0.16.2`
+// (the version the OSS integration tests pin) and 0.81.0, `assets.createUploadUrl()`
+// returns `/api/storage/upload?key=…`, which server.js proxies, and a PUT →
+// confirm() → read-back round trip completes. Only `busabase@0.11.0` minted an
+// `/api/dev/upload` target that 404'd under its own production NODE_ENV — a gap
+// in that one release, fixed upstream.
 
 const urlCache = new Map();
 

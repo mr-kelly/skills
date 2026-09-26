@@ -9,7 +9,7 @@ import { appConfig } from "../../../skills/kelly-portrait-retouch/content/kelly-
 import {
   inspectProvisionedResources,
   provisionDeclaredResources,
-} from "../../../skills/kelly-portrait-retouch/content/kelly-portrait-retouch-app/app/js/resource-provisioning.js";
+} from "../../../skills/kelly-portrait-retouch/content/kelly-portrait-retouch-app/node_modules/busabase-sdk/dist/airapp.js";
 import { createBusabaseClient } from "../../../skills/kelly-portrait-retouch/content/kelly-portrait-retouch-app/node_modules/busabase-sdk/dist/index.js";
 import { getFreePort, startProcess } from "../harness/process.mjs";
 

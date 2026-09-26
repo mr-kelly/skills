@@ -162,16 +162,12 @@ def test_busabase_provisioning(browser) -> None:
     edit -> Busabase -> re-read), and persistence across a full Busabase
     process restart.
 
-    Drive/Asset binary upload coverage is deliberately NOT exercised here.
-    Verified live against this exact `busabase@0.11.0` standalone-CLI target:
-    `assets.createUploadUrl()` returns an `/api/dev/upload` URL that then
-    404s ("Not available in production") under the CLI's own production
-    NODE_ENV gate, so no Asset upload completes against this CLI build
-    regardless of what an AirApp does. This is an upstream package/CLI gap,
-    not a kelly-drama defect — see server.js's and js/drama-client.js's
-    header comments for the full trace. Scoped down per the migration
-    recipe's documented-gap allowance (mirrors kelly-mv's identical
-    precedent, this skill's closest architectural twin).
+    Drive/Asset binary upload coverage is not exercised here. It was scoped out
+    because `busabase@0.11.0`'s standalone CLI minted an `/api/dev/upload` URL
+    that 404'd under its own production NODE_ENV. That no longer holds: against
+    the pinned `busabase@0.16.2` (and 0.81.0), `assets.createUploadUrl()` returns
+    `/api/storage/upload?key=…` and a PUT → confirm() → read-back round trip
+    completes, so this coverage can be added.
     """
     busabase_port = free_port()
     app_port = free_port()

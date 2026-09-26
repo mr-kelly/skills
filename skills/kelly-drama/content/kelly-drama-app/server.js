@@ -64,19 +64,13 @@ app.all("/api/v1/*", (context) => gateway.proxy(context.req.raw));
 // `LocalStorage` adapter is meant to mount its unauthenticated,
 // key-addressed relay at `/api/storage/upload` (PUT) / `/api/storage/<key>`
 // (GET) — apps/busabase/src/app/api/storage/**, real production routes, not
-// under the versioned API. Proxying only that prefix is not enough in
-// practice, though: live-tested against `npx busabase@0.11.0 server` (the
-// exact target every converted skill's OSS integration test runs), that
-// standalone CLI's `assets.createUploadUrl` returns an `/api/dev/upload`
-// URL instead — and `/api/dev/*` 404s under the CLI's own production
-// NODE_ENV ("Not available in production"), so a real Asset upload/download
-// round trip does not complete against this specific CLI build regardless
-// of this proxy (confirmed via a raw PUT + the SDK's own confirm()/get()
-// against a fresh instance — see the PR description for the full trace).
-// This is an upstream busabase-package gap, not something an AirApp can
-// route around; `/api/dev/*` is proxied too so a differently-configured or
-// future server that serves it (or does honor the `/api/storage/*` default)
-// still works without a code change here.
+// under the versioned API. That prefix is what current servers use: re-tested
+// against `busabase@0.16.2` (the version the OSS integration tests pin) and
+// 0.81.0, `assets.createUploadUrl` returns `/api/storage/upload?key=…` and a
+// full PUT → confirm() → read-back round trip completes. `/api/dev/*` is
+// proxied as well for `busabase@0.11.0`, whose standalone CLI minted an
+// `/api/dev/upload` URL that then 404'd under its own production NODE_ENV —
+// a gap in that one release, fixed upstream, not a current limitation.
 // Reuses the same gateway.proxy() the /api/v1/* relay uses above, instead of
 // a second hand-rolled fetch. It used to call a local authTarget() helper
 // that lived in the pre-gateway server.js; that helper no longer exists post-
