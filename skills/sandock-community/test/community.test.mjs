@@ -7,17 +7,13 @@ import path from "node:path";
 import { test } from "node:test";
 import {
   accountKeyEnv,
-  adminOnboarding,
-  buildAdminPayload,
   buildUrl,
   config,
   displayWidth,
   envSearchPaths,
   errorMessage,
-  i18nText,
   listAccounts,
   loadEnvFiles,
-  nestQuery,
   num,
   onboarding,
   pad,
@@ -104,46 +100,6 @@ test("onboarding names the env var, the docs and the env file, but no key", () =
   assert.match(text, /community\.sandock\.ai/);
 });
 
-test("config reads the admin key from the prefixed name or the shared fallback", () => {
-  assert.equal(config({ SANDOCK_SYSTEMADMIN_KEY: "a" }).adminKey, "a");
-  assert.equal(config({ SYSTEMADMIN_KEY: "b" }).adminKey, "b");
-  assert.equal(config({ SANDOCK_SYSTEMADMIN_KEY: "a", SYSTEMADMIN_KEY: "b" }).adminKey, "a", "prefixed wins");
-  assert.equal(config({}).adminKey, undefined);
-});
-
-test("adminOnboarding separates the two credentials", () => {
-  const text = adminOnboarding({});
-  assert.match(text, /SANDOCK_SYSTEMADMIN_KEY is not set/);
-  assert.match(text, /NOT the same credential as SANDOCK_API_KEY/);
-  assert.match(text, /SYSTEMADMIN_KEY/);
-});
-
-test("i18nText reads a bare value as English and locale=value as itself", () => {
-  const { flags } = parseArgs(["--name", "How to", "--name", "zh-CN=怎么做"]);
-  assert.deepEqual(i18nText(flags, "name"), { en: "How to", "zh-CN": "怎么做" });
-});
-
-test("i18nText leaves an equals sign alone when the head is not a locale", () => {
-  const { flags } = parseArgs(["--name", "A=B"]);
-  assert.deepEqual(i18nText(flags, "name"), { en: "A=B" });
-});
-
-test("buildAdminPayload coerces booleans, numbers and the null feature status", () => {
-  const { flags } = parseArgs(["--post-id", "p1", "--feature-status", "none"]);
-  assert.deepEqual(buildAdminPayload("feature-status", flags), { postId: "p1", featureStatus: null });
-
-  const listed = parseArgs(["--include-deleted", "--limit", "5", "--status", "hidden"]).flags;
-  assert.deepEqual(buildAdminPayload("posts", listed), { status: "hidden", includeDeleted: true, limit: 5 });
-
-  const unarchive = parseArgs(["--category-id", "c1", "--is-archived", "false"]).flags;
-  assert.deepEqual(buildAdminPayload("archive-category", unarchive), { categoryId: "c1", isArchived: false });
-});
-
-test("buildAdminPayload splits a comma-separated reorder list", () => {
-  const { flags } = parseArgs(["--category-ids", "c1, c2 ,c3"]);
-  assert.deepEqual(buildAdminPayload("reorder-categories", flags), { categoryIds: ["c1", "c2", "c3"] });
-});
-
 test("parseDotenv reads values, strips quotes and skips comments", () => {
   const values = parseDotenv(
     ["# comment", "SANDOCK_API_KEY=plain", 'QUOTED="with spaces"', "SINGLE='x'", "", "novalue"].join("\n"),
@@ -179,21 +135,6 @@ test("loadEnvFiles ignores a path that does not exist", () => {
   assert.deepEqual(loadEnvFiles({ SANDOCK_ENV_FILE: path.join(tmpdir(), "definitely-absent-community-env") }), []);
 });
 
-test("nestQuery wraps admin filters the way the contract expects", () => {
-  // Flat params are ignored by the server, not rejected — an unfiltered list
-  // would come back looking like a filtered one.
-  assert.deepEqual(nestQuery({ status: "hidden", limit: 2 }), {
-    "query[status]": "hidden",
-    "query[limit]": 2,
-  });
-  assert.deepEqual(nestQuery({}), {});
-});
-
-test("buildUrl percent-encodes the bracketed admin filters", () => {
-  const url = buildUrl("https://sandock.ai", "/api/v1/system-admin/community/posts", nestQuery({ status: "hidden" }));
-  assert.equal(url, "https://sandock.ai/api/v1/system-admin/community/posts?query%5Bstatus%5D=hidden");
-});
-
 test("accountKeyEnv builds the per-account variable name", () => {
   assert.equal(accountKeyEnv("alt"), "SANDOCK_API_KEY_ALT");
   assert.equal(accountKeyEnv("Growth Team"), "SANDOCK_API_KEY_GROWTH_TEAM");
@@ -222,7 +163,6 @@ test("listAccounts names every configured account, default first, without values
     SANDOCK_API_KEY: "aaa",
     SANDOCK_API_KEY_ALT: "bb",
     SANDOCK_API_KEY_MARKETING: "c",
-    SANDOCK_SYSTEMADMIN_KEY: "not-an-account",
     UNRELATED: "x",
   });
   assert.deepEqual(

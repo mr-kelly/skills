@@ -40,7 +40,6 @@ function recorder(responses = []) {
 const ENV = {
   BUSABASE_API_KEY: "user-key",
   BUSABASE_API_KEY_ALT: "alt-key",
-  BUSABASE_SYSTEMADMIN_KEY: "admin-key",
 };
 
 const POST = {
@@ -163,83 +162,11 @@ describe("the publish gate", () => {
   });
 });
 
-describe("the moderation gate", () => {
-  test("a moderation write without --yes sends nothing", async () => {
-    const { calls, fetchImpl } = recorder();
-    await run(["admin", "moderate-post", "--post-id", "cpost1", "--status", "hidden"], { env: ENV, fetchImpl });
-    assert.equal(calls.length, 0);
-    assert.match(log.join("\n"), /NOT sent/);
-  });
-
-  test("a hard delete without --yes sends nothing and says it cannot be undone", async () => {
-    const { calls, fetchImpl } = recorder();
-    await run(["admin", "delete-post", "--post-id", "cpost1"], { env: ENV, fetchImpl });
-    assert.equal(calls.length, 0);
-    assert.match(log.join("\n"), /IRREVERSIBLE/);
-    assert.match(log.join("\n"), /take-down-post/, "points at the reversible one");
-  });
-
-  test("a hard delete with --yes puts the id in the path, not the body", async () => {
-    const { calls, fetchImpl } = recorder([{ payload: { id: "cpost1", removedReplies: 2, removedReactions: 0 } }]);
-    await run(["admin", "delete-post", "--post-id", "cpost 1/x", "--yes"], { env: ENV, fetchImpl });
-    assert.equal(calls[0].method, "DELETE");
-    assert.equal(
-      calls[0].url,
-      "https://busabase.com/api/v1/system-admin/community/posts/cpost%201%2Fx",
-      "an id with a slash must not retarget the request",
-    );
-    assert.equal(calls[0].body, undefined);
-  });
-
-  test("moderation uses the admin credential, never the user's", async () => {
-    const { calls, fetchImpl } = recorder([{ payload: { totalPosts: 1 } }]);
-    await run(["admin", "overview"], { env: ENV, fetchImpl });
-    assert.equal(calls[0].auth, "Bearer admin-key");
-  });
-
-  test("reading and posting use the user credential, never the admin one", async () => {
+describe("credentials", () => {
+  test("reading uses the selected account's key", async () => {
     const { calls, fetchImpl } = recorder([{ payload: { items: [], total: 0, hasMore: false } }]);
     await run(["posts"], { env: ENV, fetchImpl });
     assert.equal(calls[0].auth, "Bearer user-key");
-  });
-
-  test("without the admin key, a moderation read refuses and explains the difference", async () => {
-    const { calls, fetchImpl } = recorder();
-    await assert.rejects(
-      () => run(["admin", "overview"], { env: { BUSABASE_API_KEY: "user-key" }, fetchImpl }),
-      (/** @type {any} */ error) => {
-        assert.ok(error instanceof CommunityCliError);
-        assert.match(error.message, /NOT the same credential/);
-        return true;
-      },
-    );
-    assert.equal(calls.length, 0);
-  });
-
-  test("admin list filters go out nested, which is the only form the server reads", async () => {
-    const { calls, fetchImpl } = recorder([{ payload: { items: [], total: 0 } }]);
-    await run(["admin", "posts", "--status", "hidden", "--include-deleted", "--limit", "5"], { env: ENV, fetchImpl });
-    const url = new URL(calls[0].url);
-    assert.equal(url.searchParams.get("query[status]"), "hidden");
-    assert.equal(url.searchParams.get("query[includeDeleted]"), "true");
-    assert.equal(url.searchParams.get("query[limit]"), "5");
-    assert.equal(url.searchParams.get("status"), null, "a flat parameter would be silently ignored");
-  });
-
-  test("an unknown moderation operation is refused", async () => {
-    const { calls, fetchImpl } = recorder();
-    await assert.rejects(() => run(["admin", "nuke-everything", "--yes"], { env: ENV, fetchImpl }), CommunityCliError);
-    assert.equal(calls.length, 0);
-  });
-
-  test("an out-of-range status is refused before the request", async () => {
-    const { calls, fetchImpl } = recorder();
-    await assert.rejects(
-      () =>
-        run(["admin", "moderate-reply", "--reply-id", "r1", "--status", "vanished", "--yes"], { env: ENV, fetchImpl }),
-      CommunityCliError,
-    );
-    assert.equal(calls.length, 0);
   });
 });
 
@@ -279,7 +206,7 @@ describe("accounts", () => {
     const printed = log.join("\n");
     assert.match(printed, /default/);
     assert.match(printed, /alt/);
-    for (const secret of ["user-key", "alt-key", "admin-key"]) {
+    for (const secret of ["user-key", "alt-key"]) {
       assert.ok(!printed.includes(secret), `${secret} must not appear`);
     }
   });
@@ -307,19 +234,6 @@ describe("failure modes", () => {
         assert.match(error.message, /BUSABASE_API_KEY is not set/);
         // The docs URL differs per product; that it offers one is the point.
         assert.match(error.message, /Create an API key: https:\/\/\S+/);
-        return true;
-      },
-    );
-  });
-
-  test("a 404 that echoes the path reads as 'not deployed here'", async () => {
-    const { fetchImpl } = recorder([
-      { status: 404, payload: { error: "Not found", path: "/api/v1/system-admin/community/overview" } },
-    ]);
-    await assert.rejects(
-      () => run(["admin", "overview"], { env: ENV, fetchImpl }),
-      (/** @type {any} */ error) => {
-        assert.match(error.message, /does not serve the system-admin community API/);
         return true;
       },
     );
