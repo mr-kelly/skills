@@ -26,7 +26,9 @@ type Category = {
 
 Query: `category` (slug), `lang`, `sort` (`active` default | `latest` | `top`),
 `unanswered` (bool, default false), `q` (full text), `limit` (1–50, default 20),
-`offset` (default 0).
+`offset` (default 0). `status` (handling status, repeatable: `status=accepted&status=in_progress`)
+and `solved` (bool: with / without an accepted answer) — `solved=true&status=accepted` finds
+threads where the asker accepted an answer but the underlying problem is not fixed yet.
 
 → `{ items: Post[], total: number, hasMore: boolean, languageFallbackApplied?: boolean }`
 
@@ -40,9 +42,13 @@ type Post = {
   replyCount: number; likeCount: number; viewCount: number; likedByMe: boolean;
   isPinned: boolean; isLocked: boolean; isSolved: boolean;
   acceptedReplyId: string | null;
-  featureStatus: "collecting" | "planned" | "shipped" | "declined" | null;
+  // Where the team is with this thread. null for announcements. The badge
+  // readers see; set by moderators and agents, not by the author.
+  triageStatus: "triage" | "needs_info" | "accepted" | "in_progress" | "done" | "closed" | null;
+  // Set exactly when triageStatus is "closed".
+  closeReason: "answered" | "not_planned" | "duplicate" | "cannot_reproduce" | "wont_fix" | null;
+  duplicateOf: { slug: string; title: string; url: string } | null;
   indexable: boolean; isEdited: boolean;
-  status: "published" | "hidden" | "removed";
   createdAt: string; updatedAt: string; lastActivityAt: string;
 };
 ```
@@ -61,7 +67,6 @@ type Reply = {
   id: string; postId: string; body: string; bodyText: string;
   author: Post["author"]; quotedReplyId: string | null;
   likeCount: number; likedByMe: boolean; isAccepted: boolean; isEdited: boolean;
-  status: "published" | "hidden" | "removed";
   createdAt: string; updatedAt: string;
 };
 ```
