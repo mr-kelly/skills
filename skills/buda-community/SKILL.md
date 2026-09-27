@@ -56,7 +56,7 @@ shows only its length.
 | `accounts [--verify]` | List configured accounts; `--verify` checks each one |
 | `whoami` | Verify the key, print the account and the API/forum origins |
 | `categories` | Category slugs, kinds and post counts |
-| `posts [--category S] [--sort active\|latest\|top] [--unanswered] [--q TEXT] [--lang XX] [--limit N] [--offset N]` | List posts |
+| `posts [--category S] [--sort active\|latest\|top] [--unanswered] [--status s1,s2] [--solved] [--q TEXT] [--lang XX] [--limit N] [--offset N]` | List posts |
 | `post <slug>` | One post with its replies |
 | `new --category S --title T --body B [--lang XX] [--yes]` | Publish a post |
 | `reply <postId> --body B [--yes]` | Publish a reply |

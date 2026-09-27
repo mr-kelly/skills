@@ -59,7 +59,9 @@ const POST = {
   createdAt: "2026-09-21T00:00:00.000Z",
   updatedAt: "2026-09-21T00:00:00.000Z",
   lastActivityAt: "2026-09-21T00:00:00.000Z",
-  status: "published",
+  triageStatus: null,
+  closeReason: null,
+  duplicateOf: null,
   isPinned: false,
   isLocked: false,
   isSolved: false,
@@ -128,6 +130,13 @@ describe("the publish gate", () => {
     const { calls, fetchImpl } = recorder();
     await run(["reply", "cpost1", "--body", "a reply"], { env: ENV, fetchImpl });
     assert.equal(calls.length, 0);
+  });
+
+  test("`reply --yes` confirms without claiming a status the API no longer sends", async () => {
+    const { fetchImpl } = recorder([{ payload: { id: "crep1", postId: "cpost1", bodyText: "a reply" } }]);
+    await run(["reply", "cpost1", "--body", "a reply", "--yes"], { env: ENV, fetchImpl });
+    assert.doesNotMatch(log.join("\n"), /undefined/);
+    assert.match(log.join("\n"), /Replied to cpost1 as crep1, from account default\./);
   });
 
   test("`new --yes` posts once, to the right URL, with the user's key", async () => {
@@ -265,6 +274,47 @@ describe("failure modes", () => {
     const { fetchImpl } = recorder([{ payload: { success: true, data: { items: [], total: 3, hasMore: false } } }]);
     await run(["posts", "--json"], { env: ENV, fetchImpl });
     assert.deepEqual(JSON.parse(log.join("\n")), { items: [], total: 3, hasMore: false });
+  });
+
+  test("--status is validated locally and sent comma-joined", async () => {
+    const { calls, fetchImpl } = recorder([{ payload: { items: [], total: 0, hasMore: false } }]);
+    await run(["posts", "--status", "accepted,in_progress"], { env: ENV, fetchImpl });
+    const url = new URL(calls[0].url);
+    assert.equal(url.searchParams.get("status"), "accepted,in_progress");
+  });
+
+  test("an unknown --status value is refused before the request", async () => {
+    const { calls, fetchImpl } = recorder();
+    await assert.rejects(() => run(["posts", "--status", "wontfix"], { env: ENV, fetchImpl }), CommunityCliError);
+    assert.equal(calls.length, 0);
+  });
+
+  test("--solved sends a real boolean, not just a present string", async () => {
+    const { calls, fetchImpl } = recorder([{ payload: { items: [], total: 0, hasMore: false } }]);
+    await run(["posts", "--solved=false"], { env: ENV, fetchImpl });
+    assert.equal(new URL(calls[0].url).searchParams.get("solved"), "false");
+  });
+
+  test("a closed post shows its reason, not the bare status", async () => {
+    const { fetchImpl } = recorder([
+      {
+        payload: {
+          items: [{ ...POST, triageStatus: "closed", closeReason: "duplicate", duplicateOf: { slug: "orig-x", title: "Original", url: "/ask/orig-x" } }],
+          total: 1,
+          hasMore: false,
+        },
+      },
+    ]);
+    await run(["posts"], { env: ENV, fetchImpl });
+    assert.match(log.join("\n"), /closed:duplicate→orig-x/);
+  });
+
+  test("the default `triage` status shows no mark — matching the web UI's no-badge convention", async () => {
+    const { fetchImpl } = recorder([
+      { payload: { items: [{ ...POST, triageStatus: "triage" }], total: 1, hasMore: false } },
+    ]);
+    await run(["posts"], { env: ENV, fetchImpl });
+    assert.doesNotMatch(log.join("\n"), /triage\b/);
   });
 
   test("a non-JSON body fails with a message rather than a parser crash", async () => {

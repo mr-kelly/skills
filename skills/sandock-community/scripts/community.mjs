@@ -113,10 +113,12 @@ export function loadEnvFiles(env = process.env) {
 }
 
 const SORTS = ["active", "latest", "top"];
+/** Server enum for `--status`; kept here so a typo fails locally, not after a round trip. */
+const TRIAGE_STATUSES = ["triage", "needs_info", "accepted", "in_progress", "done", "closed"];
 
 // ---------------------------------------------------------------- arg parsing
 
-const BOOLEAN_FLAGS = new Set(["yes", "json", "unanswered"]);
+const BOOLEAN_FLAGS = new Set(["yes", "json", "unanswered", "solved"]);
 
 export function parseArgs(argv) {
   const positional = [];
@@ -390,9 +392,45 @@ async function cmdCategories(_positional, flags) {
   });
 }
 
+/**
+ * `--status a,b` (or the server also accepts `?status=a&status=b`, but a
+ * comma-separated single flag is all this CLI offers — simpler than adding
+ * back general flag-repetition for one filter). Validated locally so a typo
+ * fails before the request, not as a silently-empty result.
+ */
+function validateStatusFilter(value) {
+  if (value === undefined) return undefined;
+  const statuses = String(value)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  for (const status of statuses) {
+    if (!TRIAGE_STATUSES.includes(status)) {
+      fail(`--status ${status} — expected one of ${TRIAGE_STATUSES.join(", ")} (comma-separated for several).`);
+    }
+  }
+  return statuses.length ? statuses.join(",") : undefined;
+}
+
+/**
+ * `triage` is the default status and shows no badge on the web UI either —
+ * an untouched post is not "in a state" worth calling out. `closed` adds its
+ * reason; `duplicate` adds what it is a duplicate of.
+ */
+function triageMark(post) {
+  if (!post.triageStatus || post.triageStatus === "triage") return null;
+  if (post.triageStatus === "closed") {
+    const reason = post.closeReason ? `:${post.closeReason}` : "";
+    const dup = post.closeReason === "duplicate" && post.duplicateOf ? `→${post.duplicateOf.slug}` : "";
+    return `closed${reason}${dup}`;
+  }
+  return post.triageStatus;
+}
+
 async function cmdPosts(_positional, flags) {
   const sort = flags.sort ? String(flags.sort) : "active";
   if (!SORTS.includes(sort)) fail(`--sort ${sort} — expected one of ${SORTS.join(", ")}.`);
+  const status = validateStatusFilter(flags.status);
   const { webUrl } = selected();
   const data = await request("/api/v1/community/posts", {
     query: {
@@ -400,6 +438,8 @@ async function cmdPosts(_positional, flags) {
       lang: flags.lang,
       sort,
       unanswered: flags.unanswered ? "true" : undefined,
+      status,
+      solved: flags.solved === undefined ? undefined : String(flags.solved),
       q: flags.q,
       limit: num(flags.limit, 20),
       offset: num(flags.offset, 0),
@@ -407,7 +447,12 @@ async function cmdPosts(_positional, flags) {
   });
   output(data, flags, () => {
     for (const post of data.items) {
-      const marks = [post.isPinned && "pinned", post.isSolved && "solved", post.isLocked && "locked"].filter(Boolean);
+      const marks = [
+        post.isPinned && "pinned",
+        post.isSolved && "solved",
+        post.isLocked && "locked",
+        triageMark(post),
+      ].filter(Boolean);
       console.log(
         `${pad(post.slug, 30)}${pad(post.categorySlug, 17)}r${String(post.replyCount).padStart(3)} ` +
           `${post.lastActivityAt.slice(0, 10)}  ${post.title}${marks.length ? `  [${marks.join(",")}]` : ""}`,
@@ -429,10 +474,12 @@ async function cmdPost(positional, flags) {
       `${post.categoryName} · ${post.kind} · ${post.author.name}${post.author.isStaff ? " (staff)" : ""} · ${post.createdAt}`,
     );
     console.log(postUrl(post, webUrl));
+    const triage = triageMark(post);
+    if (triage) console.log(`status: ${triage}`);
     console.log(`\n${post.body}\n`);
     console.log(`--- ${post.replies?.length ?? 0} of ${post.replyCount} repl(ies) ---`);
     for (const reply of post.replies ?? []) {
-      const marks = [reply.isAccepted && "accepted", reply.status !== "published" && reply.status].filter(Boolean);
+      const marks = [reply.isAccepted && "accepted", reply.isEdited && "edited"].filter(Boolean);
       console.log(
         `\n[${reply.id}] ${reply.author.name}${reply.author.isStaff ? " (staff)" : ""} · ${reply.createdAt}` +
           `${marks.length ? ` [${marks.join(",")}]` : ""}\n${reply.body}`,
@@ -485,7 +532,7 @@ async function cmdReply(positional, flags) {
     body: payload,
   });
   output(reply, flags, () => {
-    console.log(`Replied to ${reply.postId} as ${reply.id} (${reply.status}), from account ${selected().account}.`);
+    console.log(`Replied to ${reply.postId} as ${reply.id}, from account ${selected().account}.`);
     console.log(oneLine(reply.bodyText, 200));
   });
 }
