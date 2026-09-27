@@ -299,7 +299,14 @@ describe("failure modes", () => {
     const { fetchImpl } = recorder([
       {
         payload: {
-          items: [{ ...POST, triageStatus: "closed", closeReason: "duplicate", duplicateOf: { slug: "orig-x", title: "Original", url: "/ask/orig-x" } }],
+          items: [
+            {
+              ...POST,
+              triageStatus: "closed",
+              closeReason: "duplicate",
+              duplicateOf: { slug: "orig-x", title: "Original", url: "/ask/orig-x" },
+            },
+          ],
           total: 1,
           hasMore: false,
         },
