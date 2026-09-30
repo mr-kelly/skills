@@ -6,7 +6,7 @@ Kelly Homework Coach is a Busabase-backed App-in-Skill desk for elementary-schoo
 
 - Student: a photo/intake box (local-only filename picker plus a copy-to-chat prompt), current question, child-friendly explanation, hint ladder, self-check, and "I understand / need another hint" controls.
 - Mistakes: a review notebook grouped by topic and due date, with root cause, misconception, fix strategy, similar practice, and parent note.
-- Papers: a practice paper list and paper analysis view with difficulty mix, estimated time, wrong-question count, strengths, review plan, and deep notes.
+- Papers: child-facing questions and diagrams, with answer keys hidden until the practice reveal stage; a confirmed paper can be answered one item at a time. Parent answers and deep notes are shown in Review, not on the child paper.
 - Review: parent/teacher queue with approve / request changes / block decisions, stable `Review #1` refs, proposed actions, and editable review notes — written straight onto the review record through `busabase-sdk`.
 - Settings: sanitized learning policy, data provider, answer policy, and language.
 
@@ -92,3 +92,11 @@ Parent/teacher decisions write straight onto the review record. `node scripts/ex
 ## Boundary
 
 The app reads and writes its own Busabase Bases only and never calls AI, uploads a child's photo outside the current chat session, contacts a teacher, or mutates external systems. The skill performs OCR/vision reasoning, explanation drafting, mistake analysis, and paper generation, then records the result to Busabase for human review. Never write a raw photo into a Busabase field — only a short `photo_label` description. Never commit any local credential file.
+
+## Review-first improvements
+
+Cause supplementation updates the existing mistake, not a duplicate card. Copy-to-chat paper requests
+include the latest linked question and attachment references; copying does not generate a paper.
+Business writes and trusted ingestion stay pending (`autoMerge: false`) and report request IDs.
+Read `SKILL.md` for explicit limits: UI-only role separation, exact-text grading, no refresh recovery
+for unfinished practice, no automatic multi-mistake builder or result-to-mastery writeback.

@@ -38,11 +38,12 @@ If a dependency is unavailable, preserve this skill's local artifact and product
 
 ## Boundary
 
-- The skill may inspect uploaded homework photos, run OCR/vision reasoning through the active model, explain questions, identify mistakes, generate practice items, and record the result to this skill's own Busabase Bases via `scripts/record_homework.mjs`. It never calls a school system, uploads a child's photo anywhere outside the current chat session, contacts a teacher, or publishes/exports a paper itself.
+- Original-image storage is opt-in: ask permission per photo before uploading an attachment to Busabase. Explain that an attachment may have an accessible URL. The browser never uploads photos. Never place private originals in Demo fixtures or public artifacts.
+- The skill may inspect uploaded homework photos, run OCR/vision reasoning through the active model, explain questions, identify mistakes, generate practice items, and record the result to this skill's own Busabase Bases via `scripts/record_homework.mjs`. It never calls a school system, uploads a child's photo outside the current chat session without explicit per-photo attachment consent, contacts a teacher, or publishes/exports a paper itself.
 - The AirApp reads and writes its own Busabase Bases only; it never mutates an external system. Parent/teacher review decisions (approve / request changes / block) write straight onto the review record through `busabase-sdk`.
 - Child-facing output must be encouraging, step-by-step, and age-appropriate. Prefer hints and concepts over blunt answer dumping unless the user asks for the answer.
 - Parent/teacher-facing analysis may be more diagnostic, but should avoid shame language. Treat the student as capable and learning.
-- Student photos, names, school data, and answers are private education data. Never write a raw photo into a Busabase field — only a short `photo_label` description. Never commit any local credential file.
+- Student photos, names, school data, and answers are private education data. Never embed raw photo bytes in a text/JSON field. Default to a short `photo_label`; only link an uploaded `original-image` attachment after explicit per-photo consent. Never commit any local credential file.
 
 ## Busabase Resources
 
@@ -64,7 +65,7 @@ There is no upload API and the AirApp's photo box never uploads a file anywhere 
 node skills/kelly-homework-coach/scripts/record_homework.mjs --file payload.json --apply
 ```
 
-Without `--apply` this is a dry run that only prints the planned upserts. The payload is a JSON object with optional `questions`/`mistakes`/`papers`/`reviews` arrays (see the script's header comment for the exact shape); each item is upserted by its stable id. Always include a `reviews` entry alongside a new/updated question, mistake, or paper so a parent/teacher can approve it in the app — the script itself never sets a review's decision fields (`decision-action`/`decision-comment`/`decided-at`/`execution-*`), even if a payload happens to include them; a freshly recorded review always starts `needs_review`, and re-syncing an existing review preserves whatever decision a human already made.
+Without `--apply` this is a dry run that only prints the planned upserts. The payload is a JSON object with optional `questions`/`mistakes`/`papers`/`reviews` arrays (see the script's header comment for the exact shape); each item is upserted by its stable id. Include one useful `reviews` entry for a new question or paper. A factual mistake card accompanying the same question should be covered by the question confirmation, not a duplicate confirmation. For a mistake-only update, preserve existing review decisions; never create an unnecessary second review. Include a `reviews` entry alongside a standalone judgement requiring review so a parent/teacher can approve it in the app — the script itself never sets a review's decision fields (`decision-action`/`decision-comment`/`decided-at`/`execution-*`), even if a payload happens to include them; a freshly recorded review always starts `needs_review`, and re-syncing an existing review preserves whatever decision a human already made.
 
 ## Local App
 
@@ -89,7 +90,7 @@ Required app views (hash routes):
 
 ## Homework Photo Workflow
 
-1. Ingest the student's photo or pasted problem text. If using vision/OCR, keep extracted text local unless the user explicitly approves a connector; only a short `photo_label` (e.g. "Homework photo, page 18 question 6") is ever written to Busabase, never the raw image.
+1. Ingest the student's photo or pasted problem text. If using vision/OCR, keep extracted text local unless the user explicitly approves a connector; use a short `photo_label` by default (e.g. "Homework photo, page 18 question 6"). An `original-image` attachment may be uploaded and linked only with explicit per-photo consent.
 2. Identify subject, grade, topic, required answer type, and whether the student's current answer is correct, wrong, or uncertain.
 3. Draft a child-facing explanation: one friendly summary, 2-5 short steps, one key concept, one self-check, and a next hint. Avoid long lectures.
 4. If wrong, create or update a mistake item with root cause, misconception, fix strategy, similar practice prompt, and a next review date.
@@ -116,15 +117,15 @@ A paper with an answer key can be sat in the app: `#/papers/<paper_id>` → **�
 
 - **Marking is local and deterministic.** `gradeAnswer()` in `homework-model.js` normalizes full-width digits, whitespace, a trailing period and case, then compares exactly. No model call and no fuzzy match — a child is told they got it wrong, so the rule has to be one you can explain to them.
 - **`hint_first` is enforced here, not just documented.** The first wrong answer gets the item's `hint`; only a second wrong attempt reveals `answer`. When `learning_policy.answer_policy` is not `hint_first`, the answer shows immediately. A hint must never contain its own answer — `test/homework-model.test.mjs` asserts this across the whole demo dataset.
-- **The score is over marked items.** `attempt.graded`, not `attempt.total`: an open-response item nobody marked is not a question the child got wrong.
-- **Handing in writes one row.** The attempt goes onto the paper's **own** record (`analysis.attempt`, plus `analysis.wrong_count`), and the paper's review row returns to `needs_review` so a parent sees the result. `papers` is already defined as holding "a completed-paper analysis", so this is an update through the existing `records.changeRequest` path — no new Base, no create procedure, and no widening of what the AirApp may write.
+- **The score is over marked items, based on the final answers; first answers and retry history are separately stored and must not be mistaken for independent mastery.** `attempt.graded`, not `attempt.total`: an open-response item nobody marked is not a question the child got wrong.
+- **Handing in proposes one row update.** The attempt goes onto the paper's **own** record (`analysis.attempt`, plus `analysis.wrong_count`), and `analysis.attempts` preserves history. One pending request is returned; the old paper review is not reset or reused as an approval of new results. After a reviewed merge, the parent sees each answer and retry in the old paper review detail but makes a **separate, attempt-scoped result decision** on the paper analysis. Open responses need one manual mark each and a parent note; the decision creates another pending CR and does not reuse the old paper approval or unlock practice. `papers` is already defined as holding "a completed-paper analysis", so this is an update through the existing `records.changeRequest` path — no new Base, no create procedure, and no widening of what the AirApp may write.
 - **The runner never writes a mistake card.** Turning a wrong answer into a root cause and a misconception is a judgement about a child's learning; the agent drafts those (`scripts/record_homework.mjs`) and a parent approves them. The runner reports only what it can prove: which items were wrong, what was given, what was expected, and how many hints were used.
 
-So the loop is: agent builds the paper → student sits it → app marks and hands in → parent reviews in `#/review` → agent turns the missed items into mistake cards.
+So the loop is: agent builds the paper → student sits it → app marks and hands in (pending CR) → reviewer merges that factual attempt → parent judges open responses in `#/review` (separate pending CR) → reviewer merges that result decision → agent may separately draft missed-item mistake cards for approval.
 
 ## Review And Execution Loop
 
-1. Send parent/teacher users to `#/review`. Decisions write straight onto the review record through `busabase-sdk` (`records.changeRequest`), with `autoMerge = isStandaloneLocalRuntime()` — local preview merges immediately, a deployed AirApp creates a pending ChangeRequest. Approving or blocking also mirrors the resulting status onto the linked question/mistake/paper's own row.
+1. Send parent/teacher users to `#/review`. Decisions write straight onto the review record through `busabase-sdk` (`records.changeRequest`), with `autoMerge: false` in both local and deployed runtimes. Record ingestion also proposes pending requests and returns their IDs; a reviewed merge is separate from confirming the learning content. Approving or blocking also mirrors the resulting status onto the linked question/mistake/paper's own row.
 2. Before executing anything, run `node scripts/execute_decisions.mjs` for a dry run. With `--apply`, it re-reads every decided review and writes an execution marker (`execution-status`, `execution-detail`, `executed-at`) onto it, reporting the local-only operation (`add_to_mistake_book`, `mark_understood`, `queue_practice_paper`, `export_paper_plan`, `request_revision`, `block_item`) the agent should perform next, and for approve/block also sets the review's final status (`done`/`blocked`). It performs no export, filing, or external transmission.
 
 ## Safety Defaults
@@ -142,3 +143,16 @@ node skills/kelly-homework-coach/scripts/record_homework.mjs --file payload.json
 node skills/kelly-homework-coach/scripts/execute_decisions.mjs --apply
 pnpm --dir skills/kelly-homework-coach/content/kelly-homework-coach-app dev
 ```
+
+## Corrected learning workflow and current limits
+
+- Child feedback ("I understand" / "need a hint") is local feedback, not a parent approval or proof of mastery. It can be copied to chat; it is not automatically persisted.
+- A wrong choice proves an incorrect answer, not a cause. Without a student's working, use "cause not yet verified"; parent impressions remain observations. Do not block factual ingestion on an unknown cause. Update stable cards rather than creating duplicates.
+- Mistake details allow cause supplementation on the existing record. Preserve other analysis fields, status and latest head. All saves are pending requests. UI status follows at most five request IDs in the current tab's session storage; older/cross-device requests are not automatically discovered. Do not ask children to manage CR IDs.
+- "Copy a paper request" is only a chat handoff. It reads the linked latest question, includes its text and stable Space/Base/question/mistake/attachment references, and does not copy private image URLs, send a message or generate a paper. The agent must inspect actual attachments; if viewing fails, say so. A mathematically verified diagram based on human-confirmed conditions is a separate alternative, not evidence that the original was viewed.
+- Each geometry exercise needs a corresponding usable diagram. Items may include `diagram: {points: {A:[x,y], B:[x,y], C:[x,y], D:[x,y], E:[x,y], G:[x,y], H:[x,y], Q:[x,y]}, note}` for the rectangle-fold scenario. This is a limited structured renderer, not arbitrary SVG support. Add `explanation` per item and `parent_answer` for open responses.
+- Merge the paper ingestion and its single review record to make it appear in Papers. Parent confirmation must become canonical before practice starts. Draft/blocked papers cannot be started. Code changes required by a new item format must be merged and Run first.
+- Papers is the child-facing view: no parent deep notes or answer keys are rendered there. The parent review shows each diagram, answer and reasoning with "Confirm this practice paper". This is UI separation, **not authorization isolation**: the browser receives the answer-key payload and all routes remain accessible.
+- Practice is one item at a time. Open responses use a textarea and need manual judgement. First wrong objective response gets a hint when configured; success or a later failure reveals item reasoning. Keep first responses, retries and hint use. Unsubmitted runs do not survive refresh; grading is exact normalized text, not semantic equivalence.
+- New attempts do not automatically update mistake mastery or create mistake cards. There is no automatic multi-mistake worksheet builder or AI call in the browser. Result review records manual marks and parent note on the same paper after an independent reviewed merge; it does not automatically change mastery, create mistakes, or authorize a new sitting.
+- `record_homework.mjs --apply` submits pending CRs only. `execute_decisions.mjs --apply` remains a separate privileged execution operation that may merge its marker writes; run it only with explicit authority after verifying the business decision.

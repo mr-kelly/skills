@@ -2,6 +2,7 @@ import { messages, resolveLanguage } from "./i18n/messages.js";
 import { closeConnectGate, passConnectGate, renderSetupRequired } from "./js/connect-gate.js?v=0.1.0";
 import {
   buildPaperAttempt,
+  buildPracticeRequest,
   computeMistakeFromRow,
   computePaperFromRow,
   computeQuestionFromRow,
@@ -12,6 +13,8 @@ import {
   statusForAction,
 } from "./js/homework-model.js?v=0.1.0";
 import { getProvider } from "./js/providers/index.js?v=0.1.0";
+
+import { appConfig } from "./js/config.js?v=0.1.0";
 
 const app = document.getElementById("app");
 const scrim = document.getElementById("sidebarScrim");
@@ -33,6 +36,13 @@ const state = {
   notice: "",
   flashId: "",
   run: null,
+  reopenedReviewId: "",
+  studentFeedback: {},
+  mistakeDrafts: {},
+  mistakeSubmissions: {},
+  mistakeRequestIds: {},
+  causeStatus: {},
+  attemptReviewRequests: {},
 };
 
 const PAGE_TARGETS = {
@@ -70,6 +80,7 @@ const ACTION_LABELS = {
 
 function actionLabel(action) {
   const key = ACTION_LABELS[action];
+  if (!action || action === "no_action") return t("noFollowup");
   return key ? t(key) : String(action || "").replace(/_/g, " ");
 }
 
@@ -137,6 +148,49 @@ function isEditing() {
   return ["TEXTAREA", "INPUT", "SELECT"].includes(active.tagName) && active.type !== "search";
 }
 
+const causeStorageKey = `homework-cause-requests:${appConfig.spaceId}:${appConfig.appId}`;
+let restoredCauseRequests = false;
+function rememberCauseRequests() {
+  if (state.data?.demo) return;
+  try {
+    sessionStorage.setItem(causeStorageKey, JSON.stringify(state.mistakeRequestIds));
+  } catch {}
+}
+async function syncCauseRequests(provider) {
+  if (state.data?.demo) return;
+  if (!restoredCauseRequests) {
+    restoredCauseRequests = true;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(causeStorageKey) || "{}");
+      for (const [id, request] of Object.entries(saved).slice(0, 5)) {
+        if (typeof request === "string" && /^crq[a-zA-Z0-9]+$/.test(request)) state.mistakeRequestIds[id] = request;
+      }
+    } catch {}
+  }
+  for (const [id, requestId] of Object.entries(state.mistakeRequestIds).slice(0, 5)) {
+    try {
+      const status = await provider.getMistakeRequestStatus({ requestId, mistake_id: id });
+      if (status === "merged") {
+        delete state.mistakeSubmissions[id];
+        delete state.mistakeDrafts[id];
+        delete state.mistakeRequestIds[id];
+        state.causeStatus[id] = t("causeSaved");
+      } else if (["rejected", "abandoned"].includes(status)) {
+        delete state.mistakeSubmissions[id];
+        delete state.mistakeRequestIds[id];
+        state.causeStatus[id] = t("causeNeedsChanges");
+      } else {
+        state.mistakeSubmissions[id] = t("causePending");
+        state.causeStatus[id] = status === "conflict" ? t("causeConflict") : t("causePending");
+      }
+    } catch {
+      state.mistakeSubmissions[id] ||= t("causePending");
+      state.causeStatus[id] = t("causeLookupFailed");
+    }
+  }
+  rememberCauseRequests();
+}
+
 async function loadState({ quiet = false } = {}) {
   if (isEditing() && quiet) return;
   if (quiet && state.hasLoadedMore) return;
@@ -151,6 +205,7 @@ async function loadState({ quiet = false } = {}) {
   const data = await provider.getState();
   closeConnectGate();
   state.data = data;
+  await syncCauseRequests(provider);
   state.pagination = data.pagination || {};
   state.totalCount = data.totalCount || {};
   state.workflowCount = data.workflowCount || null;
@@ -441,13 +496,20 @@ function renderPhotoBox() {
 function renderRow(item, view) {
   const id = idFor(item, view);
   const active = state.route.id === id || (!state.route.id && selectedItem(state.data.snapshot) === item);
-  const title = item.title;
-  const summary = item.summary || item.prompt_text || item.analysis?.root_cause || item.analysis?.deep_notes || "";
+  const target = view === "review" ? findTarget(state.data.snapshot, item) : null;
+  const title = target?.title || item.title;
+  const summary =
+    target?.prompt_text ||
+    item.prompt_text ||
+    item.summary ||
+    item.analysis?.root_cause ||
+    item.analysis?.deep_notes ||
+    "";
   let chips = statusChip(item.status);
   if (view === "student") chips += outcomeChip(item.outcome);
   if (view === "mistakes") chips += `<span class="chip">${esc(item.topic)}</span>`;
   if (view === "papers") chips += `<span class="chip">${esc(item.question_count)} ${esc(t("questionCount"))}</span>`;
-  if (view === "review") chips += `<span class="chip action">${esc(actionLabel(item.proposed_action))}</span>`;
+  if (view === "review") chips += `<span class="chip action">${esc(nextStep(item))}</span>`;
   return `
     <button class="row ${active ? "active" : ""} ${state.flashId === id ? "is-decided" : ""}" data-select-id="${esc(id)}" data-select-view="${esc(view)}" type="button">
       <div class="row-top">
@@ -489,6 +551,7 @@ function studentActions(view, item) {
     return `
       <button class="primary" data-understand="${esc(item.question_id)}" type="button">${esc(t("iUnderstand"))}</button>
       <button class="plain" data-need-help="${esc(item.question_id)}" type="button">${esc(t("stillNeedHelp"))}</button>
+      ${state.studentFeedback[item.question_id] ? `<button class="plain" data-copy-student-feedback="${esc(item.question_id)}" type="button">${esc(t("copyFeedback"))}</button>` : ""}
     `;
   }
   if (view === "papers")
@@ -497,8 +560,16 @@ function studentActions(view, item) {
 }
 
 function reviewActions(item) {
+  if (item.target_type === "paper") {
+    const paper = (state.data?.snapshot?.papers || []).find((entry) => entry.paper_id === item.target_id);
+    const attempt = paper && latestAttempt(paper);
+    if (attempt) return `<span class="decision-state">${esc(t("oldPaperApprovalNote"))}</span>`;
+  }
+  if (["approved", "done", "blocked"].includes(item.status) && state.reopenedReviewId !== item.review_id) {
+    return `<span class="decision-state">${esc(t("decisionSaved"))}</span><button class="plain" data-reopen-review="${esc(item.review_id)}" type="button">${esc(t("reReview"))}</button>`;
+  }
   return `
-    <button class="primary" data-decision-action="approve" data-review-id="${esc(item.review_id)}" type="button">${esc(t("approve"))}</button>
+    <button class="primary" data-decision-action="approve" data-review-id="${esc(item.review_id)}" type="button">${esc(t(item.target_type === "paper" ? "approvePaper" : "approveExplanation"))}</button>
     <button class="plain" data-decision-action="request_changes" data-review-id="${esc(item.review_id)}" type="button">${esc(t("requestChanges"))}</button>
     <button class="danger" data-decision-action="block" data-review-id="${esc(item.review_id)}" type="button">${esc(t("block"))}</button>
   `;
@@ -512,22 +583,17 @@ function renderDetail(item, view, snapshot) {
     return renderPaper(item);
   }
   if (view === "review") return renderReviewItem(item, snapshot);
-  return renderQuestion(item);
+  return renderQuestion(item, false);
 }
 
-function renderQuestion(question) {
+function renderQuestion(question, parentReview) {
   const unverified = question.outcome === "uncertain" || !question.correct_answer;
-  return `
-    <section class="hero-answer">
-      <div class="chips">${statusChip(question.status)}${outcomeChip(question.outcome)}<span class="chip">${esc(question.subject)}</span><span class="chip">${esc(question.topic)}</span></div>
-      <h2 class="question-title">${esc(question.title)}</h2>
-      <p>${esc(question.prompt_text)}</p>
-      <div class="answer-grid">
-        <div class="answer-box"><span>${esc(t("studentAnswer"))}</span><b>${esc(question.student_answer)}</b></div>
-        <div class="answer-box ${unverified ? "is-flagged" : ""}"><span>${esc(t("correctAnswer"))}</span><b>${esc(question.correct_answer || t("uncertain"))}</b></div>
-      </div>
-      <p class="note">${esc(question.explanation?.kid_summary || "")}</p>
-    </section>
+  const explanation = `
+    <div class="answer-grid">
+      <div class="answer-box"><span>${esc(t("studentAnswer"))}</span><b>${esc(question.student_answer)}</b></div>
+      <div class="answer-box ${unverified ? "is-flagged" : ""}"><span>${esc(t("correctAnswer"))}</span><b>${esc(question.correct_answer || t("uncertain"))}</b></div>
+    </div>
+    <p class="note">${esc(question.explanation?.kid_summary || "")}</p>
     <section class="section">
       <h3>${esc(t("gentleSteps"))}</h3>
       <ol class="step-list">
@@ -536,18 +602,32 @@ function renderQuestion(question) {
     </section>
     ${infoSection(t("keyConcept"), question.explanation?.key_concept)}
     ${infoSection(t("selfCheck"), question.explanation?.self_check)}
-    ${infoSection(t("nextHint"), question.explanation?.next_hint)}
+  `;
+  return `
+    <section class="hero-answer">
+      <div class="chips">${statusChip(question.status)}${outcomeChip(question.outcome)}<span class="chip">${esc(question.subject)}</span><span class="chip">${esc(question.topic)}</span></div>
+      <h2 class="question-title">${esc(question.title)}</h2>
+      ${originalQuestion(question)}
+      ${state.studentFeedback[question.question_id] ? `<p class="note" role="status">${esc(state.studentFeedback[question.question_id])}</p>` : ""}
+      ${parentReview ? explanation : `${infoSection(t("nextHint"), question.explanation?.next_hint)}<details class="section" data-question-explanation><summary>${esc(t("revealQuestionExplanation"))}</summary>${explanation}</details>`}
+    </section>
+    ${parentReview ? infoSection(t("nextHint"), question.explanation?.next_hint) : ""}
   `;
 }
 
 function renderMistake(mistake) {
+  const question = (state.data?.snapshot?.questions || []).find((q) => q.question_id === mistake.question_id);
   return `
     <section class="hero-answer">
       <div class="chips">${statusChip(mistake.status)}<span class="chip">${esc(mistake.subject)}</span><span class="chip">${esc(t("attempts"))}: ${esc(mistake.attempts)}</span></div>
       <h2 class="question-title">${esc(mistake.mistake_type)}</h2>
       <p>${esc(t("topic"))}: ${esc(mistake.topic)} · ${esc(t("due"))}: ${esc(mistake.next_review_at)}</p>
     </section>
+    ${question ? originalQuestion(question) : `<p class="note">${esc(t("practiceSourceLookup"))}</p>`}
     ${infoSection(t("rootCause"), mistake.analysis?.root_cause)}
+    <section class="section"><h3>${esc(t("editMistakeCause"))}</h3><p class="note">${esc(t("mistakeCauseHint"))}</p><div class="field"><label for="mistakeCause">${esc(t("mistakeCauseLabel"))}</label><textarea id="mistakeCause" data-mistake-draft="${esc(mistake.mistake_id)}" maxlength="2000">${esc(state.mistakeDrafts[mistake.mistake_id] ?? mistake.analysis?.root_cause ?? "")}</textarea></div><button class="primary" data-save-mistake="${esc(mistake.mistake_id)}" type="button" ${state.busy || state.mistakeSubmissions[mistake.mistake_id] ? "disabled" : ""}>${esc(t("submitMistakeCause"))}</button>${state.causeStatus[mistake.mistake_id] || state.mistakeSubmissions[mistake.mistake_id] ? `<p class="note" role="status">${esc(state.causeStatus[mistake.mistake_id] || state.mistakeSubmissions[mistake.mistake_id])}</p>` : ""}${state.mistakeRequestIds[mistake.mistake_id] ? `<button class="plain" data-refresh-cause type="button">${esc(t("refreshSaveStatus"))}</button>` : ""}</section>
+    <section class="section"><h3>${esc(t("practiceRequest"))}</h3><p>${esc(t("practiceRequestHint"))}</p><button class="plain" data-practice-request="${esc(mistake.mistake_id)}" type="button">${esc(t("copyPracticeRequest"))}</button></section>
+
     ${infoSection(t("misconception"), mistake.analysis?.misconception)}
     ${infoSection(t("fixStrategy"), mistake.analysis?.fix_strategy)}
     ${infoSection(t("similarPrompt"), mistake.analysis?.similar_prompt)}
@@ -555,44 +635,99 @@ function renderMistake(mistake) {
   `;
 }
 
+function practiceDiagram(item) {
+  const diagram = item.diagram;
+  if (!diagram) return "";
+  const points = diagram.points;
+  const xs = Object.values(points).map((p) => p[0]);
+  const ys = Object.values(points).map((p) => p[1]);
+  const left = Math.min(...xs) - 35;
+  const top = Math.min(...ys) - 35;
+  const width = Math.max(...xs) - left + 35;
+  const height = Math.max(...ys) - top + 35;
+  const poly = (labels) => labels.map((l) => points[l].join(",")).join(" ");
+  const p = points;
+  return `<figure class="practice-diagram"><svg role="img" aria-label="${esc(t("practiceDiagramAlt"))}" viewBox="${left} ${top} ${width} ${height}" style="width:100%;max-height:320px" xmlns="http://www.w3.org/2000/svg">
+    <polyline points="${poly(["A", "B", "C", "D", "A"])}" fill="none" stroke="currentColor" stroke-width="1.5" />
+    <polyline points="${poly(["G", "E", "Q", "H"])}" fill="none" stroke="currentColor" stroke-width="2" />
+    <line x1="${p.G[0]}" y1="${p.G[1]}" x2="${p.H[0]}" y2="${p.H[1]}" stroke="currentColor" stroke-width="1.5" stroke-dasharray="6 4" />
+    ${Object.entries(p)
+      .map(
+        ([l, [x, y]]) =>
+          `<text x="${x + (l === "E" ? 4 : l === "Q" ? -18 : ["A", "D", "G"].includes(l) ? -20 : 7)}" y="${y + (["A", "B", "E", "Q"].includes(l) ? -8 : 16)}" fill="currentColor">${l}</text>`,
+      )
+      .join("")}
+  </svg><figcaption>${esc(diagram.note)} · ${esc(t("diagramNotToScale"))}</figcaption></figure>`;
+}
+
+function latestAttempt(paper) {
+  return paper.analysis?.attempts?.at(-1) || null;
+}
+
+function attemptHistory(paper, parent = false) {
+  const attempts = paper.analysis?.attempts || [];
+  if (!attempts.length) return "";
+  const reviews = paper.analysis?.attempt_reviews || [];
+  return `<section class="section"><h3>${esc(t("attemptHistory"))}</h3>${attempts
+    .map((attempt) => {
+      const review = reviews.find((entry) => entry.attempted_at === attempt.attempted_at);
+      return `<div class="paper-item"><p><b>${esc(attempt.attempted_at)}</b> · ${esc(tf("runScore", { correct: attempt.correct, total: attempt.graded }))} · ${esc(review ? t("attemptReviewed") : t("attemptPending"))}</p>
+      ${parent ? (attempt.results || []).map((result) => `<div class="paper-item"><b>${esc(result.ref)}. ${esc(result.prompt)}</b><p>${esc(t("studentAnswer"))}: ${esc(result.given)}</p><p>${esc(t("firstAnswer"))}: ${esc(result.first_given)} · ${esc(result.first_outcome)}</p><p>${esc(t("answerHistory"))}: ${esc((result.answer_history || []).map((step) => step.given).join(" → "))}</p><p>${esc(t("marking"))}: ${esc(review?.verdicts?.find((v) => v.ref === result.ref)?.outcome || result.outcome)}</p></div>`).join("") : `<p class="note">${esc(t("attemptStudentNote"))}</p>`}
+      ${parent && review ? `<p>${esc(t("parentNotes"))}: ${esc(review.comment)}</p>` : ""}</div>`;
+    })
+    .join("")}</section>`;
+}
+
+function attemptReviewForm(paper) {
+  const attempt = latestAttempt(paper);
+  if (
+    !attempt ||
+    paper.status !== "needs_review" ||
+    (paper.analysis?.attempt_reviews || []).some((entry) => entry.attempted_at === attempt.attempted_at)
+  )
+    return "";
+  const open = (attempt.results || []).filter((entry) => entry.outcome === "ungraded");
+  return `<section class="section"><h3>${esc(t("reviewAttempt"))}</h3>${state.attemptReviewRequests[paper.paper_id] ? `<p role="status">${esc(t("attemptReviewPending"))} ${esc(state.attemptReviewRequests[paper.paper_id])}</p>` : ""}<p class="note">${esc(t("reviewAttemptHint"))}</p>
+    ${open.map((entry) => `<div class="field"><label for="attemptVerdict${esc(entry.ref)}">${esc(entry.ref)}. ${esc(entry.prompt)}</label><select id="attemptVerdict${esc(entry.ref)}" data-attempt-verdict="${esc(entry.ref)}"><option value="">${esc(t("selectMark"))}</option><option value="correct">${esc(t("correct"))}</option><option value="wrong">${esc(t("wrong"))}</option></select></div>`).join("")}
+    <div class="field"><label for="attemptNote">${esc(t("parentNotes"))}</label><textarea id="attemptNote" maxlength="2000"></textarea></div><p class="note" data-attempt-review-error role="alert" hidden></p><button class="primary" type="button" data-submit-attempt-review="${esc(paper.paper_id)}" ${state.attemptReviewRequests[paper.paper_id] ? "disabled" : ""}>${esc(t("submitAttemptReview"))}</button></section>`;
+}
+
 function renderPaper(paper) {
+  const attempt = latestAttempt(paper);
+  const pending =
+    attempt && !(paper.analysis?.attempt_reviews || []).some((entry) => entry.attempted_at === attempt.attempted_at);
+  const review = (state.data?.snapshot?.review_items || []).find(
+    (item) => item.target_type === "paper" && item.target_id === paper.paper_id,
+  );
   return `
     <section class="hero-answer">
       <div class="chips">${statusChip(paper.status)}<span class="chip">${esc(paper.subject)}</span><span class="chip">${esc(paper.estimated_minutes)} ${esc(t("minutes"))}</span></div>
       <h2 class="question-title">${esc(paper.title)}</h2>
+      ${pending ? `<p class="note">${esc(t("attemptPending"))} ${review ? `<button class="plain" type="button" data-route="review/${esc(review.review_id)}">${esc(t("reviewAttempt"))}</button>` : esc(t("reviewLinkMissing"))}</p>` : ""}
       ${
-        isGradeable(paper)
+        isGradeable(paper) && paper.status === "approved"
           ? `<div class="run-entry">
               <button class="primary" data-run-start="${esc(paper.paper_id)}" type="button">${esc(t("startPaper"))}</button>
               <span class="note">${esc(t("startPaperHint"))}</span>
             </div>`
-          : `<p class="note">${esc(t("paperNotGradeable"))}</p>`
+          : `<p class="note">${esc(t(isGradeable(paper) ? "paperNeedsApproval" : "paperNotGradeable"))}</p>`
       }
       <div class="builder-grid">
         ${metric(t("questionCount"), paper.question_count)}
-        ${metric(t("wrongCount"), paper.analysis?.wrong_count || 0)}
+
         ${metric(t("focus"), (paper.focus_topics || []).join(", "))}
-      </div>
-    </section>
-    <section class="section">
-      <h3>${esc(t("buildPaper"))}</h3>
-      <div class="paper-builder">
-        <div class="builder-grid">
-          <div class="field"><label>${esc(t("questionCount"))}</label><input value="${esc(paper.question_count)}" readonly /></div>
-          <div class="field"><label>${esc(t("minutes"))}</label><input value="${esc(paper.estimated_minutes)}" readonly /></div>
-          <div class="field"><label>${esc(t("focus"))}</label><input value="${esc((paper.focus_topics || []).join(", "))}" readonly /></div>
-        </div>
       </div>
     </section>
     <section class="section">
       <h3>${esc(t("paperItems"))}</h3>
       ${paperItems(paper)
-        .map((entry) => `<div class="paper-item">${esc(entry.ref)}. ${esc(entry.prompt)}</div>`)
+        .map(
+          (entry) => `<div class="paper-item">${esc(entry.ref)}. ${esc(entry.prompt)}${practiceDiagram(entry)}</div>`,
+        )
         .join("")}
     </section>
-    ${listSection(t("strengths"), paper.analysis?.strengths)}
-    ${listSection(t("reviewPlan"), paper.analysis?.review_plan)}
-    ${infoSection(t("deepNotes"), paper.analysis?.deep_notes)}
+    ${attemptHistory(paper)}
+    <p class="note">${esc(t("childPaperNote"))}</p>
   `;
 }
 
@@ -624,7 +759,21 @@ function hintFirst() {
 }
 
 function startRun(paperId) {
-  state.run = { paper_id: paperId, index: 0, answers: {}, hints: {}, tries: {}, stage: "answer", outcome: "" };
+  const paper = (state.data?.snapshot?.papers || []).find((p) => p.paper_id === paperId);
+  if (!paper || paper.status !== "approved" || !isGradeable(paper)) {
+    window.alert(t("paperNeedsApproval"));
+    return;
+  }
+  state.run = {
+    paper_id: paperId,
+    index: 0,
+    answers: {},
+    history: {},
+    hints: {},
+    tries: {},
+    stage: "answer",
+    outcome: "",
+  };
   state.notice = "";
   render();
 }
@@ -645,8 +794,18 @@ function submitRunAnswer() {
   const item = currentItem();
   if (!runState || !item) return;
   const given = document.getElementById("runAnswer")?.value ?? "";
+  if (!given.trim()) {
+    window.alert(t("answerRequired"));
+    return;
+  }
   runState.answers[item.ref] = given;
   const outcome = gradeAnswer(given, item.answer);
+  (runState.history[item.ref] ||= []).push({
+    given,
+    outcome,
+    hints_used: Number(runState.hints[item.ref]) || 0,
+    answered_at: new Date().toISOString(),
+  });
   runState.outcome = outcome;
   runState.tries[item.ref] = (runState.tries[item.ref] || 0) + 1;
 
@@ -680,6 +839,7 @@ function nextRunItem() {
     runState.index += 1;
     runState.stage = "answer";
     runState.outcome = "";
+    runState.showHint = false;
   }
   render();
 }
@@ -697,16 +857,18 @@ async function finishRun() {
   const runState = activeRun();
   const paper = runPaper();
   if (!runState || !paper) return;
-  const attempt = buildPaperAttempt(paper, runState.answers, runState.hints);
+  const attempt = buildPaperAttempt(paper, runState.answers, runState.hints, undefined, runState.history);
 
   if (state.data?.demo) {
-    paper.analysis = { ...paper.analysis, wrong_count: attempt.wrong_count, attempt };
+    paper.analysis = {
+      ...paper.analysis,
+      wrong_count: attempt.wrong_count,
+      attempt,
+      attempts: [...(paper.analysis?.attempts || []), attempt],
+    };
     paper.status = "needs_review";
-    const review = (state.data.snapshot.review_items || []).find((item) => item.target_id === paper.paper_id);
-    if (review) {
-      review.status = "needs_review";
-      review.decision = null;
-    }
+    // Demo mirrors the real single-paper proposal: never reset/reuse the
+    // old parent confirmation as approval of this new result.
     state.workflowCount = null;
     runState.stage = "submitted";
     state.notice = t("decisionRecordedDemo");
@@ -718,7 +880,8 @@ async function finishRun() {
   render();
   try {
     const provider = await getProvider();
-    await provider.submitPaperAttempt({ paper_id: paper.paper_id, attempt });
+    const submitted = await provider.submitPaperAttempt({ paper_id: paper.paper_id, attempt });
+    runState.requestId = submitted.id;
     runState.stage = "submitted";
     state.notice = t("paperSubmitted");
     await loadState();
@@ -742,7 +905,7 @@ function renderRunner(paper) {
   const item = items[runState.index];
 
   if (runState.stage === "done" || runState.stage === "submitted") {
-    const attempt = buildPaperAttempt(paper, runState.answers, runState.hints);
+    const attempt = buildPaperAttempt(paper, runState.answers, runState.hints, undefined, runState.history);
     const wrong = attempt.results.filter((result) => result.outcome === "wrong");
     const open = attempt.results.filter((result) => result.outcome === "ungraded");
     return `
@@ -769,7 +932,7 @@ function renderRunner(paper) {
       <section class="section">
         ${
           runState.stage === "submitted"
-            ? `<p class="note">${esc(t("runHandedOff"))}</p>
+            ? `<p class="note">${esc(state.data?.demo ? t("decisionRecordedDemo") : t("paperResultPending"))} ${esc(runState.requestId || "")}</p>
                <div class="run-actions">
                  <button class="primary" data-route="review" type="button">${esc(t("review"))}</button>
                  <button class="plain" data-run-exit type="button">${esc(t("close"))}</button>
@@ -788,6 +951,7 @@ function renderRunner(paper) {
     <section class="hero-answer">
       <p class="eyebrow">${esc(t("papers"))} · ${esc(runProgress(paper))}${item.topic ? ` · ${esc(item.topic)}` : ""}</p>
       <h2 class="question-title">${esc(item.prompt)}</h2>
+      ${practiceDiagram(item)}
       ${
         runState.stage === "answer" && runState.showHint && item.hint
           ? `<div class="run-verdict is-hint"><p>${esc(item.hint)}</p></div>`
@@ -797,7 +961,7 @@ function renderRunner(paper) {
         runState.stage === "answer"
           ? `<div class="field">
               <label for="runAnswer">${esc(t("runYourAnswer"))}</label>
-              <input id="runAnswer" type="text" value="${esc(given)}" autocomplete="off" placeholder="${esc(t("runAnswerPlaceholder"))}" />
+              ${item.answer ? `<input id="runAnswer" type="text" value="${esc(given)}" autocomplete="off" placeholder="${esc(t("runAnswerPlaceholder"))}" />` : `<textarea id="runAnswer" rows="5" placeholder="${esc(t("explanationAnswerPlaceholder"))}">${esc(given)}</textarea>`}
             </div>
             <div class="run-actions">
               <button class="primary" data-run-submit type="button">${esc(t("runSubmit"))}</button>
@@ -821,6 +985,7 @@ function renderRunner(paper) {
           ? `<div class="run-verdict is-wrong">
               <strong>${esc(t("runWrong"))}</strong>
               <p>${esc(t("correctAnswer"))}: <b>${esc(item.answer)}</b></p>
+              ${infoSection(t("solution"), item.explanation || t("solutionMissing"))}
               ${item.hint ? `<p class="note">${esc(item.hint)}</p>` : ""}
             </div>
             <div class="run-actions">
@@ -832,7 +997,7 @@ function renderRunner(paper) {
         runState.stage === "result"
           ? `<div class="run-verdict ${runState.outcome === "correct" ? "is-correct" : "is-open"}">
               <strong>${esc(runState.outcome === "correct" ? t("runCorrect") : t("runOpenItem"))}</strong>
-              ${runState.outcome === "ungraded" ? `<p class="note">${esc(t("runOpenItemNote"))}</p>` : ""}
+              ${runState.outcome === "ungraded" ? `<p class="note">${esc(t("runOpenItemNote"))}</p>` : infoSection(t("solution"), item.explanation || t("solutionMissing"))}
             </div>
             <div class="run-actions">
               <button class="primary" data-run-next type="button">${esc(t("runNext"))}</button>
@@ -848,16 +1013,88 @@ function renderRunner(paper) {
   `;
 }
 
-function renderReviewItem(item, snapshot) {
-  const target = findTarget(snapshot, item);
+function safeImageUrl(raw) {
+  if (typeof raw !== "string") return "";
+  try {
+    const url = new URL(raw, window.location.origin);
+    return url.protocol === "https:" && /^s\d+\.busabase\.com$/i.test(url.hostname) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function originalQuestion(question) {
+  const image = Array.isArray(question.original_image) ? question.original_image[0] : null;
+  const imageUrl = safeImageUrl(image?.url);
+  return `<section class="section original-question" aria-label="${esc(t("originalQuestion"))}"><h3>${esc(t("originalQuestion"))}</h3>${imageUrl ? `<img class="original-image" src="${esc(imageUrl)}" alt="${esc(t("originalImageAlt"))}" loading="lazy" referrerpolicy="no-referrer" />` : question.source === "photo" ? `<p class="note">${esc(t("photoNotStored"))}</p>` : ""}<p>${esc(question.prompt_text || t("missingQuestion"))}</p></section>`;
+}
+
+function nextStep(item) {
+  if (item.status === "blocked") return t("blockedNext");
+  if (item.status === "changes_requested") return t("revisionNext");
+  if (["approved", "done"].includes(item.status))
+    return !item.proposed_action || item.proposed_action === "no_action"
+      ? t("confirmedNoFollowup")
+      : actionLabel(item.proposed_action);
+  return t("checkExplanation");
+}
+
+function renderQuestionReview(item, question) {
   const decision = item.decision;
+  const settled = ["approved", "done", "blocked"].includes(item.status) && state.reopenedReviewId !== item.review_id;
+  const steps = question.explanation?.steps || [];
   return `
     <section class="hero-answer">
       <div class="chips">${statusChip(item.status)}${(item.risk || []).map((risk) => `<span class="chip warn">${esc(risk)}</span>`).join("")}</div>
-      <h2 class="question-title">${esc(item.title)}</h2>
+      <h2 class="question-title">${esc(question.title || item.title)}</h2>
+      <p>${esc(t("reviewPurpose"))}</p>
+      ${originalQuestion(question)}
+    </section>
+    <section class="section">
+      <h3>${esc(t("explanationToConfirm"))}</h3>
+      ${question.explanation?.kid_summary ? `<p>${esc(question.explanation.kid_summary)}</p>` : ""}
+      ${steps.length ? `<ol class="step-list">${steps.map((step, index) => `<li><span class="step-num">${index + 1}</span><span>${esc(step)}</span></li>`).join("")}</ol>` : `<p class="note">${esc(t("missingExplanation"))}</p>`}
+      ${infoSection(t("keyConcept"), question.explanation?.key_concept)}
+    </section>
+    ${item.reason || question.explanation?.self_check ? `<section class="section"><h3>${esc(t("checkPoints"))}</h3>${item.reason ? `<p>${esc(item.reason)}</p>` : ""}${question.explanation?.self_check ? `<p>${esc(question.explanation.self_check)}</p>` : ""}</section>` : ""}
+    <section class="section">
+      <h3>${esc(t("confirmationResult"))}</h3>
+      <p>${esc(nextStep(item))}</p>
+      ${settled ? `<p>${esc(decision?.comment || t("noNote"))}</p>` : `<div class="field"><label for="reviewNote">${esc(t("reviewNote"))}</label><textarea id="reviewNote">${esc(decision?.comment || item.suggested_note || "")}</textarea><p class="note">${esc(t("reviewNoteHint"))}</p></div>`}
+    </section>
+  `;
+}
+
+function renderPaperReview(item, paper) {
+  const settled = ["approved", "done", "blocked"].includes(item.status) && state.reopenedReviewId !== item.review_id;
+  return `<section class="hero-answer"><p class="eyebrow">${esc(t("parentPaperReview"))}</p><h2>${esc(paper.title)}</h2><p>${esc(t("paperReviewPurpose"))}</p>${statusChip(item.status)}<p>${esc(item.summary)}</p></section>
+    ${paperItems(paper)
+      .map(
+        (entry) =>
+          `<section class="section"><h3>${esc(entry.ref)}. ${esc(entry.prompt)}</h3>${practiceDiagram(entry)}${infoSection(t("parentAnswer"), entry.answer || entry.parent_answer || t("manualAnswer"))}${infoSection(t("solution"), entry.explanation || t("solutionMissing"))}</section>`,
+      )
+      .join("")}
+    ${attemptHistory(paper, true)}
+    ${attemptReviewForm(paper)}
+    ${infoSection(t("parentNotes"), paper.analysis?.deep_notes)}
+    <section class="section"><h3>${esc(t("reviewNote"))}</h3>${settled ? `<p>${esc(item.decision?.comment || t("noNote"))}</p>` : `<textarea id="reviewNote">${esc(item.decision?.comment || item.suggested_note || "")}</textarea>`}</section>`;
+}
+
+function renderReviewItem(item, snapshot) {
+  const target = findTarget(snapshot, item);
+  if (item.target_type === "question" && target) return renderQuestionReview(item, target);
+  if (item.target_type === "paper" && target) return renderPaperReview(item, target);
+  const decision = item.decision;
+  const settled = ["approved", "done", "blocked"].includes(item.status) && state.reopenedReviewId !== item.review_id;
+  return `
+    <section class="hero-answer">
+      <div class="chips">${statusChip(item.status)}${(item.risk || []).map((risk) => `<span class="chip warn">${esc(risk)}</span>`).join("")}</div>
+      <h2 class="question-title">${esc(target?.title || item.title)}</h2>
+      <p>${esc(t("reviewPurpose"))}</p>
+      ${target?.prompt_text ? originalQuestion(target) : `<p class="note">${esc(t("missingQuestion"))}</p>`}
       <p>${esc(item.summary)}</p>
       <div class="split">
-        <div class="answer-box"><span>${esc(t("proposedAction"))}</span><b>${esc(actionLabel(item.proposed_action))}</b></div>
+        <div class="answer-box"><span>${esc(t("nextStep"))}</span><b>${esc(nextStep(item))}</b></div>
         <div class="answer-box"><span>${esc(t("reason"))}</span><p>${esc(item.reason)}</p></div>
       </div>
     </section>
@@ -865,8 +1102,7 @@ function renderReviewItem(item, snapshot) {
     <section class="section">
       <h3>${esc(t("reviewNote"))}</h3>
       <div class="field">
-        <textarea id="reviewNote">${esc(decision?.comment || item.suggested_note || "")}</textarea>
-        <p class="note">${esc(t("reviewNoteHint"))}</p>
+        ${settled ? `<p>${esc(decision?.comment || t("noNote"))}</p>` : `<textarea id="reviewNote">${esc(decision?.comment || item.suggested_note || "")}</textarea><p class="note">${esc(t("reviewNoteHint"))}</p>`}
       </div>
     </section>
     ${target ? `<section class="section"><h3>${esc(t("targetSection"))}</h3>${targetSummary(target, item.target_type)}</section>` : ""}
@@ -883,7 +1119,7 @@ function findTarget(snapshot, item) {
 }
 
 function targetSummary(target, type) {
-  if (type === "question") return renderQuestion(target);
+  if (type === "question") return renderQuestion(target, true);
   if (type === "mistake") return renderMistake(target);
   return renderPaper(target);
 }
@@ -1009,6 +1245,7 @@ function applyDemoDecision({ review_id, action, comment }) {
 }
 
 async function submitDecision(payload) {
+  state.reopenedReviewId = "";
   if (state.data?.demo) {
     applyDemoDecision(payload);
     state.notice = t("decisionRecordedDemo");
@@ -1049,10 +1286,78 @@ function nearestReviewForTarget(targetId) {
   return (state.data.snapshot?.review_items || []).find((item) => item.target_id === targetId);
 }
 
+async function submitMistakeCause(id) {
+  if (state.busy || state.mistakeSubmissions[id]) return;
+  const cause = document.getElementById("mistakeCause")?.value.trim() || "";
+  if (!cause || cause.length > 2000) {
+    window.alert(t("mistakeCauseRequired"));
+    return;
+  }
+  state.mistakeDrafts[id] = cause;
+  state.busy = true;
+  render();
+  try {
+    if (state.data?.demo) {
+      state.mistakeSubmissions[id] = t("mistakeCauseDemo");
+    } else {
+      const provider = await getProvider();
+      const cr = await provider.submitMistakeCause({ mistake_id: id, cause });
+      state.mistakeRequestIds[id] = cr.id;
+      state.mistakeSubmissions[id] = t("causePending");
+      state.causeStatus[id] = t("causePending");
+      rememberCauseRequests();
+    }
+  } catch (error) {
+    window.alert(error.message);
+  } finally {
+    state.busy = false;
+    render();
+  }
+}
+
 document.addEventListener("click", async (event) => {
   if (!(event.target instanceof Element)) return;
   const button = event.target.closest("button");
   if (!button) return;
+
+  if (button.dataset.refreshCause !== undefined) {
+    try {
+      await loadState();
+    } catch (error) {
+      window.alert(error.message);
+    }
+    return;
+  }
+  if (button.dataset.practiceRequest) {
+    if (state.busy) return;
+    const m = (state.data?.snapshot?.mistakes || []).find((x) => x.mistake_id === button.dataset.practiceRequest);
+    if (!m) return;
+    state.busy = true;
+    try {
+      const provider = await getProvider();
+      const question = state.data?.demo
+        ? (state.data.snapshot.questions || []).find((q) => q.question_id === m.question_id)
+        : await provider.getQuestionForMistake(m);
+      const resourceContext = state.data?.demo ? {} : await provider.getPracticeContext();
+      const prompt = buildPracticeRequest(m, question, {
+        spaceId: appConfig.spaceId,
+        ...resourceContext,
+        demoOnly: Boolean(state.data?.demo),
+      });
+      await navigator.clipboard.writeText(prompt);
+      state.notice = t("practiceCopied");
+    } catch (error) {
+      window.alert(error.message);
+    } finally {
+      state.busy = false;
+      render();
+    }
+    return;
+  }
+  if (button.dataset.saveMistake) {
+    await submitMistakeCause(button.dataset.saveMistake);
+    return;
+  }
 
   if (button.dataset.loadMore) {
     await loadMore(button.dataset.loadMore);
@@ -1172,6 +1477,65 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
+  if (button.dataset.submitAttemptReview) {
+    const paper = (state.data?.snapshot?.papers || []).find(
+      (entry) => entry.paper_id === button.dataset.submitAttemptReview,
+    );
+    const attempt = paper && latestAttempt(paper);
+    if (!attempt) return;
+    const open = (attempt.results || []).filter((entry) => entry.outcome === "ungraded");
+    const verdicts = open.map((entry) => ({
+      ref: entry.ref,
+      outcome: document.getElementById(`attemptVerdict${entry.ref}`)?.value || "",
+    }));
+    const comment = document.getElementById("attemptNote")?.value?.trim() || "";
+    const errorNotice = document.querySelector("[data-attempt-review-error]");
+    if (!comment || verdicts.some((v) => !["correct", "wrong"].includes(v.outcome))) {
+      if (errorNotice) {
+        errorNotice.textContent = t("reviewAttemptRequired");
+        errorNotice.hidden = false;
+        errorNotice.scrollIntoView({ block: "nearest" });
+      }
+      return;
+    }
+    if (errorNotice) errorNotice.hidden = true;
+    if (state.busy || state.attemptReviewRequests[paper.paper_id]) return;
+    state.busy = true;
+    button.disabled = true;
+    try {
+      if (state.data.demo) {
+        (paper.analysis.attempt_reviews ||= []).push({
+          attempted_at: attempt.attempted_at,
+          verdicts,
+          comment,
+          reviewed_at: new Date().toISOString(),
+        });
+        state.notice = t("decisionRecordedDemo");
+        render();
+      } else {
+        const provider = await getProvider();
+        const result = await provider.submitAttemptReview({
+          paper_id: paper.paper_id,
+          attempted_at: attempt.attempted_at,
+          verdicts,
+          comment,
+        });
+        state.attemptReviewRequests[paper.paper_id] = result.id;
+        state.notice = `${t("attemptReviewPending")} ${result.id}`;
+        render();
+      }
+    } catch (error) {
+      if (errorNotice) {
+        errorNotice.textContent = error.message;
+        errorNotice.hidden = false;
+      }
+      button.disabled = false;
+    } finally {
+      state.busy = false;
+    }
+    return;
+  }
+
   if (button.dataset.decisionAction) {
     const comment = document.getElementById("reviewNote")?.value || "";
     await submitDecision({
@@ -1182,20 +1546,25 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
-  if (button.dataset.understand) {
-    const review = nearestReviewForTarget(button.dataset.understand);
-    if (review) await submitDecision({ review_id: review.review_id, action: "approve", comment: t("iUnderstand") });
+  if (button.dataset.reopenReview) {
+    state.reopenedReviewId = button.dataset.reopenReview;
+    render();
     return;
   }
-
-  if (button.dataset.needHelp) {
-    const review = nearestReviewForTarget(button.dataset.needHelp);
-    if (review)
-      await submitDecision({
-        review_id: review.review_id,
-        action: "request_changes",
-        comment: t("stillNeedHelp"),
-      });
+  if (button.dataset.copyStudentFeedback) {
+    const q = (state.data.snapshot.questions || []).find((q) => q.question_id === button.dataset.copyStudentFeedback);
+    await navigator.clipboard.writeText(
+      `${t("feedbackChatPrompt")} ${q?.title || ""}\n${q?.prompt_text || ""}\n${state.studentFeedback[q?.question_id] || ""}`,
+    );
+    state.notice = t("feedbackCopied");
+    render();
+    return;
+  }
+  if (button.dataset.understand || button.dataset.needHelp) {
+    const id = button.dataset.understand || button.dataset.needHelp;
+    state.studentFeedback[id] = button.dataset.understand ? t("studentUnderstoodLocal") : t("studentNeedsHelpLocal");
+    render();
+    return;
   }
 });
 
@@ -1207,6 +1576,8 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.addEventListener("input", (event) => {
+  if (event.target instanceof HTMLTextAreaElement && event.target.dataset.mistakeDraft)
+    state.mistakeDrafts[event.target.dataset.mistakeDraft] = event.target.value;
   if (!(event.target instanceof Element)) return;
   if (event.target.matches("[data-search]")) {
     state.query = event.target.value;

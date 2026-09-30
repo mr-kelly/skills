@@ -1274,3 +1274,11 @@ body.sidebar-collapsed .sidebar-footer button {
     grid-template-columns: 1fr;
   }
 }
+
+.original-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 12px 0;
+  object-fit: contain;
+}

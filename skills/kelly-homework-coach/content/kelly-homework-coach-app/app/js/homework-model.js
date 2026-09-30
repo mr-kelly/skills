@@ -228,6 +228,7 @@ export function computeQuestionFromRow({
   status = "needs_review",
   difficulty = "medium",
   photo_label = "",
+  original_image = [],
   prompt_text = "",
   student_answer = "",
   correct_answer = "",
@@ -249,6 +250,18 @@ export function computeQuestionFromRow({
     status,
     difficulty,
     photo_label,
+    original_image: Array.isArray(original_image)
+      ? original_image
+      : typeof original_image === "string"
+        ? (() => {
+            try {
+              const parsed = JSON.parse(original_image);
+              return Array.isArray(parsed) ? parsed : [];
+            } catch {
+              return [];
+            }
+          })()
+        : [],
     prompt_text,
     student_answer,
     correct_answer,
@@ -344,6 +357,9 @@ export function normalizePaperItem(item, index) {
     answer: String(item.answer ?? ""),
     hint: String(item.hint ?? ""),
     topic: String(item.topic ?? ""),
+    ...(typeof item.explanation === "string" ? { explanation: item.explanation } : {}),
+    ...(typeof item.parent_answer === "string" ? { parent_answer: item.parent_answer } : {}),
+    ...(normalizePracticeDiagram(item.diagram) ? { diagram: normalizePracticeDiagram(item.diagram) } : {}),
   };
 }
 
@@ -392,7 +408,7 @@ export function gradeAnswer(given, expected) {
  * and this skill's contract is that the agent writes those and a parent
  * approves them. A runner that auto-filled them would be inventing analysis.
  */
-export function buildPaperAttempt(paper, answers = {}, hintsUsed = {}, now = new Date().toISOString()) {
+export function buildPaperAttempt(paper, answers = {}, hintsUsed = {}, now = new Date().toISOString(), history = {}) {
   const items = paperItems(paper);
   const results = items.map((item) => {
     const given = String(answers[item.ref] ?? "");
@@ -404,6 +420,9 @@ export function buildPaperAttempt(paper, answers = {}, hintsUsed = {}, now = new
       expected: item.answer,
       outcome: gradeAnswer(given, item.answer),
       hints_used: Number(hintsUsed[item.ref]) || 0,
+      answer_history: history[item.ref] || [],
+      first_given: history[item.ref]?.[0]?.given ?? given,
+      first_outcome: history[item.ref]?.[0]?.outcome ?? gradeAnswer(given, item.answer),
     };
   });
   const answered = results.filter((result) => result.outcome !== "ungraded");
@@ -1183,4 +1202,54 @@ export function demoSnapshot(lang = "en") {
     generated_at: now,
     source: "kelly-homework-coach-demo",
   };
+}
+
+// A copy-to-chat handoff, not an automatic generation job. Include stable
+// private-workspace references, not image URLs that may contain access tokens.
+export function buildPracticeRequest(mistake, question, context = {}) {
+  if (
+    !mistake?.mistake_id ||
+    !question?.question_id ||
+    mistake.question_id !== question.question_id ||
+    !question.prompt_text
+  ) {
+    throw new Error("原题关联不完整，请先补齐原题，不能只凭错因出题。");
+  }
+  const images = (question.original_image || []).map((image) => ({
+    attachmentId: image.attachmentId || image.id || "",
+    name: image.name || image.filename || "原题图",
+  }));
+  return `请为这道错题出一份3题同类练习。先按下面的记录定位读取最新原题、原图和讲解，不要仅根据错因猜题。
+
+原题：${question.title || ""}
+${question.prompt_text}
+孩子的答案：${question.student_answer || "未记录"}
+正确答案：${question.correct_answer || "需核对"}
+家长观察／错因补充（未必已证实）：${mistake.analysis?.root_cause || "待核实"}
+
+图形要求：${images.length ? "原图已存入原题记录，请读取附件；若无法查看，应先说明，不能凭文字猜图。" : "未记录原图附件；若解题依赖图形，先取得原图再出题。"}每道图形练习须提供对应的可用图形，核对图、题干与答案。不得把孩子的原图打包进公开Demo；若需要另行上传附件，先取得授权。
+出题要求：基础复算、关系解释、迁移练习各1题；给家长提供答案和核对依据，给孩子保留提示。关联现有错题，只建一个练习卷确认项，提交待审，不自动合并，不自动认定掌握。
+出现流程：请提交练习卷入库请求并报告编号；授权合并后，卷子出现在“练习卷”，家长确认后才能开始作答。
+
+记录定位（供Agent读取，不需要我手动操作）：
+${JSON.stringify({ ...context, mistakeId: mistake.mistake_id, questionId: question.question_id, originalImages: images }, null, 2)}`;
+}
+
+// Fixed geometric diagram format: no raw SVG, HTML, external images or URLs.
+export function normalizePracticeDiagram(value) {
+  if (!value || typeof value !== "object") return null;
+  const labels = ["A", "B", "C", "D", "E", "G", "H", "Q"];
+  const points = {};
+  for (const label of labels) {
+    const point = value.points?.[label];
+    if (
+      !Array.isArray(point) ||
+      point.length !== 2 ||
+      point.some((n) => typeof n !== "number" || !Number.isFinite(n) || Math.abs(n) > 1000)
+    )
+      return null;
+    points[label] = [...point];
+  }
+  const note = typeof value.note === "string" ? value.note.slice(0, 120) : "";
+  return { points, note };
 }

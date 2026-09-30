@@ -20,9 +20,8 @@ const allowedReads = new Set(appConfig.permissions.readProcedures);
 const allowedSetup = new Set(appConfig.permissions.setupProcedures);
 const allowedWrites = new Set(appConfig.permissions.writeProcedures);
 
-// A deployed AirApp sits inside the Busabase review boundary; only a standalone
-// run may merge its own writes. That is far too consequential to infer from the
-// URL — see ../runtime.js.
+// Business record writes always remain pending, including local previews.
+// Resource provisioning retains its separate upstream setup workflow.
 import { isStandaloneLocalRuntime } from "../runtime.js";
 
 export { isStandaloneLocalRuntime };
@@ -113,7 +112,7 @@ async function updateRecord(key, existing, fields, message) {
     message,
     author: appConfig.appId,
     baseCommitId: existing.headCommitId,
-    autoMerge: isStandaloneLocalRuntime(),
+    autoMerge: false,
   });
 }
 
@@ -217,6 +216,60 @@ export const busabaseProvider = {
   // review's decision action/comment/decided_at live on the review row,
   // while the target's status is kept in sync on its own row — there is no
   // separate decisions.json bucket.
+  async getPracticeContext() {
+    await ensureResources();
+    return { questionsBaseId: base("questions").baseId, mistakesBaseId: base("mistakes").baseId };
+  },
+
+  async getQuestionForMistake(mistake) {
+    if (!mistake?.question_id) throw new Error("这张错题卡未关联原题，请先补齐关联。");
+    await ensureResources();
+    const row = await findRecord("questions", "question-id", mistake.question_id);
+    if (!row) throw new Error("找不到关联原题，暂不能生成完整出题请求。");
+    return computeQuestionFromRow(normalizeFields(row.headCommit?.payload || row.headCommit?.fields || row.fields));
+  },
+
+  async getMistakeRequestStatus({ requestId, mistake_id } = {}) {
+    if (!/^crq[a-zA-Z0-9]+$/.test(requestId || "")) throw new Error("Invalid request id");
+    if (!allowedReads.has("changeRequests.get")) throw new Error("PROCEDURE_DENIED");
+    await ensureResources();
+    const row = await findRecord("mistakes", "mistake-id", mistake_id);
+    if (!row) throw new Error("Mistake not found");
+    const cr = await runtimeClient.changeRequests.get({ changeRequestId: requestId });
+    if (cr.baseId !== base("mistakes").baseId || !cr.operations?.some((op) => op.targetRecordId === row.id))
+      throw new Error("Request does not belong to this mistake");
+    return cr.status;
+  },
+
+  async submitMistakeCause({ mistake_id, cause } = {}) {
+    if (typeof mistake_id !== "string" || !mistake_id) throw new Error("Missing mistake id");
+    if (typeof cause !== "string" || !cause.trim() || cause.trim().length > 2000)
+      throw new Error("Cause must be 1–2000 characters");
+    if (!allowedWrites.has("records.changeRequest")) throw new Error("PROCEDURE_DENIED: records.changeRequest");
+    await ensureResources();
+    const row = await findRecord("mistakes", "mistake-id", mistake_id);
+    if (!row) throw new Error("Mistake not found");
+    const raw = row.headCommit?.payload || row.headCommit?.fields || row.fields || {};
+    let analysis;
+    try {
+      analysis = typeof raw.analysis === "string" ? JSON.parse(raw.analysis) : raw.analysis || {};
+    } catch {
+      throw new Error("Invalid existing analysis; refusing to overwrite");
+    }
+    if (!analysis || typeof analysis !== "object" || Array.isArray(analysis)) throw new Error("Invalid analysis");
+    const cr = await runtimeClient.records.changeRequest({
+      recordId: row.id,
+      operation: "update",
+      baseCommitId: row.headCommitId,
+      fields: { ...raw, analysis: JSON.stringify({ ...analysis, root_cause: cause.trim() }) },
+      message: "补充既有错题卡的家长提供错因／作答过程；保留其他字段和确认状态",
+      author: appConfig.appId,
+      autoMerge: false,
+    });
+    if (cr.status !== "in_review") throw new Error("Expected pending ChangeRequest");
+    return { id: cr.id, status: cr.status };
+  },
+
   async submitReview({ review_id, action, comment = "" } = {}) {
     if (!review_id || typeof review_id !== "string") throw new Error("submitReview requires a review_id");
     if (!action || !DECISION_ACTIONS.has(action)) {
@@ -226,6 +279,19 @@ export const busabaseProvider = {
     const existing = await findRecord("reviews", "review-id", review_id);
     if (!existing) throw new Error(`Review not found: ${review_id}`);
     const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
+    if (current.target_type === "paper" && current.target_id) {
+      const target = await findRecord("papers", "paper-id", current.target_id);
+      if (target) {
+        const paper = computePaperFromRow(
+          normalizeFields(target.headCommit?.payload || target.headCommit?.fields || target.fields),
+        );
+        const latest = paper.analysis?.attempts?.at(-1);
+        if (latest)
+          throw new Error(
+            "Practice results require a separate review; the old paper approval cannot unlock a completed paper",
+          );
+      }
+    }
     const now = new Date().toISOString();
     const nextStatus = statusForAction(action);
 
@@ -295,30 +361,70 @@ export const busabaseProvider = {
     if (!existing) throw new Error(`Paper not found: ${paper_id}`);
     const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
     const paper = computePaperFromRow(current);
-    await updateRecord(
+    if (paper.status !== "approved") throw new Error("Paper must be approved before submission");
+    const cr = await updateRecord(
       "papers",
       existing,
       basePaperFields({
         ...paper,
         status: "needs_review",
-        analysis: { ...paper.analysis, wrong_count: attempt.wrong_count, attempt },
+        analysis: {
+          ...paper.analysis,
+          strengths: [],
+          review_plan: [],
+          deep_notes: "",
+          wrong_count: attempt.wrong_count,
+          attempt,
+          attempts: [...(paper.analysis.attempts || []), attempt],
+        },
       }),
-      `Practice run on paper ${paper_id}: ${attempt.correct}/${attempt.total}`,
+      `Practice result for ${paper_id}; review the new attempt separately from the old paper approval`,
     );
+    if (cr.status !== "in_review") throw new Error("Expected pending result request");
+    return { id: cr.id, status: cr.status };
+  },
 
-    // Put it back in front of a person. A finished run that leaves its review
-    // row sitting at "approved" is a result nobody is asked to look at.
-    const review = await findRecord("reviews", "target-id", paper_id);
-    if (review) {
-      const reviewCurrent = normalizeFields(review.headCommit?.payload || review.headCommit?.fields || review.fields);
-      await updateRecord(
-        "reviews",
-        review,
-        baseReviewFields({ ...computeReviewFromRow(reviewCurrent), status: "needs_review" }),
-        `Practice run on paper ${paper_id} needs review`,
-      );
-    }
-    return { ok: true };
+  async submitAttemptReview({ paper_id, attempted_at, verdicts, comment } = {}) {
+    if (!paper_id || !attempted_at || !Array.isArray(verdicts) || !String(comment || "").trim())
+      throw new Error("A specific attempt, manual marks and a parent note are required");
+    await ensureResources();
+    const existing = await findRecord("papers", "paper-id", paper_id);
+    if (!existing) throw new Error("Paper not found");
+    const current = normalizeFields(existing.headCommit?.payload || existing.headCommit?.fields || existing.fields);
+    const paper = computePaperFromRow(current);
+    const attempts = paper.analysis?.attempts || [];
+    const attempt = attempts.at(-1);
+    if (paper.status !== "needs_review" || !attempt || attempt.attempted_at !== attempted_at)
+      throw new Error("Attempt is no longer current; refresh before reviewing");
+    const prior = paper.analysis.attempt_reviews || [];
+    if (prior.some((entry) => entry.attempted_at === attempted_at)) throw new Error("Attempt already reviewed");
+    const open = attempt.results.filter((result) => result.outcome === "ungraded").map((result) => result.ref);
+    if (
+      verdicts.length !== open.length ||
+      new Set(verdicts.map((v) => v.ref)).size !== open.length ||
+      verdicts.some((v) => !open.includes(v.ref) || !["correct", "wrong"].includes(v.outcome))
+    )
+      throw new Error("Each open response needs one manual mark");
+    const next = {
+      ...paper.analysis,
+      attempt_reviews: [
+        ...prior,
+        {
+          attempted_at,
+          verdicts: verdicts.map(({ ref, outcome }) => ({ ref, outcome })),
+          comment: String(comment).trim().slice(0, 2000),
+          reviewed_at: new Date().toISOString(),
+        },
+      ],
+    };
+    const cr = await updateRecord(
+      "papers",
+      existing,
+      basePaperFields({ ...paper, analysis: next }),
+      `Parent review of practice attempt ${attempted_at} on ${paper_id}`,
+    );
+    if (cr.status !== "in_review") throw new Error("Expected pending attempt review request");
+    return { id: cr.id, status: cr.status };
   },
 
   async provisionResources() {

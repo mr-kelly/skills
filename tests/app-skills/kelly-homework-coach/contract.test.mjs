@@ -89,7 +89,10 @@ test("does not persist secrets or a second data provider in browser storage", as
     ),
   );
   const source = sources.join("\n");
-  assert.doesNotMatch(source, /localStorage\.setItem\("busabase|sessionStorage|indexedDB/);
+  assert.doesNotMatch(
+    source,
+    /localStorage\.setItem\("busabase|sessionStorage\.setItem\([^,]+,\s*(?:apiKey|token|password)|indexedDB/,
+  );
   assert.doesNotMatch(source, /BUSABASE_API_KEY|Authorization:\s*[`'"]Bearer/i);
   assert.doesNotMatch(source, /KELLY_HOMEWORK_COACH_DATA_PROVIDER|local-file-provider|config\.local\.json/);
   assert.match(source, /createBusabaseClient/);

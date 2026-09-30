@@ -133,6 +133,7 @@ async function main() {
   const basesByKey = new Map(resources.bases.map((base) => [base.key, base]));
 
   const now = new Date().toISOString();
+  /** @type {Array<{kind: string, id?: string, action?: string, status?: string, changeRequestId?: string, error?: string, item?: any}>} */
   const results = [];
 
   for (const kind of Object.keys(BASE_BY_KIND)) {
@@ -182,34 +183,37 @@ async function main() {
         kind,
         id: idValue,
         action: existing ? "update" : "create",
-        status: apply ? "written" : "planned",
+        status: apply ? "submitted" : "planned",
       });
       if (!apply) continue;
 
+      let cr;
       if (existing) {
-        await client.records.changeRequest({
+        cr = await client.records.changeRequest({
           recordId: existing.id,
           operation: "update",
           fields,
           message: `record_homework.mjs updates ${kind} ${idValue}`,
           author: "kelly-homework-coach-recorder",
           baseCommitId: existing.headCommitId,
-          autoMerge: true,
+          autoMerge: false,
         });
       } else {
-        await client.bases.createChangeRequest({
+        cr = await client.bases.createChangeRequest({
           baseId: declared.baseId,
           fields,
           message: `record_homework.mjs creates ${kind} ${idValue}`,
           submittedBy: "kelly-homework-coach-recorder",
-          autoMerge: true,
+          autoMerge: false,
         });
       }
+      results[results.length - 1].status = cr.status;
+      results[results.length - 1].changeRequestId = cr.id;
     }
   }
 
   console.log(JSON.stringify({ generated_at: now, dry_run: !apply, results }, null, 2));
-  console.log(`${results.length} item(s) ${apply ? "written" : "planned"}.`);
+  console.log(`${results.length} item(s) ${apply ? "submitted" : "planned"}.`);
   if (!apply) console.log("Dry run only. Re-run with --apply to write these items to Busabase.");
 }
 

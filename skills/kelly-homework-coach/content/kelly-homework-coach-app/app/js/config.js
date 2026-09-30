@@ -31,6 +31,19 @@ export const appConfig = {
         { slug: "source", name: "Source", type: "text", required: false },
         { slug: "status", name: "Status", type: "text", required: false },
         { slug: "difficulty", name: "Difficulty", type: "text", required: false },
+        {
+          slug: "original-image",
+          name: "Original image (opt-in)",
+          type: "attachment",
+          required: false,
+          options: {
+            attachment: {
+              maxFiles: 1,
+              maxFileSize: 10485760,
+              allowedMimeTypes: ["image/png", "image/jpeg", "image/webp"],
+            },
+          },
+        },
         { slug: "photo-label", name: "Photo label", type: "text", required: false },
         { slug: "prompt-text", name: "Prompt text", type: "longtext", required: false },
         { slug: "student-answer", name: "Student answer", type: "text", required: false },
@@ -133,7 +146,15 @@ export const appConfig = {
     },
   ],
   permissions: {
-    readProcedures: ["nodes.list", "nodes.get", "bases.get", "records.list", "records.count"],
+    readProcedures: [
+      "nodes.list",
+      "nodes.get",
+      "bases.get",
+      "records.list",
+      "records.get",
+      "records.count",
+      "changeRequests.get",
+    ],
     setupProcedures: ["nodes.createChangeRequest", "nodes.updateMetadata"],
     writeProcedures: ["records.changeRequest", "bases.createChangeRequest"],
   },
