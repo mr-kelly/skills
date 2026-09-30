@@ -809,3 +809,94 @@ html:root[data-editorial="gallery"] {
     --gallery-columns: minmax(0, 1fr);
   }
 }
+
+/* =====================================================================
+ * LEGACY NAME SHIM
+ *
+ * `base-ui.css` ships ~50 synonym properties (`--bg`, `--panel`, `--text`,
+ * `--warn`, `--good`, `--accent-weak`, `--shadow-sm`, ...) as aliases onto its
+ * own canonical names, but ONLY inside its unlayered dark-mode block — the
+ * light-mode canonical block is inside `@layer base-ui` and deliberately
+ * loses to an app's own `:root`, so every adopter kept its pre-rollout
+ * `:root { --bg: #f7f8fa; --panel: #fff; --text: #171a1f; ... }` as the
+ * LIGHT-mode source of truth for these names. Verified directly, not
+ * assumed: this file's own canonical tokens (`--ink`, `--canvas`, `--accent`,
+ * `--line`, `--muted`) already win over that block in both colour schemes —
+ * `html:root` (0,1,1) beats a bare `:root` (0,1,0) regardless of load order —
+ * but a name this file never declares is untouched by that win. Every one of
+ * the 70 apps checked still uses at least one of these synonyms somewhere in
+ * its own component CSS, so skipping this block means half of an app's
+ * surfaces go editorial and the other half stay on pre-rollout hardcoded
+ * colour — worse than doing nothing, because it is invisible in a
+ * custom-property probe and only shows up as a mismatched screenshot.
+ *
+ * One block, no family/scheme qualification needed: every value below is a
+ * `var()` reference to a name declared above, so it re-resolves automatically
+ * whichever family or colour scheme is currently in effect. Copied from
+ * `scripts/base-ui.css`'s own dark-mode alias list so an app moving between
+ * the two never sees a synonym disappear.
+ * ===================================================================== */
+
+html:root {
+  /* --line-strong and --radius are not synonyms coined for this shim — they
+   * are base-ui.css's own pre-existing canonical names, still declared and
+   * still used fleet-wide (66 and 4 apps respectively, confirmed by grepping
+   * `var(--line-strong)` / `var(--radius)` usage, not just the :root
+   * declaration). --line-strong maps to --rule, not --rule-strong: its
+   * fleet-wide usage is moderate-weight borders (a focused row, a selected
+   * tab) at base-ui's #dcdfe4/#363c45 — close in weight to --rule, nowhere
+   * near --rule-strong's near-ink "exactly one per screen" reservation in
+   * editorial-visual-system.md. Getting this one wrong would not go unused;
+   * it would go heavy on every border in the fleet that used it. */
+  --line-strong: var(--rule);
+  --radius: var(--radius-md);
+  --bg: var(--canvas);
+  --panel: var(--surface);
+  --panel-soft: var(--surface-soft);
+  --panel-subtle: var(--surface-soft);
+  --surface-2: var(--surface-soft);
+  --sidebar: var(--surface);
+  --sidebar-soft: var(--surface-soft);
+  --paper: var(--surface);
+  --soft: var(--surface-soft);
+  --subtle: var(--surface-soft);
+  --text: var(--ink);
+  --text-soft: var(--ink-soft);
+  --muted-2: var(--muted);
+  --muted-soft: var(--muted);
+  --faint: var(--muted);
+  --border: var(--line);
+  --border-soft: var(--line);
+  --side: var(--surface);
+  --shadow: var(--shadow-card);
+  --shadow-sm: var(--shadow-card);
+  --shadow-md: var(--shadow-modal);
+  --shadow-lifted: var(--shadow-modal);
+  /* --accent-weak is the only genuine rename here; --accent-wash,
+   * --accent-focus, and --accent-text are already this file's own canonical
+   * names, declared per family above. Re-declaring any of them here as
+   * var(--accent-wash) etc. inside the SAME html:root selector would be a
+   * same-specificity self-reference that loses to nothing and wins by
+   * source order — CSS defines a custom property that references itself as
+   * "guaranteed-invalid", which unsets it fleet-wide. Confirmed by reading
+   * three tokens as 'initial' in a browser before this comment existed. */
+  --accent-weak: var(--accent-soft);
+  --accent-fg: var(--accent);
+  --warn: var(--warning);
+  --warn-soft: var(--warning-soft);
+  --warn-bg: var(--warning-soft);
+  --bad: var(--danger);
+  --bad-soft: var(--danger-soft);
+  --bad-bg: var(--danger-soft);
+  --good: var(--positive);
+  --ok: var(--positive);
+  --success: var(--positive);
+  --ok-soft: var(--positive-soft);
+  --green: var(--positive);
+  --green-soft: var(--positive-soft);
+  --amber: var(--warning);
+  --amber-soft: var(--warning-soft);
+  --red: var(--danger);
+  --blue: var(--accent);
+  --blue-soft: var(--accent-soft);
+}
