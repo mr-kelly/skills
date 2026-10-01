@@ -6,14 +6,24 @@
 // joining the fleet without the wiring.
 //
 // Scope, stated plainly: this asserts the MECHANICAL contract (asset present,
-// byte-identical, wired in the right position, accent-theme retired, style
-// attributes set) for every non-adopted app. It does NOT assert that an app's
-// own component CSS is free of raw colour/size/radius — 1,064 such
-// declarations were counted across the fleet's pre-existing CSS before this
-// rollout touched a single file, and cleaning those up is real, bespoke,
-// per-app work (the kind kelly-homework-coach got in #156), not something a
-// mechanical rollout can safely do to 70 apps' component rules at once. See
-// the rollout changelog for the full accounting.
+// byte-identical, wired in the right position, style attributes set) for
+// every non-adopted app. It does NOT assert that an app's own component CSS
+// is free of raw colour/size/radius — 1,064 such declarations were counted
+// across the fleet's pre-existing CSS before this rollout touched a single
+// file, and cleaning those up is real, bespoke, per-app work (the kind
+// kelly-homework-coach got in #156), not something a mechanical rollout can
+// safely do to 70 apps' component rules at once. See the rollout changelog
+// for the full accounting.
+//
+// It also does NOT assert accent-theme.css/.js is retired. An earlier version
+// of this rollout did retire it fleet-wide ("the family is the accent now")
+// and CI caught the regression within the first run: accent-theme.js renders
+// a real, tested, operator-facing Help & Settings control
+// (`.accent-settings`) with no editorial-family replacement built yet.
+// scripts/apply-editorial-rollout.mjs no longer touches accent-theme at all —
+// this file asserts CONSISTENCY instead of a fixed outcome: whichever apps
+// currently have accent-theme.css keep it correctly wired, and editorial.css
+// is still positioned right regardless of whether it's present.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -100,7 +110,7 @@ test("every non-adopted app carries the byte-identical editorial asset", () => {
   }
 });
 
-test("every non-adopted app wires editorial.css after base-ui.css and before its own CSS, with no accent-theme left behind", () => {
+test("every non-adopted app wires editorial.css after base-ui.css and before its own CSS", () => {
   for (const appDir of appDirs()) {
     if (ADOPTED.has(skillName(appDir))) continue;
     const relative = path.relative(ROOT, appDir);
@@ -116,22 +126,28 @@ test("every non-adopted app wires editorial.css after base-ui.css and before its
       `${relative}: editorial.css must be the stylesheet immediately after base-ui.css — order is ${hrefs.join(", ")}`,
     );
 
-    assert.doesNotMatch(
-      html,
-      /accent-theme\.(?:css|js)/,
-      `${relative}: accent-theme reference should have been retired`,
-    );
-    assert.ok(
-      !fs.existsSync(path.join(appDir, "accent-theme.css")),
-      `${relative}: accent-theme.css file should have been removed`,
-    );
-    assert.ok(
-      !fs.existsSync(path.join(appDir, "accent-theme.js")),
-      `${relative}: accent-theme.js file should have been removed`,
-    );
-
     assert.match(html, /<html\b[^>]*\sdata-theme="[^"]+"/, `${relative}: <html> is missing data-theme`);
     assert.match(html, /<html\b[^>]*\sdata-editorial="[^"]+"/, `${relative}: <html> is missing data-editorial`);
+  }
+});
+
+test("accent-theme.css/.js is untouched by the rollout: present apps stay correctly wired, absent apps stay absent", () => {
+  for (const appDir of appDirs()) {
+    if (ADOPTED.has(skillName(appDir))) continue;
+    const relative = path.relative(ROOT, appDir);
+    const hasCss = fs.existsSync(path.join(appDir, "accent-theme.css"));
+    const hasJs = fs.existsSync(path.join(appDir, "accent-theme.js"));
+    assert.equal(hasCss, hasJs, `${relative}: accent-theme.css and .js must both exist or both be absent`);
+    if (!hasCss) continue;
+
+    const html = fs.readFileSync(path.join(appDir, "index.html"), "utf8");
+    const hrefs = stylesheetHrefs(html);
+    assert.equal(hrefs.at(-1), "./accent-theme.css", `${relative}: accent-theme.css must stay the LAST stylesheet`);
+    assert.match(
+      html,
+      /<script\b[^>]*\bsrc="\.\/accent-theme\.js"/,
+      `${relative}: accent-theme.js script tag is missing`,
+    );
   }
 });
 

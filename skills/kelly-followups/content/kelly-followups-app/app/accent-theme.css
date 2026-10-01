@@ -1,0 +1,297 @@
+:root {
+  --accent: #0a84ff;
+  --accent-strong: #0071e3;
+  --accent-soft: rgba(10, 132, 255, 0.08);
+  --accent-wash: rgba(10, 132, 255, 0.045);
+  --accent-line: rgba(10, 132, 255, 0.26);
+  --accent-focus: rgba(10, 132, 255, 0.2);
+  --accent-text: #0066cc;
+  --accent-contrast: #ffffff;
+  --accent-weak: var(--accent-soft);
+}
+
+html[data-accent-theme="purple"] {
+  --accent: #bf5af2;
+  --accent-strong: #9f35d0;
+  --accent-soft: rgba(191, 90, 242, 0.09);
+  --accent-wash: rgba(191, 90, 242, 0.045);
+  --accent-line: rgba(191, 90, 242, 0.28);
+  --accent-focus: rgba(191, 90, 242, 0.2);
+  --accent-text: #8f2bbf;
+  --accent-contrast: #ffffff;
+  --accent-weak: var(--accent-soft);
+}
+
+html[data-accent-theme="pink"] {
+  --accent: #ff2d55;
+  --accent-strong: #e11d48;
+  --accent-soft: rgba(255, 45, 85, 0.085);
+  --accent-wash: rgba(255, 45, 85, 0.045);
+  --accent-line: rgba(255, 45, 85, 0.26);
+  --accent-focus: rgba(255, 45, 85, 0.18);
+  --accent-text: #c9163d;
+  --accent-contrast: #ffffff;
+  --accent-weak: var(--accent-soft);
+}
+
+html[data-accent-theme="red"] {
+  --accent: #ff3b30;
+  --accent-strong: #d92d24;
+  --accent-soft: rgba(255, 59, 48, 0.085);
+  --accent-wash: rgba(255, 59, 48, 0.045);
+  --accent-line: rgba(255, 59, 48, 0.26);
+  --accent-focus: rgba(255, 59, 48, 0.18);
+  --accent-text: #c1261e;
+  --accent-contrast: #ffffff;
+  --accent-weak: var(--accent-soft);
+}
+
+html[data-accent-theme="orange"] {
+  --accent: #ff9500;
+  --accent-strong: #a65300;
+  --accent-soft: rgba(255, 149, 0, 0.1);
+  --accent-wash: rgba(255, 149, 0, 0.052);
+  --accent-line: rgba(255, 149, 0, 0.28);
+  --accent-focus: rgba(255, 149, 0, 0.2);
+  --accent-text: #a65300;
+  --accent-contrast: #ffffff;
+  --accent-weak: var(--accent-soft);
+}
+
+html[data-accent-theme="yellow"] {
+  --accent: #c78b00;
+  --accent-strong: #7a5200;
+  --accent-soft: rgba(255, 204, 0, 0.14);
+  --accent-wash: rgba(255, 204, 0, 0.07);
+  --accent-line: rgba(199, 139, 0, 0.3);
+  --accent-focus: rgba(199, 139, 0, 0.2);
+  --accent-text: #7a5200;
+  --accent-contrast: #ffffff;
+  --accent-weak: var(--accent-soft);
+}
+
+html[data-accent-theme="green"] {
+  --accent: #30d158;
+  --accent-strong: #147a32;
+  --accent-soft: rgba(48, 209, 88, 0.105);
+  --accent-wash: rgba(48, 209, 88, 0.052);
+  --accent-line: rgba(48, 209, 88, 0.3);
+  --accent-focus: rgba(48, 209, 88, 0.22);
+  --accent-text: #147a32;
+  --accent-contrast: #ffffff;
+  --accent-weak: var(--accent-soft);
+}
+
+html[data-accent-theme="graphite"] {
+  --accent: #6e6e73;
+  --accent-strong: #5b5b60;
+  --accent-soft: rgba(110, 110, 115, 0.095);
+  --accent-wash: rgba(110, 110, 115, 0.045);
+  --accent-line: rgba(110, 110, 115, 0.26);
+  --accent-focus: rgba(110, 110, 115, 0.18);
+  --accent-text: #4b4b50;
+  --accent-contrast: #ffffff;
+  --accent-weak: var(--accent-soft);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+.content a:not([class]),
+.settings a:not([class]),
+.modal-body a:not([class]),
+.detail a:not([class]) {
+  color: var(--accent-text);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--accent-focus);
+  outline-offset: 2px;
+}
+
+button.primary:not(:disabled),
+.action.primary:not(:disabled),
+.primaryButton:not(:disabled),
+button.primaryButton:not(:disabled),
+.next-step .primary:not(:disabled) {
+  border-color: var(--accent-strong);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-strong) 88%, #ffffff), var(--accent-strong));
+  color: var(--accent-contrast);
+  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+button.primary:not(:disabled):hover,
+.action.primary:not(:disabled):hover,
+.primaryButton:not(:disabled):hover,
+button.primaryButton:not(:disabled):hover,
+.next-step .primary:not(:disabled):hover {
+  border-color: var(--accent-strong);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-strong) 94%, #ffffff),
+    color-mix(in srgb, var(--accent-strong) 88%, #000000)
+  );
+}
+
+.human-work-primary,
+.human-primary,
+.attention,
+.human-work button.active {
+  border-color: var(--accent-line);
+  background: var(--accent-wash);
+}
+
+.filters a.active,
+.filters button.active,
+.nav a.active,
+.nav button.active,
+.stageButton.active,
+.queue-filter.active,
+.status-filter.active,
+.settings-link.active,
+.modal-tabs button.active,
+.episode-tabs button.active,
+.locale-tab.active,
+.chip.active,
+button.active {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.row.active,
+.item-card.active,
+.pr-row.active,
+.recordRow.selected,
+.message-row.selected,
+.episode-table tbody tr.active,
+.conv-row.active {
+  background: linear-gradient(90deg, var(--accent-soft), color-mix(in srgb, var(--accent-soft) 34%, #ffffff));
+  box-shadow: inset 2px 0 0 var(--accent), inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+.badge.needs_review,
+.badge.review,
+.badge.draft_requested,
+.status-badge.suggested,
+.tag.suggested {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.accent-settings {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin-top: 14px;
+  border: 1px solid var(--accent-line);
+  border-radius: 8px;
+  background: var(--accent-wash);
+  padding: 14px;
+  color: var(--text, var(--ink, #171a1f));
+}
+
+.accent-settings h2 {
+  margin: 0;
+  color: var(--text, var(--ink, #171a1f));
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.accent-settings p {
+  margin: 0;
+  color: var(--muted, #6b7280);
+  font-size: 12px;
+}
+
+.accent-theme-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.accent-theme-option {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 68px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--line, #e5e7eb);
+  border-radius: 8px;
+  background: var(--panel, #ffffff);
+  padding: 9px 6px 7px;
+  color: var(--muted, #6b7280);
+  font-size: 12px;
+  font-weight: 560;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: var(--shadow, 0 1px 2px rgba(16, 24, 40, 0.04));
+  transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.accent-theme-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.accent-theme-option:has(input:checked) {
+  border-color: var(--accent-line);
+  background: var(--accent-wash);
+  color: var(--text, var(--ink, #171a1f));
+  box-shadow: 0 0 0 3px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.accent-theme-option:has(input:focus-visible) {
+  outline: 3px solid var(--accent-focus);
+  outline-offset: 2px;
+}
+
+.accent-theme-swatch {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  border-radius: 999px;
+  background: var(--swatch);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.46), inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+}
+
+.accent-theme-option:has(input:checked) .accent-theme-swatch {
+  box-shadow: 0 0 0 3px var(--panel, #ffffff), 0 0 0 5px var(--accent), inset 0 1px 1px rgba(255, 255, 255, 0.46), inset
+    0 -1px 1px rgba(0, 0, 0, 0.12);
+}
+
+.accent-theme-option:has(input:checked) .accent-theme-swatch::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  width: 8px;
+  height: 5px;
+  border: 2px solid var(--swatch-check);
+  border-top: 0;
+  border-right: 0;
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 720px) {
+  .accent-theme-options {
+    grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
+  }
+}

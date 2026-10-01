@@ -11,10 +11,22 @@
 //   1. Copy editorial.css + check-editorial.mjs into the app, unmodified.
 //   2. Wire editorial.css right after base-ui.css in index.html, before every
 //      app-owned stylesheet.
-//   3. Remove accent-theme.css/.js and their <link>/<script> tags — the
-//      family IS the accent now (see editorial-visual-system.md).
-//   4. Set data-theme="ink-paper" data-editorial="desk" on <html> so the app
+//   3. Set data-theme="ink-paper" data-editorial="desk" on <html> so the app
 //      has an explicit, changeable default from day one.
+//
+// What this does NOT do, corrected after CI caught it: retire
+// accent-theme.css/.js. The first version of this script did — "the family
+// is the accent now" by analogy to kelly-homework-coach's bespoke pass — and
+// that reasoning does not survive contact with a blind fleet-wide pass.
+// accent-theme.js renders a real, working, tested Help & Settings control (an
+// 8-colour picker; kelly-invoice-sheet's ui_test.py asserts `.accent-settings`
+// exists) with no editorial-family replacement built yet. Removing a working,
+// tested, operator-facing control with nothing replacing it is a product
+// regression, not a mechanical cleanup — the 60 affected apps had their
+// accent-theme.css/.js restored byte-identical from the pre-rollout commit.
+// See the rollout changelog for the full story and the accepted trade-off
+// this leaves (an operator-picked accent can now sit on a paper it was never
+// designed against).
 //
 // This alone is sufficient to re-theme the app correctly: editorial.css's
 // canonical tokens (--ink, --accent, --line, --muted, ...) are declared on an
@@ -62,13 +74,6 @@ function skillName(appDir) {
   return parts[parts.length - 4];
 }
 
-function removeAccentTheme(html) {
-  return html
-    .split("\n")
-    .filter((line) => !/accent-theme\.(?:css|js)/.test(line))
-    .join("\n");
-}
-
 function wireEditorial(html) {
   if (/editorial\.css/.test(html)) return html; // already wired — idempotent
   const lines = html.split("\n");
@@ -89,7 +94,6 @@ function ensureThemeAttrs(html) {
 }
 
 const changed = [];
-const removed = [];
 
 function updateFile(filePath, next) {
   const current = fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf8") : null;
@@ -99,12 +103,6 @@ function updateFile(filePath, next) {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     fs.writeFileSync(filePath, next);
   }
-}
-
-function removeFileIfExists(filePath) {
-  if (!fs.existsSync(filePath)) return;
-  removed.push(path.relative(root, filePath));
-  if (!checkOnly) fs.unlinkSync(filePath);
 }
 
 const appDirs = kellyAppDirs();
@@ -119,24 +117,18 @@ for (const appDir of appDirs) {
 
   const indexPath = path.join(appDir, "index.html");
   let html = fs.readFileSync(indexPath, "utf8");
-  html = removeAccentTheme(html);
   html = wireEditorial(html);
   html = ensureThemeAttrs(html);
   updateFile(indexPath, html);
-
-  removeFileIfExists(path.join(appDir, "accent-theme.css"));
-  removeFileIfExists(path.join(appDir, "accent-theme.js"));
 }
 
-if (checkOnly && (changed.length > 0 || removed.length > 0)) {
+if (checkOnly && changed.length > 0) {
   console.error(`Editorial rollout is stale for ${touchedApps} app(s):`);
-  if (changed.length) console.error(`  to write:\n${changed.map((f) => `    ${f}`).join("\n")}`);
-  if (removed.length) console.error(`  to remove:\n${removed.map((f) => `    ${f}`).join("\n")}`);
+  console.error(changed.map((f) => `    ${f}`).join("\n"));
   process.exitCode = 1;
 } else {
   console.log(
     `${checkOnly ? "Checked" : "Applied"} editorial rollout across ${touchedApps} app(s) (${ADOPTED.size} already adopted).`,
   );
   if (changed.length) console.log(`${changed.length} file(s) written.`);
-  if (removed.length) console.log(`${removed.length} file(s) removed:\n${removed.join("\n")}`);
 }
