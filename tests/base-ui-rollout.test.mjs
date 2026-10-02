@@ -48,7 +48,7 @@ function cssFiles(appDir) {
 
 test("all AirApps use the byte-identical shared Base UI in the required cascade order", () => {
   const apps = appDirs();
-  assert.equal(apps.length, 70, "update the rollout when an AirApp is added or removed");
+  assert.equal(apps.length, 71, "update the rollout when an AirApp is added or removed");
 
   for (const appDir of apps) {
     const relative = path.relative(ROOT, appDir);

@@ -1784,7 +1784,7 @@ dd {
 .doc-body :not(pre) > code {
   padding: 2px 5px;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--surface-soft);
   color: var(--ink);
   font-size: var(--text-base);

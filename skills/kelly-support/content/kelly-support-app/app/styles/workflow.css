@@ -923,7 +923,7 @@
 
   .settings-form-grid label > span {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--text-sm);
   }
 
   .settings-span-2 {
