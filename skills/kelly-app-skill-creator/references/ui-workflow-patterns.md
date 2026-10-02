@@ -60,8 +60,16 @@ Add hover tooltips for icon buttons, workflow filters, and action buttons.
 
 ## Style: Family, Register, Accent
 
-The operator picks the look; the app picks the defaults. Three controls in
-`Help & Settings` › `Style`, in this order:
+The operator picks the look; the app picks the defaults. **Copy
+`assets/editorial-theme/style-picker.css` and `style-picker.js` — do not
+re-derive it.** It injects exactly this control into Help & Settings, mirroring
+`accent-theme.css`/`.js`'s own mount/observe/localStorage shape so closely
+that switching one `<script>` src is most of the migration. Family swatch
+colours are read straight out of `editorial.css`'s real values and covered by
+a regression test in `tests/editorial-theme.test.mjs` that fails if the two
+ever drift.
+
+Three controls in `Help & Settings` › `Style`, in this order:
 
 1. **Colour family** (`data-theme`) — seven compact swatches with a selected
    ring: `ink-paper` (default), `rose-ochre`, `mauve-plum`, `coral-amber`,
@@ -71,7 +79,9 @@ The operator picks the look; the app picks the defaults. Three controls in
 2. **Layout register** (`data-editorial`) — offer it only when more than one
    register genuinely fits the data: a briefing app can be `desk` or `spread`;
    a bulk review queue is `desk`, full stop. A control whose other option is
-   wrong is not a choice.
+   wrong is not a choice. `style-picker.js` renders this picker only when the
+   app opts in via `<html data-editorial-registers="desk,spread">` — absent
+   that attribute, the register control never appears at all.
 3. **Accent** — only for an app that wants a per-operator tint inside a family.
    Most apps should skip this entirely. The family already carries an accent
    that was chosen against its own paper, and a free accent picker on top of a

@@ -288,13 +288,14 @@ dashboard. Apply `references/editorial-visual-system.md`,
 `references/ui-workflow-patterns.md`, and `references/mobile-shell-layout.md`
 as hard implementation and acceptance gates.
 
-**Copy `assets/editorial-theme/` — do not re-derive it.** Two files, and every
-generated App gets both:
+**Copy `assets/editorial-theme/` — do not re-derive it.** Four files, and
+every generated App gets all four:
 
 | Asset | Goes to | Role |
 | --- | --- | --- |
 | `editorial.css` | `app/styles/editorial.css`, loaded **after `base-ui.css`, before app styles** | the editorial profile over the shared base-ui tokens; the only file that knows a colour, font size, radius, or duration |
 | `check-editorial.mjs` | into `scripts/check.mjs` assertions | fails the build when a raw value slips into any other stylesheet |
+| `style-picker.css` / `style-picker.js` | `app/styles/style-picker.css` + a `<script type="module">` tag | the Help & Settings control that lets the operator change family/register — see "Style: Family, Register, Accent" in `ui-workflow-patterns.md` |
 
 This is a copied asset for the same reason `runtime-detection/` is: prose did
 not hold. Across the existing fleet, 67% of every declared font size sat in
