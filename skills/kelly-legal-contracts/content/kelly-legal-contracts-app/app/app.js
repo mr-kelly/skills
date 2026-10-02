@@ -429,16 +429,34 @@ function statusMatrix() {
 }
 
 function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at
-    ? `${state.snapshot.seller?.brand || ""} · ${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
-    : t("empty");
+  // Overview carries its own masthead (eyebrow/headline/lede) inside the
+  // content area -- a second heavy heading in the shared topbar would just
+  // repeat it. Leave the topbar title/subtitle empty here; every other view
+  // still uses them as its only heading.
+  els.title.textContent = "";
+  els.subtitle.textContent = "";
   const awaiting = reviewItems().filter((item) => item.status === "needs_review");
   const activity = (state.snapshot?.activity_log || [])
     .slice()
     .sort((a, b) => String(b.at).localeCompare(String(a.at)))
     .slice(0, 8);
+  const metrics = state.snapshot?.metrics || {};
   els.content.innerHTML = `
+    <div class="masthead">
+      <div class="eyebrow">${escapeHtml(t("overviewEyebrow"))}${
+        state.snapshot?.generated_at
+          ? ` · ${state.snapshot.seller?.brand || ""} · ${t("generated")} ${date(state.snapshot.generated_at)}`
+          : ` · ${t("empty")}`
+      }</div>
+      <h1 class="headline">${escapeHtml(
+        awaiting.length > 0 ? t("overviewHeadlineSome").replace("{n}", awaiting.length) : t("overviewHeadlineNone"),
+      )}</h1>
+      <p class="lede">${escapeHtml(
+        t("overviewLede")
+          .replace("{value}", metrics.contract_count || 0)
+          .replace("{rate}", metrics.compliance_pass_rate || 0),
+      )}</p>
+    </div>
     ${metricCards()}
     ${warnings()}
     <section class="overview-grid">

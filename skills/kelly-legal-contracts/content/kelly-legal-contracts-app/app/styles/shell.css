@@ -1,23 +1,4 @@
 @layer shell {
-  :root {
-    color-scheme: light dark;
-    --bg: #f7f8fa;
-    --panel: #ffffff;
-    --panel-subtle: #fafbfc;
-    --line: #e5e7eb;
-    --line-strong: #d8dde6;
-    --ink: #171a1f;
-    --text: #171a1f;
-    --muted: #6b7280;
-    --muted-soft: #9aa3af;
-    --accent: #334155;
-    --accent-weak: #f1f4f8;
-    --warn: #9a6700;
-    --bad: #b42318;
-    --good: #047857;
-    --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-  }
-
   * {
     box-sizing: border-box;
   }
@@ -68,7 +49,7 @@
     height: 100vh;
     min-height: 0;
     overflow: hidden;
-    transition: grid-template-columns 0.18s ease;
+    transition: grid-template-columns var(--ease-state);
   }
 
   body.sidebar-collapsed .app-shell {
@@ -232,7 +213,7 @@
     left: 22px;
     width: 6px;
     height: 1.5px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--muted-soft);
     transform: rotate(45deg);
     transform-origin: left center;
