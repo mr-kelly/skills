@@ -1,136 +1,68 @@
 #!/usr/bin/env node
-// Trusted hand-off step. Kelly Support's AirApp only ever proposes a review
-// decision on a ticket (approve / request changes / block); this script claims
-// eligible work for a configured connector. It performs NO external side
-// effect and therefore never records `sent`. Real delivery is performed by the
-// configured channel connector. After the provider accepts the operation, the
-// connector calls finalize_delivery.mjs with its receipt to record the outgoing
-// message, first-response SLA, and terminal workflow state. Re-reads Busabase immediately
-// before recording, re-checks the support-qa quality gate and the ticket's
-// own decision, refuses any BLOCK, and stays idempotent by checking each
-// ticket's own execution-status field (no separate report file — Busabase
-// reads are always live).
-//
-// Connects with the trusted process's own credentials (BUSABASE_BASE_URL,
-// BUSABASE_API_KEY, BUSABASE_SPACE_ID), never the AirApp's ambient session.
-import { createBusabaseClient } from "busabase-sdk";
-import { inspectProvisionedResources } from "busabase-sdk/airapp";
-import { appConfig } from "../content/kelly-support-app/app/js/config.js";
+// Claims approved support work without performing an external side effect.
+// Email replies become queued connector work; close/no_action complete locally;
+// actions with no configured provider fail closed as blocked.
+import { createHash } from "node:crypto";
 import { buildSnapshot } from "../content/kelly-support-app/app/js/support-model.js";
 import { supportSettingsComplete } from "../content/kelly-support-app/app/js/support-settings.js";
+import { createTrustedClient, due, loadSupportWorkspace, readAll, toBool, updateTicket } from "./lib/runtime.mjs";
 
 function help() {
-  console.log(`Usage: node scripts/execute_decisions.mjs [--apply]
+  console.log(`Usage: node scripts/execute_decisions.mjs [--apply] [--retry-failed]
 
-Reads tickets with status "approved" from Busabase. Without --apply this is a
-dry run that only prints what would be handed off. With --apply it re-checks
-support settings and the support-qa gate, then claims eligible work with
-execution-status "queued" and a stable idempotency key. It performs no send,
-refund, or channel API call and never records "sent". A connector must call
-finalize_delivery.mjs with its provider receipt after the external operation.`);
+Re-checks approved tickets, support settings, and the support-qa gate. Email
+replies are queued for process_email_queue.mjs. close/no_action complete without
+an external provider. refund/escalate fail closed until a provider is configured.
+--retry-failed requeues only retryable failures whose retry time has arrived.`);
 }
 
-const normalizeFields = (fields) =>
-  Object.fromEntries(Object.entries(fields || {}).map(([slug, value]) => [slug.replaceAll("-", "_"), value]));
-const toBusabaseFields = (fields) =>
-  Object.fromEntries(Object.entries(fields).map(([key, value]) => [key.replaceAll("_", "-"), value]));
-
-async function readAll(client, declared) {
-  /** @type {Array<Record<string, any>>} */
-  const rows = [];
-  let cursor;
-  for (let page = 0; page < 20; page += 1) {
-    const result = await client.records.list({
-      baseId: declared.baseId,
-      limit: declared.readLimit,
-      ...(cursor ? { cursor } : {}),
-    });
-    const records = Array.isArray(result) ? result : result.records || [];
-    for (const record of records) {
-      rows.push({
-        ...normalizeFields(record.headCommit?.payload || record.headCommit?.fields || record.fields),
-        __recordId: record.id,
-        __headCommitId: record.headCommitId || record.headCommit?.id,
-      });
-    }
-    cursor = Array.isArray(result) ? null : result.nextCursor;
-    if (!cursor) break;
+function parseArgs(argv) {
+  const args = { apply: false, retryFailed: false };
+  for (const arg of argv) {
+    if (arg === "--help" || arg === "-h") args.help = true;
+    else if (arg === "--apply") args.apply = true;
+    else if (arg === "--retry-failed") args.retryFailed = true;
+    else throw new Error(`Unknown argument: ${arg}`);
   }
-  return rows;
+  return args;
 }
 
-// Only known field slugs are ever written back — never spread a raw row (it
-// also carries __recordId/__headCommitId bookkeeping keys that must not be
-// sent as Busabase fields).
-function baseTicketFields(row) {
+function idempotencyKey(ticket) {
+  const reviewedVersion = [
+    ticket.ticket_id,
+    ticket.decision?.decided_at || "",
+    ticket.suggested_reply || "",
+    ticket.provider_conversation_id || ticket.customer?.email || "",
+  ].join("\n");
+  return `kelly-support:${ticket.ticket_id}:${createHash("sha256").update(reviewedVersion).digest("hex").slice(0, 24)}`;
+}
+
+function connectorFor(ticket, accounts) {
+  return accounts.find((account) => account.account_id === ticket.account_id)?.connector || "";
+}
+
+function terminalPatch(action, now) {
   return {
-    ticket_id: row.ticket_id,
-    account_id: row.account_id || "",
-    channel: row.channel || "",
-    customer_name: row.customer_name || "",
-    customer_company: row.customer_company || "",
-    customer_email: row.customer_email || "",
-    customer_handle: row.customer_handle || "",
-    customer_country: row.customer_country || "",
-    customer_plan: row.customer_plan || "",
-    subject: row.subject || "",
-    body: row.body || "",
-    category: row.category || "how_to",
-    priority: row.priority || "normal",
-    status: row.status || "needs_review",
-    proposed_action: row.proposed_action || "send_reply",
-    reason: row.reason || "",
-    suggested_reply: row.suggested_reply || "",
-    kb_refs: row.kb_refs || "[]",
-    sla_policy: row.sla_policy || "first_response",
-    sla_due_by: row.sla_due_by || "",
-    sla_first_response_at: row.sla_first_response_at || "",
-    csat_score: row.csat_score ?? "",
-    csat_comment: row.csat_comment || "",
-    csat_rated_at: row.csat_rated_at || "",
-    owner: row.owner || "Kelly",
-    unread: row.unread || "false",
-    created_at: row.created_at || "",
-    provider_conversation_id: row.provider_conversation_id || "",
-    decision_action: row.decision_action || "",
-    decision_comment: row.decision_comment || "",
-    decided_at: row.decided_at || "",
-    execution_status: row.execution_status || "",
-    execution_operation: row.execution_operation || "",
-    execution_connector: row.execution_connector || "",
-    execution_target: row.execution_target || "",
-    execution_tier: row.execution_tier || "",
-    execution_amount: row.execution_amount ?? "",
-    execution_detail: row.execution_detail || "",
-    execution_idempotency_key: row.execution_idempotency_key || "",
-    execution_provider_message_id: row.execution_provider_message_id || "",
-    execution_attempt: row.execution_attempt ?? "",
-    execution_started_at: row.execution_started_at || "",
-    execution_completed_at: row.execution_completed_at || "",
-    executed_at: row.executed_at || "",
-    updated_at: row.updated_at || "",
+    status: "done",
+    unread: "false",
+    execution_status: action === "no_action" ? "skipped" : "completed",
+    execution_operation: action,
+    execution_detail: action === "close" ? "Closed after explicit approval." : "No external action required.",
+    execution_completed_at: now,
+    execution_last_error: "",
+    execution_next_retry_at: "",
+    execution_claim_expires_at: "",
+    execution_retryable: "false",
+    executed_at: now,
+    updated_at: now,
   };
 }
 
 async function main() {
-  const args = new Set(process.argv.slice(2));
-  if (args.has("--help") || args.has("-h")) return help();
-  const apply = args.has("--apply");
-
-  const baseUrl = process.env.BUSABASE_BASE_URL;
-  if (!baseUrl) throw new Error("BUSABASE_BASE_URL is required");
-  const client = createBusabaseClient({
-    baseUrl,
-    ...(process.env.BUSABASE_API_KEY ? { apiKey: process.env.BUSABASE_API_KEY } : {}),
-    ...(process.env.BUSABASE_SPACE_ID ? { spaceId: process.env.BUSABASE_SPACE_ID } : {}),
-  });
-
-  const resources = await inspectProvisionedResources(client, appConfig);
-  if (!resources.folder || resources.missing.length) {
-    throw new Error("Kelly Support Busabase resources are not provisioned yet; run the AirApp setup first.");
-  }
-  const declared = (key) => resources.bases.find((base) => base.key === key);
-
+  const args = parseArgs(process.argv.slice(2));
+  if (args.help) return help();
+  const client = createTrustedClient();
+  const { declared } = await loadSupportWorkspace(client);
   const [accountRows, ticketRows, messageRows, kbRows, settingsRows] = await Promise.all([
     readAll(client, declared("accounts")),
     readAll(client, declared("tickets")),
@@ -142,139 +74,171 @@ async function main() {
   if (!supportSettingsComplete(settingsRow)) {
     throw new Error("SUPPORT_SETTINGS_REQUIRED: complete and merge support policy onboarding before execution");
   }
-  let risk_policy = {};
+  let riskPolicy = {};
   try {
-    risk_policy = settingsRow.risk_policy ? JSON.parse(settingsRow.risk_policy) : {};
+    riskPolicy = settingsRow.risk_policy ? JSON.parse(settingsRow.risk_policy) : {};
   } catch {
-    risk_policy = {};
+    riskPolicy = {};
   }
   const snapshot = buildSnapshot({
     accounts: accountRows,
     tickets: ticketRows,
     messages: messageRows,
     knowledge_base: kbRows,
-    risk_policy,
+    risk_policy: riskPolicy,
   });
-
-  const now = new Date().toISOString();
-  /** @type {Array<Record<string, any>>} */
+  const now = new Date();
+  const nowIso = now.toISOString();
   const results = [];
 
   for (const ticket of snapshot.tickets) {
-    // The ticket's own status IS the effective decision (Busabase reads are
-    // live) — a decision_action of "approve" only counts while status is
-    // still "approved".
     if (ticket.decision?.action !== "approve" || ticket.status !== "approved") continue;
-
-    // Safety gate: never execute a ticket the support-qa audit blocked, even
-    // if a stale approve decision exists.
-    if (ticket.quality_gate?.verdict === "block") {
-      results.push({
-        ticket_id: ticket.ticket_id,
-        ref: ticket.ref,
-        status: "blocked",
-        operation: "none",
-        reason: "support-qa gate BLOCK; refusing to send (refund/commitment without approval or ungrounded).",
-        executed_at: now,
-      });
-      continue;
-    }
-
-    // Idempotent: claimed or delivered work is skipped, read live off the
-    // ticket record itself (no separate report).
-    if (["queued", "sending", "sent"].includes(ticket.execution?.status)) {
-      results.push({
-        ticket_id: ticket.ticket_id,
-        ref: ticket.ref,
-        status: "skipped",
-        operation: "none",
-        reason: `Already ${ticket.execution.status}; skipping to stay idempotent.`,
-        executed_at: now,
-      });
-      continue;
-    }
-
+    const record = ticketRows.find((row) => row.ticket_id === ticket.ticket_id);
+    if (!record) continue;
     const action = ticket.proposed_action || "send_reply";
-    /** @type {Record<string, any>} */
-    const entry = {
-      ticket_id: ticket.ticket_id,
-      ref: ticket.ref,
-      status: apply ? "queued" : "dry_run",
-      operation: action,
-      channel: ticket.channel,
-      executed_at: now,
-    };
-    if (action === "send_reply") {
-      entry.target = ticket.provider_conversation_id || "";
-      entry.draft_id = `reply-${ticket.ticket_id}`;
-    } else if (action === "escalate") {
-      entry.tier = ticket.execution?.tier || "tier2";
-    } else if (action === "refund") {
-      entry.amount = Number(ticket.execution?.amount || 0);
-    } else if (action === "close") {
-      // no extra fields
-    } else {
-      entry.operation = "no_action";
-      entry.status = "skipped";
-      entry.reason = "Proposed action is no_action.";
-    }
-    results.push(entry);
 
-    if (apply) {
-      const record = ticketRows.find((row) => row.ticket_id === ticket.ticket_id);
-      if (record) {
-        await client.records.changeRequest({
-          recordId: record.__recordId,
-          operation: "update",
-          fields: toBusabaseFields({
-            ...baseTicketFields(record),
-            execution_status: entry.status,
-            execution_operation: entry.operation,
-            execution_connector: ticket.account_id || "",
-            execution_target: entry.target || "",
-            execution_tier: entry.tier || "",
-            execution_amount: entry.amount ?? "",
-            execution_detail: "Claimed for connector delivery; no external side effect has occurred yet.",
-            execution_idempotency_key: `kelly-support:${ticket.ticket_id}:${record.__headCommitId}`,
-            execution_attempt: Number(record.execution_attempt || 0) + 1,
-            execution_started_at: now,
-            execution_completed_at: "",
-            execution_provider_message_id: "",
-            executed_at: "",
-          }),
-          message: `Record execution for ticket ${ticket.ticket_id}: ${entry.operation}`,
-          author: "kelly-support-executor",
-          baseCommitId: record.__headCommitId,
-          autoMerge: true,
-        });
+    if (action === "send_reply" && ticket.quality_gate?.verdict === "block") {
+      if (args.apply) {
+        await updateTicket(
+          client,
+          record,
+          {
+            status: "blocked",
+            execution_status: "blocked",
+            execution_operation: ticket.proposed_action || "send_reply",
+            execution_detail: "support-qa blocked this reviewed version; no external side effect occurred.",
+            execution_last_error: "support-qa gate BLOCK",
+            execution_retryable: "false",
+            execution_completed_at: nowIso,
+            updated_at: nowIso,
+          },
+          `Block unsafe execution for ${ticket.ticket_id}`,
+          "kelly-support-executor",
+        );
+      }
+      results.push({ ticket_id: ticket.ticket_id, ref: ticket.ref, status: "blocked", operation: "none" });
+      continue;
+    }
+
+    const executionStatus = ticket.execution?.status || "";
+    if (["sent", "completed", "skipped", "blocked"].includes(executionStatus)) {
+      results.push({ ticket_id: ticket.ticket_id, ref: ticket.ref, status: "skipped", operation: "none" });
+      continue;
+    }
+    if (executionStatus === "sending") {
+      if (due(ticket.execution?.claim_expires_at, now.getTime()) && args.apply) {
+        await updateTicket(
+          client,
+          record,
+          {
+            status: "blocked",
+            execution_status: "blocked",
+            execution_detail:
+              "Connector claim expired after delivery may have started; manual reconciliation required.",
+            execution_last_error: "Ambiguous delivery after expired connector claim.",
+            execution_retryable: "false",
+            execution_completed_at: nowIso,
+            updated_at: nowIso,
+          },
+          `Block ambiguous expired delivery for ${ticket.ticket_id}`,
+          "kelly-support-executor",
+        );
+        results.push({ ticket_id: ticket.ticket_id, ref: ticket.ref, status: "blocked", operation: "send_reply" });
+      } else {
+        results.push({ ticket_id: ticket.ticket_id, ref: ticket.ref, status: "skipped", operation: "none" });
+      }
+      continue;
+    }
+    if (executionStatus === "queued") {
+      results.push({ ticket_id: ticket.ticket_id, ref: ticket.ref, status: "skipped", operation: "none" });
+      continue;
+    }
+    if (executionStatus === "failed") {
+      if (!args.retryFailed || !toBool(ticket.execution?.retryable) || !due(ticket.execution?.next_retry_at)) {
+        results.push({ ticket_id: ticket.ticket_id, ref: ticket.ref, status: "failed", operation: "send_reply" });
+        continue;
       }
     }
+
+    const connector = connectorFor(ticket, accountRows);
+    const target = ticket.provider_conversation_id || ticket.customer?.email || "";
+    let status = args.apply ? "queued" : "dry_run";
+    let detail = "Claimed for connector delivery; no external side effect has occurred yet.";
+    let patch = {};
+
+    if (action === "close" || action === "no_action") {
+      status = args.apply ? (action === "close" ? "completed" : "skipped") : "dry_run";
+      patch = terminalPatch(action, nowIso);
+    } else if (action === "refund" || action === "escalate") {
+      status = "blocked";
+      detail = `${action} has no configured provider; no external side effect occurred.`;
+      patch = {
+        status: "blocked",
+        execution_status: "blocked",
+        execution_operation: action,
+        execution_connector: connector || ticket.account_id || "",
+        execution_target: target,
+        execution_detail: detail,
+        execution_last_error: detail,
+        execution_retryable: "false",
+        execution_completed_at: nowIso,
+        updated_at: nowIso,
+      };
+    } else if (action !== "send_reply" || ticket.channel !== "email" || connector !== "email_agent") {
+      status = "blocked";
+      detail = `No supported connector for ${ticket.channel || "unknown"}/${connector || "unconfigured"}.`;
+      patch = {
+        status: "blocked",
+        execution_status: "blocked",
+        execution_operation: action,
+        execution_connector: connector || ticket.account_id || "",
+        execution_target: target,
+        execution_detail: detail,
+        execution_last_error: detail,
+        execution_retryable: "false",
+        execution_completed_at: nowIso,
+        updated_at: nowIso,
+      };
+    } else {
+      const stableKey = record.execution_idempotency_key || idempotencyKey(ticket);
+      patch = {
+        execution_status: "queued",
+        execution_operation: "send_reply",
+        execution_connector: connector,
+        execution_target: target,
+        execution_detail: detail,
+        execution_idempotency_key: stableKey,
+        execution_attempt: Number(record.execution_attempt || 0),
+        execution_started_at: "",
+        execution_completed_at: "",
+        execution_provider_message_id: "",
+        execution_last_error: "",
+        execution_next_retry_at: "",
+        execution_claim_expires_at: "",
+        execution_retryable: "false",
+        executed_at: "",
+        updated_at: nowIso,
+      };
+    }
+
+    results.push({ ticket_id: ticket.ticket_id, ref: ticket.ref, status, operation: action, target });
+    if (args.apply) {
+      await updateTicket(
+        client,
+        record,
+        patch,
+        `Record execution for ticket ${ticket.ticket_id}: ${action}`,
+        "kelly-support-executor",
+      );
+    }
   }
 
-  if (!results.length) {
-    console.log("No approved tickets to execute.");
-    return;
-  }
-
+  if (!results.length) return console.log("No approved tickets to execute.");
   for (const result of results) {
-    const extra =
-      result.operation === "refund"
-        ? ` amount ${result.amount}`
-        : result.operation === "escalate"
-          ? ` -> ${result.tier}`
-          : result.target
-            ? ` -> ${result.target}`
-            : "";
-    console.log(`#${result.ref} ${result.ticket_id}: ${result.status} ${result.operation}${extra}`);
+    console.log(`#${result.ref} ${result.ticket_id}: ${result.status} ${result.operation}`);
   }
-
-  if (!apply) {
-    console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to queue eligible connector work.`);
-    return;
-  }
-  console.log(
-    "Queued eligible connector work. Nothing was marked sent; finalize only after a connector returns a provider receipt.",
-  );
+  if (!args.apply) console.log(`Dry run only (${results.length} operation(s)). Re-run with --apply to claim work.`);
+  else console.log("Execution decisions recorded. Run process_email_queue.mjs for queued email replies.");
 }
 
 main().catch((error) => {

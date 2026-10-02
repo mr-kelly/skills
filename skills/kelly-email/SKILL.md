@@ -155,6 +155,12 @@ Do not scan mail until onboarding is ready.
 11. Apply only approved IMAP/SMTP actions and write an execution report to Reviews.
 12. Summarize executed, blocked, failed, and remaining work.
 
+For an already-approved Kelly Support email reply, use the trusted stdin-only
+`scripts/send_support_reply.ts` connector. It defaults to dry-run and requires
+`--apply` for SMTP. The Support approval/version is the authorization boundary;
+do not create a second Email Reviews approval. Return the provider Message-ID
+to Kelly Support so its finalizer can record the outgoing message and SLA.
+
 The scan script is a trusted producer and may auto-merge its own review/contact/lock/scan-state records. AirApp writes are always review-first. A decision that is still in an unmerged CR is not approval and must not be executed.
 
 ## Classification And Quota

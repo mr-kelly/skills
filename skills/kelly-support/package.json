@@ -2,10 +2,11 @@
   "name": "kelly-support",
   "private": true,
   "type": "module",
-  "version": "0.1.0",
-  "description": "Kelly Support Busabase Cloud skill and trusted execution-report writer.",
+  "version": "0.2.0",
+  "description": "Kelly Support Busabase Cloud skill and trusted connector worker.",
   "scripts": {
     "execute": "node scripts/execute_decisions.mjs",
+    "process:email": "node scripts/process_email_queue.mjs",
     "finalize": "node scripts/finalize_delivery.mjs",
     "app:check": "pnpm --dir content/kelly-support-app check"
   },

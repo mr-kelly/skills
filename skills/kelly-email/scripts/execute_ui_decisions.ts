@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { ImapFlow } from "imapflow";
-import nodemailer from "nodemailer";
 import {
   clearAgentLock,
   loadConfig,
@@ -10,6 +9,7 @@ import {
 } from "../content/kelly-email-app/lib/common.ts";
 import { createProvider } from "../content/kelly-email-app/lib/data-provider/index.ts";
 import type { Batch, Config, DecisionsPayload, Mailbox, ReviewItem } from "../content/kelly-email-app/lib/types.ts";
+import { parseEmailAddresses, resolveEndpointSecret, sendSupportReply } from "./lib/smtp-connector.ts";
 
 interface ExecEntry {
   item: ReviewItem;
@@ -139,72 +139,10 @@ function archiveTargetFolder(config: Config, mailbox: Mailbox, item: ReviewItem)
   );
 }
 
-function identityMap(config: Config): Record<string, any> {
-  return Object.fromEntries((config.identities || []).map((identity) => [identity.identity_id, identity]));
-}
-
-function parseAddresses(value: string) {
-  const results: Array<{ name: string; address: string }> = [];
-  const pattern = /(?:"?([^"<,]*)"?\s*)?<([^<>@\s]+@[^<>\s]+)>|([^<>,\s]+@[^<>,\s]+)/g;
-  let match: RegExpExecArray | null;
-  while ((match = pattern.exec(value || ""))) {
-    results.push({ name: (match[1] || "").trim(), address: (match[2] || match[3] || "").trim() });
-  }
-  return results;
-}
-
-function normalizeEmail(value: unknown) {
-  return String(value || "")
-    .trim()
-    .toLowerCase();
-}
-
-function resolveIdentity(item: ReviewItem, config: Config) {
-  const mailboxes = mailboxMap(config);
-  const identities = identityMap(config);
-  const recipients = new Set(parseAddresses(item.to || "").map((address) => normalizeEmail(address.address)));
-
-  for (const identity of Object.values(identities)) {
-    const sendAs = normalizeEmail(identity.send_as_email);
-    const ruleAddresses = new Set<string>(
-      (identity.use_when?.recipient_addresses || []).map((value: unknown) => normalizeEmail(value)),
-    );
-    if (recipients.has(sendAs) || [...ruleAddresses].some((address) => recipients.has(address))) {
-      const mailbox = mailboxes[identity.mailbox_id];
-      if (mailbox) return { identity, mailbox };
-    }
-  }
-
-  const mailbox = mailboxes[item.account || ""];
-  if (!mailbox) throw new Error(`unknown account ${item.account}`);
-  const identityId = mailbox.send_identities?.[0];
-  if (identityId && identities[identityId]) return { identity: identities[identityId], mailbox };
-  throw new Error(`no send identity configured for ${item.account}`);
-}
-
-function endpointSecretRef(endpoint: unknown) {
-  const data = endpoint && typeof endpoint === "object" ? (endpoint as Record<string, unknown>) : {};
-  return String(data.vault_ref || data.password_vault_ref || data.secret_ref || data.password_env || "").trim();
-}
-
-async function endpointPassword(endpoint: unknown, label: string) {
-  const ref = endpointSecretRef(endpoint);
-  if (!ref) throw new Error(`missing secret reference for ${label}`);
-  const provider = createProvider();
-  if (provider.getSecret) {
-    const secret = await provider.getSecret(ref);
-    if (!secret) throw new Error(`Missing Busabase Vault secret: ${ref}`);
-    return secret;
-  }
-  const secret = process.env[ref];
-  if (!secret) throw new Error(`Missing environment variable: ${ref}`);
-  return secret;
-}
-
 async function imapClient(mailbox: Mailbox) {
   const imap = mailbox.imap;
   if (!imap?.host || !imap.username) throw new Error(`missing IMAP config for ${mailbox.mailbox_id}`);
-  const password = await endpointPassword(imap, `${mailbox.mailbox_id}:imap`);
+  const password = await resolveEndpointSecret(imap, `${mailbox.mailbox_id}:imap`);
   return new ImapFlow({
     host: imap.host,
     port: Number(imap.port || 993),
@@ -212,29 +150,6 @@ async function imapClient(mailbox: Mailbox) {
     auth: { user: imap.username, pass: password },
     logger: false,
   });
-}
-
-async function smtpTransport(mailbox: Mailbox) {
-  const smtp = mailbox.smtp;
-  if (!smtp?.host || !smtp.username) throw new Error(`missing SMTP config for ${mailbox.mailbox_id}`);
-  const password = await endpointPassword(smtp, `${mailbox.mailbox_id}:smtp`);
-  return nodemailer.createTransport({
-    host: smtp.host,
-    port: Number(smtp.port || 465),
-    secure: smtp.security === "ssl" || Number(smtp.port || 465) === 465,
-    auth: { user: smtp.username, pass: password },
-  });
-}
-
-function ensureMsgId(value: unknown) {
-  const id = String(value || "").trim();
-  if (!id) return "";
-  if (id.startsWith("<") && id.endsWith(">")) return id;
-  return id.includes("@") ? `<${id.replace(/^<|>$/g, "")}>` : id;
-}
-
-function replySubject(subject = "") {
-  return subject.toLowerCase().startsWith("re:") ? subject : `Re: ${subject || "(no subject)"}`;
 }
 
 function quoteBlock(item: ReviewItem) {
@@ -303,28 +218,34 @@ async function executeMailboxGroup(mailbox: Mailbox, entries: ExecEntry[], dryRu
 }
 
 async function sendReply(item: ReviewItem, config: Config, dryRun: boolean): Promise<ExecResult> {
-  const { identity, mailbox } = resolveIdentity(item, config);
+  const fromAddress = item.to || "";
+  const recipient = parseEmailAddresses(item.from || "")[0];
+  if (!recipient?.address) throw new Error("cannot determine reply recipient");
+  const result = await sendSupportReply(
+    {
+      idempotencyKey: `kelly-email:${item.id}`,
+      fromAddress,
+      mailboxId: item.account,
+      toAddress: recipient.address,
+      customerName: recipient.name,
+      subject: item.subject || "",
+      text: `${String(item.draft || "").trim()}${quoteBlock(item)}`,
+      inReplyTo: item.thread_id,
+    },
+    config,
+    { dryRun },
+  );
   const plan: ExecEntry = {
     item,
     action: "send_reply",
-    identity: identity.identity_id,
-    send_as: identity.send_as_email,
+    identity: result.identityId,
+    send_as: result.sendAs,
   };
-  if (dryRun) return { ...executionPlan(plan), status: "dry_run" };
-  const [recipient] = parseAddresses(item.from || "");
-  if (!recipient?.address) throw new Error("cannot determine reply recipient");
-  const threadId = ensureMsgId(item.thread_id);
-  const transporter = await smtpTransport(mailbox);
-  await transporter.sendMail({
-    from: { name: identity.display_name || identity.send_as_email, address: identity.send_as_email },
-    to: recipient.name ? { name: recipient.name, address: recipient.address } : recipient.address,
-    replyTo: identity.reply_to || undefined,
-    subject: replySubject(item.subject),
-    text: `${String(item.draft || "").trim()}${quoteBlock(item)}`,
-    inReplyTo: threadId || undefined,
-    references: threadId || undefined,
-  });
-  return { ...executionPlan(plan), status: "executed" };
+  return {
+    ...executionPlan(plan),
+    status: dryRun ? "dry_run" : "executed",
+    provider_message_id: result.messageId,
+  };
 }
 
 function compactResult(result: ExecResult) {
@@ -342,6 +263,7 @@ function compactResult(result: ExecResult) {
     mark_read: result.mark_read,
     identity: result.identity,
     send_as: result.send_as,
+    provider_message_id: result.provider_message_id,
     skip_reason: result.skip_reason,
     error: result.error,
   };
@@ -396,6 +318,7 @@ async function updateBatchAfterExecution(batch: Batch, results: ExecResult[], bl
         executed_at: utcNow(),
         identity: result.identity,
         send_as: result.send_as,
+        provider_message_id: result.provider_message_id,
       };
       item.status = "executed";
     } else if (result.status === "dry_run") {

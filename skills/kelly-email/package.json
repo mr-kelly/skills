@@ -7,6 +7,7 @@
   "scripts": {
     "generate": "node scripts/generate_review_batch.ts",
     "execute": "node scripts/execute_ui_decisions.ts",
+    "support:send": "node scripts/send_support_reply.ts",
     "validate": "node scripts/validate_ui_schema.ts",
     "busabase:init": "node scripts/init_busabase_schema.ts",
     "app:check": "pnpm --dir content/kelly-email-app check"

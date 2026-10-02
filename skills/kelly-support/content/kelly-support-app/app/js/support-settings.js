@@ -30,6 +30,8 @@ const parseObject = (value) => {
   }
 };
 
+const field = (row, key) => row[key] ?? row[key.replaceAll("_", "-")];
+
 export function settingsRecord({ status = "needs_review", updatedAt = "" } = {}) {
   return {
     record_id: "config",
@@ -44,13 +46,13 @@ export function settingsRecord({ status = "needs_review", updatedAt = "" } = {})
 }
 
 export function normalizeSupportSettings(row = {}) {
-  const sla = parseObject(row.sla_policy);
-  const risk = parseObject(row.risk_policy);
-  const style = parseObject(row.reply_style);
+  const sla = parseObject(field(row, "sla_policy"));
+  const risk = parseObject(field(row, "risk_policy"));
+  const style = parseObject(field(row, "reply_style"));
   return {
     record_id: "config",
-    onboarding_status: String(row.onboarding_status || "not_started"),
-    onboarding_version: Number(row.onboarding_version || 0),
+    onboarding_status: String(field(row, "onboarding_status") || "not_started"),
+    onboarding_version: Number(field(row, "onboarding_version") || 0),
     sla_policy: {
       first_response_hours: {
         ...DEFAULT_SUPPORT_SETTINGS.sla_policy.first_response_hours,
@@ -64,17 +66,17 @@ export function normalizeSupportSettings(row = {}) {
       ...style,
       avoid: Array.isArray(style.avoid) ? style.avoid : [],
     },
-    kb_source_path: String(row.kb_source_path || ""),
-    updated_at: String(row.updated_at || ""),
+    kb_source_path: String(field(row, "kb_source_path") || ""),
+    updated_at: String(field(row, "updated_at") || ""),
   };
 }
 
 export function validateSupportSettings(row = {}) {
   const value = normalizeSupportSettings(row);
   const errors = [];
-  if (!row.sla_policy) errors.push("sla_policy");
-  if (!row.risk_policy) errors.push("risk_policy");
-  if (!row.reply_style) errors.push("reply_style");
+  if (!field(row, "sla_policy")) errors.push("sla_policy");
+  if (!field(row, "risk_policy")) errors.push("risk_policy");
+  if (!field(row, "reply_style")) errors.push("reply_style");
   for (const priority of ["urgent", "high", "normal", "low"]) {
     const hours = Number(value.sla_policy.first_response_hours[priority]);
     if (!Number.isFinite(hours) || hours <= 0) errors.push(`sla_policy.first_response_hours.${priority}`);

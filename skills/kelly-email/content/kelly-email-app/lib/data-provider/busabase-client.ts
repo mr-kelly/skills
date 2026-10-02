@@ -34,6 +34,20 @@ const ownership = (resourceKey: string) => ({
 const owns = (node: any, resourceKey: string) =>
   node?.metadata?.appId === appConfig.appId && node?.metadata?.resourceKey === resourceKey;
 
+export function chooseOwnedResourceCandidate(
+  candidates: Array<{ node: any; count: number }>,
+  declaredSlug: string,
+  resourceKey: string,
+) {
+  const populated = candidates.filter((candidate) => candidate.count > 0);
+  if (populated.length > 1) throw new Error(`SETUP_CONFLICT: multiple populated Kelly Email ${resourceKey} Bases`);
+  return (
+    populated[0]?.node ||
+    candidates.find((candidate) => candidate.node.slug === declaredSlug)?.node ||
+    candidates[0]?.node
+  );
+}
+
 const toBusabaseFields = (fields: Fields) =>
   Object.fromEntries(Object.entries(fields).map(([key, value]) => [key.replaceAll("_", "-"), value]));
 
@@ -49,10 +63,14 @@ function crId(result: any) {
 }
 
 export function createBusabaseClient() {
+  const airAppRequest = isAirAppRequest();
   const sdk = createSdkClient({
     baseUrl: runtimeOrigin(),
-    ...(appConfig.spaceId ? { spaceId: appConfig.spaceId } : {}),
-    headers: runtimeHeaders,
+    ...(appConfig.spaceId || (!airAppRequest && process.env.BUSABASE_SPACE_ID)
+      ? { spaceId: appConfig.spaceId || process.env.BUSABASE_SPACE_ID }
+      : {}),
+    ...(!airAppRequest && process.env.BUSABASE_API_KEY ? { apiKey: process.env.BUSABASE_API_KEY } : {}),
+    ...(airAppRequest ? { headers: runtimeHeaders } : {}),
   });
 
   const base = (key: BaseKey) => {
@@ -79,12 +97,46 @@ export function createBusabaseClient() {
     }
   }
 
+  async function resolveOwnedResourceAliases() {
+    const roots = await sdk.nodes.list({ parentId: null, depth: 2 });
+    const folder = (roots || [])
+      .flatMap((node: any) => [node, ...(node.children || [])])
+      .find((node: any) => node.type === "folder" && node.slug === appConfig.folder.slug);
+    if (!folder) return;
+    const detail = await sdk.nodes.get({ nodeId: folder.id, type: "folder" });
+    const children = (detail as any).children || [];
+    for (const declaration of appConfig.bases) {
+      const candidates = children.filter(
+        (node: any) =>
+          node.type === "base" &&
+          node.baseId &&
+          node.metadata?.appId === appConfig.appId &&
+          node.metadata?.resourceKey === declaration.key,
+      );
+      if (!candidates.length || (candidates.length === 1 && candidates[0].slug === declaration.slug)) continue;
+      const withCounts = await Promise.all(
+        candidates.map(async (node: any) => ({
+          node,
+          count: (await sdk.records.count({ baseId: node.baseId }).catch(() => ({ total: 0 }))).total,
+        })),
+      );
+      const selected = chooseOwnedResourceCandidate(withCounts, declaration.slug, declaration.key);
+      declaration.slug = selected.slug;
+    }
+  }
+
   async function locateDrive(folderNodeId: string) {
     const detail = await sdk.nodes.get({ nodeId: folderNodeId, type: "folder" });
     const children = (detail as any).children || [];
     let drive = appConfig.drive.nodeId ? children.find((item: any) => item.id === appConfig.drive.nodeId) : null;
+    drive ||= children.find(
+      (item: any) =>
+        item.type === "drive" &&
+        item.metadata?.appId === appConfig.appId &&
+        [appConfig.drive.resourceKey, "files"].includes(item.metadata?.resourceKey),
+    );
     drive ||= children.find((item: any) => item.type === "drive" && item.slug === appConfig.drive.slug);
-    if (drive && !owns(drive, appConfig.drive.resourceKey)) {
+    if (drive && !owns(drive, appConfig.drive.resourceKey) && drive.metadata?.resourceKey !== "files") {
       throw new Error("SETUP_CONFLICT: Kelly Email Drive ownership mismatch");
     }
     if (drive) appConfig.drive.nodeId = drive.id;
@@ -92,6 +144,7 @@ export function createBusabaseClient() {
   }
 
   async function inspectResources() {
+    await resolveOwnedResourceAliases();
     const resources = await inspectProvisionedResources(sdk, resourceConfig);
     syncResolvedConfig(resources);
     const drive = resources.folder ? await locateDrive(resources.folder.nodeId) : null;
@@ -99,6 +152,7 @@ export function createBusabaseClient() {
   }
 
   async function provisionResources() {
+    await resolveOwnedResourceAliases();
     const resources = await provisionDeclaredResources(sdk, resourceConfig);
     syncResolvedConfig(resources);
     let drive = await locateDrive(resources.folder!.nodeId);
