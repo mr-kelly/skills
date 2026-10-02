@@ -760,13 +760,13 @@ tr:last-child td {
   }
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.12);
+    box-shadow: 8px 0 24px var(--shadow-tint-deep);
   }
   .sidebar-scrim {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.28);
+    background: var(--scrim);
     z-index: 15;
   }
   .sidebar-scrim[hidden] {

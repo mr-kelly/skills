@@ -23,7 +23,7 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     background: var(--surface);
-    box-shadow: 0 24px 80px rgba(17, 24, 39, 0.28);
+    box-shadow: 0 24px 80px var(--shadow-tint-deep);
   }
 
   .provider-gate-head {

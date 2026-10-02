@@ -293,7 +293,7 @@
     aspect-ratio: 16 / 9;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: #000;
+    background: var(--ink);
     display: block;
   }
 
@@ -315,7 +315,7 @@
     font-size: var(--text-xs);
     padding: 2px 8px;
     border-radius: 999px;
-    background: rgba(23, 23, 27, 0.72);
+    background: var(--scrim);
     color: var(--accent-contrast);
     pointer-events: none;
   }

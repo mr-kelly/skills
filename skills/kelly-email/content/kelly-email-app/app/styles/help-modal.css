@@ -6,7 +6,7 @@
     display: grid;
     place-items: center;
     padding: 24px;
-    background: rgba(17, 24, 39, 0.36);
+    background: var(--scrim);
     backdrop-filter: blur(4px);
   }
 
@@ -23,7 +23,7 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     background: var(--panel);
-    box-shadow: 0 24px 80px rgba(17, 24, 39, 0.28);
+    box-shadow: 0 24px 80px var(--shadow-tint-deep);
   }
 
   .modal-head {

@@ -319,7 +319,7 @@
       z-index: 30;
       transform: translateX(-100%);
       transition: transform 0.18s ease;
-      box-shadow: 20px 0 40px rgba(24, 24, 27, 0.18);
+      box-shadow: 20px 0 40px var(--shadow-tint-deep);
     }
 
     body.sidebar-open .sidebar {
@@ -331,7 +331,7 @@
       inset: 0;
       z-index: 25;
       display: block;
-      background: rgba(24, 24, 27, 0.28);
+      background: var(--scrim);
     }
 
     .mobile-sidebar-toggle {
@@ -345,7 +345,7 @@
       place-items: center;
       border-radius: 999px;
       color: var(--accent-contrast);
-      background: #18181b;
+      background: var(--ink);
       box-shadow: var(--shadow);
     }
 
@@ -371,7 +371,7 @@
     }
 
     body.sidebar-open .sidebar {
-      box-shadow: 18px 0 36px rgba(24, 24, 27, 0.12);
+      box-shadow: 18px 0 36px var(--shadow-tint-deep);
     }
 
     .mobile-sidebar-toggle {

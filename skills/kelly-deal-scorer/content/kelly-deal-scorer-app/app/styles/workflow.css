@@ -14,11 +14,11 @@
   }
 
   .metric strong.positive {
-    color: var(--good, #047857);
+    color: var(--good);
   }
 
   .metric strong.negative {
-    color: var(--bad, #b42318);
+    color: var(--bad);
   }
 
   .dist-bar {
@@ -35,15 +35,15 @@
   }
 
   .dist-bar .seg-high {
-    background: var(--good, #147a32);
+    background: var(--good);
   }
 
   .dist-bar .seg-review {
-    background: var(--warn, #9c5a12);
+    background: var(--warn);
   }
 
   .dist-bar .seg-low {
-    background: var(--bad, #b33434);
+    background: var(--bad);
   }
 
   .dist-legend {
@@ -335,7 +335,7 @@
   .detail-side,
   .invoice-detail-panel > div,
   .audit-panel {
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+    box-shadow: 0 1px 2px var(--shadow-tint);
   }
 
   .overview-panel h2 {
@@ -430,15 +430,15 @@
   }
 
   .factor-bar-fill.tier-high {
-    background: var(--good, #147a32);
+    background: var(--good);
   }
 
   .factor-bar-fill.tier-review {
-    background: var(--warn, #9c5a12);
+    background: var(--warn);
   }
 
   .factor-bar-fill.tier-low {
-    background: var(--bad, #b33434);
+    background: var(--bad);
   }
 
   .factor-row .factor-detail {

@@ -161,7 +161,7 @@ body.sidebar-collapsed .app-shell {
 
 .sidebar-toggle:focus-visible,
 .mobile-sidebar-toggle:focus-visible {
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.16);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 .sidebar-toggle-icon {
@@ -245,14 +245,14 @@ body.sidebar-collapsed .sidebar-footer {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--surface) 72%, transparent);
-  box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
+  box-shadow: inset 0 1px 0 var(--shadow-tint);
 }
 
 .search input:focus {
   border-color: var(--line-strong);
   outline: none;
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 /* Human attention */
@@ -309,7 +309,7 @@ body.sidebar-collapsed .sidebar-footer {
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  background: #202124;
+  background: var(--ink);
   color: var(--accent-contrast);
   font-size: var(--text-lg);
 }
@@ -420,7 +420,7 @@ textarea:focus,
 select:focus {
   border-color: var(--line-strong);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 button {
@@ -1217,7 +1217,7 @@ dd {
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.14);
+    box-shadow: 20px 0 40px var(--shadow-tint-deep);
   }
 
   .sidebar-scrim {
@@ -1225,7 +1225,7 @@ dd {
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.24);
+    background: var(--scrim);
   }
 
   .brand {

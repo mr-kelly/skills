@@ -15,7 +15,7 @@
   button:hover {
     border-color: var(--line-strong);
     background: var(--surface-soft);
-    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+    box-shadow: 0 1px 3px var(--shadow-tint);
   }
 
   button:active {
@@ -50,21 +50,21 @@
     width: max-content;
     max-width: min(360px, 70vw);
     white-space: normal;
-    background: #111827;
+    background: var(--ink);
     color: var(--accent-contrast);
     border-radius: var(--radius-sm);
     padding: 8px 10px;
     font-size: var(--text-sm);
     line-height: 1.38;
     text-align: left;
-    box-shadow: 0 10px 28px rgba(17, 24, 39, 0.24);
+    box-shadow: 0 10px 28px var(--shadow-tint-deep);
   }
 
   button.has-tooltip::before {
     content: "";
     top: calc(100% + 3px);
     border: 6px solid transparent;
-    border-bottom-color: #111827;
+    border-bottom-color: var(--ink);
   }
 
   button.has-tooltip:hover::after,
@@ -83,7 +83,7 @@
     );
     border-color: var(--accent-strong);
     color: var(--accent-contrast);
-    box-shadow: 0 1px 1px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    box-shadow: 0 1px 1px var(--shadow-tint), inset 0 1px 0 var(--shadow-tint-deep);
   }
 
   button.primary:hover {
@@ -232,7 +232,7 @@
     border-color: var(--accent-line);
     background: var(--accent-wash);
     color: var(--text);
-    box-shadow: 0 0 0 3px var(--accent-soft), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+    box-shadow: 0 0 0 3px var(--accent-soft), inset 0 1px 0 var(--shadow-tint-deep);
   }
 
   .theme-option:has(input:focus-visible) {
@@ -248,12 +248,12 @@
     border: 1px solid rgba(15, 23, 42, 0.16);
     border-radius: 999px;
     background: var(--swatch);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.46), inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+    box-shadow: inset 0 1px 1px var(--shadow-tint-deep), inset 0 -1px 1px var(--shadow-tint-deep);
   }
 
   .theme-option:has(input:checked) .theme-swatch {
-    box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px var(--accent), inset 0 1px 1px rgba(255, 255, 255, 0.46), inset 0 -1px
-      1px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px var(--accent), inset 0 1px 1px var(--shadow-tint-deep), inset 0 -1px
+      1px var(--shadow-tint-deep);
   }
 
   .theme-option:has(input:checked) .theme-swatch::after {
@@ -302,12 +302,12 @@
     position: fixed;
     right: 18px;
     bottom: 18px;
-    background: #111827;
+    background: var(--ink);
     color: var(--accent-contrast);
     border-radius: var(--radius-sm);
     padding: 10px 12px;
     max-width: 420px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 10px 30px var(--shadow-tint-deep);
   }
 
   @media (max-width: 720px) {

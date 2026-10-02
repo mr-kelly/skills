@@ -397,7 +397,7 @@ textarea:focus-visible {
   color: white;
 }
 .primary:hover {
-  background: #0b4f3a;
+  background: color-mix(in srgb, var(--positive) 70%, black);
 }
 .danger {
   border-color: color-mix(in srgb, var(--danger) 34%, var(--line));
@@ -454,7 +454,7 @@ textarea:focus-visible {
 .segmented button.active {
   background: var(--surface);
   color: var(--text);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+  box-shadow: 0 1px 2px var(--shadow-tint);
 }
 .compare {
   --reveal: 50%;
@@ -494,7 +494,7 @@ textarea:focus-visible {
   left: var(--reveal);
   width: 2px;
   background: var(--surface);
-  box-shadow: 0 0 0 1px rgb(0 0 0 / 18%);
+  box-shadow: 0 0 0 1px var(--accent-focus);
   transform: translateX(-1px);
 }
 .compare-range {
@@ -518,7 +518,7 @@ textarea:focus-visible {
 .compare figcaption span {
   padding: 4px 7px;
   border-radius: var(--radius-sm);
-  background: rgb(18 20 22 / 72%);
+  background: var(--scrim);
   color: white;
   font-size: var(--text-xs);
 }
@@ -628,7 +628,7 @@ textarea:focus-visible {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgb(22 26 29 / 38%);
+  background: var(--scrim);
 }
 .modal {
   display: grid;
@@ -639,7 +639,7 @@ textarea:focus-visible {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   background: var(--surface);
-  box-shadow: 0 24px 70px rgb(0 0 0 / 18%);
+  box-shadow: 0 24px 70px var(--shadow-tint-deep);
 }
 .modal header {
   display: flex;
@@ -778,14 +778,14 @@ body.sidebar-collapsed .nav button {
   }
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgb(15 23 42 / 16%);
+    box-shadow: 20px 0 40px var(--shadow-tint-deep);
   }
   .sidebar-scrim {
     position: fixed;
     z-index: 25;
     inset: 0;
     display: block;
-    background: rgb(15 23 42 / 28%);
+    background: var(--scrim);
   }
   .content {
     grid-template-columns: 1fr;

@@ -218,7 +218,7 @@ body.sidebar-collapsed .sidebar-footer {
 .search input:focus {
   border-color: var(--accent);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 .human-work {
@@ -319,7 +319,7 @@ body.sidebar-collapsed .sidebar-footer {
   min-height: 78px;
   padding: 16px 24px;
   border-bottom: 1px solid var(--line);
-  background: rgba(246, 247, 245, 0.9);
+  background: var(--surface-blur);
   backdrop-filter: blur(10px);
 }
 
@@ -868,7 +868,7 @@ tr:last-child td {
     inset: 0;
     z-index: 4;
     display: none;
-    background: rgba(25, 32, 29, 0.32);
+    background: var(--scrim);
   }
 
   body.sidebar-open .sidebar-scrim {
@@ -970,5 +970,5 @@ tr:last-child td {
   font-size: var(--text-sm);
 }
 .pager-error {
-  color: var(--danger, #b42318);
+  color: var(--danger);
 }

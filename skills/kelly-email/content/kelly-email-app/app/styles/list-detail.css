@@ -419,7 +419,7 @@
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-sm);
     background: var(--surface);
-    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+    box-shadow: 0 14px 34px var(--shadow-tint-deep);
   }
 
   .detail-action-menu.is-open {
@@ -471,7 +471,7 @@
     font-size: var(--text-md);
     max-height: 340px;
     overflow: auto;
-    box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
+    box-shadow: inset 0 1px 0 var(--shadow-tint);
   }
 
   .translated-body {
@@ -580,7 +580,7 @@
   }
 
   .html-preview.is-clamped {
-    box-shadow: inset 0 -14px 18px -18px rgba(15, 23, 42, 0.45);
+    box-shadow: inset 0 -14px 18px -18px var(--shadow-tint-deep);
   }
 
   @media (max-width: 900px) {

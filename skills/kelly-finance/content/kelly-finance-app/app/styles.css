@@ -406,7 +406,7 @@ pre {
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.28);
+    background: var(--scrim);
   }
 
   .sidebar-scrim[hidden] {

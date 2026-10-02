@@ -291,7 +291,7 @@ body.sidebar-collapsed .sidebar-footer {
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  background: #202124;
+  background: var(--ink);
   color: var(--accent-contrast);
   font-size: var(--text-lg);
 }
@@ -857,7 +857,7 @@ button.danger {
   position: relative;
   min-height: 620px;
   overflow: hidden;
-  border: 1px solid #1f2937;
+  border: 1px solid var(--ink);
   border-radius: var(--radius-sm);
   background: linear-gradient(180deg, rgba(15, 118, 110, 0.22), rgba(37, 99, 235, 0.15)),
     radial-gradient(circle at 25% 12%, rgba(255, 255, 255, 0.7), transparent 24%),
@@ -886,7 +886,7 @@ button.danger {
 
 .hud-chip {
   border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(15, 23, 42, 0.45);
+  background: var(--scrim);
   border-radius: 999px;
   padding: 5px 10px;
   color: rgba(255, 255, 255, 0.86);
@@ -934,7 +934,7 @@ button.danger {
   border-radius: 84px 84px 18px 18px;
   background: linear-gradient(90deg, transparent 0 46%, rgba(255, 255, 255, 0.25) 47% 49%, transparent 50%),
     linear-gradient(135deg, #111827, #334155 64%, #0f766e);
-  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 26px 80px var(--shadow-tint-deep);
 }
 
 .neck {
@@ -956,7 +956,7 @@ button.danger {
   border-radius: 62px 62px 58px 58px;
   background: radial-gradient(circle at 36% 38%, rgba(255, 255, 255, 0.32), transparent 14%),
     linear-gradient(180deg, #f0c7a8, #d9a07d 62%, #bf7d61);
-  box-shadow: inset 10px -10px 22px rgba(99, 55, 38, 0.14), 0 16px 36px rgba(0, 0, 0, 0.28);
+  box-shadow: inset 10px -10px 22px var(--shadow-tint-deep), 0 16px 36px var(--shadow-tint-deep);
 }
 
 .hair {
@@ -978,7 +978,7 @@ button.danger {
   width: 34px;
   height: 92px;
   border-radius: var(--radius-lg);
-  background: #111827;
+  background: var(--ink);
 }
 
 .eye {
@@ -987,8 +987,8 @@ button.danger {
   width: 18px;
   height: 9px;
   border-radius: 999px;
-  background: #1f2937;
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18);
+  background: var(--ink);
+  box-shadow: 0 0 0 4px var(--accent-focus);
 }
 
 .eye.left {
@@ -1019,7 +1019,7 @@ button.danger {
   background: linear-gradient(180deg, #8b2635, #45111b);
   transform-origin: center top;
   transition: height 80ms linear;
-  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 3px 0 var(--shadow-tint-deep);
 }
 
 .subtitle {
@@ -1033,7 +1033,7 @@ button.danger {
 }
 
 .subtitle-line {
-  background: rgba(15, 23, 42, 0.62);
+  background: var(--scrim);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
@@ -1225,7 +1225,7 @@ button.danger {
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.16);
+    box-shadow: 20px 0 40px var(--shadow-tint-deep);
   }
 
   .sidebar-scrim {
@@ -1233,7 +1233,7 @@ button.danger {
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.28);
+    background: var(--scrim);
   }
 
   .topbar {

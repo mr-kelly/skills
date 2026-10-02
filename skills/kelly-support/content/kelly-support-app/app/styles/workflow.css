@@ -140,19 +140,19 @@
   }
 
   .channel-badge.email .dot {
-    background: #b7791f;
+    background: var(--warning);
   }
   .channel-badge.whatsapp .dot {
-    background: #1faa61;
+    background: var(--positive);
   }
   .channel-badge.webchat .dot {
-    background: #2f6fed;
+    background: var(--accent);
   }
   .channel-badge.form .dot {
-    background: #6941c6;
+    background: var(--accent);
   }
   .channel-badge.wechat .dot {
-    background: #09b83e;
+    background: var(--positive);
   }
 
   .category-chip,
@@ -276,7 +276,7 @@
     height: 8px;
     margin-left: 6px;
     border-radius: 50%;
-    background: #2563eb;
+    background: var(--accent);
     vertical-align: middle;
   }
 
@@ -374,16 +374,16 @@
   }
 
   .bar-track {
-    fill: #eef1f5;
+    fill: var(--surface-soft);
   }
 
   .trend-line {
-    stroke: #2f6fed;
+    stroke: var(--accent);
     stroke-width: 2;
   }
 
   .trend-dot {
-    fill: #2f6fed;
+    fill: var(--accent);
   }
 
   .trend-label {
@@ -1019,7 +1019,7 @@
 
     body.sidebar-open .sidebar {
       transform: translateX(0);
-      box-shadow: 20px 0 40px rgba(15, 23, 42, 0.14);
+      box-shadow: 20px 0 40px var(--shadow-tint-deep);
     }
 
     .sidebar-scrim {
@@ -1027,7 +1027,7 @@
       inset: 0;
       z-index: 25;
       display: block;
-      background: rgba(15, 23, 42, 0.24);
+      background: var(--scrim);
     }
 
     .brand {
@@ -1212,5 +1212,5 @@
   font-size: var(--text-sm);
 }
 .pager-error {
-  color: var(--danger, #b42318);
+  color: var(--danger);
 }

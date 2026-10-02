@@ -30,7 +30,7 @@
   }
 
   .attention-card.hot strong {
-    background: #202124;
+    background: var(--ink);
     color: var(--accent-contrast);
   }
 
@@ -50,7 +50,7 @@
     margin-bottom: 14px;
     padding: 14px 16px;
     border: 1px solid var(--line);
-    border-left: 3px solid #64748b;
+    border-left: 3px solid var(--muted);
     border-radius: var(--radius-sm);
     background: var(--panel);
   }
@@ -87,15 +87,15 @@
   }
 
   .svg-track {
-    fill: #e8ebf0;
+    fill: var(--accent-soft);
   }
 
   .svg-bar {
-    fill: #64748b;
+    fill: var(--muted);
   }
 
   .svg-bar.full {
-    fill: #047857;
+    fill: color-mix(in srgb, var(--positive) 70%, black);
   }
 
   .participation-cell {
@@ -177,15 +177,15 @@
   }
 
   .mood-dot.mood-good {
-    background: #10b981;
+    background: var(--positive);
   }
 
   .mood-dot.mood-ok {
-    background: #f2c144;
+    background: var(--warning);
   }
 
   .mood-dot.mood-stuck {
-    background: #ef4444;
+    background: var(--danger);
   }
 
   .member-card-meta {
@@ -454,8 +454,8 @@
 
   .chip.active,
   .chip.active:hover {
-    border-color: #202124;
-    background: #202124;
+    border-color: var(--ink);
+    background: var(--ink);
     color: var(--accent-contrast);
   }
 
@@ -476,7 +476,7 @@
   }
 
   .blocker-card.sev-high {
-    border-left-color: #dc2626;
+    border-left-color: var(--danger);
   }
 
   .blocker-card.sev-medium {
@@ -565,11 +565,11 @@
   }
 
   .proposal-card.status-edge-changes_requested {
-    border-left-color: #7c3aed;
+    border-left-color: var(--accent);
   }
 
   .proposal-card.status-edge-approved {
-    border-left-color: #1d4ed8;
+    border-left-color: var(--accent);
   }
 
   .proposal-card.status-edge-done {
@@ -793,7 +793,7 @@
     left: -6px;
     width: 10px;
     height: 10px;
-    border: 2px solid #64748b;
+    border: 2px solid var(--muted);
     border-radius: 50%;
     background: var(--panel);
   }
@@ -983,7 +983,7 @@
 
     body.sidebar-open .sidebar {
       transform: translateX(0);
-      box-shadow: 20px 0 40px rgba(15, 23, 42, 0.14);
+      box-shadow: 20px 0 40px var(--shadow-tint-deep);
     }
 
     .sidebar-scrim {
@@ -991,7 +991,7 @@
       inset: 0;
       z-index: 25;
       display: block;
-      background: rgba(15, 23, 42, 0.24);
+      background: var(--scrim);
     }
 
     .brand {
@@ -1155,5 +1155,5 @@
   font-size: var(--text-sm);
 }
 .pager-error {
-  color: var(--danger, #b42318);
+  color: var(--danger);
 }
