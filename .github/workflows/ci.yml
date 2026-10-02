@@ -62,6 +62,11 @@ jobs:
       - name: Typecheck (.mjs)
         run: npm run typecheck
 
+      - name: Test WeChat content template
+        run: |
+          pnpm --dir skills/kelly-wechat-content typecheck
+          pnpm --dir skills/kelly-wechat-content/content/kelly-wechat-content-app check
+
       - name: Test Pages asset validator
         run: node --test tests/pages-assets.test.mjs
 

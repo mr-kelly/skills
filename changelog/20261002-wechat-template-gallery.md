@@ -39,6 +39,7 @@ The regional WeChat scenarios belong with Kelly's skills and should remain insta
 - `.gitattributes` - Git LFS tracking for skill recordings.
 - `.github/workflows/ci.yml` - Stage template recordings with screenshots for GitHub Pages.
 - `.github/workflows/ci.yml` - Run the gallery regression test on pull requests.
+- `.github/workflows/ci.yml` - Run the content app's scoped typecheck and domain tests in CI.
 - `skills/kelly-wechat-content/pnpm-workspace.yaml` and its AirApp counterpart - Declare the pinned SDK version for the repository's dependency audit.
 
 ## Breaking Changes
