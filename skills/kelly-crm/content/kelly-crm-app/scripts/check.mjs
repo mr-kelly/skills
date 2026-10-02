@@ -64,6 +64,32 @@ if (/KELLY_CRM_DATA_PROVIDER|local-file-provider|config\.local\.json/.test(confi
 }
 if (/\b(?:href|src)="\/(?!api\/v1)/.test(index)) throw new Error("AirApp assets must use relative URLs");
 
+// ── Editorial theme contract ───────────────────────────────────────────────
+// `styles/editorial.css` is the one file allowed to know a colour, a font
+// size, a radius, or a duration. Every violation of that is silent: the app
+// still renders, still passes every other check, and only breaks when someone
+// switches family or opens it in dark mode -- a screenshot nobody takes until
+// after handoff. See kelly-app-skill-creator/references/editorial-visual-system.md.
+{
+  // A copy, not a cross-repo import: this app ships as a Busabase template
+  // and must stay runnable outside this workspace. tests/editorial-theme.test.mjs
+  // asserts the copy is byte-identical to the asset, the same way
+  // tests/base-ui-rollout.test.mjs does for base-ui.css.
+  const { editorialAssertions } = await import("./check-editorial.mjs");
+  const themeSource = await readFile(path.join(root, "app", "styles", "editorial.css"), "utf8");
+  const otherCss = (
+    await Promise.all(
+      ["styles.css", "demo-visuals.css"].map((name) => readFile(path.join(root, "app", name), "utf8").catch(() => "")),
+    )
+  ).join("\n");
+  const failures = editorialAssertions(themeSource, otherCss, index).filter((assertion) => !assertion.ok);
+  if (failures.length) {
+    throw new Error(
+      `Editorial theme contract violated (${failures.length}):\n${failures.map((f) => `  ${f.message}`).join("\n")}`,
+    );
+  }
+}
+
 const forbidden = ["local-file-provider.ts", "launcher.ts", "start.sh", "setup-gate.js"];
 const walk = async (directory) => {
   const paths = [];

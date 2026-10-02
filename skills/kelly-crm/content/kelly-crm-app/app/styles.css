@@ -1,21 +1,10 @@
-:root {
-  color-scheme: light dark;
-  --bg: #f7f8fa;
-  --panel: #ffffff;
-  --panel-subtle: #fafbfc;
-  --line: #e5e7eb;
-  --line-strong: #d8dde6;
-  --ink: #171a1f;
-  --text: #171a1f;
-  --muted: #6b7280;
-  --muted-soft: #9aa3af;
-  --accent: #334155;
-  --accent-weak: #f1f4f8;
-  --warn: #9a6700;
-  --bad: #b42318;
-  --good: #047857;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
-}
+/* No local token :root here -- editorial.css (loaded before this file) is
+   the single source for --bg/--panel/--line/--ink/--text/--muted/--accent/
+   --warn/--bad/--good/--shadow and every other shared name, including the
+   legacy aliases. A local redeclaration of the same names, even an
+   identical-looking one, is dead weight at best: its unlayered html:root
+   already wins the cascade regardless, and keeping a second copy here is
+   exactly how a future edit to one copy silently stops matching the other. */
 
 * {
   box-sizing: border-box;
@@ -67,7 +56,7 @@ h2 {
   height: 100vh;
   min-height: 0;
   overflow: hidden;
-  transition: grid-template-columns 0.18s ease;
+  transition: grid-template-columns var(--ease-state);
 }
 
 body.sidebar-collapsed .app-shell {
@@ -161,7 +150,7 @@ body.sidebar-collapsed .app-shell {
 
 .sidebar-toggle:focus-visible,
 .mobile-sidebar-toggle:focus-visible {
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.16);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 .sidebar-toggle-icon {
@@ -231,7 +220,7 @@ body.sidebar-collapsed .sidebar-footer {
   left: 22px;
   width: 6px;
   height: 1.5px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--muted-soft);
   transform: rotate(45deg);
   transform-origin: left center;
@@ -245,14 +234,14 @@ body.sidebar-collapsed .sidebar-footer {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--surface) 72%, transparent);
-  box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
+  box-shadow: inset 0 1px 0 var(--shadow-tint);
 }
 
 .search input:focus {
   border-color: var(--line-strong);
   outline: none;
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 /* Human attention */
@@ -309,7 +298,7 @@ body.sidebar-collapsed .sidebar-footer {
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  background: #202124;
+  background: var(--ink);
   color: var(--accent-contrast);
   font-size: var(--text-lg);
 }
@@ -420,7 +409,7 @@ textarea:focus,
 select:focus {
   border-color: var(--line-strong);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 button {
@@ -490,15 +479,48 @@ textarea:disabled {
   padding: 16px 18px 24px;
 }
 
-/* Metrics */
+/* Masthead -- the narrative headline above the metric band. Overview only;
+   every other view keeps the plain topbar <h1>. */
+.masthead {
+  border-bottom: var(--rule-heavy) solid var(--rule-strong);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--section-gap);
+}
+
+.masthead .eyebrow {
+  font-size: var(--eyebrow-size);
+  font-weight: 620;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.masthead .headline {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--display-size);
+  line-height: var(--display-leading);
+  letter-spacing: var(--tracking-display);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.masthead .lede {
+  margin: var(--space-3) 0 0;
+  max-width: var(--measure);
+  font-size: var(--lede-size);
+  color: var(--ink-soft);
+}
+
+/* Metric band -- a hairline-divided row, not individually bordered cards.
+   Fixed columns, never auto-fit: see mobile-shell-layout.md. */
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
+  border-block: var(--rule-weight) solid var(--rule);
+  margin-bottom: var(--section-gap);
 }
 
-.metric,
 .overview-panel,
 .agent-panel,
 .detail-side,
@@ -512,7 +534,11 @@ textarea:disabled {
 }
 
 .metric {
-  padding: 12px;
+  padding: var(--space-3) var(--space-4);
+}
+
+.metric + .metric {
+  border-inline-start: var(--hairline) solid var(--line);
 }
 
 .metric span {
@@ -523,8 +549,26 @@ textarea:disabled {
 
 .metric strong {
   display: block;
-  margin-top: 6px;
+  margin-top: var(--space-1);
+  font-family: var(--font-display);
   font-size: var(--text-xl);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+@media (max-width: 720px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric:nth-child(3) {
+    border-inline-start: 0;
+    border-top: var(--hairline) solid var(--line);
+  }
+
+  .metric:nth-child(4) {
+    border-top: var(--hairline) solid var(--line);
+  }
 }
 
 .pager {
@@ -603,7 +647,7 @@ th {
   display: inline-block;
   padding: 3px 8px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface-hover);
   color: var(--ink-soft);
   font-size: var(--text-sm);
@@ -618,7 +662,7 @@ th {
   display: inline-block;
   padding: 3px 8px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface-hover);
   color: var(--ink-soft);
   font-size: var(--text-sm);
@@ -732,7 +776,7 @@ th {
 .stage-bar {
   display: block;
   height: 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface-soft);
   overflow: hidden;
 }
@@ -740,7 +784,7 @@ th {
 .stage-bar span {
   display: block;
   height: 100%;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--accent);
   opacity: 0.75;
 }
@@ -882,7 +926,7 @@ dd {
 .queue-filter {
   min-height: 30px;
   padding: 0 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: var(--text-sm);
   color: var(--ink-soft);
 }
@@ -1115,14 +1159,14 @@ dd {
     gap: 10px;
     overflow: auto;
     transform: translateX(-100%);
-    transition: transform 0.18s ease;
+    transition: transform var(--ease-state);
     z-index: 30;
     box-shadow: none;
   }
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.14);
+    box-shadow: 20px 0 40px var(--shadow-tint-deep);
   }
 
   .sidebar-scrim {
@@ -1130,7 +1174,7 @@ dd {
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.24);
+    background: var(--scrim);
   }
 
   .brand {
@@ -1230,12 +1274,16 @@ dd {
     padding: 12px;
   }
 
-  .metrics,
   .network-grid,
   .settings-channel {
     grid-template-columns: 1fr;
   }
 
+  /* .metrics is deliberately NOT collapsed to 1fr here: mobile-shell-layout.md
+     is explicit that a 4-metric band stays 2 columns even at narrow phone
+     widths -- auto-fit/1-column turns it into 4 stacked rows and pushes
+     real content below the fold. The 2-column rule above (and its hairline
+     redistribution) already covers this breakpoint. */
   .metrics {
     gap: 8px;
   }

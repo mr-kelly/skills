@@ -457,10 +457,12 @@ export function filteredFollowups() {
 }
 
 function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at
-    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
-    : t("empty");
+  // Overview carries its own masthead (eyebrow/headline/lede) inside the
+  // content area -- a second heavy heading in the shared topbar would just
+  // repeat it. Leave the topbar title/subtitle empty here; every other view
+  // still uses them as its only heading.
+  els.title.textContent = "";
+  els.subtitle.textContent = "";
   const metrics = state.snapshot?.metrics || {};
   const stages = state.snapshot?.pipeline_stages || [];
   const openDeals = deals().filter((item) => item.status === "open");
@@ -480,7 +482,22 @@ function renderOverview() {
     .slice()
     .sort((a, b) => String(b.occurred_at).localeCompare(String(a.occurred_at)))
     .slice(0, 6);
+  const needsReviewCount = followups().filter((item) => effectiveStatus(item) === "needs_review").length;
+  const openDealsForLede = deals().filter((item) => item.status === "open");
+  const pipelineForLede = openDealsForLede.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const weightedForLede = Math.round(
+    openDealsForLede.reduce((sum, item) => sum + Number(item.amount || 0) * Number(item.probability || 0), 0),
+  );
   els.content.innerHTML = `
+    <div class="masthead">
+      <div class="eyebrow">${escapeHtml(t("overviewEyebrow"))} · ${date(state.snapshot?.generated_at)}</div>
+      <h1 class="headline">${escapeHtml(
+        needsReviewCount > 0 ? t("overviewHeadlineSome").replace("{n}", needsReviewCount) : t("overviewHeadlineNone"),
+      )}</h1>
+      <p class="lede">${escapeHtml(
+        t("overviewLede").replace("{value}", money(pipelineForLede)).replace("{weighted}", money(weightedForLede)),
+      )}</p>
+    </div>
     ${metricCards()}
     ${warnings()}
     <section class="overview-grid">
