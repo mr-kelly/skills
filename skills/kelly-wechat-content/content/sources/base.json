@@ -1,0 +1,193 @@
+{
+  "name": "资料库",
+  "description": "可复用的公众号参考资料",
+  "position": 0,
+  "fields": [
+    {
+      "slug": "title",
+      "name": "资料标题",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "kind",
+      "name": "资料类型",
+      "type": "select",
+      "options": {
+        "choices": [
+          {
+            "id": "article",
+            "name": "文章"
+          },
+          {
+            "id": "report",
+            "name": "报告"
+          },
+          {
+            "id": "screenshot",
+            "name": "截图"
+          },
+          {
+            "id": "note",
+            "name": "笔记"
+          }
+        ]
+      },
+      "required": false,
+      "position": 1
+    },
+    {
+      "slug": "topic",
+      "name": "主题",
+      "type": "select",
+      "options": {
+        "choices": [
+          {
+            "id": "workflow",
+            "name": "工作流"
+          },
+          {
+            "id": "product",
+            "name": "产品实践"
+          },
+          {
+            "id": "growth",
+            "name": "内容增长"
+          }
+        ]
+      },
+      "required": false,
+      "position": 2
+    },
+    {
+      "slug": "summary",
+      "name": "摘要",
+      "type": "longtext",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "url",
+      "name": "来源链接",
+      "type": "url",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "attachment",
+      "name": "原始附件",
+      "type": "attachment",
+      "required": false,
+      "position": 5,
+      "options": {}
+    },
+    {
+      "slug": "search-text",
+      "name": "检索文字摘录",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "source-date",
+      "name": "资料日期",
+      "type": "date",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "verified",
+      "name": "来源已核对",
+      "type": "checkbox",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "notes",
+      "name": "资料备注",
+      "type": "longtext",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "all-sources",
+      "name": "全部资料",
+      "description": "按资料日期浏览参考资料",
+      "type": "table",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["title", "kind", "topic", "verified", "source-date", "url"],
+        "fieldWidths": {
+          "title": 320,
+          "kind": 100,
+          "topic": 110,
+          "verified": 100,
+          "source-date": 130,
+          "url": 240,
+          "status": 110,
+          "owner": 100,
+          "publish-date": 130,
+          "sources": 300,
+          "review-note": 320,
+          "notes": 320
+        }
+      }
+    },
+    {
+      "slug": "unverified",
+      "name": "待核对资料",
+      "description": "需要确认出处或事实的资料",
+      "type": "table",
+      "config": {
+        "filters": [
+          {
+            "fieldSlug": "verified",
+            "fieldType": "checkbox",
+            "operator": "is_false"
+          }
+        ],
+        "sorts": [],
+        "visibleFieldSlugs": ["title", "kind", "topic", "verified", "notes"],
+        "fieldWidths": {
+          "title": 320,
+          "kind": 100,
+          "topic": 110,
+          "verified": 100,
+          "source-date": 130,
+          "url": 240,
+          "status": 110,
+          "owner": 100,
+          "publish-date": 130,
+          "sources": 300,
+          "review-note": 320,
+          "notes": 320
+        }
+      }
+    }
+  ],
+  "agentPrompts": [
+    {
+      "key": "collect-sources",
+      "label": "整理本周公众号资料",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录 kelly-wechat-content Skill。整理我提供的资料，检查重复并保留来源，未核对的资料不要标为已核对，提交修改供检查。"
+    },
+    {
+      "key": "find-reused-sources",
+      "label": "哪些资料被多篇文章复用了",
+      "intent": "read-only",
+      "body": "{target}\n\n先读同目录 kelly-wechat-content Skill，检查资料与文章的关联，列出反复使用的资料、引用文章和缺少出处的材料，不修改数据。"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "kelly-wechat-content",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "sync:content": "node scripts/sync-content.mjs",
+    "check:content": "node scripts/sync-content.mjs --check",
+    "setup:views": "node scripts/setup-views.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "app:check": "pnpm --dir content/kelly-wechat-content-app check"
+  },
+  "dependencies": { "busabase-sdk": "0.90.2" },
+  "engines": { "node": ">=24.18.0" }
+}

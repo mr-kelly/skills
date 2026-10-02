@@ -1,5 +1,25 @@
 {
   "type": "airapp",
   "name": "微信关系攻略",
-  "description": "目标驱动的个人微信关系策略工作台"
+  "description": "目标驱动的个人微信关系策略工作台",
+  "agentPrompts": [
+    {
+      "key": "start-goal-loop",
+      "label": "从一个目标出发，发现并晋升联系人",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后帮我创建目标、从本机微信通讯录发现匹配的候选人，并把我明确选中的人晋升为重点联系人——微信通讯录里其余的人保持不动。",
+      "intent": "change"
+    },
+    {
+      "key": "next-actions-overview",
+      "label": "查看当前需要我处理的下一步行动",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后总结当前待判断和已批准的行动，按优先级排列，并指出哪些重点联系人的关系正在降温。"
+    },
+    {
+      "key": "connector-status",
+      "label": "微信连接是否就绪？",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后检查 Busabase 和本机微信连接器的就绪状态，如果尚未初始化，告诉我需要我自己运行哪个命令，不要自动执行 `wechat-cli-rs init`。"
+    }
+  ]
 }

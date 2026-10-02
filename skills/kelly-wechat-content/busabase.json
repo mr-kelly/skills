@@ -1,0 +1,29 @@
+{
+  "format": "busabase-package@1",
+  "name": "kelly-wechat-content",
+  "description": "A linked source library, editorial board and publishing calendar for WeChat teams.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "tags": ["marketing", "wechat", "editorial", "content-library"],
+  "template": {
+    "category": "marketing",
+    "schemaVersion": 1,
+    "airapp": "kelly-wechat-content-app",
+    "tags": ["wechat", "source-library", "kanban", "calendar", "review"],
+    "screenshots": [
+      "assets/screenshots/cover.webp",
+      "assets/screenshots/overview.webp",
+      "assets/screenshots/sources.webp",
+      "assets/screenshots/board.webp",
+      "assets/screenshots/calendar.webp",
+      "assets/screenshots/review.webp",
+      "assets/screenshots/article-detail.webp"
+    ],
+    "agentPrompts": [
+      "整理本周公众号资料，保留来源并给待核对材料列出检查项。",
+      "基于已有资料给出三篇文章提纲，关联资料并提交草稿供审核。",
+      "查看发布日历，列出待审核、缺证据和还没有负责人的文章。"
+    ],
+    "requires": { "airapp": true }
+  }
+}

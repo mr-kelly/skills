@@ -1,0 +1,18 @@
+{
+  "name": "公众号内容工作台",
+  "description": "复用资料、协作写作、人工审核与发布排期",
+  "agentPrompts": [
+    {
+      "key": "weekly-editorial-review",
+      "label": "检查本周资料和文章排期",
+      "intent": "read-only",
+      "body": "{target}\n\n先读同目录 kelly-wechat-content Skill。检查资料库和文章排期，列出待核对资料、待审核稿件和排期冲突，给出原记录链接，不修改数据。"
+    },
+    {
+      "key": "prepare-editorial-plan",
+      "label": "用已有资料准备下一周选题",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录 kelly-wechat-content Skill。根据已核对资料提出下一周公众号选题，关联资料并提交文章提纲变更请求，等待人确认，不对外发布。"
+    }
+  ]
+}

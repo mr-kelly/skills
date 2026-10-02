@@ -2,6 +2,26 @@
   "name": "目标",
   "description": "用户动态设置的销售、关系维护或进一步了解某人的目标。",
   "position": 1,
+  "agentPrompts": [
+    {
+      "key": "create-goal",
+      "label": "创建一个新目标",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后帮我创建一个目标——想实现什么、范围（全局/某个人/一类关系）、成功标准、期限、优先级，以及需要遵守的边界与约束。",
+      "intent": "change"
+    },
+    {
+      "key": "update-goal-status",
+      "label": "更新目标的状态",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后把我指定的目标状态改为进行中、暂停、已达成或已放弃，并说明原因。",
+      "intent": "change"
+    },
+    {
+      "key": "active-goals",
+      "label": "查看当前进行中的目标",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后列出当前进行中的目标，包含范围、成功标准和期限。"
+    }
+  ],
   "fields": [
     {
       "slug": "title",

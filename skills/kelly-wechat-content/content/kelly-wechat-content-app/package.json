@@ -1,0 +1,22 @@
+{
+  "name": "kelly-wechat-content-airapp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.18.0" },
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build:sdk": "node scripts/bundle-sdk.mjs",
+    "sync:demo": "node scripts/sync-demo.mjs",
+    "check": "node scripts/check.mjs && node --test",
+    "typecheck": "node scripts/check.mjs"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.0.8",
+    "busabase-sdk": "0.90.2",
+    "hono": "4.12.29",
+    "lucide": "0.577.0"
+  },
+  "devDependencies": { "esbuild-wasm": "0.28.1" }
+}

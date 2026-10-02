@@ -7,6 +7,7 @@ import { appConfig } from "../content/kelly-wechat-crm-app/app/js/config.js";
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const check = process.argv.includes("--check");
 const stale = [];
+const nodePrompts = JSON.parse(await readFile(path.join(root, "references", "node-prompts.json"), "utf8"));
 
 const emit = async (relativePath, contents) => {
   const target = path.join(root, relativePath);
@@ -29,6 +30,7 @@ for (const [position, base] of appConfig.bases.entries()) {
       name: base.name,
       description: base.description,
       position,
+      agentPrompts: nodePrompts[base.key],
       fields: base.fields.map((field, fieldPosition) => ({
         slug: field.slug,
         name: field.name,
@@ -48,7 +50,10 @@ for (const [position, base] of appConfig.bases.entries()) {
   await emit(`content/${base.key}/records.ndjson`, ndjson(base.sampleRecords || []));
 }
 
-await emit("content/_folder.json", json({ name: appConfig.folder.name, description: appConfig.folder.description }));
+await emit(
+  "content/_folder.json",
+  json({ name: appConfig.folder.name, description: appConfig.folder.description, agentPrompts: nodePrompts.folder }),
+);
 
 if (check && stale.length) {
   console.error(`content/ is out of date with config.js:\n${stale.map((file) => `  ${file}`).join("\n")}`);

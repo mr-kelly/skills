@@ -2,6 +2,20 @@
   "name": "Agent 工作日志",
   "description": "用户与 Agent 围绕目标、分析、决定和结果产生的工作记录，不是拜访记录。",
   "position": 4,
+  "agentPrompts": [
+    {
+      "key": "recap-history",
+      "label": "查看我和 Agent 最近做了什么",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后按时间顺序总结最近的工作日志——用户请求、Agent 结论、生成的行动和最终结果，帮我快速回顾进展。"
+    },
+    {
+      "key": "log-note",
+      "label": "记录一条工作日志",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后为我刚才和你讨论的内容记一条工作日志——用户上下文、Agent 结论、关联的目标/联系人/行动——注意这不是拜访记录，不要声称发生了实际的微信互动，除非确实发生了。",
+      "intent": "change"
+    }
+  ],
   "fields": [
     {
       "slug": "title",

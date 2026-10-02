@@ -11,12 +11,14 @@
     "airapp": "kelly-wechat-crm-app",
     "tags": ["wechat", "goals", "relationship-analysis", "next-actions", "agent-worklog"],
     "screenshots": [
+      "assets/screenshots/cover.webp",
       "assets/screenshots/actions.webp",
       "assets/screenshots/people.webp",
       "assets/screenshots/snapshots.webp",
       "assets/screenshots/goals.webp",
       "assets/screenshots/mobile-actions.webp"
     ],
+    "video": "assets/recordings/kelly-wechat-crm.mp4",
     "agentPrompts": [
       "先创建一个目标，再从本机通讯录选择要重点关注的人。",
       "我想为一款产品找到合适的试用者，请建立目标并提出下一步行动。",

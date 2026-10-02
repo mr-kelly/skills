@@ -1,0 +1,19 @@
+{
+  "type": "drive",
+  "name": "示例素材",
+  "description": "示例文字材料及运行后的资料表、看板和审核截图",
+  "agentPrompts": [
+    {
+      "key": "locate-editorial-assets",
+      "label": "找出这篇文章需要的素材",
+      "intent": "read-only",
+      "body": "{target}\n\n先读同目录 kelly-wechat-content Skill，根据文章的关联资料找到本文件区对应素材，列出来源和需要核对的地方，不对外上传。"
+    },
+    {
+      "key": "prepare-searchable-materials",
+      "label": "整理附件的可搜索文字",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录 kelly-wechat-content Skill。对我指定的材料提取文字，图片先OCR；写入同一附件的可搜索文本，读回并用grep验证。只处理指定文件，失败时报告，不伪造提取结果。"
+    }
+  ]
+}

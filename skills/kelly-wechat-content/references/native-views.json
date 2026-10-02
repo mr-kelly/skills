@@ -1,0 +1,40 @@
+[
+  {
+    "resourceKey": "sources",
+    "slug": "source-gallery",
+    "name": "资料画廊",
+    "description": "资料摘要与截图参考",
+    "type": "gallery",
+    "config": {
+      "filters": [],
+      "sorts": [],
+      "visibleFieldSlugs": ["title", "summary", "kind", "verified"]
+    }
+  },
+  {
+    "resourceKey": "articles",
+    "slug": "status-board",
+    "name": "进度看板",
+    "description": "按文章进度整理选题",
+    "type": "kanban",
+    "config": {
+      "filters": [],
+      "sorts": [],
+      "stackByFieldSlug": "status",
+      "visibleFieldSlugs": ["title", "owner", "publish-date"]
+    }
+  },
+  {
+    "resourceKey": "articles",
+    "slug": "publishing-calendar",
+    "name": "发布日历",
+    "description": "按计划发布日期查看文章",
+    "type": "calendar",
+    "config": {
+      "filters": [],
+      "sorts": [],
+      "dateFieldSlug": "publish-date",
+      "visibleFieldSlugs": ["title", "status", "owner"]
+    }
+  }
+]

@@ -1,0 +1,207 @@
+{
+  "name": "文章排期",
+  "description": "从选题、草稿到审核与发布",
+  "position": 1,
+  "fields": [
+    {
+      "slug": "title",
+      "name": "文章标题",
+      "type": "text",
+      "required": true,
+      "position": 0,
+      "options": {}
+    },
+    {
+      "slug": "topic",
+      "name": "主题",
+      "type": "select",
+      "options": {
+        "choices": [
+          {
+            "id": "workflow",
+            "name": "工作流"
+          },
+          {
+            "id": "product",
+            "name": "产品实践"
+          },
+          {
+            "id": "growth",
+            "name": "内容增长"
+          }
+        ]
+      },
+      "required": false,
+      "position": 1
+    },
+    {
+      "slug": "status",
+      "name": "进度",
+      "type": "select",
+      "options": {
+        "choices": [
+          {
+            "id": "planned",
+            "name": "选题"
+          },
+          {
+            "id": "drafting",
+            "name": "写作中"
+          },
+          {
+            "id": "review",
+            "name": "待审核"
+          },
+          {
+            "id": "scheduled",
+            "name": "待发布"
+          },
+          {
+            "id": "published",
+            "name": "已发布"
+          }
+        ]
+      },
+      "required": false,
+      "position": 2
+    },
+    {
+      "slug": "owner",
+      "name": "负责人",
+      "type": "text",
+      "required": false,
+      "position": 3,
+      "options": {}
+    },
+    {
+      "slug": "publish-date",
+      "name": "计划发布日期",
+      "type": "date",
+      "required": false,
+      "position": 4,
+      "options": {}
+    },
+    {
+      "slug": "sources",
+      "name": "关联资料",
+      "type": "relation",
+      "options": {
+        "targetBaseSlug": "sources",
+        "multiple": true
+      },
+      "required": false,
+      "position": 5
+    },
+    {
+      "slug": "outline",
+      "name": "文章提纲",
+      "type": "longtext",
+      "required": false,
+      "position": 6,
+      "options": {}
+    },
+    {
+      "slug": "draft",
+      "name": "草稿",
+      "type": "markdown",
+      "required": false,
+      "position": 7,
+      "options": {}
+    },
+    {
+      "slug": "review-note",
+      "name": "审核备注",
+      "type": "longtext",
+      "required": false,
+      "position": 8,
+      "options": {}
+    },
+    {
+      "slug": "public-url",
+      "name": "发布链接",
+      "type": "url",
+      "required": false,
+      "position": 9,
+      "options": {}
+    }
+  ],
+  "views": [
+    {
+      "slug": "all-articles",
+      "name": "文章列表",
+      "description": "查看负责人、进度和关联资料",
+      "type": "table",
+      "config": {
+        "filters": [],
+        "sorts": [],
+        "visibleFieldSlugs": ["title", "status", "owner", "publish-date", "sources"],
+        "fieldWidths": {
+          "title": 320,
+          "kind": 100,
+          "topic": 110,
+          "verified": 100,
+          "source-date": 130,
+          "url": 240,
+          "status": 110,
+          "owner": 100,
+          "publish-date": 130,
+          "sources": 300,
+          "review-note": 320,
+          "notes": 320
+        }
+      }
+    },
+    {
+      "slug": "review",
+      "name": "待审核",
+      "description": "需要人审核的文章草稿",
+      "type": "table",
+      "config": {
+        "filters": [
+          {
+            "fieldSlug": "status",
+            "fieldType": "select",
+            "operator": "equals",
+            "value": "待审核"
+          }
+        ],
+        "sorts": [],
+        "visibleFieldSlugs": ["title", "status", "owner", "review-note", "sources"],
+        "fieldWidths": {
+          "title": 320,
+          "kind": 100,
+          "topic": 110,
+          "verified": 100,
+          "source-date": 130,
+          "url": 240,
+          "status": 110,
+          "owner": 100,
+          "publish-date": 130,
+          "sources": 300,
+          "review-note": 320,
+          "notes": 320
+        }
+      }
+    }
+  ],
+  "agentPrompts": [
+    {
+      "key": "draft-from-sources",
+      "label": "从已有资料准备文章提纲",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录 kelly-wechat-content Skill，根据我指定的资料提出文章提纲和关联资料，保存为可审核提案，不对外发布。"
+    },
+    {
+      "key": "review-this-week",
+      "label": "检查本周待审核文章",
+      "intent": "read-only",
+      "body": "{target}\n\n先读同目录 kelly-wechat-content Skill，读待审核文章及关联资料，指出缺少来源、未核对事实和需要负责人确认的地方。"
+    },
+    {
+      "key": "suggest-calendar",
+      "label": "给下周的稿件安排发布时间",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录 kelly-wechat-content Skill，查看文章进度、负责人和发布日历，先提出排期方案，经我确认后再提交日期修改，不对外发布。"
+    }
+  ]
+}

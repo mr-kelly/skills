@@ -1,0 +1,20 @@
+{
+  "type": "airapp",
+  "name": "公众号内容工作台",
+  "description": "浏览资料、核对文章草稿并查看发布排期。",
+  "metadata": { "appId": "kelly-wechat-content", "resourceKey": "kelly-wechat-content-app", "schemaVersion": 1 },
+  "agentPrompts": [
+    {
+      "key": "review-week",
+      "label": "检查本周文章和待核对资料",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读同目录的 kelly-wechat-content skill，检查本周文章排期、待审核草稿和未核对的资料，告诉我优先处理哪些内容并给出原记录链接。"
+    },
+    {
+      "key": "article-sources",
+      "label": "检查文章的资料依据",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读同目录的 kelly-wechat-content skill，检查我指定文章的关联资料、事实依据和审核备注，指出缺少的依据。不要发布文章。"
+    }
+  ]
+}

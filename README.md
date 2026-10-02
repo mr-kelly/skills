@@ -169,6 +169,7 @@ The `kelly-*` skills are the everyday business tools. Helper skills such as `age
 | `kelly-creators` | Influencer/creator-marketing command desk built on the Discover→Plan→Activate→Measure pipeline: the agent sweeps and fit-scores creator candidates (C³ ACE), drafts outreach, briefs, and contracts, and a pre-publish gate (SHIP/FIX/BLOCK) checks FTC disclosure and claim authenticity, all reviewed in a local UI with a ROI board. | Use it when discovering and vetting creators, approving outreach and briefs, running a creator-campaign pipeline, or tracking influencer ROI and budget. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-creators.html) |
 | `kelly-launch` | Product-launch command desk on the RAMP framework (Research→Assemble→Mobilize→Prove): the agent assembles the launch checklist, drafts assets, Product Hunt / Hacker News submissions, press pitches, and the launch-day runbook, with a readiness gate scoring launch quality (LQS → SHIP/FIX/BLOCK). | Use it when planning and running a product launch: building the checklist, approving assets and channel submissions, gating launch readiness, or conducting launch day. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-launch.html) |
 | `kelly-social` | Social command desk that both monitors and publishes (Aaron's ECHO): unified timeline, account stats, follower trends, and share-of-voice on the monitoring side, plus a content calendar, an agent-drafted post composer, short-video scripts, an approval-gated engagement inbox, and a crisis playbook — every draft passes a social-qa SHIP/FIX/BLOCK gate. | Use it when reviewing social performance and share-of-voice, planning a content calendar, approving posts and short-video scripts, or triaging mentions and replies across platforms. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-social.html) |
+| `kelly-wechat-content` | A reusable source library and editorial calendar in two linked Busabase Bases, with native views, sample records and a read-only content desk. | Organize WeChat reference materials, reuse sources across drafts, review evidence and plan article publication. | [View](https://mr-kelly.github.io/skills/s/kelly-wechat-content.html) |
 | `kelly-writer` | Repurposes one source idea, article, transcript, outline, or announcement into channel-ready drafts for platforms like Xiaohongshu, WeChat, newsletters, LinkedIn, X/Twitter, short video, and SEO snippets. | Use it when turning long-form source material into a multi-platform content pack with local review, edits, approvals, and export. | [View ↗](https://mr-kelly.github.io/skills/s/kelly-writer.html) |
 
 ### Growth & Analytics
@@ -575,6 +576,12 @@ Digital-human implementation and demo desk for choosing between a fast 2D servic
 
 <table>
   <tr>
+    <td colspan="2"><img src="skills/kelly-wechat-crm/assets/screenshots/cover.webp" alt="WeChat relationship strategy"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>WeChat relationship strategy</strong><br>Start from a goal, choose contacts deliberately, and review relationship actions before doing anything in WeChat.</td>
+  </tr>
+  <tr>
     <td width="50%"><img src="skills/kelly-wechat-crm/assets/screenshots/actions.webp" alt="Kelly WeChat relationship action review"></td>
     <td width="50%"><img src="skills/kelly-wechat-crm/assets/screenshots/people.webp" alt="Kelly WeChat person strategy"></td>
   </tr>
@@ -589,6 +596,12 @@ Digital-human implementation and demo desk for choosing between a fast 2D servic
   <tr>
     <td><strong>Relationship snapshots</strong><br>Keep time-windowed evidence, strength, reciprocity, trend, uncertainty, and recommendations for later comparison.</td>
     <td><strong>Dynamic goals</strong><br>Create global, person, or segment goals with success criteria, deadlines, priorities, and explicit boundaries.</td>
+  </tr>
+  <tr>
+    <td><img src="skills/kelly-wechat-crm/assets/screenshots/mobile-actions.webp" alt="WeChat relationship actions on mobile"></td>
+  </tr>
+  <tr>
+    <td><strong>Mobile review</strong><br>Inspect and decide on the same next actions from a phone.</td>
   </tr>
 </table>
 
@@ -616,6 +629,43 @@ Digital-human implementation and demo desk for choosing between a fast 2D servic
   </tr>
   <tr>
     <td><strong>Accounts</strong><br>Connected messaging accounts across WhatsApp and Telegram with connector status and secret readiness.</td>
+  </tr>
+</table>
+
+### `kelly-wechat-content`
+
+An installable WeChat editorial desk: 8 reusable sources and 10 articles connected across table, board, calendar and review views. Screenshots show an actual local Busabase installation.
+
+<table>
+  <tr>
+    <td colspan="2"><img src="skills/kelly-wechat-content/assets/screenshots/cover.webp" alt="WeChat content library"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>WeChat content library</strong><br>Reusable sources and article schedules share one editorial workflow.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-wechat-content/assets/screenshots/overview.webp" alt="Editorial overview"></td>
+    <td width="50%"><img src="skills/kelly-wechat-content/assets/screenshots/sources.webp" alt="Reusable source library"></td>
+  </tr>
+  <tr>
+    <td><strong>Overview</strong><br>Upcoming articles, source counts and items awaiting review.</td>
+    <td><strong>Source library</strong><br>Inspect each source, its verification state and the articles that reuse it.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-wechat-content/assets/screenshots/board.webp" alt="Article status board"></td>
+    <td width="50%"><img src="skills/kelly-wechat-content/assets/screenshots/calendar.webp" alt="Publishing calendar"></td>
+  </tr>
+  <tr>
+    <td><strong>Board</strong><br>The same articles grouped by their actual editorial status.</td>
+    <td><strong>Calendar</strong><br>Publishing dates remain attached to the same linked article records.</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="skills/kelly-wechat-content/assets/screenshots/review.webp" alt="Source and draft review"></td>
+    <td width="50%"><img src="skills/kelly-wechat-content/assets/screenshots/article-detail.webp" alt="Article with linked sources"></td>
+  </tr>
+  <tr>
+    <td><strong>Review</strong><br>Three drafts and two sources that need human checks.</td>
+    <td><strong>Article detail</strong><br>Open a draft and inspect the sources behind its claims.</td>
   </tr>
 </table>
 
