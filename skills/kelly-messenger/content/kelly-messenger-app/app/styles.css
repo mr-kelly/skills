@@ -162,7 +162,7 @@ body.sidebar-collapsed .app-shell {
 
 .sidebar-toggle:focus-visible,
 .mobile-sidebar-toggle:focus-visible {
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.16);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 .sidebar-toggle-icon {
@@ -245,7 +245,7 @@ body.sidebar-collapsed .sidebar-footer {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--surface) 72%, transparent);
-  box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
+  box-shadow: inset 0 1px 0 var(--shadow-tint);
   font: inherit;
   color: var(--text);
 }
@@ -254,7 +254,7 @@ body.sidebar-collapsed .sidebar-footer {
   border-color: var(--line-strong);
   outline: none;
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 .human-work {
@@ -310,7 +310,7 @@ body.sidebar-collapsed .sidebar-footer {
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  background: #202124;
+  background: var(--ink);
   color: var(--accent-contrast);
   font-size: var(--text-lg);
 }
@@ -456,7 +456,7 @@ textarea:focus,
 input:focus {
   border-color: var(--line-strong);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 button {
@@ -481,7 +481,7 @@ button.primary {
 }
 
 button.primary:hover {
-  background: #26374b;
+  background: color-mix(in srgb, var(--accent) 70%, black);
 }
 
 button.danger {
@@ -627,19 +627,19 @@ button.danger {
 }
 
 .platform-badge.whatsapp .dot {
-  background: #1faa61;
+  background: var(--positive);
 }
 .platform-badge.slack .dot {
-  background: #7c3085;
+  background: var(--accent);
 }
 .platform-badge.discord .dot {
-  background: #5865f2;
+  background: var(--accent);
 }
 .platform-badge.telegram .dot {
-  background: #2aabee;
+  background: var(--accent);
 }
 .platform-badge.wechat .dot {
-  background: #09b83e;
+  background: var(--positive);
 }
 
 .status-chip {
@@ -842,7 +842,7 @@ button.danger {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #2563eb;
+  background: var(--accent);
 }
 
 .conv-row-mid {
@@ -1266,7 +1266,7 @@ button.danger {
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.14);
+    box-shadow: 20px 0 40px var(--shadow-tint-deep);
   }
 
   .sidebar-scrim {
@@ -1274,7 +1274,7 @@ button.danger {
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.24);
+    background: var(--scrim);
   }
 
   .brand {

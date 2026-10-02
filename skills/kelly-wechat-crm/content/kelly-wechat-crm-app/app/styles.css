@@ -355,8 +355,8 @@ body.sidebar-collapsed .nav-item {
   height: 10px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: #c98a20;
-  box-shadow: 0 0 0 4px rgba(201, 138, 32, 0.12);
+  background: var(--warning);
+  box-shadow: 0 0 0 4px var(--accent-focus);
 }
 .connector-status.is-ready .connector-indicator {
   background: var(--accent);
@@ -728,7 +728,7 @@ h2 {
   display: grid;
   padding: 24px;
   place-items: center;
-  background: rgba(20, 28, 25, 0.32);
+  background: var(--scrim);
 }
 .modal-backdrop[hidden] {
   display: none;
@@ -742,7 +742,7 @@ h2 {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   background: var(--surface);
-  box-shadow: 0 24px 60px rgba(20, 28, 25, 0.18);
+  box-shadow: 0 24px 60px var(--shadow-tint-deep);
 }
 .modal-tabs {
   display: flex;
@@ -1002,7 +1002,7 @@ h2 {
   }
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 18px 0 40px rgba(20, 28, 25, 0.16);
+    box-shadow: 18px 0 40px var(--shadow-tint-deep);
   }
   .sidebar-scrim {
     position: fixed;
@@ -1013,7 +1013,7 @@ h2 {
     height: 100%;
     padding: 0;
     border: 0;
-    background: rgba(20, 28, 25, 0.28);
+    background: var(--scrim);
   }
   .sidebar-scrim[hidden] {
     display: none;

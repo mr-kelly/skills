@@ -6,7 +6,7 @@
     display: grid;
     place-items: center;
     padding: 24px;
-    background: rgba(24, 24, 27, 0.34);
+    background: var(--scrim);
     backdrop-filter: blur(4px);
   }
 
@@ -19,7 +19,7 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     background: var(--surface);
-    box-shadow: 0 24px 80px rgba(24, 24, 27, 0.22);
+    box-shadow: 0 24px 80px var(--shadow-tint-deep);
   }
 
   .modal-title {

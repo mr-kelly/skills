@@ -596,7 +596,7 @@
 
     body.sidebar-open .sidebar {
       transform: translateX(0);
-      box-shadow: 20px 0 40px rgba(15, 23, 42, 0.14);
+      box-shadow: 20px 0 40px var(--shadow-tint-deep);
     }
 
     .sidebar-scrim:not([hidden]) {
@@ -604,7 +604,7 @@
       inset: 0;
       z-index: 25;
       display: block;
-      background: rgba(15, 23, 42, 0.24);
+      background: var(--scrim);
     }
 
     .brand {
@@ -782,5 +782,5 @@
   font-size: var(--text-sm);
 }
 .pager-error {
-  color: var(--danger, #b42318);
+  color: var(--danger);
 }

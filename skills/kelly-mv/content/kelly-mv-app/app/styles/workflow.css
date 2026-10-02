@@ -449,7 +449,7 @@
     aspect-ratio: 16 / 9;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: #000;
+    background: var(--ink);
     display: block;
   }
 
@@ -471,7 +471,7 @@
     font-size: var(--text-xs);
     padding: 2px 8px;
     border-radius: 999px;
-    background: rgba(23, 23, 27, 0.72);
+    background: var(--scrim);
     color: var(--accent-contrast);
     pointer-events: none;
   }
@@ -485,7 +485,7 @@
     align-items: center;
     justify-content: center;
     padding: 32px;
-    background: rgba(24, 24, 27, 0.55);
+    background: var(--scrim);
     backdrop-filter: blur(2px);
   }
 
@@ -785,7 +785,7 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius);
     color: var(--accent-contrast);
-    background: #18181b;
+    background: var(--ink);
     box-shadow: var(--shadow);
     font-size: var(--text-base);
   }
@@ -833,7 +833,7 @@
       z-index: 30;
       transform: translateX(-100%);
       transition: transform 0.18s ease;
-      box-shadow: 20px 0 40px rgba(24, 24, 27, 0.18);
+      box-shadow: 20px 0 40px var(--shadow-tint-deep);
     }
 
     body.sidebar-open .sidebar {
@@ -845,7 +845,7 @@
       inset: 0;
       z-index: 25;
       display: block;
-      background: rgba(24, 24, 27, 0.28);
+      background: var(--scrim);
     }
 
     .mobile-sidebar-toggle {
@@ -859,7 +859,7 @@
       place-items: center;
       border-radius: 999px;
       color: var(--accent-contrast);
-      background: #18181b;
+      background: var(--ink);
       box-shadow: var(--shadow);
     }
 
@@ -932,12 +932,12 @@
     border: 1px solid var(--line-strong, var(--line));
     background: var(--surface, var(--surface));
     font-weight: 600;
-    color: var(--ink, #18181b);
+    color: var(--ink);
     cursor: pointer;
   }
   .next-step:hover {
-    border-color: var(--accent, #5e6ad2);
-    color: var(--accent, #5e6ad2);
+    border-color: var(--accent);
+    color: var(--accent);
   }
   .attention-counts {
     display: grid;
@@ -959,14 +959,14 @@
   .attention-counts button span {
     font-size: var(--text-lg);
     font-weight: 700;
-    color: var(--ink, #18181b);
+    color: var(--ink);
   }
   .attention-counts button small {
     font-size: var(--text-xs);
-    color: var(--muted, #71717a);
+    color: var(--muted);
   }
   .attention-counts button:hover {
-    border-color: var(--accent, #5e6ad2);
+    border-color: var(--accent);
   }
 
   .mv-timeline {
@@ -986,7 +986,7 @@
     bottom: 4px;
     border-radius: var(--radius-sm);
     border: 1px solid rgba(255, 255, 255, 0.7);
-    background: var(--accent, #5e6ad2);
+    background: var(--accent);
     opacity: 0.9;
     cursor: pointer;
   }
@@ -994,29 +994,29 @@
     opacity: 1;
   }
   .mv-shot.performance {
-    background: #5e6ad2;
+    background: var(--accent);
   }
   .mv-shot.narrative {
-    background: #d6409f;
+    background: var(--accent);
   }
   .mv-shot.broll {
     background: #8b8f9e;
   }
   .mv-shot.transition {
-    background: #f59e0b;
+    background: var(--warning);
   }
   .mv-shot.has-img {
-    box-shadow: inset 0 0 0 2px #16a34a;
+    box-shadow: inset 0 0 0 2px var(--accent-focus);
   }
   .mv-shot.active {
-    outline: 2px solid var(--ink, #18181b);
+    outline: 2px solid var(--ink);
     outline-offset: 1px;
     opacity: 1;
   }
   .mv-timeline-meta {
     margin-top: 6px;
     font-size: var(--text-sm);
-    color: var(--muted, #71717a);
+    color: var(--muted);
   }
   .item-card-thumb {
     width: 40px;
@@ -1028,7 +1028,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--muted, #71717a);
+    color: var(--muted);
     flex: 0 0 auto;
   }
   .asset-placeholder {
@@ -1038,7 +1038,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--muted, #71717a);
+    color: var(--muted);
     font-size: var(--text-base);
     margin-bottom: 12px;
   }
@@ -1104,7 +1104,7 @@
     }
 
     body.sidebar-open .sidebar {
-      box-shadow: 18px 0 36px rgba(24, 24, 27, 0.12);
+      box-shadow: 18px 0 36px var(--shadow-tint-deep);
     }
 
     .mobile-sidebar-toggle {

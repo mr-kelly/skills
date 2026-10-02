@@ -297,7 +297,7 @@ button:focus-visible {
 .file-dot {
   width: 22px;
   height: 22px;
-  border: 2px solid #111827;
+  border: 2px solid var(--ink);
   border-radius: var(--radius-sm);
   background: linear-gradient(90deg, transparent 45%, #111827 45% 55%, transparent 55%),
     linear-gradient(0deg, transparent 45%, #111827 45% 55%, transparent 55%), var(--surface);
@@ -454,7 +454,7 @@ button:focus-visible {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: var(--surface);
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 18px 50px var(--shadow-tint-deep);
 }
 
 .extract-head {
@@ -595,7 +595,7 @@ button:focus-visible {
   gap: 8px;
   padding: 12px;
   border-bottom: 1px solid var(--line);
-  background: rgba(251, 251, 252, 0.96);
+  background: var(--surface-blur);
   backdrop-filter: blur(12px);
 }
 
@@ -789,7 +789,7 @@ button:focus-visible {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(15, 23, 42, 0.28);
+  background: var(--scrim);
 }
 
 .modal {
@@ -801,7 +801,7 @@ button:focus-visible {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--surface);
-  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 18px 60px var(--shadow-tint-deep);
 }
 
 .modal header {
@@ -966,7 +966,7 @@ button:focus-visible {
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.16);
+    box-shadow: 20px 0 40px var(--shadow-tint-deep);
   }
 
   .sidebar-scrim {
@@ -974,7 +974,7 @@ button:focus-visible {
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.28);
+    background: var(--scrim);
   }
 
   .content {

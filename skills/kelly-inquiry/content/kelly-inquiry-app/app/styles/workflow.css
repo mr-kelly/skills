@@ -130,16 +130,16 @@
   }
 
   .channel-badge.whatsapp .dot {
-    background: #1faa61;
+    background: var(--positive);
   }
   .channel-badge.instagram .dot {
-    background: #d6409f;
+    background: var(--accent);
   }
   .channel-badge.messenger .dot {
-    background: #2f6fed;
+    background: var(--accent);
   }
   .channel-badge.email .dot {
-    background: #b7791f;
+    background: var(--warning);
   }
 
   .stage-chip,
@@ -231,7 +231,7 @@
     height: 8px;
     margin-left: 6px;
     border-radius: 50%;
-    background: #2563eb;
+    background: var(--accent);
     vertical-align: middle;
   }
 
@@ -368,7 +368,7 @@
   }
 
   .funnel-track {
-    fill: #eef1f5;
+    fill: var(--surface-soft);
   }
 
   .stale-row {
@@ -844,7 +844,7 @@
 
     body.sidebar-open .sidebar {
       transform: translateX(0);
-      box-shadow: 20px 0 40px rgba(15, 23, 42, 0.14);
+      box-shadow: 20px 0 40px var(--shadow-tint-deep);
     }
 
     .sidebar-scrim {
@@ -852,7 +852,7 @@
       inset: 0;
       z-index: 25;
       display: block;
-      background: rgba(15, 23, 42, 0.24);
+      background: var(--scrim);
     }
 
     .brand {

@@ -48,7 +48,7 @@ button {
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
-  outline: 2px solid #4a8ed0;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 [hidden] {
@@ -87,7 +87,7 @@ input:focus-visible {
   gap: 10px;
   min-height: 72px;
   padding: 0 14px;
-  border-bottom: 1px solid #2c3943;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 70%, black);
 }
 .brand-icon {
   display: grid;
@@ -161,7 +161,7 @@ input:focus-visible {
   margin: 14px 12px 10px;
   padding: 13px;
   background: var(--sidebar-soft);
-  border: 1px solid #34434f;
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, black);
   border-radius: var(--radius-sm);
 }
 .human-work-eyebrow {
@@ -187,8 +187,8 @@ input:focus-visible {
 }
 .human-work-primary {
   padding: 10px !important;
-  background: #2b3b46 !important;
-  border: 1px solid #3c4e5b !important;
+  background: color-mix(in srgb, var(--accent) 70%, black) !important;
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, black) !important;
   border-radius: var(--radius-sm) !important;
 }
 .human-work-primary > span,
@@ -217,7 +217,7 @@ input:focus-visible {
   gap: 1px;
   min-width: 0;
   padding: 8px !important;
-  background: #1c2831 !important;
+  background: var(--ink) !important;
   border-radius: var(--radius-sm);
 }
 .human-work-secondary strong {
@@ -226,7 +226,7 @@ input:focus-visible {
 .sidebar-separator {
   height: 1px;
   margin: 0 14px 8px;
-  background: #2a3741;
+  background: color-mix(in srgb, var(--accent) 70%, black);
 }
 .filters {
   display: grid;
@@ -248,12 +248,12 @@ input:focus-visible {
 }
 .filters button:hover {
   color: var(--accent-contrast);
-  background: #212e38;
+  background: color-mix(in srgb, var(--accent) 70%, black);
 }
 .filters button.active {
   color: var(--accent-contrast);
-  background: #2a3944;
-  box-shadow: inset 3px 0 0 #38a36c;
+  background: color-mix(in srgb, var(--accent) 70%, black);
+  box-shadow: inset 3px 0 0 var(--shadow-tint-deep);
 }
 .filters button span:last-child {
   min-width: 22px;
@@ -265,7 +265,7 @@ input:focus-visible {
   gap: 9px;
   margin-top: auto;
   padding: 12px;
-  border-top: 1px solid #2b3842;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 70%, black);
 }
 .virtual-only {
   display: flex;
@@ -279,15 +279,15 @@ input:focus-visible {
   width: 7px;
   height: 7px;
   flex: 0 0 auto;
-  background: #31a66b;
+  background: var(--positive);
   border-radius: 50%;
 }
 .help-button {
   width: 100%;
   min-height: 34px;
   color: var(--muted);
-  background: #222f39;
-  border: 1px solid #34434e;
+  background: color-mix(in srgb, var(--accent) 70%, black);
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, black);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   cursor: pointer;
@@ -684,9 +684,9 @@ input:focus-visible {
   max-width: min(360px, calc(100vw - 36px));
   padding: 11px 14px;
   color: var(--accent-contrast);
-  background: #25333c;
+  background: color-mix(in srgb, var(--accent) 70%, black);
   border-radius: var(--radius-sm);
-  box-shadow: 0 8px 24px rgba(24, 33, 42, 0.2);
+  box-shadow: 0 8px 24px var(--shadow-tint-deep);
   font-size: var(--text-xs);
 }
 .modal-backdrop {
@@ -696,7 +696,7 @@ input:focus-visible {
   display: grid;
   padding: 24px;
   place-items: center;
-  background: rgba(16, 24, 31, 0.54);
+  background: var(--scrim);
 }
 .modal {
   width: min(620px, 100%);
@@ -704,7 +704,7 @@ input:focus-visible {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  box-shadow: 0 24px 70px rgba(12, 22, 29, 0.24);
+  box-shadow: 0 24px 70px var(--shadow-tint-deep);
   overflow: auto;
 }
 .modal-head {
@@ -791,7 +791,7 @@ code {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  box-shadow: 0 18px 55px rgba(25, 36, 44, 0.12);
+  box-shadow: 0 18px 55px var(--shadow-tint-deep);
   overflow: hidden;
 }
 .setup-head {
@@ -836,7 +836,7 @@ code {
   padding: 0 15px;
   color: var(--accent-contrast);
   background: var(--green);
-  border: 1px solid #126640;
+  border: 1px solid color-mix(in srgb, var(--positive) 70%, black);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-weight: 700;
@@ -1021,7 +1021,7 @@ code {
     width: min(286px, calc(100vw - 48px));
     transform: translateX(-102%);
     transition: transform 160ms ease;
-    box-shadow: 14px 0 34px rgba(8, 17, 23, 0.24);
+    box-shadow: 14px 0 34px var(--shadow-tint-deep);
   }
   .sidebar-open .sidebar {
     transform: translateX(0);
@@ -1046,7 +1046,7 @@ code {
     inset: 0;
     z-index: 50;
     display: block;
-    background: rgba(11, 19, 25, 0.48);
+    background: var(--scrim);
   }
   .main {
     grid-template-rows: 52px auto auto minmax(0, 1fr);
@@ -1315,8 +1315,8 @@ code {
 }
 
 .human-work-primary.warn {
-  background: #4a3a1c;
-  border-color: #6b5427;
+  background: color-mix(in srgb, var(--warning) 70%, black);
+  border-color: color-mix(in srgb, var(--warning) 70%, black);
 }
 
 /* rank, content, score — the shared .work-row grid only declares two columns. */
@@ -1503,7 +1503,7 @@ code {
   border: 1px solid var(--green);
 }
 .primary-button:hover:not(:disabled) {
-  background: #14653f;
+  background: color-mix(in srgb, var(--positive) 70%, black);
 }
 .primary-button:disabled {
   color: var(--muted);
@@ -1659,9 +1659,9 @@ code {
 .next-step {
   margin: 0 12px 10px;
   padding: 11px 12px;
-  background: #1c2831;
-  border: 1px solid #31414d;
-  border-left: 3px solid #38a36c;
+  background: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, black);
+  border-left: 3px solid var(--positive);
   border-radius: var(--radius-sm);
 }
 .next-step-title {
@@ -1683,12 +1683,12 @@ code {
   color: var(--muted);
   text-align: left;
   background-color: #131c23;
-  border: 1px solid #384956;
+  border: 1px solid color-mix(in srgb, var(--accent) 70%, black);
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
 .next-step-command:hover {
-  border-color: #4d8f6d;
+  border-color: var(--positive);
 }
 .next-step-command code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -1737,10 +1737,10 @@ code {
   margin-top: 8px;
   color: var(--muted);
   background-color: #131c23;
-  border-color: #384956;
+  border-color: color-mix(in srgb, var(--accent) 70%, black);
 }
 .next-step .command-chip:hover {
-  border-color: #4d8f6d;
+  border-color: var(--positive);
 }
 .next-step .command-chip small {
   color: var(--positive);

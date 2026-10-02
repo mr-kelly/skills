@@ -111,7 +111,7 @@
   .step-item.step-break {
     border-color: var(--bad);
     background: var(--surface-soft);
-    box-shadow: 0 0 0 1px rgba(179, 52, 52, 0.25);
+    box-shadow: 0 0 0 1px var(--accent-focus);
   }
 
   .chain-break-flag {
@@ -335,7 +335,7 @@
     border: 1px solid color-mix(in srgb, var(--danger) 34%, var(--line));
     border-radius: var(--radius-sm);
     background: var(--surface-soft);
-    box-shadow: 0 0 0 1px rgba(179, 52, 52, 0.12);
+    box-shadow: 0 0 0 1px var(--accent-focus);
   }
 }
 .pager {

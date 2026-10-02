@@ -370,7 +370,7 @@ select {
     padding: 0;
     border: 0;
     border-radius: 0;
-    background: rgb(16 24 40 / 48%);
+    background: var(--scrim);
   }
   .sidebar-scrim[hidden] {
     display: none;

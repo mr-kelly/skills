@@ -196,7 +196,7 @@ body.sidebar-collapsed .sidebar-footer {
   border-color: var(--line-strong);
   outline: none;
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 .human-work {
@@ -248,7 +248,7 @@ body.sidebar-collapsed .sidebar-footer {
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  background: #202124;
+  background: var(--ink);
   color: var(--accent-contrast);
   font-size: var(--text-md);
 }
@@ -352,7 +352,7 @@ button.primary {
 }
 
 button.primary:hover {
-  background: #2a2f38;
+  background: color-mix(in srgb, var(--accent) 70%, black);
 }
 
 .main {
@@ -689,7 +689,7 @@ tbody tr:last-child td {
 .segment-card:hover {
   border-color: var(--line-strong);
   background: var(--surface-soft);
-  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.06);
+  box-shadow: 0 4px 14px var(--shadow-tint);
   transform: translateY(-1px);
 }
 
@@ -795,7 +795,7 @@ dd {
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: #2563eb;
+  background: var(--accent);
 }
 
 .trigger-row {
@@ -966,7 +966,7 @@ dd {
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.14);
+    box-shadow: 20px 0 40px var(--shadow-tint-deep);
   }
 
   .sidebar-scrim {
@@ -974,7 +974,7 @@ dd {
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.24);
+    background: var(--scrim);
   }
 
   .sidebar-scrim[hidden] {

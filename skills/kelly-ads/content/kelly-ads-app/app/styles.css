@@ -164,7 +164,7 @@ body.sidebar-collapsed .app-shell {
 
 .sidebar-toggle:focus-visible,
 .mobile-sidebar-toggle:focus-visible {
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.16);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 .sidebar-toggle-icon {
@@ -247,14 +247,14 @@ body.sidebar-collapsed .sidebar-footer {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--surface) 72%, transparent);
-  box-shadow: inset 0 1px 0 rgba(16, 24, 40, 0.02);
+  box-shadow: inset 0 1px 0 var(--shadow-tint);
 }
 
 .search input:focus {
   border-color: var(--line-strong);
   outline: none;
   background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 .human-work {
@@ -310,7 +310,7 @@ body.sidebar-collapsed .sidebar-footer {
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  background: #202124;
+  background: var(--ink);
   color: var(--accent-contrast);
   font-size: var(--text-lg);
 }
@@ -417,7 +417,7 @@ textarea:focus,
 select:focus {
   border-color: var(--line-strong);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 3px var(--accent-focus);
 }
 
 button {
@@ -436,14 +436,14 @@ button:disabled {
 }
 
 button.primary {
-  border-color: #14532d;
-  background: #14532d;
+  border-color: color-mix(in srgb, var(--positive) 70%, black);
+  background: color-mix(in srgb, var(--positive) 70%, black);
   color: var(--accent-contrast);
 }
 
 button.primary:hover {
-  border-color: #166534;
-  background: #166534;
+  border-color: color-mix(in srgb, var(--positive) 70%, black);
+  background: color-mix(in srgb, var(--positive) 70%, black);
 }
 
 button.danger {
@@ -666,26 +666,26 @@ th.num {
 .dot.approved,
 .dot.resolved,
 .dot.executed {
-  background: #22c55e;
+  background: var(--positive);
 }
 
 .dot.paused,
 .dot.warning,
 .dot.changes_requested,
 .dot.actioned {
-  background: #f59e0b;
+  background: var(--warning);
 }
 
 .dot.rejected,
 .dot.error,
 .dot.critical,
 .dot.blocked {
-  background: #ef4444;
+  background: var(--danger);
 }
 
 .dot.needs_review,
 .dot.open {
-  background: #3b82f6;
+  background: var(--accent);
 }
 
 .dot.dismissed {
@@ -792,15 +792,15 @@ th.num {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: 999px;
-  background: #94a3b8;
+  background: var(--muted);
 }
 
 .budget-bar.warn i {
-  background: #f59e0b;
+  background: var(--warning);
 }
 
 .budget-bar.crit i {
-  background: #ef4444;
+  background: var(--danger);
 }
 
 .overview-grid {
@@ -902,11 +902,11 @@ th.num {
 }
 
 .barchart .bar-spend {
-  fill: #94a3b8;
+  fill: var(--muted);
 }
 
 .barchart .bar-revenue {
-  fill: #34d399;
+  fill: var(--positive);
 }
 
 .barchart .axis-label {
@@ -932,15 +932,15 @@ th.num {
 }
 
 .chart-legend .swatch-spend {
-  background: #94a3b8;
+  background: var(--muted);
 }
 
 .chart-legend .swatch-revenue {
-  background: #34d399;
+  background: var(--positive);
 }
 
 .chart-legend .swatch-roas {
-  background: #6366f1;
+  background: var(--accent);
 }
 
 .linechart {
@@ -951,12 +951,12 @@ th.num {
 
 .linechart .roas-line {
   fill: none;
-  stroke: #6366f1;
+  stroke: var(--accent);
   stroke-width: 1.8;
 }
 
 .linechart .bar-spend {
-  fill: #94a3b8;
+  fill: var(--muted);
 }
 
 .linechart .axis-label {
@@ -1281,7 +1281,7 @@ dd {
 
   body.sidebar-open .sidebar {
     transform: translateX(0);
-    box-shadow: 20px 0 40px rgba(15, 23, 42, 0.14);
+    box-shadow: 20px 0 40px var(--shadow-tint-deep);
   }
 
   .sidebar-scrim {
@@ -1289,7 +1289,7 @@ dd {
     inset: 0;
     z-index: 25;
     display: block;
-    background: rgba(15, 23, 42, 0.24);
+    background: var(--scrim);
   }
 
   .brand {
