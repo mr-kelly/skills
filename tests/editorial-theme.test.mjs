@@ -128,11 +128,27 @@ const CHECKER = fs.readFileSync(path.join(ASSET_DIR, "check-editorial.mjs"));
 // Scanned from disk, not `git ls-files`: an adopter that has not been
 // committed yet is exactly when a drifted copy is cheapest to catch, and a
 // vacuous pass here reads identical to a real one.
+// Apps that got the full bespoke pass — hand-authored component CSS with
+// zero raw colour/size/radius left anywhere, not just in a metric band or
+// two. This used to be "every app with styles/editorial.css present", which
+// was correct when there was exactly one such app (kelly-homework-coach, #156)
+// and became wrong the moment apply-editorial-rollout.mjs gave the SAME file
+// to all 70 remaining apps for a narrower reason: a correct new palette and
+// type scale, not a from-scratch component rewrite. Those 70 apps still carry
+// 1,064 pre-existing raw-colour declarations in their own component CSS
+// (demo-visuals.css illustrations, status badges never touched by the
+// original base-ui rollout either) — real, but out of THIS rollout's scope,
+// and asserting them clean here would fail on day one for reasons unrelated
+// to the rollout. tests/editorial-rollout.test.mjs asserts the mechanical
+// contract (asset present, wired, accent-theme retired) for all 70; this
+// list is only the ones held to the stricter, fully-clean bar.
+const FULLY_ADOPTED = new Set(["kelly-homework-coach"]);
+
 function adopters() {
   const skills = path.join(ROOT, "skills");
   const found = [];
   for (const skill of fs.readdirSync(skills, { withFileTypes: true })) {
-    if (!skill.isDirectory()) continue;
+    if (!skill.isDirectory() || !FULLY_ADOPTED.has(skill.name)) continue;
     const content = path.join(skills, skill.name, "content");
     if (!fs.existsSync(content)) continue;
     for (const app of fs.readdirSync(content, { withFileTypes: true })) {
