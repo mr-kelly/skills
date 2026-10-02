@@ -2,6 +2,20 @@
   "name": "关系快照",
   "description": "Agent 在一个明确时间窗内形成的关系判断、证据与建议，用于比较关系变化。",
   "position": 2,
+  "agentPrompts": [
+    {
+      "key": "analyze-relationship",
+      "label": "为一位联系人生成关系快照",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后针对我指定的联系人和时间窗口，通过 `node scripts/wechat-safe.mjs` 查询有限范围的微信记录，生成一份关系快照——区分观察到的证据和推断，写明关系强度、趋势、互动频率、互惠度、未完成事项和置信度。",
+      "intent": "change"
+    },
+    {
+      "key": "compare-trend",
+      "label": "这段关系是在升温还是降温？",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后对比我指定这位联系人的多份关系快照，告诉我关系强度和趋势是如何随时间变化的，并指出证据里的不确定性和信息缺口。"
+    }
+  ],
   "fields": [
     {
       "slug": "title",

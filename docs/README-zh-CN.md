@@ -170,6 +170,7 @@
 | `kelly-creators` | 达人营销指挥台，跑 Discover→Plan→Activate→Measure 管道：agent 扫描并按 C³ ACE 给达人候选打匹配分，起草外联、brief 和合同，发布前质量门（SHIP/FIX/BLOCK）核查 FTC 披露与宣称真实性，全部在本地 UI 审阅，带 ROI 看板。 | 发现和筛选达人、审批外联和 brief、跑达人投放管道，或跟踪红人 ROI 与预算时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-creators.html?lang=zh) |
 | `kelly-launch` | 产品发布指挥台，跑 RAMP 框架（Research→Assemble→Mobilize→Prove）：agent 组装发布清单，起草素材、Product Hunt / Hacker News 提交、媒体推介和发布日 runbook，发布就绪门给出发布质量分（LQS → SHIP/FIX/BLOCK）。 | 策划和执行产品发布：搭清单、审批素材和渠道提交、把关发布就绪度，或指挥发布日时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-launch.html?lang=zh) |
 | `kelly-social` | 既监控又发布的社媒指挥台（Aaron 的 ECHO）：监控侧有统一时间线、账号数据、粉丝趋势和 share-of-voice；发布侧有内容日历、agent 起草的成稿台、短视频脚本、审批制互动收件箱和危机剧本——每条草稿都过 social-qa 的 SHIP/FIX/BLOCK 门。 | 查看社媒表现和 share-of-voice、排内容日历、审批帖子和短视频脚本，或跨平台分诊 mention 和回复时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-social.html?lang=zh) |
+| `kelly-wechat-content` | 两张关联表管理公众号资料库和文章排期，附原生视图、示例数据和只读内容工作台。 | 整理公众号素材、让一份资料复用于多篇稿件、检查引用依据并安排发布日历时使用。 | [查看](https://mr-kelly.github.io/skills/s/kelly-wechat-content.html?lang=zh) |
 | `kelly-writer` | 把一个想法、文章、 transcript、outline 或公告改写成适合小红书、公众号、newsletter、LinkedIn、X/Twitter、短视频、SEO 的内容包。 | 把长内容拆成多平台内容包，并在本地 review、编辑、批准、导出时使用。 | [查看 ↗](https://mr-kelly.github.io/skills/s/kelly-writer.html?lang=zh) |
 
 ### 增长与分析
@@ -581,6 +582,12 @@ Kelly Family Fund 是一个本地、只读的家庭统筹基金台账：把两�
 
 <table>
   <tr>
+    <td colspan="2"><img src="../skills/kelly-wechat-crm/assets/screenshots/cover.webp" alt="微信关系攻略"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>微信关系攻略</strong><br>先确定目标，再选择重点联系人；关系行动先由人审核，应用不会代发微信。</td>
+  </tr>
+  <tr>
     <td width="50%"><img src="../skills/kelly-wechat-crm/assets/screenshots/actions.webp" alt="Kelly 微信关系攻略行动审核"></td>
     <td width="50%"><img src="../skills/kelly-wechat-crm/assets/screenshots/people.webp" alt="Kelly 微信关系攻略人物画像"></td>
   </tr>
@@ -595,6 +602,12 @@ Kelly Family Fund 是一个本地、只读的家庭统筹基金台账：把两�
   <tr>
     <td><strong>关系快照</strong><br>保存明确时间窗内的证据、关系强度、互惠度、趋势、不确定性和建议，供后续比较。</td>
     <td><strong>动态目标</strong><br>创建全局、个人或关系分组目标，设置成功标准、期限、优先级和明确边界。</td>
+  </tr>
+  <tr>
+    <td><img src="../skills/kelly-wechat-crm/assets/screenshots/mobile-actions.webp" alt="手机上的微信关系行动审核"></td>
+  </tr>
+  <tr>
+    <td><strong>手机审核</strong><br>在手机上查看并决定同一批下一步行动。</td>
   </tr>
 </table>
 
@@ -622,6 +635,43 @@ Kelly Family Fund 是一个本地、只读的家庭统筹基金台账：把两�
   </tr>
   <tr>
     <td><strong>账户</strong><br>已连接的消息账户（WhatsApp、Telegram），含连接器状态与密钥就绪情况。</td>
+  </tr>
+</table>
+
+### `kelly-wechat-content`
+
+可安装的公众号内容工作台：8 份可复用资料与 10 篇文章，通过关联字段连接表格、看板、日历和待审核视图。以下截图来自本地 Busabase 的实际安装。
+
+<table>
+  <tr>
+    <td colspan="2"><img src="../skills/kelly-wechat-content/assets/screenshots/cover.webp" alt="公众号内容工作台"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>公众号内容工作台</strong><br>可复用资料和文章排期在同一套编辑流程中相互关联。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-wechat-content/assets/screenshots/overview.webp" alt="工作总览"></td>
+    <td width="50%"><img src="../skills/kelly-wechat-content/assets/screenshots/sources.webp" alt="可复用资料库"></td>
+  </tr>
+  <tr>
+    <td><strong>总览</strong><br>近期排期、资料复用和等待审核的工作。</td>
+    <td><strong>资料库</strong><br>查看每份资料的核对状态和使用它的文章。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-wechat-content/assets/screenshots/board.webp" alt="文章进度看板"></td>
+    <td width="50%"><img src="../skills/kelly-wechat-content/assets/screenshots/calendar.webp" alt="发布日历"></td>
+  </tr>
+  <tr>
+    <td><strong>看板</strong><br>同一批文章按实际写作进度分组。</td>
+    <td><strong>日历</strong><br>发布日期和关联资料都属于同一篇文章记录。</td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../skills/kelly-wechat-content/assets/screenshots/review.webp" alt="稿件与资料核对"></td>
+    <td width="50%"><img src="../skills/kelly-wechat-content/assets/screenshots/article-detail.webp" alt="关联资料的文章详情"></td>
+  </tr>
+  <tr>
+    <td><strong>待审核</strong><br>3 篇待审核稿件、2 份待核对资料。</td>
+    <td><strong>文章详情</strong><br>打开草稿，检查它引用的资料和待核实的事实。</td>
   </tr>
 </table>
 

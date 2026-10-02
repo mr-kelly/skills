@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
-// Builds the GitHub Pages site in docs/ from README.md + docs/README-zh-CN.md + bundled screenshots
-// and demo recordings (docs/demo-recordings/).
+// Builds the GitHub Pages site from READMEs, template manifests, screenshots and demo recordings.
 // Zero dependencies. Re-run after changing READMEs or screenshots: node scripts/build-site.mjs
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -101,6 +100,10 @@ function siteShotPath(src, rel = "") {
   return ASSET_MODE === "pages-local" ? `${rel}${src}` : `${RAW_REPO_URL}/${src}`;
 }
 
+function siteTemplateVideoPath(src) {
+  return ASSET_MODE === "pages-local" ? `../${src}` : `${RAW_REPO_URL}/${src}`;
+}
+
 function siteThumbPath(src) {
   const thumb = src.replace(/\/assets\/screenshots\/([^/]+)\.(png|webp)$/i, "/assets/screenshots/thumbs/$1.webp");
   return siteShotPath(existsSync(path.join(ROOT, thumb)) ? thumb : src);
@@ -197,8 +200,9 @@ function videoFigureHtml(rec, fallbackShot) {
   const img = posterEn
     ? `<img data-shot-en="${esc(posterEn)}" data-shot-zh="${esc(posterZh)}" src="${esc(posterEn)}" alt="" loading="lazy">`
     : "";
+  const videoPath = rec.isTemplate ? siteTemplateVideoPath : siteRecordingPath;
   return `<figure class="shot shot-video">
-  <button type="button" class="video-poster${posterEn ? "" : " no-poster"}" data-video-en="${esc(siteRecordingPath(rec.video.en))}" data-video-zh="${esc(siteRecordingPath(rec.video.zh))}" data-label-en="Play: ${esc(labelEn)}" data-label-zh="播放：${esc(labelZh)}" aria-label="Play: ${esc(labelEn)}">
+  <button type="button" class="video-poster${posterEn ? "" : " no-poster"}" data-video-en="${esc(videoPath(rec.video.en))}" data-video-zh="${esc(videoPath(rec.video.zh))}" data-label-en="Play: ${esc(labelEn)}" data-label-zh="播放：${esc(labelZh)}" aria-label="Play: ${esc(labelEn)}">
     ${img}
     <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg></span>
   </button>
@@ -220,9 +224,63 @@ function parseShotSections(md, imgPrefix) {
       title: x[1],
       text: x[2],
     }));
+    // Cover rows in READMEs have no caption cell; keep later captions aligned.
+    if (imgs[0]?.endsWith("/cover.webp") && caps.length === imgs.length - 1) {
+      caps.unshift({ title: "", text: "" });
+    }
     sections[name] = { imgs, caps };
   }
   return sections;
+}
+
+function mergeTemplateShots(name, declared, readmeShots) {
+  if (!declared.some((relative) => relative.endsWith("/cover.webp"))) return readmeShots;
+  const used = new Set();
+  const ordered = [...declared].sort((a, b) => Number(b.endsWith("/cover.webp")) - Number(a.endsWith("/cover.webp")));
+  const manifestShots = ordered.map((relative) => {
+    const src = `skills/${name}/${relative}`;
+    const match = readmeShots.find((shot) => shot.en === src || shot.zh === src);
+    if (match) {
+      used.add(match);
+      if (!relative.endsWith("/cover.webp")) return match;
+      return {
+        ...match,
+        capEn: match.capEn.title ? match.capEn : { title: "Cover", text: "" },
+        capZh: match.capZh.title ? match.capZh : { title: "封面", text: "" },
+      };
+    }
+    const label = relative.endsWith("/cover.webp")
+      ? { en: "Cover", zh: "封面" }
+      : { en: path.basename(relative, path.extname(relative)).replaceAll("-", " "), zh: "界面截图" };
+    return {
+      en: src,
+      zh: src,
+      capEn: { title: label.en, text: "" },
+      capZh: { title: label.zh, text: "" },
+    };
+  });
+  const seen = new Set(manifestShots.flatMap((shot) => [shot.en, shot.zh]));
+  return [
+    ...manifestShots,
+    ...readmeShots.filter((shot) => !used.has(shot) && !seen.has(shot.en) && !seen.has(shot.zh)),
+  ];
+}
+
+async function templateMediaFor(name) {
+  const manifestPath = path.join(ROOT, "skills", name, "busabase.json");
+  if (!(await fileExists(manifestPath))) return { screenshots: [], video: null };
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+  const screenshots = manifest.template?.screenshots ?? [];
+  const video = manifest.template?.video ?? null;
+  for (const relative of [...screenshots, ...(video ? [video] : [])]) {
+    if (!/^assets\/(screenshots|recordings)\/[^/]+\.(webp|png|jpe?g|mp4)$/i.test(relative)) {
+      throw new Error(`${manifestPath}: invalid template media path ${JSON.stringify(relative)}`);
+    }
+    if (!(await fileExists(ROOT, "skills", name, relative))) {
+      throw new Error(`${manifestPath}: missing template media ${JSON.stringify(relative)}`);
+    }
+  }
+  return { screenshots, video };
 }
 
 async function frontmatterDescription(dir) {
@@ -945,6 +1003,7 @@ async function main() {
       capEn: sEn.caps[i] || { title: "", text: "" },
       capZh: sZh.caps[i] || sEn.caps[i] || { title: "", text: "" },
     }));
+    const templateMedia = await templateMediaFor(folder);
     skills[name] = {
       name,
       folder,
@@ -952,7 +1011,20 @@ async function main() {
       descZh: zh.desc || descEn,
       whenEn: en.when || "",
       whenZh: zh.when || en.when || "",
-      shots,
+      shots: mergeTemplateShots(name, templateMedia.screenshots, shots),
+      templateVideo: templateMedia.video
+        ? {
+            slug: "demo",
+            isTemplate: true,
+            hasOwn: { en: true, zh: true },
+            video: {
+              en: `skills/${folder}/${templateMedia.video}`,
+              zh: `skills/${folder}/${templateMedia.video}`,
+            },
+            poster: { en: null, zh: null },
+          }
+        : null,
+      templateCover: templateMedia.screenshots.some((src) => src.endsWith("/cover.webp")),
       recordings: await recordingsFor(folder),
       hasApp: await hasAppDirectory(folder),
       hasReadme: await fileExists(ROOT, "skills", folder, "README.md"),
@@ -1064,7 +1136,7 @@ async function main() {
   function cardHtml(s) {
     const thumb = s.shots[0];
     const thumbHtml = thumb
-      ? `<div class="thumb"><img data-shot-en="${esc(siteThumbPath(thumb.en))}" data-shot-zh="${esc(siteThumbPath(thumb.zh))}" src="${esc(siteThumbPath(thumb.en))}" alt="${esc(s.name)} UI" loading="lazy"></div>`
+      ? `<div class="thumb${s.templateCover ? " template-cover" : ""}"><img data-shot-en="${esc(siteThumbPath(thumb.en))}" data-shot-zh="${esc(siteThumbPath(thumb.zh))}" src="${esc(siteThumbPath(thumb.en))}" alt="${esc(s.name)} ${s.templateCover ? "cover" : "UI"}" ${s.templateCover ? 'style="object-fit:contain;object-position:center" ' : ""}loading="lazy"></div>`
       : `<div class="thumb empty">⚙️</div>`;
     const href = s.hasApp || s.descEn ? `s/${s.name}.html` : `${REPO_URL}/tree/main/skills/${s.folder}`;
     return `<a class="card" data-skill-card data-tags="${esc(s.tags.join(" "))}" href="${href}">
@@ -1085,21 +1157,25 @@ async function main() {
 
   // --- per-skill pages ---
   for (const s of Object.values(skills)) {
-    const shotsHtml = s.shots
-      .map(
-        (sh) => `<figure class="shot">
+    const shotHtml = (sh) => `<figure class="shot">
   <img data-shot-en="${esc(siteShotPath(sh.en, "../"))}" data-shot-zh="${esc(siteShotPath(sh.zh, "../"))}" src="${esc(siteShotPath(sh.en, "../"))}" alt="${esc(sh.capEn.title || s.name)}" loading="lazy">
   <figcaption class="cap">
     ${bilingual(`<strong>${esc(sh.capEn.title)}</strong><span>${esc(sh.capEn.text)}</span>`, `<strong>${esc(sh.capZh.title)}</strong><span>${esc(sh.capZh.text)}</span>`, "div")}
   </figcaption>
-</figure>`,
-      )
+</figure>`;
+    const coverFirst = s.shots[0]?.en.endsWith("/cover.webp");
+    const coverHtml = coverFirst ? shotHtml(s.shots[0]) : "";
+    const shotsHtml = s.shots
+      .slice(coverFirst ? 1 : 0)
+      .map(shotHtml)
       .join("\n");
     const whenHtml = s.whenEn
       ? `    <div class="panel"><h3>${bilingual("When to use it", "什么时候用")}</h3><p>${bilingual(esc(s.whenEn), esc(s.whenZh))}</p></div>\n`
       : "";
-    const videosHtml = s.recordings.map((rec) => videoFigureHtml(rec, s.shots[0])).join("\n");
-    const galleryHtml = [videosHtml, shotsHtml].filter(Boolean).join("\n");
+    const videosHtml = [...(s.templateVideo ? [s.templateVideo] : []), ...s.recordings]
+      .map((rec) => videoFigureHtml(rec, s.shots[coverFirst ? 1 : 0] || s.shots[0]))
+      .join("\n");
+    const galleryHtml = [coverHtml, videosHtml, shotsHtml].filter(Boolean).join("\n");
     const shotsSectionHtml = galleryHtml ? `    <div class="shots">${galleryHtml}</div>\n` : "";
 
     const body = `

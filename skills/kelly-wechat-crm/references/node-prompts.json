@@ -1,0 +1,124 @@
+{
+  "people": [
+    {
+      "key": "promote-contact",
+      "label": "从本机通讯录晋升重点联系人",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后根据我给的目标，从本机微信通讯录里发现候选联系人，把我明确选中的人晋升为重点联系人——只写入我确认过的人，不要把整个通讯录同步进来。",
+      "intent": "change"
+    },
+    {
+      "key": "update-relationship",
+      "label": "更新某人的关系记录和建议备注",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后更新我指定这位重点联系人的关系记录、建议微信备注、关系类型/强度/趋势和下一步建议——原始微信备注和身份信息由同步流程维护，不要覆盖。",
+      "intent": "change"
+    },
+    {
+      "key": "who-needs-attention",
+      "label": "哪些重点联系人需要关注？",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后告诉我哪些重点联系人关系正在降温、有未完成事项，或很久没有分析过，按紧迫程度排序。"
+    }
+  ],
+  "goals": [
+    {
+      "key": "create-goal",
+      "label": "创建一个新目标",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后帮我创建一个目标——想实现什么、范围（全局/某个人/一类关系）、成功标准、期限、优先级，以及需要遵守的边界与约束。",
+      "intent": "change"
+    },
+    {
+      "key": "update-goal-status",
+      "label": "更新目标的状态",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后把我指定的目标状态改为进行中、暂停、已达成或已放弃，并说明原因。",
+      "intent": "change"
+    },
+    {
+      "key": "active-goals",
+      "label": "查看当前进行中的目标",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后列出当前进行中的目标，包含范围、成功标准和期限。"
+    }
+  ],
+  "relationship-snapshots": [
+    {
+      "key": "analyze-relationship",
+      "label": "为一位联系人生成关系快照",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后针对我指定的联系人和时间窗口，通过 `node scripts/wechat-safe.mjs` 查询有限范围的微信记录，生成一份关系快照——区分观察到的证据和推断，写明关系强度、趋势、互动频率、互惠度、未完成事项和置信度。",
+      "intent": "change"
+    },
+    {
+      "key": "compare-trend",
+      "label": "这段关系是在升温还是降温？",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后对比我指定这位联系人的多份关系快照，告诉我关系强度和趋势是如何随时间变化的，并指出证据里的不确定性和信息缺口。"
+    }
+  ],
+  "actions": [
+    {
+      "key": "propose-actions",
+      "label": "为目标或联系人生成下一步行动建议",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后基于目标和关系证据提出去重后的下一步行动建议，附上理由、建议时间、优先级、置信度，以及可选的建议微信文案——批准这些行动不代表可以自动执行，微信操作始终由用户手动完成。",
+      "intent": "change"
+    },
+    {
+      "key": "decide-action",
+      "label": "审核一条行动：批准、退回修改、延后或忽略",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后记录我对这条行动的决定——准备执行、待修改、已延后或已忽略——并写下处理备注。批准只代表这是合理的下一步，不代表消息已经发送。",
+      "intent": "change"
+    },
+    {
+      "key": "record-outcome",
+      "label": "记录一条行动的实际结果",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后记录我手动执行这条行动后的实际结果——已发送等待回复、积极回复、拒绝或不合适、暂未回复，或其他结果——并同步生成对应的工作日志和后续等待行动。",
+      "intent": "change"
+    },
+    {
+      "key": "needs-review",
+      "label": "有哪些行动在等我判断？",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后列出状态为待判断的行动，包含对应的人、目标、行动类型、理由和优先级。"
+    }
+  ],
+  "worklog": [
+    {
+      "key": "recap-history",
+      "label": "查看我和 Agent 最近做了什么",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后按时间顺序总结最近的工作日志——用户请求、Agent 结论、生成的行动和最终结果，帮我快速回顾进展。"
+    },
+    {
+      "key": "log-note",
+      "label": "记录一条工作日志",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后为我刚才和你讨论的内容记一条工作日志——用户上下文、Agent 结论、关联的目标/联系人/行动——注意这不是拜访记录，不要声称发生了实际的微信互动，除非确实发生了。",
+      "intent": "change"
+    }
+  ],
+  "settings": [
+    {
+      "key": "check-readiness",
+      "label": "微信连接和同步状态如何？",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后检查当前微信连接器和同步的安全状态——是否就绪、CLI 版本、上次同步时间、重点联系人数——不要在这里查看或写入任何令牌、消息记录或其他敏感原始数据。"
+    },
+    {
+      "key": "run-sync",
+      "label": "同步已晋升联系人的最新状态",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后为已晋升的重点联系人运行基础同步——先展示 dry run 的范围，只有在我明确批准后才带 --apply 执行，并把安全的同步计数和时间戳写回这里。它绝不会向微信发送或修改任何内容。",
+      "intent": "change"
+    }
+  ],
+  "folder": [
+    {
+      "key": "start-goal-first",
+      "label": "从一个目标开始整理关系",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录 kelly-wechat-crm Skill。请根据我给出的目标查找本机微信通讯录中的候选人，只将我明确选择的人加入重点联系人，然后给出关系快照和下一步建议。不要自动初始化连接器或发送消息。"
+    },
+    {
+      "key": "review-relationship-work",
+      "label": "回顾本周需要处理的人和行动",
+      "intent": "read-only",
+      "body": "{target}\n\n先读同目录 kelly-wechat-crm Skill。检查目标、重点联系人、关系快照和待判断的下一步行动，列出需要我亲自决定的事项和原记录，不修改微信数据。"
+    }
+  ]
+}

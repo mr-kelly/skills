@@ -1,0 +1,780 @@
+{
+  "schema_version": 1,
+  "app": {
+    "name": "公众号内容工作台",
+    "slug": "kelly-wechat-content",
+    "locale": "zh-CN",
+    "description": "让公众号编辑团队复用资料、关联稿件，并检查审核与排期。",
+    "deployment": "desktop",
+    "runtime": "node",
+    "read_only": true,
+    "binding": "runtime",
+    "audience": "需要把一份资料复用于多篇文章的公众号编辑团队"
+  },
+  "route": "create-package-first",
+  "validation_mode": "local-preview",
+  "user_story": "编辑从资料库选择原文，关联文章；审核者检查未核对来源；负责人用状态看板和发布日历查看同一批稿件。",
+  "workspace": {
+    "folder": {
+      "slug": "kelly-wechat-content",
+      "name": "公众号内容工作台",
+      "description": "公众号资料库与文章排期"
+    },
+    "bases": [
+      {
+        "key": "sources",
+        "slug": "kelly-wechat-content-sources",
+        "name": "资料库",
+        "description": "可复用的公众号参考资料",
+        "read_limit": 50,
+        "fields": [
+          {
+            "slug": "title",
+            "name": "资料标题",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "kind",
+            "name": "资料类型",
+            "type": "select",
+            "options": {
+              "choices": [
+                {
+                  "id": "article",
+                  "name": "文章"
+                },
+                {
+                  "id": "report",
+                  "name": "报告"
+                },
+                {
+                  "id": "screenshot",
+                  "name": "截图"
+                },
+                {
+                  "id": "note",
+                  "name": "笔记"
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "slug": "topic",
+            "name": "主题",
+            "type": "select",
+            "options": {
+              "choices": [
+                {
+                  "id": "workflow",
+                  "name": "工作流"
+                },
+                {
+                  "id": "product",
+                  "name": "产品实践"
+                },
+                {
+                  "id": "growth",
+                  "name": "内容增长"
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "slug": "summary",
+            "name": "摘要",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "url",
+            "name": "来源链接",
+            "type": "url",
+            "required": false
+          },
+          {
+            "slug": "attachment",
+            "name": "原始附件",
+            "type": "attachment",
+            "required": false
+          },
+          {
+            "slug": "search-text",
+            "name": "检索文字摘录",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "source-date",
+            "name": "资料日期",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "verified",
+            "name": "来源已核对",
+            "type": "checkbox",
+            "required": false
+          },
+          {
+            "slug": "notes",
+            "name": "资料备注",
+            "type": "longtext",
+            "required": false
+          }
+        ],
+        "views": [
+          {
+            "slug": "all-sources",
+            "name": "全部资料",
+            "description": "按资料日期浏览参考资料",
+            "type": "table",
+            "config": {
+              "visibleFieldSlugs": ["title", "kind", "topic", "verified", "source-date", "url"],
+              "filters": [],
+              "sorts": [],
+              "fieldWidths": {
+                "title": 320,
+                "kind": 100,
+                "topic": 110,
+                "verified": 100,
+                "source-date": 130,
+                "url": 240,
+                "status": 110,
+                "owner": 100,
+                "publish-date": 130,
+                "sources": 300,
+                "review-note": 320,
+                "notes": 320
+              }
+            },
+            "key": "all-sources"
+          },
+          {
+            "slug": "unverified",
+            "name": "待核对资料",
+            "description": "需要确认出处或事实的资料",
+            "type": "table",
+            "config": {
+              "visibleFieldSlugs": ["title", "kind", "topic", "verified", "notes"],
+              "filters": [
+                {
+                  "fieldSlug": "verified",
+                  "fieldType": "checkbox",
+                  "operator": "is_false"
+                }
+              ],
+              "sorts": [],
+              "fieldWidths": {
+                "title": 320,
+                "kind": 100,
+                "topic": 110,
+                "verified": 100,
+                "source-date": 130,
+                "url": 240,
+                "status": 110,
+                "owner": 100,
+                "publish-date": 130,
+                "sources": 300,
+                "review-note": 320,
+                "notes": 320
+              }
+            },
+            "key": "unverified"
+          },
+          {
+            "slug": "source-gallery",
+            "name": "资料画廊",
+            "description": "资料摘要与截图参考",
+            "type": "gallery",
+            "config": {
+              "visibleFieldSlugs": ["title", "summary", "kind", "verified"],
+              "filters": [],
+              "sorts": []
+            },
+            "key": "source-gallery"
+          }
+        ],
+        "seed_records": [
+          {
+            "key": "src-review",
+            "fields": {
+              "title": "编辑例会：审核前要检查什么",
+              "kind": "note",
+              "topic": "workflow",
+              "summary": "编辑团队梳理来源、事实、引用和发布权限四项审核检查，适合写作流程类文章复用。",
+              "url": "",
+              "attachment": [],
+              "search-text": "来源可追溯；事实与原文一致；引用说明用途；没有批准不能对外发布。",
+              "source-date": "2026-09-24",
+              "verified": true,
+              "notes": "演示团队的编辑规范，正式使用时由负责人确认。"
+            }
+          },
+          {
+            "key": "src-relations",
+            "fields": {
+              "title": "一份资料如何被三篇文章复用",
+              "kind": "report",
+              "topic": "workflow",
+              "summary": "把资料库与文章排期拆成两张关联表，避免复制原文；对照三个引用场景。",
+              "url": "https://github.com/busabase/busabase",
+              "attachment": [],
+              "search-text": "同一份资料保留一个主记录，文章通过关联字段引用多个资料；更新原文后重新核对已批准草稿。",
+              "source-date": "2026-09-23",
+              "verified": true,
+              "notes": "这是演示写作素材；表关联能力的正式说明以产品文档为准。"
+            }
+          },
+          {
+            "key": "src-search",
+            "fields": {
+              "title": "PDF 可搜索文本的整理笔记",
+              "kind": "note",
+              "topic": "product",
+              "summary": "原文件、元数据和可搜索文本分别保存；先提取或 OCR，再写入同一附件并验证关键词。",
+              "url": "https://busabase.com/docs",
+              "attachment": [],
+              "search-text": "上传PDF不会自动提取正文。可搜索文本供全文搜索和Agent grep读取，元数据可以保存摘要和来源。",
+              "source-date": "2026-09-25",
+              "verified": true,
+              "notes": "写作前用实际附件检查对应产品版本和界面名称。"
+            }
+          },
+          {
+            "key": "src-desk-shot",
+            "fields": {
+              "title": "资料库与看板的实操截图",
+              "kind": "screenshot",
+              "topic": "workflow",
+              "summary": "示例素材区保存运行中的资料表和状态看板截图，用于解释来源复用与排期。",
+              "url": "",
+              "attachment": [],
+              "search-text": "截图对应资料库、文章进度看板和待审核阅读场景。",
+              "source-date": "2026-09-28",
+              "verified": true,
+              "notes": "图片在同目录「示例素材」Drive 中；发布前检查是否含真实用户数据。"
+            }
+          },
+          {
+            "key": "src-interview",
+            "fields": {
+              "title": "访谈纪要：小团队为什么总在找资料",
+              "kind": "note",
+              "topic": "growth",
+              "summary": "演示访谈讨论资料分散、重复整理和原始链接遗失，提炼三个待验证的痛点。",
+              "url": "",
+              "attachment": [],
+              "search-text": "资料散在聊天和文件夹；同一份资料反复复制；写完草稿找不到引用出处。",
+              "source-date": "2026-09-26",
+              "verified": false,
+              "notes": "虚构演示访谈，不能在正式文章中作为真实用户证言。"
+            }
+          },
+          {
+            "key": "src-onboarding",
+            "fields": {
+              "title": "从空表到第一篇稿件的检查清单",
+              "kind": "article",
+              "topic": "product",
+              "summary": "用少量字段起步：资料标题与来源、文章标题与状态、关联资料和负责人。",
+              "url": "https://github.com/busabase/skills",
+              "attachment": [],
+              "search-text": "先录入三份资料，再建一篇文章并关联它们；Agent提出修改，人查看变更请求。",
+              "source-date": "2026-09-27",
+              "verified": true,
+              "notes": "原始入口是公开技能仓库；安装操作要以当前 Skill 为准。"
+            }
+          },
+          {
+            "key": "src-weekly",
+            "fields": {
+              "title": "周复盘：选题与实际发布为什么错位",
+              "kind": "report",
+              "topic": "growth",
+              "summary": "演示周报记录写作、审核与排期的交接断点，不含真实流量或转化指标。",
+              "url": "",
+              "attachment": [],
+              "search-text": "排期日期不等于实际发布；审核备注要指出哪条事实缺来源；复盘只统计真实完成结果。",
+              "source-date": "2026-09-28",
+              "verified": false,
+              "notes": "发布前补充真实团队记录，不能将演示样本当作统计结论。"
+            }
+          },
+          {
+            "key": "src-permissions",
+            "fields": {
+              "title": "内容协作：谁可以提出修改，谁来确认",
+              "kind": "article",
+              "topic": "product",
+              "summary": "区别只读、提案和直接写入；用人工审核保障事实和对外发布。",
+              "url": "https://busabase.com/docs",
+              "attachment": [],
+              "search-text": "Agent可以准备资料、提纲和稿件；有写入权限时服务端可能立即合入，想先检查须明确提交审核。",
+              "source-date": "2026-09-28",
+              "verified": true,
+              "notes": "正式团队请核对空间角色和授权范围。"
+            }
+          }
+        ]
+      },
+      {
+        "key": "articles",
+        "slug": "kelly-wechat-content-articles",
+        "name": "文章排期",
+        "description": "从选题、草稿到审核与发布",
+        "read_limit": 50,
+        "fields": [
+          {
+            "slug": "title",
+            "name": "文章标题",
+            "type": "text",
+            "required": true
+          },
+          {
+            "slug": "topic",
+            "name": "主题",
+            "type": "select",
+            "options": {
+              "choices": [
+                {
+                  "id": "workflow",
+                  "name": "工作流"
+                },
+                {
+                  "id": "product",
+                  "name": "产品实践"
+                },
+                {
+                  "id": "growth",
+                  "name": "内容增长"
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "slug": "status",
+            "name": "进度",
+            "type": "select",
+            "options": {
+              "choices": [
+                {
+                  "id": "planned",
+                  "name": "选题"
+                },
+                {
+                  "id": "drafting",
+                  "name": "写作中"
+                },
+                {
+                  "id": "review",
+                  "name": "待审核"
+                },
+                {
+                  "id": "scheduled",
+                  "name": "待发布"
+                },
+                {
+                  "id": "published",
+                  "name": "已发布"
+                }
+              ]
+            },
+            "required": false
+          },
+          {
+            "slug": "owner",
+            "name": "负责人",
+            "type": "text",
+            "required": false
+          },
+          {
+            "slug": "publish-date",
+            "name": "计划发布日期",
+            "type": "date",
+            "required": false
+          },
+          {
+            "slug": "sources",
+            "name": "关联资料",
+            "type": "relation",
+            "options": {
+              "targetBaseSlug": "kelly-wechat-content-sources",
+              "multiple": true
+            },
+            "required": false
+          },
+          {
+            "slug": "outline",
+            "name": "文章提纲",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "draft",
+            "name": "草稿",
+            "type": "markdown",
+            "required": false
+          },
+          {
+            "slug": "review-note",
+            "name": "审核备注",
+            "type": "longtext",
+            "required": false
+          },
+          {
+            "slug": "public-url",
+            "name": "发布链接",
+            "type": "url",
+            "required": false
+          }
+        ],
+        "views": [
+          {
+            "slug": "all-articles",
+            "name": "文章列表",
+            "description": "查看负责人、进度和关联资料",
+            "type": "table",
+            "config": {
+              "visibleFieldSlugs": ["title", "status", "owner", "publish-date", "sources"],
+              "filters": [],
+              "sorts": [],
+              "fieldWidths": {
+                "title": 320,
+                "kind": 100,
+                "topic": 110,
+                "verified": 100,
+                "source-date": 130,
+                "url": 240,
+                "status": 110,
+                "owner": 100,
+                "publish-date": 130,
+                "sources": 300,
+                "review-note": 320,
+                "notes": 320
+              }
+            },
+            "key": "all-articles"
+          },
+          {
+            "slug": "status-board",
+            "name": "进度看板",
+            "description": "按文章进度整理选题",
+            "type": "kanban",
+            "config": {
+              "stackByFieldSlug": "status",
+              "visibleFieldSlugs": ["title", "owner", "publish-date"],
+              "filters": [],
+              "sorts": []
+            },
+            "key": "status-board"
+          },
+          {
+            "slug": "publishing-calendar",
+            "name": "发布日历",
+            "description": "按计划发布日期查看文章",
+            "type": "calendar",
+            "config": {
+              "dateFieldSlug": "publish-date",
+              "visibleFieldSlugs": ["title", "status", "owner"],
+              "filters": [],
+              "sorts": []
+            },
+            "key": "publishing-calendar"
+          },
+          {
+            "slug": "review",
+            "name": "待审核",
+            "description": "需要人审核的文章草稿",
+            "type": "table",
+            "config": {
+              "visibleFieldSlugs": ["title", "status", "owner", "review-note", "sources"],
+              "filters": [
+                {
+                  "fieldSlug": "status",
+                  "fieldType": "select",
+                  "operator": "equals",
+                  "value": "待审核"
+                }
+              ],
+              "sorts": [],
+              "fieldWidths": {
+                "title": 320,
+                "kind": 100,
+                "topic": 110,
+                "verified": 100,
+                "source-date": 130,
+                "url": 240,
+                "status": 110,
+                "owner": 100,
+                "publish-date": 130,
+                "sources": 300,
+                "review-note": 320,
+                "notes": 320
+              }
+            },
+            "key": "review"
+          }
+        ],
+        "seed_records": [
+          {
+            "key": "art-source-reuse",
+            "fields": {
+              "title": "一份资料，怎样变成三篇不重复的文章",
+              "topic": "workflow",
+              "status": "review",
+              "owner": "林禾",
+              "publish-date": "2026-10-02",
+              "sources": ["src-relations", "src-review", "src-desk-shot"],
+              "outline": "1. 重复复制带来的维护问题\n2. 两张表划分资料与文章\n3. 文章关联多份资料\n4. 审核与发布排期",
+              "draft": "## 资料库和文章排期分开维护\n\n资料库保存原文和出处，文章排期保存每篇稿件的负责人、状态和计划日期。每篇文章关联用到的资料，同一份资料也可以被不同文章复用。\n\n发布前核对原始资料、截图和引用用途。",
+              "review-note": "请核对三篇示例是否各有不同角度；截图需要保留原始来源。",
+              "public-url": ""
+            }
+          },
+          {
+            "key": "art-pdf-search",
+            "fields": {
+              "title": "PDF 不只用来下载：让 Agent 找到正文里的证据",
+              "topic": "product",
+              "status": "scheduled",
+              "owner": "周宁",
+              "publish-date": "2026-10-01",
+              "sources": ["src-search", "src-permissions"],
+              "outline": "1. 原文件与可搜索文本\n2. 提取文字与OCR\n3. 写入同一附件\n4. 用关键词验证",
+              "draft": "## 先提供可搜索文本\n\n只上传PDF并不会自动完成文字提取。让Agent提取正文，扫描件先做OCR，再将结果写入该附件的可搜索文本。\n\n用全文搜索或grep验证一个正文关键词，确认引用能追溯到原文件。",
+              "review-note": "已审核。对外发布由负责人确认；本文没有自动发布动作。",
+              "public-url": ""
+            }
+          },
+          {
+            "key": "art-small-team",
+            "fields": {
+              "title": "小团队内容库，先把这两个交接点理清楚",
+              "topic": "growth",
+              "status": "review",
+              "owner": "陈岚",
+              "publish-date": "2026-10-05",
+              "sources": ["src-interview", "src-weekly", "src-review"],
+              "outline": "1. 资料交接\n2. 审核交接\n3. 用排期记录真实结果",
+              "draft": "## 每篇文章都要找得到资料\n\n先把资料来源和稿件排期放在不同记录里，用关联建立引用关系。审核备注应说明需要补哪一项证据。",
+              "review-note": "访谈和周报是演示材料，必须替换为真实证据后再发布；避免写成已有用户统计。",
+              "public-url": ""
+            }
+          },
+          {
+            "key": "art-onboarding",
+            "fields": {
+              "title": "第一次搭公众号资料库：从八份材料开始",
+              "topic": "product",
+              "status": "drafting",
+              "owner": "林禾",
+              "publish-date": "2026-10-07",
+              "sources": ["src-onboarding", "src-relations"],
+              "outline": "最小字段\n整理原文\n关联第一篇稿件\n提交审核",
+              "draft": "## 最小起步方案\n\n先建资料库与文章排期，两张表足够开始协作。选择一篇已有稿件，把原始材料关联进去，再检查资料缺失情况。",
+              "review-note": "补充安装后的原生表格和看板步骤。",
+              "public-url": ""
+            }
+          },
+          {
+            "key": "art-review-notes",
+            "fields": {
+              "title": "审核意见别只写重做：给 Agent 一个可执行的反馈",
+              "topic": "workflow",
+              "status": "drafting",
+              "owner": "周宁",
+              "publish-date": "2026-10-09",
+              "sources": ["src-review", "src-permissions"],
+              "outline": "指出具体段落\n给证据链接\n说明验收标准\n重提后核对",
+              "draft": "## 把反馈写成检查项\n\n指出哪一段缺少来源、哪一句与原文不一致，再让Agent依据相同资料修订草稿。",
+              "review-note": "需要一组前后对照样例，避免泛泛而谈。",
+              "public-url": ""
+            }
+          },
+          {
+            "key": "art-calendar",
+            "fields": {
+              "title": "一周发布日历：把审核截止和发布时间分开看",
+              "topic": "workflow",
+              "status": "planned",
+              "owner": "陈岚",
+              "publish-date": "2026-10-12",
+              "sources": ["src-weekly", "src-review"],
+              "outline": "排期不是发布结果\n审核前检查\n日历与看板结合",
+              "draft": "",
+              "review-note": "先确定本周稿件优先级，再生成完整草稿。",
+              "public-url": ""
+            }
+          },
+          {
+            "key": "art-roles",
+            "fields": {
+              "title": "内容团队怎样划分 Agent 和编辑的职责",
+              "topic": "product",
+              "status": "published",
+              "owner": "周宁",
+              "publish-date": "2026-09-28",
+              "sources": ["src-permissions", "src-review"],
+              "outline": "资料整理\n草稿提案\n人审事实\n授权发布",
+              "draft": "## 编辑仍然决定发布\n\nAgent可以整理资料、准备提纲和修改建议，人检查证据、确认措辞和发布时机。职责明确，才更容易知道下一步由谁接手。",
+              "review-note": "演示已发布稿件，用于展示历史状态；发布链接为空，不冒充真实公众号文章。",
+              "public-url": ""
+            }
+          },
+          {
+            "key": "art-structure",
+            "fields": {
+              "title": "为什么资料和文章排期应该分成两张表",
+              "topic": "workflow",
+              "status": "published",
+              "owner": "林禾",
+              "publish-date": "2026-09-25",
+              "sources": ["src-relations", "src-onboarding"],
+              "outline": "资料是长期资产\n文章是一次交付\n关联替代复制",
+              "draft": "## 资料和文章有不同的生命周期\n\n资料可被反复引用，一篇文章有自己的写作、审核和发布流程。分开维护，用关联记录它们的关系，能减少重复复制。",
+              "review-note": "演示历史稿件；没有真实发布链接。",
+              "public-url": ""
+            }
+          },
+          {
+            "key": "art-source-check",
+            "fields": {
+              "title": "发布前五分钟：逐条核对文章里的引用",
+              "topic": "growth",
+              "status": "review",
+              "owner": "陈岚",
+              "publish-date": "2026-09-30",
+              "sources": ["src-review", "src-weekly"],
+              "outline": "打开来源\n核对段落\n标记待补事实\n保存审核意见",
+              "draft": "## 没有出处的结论先不发布\n\n审核时沿着文章关联打开原始资料，检查时间、语境与引用范围。暂时没有证据的内容保留为待核对。",
+              "review-note": "周报尚未核对，请提供真实依据；不要把模板演示数据写进正式文章。",
+              "public-url": ""
+            }
+          },
+          {
+            "key": "art-new-topic",
+            "fields": {
+              "title": "选题备忘：把零散灵感整理成可写的提纲",
+              "topic": "growth",
+              "status": "planned",
+              "owner": "",
+              "publish-date": "2026-10-14",
+              "sources": [],
+              "outline": "待补充目标读者、资料来源和负责人。",
+              "draft": "",
+              "review-note": "没有负责人且尚未关联资料，先补齐再进入写作。",
+              "public-url": ""
+            }
+          }
+        ]
+      }
+    ],
+    "relations": [
+      {
+        "source_base": "articles",
+        "field_slug": "sources",
+        "target_base": "sources",
+        "required": false,
+        "multiple": true
+      }
+    ],
+    "docs": [
+      {
+        "key": "editorial-guide",
+        "slug": "editorial-guide",
+        "name": "编辑规范与示例流程",
+        "description": "来源和稿件审核的 durable 规范"
+      }
+    ],
+    "drives": [
+      {
+        "key": "editorial-assets",
+        "slug": "editorial-assets",
+        "name": "示例素材",
+        "files": [
+          {
+            "path": "screenshots/",
+            "purpose": "真实运行的资料表、看板和审核截图"
+          },
+          {
+            "path": "source-checklist.txt",
+            "purpose": "资料来源核对清单"
+          }
+        ]
+      }
+    ],
+    "vault_requirements": [],
+    "integrations": []
+  },
+  "ui": {
+    "primary_base": "articles",
+    "summary": "跨资料与文章展示审核、引用、排期，原生视图仍是同一份数据。",
+    "screens": [
+      {
+        "key": "overview",
+        "name": "总览",
+        "data_sources": ["sources", "articles"]
+      },
+      {
+        "key": "sources",
+        "name": "资料库",
+        "data_sources": ["sources", "articles"]
+      },
+      {
+        "key": "articles",
+        "name": "文章排期",
+        "data_sources": ["sources", "articles"]
+      },
+      {
+        "key": "needs-review",
+        "name": "待审核",
+        "data_sources": ["sources", "articles"]
+      }
+    ],
+    "actions": [
+      {
+        "key": "browse-sources",
+        "kind": "read",
+        "base": "sources"
+      },
+      {
+        "key": "inspect-articles",
+        "kind": "read",
+        "base": "articles"
+      }
+    ],
+    "budgets": {
+      "records_per_base": 50,
+      "pages_per_user_action": 1,
+      "no_automatic_full_scan": true
+    }
+  },
+  "onboarding": {
+    "version": 1,
+    "required_fields": [],
+    "completion_resource": "editorial-guide",
+    "rationale": "只读内容工作台使用安装时声明的两张表；不连接公众号，不需要密钥、账户或额外发布配置。"
+  },
+  "permissions": {
+    "read_procedures": [
+      "nodes.get",
+      "nodes.list",
+      "records.list",
+      "records.get",
+      "records.count",
+      "records.groupBy",
+      "bases.listViews"
+    ],
+    "change_request_procedures": []
+  },
+  "known_limits": [
+    "第一版只读；审核在Busabase原生变更请求中进行。",
+    "18条演示记录覆盖五个文章阶段与来源核对状态，均低于每表50条限制。",
+    "模板格式不搬运记录附件值，图片放在可安装Drive中。",
+    "不执行公众号对外发布。"
+  ]
+}

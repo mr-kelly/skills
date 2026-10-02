@@ -2,6 +2,20 @@
   "name": "系统状态",
   "description": "wechat-cli readiness、同步状态、分析范围和 Agent 锁。",
   "position": 5,
+  "agentPrompts": [
+    {
+      "key": "check-readiness",
+      "label": "微信连接和同步状态如何？",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后检查当前微信连接器和同步的安全状态——是否就绪、CLI 版本、上次同步时间、重点联系人数——不要在这里查看或写入任何令牌、消息记录或其他敏感原始数据。"
+    },
+    {
+      "key": "run-sync",
+      "label": "同步已晋升联系人的最新状态",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后为已晋升的重点联系人运行基础同步——先展示 dry run 的范围，只有在我明确批准后才带 --apply 执行，并把安全的同步计数和时间戳写回这里。它绝不会向微信发送或修改任何内容。",
+      "intent": "change"
+    }
+  ],
   "fields": [
     {
       "slug": "kind",

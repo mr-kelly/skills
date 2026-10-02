@@ -2,6 +2,32 @@
   "name": "下一步",
   "description": "Agent 根据目标和关系证据提出的可审核行动；微信发送始终由用户手动完成。",
   "position": 3,
+  "agentPrompts": [
+    {
+      "key": "propose-actions",
+      "label": "为目标或联系人生成下一步行动建议",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后基于目标和关系证据提出去重后的下一步行动建议，附上理由、建议时间、优先级、置信度，以及可选的建议微信文案——批准这些行动不代表可以自动执行，微信操作始终由用户手动完成。",
+      "intent": "change"
+    },
+    {
+      "key": "decide-action",
+      "label": "审核一条行动：批准、退回修改、延后或忽略",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后记录我对这条行动的决定——准备执行、待修改、已延后或已忽略——并写下处理备注。批准只代表这是合理的下一步，不代表消息已经发送。",
+      "intent": "change"
+    },
+    {
+      "key": "record-outcome",
+      "label": "记录一条行动的实际结果",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后记录我手动执行这条行动后的实际结果——已发送等待回复、积极回复、拒绝或不合适、暂未回复，或其他结果——并同步生成对应的工作日志和后续等待行动。",
+      "intent": "change"
+    },
+    {
+      "key": "needs-review",
+      "label": "有哪些行动在等我判断？",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后列出状态为待判断的行动，包含对应的人、目标、行动类型、理由和优先级。"
+    }
+  ],
   "fields": [
     {
       "slug": "title",

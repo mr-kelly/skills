@@ -1,4 +1,18 @@
 {
   "name": "微信关系攻略",
-  "description": "目标、重点联系人、关系快照、行动建议和 Agent 工作日志"
+  "description": "目标、重点联系人、关系快照、行动建议和 Agent 工作日志",
+  "agentPrompts": [
+    {
+      "key": "start-goal-first",
+      "label": "从一个目标开始整理关系",
+      "intent": "change",
+      "body": "{target}\n\n先读同目录 kelly-wechat-crm Skill。请根据我给出的目标查找本机微信通讯录中的候选人，只将我明确选择的人加入重点联系人，然后给出关系快照和下一步建议。不要自动初始化连接器或发送消息。"
+    },
+    {
+      "key": "review-relationship-work",
+      "label": "回顾本周需要处理的人和行动",
+      "intent": "read-only",
+      "body": "{target}\n\n先读同目录 kelly-wechat-crm Skill。检查目标、重点联系人、关系快照和待判断的下一步行动，列出需要我亲自决定的事项和原记录，不修改微信数据。"
+    }
+  ]
 }

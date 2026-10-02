@@ -2,6 +2,26 @@
   "name": "重点联系人",
   "description": "经用户确认从本机通讯录晋升的重点联系人，不是完整微信通讯录镜像。",
   "position": 0,
+  "agentPrompts": [
+    {
+      "key": "promote-contact",
+      "label": "从本机通讯录晋升重点联系人",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后根据我给的目标，从本机微信通讯录里发现候选联系人，把我明确选中的人晋升为重点联系人——只写入我确认过的人，不要把整个通讯录同步进来。",
+      "intent": "change"
+    },
+    {
+      "key": "update-relationship",
+      "label": "更新某人的关系记录和建议备注",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能并按照其流程执行，然后更新我指定这位重点联系人的关系记录、建议微信备注、关系类型/强度/趋势和下一步建议——原始微信备注和身份信息由同步流程维护，不要覆盖。",
+      "intent": "change"
+    },
+    {
+      "key": "who-needs-attention",
+      "label": "哪些重点联系人需要关注？",
+      "intent": "read-only",
+      "body": "{target}\n\n阅读这个文件夹里的 `kelly-wechat-crm` 技能，然后告诉我哪些重点联系人关系正在降温、有未完成事项，或很久没有分析过，按紧迫程度排序。"
+    }
+  ],
   "fields": [
     {
       "slug": "display-name",
