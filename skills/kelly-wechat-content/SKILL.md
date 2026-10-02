@@ -1,5 +1,6 @@
 ---
 name: kelly-wechat-content
+license: MIT
 description: >-
   Build and operate a WeChat editorial content library in Busabase. Use when a
   team wants reusable source material, linked article drafts, an editorial

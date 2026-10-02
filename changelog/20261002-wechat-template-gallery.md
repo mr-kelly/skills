@@ -48,4 +48,4 @@ None to installed Kelly apps. The generic Busabase template catalog no longer li
 - The public-account template was installed twice locally; real records, relations, native views, images and browser workflows passed.
 - Website Playwright verified cover cards, CRM video playback and keyboard close, Chinese text, mobile layout and older recording pages.
 - Three gallery regression tests, five content-app domain tests, scoped typecheck and full-repository lint pass.
-- Full-repository TypeScript checking has the same 130 pre-existing errors on the original commit and this branch; no new errors were introduced.
+- Full-repository TypeScript checking and lint pass after integrating the latest main branch.
