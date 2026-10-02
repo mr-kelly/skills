@@ -400,10 +400,12 @@ export function filteredCampaigns() {
 }
 
 function renderOverview() {
-  els.title.textContent = t("overview");
-  els.subtitle.textContent = state.snapshot?.generated_at
-    ? `${t("generated")} ${new Date(state.snapshot.generated_at).toLocaleString()}`
-    : t("empty");
+  // Overview carries its own masthead (eyebrow/headline/lede) inside the
+  // content area -- a second heavy heading in the shared topbar would just
+  // repeat it. Leave the topbar title/subtitle empty here; every other view
+  // still uses them as its only heading.
+  els.title.textContent = "";
+  els.subtitle.textContent = "";
   const health = state.snapshot?.list_health || {};
   const upcoming = sends()
     .filter((item) => ["needs_review", "changes_requested", "approved"].includes(effectiveStatus(item)))
@@ -412,7 +414,23 @@ function renderOverview() {
     .slice(0, 6);
   const phaseCounts = {};
   for (const phase of PHASES) phaseCounts[phase] = sends().filter((item) => item.phase === phase).length;
+  const needsReviewCount = reviewCount();
   els.content.innerHTML = `
+    <div class="masthead">
+      <div class="eyebrow">${escapeHtml(t("overviewEyebrow"))}${
+        state.snapshot?.generated_at
+          ? ` · ${t("generated")} ${dateTime(state.snapshot.generated_at)}`
+          : ` · ${t("empty")}`
+      }</div>
+      <h1 class="headline">${escapeHtml(
+        needsReviewCount > 0 ? t("overviewHeadlineSome").replace("{n}", needsReviewCount) : t("overviewHeadlineNone"),
+      )}</h1>
+      <p class="lede">${escapeHtml(
+        t("overviewLede")
+          .replace("{value}", count(health.subscriber_count))
+          .replace("{rate}", pct(health.avg_open_rate)),
+      )}</p>
+    </div>
     ${metricCards()}
     ${warnings()}
     <section class="overview-grid">
