@@ -80,10 +80,10 @@ function alphaFromAny(value) {
   return value.includes("%") || m[1].includes("%") ? n / 100 : n;
 }
 
-function rgbToHsl([r, g, b]) {
-  r /= 255;
-  g /= 255;
-  b /= 255;
+function rgbToHsl(rgb) {
+  const r = rgb[0] / 255;
+  const g = rgb[1] / 255;
+  const b = rgb[2] / 255;
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const l = (max + min) / 2;
